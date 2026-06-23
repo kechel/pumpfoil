@@ -18,14 +18,15 @@ const METRICS: { key: keyof HistoryPoint; labelKey: string; fmt: (v: number) => 
 
 // Aggregat-Metriken (Summen/Mittel über das Fenster bzw. kumuliert).
 type Agg = {
-  key: string; field?: keyof HistoryPoint | null; kind: "sum" | "avg" | "count" | "ratio";
+  key: string; field?: keyof HistoryPoint | null; kind: "sum" | "avg" | "count" | "ratio" | "max";
   num?: keyof HistoryPoint; den?: keyof HistoryPoint | "count";
   labelKey: string; fmt: (v: number) => string; color: string;
 };
 // Oben (Einzel-Werte je Fenster/kumuliert): Mittel + Verhältnis, neben den Bestwerten.
 const AGG_TOP: Agg[] = [
-  { key: "avg_speed", field: "avg_speed", kind: "avg", labelKey: "sd.avgSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, color: "#f59e0b" },
-  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "avg", labelKey: "metric.avgPumpFreq", fmt: (v) => `${v.toFixed(2)} Hz`, color: "#f472b6" },
+  // Bestwert-Sektion: bester Session-Ø im Fenster (kumuliert = laufender Bestwert).
+  { key: "avg_speed", field: "avg_speed", kind: "max", labelKey: "sd.avgSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, color: "#f59e0b" },
+  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v) => `${v.toFixed(2)} Hz`, color: "#f472b6" },
   { key: "pumps_per_session", kind: "ratio", num: "pumps", den: "count", labelKey: "metric.pumpsPerSession", fmt: (v) => v.toFixed(0), color: "#fb7185" },
 ];
 // Unten: reine Summen über das Fenster bzw. kumuliert.
@@ -72,20 +73,20 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
     .sort((a, b) => a.t - b.t);
   if (valid.length < 2) return [];
   if (mode === "cumulative") {
-    let sum = 0, n = 0;
+    let sum = 0, n = 0, mx = 0;
     return valid.map((b) => {
-      sum += b.v; n += 1;
-      const v = m.kind === "avg" ? sum / n : m.kind === "count" ? n : sum;
+      sum += b.v; n += 1; if (b.v > mx) mx = b.v;
+      const v = m.kind === "avg" ? sum / n : m.kind === "count" ? n : m.kind === "max" ? mx : sum;
       return { t: b.t, v, sid: b.sid, run: null };
     });
   }
   const winMs = (mode === "window7" ? 7 : 30) * DAY_MS;
   let lastSid = valid[0].sid;
   const at = (tt: number): Pt => {
-    let sum = 0, n = 0, sid = lastSid;
-    for (const b of valid) if (b.t > tt - winMs && b.t <= tt) { sum += b.v; n += 1; sid = b.sid; }
+    let sum = 0, n = 0, mx = 0, sid = lastSid;
+    for (const b of valid) if (b.t > tt - winMs && b.t <= tt) { sum += b.v; n += 1; if (b.v > mx) mx = b.v; sid = b.sid; }
     if (n > 0) lastSid = sid;
-    const v = m.kind === "avg" ? (n ? sum / n : 0) : m.kind === "count" ? n : sum;
+    const v = m.kind === "avg" ? (n ? sum / n : 0) : m.kind === "count" ? n : m.kind === "max" ? mx : sum;
     return { t: tt, v, sid, run: null };
   };
   const out: Pt[] = [];
