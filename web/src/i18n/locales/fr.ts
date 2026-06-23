@@ -401,9 +401,16 @@ const fr: Record<string, string> = {
   "alarm.patLong2": "2× long",
   "alarm.patLsl": "long-court-long",
 
-  "install.button": "Installer l'app",
+  "install.button": "Installer Pumpfoil",
   "install.iosHint": "Dans Safari : appuie sur l'icône Partager ⬆️ → « Sur l'écran d'accueil ».",
   "install.menuHint": "Si aucune fenêtre n'apparaît : ouvre le menu du navigateur (⋮) → « Installer l'application » ou « Ajouter à l'écran d'accueil ».",
+
+  "pwa.offline": "Hors ligne – données enregistrées affichées.",
+  "pwa.updateAvailable": "Nouvelle version disponible.",
+  "pwa.update": "Mettre à jour",
+
+  "pwa.sessionOfflineTitle": "Hors ligne",
+  "pwa.sessionOfflineBody": "Cette session n'est pas enregistrée. Connecte-toi à Internet pour la charger.",
 
 };
 

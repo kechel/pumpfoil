@@ -1,10 +1,71 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 
 // Dev-Server auf 8090 (passt zur Apache-Reverse-Proxy-Config). Im Dev wird /api
 // an den lokal laufenden FastAPI-Server (Port 8000) weitergereicht.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "prompt",       // Update nicht automatisch – wir zeigen eine Leiste
+      injectRegister: false,        // Registrierung via useRegisterSW (PwaStatus)
+      manifest: false,              // wir behalten public/manifest.webmanifest
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/media/],
+        runtimeCaching: [
+          {
+            // Community-Feed: letzter geladener Stand offline (Suche = eigene URLs -> offline Miss)
+            urlPattern: ({ url }) => url.pathname === "/api/community/sessions",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-community",
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 8, maxAgeSeconds: 7 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Meine Sessions: Liste + Monate + Stats
+            urlPattern: ({ url }) =>
+              url.pathname === "/api/sessions" ||
+              url.pathname === "/api/sessions/months" ||
+              url.pathname === "/api/sessions/stats",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-my-sessions",
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 12, maxAgeSeconds: 7 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Session-Detail (+ raw/photos): die zuletzt angesehenen ~10 Sessions
+            urlPattern: ({ url }) => /^\/api\/sessions\/\d+(\/.*)?$/.test(url.pathname),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-session-detail",
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 40, maxAgeSeconds: 30 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Bilder/Medien (Thumbnails, Fotos, Avatare)
+            urlPattern: ({ url }) => url.pathname.startsWith("/media/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "media",
+              expiration: { maxEntries: 150, maxAgeSeconds: 30 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     port: 8090,
     host: true,

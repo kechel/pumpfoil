@@ -500,7 +500,17 @@ export default function SessionDetail() {
     }
   }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen]);
 
-  if (error) return <ErrorBox message={error} />;
+  if (error) {
+    // Offline + nicht im Cache -> klare Meldung statt technischem Fehler.
+    if (!navigator.onLine) return (
+      <Card className="mx-auto mt-10 max-w-md p-8 text-center text-slate-300">
+        <div className="mb-2 text-3xl">📡</div>
+        <p className="font-semibold text-slate-100">{t("pwa.sessionOfflineTitle")}</p>
+        <p className="mt-1 text-sm">{t("pwa.sessionOfflineBody")}</p>
+      </Card>
+    );
+    return <ErrorBox message={error} />;
+  }
   if (!session) return <Spinner />;
 
   const a = session.analysis;

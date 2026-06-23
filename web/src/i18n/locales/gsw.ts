@@ -330,9 +330,16 @@ const gsw: Record<string, string> = {
 
   "account.colorByValue": "Wärt je nach Höchi iifärbe (Speed/Puls)",
 
-  "install.button": "App installiere",
+  "install.button": "Pumpfoil installiere",
   "install.iosHint": "I Safari: s Teile-Symbol ⬆️ antippe → „Zum Home-Bildschirm“.",
   "install.menuHint": "Wenn kei Dialog chunnt: s Browser-Menü (⋮) ufmache → „App installiere“ oder „Zum Startbildschirm hinzuefüege“.",
+
+  "pwa.offline": "Offline – es werded gspeicherti Date azeigt.",
+  "pwa.updateAvailable": "Nöii Version verfüegbar.",
+  "pwa.update": "Aktualisiere",
+
+  "pwa.sessionOfflineTitle": "Offline",
+  "pwa.sessionOfflineBody": "Die Session isch nöd gspeicheret. Gang online zum si lade.",
 
 };
 

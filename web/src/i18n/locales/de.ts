@@ -529,9 +529,16 @@ const de: Record<string, string> = {
   "alarm.patLong2": "2× lang",
   "alarm.patLsl": "lang-kurz-lang",
 
-  "install.button": "App installieren",
+  "install.button": "Pumpfoil installieren",
   "install.iosHint": "In Safari: Teilen-Symbol ⬆️ unten antippen → „Zum Home-Bildschirm“.",
   "install.menuHint": "Falls kein Dialog erscheint: Browser-Menü (⋮) öffnen → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.",
+
+  "pwa.offline": "Offline – es werden gespeicherte Daten angezeigt.",
+  "pwa.updateAvailable": "Neue Version verfügbar.",
+  "pwa.update": "Aktualisieren",
+
+  "pwa.sessionOfflineTitle": "Offline",
+  "pwa.sessionOfflineBody": "Diese Session ist nicht gespeichert. Verbinde dich mit dem Internet, um sie zu laden.",
 
 };
 

@@ -39,6 +39,7 @@ import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
 import Landing from "./pages/Landing";
+import { PwaStatus } from "./components/PwaStatus";
 
 // "/" -> eingeloggt: App-Shell; Gast: öffentliche Landing-Page (statt Login-Redirect),
 // damit der App-Zweck ohne Anmeldung sichtbar ist (Google-OAuth-Anforderung).
@@ -71,14 +72,10 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <I18nProvider>
+      <PwaStatus />
       <RouterProvider router={router} />
     </I18nProvider>
   </React.StrictMode>
 );
 
-// PWA: Service Worker registrieren (nötig für "Zum Startbildschirm" auf Android).
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
-}
+// Service Worker wird via vite-plugin-pwa (useRegisterSW in PwaStatus) registriert.
