@@ -279,6 +279,7 @@ const en: Record<string, string> = {
   "sd.colMin": "Min km/h ({win}s)",
   "sd.colPumps": "Pumps",
   "sd.colDistPerPump": "Ø m/pump",
+  "sd.avgDistPerPump": "Ø dist/pump",
   "sd.colAvgPump": "Ø pump Hz",
   "sd.colPumpMaxMin": "Pump Hz 5s (max/min)",
   "sd.colGlide": "longest glide",

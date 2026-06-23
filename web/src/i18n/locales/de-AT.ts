@@ -295,6 +295,7 @@ const deAT: Record<string, string> = {
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
 
   "sd.colDistPerPump": "Ø m/Pump",
+  "sd.avgDistPerPump": "Ø Strecke/Pump",
 
 };
 

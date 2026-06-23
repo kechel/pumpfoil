@@ -642,6 +642,8 @@ export default function SessionDetail() {
               runIdx={maxPump.i} selected={selectedRun} onSelect={setSelectedRun} />
             <ClickStat label={t("sd.minPump")} value={minPump.v != null ? minPump.v.toFixed(2) : "–"} sub="Hz"
               runIdx={minPump.i} selected={selectedRun} onSelect={setSelectedRun} />
+            <Stat label={t("sd.avgDistPerPump")}
+              value={a?.pump_count && a.foiling_distance_m != null ? (a.foiling_distance_m / a.pump_count).toFixed(1) : "–"} sub="m/Pump" />
           </>
         )}
 

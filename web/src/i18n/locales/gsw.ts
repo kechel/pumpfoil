@@ -295,6 +295,7 @@ const gsw: Record<string, string> = {
   "watches.nFitbit": "Drittaabieter-Apps sind iigstellt worde.",
 
   "sd.colDistPerPump": "Ø m/Pump",
+  "sd.avgDistPerPump": "Ø Strecki/Pump",
 
 };
 
