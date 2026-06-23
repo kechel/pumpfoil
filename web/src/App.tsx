@@ -164,7 +164,7 @@ export default function App() {
             end={it.end}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${
-                isActive ? "text-brand-400" : "text-slate-400"
+                isActive ? "text-brand-400" : "text-slate-300"
               }`
             }
           >
