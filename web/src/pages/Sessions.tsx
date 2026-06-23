@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
-import { Card, Spinner, ErrorBox, Button } from "../components/ui";
+import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { useT } from "../i18n";
@@ -36,10 +36,7 @@ export default function Sessions() {
   const [name, setName] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState<string | null>(null);
 
-  const fileRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const hasMoreRef = useRef(true);
@@ -100,29 +97,6 @@ export default function Sessions() {
     fetchPage("", true);
   }
 
-  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
-    setUploading(true);
-    setError(null);
-    let fail = 0;
-    for (let i = 0; i < files.length; i++) {
-      if (files.length > 1) setProgress(`${i + 1}/${files.length}`);
-      try {
-        await api.uploadFit(files[i]);
-      } catch {
-        fail++;
-      }
-    }
-    setProgress(null);
-    setUploading(false);
-    if (fail) setError(t("sessions.uploadFail", { fail, total: files.length }));
-    if (fileRef.current) fileRef.current.value = "";
-    api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
-    hasMoreRef.current = true;
-    fetchPage(monthRef.current, true);
-  }
-
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center gap-3">
@@ -155,10 +129,6 @@ export default function Sessions() {
             </option>
           ))}
         </select>
-        <Button onClick={() => fileRef.current?.click()} className="ml-auto text-sm" disabled={uploading}>
-          {uploading ? `${t("sessions.importing")}${progress ? " " + progress : ""}…` : t("sessions.uploadFitZip")}
-        </Button>
-        <input ref={fileRef} type="file" accept=".fit,.zip" multiple className="hidden" onChange={onPick} />
       </div>
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
