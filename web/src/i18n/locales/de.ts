@@ -472,6 +472,28 @@ const de: Record<string, string> = {
   "land.f6Title": "Immer kostenlos",
   "land.f6Body": "Diese Seite und App bleiben kostenfrei. Sollten höhere Serverkosten anfallen, versuchen wir sie z. B. über Affiliate-Links oder Promo-Videos von Foil-Herstellern zu decken.",
 
+  "land.watchesLink": "Welche Uhren werden unterstützt?",
+  "watches.title": "Unterstützte Uhren",
+  "watches.intro": "Welche Uhr liefert welche Daten — du entscheidest. Wir wollen langfristig alle gängigen Sportuhren anbinden.",
+  "watches.colDevice": "Uhr",
+  "watches.colGps": "GPS · Distanz · Speed",
+  "watches.colHr": "Puls",
+  "watches.colPump": "Pumps & Gleitphasen",
+  "watches.colStatus": "Status",
+  "watches.st.avail": "Verfügbar",
+  "watches.st.planned": "Geplant",
+  "watches.st.import": "Nur Datenimport",
+  "watches.st.no": "Nicht möglich",
+  "watches.legYes": "voll unterstützt",
+  "watches.legPartial": "eingeschränkt",
+  "watches.legNo": "nicht verfügbar",
+  "watches.foot": "Pumps & Gleitphasen brauchen Roh-Beschleunigung (≥25 Hz) direkt von der Uhr. GPS-Stats lassen sich bei vielen Marken auch per FIT-/Datenimport auswerten.",
+  "watches.nGarmin": "Ältere Modelle ohne Roh-Accel: GPS-Stats werden trotzdem ausgewertet.",
+  "watches.nApple": "Roh-Beschleunigung über Core Motion.",
+  "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
+  "watches.nPolar": "Roh-Accel nur über separaten BLE-Sensor.",
+  "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
+
 };
 
 export default de;

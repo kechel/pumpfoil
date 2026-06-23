@@ -344,6 +344,28 @@ const fr: Record<string, string> = {
   "land.f6Title": "Toujours gratuit",
   "land.f6Body": "Ce site et cette app restent gratuits. En cas de coûts serveur plus élevés, nous essaierons de les couvrir p. ex. via des liens affiliés ou des vidéos promo de marques de foil.",
 
+  "land.watchesLink": "Quelles montres sont prises en charge ?",
+  "watches.title": "Montres prises en charge",
+  "watches.intro": "Quelle montre fournit quelles données — à toi de choisir. À terme, nous voulons prendre en charge toutes les montres de sport courantes.",
+  "watches.colDevice": "Montre",
+  "watches.colGps": "GPS · distance · vitesse",
+  "watches.colHr": "Fréq. cardiaque",
+  "watches.colPump": "Pompages & glisse",
+  "watches.colStatus": "Statut",
+  "watches.st.avail": "Disponible",
+  "watches.st.planned": "Prévu",
+  "watches.st.import": "Import de données",
+  "watches.st.no": "Impossible",
+  "watches.legYes": "entièrement pris en charge",
+  "watches.legPartial": "limité",
+  "watches.legNo": "non disponible",
+  "watches.foot": "Les pompages & phases de glisse nécessitent l'accélération brute (≥25 Hz) directement depuis la montre. Les stats GPS peuvent s'analyser via import FIT/données pour de nombreuses marques.",
+  "watches.nGarmin": "Modèles plus anciens sans accel brut : les stats GPS sont quand même analysées.",
+  "watches.nApple": "Accélération brute via Core Motion.",
+  "watches.nAmazfit": "Accès aux capteurs selon le modèle.",
+  "watches.nPolar": "Accel brut uniquement via un capteur BLE séparé.",
+  "watches.nFitbit": "Les apps tierces ont été abandonnées.",
+
 };
 
 export default fr;

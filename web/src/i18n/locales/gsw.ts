@@ -271,6 +271,28 @@ const gsw: Record<string, string> = {
   "land.f6Title": "Immer gratis",
   "land.f6Body": "Die Siite und App blibed gratis. Wenn höheri Serverchöste afalled, versueched mer si z. B. mit Affiliate-Links oder Promo-Videos vo Foil-Hersteller z decke.",
 
+  "land.watchesLink": "Weli Uhre wärded unterstützt?",
+  "watches.title": "Unterstützti Uhre",
+  "watches.intro": "Weli Uhr liiferet weli Date — du entscheidsch. Langfristig wänd mer alli gängige Sportuhre aabinde.",
+  "watches.colDevice": "Uhr",
+  "watches.colGps": "GPS · Distanz · Speed",
+  "watches.colHr": "Puls",
+  "watches.colPump": "Pumps & Gleitphase",
+  "watches.colStatus": "Status",
+  "watches.st.avail": "Verfüegbar",
+  "watches.st.planned": "Plant",
+  "watches.st.import": "Nume Datenimport",
+  "watches.st.no": "Nöd möglich",
+  "watches.legYes": "voll unterstützt",
+  "watches.legPartial": "iigschränkt",
+  "watches.legNo": "nöd verfüegbar",
+  "watches.foot": "Pumps & Gleitphase bruuched Roh-Beschlünigung (≥25 Hz) direkt vo de Uhr. GPS-Stats chamer bi vielne Marke au per FIT-/Datenimport uswerte.",
+  "watches.nGarmin": "Älteri Modäll ohni Roh-Accel: GPS-Stats wärded trotzdem uswertet.",
+  "watches.nApple": "Roh-Beschlünigung über Core Motion.",
+  "watches.nAmazfit": "Sensor-Zuegriff je nach Modäll.",
+  "watches.nPolar": "Roh-Accel nume über en separate BLE-Sensor.",
+  "watches.nFitbit": "Drittaabieter-Apps sind iigstellt worde.",
+
 };
 
 export default gsw

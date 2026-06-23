@@ -344,6 +344,28 @@ const it: Record<string, string> = {
   "land.f6Title": "Sempre gratis",
   "land.f6Body": "Questo sito e l'app restano gratuiti. Se i costi del server aumentassero, cercheremo di coprirli ad es. con link di affiliazione o video promo di produttori di foil.",
 
+  "land.watchesLink": "Quali orologi sono supportati?",
+  "watches.title": "Orologi supportati",
+  "watches.intro": "Quale orologio fornisce quali dati — decidi tu. A lungo termine vogliamo supportare tutti i principali sportwatch.",
+  "watches.colDevice": "Orologio",
+  "watches.colGps": "GPS · distanza · velocità",
+  "watches.colHr": "Battito",
+  "watches.colPump": "Pompate & planata",
+  "watches.colStatus": "Stato",
+  "watches.st.avail": "Disponibile",
+  "watches.st.planned": "Pianificato",
+  "watches.st.import": "Solo import dati",
+  "watches.st.no": "Non possibile",
+  "watches.legYes": "pieno supporto",
+  "watches.legPartial": "limitato",
+  "watches.legNo": "non disponibile",
+  "watches.foot": "Pompate & fasi di planata richiedono l'accelerazione grezza (≥25 Hz) direttamente dall'orologio. Le statistiche GPS si possono analizzare via import FIT/dati per molti marchi.",
+  "watches.nGarmin": "Modelli più vecchi senza accel grezzo: le statistiche GPS vengono comunque analizzate.",
+  "watches.nApple": "Accelerazione grezza via Core Motion.",
+  "watches.nAmazfit": "Accesso ai sensori a seconda del modello.",
+  "watches.nPolar": "Accel grezzo solo tramite sensore BLE separato.",
+  "watches.nFitbit": "Le app di terze parti sono state dismesse.",
+
 };
 
 export default it;

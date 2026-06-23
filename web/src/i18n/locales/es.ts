@@ -344,6 +344,28 @@ const es: Record<string, string> = {
   "land.f6Title": "Siempre gratis",
   "land.f6Body": "Este sitio y la app seguirán siendo gratuitos. Si surgieran mayores costes de servidor, intentaremos cubrirlos p. ej. con enlaces de afiliados o vídeos promo de marcas de foil.",
 
+  "land.watchesLink": "¿Qué relojes son compatibles?",
+  "watches.title": "Relojes compatibles",
+  "watches.intro": "Qué reloj da qué datos — tú decides. A largo plazo queremos admitir todos los relojes deportivos habituales.",
+  "watches.colDevice": "Reloj",
+  "watches.colGps": "GPS · distancia · velocidad",
+  "watches.colHr": "Pulso",
+  "watches.colPump": "Bombeos & planeo",
+  "watches.colStatus": "Estado",
+  "watches.st.avail": "Disponible",
+  "watches.st.planned": "Previsto",
+  "watches.st.import": "Solo import de datos",
+  "watches.st.no": "No posible",
+  "watches.legYes": "totalmente compatible",
+  "watches.legPartial": "limitado",
+  "watches.legNo": "no disponible",
+  "watches.foot": "Bombeos & fases de planeo necesitan aceleración bruta (≥25 Hz) directa del reloj. Las estadísticas GPS se pueden analizar vía import FIT/datos en muchas marcas.",
+  "watches.nGarmin": "Modelos antiguos sin accel bruto: las estadísticas GPS se analizan igualmente.",
+  "watches.nApple": "Aceleración bruta vía Core Motion.",
+  "watches.nAmazfit": "Acceso a sensores según el modelo.",
+  "watches.nPolar": "Accel bruto solo mediante un sensor BLE aparte.",
+  "watches.nFitbit": "Las apps de terceros fueron descontinuadas.",
+
 };
 
 export default es;

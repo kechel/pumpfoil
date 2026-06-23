@@ -447,6 +447,28 @@ const en: Record<string, string> = {
   "land.f6Title": "Always free",
   "land.f6Body": "This site and app stay free. Should higher server costs come up, we'll try to cover them e.g. via affiliate links or promo videos from foil brands.",
 
+  "land.watchesLink": "Which watches are supported?",
+  "watches.title": "Supported watches",
+  "watches.intro": "Which watch gives which data — you decide. Long-term we want to support all common sports watches.",
+  "watches.colDevice": "Watch",
+  "watches.colGps": "GPS · distance · speed",
+  "watches.colHr": "Heart rate",
+  "watches.colPump": "Pumps & glide phases",
+  "watches.colStatus": "Status",
+  "watches.st.avail": "Available",
+  "watches.st.planned": "Planned",
+  "watches.st.import": "Data import only",
+  "watches.st.no": "Not possible",
+  "watches.legYes": "fully supported",
+  "watches.legPartial": "limited",
+  "watches.legNo": "not available",
+  "watches.foot": "Pumps & glide phases need raw acceleration (≥25 Hz) straight from the watch. GPS stats can be analyzed via FIT/data import for many brands.",
+  "watches.nGarmin": "Older models without raw accel: GPS stats are still analyzed.",
+  "watches.nApple": "Raw acceleration via Core Motion.",
+  "watches.nAmazfit": "Sensor access depends on the model.",
+  "watches.nPolar": "Raw accel only via a separate BLE sensor.",
+  "watches.nFitbit": "Third-party apps were discontinued.",
+
 };
 
 export default en;
