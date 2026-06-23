@@ -330,6 +330,9 @@ const deAT: Record<string, string> = {
 
   "account.colorByValue": "Werte je nach Höhe einfärben (Speed/Puls)",
 
+  "install.button": "App installieren",
+  "install.iosHint": "In Safari: Teilen-Symbol ⬆️ unten antippen → „Zum Home-Bildschirm“.",
+
 };
 
 export default deAT

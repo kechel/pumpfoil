@@ -401,6 +401,9 @@ const fr: Record<string, string> = {
   "alarm.patLong2": "2× long",
   "alarm.patLsl": "long-court-long",
 
+  "install.button": "Installer l'app",
+  "install.iosHint": "Dans Safari : appuie sur l'icône Partager ⬆️ → « Sur l'écran d'accueil ».",
+
 };
 
 export default fr;

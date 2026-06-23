@@ -330,6 +330,9 @@ const gsw: Record<string, string> = {
 
   "account.colorByValue": "Wärt je nach Höchi iifärbe (Speed/Puls)",
 
+  "install.button": "App installiere",
+  "install.iosHint": "I Safari: s Teile-Symbol ⬆️ antippe → „Zum Home-Bildschirm“.",
+
 };
 
 export default gsw

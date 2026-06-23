@@ -401,6 +401,9 @@ const es: Record<string, string> = {
   "alarm.patLong2": "2× largo",
   "alarm.patLsl": "largo-corto-largo",
 
+  "install.button": "Instalar app",
+  "install.iosHint": "En Safari: toca el icono Compartir ⬆️ → «Añadir a inicio».",
+
 };
 
 export default es;

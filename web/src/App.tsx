@@ -5,6 +5,7 @@ import { Avatar } from "./components/ui";
 import { WaveIcon, ListIcon, WatchIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
+import { InstallPwa } from "./components/InstallPwa";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -117,6 +118,8 @@ export default function App() {
             <RecordStat label={t("rec.mostRuns")} rec={stats.records.runs} fmt={(v) => `${Math.round(v)}`} />
           </div>
         )}
+
+        <InstallPwa className="mt-3" />
 
         <button
           onClick={logout}

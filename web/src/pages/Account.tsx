@@ -4,6 +4,7 @@ import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { WatchMatrix } from "../components/WatchMatrix";
+import { InstallPwa } from "../components/InstallPwa";
 import { useT } from "../i18n";
 
 export default function Account() {
@@ -35,6 +36,8 @@ export default function Account() {
         <WatchIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>
+
+      <InstallPwa className="mb-4 md:hidden" />
 
       <div className="mb-5 flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
         <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>

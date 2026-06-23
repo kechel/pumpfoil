@@ -1,0 +1,48 @@
+import { useEffect, useState } from "react";
+import { useT } from "../i18n";
+
+// "App installieren": Android nutzt das native beforeinstallprompt, iOS bekommt die
+// Safari-Anleitung. Bereits installiert (standalone) -> nichts anzeigen.
+type BIPEvent = Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
+
+export function InstallPwa({ className = "" }: { className?: string }) {
+  const t = useT();
+  const [deferred, setDeferred] = useState<BIPEvent | null>(null);
+  const [iosHint, setIosHint] = useState(false);
+
+  const isStandalone =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true);
+  const isIOS =
+    typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent) &&
+    !/crios|fxios|edgios/i.test(navigator.userAgent); // nur Safari kann „Zum Home-Bildschirm"
+
+  useEffect(() => {
+    const onBip = (e: Event) => { e.preventDefault(); setDeferred(e as BIPEvent); };
+    window.addEventListener("beforeinstallprompt", onBip);
+    return () => window.removeEventListener("beforeinstallprompt", onBip);
+  }, []);
+
+  if (isStandalone) return null;
+  // Weder Android-Prompt verfügbar noch iOS-Safari -> kein sinnvoller Button.
+  if (!deferred && !isIOS) return null;
+
+  function click() {
+    if (deferred) { deferred.prompt(); deferred.userChoice.finally(() => setDeferred(null)); return; }
+    setIosHint((v) => !v);
+  }
+
+  return (
+    <div className={className}>
+      <button
+        onClick={click}
+        className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-300 hover:bg-brand-500/20"
+      >
+        ⬇ {t("install.button")}
+      </button>
+      {iosHint && (
+        <p className="mt-2 rounded-lg bg-slate-800/70 p-2 text-xs text-slate-300">{t("install.iosHint")}</p>
+      )}
+    </div>
+  );
+}

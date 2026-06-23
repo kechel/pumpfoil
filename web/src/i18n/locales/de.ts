@@ -529,6 +529,9 @@ const de: Record<string, string> = {
   "alarm.patLong2": "2× lang",
   "alarm.patLsl": "lang-kurz-lang",
 
+  "install.button": "App installieren",
+  "install.iosHint": "In Safari: Teilen-Symbol ⬆️ unten antippen → „Zum Home-Bildschirm“.",
+
 };
 
 export default de;

@@ -401,6 +401,9 @@ const it: Record<string, string> = {
   "alarm.patLong2": "2× lungo",
   "alarm.patLsl": "lungo-breve-lungo",
 
+  "install.button": "Installa l'app",
+  "install.iosHint": "In Safari: tocca l'icona Condividi ⬆️ → „Aggiungi a Home“.",
+
 };
 
 export default it;
