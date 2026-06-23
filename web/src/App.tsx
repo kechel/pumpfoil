@@ -6,6 +6,7 @@ import { WaveIcon, ListIcon, WatchIcon, LogoutIcon, ChartIcon, SettingsIcon, Shi
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { InstallPwa } from "./components/InstallPwa";
+import { warmMySessions } from "./lib/pwaCache";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -28,6 +29,8 @@ export default function App() {
   useEffect(() => {
     api.stats(accelOnly).then(setStats).catch(() => {});
   }, [accelOnly]);
+  // Letzte 10 eigene Sessions für Offline vorladen (nur was nicht schon gecacht ist).
+  useEffect(() => { warmMySessions(); }, []);
   useEffect(() => {
     api.getProfile().then((p) => {
       setProfile(p);

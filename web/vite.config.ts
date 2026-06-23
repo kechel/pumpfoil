@@ -42,13 +42,16 @@ export default defineConfig({
             },
           },
           {
-            // Session-Detail (+ raw/photos): die zuletzt angesehenen ~10 Sessions
-            urlPattern: ({ url }) => /^\/api\/sessions\/\d+(\/.*)?$/.test(url.pathname),
+            // Session-Detail (+ neighbors + social/Fotos): die letzten ~10 Sessions
+            // (proaktiv vorgewärmt) bzw. zuletzt angesehene.
+            urlPattern: ({ url }) =>
+              /^\/api\/sessions\/\d+(\/.*)?$/.test(url.pathname) ||
+              /^\/api\/community\/sessions\/\d+\//.test(url.pathname),
             handler: "NetworkFirst",
             options: {
               cacheName: "api-session-detail",
               networkTimeoutSeconds: 4,
-              expiration: { maxEntries: 40, maxAgeSeconds: 30 * 24 * 3600 },
+              expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },
