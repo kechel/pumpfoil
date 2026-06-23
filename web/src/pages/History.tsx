@@ -43,7 +43,9 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
   if (m.kind === "ratio") {
     const valid = data
       .map((d) => ({ t: new Date(d.started_at).getTime(), num: Number((d as any)[m.num!]), den: m.den === "count" ? 1 : Number((d as any)[m.den!]), sid: d.session_id }))
-      .filter((b) => Number.isFinite(b.num) && Number.isFinite(b.den) && b.den > 0)
+      // Nur Sessions, die die Kennzahl wirklich haben (z. B. Pumps>0): sonst würden
+      // GPS-only-Sessions ohne Pump-Daten den Schnitt verwässern.
+      .filter((b) => Number.isFinite(b.num) && b.num > 0 && Number.isFinite(b.den) && b.den > 0)
       .sort((a, b) => a.t - b.t);
     if (valid.length < 2) return [];
     if (mode === "cumulative") {
