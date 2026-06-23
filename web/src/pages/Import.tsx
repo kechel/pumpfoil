@@ -11,9 +11,19 @@ export default function Import() {
       <p className="mb-5 text-sm text-slate-300">{t("import.intro")}</p>
 
       <Card className="p-5">
-        <img src="/import-garmin.webp" alt={t("import.shotAlt")}
-          className="w-full rounded-xl border border-slate-800" />
-        <p className="mt-3 text-sm text-slate-200">{t("import.desc")}</p>
+        <ol className="space-y-3 text-sm text-slate-200">
+          <Step n={1}>{t("import.step1")}</Step>
+          <Step n={2}>{t("import.step2")}</Step>
+          <Step n={3}>
+            {t("import.step3pre")}<span className="font-semibold text-slate-100">{t("import.step3menu")}</span>{t("import.step3post")}
+          </Step>
+          <Step n={4}>{t("import.step4")}</Step>
+        </ol>
+
+        <figure className="mt-5">
+          <img src="/import-garmin.webp" alt={t("import.shotAlt")}
+            className="w-full rounded-xl border border-slate-800" />
+        </figure>
       </Card>
 
       <div className="mt-6 flex flex-col items-start gap-2">
@@ -21,5 +31,14 @@ export default function Import() {
         <p className="text-xs text-slate-400">{t("import.uploadNote")}</p>
       </div>
     </div>
+  );
+}
+
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <li className="flex gap-3">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-brand-400">{n}</span>
+      <span>{children}</span>
+    </li>
   );
 }
