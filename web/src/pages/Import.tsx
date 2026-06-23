@@ -7,9 +7,18 @@ export default function Import() {
   const t = useT();
   return (
     <div className="w-full">
-      <h2 className="mb-1 text-xl font-bold">{t("import.title")}</h2>
-      <p className="mb-5 text-sm text-slate-300">{t("import.intro")}</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-bold">{t("import.title")}</h2>
+          <p className="mt-1 text-sm text-slate-300">{t("import.intro")}</p>
+        </div>
+        <div className="shrink-0 text-right">
+          <UploadFitButton className="text-sm" />
+          <p className="mt-1 text-xs text-slate-400">{t("import.uploadNote")}</p>
+        </div>
+      </div>
 
+      <h3 className="mb-2 text-sm font-semibold text-slate-200">Garmin Connect</h3>
       <Card className="p-5">
         <ol className="space-y-3 text-sm text-slate-200">
           <Step n={1}>{t("import.step1")}</Step>
@@ -25,11 +34,6 @@ export default function Import() {
             className="w-full rounded-xl border border-slate-800" />
         </figure>
       </Card>
-
-      <div className="mt-6 flex flex-col items-start gap-2">
-        <UploadFitButton className="text-sm" />
-        <p className="text-xs text-slate-400">{t("import.uploadNote")}</p>
-      </div>
     </div>
   );
 }
