@@ -25,6 +25,7 @@ import AllSessions from "./pages/AllSessions";
 import SessionDetail from "./pages/SessionDetail";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
+import Import from "./pages/Import";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -47,6 +48,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
+      { path: "import", element: <Import /> },
       { path: "alle-sessions", element: <AllSessions /> },
       { path: "account", element: <Account /> },
       { path: "einstellungen", element: <Settings /> },

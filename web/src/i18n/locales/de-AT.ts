@@ -297,6 +297,18 @@ const deAT: Record<string, string> = {
   "sd.colDistPerPump": "Ø m/Pump",
   "sd.avgDistPerPump": "Ø Strecke/Pump",
 
+  "import.title": "Aktivität importieren",
+  "import.intro": "Lade eine in Garmin Connect aufgezeichnete Aktivität hoch, um sie auszuwerten — auch ältere Sessions.",
+  "import.step1": "Öffne die Aktivität in Garmin Connect (Web, connect.garmin.com).",
+  "import.step2": "Klick oben rechts auf das Zahnrad-Menü (⚙).",
+  "import.step3pre": "Wähle ",
+  "import.step3menu": "Datei exportieren",
+  "import.step3post": " — das lädt eine ZIP mit der originalen FIT-Datei (nicht TCX/GPX).",
+  "import.step4": "Lade die heruntergeladene ZIP (oder die entpackte .fit) hier hoch.",
+  "import.shotAlt": "Garmin-Connect-Menü mit der Option „Datei exportieren“",
+  "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportieren“",
+  "import.uploadNote": "FIT oder ZIP, mehrere Dateien möglich. Nach dem Upload öffnet sich die Auswertung.",
+
 };
 
 export default deAT

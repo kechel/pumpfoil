@@ -472,6 +472,18 @@ const en: Record<string, string> = {
   "watches.nPolar": "Raw accel only via a separate BLE sensor.",
   "watches.nFitbit": "Third-party apps were discontinued.",
 
+  "import.title": "Import activity",
+  "import.intro": "Upload an activity recorded in Garmin Connect to analyze it — including older sessions.",
+  "import.step1": "Open the activity in Garmin Connect (web, connect.garmin.com).",
+  "import.step2": "Click the gear menu (⚙) at the top right.",
+  "import.step3pre": "Choose ",
+  "import.step3menu": "Export to file",
+  "import.step3post": " — this downloads a ZIP with the original FIT file (not TCX/GPX).",
+  "import.step4": "Upload the downloaded ZIP (or the extracted .fit) here.",
+  "import.shotAlt": "Garmin Connect menu with the “Export to file” option",
+  "import.shotCap": "Garmin Connect: gear menu → “Export to file”",
+  "import.uploadNote": "FIT or ZIP, multiple files allowed. The analysis opens after upload.",
+
 };
 
 export default en;

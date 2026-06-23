@@ -5,7 +5,6 @@ import { Avatar } from "./components/ui";
 import { WaveIcon, ListIcon, WatchIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
-import { UploadFitButton } from "./components/UploadFitButton";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -83,7 +82,12 @@ export default function App() {
           </NavLink>
         ))}
 
-        <UploadFitButton className="mt-3 w-full text-sm" />
+        <Link
+          to="/import"
+          className="mt-3 w-full rounded-xl bg-brand-500 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-400"
+        >
+          {t("sessions.uploadFitZip")}
+        </Link>
 
         {stats && stats.count > 0 && (
           <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
@@ -131,7 +135,9 @@ export default function App() {
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
         <div className="flex items-center gap-3">
-          <UploadFitButton className="px-3 py-1.5 text-xs" />
+          <Link to="/import" className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400">
+            {t("sessions.uploadFitZip")}
+          </Link>
           <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
             <LogoutIcon />
           </button>

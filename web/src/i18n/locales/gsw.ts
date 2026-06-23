@@ -297,6 +297,18 @@ const gsw: Record<string, string> = {
   "sd.colDistPerPump": "Ø m/Pump",
   "sd.avgDistPerPump": "Ø Strecki/Pump",
 
+  "import.title": "Aktivität importiere",
+  "import.intro": "Lad e Aktivität us Garmin Connect ufe zum uswerte — au älteri Sessions.",
+  "import.step1": "Öffne d Aktivität i Garmin Connect (Web, connect.garmin.com).",
+  "import.step2": "Klick obe rächts ufs Zahnrad-Menü (⚙).",
+  "import.step3pre": "Wähl ",
+  "import.step3menu": "Datei exportiere",
+  "import.step3post": " — das ladet es ZIP mit de originale FIT-Datei (nöd TCX/GPX).",
+  "import.step4": "Lad s abeglade ZIP (oder s entpackte .fit) da ufe.",
+  "import.shotAlt": "Garmin-Connect-Menü mit de Option „Datei exportiere“",
+  "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportiere“",
+  "import.uploadNote": "FIT oder ZIP, mehreri Dateie möglich. Nachem Ufelade gaht d Uswertig uf.",
+
 };
 
 export default gsw

@@ -369,6 +369,18 @@ const fr: Record<string, string> = {
   "watches.nPolar": "Accel brut uniquement via un capteur BLE séparé.",
   "watches.nFitbit": "Les apps tierces ont été abandonnées.",
 
+  "import.title": "Importer une activité",
+  "import.intro": "Importe une activité enregistrée dans Garmin Connect pour l'analyser — y compris d'anciennes sessions.",
+  "import.step1": "Ouvre l'activité dans Garmin Connect (web, connect.garmin.com).",
+  "import.step2": "Clique sur le menu engrenage (⚙) en haut à droite.",
+  "import.step3pre": "Choisis ",
+  "import.step3menu": "Exporter le fichier",
+  "import.step3post": " — cela télécharge un ZIP avec le fichier FIT original (pas TCX/GPX).",
+  "import.step4": "Téléverse ici le ZIP téléchargé (ou le .fit extrait).",
+  "import.shotAlt": "Menu Garmin Connect avec l'option « Exporter le fichier »",
+  "import.shotCap": "Garmin Connect : menu engrenage → « Exporter le fichier »",
+  "import.uploadNote": "FIT ou ZIP, plusieurs fichiers possibles. L'analyse s'ouvre après l'envoi.",
+
 };
 
 export default fr;
