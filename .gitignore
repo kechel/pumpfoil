@@ -51,3 +51,7 @@ backups/
 
 # Claude Code lokale Session-Dateien
 .claude/
+
+# Web-Push VAPID Private Key
+vapid_private.pem
+*.pem

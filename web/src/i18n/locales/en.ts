@@ -521,6 +521,16 @@ const en: Record<string, string> = {
   "profile.deleteAccount": "Delete account",
   "profile.deleteConfirm": "Permanently delete your account? All sessions, raw data and photos will be removed. This cannot be undone.",
 
+  "notif.title": "Notifications",
+  "notif.hint": "Push notifications to this device, e.g. when someone likes your session.",
+  "notif.enable": "Enable notifications",
+  "notif.disable": "Turn off",
+  "notif.test": "Send test",
+  "notif.testSent": "Test sent ✅",
+  "notif.testNone": "No device registered.",
+  "notif.denied": "Blocked in the browser – allow it in site settings.",
+  "notif.error": "Didn't work.",
+
 };
 
 export default en;

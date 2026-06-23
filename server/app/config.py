@@ -44,6 +44,17 @@ class Settings:
             "OSM_USER_AGENT", "PumpfoilTracker/1.0 (+https://pumpfoil.org)"
         )
 
+        # Web-Push (VAPID). Leer -> Push deaktiviert.
+        self.vapid_public_key: str = os.environ.get("VAPID_PUBLIC_KEY", "")
+        self.vapid_subject: str = os.environ.get("VAPID_SUBJECT", "mailto:noreply@pumpfoil.org")
+        _vpk_file = os.environ.get("VAPID_PRIVATE_KEY_FILE", "")
+        self.vapid_private_key: str = ""
+        if _vpk_file:
+            try:
+                self.vapid_private_key = Path(_vpk_file).read_text()
+            except OSError:
+                self.vapid_private_key = ""
+
         # OAuth-Provider: je {client_id, client_secret} aus der .env. Leer -> Provider
         # ist deaktiviert (Button erscheint nicht). Redirect-URI je Provider:
         #   {base_url}/api/auth/oauth/<provider>/callback

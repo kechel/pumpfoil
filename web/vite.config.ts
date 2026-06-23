@@ -13,9 +13,19 @@ export default defineConfig({
       manifest: false,              // wir behalten public/manifest.webmanifest
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/media/],
         runtimeCaching: [
+          {
+            // Likes offline -> in Background-Sync-Queue, Versand sobald wieder online
+            urlPattern: ({ url }) => /^\/api\/community\/sessions\/\d+\/like$/.test(url.pathname),
+            handler: "NetworkOnly",
+            method: "POST",
+            options: {
+              backgroundSync: { name: "like-queue", options: { maxRetentionTime: 24 * 60 } },
+            },
+          },
           {
             // Community-Feed: letzter geladener Stand offline (Suche = eigene URLs -> offline Miss)
             urlPattern: ({ url }) => url.pathname === "/api/community/sessions",

@@ -5,6 +5,7 @@ import { SettingsIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
+import { NotificationsToggle } from "../components/NotificationsToggle";
 
 export default function Settings() {
   const { t } = useI18n();
@@ -128,6 +129,12 @@ export default function Settings() {
           <Button onClick={changePw} disabled={pwBusy || !pwCur || !pwNew}>{pwBusy ? "…" : t("profile.changePw")}</Button>
         </div>
         {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>}
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("notif.title")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("notif.hint")}</p>
+        <NotificationsToggle />
       </Card>
 
       <Card className="mt-4 p-5">

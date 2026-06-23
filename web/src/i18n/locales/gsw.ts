@@ -347,6 +347,16 @@ const gsw: Record<string, string> = {
   "profile.deleteAccount": "Konto lösche",
   "profile.deleteConfirm": "S Konto würkli unwiderrueflich lösche? Alli Sessions, Rohdate und Föteli wärded entfernt. Cha nöd rückgängig gmacht werde.",
 
+  "notif.title": "Benachrichtigunge",
+  "notif.hint": "Push-Benachrichtigunge uf das Grät, z. B. wenn öpperem dini Session gfallt.",
+  "notif.enable": "Benachrichtigunge aktiviere",
+  "notif.disable": "Uussschalte",
+  "notif.test": "Test schicke",
+  "notif.testSent": "Test gschickt ✅",
+  "notif.testNone": "Kei Grät registriert.",
+  "notif.denied": "Im Browser blockiert – bitte i de Siite-Iistellige erlaube.",
+  "notif.error": "Het nöd klappt.",
+
 };
 
 export default gsw

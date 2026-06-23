@@ -260,6 +260,10 @@ export const api = {
     }),
   getProfile: () => req<Profile>("/api/auth/me"),
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
+  pushKey: () => req<{ key: string }>("/api/push/key"),
+  pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),
+  pushUnsubscribe: (endpoint: string) => req<{ ok: boolean }>("/api/push/unsubscribe", { method: "POST", body: JSON.stringify({ endpoint }) }),
+  pushTest: () => req<{ sent: number }>("/api/push/test", { method: "POST" }),
   deleteMyAccount: () => req<{ ok: boolean }>("/api/auth/me", { method: "DELETE" }),
   updateProfile: (display_name: string) =>
     req<Profile>("/api/auth/me", {

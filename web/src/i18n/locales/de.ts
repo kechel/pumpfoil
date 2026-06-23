@@ -546,6 +546,16 @@ const de: Record<string, string> = {
   "profile.deleteAccount": "Konto löschen",
   "profile.deleteConfirm": "Konto wirklich unwiderruflich löschen? Alle Sessions, Rohdaten und Fotos werden entfernt. Das kann nicht rückgängig gemacht werden.",
 
+  "notif.title": "Benachrichtigungen",
+  "notif.hint": "Push-Benachrichtigungen auf dieses Gerät, z. B. wenn jemandem deine Session gefällt.",
+  "notif.enable": "Benachrichtigungen aktivieren",
+  "notif.disable": "Benachrichtigungen aus",
+  "notif.test": "Test senden",
+  "notif.testSent": "Test gesendet ✅",
+  "notif.testNone": "Kein Gerät registriert.",
+  "notif.denied": "Im Browser blockiert – bitte in den Seiteneinstellungen erlauben.",
+  "notif.error": "Hat nicht geklappt.",
+
 };
 
 export default de;

@@ -79,6 +79,19 @@ class DeviceToken(Base):
     user: Mapped["User"] = relationship(back_populates="devices")
 
 
+class PushSubscription(Base):
+    """Web-Push-Subscription eines Browsers/Geräts (VAPID)."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    endpoint: Mapped[str] = mapped_column(String(500), unique=True, index=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class Session(Base):
     """Eine aufgezeichnete Foil-Session."""
 

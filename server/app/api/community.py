@@ -312,12 +312,19 @@ def _vote_counts(db: Session, sid: int, user: models.User) -> dict:
 def toggle_like(session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     if db.get(models.Session, session_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    sess = db.get(models.Session, session_id)
     row = db.query(models.SessionLike).filter_by(user_id=user.id, session_id=session_id).first()
     if row:
         db.delete(row)
     else:
         db.add(models.SessionLike(user_id=user.id, session_id=session_id))
     db.commit()
+    # Owner bei NEUEM Like (nicht eigenem) benachrichtigen.
+    if row is None and sess is not None and sess.user_id != user.id:
+        from ..push import send_push
+        send_push(db, sess.user_id, "Pumpfoil",
+                  f"{user.display_name or 'Jemand'} gefällt deine Session ❤️",
+                  f"/sessions/{session_id}")
     return _like_state(db, session_id, user)
 
 

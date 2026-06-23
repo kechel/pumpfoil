@@ -418,6 +418,16 @@ const fr: Record<string, string> = {
   "profile.deleteAccount": "Supprimer le compte",
   "profile.deleteConfirm": "Supprimer définitivement ton compte ? Toutes les sessions, données brutes et photos seront supprimées. Irréversible.",
 
+  "notif.title": "Notifications",
+  "notif.hint": "Notifications push sur cet appareil, p. ex. quand on aime ta session.",
+  "notif.enable": "Activer les notifications",
+  "notif.disable": "Désactiver",
+  "notif.test": "Envoyer un test",
+  "notif.testSent": "Test envoyé ✅",
+  "notif.testNone": "Aucun appareil enregistré.",
+  "notif.denied": "Bloqué dans le navigateur – autorise-le dans les réglages du site.",
+  "notif.error": "Échec.",
+
 };
 
 export default fr;

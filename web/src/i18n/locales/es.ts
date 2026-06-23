@@ -418,6 +418,16 @@ const es: Record<string, string> = {
   "profile.deleteAccount": "Eliminar cuenta",
   "profile.deleteConfirm": "¿Eliminar tu cuenta de forma permanente? Se eliminarán todas las sesiones, datos brutos y fotos. No se puede deshacer.",
 
+  "notif.title": "Notificaciones",
+  "notif.hint": "Notificaciones push a este dispositivo, p. ej. cuando a alguien le gusta tu sesión.",
+  "notif.enable": "Activar notificaciones",
+  "notif.disable": "Desactivar",
+  "notif.test": "Enviar prueba",
+  "notif.testSent": "Prueba enviada ✅",
+  "notif.testNone": "Ningún dispositivo registrado.",
+  "notif.denied": "Bloqueado en el navegador – permítelo en los ajustes del sitio.",
+  "notif.error": "No funcionó.",
+
 };
 
 export default es;
