@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
@@ -15,12 +16,15 @@ export default function Landing() {
     { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
   ];
   const shots = [
+    { src: "/landing-track.webp", cap: t("land.shotTrack") },
     { src: "/landing-history.webp", cap: t("land.shotHistory") },
     { src: "/landing-records.webp", cap: t("land.shotRecords") },
     { src: "/landing-spots.webp", cap: t("land.shotSpots") },
     { src: "/landing-sessions.webp", cap: t("land.shotSessions") },
     { src: "/landing-stats.webp", cap: t("land.shotStats") },
   ];
+  const [shot, setShot] = useState(0);
+  const goShot = (d: number) => setShot((i) => (i + d + shots.length) % shots.length);
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
@@ -41,8 +45,10 @@ export default function Landing() {
       <main className="mx-auto max-w-5xl px-5">
         {/* Hero */}
         <section className="py-14 text-center sm:py-20">
-          <WaveIcon className="mx-auto mb-6 h-16 w-16 text-brand-400" />
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">{t("land.heroTitle")}</h1>
+          <h1 className="flex items-center justify-center gap-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
+            <WaveIcon className="h-10 w-10 text-brand-400 sm:h-14 sm:w-14" />
+            Pumpfoil.org
+          </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
           <div className="mt-8 flex justify-center">
             <Link
@@ -54,20 +60,37 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Kernfeature: farbiger Foiling-Track + Pump-Marker */}
-        <section className="pb-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-xl font-bold sm:text-2xl">{t("land.showcaseTitle")}</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-slate-300">{t("land.showcaseBody")}</p>
-          </div>
-          <figure className="mx-auto mt-6 max-w-3xl">
+        {/* Screenshot-Slider: Beschreibung als Überschrift, durchschaltbar */}
+        <section className="pb-8">
+          <h2 className="mb-5 min-h-[2rem] text-center text-xl font-bold sm:text-2xl">{shots[shot].cap}</h2>
+          <div className="relative mx-auto max-w-3xl">
             <img
-              src="/landing-track.webp"
-              alt={t("land.showcaseAlt")}
+              src={shots[shot].src}
+              alt={shots[shot].cap}
               className="w-full rounded-2xl border border-slate-800 shadow-2xl"
             />
-            <figcaption className="mt-2 text-center text-xs text-slate-500">{t("land.showcaseCaption")}</figcaption>
-          </figure>
+            <button
+              onClick={() => goShot(-1)}
+              aria-label={t("land.prev")}
+              className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-2xl text-white backdrop-blur hover:bg-black/70"
+            >‹</button>
+            <button
+              onClick={() => goShot(1)}
+              aria-label={t("land.next")}
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-2xl text-white backdrop-blur hover:bg-black/70"
+            >›</button>
+          </div>
+          {/* Vorschau-Punkte */}
+          <div className="mt-4 flex justify-center gap-2">
+            {shots.map((s, i) => (
+              <button
+                key={s.src}
+                onClick={() => setShot(i)}
+                aria-label={s.cap}
+                className={`h-2.5 rounded-full transition-all ${i === shot ? "w-6 bg-brand-400" : "w-2.5 bg-slate-600 hover:bg-slate-500"}`}
+              />
+            ))}
+          </div>
         </section>
 
         {/* Was ist Pumpfoil? */}
@@ -85,20 +108,6 @@ export default function Landing() {
               <p className="mt-1 text-sm text-slate-400">{f.body}</p>
             </div>
           ))}
-        </section>
-
-        {/* Galerie: Blick in die App */}
-        <section className="pb-6">
-          <h2 className="mb-6 text-center text-xl font-bold sm:text-2xl">{t("land.galleryTitle")}</h2>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {shots.map((s) => (
-              <figure key={s.src}>
-                <img src={s.src} alt={s.cap} loading="lazy"
-                  className="w-full rounded-2xl border border-slate-800 shadow-lg" />
-                <figcaption className="mt-2 text-center text-sm text-slate-400">{s.cap}</figcaption>
-              </figure>
-            ))}
-          </div>
         </section>
 
         {/* Datenschutz & Open Source */}

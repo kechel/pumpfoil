@@ -464,6 +464,10 @@ const de: Record<string, string> = {
   "land.shotSpots": "Community-Rekorde je Spot",
   "land.shotSessions": "Sessions: eigene & alle",
 
+  "land.shotTrack": "Farbiger Foiling-Track mit Pump-Markern",
+  "land.prev": "Zurück",
+  "land.next": "Weiter",
+
 };
 
 export default de;

@@ -336,6 +336,10 @@ const fr: Record<string, string> = {
   "land.shotSpots": "Records par spot",
   "land.shotSessions": "Sessions : les tiennes & toutes",
 
+  "land.shotTrack": "Tracé en foil coloré avec marqueurs de pompage",
+  "land.prev": "Précédent",
+  "land.next": "Suivant",
+
 };
 
 export default fr;

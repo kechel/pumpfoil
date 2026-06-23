@@ -263,6 +263,10 @@ const gsw: Record<string, string> = {
   "land.shotSpots": "Community-Rekord pro Spot",
   "land.shotSessions": "Sessions: eigeni & alli",
 
+  "land.shotTrack": "Farbige Foiling-Track mit Pump-Marker",
+  "land.prev": "Zrugg",
+  "land.next": "Wiiter",
+
 };
 
 export default gsw

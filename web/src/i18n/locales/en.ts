@@ -439,6 +439,10 @@ const en: Record<string, string> = {
   "land.shotSpots": "Community records per spot",
   "land.shotSessions": "Sessions: yours & everyone's",
 
+  "land.shotTrack": "Color-coded foiling track with pump markers",
+  "land.prev": "Previous",
+  "land.next": "Next",
+
 };
 
 export default en;
