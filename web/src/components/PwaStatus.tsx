@@ -25,7 +25,7 @@ export function PwaStatus() {
   return (
     <>
       {!online && (
-        <div className="fixed inset-x-0 top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 py-1 text-center text-xs font-medium text-slate-950">
+        <div className="sticky top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 py-1 text-center text-xs font-medium text-slate-950">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-900" />
           {t("pwa.offline")}
         </div>
