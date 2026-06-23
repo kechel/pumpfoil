@@ -35,12 +35,12 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 
 | | |
 |---|---|
-| **Detailed per-run stats** | **Track your progress over time** |
-| <img src="web/public/landing-stats.webp" alt="Detailed per-run statistics table"> | <img src="web/public/landing-history.webp" alt="History view tracking progress over time"> |
-| **Community records** | **Community records per spot** |
-| <img src="web/public/landing-records.webp" alt="Community records"> | <img src="web/public/landing-spots.webp" alt="Community records per spot"> |
-| **Sessions — yours & everyone's** | |
-| <img src="web/public/landing-sessions.webp" alt="Session list, own and all"> | |
+| **Track your progress over time** | **Community records** |
+| <img src="web/public/landing-history.webp" alt="History view tracking progress over time"> | <img src="web/public/landing-records.webp" alt="Community records"> |
+| **Community records per spot** | **Sessions — yours & everyone's** |
+| <img src="web/public/landing-spots.webp" alt="Community records per spot"> | <img src="web/public/landing-sessions.webp" alt="Session list, own and all"> |
+| **Detailed per-run stats** | |
+| <img src="web/public/landing-stats.webp" alt="Detailed per-run statistics table"> | |
 
 ## Architecture
 

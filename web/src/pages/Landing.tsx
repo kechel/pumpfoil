@@ -15,11 +15,11 @@ export default function Landing() {
     { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
   ];
   const shots = [
-    { src: "/landing-stats.webp", cap: t("land.shotStats") },
     { src: "/landing-history.webp", cap: t("land.shotHistory") },
     { src: "/landing-records.webp", cap: t("land.shotRecords") },
     { src: "/landing-spots.webp", cap: t("land.shotSpots") },
     { src: "/landing-sessions.webp", cap: t("land.shotSessions") },
+    { src: "/landing-stats.webp", cap: t("land.shotStats") },
   ];
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
