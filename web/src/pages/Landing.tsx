@@ -139,8 +139,6 @@ export default function Landing() {
       </main>
 
       <footer className="mx-auto mt-10 max-w-5xl px-5 py-8 text-center text-xs text-slate-500">
-        <Link to="/uhren" className="hover:text-slate-300">{t("watches.title")}</Link>
-        <span className="mx-2">·</span>
         <Link to="/impressum" className="hover:text-slate-300">{t("nav.imprint")}</Link>
         <span className="mx-2">·</span>
         <span>{t("land.footerLicense")}</span>

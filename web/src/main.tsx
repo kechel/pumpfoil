@@ -25,7 +25,6 @@ import AllSessions from "./pages/AllSessions";
 import SessionDetail from "./pages/SessionDetail";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
-import Watches from "./pages/Watches";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -41,7 +40,6 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
-  { path: "/uhren", element: <Watches /> },
   {
     path: "/",
     element: <RootRoute />,
