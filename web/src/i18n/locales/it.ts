@@ -177,6 +177,7 @@ const it: Record<string, string> = {
   "account.tabConnect": "Collega",
   "account.tabViews": "Viste",
   "account.tabApp": "App",
+  "account.tabCompat": "Compatibilità",
   "account.step1": "Genera un codice di abbinamento qui sotto.",
   "account.step2pre": "App Garmin Connect → ",
   "account.step2post": " → Impostazioni → inserisci il codice.",

@@ -51,9 +51,6 @@ export default function Landing() {
             Pumpfoil.org
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
-          <div className="mt-8">
-            <Link to="/uhren" className="text-sm text-brand-400 hover:text-brand-300">{t("land.watchesLink")}</Link>
-          </div>
         </section>
 
         {/* Screenshot-Slider: Beschreibung als Überschrift, durchschaltbar */}

@@ -177,6 +177,7 @@ const en: Record<string, string> = {
   "account.tabConnect": "Connect",
   "account.tabViews": "Views",
   "account.tabApp": "App",
+  "account.tabCompat": "Compatibility",
   "account.step1": "Generate a pairing code below.",
   "account.step2pre": "Garmin Connect app → ",
   "account.step2post": " → Settings → enter code.",

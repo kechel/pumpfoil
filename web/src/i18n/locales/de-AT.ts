@@ -169,6 +169,7 @@ const deAT: Record<string, string> = {
   "account.tabConnect": "Verbinden",
   "account.tabViews": "Ansichten",
   "account.tabApp": "App",
+  "account.tabCompat": "Kompatibilität",
   "account.genCode": "Pairing-Code erzeugen",
   "account.installTitle": "App installieren (ohne Store)",
   "account.deviceSearch": "Gerät suchen (z. B. fenix 7, Forerunner 965, epix)…",

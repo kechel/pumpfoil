@@ -169,6 +169,7 @@ const gsw: Record<string, string> = {
   "account.tabConnect": "Verbinde",
   "account.tabViews": "Aasichte",
   "account.tabApp": "App",
+  "account.tabCompat": "Kompatibilität",
   "account.genCode": "Pairing-Code generiere",
   "account.installTitle": "App installiere (ohni Store)",
   "account.deviceSearch": "Grät sueche (z. B. fenix 7, Forerunner 965, epix)…",

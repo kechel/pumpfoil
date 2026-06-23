@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
+import { WatchMatrix } from "../components/WatchMatrix";
 import { useT } from "../i18n";
 
 export default function Account() {
@@ -26,7 +27,7 @@ export default function Account() {
     }
   }
 
-  const [tab, setTab] = useState<"connect" | "views" | "app">("connect");
+  const [tab, setTab] = useState<"connect" | "views" | "app" | "compat">("connect");
 
   return (
     <div className="mx-auto max-w-lg">
@@ -39,6 +40,7 @@ export default function Account() {
         <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
         <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
         <TabBtn active={tab === "app"} onClick={() => setTab("app")}>{t("account.tabApp")}</TabBtn>
+        <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
 
       {tab === "connect" && (
@@ -75,6 +77,13 @@ export default function Account() {
 
       {tab === "views" && <ViewsEditor />}
       {tab === "app" && <AppDownloads />}
+      {tab === "compat" && (
+        <Card className="mt-5 p-5">
+          <h3 className="mb-1 font-semibold">{t("watches.title")}</h3>
+          <p className="mb-4 text-sm text-slate-300">{t("watches.intro")}</p>
+          <WatchMatrix />
+        </Card>
+      )}
     </div>
   );
 }

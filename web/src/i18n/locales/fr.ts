@@ -177,6 +177,7 @@ const fr: Record<string, string> = {
   "account.tabConnect": "Connecter",
   "account.tabViews": "Vues",
   "account.tabApp": "App",
+  "account.tabCompat": "Compatibilité",
   "account.step1": "Génère un code d'appairage ci-dessous.",
   "account.step2pre": "App Garmin Connect → ",
   "account.step2post": " → Réglages → saisir le code.",
