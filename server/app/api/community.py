@@ -319,12 +319,13 @@ def toggle_like(session_id: int, user: models.User = Depends(current_user), db: 
     else:
         db.add(models.SessionLike(user_id=user.id, session_id=session_id))
     db.commit()
-    # Owner bei NEUEM Like (nicht eigenem) benachrichtigen.
+    # Owner bei NEUEM Like (nicht eigenem) benachrichtigen – falls aktiviert.
     if row is None and sess is not None and sess.user_id != user.id:
-        from ..push import send_push
-        send_push(db, sess.user_id, "Pumpfoil",
-                  f"{user.display_name or 'Jemand'} gefällt deine Session ❤️",
-                  f"/sessions/{session_id}")
+        from ..push import send_push, wants
+        if wants(db, sess.user_id, "like"):
+            send_push(db, sess.user_id, "Pumpfoil",
+                      f"{user.display_name or 'Jemand'} gefällt deine Session ❤️",
+                      f"/sessions/{session_id}")
     return _like_state(db, session_id, user)
 
 

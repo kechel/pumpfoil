@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from . import models
-from .push import push_enabled, send_push
+from .push import push_enabled, send_push, wants
 
 log = logging.getLogger("notify")
 
@@ -63,11 +63,11 @@ def notify_session_analyzed(db: Session, session: "models.Session") -> None:
         record = None
         if ar is not None and ar.detection == "model" and session.is_pumpfoil:
             record = _community_record(db, ar)
-        if record:
+        if record and wants(db, session.user_id, "record"):
             metric, v = record
             send_push(db, session.user_id, "🏆 Community-Rekord!",
                       f"{_METRIC_LABEL[metric]}: {_fmt(metric, v)}", f"/sessions/{session.id}")
-        else:
+        elif wants(db, session.user_id, "analyzed"):
             send_push(db, session.user_id, "Pumpfoil",
                       "Deine Session ist ausgewertet 📊", f"/sessions/{session.id}")
     except Exception as e:  # noqa: BLE001 – Benachrichtigung darf nie den Flow brechen

@@ -556,6 +556,11 @@ const de: Record<string, string> = {
   "notif.denied": "Im Browser blockiert – bitte in den Seiteneinstellungen erlauben.",
   "notif.error": "Hat nicht geklappt.",
 
+  "notif.prefsTitle": "Wofür benachrichtigen",
+  "notif.typeLike": "Likes für meine Sessions",
+  "notif.typeAnalyzed": "Session ausgewertet",
+  "notif.typeRecord": "Community-Rekord geknackt",
+
 };
 
 export default de;

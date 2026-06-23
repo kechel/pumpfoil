@@ -17,6 +17,20 @@ def push_enabled() -> bool:
     return bool(s.vapid_public_key and s.vapid_private_key)
 
 
+def wants(db: Session, user_id: int, ntype: str) -> bool:
+    """Hat der Nutzer Push für diesen Typ aktiviert? (Default: ja)."""
+    u = db.get(models.User, user_id)
+    if u is None:
+        return False
+    prefs = {}
+    if u.settings_json:
+        try:
+            prefs = (json.loads(u.settings_json) or {}).get("notify_prefs") or {}
+        except ValueError:
+            prefs = {}
+    return bool(prefs.get(ntype, True))
+
+
 def send_push(db: Session, user_id: int, title: str, body: str, url: str = "/") -> int:
     """Push an alle Subscriptions eines Nutzers. Tote (404/410) werden gelöscht.
     Best-effort: Fehler werden geloggt, nie geworfen. Gibt die Anzahl Zustellungen."""

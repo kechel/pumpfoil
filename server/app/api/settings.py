@@ -23,7 +23,12 @@ DEFAULTS = {
     "speed_high": 0, "speed_low": 0,
     "alarm_pattern_high": "short2", "alarm_pattern_low": "long2",
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
+    # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
+    "notify_prefs": {"like": True, "analyzed": True, "record": True},
 }
+
+# Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
+NOTIFY_TYPES = ("like", "analyzed", "record")
 
 # Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
 ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}
@@ -91,6 +96,12 @@ def update_settings(
             current[k] = patch[k]
     if patch.get("alarm_repeat") in ALARM_REPEATS:
         current["alarm_repeat"] = patch["alarm_repeat"]
+    if isinstance(patch.get("notify_prefs"), dict):
+        prefs = dict(current.get("notify_prefs") or {})
+        for k, v in patch["notify_prefs"].items():
+            if k in NOTIFY_TYPES:
+                prefs[k] = bool(v)
+        current["notify_prefs"] = prefs
     user.settings_json = json.dumps(current)
     db.commit()
     return {**DEFAULTS, **current}

@@ -428,6 +428,11 @@ const es: Record<string, string> = {
   "notif.denied": "Bloqueado en el navegador – permítelo en los ajustes del sitio.",
   "notif.error": "No funcionó.",
 
+  "notif.prefsTitle": "Notificarme sobre",
+  "notif.typeLike": "Me gusta en mis sesiones",
+  "notif.typeAnalyzed": "Sesión analizada",
+  "notif.typeRecord": "Récord de la comunidad batido",
+
 };
 
 export default es;

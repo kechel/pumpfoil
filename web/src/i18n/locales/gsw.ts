@@ -357,6 +357,11 @@ const gsw: Record<string, string> = {
   "notif.denied": "Im Browser blockiert – bitte i de Siite-Iistellige erlaube.",
   "notif.error": "Het nöd klappt.",
 
+  "notif.prefsTitle": "Woför benachrichtige",
+  "notif.typeLike": "Likes für mini Sessions",
+  "notif.typeAnalyzed": "Session uswertet",
+  "notif.typeRecord": "Community-Rekord knackt",
+
 };
 
 export default gsw

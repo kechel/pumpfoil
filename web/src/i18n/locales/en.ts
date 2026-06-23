@@ -531,6 +531,11 @@ const en: Record<string, string> = {
   "notif.denied": "Blocked in the browser – allow it in site settings.",
   "notif.error": "Didn't work.",
 
+  "notif.prefsTitle": "Notify me about",
+  "notif.typeLike": "Likes on my sessions",
+  "notif.typeAnalyzed": "Session analyzed",
+  "notif.typeRecord": "Community record set",
+
 };
 
 export default en;

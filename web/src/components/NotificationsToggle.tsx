@@ -22,6 +22,14 @@ export function NotificationsToggle() {
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [prefs, setPrefs] = useState<Record<string, boolean> | null>(null);
+
+  // Erweiterbar: hier neue Benachrichtigungstypen ergänzen (Key identisch mit Server NOTIFY_TYPES).
+  const TYPES = [
+    { key: "like", label: t("notif.typeLike") },
+    { key: "analyzed", label: t("notif.typeAnalyzed") },
+    { key: "record", label: t("notif.typeRecord") },
+  ];
 
   useEffect(() => {
     if (!supported) return;
@@ -30,9 +38,16 @@ export function NotificationsToggle() {
       .then((reg) => reg.pushManager.getSubscription())
       .then((s) => setSubscribed(!!s))
       .catch(() => setSubscribed(false));
+    api.getSettings().then((s) => setPrefs((s.notify_prefs as Record<string, boolean>) ?? {})).catch(() => setPrefs({}));
   }, [supported]);
 
   if (!supported || !vapid) return null;
+
+  function togglePref(key: string, on: boolean) {
+    const next = { ...(prefs ?? {}), [key]: on };
+    setPrefs(next);
+    api.saveSettings({ notify_prefs: next }).catch(() => {});
+  }
 
   async function enable() {
     setBusy(true); setMsg(null);
@@ -79,6 +94,22 @@ export function NotificationsToggle() {
         )}
       </div>
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+
+      {prefs && (
+        <div className="mt-4 space-y-2 border-t border-slate-800 pt-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{t("notif.prefsTitle")}</p>
+          {TYPES.map((ty) => (
+            <label key={ty.key} className="flex items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                checked={prefs[ty.key] !== false}
+                onChange={(e) => togglePref(ty.key, e.target.checked)}
+              />
+              {ty.label}
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
