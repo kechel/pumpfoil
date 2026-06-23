@@ -52,19 +52,36 @@ export function SessionCard({
     ? new Date(startedAt).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
     : "";
 
+  const thumbEl = thumbUrl ? (
+    <div className="relative">
+      <img src={thumbUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
+      {photoCount > 1 && (
+        <span className="absolute -right-1 -top-1 rounded-full bg-slate-900/90 px-1.5 text-[10px] text-slate-200">{photoCount}</span>
+      )}
+    </div>
+  ) : null;
+  const trackEl = trackPreview ? <TrackPreview data={trackPreview} className="h-12 w-16 text-brand-400" /> : null;
+
   return (
     <Link to={`/sessions/${sessionId}`} className="block">
-      <Card className="flex items-center justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex shrink-0 flex-col items-center gap-1">
+      <Card className="flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900">
+        <div className="flex min-w-0 gap-3">
+          <div className="flex shrink-0 flex-col items-start gap-1.5">
             <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />
             <button
               onClick={toggleLike}
               title={liked ? t("row.unlike") : t("row.like")}
-              className={`mt-1 flex items-center gap-1 text-sm ${liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}
+              className={`flex items-center gap-1 text-sm ${liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}
             >
               {liked ? "❤️" : "🤍"}{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
             </button>
+            {/* Mobil: Thumbnail + Track linksbündig unter dem Profilbild */}
+            {(thumbEl || trackEl) && (
+              <div className="mt-1 flex flex-col gap-1.5 sm:hidden">
+                {thumbEl}
+                {trackEl}
+              </div>
+            )}
           </div>
           <div className="min-w-0">
             <div className="font-semibold">
@@ -87,15 +104,11 @@ export function SessionCard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          {thumbUrl && (
-            <div className="relative">
-              <img src={thumbUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
-              {photoCount > 1 && (
-                <span className="absolute -right-1 -top-1 rounded-full bg-slate-900/90 px-1.5 text-[10px] text-slate-200">{photoCount}</span>
-              )}
-            </div>
-          )}
-          {trackPreview && <TrackPreview data={trackPreview} className="h-12 w-16 text-brand-400" />}
+          {/* Desktop: Thumbnail + Track rechts */}
+          <div className="hidden items-center gap-3 sm:flex">
+            {thumbEl}
+            {trackEl}
+          </div>
           {statusBadge}
           <ChevronIcon className="h-5 w-5 text-slate-400" />
         </div>
