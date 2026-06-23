@@ -4,6 +4,7 @@ import { Card, Button, Avatar } from "../components/ui";
 import { SettingsIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { InstallPwa } from "../components/InstallPwa";
 
 export default function Settings() {
   const { t } = useI18n();
@@ -66,6 +67,8 @@ export default function Settings() {
         <SettingsIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("profile.title")}</h2>
       </div>
+
+      <InstallPwa className="mb-4 md:hidden" />
 
       <Card className="mb-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.avatar")}</h3>
