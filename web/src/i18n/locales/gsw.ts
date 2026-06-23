@@ -310,6 +310,24 @@ const gsw: Record<string, string> = {
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportiere“",
   "import.uploadNote": "FIT oder ZIP, mehreri Dateie möglich. Nachem Ufelade gaht d Uswertig uf.",
 
+  "account.tabAlarm": "Alarm",
+  "alarm.title": "Vibrationsalarm",
+  "alarm.desc": "D Uhr vibriert, wenn d über oder under e Gschwindigkeit chunnsch. 0 km/h = us.",
+  "alarm.enable": "Vibrationsalarm aktiviere",
+  "alarm.overTitle": "Über de Max-Gschwindigkeit",
+  "alarm.underTitle": "Under de Min-Gschwindigkeit",
+  "alarm.maxSpeed": "Max",
+  "alarm.minSpeed": "Min",
+  "alarm.pattern": "Muster",
+  "alarm.mode": "Uslöse",
+  "alarm.modeOnce": "eimal bim Über-/Underschriite",
+  "alarm.modeContinuous": "dauerhaft, solang drüber/drunter",
+  "alarm.zeroHint": "Tipp: 0 km/h schaltet die Gränze us.",
+  "alarm.patShort1": "1× churz",
+  "alarm.patShort2": "2× churz",
+  "alarm.patLong2": "2× lang",
+  "alarm.patLsl": "lang-churz-lang",
+
 };
 
 export default gsw

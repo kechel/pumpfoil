@@ -382,6 +382,24 @@ const es: Record<string, string> = {
   "import.shotCap": "Garmin Connect: menú de engranaje → «Exportar a archivo»",
   "import.uploadNote": "FIT o ZIP, varios archivos posibles. El análisis se abre tras la subida.",
 
+  "account.tabAlarm": "Alarma",
+  "alarm.title": "Alarma por vibración",
+  "alarm.desc": "El reloj vibra cuando superas o bajas de una velocidad. 0 km/h = desactivado.",
+  "alarm.enable": "Activar alarma por vibración",
+  "alarm.overTitle": "Por encima de la velocidad máx",
+  "alarm.underTitle": "Por debajo de la velocidad mín",
+  "alarm.maxSpeed": "Máx",
+  "alarm.minSpeed": "Mín",
+  "alarm.pattern": "Patrón",
+  "alarm.mode": "Activación",
+  "alarm.modeOnce": "una vez al cruzar",
+  "alarm.modeContinuous": "continuo mientras esté por encima/debajo",
+  "alarm.zeroHint": "Consejo: 0 km/h desactiva ese umbral.",
+  "alarm.patShort1": "1× corto",
+  "alarm.patShort2": "2× corto",
+  "alarm.patLong2": "2× largo",
+  "alarm.patLsl": "largo-corto-largo",
+
 };
 
 export default es;

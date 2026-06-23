@@ -510,6 +510,24 @@ const de: Record<string, string> = {
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportieren“",
   "import.uploadNote": "FIT oder ZIP, mehrere Dateien möglich. Nach dem Upload öffnet sich die Auswertung.",
 
+  "account.tabAlarm": "Alarm",
+  "alarm.title": "Vibrationsalarm",
+  "alarm.desc": "Die Uhr vibriert, wenn du eine Geschwindigkeit über- oder unterschreitest. 0 km/h = aus.",
+  "alarm.enable": "Vibrationsalarm aktivieren",
+  "alarm.overTitle": "Max-Geschwindigkeit überschritten",
+  "alarm.underTitle": "Min-Geschwindigkeit unterschritten",
+  "alarm.maxSpeed": "Max",
+  "alarm.minSpeed": "Min",
+  "alarm.pattern": "Muster",
+  "alarm.mode": "Auslösen",
+  "alarm.modeOnce": "einmalig beim Über-/Unterschreiten",
+  "alarm.modeContinuous": "dauerhaft, solange drüber/drunter",
+  "alarm.zeroHint": "Tipp: 0 km/h schaltet die jeweilige Grenze aus.",
+  "alarm.patShort1": "1× kurz",
+  "alarm.patShort2": "2× kurz",
+  "alarm.patLong2": "2× lang",
+  "alarm.patLsl": "lang-kurz-lang",
+
 };
 
 export default de;

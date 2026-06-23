@@ -15,7 +15,18 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 # Gültige Datenfeld-IDs (gemeinsamer Katalog mit Web + Uhr). 0 = leer/aus.
 VALID_FIELD_IDS = set(range(0, 21))  # 0-13 Live-Felder, 14-20 Lauf-Felder
 # Default: eine Ansicht mit Speed(3s) + Puls.
-DEFAULTS = {"speed_min": 8, "speed_max": 25, "speed_auto": True, "views": [[1, 2, 0]]}
+DEFAULTS = {
+    "speed_min": 8, "speed_max": 25, "speed_auto": True, "views": [[1, 2, 0]],
+    # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
+    "alarm_enabled": False,
+    "speed_high": 0, "speed_low": 0,
+    "alarm_pattern_high": "short2", "alarm_pattern_low": "long2",
+    "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
+}
+
+# Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
+ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}
+ALARM_REPEATS = {"once", "continuous"}
 
 
 def _merged(user: models.User) -> dict:
@@ -63,6 +74,20 @@ def update_settings(
         cleaned = _clean_views(patch["views"])
         if cleaned:
             current["views"] = cleaned
+    # Vibrationsalarm
+    if "alarm_enabled" in patch:
+        current["alarm_enabled"] = bool(patch["alarm_enabled"])
+    for k in ("speed_high", "speed_low"):
+        if k in patch:
+            try:
+                current[k] = max(0, min(60, round(float(patch[k]))))
+            except (TypeError, ValueError):
+                pass
+    for k in ("alarm_pattern_high", "alarm_pattern_low"):
+        if k in patch and patch[k] in ALARM_PATTERNS:
+            current[k] = patch[k]
+    if patch.get("alarm_repeat") in ALARM_REPEATS:
+        current["alarm_repeat"] = patch["alarm_repeat"]
     user.settings_json = json.dumps(current)
     db.commit()
     return {**DEFAULTS, **current}

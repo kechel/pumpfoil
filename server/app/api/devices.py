@@ -31,6 +31,13 @@ def device_config(
     return {
         "views": settings.get("views", [[1, 2, 0]]),
         "colorByValue": bool(settings.get("colorByValue", False)),
+        # Vibrationsalarm (per Website konfiguriert).
+        "alarmEnabled": bool(settings.get("alarm_enabled", False)),
+        "speedHigh": int(settings.get("speed_high", 0) or 0),
+        "speedLow": int(settings.get("speed_low", 0) or 0),
+        "alarmPatternHigh": settings.get("alarm_pattern_high", "short2"),
+        "alarmPatternLow": settings.get("alarm_pattern_low", "long2"),
+        "alarmRepeat": settings.get("alarm_repeat", "once"),
     }
 
 

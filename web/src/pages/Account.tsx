@@ -27,7 +27,7 @@ export default function Account() {
     }
   }
 
-  const [tab, setTab] = useState<"connect" | "views" | "app" | "compat">("connect");
+  const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("connect");
 
   return (
     <div className="mx-auto max-w-lg">
@@ -39,6 +39,7 @@ export default function Account() {
       <div className="mb-5 flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
         <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
         <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
+        <TabBtn active={tab === "alarm"} onClick={() => setTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
         <TabBtn active={tab === "app"} onClick={() => setTab("app")}>{t("account.tabApp")}</TabBtn>
         <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
@@ -76,6 +77,7 @@ export default function Account() {
       )}
 
       {tab === "views" && <ViewsEditor />}
+      {tab === "alarm" && <AlarmEditor />}
       {tab === "app" && <AppDownloads />}
       {tab === "compat" && (
         <Card className="mt-5 p-5">
@@ -252,6 +254,111 @@ function ViewsEditor() {
 
       <div className="mt-4 flex items-center gap-3">
         <button onClick={addView} className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700">{t("account.addView")}</button>
+        <Button onClick={save} className="text-sm">{t("common.save")}</Button>
+        {saved && <span className="text-sm text-emerald-400">{t("account.saved")}</span>}
+      </div>
+      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
+    </Card>
+  );
+}
+
+function AlarmEditor() {
+  const t = useT();
+  const [s, setS] = useState<Record<string, any> | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => { api.getSettings().then(setS).catch((e) => setErr(String(e))); }, []);
+
+  const PATTERNS = [
+    { id: "short1", label: t("alarm.patShort1") },
+    { id: "short2", label: t("alarm.patShort2") },
+    { id: "long2", label: t("alarm.patLong2") },
+    { id: "lsl", label: t("alarm.patLsl") },
+  ];
+
+  function set(k: string, v: any) { setS((p) => ({ ...(p ?? {}), [k]: v })); setSaved(false); }
+  async function save() {
+    setErr(null);
+    try {
+      const res = await api.saveSettings({
+        alarm_enabled: !!s?.alarm_enabled,
+        speed_high: Number(s?.speed_high) || 0,
+        speed_low: Number(s?.speed_low) || 0,
+        alarm_pattern_high: s?.alarm_pattern_high ?? "short2",
+        alarm_pattern_low: s?.alarm_pattern_low ?? "long2",
+        alarm_repeat: s?.alarm_repeat ?? "once",
+      });
+      setS(res);
+      setSaved(true);
+    } catch (e) { setErr(String(e)); }
+  }
+
+  if (!s) return null;
+  const patSelect = (key: string) => (
+    <select value={s[key] ?? (key.endsWith("high") ? "short2" : "long2")}
+      onChange={(e) => set(key, e.target.value)}
+      className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
+      {PATTERNS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+    </select>
+  );
+
+  return (
+    <Card className="mt-5 p-5">
+      <h3 className="mb-1 font-semibold">{t("alarm.title")}</h3>
+      <p className="mb-4 text-sm text-slate-300">{t("alarm.desc")}</p>
+
+      <label className="mb-4 flex items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={!!s.alarm_enabled} onChange={(e) => set("alarm_enabled", e.target.checked)} />
+        {t("alarm.enable")}
+      </label>
+
+      <div className={s.alarm_enabled ? "space-y-4" : "space-y-4 pointer-events-none opacity-40"}>
+        {/* Max-Speed (Überschreiten) */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+          <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.overTitle")}</div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.maxSpeed")}</span>
+              <input type="number" min={0} max={60} value={s.speed_high ?? 0}
+                onChange={(e) => set("speed_high", e.target.value)}
+                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">km/h</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_high")}
+            </label>
+          </div>
+        </div>
+        {/* Min-Speed (Unterschreiten) */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+          <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.underTitle")}</div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.minSpeed")}</span>
+              <input type="number" min={0} max={60} value={s.speed_low ?? 0}
+                onChange={(e) => set("speed_low", e.target.value)}
+                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">km/h</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_low")}
+            </label>
+          </div>
+        </div>
+        {/* Modus */}
+        <label className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-400">{t("alarm.mode")}</span>
+          <select value={s.alarm_repeat ?? "once"} onChange={(e) => set("alarm_repeat", e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+            <option value="once">{t("alarm.modeOnce")}</option>
+            <option value="continuous">{t("alarm.modeContinuous")}</option>
+          </select>
+        </label>
+        <p className="text-xs text-slate-400">{t("alarm.zeroHint")}</p>
+      </div>
+
+      <div className="mt-4 flex items-center gap-3">
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>
         {saved && <span className="text-sm text-emerald-400">{t("account.saved")}</span>}
       </div>

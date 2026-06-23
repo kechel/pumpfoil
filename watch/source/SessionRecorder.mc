@@ -60,6 +60,9 @@ class SessionRecorder {
     var alarmEnabled = false;
     var speedHighKmh = 0;
     var speedLowKmh = 0;
+    var alarmPatternHigh = "short2";  // Muster beim Überschreiten der Max-Speed
+    var alarmPatternLow = "long2";    // Muster beim Unterschreiten der Min-Speed
+    var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
 
     // --- On-Watch-Lauferkennung (Live-Näherung, GPS-Speed) ---
     // Bewusst simpel: Hysterese + Dwell auf dem 3-s-Speed. Der Server bleibt mit
@@ -117,6 +120,16 @@ class SessionRecorder {
         alarmEnabled = Config.getBool("alarmEnabled", false);
         speedHighKmh = Config.getNumber("speedHigh", 0);
         speedLowKmh = Config.getNumber("speedLow", 0);
+        // Vibrationsmuster/-Modus kommen nur von der Website (Cache); Properties haben sie nicht.
+        var ac = Storage.getValue("alarm_config");
+        if (ac instanceof Lang.Dictionary) {
+            if (ac.hasKey("enabled")) { alarmEnabled = ac["enabled"]; }
+            if (ac.hasKey("high")) { speedHighKmh = ac["high"]; }
+            if (ac.hasKey("low")) { speedLowKmh = ac["low"]; }
+            if (ac.hasKey("ph")) { alarmPatternHigh = ac["ph"]; }
+            if (ac.hasKey("pl")) { alarmPatternLow = ac["pl"]; }
+            if (ac.hasKey("rep")) { alarmRepeat = ac["rep"]; }
+        }
     }
 
     // Beim App-Start die auf der Website konfigurierten Ansichten laden (falls online).
@@ -135,10 +148,22 @@ class SessionRecorder {
     }
 
     function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
-        if (responseCode == 200 && data instanceof Lang.Dictionary && data.hasKey("views")) {
-            setScreensFromConfig(data["views"]);
+        if (responseCode == 200 && data instanceof Lang.Dictionary) {
+            if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
             if (data.hasKey("colorByValue") && data["colorByValue"] != null) {
                 colorByValue = data["colorByValue"];
+            }
+            // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
+            if (data.hasKey("alarmEnabled")) {
+                alarmEnabled = data["alarmEnabled"];
+                if (data.hasKey("speedHigh") && data["speedHigh"] != null) { speedHighKmh = data["speedHigh"]; }
+                if (data.hasKey("speedLow") && data["speedLow"] != null) { speedLowKmh = data["speedLow"]; }
+                if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
+                if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
+                if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
+                Storage.setValue("alarm_config", {
+                    "enabled" => alarmEnabled, "high" => speedHighKmh, "low" => speedLowKmh,
+                    "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat });
             }
             WatchUi.requestUpdate();
         }
@@ -430,19 +455,47 @@ class SessionRecorder {
     }
 
     // --- Vibrationsalarm ---
-    hidden var _alarmActive = false;
+    hidden var _alarmActive = false;   // aktuell über/unter Schwelle?
+    hidden var _alarmTick = 0;         // s seit letztem Vibrieren (für "continuous")
+    const ALARM_REPEAT_S = 3;          // dauerhaft: alle 3 s erneut
+
+    // Muster-ID -> Folge von VibeProfiles (Vibration mit Pausen via Intensität 0).
+    hidden function _vibe(pattern) {
+        if (!(Toybox has :Attention)) { return; }
+        var A = Toybox.Attention;
+        var seq;
+        if (pattern.equals("short1")) {
+            seq = [new A.VibeProfile(75, 200)];
+        } else if (pattern.equals("long2")) {
+            seq = [new A.VibeProfile(75, 500), new A.VibeProfile(0, 150), new A.VibeProfile(75, 500)];
+        } else if (pattern.equals("lsl")) {
+            seq = [new A.VibeProfile(75, 500), new A.VibeProfile(0, 120),
+                   new A.VibeProfile(75, 150), new A.VibeProfile(0, 120), new A.VibeProfile(75, 500)];
+        } else { // "short2" (Default)
+            seq = [new A.VibeProfile(75, 150), new A.VibeProfile(0, 120), new A.VibeProfile(75, 150)];
+        }
+        A.vibrate(seq);
+    }
+
     function _checkAlarm(speedMps) {
         if (!alarmEnabled) { return; }
         var kmh = speedMps * 3.6;
-        var trip = (speedHighKmh > 0 && kmh > speedHighKmh)
-                || (speedLowKmh > 0 && kmh < speedLowKmh);
+        var over = (speedHighKmh > 0 && kmh > speedHighKmh);
+        var under = (speedLowKmh > 0 && kmh < speedLowKmh);
+        var trip = over || under;
         if (trip && !_alarmActive) {
             _alarmActive = true;
-            if (Toybox has :Attention) {
-                Toybox.Attention.vibrate([new Toybox.Attention.VibeProfile(75, 400)]);
+            _alarmTick = 0;
+            _vibe(over ? alarmPatternHigh : alarmPatternLow);
+        } else if (trip && alarmRepeat.equals("continuous")) {
+            _alarmTick++;
+            if (_alarmTick >= ALARM_REPEAT_S) {
+                _alarmTick = 0;
+                _vibe(over ? alarmPatternHigh : alarmPatternLow);
             }
         } else if (!trip) {
             _alarmActive = false;
+            _alarmTick = 0;
         }
     }
 

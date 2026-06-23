@@ -382,6 +382,24 @@ const fr: Record<string, string> = {
   "import.shotCap": "Garmin Connect : menu engrenage → « Exporter le fichier »",
   "import.uploadNote": "FIT ou ZIP, plusieurs fichiers possibles. L'analyse s'ouvre après l'envoi.",
 
+  "account.tabAlarm": "Alarme",
+  "alarm.title": "Alarme vibrante",
+  "alarm.desc": "La montre vibre quand tu dépasses ou descends sous une vitesse. 0 km/h = désactivé.",
+  "alarm.enable": "Activer l'alarme vibrante",
+  "alarm.overTitle": "Au-dessus de la vitesse max",
+  "alarm.underTitle": "En dessous de la vitesse min",
+  "alarm.maxSpeed": "Max",
+  "alarm.minSpeed": "Min",
+  "alarm.pattern": "Motif",
+  "alarm.mode": "Déclenchement",
+  "alarm.modeOnce": "une fois au franchissement",
+  "alarm.modeContinuous": "en continu tant que dépassé",
+  "alarm.zeroHint": "Astuce : 0 km/h désactive ce seuil.",
+  "alarm.patShort1": "1× court",
+  "alarm.patShort2": "2× court",
+  "alarm.patLong2": "2× long",
+  "alarm.patLsl": "long-court-long",
+
 };
 
 export default fr;
