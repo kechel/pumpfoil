@@ -515,6 +515,12 @@ const en: Record<string, string> = {
   "pwa.sessionOfflineTitle": "Offline",
   "pwa.sessionOfflineBody": "This session isn't saved. Go online to load it.",
 
+  "profile.dataTitle": "Data & account",
+  "profile.dataHint": "Export all your data or delete your account permanently.",
+  "profile.exportData": "Export my data",
+  "profile.deleteAccount": "Delete account",
+  "profile.deleteConfirm": "Permanently delete your account? All sessions, raw data and photos will be removed. This cannot be undone.",
+
 };
 
 export default en;

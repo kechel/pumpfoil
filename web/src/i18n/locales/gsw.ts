@@ -341,6 +341,12 @@ const gsw: Record<string, string> = {
   "pwa.sessionOfflineTitle": "Offline",
   "pwa.sessionOfflineBody": "Die Session isch nöd gspeicheret. Gang online zum si lade.",
 
+  "profile.dataTitle": "Date & Konto",
+  "profile.dataHint": "Exportier alli dini Date oder lösch dis Konto unwiderrueflich.",
+  "profile.exportData": "Mini Date exportiere",
+  "profile.deleteAccount": "Konto lösche",
+  "profile.deleteConfirm": "S Konto würkli unwiderrueflich lösche? Alli Sessions, Rohdate und Föteli wärded entfernt. Cha nöd rückgängig gmacht werde.",
+
 };
 
 export default gsw

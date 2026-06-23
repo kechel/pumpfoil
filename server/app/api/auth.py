@@ -1,6 +1,7 @@
 """Registrierung + Login (JWT)."""
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -10,7 +11,9 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from ..media import delete_media
 from ..mailer import send_email
+from .admin import _purge_session
 from ..schemas import ForgotIn, LoginIn, PasswordChangeIn, ProfileIn, ProfileOut, RegisterIn, ResetIn, TokenOut
 from ..ratelimit import rate_limit
 from ..security import create_access_token, hash_password, new_token, verify_password
@@ -86,6 +89,64 @@ def update_me(
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de")
+
+
+@router.get("/me/export")
+def export_me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """DSGVO-Datenexport: alle personenbezogenen Daten des Nutzers als JSON."""
+    def _j(s):
+        try:
+            return json.loads(s) if s else None
+        except ValueError:
+            return None
+    sessions = []
+    for s in db.query(models.Session).filter_by(user_id=user.id).order_by(models.Session.started_at.asc()).all():
+        ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+        sessions.append({
+            "id": s.id,
+            "uuid": s.session_uuid,
+            "started_at": s.started_at.isoformat() if s.started_at else None,
+            "ended_at": getattr(s, "ended_at", None).isoformat() if getattr(s, "ended_at", None) else None,
+            "sport": s.sport,
+            "place": s.place_name,
+            "caption": s.caption,
+            "youtube_url": s.youtube_url,
+            "metrics": _j(ar.metrics_json) if ar else None,
+            "segments": _j(ar.segments_json) if ar else None,
+            "track_geojson": _j(ar.track_geojson) if ar else None,
+            "labels": [
+                {"label": l.label, "t_start_ms": l.t_start_ms, "t_end_ms": l.t_end_ms}
+                for l in db.query(models.Label).filter_by(session_id=s.id).all()
+            ],
+            "photos": [p.url for p in db.query(models.SessionPhoto).filter_by(session_id=s.id).all()],
+        })
+    return {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "profile": {
+            "email": user.email,
+            "display_name": user.display_name,
+            "language": user.language,
+            "avatar_url": user.avatar_url,
+            "created_at": getattr(user, "created_at", None).isoformat() if getattr(user, "created_at", None) else None,
+        },
+        "sessions": sessions,
+    }
+
+
+@router.delete("/me")
+def delete_me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """DSGVO: eigenes Konto + ALLE Daten unwiderruflich löschen."""
+    for s in db.query(models.Session).filter_by(user_id=user.id).all():
+        _purge_session(db, s)
+    db.query(models.SessionLike).filter_by(user_id=user.id).delete()
+    db.query(models.SessionVote).filter_by(user_id=user.id).delete()
+    db.query(models.DeviceToken).filter_by(user_id=user.id).delete()
+    db.query(models.PairingCode).filter_by(user_id=user.id).delete()
+    db.query(models.OAuthIdentity).filter_by(user_id=user.id).delete()
+    delete_media(user.avatar_url)
+    db.delete(user)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/forgot-password")

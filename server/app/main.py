@@ -33,6 +33,19 @@ app = FastAPI(
 # JSON-Antworten (Feed/Verlauf/Listen) komprimieren — spart Transfer übers Netz.
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+
+# Standard-Sicherheits-Header auf alle Antworten.
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    h = resp.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    h.setdefault("X-Frame-Options", "SAMEORIGIN")
+    h.setdefault("Permissions-Policy", "microphone=(), camera=(), payment=()")
+    h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return resp
+
 # Alte Domain (und www) dauerhaft auf die kanonische Domain (base_url) umleiten.
 # WICHTIG: /api ausnehmen — die Uhr postet noch auf die alte Domain (.../api/ingest),
 # ein 301 würde POST-Uploads brechen. /media (Bilder, GET) wird mit umgeleitet.

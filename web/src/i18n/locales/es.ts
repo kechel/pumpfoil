@@ -412,6 +412,12 @@ const es: Record<string, string> = {
   "pwa.sessionOfflineTitle": "Sin conexión",
   "pwa.sessionOfflineBody": "Esta sesión no está guardada. Conéctate a internet para cargarla.",
 
+  "profile.dataTitle": "Datos y cuenta",
+  "profile.dataHint": "Exporta todos tus datos o elimina tu cuenta de forma permanente.",
+  "profile.exportData": "Exportar mis datos",
+  "profile.deleteAccount": "Eliminar cuenta",
+  "profile.deleteConfirm": "¿Eliminar tu cuenta de forma permanente? Se eliminarán todas las sesiones, datos brutos y fotos. No se puede deshacer.",
+
 };
 
 export default es;

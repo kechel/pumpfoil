@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../lib/api";
+import { api, clearToken } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { SettingsIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
@@ -129,6 +129,41 @@ export default function Settings() {
         </div>
         {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>}
       </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.dataTitle")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.dataHint")}</p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={exportData}>{t("profile.exportData")}</Button>
+          <button
+            onClick={deleteAccount}
+            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/20"
+          >
+            {t("profile.deleteAccount")}
+          </button>
+        </div>
+      </Card>
     </div>
   );
+
+  function exportData() {
+    api.exportMyData()
+      .then((d) => {
+        const blob = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "pumpfoil-export.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch((e) => setErr(String(e)));
+  }
+
+  function deleteAccount() {
+    if (!confirm(t("profile.deleteConfirm"))) return;
+    api.deleteMyAccount()
+      .then(() => { clearToken(); window.location.assign("/"); })
+      .catch((e) => setErr(String(e)));
+  }
 }

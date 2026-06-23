@@ -259,6 +259,8 @@ export const api = {
       body: JSON.stringify({ email, password, display_name, language }),
     }),
   getProfile: () => req<Profile>("/api/auth/me"),
+  exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
+  deleteMyAccount: () => req<{ ok: boolean }>("/api/auth/me", { method: "DELETE" }),
   updateProfile: (display_name: string) =>
     req<Profile>("/api/auth/me", {
       method: "PATCH",

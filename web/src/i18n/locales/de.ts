@@ -540,6 +540,12 @@ const de: Record<string, string> = {
   "pwa.sessionOfflineTitle": "Offline",
   "pwa.sessionOfflineBody": "Diese Session ist nicht gespeichert. Verbinde dich mit dem Internet, um sie zu laden.",
 
+  "profile.dataTitle": "Daten & Konto",
+  "profile.dataHint": "Exportiere alle deine Daten oder lösche dein Konto unwiderruflich.",
+  "profile.exportData": "Meine Daten exportieren",
+  "profile.deleteAccount": "Konto löschen",
+  "profile.deleteConfirm": "Konto wirklich unwiderruflich löschen? Alle Sessions, Rohdaten und Fotos werden entfernt. Das kann nicht rückgängig gemacht werden.",
+
 };
 
 export default de;
