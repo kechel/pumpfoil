@@ -86,7 +86,7 @@ export default function App() {
           to="/import"
           className="mt-3 w-full rounded-xl bg-brand-500 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-400"
         >
-          {t("sessions.uploadFitZip")}
+          {t("import.title")}
         </Link>
 
         {stats && stats.count > 0 && (
@@ -136,7 +136,7 @@ export default function App() {
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/import" className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400">
-            {t("sessions.uploadFitZip")}
+            {t("import.title")}
           </Link>
           <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
             <LogoutIcon />
