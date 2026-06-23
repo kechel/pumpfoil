@@ -432,6 +432,13 @@ const en: Record<string, string> = {
   "land.f5Title": "Upload FIT files",
   "land.f5Body": "Analyze old activities too: upload a FIT file (or Garmin's ZIP export) and Pumpfoil processes it like a fresh session.",
 
+  "land.galleryTitle": "A look inside the app",
+  "land.shotStats": "Detailed per-run stats",
+  "land.shotHistory": "Track your progress over time",
+  "land.shotRecords": "Community records",
+  "land.shotSpots": "Community records per spot",
+  "land.shotSessions": "Sessions: yours & everyone's",
+
 };
 
 export default en;

@@ -14,6 +14,13 @@ export default function Landing() {
     { icon: "🌊", title: t("land.f4Title"), body: t("land.f4Body") },
     { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
   ];
+  const shots = [
+    { src: "/landing-stats.webp", cap: t("land.shotStats") },
+    { src: "/landing-history.webp", cap: t("land.shotHistory") },
+    { src: "/landing-records.webp", cap: t("land.shotRecords") },
+    { src: "/landing-spots.webp", cap: t("land.shotSpots") },
+    { src: "/landing-sessions.webp", cap: t("land.shotSessions") },
+  ];
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
@@ -78,6 +85,20 @@ export default function Landing() {
               <p className="mt-1 text-sm text-slate-400">{f.body}</p>
             </div>
           ))}
+        </section>
+
+        {/* Galerie: Blick in die App */}
+        <section className="pb-6">
+          <h2 className="mb-6 text-center text-xl font-bold sm:text-2xl">{t("land.galleryTitle")}</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {shots.map((s) => (
+              <figure key={s.src}>
+                <img src={s.src} alt={s.cap} loading="lazy"
+                  className="w-full rounded-2xl border border-slate-800 shadow-lg" />
+                <figcaption className="mt-2 text-center text-sm text-slate-400">{s.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
         </section>
 
         {/* Datenschutz & Open Source */}

@@ -329,6 +329,13 @@ const es: Record<string, string> = {
   "land.f5Title": "Sube archivos FIT",
   "land.f5Body": "Analiza también actividades antiguas: sube un archivo FIT (o el export ZIP de Garmin) y Pumpfoil lo procesa como una sesión nueva.",
 
+  "land.galleryTitle": "Un vistazo a la app",
+  "land.shotStats": "Estadísticas detalladas por run",
+  "land.shotHistory": "Sigue tu progreso en el tiempo",
+  "land.shotRecords": "Récords de la comunidad",
+  "land.shotSpots": "Récords por spot",
+  "land.shotSessions": "Sesiones: tuyas y de todos",
+
 };
 
 export default es;

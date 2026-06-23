@@ -31,6 +31,17 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 - 🏷️ **Labeling UI** — mark pump / glide / not-foiling ranges to build training data for the ML model.
 - 🌍 **Community & history** — compare sessions over time, share runs; UI in 7 languages.
 
+## A look inside the app
+
+| | |
+|---|---|
+| **Detailed per-run stats** | **Track your progress over time** |
+| <img src="web/public/landing-stats.webp" alt="Detailed per-run statistics table"> | <img src="web/public/landing-history.webp" alt="History view tracking progress over time"> |
+| **Community records** | **Community records per spot** |
+| <img src="web/public/landing-records.webp" alt="Community records"> | <img src="web/public/landing-spots.webp" alt="Community records per spot"> |
+| **Sessions — yours & everyone's** | |
+| <img src="web/public/landing-sessions.webp" alt="Session list, own and all"> | |
+
 ## Architecture
 
 | Directory | Stack | Purpose |

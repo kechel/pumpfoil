@@ -256,6 +256,13 @@ const deAT: Record<string, string> = {
   "land.f5Title": "FIT-Dateien hochladen",
   "land.f5Body": "Auch alte Aktivitäten auswerten: lade eine FIT-Datei (oder den Garmin-ZIP-Export) hoch und Pumpfoil analysiert sie wie eine frische Session.",
 
+  "land.galleryTitle": "Ein Blick in die App",
+  "land.shotStats": "Detaillierte Stats je Lauf",
+  "land.shotHistory": "Verfolge deinen Fortschritt mit der Verlaufsanzeige",
+  "land.shotRecords": "Community-Rekorde",
+  "land.shotSpots": "Community-Rekorde je Spot",
+  "land.shotSessions": "Sessions: eigene & alle",
+
 };
 
 export default deAT

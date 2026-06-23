@@ -256,6 +256,13 @@ const gsw: Record<string, string> = {
   "land.f5Title": "FIT-Dateie ufelade",
   "land.f5Body": "Au alti Aktivitäte uswerte: lad e FIT-Datei (oder de Garmin-ZIP-Export) ufe und Pumpfoil analysiert si wie e frischi Session.",
 
+  "land.galleryTitle": "En Blick i d App",
+  "land.shotStats": "Detaillierti Stats pro Lauf",
+  "land.shotHistory": "Verfolg din Fortschritt über d Ziit",
+  "land.shotRecords": "Community-Rekord",
+  "land.shotSpots": "Community-Rekord pro Spot",
+  "land.shotSessions": "Sessions: eigeni & alli",
+
 };
 
 export default gsw
