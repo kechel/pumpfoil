@@ -195,6 +195,7 @@ const fr: Record<string, string> = {
   "account.sideStep3": "Débrancher l'USB — l'app apparaît dans la liste d'activités.",
   "account.viewsTitle": "Vues de l'app de montre",
   "account.viewsDesc": "Autant de vues que voulu, jusqu'à 3 champs chacune. Bascule avec UP/DOWN sur la montre. (L'app charge la config au démarrage.)",
+  "account.colorByValue": "Colorer les valeurs selon le niveau (vitesse/FC)",
   "account.viewN": "Vue {n}",
   "account.addView": "+ Ajouter une vue",
   "account.saved": "enregistré ✓",

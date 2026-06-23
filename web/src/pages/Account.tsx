@@ -179,11 +179,12 @@ function AppDownloads() {
 function ViewsEditor() {
   const t = useT();
   const [views, setViews] = useState<number[][] | null>(null);
+  const [colorByValue, setColorByValue] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getSettings().then((s) => setViews(s.views ?? [[1, 2, 0]])).catch((e) => setErr(String(e)));
+    api.getSettings().then((s) => { setViews(s.views ?? [[1, 2, 0]]); setColorByValue(!!s.colorByValue); }).catch((e) => setErr(String(e)));
   }, []);
 
   function update(next: number[][]) {
@@ -207,8 +208,9 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views });
+      const res = await api.saveSettings({ views, colorByValue });
       setViews(res.views);
+      setColorByValue(!!res.colorByValue);
       setSaved(true);
     } catch (e) {
       setErr(String(e));
@@ -219,9 +221,13 @@ function ViewsEditor() {
   return (
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">{t("account.viewsTitle")}</h3>
-      <p className="mb-4 text-sm text-slate-300">
+      <p className="mb-3 text-sm text-slate-300">
         {t("account.viewsDesc")}
       </p>
+      <label className="mb-4 flex items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
+        {t("account.colorByValue")}
+      </label>
 
       <div className="space-y-3">
         {views.map((v, vi) => (
@@ -234,19 +240,22 @@ function ViewsEditor() {
                 <button onClick={() => delView(vi)} className="rounded px-2 py-1 text-red-400 hover:bg-slate-800">{t("common.deleteLower")}</button>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {[0, 1, 2].map((fi) => (
-                <select
-                  key={fi}
-                  value={v[fi] ?? 0}
-                  onChange={(e) => setField(vi, fi, Number(e.target.value))}
-                  className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
-                >
-                  {FIELD_OPTIONS.map((o) => (
-                    <option key={o.id} value={o.id}>{o.label}</option>
-                  ))}
-                </select>
-              ))}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <WatchPreview fields={v} colorByValue={colorByValue} />
+              <div className="flex-1 space-y-2">
+                {[0, 1, 2].map((fi) => (
+                  <select
+                    key={fi}
+                    value={v[fi] ?? 0}
+                    onChange={(e) => setField(vi, fi, Number(e.target.value))}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
+                  >
+                    {FIELD_OPTIONS.map((o) => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
+                    ))}
+                  </select>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -259,6 +268,50 @@ function ViewsEditor() {
       </div>
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
+  );
+}
+
+// Beispiel-Readout je Feld (sieht aus wie auf der Uhr: großer Wert + kleines Label).
+const SPEED_FIELDS = new Set([1, 5, 6, 7, 18, 19]);
+const HR_FIELDS = new Set([2, 8, 9]);
+const MOCK: Record<number, [string, string]> = {
+  1: ["18.5", "km/h (3s)"], 5: ["19.2", "km/h"], 6: ["15.1", "km/h Ø"], 7: ["24.0", "km/h max"],
+  2: ["142", "bpm"], 8: ["131", "bpm Ø"], 9: ["168", "bpm max"],
+  3: ["12:34", "Zeit"], 4: ["2.10", "km"], 10: ["402", "m Höhe"], 13: ["35", "m ↑"],
+  11: ["24", "°C"], 12: ["14:25", "Uhr"], 14: ["0:48", "Lauf"], 15: ["0.21", "km Lauf"],
+  16: ["0:51", "letzter Lauf"], 17: ["0.22", "km letzter"], 18: ["14.9", "km/h Ø letzt."],
+  19: ["19.6", "km/h max letzt."], 20: ["7", "Läufe"],
+};
+function watchSpeedColor(kmh: number): string {
+  if (kmh < 12) return "#3b82f6"; if (kmh < 16) return "#22c55e"; if (kmh < 20) return "#eab308"; return "#ef4444";
+}
+function watchHrColor(hr: number): string {
+  if (hr < 120) return "#22c55e"; if (hr < 150) return "#eab308"; if (hr < 170) return "#f97316"; return "#ef4444";
+}
+
+// Runde Uhr-Vorschau: aktive Felder gleichmäßig gestapelt (wie RecordView), Schrift
+// bei 1–2 Feldern groß, bei 3 kleiner; optional je nach Wert eingefärbt.
+function WatchPreview({ fields, colorByValue }: { fields: number[]; colorByValue: boolean }) {
+  const active = fields.filter((f) => f !== 0);
+  const n = active.length;
+  const valSize = n === 1 ? "text-2xl" : n === 2 ? "text-xl" : "text-base";
+  return (
+    <div className="flex h-36 w-36 shrink-0 flex-col items-center justify-around self-center rounded-full border-2 border-slate-700 bg-black px-4 py-5 text-center">
+      {n === 0 ? (
+        <span className="text-xs text-slate-600">—</span>
+      ) : active.map((f, i) => {
+        const [val, label] = MOCK[f] ?? ["—", ""];
+        let color = "#f1f5f9";
+        if (colorByValue && SPEED_FIELDS.has(f)) color = watchSpeedColor(parseFloat(val));
+        else if (colorByValue && HR_FIELDS.has(f)) color = watchHrColor(parseFloat(val));
+        return (
+          <div key={i} className="leading-none">
+            <div className={`${valSize} font-bold tabular-nums`} style={{ color }}>{val}</div>
+            <div className="mt-0.5 text-[9px] text-slate-400">{label}</div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

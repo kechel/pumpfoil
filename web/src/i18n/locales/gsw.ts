@@ -328,6 +328,8 @@ const gsw: Record<string, string> = {
   "alarm.patLong2": "2× lang",
   "alarm.patLsl": "lang-churz-lang",
 
+  "account.colorByValue": "Wärt je nach Höchi iifärbe (Speed/Puls)",
+
 };
 
 export default gsw

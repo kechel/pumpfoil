@@ -17,6 +17,7 @@ VALID_FIELD_IDS = set(range(0, 21))  # 0-13 Live-Felder, 14-20 Lauf-Felder
 # Default: eine Ansicht mit Speed(3s) + Puls.
 DEFAULTS = {
     "speed_min": 8, "speed_max": 25, "speed_auto": True, "views": [[1, 2, 0]],
+    "colorByValue": False,
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
@@ -70,6 +71,8 @@ def update_settings(
                 pass
     if "speed_auto" in patch:
         current["speed_auto"] = bool(patch["speed_auto"])
+    if "colorByValue" in patch:
+        current["colorByValue"] = bool(patch["colorByValue"])
     if "views" in patch:
         cleaned = _clean_views(patch["views"])
         if cleaned:

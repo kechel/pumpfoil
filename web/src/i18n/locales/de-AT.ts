@@ -328,6 +328,8 @@ const deAT: Record<string, string> = {
   "alarm.patLong2": "2× lang",
   "alarm.patLsl": "lang-kurz-lang",
 
+  "account.colorByValue": "Werte je nach Höhe einfärben (Speed/Puls)",
+
 };
 
 export default deAT

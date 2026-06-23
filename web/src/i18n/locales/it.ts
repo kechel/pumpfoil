@@ -195,6 +195,7 @@ const it: Record<string, string> = {
   "account.sideStep3": "Scollega l'USB — l'app appare nella lista attività.",
   "account.viewsTitle": "Viste dell'app dell'orologio",
   "account.viewsDesc": "Quante viste vuoi, con fino a 3 campi ciascuna. Cambia con UP/DOWN sull'orologio. (L'app carica la configurazione all'avvio.)",
+  "account.colorByValue": "Colora i valori per livello (velocità/FC)",
   "account.viewN": "Vista {n}",
   "account.addView": "+ Aggiungi vista",
   "account.saved": "salvato ✓",

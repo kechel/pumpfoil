@@ -195,6 +195,7 @@ const es: Record<string, string> = {
   "account.sideStep3": "Desconecta el USB — la app aparece en la lista de actividades.",
   "account.viewsTitle": "Vistas de la app del reloj",
   "account.viewsDesc": "Tantas vistas como quieras, con hasta 3 campos cada una. Cambia con UP/DOWN en el reloj. (La app carga la configuración al iniciar.)",
+  "account.colorByValue": "Colorear valores por nivel (velocidad/pulso)",
   "account.viewN": "Vista {n}",
   "account.addView": "+ Añadir vista",
   "account.saved": "guardado ✓",
