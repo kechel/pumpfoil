@@ -444,6 +444,9 @@ const en: Record<string, string> = {
   "land.prev": "Previous",
   "land.next": "Next",
 
+  "land.f6Title": "Always free",
+  "land.f6Body": "This site and app stay free. Should higher server costs come up, we'll try to cover them e.g. via affiliate links or promo videos from foil brands.",
+
 };
 
 export default en;

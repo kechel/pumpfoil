@@ -268,6 +268,9 @@ const gsw: Record<string, string> = {
   "land.prev": "Zrugg",
   "land.next": "Wiiter",
 
+  "land.f6Title": "Immer gratis",
+  "land.f6Body": "Die Siite und App blibed gratis. Wenn höheri Serverchöste afalled, versueched mer si z. B. mit Affiliate-Links oder Promo-Videos vo Foil-Hersteller z decke.",
+
 };
 
 export default gsw

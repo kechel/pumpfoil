@@ -268,6 +268,9 @@ const deAT: Record<string, string> = {
   "land.prev": "Zurück",
   "land.next": "Weiter",
 
+  "land.f6Title": "Immer kostenlos",
+  "land.f6Body": "Diese Seite und App bleiben kostenfrei. Sollten höhere Serverkosten anfallen, versuchen wir sie z. B. über Affiliate-Links oder Promo-Videos von Foil-Herstellern zu decken.",
+
 };
 
 export default deAT

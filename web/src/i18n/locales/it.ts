@@ -341,6 +341,9 @@ const it: Record<string, string> = {
   "land.prev": "Precedente",
   "land.next": "Avanti",
 
+  "land.f6Title": "Sempre gratis",
+  "land.f6Body": "Questo sito e l'app restano gratuiti. Se i costi del server aumentassero, cercheremo di coprirli ad es. con link di affiliazione o video promo di produttori di foil.",
+
 };
 
 export default it;

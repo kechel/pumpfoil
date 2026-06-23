@@ -14,6 +14,7 @@ export default function Landing() {
     { icon: "🗺️", title: t("land.f3Title"), body: t("land.f3Body") },
     { icon: "🌊", title: t("land.f4Title"), body: t("land.f4Body") },
     { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
+    { icon: "🆓", title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   const shots = [
     { src: "/landing-track.webp", cap: t("land.shotTrack") },
