@@ -218,6 +218,8 @@ async def upload_fit(
     if maybe_auto_trim(db, s):  # Heimfahrt o.ä. vor/nach der Session wegschneiden
         run_analysis(db, s)
     db.refresh(s)
+    from ..notify import notify_session_analyzed
+    notify_session_analyzed(db, s)
     return _session_out(s, with_analysis=True)
 
 

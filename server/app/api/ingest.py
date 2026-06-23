@@ -115,6 +115,9 @@ def _analyze_in_background(session_id: int, final: bool = True) -> None:
             run_analysis(db, s, final=final)
             if final and maybe_auto_trim(db, s):  # nach Abschluss Heimfahrt o.ä. wegschneiden
                 run_analysis(db, s, final=True)
+            if final:
+                from ..notify import notify_session_analyzed
+                notify_session_analyzed(db, s)
     finally:
         db.close()
 
