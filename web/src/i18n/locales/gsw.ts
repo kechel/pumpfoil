@@ -250,7 +250,8 @@ const gsw: Record<string, string> = {
   "land.privacyTitle": "Fair mit dine Date",
   "land.privacyBody": "Pumpfoil isch e Community: dini Sessions sind für anderi sichtbar. Aber kei Verchauf und kei Wiitergab a Dritti für Wärbig oder Tracking.",
   "land.openTitle": "Community & Open Source",
-  "land.openBody": "Pumpfoil isch es Community-Projekt mit freier Open-Source-Software under de AGPL-3.0. De Quellcode chunnt bald uf GitHub.",
+  "land.openBody": "Pumpfoil isch es Community-Projekt mit freier Open-Source-Software under de AGPL-3.0.",
+  "land.openLink": "Quellcode uf GitHub →",
   "land.footerLicense": "Open Source · AGPL-3.0",
 
   "land.f5Title": "FIT-Dateie ufelade",

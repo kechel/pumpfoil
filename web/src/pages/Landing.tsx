@@ -121,6 +121,14 @@ export default function Landing() {
             <div className="text-2xl">💛</div>
             <h3 className="mt-2 font-semibold">{t("land.openTitle")}</h3>
             <p className="mt-1 text-sm text-slate-400">{t("land.openBody")}</p>
+            <a
+              href="https://github.com/kechel/pumpfoil"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-sm font-medium text-brand-400 hover:text-brand-300"
+            >
+              {t("land.openLink")}
+            </a>
           </div>
         </section>
 

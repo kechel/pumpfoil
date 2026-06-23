@@ -323,7 +323,8 @@ const it: Record<string, string> = {
   "land.privacyTitle": "Corretti coi tuoi dati",
   "land.privacyBody": "Pumpfoil è una community: le tue sessioni sono visibili agli altri. Ma mai vendute né cedute a terzi per pubblicità o tracciamento.",
   "land.openTitle": "Community e open source",
-  "land.openBody": "Pumpfoil è un progetto della community basato su software libero open-source con licenza AGPL-3.0. Il codice sarà presto su GitHub.",
+  "land.openBody": "Pumpfoil è un progetto della community basato su software libero open-source con licenza AGPL-3.0.",
+  "land.openLink": "Codice sorgente su GitHub →",
   "land.footerLicense": "Open source · AGPL-3.0",
 
   "land.f5Title": "Carica file FIT",
