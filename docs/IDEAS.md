@@ -13,7 +13,7 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 
 | Idee | Nutzen | Aufwand | Notizen / Abhängigkeiten |
 |------|:------:|:------:|--------------------------|
-| **Foil-Datenbank** (Katalog von Foils/Wings/Mästen) | ★★★ | M | Basis-Schema: **Anhang folgt** (vom Nutzer). Fundament für fast alles hier unten. |
+| **Foil-Datenbank** (Katalog von Foils) | ★★★ | M | **Schema + Daten existieren** im Calculator (`reference/foilcalculator.html`, `const foilData`): 123 Foils / 6 Marken (AXIS, Duotone, F-One, Gong, Sabfoil, TAKOON). Pro Foil nur Stammwerte: `{ brand, model, size, span_cm, area_cm2, thickness_mm }` (+ `isBaseline`). AR/Chord/CL/CD/Reynolds/Drag/Power werden **berechnet**, nicht gespeichert. → DB-Tabelle 1:1 nach diesen 6 Feldern, Seed aus `foilData`. |
 | **Foil je Nutzer** – Standard-Setup im Profil, **überschreibbar je Session, sogar je Lauf** | ★★★ | M | braucht Foil-DB. Feld an Session/Segment; UI in Session-Detail + Labeling. |
 | **Community-Stats je Foil** (welche Werte fahren Leute mit welchem Foil) | ★★ | M | braucht Foil-DB + Foil-Zuordnung; spannende Vergleichsseite. |
 | **Gewicht je Nutzer** im Profil | ★★ | S | DSGVO: optional/privat halten. Input für Leistungsberechnung. |
