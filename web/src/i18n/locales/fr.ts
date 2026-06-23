@@ -378,6 +378,7 @@ const fr: Record<string, string> = {
   "import.step3post": " — cela télécharge un ZIP avec le fichier FIT original (pas TCX/GPX).",
   "import.step4": "Téléverse ici le ZIP téléchargé (ou le .fit extrait).",
   "import.shotAlt": "Menu Garmin Connect avec l'option « Exporter le fichier »",
+  "import.desc": "Ouvre l’activité, clique sur l’engrenage en haut à droite, puis « Exporter le fichier ». Téléverse le fichier ZIP ici.",
   "import.shotCap": "Garmin Connect : menu engrenage → « Exporter le fichier »",
   "import.uploadNote": "FIT ou ZIP, plusieurs fichiers possibles. L'analyse s'ouvre après l'envoi.",
 

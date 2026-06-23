@@ -306,6 +306,7 @@ const gsw: Record<string, string> = {
   "import.step3post": " — das ladet es ZIP mit de originale FIT-Datei (nöd TCX/GPX).",
   "import.step4": "Lad s abeglade ZIP (oder s entpackte .fit) da ufe.",
   "import.shotAlt": "Garmin-Connect-Menü mit de Option „Datei exportiere“",
+  "import.desc": "Aktivität öffne, obe rächts ufs Zahnrad klicke, denn „Datei exportiere“. S ZIP-File da ufelade.",
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportiere“",
   "import.uploadNote": "FIT oder ZIP, mehreri Dateie möglich. Nachem Ufelade gaht d Uswertig uf.",
 
