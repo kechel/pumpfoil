@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { UploadFitButton } from "../components/UploadFitButton";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -51,13 +52,14 @@ export default function Landing() {
             Pumpfoil.org
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               to="/login"
               className="rounded-xl bg-brand-500 px-8 py-3 text-sm font-semibold text-slate-950 hover:bg-brand-400"
             >
               {t("land.login")}
             </Link>
+            <UploadFitButton variant="ghost" className="text-sm" />
           </div>
           <div className="mt-3">
             <Link to="/uhren" className="text-sm text-brand-400 hover:text-brand-300">{t("land.watchesLink")}</Link>

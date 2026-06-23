@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { UploadFitButton } from "../components/UploadFitButton";
 
 // Öffentliche Übersicht: welche Uhr liefert welche Daten. Der Nutzer entscheidet.
 type Cap = "yes" | "partial" | "no";
@@ -89,13 +90,14 @@ export default function Watches() {
         </div>
         <p className="mt-4 max-w-2xl text-xs text-slate-500">{t("watches.foot")}</p>
 
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
             to="/login"
             className="inline-block rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-brand-400"
           >
             {t("land.login")}
           </Link>
+          <UploadFitButton variant="ghost" className="text-sm" />
         </div>
       </main>
     </div>

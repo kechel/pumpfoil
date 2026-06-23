@@ -5,6 +5,7 @@ import { Avatar } from "./components/ui";
 import { WaveIcon, ListIcon, WatchIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
+import { UploadFitButton } from "./components/UploadFitButton";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -82,6 +83,8 @@ export default function App() {
           </NavLink>
         ))}
 
+        <UploadFitButton className="mt-3 w-full text-sm" />
+
         {stats && stats.count > 0 && (
           <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -127,9 +130,12 @@ export default function App() {
         <Link to="/" className="flex items-center gap-2 font-bold">
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
-        <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
-          <LogoutIcon />
-        </button>
+        <div className="flex items-center gap-3">
+          <UploadFitButton className="px-3 py-1.5 text-xs" />
+          <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
+            <LogoutIcon />
+          </button>
+        </div>
       </header>
 
       {/* Inhalt */}
