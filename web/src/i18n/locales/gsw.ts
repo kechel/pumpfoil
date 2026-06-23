@@ -294,6 +294,8 @@ const gsw: Record<string, string> = {
   "watches.nPolar": "Roh-Accel nume über en separate BLE-Sensor.",
   "watches.nFitbit": "Drittaabieter-Apps sind iigstellt worde.",
 
+  "sd.colDistPerPump": "Ø m/Pump",
+
 };
 
 export default gsw

@@ -299,6 +299,7 @@ const de: Record<string, string> = {
   "sd.colMax": "Max km/h ({win}s)",
   "sd.colMin": "Min km/h ({win}s)",
   "sd.colPumps": "Pumps",
+  "sd.colDistPerPump": "Ø m/Pump",
   "sd.colAvgPump": "Ø Pump Hz",
   "sd.colPumpMaxMin": "Pump Hz 5s (max/min)",
   "sd.colGlide": "längste Gleitphase",

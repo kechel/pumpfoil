@@ -294,6 +294,8 @@ const deAT: Record<string, string> = {
   "watches.nPolar": "Roh-Accel nur über separaten BLE-Sensor.",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
 
+  "sd.colDistPerPump": "Ø m/Pump",
+
 };
 
 export default deAT

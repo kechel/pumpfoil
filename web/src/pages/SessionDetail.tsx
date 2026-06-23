@@ -954,6 +954,7 @@ function RunsTable({
               <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
+              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
@@ -978,6 +979,7 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
                   <td className="px-3 py-2 tabular-nums">{s.pumps ?? "–"}</td>
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
