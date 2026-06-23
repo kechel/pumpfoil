@@ -47,13 +47,13 @@ class Settings:
         # Web-Push (VAPID). Leer -> Push deaktiviert.
         self.vapid_public_key: str = os.environ.get("VAPID_PUBLIC_KEY", "")
         self.vapid_subject: str = os.environ.get("VAPID_SUBJECT", "mailto:noreply@pumpfoil.org")
+        # pywebpush erwartet als vapid_private_key einen DATEIPFAD (PEM) – nicht den Inhalt.
         _vpk_file = os.environ.get("VAPID_PRIVATE_KEY_FILE", "")
         self.vapid_private_key: str = ""
         if _vpk_file:
-            try:
-                self.vapid_private_key = Path(_vpk_file).read_text()
-            except OSError:
-                self.vapid_private_key = ""
+            _p = Path(_vpk_file).resolve()
+            if _p.is_file():
+                self.vapid_private_key = str(_p)
 
         # OAuth-Provider: je {client_id, client_secret} aus der .env. Leer -> Provider
         # ist deaktiviert (Button erscheint nicht). Redirect-URI je Provider:
