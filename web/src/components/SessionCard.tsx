@@ -66,7 +66,7 @@ export function SessionCard({
     <Link to={`/sessions/${sessionId}`} className="block">
       <Card className="flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900">
         <div className="flex min-w-0 gap-3">
-          <div className="flex shrink-0 flex-col items-start gap-1.5">
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
             <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />
             <button
               onClick={toggleLike}
@@ -77,7 +77,7 @@ export function SessionCard({
             </button>
             {/* Mobil: Thumbnail + Track linksbündig unter dem Profilbild */}
             {(thumbEl || trackEl) && (
-              <div className="mt-1 flex flex-col gap-1.5 sm:hidden">
+              <div className="mt-1 flex flex-col items-center gap-1.5 sm:hidden">
                 {thumbEl}
                 {trackEl}
               </div>
