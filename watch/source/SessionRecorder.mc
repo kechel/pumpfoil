@@ -41,6 +41,7 @@ class SessionRecorder {
     // Roh-Puffer
     hidden var _accelBuf;            // ByteArray (int16 LE, interleaved x,y,z)
     hidden var _accelCount = 0;
+    hidden var _accelOn = false;     // Roh-Accel zur Laufzeit aktiv? (sonst GPS-only)
     hidden var _gpsBuf;              // Array von [t_ms, lat, lon, speed, hr, hacc]
 
     // Live-Stats
@@ -190,24 +191,41 @@ class SessionRecorder {
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
 
-        // SensorLogger schreibt Roh-Sensorik ins FIT.
-        _sensorLogger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
-        _fitSession = ActivityRecording.createSession({
-            :name => "Pump Foil",
-            :sport => Activity.SPORT_SURFING,
-            :sensorLogger => _sensorLogger
-        });
+        // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
+        // ohne Roh-Beschleunigungs-Stream zeichnen GPS-only auf (Server -> gps_only).
+        _accelOn = false;
+        var logger = null;
+        if (Toybox has :SensorLogging) {
+            try {
+                logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
+            } catch (e) {
+                logger = null;
+            }
+        }
+        _sensorLogger = logger;
+
+        // SensorLogger nur mitgeben, wenn vorhanden (sonst normale FIT-Session).
+        var sessOpts = { :name => "Pump Foil", :sport => Activity.SPORT_SURFING };
+        if (logger != null) { sessOpts[:sensorLogger] = logger; }
+        _fitSession = ActivityRecording.createSession(sessOpts);
 
         // GPS kontinuierlich.
         Position.enableLocationEvents(
             Position.LOCATION_CONTINUOUS, method(:onPosition));
 
-        // Roh-Accel-Stream. period<=4 s. 25 Hz ist für fenix 7 die dokumentierte Rate;
-        // falls ein Gerät weniger kann, liefert es entsprechend weniger Samples.
-        Sensor.registerSensorDataListener(method(:onAccel), {
-            :period => 1,
-            :accelerometer => { :enabled => true, :sampleRate => ACCEL_HZ }
-        });
+        // Roh-Accel-Stream (falls das Gerät es bietet). period<=4 s. 25 Hz ist für
+        // fenix 7 dokumentiert; kann ein Gerät es nicht, bleibt es bei GPS-only.
+        if (Sensor has :registerSensorDataListener) {
+            try {
+                Sensor.registerSensorDataListener(method(:onAccel), {
+                    :period => 1,
+                    :accelerometer => { :enabled => true, :sampleRate => ACCEL_HZ }
+                });
+                _accelOn = true;
+            } catch (e) {
+                _accelOn = false;
+            }
+        }
 
         _persistMeta();
         _fitSession.start();
@@ -217,8 +235,10 @@ class SessionRecorder {
     function stop() {
         if (!_recording) { return; }
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
-        Sensor.unregisterSensorDataListener();
-        _flushAccel(true);
+        if (_accelOn) {
+            Sensor.unregisterSensorDataListener();
+            _flushAccel(true);
+        }
         _flushGps(true);
         _fitSession.stop();
         _fitSession.save();

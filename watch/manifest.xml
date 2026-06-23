@@ -10,11 +10,26 @@
       entry="FoilApp"
       id="46118f05867f0efd90bcef18a3f612f4"
       launcherIcon="@Drawables.LauncherIcon"
-      minApiLevel="3.2.0"
+      minApiLevel="2.4.0"
       name="@Strings.AppName"
       type="watch-app">
     <iq:products>
-      <!-- 65 Handgelenk-Uhren mit voller Button-Navigation, Accel & CIQ>=3.2 -->
+      <!-- Floor 2.4.0: Accel ist LAUFZEIT-optional (SessionRecorder), ältere Geräte
+           ohne Roh-Accel zeichnen GPS-only auf (Server -> detection=gps_only). -->
+      <!-- Ältere Athleten-Uhren (fenix 5-Generation u. a., CIQ 2.4 / 3.0) -->
+      <iq:product id="fenix5"/>
+      <iq:product id="fenix5s"/>
+      <iq:product id="fenix5x"/>
+      <iq:product id="fenix5plus"/>
+      <iq:product id="fenix5splus"/>
+      <iq:product id="fenix5xplus"/>
+      <iq:product id="fenixchronos"/>
+      <iq:product id="fr935"/>
+      <iq:product id="fr945"/>
+      <iq:product id="fr645"/>
+      <iq:product id="fr645m"/>
+      <iq:product id="vivoactive3"/>
+      <iq:product id="vivoactive4"/>
       <iq:product id="d2mach1"/>
       <iq:product id="d2mach2"/>
       <iq:product id="d2mach2pro"/>
