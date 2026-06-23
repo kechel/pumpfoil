@@ -7,12 +7,12 @@ export default function Import() {
   const t = useT();
   return (
     <div className="w-full">
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2 className="text-xl font-bold">{t("import.title")}</h2>
           <p className="mt-1 text-sm text-slate-300">{t("import.intro")}</p>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 sm:max-w-[16rem] sm:text-right">
           <UploadFitButton className="text-sm" />
           <p className="mt-1 text-xs text-slate-400">{t("import.uploadNote")}</p>
         </div>
