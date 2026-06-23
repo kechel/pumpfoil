@@ -1,0 +1,9 @@
+[Unit]
+Description=pumpfoil.org latest-backup (DB-Dump + Rohdaten/Medien als Hardlinks)
+After=postgresql.service network.target
+
+[Service]
+Type=oneshot
+User=foil
+EnvironmentFile=-/opt/foil/garmin-connect-iq/server/.env
+ExecStart=/opt/foil/garmin-connect-iq/deploy/backup-latest.sh

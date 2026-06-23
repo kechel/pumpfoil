@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.env
+
+# Data / raw session blobs (never commit user data)
+server/data/
+server/media/
+*.sqlite3
+*.sqlite3*
+*.pre-pg-*
+*.db
+*.sql
+*.sql.gz
+*.dump
+
+# Trainierte ML-Modelle (aus Nutzerdaten abgeleitet) – nicht veröffentlichen
+*.pkl
+
+# Node / web
+node_modules/
+web/dist/
+*.local
+
+# Connect IQ build output
+*.prg
+*.prg.debug.xml
+*.iq
+watch/bin/
+developer_key
+developer_key.der
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.swp
+connectiq-sdk-manager-linux.zip
+
+# Nutzer-Daten (FIT/Zip) nie committen
+*.zip
+*.fit
+*.tar.bz2
+
+# DB-Backups
+server/backups/
+backups/
+
+# Claude Code lokale Session-Dateien
+.claude/

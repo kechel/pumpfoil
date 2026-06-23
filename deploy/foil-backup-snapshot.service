@@ -1,0 +1,7 @@
+[Unit]
+Description=pumpfoil.org permanenter Hardlink-Snapshot von latest-backup
+
+[Service]
+Type=oneshot
+User=foil
+ExecStart=/opt/foil/garmin-connect-iq/deploy/backup-snapshot.sh

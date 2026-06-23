@@ -1,0 +1,7 @@
+# Connect-IQ-Build-Konfiguration.
+project.manifest = manifest.xml
+
+# Server-Basis-URL für Uploads. Pro Build überschreibbar, z. B.:
+#   monkeyc ... -D base_url="https://pumpfoil.org"
+base.sourcePath = source
+base.resourcePath = resources

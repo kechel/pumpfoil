@@ -1,0 +1,10 @@
+[Unit]
+Description=Pumpfoil-Tracker SQLite-Backup
+After=network.target
+
+[Service]
+Type=oneshot
+User=foil
+WorkingDirectory=/opt/foil/garmin-connect-iq/server
+EnvironmentFile=-/opt/foil/garmin-connect-iq/server/.env
+ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/python -m scripts.backup_db

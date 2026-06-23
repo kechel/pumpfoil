@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings>
+  <string id="AppName">Pump Foil</string>
+  <string id="Start">Start</string>
+  <string id="Stop">Stop</string>
+  <string id="Upload">Upload (WLAN)</string>
+  <string id="Uploading">Lade hoch…</string>
+  <string id="UploadDone">Upload fertig</string>
+  <string id="UploadFailed">Upload fehlgeschlagen</string>
+  <string id="NoData">Keine Daten</string>
+
+  <!-- Settings -->
+  <string id="SettingPairingCode">Pairing-Code</string>
+  <string id="SettingPairingCodePrompt">Code von der Website</string>
+  <string id="SettingField1">Ansicht 1 – Feld 1</string>
+  <string id="SettingField2">Ansicht 1 – Feld 2</string>
+  <string id="SettingField3">Ansicht 1 – Feld 3</string>
+  <string id="SettingField4">Ansicht 2 – Feld 1</string>
+  <string id="SettingField5">Ansicht 2 – Feld 2</string>
+  <string id="SettingField6">Ansicht 2 – Feld 3</string>
+  <string id="SettingColorByValue">Speed/Puls farbig nach Wert</string>
+  <string id="SettingSpeedHigh">Alarm Speed über (km/h)</string>
+  <string id="SettingSpeedLow">Alarm Speed unter (km/h)</string>
+  <string id="SettingAlarmEnabled">Vibrationsalarm</string>
+
+  <!-- Datenfeld-Optionen -->
+  <string id="FieldNone">Aus</string>
+  <string id="FieldSpeed3s">Speed (3 s)</string>
+  <string id="FieldHeartRate">Puls</string>
+  <string id="FieldTimer">Zeit</string>
+  <string id="FieldDistance">Distanz</string>
+</strings>

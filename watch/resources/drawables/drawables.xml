@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drawables>
+  <!-- Platzhalter-Icon (vom Skript generiert). Vor Store-Release durch ein
+       richtiges, gerätegerechtes Icon ersetzen. -->
+  <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+</drawables>

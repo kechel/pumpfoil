@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<properties>
+  <property id="pairingCode" type="string"></property>
+  <!-- Nach erfolgreichem Pairing speichert die App hier den Device-Token. -->
+  <property id="deviceToken" type="string"></property>
+
+  <!-- Datenfelder: 0=aus 1=Speed3s 2=Puls 3=Zeit 4=Distanz -->
+  <!-- Ansicht 1 -->
+  <property id="field1" type="number">1</property>
+  <property id="field2" type="number">2</property>
+  <property id="field3" type="number">0</property>
+  <!-- Ansicht 2 (alle 0 = nur eine Ansicht) -->
+  <property id="field4" type="number">0</property>
+  <property id="field5" type="number">0</property>
+  <property id="field6" type="number">0</property>
+
+  <property id="colorByValue" type="boolean">false</property>
+  <property id="alarmEnabled" type="boolean">false</property>
+  <property id="speedHigh" type="number">0</property>
+  <property id="speedLow" type="number">0</property>
+</properties>

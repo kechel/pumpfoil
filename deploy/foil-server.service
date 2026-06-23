@@ -1,0 +1,24 @@
+# systemd-Unit für den FastAPI-Server auf der VM app-host.
+# Installation:
+#   sudo cp deploy/foil-server.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now foil-server
+#
+# Apache (the reverse proxy) proxied https://pumpfoil.org -> app-host:8090.
+# Daher bind auf 0.0.0.0 (im internen Netz erreichbar), nicht nur localhost.
+
+[Unit]
+Description=Pump-Foil-Tracker FastAPI server
+After=network.target
+
+[Service]
+Type=simple
+User=foil
+WorkingDirectory=/opt/foil/garmin-connect-iq/server
+EnvironmentFile=/opt/foil/garmin-connect-iq/server/.env
+ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8090 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

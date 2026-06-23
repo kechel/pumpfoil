@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+}
+
+/* Platzhalter heller (Sonnenlicht-Lesbarkeit). */
+::placeholder {
+  color: #94a3b8; /* slate-400 */
+  opacity: 1;
+}
+
+/* Leaflet auf dunklem Hintergrund leicht abdunkeln/entsättigen. */
+.leaflet-tile {
+  filter: brightness(0.85) contrast(1.05) saturate(0.9);
+}
+.leaflet-container {
+  background: #0f172a;
+}
