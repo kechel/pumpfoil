@@ -1,6 +1,4 @@
-import { Link } from "react-router-dom";
 import { Card } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
 import { UploadFitButton } from "../components/UploadFitButton";
 import { useT } from "../i18n";
 
@@ -8,10 +6,7 @@ import { useT } from "../i18n";
 export default function Import() {
   const t = useT();
   return (
-    <div className="mx-auto max-w-2xl">
-      <Link to="/" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
-        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("common.back")}
-      </Link>
+    <div className="w-full">
       <h2 className="mb-1 text-xl font-bold">{t("import.title")}</h2>
       <p className="mb-5 text-sm text-slate-300">{t("import.intro")}</p>
 
