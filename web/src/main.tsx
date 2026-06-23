@@ -15,6 +15,15 @@ import { I18nProvider } from "./i18n";
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 })();
+
+// PWA-Install-Prompt SEHR früh abfangen (feuert oft vor dem React-Mount) und global
+// merken, damit der "App installieren"-Button es nutzen kann.
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  (window as any).__bip = e;
+  window.dispatchEvent(new Event("bip-ready"));
+});
+window.addEventListener("appinstalled", () => { (window as any).__bip = null; });
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import Home from "./pages/Home";

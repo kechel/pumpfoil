@@ -1,35 +1,36 @@
 import { useEffect, useState } from "react";
 import { useT } from "../i18n";
 
-// "App installieren": Android nutzt das native beforeinstallprompt, iOS bekommt die
-// Safari-Anleitung. Bereits installiert (standalone) -> nichts anzeigen.
+// "App installieren": Android nutzt das native beforeinstallprompt (global in main.tsx
+// abgefangen), iOS + Browser ohne Prompt bekommen eine kurze Anleitung. Bereits
+// installiert (standalone) -> nichts anzeigen.
 type BIPEvent = Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
 
 export function InstallPwa({ className = "" }: { className?: string }) {
   const t = useT();
-  const [deferred, setDeferred] = useState<BIPEvent | null>(null);
-  const [iosHint, setIosHint] = useState(false);
+  const [deferred, setDeferred] = useState<BIPEvent | null>(() => (window as any).__bip ?? null);
+  const [hint, setHint] = useState(false);
 
   const isStandalone =
-    typeof window !== "undefined" &&
-    (window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true);
-  const isIOS =
-    typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent) &&
-    !/crios|fxios|edgios/i.test(navigator.userAgent); // nur Safari kann „Zum Home-Bildschirm"
+    window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
 
   useEffect(() => {
-    const onBip = (e: Event) => { e.preventDefault(); setDeferred(e as BIPEvent); };
-    window.addEventListener("beforeinstallprompt", onBip);
-    return () => window.removeEventListener("beforeinstallprompt", onBip);
+    const sync = () => setDeferred((window as any).__bip ?? null);
+    window.addEventListener("bip-ready", sync);
+    window.addEventListener("appinstalled", sync);
+    return () => { window.removeEventListener("bip-ready", sync); window.removeEventListener("appinstalled", sync); };
   }, []);
 
   if (isStandalone) return null;
-  // Weder Android-Prompt verfügbar noch iOS-Safari -> kein sinnvoller Button.
-  if (!deferred && !isIOS) return null;
 
   function click() {
-    if (deferred) { deferred.prompt(); deferred.userChoice.finally(() => setDeferred(null)); return; }
-    setIosHint((v) => !v);
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.finally(() => { (window as any).__bip = null; setDeferred(null); });
+      return;
+    }
+    setHint((v) => !v);
   }
 
   return (
@@ -40,8 +41,10 @@ export function InstallPwa({ className = "" }: { className?: string }) {
       >
         ⬇ {t("install.button")}
       </button>
-      {iosHint && (
-        <p className="mt-2 rounded-lg bg-slate-800/70 p-2 text-xs text-slate-300">{t("install.iosHint")}</p>
+      {hint && !deferred && (
+        <p className="mt-2 rounded-lg bg-slate-800/70 p-2 text-xs text-slate-300">
+          {isIOS ? t("install.iosHint") : t("install.menuHint")}
+        </p>
       )}
     </div>
   );

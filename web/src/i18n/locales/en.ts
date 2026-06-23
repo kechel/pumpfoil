@@ -506,6 +506,7 @@ const en: Record<string, string> = {
 
   "install.button": "Install app",
   "install.iosHint": "In Safari: tap the Share icon ⬆️ → “Add to Home Screen”.",
+  "install.menuHint": "If no dialog appears: open the browser menu (⋮) → “Install app” or “Add to Home screen”.",
 
 };
 

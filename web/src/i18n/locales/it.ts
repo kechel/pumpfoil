@@ -403,6 +403,7 @@ const it: Record<string, string> = {
 
   "install.button": "Installa l'app",
   "install.iosHint": "In Safari: tocca l'icona Condividi ⬆️ → „Aggiungi a Home“.",
+  "install.menuHint": "Se non appare alcun dialogo: apri il menu del browser (⋮) → „Installa app“ o „Aggiungi a schermata Home“.",
 
 };
 

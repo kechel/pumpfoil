@@ -332,6 +332,7 @@ const gsw: Record<string, string> = {
 
   "install.button": "App installiere",
   "install.iosHint": "I Safari: s Teile-Symbol ⬆️ antippe → „Zum Home-Bildschirm“.",
+  "install.menuHint": "Wenn kei Dialog chunnt: s Browser-Menü (⋮) ufmache → „App installiere“ oder „Zum Startbildschirm hinzuefüege“.",
 
 };
 

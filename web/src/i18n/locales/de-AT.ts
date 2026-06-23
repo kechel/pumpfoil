@@ -332,6 +332,7 @@ const deAT: Record<string, string> = {
 
   "install.button": "App installieren",
   "install.iosHint": "In Safari: Teilen-Symbol ⬆️ unten antippen → „Zum Home-Bildschirm“.",
+  "install.menuHint": "Falls kein Dialog erscheint: Browser-Menü (⋮) öffnen → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.",
 
 };
 

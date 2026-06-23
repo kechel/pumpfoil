@@ -403,6 +403,7 @@ const es: Record<string, string> = {
 
   "install.button": "Instalar app",
   "install.iosHint": "En Safari: toca el icono Compartir ⬆️ → «Añadir a inicio».",
+  "install.menuHint": "Si no aparece ningún diálogo: abre el menú del navegador (⋮) → «Instalar app» o «Añadir a pantalla de inicio».",
 
 };
 
