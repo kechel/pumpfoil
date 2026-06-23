@@ -63,21 +63,21 @@ export default function Landing() {
         {/* Screenshot-Slider: Beschreibung als Überschrift, durchschaltbar */}
         <section className="pb-8">
           <h2 className="mb-5 min-h-[2rem] text-center text-xl font-bold sm:text-2xl">{shots[shot].cap}</h2>
-          <div className="relative mx-auto max-w-3xl">
-            <img
-              src={shots[shot].src}
-              alt={shots[shot].cap}
-              className="w-full rounded-2xl border border-slate-800 shadow-2xl"
-            />
+          <div className="mx-auto flex max-w-5xl items-center justify-center gap-1 sm:gap-4">
             <button
               onClick={() => goShot(-1)}
               aria-label={t("land.prev")}
-              className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-2xl text-white backdrop-blur hover:bg-black/70"
+              className="shrink-0 px-1 text-6xl leading-none text-slate-500 hover:text-brand-400 sm:text-7xl"
             >‹</button>
+            <img
+              src={shots[shot].src}
+              alt={shots[shot].cap}
+              className="min-w-0 max-w-3xl flex-1 rounded-2xl border border-slate-800 shadow-2xl"
+            />
             <button
               onClick={() => goShot(1)}
               aria-label={t("land.next")}
-              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-2xl text-white backdrop-blur hover:bg-black/70"
+              className="shrink-0 px-1 text-6xl leading-none text-slate-500 hover:text-brand-400 sm:text-7xl"
             >›</button>
           </div>
           {/* Vorschau-Punkte */}
