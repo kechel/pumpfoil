@@ -44,7 +44,7 @@ export default function Landing() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* Hero */}
-        <section className="py-14 text-center sm:py-20">
+        <section className="pb-4 pt-3 text-center sm:pb-6 sm:pt-4">
           <h1 className="flex items-center justify-center gap-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
             <WaveIcon className="h-10 w-10 text-brand-400 sm:h-14 sm:w-14" />
             Pumpfoil.org
