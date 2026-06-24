@@ -44,7 +44,7 @@ export function Stat({ label, value, sub }: { label: string; value: string; sub?
   return (
     <Card className="overflow-hidden p-1.5">
       <div className="flex items-baseline gap-1 leading-none">
-        <span className="text-base font-bold tabular-nums text-slate-100 sm:text-lg">{value}</span>
+        <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{value}</span>
         {sub && <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>}
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{label}</div>

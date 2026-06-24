@@ -83,7 +83,7 @@ export default function PersonalHome() {
           {statTiles.map((s) => (
             <Card key={s.label} className="h-full p-3">
               <div className="text-xs text-slate-400">{s.label}</div>
-              <div className="mt-1 text-lg font-bold tabular-nums text-slate-100">{s.value}</div>
+              <div className="mt-1 text-lg font-bold tabular-nums text-brand-400">{s.value}</div>
             </Card>
           ))}
         </div>

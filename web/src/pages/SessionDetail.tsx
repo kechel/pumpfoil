@@ -7,6 +7,7 @@ import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, Fake
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPowerStat } from "../components/FoilPower";
+import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
@@ -269,6 +270,14 @@ export default function SessionDetail() {
   const [fullscreen, setFullscreen] = useState(false);
   const [win, setWin] = useState<"1" | "3" | "5">("3");
   const [showPumps, setShowPumps] = useState(false);
+  const [weightKg, setWeightKg] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.getSettings().then((s) => {
+      const w = Number(s.weight_kg);
+      setWeightKg(Number.isFinite(w) && w > 0 ? w : DEFAULT_RIDER.riderWeight);
+    }).catch(() => setWeightKg(DEFAULT_RIDER.riderWeight));
+  }, []);
 
   // Hotkeys: Ziffern 1–9 wählen den entsprechenden Lauf, 0 zeigt alle.
   useEffect(() => {
@@ -520,6 +529,18 @@ export default function SessionDetail() {
   const m = a?.metrics;
   const segs: any[] = a?.segments ?? [];
   const owned = session.owned !== false;
+
+  // Theoretische Leistung (W) für oben + je Lauf. Ohne Pump-Frequenz pauschal +50 W.
+  const fo = session.foil;
+  const foilDims = fo?.span_cm && fo?.area_cm2 && fo?.thickness_mm
+    ? { span_cm: fo.span_cm, area_cm2: fo.area_cm2, thickness_mm: fo.thickness_mm } : null;
+  const powerFor = (avgMps?: number | null, pumpHz?: number | null): number | null => {
+    if (!foilDims || !avgMps || avgMps <= 0) return null;
+    const rider = { riderWeight: weightKg ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
+    const pump = pumpHz && pumpHz > 0 ? { heaveAmp_cm: 12, pumpFreq_hz: pumpHz, recoveryLoss_pct: 35 } : undefined;
+    const r = computeFoilPowerAtSpeed(foilDims, avgMps * 3.6, { rider, pump });
+    return Math.round(r.dragPower + (pump ? r.inertiaPower : 50));
+  };
   const argBest = (
     getter: (s: any) => number | null | undefined,
     better: (x: number, y: number) => boolean,
@@ -537,8 +558,6 @@ export default function SessionDetail() {
   const maxGl = argBest((s) => s.longest_glide_s, (x, y) => x > y);
   const longSeg = argBest((s) => s.duration_s, (x, y) => x > y);
   const farSeg = argBest((s) => s.distance_m, (x, y) => x > y);
-  const maxPump = argBest((s) => s.max_pump_hz, (x, y) => x > y);
-  const minPump = argBest((s) => s.min_pump_hz, (x, y) => x < y);
   const hasPumpStats = m?.avg_pump_hz != null && (a?.pump_count ?? 0) > 0;
   return (
     <div>
@@ -663,13 +682,10 @@ export default function SessionDetail() {
         <ClickStat label={t("sd.maxGlide")} value={maxGl.v != null ? maxGl.v.toFixed(1) : "–"} sub="s"
           runIdx={maxGl.i} selected={selectedRun} onSelect={setSelectedRun} />
         <Stat label={t("stat.pumps")} value={a?.pump_count != null ? String(a.pump_count) : "–"}
-          sub={hasPumpStats ? `Ø ${m!.avg_pump_hz!.toFixed(2)} Hz` : t("sd.phase2")} />
+          sub={hasPumpStats ? undefined : t("sd.phase2")} />
         {hasPumpStats && (
           <>
-            <ClickStat label={t("sd.maxPump")} value={maxPump.v != null ? maxPump.v.toFixed(2) : "–"} sub="Hz"
-              runIdx={maxPump.i} selected={selectedRun} onSelect={setSelectedRun} />
-            <ClickStat label={t("sd.minPump")} value={minPump.v != null ? minPump.v.toFixed(2) : "–"} sub="Hz"
-              runIdx={minPump.i} selected={selectedRun} onSelect={setSelectedRun} />
+            <Stat label={t("sd.avgPump")} value={m!.avg_pump_hz!.toFixed(2)} sub="Hz" />
             <Stat label={t("sd.avgDistPerPump")}
               value={a?.pump_count && a.foiling_distance_m != null ? (a.foiling_distance_m / a.pump_count).toFixed(1) : "–"} sub="m/Pump" />
           </>
@@ -795,7 +811,7 @@ export default function SessionDetail() {
 
       {owned && <TrimEditor session={session} onSaved={setSession} />}
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} />
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} />
 
       <div className="mt-8">
         <h3 className="mb-3 text-sm font-semibold text-slate-200">{t("sd.discussion")}</h3>
@@ -835,7 +851,7 @@ function ClickStat({
       className={`overflow-hidden rounded-xl border p-1.5 text-left ${isSel ? "border-brand-500 bg-brand-500/10" : "border-slate-800 bg-slate-900/60"} ${clickable ? "hover:border-slate-600" : ""}`}
     >
       <div className="flex items-baseline gap-1 leading-none">
-        <span className="text-base font-bold tabular-nums text-slate-100 sm:text-lg">{value}</span>
+        <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{value}</span>
         {sub && <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>}
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">
@@ -957,14 +973,17 @@ function RunsTable({
   selected,
   onSelect,
   win,
+  powerFor,
 }: {
   segments: any[];
   selected: number | null;
   onSelect: (i: number | null) => void;
   win: "1" | "3" | "5";
+  powerFor?: (avgMps?: number | null, pumpHz?: number | null) => number | null;
 }) {
   const t = useT();
   if (!segments.length) return null;
+  const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
   const hz = (v: number | null | undefined) => (v != null ? v.toFixed(2) : "–");
@@ -988,6 +1007,7 @@ function RunsTable({
               <th className="px-3 py-2 font-medium">{t("sd.colAvg", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
+              {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
@@ -1013,6 +1033,11 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">{val(s, "avg")}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
+                  {showPower && (
+                    <td className="px-3 py-2 tabular-nums text-brand-400">
+                      {(() => { const w = powerFor!(s.avg_speed_mps, s.avg_pump_hz); return w != null ? `${w} W` : "–"; })()}
+                    </td>
+                  )}
                   <td className="px-3 py-2 tabular-nums">{s.pumps ?? "–"}</td>
                   {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}

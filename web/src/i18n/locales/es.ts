@@ -338,6 +338,8 @@ const es: Record<string, string> = {
   "chat.noActive": "No hay chats activos en las últimas 48 h.",
   "power.tip": "{foil}: potencia teórica a {speed} km/h de media, {weight} kg en total. Resistencia {drag} W + inercia de pump {inertia} W{note}.",
   "power.estPump": "estimación fija, sin datos accel",
+  "sd.avgPump": "Pump medio",
+  "sd.colPower": "Potencia",
   "chat.placeholder": "Escribe un mensaje …",
   "chat.send": "Enviar",
   "chat.empty": "Aún no hay mensajes. ¡Sé el primero!",
