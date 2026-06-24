@@ -3,6 +3,10 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- **/foil-stats: relevante Kennzahlen.** Statt **Max-Speed** lieber **Meter pro Pump** und **Ø-Speed**
+  anzeigen (das ist beim Foil-Vergleich aussagekräftig). Endpoint `/api/community/foil-stats` +
+  FoilStats-Seite anpassen.
+
 - **Foil-DB um weitere Marken erweitern.** *Infrastruktur + erste Marken umgesetzt (2026-06-24):*
   Schema-Flag `thickness_estimated` (Model/Migration/Seed/API), idempotenter Seed (neue Foils per
   brand/model/size nachladbar), UI-Badge „≈ Dicke geschätzt" (Foils-Liste, Rechner-t/c, Session-Watt).
