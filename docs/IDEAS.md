@@ -11,6 +11,8 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   pro Foil aus Quelle/Schätzung kommen (sonst Calculator-Werte unzuverlässig). Plan: nur **verifizierte**
   Einträge übernehmen; Dicke ggf. via Dickenverhältnis (t/c) grob schätzen + als „geschätzt" markieren.
   Falls Jan eine Tabelle/Quelle hat, ist das der schnellste Weg.
+- **Spot-Sessions → Direktlink zum Spot-Chat.** In der Sessions-Ansicht eines Spots (`/alle-sessions?spot=…`
+  bzw. Spot-Seite) ein Button/Link direkt in den zugehörigen Spot-Chatraum.
 
 ---
 
