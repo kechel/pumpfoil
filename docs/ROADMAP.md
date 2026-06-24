@@ -95,7 +95,8 @@ Polar (offene Cloud-API). Coros/Suunto/Garmin-Cloud opportunistisch (gated).
 **Prep-Stand (2026-06-24):**
 - ✅ **Apple-Watch-Recorder** `watch-apple/` (SwiftUI, XcodeGen, v1) — in Xcode bauen.
   Fix angewandt: Watch-only-App (`WKWatchOnly=TRUE`).
-- ✅ **Wear-OS-Recorder** `watch-wear/` (Kotlin/Gradle, v1) — in Android Studio bauen.
+- ✅ **Wear-OS-Recorder** `watch-wear/` (Kotlin/Gradle, v1) — auf der VM kompiliert, **E2E im
+  Emulator getestet** (Start → GPS-Sim → Stop → Upload → Session). APK an Jan geliefert.
 - ⏳ **Polar AccessLink** (Cloud-Import): bewusst NICHT blind vorgebaut. OAuth-Endpoints stehen
   fest (Authorize `flow.polar.com/oauth2/authorization`, Token `polarremote.com/v2/oauth2/token`,
   API v3 `polaraccesslink.com`, User-Registrierung `POST /v3/users`). **Offene Designfrage:**
