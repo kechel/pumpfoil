@@ -27,13 +27,15 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - ✅ **Chatraum verlassen:** *umgesetzt:* `/chat/leave` + Button in der Chat-Leiste; verlassene Räume
     verschwinden aus „Meine Chats".
 - **Foil-Rechner nativ nachbauen + Physik als Modul (★★★, ersetzt den HTML-Link).**
-  Den `foilcalculator.html` **in der App nachbauen** mit angepasstem Layout. Kernpunkt: die **Berechnungen
-  als eigenständiges, modulares TS-Lib** (`lib/foilPhysics.ts`) aus dem Calculator-JS portieren
-  (Lift/Drag, Reynolds, CL/CD, Mast-Drag, Power/Watt, optimale/Stall-Speed, Pump-Inertia) — **wiederverwendbar
-  überall**, v. a. in **Session-/Lauf-Detailansichten** zur Anzeige der **theoretischen Leistung (Watt)**
-  auf Basis des gewählten Foils + Gewicht + echtem Speed. Schritte: 1) Physik-Modul portieren + Tests gegen
-  die HTML-Referenzwerte, 2) native Rechner-Seite, 3) Watt in Detailansichten einhängen. Ersetzt den
-  bisherigen `/foilcalculator.html`-Link; deckt zugleich das „Leistung/Watt"-Item (Abschnitt 1) ab.
+  - ✅ **Schritt 1 — Physik-Modul** `web/src/lib/foilPhysics.ts` aus dem Calculator-JS portiert
+    (AR, Reynolds, Chord/Dicke, CLmax, required CL, Stall/Min-Viable, Cd induziert+Profil, Foil-/Mast-Drag,
+    Pump-Trägheit/Added-Mass, `computeFoilPowerAtSpeed`). **Verifiziert** gegen die Referenz:
+    `npm run test:physics` (135/135 Werte identisch, `scripts/verify-foil-physics.mjs`).
+  - ✅ **Schritt 3 — Watt in Detailansichten:** `FoilPower`-Karte in der Session-Detailansicht zeigt die
+    theoretische Leistung bei Ø- und Top-Speed (Fahrergewicht aus den Einstellungen, reale Pump-Hz für den
+    Trägheitsanteil).
+  - **Offen — Schritt 2:** native Rechner-Seite (Tabellen/Vergleich) im App-Layout, ersetzt dann den
+    `/foilcalculator.html`-Link.
 - **Light-Mode + Theme-Schalter.** Helles Design erstellen (aktuell nur Dark). Im Profil Schalter
   **Dark / Light / Auto** (System-`prefers-color-scheme`). Öffentliche Startseite (vor Login) immer **Auto**.
   Größeres Theming: Tailwind `dark:`-Strategie umstellen (class-based), Farb-Tokens, alle Seiten prüfen.

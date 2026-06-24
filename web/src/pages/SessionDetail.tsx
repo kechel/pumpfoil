@@ -6,6 +6,7 @@ import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
+import { FoilPower } from "../components/FoilPower";
 import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
@@ -667,6 +668,20 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {session.foil?.span_cm && session.foil?.area_cm2 && session.foil?.thickness_mm && (
+        <div className="mt-4">
+          <FoilPower
+            foil={{
+              brand: session.foil.brand, model: session.foil.model, size: session.foil.size,
+              span_cm: session.foil.span_cm, area_cm2: session.foil.area_cm2, thickness_mm: session.foil.thickness_mm,
+            }}
+            avgKmh={m?.avg_speed_mps != null ? m.avg_speed_mps * 3.6 : null}
+            maxKmh={(m?.max_speed_5s_mps ?? a?.max_speed_mps) != null ? (m?.max_speed_5s_mps ?? a?.max_speed_mps)! * 3.6 : null}
+            pumpHz={m?.avg_pump_hz ?? null}
+          />
+        </div>
+      )}
 
       <div className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mt-5"}>
         <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 p-2" : ""}`}>
