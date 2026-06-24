@@ -6,6 +6,7 @@ import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
+import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
 function fmtKm(m: number | null | undefined) {
@@ -780,6 +781,11 @@ export default function SessionDetail() {
       {owned && <TrimEditor session={session} onSaved={setSession} />}
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} />
+
+      <div className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-slate-200">{t("sd.discussion")}</h3>
+        <Card className="p-4"><Chat scope={`session:${session.id}`} /></Card>
+      </div>
 
       {owned && (
         <div className="mt-8 flex justify-end">

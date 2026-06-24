@@ -41,6 +41,11 @@ async function uploadFile<T>(path: string, file: File): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface ChatMsg {
+  id: number; user_id: number; name: string | null; avatar_url: string | null;
+  text: string; created_at: string | null; mine: boolean; hidden: boolean; report_count: number;
+}
+
 export interface Foil {
   id: number; brand: string; model: string; size: string;
   span_cm: number; area_cm2: number; thickness_mm: number;
@@ -270,6 +275,9 @@ export const api = {
   getProfile: () => req<Profile>("/api/auth/me"),
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
+  chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
+  chatPost: (scope: string, text: string) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text }) }),
+  chatReport: (id: number) => req<{ ok: boolean; report_count: number; hidden: boolean }>(`/api/chat/${id}/report`, { method: "POST" }),
   foils: (params?: { q?: string; brand?: string }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);
