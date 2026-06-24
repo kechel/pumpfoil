@@ -96,6 +96,8 @@ export interface SessionSummary {
   like_count?: number;
   liked?: boolean;
   track_preview?: string | null;
+  foil_id?: number | null;
+  foil?: { id: number; brand: string; model: string; size: string; aspect_ratio: number | null; is_default?: boolean } | null;
   analysis: Analysis | null;
 }
 
@@ -363,7 +365,7 @@ export const api = {
   deleteSessionPhoto: (id: number, photoId: number) =>
     req(`/api/sessions/${id}/photos/${photoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
-  updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string }) =>
+  updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",
       body: JSON.stringify(patch),

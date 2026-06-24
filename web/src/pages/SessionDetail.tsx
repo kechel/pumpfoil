@@ -5,6 +5,7 @@ import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
+import { FoilSelect } from "../components/FoilSelect";
 import { useT } from "../i18n";
 
 function fmtKm(m: number | null | undefined) {
@@ -612,6 +613,7 @@ export default function SessionDetail() {
         )}
         {session.place_name && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs">📍 {session.place_name}</span>}
         {session.sport && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs">{session.sport}</span>}
+        <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && <span className="ml-2 rounded bg-sky-500/15 px-1.5 py-0.5 text-xs text-sky-300">{t("sd.communityView")}</span>}
       </p>
 

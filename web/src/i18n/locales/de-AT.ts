@@ -378,6 +378,9 @@ const deAT: Record<string, string> = {
   "foils.add": "Merken",
   "foils.remove": "Entfernen",
 
+  "foil.label": "Foil",
+  "foil.useDefault": "Standard-Foil",
+
 };
 
 export default deAT

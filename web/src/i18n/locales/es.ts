@@ -449,6 +449,9 @@ const es: Record<string, string> = {
   "foils.add": "Añadir",
   "foils.remove": "Quitar",
 
+  "foil.label": "Foil",
+  "foil.useDefault": "Foil por defecto",
+
 };
 
 export default es;

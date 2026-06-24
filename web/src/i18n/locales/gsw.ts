@@ -378,6 +378,9 @@ const gsw: Record<string, string> = {
   "foils.add": "Merke",
   "foils.remove": "Entferne",
 
+  "foil.label": "Foil",
+  "foil.useDefault": "Standard-Foil",
+
 };
 
 export default gsw

@@ -552,6 +552,9 @@ const en: Record<string, string> = {
   "foils.add": "Add",
   "foils.remove": "Remove",
 
+  "foil.label": "Foil",
+  "foil.useDefault": "Default foil",
+
 };
 
 export default en;
