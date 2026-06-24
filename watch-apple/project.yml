@@ -1,0 +1,42 @@
+# XcodeGen-Projekt für die Apple-Watch-Recorder-App.
+# Erzeugen:  brew install xcodegen && cd watch-apple && xcodegen generate && open Pumpfoil.xcodeproj
+name: Pumpfoil
+options:
+  bundleIdPrefix: org.pumpfoil
+  deploymentTarget:
+    watchOS: "9.0"
+  createIntermediateGroups: true
+
+targets:
+  PumpfoilWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.watch
+        PRODUCT_NAME: Pumpfoil
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: ""
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "4"   # 4 = Apple Watch
+        # DEVELOPMENT_TEAM: XXXXXXXXXX   # <- in Xcode unter Signing & Capabilities setzen
+    info:
+      path: Sources/Info.plist
+      properties:
+        WKApplication: true
+        CFBundleDisplayName: Pumpfoil
+        NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
+        NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung."
+        NSHealthShareUsageDescription: "Herzfrequenz während der Session."
+        NSHealthUpdateUsageDescription: "Session als Workout aufzeichnen."
+        WKBackgroundModes:
+          - workout-processing
+    entitlements:
+      path: Sources/Pumpfoil.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []

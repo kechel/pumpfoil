@@ -1,0 +1,11 @@
+# Von XcodeGen aus project.yml generiert — nicht einchecken.
+Pumpfoil.xcodeproj/
+Sources/Info.plist
+Sources/Pumpfoil.entitlements
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.DS_Store
