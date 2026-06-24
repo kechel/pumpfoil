@@ -277,6 +277,7 @@ const gsw: Record<string, string> = {
   "theme.dark": "Dunkel",
   "theme.light": "Häll",
   "theme.auto": "Automatisch",
+  "chat.start": "Aafang vom Chat",
   "chat.placeholder": "Nachricht schribe …",
   "chat.send": "Schicke",
   "chat.empty": "No kei Nachrichte. Schrib di erscht!",

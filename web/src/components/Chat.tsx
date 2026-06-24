@@ -26,7 +26,12 @@ export function Chat({ scope }: { scope: string }) {
   const [busy, setBusy] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [push, setPush] = useState(false);
-  const lastId = useRef(0);
+  const [hasMore, setHasMore] = useState(false);   // gibt es ältere Nachrichten?
+  const [loadingMore, setLoadingMore] = useState(false);
+  const lastId = useRef(0);          // höchste geladene id (für Polling)
+  const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const PAGE = 30;
 
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
   useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
@@ -36,20 +41,63 @@ export function Chat({ scope }: { scope: string }) {
     if (id > 0) api.chatMarkRead(scope, id).catch(() => {});
   }
 
+  const atBottom = () => {
+    const el = scrollRef.current;
+    return !el || el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+  };
+  const scrollToBottom = () => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  };
+
+  // Initial: die neuesten PAGE Nachrichten, ans untere Ende scrollen.
   useEffect(() => {
     let alive = true;
-    const poll = () => api.chatList(scope, lastId.current)
-      .then((rows) => {
-        if (!alive || rows.length === 0) return;
-        lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
-        setMsgs((prev) => [...prev, ...rows]);
-        markRead(lastId.current);
-      })
-      .catch(() => {});
-    setMsgs([]); lastId.current = 0; poll();
+    api.chatLatest(scope, PAGE).then((rows) => {
+      if (!alive) return;
+      setMsgs(rows);
+      firstId.current = rows.length ? rows[0].id : 0;
+      lastId.current = rows.length ? rows[rows.length - 1].id : 0;
+      setHasMore(rows.length === PAGE);
+      markRead(lastId.current);
+      requestAnimationFrame(scrollToBottom);
+    }).catch(() => {});
+    // Polling für neue Nachrichten.
+    const poll = () => api.chatList(scope, lastId.current).then((rows) => {
+      if (!alive || rows.length === 0) return;
+      const stick = atBottom();
+      lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
+      setMsgs((prev) => [...prev, ...rows]);
+      markRead(lastId.current);
+      if (stick) requestAnimationFrame(scrollToBottom);
+    }).catch(() => {});
     const iv = setInterval(poll, 10000);
     return () => { alive = false; clearInterval(iv); };
-  }, [scope]);
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ältere Nachrichten beim Hochscrollen nachladen (Scrollposition halten).
+  function loadOlder() {
+    if (loadingMore || !hasMore || !firstId.current) return;
+    setLoadingMore(true);
+    const el = scrollRef.current;
+    const prevH = el ? el.scrollHeight : 0;
+    api.chatBefore(scope, firstId.current, PAGE).then((rows) => {
+      if (rows.length) {
+        firstId.current = rows[0].id;
+        setMsgs((prev) => [...rows, ...prev]);
+        setHasMore(rows.length === PAGE);
+        requestAnimationFrame(() => {
+          const e = scrollRef.current;
+          if (e) e.scrollTop = e.scrollHeight - prevH;  // Position beibehalten
+        });
+      } else {
+        setHasMore(false);
+      }
+    }).catch(() => {}).finally(() => setLoadingMore(false));
+  }
+  function onScroll() {
+    if (scrollRef.current && scrollRef.current.scrollTop < 40) loadOlder();
+  }
 
   function toggleSub() {
     const next = !push;
@@ -69,6 +117,7 @@ export function Chat({ scope }: { scope: string }) {
       .then((m) => {
         setText("");
         if (m.id > lastId.current) { lastId.current = m.id; setMsgs((prev) => [...prev, m]); }
+        requestAnimationFrame(scrollToBottom);
       })
       .finally(() => setBusy(false));
   }
@@ -92,7 +141,9 @@ export function Chat({ scope }: { scope: string }) {
         </button>
         <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
       </div>
-      <div className="mb-3 max-h-96 space-y-3 overflow-y-auto">
+      <div ref={scrollRef} onScroll={onScroll} className="mb-3 h-96 space-y-3 overflow-y-auto">
+        {loadingMore && <p className="py-1 text-center text-xs text-slate-500">…</p>}
+        {!hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (
           <div key={m.id} className={`flex gap-2 ${m.hidden ? "opacity-50" : ""}`}>

@@ -327,6 +327,7 @@ const es: Record<string, string> = {
   "theme.dark": "Oscuro",
   "theme.light": "Claro",
   "theme.auto": "Auto",
+  "chat.start": "Inicio del chat",
   "chat.placeholder": "Escribe un mensaje …",
   "chat.send": "Enviar",
   "chat.empty": "Aún no hay mensajes. ¡Sé el primero!",

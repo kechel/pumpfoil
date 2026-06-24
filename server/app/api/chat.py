@@ -61,10 +61,15 @@ def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int) -> 
 
 @router.get("")
 def list_messages(
-    scope: str = Query(...), after: int = 0, limit: int = 100,
+    scope: str = Query(...), after: int = 0, before: int = 0, limit: int = 30,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
+    """Chat-Nachrichten, immer aufsteigend (älteste -> neueste) zurückgegeben.
+    - ohne Cursor: die neuesten `limit` Nachrichten (für initiales Laden).
+    - after=<id>: alle Nachrichten neuer als id (Polling).
+    - before=<id>: die `limit` Nachrichten direkt vor id (Hochscroll-Nachladen)."""
     _check_scope(scope)
+    lim = min(max(limit, 1), 100)
     q = (
         db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url)
         .join(models.User, models.ChatMessage.user_id == models.User.id)
@@ -73,8 +78,15 @@ def list_messages(
     if not user.is_admin:
         q = q.filter(models.ChatMessage.hidden.isnot(True))
     if after:
-        q = q.filter(models.ChatMessage.id > after)
-    rows = q.order_by(models.ChatMessage.id.asc()).limit(min(max(limit, 1), 200)).all()
+        # Neue Nachrichten seit `after`: aufsteigend ab dem Cursor.
+        rows = q.filter(models.ChatMessage.id > after).order_by(
+            models.ChatMessage.id.asc()).limit(lim).all()
+    else:
+        # Neueste (oder die vor `before`): absteigend holen, dann umdrehen.
+        if before:
+            q = q.filter(models.ChatMessage.id < before)
+        rows = q.order_by(models.ChatMessage.id.desc()).limit(lim).all()
+        rows = list(reversed(rows))
     return [_msg_out(m, name, avatar, user.id) for m, name, avatar in rows]
 
 
