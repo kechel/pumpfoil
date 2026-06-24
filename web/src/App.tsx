@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
-import { api, clearToken, OverallStats, Profile } from "./lib/api";
+import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
@@ -21,13 +21,9 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 
 export default function App() {
   const { t, setLang } = useI18n();
-  const [stats, setStats] = useState<OverallStats | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  useEffect(() => {
-    api.stats(true).then(setStats).catch(() => {});
-  }, []);
   // Letzte 10 eigene Sessions für Offline vorladen (nur was nicht schon gecacht ist).
   useEffect(() => { warmMySessions(); }, []);
   useEffect(() => {
@@ -77,7 +73,7 @@ export default function App() {
             end={it.end}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                isActive ? "bg-slate-800 text-brand-400" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
+                isActive ? "bg-slate-800 nav-active" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
               }`
             }
           >
@@ -91,20 +87,6 @@ export default function App() {
         >
           {t("import.title")}
         </Link>
-
-        {stats && stats.count > 0 && (
-          <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("side.total")}
-            </div>
-            <SideStat label={t("side.sessions")} value={String(stats.count)} />
-            <SideStat label={t("stat.runs")} value={String(stats.runs_total)} />
-            <SideStat label={t("side.foiling")} value={`${stats.foiling_km.toFixed(1)} km`} />
-            <SideStat label={t("side.foilingTime")} value={fmtDuration(stats.foiling_min)} />
-            <SideStat label={t("side.pumps")} value={stats.pumps.toLocaleString("de")} />
-            <Link to="/home" className="mt-3 block text-xs text-brand-300 hover:text-brand-200">{t("side.records")} →</Link>
-          </div>
-        )}
 
         <InstallPwa className="mt-3" />
 
@@ -148,7 +130,7 @@ export default function App() {
             end={it.end}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${
-                isActive ? "text-brand-400" : "text-slate-200"
+                isActive ? "nav-active" : "text-slate-200"
               }`
             }
           >
@@ -158,19 +140,4 @@ export default function App() {
       </nav>
     </div>
   );
-}
-
-function SideStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline justify-between py-1">
-      <span className="text-sm text-slate-300">{label}</span>
-      <span className="font-semibold tabular-nums">{value}</span>
-    </div>
-  );
-}
-
-function fmtDuration(min: number): string {
-  if (min < 60) return `${min.toFixed(0)} min`;
-  const h = Math.floor(min / 60);
-  return `${h} h ${Math.round(min - h * 60)} min`;
 }

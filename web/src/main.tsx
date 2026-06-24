@@ -45,6 +45,7 @@ import Foils from "./pages/Foils";
 import FoilStats from "./pages/FoilStats";
 import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
+import ChatPage from "./pages/ChatPage";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -67,6 +68,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "home", element: <PersonalHome /> },
+      { path: "chat", element: <ChatPage /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
       { path: "import", element: <Import /> },

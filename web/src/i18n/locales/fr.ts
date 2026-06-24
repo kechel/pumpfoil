@@ -328,6 +328,8 @@ const fr: Record<string, string> = {
   "theme.light": "Clair",
   "theme.auto": "Auto",
   "chat.start": "Début du chat",
+  "chat.title": "Chat",
+  "chat.noRoom": "Aucun salon sélectionné.",
   "chat.placeholder": "Écrire un message …",
   "chat.send": "Envoyer",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",

@@ -27,11 +27,9 @@ def _scope_label(scope: str) -> str:
 
 
 def _scope_url(scope: str) -> str:
-    kind, _, rest = scope.partition(":")
-    if kind == "spot":
-        from urllib.parse import quote
-        return f"/sessions?spot={quote(rest)}"
-    return f"/sessions/{rest}"
+    # Push-Deeplink öffnet die eigenständige Chat-Ansicht (Fullscreen).
+    from urllib.parse import quote
+    return f"/chat?scope={quote(scope)}"
 
 
 def _state(db: Session, user_id: int, scope: str) -> models.ChatRoomState:

@@ -278,6 +278,8 @@ const gsw: Record<string, string> = {
   "theme.light": "Häll",
   "theme.auto": "Automatisch",
   "chat.start": "Aafang vom Chat",
+  "chat.title": "Chat",
+  "chat.noRoom": "Kein Chatruum uusgwählt.",
   "chat.placeholder": "Nachricht schribe …",
   "chat.send": "Schicke",
   "chat.empty": "No kei Nachrichte. Schrib di erscht!",

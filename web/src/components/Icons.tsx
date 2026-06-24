@@ -141,6 +141,23 @@ export const FlagIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Taschenrechner (Foil-Rechner).
+export const CalculatorIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
+    <rect x="8" y="5.5" width="8" height="3" rx="0.6" />
+    <line x1="9" y1="12.5" x2="9" y2="12.5" />
+    <line x1="12" y1="12.5" x2="12" y2="12.5" />
+    <line x1="15" y1="12.5" x2="15" y2="12.5" />
+    <line x1="9" y1="15.5" x2="9" y2="15.5" />
+    <line x1="12" y1="15.5" x2="12" y2="15.5" />
+    <line x1="15" y1="15.5" x2="15" y2="15.5" />
+    <line x1="9" y1="18.5" x2="9" y2="18.5" />
+    <line x1="12" y1="18.5" x2="12" y2="18.5" />
+    <line x1="15" y1="18.5" x2="15" y2="18.5" />
+  </svg>
+);
+
 // Unecht / zweifelhaft (fake) — Warndreieck.
 export const FakeIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>

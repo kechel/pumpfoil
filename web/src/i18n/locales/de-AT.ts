@@ -278,6 +278,8 @@ const deAT: Record<string, string> = {
   "theme.light": "Hell",
   "theme.auto": "Automatisch",
   "chat.start": "Anfang des Chats",
+  "chat.title": "Chat",
+  "chat.noRoom": "Kein Chatraum ausgewählt.",
   "chat.placeholder": "Nachricht schreiben …",
   "chat.send": "Senden",
   "chat.empty": "Noch keine Nachrichten. Schreib die erste!",

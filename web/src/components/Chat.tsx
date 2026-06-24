@@ -19,7 +19,8 @@ function hhmm(s: string | null) {
 }
 
 // Gemeinsame Chat-/Diskussions-Komponente. scope = "session:<id>" | "spot:<name>".
-export function Chat({ scope }: { scope: string }) {
+// fill=true: füllt die volle Höhe des Elternelements (für die /chat-Fullscreen-Ansicht).
+export function Chat({ scope, fill = false }: { scope: string; fill?: boolean }) {
   const t = useT();
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [text, setText] = useState("");
@@ -134,14 +135,14 @@ export function Chat({ scope }: { scope: string }) {
   }
 
   return (
-    <div>
+    <div className={fill ? "flex h-full flex-col" : ""}>
       <div className="mb-2 flex items-center justify-end gap-3 text-xs">
         <button onClick={toggleSub} className={push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"} title={t("chat.subscribe")}>
           {push ? "🔔" : "🔕"} {push ? t("chat.subscribed") : t("chat.subscribe")}
         </button>
         <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
       </div>
-      <div ref={scrollRef} onScroll={onScroll} className="mb-3 h-96 space-y-3 overflow-y-auto">
+      <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto ${fill ? "min-h-0 flex-1" : "h-96"}`}>
         {loadingMore && <p className="py-1 text-center text-xs text-slate-500">…</p>}
         {!hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}

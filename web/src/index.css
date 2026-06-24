@@ -69,3 +69,11 @@ html.theme-light .leaflet-tile {
 html.theme-light .text-slate-950 {
   color: rgb(2 6 23);
 }
+
+/* Aktiver Menüpunkt: im Dark helles Cyan, im Light dunkleres Cyan (Kontrast). */
+.nav-active {
+  color: #22d3ee; /* brand-400 */
+}
+html.theme-light .nav-active {
+  color: #0e7490; /* cyan-700 — dunkles Blau für hellen Hintergrund */
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
+import { ChevronIcon, CalculatorIcon } from "../components/Icons";
 import {
   calculateAR, calculateMeanChord, calculateThicknessRatio, calculateCLmax,
   calculateStallSpeed, calculateMinViableSpeed, calculateOptimalSpeed,
@@ -63,7 +63,7 @@ export default function FoilCalculator() {
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
       </Link>
-      <h2 className="mb-1 flex items-center gap-2 text-2xl font-bold"><span>🧮</span> {t("calc.title")}</h2>
+      <h2 className="mb-1 flex items-center gap-2 text-2xl font-bold"><CalculatorIcon className="h-6 w-6 text-brand-400" /> {t("calc.title")}</h2>
       <p className="mb-5 text-sm text-slate-400">{t("calc.intro")}</p>
 
       {/* Parameter */}
