@@ -12,6 +12,7 @@ export default function Foils() {
   const [q, setQ] = useState("");
   const [mine, setMine] = useState<number[]>([]);
   const [def, setDef] = useState<number | null>(null);
+  const [flash, setFlash] = useState<number | null>(null); // kurz hervorgehobenes Foil
 
   useEffect(() => {
     api.foils().then(setFoils).catch(() => setFoils([]));
@@ -22,20 +23,21 @@ export default function Foils() {
     }).catch(() => {});
   }, []);
 
-  function persist(nextMine: number[], nextDef: number | null) {
+  function persist(nextMine: number[], nextDef: number | null, flashId?: number) {
     setMine(nextMine); setDef(nextDef);
+    if (flashId != null) { setFlash(flashId); setTimeout(() => setFlash((c) => (c === flashId ? null : c)), 1200); }
     api.saveSettings({ my_foils: nextMine, foil_id: nextDef }).catch(() => {});
   }
   function toggleMine(id: number) {
     if (mine.includes(id)) {
       const nm = mine.filter((x) => x !== id);
-      persist(nm, def === id ? null : def); // war es Default -> Default entfernen
+      persist(nm, def === id ? null : def, id); // war es Default -> Default entfernen
     } else {
-      persist([...mine, id], def);
+      persist([...mine, id], def, id);
     }
   }
   function setDefault(id: number) {
-    persist(mine.includes(id) ? mine : [...mine, id], def === id ? null : id);
+    persist(mine.includes(id) ? mine : [...mine, id], def === id ? null : id, id);
   }
 
   const filtered = useMemo(() => {
@@ -74,7 +76,7 @@ export default function Foils() {
           const isMine = mine.includes(f.id);
           const isDef = f.id === def;
           return (
-            <Card key={f.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
+            <Card key={f.id} className={`flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 ${flash === f.id ? "scale-[1.01] ring-2 ring-brand-400" : ""} ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
               <div className="min-w-0">
                 <div className="font-semibold">{f.brand} {f.model} <span className="text-slate-400">{f.size}</span></div>
                 <div className="text-xs text-slate-400">{f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_mm} mm</div>
