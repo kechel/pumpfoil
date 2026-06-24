@@ -6,13 +6,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.*
 import kotlinx.coroutines.launch
 
@@ -60,8 +65,16 @@ class MainActivity : ComponentActivity() {
             Text("Pairing-Code aus der Web-App (Account)",
                 style = MaterialTheme.typography.caption2)
             Spacer(Modifier.height(6.dp))
-            TextField(value = code, onValueChange = { code = it.uppercase() },
-                singleLine = true)
+            BasicTextField(
+                value = code,
+                onValueChange = { code = it.uppercase() },
+                singleLine = true,
+                textStyle = TextStyle(color = Color.White, textAlign = TextAlign.Center),
+                cursorBrush = SolidColor(Color.White),
+                modifier = Modifier.fillMaxWidth()
+                    .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
             Spacer(Modifier.height(6.dp))
             Button(enabled = !busy && code.length >= 4, onClick = {
                 busy = true; error = ""
@@ -77,7 +90,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun RecordScreen() {
-        val s by Recorder.state.collectAsStateWithLifecycle()
+        val s by Recorder.state.collectAsState()
         Column(
             Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.Center,
