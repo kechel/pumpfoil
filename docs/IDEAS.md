@@ -13,6 +13,11 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   Falls Jan eine Tabelle/Quelle hat, ist das der schnellste Weg.
 - **Spot-Sessions → Direktlink zum Spot-Chat.** In der Sessions-Ansicht eines Spots (`/alle-sessions?spot=…`
   bzw. Spot-Seite) ein Button/Link direkt in den zugehörigen Spot-Chatraum.
+- **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine):
+  - **Duplikatserkennung** — verhindert versehentliches Doppelposten (gleicher Text kurz hintereinander).
+  - **Melden-Icon** je Nachricht (klein).
+  - **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen); Admin kann ausgeblendete wieder **freigeben**.
+  - **Admin:** gemeldete Nachrichten einsehen; Nutzer im Chat **blockieren** bzw. auf **read-only** setzen.
 
 ---
 
