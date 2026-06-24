@@ -99,6 +99,9 @@ def _migrate_add_columns() -> None:
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",
         },
+        "device_tokens": {
+            "revoked_at": "TIMESTAMP WITH TIME ZONE",
+        },
         "foils": {
             "thickness_estimated": "BOOLEAN DEFAULT false",
         },

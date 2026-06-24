@@ -346,6 +346,8 @@ export const api = {
     req<{ code: string; expires_at: string }>("/api/devices/pairing-code", {
       method: "POST",
     }),
+  myDevices: () => req<PairedDevice[]>("/api/devices/list"),
+  revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
   uploadFit: async (file: File) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -505,6 +507,14 @@ export interface OverallStats {
     runs: StatRecord;
     glide: StatRecord;
   };
+}
+
+export interface PairedDevice {
+  id: number;
+  label: string | null;
+  created_at: string | null;
+  last_seen_at: string | null;
+  revoked_at: string | null;
 }
 
 export interface AppDevice {

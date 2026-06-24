@@ -46,7 +46,7 @@ def current_device(
     device = (
         db.query(models.DeviceToken).filter_by(token=x_device_token).first()
     )
-    if device is None:
+    if device is None or device.revoked_at is not None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid device token")
     device.last_seen_at = datetime.now(timezone.utc)
     db.commit()

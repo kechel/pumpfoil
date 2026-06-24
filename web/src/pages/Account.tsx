@@ -49,6 +49,7 @@ export default function Account() {
       </div>
 
       {tab === "connect" && (
+      <>
       <Card className="p-5">
         <ol className="space-y-3 text-sm text-slate-200">
           <Step n={1}>{t("account.step1")}</Step>
@@ -78,6 +79,8 @@ export default function Account() {
         )}
         {error && <div className="mt-4"><ErrorBox message={error} /></div>}
       </Card>
+      <PairedDevices />
+      </>
       )}
 
       {tab === "views" && <ViewsEditor />}
@@ -91,6 +94,54 @@ export default function Account() {
         </Card>
       )}
     </div>
+  );
+}
+
+function PairedDevices() {
+  const t = useT();
+  const [devices, setDevices] = useState<import("../lib/api").PairedDevice[] | null>(null);
+  const load = () => api.myDevices().then(setDevices).catch(() => setDevices([]));
+  useEffect(() => { load(); }, []);
+
+  const revoke = (id: number, label: string | null) => {
+    if (!confirm(t("account.revokeConfirm", { name: label || t("account.deviceUnnamed") }))) return;
+    api.revokeDevice(id).then(load).catch(() => {});
+  };
+  const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
+
+  if (!devices) return null;
+
+  return (
+    <Card className="mt-5 p-5">
+      <h3 className="mb-1 font-semibold">{t("account.devicesTitle")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("account.devicesHint")}</p>
+      {devices.length === 0 ? (
+        <p className="text-sm text-slate-400">{t("account.devicesNone")}</p>
+      ) : (
+        <div className="space-y-2">
+          {devices.map((d) => (
+            <div key={d.id} className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${d.revoked_at ? "opacity-60" : ""}`}>
+              <WatchIcon className="h-5 w-5 shrink-0 text-brand-400" />
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-slate-100">
+                  {d.label || t("account.deviceUnnamed")}
+                  {d.revoked_at && <span className="ml-2 rounded bg-slate-700/60 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">{t("account.deviceRevoked")}</span>}
+                </div>
+                <div className="text-xs text-slate-400">
+                  {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
+                </div>
+              </div>
+              {!d.revoked_at && (
+                <button onClick={() => revoke(d.id, d.label)}
+                  className="shrink-0 rounded-lg bg-red-950/40 px-2.5 py-1.5 text-xs text-red-300 hover:bg-red-950/70">
+                  {t("account.deviceRevoke")}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 

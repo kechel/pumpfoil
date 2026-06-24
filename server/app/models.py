@@ -77,6 +77,8 @@ class DeviceToken(Base):
     label: Mapped[str | None] = mapped_column(String(120))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="devices")
 

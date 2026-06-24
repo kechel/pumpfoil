@@ -41,6 +41,43 @@ def device_config(
     }
 
 
+@router.get("/list")
+def list_devices(
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Mit dem Account verknüpfte Uhren/Geräte (ohne Token-Geheimnis)."""
+    rows = (
+        db.query(models.DeviceToken)
+        .filter(models.DeviceToken.user_id == user.id)
+        .order_by(models.DeviceToken.last_seen_at.desc().nullslast(),
+                  models.DeviceToken.created_at.desc())
+        .all()
+    )
+    return [{
+        "id": d.id,
+        "label": d.label,
+        "created_at": d.created_at.isoformat() if d.created_at else None,
+        "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
+        "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None,
+    } for d in rows]
+
+
+@router.delete("/{device_id}")
+def revoke_device(
+    device_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Geräte-Verknüpfung widerrufen: Soft-Revoke (Zeitstempel). Token wird ungültig,
+    der Record bleibt — alte Sessions behalten ihre Geräte-Zuordnung, dieselbe Uhr
+    kann später mit neuem Pairing-Code wiederkommen."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is None:
+        d.revoked_at = datetime.now(timezone.utc)
+        db.commit()
+    return {"ok": True}
+
+
 @router.post("/pairing-code", response_model=PairingCodeOut)
 def create_pairing_code(
     user: models.User = Depends(current_user), db: Session = Depends(get_db)
