@@ -556,6 +556,10 @@ const en: Record<string, string> = {
   "foil.label": "Foil",
   "foil.useDefault": "Default foil",
 
+  "profile.homespot": "Home spot",
+  "profile.homespotHint": "Your home spot — default for the spot chat and session filter.",
+  "profile.homespotAuto": "Automatic (last session)",
+
 };
 
 export default en;

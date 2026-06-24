@@ -22,6 +22,17 @@ export default function Settings() {
   const [pwNew, setPwNew] = useState("");
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwBusy, setPwBusy] = useState(false);
+  const [homespot, setHomespot] = useState("");
+  const [spots, setSpots] = useState<string[]>([]);
+
+  useEffect(() => {
+    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
+    api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
+  }, []);
+  function saveHomespot(v: string) {
+    setHomespot(v);
+    api.saveSettings({ homespot: v }).catch(() => {});
+  }
 
   function changePw() {
     setPwMsg(null);
@@ -125,6 +136,19 @@ export default function Settings() {
         {saved && <p className="mt-2 text-xs text-emerald-400">{t("profile.saved")}</p>}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.homespot")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.homespotHint")}</p>
+        <select
+          value={homespot}
+          onChange={(e) => saveHomespot(e.target.value)}
+          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+        >
+          <option value="">{t("profile.homespotAuto")}</option>
+          {spots.map((s) => <option key={s} value={s}>📍 {s}</option>)}
+        </select>
       </Card>
 
       <Card className="mt-4 p-5">

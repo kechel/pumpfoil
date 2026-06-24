@@ -581,6 +581,10 @@ const de: Record<string, string> = {
   "foil.label": "Foil",
   "foil.useDefault": "Standard-Foil",
 
+  "profile.homespot": "Homespot",
+  "profile.homespotHint": "Dein Stammspot — Standard für den Spot-Chat und Sessions-Filter.",
+  "profile.homespotAuto": "Automatisch (letzte Session)",
+
 };
 
 export default de;

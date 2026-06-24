@@ -28,6 +28,8 @@ DEFAULTS = {
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
+    # Homespot (Spot-Name). "" -> automatisch Spot der letzten Session.
+    "homespot": "",
 }
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
@@ -81,6 +83,9 @@ def update_settings(
         current["speed_auto"] = bool(patch["speed_auto"])
     if "colorByValue" in patch:
         current["colorByValue"] = bool(patch["colorByValue"])
+    if "homespot" in patch:
+        v = patch["homespot"]
+        current["homespot"] = str(v)[:120] if isinstance(v, str) else ""
     if "my_foils" in patch and isinstance(patch["my_foils"], list):
         current["my_foils"] = sorted({int(x) for x in patch["my_foils"] if isinstance(x, (int, float))})
     if "foil_id" in patch:  # Standard-Foil (null = keins)

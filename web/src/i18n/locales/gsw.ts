@@ -382,6 +382,10 @@ const gsw: Record<string, string> = {
   "foil.label": "Foil",
   "foil.useDefault": "Standard-Foil",
 
+  "profile.homespot": "Homespot",
+  "profile.homespotHint": "Din Stammspot — Standard für de Spot-Chat und Sessions-Filter.",
+  "profile.homespotAuto": "Automatisch (letschti Session)",
+
 };
 
 export default gsw
