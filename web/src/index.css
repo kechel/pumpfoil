@@ -2,8 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- Theme: slate-Skala als CSS-Variablen ---------------------------------
+ * Dark (Default) = exakte Tailwind-slate-RGB-Werte -> Live-Optik unverändert.
+ * Light = invertierte Rampe: 950 (dunkelster BG) wird hell, 100 (Text) wird dunkel.
+ * Komponenten nutzen weiter bg-slate-900/text-slate-100 etc. und kippen automatisch.
+ */
 :root {
   color-scheme: dark;
+  --s-50: 248 250 252;
+  --s-100: 241 245 249;
+  --s-200: 226 232 240;
+  --s-300: 203 213 225;
+  --s-400: 148 163 184;
+  --s-500: 100 116 139;
+  --s-600: 71 85 105;
+  --s-700: 51 65 85;
+  --s-800: 30 41 59;
+  --s-900: 15 23 42;
+  --s-950: 2 6 23;
+}
+
+html.theme-light {
+  color-scheme: light;
+  --s-50: 2 6 23;
+  --s-100: 15 23 42;
+  --s-200: 30 41 59;
+  --s-300: 51 65 85;
+  --s-400: 71 85 105;
+  --s-500: 100 116 139;
+  --s-600: 148 163 184;
+  --s-700: 203 213 225;
+  --s-800: 226 232 240;
+  --s-900: 241 245 249;
+  --s-950: 248 250 252;
 }
 
 html,
@@ -16,16 +47,19 @@ body {
   @apply bg-slate-950 text-slate-100 antialiased;
 }
 
-/* Platzhalter heller (Sonnenlicht-Lesbarkeit). */
+/* Platzhalter (Sonnenlicht-Lesbarkeit) — slate-400 in beiden Themes. */
 ::placeholder {
-  color: #94a3b8; /* slate-400 */
+  color: rgb(var(--s-400));
   opacity: 1;
 }
 
-/* Leaflet auf dunklem Hintergrund leicht abdunkeln/entsättigen. */
+/* Leaflet: im Dark abdunkeln/entsättigen, im Light normal lassen. */
 .leaflet-tile {
   filter: brightness(0.85) contrast(1.05) saturate(0.9);
 }
 .leaflet-container {
-  background: #0f172a;
+  background: rgb(var(--s-900));
+}
+html.theme-light .leaflet-tile {
+  filter: none;
 }

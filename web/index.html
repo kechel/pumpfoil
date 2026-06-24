@@ -27,6 +27,17 @@
     <title>Pumpfoil</title>
   </head>
   <body>
+    <script>
+      // Theme früh anwenden (kein Flash). Default = dark; light/auto opt-in.
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          var light = t === "light" || (t === "auto" && window.matchMedia &&
+            !window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (light) document.documentElement.classList.add("theme-light");
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <noscript>
       <div style="max-width: 40rem; margin: 3rem auto; padding: 0 1.25rem; font-family: system-ui, sans-serif; color: #e2e8f0; background: #020617;">

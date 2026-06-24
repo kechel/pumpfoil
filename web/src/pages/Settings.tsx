@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { ThemeSelect } from "../components/ThemeSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { NotificationsToggle } from "../components/NotificationsToggle";
 
@@ -187,6 +188,12 @@ export default function Settings() {
         <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("lang.hint")}</p>
         <LanguageSelect />
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("theme.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("theme.hint")}</p>
+        <ThemeSelect />
       </Card>
 
       <Card className="mt-4 p-5">

@@ -39,9 +39,13 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
     (AR/Chord/t-c/CLmax/Stall/Min-Speed/Optimal) und Leistungs-Tabelle (W über 10–20 km/h, beste je
     Spalte hervorgehoben). Profil-Link zeigt jetzt dorthin; statische `public/foilcalculator.html` entfernt.
   **→ Foil-Rechner-Item komplett erledigt** (Modul verifiziert, Watt in Detailansichten, native Seite).
-- **Light-Mode + Theme-Schalter.** Helles Design erstellen (aktuell nur Dark). Im Profil Schalter
-  **Dark / Light / Auto** (System-`prefers-color-scheme`). Öffentliche Startseite (vor Login) immer **Auto**.
-  Größeres Theming: Tailwind `dark:`-Strategie umstellen (class-based), Farb-Tokens, alle Seiten prüfen.
+- **Light-Mode + Theme-Schalter.** *umgesetzt (Review-gated, 2026-06-24):* slate-Skala als CSS-Variablen
+  (`tailwind.config` + `src/index.css`), Dark = exakte alte Werte (Live pixelgleich), Light = invertierte
+  Rampe → kippt ohne Komponenten-Änderungen. Profil-Schalter **Dark / Light / Auto** (`lib/theme.ts`,
+  `ThemeSelect`), No-Flash-Init in `index.html`, dynamische `theme-color`-Meta.
+  **Default = Dark (Light/Auto opt-in)** → öffentliche Optik unverändert.
+  **Offen (nach Jans Review):** (1) Light-Palette feinschleifen (Edge-Cases wie `text-slate-950` auf
+  Akzent-Buttons), (2) öffentliche Startseite auf **Auto** umstellen, sobald Light freigegeben.
 - **Einheitliches Icon-Set (Material).** Alle aktuell handgemalten Inline-SVG-Icons durch ein
   konsistentes, schönes Set ersetzen. Option A: selbst im Material-Stil designen. Option B:
   **Google Material Symbols** — Lizenz **Apache-2.0**, also erlaubt; **müssen self-hosted** sein

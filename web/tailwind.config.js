@@ -1,10 +1,20 @@
 /** @type {import('tailwindcss').Config} */
+
+// slate wird über CSS-Variablen (--s-XXX) gesteuert -> Theme-Umschaltung (Dark/Light)
+// ohne Änderungen an den Komponenten. Dark = exakte Tailwind-slate-Werte (Live unverändert),
+// Light = invertierte Rampe (siehe src/index.css).
+const slate = {};
+for (const k of [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]) {
+  slate[k] = `rgb(var(--s-${k}) / <alpha-value>)`;
+}
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // "Wasser"-Akzent (Cyan/Teal) auf dunklem Slate-Untergrund.
+        slate,
+        // "Wasser"-Akzent (Cyan/Teal) — in beiden Themes gleich.
         brand: {
           50: "#ecfeff",
           400: "#22d3ee",

@@ -5,7 +5,12 @@ import "leaflet/dist/leaflet.css";
 import "./index.css";
 
 import { getToken, setToken } from "./lib/api";
+import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { I18nProvider } from "./i18n";
+
+// Theme anwenden + bei "auto" auf System-Wechsel reagieren.
+applyTheme(getTheme());
+watchSystemTheme();
 
 // OAuth-Rücksprung: Token kommt als #token=… zurück -> speichern + Hash entfernen.
 (() => {

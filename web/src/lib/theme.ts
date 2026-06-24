@@ -1,0 +1,36 @@
+// Theme-Verwaltung: Dark / Light / Auto. Persistenz in localStorage.
+// Default = "dark" (Live-Optik unverändert; Light/Auto sind opt-in).
+export type Theme = "dark" | "light" | "auto";
+const KEY = "theme";
+
+export function getTheme(): Theme {
+  const v = localStorage.getItem(KEY);
+  return v === "light" || v === "auto" ? v : "dark";
+}
+
+export function effectiveDark(theme: Theme): boolean {
+  if (theme === "dark") return true;
+  if (theme === "light") return false;
+  return !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+export function applyTheme(theme: Theme): void {
+  const dark = effectiveDark(theme);
+  document.documentElement.classList.toggle("theme-light", !dark);
+  // Browser-Chrome (Mobile) passend einfärben.
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", dark ? "#020617" : "#f8fafc");
+}
+
+export function setTheme(theme: Theme): void {
+  localStorage.setItem(KEY, theme);
+  applyTheme(theme);
+}
+
+// Bei "auto" auf System-Wechsel reagieren.
+export function watchSystemTheme(): void {
+  if (!window.matchMedia) return;
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (getTheme() === "auto") applyTheme("auto");
+  });
+}
