@@ -79,6 +79,22 @@ class DeviceToken(Base):
     user: Mapped["User"] = relationship(back_populates="devices")
 
 
+class Foil(Base):
+    """Foil-Katalog (Stammdaten). Abgeleitetes (AR/CL/Drag/Power) wird gerechnet."""
+
+    __tablename__ = "foils"
+    __table_args__ = (UniqueConstraint("brand", "model", "size", name="uq_foil_variant"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    brand: Mapped[str] = mapped_column(String(60), index=True)
+    model: Mapped[str] = mapped_column(String(80))
+    size: Mapped[str] = mapped_column(String(20))
+    span_cm: Mapped[float] = mapped_column(Float)
+    area_cm2: Mapped[float] = mapped_column(Float)
+    thickness_mm: Mapped[float] = mapped_column(Float)
+    is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+
 class PushSubscription(Base):
     """Web-Push-Subscription eines Browsers/Geräts (VAPID)."""
 

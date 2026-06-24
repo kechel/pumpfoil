@@ -1,0 +1,1109 @@
+[
+  {
+    "brand": "Gong",
+    "model": "TRAIL",
+    "size": "L",
+    "span_cm": 125,
+    "area_cm2": 1660,
+    "thickness_mm": 26.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL",
+    "size": "XL",
+    "span_cm": 135,
+    "area_cm2": 1940,
+    "thickness_mm": 28.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL",
+    "size": "XXL",
+    "span_cm": 145,
+    "area_cm2": 2240,
+    "thickness_mm": 30.3,
+    "is_baseline": true
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL",
+    "size": "L",
+    "span_cm": 133,
+    "area_cm2": 1000,
+    "thickness_mm": 18,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL",
+    "size": "XL",
+    "span_cm": 148,
+    "area_cm2": 1250,
+    "thickness_mm": 20.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL",
+    "size": "XXL",
+    "span_cm": 162,
+    "area_cm2": 1500,
+    "thickness_mm": 22.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL",
+    "size": "3XL",
+    "span_cm": 175,
+    "area_cm2": 1750,
+    "thickness_mm": 23.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL",
+    "size": "4XL",
+    "span_cm": 188,
+    "area_cm2": 2000,
+    "thickness_mm": 25.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS",
+    "size": "L",
+    "span_cm": 116,
+    "area_cm2": 1450,
+    "thickness_mm": 22,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS",
+    "size": "XL",
+    "span_cm": 136,
+    "area_cm2": 1700,
+    "thickness_mm": 23,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS",
+    "size": "XXL",
+    "span_cm": 156,
+    "area_cm2": 2000,
+    "thickness_mm": 23,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS",
+    "size": "3XL",
+    "span_cm": 186,
+    "area_cm2": 2400,
+    "thickness_mm": 23,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS",
+    "size": "5XL",
+    "span_cm": 249,
+    "area_cm2": 3100,
+    "thickness_mm": 23,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN",
+    "size": "950",
+    "span_cm": 95,
+    "area_cm2": 1300,
+    "thickness_mm": 22.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN",
+    "size": "1150",
+    "span_cm": 115,
+    "area_cm2": 1580,
+    "thickness_mm": 22.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN",
+    "size": "1350",
+    "span_cm": 135,
+    "area_cm2": 1870,
+    "thickness_mm": 22.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN",
+    "size": "1550",
+    "span_cm": 155,
+    "area_cm2": 2140,
+    "thickness_mm": 22.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN",
+    "size": "1750",
+    "span_cm": 175,
+    "area_cm2": 2400,
+    "thickness_mm": 22.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN PRO",
+    "size": "1060",
+    "span_cm": 106,
+    "area_cm2": 947,
+    "thickness_mm": 14,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN PRO",
+    "size": "1160",
+    "span_cm": 116,
+    "area_cm2": 1083,
+    "thickness_mm": 14,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN PRO",
+    "size": "1260",
+    "span_cm": 126,
+    "area_cm2": 1227,
+    "thickness_mm": 14,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN PRO",
+    "size": "1360",
+    "span_cm": 132,
+    "area_cm2": 1400,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "1075",
+    "span_cm": 107.5,
+    "area_cm2": 1061,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "SEA DEVIL",
+    "size": "1040",
+    "span_cm": 104,
+    "area_cm2": 2445,
+    "thickness_mm": 46.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "SEA DEVIL",
+    "size": "1240",
+    "span_cm": 124,
+    "area_cm2": 2742,
+    "thickness_mm": 44.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE 2.0",
+    "size": "620",
+    "span_cm": 80,
+    "area_cm2": 620,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE 2.0",
+    "size": "750",
+    "span_cm": 88,
+    "area_cm2": 750,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE 2.0",
+    "size": "900",
+    "span_cm": 96,
+    "area_cm2": 900,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE 2.0",
+    "size": "1100",
+    "span_cm": 106,
+    "area_cm2": 1100,
+    "thickness_mm": 18.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE 2.0",
+    "size": "1350",
+    "span_cm": 116,
+    "area_cm2": 1350,
+    "thickness_mm": 20,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "GLIDE",
+    "size": "1595",
+    "span_cm": 130,
+    "area_cm2": 1595,
+    "thickness_mm": 18.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AMP",
+    "size": "1750",
+    "span_cm": 143.3,
+    "area_cm2": 1750,
+    "thickness_mm": 18.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AMP",
+    "size": "2145",
+    "span_cm": 143,
+    "area_cm2": 2145,
+    "thickness_mm": 22,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "850",
+    "span_cm": 85,
+    "area_cm2": 1102,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "910",
+    "span_cm": 91,
+    "area_cm2": 1267,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "910B",
+    "span_cm": 91,
+    "area_cm2": 1267,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "1010",
+    "span_cm": 101,
+    "area_cm2": 1430,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "1150",
+    "span_cm": 115,
+    "area_cm2": 1778,
+    "thickness_mm": 18,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "1300",
+    "span_cm": 130,
+    "area_cm2": 1712,
+    "thickness_mm": 18,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG",
+    "size": "1310",
+    "span_cm": 131,
+    "area_cm2": 2080,
+    "thickness_mm": 18.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1350",
+    "span_cm": 133,
+    "area_cm2": 1350,
+    "thickness_mm": 18.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1550",
+    "span_cm": 142,
+    "area_cm2": 1550,
+    "thickness_mm": 20.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1750",
+    "span_cm": 151,
+    "area_cm2": 1750,
+    "thickness_mm": 22.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "1950",
+    "span_cm": 159,
+    "area_cm2": 1950,
+    "thickness_mm": 24,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP PRO",
+    "size": "2300",
+    "span_cm": 173.5,
+    "area_cm2": 2300,
+    "thickness_mm": 26,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "675",
+    "span_cm": 68,
+    "area_cm2": 550,
+    "thickness_mm": 14.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "775",
+    "span_cm": 78,
+    "area_cm2": 631,
+    "thickness_mm": 15.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "825",
+    "span_cm": 82,
+    "area_cm2": 746,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "875",
+    "span_cm": 88,
+    "area_cm2": 843,
+    "thickness_mm": 16.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "RAZOR PRO",
+    "size": "975",
+    "span_cm": 98,
+    "area_cm2": 942,
+    "thickness_mm": 16.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA PRO",
+    "size": "669",
+    "span_cm": 66.9,
+    "area_cm2": 548,
+    "thickness_mm": 14.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA PRO",
+    "size": "769",
+    "span_cm": 76.9,
+    "area_cm2": 700,
+    "thickness_mm": 15.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA PRO",
+    "size": "869",
+    "span_cm": 86.9,
+    "area_cm2": 854,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "690",
+    "span_cm": 82,
+    "area_cm2": 690,
+    "thickness_mm": 14.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "790",
+    "span_cm": 86.5,
+    "area_cm2": 790,
+    "thickness_mm": 15.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "890",
+    "span_cm": 92.5,
+    "area_cm2": 890,
+    "thickness_mm": 16.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "990",
+    "span_cm": 97,
+    "area_cm2": 990,
+    "thickness_mm": 17.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "1090",
+    "span_cm": 102,
+    "area_cm2": 1090,
+    "thickness_mm": 18.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "1190",
+    "span_cm": 106,
+    "area_cm2": 1190,
+    "thickness_mm": 19.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE",
+    "size": "1290",
+    "span_cm": 110.5,
+    "area_cm2": 1290,
+    "thickness_mm": 20,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "500",
+    "span_cm": 79,
+    "area_cm2": 500,
+    "thickness_mm": 10.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "600",
+    "span_cm": 85,
+    "area_cm2": 600,
+    "thickness_mm": 12.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "700",
+    "span_cm": 91.5,
+    "area_cm2": 700,
+    "thickness_mm": 13.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "800",
+    "span_cm": 98,
+    "area_cm2": 800,
+    "thickness_mm": 14,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "900",
+    "span_cm": 104,
+    "area_cm2": 900,
+    "thickness_mm": 14.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "EAGLE X",
+    "size": "1000",
+    "span_cm": 109.5,
+    "area_cm2": 1000,
+    "thickness_mm": 15.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1100",
+    "span_cm": 94,
+    "area_cm2": 1100,
+    "thickness_mm": 20.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1200",
+    "span_cm": 98,
+    "area_cm2": 1200,
+    "thickness_mm": 21,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1300",
+    "span_cm": 102,
+    "area_cm2": 1300,
+    "thickness_mm": 21.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1400",
+    "span_cm": 105.5,
+    "area_cm2": 1400,
+    "thickness_mm": 22.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1500",
+    "span_cm": 109.5,
+    "area_cm2": 1500,
+    "thickness_mm": 23.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "SEVEN SEAS",
+    "size": "1600",
+    "span_cm": 113,
+    "area_cm2": 1600,
+    "thickness_mm": 24.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "PHANTOM",
+    "size": "980",
+    "span_cm": 78,
+    "area_cm2": 980,
+    "thickness_mm": 21.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "PHANTOM",
+    "size": "1080",
+    "span_cm": 80,
+    "area_cm2": 1080,
+    "thickness_mm": 23.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "PHANTOM",
+    "size": "1280",
+    "span_cm": 87,
+    "area_cm2": 1280,
+    "thickness_mm": 25.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "PHANTOM",
+    "size": "1480",
+    "span_cm": 96,
+    "area_cm2": 1480,
+    "thickness_mm": 26.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "F-One",
+    "model": "PHANTOM",
+    "size": "1780",
+    "span_cm": 107,
+    "area_cm2": 1780,
+    "thickness_mm": 28.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AMP 2.0 SLS",
+    "size": "1550",
+    "span_cm": 143,
+    "area_cm2": 1550,
+    "thickness_mm": 18.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AMP 2.0 SLS",
+    "size": "1800",
+    "span_cm": 148,
+    "area_cm2": 1800,
+    "thickness_mm": 20.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AMP 2.0 SLS",
+    "size": "2100",
+    "span_cm": 143,
+    "area_cm2": 2100,
+    "thickness_mm": 25.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AERO GLIDE SLS",
+    "size": "725",
+    "span_cm": 83,
+    "area_cm2": 725,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AERO GLIDE SLS",
+    "size": "905",
+    "span_cm": 92,
+    "area_cm2": 905,
+    "thickness_mm": 16.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AERO GLIDE SLS",
+    "size": "1085",
+    "span_cm": 100,
+    "area_cm2": 1085,
+    "thickness_mm": 18.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "Duotone",
+    "model": "AERO GLIDE SLS",
+    "size": "1305",
+    "span_cm": 110,
+    "area_cm2": 1305,
+    "thickness_mm": 20.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "740",
+    "span_cm": 74,
+    "area_cm2": 590,
+    "thickness_mm": 13.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "780",
+    "span_cm": 78,
+    "area_cm2": 643,
+    "thickness_mm": 14.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "830",
+    "span_cm": 83,
+    "area_cm2": 728,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "890",
+    "span_cm": 89,
+    "area_cm2": 835,
+    "thickness_mm": 16.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "950",
+    "span_cm": 95,
+    "area_cm2": 949,
+    "thickness_mm": 17.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "SURGE",
+    "size": "1010",
+    "span_cm": 101,
+    "area_cm2": 1076,
+    "thickness_mm": 18.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART V2",
+    "size": "819",
+    "span_cm": 82,
+    "area_cm2": 674,
+    "thickness_mm": 14.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART V2",
+    "size": "879",
+    "span_cm": 88,
+    "area_cm2": 790,
+    "thickness_mm": 15.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART V2",
+    "size": "939",
+    "span_cm": 94,
+    "area_cm2": 900,
+    "thickness_mm": 16.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART V2",
+    "size": "999",
+    "span_cm": 100,
+    "area_cm2": 1038,
+    "thickness_mm": 17.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART V2",
+    "size": "1099",
+    "span_cm": 110,
+    "area_cm2": 1120,
+    "thickness_mm": 17.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART PRO",
+    "size": "1201",
+    "span_cm": 120.1,
+    "area_cm2": 1318,
+    "thickness_mm": 18.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "ART PRO",
+    "size": "1401",
+    "span_cm": 140.1,
+    "area_cm2": 1647,
+    "thickness_mm": 20.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "650",
+    "span_cm": 65,
+    "area_cm2": 744,
+    "thickness_mm": 19.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "700",
+    "span_cm": 70,
+    "area_cm2": 890,
+    "thickness_mm": 21.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "830",
+    "span_cm": 83,
+    "area_cm2": 1014,
+    "thickness_mm": 20.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "880",
+    "span_cm": 88,
+    "area_cm2": 1112,
+    "thickness_mm": 21.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "930",
+    "span_cm": 93,
+    "area_cm2": 1214,
+    "thickness_mm": 22.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "980",
+    "span_cm": 98,
+    "area_cm2": 1323,
+    "thickness_mm": 23.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "HPS",
+    "size": "1050",
+    "span_cm": 105,
+    "area_cm2": 1502,
+    "thickness_mm": 24.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP",
+    "size": "1500",
+    "span_cm": 123,
+    "area_cm2": 1500,
+    "thickness_mm": 22.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP",
+    "size": "1700",
+    "span_cm": 133,
+    "area_cm2": 1700,
+    "thickness_mm": 24,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP",
+    "size": "1900",
+    "span_cm": 141,
+    "area_cm2": 1900,
+    "thickness_mm": 25.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "X-GLIDE V2",
+    "size": "1050",
+    "span_cm": 87,
+    "area_cm2": 1050,
+    "thickness_mm": 21,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "X-GLIDE V2",
+    "size": "1250",
+    "span_cm": 95,
+    "area_cm2": 1250,
+    "thickness_mm": 23,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "X-GLIDE V2",
+    "size": "1450",
+    "span_cm": 101.8,
+    "area_cm2": 1450,
+    "thickness_mm": 24,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "X-GLIDE V2",
+    "size": "1700",
+    "span_cm": 110,
+    "area_cm2": 1700,
+    "thickness_mm": 26,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "H-GLIDE",
+    "size": "750",
+    "span_cm": 87,
+    "area_cm2": 750,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "H-GLIDE",
+    "size": "900",
+    "span_cm": 95,
+    "area_cm2": 900,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "H-GLIDE",
+    "size": "1050",
+    "span_cm": 105,
+    "area_cm2": 1050,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "H-GLIDE",
+    "size": "1200",
+    "span_cm": 110,
+    "area_cm2": 1200,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "600",
+    "span_cm": 80,
+    "area_cm2": 600,
+    "thickness_mm": 13,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "700",
+    "span_cm": 86.5,
+    "area_cm2": 700,
+    "thickness_mm": 14,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "800",
+    "span_cm": 92,
+    "area_cm2": 800,
+    "thickness_mm": 15,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "900",
+    "span_cm": 98,
+    "area_cm2": 900,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "1050",
+    "span_cm": 105,
+    "area_cm2": 1050,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "FLOW",
+    "size": "1200",
+    "span_cm": 112,
+    "area_cm2": 1200,
+    "thickness_mm": 18,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "XS-GLIDE",
+    "size": "820",
+    "span_cm": 78.6,
+    "area_cm2": 820,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "XS-GLIDE",
+    "size": "940",
+    "span_cm": 85.2,
+    "area_cm2": 940,
+    "thickness_mm": 18.7,
+    "is_baseline": false
+  }
+]

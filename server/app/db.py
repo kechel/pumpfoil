@@ -35,6 +35,32 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _migrate_add_columns()
+    _seed_foils()
+
+
+def _seed_foils() -> None:
+    """Foil-Katalog einmalig aus app/data/foils.json befüllen (idempotent)."""
+    import json
+    from pathlib import Path
+
+    from . import models
+
+    db = SessionLocal()
+    try:
+        if db.query(models.Foil).first() is not None:
+            return
+        f = Path(__file__).parent / "data" / "foils.json"
+        if not f.exists():
+            return
+        for r in json.loads(f.read_text()):
+            db.add(models.Foil(
+                brand=r["brand"], model=r["model"], size=r["size"],
+                span_cm=r["span_cm"], area_cm2=r["area_cm2"],
+                thickness_mm=r["thickness_mm"], is_baseline=bool(r.get("is_baseline")),
+            ))
+        db.commit()
+    finally:
+        db.close()
 
 
 def _migrate_add_columns() -> None:
