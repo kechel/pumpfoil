@@ -24,6 +24,14 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
+- **Foil-Rechner nativ nachbauen + Physik als Modul (★★★, ersetzt den HTML-Link).**
+  Den `foilcalculator.html` **in der App nachbauen** mit angepasstem Layout. Kernpunkt: die **Berechnungen
+  als eigenständiges, modulares TS-Lib** (`lib/foilPhysics.ts`) aus dem Calculator-JS portieren
+  (Lift/Drag, Reynolds, CL/CD, Mast-Drag, Power/Watt, optimale/Stall-Speed, Pump-Inertia) — **wiederverwendbar
+  überall**, v. a. in **Session-/Lauf-Detailansichten** zur Anzeige der **theoretischen Leistung (Watt)**
+  auf Basis des gewählten Foils + Gewicht + echtem Speed. Schritte: 1) Physik-Modul portieren + Tests gegen
+  die HTML-Referenzwerte, 2) native Rechner-Seite, 3) Watt in Detailansichten einhängen. Ersetzt den
+  bisherigen `/foilcalculator.html`-Link; deckt zugleich das „Leistung/Watt"-Item (Abschnitt 1) ab.
 - **Light-Mode + Theme-Schalter.** Helles Design erstellen (aktuell nur Dark). Im Profil Schalter
   **Dark / Light / Auto** (System-`prefers-color-scheme`). Öffentliche Startseite (vor Login) immer **Auto**.
   Größeres Theming: Tailwind `dark:`-Strategie umstellen (class-based), Farb-Tokens, alle Seiten prüfen.
