@@ -31,6 +31,10 @@ object Api {
         res.getString("device_token")
     }
 
+    suspend fun deviceConfig(): JSONObject = withContext(Dispatchers.IO) {
+        get("/api/devices/config")
+    }
+
     suspend fun startSession(body: JSONObject) = withContext(Dispatchers.IO) {
         post("/api/ingest/session", body)
     }
@@ -42,6 +46,19 @@ object Api {
     suspend fun complete(uuid: String, endedAt: String, totalChunks: Int) = withContext(Dispatchers.IO) {
         post("/api/ingest/session/$uuid/complete",
             JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks))
+    }
+
+    private fun get(path: String): JSONObject {
+        val conn = (URL(baseUrl + path).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            deviceToken?.let { setRequestProperty("X-Device-Token", it) }
+            connectTimeout = 15000; readTimeout = 30000
+        }
+        val code = conn.responseCode
+        val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
+            ?.bufferedReader()?.readText() ?: ""
+        if (code !in 200..299) throw RuntimeException("HTTP $code: $text")
+        return if (text.isBlank()) JSONObject() else JSONObject(text)
     }
 
     private fun post(path: String, body: JSONObject, auth: Boolean = true): JSONObject {

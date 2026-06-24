@@ -28,8 +28,14 @@ object Recorder {
     data class State(
         val recording: Boolean = false,
         val elapsedSec: Long = 0,
-        val speedKmh: Double = 0.0,
+        val speedKmh: Double = 0.0,       // aktuell
+        val speed3sKmh: Double = 0.0,     // 3-s-Mittel
+        val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
+        val maxSpeedKmh: Double = 0.0,
+        val distanceM: Double = 0.0,
         val hr: Int = 0,
+        val avgHr: Int = 0,
+        val maxHr: Int = 0,
         val status: String = "",
     )
 
@@ -42,6 +48,15 @@ object Recorder {
     private var accelT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
     private var lastHr = 0
+    // Live-Kennzahlen
+    private var prevLat = Double.NaN
+    private var prevLon = Double.NaN
+    private var distM = 0.0
+    private var maxMps = 0.0
+    private var hrSum = 0L
+    private var hrCount = 0
+    private var maxHrV = 0
+    private val spWin = ArrayList<DoubleArray>(8)  // [t_ms, mps] für 3-s-Fenster
 
     private var uuid = ""
     private var startMs = 0L
@@ -61,7 +76,9 @@ object Recorder {
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
         chunkIndex = 0
-        synchronized(lock) { accel.clear(); gps.clear() }
+        synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
+        prevLat = Double.NaN; prevLon = Double.NaN
+        distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         _state.value = State(recording = false, status = "starte…")
         scope.launch {
             try {
@@ -109,16 +126,43 @@ object Recorder {
     }
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
-        val t = elapsedMs().toDouble()
+        val tMs = elapsedMs()
+        val sp = maxOf(0.0, speedMps)
         synchronized(lock) {
-            gps.add(doubleArrayOf(t, lat, lon, maxOf(0.0, speedMps), lastHr.toDouble(), accuracyM))
+            gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, sp, lastHr.toDouble(), accuracyM))
+            // Distanz aufsummieren (Haversine zwischen Punkten).
+            if (!prevLat.isNaN()) distM += haversine(prevLat, prevLon, lat, lon)
+            prevLat = lat; prevLon = lon
+            if (sp > maxMps) maxMps = sp
+            // 3-s-Fenster pflegen.
+            spWin.add(doubleArrayOf(tMs.toDouble(), sp))
+            while (spWin.isNotEmpty() && tMs - spWin[0][0] > 3000) spWin.removeAt(0)
         }
-        _state.value = _state.value.copy(speedKmh = maxOf(0.0, speedMps) * 3.6,
-            elapsedSec = (elapsedMs() / 1000).toLong())
+        val sec = (tMs / 1000.0).coerceAtLeast(1.0)
+        val sp3 = if (spWin.isEmpty()) sp else spWin.sumOf { it[1] } / spWin.size
+        _state.value = _state.value.copy(
+            speedKmh = sp * 3.6,
+            speed3sKmh = sp3 * 3.6,
+            maxSpeedKmh = maxMps * 3.6,
+            distanceM = distM,
+            avgSpeedKmh = distM / sec * 3.6,
+            elapsedSec = (tMs / 1000).toLong(),
+        )
     }
     fun setHr(bpm: Int) {
         lastHr = bpm
-        if (running) _state.value = _state.value.copy(hr = bpm)
+        if (bpm > 0) { hrSum += bpm; hrCount++; if (bpm > maxHrV) maxHrV = bpm }
+        if (running) _state.value = _state.value.copy(
+            hr = bpm, maxHr = maxHrV, avgHr = if (hrCount > 0) (hrSum / hrCount).toInt() else 0)
+    }
+
+    private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val r = 6371000.0
+        val p1 = Math.toRadians(lat1); val p2 = Math.toRadians(lat2)
+        val dp = Math.toRadians(lat2 - lat1); val dl = Math.toRadians(lon2 - lon1)
+        val a = Math.sin(dp / 2) * Math.sin(dp / 2) +
+            Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2)
+        return 2 * r * Math.asin(Math.min(1.0, Math.sqrt(a)))
     }
 
     private fun toI16(v: Double): Short =

@@ -1,13 +1,18 @@
 package org.pumpfoil.watch
 
 import android.Manifest
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.*
@@ -15,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -88,27 +94,135 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun RecordScreen() {
         val s by Recorder.state.collectAsState()
-        Column(
-            Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60),
-                style = MaterialTheme.typography.title2)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(String.format("%.1f km/h", s.speedKmh), style = MaterialTheme.typography.caption1)
-                Text(if (s.hr > 0) "${s.hr} bpm" else "– bpm", style = MaterialTheme.typography.caption1)
+        // Konfigurierte Ansichten von der Web-App laden (Felder je Seite + Farbe/Alarm).
+        var views by remember { mutableStateOf(listOf(listOf(1, 2, 0))) }
+        var colorBy by remember { mutableStateOf(false) }
+        var alarm by remember { mutableStateOf(WatchAlarm()) }
+        LaunchedEffect(Unit) {
+            try {
+                val c = Api.deviceConfig()
+                val vs = c.optJSONArray("views")
+                if (vs != null && vs.length() > 0) {
+                    views = (0 until vs.length()).map { i ->
+                        val row = vs.getJSONArray(i)
+                        (0 until row.length()).map { row.getInt(it) }
+                    }
+                }
+                colorBy = c.optBoolean("colorByValue", false)
+                alarm = WatchAlarm(c.optBoolean("alarmEnabled", false),
+                    c.optInt("speedHigh", 0), c.optInt("speedLow", 0))
+            } catch (_: Exception) {}
+        }
+        // Vibrationsalarm bei Speed-Grenzen.
+        AlarmEffect(s.speedKmh, alarm)
+
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (s.recording) {
+                val pager = rememberPagerState(pageCount = { views.size })
+                HorizontalPager(state = pager, modifier = Modifier.weight(1f).fillMaxWidth()) { page ->
+                    Column(
+                        Modifier.fillMaxSize().padding(8.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        views[page].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
+                            FieldView(fid, s, colorBy)
+                        }
+                    }
+                }
+                if (views.size > 1) {
+                    Row(Modifier.padding(bottom = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        repeat(views.size) { i ->
+                            Box(Modifier.size(5.dp).background(
+                                if (i == pager.currentPage) Color(0xFF22D3EE) else Color(0xFF475569),
+                                CircleShape))
+                        }
+                    }
+                }
+            } else {
+                Spacer(Modifier.weight(1f))
+                Text("Pumpfoil", style = MaterialTheme.typography.title3)
+                Spacer(Modifier.weight(1f))
             }
-            Spacer(Modifier.height(8.dp))
             Button(onClick = {
                 if (s.recording) RecorderService.stop(applicationContext)
                 else RecorderService.start(applicationContext)
-            }) { Text(if (s.recording) "Stop" else "Start") }
+            }, modifier = Modifier.padding(bottom = 6.dp)) {
+                Text(if (s.recording) "Stop" else "Start")
+            }
             if (s.status.isNotEmpty())
-                Text(s.status, style = MaterialTheme.typography.caption2)
+                Text(s.status, style = MaterialTheme.typography.caption2,
+                    modifier = Modifier.padding(bottom = 4.dp))
         }
     }
+
+    @Composable
+    private fun FieldView(fid: Int, s: Recorder.State, colorBy: Boolean) {
+        val (value, label) = fieldValue(fid, s)
+        val color = if (colorBy) fieldColor(fid, s) else Color.Unspecified
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 2.dp)) {
+            Text(value, style = MaterialTheme.typography.display3, color = color)
+            Text(label, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+        }
+    }
+}
+
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (Kernsatz; Rest "—").
+private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
+    1 -> String.format("%.1f", s.speed3sKmh) to "km/h (3s)"
+    5 -> String.format("%.1f", s.speedKmh) to "km/h"
+    6 -> String.format("%.1f", s.avgSpeedKmh) to "Ø km/h"
+    7 -> String.format("%.1f", s.maxSpeedKmh) to "max km/h"
+    2 -> (if (s.hr > 0) s.hr.toString() else "–") to "bpm"
+    8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to "Ø bpm"
+    9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to "max bpm"
+    3 -> String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60) to "Zeit"
+    4 -> String.format("%.2f", s.distanceM / 1000.0) to "km"
+    12 -> java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()) to "Uhr"
+    else -> "—" to ""
+}
+
+private fun fieldColor(id: Int, s: Recorder.State): Color = when (id) {
+    1, 5, 6, 7 -> speedColor(when (id) { 1 -> s.speed3sKmh; 6 -> s.avgSpeedKmh; 7 -> s.maxSpeedKmh; else -> s.speedKmh })
+    2, 8, 9 -> Color(0xFFF87171) // Puls rötlich
+    else -> Color.Unspecified
+}
+private fun speedColor(kmh: Double): Color {
+    val tcl = ((kmh - 8) / (25 - 8)).coerceIn(0.0, 1.0)   // blau(langsam) -> rot(schnell)
+    val hue = ((1 - tcl) * 240).toFloat()
+    return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
+}
+
+data class WatchAlarm(val enabled: Boolean = false, val high: Int = 0, val low: Int = 0)
+
+// Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen (Flankenerkennung).
+@Composable
+fun AlarmEffect(speedKmh: Double, alarm: WatchAlarm) {
+    val ctx = LocalContext.current
+    var wasHigh by remember { mutableStateOf(false) }
+    var wasLow by remember { mutableStateOf(false) }
+    LaunchedEffect(speedKmh, alarm) {
+        if (!alarm.enabled) return@LaunchedEffect
+        if (alarm.high > 0) {
+            val now = speedKmh >= alarm.high
+            if (now && !wasHigh) vibrate(ctx, 200)
+            wasHigh = now
+        }
+        if (alarm.low > 0) {
+            val now = speedKmh in 0.1..alarm.low.toDouble()
+            if (now && !wasLow) vibrate(ctx, 400)
+            wasLow = now
+        }
+    }
+}
+
+private fun vibrate(ctx: Context, ms: Long) {
+    val v = if (Build.VERSION.SDK_INT >= 31)
+        (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+    else @Suppress("DEPRECATION") (ctx.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator)
+    v.vibrate(android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
 }
