@@ -77,7 +77,7 @@ export default function App() {
             end={it.end}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                isActive ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
+                isActive ? "bg-slate-800 text-brand-400" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
               }`
             }
           >
