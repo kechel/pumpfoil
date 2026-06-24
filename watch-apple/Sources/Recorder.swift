@@ -103,7 +103,9 @@ final class Recorder: NSObject, ObservableObject {
     private func startSensors() {
         location.desiredAccuracy = kCLLocationAccuracyBest
         location.distanceFilter = kCLDistanceFilterNone
-        location.allowsBackgroundLocationUpdates = true
+        // allowsBackgroundLocationUpdates NICHT setzen: ohne "location"-Background-Mode
+        // führt das zum Crash (CLClientIsBackgroundable-Assertion). Im Hintergrund hält
+        // die HKWorkoutSession die App + Standortupdates am Leben.
         location.startUpdatingLocation()
 
         if motion.isAccelerometerAvailable {
