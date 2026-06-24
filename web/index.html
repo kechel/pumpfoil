@@ -28,13 +28,19 @@
   </head>
   <body>
     <script>
-      // Theme früh anwenden (kein Flash). Default = dark; light/auto opt-in.
+      // Theme früh anwenden (kein Flash). Default = auto (folgt System).
       (function () {
         try {
           var t = localStorage.getItem("theme");
-          var light = t === "light" || (t === "auto" && window.matchMedia &&
-            !window.matchMedia("(prefers-color-scheme: dark)").matches);
-          if (light) document.documentElement.classList.add("theme-light");
+          var mode = t === "light" || t === "dark" ? t : "auto";
+          var systemLight = window.matchMedia &&
+            !window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var light = mode === "light" || (mode === "auto" && systemLight);
+          if (light) {
+            document.documentElement.classList.add("theme-light");
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#f8fafc");
+          }
         } catch (e) {}
       })();
     </script>

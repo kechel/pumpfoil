@@ -63,3 +63,9 @@ body {
 html.theme-light .leaflet-tile {
   filter: none;
 }
+
+/* text-slate-950 = dunkle Tinte auf Akzentflächen (Brand/Amber). Soll im Light
+ * NICHT invertieren (sonst heller Text auf Cyan/Gelb) -> dunkel pinnen. */
+html.theme-light .text-slate-950 {
+  color: rgb(2 6 23);
+}

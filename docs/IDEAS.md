@@ -43,9 +43,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   (`tailwind.config` + `src/index.css`), Dark = exakte alte Werte (Live pixelgleich), Light = invertierte
   Rampe → kippt ohne Komponenten-Änderungen. Profil-Schalter **Dark / Light / Auto** (`lib/theme.ts`,
   `ThemeSelect`), No-Flash-Init in `index.html`, dynamische `theme-color`-Meta.
-  **Default = Dark (Light/Auto opt-in)** → öffentliche Optik unverändert.
-  **Offen (nach Jans Review):** (1) Light-Palette feinschleifen (Edge-Cases wie `text-slate-950` auf
-  Akzent-Buttons), (2) öffentliche Startseite auf **Auto** umstellen, sobald Light freigegeben.
+  **Default = Auto** (folgt System, inkl. öffentlicher Startseite) — live aktiviert 2026-06-24 auf
+  Wunsch (nur Tester Peter aktiv). Kontrast-Fix: `text-slate-950` (dunkle Tinte auf Akzent) bleibt im
+  Light dunkel gepinnt. **Optional später:** Light-Palette weiter feinschleifen nach echtem Feedback.
 - **Einheitliches Icon-Set (Material).** Alle aktuell handgemalten Inline-SVG-Icons durch ein
   konsistentes, schönes Set ersetzen. Option A: selbst im Material-Stil designen. Option B:
   **Google Material Symbols** — Lizenz **Apache-2.0**, also erlaubt; **müssen self-hosted** sein

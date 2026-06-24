@@ -1,11 +1,11 @@
 // Theme-Verwaltung: Dark / Light / Auto. Persistenz in localStorage.
-// Default = "dark" (Live-Optik unverändert; Light/Auto sind opt-in).
+// Default = "auto" (folgt der System-Einstellung; inkl. öffentlicher Startseite).
 export type Theme = "dark" | "light" | "auto";
 const KEY = "theme";
 
 export function getTheme(): Theme {
   const v = localStorage.getItem(KEY);
-  return v === "light" || v === "auto" ? v : "dark";
+  return v === "light" || v === "dark" ? v : "auto";
 }
 
 export function effectiveDark(theme: Theme): boolean {
