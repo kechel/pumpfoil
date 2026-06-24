@@ -387,6 +387,16 @@ const deAT: Record<string, string> = {
   "profile.homespotHint": "Dein Stammspot — Standard für den Spot-Chat und Sessions-Filter.",
   "profile.homespotAuto": "Automatisch (letzte Session)",
 
+  "foilStats.title": "Foil-Stats",
+  "foilStats.hint": "Welche Werte werden mit welchem Foil gefahren (Community).",
+  "foilStats.none": "Noch keine Sessions mit gewähltem Foil.",
+  "foilStats.colFoil": "Foil",
+  "foilStats.colSessions": "Sessions",
+  "foilStats.colUsers": "Foiler",
+  "foilStats.colTopSpeed": "Top-Speed",
+  "foilStats.colBestDist": "Weitester Lauf",
+  "foilStats.colAvgPump": "Ø Pump",
+
 };
 
 export default deAT

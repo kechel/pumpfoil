@@ -260,6 +260,40 @@ def spot_map(_user: models.User = Depends(current_user), db: Session = Depends(g
     ]
 
 
+@router.get("/foil-stats")
+def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil)."""
+    rows = (
+        _community(db.query(
+            S.foil_id,
+            func.count(func.distinct(S.id)),
+            func.count(func.distinct(S.user_id)),
+            func.max(AR.best_speed_mps),
+            func.max(AR.best_distance_m),
+            func.avg(AR.avg_cadence_hz),
+        )).filter(S.foil_id.isnot(None))
+        .group_by(S.foil_id).all()
+    )
+    if not rows:
+        return []
+    fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
+    out = []
+    for fid, n_sess, n_users, top_speed, best_dist, avg_hz in rows:
+        f = fmap.get(fid)
+        if not f:
+            continue
+        out.append({
+            "foil_id": fid, "brand": f.brand, "model": f.model, "size": f.size,
+            "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None,
+            "sessions": int(n_sess), "users": int(n_users),
+            "top_speed_kmh": round(float(top_speed) * 3.6, 1) if top_speed else None,
+            "best_distance_m": round(float(best_dist)) if best_dist else None,
+            "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
+        })
+    out.sort(key=lambda x: x["sessions"], reverse=True)
+    return out
+
+
 # ------------------------------------------------------------------ Top-Liked ----
 @router.get("/top-liked")
 def top_liked(

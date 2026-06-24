@@ -561,6 +561,16 @@ const en: Record<string, string> = {
   "profile.homespotHint": "Your home spot — default for the spot chat and session filter.",
   "profile.homespotAuto": "Automatic (last session)",
 
+  "foilStats.title": "Foil stats",
+  "foilStats.hint": "Which numbers people achieve on which foil (community).",
+  "foilStats.none": "No sessions with a chosen foil yet.",
+  "foilStats.colFoil": "Foil",
+  "foilStats.colSessions": "Sessions",
+  "foilStats.colUsers": "Foilers",
+  "foilStats.colTopSpeed": "Top speed",
+  "foilStats.colBestDist": "Farthest run",
+  "foilStats.colAvgPump": "Ø pump",
+
 };
 
 export default en;

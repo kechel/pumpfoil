@@ -37,6 +37,7 @@ import Impressum from "./pages/Impressum";
 import Import from "./pages/Import";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
+import FoilStats from "./pages/FoilStats";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
       { path: "alle-sessions", element: <AllSessions /> },
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },
+      { path: "foil-stats", element: <FoilStats /> },
       { path: "account", element: <Account /> },
       { path: "einstellungen", element: <Settings /> },
       { path: "sessions/:id", element: <SessionDetail /> },

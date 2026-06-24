@@ -387,6 +387,16 @@ const gsw: Record<string, string> = {
   "profile.homespotHint": "Din Stammspot — Standard für de Spot-Chat und Sessions-Filter.",
   "profile.homespotAuto": "Automatisch (letschti Session)",
 
+  "foilStats.title": "Foil-Stats",
+  "foilStats.hint": "Weli Wärt mit welem Foil gfahre wärde (Community).",
+  "foilStats.none": "No kei Sessions mit gwähltem Foil.",
+  "foilStats.colFoil": "Foil",
+  "foilStats.colSessions": "Sessions",
+  "foilStats.colUsers": "Foiler",
+  "foilStats.colTopSpeed": "Top-Speed",
+  "foilStats.colBestDist": "Wiitischte Lauf",
+  "foilStats.colAvgPump": "Ø Pump",
+
 };
 
 export default gsw

@@ -278,6 +278,7 @@ export const api = {
     return req<Foil[]>(`/api/foils${s ? "?" + s : ""}`);
   },
   foilBrands: () => req<string[]>("/api/foils/brands"),
+  foilStats: () => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; top_speed_kmh: number | null; best_distance_m: number | null; avg_pump_hz: number | null }[]>("/api/community/foil-stats"),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),
   pushUnsubscribe: (endpoint: string) => req<{ ok: boolean }>("/api/push/unsubscribe", { method: "POST", body: JSON.stringify({ endpoint }) }),

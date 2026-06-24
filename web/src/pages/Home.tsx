@@ -321,6 +321,9 @@ function CommunitySection() {
       <div className="mb-4 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
+        <Link to="/foil-stats" className="ml-auto rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+          🛩 {t("foilStats.title")}
+        </Link>
       </div>
       <div className="mb-3 flex flex-wrap gap-1">
         {PERIODS.map(([k, labelKey]) => (

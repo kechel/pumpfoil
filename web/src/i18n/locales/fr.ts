@@ -458,6 +458,16 @@ const fr: Record<string, string> = {
   "profile.homespotHint": "Ton spot principal — par défaut pour le chat du spot et le filtre des sessions.",
   "profile.homespotAuto": "Automatique (dernière session)",
 
+  "foilStats.title": "Stats foils",
+  "foilStats.hint": "Quelles valeurs sont atteintes avec quel foil (communauté).",
+  "foilStats.none": "Pas encore de sessions avec un foil choisi.",
+  "foilStats.colFoil": "Foil",
+  "foilStats.colSessions": "Sessions",
+  "foilStats.colUsers": "Foilers",
+  "foilStats.colTopSpeed": "Vitesse max",
+  "foilStats.colBestDist": "Plus long run",
+  "foilStats.colAvgPump": "Ø pompage",
+
 };
 
 export default fr;

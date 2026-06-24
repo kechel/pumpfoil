@@ -458,6 +458,16 @@ const es: Record<string, string> = {
   "profile.homespotHint": "Tu spot habitual — predeterminado para el chat del spot y el filtro de sesiones.",
   "profile.homespotAuto": "Automático (última sesión)",
 
+  "foilStats.title": "Stats de foils",
+  "foilStats.hint": "Qué valores se logran con qué foil (comunidad).",
+  "foilStats.none": "Aún no hay sesiones con foil elegido.",
+  "foilStats.colFoil": "Foil",
+  "foilStats.colSessions": "Sesiones",
+  "foilStats.colUsers": "Foilers",
+  "foilStats.colTopSpeed": "Vel. máx",
+  "foilStats.colBestDist": "Run más largo",
+  "foilStats.colAvgPump": "Ø bombeo",
+
 };
 
 export default es;
