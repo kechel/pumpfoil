@@ -28,6 +28,10 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
+- **Öffentliche Startseite reviewen & um neue Features ergänzen.** Aktuell zeigt sie Track/Analyse,
+  FIT-Upload, „immer kostenlos", Datenschutz/Open-Source. Ergänzen, sobald live: **Community-Chat**
+  (Spot + Session), **Push-Benachrichtigungen**, **On-Foil-Vibrationsalarme**, **Foil-DB/Stats**,
+  **PWA/Offline/Install**, **Spots-Karte**. Wording generisch (Multi-Plattform, nicht nur Garmin).
 - **Chatraum per Push abonnieren.** Je Chatraum aktivierbare Push-Benachrichtigung bei neuen Nachrichten
   (nutzt die bestehende Web-Push-Infra; neuer Notify-Typ je Raum, Opt-in). Sinnvoll mit Unread + „verlassen" verzahnt.
 
