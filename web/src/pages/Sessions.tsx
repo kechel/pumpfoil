@@ -49,6 +49,13 @@ export default function Sessions() {
 
   return (
     <div>
+      {/* Überschrift ganz oben (wie auf allen Seiten) */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        {isMine ? <ListIcon className="h-7 w-7 text-brand-400" /> : <WaveIcon className="h-7 w-7 text-brand-400" />}
+        <h2 className="text-2xl font-bold">{title}</h2>
+        {spot && <SpotChatToggle spot={spot} t={t} />}
+      </div>
+
       {/* Scope-Umschalter + Spotsuche */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
@@ -66,12 +73,6 @@ export default function Sessions() {
           <option value="">{t("all.allSpots")}</option>
           {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-      </div>
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        {isMine ? <ListIcon className="h-7 w-7 text-brand-400" /> : <WaveIcon className="h-7 w-7 text-brand-400" />}
-        <h2 className="text-xl font-bold">{title}</h2>
-        {spot && <SpotChatToggle spot={spot} t={t} />}
       </div>
 
       {isMine ? <MySessionsList myName={myName} /> : <CommunityList name="" spot={spot} />}
