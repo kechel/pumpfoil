@@ -409,6 +409,8 @@ const deAT: Record<string, string> = {
   "profile.weight": "Gewicht",
   "profile.weightHint": "Optional — fließt später in die Leistungsberechnung (Watt) ein. Privat.",
 
+  "profile.calculator": "Foil-Rechner",
+
 };
 
 export default deAT

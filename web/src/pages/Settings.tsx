@@ -110,6 +110,17 @@ export default function Settings() {
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>
 
+      <a
+        href="/foilcalculator.html" target="_blank" rel="noopener noreferrer"
+        className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+      >
+        <span className="flex items-center gap-3">
+          <span className="text-xl">🧮</span>
+          <span className="font-medium text-slate-100">{t("profile.calculator")}</span>
+        </span>
+        <span className="text-xs text-slate-400">↗</span>
+      </a>
+
       <InstallPwa className="mb-4 md:hidden" />
 
       <Card className="mb-4 p-5">

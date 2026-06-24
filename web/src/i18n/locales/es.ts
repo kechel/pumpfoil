@@ -480,6 +480,8 @@ const es: Record<string, string> = {
   "profile.weight": "Peso",
   "profile.weightHint": "Opcional — se usa más tarde para estimar la potencia (vatios). Privado.",
 
+  "profile.calculator": "Calculadora de foil",
+
 };
 
 export default es;

@@ -409,6 +409,8 @@ const gsw: Record<string, string> = {
   "profile.weight": "Gwicht",
   "profile.weightHint": "Optional — flüsst spöter i d Leistigsberächnig (Watt) ii. Privat.",
 
+  "profile.calculator": "Foil-Rechner",
+
 };
 
 export default gsw
