@@ -19,6 +19,24 @@ enum Api {
         try await post("/api/devices/pair", ["code": code, "label": label], auth: false)
     }
 
+    struct DeviceConfig: Decodable {
+        let views: [[Int]]
+        let colorByValue: Bool
+        let alarmEnabled: Bool
+        let speedHigh: Int
+        let speedLow: Int
+    }
+
+    static func deviceConfig() async throws -> DeviceConfig {
+        guard let url = URL(string: baseURL + "/api/devices/config") else { throw err("Bad URL") }
+        var req = URLRequest(url: url)
+        if let t = deviceToken { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw err("HTTP \(code)") }
+        return try JSONDecoder().decode(DeviceConfig.self, from: data)
+    }
+
     static func startSession(_ body: [String: Any]) async throws -> StartResponse {
         try await post("/api/ingest/session", body)
     }

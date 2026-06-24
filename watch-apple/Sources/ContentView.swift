@@ -1,4 +1,5 @@
 import SwiftUI
+import WatchKit
 
 struct ContentView: View {
     @EnvironmentObject var rec: Recorder
@@ -54,38 +55,114 @@ struct PairView: View {
     }
 }
 
-// Aufnahme: Start/Stop + Live-Stats.
+struct WatchAlarm { var enabled = false; var high = 0; var low = 0 }
+
+// Aufnahme: konfigurierte, wischbare Datenseiten (aus /api/devices/config) + Alarm.
 struct RecordView: View {
     @EnvironmentObject var rec: Recorder
+    @State private var views: [[Int]] = [[1, 2, 0]]
+    @State private var colorBy = false
+    @State private var alarm = WatchAlarm()
+    @State private var page = 0
+    @State private var wasHigh = false
+    @State private var wasLow = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                Text(timeStr(rec.elapsed)).font(.system(.title2, design: .rounded)).monospacedDigit()
-                HStack {
-                    stat(String(format: "%.1f", rec.speedKmh), "km/h")
-                    stat(rec.hr > 0 ? "\(rec.hr)" : "–", "bpm")
+        VStack(spacing: 6) {
+            if rec.isRecording {
+                TabView(selection: $page) {
+                    ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
+                        VStack(spacing: 10) {
+                            ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
+                        }.tag(idx)
+                    }
                 }
-                Button(rec.isRecording ? "Stop" : "Start") {
-                    Task { rec.isRecording ? await rec.stop() : await rec.start() }
-                }
-                .tint(rec.isRecording ? .red : .green)
-                if !rec.status.isEmpty {
-                    Text(rec.status).font(.caption2).foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-            }.padding()
+                .tabViewStyle(.page)
+                .frame(maxHeight: .infinity)
+            } else {
+                Spacer()
+                Text("Pumpfoil").font(.title3)
+                Spacer()
+            }
+            Button(rec.isRecording ? "Stop" : "Start") {
+                Task { rec.isRecording ? await rec.stop() : await rec.start() }
+            }
+            .tint(rec.isRecording ? .red : .green)
+            if !rec.status.isEmpty {
+                Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            }
+        }
+        .padding(.horizontal, 6)
+        .task { await loadConfig() }
+        .onChange(of: rec.speedKmh) { _, sp in checkAlarm(sp) }
+    }
+
+    private func activeFields(_ f: [Int]) -> [Int] {
+        let a = f.filter { $0 != 0 }
+        return a.isEmpty ? [1] : a
+    }
+
+    @ViewBuilder private func fieldView(_ fid: Int) -> some View {
+        let fv = fieldValue(fid, rec)
+        VStack(spacing: 0) {
+            Text(fv.0).font(.system(.title, design: .rounded)).monospacedDigit()
+                .foregroundStyle(colorBy ? fieldColor(fid, rec) : Color.primary)
+            Text(fv.1).font(.caption2).foregroundStyle(.secondary)
         }
     }
 
-    private func stat(_ v: String, _ unit: String) -> some View {
-        VStack(spacing: 0) {
-            Text(v).font(.system(.title3, design: .rounded)).monospacedDigit()
-            Text(unit).font(.caption2).foregroundStyle(.secondary)
-        }.frame(maxWidth: .infinity)
+    private func loadConfig() async {
+        if let c = try? await Api.deviceConfig() {
+            if !c.views.isEmpty { views = c.views }
+            colorBy = c.colorByValue
+            alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
+        }
     }
 
-    private func timeStr(_ t: TimeInterval) -> String {
-        let s = Int(t); return String(format: "%d:%02d", s / 60, s % 60)
+    private func checkAlarm(_ sp: Double) {
+        guard alarm.enabled else { return }
+        if alarm.high > 0 {
+            let now = sp >= Double(alarm.high)
+            if now && !wasHigh { WKInterfaceDevice.current().play(.notification) }
+            wasHigh = now
+        }
+        if alarm.low > 0 {
+            let now = sp > 0.1 && sp <= Double(alarm.low)
+            if now && !wasLow { WKInterfaceDevice.current().play(.directionUp) }
+            wasLow = now
+        }
     }
+}
+
+// Kernfeldsatz (IDs wie web/src/lib/fields.ts); Rest "—".
+private func fieldValue(_ id: Int, _ r: Recorder) -> (String, String) {
+    switch id {
+    case 1: return (String(format: "%.1f", r.speed3sKmh), "km/h (3s)")
+    case 5: return (String(format: "%.1f", r.speedKmh), "km/h")
+    case 6: return (String(format: "%.1f", r.avgSpeedKmh), "Ø km/h")
+    case 7: return (String(format: "%.1f", r.maxSpeedKmh), "max km/h")
+    case 2: return (r.hr > 0 ? "\(r.hr)" : "–", "bpm")
+    case 8: return (r.avgHr > 0 ? "\(r.avgHr)" : "–", "Ø bpm")
+    case 9: return (r.maxHr > 0 ? "\(r.maxHr)" : "–", "max bpm")
+    case 3: let s = Int(r.elapsed); return (String(format: "%d:%02d", s / 60, s % 60), "Zeit")
+    case 4: return (String(format: "%.2f", r.distanceM / 1000), "km")
+    case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), "Uhr")
+    default: return ("—", "")
+    }
+}
+
+private func fieldColor(_ id: Int, _ r: Recorder) -> Color {
+    switch id {
+    case 1: return speedColor(r.speed3sKmh)
+    case 5: return speedColor(r.speedKmh)
+    case 6: return speedColor(r.avgSpeedKmh)
+    case 7: return speedColor(r.maxSpeedKmh)
+    case 2, 8, 9: return Color(red: 0.97, green: 0.44, blue: 0.44)
+    default: return .primary
+    }
+}
+
+private func speedColor(_ kmh: Double) -> Color {
+    let t = min(max((kmh - 8) / (25 - 8), 0), 1)
+    return Color(hue: (1 - t) * 240 / 360, saturation: 0.85, brightness: 0.95)
 }

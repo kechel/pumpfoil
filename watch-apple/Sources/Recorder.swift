@@ -14,7 +14,13 @@ final class Recorder: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var elapsed: TimeInterval = 0
     @Published var speedKmh: Double = 0
+    @Published var speed3sKmh: Double = 0
+    @Published var avgSpeedKmh: Double = 0
+    @Published var maxSpeedKmh: Double = 0
+    @Published var distanceM: Double = 0
     @Published var hr: Int = 0
+    @Published var avgHr: Int = 0
+    @Published var maxHr: Int = 0
     @Published var status = ""
 
     private let store = HKHealthStore()
@@ -36,6 +42,14 @@ final class Recorder: NSObject, ObservableObject {
     private var accelT0ms = 0
     private var gps: [[Double]] = []
     private var lastHR = 0
+    // Live-Kennzahlen
+    private var prevLoc: CLLocation?
+    private var distAccum = 0.0
+    private var maxMps = 0.0
+    private var hrSum = 0
+    private var hrCount = 0
+    private var maxHRv = 0
+    private var spWin: [(t: Double, mps: Double)] = []
 
     func requestAuth() {
         location.delegate = self
@@ -54,7 +68,8 @@ final class Recorder: NSObject, ObservableObject {
         uuid = UUID().uuidString
         startedAt = Date()
         chunkIndex = 0
-        accel.removeAll(); gps.removeAll()
+        accel.removeAll(); gps.removeAll(); spWin.removeAll()
+        prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
         status = "starte…"
         do {
             _ = try await Api.startSession([
@@ -208,7 +223,19 @@ extension Recorder: CLLocationManagerDelegate {
             self.gps.append([Double(t), loc.coordinate.latitude, loc.coordinate.longitude,
                              sp, Double(self.lastHR), loc.horizontalAccuracy])
             self.lock.unlock()
+            // Live-Kennzahlen
+            if let p = self.prevLoc { self.distAccum += max(0, loc.distance(from: p)) }
+            self.prevLoc = loc
+            if sp > self.maxMps { self.maxMps = sp }
+            self.spWin.append((Double(t), sp))
+            while let f = self.spWin.first, Double(t) - f.t > 3000 { self.spWin.removeFirst() }
+            let sp3 = self.spWin.isEmpty ? sp : self.spWin.map { $0.mps }.reduce(0, +) / Double(self.spWin.count)
+            let sec = max(1.0, Double(t) / 1000.0)
             self.speedKmh = sp * 3.6
+            self.speed3sKmh = sp3 * 3.6
+            self.maxSpeedKmh = self.maxMps * 3.6
+            self.distanceM = self.distAccum
+            self.avgSpeedKmh = self.distAccum / sec * 3.6
         }
     }
 }
@@ -230,6 +257,12 @@ extension Recorder: HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate {
         Task { @MainActor in
             self.lastHR = bpm
             self.hr = bpm
+            if bpm > 0 {
+                self.hrSum += bpm; self.hrCount += 1
+                if bpm > self.maxHRv { self.maxHRv = bpm }
+                self.avgHr = self.hrSum / self.hrCount
+                self.maxHr = self.maxHRv
+            }
         }
     }
 }
