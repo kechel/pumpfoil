@@ -5,7 +5,7 @@ import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, StarIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
-// Foil-Katalog: mehrere als „meine" merken, eines als Standard (★).
+// Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern).
 export default function Foils() {
   const t = useT();
   const [foils, setFoils] = useState<Foil[] | null>(null);

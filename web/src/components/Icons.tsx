@@ -141,6 +141,30 @@ export const FlagIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const MapIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M9 4 3 6.5v13L9 17l6 2.5L21 17V4l-6 2.5L9 4Z" /><line x1="9" y1="4" x2="9" y2="17" /><line x1="15" y1="6.5" x2="15" y2="19.5" />
+  </svg>
+);
+
+export const UploadIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 16V4" /><path d="m7 9 5-5 5 5" /><path d="M5 20h14" />
+  </svg>
+);
+
+export const TagIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M3 12V4h8l9 9-7 7-9-9Z" /><circle cx="7.5" cy="7.5" r="1.3" />
+  </svg>
+);
+
+export const LockIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
+  </svg>
+);
+
 export const DownloadIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" />

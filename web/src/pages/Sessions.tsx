@@ -64,7 +64,7 @@ export default function Sessions() {
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
         >
           <option value="">{t("all.allSpots")}</option>
-          {spots.map((s) => <option key={s} value={s}>📍 {s}</option>)}
+          {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 

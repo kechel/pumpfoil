@@ -180,7 +180,7 @@ export default function Settings() {
           className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         >
           <option value="">{t("profile.homespotAuto")}</option>
-          {spots.map((s) => <option key={s} value={s}>📍 {s}</option>)}
+          {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </Card>
 

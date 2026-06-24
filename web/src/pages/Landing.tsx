@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { WaveIcon, ChevronIcon } from "../components/Icons";
+import {
+  WaveIcon, ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
+  FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
+  LockIcon, HeartIcon,
+} from "../components/Icons";
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -10,18 +14,18 @@ import { InstallPwa } from "../components/InstallPwa";
 export default function Landing() {
   const t = useT();
   const features = [
-    { icon: "⌚", title: t("land.f1Title"), body: t("land.f1Body") },
-    { icon: "📈", title: t("land.f2Title"), body: t("land.f2Body") },
-    { icon: "🗺️", title: t("land.f3Title"), body: t("land.f3Body") },
-    { icon: "🌊", title: t("land.f4Title"), body: t("land.f4Body") },
-    { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
-    { icon: "🛩", title: t("land.f7Title"), body: t("land.f7Body") },
-    { icon: "📳", title: t("land.f8Title"), body: t("land.f8Body") },
-    { icon: "🔔", title: t("land.f9Title"), body: t("land.f9Body") },
-    { icon: "📲", title: t("land.f10Title"), body: t("land.f10Body") },
-    { icon: "💬", title: t("land.f11Title"), body: t("land.f11Body") },
-    { icon: "📍", title: t("land.f12Title"), body: t("land.f12Body") },
-    { icon: "🆓", title: t("land.f6Title"), body: t("land.f6Body") },
+    { icon: WatchIcon, title: t("land.f1Title"), body: t("land.f1Body") },
+    { icon: ChartIcon, title: t("land.f2Title"), body: t("land.f2Body") },
+    { icon: MapIcon, title: t("land.f3Title"), body: t("land.f3Body") },
+    { icon: CommunityIcon, title: t("land.f4Title"), body: t("land.f4Body") },
+    { icon: UploadIcon, title: t("land.f5Title"), body: t("land.f5Body") },
+    { icon: FoilIcon, title: t("land.f7Title"), body: t("land.f7Body") },
+    { icon: FakeIcon, title: t("land.f8Title"), body: t("land.f8Body") },
+    { icon: BellIcon, title: t("land.f9Title"), body: t("land.f9Body") },
+    { icon: DownloadIcon, title: t("land.f10Title"), body: t("land.f10Body") },
+    { icon: ChatBubbleIcon, title: t("land.f11Title"), body: t("land.f11Body") },
+    { icon: LocationIcon, title: t("land.f12Title"), body: t("land.f12Body") },
+    { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   const shots = [
     { src: "/landing-track.webp", cap: t("land.shotTrack") },
@@ -104,7 +108,7 @@ export default function Landing() {
         <section className="grid gap-4 py-10 sm:grid-cols-2">
           {features.map((f) => (
             <div key={f.title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-              <div className="text-2xl">{f.icon}</div>
+              <f.icon className="h-7 w-7 text-brand-400" />
               <h3 className="mt-2 font-semibold">{f.title}</h3>
               <p className="mt-1 text-sm text-slate-400">{f.body}</p>
             </div>
@@ -114,12 +118,12 @@ export default function Landing() {
         {/* Datenschutz & Open Source */}
         <section className="grid gap-4 pb-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <div className="text-2xl">🔒</div>
+            <LockIcon className="h-7 w-7 text-brand-400" />
             <h3 className="mt-2 font-semibold">{t("land.privacyTitle")}</h3>
             <p className="mt-1 text-sm text-slate-400">{t("land.privacyBody")}</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <div className="text-2xl">💛</div>
+            <HeartIcon className="h-7 w-7 text-brand-400" filled />
             <h3 className="mt-2 font-semibold">{t("land.openTitle")}</h3>
             <p className="mt-1 text-sm text-slate-400">{t("land.openBody")}</p>
             <a

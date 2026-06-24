@@ -17,7 +17,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
 ];
 
-const CAP_ICON: Record<Cap, string> = { yes: "✓", partial: "~", no: "–" };
+const CAP_ICON: Record<"partial" | "no", string> = { partial: "~", no: "–" };
 const CAP_CLASS: Record<Cap, string> = { yes: "text-emerald-400", partial: "text-amber-400", no: "text-slate-600" };
 const STATUS_CLASS: Record<Status, string> = {
   avail: "bg-emerald-500/15 text-emerald-300",

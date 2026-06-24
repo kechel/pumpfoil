@@ -14,7 +14,7 @@ export function ytId(url: string | null | undefined): string {
   }
 }
 
-// Fullscreen-Popup mit eingebettetem YouTube-Video (nocookie). Schließt per Backdrop/✕.
+// Fullscreen-Popup mit eingebettetem YouTube-Video (nocookie). Schließt per Backdrop/X.
 export function VideoModal({ url, onClose }: { url: string; onClose: () => void }) {
   const id = ytId(url);
   if (!id) return null;

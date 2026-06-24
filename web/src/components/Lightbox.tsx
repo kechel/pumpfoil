@@ -18,7 +18,7 @@ export interface LightboxPhoto {
 }
 
 // Fullscreen-Galerie: durchschalten (Pfeile/Tastatur/Swipe), liken/melden, Link zur Session.
-// Schließt per Backdrop-Klick, ✕ oder Esc. Etwas Rand → man sieht, dass man nicht weg ist.
+// Schließt per Backdrop-Klick, das X oder Esc. Etwas Rand → man sieht, dass man nicht weg ist.
 export function Lightbox({ photos, index, onClose, onChange }: {
   photos: LightboxPhoto[];
   index: number;
