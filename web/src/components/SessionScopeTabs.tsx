@@ -10,8 +10,8 @@ export function SessionScopeTabs() {
     }`;
   return (
     <div className="mb-4 inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
-      <NavLink end to="/sessions" className={cls}>{t("nav.mySessions")}</NavLink>
-      <NavLink to="/alle-sessions" className={cls}>{t("nav.allSessions")}</NavLink>
+      <NavLink end to="/sessions" className={cls}>{t("nav.mySessions.short")}</NavLink>
+      <NavLink to="/alle-sessions" className={cls}>{t("nav.allSessions.short")}</NavLink>
     </div>
   );
 }
