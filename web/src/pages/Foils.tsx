@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
+import { ChevronIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 // Foil-Katalog: mehrere als „meine" merken, eines als Standard (★).
@@ -57,7 +59,10 @@ export default function Foils() {
   if (!foils) return <Spinner />;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="w-full">
+      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
+      </Link>
       <h2 className="mb-1 text-xl font-bold">{t("foils.title")}</h2>
       <p className="mb-4 text-sm text-slate-300">{t("foils.hint")}</p>
 

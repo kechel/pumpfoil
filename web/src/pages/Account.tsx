@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
-import { WatchIcon } from "../components/Icons";
+import { WatchIcon, ChevronIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { useT } from "../i18n";
@@ -30,7 +31,10 @@ export default function Account() {
   const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("views");
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
+      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
+      </Link>
       <div className="mb-4 flex items-center gap-2">
         <WatchIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
