@@ -1,5 +1,13 @@
 # Ideen & Backlog
 
+## 📥 Inbox (unsortiert, später einsortieren)
+_Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
+
+- _(noch leer)_
+
+---
+
+
 Sammelstelle für Produktideen — **noch nichts davon umgesetzt**. Gruppiert, mit grober
 Einschätzung. Technischer/Plattform-Backlog (Apple/Wear/Connectoren, CI, Error-Tracking,
 CSP …) steht in [`ROADMAP.md`](ROADMAP.md).

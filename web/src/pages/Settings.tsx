@@ -64,7 +64,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="w-full">
       <div className="mb-5 flex items-center gap-2">
         <SettingsIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("profile.title")}</h2>
