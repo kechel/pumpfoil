@@ -69,3 +69,26 @@ Everything that can be shared **is** shared, so a new watch is a thin add-on:
 **Realistic next downloads:** for native pump-capable apps you only need
 **Xcode** (Apple Watch) and **Android Studio** (Wear OS). The rest (Polar/Suunto/COROS)
 are cloud-API registrations, not SDK installs.
+
+## Status & Aufgabenteilung (Stand 2026-06-24)
+
+**Wer macht was:** Der Build-Server (Claude) läuft auf **Linux ohne Xcode/Android Studio**
+→ kann **nativen Code schreiben**, aber **nicht kompilieren/testen**. Server-Code wird voll
+gebaut **und** getestet. Native Watch-Apps schreibt Claude als Quellcode; **gebaut/getestet
+werden sie von Jan** in Xcode (Mac) bzw. Android Studio.
+
+**Account-Status:**
+- **Apple Developer** — ✅ vorhanden (Jan). Apple-Watch-Build account-seitig frei (braucht Mac+Xcode).
+- **Garmin Connect Developer Program** (Activity API, Weg B) — Antragsformular derzeit „under
+  construction"; Fallback E-Mail `developer@garmin.com`. Enterprise-gated, Ausgang offen.
+  **Weg A (eigene Connect-IQ-App, Direkt-Upload) ist davon unabhängig und live.**
+- **Polar AccessLink** — self-serve Registrierung offen (admin.polaraccesslink.com) → client_id/secret.
+
+**Empfohlene Reihenfolge:** Apple Watch (Account frei) → Wear OS (Toolchain gratis) →
+Polar (offene Cloud-API). Coros/Suunto/Garmin-Cloud opportunistisch (gated).
+
+**Sofort-To-dos für Jan (nur diese erfordern dich):**
+1. Bestätigen: **Mac mit Xcode** vorhanden? (sonst kein Apple-Watch-Build möglich)
+2. Optional **Polar AccessLink** registrieren → client_id/secret an Claude (für Cloud-Import).
+3. Garmin: abwarten / ggf. E-Mail (s. o.).
+Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
