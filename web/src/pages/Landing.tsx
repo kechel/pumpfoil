@@ -18,6 +18,8 @@ export default function Landing() {
     { icon: "📳", title: t("land.f8Title"), body: t("land.f8Body") },
     { icon: "🔔", title: t("land.f9Title"), body: t("land.f9Body") },
     { icon: "📲", title: t("land.f10Title"), body: t("land.f10Body") },
+    { icon: "💬", title: t("land.f11Title"), body: t("land.f11Body") },
+    { icon: "📍", title: t("land.f12Title"), body: t("land.f12Body") },
     { icon: "🆓", title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   const shots = [

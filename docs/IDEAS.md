@@ -19,7 +19,8 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - ✅ **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen). *umgesetzt + Admin-Freigeben.*
   - ✅ **Admin:** ausgeblendete wieder **freigeben**, Nutzer auf **read-only** setzen, Melde-Zähler.
     *umgesetzt:* `/chat/{id}/hide`, `/chat/reported`, `/chat/moderation/readonly`, Admin-Buttons in der
-    Chat-Komponente. **Offen:** eigene Admin-Übersichtsseite für `/chat/reported` (aktuell nur inline).
+    Chat-Komponente **und** eigener Admin-Tab „Chat" (gemeldete Nachrichten, freigeben/ausblenden,
+    read-only). ✅ komplett.
 - ✅ **Persönliche Startseite / Dashboard** — *umgesetzt: /home (Rekorde + 3 letzte Sessions + Homespot-Chat),
   Home als 1. Bottom-Tab (6 Tabs), Profilbild + Post-Login -> /home, Rekorde aus Sidebar entfernt.*
   - ✅ **Ungelesen-Hinweise:** *umgesetzt:* `chat_room_state` (last_read je Raum/User), „Meine Chats"-Widget
@@ -53,11 +54,11 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   Komponente gemerged (eigene vs. Community-Liste je Scope), Spot-Chat-Toggle integriert; alte Route
   `/alle-sessions` leitet weiter, `SessionScopeTabs`/`AllSessions` entfernt.
 - **Öffentliche Startseite** — *teilweise erledigt:* Feature-Kacheln für **Foil-DB/Stats, On-Foil-Alarm,
-  Push, PWA/Offline** ergänzt; Wording generisch. **Noch offen:** **Community-Chat** + **Spots-Karte**
-  als Kacheln ergänzen, sobald Chat live ist; ggf. Slider-Screenshots der neuen Features.
+  Push, PWA/Offline** ergänzt; Wording generisch. ✅ **Community-Chat + Spots-Karte** als Feature-Kacheln
+  ergänzt (land.f11/f12). **Optional:** Slider-Screenshots der neuen Features.
 - ✅ **Chatraum per Push abonnieren.** *umgesetzt:* `/chat/subscribe` (Opt-in je Raum), Glocken-Toggle in
   der Chat-Leiste; neue Nachrichten lösen Web-Push an Abonnenten aus (Notify-Typ „chat", respektiert
-  globale notify_prefs). **Offen:** „chat" als eigener Schalter in den globalen Push-Einstellungen im Profil.
+  globale notify_prefs). ✅ „chat" jetzt auch als eigener Schalter in den globalen Push-Einstellungen.
 
 ---
 

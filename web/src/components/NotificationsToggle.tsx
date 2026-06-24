@@ -29,6 +29,7 @@ export function NotificationsToggle() {
     { key: "like", label: t("notif.typeLike") },
     { key: "analyzed", label: t("notif.typeAnalyzed") },
     { key: "record", label: t("notif.typeRecord") },
+    { key: "chat", label: t("notif.typeChat") },
   ];
 
   useEffect(() => {

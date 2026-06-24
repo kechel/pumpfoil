@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { useT } from "../i18n";
 
-type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "audit" | "feedback";
+type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "audit" | "feedback";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["flagged", "adm.tab.flagged"],
   ["fake", "adm.tab.fake"],
   ["users", "adm.tab.users"],
   ["photos", "adm.tab.photos"],
+  ["chat", "adm.tab.chat"],
   ["sessions", "adm.tab.sessions"],
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
@@ -44,6 +45,7 @@ export default function Admin() {
       {tab === "deleted" && <SessionsTab scope="deleted" />}
       {tab === "users" && <UsersTab />}
       {tab === "photos" && <PhotosTab />}
+      {tab === "chat" && <ChatModTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "audit" && <AuditTab />}
     </div>
@@ -393,6 +395,48 @@ function FeedbackTab() {
             onClick={() => api.adminDeleteFeedback(f.id).then(() => setData((data ?? []).filter((x) => x.id !== f.id)))}>
             {t("adm.delete")}
           </Act>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------- Chat ----
+function ChatModTab() {
+  const t = useT();
+  const [rows, setRows] = useState<(ChatMsg & { scope: string })[] | null>(null);
+  const reload = () => api.chatReported().then(setRows).catch(() => setRows([]));
+  useEffect(() => { reload(); }, []);
+  if (!rows) return <Spinner />;
+  if (rows.length === 0) return <Card className="p-8 text-center text-slate-300">{t("adm.chat.none")}</Card>;
+
+  const hide = (id: number, hidden: boolean) =>
+    api.chatHide(id, hidden).then(() => setRows((r) => r && r.map((m) => m.id === id ? { ...m, hidden } : m))).catch(() => {});
+  const readonly = (uid: number, name: string | null) => {
+    if (!confirm(t("chat.readonlyConfirm", { name: name || "?" }))) return;
+    api.chatSetReadonly(uid, true).then(() => alert(t("adm.chat.readonlyDone"))).catch(() => {});
+  };
+
+  return (
+    <div className="space-y-2">
+      {rows.map((m) => (
+        <Card key={m.id} className={`p-3 ${m.hidden ? "opacity-60" : ""}`}>
+          <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span className="font-medium text-slate-200">{m.name || "—"}</span>
+            <span>· {m.scope}</span>
+            <span className="text-amber-400">⚑ {m.report_count}</span>
+            {m.hidden && <span className="rounded bg-slate-700/50 px-1.5 text-slate-300">{t("adm.chat.hidden")}</span>}
+            <span className="ml-auto">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
+          </div>
+          <p className="mb-2 whitespace-pre-wrap break-words text-sm text-slate-100">{m.text}</p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {m.hidden ? (
+              <button onClick={() => hide(m.id, false)} className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-emerald-300 hover:bg-emerald-600/30">{t("chat.unhide")}</button>
+            ) : (
+              <button onClick={() => hide(m.id, true)} className="rounded-lg bg-amber-600/20 px-2.5 py-1 text-amber-300 hover:bg-amber-600/30">{t("chat.hide")}</button>
+            )}
+            <button onClick={() => readonly(m.user_id, m.name)} className="rounded-lg bg-red-950/40 px-2.5 py-1 text-red-300 hover:bg-red-950/70">{t("chat.readonly")}</button>
+          </div>
         </Card>
       ))}
     </div>
