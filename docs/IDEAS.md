@@ -18,13 +18,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Melden-Icon** je Nachricht (klein).
   - **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen); Admin kann ausgeblendete wieder **freigeben**.
   - **Admin:** gemeldete Nachrichten einsehen; Nutzer im Chat **blockieren** bzw. auf **read-only** setzen.
-- **Persönliche Startseite / Dashboard.** Eigene „Mein"-Seite, erreichbar über das **Profilbild im Menü**
-  und **direkt nach Login** als erste Ansicht. Inhalt: **3 letzte Sessions**, **Chat an meinem (Home-)Spot**,
-  **meine Rekorde**. → Die Rekorde (aktuell links in der Sidebar) **wandern hierher** und kommen aus der Sidebar raus.
-  *(IA-Auswirkung: Post-Login-Ziel + Profilbild-Link; ggf. in `UX-IA.md` einarbeiten.)*
-  - **Eigenes Icon in der Mobile-Nav** für Home wird vermutlich doch gebraucht → dann 6 Tabs
-    (Home · Community · Sessions · Verlauf · Spots · Profil) oder Profil rein über Profilbild/Home-Hub
-    lösen. Nav-Aufteilung beim Umsetzen neu abwägen.
+- ✅ **Persönliche Startseite / Dashboard** — *umgesetzt: /home (Rekorde + 3 letzte Sessions + Homespot),
+  Home als 1. Bottom-Tab (6 Tabs), Profilbild + Post-Login -> /home, Rekorde aus Sidebar entfernt.*
+  **Offen:** Homespot-**Chat**-Sektion einbauen (sobald Chat live), ggf. mehr Widgets.
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
