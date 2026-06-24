@@ -98,7 +98,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
             {has && r!.track_preview && (
               <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -translate-y-1/2 text-brand-400/70" />
             )}
-            <div className="text-lg font-bold tabular-nums text-white">{has ? it.fmt(r!.value) : "–"}</div>
+            <div className="text-lg font-bold tabular-nums text-slate-100">{has ? it.fmt(r!.value) : "–"}</div>
             <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-300">{t(it.labelKey)}</div>
             {has && (
               <div className="mt-0.5 text-[11px] text-slate-300">
@@ -151,7 +151,7 @@ function LeaderList({ rows, field, unit }: { rows: LeaderRow[]; field: keyof Lea
           <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
           <Avatar name={r.name} url={r.avatar_url} size={30} />
           <span className="min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
-          <span className="shrink-0 text-sm font-semibold tabular-nums text-white">{r[field] as number}</span>
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{r[field] as number}</span>
           <span className="shrink-0 text-[10px] uppercase text-slate-400">{unit}</span>
         </div>
       ))}

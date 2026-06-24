@@ -836,7 +836,7 @@ function ClickStat({
       className={`overflow-hidden rounded-xl border p-1.5 text-left ${isSel ? "border-brand-500 bg-brand-500/10" : "border-slate-800 bg-slate-900/60"} ${clickable ? "hover:border-slate-600" : ""}`}
     >
       <div className="flex items-baseline gap-1 leading-none">
-        <span className="text-base font-bold tabular-nums text-white sm:text-lg">{value}</span>
+        <span className="text-base font-bold tabular-nums text-slate-100 sm:text-lg">{value}</span>
         {sub && <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>}
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">
@@ -924,13 +924,13 @@ function TrimEditor({ session, onSaved }: { session: SessionSummary; onSaved: (s
             {t("sd.trimHint", { total: fmtMMSS(totalSec) })}
           </p>
           <label className="block text-sm text-slate-200">
-            {t("sd.start")} <span className="tabular-nums text-white">{fmtMMSS(a)}</span>
+            {t("sd.start")} <span className="tabular-nums text-slate-100">{fmtMMSS(a)}</span>
             <input type="range" min={0} max={totalSec} value={a}
               onChange={(e) => setA(Math.min(Number(e.target.value), b - 1))}
               className="mt-1 w-full accent-brand-500" />
           </label>
           <label className="block text-sm text-slate-200">
-            {t("sd.end")} <span className="tabular-nums text-white">{fmtMMSS(b)}</span>
+            {t("sd.end")} <span className="tabular-nums text-slate-100">{fmtMMSS(b)}</span>
             <input type="range" min={0} max={totalSec} value={b}
               onChange={(e) => setB(Math.max(Number(e.target.value), a + 1))}
               className="mt-1 w-full accent-brand-500" />

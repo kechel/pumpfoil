@@ -54,16 +54,16 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
         </div>
         <div className="flex shrink-0 items-center gap-3 text-right text-xs tabular-nums">
           <div>
-            <div className="font-semibold text-white">{s.runs}</div>
+            <div className="font-semibold text-slate-100">{s.runs}</div>
             <div className="text-[10px] uppercase text-slate-400">{t("unit.runs")}</div>
           </div>
           <div>
-            <div className="font-semibold text-white">{s.foiling_km.toFixed(1)}</div>
+            <div className="font-semibold text-slate-100">{s.foiling_km.toFixed(1)}</div>
             <div className="text-[10px] uppercase text-slate-400">km</div>
           </div>
           {s.max_speed_mps != null && (
             <div>
-              <div className="font-semibold text-white">{(s.max_speed_mps * 3.6).toFixed(0)}</div>
+              <div className="font-semibold text-slate-100">{(s.max_speed_mps * 3.6).toFixed(0)}</div>
               <div className="text-[10px] uppercase text-slate-400">km/h</div>
             </div>
           )}
