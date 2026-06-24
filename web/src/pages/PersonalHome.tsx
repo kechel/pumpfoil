@@ -4,7 +4,7 @@ import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { InstallPwa } from "../components/InstallPwa";
-import { CommunityIcon, BellIcon, ChatBubbleIcon } from "../components/Icons";
+import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 function fmtDur(min: number): string {
@@ -98,7 +98,10 @@ export default function PersonalHome() {
               <Link key={r.scope} to={r.url}
                 className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700 hover:bg-slate-900">
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5">
+                    {r.scope.startsWith("spot:")
+                      ? <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
+                      : <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />}
                     <span className="font-medium text-slate-100">{r.label}</span>
                     {r.push && <BellIcon className="h-3.5 w-3.5 text-brand-400" />}
                   </span>

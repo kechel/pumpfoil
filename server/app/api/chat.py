@@ -23,7 +23,7 @@ AUTOHIDE_REPORTS = 3        # ab so vielen Meldungen automatisch ausblenden
 
 def _scope_label(scope: str) -> str:
     kind, _, rest = scope.partition(":")
-    return f"📍 {rest}" if kind == "spot" else f"Session #{rest}"
+    return rest if kind == "spot" else f"Session #{rest}"
 
 
 def _scope_url(scope: str) -> str:
