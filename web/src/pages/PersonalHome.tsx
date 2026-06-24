@@ -4,6 +4,7 @@ import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { CommunityIcon, SpotsIcon } from "../components/Icons";
+import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
 // Persönliche Startseite: Begrüßung, meine Rekorde, letzte Sessions, Homespot.
@@ -55,16 +56,19 @@ export default function PersonalHome() {
         </div>
       )}
 
-      {/* Homespot */}
+      {/* Homespot-Chat */}
       {homespot && (
-        <Link to={`/alle-sessions?spot=${encodeURIComponent(homespot)}`}
-          className="mb-6 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900">
-          <span className="flex items-center gap-3">
-            <SpotsIcon className="h-6 w-6 text-brand-400" />
-            <span><span className="font-medium text-slate-100">{homespot}</span>
-              <span className="ml-2 text-xs text-slate-400">{t("phome.homespotChatSoon")}</span></span>
-          </span>
-        </Link>
+        <Card className="mb-6 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2">
+              <SpotsIcon className="h-5 w-5 text-brand-400" />
+              <span className="font-medium text-slate-100">{homespot}</span>
+            </span>
+            <Link to={`/alle-sessions?spot=${encodeURIComponent(homespot)}`}
+              className="text-xs text-brand-300 hover:text-brand-200">{t("phome.homespotSessions")} →</Link>
+          </div>
+          <Chat scope={`spot:${homespot}`} />
+        </Card>
       )}
 
       {/* Letzte Sessions */}

@@ -222,6 +222,8 @@ const gsw: Record<string, string> = {
   "sd.end": "Ändi:",
   "sd.saveReanalyze": "Spichere & nöi uswerte",
   "sd.discussion": "Diskussion",
+  "chat.spotChat": "Spot-Chat",
+  "phome.homespotSessions": "Sessions",
   "chat.placeholder": "Nachricht schribe …",
   "chat.send": "Schicke",
   "chat.empty": "No kei Nachrichte. Schrib di erscht!",

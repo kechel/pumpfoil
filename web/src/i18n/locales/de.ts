@@ -293,6 +293,8 @@ const de: Record<string, string> = {
   "sd.end": "Ende:",
   "sd.saveReanalyze": "Speichern & neu auswerten",
   "sd.discussion": "Diskussion",
+  "chat.spotChat": "Spot-Chat",
+  "phome.homespotSessions": "Sessions",
   "chat.placeholder": "Nachricht schreiben …",
   "chat.send": "Senden",
   "chat.empty": "Noch keine Nachrichten. Schreib die erste!",

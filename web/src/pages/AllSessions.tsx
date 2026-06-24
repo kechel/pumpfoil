@@ -4,6 +4,7 @@ import { api, CommunitySession } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionScopeTabs } from "../components/SessionScopeTabs";
+import { Chat } from "../components/Chat";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
@@ -15,6 +16,7 @@ export default function AllSessions() {
   const name = sp.get("name") || "";
   const spot = sp.get("spot") || "";
   const [nameInput, setNameInput] = useState(name);
+  const [showChat, setShowChat] = useState(false);
   const [spots, setSpots] = useState<string[]>([]);
   const [items, setItems] = useState<CommunitySession[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +63,21 @@ export default function AllSessions() {
         <h2 className="text-2xl font-bold">
           {spot ? `${t("nav.sessions")} · 📍 ${spot}` : t("nav.allSessions")}
         </h2>
+        {spot && (
+          <button
+            onClick={() => setShowChat((v) => !v)}
+            className={`ml-auto rounded-lg px-3 py-1.5 text-sm ${showChat ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+          >
+            💬 {t("chat.spotChat")}
+          </button>
+        )}
       </div>
+
+      {spot && showChat && (
+        <Card className="mb-4 p-4">
+          <Chat scope={`spot:${spot}`} />
+        </Card>
+      )}
 
       <div className="mb-4 flex flex-wrap gap-2">
         <form onSubmit={(e) => { e.preventDefault(); setParam("name", nameInput.trim()); }} className="flex gap-2">

@@ -272,6 +272,8 @@ const en: Record<string, string> = {
   "sd.end": "End:",
   "sd.saveReanalyze": "Save & re-analyze",
   "sd.discussion": "Discussion",
+  "chat.spotChat": "Spot chat",
+  "phome.homespotSessions": "Sessions",
   "chat.placeholder": "Write a message …",
   "chat.send": "Send",
   "chat.empty": "No messages yet. Be the first!",
