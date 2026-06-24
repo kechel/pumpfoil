@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { CommunityIcon, SpotsIcon } from "../components/Icons";
@@ -14,12 +14,14 @@ export default function PersonalHome() {
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
   const [homespot, setHomespot] = useState("");
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
     api.stats(true).then(setStats).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
+    api.chatRooms().then(setRooms).catch(() => {});
   }, []);
 
   const recs = stats?.records;
@@ -69,6 +71,30 @@ export default function PersonalHome() {
           </div>
           <Chat scope={`spot:${homespot}`} />
         </Card>
+      )}
+
+      {/* Meine Chats */}
+      {rooms.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.myChats")}</h3>
+          <div className="space-y-2">
+            {rooms.map((r) => (
+              <Link key={r.scope} to={r.url}
+                className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700 hover:bg-slate-900">
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium text-slate-100">{r.label}</span>
+                    {r.push && <span className="text-xs" title={t("chat.subscribed")}>🔔</span>}
+                  </span>
+                  <span className="block truncate text-xs text-slate-400">{r.last_text}</span>
+                </span>
+                {r.unread > 0 && (
+                  <span className="shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{r.unread}</span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Letzte Sessions */}

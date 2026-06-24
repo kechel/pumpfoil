@@ -123,6 +123,21 @@ class ChatReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class ChatRoomState(Base):
+    """Pro Nutzer & Chatraum: zuletzt gelesen, verlassen, Push-Abo (Unread/Leave/Subscribe)."""
+
+    __tablename__ = "chat_room_state"
+    __table_args__ = (UniqueConstraint("user_id", "scope", name="uq_chatroomstate"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    scope: Mapped[str] = mapped_column(String(140), index=True)
+    last_read_id: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    left: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    push: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class PushSubscription(Base):
     """Web-Push-Subscription eines Browsers/Geräts (VAPID)."""
 

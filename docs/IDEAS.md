@@ -16,14 +16,16 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
 - **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine):
   - ✅ **Duplikatserkennung** — *umgesetzt:* gleicher Text desselben Users im selben Raum < 2 min -> kein Doppelpost.
   - ✅ **Melden-Icon** je Nachricht (klein). *umgesetzt (⚠ pro Fremdnachricht).*
-  - ✅ **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen). *umgesetzt.* — Admin-**Freigeben** offen.
-  - **Admin:** gemeldete Nachrichten einsehen; ausgeblendete wieder **freigeben**; Nutzer im Chat
-    **blockieren** bzw. auf **read-only** setzen. *(nächster Tick)*
+  - ✅ **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen). *umgesetzt + Admin-Freigeben.*
+  - ✅ **Admin:** ausgeblendete wieder **freigeben**, Nutzer auf **read-only** setzen, Melde-Zähler.
+    *umgesetzt:* `/chat/{id}/hide`, `/chat/reported`, `/chat/moderation/readonly`, Admin-Buttons in der
+    Chat-Komponente. **Offen:** eigene Admin-Übersichtsseite für `/chat/reported` (aktuell nur inline).
 - ✅ **Persönliche Startseite / Dashboard** — *umgesetzt: /home (Rekorde + 3 letzte Sessions + Homespot-Chat),
   Home als 1. Bottom-Tab (6 Tabs), Profilbild + Post-Login -> /home, Rekorde aus Sidebar entfernt.*
-  - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
-    seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
-  - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
+  - ✅ **Ungelesen-Hinweise:** *umgesetzt:* `chat_room_state` (last_read je Raum/User), „Meine Chats"-Widget
+    auf /home mit Unread-Badges; Chat-Komponente meldet Lesestand (`/chat/read`).
+  - ✅ **Chatraum verlassen:** *umgesetzt:* `/chat/leave` + Button in der Chat-Leiste; verlassene Räume
+    verschwinden aus „Meine Chats".
 - **Foil-Rechner nativ nachbauen + Physik als Modul (★★★, ersetzt den HTML-Link).**
   Den `foilcalculator.html` **in der App nachbauen** mit angepasstem Layout. Kernpunkt: die **Berechnungen
   als eigenständiges, modulares TS-Lib** (`lib/foilPhysics.ts`) aus dem Calculator-JS portieren
@@ -47,8 +49,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
 - **Öffentliche Startseite** — *teilweise erledigt:* Feature-Kacheln für **Foil-DB/Stats, On-Foil-Alarm,
   Push, PWA/Offline** ergänzt; Wording generisch. **Noch offen:** **Community-Chat** + **Spots-Karte**
   als Kacheln ergänzen, sobald Chat live ist; ggf. Slider-Screenshots der neuen Features.
-- **Chatraum per Push abonnieren.** Je Chatraum aktivierbare Push-Benachrichtigung bei neuen Nachrichten
-  (nutzt die bestehende Web-Push-Infra; neuer Notify-Typ je Raum, Opt-in). Sinnvoll mit Unread + „verlassen" verzahnt.
+- ✅ **Chatraum per Push abonnieren.** *umgesetzt:* `/chat/subscribe` (Opt-in je Raum), Glocken-Toggle in
+  der Chat-Leiste; neue Nachrichten lösen Web-Push an Abonnenten aus (Notify-Typ „chat", respektiert
+  globale notify_prefs). **Offen:** „chat" als eigener Schalter in den globalen Push-Einstellungen im Profil.
 
 ---
 

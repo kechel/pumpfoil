@@ -24,9 +24,16 @@ export function Chat({ scope }: { scope: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [push, setPush] = useState(false);
   const lastId = useRef(0);
 
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
+  useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
+
+  // Lesestand serverseitig setzen (für Unread auf der Startseite).
+  function markRead(id: number) {
+    if (id > 0) api.chatMarkRead(scope, id).catch(() => {});
+  }
 
   useEffect(() => {
     let alive = true;
@@ -35,12 +42,23 @@ export function Chat({ scope }: { scope: string }) {
         if (!alive || rows.length === 0) return;
         lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
         setMsgs((prev) => [...prev, ...rows]);
+        markRead(lastId.current);
       })
       .catch(() => {});
     setMsgs([]); lastId.current = 0; poll();
     const iv = setInterval(poll, 10000);
     return () => { alive = false; clearInterval(iv); };
   }, [scope]);
+
+  function toggleSub() {
+    const next = !push;
+    setPush(next);
+    api.chatSubscribe(scope, next).catch(() => setPush(!next));
+  }
+  function leave() {
+    if (!confirm(t("chat.leaveConfirm"))) return;
+    api.chatLeave(scope).then(() => { setPush(false); alert(t("chat.leftDone")); }).catch(() => {});
+  }
 
   function send() {
     const v = text.trim();
@@ -67,6 +85,12 @@ export function Chat({ scope }: { scope: string }) {
 
   return (
     <div>
+      <div className="mb-2 flex items-center justify-end gap-3 text-xs">
+        <button onClick={toggleSub} className={push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"} title={t("chat.subscribe")}>
+          {push ? "🔔" : "🔕"} {push ? t("chat.subscribed") : t("chat.subscribe")}
+        </button>
+        <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
+      </div>
       <div className="mb-3 max-h-96 space-y-3 overflow-y-auto">
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (

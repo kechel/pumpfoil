@@ -46,6 +46,11 @@ export interface ChatMsg {
   text: string; created_at: string | null; mine: boolean; hidden: boolean; report_count: number;
 }
 
+export interface ChatRoom {
+  scope: string; label: string; url: string; push: boolean;
+  unread: number; last_text: string; last_at: string | null;
+}
+
 export interface Foil {
   id: number; brand: string; model: string; size: string;
   span_cm: number; area_cm2: number; thickness_mm: number;
@@ -281,6 +286,11 @@ export const api = {
   chatHide: (id: number, hidden: boolean) => req<{ ok: boolean; id: number; hidden: boolean }>(`/api/chat/${id}/hide`, { method: "POST", body: JSON.stringify({ hidden }) }),
   chatReported: () => req<(ChatMsg & { scope: string })[]>(`/api/chat/reported`),
   chatSetReadonly: (userId: number, readonly: boolean) => req<{ ok: boolean; user_id: number; chat_readonly: boolean }>(`/api/chat/moderation/readonly`, { method: "POST", body: JSON.stringify({ user_id: userId, readonly }) }),
+  chatMarkRead: (scope: string, upTo: number) => req<{ ok: boolean; last_read_id: number }>(`/api/chat/read`, { method: "POST", body: JSON.stringify({ scope, up_to: upTo }) }),
+  chatLeave: (scope: string) => req<{ ok: boolean }>(`/api/chat/leave?scope=${encodeURIComponent(scope)}`, { method: "POST" }),
+  chatSubscribe: (scope: string, on: boolean) => req<{ ok: boolean; push: boolean }>(`/api/chat/subscribe`, { method: "POST", body: JSON.stringify({ scope, on }) }),
+  chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
+  chatRooms: () => req<ChatRoom[]>(`/api/chat/rooms`),
   foils: (params?: { q?: string; brand?: string }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);

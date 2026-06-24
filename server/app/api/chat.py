@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
+from ..push import send_push, wants
 from .deps import current_user
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -18,6 +19,27 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 _SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120})$")
 DUP_WINDOW_S = 120          # gleiches Posting innerhalb 2 min = Duplikat
 AUTOHIDE_REPORTS = 3        # ab so vielen Meldungen automatisch ausblenden
+
+
+def _scope_label(scope: str) -> str:
+    kind, _, rest = scope.partition(":")
+    return f"📍 {rest}" if kind == "spot" else f"Session #{rest}"
+
+
+def _scope_url(scope: str) -> str:
+    kind, _, rest = scope.partition(":")
+    if kind == "spot":
+        from urllib.parse import quote
+        return f"/alle-sessions?spot={quote(rest)}"
+    return f"/sessions/{rest}"
+
+
+def _state(db: Session, user_id: int, scope: str) -> models.ChatRoomState:
+    st = db.query(models.ChatRoomState).filter_by(user_id=user_id, scope=scope).first()
+    if st is None:
+        st = models.ChatRoomState(user_id=user_id, scope=scope)
+        db.add(st)
+    return st
 
 
 def _check_scope(scope: str) -> None:
@@ -81,9 +103,36 @@ def post_message(
         return _msg_out(dup, user.display_name, user.avatar_url, user.id)
     m = models.ChatMessage(scope=scope, user_id=user.id, text=text)
     db.add(m)
+    db.flush()
+    # Eigene Nachricht gilt als gelesen; Raum nicht mehr „verlassen".
+    st = _state(db, user.id, scope)
+    st.last_read_id = m.id
+    st.left = False
+    st.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(m)
+    _notify_subscribers(db, m, user)
     return _msg_out(m, user.display_name, user.avatar_url, user.id)
+
+
+def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User) -> None:
+    """Push an alle, die diesen Raum abonniert haben (außer dem Autor)."""
+    subs = (
+        db.query(models.ChatRoomState)
+        .filter(models.ChatRoomState.scope == m.scope,
+                models.ChatRoomState.push.is_(True),
+                models.ChatRoomState.left.isnot(True),
+                models.ChatRoomState.user_id != author.id)
+        .all()
+    )
+    if not subs:
+        return
+    title = f"💬 {_scope_label(m.scope)}"
+    body = f"{author.display_name or 'Jemand'}: {m.text[:120]}"
+    url = _scope_url(m.scope)
+    for st in subs:
+        if wants(db, st.user_id, "chat"):
+            send_push(db, st.user_id, title, body, url)
 
 
 @router.post("/{message_id}/report")
@@ -165,3 +214,117 @@ def set_readonly(
     target.chat_readonly = bool(body.readonly)
     db.commit()
     return {"ok": True, "user_id": target.id, "chat_readonly": target.chat_readonly}
+
+
+# --- Mitgliedschaft / Unread / Verlassen / Push-Abo -------------------------
+
+class ReadIn(BaseModel):
+    scope: str
+    up_to: int
+
+
+@router.post("/read")
+def mark_read(
+    body: ReadIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Lesestand setzen (Chat-Komponente meldet die höchste gesehene id)."""
+    _check_scope(body.scope)
+    st = _state(db, user.id, body.scope)
+    if body.up_to > st.last_read_id:
+        st.last_read_id = body.up_to
+    st.left = False
+    st.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True, "last_read_id": st.last_read_id}
+
+
+@router.post("/leave")
+def leave_room(
+    scope: str = Query(...), user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Chatraum verlassen — taucht nicht mehr in „meine Chats"/Unread auf."""
+    _check_scope(scope)
+    st = _state(db, user.id, scope)
+    st.left = True
+    st.push = False
+    st.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True}
+
+
+class SubIn(BaseModel):
+    scope: str
+    on: bool
+
+
+@router.post("/subscribe")
+def subscribe_room(
+    body: SubIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Push-Benachrichtigung für neue Nachrichten in diesem Raum an/aus."""
+    _check_scope(body.scope)
+    st = _state(db, user.id, body.scope)
+    st.push = bool(body.on)
+    if body.on:
+        st.left = False
+    st.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True, "push": st.push}
+
+
+@router.get("/state")
+def room_state(
+    scope: str = Query(...), user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Status des aktuellen Raums für den Nutzer (Abo/verlassen/Lesestand)."""
+    _check_scope(scope)
+    st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
+    return {
+        "scope": scope,
+        "push": bool(st and st.push),
+        "left": bool(st and st.left),
+        "last_read_id": (st.last_read_id if st else 0),
+    }
+
+
+@router.get("/rooms")
+def my_rooms(
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """„Meine Chats" mit Ungelesen-Zähler + letzter Nachricht. Verlassene ausgeblendet."""
+    from sqlalchemy import func
+
+    states = (
+        db.query(models.ChatRoomState)
+        .filter(models.ChatRoomState.user_id == user.id, models.ChatRoomState.left.isnot(True))
+        .all()
+    )
+    out = []
+    for st in states:
+        last = (
+            db.query(models.ChatMessage)
+            .filter(models.ChatMessage.scope == st.scope, models.ChatMessage.hidden.isnot(True))
+            .order_by(models.ChatMessage.id.desc())
+            .first()
+        )
+        if last is None:
+            continue
+        unread = (
+            db.query(func.count(models.ChatMessage.id))
+            .filter(models.ChatMessage.scope == st.scope,
+                    models.ChatMessage.hidden.isnot(True),
+                    models.ChatMessage.user_id != user.id,
+                    models.ChatMessage.id > st.last_read_id)
+            .scalar()
+        ) or 0
+        out.append({
+            "scope": st.scope,
+            "label": _scope_label(st.scope),
+            "url": _scope_url(st.scope),
+            "push": st.push,
+            "unread": int(unread),
+            "last_text": last.text[:120],
+            "last_at": last.created_at.isoformat() if last.created_at else None,
+        })
+    out.sort(key=lambda r: (r["unread"] > 0, r["last_at"] or ""), reverse=True)
+    return out
