@@ -30,6 +30,8 @@ DEFAULTS = {
     "foil_id": None,
     # Homespot (Spot-Name). "" -> automatisch Spot der letzten Session.
     "homespot": "",
+    # Körpergewicht (kg) — optional, für spätere Leistungsberechnung. 0 = nicht angegeben.
+    "weight_kg": 0,
 }
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
@@ -86,6 +88,11 @@ def update_settings(
     if "homespot" in patch:
         v = patch["homespot"]
         current["homespot"] = str(v)[:120] if isinstance(v, str) else ""
+    if "weight_kg" in patch:
+        try:
+            current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))
+        except (TypeError, ValueError):
+            pass
     if "my_foils" in patch and isinstance(patch["my_foils"], list):
         current["my_foils"] = sorted({int(x) for x in patch["my_foils"] if isinstance(x, (int, float))})
     if "foil_id" in patch:  # Standard-Foil (null = keins)

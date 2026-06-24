@@ -477,6 +477,9 @@ const es: Record<string, string> = {
   "land.f10Title": "Instalable, sin conexión",
   "land.f10Body": "Pumpfoil funciona como PWA en tu pantalla de inicio — también sin conexión con tus últimas sesiones.",
 
+  "profile.weight": "Peso",
+  "profile.weightHint": "Opcional — se usa más tarde para estimar la potencia (vatios). Privado.",
+
 };
 
 export default es;

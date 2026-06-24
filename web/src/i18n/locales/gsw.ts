@@ -406,6 +406,9 @@ const gsw: Record<string, string> = {
   "land.f10Title": "Als App installiere, offline",
   "land.f10Body": "Pumpfoil lauft als PWA ufem Homescreen — au offline mit dine letzte Sessions.",
 
+  "profile.weight": "Gwicht",
+  "profile.weightHint": "Optional — flüsst spöter i d Leistigsberächnig (Watt) ii. Privat.",
+
 };
 
 export default gsw

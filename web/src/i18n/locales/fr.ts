@@ -477,6 +477,9 @@ const fr: Record<string, string> = {
   "land.f10Title": "Installable, hors ligne",
   "land.f10Body": "Pumpfoil tourne en PWA sur ton écran d'accueil — même hors ligne avec tes dernières sessions.",
 
+  "profile.weight": "Poids",
+  "profile.weightHint": "Optionnel — utilisé plus tard pour l'estimation de puissance (watts). Privé.",
+
 };
 
 export default fr;

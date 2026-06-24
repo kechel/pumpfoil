@@ -24,14 +24,21 @@ export default function Settings() {
   const [pwBusy, setPwBusy] = useState(false);
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
+  const [weight, setWeight] = useState("");
 
   useEffect(() => {
-    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
+    api.getSettings().then((s) => {
+      setHomespot((s.homespot as string) ?? "");
+      setWeight(s.weight_kg ? String(s.weight_kg) : "");
+    }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
   }, []);
   function saveHomespot(v: string) {
     setHomespot(v);
     api.saveSettings({ homespot: v }).catch(() => {});
+  }
+  function saveWeight() {
+    api.saveSettings({ weight_kg: Number(weight) || 0 }).catch(() => {});
   }
 
   function changePw() {
@@ -136,6 +143,20 @@ export default function Settings() {
         {saved && <p className="mt-2 text-xs text-emerald-400">{t("profile.saved")}</p>}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("profile.weight")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("profile.weightHint")}</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number" min={0} max={300} value={weight}
+            onChange={(e) => setWeight(e.target.value)} onBlur={saveWeight}
+            placeholder="—"
+            className="w-28 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          />
+          <span className="text-sm text-slate-400">kg</span>
+        </div>
       </Card>
 
       <Card className="mt-4 p-5">
