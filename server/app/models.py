@@ -94,6 +94,8 @@ class Foil(Base):
     span_cm: Mapped[float] = mapped_column(Float)
     area_cm2: Mapped[float] = mapped_column(Float)
     thickness_mm: Mapped[float] = mapped_column(Float)
+    # Dicke nicht aus Quelle, sondern geschätzt (t/c-Annahme) -> in der UI markieren.
+    thickness_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 

@@ -53,7 +53,7 @@ export interface ChatRoom {
 
 export interface Foil {
   id: number; brand: string; model: string; size: string;
-  span_cm: number; area_cm2: number; thickness_mm: number;
+  span_cm: number; area_cm2: number; thickness_mm: number; thickness_estimated?: boolean;
   aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
 }
 
@@ -107,7 +107,7 @@ export interface SessionSummary {
   liked?: boolean;
   track_preview?: string | null;
   foil_id?: number | null;
-  foil?: { id: number; brand: string; model: string; size: string; span_cm?: number; area_cm2?: number; thickness_mm?: number; aspect_ratio: number | null; is_default?: boolean } | null;
+  foil?: { id: number; brand: string; model: string; size: string; span_cm?: number; area_cm2?: number; thickness_mm?: number; thickness_estimated?: boolean; aspect_ratio: number | null; is_default?: boolean } | null;
   analysis: Analysis | null;
 }
 

@@ -3,14 +3,13 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
-- **Foil-DB um weitere Marken erweitern.** Aktuell 6 (AXIS, Duotone, F-One, Gong, Sabfoil, TAKOON).
-  Kandidaten: Armstrong, Lift, Unifoil, Code, Naish, North, Cabrinha, Slingshot, KT, Takuma,
-  Levitaz, Mike's Lab, GoFoil, Appletree, Ensis, RRD, Moses, Horue, Indiana, Starboard/Fanatic.
-  **Datenlücke:** `span_cm` + `area_cm2` meist publiziert (Naming oft = Fläche, z. B. „HA 980" = 980 cm²,
-  oder = Breite in mm, z. B. AXIS „ART 999" = 999 mm), **`thickness_mm` aber praktisch nie** → muss
-  pro Foil aus Quelle/Schätzung kommen (sonst Calculator-Werte unzuverlässig). Plan: nur **verifizierte**
-  Einträge übernehmen; Dicke ggf. via Dickenverhältnis (t/c) grob schätzen + als „geschätzt" markieren.
-  Falls Jan eine Tabelle/Quelle hat, ist das der schnellste Weg.
+- **Foil-DB um weitere Marken erweitern.** *Infrastruktur + erste Marken umgesetzt (2026-06-24):*
+  Schema-Flag `thickness_estimated` (Model/Migration/Seed/API), idempotenter Seed (neue Foils per
+  brand/model/size nachladbar), UI-Badge „≈ Dicke geschätzt" (Foils-Liste, Rechner-t/c, Session-Watt).
+  **Ergänzt:** Armstrong HA (580–1180, 7 Wings) + Unifoil Progression (140/170/200) — span/area aus
+  Herstellerangaben, **Dicke aus t/c-Annahme geschätzt** (AR≥10→0.11, ≥9→0.12, sonst 0.13) und markiert.
+  Jetzt 8 Marken / 133 Foils. **Noch offen:** weitere Marken (Lift, Code, Naish, North, Takuma, GoFoil,
+  Appletree, Moses …) — bei Bedarf mit verifizierten span/area ergänzen (Dicke weiter geschätzt+markiert).
 - ✅ **Spot-Sessions → Direktlink zum Spot-Chat.** *umgesetzt:* in `/alle-sessions?spot=…` aufklappbarer
   Spot-Chat (Button „💬 Spot-Chat"); Homespot-Karte auf /home zeigt den Spot-Chat direkt.
 - **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine):

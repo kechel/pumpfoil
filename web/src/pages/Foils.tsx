@@ -65,7 +65,10 @@ export default function Foils() {
       <Card key={f.id} className={`flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 ${flash === f.id ? "scale-[1.01] ring-2 ring-brand-400" : ""} ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
         <div className="min-w-0">
           <div className="font-semibold">{f.brand} {f.model} <span className="text-slate-400">{f.size}</span></div>
-          <div className="text-xs text-slate-400">{f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_mm} mm</div>
+          <div className="text-xs text-slate-400">
+            {f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_estimated ? "≈ " : ""}{f.thickness_mm} mm
+            {f.thickness_estimated && <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-300" title={t("foils.estimatedHint")}>{t("foils.estimated")}</span>}
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => setDefault(f.id)} title={t("foils.setDefault")}

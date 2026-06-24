@@ -47,18 +47,27 @@ def _seed_foils() -> None:
 
     db = SessionLocal()
     try:
-        if db.query(models.Foil).first() is not None:
-            return
         f = Path(__file__).parent / "data" / "foils.json"
         if not f.exists():
             return
+        # Idempotent je Variante (brand/model/size): vorhandene überspringen, neue ergänzen.
+        existing = {(x.brand, x.model, x.size) for x in db.query(
+            models.Foil.brand, models.Foil.model, models.Foil.size).all()}
+        added = 0
         for r in json.loads(f.read_text()):
+            key = (r["brand"], r["model"], r["size"])
+            if key in existing:
+                continue
             db.add(models.Foil(
                 brand=r["brand"], model=r["model"], size=r["size"],
                 span_cm=r["span_cm"], area_cm2=r["area_cm2"],
-                thickness_mm=r["thickness_mm"], is_baseline=bool(r.get("is_baseline")),
+                thickness_mm=r["thickness_mm"],
+                thickness_estimated=bool(r.get("thickness_estimated")),
+                is_baseline=bool(r.get("is_baseline")),
             ))
-        db.commit()
+            added += 1
+        if added:
+            db.commit()
     finally:
         db.close()
 
@@ -89,6 +98,9 @@ def _migrate_add_columns() -> None:
         },
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",
+        },
+        "foils": {
+            "thickness_estimated": "BOOLEAN DEFAULT false",
         },
         "analysis_results": {
             "detection": "VARCHAR(20)",

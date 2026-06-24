@@ -1105,5 +1105,105 @@
     "area_cm2": 940,
     "thickness_mm": 18.7,
     "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "580",
+    "span_cm": 78.0,
+    "area_cm2": 580,
+    "thickness_mm": 11.7,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "680",
+    "span_cm": 82.8,
+    "area_cm2": 680,
+    "thickness_mm": 12.9,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "780",
+    "span_cm": 87.7,
+    "area_cm2": 780,
+    "thickness_mm": 15.2,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "880",
+    "span_cm": 92.3,
+    "area_cm2": 880,
+    "thickness_mm": 16.3,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "980",
+    "span_cm": 97.4,
+    "area_cm2": 980,
+    "thickness_mm": 17.2,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "1080",
+    "span_cm": 102.0,
+    "area_cm2": 1080,
+    "thickness_mm": 18.2,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "HA",
+    "size": "1180",
+    "span_cm": 106.6,
+    "area_cm2": 1180,
+    "thickness_mm": 19.0,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Progression",
+    "size": "140",
+    "span_cm": 89.8,
+    "area_cm2": 903,
+    "thickness_mm": 18.7,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Progression",
+    "size": "170",
+    "span_cm": 95.3,
+    "area_cm2": 1097,
+    "thickness_mm": 21.4,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Progression",
+    "size": "200",
+    "span_cm": 103.7,
+    "area_cm2": 1290,
+    "thickness_mm": 23.1,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]

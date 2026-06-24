@@ -6,11 +6,12 @@ import { useT } from "../i18n";
 
 // Theoretische Leistung für das gewählte Foil bei den real gemessenen Geschwindigkeiten.
 // Nutzt das geportete Physik-Modul (foilPhysics) + Fahrergewicht aus den Einstellungen.
-export function FoilPower({ foil, avgKmh, maxKmh, pumpHz }: {
+export function FoilPower({ foil, avgKmh, maxKmh, pumpHz, estimated }: {
   foil: FoilDims & { brand: string; model: string; size: string };
   avgKmh: number | null;
   maxKmh: number | null;
   pumpHz: number | null;
+  estimated?: boolean;
 }) {
   const t = useT();
   const [weight, setWeight] = useState<number | null>(null);
@@ -42,6 +43,7 @@ export function FoilPower({ foil, avgKmh, maxKmh, pumpHz }: {
       </div>
       <p className="mb-3 text-xs text-slate-500">
         {t("power.basis", { weight: String(rider.riderWeight + rider.equipmentWeight) })}
+        {estimated ? ` · ${t("power.estimated")}` : ""}
       </p>
       <div className="grid grid-cols-2 gap-3">
         {rows.map(([label, kmh]) => {

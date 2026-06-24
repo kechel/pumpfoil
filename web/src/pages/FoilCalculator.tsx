@@ -199,7 +199,7 @@ function BasicsTable({ foils, rider, t }: { foils: Foil[]; rider: RiderParams; t
                 <td className={td + " text-slate-200"}>{f.brand} {f.model} {f.size}</td>
                 <td className={td}>{ar.toFixed(1)}</td>
                 <td className={td}>{chord.toFixed(1)} cm</td>
-                <td className={td}>{(tc * 100).toFixed(1)}%</td>
+                <td className={td}>{f.thickness_estimated ? "≈ " : ""}{(tc * 100).toFixed(1)}%</td>
                 <td className={td}>{clmax.toFixed(2)}</td>
                 <td className={td}>{stall.toFixed(1)}</td>
                 <td className={td}>{minV.toFixed(1)}</td>

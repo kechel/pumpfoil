@@ -109,6 +109,7 @@ def _resolve_foil(db: Session, s: models.Session) -> dict | None:
     return {
         "id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
         "span_cm": f.span_cm, "area_cm2": f.area_cm2, "thickness_mm": f.thickness_mm,
+        "thickness_estimated": bool(f.thickness_estimated),
         "aspect_ratio": ar, "is_default": s.foil_id is None,
     }
 

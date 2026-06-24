@@ -679,6 +679,7 @@ export default function SessionDetail() {
             avgKmh={m?.avg_speed_mps != null ? m.avg_speed_mps * 3.6 : null}
             maxKmh={(m?.max_speed_5s_mps ?? a?.max_speed_mps) != null ? (m?.max_speed_5s_mps ?? a?.max_speed_mps)! * 3.6 : null}
             pumpHz={m?.avg_pump_hz ?? null}
+            estimated={session.foil.thickness_estimated}
           />
         </div>
       )}
