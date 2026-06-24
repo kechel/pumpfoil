@@ -73,7 +73,7 @@ export default function PersonalHome() {
             const inner = (
               <Card className="h-full p-3">
                 <div className="text-xs text-slate-400">{r.label}</div>
-                <div className="mt-1 text-lg font-bold tabular-nums text-brand-300">{v > 0 ? r.fmt(v) : "–"}</div>
+                <div className="mt-1 text-lg font-bold tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
               </Card>
             );
             return v > 0 && r.rec?.session_id
