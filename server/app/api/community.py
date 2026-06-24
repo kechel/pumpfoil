@@ -36,7 +36,8 @@ REC_COL = {
     "runs": (AR.num_runs, None),
 }
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
-              S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, S.caption, AR.track_preview)
+              S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, S.caption, AR.track_preview,
+              S.foil_id)
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -60,7 +61,7 @@ def _community(query):
     )
 
 
-def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None) -> dict:
+def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None, foil_id=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
@@ -72,6 +73,8 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "runs": int(num_runs or 0),
         "foiling_km": round((fdist or 0) / 1000.0, 2),
         "max_speed_mps": max_speed,
+        "foil_id": foil_id,
+        "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
     }
 
 
@@ -298,12 +301,19 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     ):
         pc[sid] = pc.get(sid, 0) + 1
         thumb.setdefault(sid, url)
+    # Explizit gewählte Foils im Batch auflösen.
+    fids = {b.get("foil_id") for b in briefs if b.get("foil_id")}
+    fmap = {}
+    if fids:
+        fmap = {f.id: {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size}
+                for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
     for b in briefs:
         sid = b["session_id"]
         b["like_count"] = int(likes.get(sid, 0))
         b["liked"] = sid in mine
         b["photo_count"] = pc.get(sid, 0)
         b["thumb_url"] = thumb.get(sid)
+        b["foil"] = fmap.get(b.get("foil_id"))
     return briefs
 
 

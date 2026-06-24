@@ -28,6 +28,15 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
+- **Einheitliches Icon-Set (Material).** Alle aktuell handgemalten Inline-SVG-Icons durch ein
+  konsistentes, schönes Set ersetzen. Option A: selbst im Material-Stil designen. Option B:
+  **Google Material Symbols** — Lizenz **Apache-2.0**, also erlaubt; **müssen self-hosted** sein
+  (SVGs/Variable-Font lokal bündeln) wegen CSP/Offline, **kein** Remote-Zugriff der Nutzer zu Google.
+  → vermutlich B (self-hosted Material Symbols) als gemeinsame `<Icon name=…>`-Komponente.
+- **Sessions-Seite vereinheitlichen.** Eine `/sessions`-Seite mit Überschrift **„Sessions"**, darunter in
+  **einer Zeile**: Umschalter **Meine / \<Homespot\> / Alle** + **Spotsuche**. Hauptüberschrift dynamisch:
+  „Sessions \<mein Name\>" | „Sessions 📍\<Spot\>" | „Sessions Alle". Merge der heutigen Sessions+AllSessions
+  (statt zwei Routen/Tabs). Braucht **Homespot** (s. o.). Spot-Auswahl steuert Filter + Titel.
 - **Öffentliche Startseite reviewen & um neue Features ergänzen.** Aktuell zeigt sie Track/Analyse,
   FIT-Upload, „immer kostenlos", Datenschutz/Open-Source. Ergänzen, sobald live: **Community-Chat**
   (Spot + Session), **Push-Benachrichtigungen**, **On-Foil-Vibrationsalarme**, **Foil-DB/Stats**,

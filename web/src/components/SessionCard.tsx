@@ -20,7 +20,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, spot, sport, caption,
+  sessionId, startedAt, endedAt, spot, foil, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview,
 }: {
@@ -28,7 +28,7 @@ export function SessionCard({
   startedAt: string | null;
   endedAt?: string | null;
   spot?: string | null;
-  sport?: string | null;
+  foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
   caption?: string | null;
   avatarName?: string | null;
   avatarUrl?: string | null;
@@ -98,7 +98,7 @@ export function SessionCard({
                 </>
               )}
               {spot && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">📍 {spot}</span>}
-              {sport && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">{sport}</span>}
+              {foil && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">🛩 {foil}</span>}
             </div>
             {stats}
           </div>

@@ -143,6 +143,7 @@ export interface CommunitySession {
   liked?: boolean;
   photo_count?: number;
   thumb_url?: string | null;
+  foil?: { id: number; brand: string; model: string; size: string } | null;
 }
 
 export interface SessionSocial {

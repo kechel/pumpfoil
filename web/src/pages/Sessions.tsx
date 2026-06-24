@@ -150,7 +150,7 @@ export default function Sessions() {
               startedAt={s.started_at}
               endedAt={s.ended_at}
               spot={s.place_name}
-              sport={s.sport}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
               caption={s.caption}
               avatarName={name}
               avatarUrl={avatar}

@@ -98,6 +98,7 @@ export default function AllSessions() {
               sessionId={s.session_id}
               startedAt={s.started_at}
               spot={s.spot}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
               caption={s.caption}
               name={s.name}
               avatarName={s.name}

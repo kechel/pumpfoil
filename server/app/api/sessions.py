@@ -289,6 +289,15 @@ def list_sessions(
         q = q.limit(limit)
     rows = q.all()
     outs = [_session_out(s, with_analysis=True, slim=True) for s in rows]
+    # Explizit gewähltes Foil je Session (nur foil_id gesetzt) im Batch — kein N+1.
+    fids = {s.foil_id for s in rows if s.foil_id}
+    if fids:
+        fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
+        for o in outs:
+            f = fmap.get(o.foil_id) if o.foil_id else None
+            if f:
+                o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
+                          "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None}
     # Vorschaubilder (neuestes Foto je Session) in einem Rutsch nachladen (kein N+1).
     ids = [s.id for s in rows]
     if ids:
