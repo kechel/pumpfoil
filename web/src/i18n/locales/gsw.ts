@@ -366,6 +366,14 @@ const gsw: Record<string, string> = {
   "nav.spots": "Spots",
   "spots.none": "No kei Spots uf de Charte.",
 
+  "foils.title": "Mini Foils",
+  "foils.hint": "Wähl dis Standard-Foil. Spöter je Session/Lauf überschribbar.",
+  "foils.search": "Foil sueche…",
+  "foils.allBrands": "Alli Marke",
+  "foils.choose": "Wähle",
+  "foils.mine": "Mis Foil",
+  "foils.count": "{n} Foils",
+
 };
 
 export default gsw

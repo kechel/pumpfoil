@@ -565,6 +565,14 @@ const de: Record<string, string> = {
   "nav.spots": "Spots",
   "spots.none": "Noch keine Spots auf der Karte.",
 
+  "foils.title": "Meine Foils",
+  "foils.hint": "Wähle dein Standard-Foil. Später je Session/Lauf überschreibbar.",
+  "foils.search": "Foil suchen…",
+  "foils.allBrands": "Alle Marken",
+  "foils.choose": "Wählen",
+  "foils.mine": "Mein Foil",
+  "foils.count": "{n} Foils",
+
 };
 
 export default de;

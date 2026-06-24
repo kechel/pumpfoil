@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -77,6 +77,17 @@ export default function Settings() {
         <span className="flex items-center gap-3">
           <WatchIcon className="h-6 w-6 text-brand-400" />
           <span className="font-medium text-slate-100">{t("nav.watch")}</span>
+        </span>
+        <ChevronIcon className="h-5 w-5 text-slate-400" />
+      </Link>
+
+      <Link
+        to="/foils"
+        className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+      >
+        <span className="flex items-center gap-3">
+          <WaveIcon className="h-6 w-6 text-brand-400" />
+          <span className="font-medium text-slate-100">{t("foils.title")}</span>
         </span>
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>

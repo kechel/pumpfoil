@@ -437,6 +437,14 @@ const it: Record<string, string> = {
   "nav.spots": "Spot",
   "spots.none": "Ancora nessuno spot sulla mappa.",
 
+  "foils.title": "I miei foil",
+  "foils.hint": "Scegli il tuo foil predefinito. Sovrascrivibile per sessione/run.",
+  "foils.search": "Cerca foil…",
+  "foils.allBrands": "Tutte le marche",
+  "foils.choose": "Scegli",
+  "foils.mine": "Il mio foil",
+  "foils.count": "{n} foil",
+
 };
 
 export default it;

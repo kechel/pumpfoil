@@ -41,6 +41,12 @@ async function uploadFile<T>(path: string, file: File): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface Foil {
+  id: number; brand: string; model: string; size: string;
+  span_cm: number; area_cm2: number; thickness_mm: number;
+  aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
+}
+
 export interface Analysis {
   algo_version: string;
   total_distance_m: number | null;
@@ -261,6 +267,14 @@ export const api = {
   getProfile: () => req<Profile>("/api/auth/me"),
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
+  foils: (params?: { q?: string; brand?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.brand) qs.set("brand", params.brand);
+    const s = qs.toString();
+    return req<Foil[]>(`/api/foils${s ? "?" + s : ""}`);
+  },
+  foilBrands: () => req<string[]>("/api/foils/brands"),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),
   pushUnsubscribe: (endpoint: string) => req<{ ok: boolean }>("/api/push/unsubscribe", { method: "POST", body: JSON.stringify({ endpoint }) }),

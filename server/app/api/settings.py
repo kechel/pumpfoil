@@ -25,6 +25,8 @@ DEFAULTS = {
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
     # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
     "notify_prefs": {"like": True, "analyzed": True, "record": True},
+    # Standard-Foil des Nutzers (Foil.id) — je Session/Lauf überschreibbar.
+    "foil_id": None,
 }
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
@@ -78,6 +80,9 @@ def update_settings(
         current["speed_auto"] = bool(patch["speed_auto"])
     if "colorByValue" in patch:
         current["colorByValue"] = bool(patch["colorByValue"])
+    if "foil_id" in patch:  # Standard-Foil des Nutzers (null = keins)
+        v = patch["foil_id"]
+        current["foil_id"] = int(v) if isinstance(v, (int, float)) else None
     if "views" in patch:
         cleaned = _clean_views(patch["views"])
         if cleaned:

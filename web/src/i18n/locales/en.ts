@@ -540,6 +540,14 @@ const en: Record<string, string> = {
   "nav.spots": "Spots",
   "spots.none": "No spots on the map yet.",
 
+  "foils.title": "My foils",
+  "foils.hint": "Pick your default foil. Overridable per session/run later.",
+  "foils.search": "Search foil…",
+  "foils.allBrands": "All brands",
+  "foils.choose": "Choose",
+  "foils.mine": "My foil",
+  "foils.count": "{n} foils",
+
 };
 
 export default en;

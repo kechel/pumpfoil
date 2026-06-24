@@ -58,7 +58,9 @@ export default function AllSessions() {
       <SessionScopeTabs />
       <div className="mb-4 flex items-center gap-2">
         <WaveIcon className="h-7 w-7 text-brand-400" />
-        <h2 className="text-2xl font-bold">{t("nav.allSessions")}</h2>
+        <h2 className="text-2xl font-bold">
+          {spot ? `${t("nav.sessions")} · 📍 ${spot}` : t("nav.allSessions")}
+        </h2>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
