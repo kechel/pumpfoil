@@ -618,16 +618,19 @@ export default function SessionDetail() {
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && <span className="ml-2 rounded bg-sky-500/15 px-1.5 py-0.5 text-xs text-sky-300">{t("sd.communityView")}</span>}
       </p>
-
-      <SocialBar
-        sessionId={session.id}
-        owned={owned}
-        ownerName={session.owner_name ?? null}
-        ownerAvatar={session.owner_avatar_url ?? null}
-        youtubeUrl={session.youtube_url ?? null}
-        onMeta={setSession}
-      />
         </div>
+      </div>
+
+      {/* Aktionszeile volle Breite (links), nicht in der eingerückten Textspalte. */}
+      <div className="mb-4">
+        <SocialBar
+          sessionId={session.id}
+          owned={owned}
+          ownerName={session.owner_name ?? null}
+          ownerAvatar={session.owner_avatar_url ?? null}
+          youtubeUrl={session.youtube_url ?? null}
+          onMeta={setSession}
+        />
       </div>
 
       {m?.detection === "gps_only" && (
