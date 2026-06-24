@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, OverallStats, StatRecord, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { WaveIcon, ListIcon, WatchIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon } from "./components/Icons";
+import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { InstallPwa } from "./components/InstallPwa";
@@ -11,10 +11,9 @@ import { warmMySessions } from "./lib/pwaCache";
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
   { to: "/", labelKey: "home.community", icon: CommunityIcon, end: true },
-  { to: "/sessions", labelKey: "nav.mySessions", shortKey: "nav.mySessions.short", icon: ListIcon, end: false },
-  { to: "/alle-sessions", labelKey: "nav.allSessions", shortKey: "nav.allSessions.short", icon: WaveIcon, end: false },
+  { to: "/sessions", labelKey: "nav.sessions", icon: ListIcon, end: false },
   { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
-  { to: "/account", labelKey: "nav.watch", icon: WatchIcon, end: false },
+  { to: "/spots", labelKey: "nav.spots", icon: SpotsIcon, end: false },
   { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };

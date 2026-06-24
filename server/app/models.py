@@ -121,6 +121,9 @@ class Session(Base):
     trim_end_ms: Mapped[int | None] = mapped_column(Integer)
     # Name des Gewässers (per OSM/Overpass aufgelöst, gecacht). "" = nachgeschlagen, nichts gefunden.
     place_name: Mapped[str | None] = mapped_column(String(120))
+    # Repräsentative Koordinaten (Median der GPS-Punkte) — für die Spot-Karte.
+    place_lat: Mapped[float | None] = mapped_column(Float)
+    place_lon: Mapped[float | None] = mapped_column(Float)
     # Eigene Beschriftung des Besitzers (frei, max 30 Zeichen) + optionale YouTube-URL.
     caption: Mapped[str | None] = mapped_column(String(40))
     youtube_url: Mapped[str | None] = mapped_column(String(255))

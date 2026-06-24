@@ -9,6 +9,13 @@ export const WaveIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const SpotsIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" />
+    <circle cx="12" cy="9" r="2.5" />
+  </svg>
+);
+
 export const HomeIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 11.5 12 4l9 7.5" />

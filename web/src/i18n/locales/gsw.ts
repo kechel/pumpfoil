@@ -362,6 +362,10 @@ const gsw: Record<string, string> = {
   "notif.typeAnalyzed": "Session uswertet",
   "notif.typeRecord": "Community-Rekord knackt",
 
+  "nav.sessions": "Sessions",
+  "nav.spots": "Spots",
+  "spots.none": "No kei Spots uf de Charte.",
+
 };
 
 export default gsw

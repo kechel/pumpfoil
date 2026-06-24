@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
+import { SessionScopeTabs } from "../components/SessionScopeTabs";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
@@ -54,6 +55,7 @@ export default function AllSessions() {
 
   return (
     <div>
+      <SessionScopeTabs />
       <div className="mb-4 flex items-center gap-2">
         <WaveIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("nav.allSessions")}</h2>

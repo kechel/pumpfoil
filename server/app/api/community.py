@@ -243,6 +243,20 @@ def spots(user: models.User = Depends(current_user), db: Session = Depends(get_d
     return {"mine": mine, "all": qual}
 
 
+@router.get("/spot-map")
+def spot_map(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte."""
+    rows = (
+        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()))
+        .filter(S.place_name.isnot(None), S.place_name != "", S.place_lat.isnot(None))
+        .group_by(S.place_name).all()
+    )
+    return [
+        {"spot": name, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
+        for name, lat, lon, n in rows if lat is not None and lon is not None
+    ]
+
+
 # ------------------------------------------------------------------ Top-Liked ----
 @router.get("/top-liked")
 def top_liked(

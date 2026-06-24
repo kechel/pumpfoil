@@ -433,6 +433,10 @@ const fr: Record<string, string> = {
   "notif.typeAnalyzed": "Session analysée",
   "notif.typeRecord": "Record de communauté battu",
 
+  "nav.sessions": "Sessions",
+  "nav.spots": "Spots",
+  "spots.none": "Aucun spot sur la carte pour l'instant.",
+
 };
 
 export default fr;

@@ -362,6 +362,10 @@ const deAT: Record<string, string> = {
   "notif.typeAnalyzed": "Session ausgewertet",
   "notif.typeRecord": "Community-Rekord geknackt",
 
+  "nav.sessions": "Sessions",
+  "nav.spots": "Spots",
+  "spots.none": "Noch keine Spots auf der Karte.",
+
 };
 
 export default deAT

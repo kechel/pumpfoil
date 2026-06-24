@@ -482,6 +482,8 @@ def get_session(
             lat = float(_np.median([g[1] for g in gps]))
             lon = float(_np.median([g[2] for g in gps]))
             s.place_name = lookup_water_name(lat, lon) or ""
+            s.place_lat = lat
+            s.place_lon = lon
             db.commit()
     return _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),

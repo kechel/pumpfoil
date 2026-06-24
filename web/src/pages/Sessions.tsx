@@ -4,6 +4,7 @@ import { api, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
+import { SessionScopeTabs } from "../components/SessionScopeTabs";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -99,6 +100,7 @@ export default function Sessions() {
 
   return (
     <div>
+      <SessionScopeTabs />
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <ListIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-xl font-bold">{t("sessions.title")}{name ? ` · ${name}` : ""}</h2>
