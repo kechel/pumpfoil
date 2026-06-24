@@ -91,4 +91,15 @@ Polar (offene Cloud-API). Coros/Suunto/Garmin-Cloud opportunistisch (gated).
 1. Bestätigen: **Mac mit Xcode** vorhanden? (sonst kein Apple-Watch-Build möglich)
 2. Optional **Polar AccessLink** registrieren → client_id/secret an Claude (für Cloud-Import).
 3. Garmin: abwarten / ggf. E-Mail (s. o.).
+
+**Prep-Stand (2026-06-24):**
+- ✅ **Apple-Watch-Recorder** `watch-apple/` (SwiftUI, XcodeGen, v1) — in Xcode bauen.
+  Fix angewandt: Watch-only-App (`WKWatchOnly=TRUE`).
+- ✅ **Wear-OS-Recorder** `watch-wear/` (Kotlin/Gradle, v1) — in Android Studio bauen.
+- ⏳ **Polar AccessLink** (Cloud-Import): bewusst NICHT blind vorgebaut. OAuth-Endpoints stehen
+  fest (Authorize `flow.polar.com/oauth2/authorization`, Token `polarremote.com/v2/oauth2/token`,
+  API v3 `polaraccesslink.com`, User-Registrierung `POST /v3/users`). **Offene Designfrage:**
+  AccessLink liefert Aktivitäten als **TCX/GPX** (nicht FIT) → braucht einen TCX/GPX-Import-Pfad
+  (Ingest-Contract Path B ist FIT). Wird gebaut, sobald Creds + ein echtes Beispiel-Exercise da sind.
+- ⏳ **Garmin Activity API** (Weg B): wartet auf Programm-Freigabe.
 Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
