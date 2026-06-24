@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api";
+import { ChatBubbleIcon, CloseIcon } from "./Icons";
 import { useT } from "../i18n";
 
 const MAX = 500;
@@ -38,7 +39,7 @@ export function FeedbackWidget() {
         title={t("feedback.open")}
         className="fixed right-0 top-1/2 z-[1500] -translate-y-1/2 rounded-l-xl bg-brand-500 px-2 py-3 text-slate-950 shadow-lg transition-transform hover:px-3"
       >
-        <span className="text-lg">💬</span>
+        <ChatBubbleIcon className="h-5 w-5" />
       </button>
 
       {open && (
@@ -49,7 +50,7 @@ export function FeedbackWidget() {
           >
             <div className="mb-1 flex items-center justify-between">
               <h3 className="font-semibold text-slate-100">{t("feedback.title")}</h3>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="text-slate-400 hover:text-slate-200">✕</button>
+              <button onClick={() => setOpen(false)} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
             </div>
             <p className="mb-3 text-xs text-slate-400">{t("feedback.intro")}</p>
             <textarea

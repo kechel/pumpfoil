@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
+import { ChevronIcon, StarIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 // Foil-Katalog: mehrere als „meine" merken, eines als Standard (★).
@@ -72,8 +72,8 @@ export default function Foils() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => setDefault(f.id)} title={t("foils.setDefault")}
-            className={`rounded-lg px-2 py-1.5 text-sm ${isDef ? "bg-brand-500 text-slate-950" : "text-slate-400 hover:text-amber-300"}`}>
-            {isDef ? "★" : "☆"}
+            className={`rounded-lg px-2 py-1.5 ${isDef ? "bg-brand-500 text-slate-950" : "text-slate-400 hover:text-amber-300"}`}>
+            <StarIcon className="h-4 w-4" filled={isDef} />
           </button>
           <button onClick={() => toggleMine(f.id)}
             className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${isMine ? "bg-slate-700 text-slate-100" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>

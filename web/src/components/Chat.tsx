@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar } from "./ui";
-import { FlagIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // URLs im Text klickbar machen (öffnen in neuem Tab).
@@ -137,8 +137,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   return (
     <div className={fill ? "flex h-full flex-col" : ""}>
       <div className="mb-2 flex items-center justify-end gap-3 text-xs">
-        <button onClick={toggleSub} className={push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"} title={t("chat.subscribe")}>
-          {push ? "🔔" : "🔕"} {push ? t("chat.subscribed") : t("chat.subscribe")}
+        <button onClick={toggleSub} className={`flex items-center gap-1 ${push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"}`} title={t("chat.subscribe")}>
+          {push ? <BellIcon className="h-3.5 w-3.5" /> : <BellOffIcon className="h-3.5 w-3.5" />} {push ? t("chat.subscribed") : t("chat.subscribe")}
         </button>
         <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
       </div>
@@ -159,9 +159,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                   )}
                   {isAdmin && (
                     <>
-                      <button onClick={() => toggleHide(m)} className="text-xs text-slate-500 hover:text-brand-300" title={m.hidden ? t("chat.unhide") : t("chat.hide")}>{m.hidden ? "👁" : "🚫"}</button>
+                      <button onClick={() => toggleHide(m)} className="text-slate-500 hover:text-brand-300" title={m.hidden ? t("chat.unhide") : t("chat.hide")}>{m.hidden ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</button>
                       {!m.mine && (
-                        <button onClick={() => setReadonly(m)} className="text-xs text-slate-500 hover:text-red-400" title={t("chat.readonly")}>🔇</button>
+                        <button onClick={() => setReadonly(m)} className="text-slate-500 hover:text-red-400" title={t("chat.readonly")}><MuteIcon className="h-3.5 w-3.5" /></button>
                       )}
                     </>
                   )}

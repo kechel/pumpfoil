@@ -1,3 +1,5 @@
+import { CloseIcon } from "./Icons";
+
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 export function ytId(url: string | null | undefined): string {
   if (!url) return "";
@@ -19,7 +21,7 @@ export function VideoModal({ url, onClose }: { url: string; onClose: () => void 
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
       <button onClick={onClose} aria-label="Close"
-        className="absolute right-3 top-3 rounded-full bg-white/10 px-3 py-1 text-lg text-white hover:bg-white/20">✕</button>
+        className="absolute right-3 top-3 rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
       <div className="aspect-video" style={{ width: "min(96vw, calc((100vh - 5rem) * 16 / 9))" }} onClick={(e) => e.stopPropagation()}>
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${id}`}

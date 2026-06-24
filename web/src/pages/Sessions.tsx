@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
-import { WaveIcon, ListIcon, RunsIcon, FoilIcon } from "../components/Icons";
+import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
@@ -41,7 +41,7 @@ export default function Sessions() {
   const title = isMine
     ? `${t("sessions.title")}${myName ? ` · ${myName}` : ""}`
     : spot
-      ? `${t("sessions.title")} · 📍 ${spot}`
+      ? `${t("sessions.title")} · ${spot}`
       : `${t("sessions.title")} · ${t("nav.allSessions.short")}`;
 
   const tabCls = (active: boolean) =>
@@ -54,7 +54,7 @@ export default function Sessions() {
         <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
           <button className={tabCls(isMine)} onClick={() => setScope("mine")}>{t("nav.mySessions.short")}</button>
           {homespot && (
-            <button className={tabCls(spot === homespot)} onClick={() => setScope("all", homespot)}>📍 {homespot}</button>
+            <button className={`inline-flex items-center gap-1 ${tabCls(spot === homespot)}`} onClick={() => setScope("all", homespot)}><LocationIcon className="h-4 w-4" /> {homespot}</button>
           )}
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
@@ -87,7 +87,7 @@ function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string })
         onClick={() => setOpen((v) => !v)}
         className={`ml-auto rounded-lg px-3 py-1.5 text-sm ${open ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
       >
-        💬 {t("chat.spotChat")}
+        <span className="inline-flex items-center gap-1"><ChatBubbleIcon className="h-4 w-4" /> {t("chat.spotChat")}</span>
       </button>
       {open && (
         <div className="w-full">
@@ -294,11 +294,11 @@ function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
       <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
-      <span>⏱ {dur(a.foiling_time_s)}</span>
+      <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {dur(a.foiling_time_s)}</span>
       {m?.num_segments != null && <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
       {m?.avg_speed_mps != null && <span>Ø {kmh(m.avg_speed_mps)} km/h</span>}
       {a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${m.avg_pump_hz.toFixed(2)} Hz` : ""}</span>}
-      {m?.avg_hr != null && <span>❤ {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
+      {m?.avg_hr != null && <span className="inline-flex items-center gap-1"><HeartIcon className="h-4 w-4 text-rose-400" filled /> {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
       {m?.farthest_segment_m != null && m.farthest_segment_m > 0 && <span>{t("sessions.farAbbr")} {Math.round(m.farthest_segment_m)} m</span>}
       {m?.longest_segment_s != null && m.longest_segment_s > 0 && <span>{t("sessions.longAbbr")} {dur(m.longest_segment_s)}</span>}
     </div>

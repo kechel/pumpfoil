@@ -593,7 +593,7 @@ const de: Record<string, string> = {
   "alarm.patLong2": "2× lang",
   "alarm.patLsl": "lang-kurz-lang",
 
-  "install.button": "Pumpfoil installieren",
+  "install.button": "App installieren",
   "install.iosHint": "In Safari: Teilen-Symbol ⬆️ unten antippen → „Zum Home-Bildschirm“.",
   "install.menuHint": "Falls kein Dialog erscheint: Browser-Menü (⋮) öffnen → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.",
 

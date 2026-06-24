@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPower } from "../components/FoilPower";
@@ -167,7 +167,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={like}
-          className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.liked ? "bg-rose-500/20 text-rose-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+          className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.liked ? "bg-rose-500/20 text-rose-600" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
         >
           <HeartIcon className="h-4 w-4" filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
@@ -222,7 +222,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
       {video && vid && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={() => setVideo(false)}>
           <button onClick={() => setVideo(false)} aria-label="Close"
-            className="absolute right-3 top-3 rounded-full bg-white/10 px-3 py-1 text-lg text-white hover:bg-white/20">✕</button>
+            className="absolute right-3 top-3 rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
           <div className="aspect-video" style={{ width: "min(96vw, calc((100vh - 5rem) * 16 / 9))" }} onClick={(e) => e.stopPropagation()}>
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}`}
@@ -597,7 +597,7 @@ export default function SessionDetail() {
           ) : (
             <span className="text-brand-300"> · {session.caption}
               <button onClick={() => { setCap(session.caption ?? ""); setEditingCap(true); }} title={t("meta.edit")}
-                className="ml-1 align-middle text-sm text-slate-400 hover:text-slate-200">✎</button>
+                className="ml-1 inline-flex align-middle text-slate-400 hover:text-slate-200"><EditIcon className="h-4 w-4" /></button>
             </span>
           )
         ) : (
@@ -713,8 +713,8 @@ export default function SessionDetail() {
             {t("stat.pumps")} {showPumps ? "▪" : "▫"}
           </button>
           {selectedRun != null && (
-            <button onClick={() => setSelectedRun(null)} title={t("sd.clearSelection")} className="ml-1 rounded bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700">
-              ✕
+            <button onClick={() => setSelectedRun(null)} title={t("sd.clearSelection")} className="ml-1 rounded bg-slate-800 px-2 py-1 text-slate-200 hover:bg-slate-700">
+              <CloseIcon className="h-3.5 w-3.5" />
             </button>
           )}
           <button
@@ -1007,7 +1007,7 @@ function RunsTable({
                   className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${sel ? "bg-brand-500/20" : best ? "bg-brand-500/5" : ""}`}
                 >
                   <td className="px-3 py-2 tabular-nums">
-                    {i + 1}{best && <span className="ml-1 text-brand-400" title={t("sd.farthestRunTitle")}>★</span>}
+                    {i + 1}{best && <span className="ml-1 inline-flex align-middle text-brand-400" title={t("sd.farthestRunTitle")}><StarIcon className="h-3.5 w-3.5" filled /></span>}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
                   <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>

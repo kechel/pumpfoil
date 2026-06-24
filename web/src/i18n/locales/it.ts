@@ -465,7 +465,7 @@ const it: Record<string, string> = {
   "alarm.patLong2": "2× lungo",
   "alarm.patLsl": "lungo-breve-lungo",
 
-  "install.button": "Installa Pumpfoil",
+  "install.button": "Installa l’app",
   "install.iosHint": "In Safari: tocca l'icona Condividi ⬆️ → „Aggiungi a Home“.",
   "install.menuHint": "Se non appare alcun dialogo: apri il menu del browser (⋮) → „Installa app“ o „Aggiungi a schermata Home“.",
 

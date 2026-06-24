@@ -141,6 +141,79 @@ export const FlagIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const CloseIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" />
+  </svg>
+);
+
+export const CheckIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <polyline points="4 12 9 17 20 6" />
+  </svg>
+);
+
+export const ChatBubbleIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z" />
+  </svg>
+);
+
+export const EditIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M4 20h4L19 9l-4-4L4 16v4Z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+  </svg>
+);
+
+export const EyeIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" /><circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+export const EyeOffIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M9.9 5.2A10 10 0 0 1 12 5c7 0 10.5 7 10.5 7a17 17 0 0 1-3.3 4.1M6.2 6.7A17 17 0 0 0 1.5 12S5 19 12 19a10 10 0 0 0 4.1-.9" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /><line x1="3" y1="3" x2="21" y2="21" />
+  </svg>
+);
+
+export const MuteIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M4 9v6h4l5 4V5L8 9H4Z" /><line x1="16" y1="9" x2="22" y2="15" /><line x1="22" y1="9" x2="16" y2="15" />
+  </svg>
+);
+
+export const StarIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
+    <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5Z" />
+  </svg>
+);
+
+export const TimerIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <circle cx="12" cy="13" r="8" /><line x1="12" y1="13" x2="12" y2="9" /><line x1="9" y1="2.5" x2="15" y2="2.5" /><line x1="12" y1="2.5" x2="12" y2="5" />
+  </svg>
+);
+
+// Glocke (Push-Abo an).
+export const BellIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" />
+    <path d="M10.5 19a1.8 1.8 0 0 0 3 0" />
+  </svg>
+);
+
+// Glocke durchgestrichen (Push-Abo aus).
+export const BellOffIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M6 9a6 6 0 0 1 9.3-5" />
+    <path d="M18 13c0 2 2 2 2 2H8" />
+    <path d="M10.5 19a1.8 1.8 0 0 0 3 0" />
+    <line x1="3" y1="3" x2="21" y2="21" />
+  </svg>
+);
+
 // Taschenrechner (Foil-Rechner).
 export const CalculatorIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>

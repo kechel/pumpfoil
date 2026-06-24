@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
-import { CommunityIcon } from "../components/Icons";
+import { InstallPwa } from "../components/InstallPwa";
+import { CommunityIcon, BellIcon, ChatBubbleIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 function fmtDur(min: number): string {
@@ -54,12 +55,15 @@ export default function PersonalHome() {
         </h2>
         <Link to="/chat"
           className="relative flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-          💬 {t("chat.title")}
+          <ChatBubbleIcon className="h-4 w-4" /> {t("chat.title")}
           {unreadTotal > 0 && (
             <span className="absolute -right-1.5 -top-1.5 rounded-full bg-rose-500 px-1.5 text-xs font-bold text-white">{unreadTotal}</span>
           )}
         </Link>
       </div>
+
+      {/* App installieren (mobil, nur wenn installierbar) */}
+      <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}
       {!stats ? <Spinner /> : (
@@ -96,7 +100,7 @@ export default function PersonalHome() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="font-medium text-slate-100">{r.label}</span>
-                    {r.push && <span className="text-xs" title={t("chat.subscribed")}>🔔</span>}
+                    {r.push && <BellIcon className="h-3.5 w-3.5 text-brand-400" />}
                   </span>
                   <span className="block truncate text-xs text-slate-400">{r.last_text}</span>
                 </span>

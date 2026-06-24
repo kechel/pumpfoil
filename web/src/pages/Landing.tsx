@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { WaveIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { InstallPwa } from "../components/InstallPwa";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -136,12 +137,15 @@ export default function Landing() {
         <section className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-10 text-center">
           <h2 className="text-xl font-bold sm:text-2xl">{t("land.ctaTitle")}</h2>
           <p className="mx-auto mt-2 max-w-xl text-slate-300">{t("land.ctaBody")}</p>
-          <Link
-            to="/login"
-            className="mt-6 inline-block rounded-xl bg-brand-500 px-8 py-3 text-sm font-semibold text-slate-950 hover:bg-brand-400"
-          >
-            {t("land.login")}
-          </Link>
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="inline-block rounded-xl bg-brand-500 px-8 py-3 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+            >
+              {t("land.login")}
+            </Link>
+            <InstallPwa />
+          </div>
         </section>
       </main>
 

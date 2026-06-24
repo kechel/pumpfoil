@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { CloseIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // Globaler Offline-Indikator + Update-Leiste (vite-plugin-pwa, registerType "prompt").
@@ -39,7 +40,7 @@ export function PwaStatus() {
           >
             {t("pwa.update")}
           </button>
-          <button onClick={() => setNeedRefresh(false)} aria-label="×" className="text-slate-400 hover:text-slate-200">✕</button>
+          <button onClick={() => setNeedRefresh(false)} aria-label="×" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
         </div>
       )}
     </>

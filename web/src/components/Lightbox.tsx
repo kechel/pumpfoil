@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Avatar } from "./ui";
-import { HeartIcon, FlagIcon } from "./Icons";
+import { HeartIcon, FlagIcon, CloseIcon, ChevronIcon } from "./Icons";
 import { useT } from "../i18n";
 
 export interface LightboxPhoto {
@@ -68,14 +68,14 @@ export function Lightbox({ photos, index, onClose, onChange }: {
       <div className="flex shrink-0 items-center justify-between p-3 text-slate-200">
         <span className="text-xs tabular-nums text-slate-400">{i + 1} / {photos.length}</span>
         <button onClick={(e) => { e.stopPropagation(); onClose(); }} aria-label="Close"
-          className="rounded-full bg-white/10 px-3 py-1 text-lg leading-none hover:bg-white/20">✕</button>
+          className="rounded-full bg-white/10 p-1.5 leading-none hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
       </div>
 
       {/* Bild + Navigationspfeile */}
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-4">
         {photos.length > 1 && (
           <button onClick={(e) => { e.stopPropagation(); go(i - 1); }} aria-label="Previous"
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-4 text-xl text-white hover:bg-white/20">‹</button>
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronIcon className="h-6 w-6 rotate-180" /></button>
         )}
         <img
           src={p.url}
@@ -85,7 +85,7 @@ export function Lightbox({ photos, index, onClose, onChange }: {
         />
         {photos.length > 1 && (
           <button onClick={(e) => { e.stopPropagation(); go(i + 1); }} aria-label="Next"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-4 text-xl text-white hover:bg-white/20">›</button>
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"><ChevronIcon className="h-6 w-6" /></button>
         )}
       </div>
 

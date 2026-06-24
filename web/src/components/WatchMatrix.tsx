@@ -1,3 +1,4 @@
+import { CheckIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
@@ -27,7 +28,9 @@ const STATUS_CLASS: Record<Status, string> = {
 
 export function WatchMatrix() {
   const t = useT();
-  const cap = (c: Cap) => <span className={`text-lg font-bold ${CAP_CLASS[c]}`}>{CAP_ICON[c]}</span>;
+  const cap = (c: Cap) => c === "yes"
+    ? <CheckIcon className={`mx-auto h-5 w-5 ${CAP_CLASS.yes}`} />
+    : <span className={`text-lg font-bold ${CAP_CLASS[c]}`}>{CAP_ICON[c]}</span>;
   const status = (s: Status) => (
     <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS[s]}`}>
       {t(`watches.st.${s}`)}
@@ -65,7 +68,7 @@ export function WatchMatrix() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-400">
-        <span><span className="font-bold text-emerald-400">✓</span> {t("watches.legYes")}</span>
+        <span className="inline-flex items-center gap-1"><CheckIcon className="h-4 w-4 text-emerald-400" /> {t("watches.legYes")}</span>
         <span><span className="font-bold text-amber-400">~</span> {t("watches.legPartial")}</span>
         <span><span className="font-bold text-slate-600">–</span> {t("watches.legNo")}</span>
       </div>
