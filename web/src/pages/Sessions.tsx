@@ -1,55 +1,136 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { api, SessionSummary } from "../lib/api";
+import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
-import { SessionScopeTabs } from "../components/SessionScopeTabs";
+import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
 const PAGE = 20;
 
 function monthLabel(m: string) {
-  return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+// Vereinheitlichte Sessions-Seite: Umschalter Meine / <Homespot> / Alle + Spotsuche.
+// scope=mine -> eigene Sessions; sonst Community-Sessions (optional je Spot gefiltert).
 export default function Sessions() {
   const t = useT();
+  const [sp, setSp] = useSearchParams();
+  const scope = sp.get("scope") === "all" ? "all" : "mine";
+  const spot = sp.get("spot") || "";
+  const [homespot, setHomespot] = useState("");
+  const [spots, setSpots] = useState<string[]>([]);
+  const [myName, setMyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
+    api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
+    api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
+  }, []);
+
+  const isMine = scope === "mine" && !spot;
+  const setScope = (next: "mine" | "all", nextSpot = "") => {
+    const n = new URLSearchParams();
+    if (next === "all") n.set("scope", "all");
+    if (nextSpot) n.set("spot", nextSpot);
+    setSp(n);
+  };
+
+  const title = isMine
+    ? `${t("sessions.title")}${myName ? ` · ${myName}` : ""}`
+    : spot
+      ? `${t("sessions.title")} · 📍 ${spot}`
+      : `${t("sessions.title")} · ${t("nav.allSessions.short")}`;
+
+  const tabCls = (active: boolean) =>
+    `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${active ? "bg-brand-500 text-slate-950" : "text-slate-200 hover:bg-slate-800"}`;
+
+  return (
+    <div>
+      {/* Scope-Umschalter + Spotsuche */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
+          <button className={tabCls(isMine)} onClick={() => setScope("mine")}>{t("nav.mySessions.short")}</button>
+          {homespot && (
+            <button className={tabCls(spot === homespot)} onClick={() => setScope("all", homespot)}>📍 {homespot}</button>
+          )}
+          <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
+        </div>
+        <select
+          value={spot}
+          onChange={(e) => setScope("all", e.target.value)}
+          className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
+        >
+          <option value="">{t("all.allSpots")}</option>
+          {spots.map((s) => <option key={s} value={s}>📍 {s}</option>)}
+        </select>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        {isMine ? <ListIcon className="h-7 w-7 text-brand-400" /> : <WaveIcon className="h-7 w-7 text-brand-400" />}
+        <h2 className="text-xl font-bold">{title}</h2>
+        {spot && <SpotChatToggle spot={spot} t={t} />}
+      </div>
+
+      {isMine ? <MySessionsList myName={myName} /> : <CommunityList name="" spot={spot} />}
+    </div>
+  );
+}
+
+function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`ml-auto rounded-lg px-3 py-1.5 text-sm ${open ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+      >
+        💬 {t("chat.spotChat")}
+      </button>
+      {open && (
+        <div className="w-full">
+          <Card className="mt-2 p-4"><Chat scope={`spot:${spot}`} /></Card>
+        </div>
+      )}
+    </>
+  );
+}
+
+// --- Eigene Sessions (mit Monats-/Sportart-Filter) --------------------------
+
+function MySessionsList({ myName }: { myName: string | null }) {
+  const t = useT();
+  const [sp, setSp] = useSearchParams();
   const [items, setItems] = useState<SessionSummary[]>([]);
   const [months, setMonths] = useState<{ month: string; count: number }[]>([]);
-  const [sp, setSp] = useSearchParams();
   const initFilter: "pump" | "other" = sp.get("filter") === "other" ? "other" : "pump";
-  const initMonth = sp.get("month") || "";
-  const [month, setMonth] = useState(initMonth);
+  const [month, setMonth] = useState(sp.get("month") || "");
   const [filter, setFilter] = useState<"pump" | "other">(initFilter);
-  const filterRef = useRef(initFilter);
-  const syncUrl = (f: string, m: string) => {
-    const n = new URLSearchParams();
-    if (f === "other") n.set("filter", "other");
-    if (m) n.set("month", m);
-    setSp(n, { replace: true });
-  };
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const filterRef = useRef(initFilter);
+  const monthRef = useRef(month);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
-  const monthRef = useRef(initMonth);
+
+  const syncUrl = (f: string, m: string) => {
+    const n = new URLSearchParams(sp);
+    f === "other" ? n.set("filter", "other") : n.delete("filter");
+    m ? n.set("month", m) : n.delete("month");
+    setSp(n, { replace: true });
+  };
 
   async function fetchPage(monthVal: string, replace: boolean) {
     if (loadingRef.current) return;
     if (!replace && !hasMoreRef.current) return;
-    loadingRef.current = true;
-    setLoading(true);
-    setError(null);
+    loadingRef.current = true; setLoading(true); setError(null);
     try {
       const off = replace ? 0 : offsetRef.current;
       const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current });
@@ -60,76 +141,38 @@ export default function Sessions() {
     } catch (e) {
       setError(String(e));
     } finally {
-      loadingRef.current = false;
-      setLoading(false);
+      loadingRef.current = false; setLoading(false);
     }
   }
 
   useEffect(() => {
     api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
-    api.getProfile().then((p) => { setName(p.display_name); setAvatar(p.avatar_url); }).catch(() => {});
+    api.getProfile().then((p) => setAvatar(p.avatar_url)).catch(() => {});
     fetchPage(monthRef.current, true);
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) fetchPage(monthRef.current, false);
-      },
-      { rootMargin: "300px" }
-    );
+    const obs = new IntersectionObserver((e) => { if (e[0].isIntersecting) fetchPage(monthRef.current, false); }, { rootMargin: "300px" });
     if (sentinelRef.current) obs.observe(sentinelRef.current);
     return () => obs.disconnect();
   }, []);
 
   function changeMonth(v: string) {
-    setMonth(v);
-    monthRef.current = v;
-    hasMoreRef.current = true;
-    syncUrl(filterRef.current, v);
-    fetchPage(v, true);
+    setMonth(v); monthRef.current = v; hasMoreRef.current = true;
+    syncUrl(filterRef.current, v); fetchPage(v, true);
   }
-
   function changeFilter(f: "pump" | "other") {
-    setFilter(f);
-    filterRef.current = f;
-    setMonth("");
-    monthRef.current = "";
-    hasMoreRef.current = true;
-    syncUrl(f, "");
-    api.sessionMonths(f).then(setMonths).catch(() => {});
-    fetchPage("", true);
+    setFilter(f); filterRef.current = f; setMonth(""); monthRef.current = ""; hasMoreRef.current = true;
+    syncUrl(f, ""); api.sessionMonths(f).then(setMonths).catch(() => {}); fetchPage("", true);
   }
 
   return (
     <div>
-      <SessionScopeTabs />
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <ListIcon className="h-7 w-7 text-brand-400" />
-        <h2 className="text-xl font-bold">{t("sessions.title")}{name ? ` · ${name}` : ""}</h2>
         <div className="flex gap-1">
-          <button
-            onClick={() => changeFilter("pump")}
-            className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
-          >
-            {t("sessions.filterPump")}
-          </button>
-          <button
-            onClick={() => changeFilter("other")}
-            className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "other" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
-            title={t("sessions.filterOtherHint")}
-          >
-            {t("sessions.filterOther")}
-          </button>
+          <button onClick={() => changeFilter("pump")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>{t("sessions.filterPump")}</button>
+          <button onClick={() => changeFilter("other")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "other" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`} title={t("sessions.filterOtherHint")}>{t("sessions.filterOther")}</button>
         </div>
-        <select
-          value={month}
-          onChange={(e) => changeMonth(e.target.value)}
-          className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-100"
-        >
+        <select value={month} onChange={(e) => changeMonth(e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-100">
           <option value="">{t("sessions.allMonths")}</option>
-          {months.map((m) => (
-            <option key={m.month} value={m.month}>
-              {monthLabel(m.month)} ({m.count})
-            </option>
-          ))}
+          {months.map((m) => <option key={m.month} value={m.month}>{monthLabel(m.month)} ({m.count})</option>)}
         </select>
       </div>
 
@@ -152,7 +195,7 @@ export default function Sessions() {
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
               caption={s.caption}
-              avatarName={name}
+              avatarName={myName}
               avatarUrl={avatar}
               thumbUrl={s.thumb_url}
               photoCount={s.photo_count}
@@ -166,12 +209,79 @@ export default function Sessions() {
         </div>
       )}
 
-      {/* Infinite-Scroll-Sentinel + Lade-Indikator */}
       <div ref={sentinelRef} className="h-8" />
       {loading && <div className="py-4"><Spinner /></div>}
-      {!hasMore && items.length > 0 && (
-        <p className="py-4 text-center text-xs text-slate-400">{t("sessions.listEnd")}</p>
+      {!hasMore && items.length > 0 && <p className="py-4 text-center text-xs text-slate-400">{t("sessions.listEnd")}</p>}
+    </div>
+  );
+}
+
+// --- Community-Sessions (alle / je Spot) ------------------------------------
+
+function CommunityList({ name, spot }: { name: string; spot: string }) {
+  const t = useT();
+  const [items, setItems] = useState<CommunitySession[]>([]);
+  const [loading, setLoading] = useState(false);
+  const offsetRef = useRef(0);
+  const moreRef = useRef(true);
+  const loadingRef = useRef(false);
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  const load = (reset: boolean) => {
+    if (loadingRef.current || (!reset && !moreRef.current)) return;
+    loadingRef.current = true; setLoading(true);
+    const off = reset ? 0 : offsetRef.current;
+    api.communitySessions(PAGE, off, { name: name || undefined, spot: spot || undefined })
+      .then((rows) => {
+        offsetRef.current = off + rows.length;
+        moreRef.current = rows.length === PAGE;
+        setItems((prev) => (reset ? rows : [...prev, ...rows]));
+      })
+      .catch(() => {})
+      .finally(() => { loadingRef.current = false; setLoading(false); });
+  };
+
+  useEffect(() => { moreRef.current = true; offsetRef.current = 0; load(true); }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
+    if (sentinel.current) o.observe(sentinel.current);
+    return () => o.disconnect();
+  }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div>
+      {items.length === 0 && !loading ? (
+        <Card className="p-8 text-center text-slate-300">{t("all.none")}</Card>
+      ) : (
+        <div className="space-y-3">
+          {items.map((s) => (
+            <SessionCard
+              key={s.session_id}
+              sessionId={s.session_id}
+              startedAt={s.started_at}
+              spot={s.spot}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
+              caption={s.caption}
+              name={s.name}
+              avatarName={s.name}
+              avatarUrl={s.avatar_url}
+              thumbUrl={s.thumb_url}
+              photoCount={s.photo_count}
+              likeCount0={s.like_count ?? 0}
+              liked0={!!s.liked}
+              trackPreview={s.track_preview}
+              stats={
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
+                  <span>🔁 {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
+                  <span>🏄 <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
+                </div>
+              }
+            />
+          ))}
+        </div>
       )}
+      <div ref={sentinel} className="h-8" />
+      {loading && <Spinner />}
     </div>
   );
 }
@@ -180,8 +290,7 @@ function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
   const t = useT();
   const m = a.metrics;
   const kmh = (v?: number | null) => (v != null ? (v * 3.6).toFixed(1) : null);
-  const dur = (s?: number | null) =>
-    s == null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+  const dur = (s?: number | null) => (s == null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
       <span>🏄 <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
@@ -205,10 +314,7 @@ function StatusBadge({ status }: { status: string }) {
     recording: "bg-slate-700/40 text-slate-200",
   };
   const labelKey: Record<string, string> = {
-    analyzed: "status.analyzed",
-    complete: "status.complete",
-    live: "status.live",
-    recording: "status.recording",
+    analyzed: "status.analyzed", complete: "status.complete", live: "status.live", recording: "status.recording",
   };
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${map[status] ?? "bg-slate-700/40 text-slate-200"}`}>

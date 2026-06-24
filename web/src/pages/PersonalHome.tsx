@@ -66,7 +66,7 @@ export default function PersonalHome() {
               <SpotsIcon className="h-5 w-5 text-brand-400" />
               <span className="font-medium text-slate-100">{homespot}</span>
             </span>
-            <Link to={`/alle-sessions?spot=${encodeURIComponent(homespot)}`}
+            <Link to={`/sessions?spot=${encodeURIComponent(homespot)}`}
               className="text-xs text-brand-300 hover:text-brand-200">{t("phome.homespotSessions")} →</Link>
           </div>
           <Chat scope={`spot:${homespot}`} />

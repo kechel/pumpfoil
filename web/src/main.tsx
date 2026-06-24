@@ -30,7 +30,7 @@ import Home from "./pages/Home";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Sessions from "./pages/Sessions";
-import AllSessions from "./pages/AllSessions";
+import AllSessionsRedirect from "./pages/AllSessionsRedirect";
 import SessionDetail from "./pages/SessionDetail";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
@@ -65,7 +65,7 @@ const router = createBrowserRouter([
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
       { path: "import", element: <Import /> },
-      { path: "alle-sessions", element: <AllSessions /> },
+      { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },
       { path: "foil-stats", element: <FoilStats /> },

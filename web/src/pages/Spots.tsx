@@ -38,7 +38,7 @@ export default function Spots() {
         radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
       }).addTo(m);
       mk.bindTooltip(`${s.spot} · ${s.sessions}`, { direction: "top" });
-      mk.on("click", () => nav(`/alle-sessions?spot=${encodeURIComponent(s.spot)}`));
+      mk.on("click", () => nav(`/sessions?spot=${encodeURIComponent(s.spot)}`));
       pts.push([s.lat, s.lon]);
     }
     if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 12 });

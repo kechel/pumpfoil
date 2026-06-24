@@ -47,10 +47,11 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   **Google Material Symbols** — Lizenz **Apache-2.0**, also erlaubt; **müssen self-hosted** sein
   (SVGs/Variable-Font lokal bündeln) wegen CSP/Offline, **kein** Remote-Zugriff der Nutzer zu Google.
   → vermutlich B (self-hosted Material Symbols) als gemeinsame `<Icon name=…>`-Komponente.
-- **Sessions-Seite vereinheitlichen.** Eine `/sessions`-Seite mit Überschrift **„Sessions"**, darunter in
-  **einer Zeile**: Umschalter **Meine / \<Homespot\> / Alle** + **Spotsuche**. Hauptüberschrift dynamisch:
-  „Sessions \<mein Name\>" | „Sessions 📍\<Spot\>" | „Sessions Alle". Merge der heutigen Sessions+AllSessions
-  (statt zwei Routen/Tabs). Braucht **Homespot** (s. o.). Spot-Auswahl steuert Filter + Titel.
+- ✅ **Sessions-Seite vereinheitlicht.** *umgesetzt:* eine `/sessions`-Seite mit Umschalter
+  **Meine / 📍\<Homespot\> / Alle** + **Spotsuche** in einer Zeile; dynamischer Titel
+  („Sessions · \<Name\>" | „Sessions · 📍\<Spot\>" | „Sessions · Alle"). `Sessions`+`AllSessions` zu einer
+  Komponente gemerged (eigene vs. Community-Liste je Scope), Spot-Chat-Toggle integriert; alte Route
+  `/alle-sessions` leitet weiter, `SessionScopeTabs`/`AllSessions` entfernt.
 - **Öffentliche Startseite** — *teilweise erledigt:* Feature-Kacheln für **Foil-DB/Stats, On-Foil-Alarm,
   Push, PWA/Offline** ergänzt; Wording generisch. **Noch offen:** **Community-Chat** + **Spots-Karte**
   als Kacheln ergänzen, sobald Chat live ist; ggf. Slider-Screenshots der neuen Features.

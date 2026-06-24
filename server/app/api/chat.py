@@ -30,7 +30,7 @@ def _scope_url(scope: str) -> str:
     kind, _, rest = scope.partition(":")
     if kind == "spot":
         from urllib.parse import quote
-        return f"/alle-sessions?spot={quote(rest)}"
+        return f"/sessions?spot={quote(rest)}"
     return f"/sessions/{rest}"
 
 
