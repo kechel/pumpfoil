@@ -564,6 +564,7 @@ const de: Record<string, string> = {
   "nav.sessions": "Sessions",
   "nav.spots": "Spots",
   "spots.none": "Noch keine Spots auf der Karte.",
+  "spots.search": "Spot suchen…",
 
   "foils.title": "Meine Foils",
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",

@@ -436,6 +436,7 @@ const it: Record<string, string> = {
   "nav.sessions": "Sessioni",
   "nav.spots": "Spot",
   "spots.none": "Ancora nessuno spot sulla mappa.",
+  "spots.search": "Cerca spot…",
 
   "foils.title": "I miei foil",
   "foils.hint": "Segna i tuoi foil e scegline uno come predefinito (★). Sovrascrivibile per sessione.",

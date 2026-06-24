@@ -539,6 +539,7 @@ const en: Record<string, string> = {
   "nav.sessions": "Sessions",
   "nav.spots": "Spots",
   "spots.none": "No spots on the map yet.",
+  "spots.search": "Search spot…",
 
   "foils.title": "My foils",
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",

@@ -365,6 +365,7 @@ const gsw: Record<string, string> = {
   "nav.sessions": "Sessions",
   "nav.spots": "Spots",
   "spots.none": "No kei Spots uf de Charte.",
+  "spots.search": "Spot sueche…",
 
   "foils.title": "Mini Foils",
   "foils.hint": "Merk dini Foils und wähl eis als Standard (★). Je Session überschribbar.",

@@ -436,6 +436,7 @@ const es: Record<string, string> = {
   "nav.sessions": "Sesiones",
   "nav.spots": "Spots",
   "spots.none": "Aún no hay spots en el mapa.",
+  "spots.search": "Buscar spot…",
 
   "foils.title": "Mis foils",
   "foils.hint": "Marca tus foils y elige uno por defecto (★). Modificable por sesión.",
