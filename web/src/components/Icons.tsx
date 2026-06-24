@@ -113,6 +113,14 @@ export const HeartIcon = ({ className = base, filled = false }: P & { filled?: b
   </svg>
 );
 
+// Herzfrequenz/Puls — Herz mit EKG-Linie (nicht rot, Likes sind rot).
+export const HeartPulseIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.5 4.04 3 5.5l7 7Z" />
+    <path d="M3.2 12h6.3l.5-1 2 4.5 2-7 1.5 3.5h5.3" />
+  </svg>
+);
+
 export const CameraIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M3 7h3l2-2.5h8L18 7h3v13H3z" />
