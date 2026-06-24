@@ -87,8 +87,30 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
+        foil_id=s.foil_id,
         analysis=_analysis_out(s.result, slim=slim) if with_analysis else None,
     )
+
+
+def _resolve_foil(db: Session, s: models.Session) -> dict | None:
+    """Foil für die Anzeige: explizites Session-Foil, sonst Standard-Foil des Besitzers."""
+    fid = s.foil_id
+    if fid is None and s.user and s.user.settings_json:
+        try:
+            fid = (json.loads(s.user.settings_json) or {}).get("foil_id")
+        except ValueError:
+            fid = None
+    if not fid:
+        return None
+    f = db.get(models.Foil, fid)
+    if f is None:
+        return None
+    ar = round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None
+    return {
+        "id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
+        "span_cm": f.span_cm, "area_cm2": f.area_cm2, "thickness_mm": f.thickness_mm,
+        "aspect_ratio": ar, "is_default": s.foil_id is None,
+    }
 
 
 def _owned(db, user, session_id) -> models.Session:
@@ -485,11 +507,13 @@ def get_session(
             s.place_lat = lat
             s.place_lon = lon
             db.commit()
-    return _session_out(
+    out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=s.user.display_name if s.user else None,
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
+    out.foil = _resolve_foil(db, s)
+    return out
 
 
 @router.get("/{session_id}/neighbors")
@@ -603,13 +627,20 @@ def set_meta(
         if newyt and newyt != s.youtube_url:
             s.youtube_added_at = datetime.now(timezone.utc)
         s.youtube_url = newyt
+    if "foil_id" in body.model_fields_set:  # explizit gesetzt (auch null = zurücksetzen)
+        fid = body.foil_id or None
+        if fid is not None and db.get(models.Foil, fid) is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekanntes Foil")
+        s.foil_id = fid
     db.commit()
     db.refresh(s)
-    return _session_out(
+    out = _session_out(
         s, with_analysis=True,
         owner_name=s.user.display_name if s.user else None,
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
+    out.foil = _resolve_foil(db, s)
+    return out
 
 
 @router.get("/{session_id}/raw", response_model=RawDataOut)

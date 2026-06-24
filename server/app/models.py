@@ -140,6 +140,8 @@ class Session(Base):
     # Repräsentative Koordinaten (Median der GPS-Punkte) — für die Spot-Karte.
     place_lat: Mapped[float | None] = mapped_column(Float)
     place_lon: Mapped[float | None] = mapped_column(Float)
+    # Mit welchem Foil gefahren (Foil.id). null -> Standard-Foil des Nutzers.
+    foil_id: Mapped[int | None] = mapped_column(ForeignKey("foils.id"))
     # Eigene Beschriftung des Besitzers (frei, max 30 Zeichen) + optionale YouTube-URL.
     caption: Mapped[str | None] = mapped_column(String(40))
     youtube_url: Mapped[str | None] = mapped_column(String(255))

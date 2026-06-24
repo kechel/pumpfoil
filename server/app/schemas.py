@@ -137,6 +137,8 @@ class SessionOut(BaseModel):
     like_count: int = 0
     liked: bool = False
     track_preview: str | None = None  # Mini-Track (normalisierte Polylinien als JSON)
+    foil_id: int | None = None  # explizit gesetztes Foil dieser Session
+    foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige
     analysis: AnalysisOut | None = None
 
 
@@ -146,9 +148,11 @@ class TrimIn(BaseModel):
 
 
 class SessionMetaIn(BaseModel):
-    # Beide optional: nur mitgeschickte Felder werden geändert. "" = leeren.
+    # Nur mitgeschickte Felder werden geändert. "" = leeren.
     caption: str | None = None
     youtube_url: str | None = None
+    # Foil dieser Session (Foil.id). null = zurück auf Standard-Foil des Nutzers.
+    foil_id: int | None = None
 
 
 # --- Labels ---

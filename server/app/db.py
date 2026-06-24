@@ -76,6 +76,9 @@ def _migrate_add_columns() -> None:
             "is_pumpfoil": "BOOLEAN",
             "flagged": "BOOLEAN DEFAULT 0",
             "mod_ok": "BOOLEAN DEFAULT 0",
+            "place_lat": "FLOAT",
+            "place_lon": "FLOAT",
+            "foil_id": "INTEGER",
         },
         "users": {
             "display_name": "VARCHAR(40)",

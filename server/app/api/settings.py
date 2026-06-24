@@ -25,7 +25,8 @@ DEFAULTS = {
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
     # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
     "notify_prefs": {"like": True, "analyzed": True, "record": True},
-    # Standard-Foil des Nutzers (Foil.id) — je Session/Lauf überschreibbar.
+    # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
+    "my_foils": [],
     "foil_id": None,
 }
 
@@ -80,9 +81,16 @@ def update_settings(
         current["speed_auto"] = bool(patch["speed_auto"])
     if "colorByValue" in patch:
         current["colorByValue"] = bool(patch["colorByValue"])
-    if "foil_id" in patch:  # Standard-Foil des Nutzers (null = keins)
+    if "my_foils" in patch and isinstance(patch["my_foils"], list):
+        current["my_foils"] = sorted({int(x) for x in patch["my_foils"] if isinstance(x, (int, float))})
+    if "foil_id" in patch:  # Standard-Foil (null = keins)
         v = patch["foil_id"]
         current["foil_id"] = int(v) if isinstance(v, (int, float)) else None
+    # Default muss zu den eigenen Foils gehören; Default impliziert Mitgliedschaft.
+    mf = set(current.get("my_foils") or [])
+    if current.get("foil_id"):
+        mf.add(int(current["foil_id"]))
+        current["my_foils"] = sorted(mf)
     if "views" in patch:
         cleaned = _clean_views(patch["views"])
         if cleaned:
