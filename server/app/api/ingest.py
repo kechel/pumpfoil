@@ -38,6 +38,15 @@ def start_session(
 ) -> SessionStartOut:
     s = db.query(models.Session).filter_by(session_uuid=body.session_uuid).first()
     if s is None:
+        # Standard-Foil des Nutzers beim Anlegen fest zuordnen (änderbar).
+        import json as _json
+        _u = db.get(models.User, device.user_id)
+        _foil = None
+        if _u and _u.settings_json:
+            try:
+                _foil = (_json.loads(_u.settings_json) or {}).get("foil_id")
+            except ValueError:
+                _foil = None
         s = models.Session(
             session_uuid=body.session_uuid,
             user_id=device.user_id,
@@ -48,6 +57,7 @@ def start_session(
             accel_hz=body.accel_hz,
             accel_scale=body.accel_scale,
             status="recording",
+            foil_id=_foil,
         )
         db.add(s)
         db.commit()

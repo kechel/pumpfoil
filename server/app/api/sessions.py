@@ -92,6 +92,16 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
     )
 
 
+def _user_default_foil_id(user: models.User | None) -> int | None:
+    """Standard-Foil aus den Nutzer-Einstellungen (settings_json.foil_id)."""
+    if user and user.settings_json:
+        try:
+            return (json.loads(user.settings_json) or {}).get("foil_id")
+        except ValueError:
+            return None
+    return None
+
+
 def _resolve_foil(db: Session, s: models.Session) -> dict | None:
     """Foil für die Anzeige: explizites Session-Foil, sonst Standard-Foil des Besitzers."""
     fid = s.foil_id
@@ -227,6 +237,7 @@ async def upload_fit(
         accel_hz=accel_hz,
         status="complete",
         total_chunks=1,
+        foil_id=_user_default_foil_id(user),   # Standard-Foil fest zuordnen
     )
     db.add(s)
     db.commit()
