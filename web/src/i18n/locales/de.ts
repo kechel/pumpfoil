@@ -569,6 +569,7 @@ const de: Record<string, string> = {
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",
   "foils.search": "Foil suchen…",
   "foils.allBrands": "Alle Marken",
+  "foils.catalog": "Katalog",
   "foils.choose": "Wählen",
   "foils.mine": "Mein Foil",
   "foils.count": "{n} Foils",

@@ -441,6 +441,7 @@ const es: Record<string, string> = {
   "foils.hint": "Marca tus foils y elige uno por defecto (★). Modificable por sesión.",
   "foils.search": "Buscar foil…",
   "foils.allBrands": "Todas las marcas",
+  "foils.catalog": "Catálogo",
   "foils.choose": "Elegir",
   "foils.mine": "Mi foil",
   "foils.count": "{n} foils",

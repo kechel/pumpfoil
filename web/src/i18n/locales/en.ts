@@ -544,6 +544,7 @@ const en: Record<string, string> = {
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",
   "foils.search": "Search foil…",
   "foils.allBrands": "All brands",
+  "foils.catalog": "Catalog",
   "foils.choose": "Choose",
   "foils.mine": "My foil",
   "foils.count": "{n} foils",

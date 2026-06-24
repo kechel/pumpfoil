@@ -51,12 +51,35 @@ export default function Foils() {
   }, [foils, brand, q]);
 
   // „Meine" zuerst (Default ganz oben), dann der Rest.
-  const sorted = useMemo(() => {
-    const rank = (f: Foil) => (f.id === def ? 0 : mine.includes(f.id) ? 1 : 2);
-    return [...filtered].sort((a, b) => rank(a) - rank(b));
-  }, [filtered, mine, def]);
+  const mineList = useMemo(
+    () => filtered.filter((f) => mine.includes(f.id)).sort((a, b) => (a.id === def ? -1 : b.id === def ? 1 : 0)),
+    [filtered, mine, def]);
+  const restList = useMemo(() => filtered.filter((f) => !mine.includes(f.id)), [filtered, mine]);
 
   if (!foils) return <Spinner />;
+
+  const card = (f: Foil) => {
+    const isMine = mine.includes(f.id);
+    const isDef = f.id === def;
+    return (
+      <Card key={f.id} className={`flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 ${flash === f.id ? "scale-[1.01] ring-2 ring-brand-400" : ""} ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
+        <div className="min-w-0">
+          <div className="font-semibold">{f.brand} {f.model} <span className="text-slate-400">{f.size}</span></div>
+          <div className="text-xs text-slate-400">{f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_mm} mm</div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button onClick={() => setDefault(f.id)} title={t("foils.setDefault")}
+            className={`rounded-lg px-2 py-1.5 text-sm ${isDef ? "bg-brand-500 text-slate-950" : "text-slate-400 hover:text-amber-300"}`}>
+            {isDef ? "★" : "☆"}
+          </button>
+          <button onClick={() => toggleMine(f.id)}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${isMine ? "bg-slate-700 text-slate-100" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {isMine ? t("foils.remove") : t("foils.add")}
+          </button>
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <div className="w-full">
@@ -76,30 +99,16 @@ export default function Foils() {
         </select>
       </div>
 
+      {mineList.length > 0 && (
+        <div className="mb-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-300">{t("foils.title")} ({mineList.length})</p>
+          <div className="space-y-2">{mineList.map(card)}</div>
+        </div>
+      )}
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("foils.catalog")}</p>
       <div className="space-y-2">
-        {sorted.map((f) => {
-          const isMine = mine.includes(f.id);
-          const isDef = f.id === def;
-          return (
-            <Card key={f.id} className={`flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 ${flash === f.id ? "scale-[1.01] ring-2 ring-brand-400" : ""} ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
-              <div className="min-w-0">
-                <div className="font-semibold">{f.brand} {f.model} <span className="text-slate-400">{f.size}</span></div>
-                <div className="text-xs text-slate-400">{f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_mm} mm</div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button onClick={() => setDefault(f.id)} title={t("foils.setDefault")}
-                  className={`rounded-lg px-2 py-1.5 text-sm ${isDef ? "bg-brand-500 text-slate-950" : "text-slate-400 hover:text-amber-300"}`}>
-                  {isDef ? "★" : "☆"}
-                </button>
-                <button onClick={() => toggleMine(f.id)}
-                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${isMine ? "bg-slate-700 text-slate-100" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-                  {isMine ? t("foils.remove") : t("foils.add")}
-                </button>
-              </div>
-            </Card>
-          );
-        })}
-        <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: sorted.length })}</p>
+        {restList.map(card)}
+        <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: restList.length })}</p>
       </div>
     </div>
   );
