@@ -14,6 +14,10 @@ export default function Landing() {
     { icon: "🗺️", title: t("land.f3Title"), body: t("land.f3Body") },
     { icon: "🌊", title: t("land.f4Title"), body: t("land.f4Body") },
     { icon: "📂", title: t("land.f5Title"), body: t("land.f5Body") },
+    { icon: "🛩", title: t("land.f7Title"), body: t("land.f7Body") },
+    { icon: "📳", title: t("land.f8Title"), body: t("land.f8Body") },
+    { icon: "🔔", title: t("land.f9Title"), body: t("land.f9Body") },
+    { icon: "📲", title: t("land.f10Title"), body: t("land.f10Body") },
     { icon: "🆓", title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   const shots = [

@@ -571,6 +571,15 @@ const en: Record<string, string> = {
   "foilStats.colBestDist": "Farthest run",
   "foilStats.colAvgPump": "Ø pump",
 
+  "land.f7Title": "Foil database & stats",
+  "land.f7Body": "Pick your foil per session and compare what the community achieves on which gear.",
+  "land.f8Title": "On-foil vibration alarm",
+  "land.f8Body": "The watch buzzes when you cross your speed limits — with a pattern you choose.",
+  "land.f9Title": "Push notifications",
+  "land.f9Body": "Get notified: session analyzed, new like, community record beaten.",
+  "land.f10Title": "Installable, works offline",
+  "land.f10Body": "Pumpfoil runs as a PWA on your home screen — offline too, with your latest sessions.",
+
 };
 
 export default en;

@@ -397,6 +397,15 @@ const gsw: Record<string, string> = {
   "foilStats.colBestDist": "Wiitischte Lauf",
   "foilStats.colAvgPump": "Ø Pump",
 
+  "land.f7Title": "Foil-Datebank & Stats",
+  "land.f7Body": "Wähl din Foil je Session und vergliich, weli Wärt d Community mit welem Material fahrt.",
+  "land.f8Title": "On-Foil-Vibrationsalarm",
+  "land.f8Body": "D Uhr vibriert bim Über-/Underschriite vo dine Speed-Gränze — mit wählbarem Muster.",
+  "land.f9Title": "Push-Benachrichtigunge",
+  "land.f9Body": "Wirsch benachrichtigt: Session uswertet, nöie Like, Community-Rekord knackt.",
+  "land.f10Title": "Als App installiere, offline",
+  "land.f10Body": "Pumpfoil lauft als PWA ufem Homescreen — au offline mit dine letzte Sessions.",
+
 };
 
 export default gsw

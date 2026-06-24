@@ -468,6 +468,15 @@ const fr: Record<string, string> = {
   "foilStats.colBestDist": "Plus long run",
   "foilStats.colAvgPump": "Ø pompage",
 
+  "land.f7Title": "Base de foils & stats",
+  "land.f7Body": "Choisis ton foil par session et compare les valeurs de la communauté selon le matériel.",
+  "land.f8Title": "Alarme vibrante en foil",
+  "land.f8Body": "La montre vibre quand tu dépasses tes limites de vitesse — motif au choix.",
+  "land.f9Title": "Notifications push",
+  "land.f9Body": "Sois notifié : session analysée, nouveau j'aime, record de communauté battu.",
+  "land.f10Title": "Installable, hors ligne",
+  "land.f10Body": "Pumpfoil tourne en PWA sur ton écran d'accueil — même hors ligne avec tes dernières sessions.",
+
 };
 
 export default fr;

@@ -468,6 +468,15 @@ const it: Record<string, string> = {
   "foilStats.colBestDist": "Run più lungo",
   "foilStats.colAvgPump": "Ø pompata",
 
+  "land.f7Title": "Database foil & statistiche",
+  "land.f7Body": "Scegli il tuo foil per sessione e confronta i valori della community per materiale.",
+  "land.f8Title": "Allarme vibrazione in foil",
+  "land.f8Body": "L'orologio vibra quando superi i tuoi limiti di velocità — con schema a scelta.",
+  "land.f9Title": "Notifiche push",
+  "land.f9Body": "Ricevi notifiche: sessione analizzata, nuovo mi piace, record della community battuto.",
+  "land.f10Title": "Installabile, offline",
+  "land.f10Body": "Pumpfoil gira come PWA nella home — anche offline con le tue ultime sessioni.",
+
 };
 
 export default it;

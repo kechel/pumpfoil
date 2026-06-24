@@ -397,6 +397,15 @@ const deAT: Record<string, string> = {
   "foilStats.colBestDist": "Weitester Lauf",
   "foilStats.colAvgPump": "Ø Pump",
 
+  "land.f7Title": "Foil-Datenbank & Stats",
+  "land.f7Body": "Wähle dein Foil je Session und vergleiche, welche Werte die Community mit welchem Material fährt.",
+  "land.f8Title": "On-Foil-Vibrationsalarm",
+  "land.f8Body": "Die Uhr vibriert bei Über-/Unterschreiten deiner Speed-Grenzen — mit wählbarem Muster.",
+  "land.f9Title": "Push-Benachrichtigungen",
+  "land.f9Body": "Werde benachrichtigt: Session ausgewertet, neuer Like, Community-Rekord geknackt.",
+  "land.f10Title": "Als App installieren, offline",
+  "land.f10Body": "Pumpfoil läuft als PWA auf dem Homescreen — auch offline mit deinen letzten Sessions.",
+
 };
 
 export default deAT
