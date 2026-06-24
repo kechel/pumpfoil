@@ -16,7 +16,7 @@ xcodegen generate        # erzeugt Pumpfoil.xcodeproj aus project.yml
 open Pumpfoil.xcodeproj
 ```
 In Xcode unter **Signing & Capabilities** dein **Team** wählen (Bundle-ID
-`org.pumpfoil.watch` ggf. anpassen). HealthKit-Capability ist über die
+`org.pumpfoil.watchapp` ggf. anpassen). HealthKit-Capability ist über die
 Entitlements bereits gesetzt.
 
 ## Auf die Uhr bringen
