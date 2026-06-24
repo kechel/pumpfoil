@@ -20,7 +20,6 @@ targets:
         MARKETING_VERSION: "0.1"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
-        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: ""
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "4"   # 4 = Apple Watch
         # DEVELOPMENT_TEAM: XXXXXXXXXX   # <- in Xcode unter Signing & Capabilities setzen
@@ -28,6 +27,7 @@ targets:
       path: Sources/Info.plist
       properties:
         WKApplication: true
+        WKWatchOnly: true        # eigenständige Watch-App ohne iPhone-Companion
         CFBundleDisplayName: Pumpfoil
         NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung."
