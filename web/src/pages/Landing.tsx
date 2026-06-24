@@ -29,9 +29,9 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
-        <span className="flex items-center gap-2 text-lg font-bold">
+        <Link to="/" className="flex items-center gap-2 text-lg font-bold">
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
-        </span>
+        </Link>
         <div className="flex items-center gap-3">
           <LanguageSelect className="text-sm" />
           <Link
