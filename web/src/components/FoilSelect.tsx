@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, Foil, SessionSummary } from "../lib/api";
+import { FoilIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // Foil einer Session anzeigen / (Owner) ändern. Eigene Foils zuerst, Default vorgewählt.
@@ -18,7 +19,7 @@ export function FoilSelect({ session, owned, onMeta }: {
 
   const foil = session.foil;
   const chip = (text: string) =>
-    <span className="ml-2 inline-block rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-200">🛩 {text}</span>;
+    <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-200"><FoilIcon className="h-3.5 w-3.5" /> {text}</span>;
 
   // Nicht-Owner: nur Anzeige (falls gesetzt).
   if (!owned) return foil ? chip(`${foil.brand} ${foil.model} ${foil.size}`) : null;
@@ -40,7 +41,7 @@ export function FoilSelect({ session, owned, onMeta }: {
       className="ml-2 max-w-[14rem] rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-200"
       title={t("foil.label")}
     >
-      <option value="">🛩 {t("foil.useDefault")}</option>
+      <option value="">{t("foil.useDefault")}</option>
       {mineFoils.length > 0 && (
         <optgroup label={t("foils.title")}>
           {mineFoils.map((f) => <option key={f.id} value={f.id}>{f.brand} {f.model} {f.size}</option>)}

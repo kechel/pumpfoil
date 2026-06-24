@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPower } from "../components/FoilPower";
@@ -147,7 +147,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
               <button onClick={() => setVideo(true)} className="block">
                 <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-20 rounded-lg object-cover" />
                 <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">▶</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
                 </span>
               </button>
               {owned && (
@@ -169,23 +169,23 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           onClick={like}
           className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.liked ? "bg-rose-500/20 text-rose-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
         >
-          {s.liked ? "❤️" : "🤍"} <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
+          <HeartIcon className="h-4 w-4" filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
         {owned && (
           <>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
             >
-              📷 {busy ? t("common.loading") : t("sd.addPhoto")}
+              <CameraIcon className="h-4 w-4" /> {busy ? t("common.loading") : t("sd.addPhoto")}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
             <button
               onClick={() => { setYt(youtubeUrl ?? ""); setMetaErr(null); setYtOpen((o) => !o); }}
-              className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
             >
-              🎬 {t("meta.linkVideo")}
+              <VideoIcon className="h-4 w-4" /> {t("meta.linkVideo")}
             </button>
           </>
         )}
@@ -194,13 +194,13 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
             onClick={() => vote("fake")}
             className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
           >
-            🚩 {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
+            <FakeIcon className="h-4 w-4" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
           </button>
           <button
             onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.reportConfirm"))) return; vote("inappropriate"); }}
             className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs ${s.my_inappropriate ? "bg-red-500/20 text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
           >
-            ⚠️ {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
+            <FlagIcon className="h-4 w-4" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
           </button>
         </div>
       </div>
@@ -613,7 +613,7 @@ export default function SessionDetail() {
             <span className="text-slate-400"> · {t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>
           </>
         )}
-        {session.place_name && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs">📍 {session.place_name}</span>}
+        {session.place_name && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
         {session.sport && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs">{session.sport}</span>}
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && <span className="ml-2 rounded bg-sky-500/15 px-1.5 py-0.5 text-xs text-sky-300">{t("sd.communityView")}</span>}

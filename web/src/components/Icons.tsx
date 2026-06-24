@@ -77,3 +77,75 @@ export const ChevronIcon = ({ className = base }: P) => (
     <polyline points="9 18 15 12 9 6" />
   </svg>
 );
+
+const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+
+// Ort/Spot — schlanke Map-Pin-Variante (für Inline-Labels neben Spotnamen).
+export const LocationIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" />
+    <circle cx="12" cy="9" r="2.5" />
+  </svg>
+);
+
+// Foil (Hydrofoil): Frontflügel + Mast + Stabilisator.
+export const FoilIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M2 7c6-3 14-3 20 0-6 2.5-14 2.5-20 0Z" />
+    <path d="M12 7v11" />
+    <path d="M8.5 18h7" />
+  </svg>
+);
+
+// Läufe / Runs — Wiederhol-/Rundenpfeile.
+export const RunsIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+  </svg>
+);
+
+export const HeartIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
+    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+  </svg>
+);
+
+export const CameraIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M3 7h3l2-2.5h8L18 7h3v13H3z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </svg>
+);
+
+export const VideoIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="2.5" y="6.5" width="13" height="11" rx="2.5" />
+    <path d="M15.5 10.5 21.5 7v10l-6-3.5z" />
+  </svg>
+);
+
+export const PlayIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <path d="M8 5.5v13l11-6.5z" />
+  </svg>
+);
+
+// Melden / unangemessen — Flagge.
+export const FlagIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M5 21V4" />
+    <path d="M5 4h11l-2 3 2 3H5" />
+  </svg>
+);
+
+// Unecht / zweifelhaft (fake) — Warndreieck.
+export const FakeIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 3 2 20h20L12 3Z" />
+    <path d="M12 10v4" />
+    <path d="M12 17h.01" />
+  </svg>
+);

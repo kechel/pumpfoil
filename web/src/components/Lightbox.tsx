@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Avatar } from "./ui";
+import { HeartIcon, FlagIcon } from "./Icons";
 import { useT } from "../i18n";
 
 export interface LightboxPhoto {
@@ -98,11 +99,11 @@ export function Lightbox({ photos, index, onClose, onChange }: {
           </div>
           <button onClick={like}
             className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${st.liked ? "bg-rose-500/20 text-rose-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
-            {st.liked ? "❤️" : "🤍"} {st.like_count > 0 && <span className="tabular-nums text-xs">{st.like_count}</span>}
+            <HeartIcon className="h-4 w-4" filled={st.liked} /> {st.like_count > 0 && <span className="tabular-nums text-xs">{st.like_count}</span>}
           </button>
           <button onClick={report} title={st.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")}
             className={`rounded-lg px-2.5 py-1.5 text-sm ${st.my_inappropriate ? "bg-red-500/20 text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-            ⚠️
+            <FlagIcon className="h-4 w-4" />
           </button>
           <Link to={`/sessions/${p.session_id}`} onClick={onClose}
             className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">

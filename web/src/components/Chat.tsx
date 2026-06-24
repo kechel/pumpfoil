@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar } from "./ui";
+import { FlagIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // URLs im Text klickbar machen (öffnen in neuem Tab).
@@ -102,7 +103,7 @@ export function Chat({ scope }: { scope: string }) {
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 <span className="ml-auto flex items-center gap-2">
                   {isAdmin && m.report_count > 0 && (
-                    <span className="text-[10px] text-amber-400" title={t("chat.reports")}>⚑{m.report_count}</span>
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400" title={t("chat.reports")}><FlagIcon className="h-3 w-3" />{m.report_count}</span>
                   )}
                   {isAdmin && (
                     <>
@@ -113,7 +114,7 @@ export function Chat({ scope }: { scope: string }) {
                     </>
                   )}
                   {!m.mine && (
-                    <button onClick={() => report(m.id)} title={t("chat.report")} className="text-xs text-slate-500 hover:text-red-400">⚠</button>
+                    <button onClick={() => report(m.id)} title={t("chat.report")} className="text-slate-500 hover:text-red-400"><FlagIcon className="h-3.5 w-3.5" /></button>
                   )}
                 </span>
               </div>

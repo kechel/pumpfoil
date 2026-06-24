@@ -6,7 +6,7 @@ import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon } from "../components/Icons";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 function InstallButton() {
@@ -114,7 +114,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
                     {new Date(r!.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" })}
                   </span>
                 )}
-                {showSpot && r!.spot && <span className="block text-slate-400">📍 {r!.spot}</span>}
+                {showSpot && r!.spot && <span className="flex items-center gap-1 text-slate-400"><LocationIcon className="h-3.5 w-3.5" /> {r!.spot}</span>}
               </div>
             )}
           </Card>
@@ -197,7 +197,7 @@ function LatestMedia() {
                 <img src={thumb} alt="" className="aspect-square w-full rounded-xl object-cover transition-opacity group-hover:opacity-90" />
                 {isVideo && (
                   <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white">▶</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-5 w-5" /></span>
                   </span>
                 )}
               </button>
@@ -215,7 +215,7 @@ function LatestMedia() {
               <div className="mt-1 flex items-center gap-1">
                 <button onClick={() => like(p.session_id)} title={st.liked ? t("row.unlike") : t("row.like")}
                   className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs ${st.liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}>
-                  {st.liked ? "❤️" : "🤍"}{st.like_count > 0 && <span className="tabular-nums">{st.like_count}</span>}
+                  <HeartIcon className="h-3.5 w-3.5" filled={st.liked} />{st.like_count > 0 && <span className="tabular-nums">{st.like_count}</span>}
                 </button>
               </div>
             </div>
@@ -321,8 +321,8 @@ function CommunitySection() {
       <div className="mb-4 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
-        <Link to="/foil-stats" className="ml-auto rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-          🛩 {t("foilStats.title")}
+        <Link to="/foil-stats" className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+          <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
         </Link>
       </div>
       <div className="mb-3 flex flex-wrap gap-1">
@@ -389,8 +389,8 @@ function SpotSection({ period }: { period: string }) {
         {matches.length > 0 && (
           <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
             {matches.map((m) => (
-              <button key={m} onClick={() => addSpot(m)} className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-800">
-                📍 {m}
+              <button key={m} onClick={() => addSpot(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
+                <LocationIcon className="h-4 w-4 text-slate-400" /> {m}
               </button>
             ))}
           </div>
@@ -404,7 +404,7 @@ function SpotSection({ period }: { period: string }) {
           {shown.map((sp) => (
             <div key={sp}>
               <div className="mb-1.5 flex items-center gap-2">
-                <span className="font-semibold text-brand-300">📍 {sp}</span>
+                <span className="inline-flex items-center gap-1 font-semibold text-brand-300"><LocationIcon className="h-4 w-4" /> {sp}</span>
                 {!spots.mine.includes(sp) && (
                   <button onClick={() => setShown((prev) => prev.filter((x) => x !== sp))} className="text-xs text-slate-400 hover:text-slate-200">
                     {t("home.remove")}

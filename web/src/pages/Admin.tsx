@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
+import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "audit" | "feedback";
@@ -191,16 +192,16 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "all" | "deleted" 
               <Link to={`/sessions/${s.session_id}`} className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-slate-100">
                   {s.name ? <span className="text-brand-300">{s.name}</span> : <span className="text-slate-400">—</span>}
-                  {s.spot && <span className="text-slate-300"> · 📍 {s.spot}</span>}
+                  {s.spot && <span className="inline-flex items-center gap-1 text-slate-300"> · <LocationIcon className="h-3.5 w-3.5" /> {s.spot}</span>}
                   <span className="text-slate-400"> · {s.sport}</span>
                 </div>
                 <div className="text-[11px] text-slate-400">{fmtDate(s.started_at)} · <span className="text-slate-300">{s.email}</span></div>
               </Link>
               <div className="flex shrink-0 flex-wrap items-center gap-2 tabular-nums">
-                {s.inappropriate > 0 && <Badge tone="red">⚠️ {s.inappropriate}</Badge>}
-                {s.fake > 0 && <Badge tone="amber">🟡 {t("adm.unecht")} {s.fake}</Badge>}
-                {s.likes > 0 && <Badge tone="slate">❤️ {s.likes}</Badge>}
-                {s.photos > 0 && <Badge tone="slate">📷 {s.photos}</Badge>}
+                {s.inappropriate > 0 && <Badge tone="red"><FlagIcon className="inline h-3.5 w-3.5" /> {s.inappropriate}</Badge>}
+                {s.fake > 0 && <Badge tone="amber"><FakeIcon className="inline h-3.5 w-3.5" /> {t("adm.unecht")} {s.fake}</Badge>}
+                {s.likes > 0 && <Badge tone="slate"><HeartIcon className="inline h-3.5 w-3.5" filled /> {s.likes}</Badge>}
+                {s.photos > 0 && <Badge tone="slate"><CameraIcon className="inline h-3.5 w-3.5" /> {s.photos}</Badge>}
                 {s.flagged && <Badge tone="red">{t("adm.hidden")}</Badge>}
                 {s.mod_ok && s.inappropriate > 0 && <Badge tone="green">{t("adm.approved")}</Badge>}
                 {s.deleted && <Badge tone="slate">{t("adm.deletedBadge")}</Badge>}
@@ -424,7 +425,7 @@ function ChatModTab() {
           <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
             <span className="font-medium text-slate-200">{m.name || "—"}</span>
             <span>· {m.scope}</span>
-            <span className="text-amber-400">⚑ {m.report_count}</span>
+            <span className="inline-flex items-center gap-1 text-amber-400"><FlagIcon className="h-3.5 w-3.5" /> {m.report_count}</span>
             {m.hidden && <span className="rounded bg-slate-700/50 px-1.5 text-slate-300">{t("adm.chat.hidden")}</span>}
             <span className="ml-auto">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
           </div>

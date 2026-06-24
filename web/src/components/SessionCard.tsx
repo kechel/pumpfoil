@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
 import { useT } from "../i18n";
 
@@ -73,7 +73,7 @@ export function SessionCard({
               title={liked ? t("row.unlike") : t("row.like")}
               className={`flex items-center gap-1 text-sm ${liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}
             >
-              {liked ? "❤️" : "🤍"}{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
+              <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
             </button>
             {/* Mobil: Thumbnail + Track linksbündig unter dem Profilbild */}
             {(thumbEl || trackEl) && (
@@ -97,8 +97,8 @@ export function SessionCard({
                   <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>
                 </>
               )}
-              {spot && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">📍 {spot}</span>}
-              {foil && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">🛩 {foil}</span>}
+              {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
+              {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
             </div>
             {stats}
           </div>

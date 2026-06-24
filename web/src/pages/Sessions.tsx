@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
-import { WaveIcon, ListIcon } from "../components/Icons";
+import { WaveIcon, ListIcon, RunsIcon, FoilIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
@@ -272,8 +272,8 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
               trackPreview={s.track_preview}
               stats={
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
-                  <span>🔁 {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
-                  <span>🏄 <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
+                  <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
+                  <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
                 </div>
               }
             />
@@ -293,9 +293,9 @@ function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
   const dur = (s?: number | null) => (s == null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
-      <span>🏄 <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
+      <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{((a.foiling_distance_m ?? 0) / 1000).toFixed(2)}</b> km</span>
       <span>⏱ {dur(a.foiling_time_s)}</span>
-      {m?.num_segments != null && <span>🔁 {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
+      {m?.num_segments != null && <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {m.num_segments} {m.num_segments === 1 ? t("unit.run") : t("unit.runs")}</span>}
       {m?.avg_speed_mps != null && <span>Ø {kmh(m.avg_speed_mps)} km/h</span>}
       {a.pump_count != null && <span>↕ {a.pump_count}{m?.avg_pump_hz ? ` · ${m.avg_pump_hz.toFixed(2)} Hz` : ""}</span>}
       {m?.avg_hr != null && <span>❤ {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
