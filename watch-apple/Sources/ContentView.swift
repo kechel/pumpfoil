@@ -94,7 +94,7 @@ struct RecordView: View {
         }
         .padding(.horizontal, 6)
         .task { await loadConfig() }
-        .onChange(of: rec.speedKmh) { _, sp in checkAlarm(sp) }
+        .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }
 
     private func activeFields(_ f: [Int]) -> [Int] {
@@ -135,7 +135,7 @@ struct RecordView: View {
 }
 
 // Kernfeldsatz (IDs wie web/src/lib/fields.ts); Rest "—".
-private func fieldValue(_ id: Int, _ r: Recorder) -> (String, String) {
+@MainActor private func fieldValue(_ id: Int, _ r: Recorder) -> (String, String) {
     switch id {
     case 1: return (String(format: "%.1f", r.speed3sKmh), "km/h (3s)")
     case 5: return (String(format: "%.1f", r.speedKmh), "km/h")
@@ -151,7 +151,7 @@ private func fieldValue(_ id: Int, _ r: Recorder) -> (String, String) {
     }
 }
 
-private func fieldColor(_ id: Int, _ r: Recorder) -> Color {
+@MainActor private func fieldColor(_ id: Int, _ r: Recorder) -> Color {
     switch id {
     case 1: return speedColor(r.speed3sKmh)
     case 5: return speedColor(r.speedKmh)
