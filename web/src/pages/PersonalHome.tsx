@@ -132,7 +132,7 @@ export default function PersonalHome() {
               startedAt={s.started_at}
               endedAt={s.ended_at}
               spot={s.place_name}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
               caption={s.caption}
               avatarName={profile?.display_name}
               avatarUrl={profile?.avatar_url}

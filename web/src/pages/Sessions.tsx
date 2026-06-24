@@ -194,7 +194,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
               startedAt={s.started_at}
               endedAt={s.ended_at}
               spot={s.place_name}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
               caption={s.caption}
               avatarName={myName}
               avatarUrl={avatar}
@@ -261,7 +261,7 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
               sessionId={s.session_id}
               startedAt={s.started_at}
               spot={s.spot}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model}` : null}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
               caption={s.caption}
               name={s.name}
               avatarName={s.name}
