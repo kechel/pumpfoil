@@ -126,7 +126,7 @@ const it: Record<string, string> = {
   "sessions.filterOther": "Escluse",
   "sessions.filterOtherHint": "Sessioni escluse (non pumpfoil) — visibili solo a te",
   "sessions.allMonths": "Tutti i mesi",
-  "sessions.uploadFitZip": "Carica FIT/ZIP",
+  "sessions.uploadFitZip": "Importa FIT/TCX/GPX",
   "sessions.importing": "Importazione",
   "sessions.noneMonth": "Nessuna sessione questo mese.",
   "sessions.none": "Ancora nessuna sessione.",

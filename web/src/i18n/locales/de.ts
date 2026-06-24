@@ -139,7 +139,7 @@ const de: Record<string, string> = {
   "sessions.filterOther": "Aussortiert",
   "sessions.filterOtherHint": "Aussortierte Sessions (kein Pumpfoil) — nur für dich sichtbar",
   "sessions.allMonths": "Alle Monate",
-  "sessions.uploadFitZip": "FIT/ZIP hochladen",
+  "sessions.uploadFitZip": "FIT/TCX/GPX importieren",
   "sessions.importing": "Importiere",
   "sessions.noneMonth": "Keine Sessions in diesem Monat.",
   "sessions.none": "Noch keine Sessions.",

@@ -125,7 +125,7 @@ const gsw: Record<string, string> = {
   "sessions.filterOther": "Usghoble",
   "sessions.filterOtherHint": "Usghobeni Sessions (kei Pumpfoil) — nur für di sichtbar",
   "sessions.allMonths": "Alli Mönet",
-  "sessions.uploadFitZip": "FIT/ZIP ufelade",
+  "sessions.uploadFitZip": "FIT/TCX/GPX importiere",
   "sessions.importing": "Importiere",
   "sessions.noneMonth": "Kei Sessions i dem Monet.",
   "sessions.none": "No kei Sessions.",

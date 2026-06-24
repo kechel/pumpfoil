@@ -156,10 +156,22 @@ async def upload_fit(
     if len(data) > MAX_FIT_BYTES:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File too large")
 
-    fit_data = _fit_bytes_from_upload(data, file.filename)
-
+    # Format erkennen: TCX/GPX (XML) vs. FIT/ZIP.
+    name = (file.filename or "").lower()
+    head = data.lstrip()[:5].lower()
+    is_xml = name.endswith((".tcx", ".gpx")) or head.startswith(b"<?xml") or head.startswith(b"<")
     try:
-        parsed = parse_fit_bytes(fit_data)
+        if is_xml:
+            from ..tcximport import parse_track_bytes
+            parsed = parse_track_bytes(data, file.filename)
+            raw = data
+            src_label = "gpx-upload" if name.endswith(".gpx") else "tcx-upload"
+            uuid_prefix = "imp-"
+        else:
+            raw = _fit_bytes_from_upload(data, file.filename)
+            parsed = parse_fit_bytes(raw)
+            src_label = "fit-upload"
+            uuid_prefix = "fit-"
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
     samples = parsed["gps_samples"]
@@ -185,7 +197,7 @@ async def upload_fit(
     # FIT-Import idempotent, auch wenn content_hash mal nicht passt.
     import hashlib
 
-    content_hash = hashlib.sha256(fit_data).hexdigest()
+    content_hash = hashlib.sha256(raw).hexdigest()
     existing = (
         db.query(models.Session)
         .filter(
@@ -202,7 +214,7 @@ async def upload_fit(
 
     accel_bytes = parsed["accel_bytes"]
     accel_hz = parsed["accel_hz"] or 25
-    session_uuid = "fit-" + uuid.uuid4().hex
+    session_uuid = uuid_prefix + uuid.uuid4().hex
     last_ms = samples[-1][0]
     s = models.Session(
         session_uuid=session_uuid,
@@ -227,7 +239,7 @@ async def upload_fit(
         "gps_hz": 1,
         "accel_hz": accel_hz,
         "accel_scale": s.accel_scale,
-        "source": "fit-upload",
+        "source": src_label,
     })
     storage.save_gps_chunk(session_uuid, 0, samples)
     if accel_bytes:

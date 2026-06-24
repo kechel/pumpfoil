@@ -125,7 +125,7 @@ const deAT: Record<string, string> = {
   "sessions.filterOther": "Aussortiert",
   "sessions.filterOtherHint": "Aussortierte Sessions (kein Pumpfoil) — nur für di sichtbar",
   "sessions.allMonths": "Olle Monate",
-  "sessions.uploadFitZip": "FIT/ZIP hochladen",
+  "sessions.uploadFitZip": "FIT/TCX/GPX importieren",
   "sessions.importing": "Importier",
   "sessions.noneMonth": "Kane Sessions in dem Monat.",
   "sessions.none": "No kane Sessions.",
