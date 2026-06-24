@@ -67,7 +67,7 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 | ✅ **Community-Stats je Foil** — *umgesetzt: /foil-stats (Sessions/Foiler/Top-Speed/weitester Lauf/Ø Pump), von Community verlinkt* | ★★ | M | |
 | ✅ **Gewicht im Profil** — *umgesetzt: Settings.weight_kg (optional, privat)* | ★★ | S | Input für Leistungsberechnung. |
 | **Leistungsberechnung (Watt)** aus Foil-Daten + Geschwindigkeit (+ Gewicht) | ★★★ | L | braucht Foil-DB + Gewicht. **Engine existiert schon** im Foil-Calculator (s. u.: Lift/Drag, Reynolds, CL/CD, Mast-Drag, Power, Pump-Inertia-Power). → Logik aus dem Calculator extrahieren und je Lauf mit echtem Speed/Gewicht füttern. |
-| **Foil-Calculator** in die Seite integrieren (eigenes Tool des Nutzers) | ★★ | M | Referenz liegt im Repo: [`reference/foilcalculator.html`](reference/foilcalculator.html) (self-contained, ~4170 Zeilen, eigene i18n, `addFoil`/Foil-Liste, Funktionen u. a. `calculateFoilPerformance`, `calculateTotalDrag`, `computeFoilPowerAtSpeed`, `calculateOptimalSpeed`, `calculateReynolds`). Teilt sich Daten/Logik mit Foil-DB + Leistungsberechnung — sinnvoll, die Physik einmal als Modul rauszuziehen. |
+| ✅ **Foil-Calculator eingebunden** — *self-contained `/foilcalculator.html` + Profil-Link* (Physik-Modul-Extraktion bleibt offen für Watt) | ★★ | M | Referenz liegt im Repo: [`reference/foilcalculator.html`](reference/foilcalculator.html) (self-contained, ~4170 Zeilen, eigene i18n, `addFoil`/Foil-Liste, Funktionen u. a. `calculateFoilPerformance`, `calculateTotalDrag`, `computeFoilPowerAtSpeed`, `calculateOptimalSpeed`, `calculateReynolds`). Teilt sich Daten/Logik mit Foil-DB + Leistungsberechnung — sinnvoll, die Physik einmal als Modul rauszuziehen. |
 
 ## 2 · Community & Social
 
