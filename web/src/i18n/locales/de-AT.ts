@@ -411,6 +411,11 @@ const deAT: Record<string, string> = {
 
   "profile.calculator": "Foil-Rechner",
 
+  "phome.hello": "Hallo, {name}",
+  "phome.latest": "Letzte Sessions",
+  "phome.allMine": "Alle meine",
+  "phome.homespotChatSoon": "Spot-Chat folgt",
+
 };
 
 export default deAT

@@ -482,6 +482,11 @@ const es: Record<string, string> = {
 
   "profile.calculator": "Calculadora de foil",
 
+  "phome.hello": "Hola, {name}",
+  "phome.latest": "Últimas sesiones",
+  "phome.allMine": "Todas las mías",
+  "phome.homespotChatSoon": "Chat del spot próximamente",
+
 };
 
 export default es;

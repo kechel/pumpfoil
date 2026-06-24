@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
-import { api, clearToken, OverallStats, StatRecord, Profile } from "./lib/api";
+import { api, clearToken, OverallStats, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon } from "./components/Icons";
+import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { InstallPwa } from "./components/InstallPwa";
@@ -10,6 +10,7 @@ import { warmMySessions } from "./lib/pwaCache";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
+  { to: "/home", labelKey: "nav.home", icon: HomeIcon, end: false },
   { to: "/", labelKey: "home.community", icon: CommunityIcon, end: true },
   { to: "/sessions", labelKey: "nav.sessions", icon: ListIcon, end: false },
   { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
@@ -21,13 +22,12 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 export default function App() {
   const { t, setLang } = useI18n();
   const [stats, setStats] = useState<OverallStats | null>(null);
-  const [accelOnly, setAccelOnly] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
-    api.stats(accelOnly).then(setStats).catch(() => {});
-  }, [accelOnly]);
+    api.stats(true).then(setStats).catch(() => {});
+  }, []);
   // Letzte 10 eigene Sessions für Offline vorladen (nur was nicht schon gecacht ist).
   useEffect(() => { warmMySessions(); }, []);
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function App() {
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
         {profile && (
-          <Link to="/" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
+          <Link to="/home" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-100">{profile.display_name || "—"}</div>
@@ -102,22 +102,7 @@ export default function App() {
             <SideStat label={t("side.foiling")} value={`${stats.foiling_km.toFixed(1)} km`} />
             <SideStat label={t("side.foilingTime")} value={fmtDuration(stats.foiling_min)} />
             <SideStat label={t("side.pumps")} value={stats.pumps.toLocaleString("de")} />
-            <div className="my-3 border-t border-slate-800" />
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</span>
-              <button
-                onClick={() => setAccelOnly((v) => !v)}
-                title={t("side.recordsHint")}
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${accelOnly ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-300"}`}
-              >
-                {accelOnly ? t("side.onlyAccel") : t("side.all")}
-              </button>
-            </div>
-            <RecordStat label={t("rec.farthestRun")} rec={stats.records.distance} fmt={(v) => `${Math.round(v)} m`} />
-            <RecordStat label={t("rec.longestRun")} rec={stats.records.duration} fmt={(v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}`} />
-            <RecordStat label={t("rec.topSpeed")} rec={stats.records.speed} fmt={(v) => `${(v * 3.6).toFixed(1)} km/h`} />
-            <RecordStat label={t("rec.longestGlide")} rec={stats.records.glide} fmt={(v) => `${v.toFixed(1)} s`} />
-            <RecordStat label={t("rec.mostRuns")} rec={stats.records.runs} fmt={(v) => `${Math.round(v)}`} />
+            <Link to="/home" className="mt-3 block text-xs text-brand-300 hover:text-brand-200">{t("side.records")} →</Link>
           </div>
         )}
 
@@ -181,25 +166,6 @@ function SideStat({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-slate-300">{label}</span>
       <span className="font-semibold tabular-nums">{value}</span>
     </div>
-  );
-}
-
-function RecordStat({ label, rec, fmt }: { label: string; rec: StatRecord; fmt: (v: number) => string }) {
-  const row = (
-    <div className="flex items-baseline justify-between py-1">
-      <span className="text-sm text-slate-300">{label}</span>
-      <span className="font-semibold tabular-nums text-slate-200">{rec.value ? fmt(rec.value) : "–"}</span>
-    </div>
-  );
-  return rec.session_id ? (
-    <Link
-      to={`/sessions/${rec.session_id}${rec.run_idx != null ? `?run=${rec.run_idx}` : ""}`}
-      className="-mx-1 block rounded-lg px-1 hover:bg-slate-800/60"
-    >
-      {row}
-    </Link>
-  ) : (
-    row
   );
 }
 

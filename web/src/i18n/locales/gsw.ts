@@ -411,6 +411,11 @@ const gsw: Record<string, string> = {
 
   "profile.calculator": "Foil-Rechner",
 
+  "phome.hello": "Hoi, {name}",
+  "phome.latest": "Letschti Sessions",
+  "phome.allMine": "Alli vo mir",
+  "phome.homespotChatSoon": "Spot-Chat chunnt",
+
 };
 
 export default gsw

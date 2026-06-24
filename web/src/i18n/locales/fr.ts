@@ -482,6 +482,11 @@ const fr: Record<string, string> = {
 
   "profile.calculator": "Calculateur de foil",
 
+  "phome.hello": "Salut, {name}",
+  "phome.latest": "Dernières sessions",
+  "phome.allMine": "Toutes les miennes",
+  "phome.homespotChatSoon": "Chat du spot bientôt",
+
 };
 
 export default fr;

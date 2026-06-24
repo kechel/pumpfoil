@@ -37,7 +37,7 @@ export default function Login() {
         ? await api.register(email, password, displayName, lang)
         : await api.login(email, password);
       setToken(res.access_token);
-      nav("/");
+      nav("/home");
     } catch (err) {
       setError(humanError(err, t));
     } finally {

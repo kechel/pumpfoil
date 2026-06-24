@@ -585,6 +585,11 @@ const en: Record<string, string> = {
 
   "profile.calculator": "Foil calculator",
 
+  "phome.hello": "Hi, {name}",
+  "phome.latest": "Latest sessions",
+  "phome.allMine": "All mine",
+  "phome.homespotChatSoon": "Spot chat coming",
+
 };
 
 export default en;

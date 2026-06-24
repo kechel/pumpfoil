@@ -38,6 +38,7 @@ import Import from "./pages/Import";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
 import FoilStats from "./pages/FoilStats";
+import PersonalHome from "./pages/PersonalHome";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
     element: <RootRoute />,
     children: [
       { index: true, element: <Home /> },
+      { path: "home", element: <PersonalHome /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
       { path: "import", element: <Import /> },
