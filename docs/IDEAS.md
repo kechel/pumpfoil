@@ -3,7 +3,14 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
-- _(noch leer)_
+- **Foil-DB um weitere Marken erweitern.** Aktuell 6 (AXIS, Duotone, F-One, Gong, Sabfoil, TAKOON).
+  Kandidaten: Armstrong, Lift, Unifoil, Code, Naish, North, Cabrinha, Slingshot, KT, Takuma,
+  Levitaz, Mike's Lab, GoFoil, Appletree, Ensis, RRD, Moses, Horue, Indiana, Starboard/Fanatic.
+  **Datenlücke:** `span_cm` + `area_cm2` meist publiziert (Naming oft = Fläche, z. B. „HA 980" = 980 cm²,
+  oder = Breite in mm, z. B. AXIS „ART 999" = 999 mm), **`thickness_mm` aber praktisch nie** → muss
+  pro Foil aus Quelle/Schätzung kommen (sonst Calculator-Werte unzuverlässig). Plan: nur **verifizierte**
+  Einträge übernehmen; Dicke ggf. via Dickenverhältnis (t/c) grob schätzen + als „geschätzt" markieren.
+  Falls Jan eine Tabelle/Quelle hat, ist das der schnellste Weg.
 
 ---
 
