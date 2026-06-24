@@ -120,43 +120,52 @@ class MainActivity : ComponentActivity() {
         // Vibrationsalarm bei Speed-Grenzen.
         AlarmEffect(s.speedKmh, alarm)
 
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (s.recording) {
-                val pager = rememberPagerState(pageCount = { views.size })
-                HorizontalPager(state = pager, modifier = Modifier.weight(1f).fillMaxWidth()) { page ->
+        if (s.recording) {
+            // Datenseiten füllen je den Screen; letzte Wisch-Seite = Stop.
+            val pageCount = views.size + 1
+            val pager = rememberPagerState(pageCount = { pageCount })
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
                     Column(
                         Modifier.fillMaxSize().padding(8.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        views[page].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
-                            FieldView(fid, s, colorBy)
+                        if (page < views.size) {
+                            views[page].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
+                                FieldView(fid, s, colorBy)
+                            }
+                        } else {
+                            Button(onClick = { RecorderService.stop(applicationContext) }) { Text("Stop") }
+                            Spacer(Modifier.height(6.dp))
+                            Text(if (s.status.isNotEmpty()) s.status else "← wischen für Datenfelder",
+                                style = MaterialTheme.typography.caption2,
+                                color = Color(0xFF94A3B8))
                         }
                     }
                 }
-                if (views.size > 1) {
-                    Row(Modifier.padding(bottom = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        repeat(views.size) { i ->
-                            Box(Modifier.size(5.dp).background(
-                                if (i == pager.currentPage) Color(0xFF22D3EE) else Color(0xFF475569),
-                                CircleShape))
-                        }
+                // Seiten-Punkte unten.
+                Row(Modifier.padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(pageCount) { i ->
+                        Box(Modifier.size(5.dp).background(
+                            if (i == pager.currentPage) Color(0xFF22D3EE) else Color(0xFF475569),
+                            CircleShape))
                     }
                 }
-            } else {
-                Spacer(Modifier.weight(1f))
+            }
+        } else {
+            Column(Modifier.fillMaxSize().padding(12.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Pumpfoil", style = MaterialTheme.typography.title3)
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(10.dp))
+                Button(onClick = { RecorderService.start(applicationContext) }) { Text("Start") }
+                if (s.status.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(s.status, style = MaterialTheme.typography.caption2,
+                        color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                }
             }
-            Button(onClick = {
-                if (s.recording) RecorderService.stop(applicationContext)
-                else RecorderService.start(applicationContext)
-            }, modifier = Modifier.padding(bottom = 6.dp)) {
-                Text(if (s.recording) "Stop" else "Start")
-            }
-            if (s.status.isNotEmpty())
-                Text(s.status, style = MaterialTheme.typography.caption2,
-                    modifier = Modifier.padding(bottom = 4.dp))
         }
     }
 

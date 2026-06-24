@@ -68,31 +68,35 @@ struct RecordView: View {
     @State private var wasLow = false
 
     var body: some View {
-        VStack(spacing: 6) {
+        Group {
             if rec.isRecording {
+                // Datenseiten füllen je den Screen; Stop liegt auf der letzten Wisch-Seite.
                 TabView(selection: $page) {
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
                         VStack(spacing: 10) {
                             ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
-                        }.tag(idx)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .tag(idx)
                     }
+                    VStack(spacing: 12) {
+                        Button("Stop") { Task { await rec.stop() } }.tint(.red)
+                        Text("← wischen für Datenfelder").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tag(views.count)
                 }
                 .tabViewStyle(.page)
-                .frame(maxHeight: .infinity)
             } else {
-                Spacer()
-                Text("Pumpfoil").font(.title3)
-                Spacer()
-            }
-            Button(rec.isRecording ? "Stop" : "Start") {
-                Task { rec.isRecording ? await rec.stop() : await rec.start() }
-            }
-            .tint(rec.isRecording ? .red : .green)
-            if !rec.status.isEmpty {
-                Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                VStack(spacing: 12) {
+                    Text("Pumpfoil").font(.title3)
+                    Button("Start") { Task { await rec.start() } }.tint(.green)
+                    if !rec.status.isEmpty {
+                        Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    }
+                }.padding()
             }
         }
-        .padding(.horizontal, 6)
         .task { await loadConfig() }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }
