@@ -30,7 +30,7 @@ export default function Account() {
   const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("views");
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-4 flex items-center gap-2">
         <WatchIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>

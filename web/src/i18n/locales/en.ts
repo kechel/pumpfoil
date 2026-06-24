@@ -541,12 +541,16 @@ const en: Record<string, string> = {
   "spots.none": "No spots on the map yet.",
 
   "foils.title": "My foils",
-  "foils.hint": "Pick your default foil. Overridable per session/run later.",
+  "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",
   "foils.search": "Search foil…",
   "foils.allBrands": "All brands",
   "foils.choose": "Choose",
   "foils.mine": "My foil",
   "foils.count": "{n} foils",
+
+  "foils.setDefault": "Set default",
+  "foils.add": "Add",
+  "foils.remove": "Remove",
 
 };
 

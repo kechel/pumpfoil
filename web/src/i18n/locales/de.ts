@@ -566,12 +566,16 @@ const de: Record<string, string> = {
   "spots.none": "Noch keine Spots auf der Karte.",
 
   "foils.title": "Meine Foils",
-  "foils.hint": "Wähle dein Standard-Foil. Später je Session/Lauf überschreibbar.",
+  "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",
   "foils.search": "Foil suchen…",
   "foils.allBrands": "Alle Marken",
   "foils.choose": "Wählen",
   "foils.mine": "Mein Foil",
   "foils.count": "{n} Foils",
+
+  "foils.setDefault": "Als Standard",
+  "foils.add": "Merken",
+  "foils.remove": "Entfernen",
 
 };
 

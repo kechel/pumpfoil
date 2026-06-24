@@ -438,12 +438,16 @@ const it: Record<string, string> = {
   "spots.none": "Ancora nessuno spot sulla mappa.",
 
   "foils.title": "I miei foil",
-  "foils.hint": "Scegli il tuo foil predefinito. Sovrascrivibile per sessione/run.",
+  "foils.hint": "Segna i tuoi foil e scegline uno come predefinito (★). Sovrascrivibile per sessione.",
   "foils.search": "Cerca foil…",
   "foils.allBrands": "Tutte le marche",
   "foils.choose": "Scegli",
   "foils.mine": "Il mio foil",
   "foils.count": "{n} foil",
+
+  "foils.setDefault": "Predefinito",
+  "foils.add": "Aggiungi",
+  "foils.remove": "Rimuovi",
 
 };
 

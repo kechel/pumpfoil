@@ -367,12 +367,16 @@ const gsw: Record<string, string> = {
   "spots.none": "No kei Spots uf de Charte.",
 
   "foils.title": "Mini Foils",
-  "foils.hint": "Wähl dis Standard-Foil. Spöter je Session/Lauf überschribbar.",
+  "foils.hint": "Merk dini Foils und wähl eis als Standard (★). Je Session überschribbar.",
   "foils.search": "Foil sueche…",
   "foils.allBrands": "Alli Marke",
   "foils.choose": "Wähle",
   "foils.mine": "Mis Foil",
   "foils.count": "{n} Foils",
+
+  "foils.setDefault": "Als Standard",
+  "foils.add": "Merke",
+  "foils.remove": "Entferne",
 
 };
 

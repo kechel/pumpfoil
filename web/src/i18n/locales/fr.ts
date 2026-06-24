@@ -438,12 +438,16 @@ const fr: Record<string, string> = {
   "spots.none": "Aucun spot sur la carte pour l'instant.",
 
   "foils.title": "Mes foils",
-  "foils.hint": "Choisis ton foil par défaut. Modifiable par session/run plus tard.",
+  "foils.hint": "Marque tes foils et choisis-en un par défaut (★). Modifiable par session.",
   "foils.search": "Chercher un foil…",
   "foils.allBrands": "Toutes les marques",
   "foils.choose": "Choisir",
   "foils.mine": "Mon foil",
   "foils.count": "{n} foils",
+
+  "foils.setDefault": "Par défaut",
+  "foils.add": "Ajouter",
+  "foils.remove": "Retirer",
 
 };
 
