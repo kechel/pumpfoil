@@ -18,6 +18,10 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Melden-Icon** je Nachricht (klein).
   - **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen); Admin kann ausgeblendete wieder **freigeben**.
   - **Admin:** gemeldete Nachrichten einsehen; Nutzer im Chat **blockieren** bzw. auf **read-only** setzen.
+- **Persönliche Startseite / Dashboard.** Eigene „Mein"-Seite, erreichbar über das **Profilbild im Menü**
+  und **direkt nach Login** als erste Ansicht. Inhalt: **3 letzte Sessions**, **Chat an meinem (Home-)Spot**,
+  **meine Rekorde**. → Die Rekorde (aktuell links in der Sidebar) **wandern hierher** und kommen aus der Sidebar raus.
+  *(IA-Auswirkung: Post-Login-Ziel + Profilbild-Link; ggf. in `UX-IA.md` einarbeiten.)*
 
 ---
 
