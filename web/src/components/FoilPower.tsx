@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, FoilDims, PumpParams } from "../lib/foilPhysics";
 import { api } from "../lib/api";
 import { Card } from "./ui";
+import { InfoIcon } from "./Icons";
 import { useT } from "../i18n";
 
-// Theoretische Leistung für das gewählte Foil bei den real gemessenen Geschwindigkeiten.
-// Nutzt das geportete Physik-Modul (foilPhysics) + Fahrergewicht aus den Einstellungen.
-export function FoilPower({ foil, avgKmh, maxKmh, pumpHz, estimated }: {
+// Ohne erkannte Pump-Frequenz (z. B. TCX/GPX/FIT-Import, kein Roh-Accel) wird die
+// Pump-Trägheit pauschal angesetzt — sie ist in der Praxis recht konstant.
+const FALLBACK_INERTIA_W = 50;
+
+// Kompakte Stat-Kachel: theoretische Leistung bei Ø-Speed (+ (i)-Tooltip).
+export function FoilPowerStat({ foil, avgKmh, pumpHz, estimated }: {
   foil: FoilDims & { brand: string; model: string; size: string };
   avgKmh: number | null;
-  maxKmh: number | null;
   pumpHz: number | null;
   estimated?: boolean;
 }) {
@@ -23,43 +26,35 @@ export function FoilPower({ foil, avgKmh, maxKmh, pumpHz, estimated }: {
     }).catch(() => setWeight(DEFAULT_RIDER.riderWeight));
   }, []);
 
-  if (!foil.span_cm || !foil.area_cm2 || !foil.thickness_mm) return null;
+  if (!foil.span_cm || !foil.area_cm2 || !foil.thickness_mm || !avgKmh || avgKmh <= 0) return null;
+
   const rider = { riderWeight: weight ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
-  // Reale Pump-Frequenz (falls erkannt) für den Trägheitsanteil; sonst nur Vortrieb.
   const pump: PumpParams | undefined = pumpHz && pumpHz > 0
     ? { heaveAmp_cm: 12, pumpFreq_hz: pumpHz, recoveryLoss_pct: 35 } : undefined;
+  const r = computeFoilPowerAtSpeed(foil, avgKmh, { rider, pump });
+  const inertia = pump ? r.inertiaPower : FALLBACK_INERTIA_W;
+  const total = Math.round(r.dragPower + inertia);
 
-  const rows = ([
-    [t("power.avg"), avgKmh],
-    [t("power.max"), maxKmh],
-  ] as [string, number | null][]).filter(([, v]) => v && v > 0);
-  if (rows.length === 0) return null;
+  const tip = t("power.tip", {
+    foil: `${foil.brand} ${foil.model} ${foil.size}`,
+    weight: String(rider.riderWeight + rider.equipmentWeight),
+    speed: avgKmh.toFixed(1),
+    drag: String(Math.round(r.dragPower)),
+    inertia: String(Math.round(inertia)),
+    note: pump ? "" : ` (${t("power.estPump")})`,
+  }) + (estimated ? ` · ${t("power.estimated")}` : "");
 
   return (
-    <Card className="p-4">
-      <div className="mb-1 flex items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-200">{t("power.title")}</h3>
-        <span className="text-xs text-slate-400">{foil.brand} {foil.model} {foil.size}</span>
+    <Card className="relative overflow-hidden p-1.5">
+      <button type="button" title={tip} aria-label={tip}
+        className="absolute right-1 top-1 text-slate-400 hover:text-slate-200">
+        <InfoIcon className="h-3 w-3" />
+      </button>
+      <div className="flex items-baseline gap-1 leading-none">
+        <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{total}</span>
+        <span className="text-[11px] text-slate-400">W{pump ? "" : "*"}</span>
       </div>
-      <p className="mb-3 text-xs text-slate-500">
-        {t("power.basis", { weight: String(rider.riderWeight + rider.equipmentWeight) })}
-        {estimated ? ` · ${t("power.estimated")}` : ""}
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        {rows.map(([label, kmh]) => {
-          const r = computeFoilPowerAtSpeed(foil, kmh as number, { rider, pump });
-          return (
-            <div key={label} className="rounded-xl bg-slate-900/60 p-3">
-              <div className="text-xs text-slate-400">{label} · {(kmh as number).toFixed(1)} km/h</div>
-              <div className="text-2xl font-bold text-brand-400">{Math.round(r.power)} <span className="text-base font-normal text-slate-400">W</span></div>
-              <div className="mt-1 text-[11px] text-slate-500">
-                {t("power.drag")} {Math.round(r.dragPower)} W
-                {pump ? ` · ${t("power.pump")} ${Math.round(r.inertiaPower)} W` : ""}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t("power.title")}</div>
     </Card>
   );
 }

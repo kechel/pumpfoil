@@ -165,6 +165,12 @@ export const LockIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const InfoIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <circle cx="12" cy="12" r="9.5" /><line x1="12" y1="11" x2="12" y2="16.5" /><line x1="12" y1="7.5" x2="12" y2="7.5" />
+  </svg>
+);
+
 export const DownloadIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" />

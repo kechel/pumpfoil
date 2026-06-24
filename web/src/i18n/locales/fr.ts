@@ -336,6 +336,8 @@ const fr: Record<string, string> = {
   "chat.activeOthers": "Chats les plus actifs (48 h)",
   "chat.noMine": "Tu n'es encore dans aucun chat.",
   "chat.noActive": "Aucun chat actif ces dernières 48 h.",
+  "power.tip": "{foil} : puissance théorique à {speed} km/h moy., {weight} kg au total. Traînée {drag} W + inertie de pump {inertia} W{note}.",
+  "power.estPump": "estimation forfaitaire, sans données accel",
   "chat.placeholder": "Écrire un message …",
   "chat.send": "Envoyer",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",

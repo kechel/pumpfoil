@@ -286,6 +286,8 @@ const gsw: Record<string, string> = {
   "chat.activeOthers": "Aktivschti Chats (48 h)",
   "chat.noMine": "Du bisch no i keim Chat.",
   "chat.noActive": "Kei aktivi Chats i de letschte 48 h.",
+  "power.tip": "{foil}: theoretischi Leischtig bi Ø {speed} km/h, {weight} kg Gsamtgwicht. Vortrib {drag} W + Pump-Trägheit {inertia} W{note}.",
+  "power.estPump": "ohni Accel-Date pauschal gschätzt",
   "chat.placeholder": "Nachricht schribe …",
   "chat.send": "Schicke",
   "chat.empty": "No kei Nachrichte. Schrib di erscht!",
