@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { WaveIcon } from "../components/Icons";
+import { WaveIcon, ChevronIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -68,8 +68,8 @@ export default function Landing() {
             <button
               onClick={() => goShot(-1)}
               aria-label={t("land.prev")}
-              className="flex shrink-0 items-center px-1 text-6xl leading-none text-slate-500 hover:text-brand-400 sm:text-7xl"
-            >‹</button>
+              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
+            ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
             <img
               src={shots[shot].src}
               alt={shots[shot].cap}
@@ -78,8 +78,8 @@ export default function Landing() {
             <button
               onClick={() => goShot(1)}
               aria-label={t("land.next")}
-              className="flex shrink-0 items-center px-1 text-6xl leading-none text-slate-500 hover:text-brand-400 sm:text-7xl"
-            >›</button>
+              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
+            ><ChevronIcon className="h-12 w-12 sm:h-16 sm:w-16" /></button>
           </div>
           {/* Vorschau-Punkte */}
           <div className="mt-4 flex justify-center gap-2">

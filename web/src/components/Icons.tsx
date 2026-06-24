@@ -141,6 +141,33 @@ export const FlagIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const DownloadIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" />
+  </svg>
+);
+
+export const KeyboardIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="2.5" y="6" width="19" height="12" rx="2" />
+    <line x1="7" y1="14.5" x2="17" y2="14.5" />
+    <line x1="6" y1="9.5" x2="6" y2="9.5" /><line x1="9.5" y1="9.5" x2="9.5" y2="9.5" />
+    <line x1="13" y1="9.5" x2="13" y2="9.5" /><line x1="16.5" y1="9.5" x2="16.5" y2="9.5" />
+  </svg>
+);
+
+export const WifiOffIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 20h.01" />
+    <path d="M8.5 16.4a5 5 0 0 1 7 0" />
+    <path d="M5 12.9a10 10 0 0 1 5.2-2.7" />
+    <path d="M19 12.9a10 10 0 0 0-3.9-2.5" />
+    <path d="M22 8.8a16 16 0 0 0-9.6-3.3" />
+    <path d="M2 8.8a16 16 0 0 1 4.7-2.8" />
+    <line x1="2" y1="2" x2="22" y2="22" />
+  </svg>
+);
+
 export const CloseIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" />

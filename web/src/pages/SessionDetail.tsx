@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPower } from "../components/FoilPower";
@@ -507,7 +507,7 @@ export default function SessionDetail() {
     // Offline + nicht im Cache -> klare Meldung statt technischem Fehler.
     if (!navigator.onLine) return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center text-slate-300">
-        <div className="mb-2 text-3xl">📡</div>
+        <WifiOffIcon className="mx-auto mb-2 h-8 w-8 text-slate-400" />
         <p className="font-semibold text-slate-100">{t("pwa.sessionOfflineTitle")}</p>
         <p className="mt-1 text-sm">{t("pwa.sessionOfflineBody")}</p>
       </Card>
@@ -710,7 +710,7 @@ export default function SessionDetail() {
             onClick={() => setShowPumps((v) => !v)}
             className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showPumps ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
           >
-            {t("stat.pumps")} {showPumps ? "▪" : "▫"}
+            <span className="inline-flex items-center gap-1">{t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           {selectedRun != null && (
             <button onClick={() => setSelectedRun(null)} title={t("sd.clearSelection")} className="ml-1 rounded bg-slate-800 px-2 py-1 text-slate-200 hover:bg-slate-700">
@@ -773,7 +773,7 @@ export default function SessionDetail() {
       {segs.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">
           <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
-          <span className="mr-1 text-[10px] text-slate-500" title="1–9">⌨ 1–9</span>
+          <span className="mr-1 inline-flex items-center gap-1 text-[10px] text-slate-500" title="1–9"><KeyboardIcon className="h-3.5 w-3.5" /> 1–9</span>
           {segs.map((_, i) => (
             <button
               key={i}

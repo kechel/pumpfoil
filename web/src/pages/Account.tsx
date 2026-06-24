@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
-import { WatchIcon, ChevronIcon } from "../components/Icons";
+import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { useT } from "../i18n";
@@ -160,7 +160,7 @@ function AppDownloads() {
                 <span className="block truncate text-slate-100">{d.name}</span>
                 <span className="text-xs text-slate-400">{d.w}×{d.h} · {Math.round(d.bytes / 1024)} KB</span>
               </span>
-              <span className="shrink-0 rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-brand-300">⬇ .prg</span>
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-brand-300"><DownloadIcon className="h-3.5 w-3.5" /> .prg</span>
             </a>
           ))}
           {filtered.length === 0 && (
