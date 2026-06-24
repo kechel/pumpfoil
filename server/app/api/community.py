@@ -268,7 +268,9 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
             S.foil_id,
             func.count(func.distinct(S.id)),
             func.count(func.distinct(S.user_id)),
-            func.max(AR.best_speed_mps),
+            func.sum(AR.foiling_distance_m),
+            func.sum(AR.foiling_time_s),
+            func.sum(AR.pump_count),
             func.max(AR.best_distance_m),
             func.avg(AR.avg_cadence_hz),
         )).filter(S.foil_id.isnot(None))
@@ -278,15 +280,20 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
         return []
     fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
     out = []
-    for fid, n_sess, n_users, top_speed, best_dist, avg_hz in rows:
+    for fid, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, avg_hz in rows:
         f = fmap.get(fid)
         if not f:
             continue
+        dist = float(sum_dist) if sum_dist else 0.0
+        time = float(sum_time) if sum_time else 0.0
+        pumps = float(sum_pumps) if sum_pumps else 0.0
         out.append({
             "foil_id": fid, "brand": f.brand, "model": f.model, "size": f.size,
             "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None,
             "sessions": int(n_sess), "users": int(n_users),
-            "top_speed_kmh": round(float(top_speed) * 3.6, 1) if top_speed else None,
+            # Aussagekräftig fürs Foil: Ø-Speed (Distanz/Zeit) + Meter pro Pump.
+            "avg_speed_kmh": round(dist / time * 3.6, 1) if time > 0 else None,
+            "meters_per_pump": round(dist / pumps, 1) if pumps > 0 else None,
             "best_distance_m": round(float(best_dist)) if best_dist else None,
             "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
         })

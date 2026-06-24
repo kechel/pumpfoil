@@ -330,6 +330,8 @@ const en: Record<string, string> = {
   "chat.start": "Start of chat",
   "chat.title": "Chat",
   "chat.noRoom": "No chat room selected.",
+  "foilStats.colAvgSpeed": "Avg speed",
+  "foilStats.colMetersPerPump": "Meters/pump",
   "chat.placeholder": "Write a message …",
   "chat.send": "Send",
   "chat.empty": "No messages yet. Be the first!",

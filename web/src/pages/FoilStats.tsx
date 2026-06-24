@@ -34,7 +34,8 @@ export default function FoilStats() {
                 <th className="px-4 py-3 font-semibold">{t("foilStats.colFoil")}</th>
                 <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colSessions")}</th>
                 <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colUsers")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colTopSpeed")}</th>
+                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colAvgSpeed")}</th>
+                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colMetersPerPump")}</th>
                 <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colBestDist")}</th>
                 <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colAvgPump")}</th>
               </tr>
@@ -48,7 +49,8 @@ export default function FoilStats() {
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.top_speed_kmh != null ? `${r.top_speed_kmh} km/h` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh} km/h` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz} Hz` : "–"}</td>
                 </tr>
