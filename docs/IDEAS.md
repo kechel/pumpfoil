@@ -25,6 +25,8 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
+- **Chatraum per Push abonnieren.** Je Chatraum aktivierbare Push-Benachrichtigung bei neuen Nachrichten
+  (nutzt die bestehende Web-Push-Infra; neuer Notify-Typ je Raum, Opt-in). Sinnvoll mit Unread + „verlassen" verzahnt.
 
 ---
 
