@@ -27,7 +27,7 @@ export default function Account() {
     }
   }
 
-  const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("connect");
+  const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("views");
 
   return (
     <div className="mx-auto max-w-lg">
@@ -36,11 +36,11 @@ export default function Account() {
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>
 
-      <div className="mb-5 flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
-        <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
+      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-5">
         <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
         <TabBtn active={tab === "alarm"} onClick={() => setTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
         <TabBtn active={tab === "app"} onClick={() => setTab("app")}>{t("account.tabApp")}</TabBtn>
+        <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
         <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
 
@@ -94,7 +94,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   return (
     <button
       onClick={onClick}
-      className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+      className={`w-full rounded-lg px-2 py-2 text-center text-xs font-medium transition-colors sm:text-sm ${
         active ? "bg-brand-500 text-slate-950" : "text-slate-200 hover:bg-slate-800"
       }`}
     >
