@@ -40,10 +40,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   **einer Zeile**: Umschalter **Meine / \<Homespot\> / Alle** + **Spotsuche**. Hauptüberschrift dynamisch:
   „Sessions \<mein Name\>" | „Sessions 📍\<Spot\>" | „Sessions Alle". Merge der heutigen Sessions+AllSessions
   (statt zwei Routen/Tabs). Braucht **Homespot** (s. o.). Spot-Auswahl steuert Filter + Titel.
-- **Öffentliche Startseite reviewen & um neue Features ergänzen.** Aktuell zeigt sie Track/Analyse,
-  FIT-Upload, „immer kostenlos", Datenschutz/Open-Source. Ergänzen, sobald live: **Community-Chat**
-  (Spot + Session), **Push-Benachrichtigungen**, **On-Foil-Vibrationsalarme**, **Foil-DB/Stats**,
-  **PWA/Offline/Install**, **Spots-Karte**. Wording generisch (Multi-Plattform, nicht nur Garmin).
+- **Öffentliche Startseite** — *teilweise erledigt:* Feature-Kacheln für **Foil-DB/Stats, On-Foil-Alarm,
+  Push, PWA/Offline** ergänzt; Wording generisch. **Noch offen:** **Community-Chat** + **Spots-Karte**
+  als Kacheln ergänzen, sobald Chat live ist; ggf. Slider-Screenshots der neuen Features.
 - **Chatraum per Push abonnieren.** Je Chatraum aktivierbare Push-Benachrichtigung bei neuen Nachrichten
   (nutzt die bestehende Web-Push-Infra; neuer Notify-Typ je Raum, Opt-in). Sinnvoll mit Unread + „verlassen" verzahnt.
 
