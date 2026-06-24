@@ -98,7 +98,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
             {has && r!.track_preview && (
               <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -translate-y-1/2 text-brand-400/70" />
             )}
-            <div className="text-lg font-bold tabular-nums text-slate-100">{has ? it.fmt(r!.value) : "–"}</div>
+            <div className="text-lg font-bold tabular-nums text-brand-400">{has ? it.fmt(r!.value) : "–"}</div>
             <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-300">{t(it.labelKey)}</div>
             {has && (
               <div className="mt-0.5 text-[11px] text-slate-300">

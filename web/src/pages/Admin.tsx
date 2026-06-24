@@ -104,7 +104,7 @@ function OverviewTab() {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {cells.map(([labelKey, v]) => (
         <Card key={labelKey} className="p-3">
-          <div className="text-2xl font-bold tabular-nums text-slate-100">{v}</div>
+          <div className="text-2xl font-bold tabular-nums text-brand-400">{v}</div>
           <div className="text-[11px] uppercase tracking-wide text-slate-300">{t(labelKey)}</div>
         </Card>
       ))}
@@ -330,7 +330,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
             [t("adm.st.farRun"), stats.records.distance.value ? `${Math.round(stats.records.distance.value)} m` : "–"],
             [t("adm.st.topSpeed"), stats.records.speed.value ? `${(stats.records.speed.value * 3.6).toFixed(1)}` : "–"],
           ].map(([l, v]) => (
-            <div key={l}><div className="text-sm font-bold tabular-nums text-slate-100">{v}</div><div className="text-[10px] uppercase text-slate-400">{l}</div></div>
+            <div key={l}><div className="text-sm font-bold tabular-nums text-brand-400">{v}</div><div className="text-[10px] uppercase text-slate-400">{l}</div></div>
           ))}
         </div>
       )}
