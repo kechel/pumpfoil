@@ -51,6 +51,11 @@ export interface ChatRoom {
   unread: number; last_text: string; last_at: string | null;
 }
 
+export interface ActiveRoom {
+  scope: string; label: string; url: string;
+  messages: number; last_text: string; last_at: string | null;
+}
+
 export interface Foil {
   id: number; brand: string; model: string; size: string;
   span_cm: number; area_cm2: number; thickness_mm: number; thickness_estimated?: boolean;
@@ -293,6 +298,7 @@ export const api = {
   chatSubscribe: (scope: string, on: boolean) => req<{ ok: boolean; push: boolean }>(`/api/chat/subscribe`, { method: "POST", body: JSON.stringify({ scope, on }) }),
   chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
   chatRooms: () => req<ChatRoom[]>(`/api/chat/rooms`),
+  chatActive: (hours = 48, limit = 3) => req<ActiveRoom[]>(`/api/chat/active?hours=${hours}&limit=${limit}`),
   foils: (params?: { q?: string; brand?: string }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);

@@ -338,3 +338,45 @@ def my_rooms(
         })
     out.sort(key=lambda r: (r["unread"] > 0, r["last_at"] or ""), reverse=True)
     return out
+
+
+@router.get("/active")
+def active_rooms(
+    hours: int = 48, limit: int = 3,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Aktivste Chaträume der letzten `hours` Stunden — OHNE die eigenen (in denen
+    der Nutzer Mitglied ist), nach Nachrichtenzahl sortiert (Entdeckung)."""
+    from sqlalchemy import func
+
+    since = datetime.now(timezone.utc) - timedelta(hours=min(max(hours, 1), 168))
+    mine = {
+        r[0] for r in db.query(models.ChatRoomState.scope)
+        .filter(models.ChatRoomState.user_id == user.id,
+                models.ChatRoomState.left.isnot(True)).all()
+    }
+    rows = (
+        db.query(models.ChatMessage.scope, func.count(models.ChatMessage.id).label("n"))
+        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.created_at >= since)
+        .group_by(models.ChatMessage.scope)
+        .order_by(func.count(models.ChatMessage.id).desc())
+        .all()
+    )
+    out = []
+    for scope, n in rows:
+        if scope in mine:
+            continue
+        last = (
+            db.query(models.ChatMessage)
+            .filter(models.ChatMessage.scope == scope, models.ChatMessage.hidden.isnot(True))
+            .order_by(models.ChatMessage.id.desc()).first()
+        )
+        out.append({
+            "scope": scope, "label": _scope_label(scope), "url": _scope_url(scope),
+            "messages": int(n),
+            "last_text": last.text[:120] if last else "",
+            "last_at": last.created_at.isoformat() if last and last.created_at else None,
+        })
+        if len(out) >= min(max(limit, 1), 20):
+            break
+    return out
