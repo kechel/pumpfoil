@@ -38,6 +38,7 @@ import Import from "./pages/Import";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
 import FoilStats from "./pages/FoilStats";
+import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
 import Admin from "./pages/Admin";
 import Reset from "./pages/Reset";
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },
       { path: "foil-stats", element: <FoilStats /> },
+      { path: "foil-rechner", element: <FoilCalculator /> },
       { path: "account", element: <Account /> },
       { path: "einstellungen", element: <Settings /> },
       { path: "sessions/:id", element: <SessionDetail /> },
