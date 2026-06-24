@@ -95,6 +95,32 @@ class Foil(Base):
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
+class ChatMessage(Base):
+    """Chat/Diskussion — gemeinsame Engine. scope = "session:<id>" | "spot:<name>"."""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    scope: Mapped[str] = mapped_column(String(140), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    text: Mapped[str] = mapped_column(String(2000))
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    report_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+
+
+class ChatReport(Base):
+    """Meldung einer Chat-Nachricht (1× je Nutzer)."""
+
+    __tablename__ = "chat_reports"
+    __table_args__ = (UniqueConstraint("message_id", "user_id", name="uq_chatreport"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("chat_messages.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class PushSubscription(Base):
     """Web-Push-Subscription eines Browsers/Geräts (VAPID)."""
 
