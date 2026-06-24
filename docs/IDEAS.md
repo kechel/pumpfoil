@@ -22,6 +22,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   und **direkt nach Login** als erste Ansicht. Inhalt: **3 letzte Sessions**, **Chat an meinem (Home-)Spot**,
   **meine Rekorde**. → Die Rekorde (aktuell links in der Sidebar) **wandern hierher** und kommen aus der Sidebar raus.
   *(IA-Auswirkung: Post-Login-Ziel + Profilbild-Link; ggf. in `UX-IA.md` einarbeiten.)*
+  - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
+    seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
+  - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
 
 ---
 
