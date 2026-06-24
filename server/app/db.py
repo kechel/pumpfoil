@@ -85,6 +85,7 @@ def _migrate_add_columns() -> None:
             "avatar_url": "VARCHAR(255)",
             "is_admin": "BOOLEAN DEFAULT 0",
             "blocked": "BOOLEAN DEFAULT 0",
+            "chat_readonly": "BOOLEAN DEFAULT false",
         },
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",

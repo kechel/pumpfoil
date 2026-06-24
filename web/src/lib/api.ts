@@ -278,6 +278,9 @@ export const api = {
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatPost: (scope: string, text: string) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text }) }),
   chatReport: (id: number) => req<{ ok: boolean; report_count: number; hidden: boolean }>(`/api/chat/${id}/report`, { method: "POST" }),
+  chatHide: (id: number, hidden: boolean) => req<{ ok: boolean; id: number; hidden: boolean }>(`/api/chat/${id}/hide`, { method: "POST", body: JSON.stringify({ hidden }) }),
+  chatReported: () => req<(ChatMsg & { scope: string })[]>(`/api/chat/reported`),
+  chatSetReadonly: (userId: number, readonly: boolean) => req<{ ok: boolean; user_id: number; chat_readonly: boolean }>(`/api/chat/moderation/readonly`, { method: "POST", body: JSON.stringify({ user_id: userId, readonly }) }),
   foils: (params?: { q?: string; brand?: string }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);

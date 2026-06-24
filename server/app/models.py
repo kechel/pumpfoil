@@ -44,6 +44,8 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Gesperrt: kein Login, Token ungültig, Inhalte aus der Community ausgeblendet.
     blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Chat-Read-Only: darf Chats lesen, aber nicht mehr posten (Moderation).
+    chat_readonly: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Bevorzugte UI-Sprache (de, gsw, de-AT, en, fr, it, es). Default Deutsch.
     language: Mapped[str] = mapped_column(String(8), default="de", server_default="de")
 

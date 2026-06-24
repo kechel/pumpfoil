@@ -23,7 +23,10 @@ export function Chat({ scope }: { scope: string }) {
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const lastId = useRef(0);
+
+  useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
 
   useEffect(() => {
     let alive = true;
@@ -54,6 +57,13 @@ export function Chat({ scope }: { scope: string }) {
     if (!confirm(t("chat.reportConfirm"))) return;
     api.chatReport(id).then(() => setMsgs((prev) => prev.map((m) => m.id === id ? { ...m, report_count: m.report_count + 1 } : m))).catch(() => {});
   }
+  function toggleHide(m: ChatMsg) {
+    api.chatHide(m.id, !m.hidden).then((r) => setMsgs((prev) => prev.map((x) => x.id === m.id ? { ...x, hidden: r.hidden } : x))).catch(() => {});
+  }
+  function setReadonly(m: ChatMsg) {
+    if (!confirm(t("chat.readonlyConfirm", { name: m.name || "?" }))) return;
+    api.chatSetReadonly(m.user_id, true).catch(() => {});
+  }
 
   return (
     <div>
@@ -66,9 +76,22 @@ export function Chat({ scope }: { scope: string }) {
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-semibold text-slate-200">{m.name || "—"}</span>
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
-                {!m.mine && (
-                  <button onClick={() => report(m.id)} title={t("chat.report")} className="ml-auto text-xs text-slate-500 hover:text-red-400">⚠</button>
-                )}
+                <span className="ml-auto flex items-center gap-2">
+                  {isAdmin && m.report_count > 0 && (
+                    <span className="text-[10px] text-amber-400" title={t("chat.reports")}>⚑{m.report_count}</span>
+                  )}
+                  {isAdmin && (
+                    <>
+                      <button onClick={() => toggleHide(m)} className="text-xs text-slate-500 hover:text-brand-300" title={m.hidden ? t("chat.unhide") : t("chat.hide")}>{m.hidden ? "👁" : "🚫"}</button>
+                      {!m.mine && (
+                        <button onClick={() => setReadonly(m)} className="text-xs text-slate-500 hover:text-red-400" title={t("chat.readonly")}>🔇</button>
+                      )}
+                    </>
+                  )}
+                  {!m.mine && (
+                    <button onClick={() => report(m.id)} title={t("chat.report")} className="text-xs text-slate-500 hover:text-red-400">⚠</button>
+                  )}
+                </span>
               </div>
               <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>
             </div>

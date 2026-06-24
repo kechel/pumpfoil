@@ -62,6 +62,8 @@ def post_message(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     _check_scope(scope)
+    if user.chat_readonly:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
     text = (body.text or "").strip()
     if not text:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leere Nachricht")
@@ -98,3 +100,68 @@ def report_message(
             m.hidden = True
         db.commit()
     return {"ok": True, "report_count": m.report_count, "hidden": m.hidden}
+
+
+def _require_admin(user: models.User) -> None:
+    if not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur für Admins")
+
+
+class HideIn(BaseModel):
+    hidden: bool
+
+
+@router.post("/{message_id}/hide")
+def set_hidden(
+    message_id: int, body: HideIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Admin: Nachricht aus-/einblenden (Freigeben einer gemeldeten Nachricht)."""
+    _require_admin(user)
+    m = db.get(models.ChatMessage, message_id)
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    m.hidden = bool(body.hidden)
+    db.commit()
+    return {"ok": True, "id": m.id, "hidden": m.hidden}
+
+
+@router.get("/reported")
+def list_reported(
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Admin: alle gemeldeten Nachrichten (report_count > 0), neueste zuerst."""
+    _require_admin(user)
+    rows = (
+        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url)
+        .join(models.User, models.ChatMessage.user_id == models.User.id)
+        .filter(models.ChatMessage.report_count > 0)
+        .order_by(models.ChatMessage.report_count.desc(), models.ChatMessage.id.desc())
+        .limit(200).all()
+    )
+    out = []
+    for m, name, avatar in rows:
+        d = _msg_out(m, name, avatar, user.id)
+        d["scope"] = m.scope
+        out.append(d)
+    return out
+
+
+class ReadonlyIn(BaseModel):
+    user_id: int
+    readonly: bool
+
+
+@router.post("/moderation/readonly")
+def set_readonly(
+    body: ReadonlyIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Admin: einen Nutzer im Chat auf read-only setzen / wieder freigeben."""
+    _require_admin(user)
+    target = db.get(models.User, body.user_id)
+    if target is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nutzer nicht gefunden")
+    target.chat_readonly = bool(body.readonly)
+    db.commit()
+    return {"ok": True, "user_id": target.id, "chat_readonly": target.chat_readonly}

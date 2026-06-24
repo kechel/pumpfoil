@@ -11,16 +11,16 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   pro Foil aus Quelle/Schätzung kommen (sonst Calculator-Werte unzuverlässig). Plan: nur **verifizierte**
   Einträge übernehmen; Dicke ggf. via Dickenverhältnis (t/c) grob schätzen + als „geschätzt" markieren.
   Falls Jan eine Tabelle/Quelle hat, ist das der schnellste Weg.
-- **Spot-Sessions → Direktlink zum Spot-Chat.** In der Sessions-Ansicht eines Spots (`/alle-sessions?spot=…`
-  bzw. Spot-Seite) ein Button/Link direkt in den zugehörigen Spot-Chatraum.
+- ✅ **Spot-Sessions → Direktlink zum Spot-Chat.** *umgesetzt:* in `/alle-sessions?spot=…` aufklappbarer
+  Spot-Chat (Button „💬 Spot-Chat"); Homespot-Karte auf /home zeigt den Spot-Chat direkt.
 - **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine):
-  - **Duplikatserkennung** — verhindert versehentliches Doppelposten (gleicher Text kurz hintereinander).
-  - **Melden-Icon** je Nachricht (klein).
-  - **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen); Admin kann ausgeblendete wieder **freigeben**.
-  - **Admin:** gemeldete Nachrichten einsehen; Nutzer im Chat **blockieren** bzw. auf **read-only** setzen.
-- ✅ **Persönliche Startseite / Dashboard** — *umgesetzt: /home (Rekorde + 3 letzte Sessions + Homespot),
+  - ✅ **Duplikatserkennung** — *umgesetzt:* gleicher Text desselben Users im selben Raum < 2 min -> kein Doppelpost.
+  - ✅ **Melden-Icon** je Nachricht (klein). *umgesetzt (⚠ pro Fremdnachricht).*
+  - ✅ **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen). *umgesetzt.* — Admin-**Freigeben** offen.
+  - **Admin:** gemeldete Nachrichten einsehen; ausgeblendete wieder **freigeben**; Nutzer im Chat
+    **blockieren** bzw. auf **read-only** setzen. *(nächster Tick)*
+- ✅ **Persönliche Startseite / Dashboard** — *umgesetzt: /home (Rekorde + 3 letzte Sessions + Homespot-Chat),
   Home als 1. Bottom-Tab (6 Tabs), Profilbild + Post-Login -> /home, Rekorde aus Sidebar entfernt.*
-  **Offen:** Homespot-**Chat**-Sektion einbauen (sobald Chat live), ggf. mehr Widgets.
   - **Ungelesen-Hinweise:** auf der Home-Ansicht anzeigen, wenn es in **Chats, die ich angesehen habe**,
     seit meinem letzten Lesen **neue Nachrichten** gab (pro Chatraum). Braucht „zuletzt gelesen je Raum/User".
   - **Chatraum verlassen:** Möglichkeit, einen Chatraum zu verlassen (taucht dann nicht mehr in „meine Chats"/Unread auf).
