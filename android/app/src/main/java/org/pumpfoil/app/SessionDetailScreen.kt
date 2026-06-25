@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -93,12 +94,24 @@ private fun DetailContent(s: SessionDetail) {
         s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
 
         val a = s.analysis
-        // Track: GPS-Polyline (speed-gefärbt) — ohne externe Kartenkacheln, leichtgewichtig.
+        // Track: GPS-Polyline (speed-gefärbt) + Speed-Verlauf — ohne externe
+        // Kartenkacheln, leichtgewichtig.
         a?.trackGeojson?.let { tg ->
             val track = remember(tg) { parseTrack(tg) }
             if (track.points.size >= 2) {
                 Card(Modifier.fillMaxWidth()) {
                     TrackMap(track, Modifier.fillMaxWidth().aspectRatio(1.3f).padding(8.dp))
+                }
+            }
+            val speedsKmh = remember(track) { track.speedsMps.map { it * 3.6 } }
+            if (speedsKmh.size >= 2) {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text("Geschwindigkeit (km/h)", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(6.dp))
+                        SpeedChart(speedsKmh, Modifier.fillMaxWidth().aspectRatio(2.4f))
+                    }
                 }
             }
         }
@@ -174,6 +187,33 @@ private fun TrackMap(track: Track, modifier: Modifier = Modifier) {
                 color = if (track.speedsMps.isEmpty()) grid else speedColor(sp),
                 start = project(pts[i]), end = project(pts[i + 1]),
                 strokeWidth = 4f, cap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+// Speed-Verlauf als Canvas-Liniendiagramm (speed-gefärbt), Baseline 0, Top = Maxwert.
+@Composable
+private fun SpeedChart(speedsKmh: List<Double>, modifier: Modifier = Modifier) {
+    val maxV = (speedsKmh.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
+    val axis = MaterialTheme.colorScheme.surfaceVariant
+    Canvas(modifier) {
+        val pad = 6f
+        val availW = size.width - 2 * pad
+        val availH = size.height - 2 * pad
+        // Nulllinie unten.
+        drawLine(axis, Offset(pad, pad + availH), Offset(pad + availW, pad + availH), strokeWidth = 2f)
+        val n = speedsKmh.size
+        fun project(i: Int, v: Double): Offset {
+            val x = pad + availW * (if (n > 1) i.toFloat() / (n - 1) else 0f)
+            val y = pad + availH * (1f - (v / maxV).toFloat())
+            return Offset(x, y)
+        }
+        for (i in 0 until n - 1) {
+            drawLine(
+                color = speedColor((speedsKmh[i] + speedsKmh[i + 1]) / 2),
+                start = project(i, speedsKmh[i]), end = project(i + 1, speedsKmh[i + 1]),
+                strokeWidth = 3f, cap = StrokeCap.Round,
             )
         }
     }
