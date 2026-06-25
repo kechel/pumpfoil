@@ -77,6 +77,12 @@ enum Api {
         try await request("/api/community/foil-stats", method: "GET", body: nil, auth: true)
     }
 
+    struct LikeState: Decodable { let like_count: Int; let liked: Bool }
+
+    static func toggleLike(_ id: Int) async throws -> LikeState {
+        try await request("/api/community/sessions/\(id)/like", method: "POST", body: nil, auth: true)
+    }
+
     // Teil-Update der Settings (my_foils, foil_id) -> PUT, Antwort ignoriert.
     static func saveSettings(_ patch: [String: Any]) async throws {
         guard let url = URL(string: baseURL + "/api/settings") else { throw ApiError.badURL }

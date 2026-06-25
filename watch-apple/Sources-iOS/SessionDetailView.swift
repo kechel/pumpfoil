@@ -7,6 +7,8 @@ struct SessionDetailView: View {
     @State private var session: SessionDetail?
     @State private var loading = true
     @State private var error: String?
+    @State private var liked = false
+    @State private var likeCount = 0
 
     var body: some View {
         ScrollView {
@@ -25,12 +27,26 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(dateText(s)).font(.title2).bold()
-                if let p = s.place_name, !p.isEmpty {
-                    Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(dateText(s)).font(.title2).bold()
+                    if let p = s.place_name, !p.isEmpty {
+                        Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    if let c = s.caption, !c.isEmpty { Text(c).foregroundStyle(.secondary) }
                 }
-                if let c = s.caption, !c.isEmpty { Text(c).foregroundStyle(.secondary) }
+                Spacer()
+                Button {
+                    let prev = liked; liked.toggle(); likeCount += liked ? 1 : -1
+                    Task {
+                        do { let st = try await Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
+                        catch { liked = prev; likeCount += liked ? 1 : -1 }
+                    }
+                } label: {
+                    Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
+                        .foregroundStyle(liked ? .pink : .secondary)
+                }
+                .buttonStyle(.bordered)
             }
 
             if let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2 {
@@ -92,8 +108,13 @@ struct SessionDetailView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        do { session = try await Api.session(id); error = nil }
-        catch { self.error = error.localizedDescription }
+        do {
+            let s = try await Api.session(id)
+            session = s
+            liked = s.liked ?? false
+            likeCount = s.like_count ?? 0
+            error = nil
+        } catch { self.error = error.localizedDescription }
     }
 }
 

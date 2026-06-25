@@ -126,6 +126,7 @@ struct SessionDetail: Codable, Identifiable {
     let caption: String?
     let owner_name: String?
     let like_count: Int?
+    let liked: Bool?
     let analysis: Analysis?
 
     var startedDate: Date? {
