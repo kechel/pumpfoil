@@ -266,8 +266,6 @@ const de: Record<string, string> = {
   "sd.colorPumpHz": "Pump Hz",
   "sd.colorOptimal": "vs. Optimal",
   "sd.optimalLegend": "Optimal {v} km/h",
-  "sd.colorPumpCycle": "Pump-Zyklus",
-  "sd.pumpCycleLegend": "hell = Pump → dunkel vor nächstem",
   "sd.smoothing": "Glättung:",
   "sd.clearSelection": "Auswahl aufheben (alle Läufe)",
   "sd.close": "✕ Schließen",
