@@ -121,9 +121,9 @@ class MainActivity : ComponentActivity() {
         AlarmEffect(s.speedKmh, alarm)
 
         if (s.recording) {
-            // Datenseiten füllen je den Screen; letzte Wisch-Seite = Stop.
-            val pageCount = views.size + 1
-            val pager = rememberPagerState(pageCount = { pageCount })
+            // Stop an BEIDEN Enden (Pager läuft nicht um); Start landet auf 1. Datenseite.
+            val pageCount = views.size + 2
+            val pager = rememberPagerState(initialPage = 1, pageCount = { pageCount })
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
                     Column(
@@ -131,16 +131,18 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        if (page < views.size) {
-                            views[page].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
-                                FieldView(fid, s, colorBy)
+                        when {
+                            page in 1..views.size ->
+                                views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
+                                    FieldView(fid, s, colorBy)
+                                }
+                            else -> {  // Stop-Seiten (vorne & hinten)
+                                Button(onClick = { RecorderService.stop(applicationContext) }) { Text("Stop") }
+                                Spacer(Modifier.height(6.dp))
+                                Text(if (s.status.isNotEmpty()) s.status
+                                     else if (page == 0) "Datenfelder →" else "← Datenfelder",
+                                    style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                             }
-                        } else {
-                            Button(onClick = { RecorderService.stop(applicationContext) }) { Text("Stop") }
-                            Spacer(Modifier.height(6.dp))
-                            Text(if (s.status.isNotEmpty()) s.status else "← wischen für Datenfelder",
-                                style = MaterialTheme.typography.caption2,
-                                color = Color(0xFF94A3B8))
                         }
                     }
                 }

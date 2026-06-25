@@ -63,30 +63,27 @@ struct RecordView: View {
     @State private var views: [[Int]] = [[1, 2, 0]]
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
-    @State private var page = 0
+    @State private var page = 1
     @State private var wasHigh = false
     @State private var wasLow = false
 
     var body: some View {
         Group {
             if rec.isRecording {
-                // Datenseiten füllen je den Screen; Stop liegt auf der letzten Wisch-Seite.
+                // Stop an BEIDEN Enden (kein Umlauf-Wischen möglich); Start landet auf 1. Datenseite.
                 TabView(selection: $page) {
+                    stopPage("Datenfelder →").tag(0)
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
                         VStack(spacing: 10) {
                             ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .tag(idx)
+                        .tag(idx + 1)
                     }
-                    VStack(spacing: 12) {
-                        Button("Stop") { Task { await rec.stop() } }.tint(.red)
-                        Text("← wischen für Datenfelder").font(.caption2).foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .tag(views.count)
+                    stopPage("← Datenfelder").tag(views.count + 1)
                 }
                 .tabViewStyle(.page)
+                .onChange(of: rec.isRecording) { rec in if rec { page = 1 } }
             } else {
                 VStack(spacing: 12) {
                     Text("Pumpfoil").font(.title3)
@@ -99,6 +96,14 @@ struct RecordView: View {
         }
         .task { await loadConfig() }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
+    }
+
+    @ViewBuilder private func stopPage(_ hint: String) -> some View {
+        VStack(spacing: 12) {
+            Button("Stop") { Task { await rec.stop() } }.tint(.red)
+            Text(hint).font(.caption2).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func activeFields(_ f: [Int]) -> [Int] {
