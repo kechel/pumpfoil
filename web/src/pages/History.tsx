@@ -28,6 +28,9 @@ const AGG_TOP: Agg[] = [
   { key: "avg_speed", field: "avg_speed", kind: "max", labelKey: "sd.avgSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, color: "#f59e0b" },
   { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v) => `${v.toFixed(2)} Hz`, color: "#f472b6" },
   { key: "pumps_per_session", kind: "ratio", num: "pumps", den: "count", labelKey: "metric.pumpsPerSession", fmt: (v) => v.toFixed(0), color: "#fb7185" },
+  // Meter pro Pump im Zeitverlauf: Σ Foiling-km / Σ Pumps (×1000 = m), als Verhältnis
+  // (kein Summen-Wert -> bewusst nicht in der Kumuliert-/Summen-Sektion).
+  { key: "meters_per_pump", kind: "ratio", num: "foiling_km", den: "pumps", labelKey: "metric.metersPerPump", fmt: (v) => `${(v * 1000).toFixed(1)} m`, color: "#2dd4bf" },
 ];
 // Unten: reine Summen über das Fenster bzw. kumuliert.
 const AGG_SUM: Agg[] = [

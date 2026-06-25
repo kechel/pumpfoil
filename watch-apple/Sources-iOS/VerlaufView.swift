@@ -53,6 +53,7 @@ struct VerlaufView: View {
                 stat("\(String(format: "%.1f", h.foiling_km)) km", "Foiling")
                 stat("\(h.runs)", "Läufe")
                 stat("\(h.pumps)", "Pumps")
+                stat(h.pumps > 0 ? String(format: "%.1f", h.foiling_km * 1000 / Double(h.pumps)) : "–", "m/Pump")
                 stat("\(String(format: "%.1f", h.speed * 3.6))", "km/h")
             }
         }

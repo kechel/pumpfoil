@@ -81,8 +81,10 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                             modifier = Modifier.clickable { onOpen(p.sessionId) },
                             headlineContent = { Text(prettyDate(p.startedAt)) },
                             supportingContent = {
-                                Text("%.2f km Foiling · %d Läufe · %d Pumps · max %.1f km/h"
-                                    .format(p.foilingKm, p.runs, p.pumps, p.speed * 3.6))
+                                val mpp = if (p.pumps > 0) p.foilingKm * 1000.0 / p.pumps else 0.0
+                                Text("%.2f km · %d Läufe · %d Pumps · %s m/Pump · max %.1f km/h"
+                                    .format(p.foilingKm, p.runs, p.pumps,
+                                        if (mpp > 0) "%.1f".format(mpp) else "–", p.speed * 3.6))
                             },
                             leadingContent = {
                                 Icon(Icons.Filled.ShowChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
