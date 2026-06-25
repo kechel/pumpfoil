@@ -3,6 +3,12 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- **Google-OAuth-Verifizierung: Datenschutzerklärung ergänzen.** Google (Third Party Data Safety)
+  verlangt, dass die Privacy Policy unter `/impressum` explizit **Google-Nutzerdaten** dokumentiert:
+  *Data Accessed* (E-Mail, Vorname/`given_name`, Konto-ID `sub`) und *Data Usage* (nur Konto-Erstellung/
+  Anmeldung; kein Drive/Gmail/Kalender; keine Weitergabe an Dritte). Eigenen Abschnitt „Google-Nutzerdaten"
+  einfügen, dann per E-Mail-Reply bestätigen (Verification Center). Betrifft den OAuth-Login.
+
 - ✅ **Watch Offline-Recording + Sync-UI** (2026-06-25, Apple + Wear): Aufnahme ist **local-first**
   (persistenter `LocalStore`, kein Netz/Pairing zum Start nötig); **Pairing optional** („Später
   verbinden"), Sessions werden lokal gepuffert und per `drain()` automatisch nachgesynct, sobald
