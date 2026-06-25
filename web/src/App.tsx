@@ -5,6 +5,7 @@ import { Avatar } from "./components/ui";
 import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
+import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
 import { warmMySessions, warmMedia } from "./lib/pwaCache";
 
@@ -54,6 +55,7 @@ export default function App() {
     <div className="flex min-h-full flex-col md:flex-row">
       <ScrollRestoration />
       <FeedbackWidget />
+      <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 p-4 md:flex">
         <Link to="/" className="mb-4 flex items-center gap-2 px-2 text-lg font-bold">

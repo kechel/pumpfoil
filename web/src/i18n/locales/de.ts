@@ -710,6 +710,20 @@ const de: Record<string, string> = {
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",
 
+  "compare.title": "Vergleich",
+  "compare.add": "Zum Vergleich",
+  "compare.remove": "Aus Vergleich entfernen",
+  "compare.inList": "Im Vergleich",
+  "compare.bar": "Vergleich ({n})",
+  "compare.open": "Vergleich öffnen",
+  "compare.clear": "Leeren",
+  "compare.full": "Vergleich voll (max. {n})",
+  "compare.empty": "Noch nichts markiert. Markiere Sessions in der Liste oder einzelne Läufe in einer Session, um sie hier gegenüberzustellen.",
+  "compare.session": "Session",
+  "compare.run": "Lauf {n}",
+  "compare.subtitle": "{n} markiert",
+  "compare.gone": "(nicht mehr verfügbar)",
+
 };
 
 export default de;

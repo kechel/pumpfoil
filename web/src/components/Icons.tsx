@@ -107,6 +107,14 @@ export const RunsIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Vergleich — zwei Balken nebeneinander (Sessions/Läufe gegenüberstellen).
+export const CompareIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="4" y="9" width="6" height="11" rx="1" />
+    <rect x="14" y="4" width="6" height="16" rx="1" />
+  </svg>
+);
+
 export const HeartIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
     <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />

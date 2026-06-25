@@ -3,12 +3,13 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPowerStat } from "../components/FoilPower";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { Chat } from "../components/Chat";
+import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
 function fmtKm(m: number | null | undefined) {
@@ -271,6 +272,7 @@ export default function SessionDetail() {
   const [win, setWin] = useState<"1" | "3" | "5">("3");
   const [showPumps, setShowPumps] = useState(false);
   const [weightKg, setWeightKg] = useState<number | null>(null);
+  const compareRefs = useCompare();
 
   useEffect(() => {
     api.getSettings().then((s) => {
@@ -566,6 +568,18 @@ export default function SessionDetail() {
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
         <div className="flex items-center gap-2">
+          {(() => {
+            const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
+            return (
+              <button
+                onClick={() => toggleCompare({ sessionId: session.id, runIdx: null })}
+                title={inCmp ? t("compare.remove") : t("compare.add")}
+                className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-sm ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+              >
+                <CompareIcon className="h-4 w-4" /> {inCmp ? t("compare.inList") : t("compare.add")}
+              </button>
+            );
+          })()}
           <button
             disabled={neighbors.older == null}
             onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`)}
@@ -811,7 +825,7 @@ export default function SessionDetail() {
 
       {owned && <TrimEditor session={session} onSaved={setSession} />}
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} />
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} />
 
       <div className="mt-8">
         <h3 className="mb-3 text-sm font-semibold text-slate-200">{t("sd.discussion")}</h3>
@@ -974,12 +988,16 @@ function RunsTable({
   onSelect,
   win,
   powerFor,
+  sessionId,
+  compareRefs,
 }: {
   segments: any[];
   selected: number | null;
   onSelect: (i: number | null) => void;
   win: "1" | "3" | "5";
   powerFor?: (avgMps?: number | null, pumpHz?: number | null) => number | null;
+  sessionId: number;
+  compareRefs: { sessionId: number; runIdx: number | null }[];
 }) {
   const t = useT();
   if (!segments.length) return null;
@@ -1013,6 +1031,7 @@ function RunsTable({
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
+              <th className="px-3 py-2 font-medium"><CompareIcon className="h-4 w-4" /></th>
             </tr>
           </thead>
           <tbody>
@@ -1043,6 +1062,20 @@ function RunsTable({
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: i }));
+                      return (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleCompare({ sessionId, runIdx: i }); }}
+                          title={inCmp ? t("compare.remove") : t("compare.add")}
+                          className={inCmp ? "text-brand-400" : "text-slate-400 hover:text-slate-200"}
+                        >
+                          <CompareIcon className="h-4 w-4" />
+                        </button>
+                      );
+                    })()}
+                  </td>
                 </tr>
               );
             })}

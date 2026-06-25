@@ -37,6 +37,7 @@ import Settings from "./pages/Settings";
 import Sessions from "./pages/Sessions";
 import AllSessionsRedirect from "./pages/AllSessionsRedirect";
 import SessionDetail from "./pages/SessionDetail";
+import Compare from "./pages/Compare";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
 import Import from "./pages/Import";
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
       { path: "foil-rechner", element: <FoilCalculator /> },
       { path: "account", element: <Account /> },
       { path: "einstellungen", element: <Settings /> },
+      { path: "vergleich", element: <Compare /> },
       { path: "sessions/:id", element: <SessionDetail /> },
       { path: "sessions/:id/label", element: <Labeling /> },
       { path: "admin", element: <Admin /> },

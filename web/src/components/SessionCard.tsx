@@ -2,8 +2,9 @@ import { ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
+import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
 function hhmm(s: string) {
@@ -44,9 +45,15 @@ export function SessionCard({
   const t = useT();
   const [liked, setLiked] = useState(liked0);
   const [count, setCount] = useState(likeCount0);
+  const compareRefs = useCompare();
+  const inCompare = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: null }));
   const toggleLike = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     api.toggleLike(sessionId).then((r) => { setLiked(r.liked); setCount(r.like_count); }).catch(() => {});
+  };
+  const onCompare = (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    toggleCompare({ sessionId, runIdx: null });
   };
   const dateStr = startedAt
     ? new Date(startedAt).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
@@ -74,6 +81,13 @@ export function SessionCard({
               className={`flex items-center gap-1 text-sm ${liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}
             >
               <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
+            </button>
+            <button
+              onClick={onCompare}
+              title={inCompare ? t("compare.remove") : t("compare.add")}
+              className={`flex items-center text-sm ${inCompare ? "text-brand-400" : "text-slate-400 hover:text-slate-200"}`}
+            >
+              <CompareIcon className="h-4 w-4" />
             </button>
             {/* Mobil: Thumbnail + Track linksbündig unter dem Profilbild */}
             {(thumbEl || trackEl) && (

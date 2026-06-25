@@ -676,6 +676,20 @@ const en: Record<string, string> = {
   "phome.allMine": "All mine",
   "phome.homespotChatSoon": "Spot chat coming",
 
+  "compare.title": "Compare",
+  "compare.add": "Add to compare",
+  "compare.remove": "Remove from compare",
+  "compare.inList": "In compare",
+  "compare.bar": "Compare ({n})",
+  "compare.open": "Open comparison",
+  "compare.clear": "Clear",
+  "compare.full": "Compare full (max {n})",
+  "compare.empty": "Nothing marked yet. Mark sessions in the list or single runs inside a session to compare them here.",
+  "compare.session": "Session",
+  "compare.run": "Run {n}",
+  "compare.subtitle": "{n} marked",
+  "compare.gone": "(no longer available)",
+
 };
 
 export default en;
