@@ -3,6 +3,24 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- **Board-/Foil-IMU → echte Pump-Technik-Analytik (R&D, Daten werden gesammelt).** Hintergrund:
+  Intra-Pump-Geschwindigkeit ist aus dem 1-Hz-Wrist-GPS **nicht** rekonstruierbar (Phase-Folding-
+  Experiment `server/scripts/accel_speed_experiment.py` besteht den Permutations-Null-Test nicht;
+  Wrist-Accel ist arm-confounded). Lösung: Sensor näher am Board. Jan testet mit **2 Uhren** (beide auf
+  unserer Recorder-App → roher 25-Hz-Accel; je Gerät eigenes Pairing) in zwei Konfigurationen, je ein
+  paar Läufe, ggf. über mehrere Sessions:
+  (A) **Fußgelenk + Board-Deck** — Fuß/Deck eng ans Board gekoppelt (kein Arm-Confound); Board oben =
+  GPS, kein Puls. (B) **Board-Deck + Foil unterwasser** — Foil-Uhr: kein GPS/Puls, misst aber die
+  **Foil-Lage direkt**; Sync beider Uhren über den **Aufprall-Spike beim Lauf-Start** (mehrere pro
+  Session → auch Clock-Drift korrigierbar). Auswertbar (nach Reliability sortiert): Pitch/Roll statisch
+  aus Gravitation (driftfrei), Pump-Kadenz/-Count board-nah (sauberer als Wrist), Vortriebs-Surge per
+  Forward-Achsen-Integration **an GPS geankert**, **Mastbiegung** = Board-Attitude − Foil-Attitude.
+  Orientierung größtenteils aus Daten lösbar (Gravitation → up; GPS-Längsbeschleunigung → forward-Achse
+  als 1 konstanter Yaw-Offset). Absoluter Foil-AoA-Offset evtl. über `foilPhysics` (Lift=Gewicht im
+  stationären Gleiten) ankerbar. **Limit:** dynamische Stroke-Lage braucht eigentlich einen **Gyro** →
+  rechtfertigt später einen 6-Achsen-Logger (~10–25 €, ICM-42688 o. ä.) am Mast/Deck. Nächster Schritt:
+  Jan liefert Session-IDs + welche Uhr wo/orientiert → serverseitige Auswertung.
+
 - **Google-OAuth-Verifizierung: Datenschutzerklärung ergänzen.** Google (Third Party Data Safety)
   verlangt, dass die Privacy Policy unter `/impressum` explizit **Google-Nutzerdaten** dokumentiert:
   *Data Accessed* (E-Mail, Vorname/`given_name`, Konto-ID `sub`) und *Data Usage* (nur Konto-Erstellung/
