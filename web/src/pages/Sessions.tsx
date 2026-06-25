@@ -52,7 +52,6 @@ export default function Sessions() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {isMine ? <ListIcon className="h-7 w-7 text-brand-400" /> : <WaveIcon className="h-7 w-7 text-brand-400" />}
         <h2 className="text-2xl font-bold">{title}</h2>
-        {spot && <SpotChatToggle spot={spot} t={t} />}
       </div>
 
       {/* Scope-Umschalter + Spotsuche */}
@@ -72,6 +71,7 @@ export default function Sessions() {
           <option value="">{t("all.allSpots")}</option>
           {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        {spot && <SpotChatToggle spot={spot} t={t} />}
       </div>
 
       {isMine ? <MySessionsList myName={myName} /> : <CommunityList name="" spot={spot} />}
@@ -79,14 +79,15 @@ export default function Sessions() {
   );
 }
 
-// Verlinkt direkt in den Fullscreen-Spot-Chat (/chat?scope=spot:<name>).
+// Button neben den Scope-Umschaltern: direkt in den Fullscreen-Spot-Chat
+// (/chat?scope=spot:<name>), beschriftet mit Spotnamen.
 function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string }) {
   return (
     <Link
       to={`/chat?scope=${encodeURIComponent(`spot:${spot}`)}`}
-      className="ml-auto rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+      className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
     >
-      <span className="inline-flex items-center gap-1"><ChatBubbleIcon className="h-4 w-4" /> {t("chat.spotChat")}</span>
+      <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.spotChat")} {spot}
     </Link>
   );
 }
