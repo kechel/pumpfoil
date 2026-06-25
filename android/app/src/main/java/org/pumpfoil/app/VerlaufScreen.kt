@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -41,6 +42,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
     var items by remember { mutableStateOf<List<HistoryPoint>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var windowDays by remember { mutableStateOf(0) }   // 0 = Gesamt, sonst Tage
 
     suspend fun load() {
         loading = true
@@ -57,15 +59,24 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
             if (loading && items.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             } else {
+                val shown = if (windowDays == 0) items else items.filter { withinDays(it.startedAt, windowDays) }
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text("Noch keine Auswertungen", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     if (items.isNotEmpty()) {
-                        item { CumulativeSummary(items) }
+                        item {
+                            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                listOf(0 to "Gesamt", 30 to "30 T", 7 to "7 T").forEach { (d, lbl) ->
+                                    FilterChip(selected = windowDays == d, onClick = { windowDays = d }, label = { Text(lbl) })
+                                }
+                            }
+                        }
+                        item { CumulativeSummary(shown, windowDays) }
                     }
-                    items(items) { p ->
+                    items(shown) { p ->
                         ListItem(
                             modifier = Modifier.clickable { onOpen(p.sessionId) },
                             headlineContent = { Text(prettyDate(p.startedAt)) },
@@ -88,13 +99,14 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
 
 // Kumuliert über alle geladenen Sessions (wie web/Verlauf): Summen-Karte oben.
 @Composable
-private fun CumulativeSummary(items: List<HistoryPoint>) {
+private fun CumulativeSummary(items: List<HistoryPoint>, windowDays: Int) {
     val km = items.sumOf { it.foilingKm }
     val runs = items.sumOf { it.runs }
     val pumps = items.sumOf { it.pumps }
+    val windowLabel = if (windowDays == 0) "Gesamt" else "$windowDays Tage"
     Card(Modifier.fillMaxWidth().padding(12.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text("Kumuliert · Gesamt", style = MaterialTheme.typography.labelMedium,
+            Text("Kumuliert · $windowLabel", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 metric("${items.size}", "Sessions")
@@ -112,4 +124,13 @@ private fun metric(value: String, label: String) {
         Text(value, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+// started_at (ISO) innerhalb der letzten N Tage? Bei Parse-Fehler einschließen.
+private fun withinDays(iso: String, days: Int): Boolean {
+    return try {
+        val t = try { java.time.Instant.parse(iso) }
+        catch (_: Exception) { java.time.OffsetDateTime.parse(iso).toInstant() }
+        t.isAfter(java.time.Instant.now().minus(days.toLong(), java.time.temporal.ChronoUnit.DAYS))
+    } catch (_: Exception) { true }
 }
