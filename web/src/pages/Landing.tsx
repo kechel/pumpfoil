@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   WaveIcon, ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
@@ -27,16 +27,22 @@ export default function Landing() {
     { icon: LocationIcon, title: t("land.f12Title"), body: t("land.f12Body") },
     { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
-  const shots = [
-    { src: "/landing-track.webp", cap: t("land.shotTrack") },
-    { src: "/landing-history.webp", cap: t("land.shotHistory") },
-    { src: "/landing-records.webp", cap: t("land.shotRecords") },
-    { src: "/landing-spots.webp", cap: t("land.shotSpots") },
-    { src: "/landing-sessions.webp", cap: t("land.shotSessions") },
-    { src: "/landing-stats.webp", cap: t("land.shotStats") },
-  ];
-  const [shot, setShot] = useState(0);
-  const goShot = (d: number) => setShot((i) => (i + d + shots.length) % shots.length);
+  // Mobile-App-Screenshots (Hochformat). Reihenfolge = mobile-1..N.webp.
+  const SHOTS = Array.from({ length: 15 }, (_, i) => `/mobile-${i + 1}.webp`);
+  // Desktop 2 nebeneinander pro Slide, Mobile 1.
+  const [perView, setPerView] = useState(1);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const upd = () => setPerView(mq.matches ? 2 : 1);
+    upd();
+    mq.addEventListener("change", upd);
+    return () => mq.removeEventListener("change", upd);
+  }, []);
+  const pages = Math.ceil(SHOTS.length / perView);
+  const [page, setPage] = useState(0);
+  const cur = Math.min(page, pages - 1);
+  const goPage = (d: number) => setPage((p) => (Math.min(p, pages - 1) + d + pages) % pages);
+  const slide = SHOTS.slice(cur * perView, cur * perView + perView);
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
@@ -64,42 +70,8 @@ export default function Landing() {
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
         </section>
 
-        {/* Screenshot-Slider: Beschreibung als Überschrift, durchschaltbar */}
+        {/* Auf der Uhr — native Watch-Apps nebeneinander (Apple rechteckig, Wear rund), kein Slider */}
         <section className="pb-8">
-          <h2 className="mb-5 min-h-[2rem] text-center text-xl font-bold sm:text-2xl">{shots[shot].cap}</h2>
-          {/* Pfeile spannen die volle Slider-Höhe (Klickziel springt nicht bei unterschiedlich hohen Bildern) */}
-          <div className="mx-auto flex max-w-5xl items-stretch justify-center gap-1 sm:gap-4">
-            <button
-              onClick={() => goShot(-1)}
-              aria-label={t("land.prev")}
-              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
-            ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
-            <img
-              src={shots[shot].src}
-              alt={shots[shot].cap}
-              className="min-w-0 max-w-3xl flex-1 self-center rounded-2xl border border-slate-800 shadow-2xl"
-            />
-            <button
-              onClick={() => goShot(1)}
-              aria-label={t("land.next")}
-              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
-            ><ChevronIcon className="h-12 w-12 sm:h-16 sm:w-16" /></button>
-          </div>
-          {/* Vorschau-Punkte */}
-          <div className="mt-4 flex justify-center gap-2">
-            {shots.map((s, i) => (
-              <button
-                key={s.src}
-                onClick={() => setShot(i)}
-                aria-label={s.cap}
-                className={`h-2.5 rounded-full transition-all ${i === shot ? "w-6 bg-brand-400" : "w-2.5 bg-slate-600 hover:bg-slate-500"}`}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Auf der Uhr — native Watch-Apps (Apple Watch rechteckig, Wear OS rund) */}
-        <section className="pb-10">
           <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
           <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
           <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
@@ -121,6 +93,45 @@ export default function Landing() {
               </div>
               <figcaption className="text-xs text-slate-500">Wear OS</figcaption>
             </figure>
+          </div>
+        </section>
+
+        {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
+        <section className="pb-10">
+          <h2 className="mb-5 text-center text-xl font-bold sm:text-2xl">{t("land.appShotsTitle")}</h2>
+          <div className="mx-auto flex items-center justify-center gap-1 sm:gap-4">
+            <button
+              onClick={() => goPage(-1)}
+              aria-label={t("land.prev")}
+              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
+            ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
+            <div className="flex items-center justify-center gap-4">
+              {slide.map((src) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt="Pumpfoil App"
+                  loading="lazy"
+                  className="w-[230px] shrink-0 rounded-[2rem] border border-slate-800 shadow-2xl sm:w-[260px]"
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => goPage(1)}
+              aria-label={t("land.next")}
+              className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
+            ><ChevronIcon className="h-12 w-12 sm:h-16 sm:w-16" /></button>
+          </div>
+          {/* Vorschau-Punkte (eine pro Seite) */}
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {Array.from({ length: pages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                aria-label={`${i + 1}`}
+                className={`h-2.5 rounded-full transition-all ${i === cur ? "w-6 bg-brand-400" : "w-2.5 bg-slate-600 hover:bg-slate-500"}`}
+              />
+            ))}
           </div>
         </section>
 

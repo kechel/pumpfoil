@@ -318,6 +318,7 @@ const deAT: Record<string, string> = {
   "land.whatBody": "Pump-Foiling heißt: auf dem Hydrofoil ohne Wind, Wellen oder Motor unterwegs — du hältst dich allein durch rhythmisches Pumpen oben. Pumpfoil zeichnet diese Sessions mit der Uhr auf und macht sichtbar, wie lange du foilst, wie effizient du pumpst und wo du fährst.",
   "land.watchTitle": "Direkt auf der Uhr",
   "land.watchBody": "Eigene Apple-Watch- und Wear-OS-Apps mit konfigurierbaren Datenfeldern — Geschwindigkeit, Puls, Distanz, Zeit. Die Aufnahme läuft lokal (auch offline) und wird automatisch synchronisiert.",
+  "land.appShotsTitle": "Die App im Überblick",
   "land.f1Title": "Aufzeichnung per Uhr",
   "land.f1Body": "Die Connect-IQ-App nimmt GPS und rohe Beschleunigung auf und lädt alles auf den Server.",
   "land.f2Title": "Automatische Analyse",
