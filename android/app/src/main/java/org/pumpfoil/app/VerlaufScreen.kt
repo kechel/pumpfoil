@@ -1,13 +1,18 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -56,6 +62,9 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text("Noch keine Auswertungen", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
+                    if (items.isNotEmpty()) {
+                        item { CumulativeSummary(items) }
+                    }
                     items(items) { p ->
                         ListItem(
                             modifier = Modifier.clickable { onOpen(p.sessionId) },
@@ -74,5 +83,33 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
             }
             }
         }
+    }
+}
+
+// Kumuliert über alle geladenen Sessions (wie web/Verlauf): Summen-Karte oben.
+@Composable
+private fun CumulativeSummary(items: List<HistoryPoint>) {
+    val km = items.sumOf { it.foilingKm }
+    val runs = items.sumOf { it.runs }
+    val pumps = items.sumOf { it.pumps }
+    Card(Modifier.fillMaxWidth().padding(12.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text("Kumuliert · Gesamt", style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                metric("${items.size}", "Sessions")
+                metric("%.1f".format(km), "km Foiling")
+                metric("$runs", "Läufe")
+                metric("$pumps", "Pumps")
+            }
+        }
+    }
+}
+
+@Composable
+private fun metric(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

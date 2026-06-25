@@ -10,6 +10,16 @@ struct VerlaufView: View {
         NavigationStack {
             List {
                 if let error { Text(error).foregroundStyle(.secondary) }
+                if !items.isEmpty {
+                    Section("Kumuliert · Gesamt") {
+                        HStack {
+                            stat("\(items.count)", "Sessions")
+                            Spacer(); stat(String(format: "%.1f", items.reduce(0) { $0 + $1.foiling_km }), "km")
+                            Spacer(); stat("\(items.reduce(0) { $0 + $1.runs })", "Läufe")
+                            Spacer(); stat("\(items.reduce(0) { $0 + $1.pumps })", "Pumps")
+                        }
+                    }
+                }
                 ForEach(items) { h in
                     NavigationLink { SessionDetailView(id: h.session_id) } label: { row(h) }
                 }
