@@ -392,6 +392,8 @@ const it: Record<string, string> = {
   "land.heroSub": "Pumpfoil collega il tuo orologio a un'analisi dettagliata: traccia GPS, distanza in foil, cadenza di pompata e fasi di planata — automaticamente a ogni sessione.",
   "land.whatTitle": "Cos'è Pumpfoil?",
   "land.whatBody": "Pump foiling significa andare su un hydrofoil senza vento, onde o motore — resti sollevato solo pompando ritmicamente. Pumpfoil registra queste sessioni con l'orologio e mostra quanto a lungo foili, quanto efficiente è la tua pompata e dove vai.",
+  "land.watchTitle": "Direttamente al polso",
+  "land.watchBody": "App native per Apple Watch e Wear OS con campi dati configurabili — velocità, frequenza cardiaca, distanza, tempo. La registrazione funziona in locale (anche offline) e si sincronizza automaticamente.",
   "land.f1Title": "Registrazione con orologio",
   "land.f1Body": "L'app Connect IQ acquisisce GPS e accelerazione grezza e carica tutto sul server.",
   "land.f2Title": "Analisi automatica",

@@ -98,6 +98,32 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Auf der Uhr — native Watch-Apps (Apple Watch rechteckig, Wear OS rund) */}
+        <section className="pb-10">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
+          <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
+            <figure className="flex flex-col items-center gap-2">
+              <div className="flex gap-3">
+                <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"
+                  className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+                <img src="/watch-apple-2.webp" alt="Apple Watch" loading="lazy"
+                  className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+              </div>
+              <figcaption className="text-xs text-slate-500">Apple Watch</figcaption>
+            </figure>
+            <figure className="flex flex-col items-center gap-2">
+              <div className="flex gap-3">
+                <img src="/watch-wear-1.webp" alt="Wear OS" loading="lazy"
+                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                <img src="/watch-wear-2.webp" alt="Wear OS" loading="lazy"
+                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+              </div>
+              <figcaption className="text-xs text-slate-500">Wear OS</figcaption>
+            </figure>
+          </div>
+        </section>
+
         {/* Was ist Pumpfoil? */}
         <section className="mx-auto max-w-3xl pb-4 text-center">
           <h2 className="text-xl font-bold sm:text-2xl">{t("land.whatTitle")}</h2>

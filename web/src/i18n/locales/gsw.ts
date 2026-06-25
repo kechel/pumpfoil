@@ -316,6 +316,8 @@ const gsw: Record<string, string> = {
   "land.heroSub": "Pumpfoil verbindet dini Uhr mit ere detaillierte Analyse: GPS-Track, Foiling-Distanz, Pump-Frequänz und Gleitphase — automatisch us jedere Session.",
   "land.whatTitle": "Was isch Pumpfoil?",
   "land.whatBody": "Pump-Foiling heisst: ufem Hydrofoil ohni Wind, Wälle oder Motor underwägs — du blibsch nume dur rhythmischs Pumpe obe. Pumpfoil zeichnet die Sessions mit de Uhr uf und zeigt, wie lang du foilsch, wie effizient du pumpsch und wo du fahrsch.",
+  "land.watchTitle": "Diräkt am Handglänk",
+  "land.watchBody": "Eigeni Apple-Watch- und Wear-OS-Apps mit iistellbare Datefälder — Tempo, Puls, Distanz, Ziit. D Ufzeichnig lauft lokal (au offline) und wird automatisch synchronisiert.",
   "land.f1Title": "Ufzeichnig mit de Uhr",
   "land.f1Body": "D Connect-IQ-App nimmt GPS und rohi Beschlünigung uf und ladet alles ufe Server.",
   "land.f2Title": "Automatischi Analyse",
