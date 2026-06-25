@@ -136,5 +136,16 @@ Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
   Spots (mit Karte — Android osmdroid/FLOSS, iOS MapKit), Chat, Foils-Katalog, Foil-Rechner,
   Foil-Statistik, Session-Detail (Track + Speed-Chart + Like + Foto-Strip).
 - ⏳ Offen/optional: Reboot beim Öffnen der Pump-Foil-Settings in der **Garmin-Connect-Handy-App**
-  (zurückgestellt, On-Watch braucht's nicht); Foto-Upload aus den Apps; Profil-Bearbeitung;
-  neue Watch-Screenshots (Jan); iOS/Wear-Pairing E2E auf Geräten testen.
+  (zurückgestellt, On-Watch braucht's nicht); neue Watch-Screenshots (Jan); iOS/Wear E2E auf Geräten.
+
+**Update 2026-06-25 (Abend) — Uhr-Feinschliff (autonomer Loop):**
+- ✅ **Foto-Upload aus den Apps** (Android PhotoPicker, iOS PhotosPicker, multipart) + **Profil**
+  (Avatar-Anzeige Android, Anzeigename-Bearbeitung beide; Server PUT-Alias /auth/me).
+- ✅ **Distanz-Anzeige** < 1000 m in Metern, ab 1 km in km (alle Uhren). Garmin v1.0.17.
+- ✅ **Auto-Alarm aus Foil + Gewicht** (Garmin v1.0.18/1.0.19, Apple/Wear): Server berechnet je
+  Foil Min (= Min-Viable +1 km/h) / Max (= Optimal-Speed) via `foil_physics.py`; Start-Picker an
+  der Uhr „Alarm wählen" zeigt **Website-Alarm + Foils (min–max) + Ohne Alarm**. Tests grün.
+- ✅ **Auto-Screen-Wechsel on/off foil** (Garmin v1.0.20, Apple, Wear): on foil → Datenansichten,
+  off foil → Zusammenfassung (Uhrzeit + letzter Lauf, via `off_foil_view` im Web-Datenfelder-Tab
+  konfigurierbar) + Stop. On-Watch-Hysterese (≥10 / <9 km/h, 3 s) auch in Apple/Wear portiert.
+- Server: 41 Tests grün; Android-Physik 135/135; Android+Wear-APKs bauen; Web-Build sauber.
