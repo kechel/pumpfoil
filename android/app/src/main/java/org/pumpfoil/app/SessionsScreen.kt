@@ -24,7 +24,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -53,25 +55,28 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
             )
         },
     ) { pad ->
-        Box(Modifier.padding(pad).fillMaxSize()) {
-            if (loading && sessions.isEmpty()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(Modifier.fillMaxSize()) {
-                    error?.let { e ->
-                        item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) }
-                    }
-                    if (sessions.isEmpty() && !loading && error == null) {
-                        item {
-                            Text(
-                                "Noch keine Sessions", Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+        val scope = rememberCoroutineScope()
+        Box(Modifier.padding(pad)) {
+            Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
+                if (loading && sessions.isEmpty()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(Modifier.fillMaxSize()) {
+                        error?.let { e ->
+                            item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) }
                         }
-                    }
-                    items(sessions) { s ->
-                        SessionRow(s, onClick = { onOpen(s.id) })
-                        HorizontalDivider()
+                        if (sessions.isEmpty() && !loading && error == null) {
+                            item {
+                                Text(
+                                    "Noch keine Sessions", Modifier.padding(16.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        items(sessions) { s ->
+                            SessionRow(s, onClick = { onOpen(s.id) })
+                            HorizontalDivider()
+                        }
                     }
                 }
             }

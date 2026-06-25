@@ -23,10 +23,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +48,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Community") }, actions = { SyncIndicator() }) },
     ) { pad ->
-        Box(Modifier.padding(pad).fillMaxSize()) {
+        val scope = rememberCoroutineScope()
+        Box(Modifier.padding(pad)) {
+            Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
             if (loading && items.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             } else {
@@ -71,6 +75,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit) {
                         HorizontalDivider()
                     }
                 }
+            }
             }
         }
     }
