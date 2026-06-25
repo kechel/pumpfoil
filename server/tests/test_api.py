@@ -218,12 +218,16 @@ def test_settings_roundtrip(client):
     # Apps (Foils-Katalog) persistieren my_foils/foil_id via PUT /api/settings.
     auth = {"Authorization": "Bearer " + client.post(
         "/api/auth/register", json={"email": "settings@b.de", "password": "supersecret"}).json()["access_token"]}
-    r = client.put("/api/settings", headers=auth, json={"my_foils": [3, 1, 2], "foil_id": 2, "weight_kg": 88})
+    r = client.put("/api/settings", headers=auth, json={
+        "my_foils": [3, 1, 2], "foil_id": 2, "weight_kg": 88,
+        "off_foil_view": [12, 17, 99],   # 99 ist ungültig -> wird gefiltert
+    })
     assert r.status_code == 200, r.text
     s = client.get("/api/settings", headers=auth).json()
     assert s.get("my_foils") == [1, 2, 3]   # sortiert + dedupliziert
     assert s.get("foil_id") == 2
     assert s.get("weight_kg") == 88
+    assert s.get("off_foil_view") == [12, 17]   # gültige Feld-IDs (0..20), 99 raus
 
 
 def test_foils_and_stats_shapes(client):
