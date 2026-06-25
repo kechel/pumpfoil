@@ -21,9 +21,19 @@ struct ProfileView: View {
                 }
                 Section {
                     NavigationLink {
+                        FoilsView()
+                    } label: {
+                        Label("Foils", systemImage: "water.waves")
+                    }
+                    NavigationLink {
                         FoilCalculatorView()
                     } label: {
                         Label("Foil-Rechner", systemImage: "function")
+                    }
+                    NavigationLink {
+                        FoilStatsView()
+                    } label: {
+                        Label("Foil-Statistik", systemImage: "chart.bar")
                     }
                     Link("pumpfoil.org öffnen", destination: URL(string: "https://pumpfoil.org")!)
                 }

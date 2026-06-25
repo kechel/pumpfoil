@@ -73,6 +73,24 @@ enum Api {
         try await request("/api/foils/brands", method: "GET", body: nil, auth: true)
     }
 
+    static func foilStats() async throws -> [FoilStat] {
+        try await request("/api/community/foil-stats", method: "GET", body: nil, auth: true)
+    }
+
+    // Teil-Update der Settings (my_foils, foil_id) -> PUT, Antwort ignoriert.
+    static func saveSettings(_ patch: [String: Any]) async throws {
+        guard let url = URL(string: baseURL + "/api/settings") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "PUT"
+        req.timeoutInterval = 20
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: patch)
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+    }
+
     // Settings sind freies Key/Value -> als Dictionary; der Aufrufer pickt weight_kg / my_foils.
     static func settings() async throws -> [String: Any] {
         guard let url = URL(string: baseURL + "/api/settings") else { throw ApiError.badURL }

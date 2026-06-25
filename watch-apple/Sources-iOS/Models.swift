@@ -83,6 +83,21 @@ struct Foil: Codable, Identifiable {
     let aspect_ratio: Double?
 }
 
+struct FoilStat: Codable, Identifiable {
+    let foil_id: Int
+    let brand: String
+    let model: String
+    let size: String
+    let aspect_ratio: Double?
+    let sessions: Int
+    let users: Int
+    let avg_speed_kmh: Double?
+    let meters_per_pump: Double?
+    let best_distance_m: Double?
+    let avg_pump_hz: Double?
+    var id: Int { foil_id }
+}
+
 // GeoJSON-Feature des Tracks: LineString-Koordinaten [lon,lat] + 3-s-Speed je Punkt.
 struct TrackGeo: Codable {
     struct Geometry: Codable { let coordinates: [[Double]] }
