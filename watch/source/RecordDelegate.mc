@@ -35,6 +35,18 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
+            } else if (!_rec.manualAlarm && _rec.foils.size() >= 1) {
+                // Foil-Auswahl: welches Foil heute? -> setzt Auto-Alarm (min/max) + startet.
+                var menu = new WatchUi.Menu2({:title => "Foil heute?"});
+                for (var i = 0; i < _rec.foils.size(); i++) {
+                    var f = _rec.foils[i];
+                    menu.addItem(new WatchUi.MenuItem(
+                        f["label"],
+                        f["min"].toString() + "–" + f["max"].toString() + " km/h",
+                        i, {}));
+                }
+                menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "direkt starten", :none, {}));
+                WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
             } else {
                 _rec.start();                                    // Start-Screen: Aufnahme starten
                 WatchUi.requestUpdate();
@@ -101,6 +113,26 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     function onBack() as Lang.Boolean {
         if (_rec.isRecording()) { return true; }
         return false;
+    }
+}
+
+// Foil-Auswahl beim Start: gewähltes Foil setzt den Auto-Alarm, dann Aufnahme starten.
+// Back (ohne Auswahl) bricht ab und startet nicht.
+class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
+    hidden var _rec;
+    function initialize(recorder) {
+        Menu2InputDelegate.initialize();
+        _rec = recorder;
+    }
+    function onSelect(item as WatchUi.MenuItem) as Void {
+        var id = item.getId();
+        if (id instanceof Lang.Number) {
+            var f = _rec.foils[id];
+            _rec.applyFoilAlarm(f["min"], f["max"]);
+        }
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        _rec.start();
+        WatchUi.requestUpdate();
     }
 }
 

@@ -63,6 +63,8 @@ class SessionRecorder {
     var alarmPatternHigh = "short2";  // Muster beim Überschreiten der Max-Speed
     var alarmPatternLow = "long2";    // Muster beim Unterschreiten der Min-Speed
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
+    var manualAlarm = false;          // true = Alarm manuell auf der Website gesetzt (hat Vorrang)
+    var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
 
@@ -131,13 +133,16 @@ class SessionRecorder {
         // Vibrationsmuster/-Modus kommen nur von der Website (Cache); Properties haben sie nicht.
         var ac = Storage.getValue("alarm_config");
         if (ac instanceof Lang.Dictionary) {
-            if (ac.hasKey("enabled")) { alarmEnabled = ac["enabled"]; }
+            if (ac.hasKey("enabled")) { alarmEnabled = ac["enabled"]; manualAlarm = ac["enabled"]; }
             if (ac.hasKey("high")) { speedHighKmh = ac["high"]; }
             if (ac.hasKey("low")) { speedLowKmh = ac["low"]; }
             if (ac.hasKey("ph")) { alarmPatternHigh = ac["ph"]; }
             if (ac.hasKey("pl")) { alarmPatternLow = ac["pl"]; }
             if (ac.hasKey("rep")) { alarmRepeat = ac["rep"]; }
         }
+        // Gecachte Foil-Liste (Auto-Alarm je Foil) offline verfügbar machen.
+        var fc = Storage.getValue("foils_config");
+        if (fc instanceof Lang.Array) { foils = fc; }
     }
 
     // --- Reverse-Pairing ---
@@ -247,6 +252,7 @@ class SessionRecorder {
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
             if (data.hasKey("alarmEnabled")) {
                 alarmEnabled = data["alarmEnabled"];
+                manualAlarm = data["alarmEnabled"];   // Website-Alarm hat Vorrang vor Foil-Auto
                 if (data.hasKey("speedHigh") && data["speedHigh"] != null) { speedHighKmh = data["speedHigh"]; }
                 if (data.hasKey("speedLow") && data["speedLow"] != null) { speedLowKmh = data["speedLow"]; }
                 if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
@@ -256,8 +262,21 @@ class SessionRecorder {
                     "enabled" => alarmEnabled, "high" => speedHighKmh, "low" => speedLowKmh,
                     "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat });
             }
+            // Foil-Liste (Auto-Alarm je Foil) übernehmen + cachen.
+            if (data.hasKey("foils") && data["foils"] instanceof Lang.Array) {
+                foils = data["foils"];
+                Storage.setValue("foils_config", foils);
+            }
             WatchUi.requestUpdate();
         }
+    }
+
+    // Auto-Alarm eines gewählten Foils für die Session setzen (min/max in km/h).
+    function applyFoilAlarm(lo, hi) {
+        speedLowKmh = lo;
+        speedHighKmh = hi;
+        alarmEnabled = true;
+        if (alarmRepeat.equals("once")) { alarmRepeat = "continuous"; }  // Min-Warnung soll wiederholen
     }
 
     // Von der Website geladene Ansichten übernehmen + cachen.
