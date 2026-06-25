@@ -1,13 +1,50 @@
-# XcodeGen-Projekt für die Apple-Watch-Recorder-App.
+# XcodeGen-Projekt: native iOS-App (Pumpfoil) + eingebettete Apple-Watch-App.
 # Erzeugen:  brew install xcodegen && cd watch-apple && xcodegen generate && open Pumpfoil.xcodeproj
+#
+# Die iOS-App bettet die Watch-App ein -> das Archiv ist ein iOS-App-Archiv und
+# bietet im Organizer „Distribute -> App Store Connect" (das löste das watch-only-Problem).
 name: Pumpfoil
 options:
   bundleIdPrefix: org.pumpfoil
   deploymentTarget:
+    iOS: "16.0"
     watchOS: "9.0"
   createIntermediateGroups: true
 
 targets:
+  # --- iOS-App (nativer SwiftUI-Port der PWA) ---
+  Pumpfoil:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources-iOS
+    dependencies:
+      - target: PumpfoilWatch
+        embed: true                  # Watch-App in die iOS-App einbetten
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
+        PRODUCT_NAME: Pumpfoil
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"   # iPhone + iPad
+        # DEVELOPMENT_TEAM: MEKT477FXE  # <- in Xcode unter Signing & Capabilities (SmartKomm GmbH)
+    info:
+      path: Sources-iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Pumpfoil
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
+
+  # --- Apple-Watch-Recorder (eingebettet, kein WKWatchOnly mehr) ---
   PumpfoilWatch:
     type: application
     platform: watchOS
@@ -15,31 +52,22 @@ targets:
       - path: Sources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
+        PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch.watchkitapp
         PRODUCT_NAME: Pumpfoil
-        # Eigenständige Watch-App MUSS installiert werden, sonst archiviert Xcode sie
-        # als generisches Archive (keine Version, Distribute nur "Custom"). xcodegen
-        # setzt für Watch-Targets sonst fälschlich SKIP_INSTALL=YES.
-        SKIP_INSTALL: "NO"
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "4"   # 4 = Apple Watch
-        # DEVELOPMENT_TEAM: XXXXXXXXXX   # <- in Xcode unter Signing & Capabilities setzen
     info:
       path: Sources/Info.plist
       properties:
         WKApplication: true
-        WKWatchOnly: true        # eigenständige Watch-App ohne iPhone-Companion
+        WKCompanionAppBundleIdentifier: org.pumpfoil.coolwatch   # iOS-Companion
         CFBundleDisplayName: Pumpfoil
-        # Version/Build HART ins Info.plist (nicht via $(MARKETING_VERSION) — die
-        # Substitution wurde beim Archivieren nicht aufgelöst -> Organizer ohne Version).
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
-        # Export-Compliance: App nutzt nur Standard-HTTPS/TLS (ausgenommene Verschlüsselung).
-        # false beantwortet die App-Store-Connect-Abfrage automatisch -> kein Upload nötig.
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung."
