@@ -147,11 +147,13 @@ def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, s
     if provider in ("google", "apple"):
         claims = _decode_id_token(token.get("id_token", ""))
         sub = claims.get("sub") or ""
-        return sub, claims.get("email"), claims.get("name")
+        # Nur VORNAME als Anzeigename — kein Nachname (Datenschutz).
+        name = claims.get("given_name") or (claims.get("name") or "").split(" ")[0].strip() or None
+        return sub, claims.get("email"), name
     if provider == "strava":
         ath = token.get("athlete") or {}
         sub = str(ath.get("id") or "")
-        name = " ".join(x for x in (ath.get("firstname"), ath.get("lastname")) if x) or None
+        name = (ath.get("firstname") or "").strip() or None  # nur Vorname, kein Nachname
         return sub, None, name
     # garmin (+ generischer Fallback): User-ID separat abrufen
     access = token.get("access_token", "")
