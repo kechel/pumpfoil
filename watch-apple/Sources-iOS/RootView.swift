@@ -15,13 +15,20 @@ struct RootView: View {
     }
 }
 
-// iOS-typische Tab-Navigation mit SF Symbols. Weitere Tabs (Community, Verlauf,
-// Spots, Chat) folgen in den nächsten Phasen.
+// iOS-typische Tab-Navigation mit SF Symbols.
 struct MainTabView: View {
     var body: some View {
         TabView {
             SessionsView()
                 .tabItem { Label("Sessions", systemImage: "list.bullet") }
+            CommunityView()
+                .tabItem { Label("Community", systemImage: "person.2") }
+            VerlaufView()
+                .tabItem { Label("Verlauf", systemImage: "chart.xyaxis.line") }
+            SpotsView()
+                .tabItem { Label("Spots", systemImage: "mappin.and.ellipse") }
+            ChatView()
+                .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right") }
             ProfileView()
                 .tabItem { Label("Profil", systemImage: "person.crop.circle") }
         }

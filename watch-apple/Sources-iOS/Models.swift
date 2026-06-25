@@ -33,6 +33,44 @@ struct SessionSummary: Codable, Identifiable {
     }
 }
 
+struct SpotMapItem: Codable, Identifiable {
+    let spot: String
+    let lat: Double
+    let lon: Double
+    let sessions: Int
+    var id: String { spot }
+}
+
+struct HistoryPoint: Codable, Identifiable {
+    let session_id: Int
+    let started_at: String
+    let foiling_km: Double
+    let runs: Int
+    let pumps: Int
+    let speed: Double            // beste Lauf-Geschwindigkeit (m/s)
+    let avg_pump_hz: Double?
+    var id: Int { session_id }
+}
+
+struct ChatRoom: Codable, Identifiable {
+    let scope: String
+    let label: String
+    let unread: Int
+    let last_text: String
+    var id: String { scope }
+}
+
+struct ChatMsg: Codable, Identifiable {
+    let id: Int
+    let user_id: Int
+    let name: String?
+    let avatar_url: String?
+    let text: String
+    let created_at: String?
+    let mine: Bool
+    let hidden: Bool
+}
+
 struct Foil: Codable, Identifiable {
     let id: Int
     let brand: String

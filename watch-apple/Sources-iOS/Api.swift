@@ -30,6 +30,32 @@ enum Api {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [SessionSummary] {
+        try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
+    }
+
+    static func history() async throws -> [HistoryPoint] {
+        try await request("/api/sessions/history", method: "GET", body: nil, auth: true)
+    }
+
+    static func spotMap() async throws -> [SpotMapItem] {
+        try await request("/api/community/spot-map", method: "GET", body: nil, auth: true)
+    }
+
+    static func chatRooms() async throws -> [ChatRoom] {
+        try await request("/api/chat/rooms", method: "GET", body: nil, auth: true)
+    }
+
+    static func chatLatest(scope: String, limit: Int = 30) async throws -> [ChatMsg] {
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        return try await request("/api/chat?scope=\(s)&limit=\(limit)", method: "GET", body: nil, auth: true)
+    }
+
+    static func chatPost(scope: String, text: String) async throws -> ChatMsg {
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        return try await request("/api/chat?scope=\(s)", method: "POST", body: ["text": text], auth: true)
+    }
+
     static func foils() async throws -> [Foil] {
         try await request("/api/foils", method: "GET", body: nil, auth: true)
     }

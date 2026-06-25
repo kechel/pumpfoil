@@ -37,7 +37,7 @@ struct SessionsView: View {
     }
 }
 
-private struct SessionRow: View {
+struct SessionRow: View {
     let session: SessionSummary
 
     var body: some View {
