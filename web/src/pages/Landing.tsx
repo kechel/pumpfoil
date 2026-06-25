@@ -28,7 +28,7 @@ export default function Landing() {
     { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   // Mobile-App-Screenshots (Hochformat). Reihenfolge = mobile-1..N.webp.
-  const SHOTS = Array.from({ length: 16 }, (_, i) => `/mobile-${i + 1}.webp`);
+  const SHOTS = Array.from({ length: 11 }, (_, i) => `/mobile-${i + 1}.webp`);
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
@@ -105,7 +105,7 @@ export default function Landing() {
               aria-label={t("land.prev")}
               className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
             ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-6 sm:gap-12">
               {slide.map((src) => (
                 <img
                   key={src}
