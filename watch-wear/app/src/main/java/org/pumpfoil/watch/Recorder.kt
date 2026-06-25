@@ -39,6 +39,7 @@ object Recorder {
         val maxHr: Int = 0,
         val status: String = "",
         val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
+        val pendingCount: Int = 0,        // lokal gespeicherte, noch nicht hochgeladene Sessions
     )
 
     private val _state = MutableStateFlow(State())
@@ -64,6 +65,8 @@ object Recorder {
     private var startMs = 0L
     private var chunkIndex = 0
     private var running = false
+    private var appCtx: Context? = null
+    private var draining = false
 
     private fun nowIso(): String {
         val f = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
@@ -72,8 +75,12 @@ object Recorder {
     }
     private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
 
+    // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
+    // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
+    // später per drain(), sobald die Uhr gepairt + online ist.
     fun start(ctx: Context) {
-        if (running || _state.value.starting) return
+        if (running) return
+        appCtx = ctx.applicationContext
         Api.load(ctx)
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
@@ -81,38 +88,74 @@ object Recorder {
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
-        _state.value = State(recording = false, starting = true, status = "starte…")
-        scope.launch {
-            try {
-                Api.startSession(JSONObject()
-                    .put("session_uuid", uuid)
-                    .put("started_at", nowIso())
-                    .put("sport", "pumpfoil")
-                    .put("gps_hz", 1)
-                    .put("accel_hz", ACCEL_HZ)
-                    .put("accel_scale", ACCEL_SCALE.toInt()))
-                running = true
-                _state.value = _state.value.copy(recording = true, starting = false, status = "Aufnahme läuft")
-                flushLoop()
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(starting = false, status = "Start fehlgeschlagen: ${e.message}")
-            }
-        }
+        LocalStore.writeMeta(ctx, uuid, JSONObject()
+            .put("session_uuid", uuid)
+            .put("started_at", nowIso())
+            .put("sport", "pumpfoil")
+            .put("gps_hz", 1)
+            .put("accel_hz", ACCEL_HZ)
+            .put("accel_scale", ACCEL_SCALE.toInt()))
+        running = true
+        _state.value = State(recording = true, status = "Aufnahme läuft",
+            pendingCount = LocalStore.pendingCount(ctx))
+        scope.launch { flushLoop() }
     }
 
     fun stop() {
         if (!running) return
         running = false
+        val ctx = appCtx ?: return
         scope.launch {
-            _state.value = _state.value.copy(recording = false, status = "lade Rest hoch…")
+            _state.value = _state.value.copy(recording = false, status = "speichere…")
             flushAll()
+            LocalStore.writeComplete(ctx, uuid, JSONObject()
+                .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
+            _state.value = _state.value.copy(
+                status = "gespeichert", pendingCount = LocalStore.pendingCount(ctx))
+            drain(ctx)   // sofort hochladen, falls gepairt + online
+        }
+    }
+
+    fun refreshPending(ctx: Context) {
+        appCtx = ctx.applicationContext
+        _state.value = _state.value.copy(pendingCount = LocalStore.pendingCount(ctx))
+    }
+
+    /** Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online. */
+    fun drain(ctx: Context) {
+        if (draining) return
+        if (Api.deviceToken == null || !Api.isOnline(ctx)) return
+        draining = true
+        scope.launch {
             try {
-                Api.complete(uuid, nowIso(), chunkIndex)
-                _state.value = _state.value.copy(status = "fertig & hochgeladen")
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(status = "Abschluss fehlgeschlagen: ${e.message}")
+                for (dir in LocalStore.completedSessions(ctx)) {
+                    try { uploadSession(ctx, dir) } catch (_: Exception) { /* später erneut */ }
+                }
+            } finally {
+                draining = false
+                _state.value = _state.value.copy(
+                    uploading = false, pendingCount = LocalStore.pendingCount(ctx))
             }
         }
+    }
+
+    private suspend fun uploadSession(ctx: Context, dir: java.io.File) {
+        val meta = LocalStore.readJson(java.io.File(dir, "meta.json")) ?: return
+        val sid = meta.getString("session_uuid")
+        _state.value = _state.value.copy(uploading = true, status = "lade hoch…")
+        val res = Api.startSession(meta)
+        val received = HashSet<Int>()
+        res.optJSONArray("received_chunks")?.let { a ->
+            for (i in 0 until a.length()) received.add(a.getInt(i))
+        }
+        for (cf in LocalStore.chunkFiles(dir)) {
+            val chunk = LocalStore.readJson(cf) ?: continue
+            if (chunk.optInt("index", -1) in received) continue
+            Api.uploadChunk(sid, chunk)
+        }
+        val comp = LocalStore.readJson(java.io.File(dir, "complete.json"))
+        Api.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)
+        LocalStore.delete(ctx, sid)
     }
 
     // --- Sensor-Eingang (vom Service aufgerufen) ---
@@ -178,15 +221,11 @@ object Recorder {
             flushAll()
         }
     }
-    private suspend fun flushAll() {
-        // Nur als "Upload läuft" markieren, wenn tatsächlich Daten anstehen.
-        val pending = synchronized(lock) { accel.isNotEmpty() || gps.isNotEmpty() }
-        if (pending) _state.value = _state.value.copy(uploading = true)
-        flushAccel(); flushGps()
-        if (pending) _state.value = _state.value.copy(uploading = false)
-    }
+    // Chunks werden persistent lokal abgelegt (kein Netz). Upload via drain().
+    private fun flushAll() { flushAccel(); flushGps() }
 
-    private suspend fun flushAccel() {
+    private fun flushAccel() {
+        val ctx = appCtx ?: return
         val buf: ShortArray; val t0: Int
         synchronized(lock) {
             if (accel.isEmpty()) return
@@ -196,17 +235,14 @@ object Recorder {
         val bb = ByteBuffer.allocate(buf.size * 2).order(ByteOrder.LITTLE_ENDIAN)
         for (s in buf) bb.putShort(s)
         val b64 = Base64.encodeToString(bb.array(), Base64.NO_WRAP)
-        try {
-            Api.uploadChunk(uuid, JSONObject()
-                .put("index", chunkIndex).put("kind", "accel").put("encoding", "int16-b64")
-                .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
-            chunkIndex++
-        } catch (e: Exception) {
-            synchronized(lock) { val old = ArrayList<Short>(buf.size); for (s in buf) old.add(s); old.addAll(accel); accel.clear(); accel.addAll(old) }
-        }
+        LocalStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
+            .put("index", chunkIndex).put("kind", "accel").put("encoding", "int16-b64")
+            .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
+        chunkIndex++
     }
 
-    private suspend fun flushGps() {
+    private fun flushGps() {
+        val ctx = appCtx ?: return
         val buf: List<DoubleArray>
         synchronized(lock) {
             if (gps.isEmpty()) return
@@ -214,13 +250,9 @@ object Recorder {
         }
         val arr = JSONArray()
         for (s in buf) { val a = JSONArray(); for (v in s) a.put(v); arr.put(a) }
-        try {
-            Api.uploadChunk(uuid, JSONObject()
-                .put("index", chunkIndex).put("kind", "gps").put("encoding", "json")
-                .put("t0_ms", buf.first()[0].toInt()).put("count", buf.size).put("data", arr))
-            chunkIndex++
-        } catch (e: Exception) {
-            synchronized(lock) { val merged = ArrayList(buf); merged.addAll(gps); gps.clear(); gps.addAll(merged) }
-        }
+        LocalStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
+            .put("index", chunkIndex).put("kind", "gps").put("encoding", "json")
+            .put("t0_ms", buf.first()[0].toInt()).put("count", buf.size).put("data", arr))
+        chunkIndex++
     }
 }

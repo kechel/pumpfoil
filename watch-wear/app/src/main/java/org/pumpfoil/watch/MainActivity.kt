@@ -52,14 +52,18 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun AppUi() {
+        // Pairing ist optional: ohne Token kann man trotzdem aufnehmen (lokal) und
+        // später verbinden -> die Sessions werden dann automatisch nachgesynct.
         var paired by remember { mutableStateOf(Api.deviceToken != null) }
+        var skipped by remember { mutableStateOf(false) }
         MaterialTheme {
-            if (paired) RecordScreen() else PairScreen { paired = true }
+            if (paired || skipped) RecordScreen(onWantPair = { skipped = false })
+            else PairScreen(onPaired = { paired = true }, onSkip = { skipped = true })
         }
     }
 
     @Composable
-    private fun PairScreen(onPaired: () -> Unit) {
+    private fun PairScreen(onPaired: () -> Unit, onSkip: () -> Unit) {
         val scope = rememberCoroutineScope()
         var code by remember { mutableStateOf("") }
         var error by remember { mutableStateOf("") }
@@ -93,17 +97,22 @@ class MainActivity : ComponentActivity() {
                 }
             }) { Text(if (busy) "…" else "Verbinden") }
             if (error.isNotEmpty()) Text(error, style = MaterialTheme.typography.caption2)
+            Spacer(Modifier.height(6.dp))
+            // Ohne Pairing aufnehmen — Sessions werden lokal gespeichert, später gesynct.
+            CompactChip(onClick = onSkip,
+                label = { Text("Später verbinden", style = MaterialTheme.typography.caption2) })
         }
     }
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun RecordScreen() {
+    private fun RecordScreen(onWantPair: () -> Unit = {}) {
         val s by Recorder.state.collectAsState()
         val ctx = LocalContext.current
         val scope = rememberCoroutineScope()
         // Konfigurierte Ansichten von der Web-App laden (Felder je Seite + Farbe/Alarm).
-        var views by remember { mutableStateOf(listOf(listOf(1, 2, 0))) }
+        // Default = sinnvolles Mehr-Seiten-Layout, bis die Account-Config gesynct ist.
+        var views by remember { mutableStateOf(DEFAULT_VIEWS) }
         var colorBy by remember { mutableStateOf(false) }
         var alarm by remember { mutableStateOf(WatchAlarm()) }
         var syncing by remember { mutableStateOf(false) }
@@ -124,6 +133,8 @@ class MainActivity : ComponentActivity() {
         fun skipSync() { configJob?.cancel(); syncing = false }
 
         LaunchedEffect(Unit) {
+            Recorder.refreshPending(ctx)            // wie viele Sessions warten lokal?
+            Recorder.drain(ctx)                     // gepairt + online -> jetzt hochladen
             // Sofort letzte bekannte Config anwenden (offline-tauglich), dann ggf. online aktualisieren.
             Api.cachedConfig(ctx)?.let { applyConfig(it) }
             if (Api.isOnline(ctx)) {
@@ -213,6 +224,27 @@ class MainActivity : ComponentActivity() {
                     Text(s.status, style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 }
+                // Nicht verbunden: Hinweis + Verbinden-Chip (Aufnahme geht trotzdem, lokal).
+                if (Api.deviceToken == null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Nicht verbunden – Sessions lokal",
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(4.dp))
+                    CompactChip(onClick = onWantPair,
+                        label = { Text("Verbinden", style = MaterialTheme.typography.caption2) })
+                }
+                // Lokal wartende Sessions anzeigen (+ manueller Upload, wenn möglich).
+                if (s.pendingCount > 0) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("${s.pendingCount} warten auf Upload",
+                        style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    if (Api.deviceToken != null) {
+                        Spacer(Modifier.height(4.dp))
+                        CompactChip(onClick = { Recorder.drain(ctx) },
+                            label = { Text("Jetzt hochladen", style = MaterialTheme.typography.caption2) })
+                    }
+                }
                 }
             }
         }
@@ -228,6 +260,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+// Eingebauter Default, bis die Account-Config gesynct ist: drei sinnvolle Seiten
+// statt einer einzelnen. Nach erstem Sync wird die Web-App-Config gecacht + genutzt.
+private val DEFAULT_VIEWS = listOf(
+    listOf(1, 2),   // 3-s-Speed + Puls
+    listOf(6, 7),   // Ø + max Speed
+    listOf(4, 3),   // Distanz + Zeit
+)
 
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (Kernsatz; Rest "—").
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
