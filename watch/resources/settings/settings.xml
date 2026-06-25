@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App-Settings (Garmin Connect am Handy / on-device unter Apps & Aktivitäten ->
+  Pump Foil). Das ist der einzige Weg, einer Connect-IQ-Device-App einen
+  Einstellungs-Eintrag zu geben, der OHNE Start der App erreichbar ist
+  (getSettingsView() gilt nur für Watchfaces/Datafields).
+
+  Pairing per Code (von pumpfoil.org/Account) ins Feld eintragen -> die App löst
+  ihn beim nächsten Öffnen/Settings-Change ein. Upload läuft automatisch nach dem
+  Stopp bzw. beim App-Start; die Datenfelder/Alarme kommen normalerweise von der
+  Website und überschreiben diese nativen Fallback-Werte.
+-->
+<settings>
+  <setting propertyKey="@Properties.pairingCode" title="@Strings.SettingPairingCode" prompt="@Strings.SettingPairingCodePrompt">
+    <settingConfig type="alphaNumeric" />
+  </setting>
+
+  <group id="fields" title="@Strings.AppName">
+    <setting propertyKey="@Properties.field1" title="@Strings.SettingField1">
+      <settingConfig type="list">
+        <listEntry value="0">@Strings.FieldNone</listEntry>
+        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
+        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
+        <listEntry value="3">@Strings.FieldTimer</listEntry>
+        <listEntry value="4">@Strings.FieldDistance</listEntry>
+      </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.field2" title="@Strings.SettingField2">
+      <settingConfig type="list">
+        <listEntry value="0">@Strings.FieldNone</listEntry>
+        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
+        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
+        <listEntry value="3">@Strings.FieldTimer</listEntry>
+        <listEntry value="4">@Strings.FieldDistance</listEntry>
+      </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.field3" title="@Strings.SettingField3">
+      <settingConfig type="list">
+        <listEntry value="0">@Strings.FieldNone</listEntry>
+        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
+        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
+        <listEntry value="3">@Strings.FieldTimer</listEntry>
+        <listEntry value="4">@Strings.FieldDistance</listEntry>
+      </settingConfig>
+    </setting>
+  </group>
+
+  <group id="alarm" title="@Strings.SettingAlarmEnabled">
+    <setting propertyKey="@Properties.colorByValue" title="@Strings.SettingColorByValue">
+      <settingConfig type="boolean" />
+    </setting>
+    <setting propertyKey="@Properties.alarmEnabled" title="@Strings.SettingAlarmEnabled">
+      <settingConfig type="boolean" />
+    </setting>
+    <setting propertyKey="@Properties.speedHigh" title="@Strings.SettingSpeedHigh">
+      <settingConfig type="numeric" min="0" max="80" />
+    </setting>
+    <setting propertyKey="@Properties.speedLow" title="@Strings.SettingSpeedLow">
+      <settingConfig type="numeric" min="0" max="80" />
+    </setting>
+  </group>
+</settings>

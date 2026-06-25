@@ -197,6 +197,32 @@ class SessionRecorder {
         }
     }
 
+    // Forward-Pairing: Code aus dem App-Settings-Feld (Garmin Connect am Handy /
+    // on-device) einlösen -> Device-Token holen. Wird beim App-Start und nach
+    // jeder Settings-Änderung versucht.
+    function claimPairingCode() {
+        if (isPaired()) { return; }
+        var code = Config.getString("pairingCode");
+        if (code == null || code.equals("")) { return; }
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/devices/pair",
+            { "code" => code, "label" => "Garmin" },
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onPairClaim));
+    }
+
+    function onPairClaim(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        if (responseCode == 200 && data instanceof Lang.Dictionary && data["device_token"] != null) {
+            Config.setString("deviceToken", data["device_token"]);
+            pairStatus = "Verbunden!";
+            fetchConfig();
+            Uploader.syncAll();
+        }
+    }
+
     // Beim App-Start die auf der Website konfigurierten Ansichten laden (falls online).
     function fetchConfig() {
         var token = Config.getString("deviceToken");
