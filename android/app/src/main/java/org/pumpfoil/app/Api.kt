@@ -4,8 +4,11 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import java.net.HttpURLConnection
 import java.net.URL
@@ -83,6 +86,20 @@ object Api {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
         val body = buildJsonObject { put("text", text) }.toString()
         json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
+    }
+
+    suspend fun foils(): List<Foil> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(Foil.serializer()), http("GET", "/api/foils", null, auth = true))
+    }
+
+    suspend fun foilBrands(): List<String> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/foils/brands", null, auth = true))
+    }
+
+    // Settings sind ein freies Key/Value-Objekt -> als JsonObject zurückgeben, der
+    // Aufrufer pickt my_foils / weight_kg heraus.
+    suspend fun settings(): JsonObject = withContext(Dispatchers.IO) {
+        json.parseToJsonElement(http("GET", "/api/settings", null, auth = true)).jsonObject
     }
 
     @kotlinx.serialization.Serializable

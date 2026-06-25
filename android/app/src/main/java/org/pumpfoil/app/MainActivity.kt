@@ -102,7 +102,8 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("spots") { SpotsScreen() }
             composable("chat") { ChatScreen() }
-            composable("profile") { ProfileScreen(onLogout = onLogout) }
+            composable("profile") { ProfileScreen(onLogout = onLogout, onFoilCalc = { nav.navigate("foilcalc") }) }
+            composable("foilcalc") { FoilCalculatorScreen() }
             composable(
                 "session/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType }),

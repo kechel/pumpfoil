@@ -76,6 +76,19 @@ data class ChatRoom(
 )
 
 @Serializable
+data class Foil(
+    val id: Int,
+    val brand: String = "",
+    val model: String = "",
+    val size: String = "",
+    @SerialName("span_cm") val spanCm: Double = 0.0,
+    @SerialName("area_cm2") val areaCm2: Double = 0.0,
+    @SerialName("thickness_mm") val thicknessMm: Double = 0.0,
+    @SerialName("thickness_estimated") val thicknessEstimated: Boolean = false,
+    @SerialName("aspect_ratio") val aspectRatio: Double? = null,
+)
+
+@Serializable
 data class SessionDetail(
     val id: Int,
     val sport: String = "",
