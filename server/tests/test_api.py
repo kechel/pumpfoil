@@ -245,3 +245,21 @@ def test_mint_token_can_ingest(client):
                     json={"session_uuid": "mint-ingest-1", "started_at": "2026-06-20T09:00:00Z"})
     assert r.status_code == 200, r.text
     assert r.json()["received_chunks"] == []
+
+
+def test_device_config_includes_foil_alarms(client):
+    # /api/devices/config liefert je my_foil den Auto-Alarm-Korridor (Uhr-Picker).
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "cfgfoils@b.de", "password": "supersecret"}).json()["access_token"]}
+    foils = client.get("/api/foils", headers=auth).json()
+    assert foils, "Test-DB sollte Foils enthalten (foils.json seed)"
+    fid = foils[0]["id"]
+    client.put("/api/settings", headers=auth, json={"my_foils": [fid], "weight_kg": 95})
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+    cfg = client.get("/api/devices/config", headers=dev).json()
+    assert "foils" in cfg
+    mine = [f for f in cfg["foils"] if f["id"] == fid]
+    assert len(mine) == 1
+    f = mine[0]
+    assert f["label"] and 0 < f["min"] < f["max"]   # sinnvoller Korridor
