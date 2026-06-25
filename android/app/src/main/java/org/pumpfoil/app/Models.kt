@@ -24,6 +24,7 @@ data class SessionSummary(
     @SerialName("place_name") val placeName: String? = null,
     val caption: String? = null,
     @SerialName("owner_name") val ownerName: String? = null,
+    @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
 )
 

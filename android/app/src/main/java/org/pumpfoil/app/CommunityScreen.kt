@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -27,7 +29,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +69,16 @@ fun CommunityScreen(onOpen: (Int) -> Unit) {
                                 Text(prettyDate(s.startedAt) + (s.placeName?.let { " · $it" } ?: ""))
                             },
                             leadingContent = {
-                                Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                val av = Api.mediaUrl(s.ownerAvatarUrl)
+                                if (av != null) {
+                                    AsyncImage(
+                                        model = av, contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(40.dp).clip(CircleShape),
+                                    )
+                                } else {
+                                    Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                }
                             },
                             trailingContent = {
                                 if (s.likeCount > 0) {
