@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Basis-Theme; die eigentlichen Compose-Farben kommen aus PumpfoilTheme.kt. -->
+    <style name="Theme.Pumpfoil" parent="android:Theme.Material.NoActionBar" />
+</resources>
