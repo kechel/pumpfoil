@@ -50,8 +50,9 @@ function speedColor(kmh: number, lo: number, hi: number): string {
 }
 
 // Divergierende Skala relativ zur optimalen Foil-Geschwindigkeit: blau = drunter,
-// grün = exakt drauf, rot = drüber. Spanne ±30 % um Optimal (geclamped).
-const OPTIMAL_SPAN = 0.3;
+// grün = exakt drauf, rot = drüber. Spanne ±20 % um Optimal (geclamped) -> Farben
+// schlagen früher um, grün bleibt der schmale Bereich nah am Optimum.
+const OPTIMAL_SPAN = 0.2;
 function optimalColor(kmh: number, opt: number): string {
   if (!opt || opt <= 0) return "#64748b";
   const r = kmh / opt;
