@@ -111,25 +111,14 @@ struct RecordView: View {
     @State private var foils: [Api.FoilOpt] = []
     @State private var showFoilPicker = false
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
+    @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
 
     var body: some View {
         Group {
-            if rec.isRecording && !rec.isFoiling {
-                // Off foil: Auto-Zusammenfassungs-Screen (Uhrzeit + letzter Lauf) + Stop.
-                VStack(spacing: 8) {
-                    ForEach(activeFields(offFoil), id: \.self) { fid in fieldView(fid) }
-                    Button("Stop") { Task { await rec.stop() } }
-                        .tint(.red).font(.caption2).buttonStyle(.bordered)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .top) {
-                    if rec.uploading {
-                        Image(systemName: "icloud.and.arrow.up")
-                            .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
-                    }
-                }
-            } else if rec.isRecording {
-                // On foil: Stop an BEIDEN Enden (kein Umlauf-Wischen möglich); Start landet auf 1. Datenseite.
+            if rec.isRecording {
+                // Pager: Stop(0) | Daten 1..n | Übersicht(n+1) | Stop(n+2). Übersicht ist eine
+                // wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" -> Übersicht
+                // (+kurze Vibration), nach 60 s ohne Wischen zurück; „Lauf gestartet" -> zurück.
                 TabView(selection: $page) {
                     stopPage("Datenfelder →").tag(0)
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
@@ -139,10 +128,29 @@ struct RecordView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .tag(idx + 1)
                     }
-                    stopPage("← Datenfelder").tag(views.count + 1)
+                    VStack(spacing: 10) {   // Übersicht (off foil)
+                        ForEach(activeFields(offFoil), id: \.self) { fid in fieldView(fid) }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tag(views.count + 1)
+                    stopPage("← Übersicht").tag(views.count + 2)
                 }
                 .tabViewStyle(.page)
-                .onChange(of: rec.isRecording) { rec in if rec { page = 1 } }
+                .onChange(of: rec.isRecording) { r in if r { page = 1 } }
+                .onChange(of: page) { p in if p >= 1 && p <= views.count { lastDataPage = p } }
+                .onChange(of: rec.isFoiling) { foiling in
+                    let summaryPage = views.count + 1
+                    if !foiling {
+                        page = summaryPage
+                        WKInterfaceDevice.current().play(.click)
+                        Task {
+                            try? await Task.sleep(nanoseconds: 60_000_000_000)
+                            if page == summaryPage { page = lastDataPage }
+                        }
+                    } else if page == summaryPage {
+                        page = lastDataPage
+                    }
+                }
                 // Upload-Indikator: kleines Wolken-Symbol, wenn gerade Chunks hochgeladen werden.
                 .overlay(alignment: .top) {
                     if rec.uploading {
