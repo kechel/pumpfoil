@@ -10,9 +10,9 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   nicht", Online-Erkennung (offline → letzte gecachte Datenseiten), Upload-Indikator, „N warten auf
   Upload", Start-Button in Startphase ausgeblendet. Default-Datenseiten = 3 sinnvolle Seiten statt 1.
 
-- **/foil-stats: relevante Kennzahlen.** Statt **Max-Speed** lieber **Meter pro Pump** und **Ø-Speed**
-  anzeigen (das ist beim Foil-Vergleich aussagekräftig). Endpoint `/api/community/foil-stats` +
-  FoilStats-Seite anpassen.
+- ✅ **/foil-stats: relevante Kennzahlen.** *umgesetzt:* statt Max-Speed jetzt **Ø-Speed** (Σdist/Σzeit)
+  und **Meter pro Pump** (Σdist/Σpumps) — Endpoint `/api/community/foil-stats` aggregiert `avg_speed_kmh`
+  + `meters_per_pump`, FoilStats-Seite zeigt die Spalten „Ø-Speed" / „Meter pro Pump".
 
 - **Foil-DB um weitere Marken erweitern.** *Infrastruktur + erste Marken umgesetzt (2026-06-24):*
   Schema-Flag `thickness_estimated` (Model/Migration/Seed/API), idempotenter Seed (neue Foils per
