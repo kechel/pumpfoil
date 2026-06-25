@@ -30,6 +30,10 @@ targets:
         WKApplication: true
         WKWatchOnly: true        # eigenständige Watch-App ohne iPhone-Companion
         CFBundleDisplayName: Pumpfoil
+        # Version/Build explizit ins Info.plist (an die Build-Settings gebunden) — sonst
+        # zeigt der Organizer keine Version und das Archive gilt nicht als verteilbar.
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         # Export-Compliance: App nutzt nur Standard-HTTPS/TLS (ausgenommene Verschlüsselung).
         # false beantwortet die App-Store-Connect-Abfrage automatisch -> kein Upload nötig.
         ITSAppUsesNonExemptEncryption: false
