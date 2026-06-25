@@ -123,8 +123,10 @@ function ClaimFromWatch() {
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">Garmin: Code von der Uhr eingeben</h3>
       <p className="mb-3 text-sm text-slate-300">
-        Auf der Uhr in der Pump-Foil-App nach oben/unten wischen zu „Verbinden", START drücken —
-        den angezeigten Code hier eintragen.
+        Pump Foil auf der Uhr öffnen (nicht starten) → <strong>MENU halten</strong> (Knopf
+        Mitte-links) → „Einstellungen" → „Verbinden". Der angezeigte Code (6 Zeichen, Buchstaben
+        &amp; Ziffern) hier eintragen. Handy in der Nähe oder WLAN nötig, damit die Uhr den Code
+        erzeugen kann.
       </p>
       <div className="flex flex-wrap gap-2">
         <input
