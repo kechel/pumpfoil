@@ -10,25 +10,6 @@ import { useT } from "../i18n";
 
 export default function Account() {
   const t = useT();
-  const [code, setCode] = useState<string | null>(null);
-  const [expires, setExpires] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function generate() {
-    setError(null);
-    setBusy(true);
-    try {
-      const res = await api.pairingCode();
-      setCode(res.code);
-      setExpires(res.expires_at);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">("guide");
 
   return (
@@ -54,35 +35,6 @@ export default function Account() {
 
       {tab === "connect" && (
       <>
-      <Card className="p-5">
-        <ol className="space-y-3 text-sm text-slate-200">
-          <Step n={1}>{t("account.step1")}</Step>
-          <Step n={2}>
-            {t("account.step2pre")}<span className="text-slate-100">Pump Foil</span>{t("account.step2post")}
-          </Step>
-          <Step n={3}>{t("account.step3")}</Step>
-        </ol>
-
-        <div className="mt-6">
-          <Button onClick={generate} className="w-full sm:w-auto">
-            {busy ? "…" : t("account.genCode")}
-          </Button>
-        </div>
-
-        {code && (
-          <div className="mt-6 rounded-2xl border border-brand-600/40 bg-brand-500/10 p-6 text-center">
-            <div className="font-mono text-4xl font-extrabold tracking-[0.3em] text-brand-400">
-              {code}
-            </div>
-            {expires && (
-              <div className="mt-2 text-xs text-slate-300">
-                {t("account.validUntil", { time: new Date(expires).toLocaleTimeString() })}
-              </div>
-            )}
-          </div>
-        )}
-        {error && <div className="mt-4"><ErrorBox message={error} /></div>}
-      </Card>
       <ClaimFromWatch />
       <PairedDevices />
       </>

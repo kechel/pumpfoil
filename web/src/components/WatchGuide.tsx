@@ -43,15 +43,17 @@ export function WatchGuide() {
             <code className="mx-1 rounded bg-slate-800 px-1">.prg</code> für dein Modell von hier herunterladen
             (Tab „App") und mit <b>OpenMTP</b> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
             der Uhr kopieren.</li>
-          <li><b>2. Pairing-Code holen:</b> im Tab <b>„Verbinden"</b> einen Code erzeugen.</li>
-          <li><b>3. Code eintragen — in der Garmin-Connect-Handy-App</b> (nicht auf der Uhr!):
-            Garmin Connect → <b>Geräte</b> → deine Uhr → <b>Connect&nbsp;IQ&nbsp;Apps</b> → <b>Pump&nbsp;Foil</b> →
-            <b> Einstellungen ⚙️</b> → Feld „Pairing-Code" ausfüllen, speichern. Dort stellst du auch
-            <b> Datenfelder</b> (bis zu 3 auf einem Screen) und den <b>Speed-Alarm</b> ein.</li>
-          <li><b>4. Aufnehmen:</b> Start-/GPS-Taste → Aktivität <b>„Pump Foil"</b> → GPS-Fix abwarten →
-            foilen → <b>stoppen &amp; speichern</b>.</li>
-          <li><b>5. Upload:</b> passiert automatisch, sobald die Uhr <b>WLAN</b> hat oder per Telefon
-            verbunden ist. Danach erscheint die Session hier auf pumpfoil.org.</li>
+          <li><b>2. Code an der Uhr erzeugen:</b> Pump Foil öffnen (nicht starten) →
+            <b> MENU halten</b> (Knopf Mitte-links) → <b>„Einstellungen"</b> → <b>„Verbinden"</b>.
+            Die Uhr zeigt einen 6-stelligen Code (Handy in der Nähe oder WLAN nötig).</li>
+          <li><b>3. Code hier eintragen:</b> Tab <b>„Verbinden"</b> → „Code von der Uhr eingeben".
+            Fertig — die Uhr ist deinem Konto zugeordnet.</li>
+          <li><b>4. Datenfelder &amp; Alarm:</b> hier auf pumpfoil.org in den Tabs <b>„Datenfelder"</b>
+            (bis zu 3 pro Screen) und <b>„Alarm"</b> einstellen — wird nach dem Verbinden auf die Uhr geladen.</li>
+          <li><b>5. Aufnehmen:</b> App öffnen → <b>„GPS bereit"</b> abwarten → <b>START</b> → foilen →
+            START <b>3&nbsp;s halten</b> zum Stoppen &amp; Speichern.</li>
+          <li><b>6. Upload:</b> automatisch beim nächsten App-Start (WLAN/Telefon), oder manuell
+            <b> MENU → Einstellungen → „Upload / Sync"</b>. Danach erscheint die Session hier.</li>
         </ol>
       </Card>
 
@@ -62,8 +64,9 @@ export function WatchGuide() {
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>1. App installieren:</b> aus dem App&nbsp;Store / TestFlight (in Vorbereitung).</li>
           <li><b>2. Verbinden — optional:</b> Du kannst <b>sofort ohne Konto aufnehmen</b>
-            („Später verbinden") und die Session später hochladen. Zum direkten Zuordnen: im Tab
-            <b> „Verbinden"</b> einen Code erzeugen und in der Watch-App eingeben.</li>
+            („Später verbinden") und die Session später hochladen. Zum Zuordnen: in der Watch-App
+            <b> „Verbinden" → „Pairing-Code erzeugen"</b> — den angezeigten Code hier im Tab
+            <b> „Verbinden"</b> eintragen.</li>
           <li><b>3. Datenfelder:</b> direkt auf der Uhr <b>wischbare Seiten</b> (konfigurierbar im Tab
             „Datenfelder"). Stopp-Button am Anfang und Ende der Seiten.</li>
           <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Aufnahme läuft auch
@@ -78,7 +81,8 @@ export function WatchGuide() {
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>1. App installieren:</b> aus dem Google&nbsp;Play&nbsp;Store (in Vorbereitung).</li>
           <li><b>2. Verbinden — optional:</b> wie bei Apple Watch — <b>ohne Konto aufnehmen</b> möglich,
-            später verbinden; oder Pairing-Code aus dem Tab „Verbinden" in der Uhr eingeben.</li>
+            später verbinden; oder in der Uhr-App <b>„Verbinden" → „Pairing-Code erzeugen"</b> und den
+            Code hier im Tab „Verbinden" eintragen.</li>
           <li><b>3. Datenfelder:</b> wischbare Seiten, konfigurierbar im Tab „Datenfelder".</li>
           <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Offline-Aufnahme +
             automatischer Sync.</li>
