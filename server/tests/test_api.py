@@ -161,3 +161,28 @@ def test_auth_required(client):
 def test_pair_with_bad_code(client):
     r = client.post("/api/devices/pair", json={"code": "ZZZZZZ"})
     assert r.status_code == 400
+
+
+def test_mint_device_token(client):
+    # Companion-Pairing: eingeloggte App mintet direkt ein Device-Token.
+    r = client.post("/api/auth/register", json={"email": "mint@b.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    r = client.post("/api/devices/mint?label=Apple%20Watch", headers=auth)
+    assert r.status_code == 200, r.text
+    assert r.json()["device_token"]
+    # ohne Auth nicht erlaubt
+    assert client.post("/api/devices/mint").status_code in (401, 403)
+
+
+def test_reverse_pairing_flow(client):
+    # Uhr erzeugt Code (pair-init) -> Web-User löst ein (pair-claim) -> Uhr pollt (pair-poll).
+    r = client.post("/api/auth/register", json={"email": "rev@b.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    init = client.post("/api/devices/pair-init").json()
+    code, claim = init["code"], init["claim_token"]
+    # vor dem Einlösen: noch kein Token
+    assert client.get(f"/api/devices/pair-poll?claim_token={claim}").json()["device_token"] is None
+    # Einlösen durch eingeloggten User
+    assert client.post("/api/devices/pair-claim", json={"code": code}, headers=auth).json()["ok"] is True
+    # danach liefert das Polling das Device-Token
+    assert client.get(f"/api/devices/pair-poll?claim_token={claim}").json()["device_token"]
