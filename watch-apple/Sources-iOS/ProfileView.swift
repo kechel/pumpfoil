@@ -28,6 +28,7 @@ struct ProfileView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Profil")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
         }
     }
 

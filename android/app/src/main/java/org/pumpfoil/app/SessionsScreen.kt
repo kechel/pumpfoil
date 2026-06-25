@@ -8,12 +8,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -21,15 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +34,7 @@ fun SessionsScreen() {
     var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    val tick by WatchSync.tick.collectAsState()
 
     suspend fun load() {
         loading = true
@@ -45,17 +42,13 @@ fun SessionsScreen() {
         catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(Unit) { load() }
+    LaunchedEffect(tick) { load() }   // initial + nach jedem Sync neu laden
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Sessions") },
-                actions = {
-                    IconButton(onClick = { scope.launch { load() } }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Aktualisieren")
-                    }
-                },
+                actions = { SyncIndicator() },
             )
         },
     ) { pad ->

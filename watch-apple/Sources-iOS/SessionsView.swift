@@ -2,6 +2,7 @@ import SwiftUI
 
 // Native Sessions-Liste mit Pull-to-Refresh + Large Title.
 struct SessionsView: View {
+    @EnvironmentObject var sync: SyncManager
     @State private var items: [SessionSummary] = []
     @State private var loading = false
     @State private var error: String?
@@ -21,9 +22,11 @@ struct SessionsView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Sessions")
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
+            .onChange(of: sync.tick) { _ in Task { await load() } }
         }
     }
 

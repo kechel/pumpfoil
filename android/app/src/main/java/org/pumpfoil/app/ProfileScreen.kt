@@ -30,7 +30,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
     }
-    Scaffold(topBar = { TopAppBar(title = { Text("Profil") }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Profil") }, actions = { SyncIndicator() }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
             Text(profile?.displayName ?: "—", style = MaterialTheme.typography.titleLarge)
             profile?.email?.let {

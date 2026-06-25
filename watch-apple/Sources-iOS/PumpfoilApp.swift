@@ -3,9 +3,12 @@ import SwiftUI
 @main
 struct PumpfoilApp: App {
     @StateObject private var session = SessionStore()
+    @StateObject private var sync = SyncManager.shared
     var body: some Scene {
         WindowGroup {
-            RootView().environmentObject(session)
+            RootView()
+                .environmentObject(session)
+                .environmentObject(sync)
         }
     }
 }
