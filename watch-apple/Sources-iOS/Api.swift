@@ -22,6 +22,10 @@ enum Api {
         try await request("/api/auth/me", method: "GET", body: nil, auth: true)
     }
 
+    static func updateDisplayName(_ name: String) async throws -> Profile {
+        try await request("/api/auth/me", method: "PUT", body: ["display_name": name], auth: true)
+    }
+
     static func sessions() async throws -> [SessionSummary] {
         try await request("/api/sessions", method: "GET", body: nil, auth: true)
     }

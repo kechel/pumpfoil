@@ -47,6 +47,12 @@ object Api {
         json.decodeFromString(Profile.serializer(), http("GET", "/api/auth/me", null, auth = true))
     }
 
+    // Anzeigename ändern (PUT-Alias, da HttpURLConnection kein PATCH kann).
+    suspend fun updateDisplayName(name: String): Profile = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("display_name", name) }.toString()
+        json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me", body, auth = true))
+    }
+
     suspend fun sessions(): List<SessionSummary> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),

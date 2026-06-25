@@ -3,6 +3,8 @@ import SwiftUI
 // Profil + Abmelden. Einstellungen/Avatar-Upload folgen in späteren Phasen.
 struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
+    @State private var editing = false
+    @State private var draftName = ""
 
     var body: some View {
         NavigationStack {
@@ -16,6 +18,12 @@ struct ProfileView: View {
                                 Text(email).font(.subheadline).foregroundStyle(.secondary)
                             }
                         }
+                        Spacer()
+                        Button {
+                            draftName = session.profile?.display_name ?? ""
+                            editing = true
+                        } label: { Image(systemName: "pencil") }
+                        .buttonStyle(.borderless)
                     }
                     .padding(.vertical, 4)
                 }
@@ -44,6 +52,16 @@ struct ProfileView: View {
             .listStyle(.insetGrouped)
             .navigationTitle("Profil")
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
+            .alert("Anzeigename", isPresented: $editing) {
+                TextField("Name", text: $draftName)
+                Button("Speichern") {
+                    let n = draftName.trimmingCharacters(in: .whitespaces)
+                    if !n.isEmpty {
+                        Task { if let p = try? await Api.updateDisplayName(n) { session.profile = p } }
+                    }
+                }
+                Button("Abbrechen", role: .cancel) {}
+            }
         }
     }
 

@@ -75,6 +75,7 @@ def me(user: models.User = Depends(current_user)) -> ProfileOut:
 
 
 @router.patch("/me", response_model=ProfileOut)
+@router.put("/me", response_model=ProfileOut)  # PUT-Alias: Android-HttpURLConnection kann kein PATCH
 def update_me(
     body: ProfileIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)
 ) -> ProfileOut:

@@ -14,23 +14,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Surfing
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,9 +50,32 @@ import coil.compose.AsyncImage
 @Composable
 fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}) {
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
+    var editing by remember { mutableStateOf(false) }
+    var draftName by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
+    }
+
+    if (editing) {
+        AlertDialog(
+            onDismissRequest = { editing = false },
+            title = { Text("Anzeigename") },
+            text = {
+                OutlinedTextField(value = draftName, onValueChange = { draftName = it }, singleLine = true)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val n = draftName.trim()
+                    editing = false
+                    if (n.isNotEmpty()) scope.launch {
+                        try { profile = Api.updateDisplayName(n) } catch (_: Exception) {}
+                    }
+                }) { Text("Speichern") }
+            },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text("Abbrechen") } },
+        )
     }
     Scaffold(topBar = { TopAppBar(title = { Text("Profil") }, actions = { SyncIndicator() }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
@@ -65,11 +95,14 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     )
                 }
                 Spacer(Modifier.width(14.dp))
-                Column {
+                Column(Modifier.weight(1f)) {
                     Text(profile?.displayName ?: "—", style = MaterialTheme.typography.titleLarge)
                     profile?.email?.let {
                         Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+                IconButton(onClick = { draftName = profile?.displayName ?: ""; editing = true }) {
+                    Icon(Icons.Filled.Edit, contentDescription = "Anzeigename ändern")
                 }
             }
             Spacer(Modifier.height(24.dp))
