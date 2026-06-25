@@ -241,12 +241,21 @@ function ViewsEditor() {
   const t = useT();
   const [views, setViews] = useState<number[][] | null>(null);
   const [colorByValue, setColorByValue] = useState(false);
+  const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getSettings().then((s) => { setViews(s.views ?? [[1, 2, 0]]); setColorByValue(!!s.colorByValue); }).catch((e) => setErr(String(e)));
+    api.getSettings().then((s) => {
+      setViews(s.views ?? [[1, 2, 0]]);
+      setColorByValue(!!s.colorByValue);
+      setOffFoil(s.off_foil_view ?? [12, 17, 16]);
+    }).catch((e) => setErr(String(e)));
   }, []);
+
+  function setOffField(fi: number, val: number) {
+    const next = [...offFoil]; next[fi] = val; setOffFoil(next); setSaved(false);
+  }
 
   function update(next: number[][]) {
     setViews(next);
@@ -269,9 +278,10 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views, colorByValue });
+      const res = await api.saveSettings({ views, colorByValue, off_foil_view: offFoil });
       setViews(res.views);
       setColorByValue(!!res.colorByValue);
+      if (res.off_foil_view) setOffFoil(res.off_foil_view);
       setSaved(true);
     } catch (e) {
       setErr(String(e));
@@ -320,6 +330,32 @@ function ViewsEditor() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-5 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
+        <div className="mb-1 text-sm font-medium text-slate-200">Off-Foil-Screen</div>
+        <p className="mb-2 text-xs text-slate-400">
+          Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst
+          (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück
+          auf deine zuletzt gewählte Ansicht.
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <WatchPreview fields={offFoil} colorByValue={colorByValue} />
+          <div className="flex-1 space-y-2">
+            {[0, 1, 2].map((fi) => (
+              <select
+                key={fi}
+                value={offFoil[fi] ?? 0}
+                onChange={(e) => setOffField(fi, Number(e.target.value))}
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
+              >
+                {FIELD_OPTIONS.map((o) => (
+                  <option key={o.id} value={o.id}>{o.label}</option>
+                ))}
+              </select>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
