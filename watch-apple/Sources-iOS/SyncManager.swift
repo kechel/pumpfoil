@@ -28,6 +28,28 @@ final class SyncManager: NSObject, ObservableObject {
         guard WCSession.isSupported() else { connected = false; return }
         let s = WCSession.default
         connected = s.isPaired && s.isWatchAppInstalled
+        if connected { pushPairingToWatch() }
+    }
+
+    // Companion-Pairing (Apple-idiomatisch): die eingeloggte iPhone-App mintet ein
+    // Device-Token und schiebt es per WatchConnectivity auf die Uhr -> kein Code-Tippen.
+    // Einmal minten und cachen; per applicationContext (auch wenn Uhr-App inaktiv) zustellen.
+    func pushPairingToWatch() {
+        guard Api.token != nil, WCSession.isSupported() else { return }
+        let s = WCSession.default
+        guard s.activationState == .activated, s.isPaired, s.isWatchAppInstalled else { return }
+        Task {
+            let token: String
+            if let cached = UserDefaults.standard.string(forKey: "mintedWatchToken") {
+                token = cached
+            } else if let minted = try? await Api.mintDeviceToken() {
+                UserDefaults.standard.set(minted, forKey: "mintedWatchToken")
+                token = minted
+            } else {
+                return
+            }
+            try? s.updateApplicationContext(["deviceToken": token])
+        }
     }
 
     func sync() {

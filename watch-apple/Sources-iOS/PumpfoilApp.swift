@@ -22,8 +22,10 @@ final class SessionStore: ObservableObject {
 
     func bootstrap() async {
         guard token != nil else { return }
-        if let p = try? await Api.getProfile() { profile = p }
-        else { logout() }   // Token ungültig -> abmelden
+        if let p = try? await Api.getProfile() {
+            profile = p
+            SyncManager.shared.pushPairingToWatch()   // gekoppelte Uhr automatisch verknüpfen
+        } else { logout() }   // Token ungültig -> abmelden
     }
 
     func login(email: String, password: String) async throws {
@@ -31,11 +33,13 @@ final class SessionStore: ObservableObject {
         Api.token = t
         token = t
         profile = try? await Api.getProfile()
+        SyncManager.shared.pushPairingToWatch()       // nach Login die Uhr verknüpfen
     }
 
     func logout() {
         Api.token = nil
         token = nil
         profile = nil
+        UserDefaults.standard.removeObject(forKey: "mintedWatchToken")
     }
 }

@@ -30,6 +30,15 @@ enum Api {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    struct MintResponse: Decodable { let device_token: String; let user_id: Int }
+
+    // Companion-Pairing: eingeloggte iPhone-App mintet ein Device-Token für die Uhr.
+    static func mintDeviceToken(label: String = "Apple Watch") async throws -> String {
+        let l = label.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? label
+        let r: MintResponse = try await request("/api/devices/mint?label=\(l)", method: "POST", body: nil, auth: true)
+        return r.device_token
+    }
+
     static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [SessionSummary] {
         try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
     }

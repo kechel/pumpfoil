@@ -7,7 +7,10 @@ struct PumpfoilApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(rec)
-                .onAppear { rec.requestAuth() }
+                .onAppear {
+                    rec.requestAuth()
+                    WatchLink.shared.activate()   // Token-Empfang vom iPhone (Companion-Pairing)
+                }
         }
     }
 }
