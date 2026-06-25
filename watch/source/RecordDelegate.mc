@@ -35,9 +35,16 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
-            } else if (!_rec.manualAlarm && _rec.foils.size() >= 1) {
-                // Foil-Auswahl: welches Foil heute? -> setzt Auto-Alarm (min/max) + startet.
-                var menu = new WatchUi.Menu2({:title => "Foil heute?"});
+            } else if (_rec.manualAlarm || _rec.foils.size() >= 1) {
+                // Alarm-/Foil-Auswahl beim Start: zuerst der Website-Alarm (mit Werten),
+                // dann die Foils (Bezeichnung + min/max), dann "Ohne Alarm".
+                var menu = new WatchUi.Menu2({:title => "Alarm wählen"});
+                if (_rec.manualAlarm) {
+                    menu.addItem(new WatchUi.MenuItem(
+                        "Website",
+                        _rec.speedLowKmh.toString() + "–" + _rec.speedHighKmh.toString() + " km/h",
+                        :website, {}));
+                }
                 for (var i = 0; i < _rec.foils.size(); i++) {
                     var f = _rec.foils[i];
                     menu.addItem(new WatchUi.MenuItem(
@@ -45,7 +52,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                         f["min"].toString() + "–" + f["max"].toString() + " km/h",
                         i, {}));
                 }
-                menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "direkt starten", :none, {}));
+                menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "kein Alarm", :none, {}));
                 WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
             } else {
                 _rec.start();                                    // Start-Screen: Aufnahme starten
@@ -128,7 +135,11 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         var id = item.getId();
         if (id instanceof Lang.Number) {
             var f = _rec.foils[id];
-            _rec.applyFoilAlarm(f["min"], f["max"]);
+            _rec.applyFoilAlarm(f["min"], f["max"]);     // Foil-Auto-Alarm
+        } else if (id == :website) {
+            _rec.alarmEnabled = true;                    // Website-Werte (bereits geladen)
+        } else if (id == :none) {
+            _rec.alarmEnabled = false;                   // kein Alarm für diese Session
         }
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         _rec.start();

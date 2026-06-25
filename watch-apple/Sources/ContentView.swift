@@ -146,18 +146,27 @@ struct RecordView: View {
                     } else {
                     Button("Start") {
                         skipSync()
-                        if !manualAlarm && !foils.isEmpty { showFoilPicker = true }
+                        if manualAlarm || !foils.isEmpty { showFoilPicker = true }
                         else { Task { await rec.start() } }
                     }
                     .tint(.green)
-                    .confirmationDialog("Foil heute?", isPresented: $showFoilPicker, titleVisibility: .visible) {
+                    .confirmationDialog("Alarm wählen", isPresented: $showFoilPicker, titleVisibility: .visible) {
+                        if manualAlarm {
+                            Button("Website · \(alarm.low)–\(alarm.high)") {
+                                alarm = WatchAlarm(enabled: true, high: alarm.high, low: alarm.low)
+                                Task { await rec.start() }
+                            }
+                        }
                         ForEach(foils) { f in
                             Button("\(f.label) · \(f.min)–\(f.max)") {
                                 alarm = WatchAlarm(enabled: true, high: f.max, low: f.min)
                                 Task { await rec.start() }
                             }
                         }
-                        Button("Ohne Alarm") { Task { await rec.start() } }
+                        Button("Ohne Alarm") {
+                            alarm = WatchAlarm(enabled: false)
+                            Task { await rec.start() }
+                        }
                         Button("Abbrechen", role: .cancel) {}
                     }
                     // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.

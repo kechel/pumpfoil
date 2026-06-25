@@ -224,12 +224,14 @@ class MainActivity : ComponentActivity() {
         } else if (showFoilPicker) {
             FoilPicker(
                 foils = foils,
+                websiteAlarm = if (manualAlarm) alarm else null,
+                onWebsite = { showFoilPicker = false; RecorderService.start(applicationContext) },
                 onPick = { f ->
                     alarm = WatchAlarm(true, f.max, f.min)
                     showFoilPicker = false
                     RecorderService.start(applicationContext)
                 },
-                onNone = { showFoilPicker = false; RecorderService.start(applicationContext) },
+                onNone = { alarm = WatchAlarm(false); showFoilPicker = false; RecorderService.start(applicationContext) },
                 onBack = { showFoilPicker = false },
             )
         } else {
@@ -248,7 +250,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                 Button(onClick = {
                     skipSync()
-                    if (!manualAlarm && foils.isNotEmpty()) showFoilPicker = true
+                    if (manualAlarm || foils.isNotEmpty()) showFoilPicker = true
                     else RecorderService.start(applicationContext)
                 }) { Text("Start") }
                 // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
@@ -346,13 +348,28 @@ data class FoilOpt(val id: Int, val label: String, val min: Int, val max: Int)
 
 // Foil-Auswahl beim Start: setzt den Auto-Alarm des gewählten Foils.
 @Composable
-fun FoilPicker(foils: List<FoilOpt>, onPick: (FoilOpt) -> Unit, onNone: () -> Unit, onBack: () -> Unit) {
+fun FoilPicker(
+    foils: List<FoilOpt>,
+    websiteAlarm: WatchAlarm?,
+    onWebsite: () -> Unit,
+    onPick: (FoilOpt) -> Unit,
+    onNone: () -> Unit,
+    onBack: () -> Unit,
+) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text("Foil heute?", style = MaterialTheme.typography.title3)
+        Text("Alarm wählen", style = MaterialTheme.typography.title3)
+        if (websiteAlarm != null) {
+            Chip(
+                onClick = onWebsite,
+                label = { Text("Website") },
+                secondaryLabel = { Text("${websiteAlarm.low}–${websiteAlarm.high} km/h") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         foils.forEach { f ->
             Chip(
                 onClick = { onPick(f) },
