@@ -264,6 +264,8 @@ const de: Record<string, string> = {
   "sd.colorSpeed": "Speed",
   "sd.colorPulse": "Puls",
   "sd.colorPumpHz": "Pump Hz",
+  "sd.colorOptimal": "vs. Optimal",
+  "sd.optimalLegend": "Optimal {v} km/h",
   "sd.smoothing": "Glättung:",
   "sd.clearSelection": "Auswahl aufheben (alle Läufe)",
   "sd.close": "✕ Schließen",

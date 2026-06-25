@@ -7,7 +7,7 @@ import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, Fake
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilPowerStat } from "../components/FoilPower";
-import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
+import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { Chat } from "../components/Chat";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
@@ -49,7 +49,24 @@ function speedColor(kmh: number, lo: number, hi: number): string {
   return rampColor((kmh - lo) / Math.max(hi - lo, 1));
 }
 
-type ColorMode = "speed" | "hr" | "pump";
+// Divergierende Skala relativ zur optimalen Foil-Geschwindigkeit: blau = drunter,
+// grün = exakt drauf, rot = drüber. Spanne ±30 % um Optimal (geclamped).
+const OPTIMAL_SPAN = 0.3;
+function optimalColor(kmh: number, opt: number): string {
+  if (!opt || opt <= 0) return "#64748b";
+  const r = kmh / opt;
+  let hue: number;
+  if (r <= 1) {
+    const tt = Math.min(Math.max((r - (1 - OPTIMAL_SPAN)) / OPTIMAL_SPAN, 0), 1); // 0=blau,1=grün
+    hue = 220 - tt * (220 - 140);
+  } else {
+    const tt = Math.min(Math.max((r - 1) / OPTIMAL_SPAN, 0), 1); // 0=grün,1=rot
+    hue = 140 - tt * 140;
+  }
+  return `hsl(${hue}, 80%, 48%)`;
+}
+
+type ColorMode = "speed" | "hr" | "pump" | "optimal";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -409,6 +426,22 @@ export default function SessionDetail() {
     if (colorMode === "pump" && !hasPump) setColorMode("speed");
   }, [colorMode, hasPump]);
 
+  // Optimale Geschwindigkeit (km/h) für das Foil dieser Session beim Gewicht des Nutzers.
+  const optimalKmh = useMemo(() => {
+    const fo = session?.foil;
+    if (!fo?.span_cm || !fo?.area_cm2 || !fo?.thickness_mm) return null;
+    const rider = { riderWeight: weightKg ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
+    const ar = calculateAR(fo.span_cm, fo.area_cm2);
+    const clmax = calculateCLmax(ar, fo.thickness_mm, fo.area_cm2, 15);
+    const stall = calculateStallSpeed(fo.area_cm2, clmax, rider);
+    return calculateOptimalSpeed(stall);   // ≈ 1,75 × Stall
+  }, [session?.foil, weightKg]);
+
+  // Optimal-Modus aktiv, aber keine Foil-Maße/Gewicht -> zurück auf Speed.
+  useEffect(() => {
+    if (colorMode === "optimal" && !optimalKmh) setColorMode("speed");
+  }, [colorMode, optimalKmh]);
+
   // Beschriftung: Eingabewert bei Session-Wechsel initialisieren.
   useEffect(() => { setCap(session?.caption ?? ""); }, [session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveCaption = () => {
@@ -464,6 +497,8 @@ export default function SessionDetail() {
           color = "#64748b";
         } else if (colorMode === "speed") {
           color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
+        } else if (colorMode === "optimal") {
+          color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         } else if (colorMode === "pump") {
           const v = phz[i + 1];
           const [lo, hi] = pumpRange;
@@ -512,7 +547,7 @@ export default function SessionDetail() {
       const seg = segs[selectedRun];
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh]);
 
   if (error) {
     // Offline + nicht im Cache -> klare Meldung statt technischem Fehler.
@@ -721,7 +756,10 @@ export default function SessionDetail() {
           {hasPump && (
             <ModeButton active={colorMode === "pump"} onClick={() => setColorMode("pump")}>{t("sd.colorPumpHz")}</ModeButton>
           )}
-          {colorMode === "speed" && (
+          {optimalKmh != null && (
+            <ModeButton active={colorMode === "optimal"} onClick={() => setColorMode("optimal")}>{t("sd.colorOptimal")}</ModeButton>
+          )}
+          {(colorMode === "speed" || colorMode === "optimal") && (
             <>
               <span className="ml-2 text-xs text-slate-400">{t("sd.smoothing")}</span>
               {(["1", "3", "5"] as const).map((w) => (
@@ -765,7 +803,7 @@ export default function SessionDetail() {
 
         <div className={`flex flex-wrap items-center justify-between gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : ""}`}>
           <div className="flex flex-wrap items-center gap-4">
-            <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} />
+            <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
             {colorMode === "speed" && (
               <span className="flex items-center gap-1 text-xs text-slate-300">
                 <label className="mr-1 flex items-center gap-1" title={t("sd.autoScaleTitle")}>
@@ -886,13 +924,33 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-function Legend({ mode, hrRange, speedRange, pumpRange }: { mode: ColorMode; hrRange: [number, number]; speedRange: [number, number]; pumpRange: [number, number] }) {
+function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: ColorMode; hrRange: [number, number]; speedRange: [number, number]; pumpRange: [number, number]; optimal?: number | null }) {
+  const t = useT();
+  // Optimal-Modus: divergierende Skala blau -> grün (Optimal) -> rot mit km/h-Ticks.
+  if (mode === "optimal") {
+    const opt = optimal ?? 0;
+    const ticks = [1 - OPTIMAL_SPAN, 1, 1 + OPTIMAL_SPAN].map((r) => Math.round(opt * r));
+    return (
+      <div className="text-xs text-slate-300">
+        <div className="flex items-center gap-3">
+          <div className="w-48">
+            <div className="h-2 w-full rounded" style={{ background: "linear-gradient(to right, hsl(220,80%,48%), hsl(140,80%,48%), hsl(0,80%,48%))" }} />
+            <div className="mt-1 flex w-full justify-between tabular-nums">
+              {ticks.map((v, i) => <span key={i}>{v}</span>)}
+            </div>
+          </div>
+          <span>km/h</span>
+          <span className="text-slate-400">{t("sd.optimalLegend", { v: String(Math.round(opt)) })}</span>
+        </div>
+      </div>
+    );
+  }
   const [lo, hi] = mode === "speed" ? speedRange : mode === "pump" ? pumpRange : hrRange;
   const unit = mode === "speed" ? "km/h" : mode === "pump" ? "Hz" : "bpm";
   const ticksT = [0, 0.25, 0.5, 0.75, 1];
-  const stops = ticksT.map((t) => rampColor(t)).join(", ");
-  const ticks = ticksT.map((t) =>
-    mode === "pump" ? (lo + t * (hi - lo)).toFixed(1) : Math.round(lo + t * (hi - lo))
+  const stops = ticksT.map((tt) => rampColor(tt)).join(", ");
+  const ticks = ticksT.map((tt) =>
+    mode === "pump" ? (lo + tt * (hi - lo)).toFixed(1) : Math.round(lo + tt * (hi - lo))
   );
   return (
     <div className="text-xs text-slate-300">
