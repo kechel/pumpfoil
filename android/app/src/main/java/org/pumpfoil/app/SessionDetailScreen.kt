@@ -1,9 +1,12 @@
 package org.pumpfoil.app
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -128,6 +132,28 @@ private fun DetailContent(s: SessionDetail) {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
+
+        // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
+        val ytId = remember(s.youtubeUrl) { youtubeId(s.youtubeUrl) }
+        if (ytId != null) {
+            val ctxYt = LocalContext.current
+            Box(
+                Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))
+                    .clickable { ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(s.youtubeUrl))) },
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = "https://img.youtube.com/vi/$ytId/hqdefault.jpg",
+                    contentDescription = "YouTube-Video",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                )
+                Icon(
+                    Icons.Filled.PlayCircle, contentDescription = null,
+                    modifier = Modifier.size(56.dp), tint = androidx.compose.ui.graphics.Color.White,
+                )
+            }
+        }
 
         // Fotos der Session: read-only Strip; Besitzer kann hinzufügen.
         var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
@@ -301,4 +327,17 @@ private fun StatGrid(stats: List<Pair<String, String>>) {
             }
         }
     }
+}
+
+// YouTube-Video-ID aus watch?v=, youtu.be/, shorts/, embed/ ziehen (wie web/SessionDetail).
+private fun youtubeId(url: String?): String? {
+    if (url.isNullOrBlank()) return null
+    val patterns = listOf(
+        Regex("""[?&]v=([\w-]{11})"""),
+        Regex("""youtu\.be/([\w-]{11})"""),
+        Regex("""shorts/([\w-]{11})"""),
+        Regex("""embed/([\w-]{11})"""),
+    )
+    for (p in patterns) p.find(url)?.let { return it.groupValues[1] }
+    return null
 }

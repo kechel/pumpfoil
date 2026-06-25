@@ -133,6 +133,7 @@ struct SessionDetail: Codable, Identifiable {
     let like_count: Int?
     let liked: Bool?
     let owned: Bool?
+    let youtube_url: String?
     let analysis: Analysis?
 
     var startedDate: Date? {

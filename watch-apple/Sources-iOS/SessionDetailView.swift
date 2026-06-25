@@ -52,6 +52,24 @@ struct SessionDetailView: View {
                 .buttonStyle(.bordered)
             }
 
+            if let ytId = youtubeId(s.youtube_url),
+               let ytUrl = URL(string: s.youtube_url ?? "") {
+                Link(destination: ytUrl) {
+                    ZStack {
+                        AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().scaledToFill()
+                            default: Color(.secondarySystemBackground)
+                            }
+                        }
+                        .frame(maxWidth: .infinity).aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 52)).foregroundStyle(.white.opacity(0.9))
+                    }
+                }
+            }
+
             if !photos.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
@@ -217,4 +235,19 @@ struct SpeedChart: View {
             }
         }
     }
+}
+
+// YouTube-Video-ID aus watch?v=, youtu.be/, shorts/, embed/ ziehen (wie web/Android).
+func youtubeId(_ url: String?) -> String? {
+    guard let url = url, !url.isEmpty else { return nil }
+    let patterns = ["[?&]v=([\\w-]{11})", "youtu\\.be/([\\w-]{11})", "shorts/([\\w-]{11})", "embed/([\\w-]{11})"]
+    for p in patterns {
+        if let r = url.range(of: p, options: .regularExpression) {
+            let match = String(url[r])
+            if let idr = match.range(of: "[\\w-]{11}$", options: .regularExpression) {
+                return String(match[idr])
+            }
+        }
+    }
+    return nil
 }

@@ -122,5 +122,6 @@ data class SessionDetail(
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
     val owned: Boolean = false,
+    @SerialName("youtube_url") val youtubeUrl: String? = null,
     val analysis: Analysis? = null,
 )
