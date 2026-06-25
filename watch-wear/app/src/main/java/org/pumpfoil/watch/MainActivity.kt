@@ -137,6 +137,7 @@ class MainActivity : ComponentActivity() {
         var manualAlarm by remember { mutableStateOf(false) }
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showFoilPicker by remember { mutableStateOf(false) }
+        var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
 
         fun applyConfig(c: JSONObject) {
             val vs = c.optJSONArray("views")
@@ -156,6 +157,10 @@ class MainActivity : ComponentActivity() {
                     val o = fa.getJSONObject(i)
                     FoilOpt(o.optInt("id"), o.optString("label"), o.optInt("min"), o.optInt("max"))
                 }
+            }
+            val ofa = c.optJSONArray("offFoilView")
+            if (ofa != null && ofa.length() > 0) {
+                offFoil = (0 until ofa.length()).map { ofa.getInt(it) }
             }
         }
         fun skipSync() { configJob?.cancel(); syncing = false }
@@ -180,7 +185,19 @@ class MainActivity : ComponentActivity() {
         // Vibrationsalarm bei Speed-Grenzen.
         AlarmEffect(s.speedKmh, alarm)
 
-        if (s.recording) {
+        if (s.recording && !s.isFoiling) {
+            // Off foil: Auto-Zusammenfassungs-Screen (Uhrzeit + letzter Lauf) + Stop.
+            Column(
+                Modifier.fillMaxSize().padding(8.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                offFoil.filter { it != 0 }.ifEmpty { listOf(12) }.forEach { fid -> FieldView(fid, s, colorBy) }
+                Spacer(Modifier.height(8.dp))
+                CompactChip(onClick = { RecorderService.stop(applicationContext) },
+                    label = { Text("Stop", style = MaterialTheme.typography.caption2) })
+            }
+        } else if (s.recording) {
             // Stop an BEIDEN Enden (Pager läuft nicht um); Start landet auf 1. Datenseite.
             val pageCount = views.size + 2
             val pager = rememberPagerState(initialPage = 1, pageCount = { pageCount })

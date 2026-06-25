@@ -65,6 +65,7 @@ enum Api {
         let speedHigh: Int
         let speedLow: Int
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
+        let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt

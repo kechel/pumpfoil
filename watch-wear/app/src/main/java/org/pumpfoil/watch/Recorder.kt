@@ -40,7 +40,24 @@ object Recorder {
         val status: String = "",
         val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
         val pendingCount: Int = 0,        // lokal gespeicherte, noch nicht hochgeladene Sessions
+        val isFoiling: Boolean = false,   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
     )
+
+    // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s), raus unter ~9 km/h (3 s).
+    private var foilEnterStreak = 0
+    private var foilExitStreak = 0
+    private var foiling = false
+
+    private fun updateFoiling(sp3Kmh: Double): Boolean {
+        if (!foiling) {
+            foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
+            if (foilEnterStreak >= 3) { foiling = true; foilExitStreak = 0 }
+        } else {
+            foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
+            if (foilExitStreak >= 3) { foiling = false; foilEnterStreak = 0 }
+        }
+        return foiling
+    }
 
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
@@ -96,6 +113,7 @@ object Recorder {
             .put("accel_hz", ACCEL_HZ)
             .put("accel_scale", ACCEL_SCALE.toInt()))
         running = true
+        foiling = false; foilEnterStreak = 0; foilExitStreak = 0
         _state.value = State(recording = true, status = "Aufnahme läuft",
             pendingCount = LocalStore.pendingCount(ctx))
         scope.launch { flushLoop() }
@@ -192,6 +210,7 @@ object Recorder {
             distanceM = distM,
             avgSpeedKmh = distM / sec * 3.6,
             elapsedSec = (tMs / 1000).toLong(),
+            isFoiling = updateFoiling(sp3 * 3.6),
         )
     }
     fun setHr(bpm: Int) {

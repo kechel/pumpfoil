@@ -25,6 +25,13 @@ final class Recorder: NSObject, ObservableObject {
     @Published var maxHr: Int = 0
     @Published var status = ""
     @Published var uploading = false   // zeigt aktiven Chunk-Upload in der UI an
+    @Published var isFoiling = false   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
+
+    // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s anhaltend), raus unter ~9 km/h (3 s).
+    private let foilEnterKmh = 10.0
+    private let foilExitKmh = 9.0
+    private var foilEnterStreak = 0
+    private var foilExitStreak = 0
 
     private let store = HKHealthStore()
     private let motion = CMMotionManager()
@@ -88,17 +95,33 @@ final class Recorder: NSObject, ObservableObject {
         startWorkout()
         startSensors()
         isRecording = true
+        isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0
         status = "Aufnahme läuft"
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
-            Task { @MainActor in self.elapsed = Date().timeIntervalSince(self.startedAt) }
+            Task { @MainActor in
+                self.elapsed = Date().timeIntervalSince(self.startedAt)
+                self.updateFoiling()
+            }
         }
         flushTask = Task { await self.flushLoop() }
+    }
+
+    // Foil-Erkennung (Hysterese auf der 3-s-Geschwindigkeit) für den Auto-Screen-Wechsel.
+    private func updateFoiling() {
+        if !isFoiling {
+            foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
+            if foilEnterStreak >= 3 { isFoiling = true; foilExitStreak = 0 }
+        } else {
+            foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
+            if foilExitStreak >= 3 { isFoiling = false; foilEnterStreak = 0 }
+        }
     }
 
     func stop() async {
         guard isRecording else { return }
         isRecording = false
+        isFoiling = false
         tick?.invalidate(); tick = nil
         flushTask?.cancel()
         motion.stopAccelerometerUpdates()

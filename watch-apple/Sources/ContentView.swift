@@ -110,11 +110,26 @@ struct RecordView: View {
     @State private var manualAlarm = false
     @State private var foils: [Api.FoilOpt] = []
     @State private var showFoilPicker = false
+    @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
 
     var body: some View {
         Group {
-            if rec.isRecording {
-                // Stop an BEIDEN Enden (kein Umlauf-Wischen möglich); Start landet auf 1. Datenseite.
+            if rec.isRecording && !rec.isFoiling {
+                // Off foil: Auto-Zusammenfassungs-Screen (Uhrzeit + letzter Lauf) + Stop.
+                VStack(spacing: 8) {
+                    ForEach(activeFields(offFoil), id: \.self) { fid in fieldView(fid) }
+                    Button("Stop") { Task { await rec.stop() } }
+                        .tint(.red).font(.caption2).buttonStyle(.bordered)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .top) {
+                    if rec.uploading {
+                        Image(systemName: "icloud.and.arrow.up")
+                            .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
+                    }
+                }
+            } else if rec.isRecording {
+                // On foil: Stop an BEIDEN Enden (kein Umlauf-Wischen möglich); Start landet auf 1. Datenseite.
                 TabView(selection: $page) {
                     stopPage("Datenfelder →").tag(0)
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
@@ -257,6 +272,7 @@ struct RecordView: View {
         manualAlarm = c.alarmEnabled
         alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
         foils = c.foils ?? []
+        if let off = c.offFoilView, !off.isEmpty { offFoil = off }
     }
 
     private func checkAlarm(_ sp: Double) {
