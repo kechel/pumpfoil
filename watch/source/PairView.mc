@@ -33,7 +33,9 @@ class PairView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.18, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.40, Graphics.FONT_NUMBER_MEDIUM, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            // WICHTIG: alphanumerische Font — der Code enthält Buchstaben (FONT_NUMBER_*
+            // zeigt nur Ziffern und würde die Buchstaben verschlucken).
+            dc.drawText(w / 2, h * 0.40, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "auf pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, "eingeben", Graphics.TEXT_JUSTIFY_CENTER);
