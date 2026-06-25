@@ -185,22 +185,30 @@ class MainActivity : ComponentActivity() {
         // Vibrationsalarm bei Speed-Grenzen.
         AlarmEffect(s.speedKmh, alarm)
 
-        if (s.recording && !s.isFoiling) {
-            // Off foil: Auto-Zusammenfassungs-Screen (Uhrzeit + letzter Lauf) + Stop.
-            Column(
-                Modifier.fillMaxSize().padding(8.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                offFoil.filter { it != 0 }.ifEmpty { listOf(12) }.forEach { fid -> FieldView(fid, s, colorBy) }
-                Spacer(Modifier.height(8.dp))
-                CompactChip(onClick = { RecorderService.stop(applicationContext) },
-                    label = { Text("Stop", style = MaterialTheme.typography.caption2) })
-            }
-        } else if (s.recording) {
-            // Stop an BEIDEN Enden (Pager läuft nicht um); Start landet auf 1. Datenseite.
-            val pageCount = views.size + 2
+        if (s.recording) {
+            // Pager: Stop(0) | Datenansichten 1..n | Übersicht(n+1) | Stop(n+2).
+            val dataCount = views.size
+            val summaryPage = dataCount + 1
+            val pageCount = dataCount + 3
             val pager = rememberPagerState(initialPage = 1, pageCount = { pageCount })
+            var prevFoil by remember { mutableStateOf(s.isFoiling) }
+            // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration,
+            // 60-s-Rücksprung); Lauf gestartet -> zurück zur Datenansicht. Manuelles Wischen
+            // bricht den Rücksprung ab (dann ist currentPage != summaryPage).
+            LaunchedEffect(s.isFoiling) {
+                if (s.isFoiling == prevFoil) return@LaunchedEffect
+                val wasFoiling = prevFoil
+                prevFoil = s.isFoiling
+                if (!s.isFoiling && wasFoiling) {
+                    val back = pager.currentPage.coerceIn(1, dataCount)
+                    pager.animateScrollToPage(summaryPage)
+                    vibrate(ctx, 200)
+                    kotlinx.coroutines.delay(60_000)
+                    if (pager.currentPage == summaryPage) pager.animateScrollToPage(back)
+                } else if (s.isFoiling && pager.currentPage == summaryPage) {
+                    pager.animateScrollToPage(dataCount)
+                }
+            }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
                     Column(
@@ -209,15 +217,19 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         when {
-                            page in 1..views.size ->
+                            page in 1..dataCount ->
                                 views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
+                                    FieldView(fid, s, colorBy)
+                                }
+                            page == summaryPage ->  // Übersicht (off foil)
+                                offFoil.filter { it != 0 }.ifEmpty { listOf(12) }.forEach { fid ->
                                     FieldView(fid, s, colorBy)
                                 }
                             else -> {  // Stop-Seiten (vorne & hinten)
                                 Button(onClick = { RecorderService.stop(applicationContext) }) { Text("Stop") }
                                 Spacer(Modifier.height(6.dp))
                                 Text(if (s.status.isNotEmpty()) s.status
-                                     else if (page == 0) "Datenfelder →" else "← Datenfelder",
+                                     else if (page == 0) "Datenfelder →" else "← Übersicht",
                                     style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                             }
                         }
