@@ -8,7 +8,7 @@
 <iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
   <iq:application
       entry="FoilApp"
-      id="46118f05867f0efd90bcef18a3f612f4"
+      id="6d7e077fe87e45ef84678bb76900c5c9"
       launcherIcon="@Drawables.LauncherIcon"
       minApiLevel="2.4.0"
       name="@Strings.AppName"
