@@ -33,14 +33,16 @@ object Api {
         res.getString("device_token")
     }
 
-    // Besteht überhaupt eine (validierte) Internetverbindung? Sonst Sync überspringen.
+    // Besteht überhaupt eine Internetverbindung? Sonst Sync überspringen.
+    // Bewusst NUR NET_CAPABILITY_INTERNET prüfen, nicht VALIDATED: Emulatoren (und manche
+    // echten Netze) bestehen die Captive-Portal-Probe nicht und würden sonst fälschlich
+    // als offline gelten. Bei echtem Offline ist activeNetwork null -> false.
     fun isOnline(ctx: Context): Boolean {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return false
         val net = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(net) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     suspend fun deviceConfig(): JSONObject = withContext(Dispatchers.IO) {

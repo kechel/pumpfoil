@@ -27,6 +27,7 @@ object Recorder {
 
     data class State(
         val recording: Boolean = false,
+        val starting: Boolean = false,    // Startphase (GPS/Session) — Start-Button ausblenden
         val elapsedSec: Long = 0,
         val speedKmh: Double = 0.0,       // aktuell
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
@@ -72,7 +73,7 @@ object Recorder {
     private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
 
     fun start(ctx: Context) {
-        if (running) return
+        if (running || _state.value.starting) return
         Api.load(ctx)
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
@@ -80,7 +81,7 @@ object Recorder {
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
-        _state.value = State(recording = false, status = "starte…")
+        _state.value = State(recording = false, starting = true, status = "starte…")
         scope.launch {
             try {
                 Api.startSession(JSONObject()
@@ -91,10 +92,10 @@ object Recorder {
                     .put("accel_hz", ACCEL_HZ)
                     .put("accel_scale", ACCEL_SCALE.toInt()))
                 running = true
-                _state.value = _state.value.copy(recording = true, status = "Aufnahme läuft")
+                _state.value = _state.value.copy(recording = true, starting = false, status = "Aufnahme läuft")
                 flushLoop()
             } catch (e: Exception) {
-                _state.value = _state.value.copy(status = "Start fehlgeschlagen: ${e.message}")
+                _state.value = _state.value.copy(starting = false, status = "Start fehlgeschlagen: ${e.message}")
             }
         }
     }

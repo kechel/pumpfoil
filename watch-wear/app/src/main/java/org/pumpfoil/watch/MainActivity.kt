@@ -188,6 +188,14 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Pumpfoil", style = MaterialTheme.typography.title3)
                 Spacer(Modifier.height(10.dp))
+                if (s.starting) {
+                    // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.height(6.dp))
+                    Text(if (s.status.isNotEmpty()) s.status else "starte…",
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                } else {
                 Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text("Start") }
                 // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
                 if (syncing) {
@@ -204,6 +212,7 @@ class MainActivity : ComponentActivity() {
                     Spacer(Modifier.height(6.dp))
                     Text(s.status, style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                }
                 }
             }
         }

@@ -96,6 +96,12 @@ struct RecordView: View {
             } else {
                 VStack(spacing: 12) {
                     Text("Pumpfoil").font(.title3)
+                    if rec.starting {
+                        // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
+                        ProgressView().scaleEffect(0.8)
+                        Text(rec.status.isEmpty ? "starte…" : rec.status)
+                            .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    } else {
                     Button("Start") { skipSync(); Task { await rec.start() } }.tint(.green)
                     // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
                     if syncing {
@@ -107,6 +113,7 @@ struct RecordView: View {
                         }
                     } else if !rec.status.isEmpty {
                         Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    }
                     }
                 }.padding()
             }

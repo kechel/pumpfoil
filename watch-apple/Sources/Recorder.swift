@@ -12,6 +12,7 @@ final class Recorder: NSObject, ObservableObject {
     static let accelScale: Double = 2048   // int16-Wert 2048 == 1 g
 
     @Published var isRecording = false
+    @Published var starting = false   // Startphase (GPS/Session) — Start-Button ausblenden
     @Published var elapsed: TimeInterval = 0
     @Published var speedKmh: Double = 0
     @Published var speed3sKmh: Double = 0
@@ -65,7 +66,8 @@ final class Recorder: NSObject, ObservableObject {
     // MARK: - Start / Stop
 
     func start() async {
-        guard !isRecording else { return }
+        guard !isRecording && !starting else { return }
+        starting = true
         uuid = UUID().uuidString
         startedAt = Date()
         chunkIndex = 0
@@ -83,11 +85,13 @@ final class Recorder: NSObject, ObservableObject {
             ])
         } catch {
             status = "Start fehlgeschlagen: \(error.localizedDescription)"
+            starting = false
             return
         }
         startWorkout()
         startSensors()
         isRecording = true
+        starting = false
         status = "Aufnahme läuft"
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
