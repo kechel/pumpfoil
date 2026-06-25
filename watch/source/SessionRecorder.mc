@@ -64,6 +64,8 @@ class SessionRecorder {
     var alarmPatternLow = "long2";    // Muster beim Unterschreiten der Min-Speed
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
 
+    var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
+
     // --- On-Watch-Lauferkennung (Live-Näherung, GPS-Speed) ---
     // Bewusst simpel: Hysterese + Dwell auf dem 3-s-Speed. Der Server bleibt mit
     // Accel-ML die Wahrheit für die Auswertung; das hier dient dem Live-Feedback.
@@ -200,6 +202,7 @@ class SessionRecorder {
     // --- Start / Stop ---
     function start() {
         if (_recording) { return; }
+        stopped = false;
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
@@ -269,6 +272,7 @@ class SessionRecorder {
         _fitSession.save();
         _fitSession = null;
         _recording = false;
+        stopped = true;   // -> Erfolgs-/Upload-Screen
         // Session als abgeschlossen markieren; der SyncManager lädt den Rest hoch
         // und ruft /complete. Bleibt im sessions-Index, bis vollständig bestätigt.
         _saveState(true);

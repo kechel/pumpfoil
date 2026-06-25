@@ -21,8 +21,15 @@ class RecordView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
+        // Nicht am Aufzeichnen -> klar unterscheidbarer Start- bzw. Erfolgs-Screen
+        // (sonst sieht Idle genauso aus wie laufende Aufnahme).
+        if (!_rec.isRecording()) {
+            if (_rec.stopped) { _drawStopped(dc); } else { _drawIdle(dc); }
+            return;
+        }
+
         // Beim Start erst „GPS wird gesucht", dann die Ansichten (sobald Fix da ist).
-        if (_rec.isRecording() && !_rec.hasGpsFix()) {
+        if (!_rec.hasGpsFix()) {
             _drawGpsSearch(dc);
             return;
         }
@@ -52,11 +59,11 @@ class RecordView extends WatchUi.View {
             }
         }
 
-        // Status-Punkt: rot = aufzeichnend.
-        if (_rec.isRecording()) {
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-            dc.fillCircle(w / 2, h * 0.08, 6);
-        }
+        // Status oben: roter Punkt + „REC" = aufzeichnend.
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(w / 2 - 24, h * 0.085, 5);
+        dc.drawText(w / 2 - 12, h * 0.085, Graphics.FONT_XTINY, "REC",
+            Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // Stop-Halten: roter Ring füllt sich von oben im Uhrzeigersinn (3 s).
         var sp = _rec.stopHoldProgress();
@@ -71,6 +78,35 @@ class RecordView extends WatchUi.View {
             dc.drawText(w / 2, h * 0.30, Graphics.FONT_TINY, "Stoppen…",
                 Graphics.TEXT_JUSTIFY_CENTER);
         }
+    }
+
+    // Idle: bereit zum Aufnehmen. Zeigt App-Name, Version (Build-Check) + Start-Hinweis.
+    hidden function _drawIdle(dc) {
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.30 + 30, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.60, Graphics.FONT_SMALL, "START zum Aufnehmen", Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // Nach Stopp&Speichern: klare Erfolgsmeldung (nicht mit Aufnahme verwechselbar).
+    hidden function _drawStopped(dc) {
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, "Gespeichert", Graphics.TEXT_JUSTIFY_CENTER);
+        // grünes Häkchen
+        dc.setPenWidth(4);
+        dc.drawLine(w / 2 - 14, h * 0.46, w / 2 - 4, h * 0.50);
+        dc.drawLine(w / 2 - 4, h * 0.50, w / 2 + 16, h * 0.42);
+        dc.setPenWidth(1);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "Upload bei WLAN/Telefon", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.72, Graphics.FONT_XTINY, "START = neue Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.85, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Startbildschirm: GPS-Suche, bis ein brauchbarer Fix vorliegt.

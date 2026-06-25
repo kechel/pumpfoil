@@ -3,6 +3,9 @@ using Toybox.Application;
 // Zentraler Zugriff auf App-Settings/Properties.
 module Config {
 
+    // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
+    const VERSION = "1.0.2";
+
     // Server-Basis-URL (per -D base_url=... im Build überschreibbar).
     function baseUrl() {
         return "https://pumpfoil.org";
