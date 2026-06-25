@@ -65,6 +65,7 @@ class SessionRecorder {
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
     var manualAlarm = false;          // true = Alarm manuell auf der Website gesetzt (hat Vorrang)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
+    var activeAlarmLabel = "";        // angezeigte Auswahl auf dem Start-Screen (Foil/„Website"/„Ohne")
     // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
     // Uhrzeit + letzter Lauf (Distanz/Dauer). Per Website konfigurierbar.
     var offFoilView = [Config.FIELD_CLOCK, Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION];
@@ -149,6 +150,7 @@ class SessionRecorder {
         // Gecachter Off-Foil-Screen.
         var of = Storage.getValue("offfoil_config");
         if (of instanceof Lang.Array && of.size() == 3) { offFoilView = of; }
+        initAlarmSelection();   // Default-Foil/Website (offline aus Cache)
     }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
@@ -287,6 +289,7 @@ class SessionRecorder {
                 offFoilView = _normView(data["offFoilView"]);
                 Storage.setValue("offfoil_config", offFoilView);
             }
+            initAlarmSelection();   // Default-Foil/Website vorauswählen (Start-Screen)
             WatchUi.requestUpdate();
         }
     }
@@ -297,6 +300,18 @@ class SessionRecorder {
         speedHighKmh = hi;
         alarmEnabled = true;
         if (alarmRepeat.equals("once")) { alarmRepeat = "continuous"; }  // Min-Warnung soll wiederholen
+    }
+
+    // Default-Auswahl setzen: Website-Alarm hat Vorrang, sonst das Standard-Foil
+    // (erstes in der Liste). Wird nach Config-Load aufgerufen; nur wenn noch nichts gewählt.
+    function initAlarmSelection() {
+        if (!activeAlarmLabel.equals("")) { return; }     // bereits gewählt -> nicht überschreiben
+        if (manualAlarm) {
+            activeAlarmLabel = "Website";
+        } else if (foils.size() >= 1) {
+            applyFoilAlarm(foils[0]["min"], foils[0]["max"]);
+            activeAlarmLabel = foils[0]["label"];
+        }
     }
 
     // Von der Website geladene Ansichten übernehmen + cachen.

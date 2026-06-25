@@ -35,32 +35,36 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
-            } else if (_rec.manualAlarm || _rec.foils.size() >= 1) {
-                // Alarm-/Foil-Auswahl beim Start: zuerst der Website-Alarm (mit Werten),
-                // dann die Foils (Bezeichnung + min/max), dann "Ohne Alarm".
-                var menu = new WatchUi.Menu2({:title => "Alarm wählen"});
-                if (_rec.manualAlarm) {
-                    menu.addItem(new WatchUi.MenuItem(
-                        "Website",
-                        _rec.speedLowKmh.toString() + "–" + _rec.speedHighKmh.toString() + " km/h",
-                        :website, {}));
-                }
-                for (var i = 0; i < _rec.foils.size(); i++) {
-                    var f = _rec.foils[i];
-                    menu.addItem(new WatchUi.MenuItem(
-                        f["label"],
-                        f["min"].toString() + "–" + f["max"].toString() + " km/h",
-                        i, {}));
-                }
-                menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "kein Alarm", :none, {}));
-                WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
             } else {
-                _rec.start();                                    // Start-Screen: Aufnahme starten
+                // START startet direkt mit dem auf dem Start-Screen gewählten Foil/Alarm
+                // (Auswahl vorher per DOWN-Taste, s. onNextPage).
+                _rec.start();
                 WatchUi.requestUpdate();
             }
             return true;
         }
         return false;  // andere Tasten -> normale Behaviors (Menü/Back)
+    }
+
+    // Öffnet die Foil-/Alarm-Auswahl (Website-Alarm, Foils, Ohne) — setzt die Auswahl
+    // für die nächste Aufnahme, ohne zu starten.
+    hidden function _openFoilMenu() as Void {
+        var menu = new WatchUi.Menu2({:title => "Foil / Alarm"});
+        if (_rec.manualAlarm) {
+            menu.addItem(new WatchUi.MenuItem(
+                "Website",
+                _rec.speedLowKmh.toString() + "–" + _rec.speedHighKmh.toString() + " km/h",
+                :website, {}));
+        }
+        for (var i = 0; i < _rec.foils.size(); i++) {
+            var f = _rec.foils[i];
+            menu.addItem(new WatchUi.MenuItem(
+                f["label"],
+                f["min"].toString() + "–" + f["max"].toString() + " km/h",
+                i, {}));
+        }
+        menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "kein Alarm", :none, {}));
+        WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
     }
 
     // Loslassen vor 3 s = Stop abbrechen.
@@ -89,10 +93,11 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (_holdTimer != null) { _holdTimer.stop(); }
     }
 
-    // UP/DOWN -> nur während Aufnahme zwischen den Datenansichten. Im Idle gibt es
-    // nur den Start-Screen, daher keine Seiten-Navigation.
+    // UP/DOWN -> während Aufnahme zwischen den Datenansichten. Im Idle öffnet DOWN die
+    // Foil-/Alarm-Auswahl (wenn Foils/Website-Alarm vorhanden) -> Vorauswahl VOR dem Start.
     function onNextPage() as Lang.Boolean {
         if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
+        if (_rec.manualAlarm || _rec.foils.size() >= 1) { _openFoilMenu(); return true; }
         return false;
     }
     function onPreviousPage() as Lang.Boolean {
@@ -136,13 +141,16 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         if (id instanceof Lang.Number) {
             var f = _rec.foils[id];
             _rec.applyFoilAlarm(f["min"], f["max"]);     // Foil-Auto-Alarm
+            _rec.activeAlarmLabel = f["label"];
         } else if (id == :website) {
             _rec.alarmEnabled = true;                    // Website-Werte (bereits geladen)
+            _rec.activeAlarmLabel = "Website";
         } else if (id == :none) {
             _rec.alarmEnabled = false;                   // kein Alarm für diese Session
+            _rec.activeAlarmLabel = "Ohne";
         }
+        // Nur Auswahl setzen, NICHT starten -> zurück zum Start-Screen.
         WatchUi.popView(WatchUi.SLIDE_DOWN);
-        _rec.start();
         WatchUi.requestUpdate();
     }
 }
