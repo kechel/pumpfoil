@@ -529,4 +529,5 @@ export interface AppDevice {
   w: number;
   h: number;
   bytes: number;
+  version?: string;
 }

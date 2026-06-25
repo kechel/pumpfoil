@@ -236,6 +236,11 @@ function AppDownloads() {
       <p className="mb-3 text-sm text-slate-300">
         {t("account.installDesc")}
         {devices && <span className="ml-1 text-slate-400">{t("account.modelsCount", { n: devices.length })}</span>}
+        {devices?.[0]?.version && (
+          <span className="ml-1 inline-flex items-center rounded-md bg-slate-800 px-2 py-0.5 text-xs font-medium text-brand-300">
+            v{devices[0].version}
+          </span>
+        )}
       </p>
 
       <input

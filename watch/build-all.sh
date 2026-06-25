@@ -30,10 +30,13 @@ for d in $DEVICES; do
 done
 echo "Builds: $PASS ok, $FAIL fehlgeschlagen.${FAILED:+ Fehlgeschlagen:$FAILED}"
 
+# App-Version aus Config.mc ziehen (eine Version pro build-all-Lauf -> pro Plattform).
+VERSION=$(grep -oP 'VERSION = "\K[^"]+' "$HERE/source/Config.mc" | head -1)
+
 # Katalog erzeugen (für /api/app/devices).
-python3 - "$HERE" "$DEVDIR" <<'PY'
+python3 - "$HERE" "$DEVDIR" "$VERSION" <<'PY'
 import json, os, sys
-here, devdir = sys.argv[1], sys.argv[2]
+here, devdir, version = sys.argv[1], sys.argv[2], sys.argv[3]
 cat = []
 for fn in sorted(os.listdir(os.path.join(here, "bin"))):
     if not (fn.startswith("foil-") and fn.endswith(".prg")):
@@ -48,7 +51,8 @@ for fn in sorted(os.listdir(os.path.join(here, "bin"))):
         res = c.get("resolution", {})
         w, h = res.get("width"), res.get("height")
     cat.append(dict(id=dev, name=name, family=fam, w=w, h=h,
-                    bytes=os.path.getsize(os.path.join(here, "bin", fn))))
+                    bytes=os.path.getsize(os.path.join(here, "bin", fn)),
+                    version=version))
 cat.sort(key=lambda x: x["name"])
 json.dump(cat, open(os.path.join(here, "bin", "catalog.json"), "w"),
           ensure_ascii=False, indent=0)
