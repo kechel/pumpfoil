@@ -169,8 +169,8 @@ class RecordView extends WatchUi.View {
             value = _fmtTime(_rec.elapsedTimeMs());
             label = "Zeit";
         } else if (type == Config.FIELD_DISTANCE) {
-            value = (_rec.distanceM() / 1000.0).format("%.2f");
-            label = "km";
+            value = _distVal(_rec.distanceM());
+            label = _distUnit(_rec.distanceM());
         } else if (type == Config.FIELD_SPEED) {
             var kmh = _rec.currentSpeed() * 3.6;
             value = kmh.format("%.1f"); label = "km/h";
@@ -205,13 +205,13 @@ class RecordView extends WatchUi.View {
             label = _rec.isFoiling() ? "Lauf läuft" : "Lauf";
             if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
         } else if (type == Config.FIELD_RUN_DISTANCE) {
-            value = (_rec.runDistanceM() / 1000.0).format("%.2f");
-            label = _rec.isFoiling() ? "km Lauf läuft" : "km Lauf";
+            value = _distVal(_rec.runDistanceM());
+            label = _distUnit(_rec.runDistanceM()) + (_rec.isFoiling() ? " Lauf läuft" : " Lauf");
             if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
         } else if (type == Config.FIELD_LAST_RUN_DURATION) {
             value = _fmtTime(_rec.lastRunDurationMs()); label = "letzter Lauf";
         } else if (type == Config.FIELD_LAST_RUN_DISTANCE) {
-            value = (_rec.lastRunDistanceM() / 1000.0).format("%.2f"); label = "km letzter";
+            value = _distVal(_rec.lastRunDistanceM()); label = _distUnit(_rec.lastRunDistanceM()) + " letzter";
         } else if (type == Config.FIELD_LAST_RUN_AVG_SPEED) {
             value = (_rec.lastRunAvgSpeed() * 3.6).format("%.1f"); label = "km/h Ø letzt.";
         } else if (type == Config.FIELD_LAST_RUN_MAX_SPEED) {
@@ -244,6 +244,14 @@ class RecordView extends WatchUi.View {
     }
 
     // Dauer als M:SS, ab einer Stunde als H:MM:SS (Sekunden immer dabei).
+    // Distanz: < 1000 m als ganze Meter, ab 1000 m als km (2 Nachkommastellen).
+    hidden function _distVal(m) {
+        return m < 1000 ? m.toNumber().toString() : (m / 1000.0).format("%.2f");
+    }
+    hidden function _distUnit(m) {
+        return m < 1000 ? "m" : "km";
+    }
+
     hidden function _fmtTime(ms) {
         var s = ms / 1000;
         var h = s / 3600;

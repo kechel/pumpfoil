@@ -294,7 +294,8 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to "Ø bpm"
     9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to "max bpm"
     3 -> String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60) to "Zeit"
-    4 -> String.format("%.2f", s.distanceM / 1000.0) to "km"
+    4 -> if (s.distanceM < 1000) String.format("%.0f", s.distanceM) to "m"
+         else String.format("%.2f", s.distanceM / 1000.0) to "km"
     12 -> java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()) to "Uhr"
     else -> "—" to ""
 }

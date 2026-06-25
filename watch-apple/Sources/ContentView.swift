@@ -256,7 +256,9 @@ struct RecordView: View {
     case 8: return (r.avgHr > 0 ? "\(r.avgHr)" : "–", "Ø bpm")
     case 9: return (r.maxHr > 0 ? "\(r.maxHr)" : "–", "max bpm")
     case 3: let s = Int(r.elapsed); return (String(format: "%d:%02d", s / 60, s % 60), "Zeit")
-    case 4: return (String(format: "%.2f", r.distanceM / 1000), "km")
+    case 4: return r.distanceM < 1000
+        ? (String(format: "%.0f", r.distanceM), "m")
+        : (String(format: "%.2f", r.distanceM / 1000), "km")
     case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), "Uhr")
     default: return ("—", "")
     }
