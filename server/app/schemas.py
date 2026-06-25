@@ -67,6 +67,22 @@ class DeviceTokenOut(BaseModel):
     user_id: int
 
 
+# --- Reverse-Pairing (Uhr zeigt Code, Web löst ihn ein) ---
+class PairInitOut(BaseModel):
+    code: str            # auf der Uhr anzeigen
+    claim_token: str     # Uhr pollt damit
+    expires_at: datetime
+
+
+class PairClaimIn(BaseModel):
+    code: str
+    label: str | None = None
+
+
+class PairPollOut(BaseModel):
+    device_token: str | None = None   # null bis der Web-Nutzer den Code eingelöst hat
+
+
 # --- Ingest ---
 class SessionStartIn(BaseModel):
     # nur unbedenkliche Zeichen — fließt in den Ablage-Pfad ein (kein Path-Traversal)

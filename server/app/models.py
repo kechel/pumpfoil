@@ -66,6 +66,22 @@ class PairingCode(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class DevicePairing(Base):
+    """Reverse-Pairing: die UHR erzeugt einen Code (zeigt ihn an), der Web-Nutzer
+    gibt ihn auf pumpfoil.org ein. Die Uhr pollt mit claim_token auf den Device-Token.
+    Nötig, weil die Garmin-App keine Phone-Settings-Seite mehr hat."""
+
+    __tablename__ = "device_pairings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(16), unique=True, index=True)       # auf der Uhr angezeigt
+    claim_token: Mapped[str] = mapped_column(String(64), unique=True, index=True) # Geheimnis fürs Polling
+    device_token: Mapped[str | None] = mapped_column(String(64))                  # gesetzt nach Claim
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))           # gesetzt nach Claim
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class DeviceToken(Base):
     """Dauerhafter Token einer gepairten Uhr. Wird bei jedem Upload mitgeschickt."""
 

@@ -10,7 +10,14 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..db import get_db
 from ..ratelimit import rate_limit
-from ..schemas import DeviceTokenOut, PairIn, PairingCodeOut
+from ..schemas import (
+    DeviceTokenOut,
+    PairClaimIn,
+    PairIn,
+    PairingCodeOut,
+    PairInitOut,
+    PairPollOut,
+)
 from ..security import new_pairing_code, new_token
 from .deps import current_device, current_user
 
@@ -117,6 +124,65 @@ def pair(
     db.commit()
     db.refresh(device)
     return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
+
+
+# --- Reverse-Pairing: Uhr zeigt Code, Web löst ihn ein, Uhr pollt auf den Token ---
+
+@router.post("/pair-init", response_model=PairInitOut)
+def pair_init(
+    db: Session = Depends(get_db),
+    _rl: None = Depends(rate_limit(20, 300, "pair_init")),
+) -> PairInitOut:
+    """Uhr (noch ohne Token) erzeugt einen Code zum Eintippen auf der Website +
+    ein claim_token zum Pollen."""
+    for _ in range(10):
+        code = new_pairing_code()
+        if not db.query(models.DevicePairing).filter_by(code=code).first():
+            break
+    else:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Could not allocate code")
+    expires = datetime.now(timezone.utc) + timedelta(minutes=PAIRING_TTL_MIN)
+    p = models.DevicePairing(code=code, claim_token=new_token(), expires_at=expires)
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return PairInitOut(code=p.code, claim_token=p.claim_token, expires_at=expires)
+
+
+@router.post("/pair-claim")
+def pair_claim(
+    body: PairClaimIn,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Eingeloggter Web-Nutzer löst den auf der Uhr angezeigten Code ein -> verknüpft die Uhr."""
+    p = db.query(models.DevicePairing).filter_by(code=body.code.strip().upper()).first()
+    now = datetime.now(timezone.utc)
+    if p is None or _aware(p.expires_at) < now:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
+    if p.device_token is not None:
+        return {"ok": True, "already": True}
+    device = models.DeviceToken(token=new_token(), user_id=user.id, label=body.label or "Garmin")
+    db.add(device)
+    db.flush()
+    p.device_token = device.token
+    p.user_id = user.id
+    db.commit()
+    return {"ok": True, "label": device.label}
+
+
+@router.get("/pair-poll", response_model=PairPollOut)
+def pair_poll(
+    claim_token: str,
+    db: Session = Depends(get_db),
+    _rl: None = Depends(rate_limit(120, 300, "pair_poll")),
+) -> PairPollOut:
+    """Uhr pollt: sobald der Web-Nutzer den Code eingelöst hat, kommt hier der Device-Token."""
+    p = db.query(models.DevicePairing).filter_by(claim_token=claim_token).first()
+    now = datetime.now(timezone.utc)
+    if p is None or _aware(p.expires_at) < now:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pairing nicht gefunden/abgelaufen")
+    return PairPollOut(device_token=p.device_token)
 
 
 def _aware(dt: datetime) -> datetime:
