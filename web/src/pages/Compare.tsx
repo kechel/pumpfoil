@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
-import { CompareIcon, CloseIcon, ChevronIcon } from "../components/Icons";
+import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, CompareRef, refKey } from "../lib/compare";
 import { useT } from "../i18n";
@@ -139,6 +139,12 @@ export default function Compare() {
     return date;
   }
 
+  function foilLabel(it: Item): string | null {
+    const fo = it.session?.foil;
+    if (!fo) return null;
+    return [fo.brand, fo.model, fo.size].filter(Boolean).join(" ").trim() || null;
+  }
+
   const metrics: { key: string; label: string; unit?: string; dir?: "max" | "min"; fmt: (v: number) => string }[] = [
     { key: "foilingKm", label: t("stat.foiling"), unit: "km", dir: "max", fmt: (v) => v.toFixed(2) },
     { key: "foilingTimeS", label: t("stat.foilingTime"), unit: "min:s", dir: "max", fmt: fmtMMSS },
@@ -188,7 +194,8 @@ export default function Compare() {
               <div key={refKey(it.ref)} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1.5">
                 <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
                 <Link to={`/sessions/${it.ref.sessionId}`} className="text-sm text-slate-200 hover:text-brand-300">
-                  {itemLabel(it)}
+                  <span>{itemLabel(it)}</span>
+                  {foilLabel(it) && <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-slate-400"><FoilIcon className="h-3.5 w-3.5" />{foilLabel(it)}</span>}
                   {it.session === null && !loading && <span className="ml-1 text-xs text-slate-500">{t("compare.gone")}</span>}
                 </Link>
                 <button onClick={() => removeCompare(it.ref)} title={t("compare.remove")}
