@@ -101,7 +101,6 @@
       <iq:uses-permission id="Sensor"/>
       <iq:uses-permission id="SensorLogging"/>
       <iq:uses-permission id="Communications"/>
-      <iq:uses-permission id="Background"/>
       <iq:uses-permission id="Fit"/>
       <iq:uses-permission id="FitContributor"/>
     </iq:permissions>

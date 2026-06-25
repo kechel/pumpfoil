@@ -1,81 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  App-Settings, editierbar in der Garmin-Connect-Phone-App.
-  - pairingCode: der auf der Website erzeugte Code (wird beim ersten Upload eingelöst).
-  - field1..3: konfigurierbare Live-Datenfelder (Default: Speed3s, Puls, aus).
-  - Vibrationsalarm bei Speed-Schwellen.
+  App-Settings (Garmin-Connect-Phone-App). Bewusst MINIMAL: nur der Pairing-Code.
+  Datenfelder, Farbe und Vibrationsalarm werden auf pumpfoil.org konfiguriert und
+  von der App per /api/devices/config geladen (siehe reloadConfig) — daher hier
+  nicht mehr dupliziert. Hält die Settings-Seite leichtgewichtig.
 -->
 <settings>
-  <setting propertyKey="@Properties.pairingCode" title="@Strings.SettingPairingCode">
+  <setting propertyKey="@Properties.pairingCode" title="@Strings.SettingPairingCode" prompt="@Strings.SettingPairingCodePrompt">
     <settingConfig type="alphaNumeric" maxLength="8"/>
-  </setting>
-
-  <setting propertyKey="@Properties.field1" title="@Strings.SettingField1">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-  <setting propertyKey="@Properties.field2" title="@Strings.SettingField2">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-  <setting propertyKey="@Properties.field3" title="@Strings.SettingField3">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-
-  <setting propertyKey="@Properties.field4" title="@Strings.SettingField4">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-  <setting propertyKey="@Properties.field5" title="@Strings.SettingField5">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-  <setting propertyKey="@Properties.field6" title="@Strings.SettingField6">
-    <settingConfig type="list">
-      <listEntry value="0">@Strings.FieldNone</listEntry>
-      <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-      <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-      <listEntry value="3">@Strings.FieldTimer</listEntry>
-      <listEntry value="4">@Strings.FieldDistance</listEntry>
-    </settingConfig>
-  </setting>
-
-  <setting propertyKey="@Properties.colorByValue" title="@Strings.SettingColorByValue">
-    <settingConfig type="boolean"/>
-  </setting>
-  <setting propertyKey="@Properties.alarmEnabled" title="@Strings.SettingAlarmEnabled">
-    <settingConfig type="boolean"/>
-  </setting>
-  <setting propertyKey="@Properties.speedHigh" title="@Strings.SettingSpeedHigh">
-    <settingConfig type="numeric" min="0" max="60"/>
-  </setting>
-  <setting propertyKey="@Properties.speedLow" title="@Strings.SettingSpeedLow">
-    <settingConfig type="numeric" min="0" max="60"/>
   </setting>
 </settings>

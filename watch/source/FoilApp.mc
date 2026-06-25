@@ -1,14 +1,13 @@
 using Toybox.Application;
 using Toybox.WatchUi;
-using Toybox.Background;
 using Toybox.Time;
 
 // App-Einstieg. Hält den SessionRecorder und reicht ihn an die View/Delegate.
 //
-// HINWEIS: Skelett für M1/M2. Auf echter Fenix mit dem Connect IQ SDK bauen
-// (monkeyc / VS-Code-Extension) und on-device validieren — insbesondere
-// Speicher/RAM bei 25 Hz, reale Max-Sample-Rate und Akku (siehe Plan-Risiken).
-(:background)
+// Kein Background-Service: Upload läuft im Vordergrund (App-Start + während der
+// Aufnahme). Der frühere (:background)-Service löste beim Phone-Settings-Sync
+// vermutlich einen OOM/Reboot aus und war ohne registerForTemporalEvent ohnehin
+// inaktiv.
 class FoilApp extends Application.AppBase {
 
     hidden var _recorder;
@@ -39,11 +38,5 @@ class FoilApp extends Application.AppBase {
             _recorder.reloadConfig();
         }
         WatchUi.requestUpdate();
-    }
-
-    // Background-Service: optionaler, automatischer Upload-Versuch (>=5 min Takt).
-    // Primärer Upload-Weg bleibt der manuelle Button in der App (bei WLAN).
-    function getServiceDelegate() {
-        return [new UploadServiceDelegate()];
     }
 }

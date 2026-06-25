@@ -4,7 +4,6 @@ using Toybox.StringUtil;
 using Toybox.System;
 using Toybox.Lang;
 using Toybox.PersistedContent;
-using Toybox.Background;
 
 // Robuster Multi-Session-Sync der gepufferten Roh-Sessions an den Server.
 //
@@ -259,14 +258,3 @@ class SessionSyncJob {
     }
 }
 
-// Background-Service: periodischer automatischer Sync-Versuch (>=5 min Takt).
-(:background)
-class UploadServiceDelegate extends System.ServiceDelegate {
-    function initialize() {
-        ServiceDelegate.initialize();
-    }
-    function onTemporalEvent() as Void {
-        Uploader.syncAll();
-        Background.exit(null);
-    }
-}
