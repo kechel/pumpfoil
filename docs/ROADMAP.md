@@ -122,3 +122,19 @@ Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
   Speed-Chart), gespiegelt von Android. Auf Linux nicht baubar → von Jan in Xcode.
 - ℹ️ **Garmin-Einstellungen** liegen jetzt hinter MENU auf dem Start-Screen (wie
   "Laufen Einstellungen"): Verbinden + Upload/Sync vor dem Start; Idle = nur Start-Screen.
+
+**Update 2026-06-25 (Spät) — Apps & Pairing fertig (autonomer Loop):**
+- ✅ **Garmin v1.0.16** live (78 Geräte): On-Watch-Pairing gelöst (settings.xml-Eintrag +
+  On-Device-`getSettingsView`, Code-Font-Fix), kein Upload bei Stopp (Datensicherheit),
+  GPS-Vorwärmen mit „GPS bereit"-Status, Min-Alarm nur im Fenster [min-2, min), Upload-
+  Live-Status, App-Version in der Web-Download-Liste. **E2E getestet (Pairing+Sync) ✅.**
+- ✅ **Pairing plattformgerecht:** Garmin Reverse-Code; **Apple** iPhone-Companion mintet Token
+  (`POST /api/devices/mint`) + Push via **WatchConnectivity**; **Wear** Android mintet + Push via
+  **Wearable Data Layer** (applicationId der Wear-App auf `org.pumpfoil.app` angeglichen).
+  Reverse-Code bleibt überall Fallback. Server-Tests decken mint + reverse-pairing ab.
+- ✅ **Android & iOS Feature-Parität** (beide bauen; iOS in Xcode): Sessions, Community, Verlauf,
+  Spots (mit Karte — Android osmdroid/FLOSS, iOS MapKit), Chat, Foils-Katalog, Foil-Rechner,
+  Foil-Statistik, Session-Detail (Track + Speed-Chart + Like + Foto-Strip).
+- ⏳ Offen/optional: Reboot beim Öffnen der Pump-Foil-Settings in der **Garmin-Connect-Handy-App**
+  (zurückgestellt, On-Watch braucht's nicht); Foto-Upload aus den Apps; Profil-Bearbeitung;
+  neue Watch-Screenshots (Jan); iOS/Wear-Pairing E2E auf Geräten testen.
