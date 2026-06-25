@@ -32,6 +32,18 @@ class FoilApp extends Application.AppBase {
         return [view, delegate];
     }
 
+    // On-Device-Settings: vom Vorab-Menü an der Aktivitäten-Auswahl geöffnet
+    // ("Pump Foil markieren -> MENU halten -> Pump Foil Einstellungen") — OHNE die
+    // Aufnahme zu starten. Hier liegen Verbinden + Upload/Sync (während der
+    // laufenden Aktivität ist Upload nicht möglich).
+    function getSettingsView() {
+        if (_recorder == null) {
+            _recorder = new SessionRecorder();
+            _recorder.fetchConfig();
+        }
+        return [ new SettingsMenu(_recorder), new SettingsMenuDelegate(_recorder) ];
+    }
+
     // Einstellungen (Pairing-Code, Datenfelder, Alarm) wurden geändert.
     function onSettingsChanged() {
         if (_recorder != null) {

@@ -1,5 +1,6 @@
 using Toybox.WatchUi;
 using Toybox.Graphics;
+using Toybox.Timer;
 using Toybox.Lang;
 
 // Pair-Ansicht: aus dem Einstellungs-Menü ("Verbinden") geöffnet. Zeigt den von der
@@ -49,10 +50,21 @@ class PairView extends WatchUi.View {
 
 class PairDelegate extends WatchUi.BehaviorDelegate {
     hidden var _rec;
+    hidden var _timer;
 
     function initialize(rec) {
         BehaviorDelegate.initialize();
         _rec = rec;
+        // Eigener 1-Hz-Tick: treibt das Pairing-Polling (rec.tick()) auch dann, wenn
+        // diese View aus dem On-Device-Settings-Kontext geöffnet wurde (kein
+        // RecordDelegate-Timer aktiv).
+        _timer = new Timer.Timer();
+        _timer.start(method(:onTick), 1000, true);
+    }
+
+    function onTick() as Void {
+        _rec.tick();
+        WatchUi.requestUpdate();
     }
 
     // ENTER -> (erneut) Pairing-Code anfordern, falls noch nicht verbunden.
@@ -65,8 +77,9 @@ class PairDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
 
-    // Back -> zurück zum Start-Screen.
+    // Back -> Timer stoppen, zurück.
     function onBack() as Lang.Boolean {
+        if (_timer != null) { _timer.stop(); }
         return false;
     }
 }
