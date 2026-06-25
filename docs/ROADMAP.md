@@ -117,4 +117,8 @@ Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
 - ✅ **Android Phone-App** (`android/`, nativer PWA-Nachbau): Foil-Rechner (auf verifizierter
   `FoilPhysics.kt`, 135/135 vs. JS-Referenz) + Session-Detail mit Track-Polyline (speed-gefärbt,
   ohne Kartenkacheln) und Speed-Verlauf-Chart. Auf der VM kompiliert.
-- ⏳ **iOS Phone-App** (`watch-apple/Sources-iOS/`): SwiftUI Phase 1 geschrieben, von Jan in Xcode zu bauen.
+- ⏳ **iOS Phone-App** (`watch-apple/Sources-iOS/`): SwiftUI; Sessions/Profil + jetzt
+  Foil-Rechner (FoilPhysics.swift, 1:1-Port) und Session-Detail (Track-Polyline +
+  Speed-Chart), gespiegelt von Android. Auf Linux nicht baubar → von Jan in Xcode.
+- ℹ️ **Garmin-Einstellungen** liegen jetzt hinter MENU auf dem Start-Screen (wie
+  "Laufen Einstellungen"): Verbinden + Upload/Sync vor dem Start; Idle = nur Start-Screen.
