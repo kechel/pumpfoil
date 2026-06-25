@@ -233,3 +233,15 @@ def test_foils_and_stats_shapes(client):
     assert isinstance(client.get("/api/foils", headers=auth).json(), list)
     assert isinstance(client.get("/api/foils/brands", headers=auth).json(), list)
     assert isinstance(client.get("/api/community/foil-stats", headers=auth).json(), list)
+
+
+def test_mint_token_can_ingest(client):
+    # Companion-gemintetes Token muss für den echten Upload-Pfad funktionieren.
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "mintingest@b.de", "password": "supersecret"}).json()["access_token"]}
+    tok = client.post("/api/devices/mint?label=Apple%20Watch", headers=auth).json()["device_token"]
+    dev = {"X-Device-Token": tok}
+    r = client.post("/api/ingest/session", headers=dev,
+                    json={"session_uuid": "mint-ingest-1", "started_at": "2026-06-20T09:00:00Z"})
+    assert r.status_code == 200, r.text
+    assert r.json()["received_chunks"] == []
