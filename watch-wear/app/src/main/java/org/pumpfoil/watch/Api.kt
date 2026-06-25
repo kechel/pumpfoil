@@ -1,6 +1,8 @@
 package org.pumpfoil.watch
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -31,8 +33,30 @@ object Api {
         res.getString("device_token")
     }
 
+    // Besteht überhaupt eine (validierte) Internetverbindung? Sonst Sync überspringen.
+    fun isOnline(ctx: Context): Boolean {
+        val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val net = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(net) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+
     suspend fun deviceConfig(): JSONObject = withContext(Dispatchers.IO) {
         get("/api/devices/config")
+    }
+
+    // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt
+    // bekannten Einstellungen sofort startklar ist.
+    fun cacheConfig(ctx: Context, json: JSONObject) {
+        ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .edit().putString("configCache", json.toString()).apply()
+    }
+    fun cachedConfig(ctx: Context): JSONObject? {
+        val s = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .getString("configCache", null) ?: return null
+        return try { JSONObject(s) } catch (_: Exception) { null }
     }
 
     suspend fun startSession(body: JSONObject) = withContext(Dispatchers.IO) {

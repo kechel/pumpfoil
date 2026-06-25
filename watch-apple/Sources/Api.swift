@@ -1,4 +1,19 @@
 import Foundation
+import Network
+
+// Erreichbarkeit: meldet, ob überhaupt eine Netzverbindung besteht, damit wir
+// den Sync überspringen können statt in einen Timeout zu laufen.
+final class Reachability {
+    static let shared = Reachability()
+    private let monitor = NWPathMonitor()
+    private(set) var isOnline = true
+    private init() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            self?.isOnline = (path.status == .satisfied)
+        }
+        monitor.start(queue: DispatchQueue(label: "org.pumpfoil.net"))
+    }
+}
 
 // Server-Anbindung: Pairing + Raw-Ingest-Contract (docs/ingest-contract.md).
 enum Api {
@@ -19,7 +34,7 @@ enum Api {
         try await post("/api/devices/pair", ["code": code, "label": label], auth: false)
     }
 
-    struct DeviceConfig: Decodable {
+    struct DeviceConfig: Codable {
         let views: [[Int]]
         let colorByValue: Bool
         let alarmEnabled: Bool
@@ -27,14 +42,29 @@ enum Api {
         let speedLow: Int
     }
 
+    // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt
+    // bekannten Einstellungen sofort startklar ist.
+    static func cachedConfig() -> DeviceConfig? {
+        guard let d = UserDefaults.standard.data(forKey: "deviceConfigCache") else { return nil }
+        return try? JSONDecoder().decode(DeviceConfig.self, from: d)
+    }
+    static func cacheConfig(_ c: DeviceConfig) {
+        if let d = try? JSONEncoder().encode(c) {
+            UserDefaults.standard.set(d, forKey: "deviceConfigCache")
+        }
+    }
+
     static func deviceConfig() async throws -> DeviceConfig {
         guard let url = URL(string: baseURL + "/api/devices/config") else { throw err("Bad URL") }
         var req = URLRequest(url: url)
+        req.timeoutInterval = 10   // nicht ewig warten — der Nutzer kann „Jetzt nicht" tippen
         if let t = deviceToken { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
         guard (200..<300).contains(code) else { throw err("HTTP \(code)") }
-        return try JSONDecoder().decode(DeviceConfig.self, from: data)
+        let c = try JSONDecoder().decode(DeviceConfig.self, from: data)
+        cacheConfig(c)
+        return c
     }
 
     static func startSession(_ body: [String: Any]) async throws -> StartResponse {

@@ -25,7 +25,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private val perms = registerForActivityResult(
@@ -98,24 +100,43 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun RecordScreen() {
         val s by Recorder.state.collectAsState()
+        val ctx = LocalContext.current
+        val scope = rememberCoroutineScope()
         // Konfigurierte Ansichten von der Web-App laden (Felder je Seite + Farbe/Alarm).
         var views by remember { mutableStateOf(listOf(listOf(1, 2, 0))) }
         var colorBy by remember { mutableStateOf(false) }
         var alarm by remember { mutableStateOf(WatchAlarm()) }
-        LaunchedEffect(Unit) {
-            try {
-                val c = Api.deviceConfig()
-                val vs = c.optJSONArray("views")
-                if (vs != null && vs.length() > 0) {
-                    views = (0 until vs.length()).map { i ->
-                        val row = vs.getJSONArray(i)
-                        (0 until row.length()).map { row.getInt(it) }
-                    }
+        var syncing by remember { mutableStateOf(false) }
+        var configJob by remember { mutableStateOf<Job?>(null) }
+
+        fun applyConfig(c: JSONObject) {
+            val vs = c.optJSONArray("views")
+            if (vs != null && vs.length() > 0) {
+                views = (0 until vs.length()).map { i ->
+                    val row = vs.getJSONArray(i)
+                    (0 until row.length()).map { row.getInt(it) }
                 }
-                colorBy = c.optBoolean("colorByValue", false)
-                alarm = WatchAlarm(c.optBoolean("alarmEnabled", false),
-                    c.optInt("speedHigh", 0), c.optInt("speedLow", 0))
-            } catch (_: Exception) {}
+            }
+            colorBy = c.optBoolean("colorByValue", false)
+            alarm = WatchAlarm(c.optBoolean("alarmEnabled", false),
+                c.optInt("speedHigh", 0), c.optInt("speedLow", 0))
+        }
+        fun skipSync() { configJob?.cancel(); syncing = false }
+
+        LaunchedEffect(Unit) {
+            // Sofort letzte bekannte Config anwenden (offline-tauglich), dann ggf. online aktualisieren.
+            Api.cachedConfig(ctx)?.let { applyConfig(it) }
+            if (Api.isOnline(ctx)) {
+                syncing = true
+                configJob = scope.launch {
+                    try {
+                        val c = Api.deviceConfig()
+                        applyConfig(c)
+                        Api.cacheConfig(ctx, c)
+                    } catch (_: Exception) {}
+                    syncing = false
+                }
+            }
         }
         // Vibrationsalarm bei Speed-Grenzen.
         AlarmEffect(s.speedKmh, alarm)
@@ -154,6 +175,12 @@ class MainActivity : ComponentActivity() {
                             CircleShape))
                     }
                 }
+                // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
+                if (s.uploading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp).size(12.dp),
+                        strokeWidth = 2.dp)
+                }
             }
         } else {
             Column(Modifier.fillMaxSize().padding(12.dp),
@@ -161,8 +188,19 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Pumpfoil", style = MaterialTheme.typography.title3)
                 Spacer(Modifier.height(10.dp))
-                Button(onClick = { RecorderService.start(applicationContext) }) { Text("Start") }
-                if (s.status.isNotEmpty()) {
+                Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text("Start") }
+                // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
+                if (syncing) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                        Text("Sync…", style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    CompactChip(onClick = { skipSync() },
+                        label = { Text("Jetzt nicht", style = MaterialTheme.typography.caption2) })
+                } else if (s.status.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
                     Text(s.status, style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)

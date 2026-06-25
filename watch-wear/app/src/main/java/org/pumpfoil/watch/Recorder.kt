@@ -37,6 +37,7 @@ object Recorder {
         val avgHr: Int = 0,
         val maxHr: Int = 0,
         val status: String = "",
+        val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
     )
 
     private val _state = MutableStateFlow(State())
@@ -176,7 +177,13 @@ object Recorder {
             flushAll()
         }
     }
-    private suspend fun flushAll() { flushAccel(); flushGps() }
+    private suspend fun flushAll() {
+        // Nur als "Upload läuft" markieren, wenn tatsächlich Daten anstehen.
+        val pending = synchronized(lock) { accel.isNotEmpty() || gps.isNotEmpty() }
+        if (pending) _state.value = _state.value.copy(uploading = true)
+        flushAccel(); flushGps()
+        if (pending) _state.value = _state.value.copy(uploading = false)
+    }
 
     private suspend fun flushAccel() {
         val buf: ShortArray; val t0: Int

@@ -66,6 +66,8 @@ struct RecordView: View {
     @State private var page = 1
     @State private var wasHigh = false
     @State private var wasLow = false
+    @State private var syncing = false
+    @State private var configTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -84,17 +86,32 @@ struct RecordView: View {
                 }
                 .tabViewStyle(.page)
                 .onChange(of: rec.isRecording) { rec in if rec { page = 1 } }
+                // Upload-Indikator: kleines Wolken-Symbol, wenn gerade Chunks hochgeladen werden.
+                .overlay(alignment: .top) {
+                    if rec.uploading {
+                        Image(systemName: "icloud.and.arrow.up")
+                            .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
+                    }
+                }
             } else {
                 VStack(spacing: 12) {
                     Text("Pumpfoil").font(.title3)
-                    Button("Start") { Task { await rec.start() } }.tint(.green)
-                    if !rec.status.isEmpty {
+                    Button("Start") { skipSync(); Task { await rec.start() } }.tint(.green)
+                    // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
+                    if syncing {
+                        HStack(spacing: 6) {
+                            ProgressView().scaleEffect(0.6)
+                            Text("Sync…").font(.caption2).foregroundStyle(.secondary)
+                            Button("Jetzt nicht") { skipSync() }
+                                .font(.caption2).buttonStyle(.borderless).tint(.secondary)
+                        }
+                    } else if !rec.status.isEmpty {
                         Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     }
                 }.padding()
             }
         }
-        .task { await loadConfig() }
+        .task { startConfigLoad() }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }
 
@@ -120,12 +137,31 @@ struct RecordView: View {
         }
     }
 
-    private func loadConfig() async {
-        if let c = try? await Api.deviceConfig() {
-            if !c.views.isEmpty { views = c.views }
-            colorBy = c.colorByValue
-            alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
+    // Sofort die letzte bekannte Config anwenden (offline-tauglich), dann – falls online –
+    // im Hintergrund aktualisieren. Der Sync blockiert nie den Start.
+    private func startConfigLoad() {
+        applyConfig(Api.cachedConfig())
+        guard Reachability.shared.isOnline else { return }   // offline: Sync überspringen
+        syncing = true
+        configTask = Task {
+            let c = try? await Api.deviceConfig()
+            if !Task.isCancelled {
+                applyConfig(c)
+                syncing = false
+            }
         }
+    }
+
+    private func skipSync() {
+        configTask?.cancel()
+        syncing = false
+    }
+
+    private func applyConfig(_ c: Api.DeviceConfig?) {
+        guard let c else { return }
+        if !c.views.isEmpty { views = c.views }
+        colorBy = c.colorByValue
+        alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
     }
 
     private func checkAlarm(_ sp: Double) {

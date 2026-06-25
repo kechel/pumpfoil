@@ -22,6 +22,7 @@ final class Recorder: NSObject, ObservableObject {
     @Published var avgHr: Int = 0
     @Published var maxHr: Int = 0
     @Published var status = ""
+    @Published var uploading = false   // zeigt aktiven Chunk-Upload in der UI an
 
     private let store = HKHealthStore()
     private let motion = CMMotionManager()
@@ -177,8 +178,12 @@ final class Recorder: NSObject, ObservableObject {
     }
 
     private func flushAll() async {
+        // Nur als "Upload läuft" markieren, wenn tatsächlich Daten anstehen.
+        lock.lock(); let pending = !(accel.isEmpty && gps.isEmpty); lock.unlock()
+        if pending { uploading = true }
         await flushAccel()
         await flushGps()
+        uploading = false
     }
 
     private func flushAccel() async {

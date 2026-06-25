@@ -17,7 +17,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
         PRODUCT_NAME: Pumpfoil
-        MARKETING_VERSION: "0.1"
+        MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -30,6 +30,9 @@ targets:
         WKApplication: true
         WKWatchOnly: true        # eigenständige Watch-App ohne iPhone-Companion
         CFBundleDisplayName: Pumpfoil
+        # Export-Compliance: App nutzt nur Standard-HTTPS/TLS (ausgenommene Verschlüsselung).
+        # false beantwortet die App-Store-Connect-Abfrage automatisch -> kein Upload nötig.
+        ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung."
         NSHealthShareUsageDescription: "Herzfrequenz während der Session."
