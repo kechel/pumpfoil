@@ -113,8 +113,8 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
         if (id == :upload) {
-            Uploader.syncAll();   // alle ausstehenden Sessions hochladen (ohne neue Aktivität)
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
+            // Upload-Ansicht mit Live-Status (startet den Sync selbst).
+            WatchUi.switchToView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
         } else if (id == :verbinden) {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             // Menü ersetzen durch die Pair-Ansicht (zeigt Code + pollt auf Bestätigung).

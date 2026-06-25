@@ -26,6 +26,16 @@ module Uploader {
     var _queue = null;
     var _job = null;
 
+    // Anzahl noch nicht vollständig hochgeladener Sessions (für UI-Feedback).
+    function pendingCount() as Lang.Number {
+        var s = Storage.getValue("sessions");
+        return (s instanceof Lang.Array) ? s.size() : 0;
+    }
+
+    function isBusy() as Lang.Boolean {
+        return _busy;
+    }
+
     // Alle ausstehenden Sessions hochladen (manuell, periodisch, App-Start, Background).
     function syncAll() as Void {
         if (_busy) { return; }

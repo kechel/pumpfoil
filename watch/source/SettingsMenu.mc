@@ -1,5 +1,6 @@
 using Toybox.WatchUi;
 using Toybox.Graphics;
+using Toybox.Timer;
 using Toybox.Lang;
 
 // On-Device-Settings (AppBase.getSettingsView): erscheint im Vorab-Menü an der
@@ -32,22 +33,20 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
         } else if (id == :upload) {
-            Uploader.syncAll();
-            WatchUi.pushView(new InfoView("Upload gestartet", "läuft im Hintergrund"),
-                new InfoDelegate(), WatchUi.SLIDE_LEFT);
+            WatchUi.pushView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
         }
     }
 }
 
-// Kurze Bestätigung (Back kehrt zurück).
-class InfoView extends WatchUi.View {
-    hidden var _title;
-    hidden var _sub;
+// Upload-Ansicht mit Live-Status: zeigt offene Sessions, startet den Sync und
+// aktualisiert, bis fertig. So sieht der Nutzer, dass (und was) passiert.
+class UploadView extends WatchUi.View {
+    hidden var _startCount;
 
-    function initialize(title, sub) {
+    function initialize() {
         View.initialize();
-        _title = title;
-        _sub = sub;
+        _startCount = Uploader.pendingCount();
+        if (_startCount > 0) { Uploader.syncAll(); }
     }
 
     function onUpdate(dc) {
@@ -55,15 +54,45 @@ class InfoView extends WatchUi.View {
         dc.clear();
         var w = dc.getWidth();
         var h = dc.getHeight();
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.38, Graphics.FONT_MEDIUM, _title, Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.56, Graphics.FONT_XTINY, _sub, Graphics.TEXT_JUSTIFY_CENTER);
+        var pending = Uploader.pendingCount();
+        var busy = Uploader.isBusy();
+
+        if (_startCount == 0) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Nichts offen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, "alles hochgeladen", Graphics.TEXT_JUSTIFY_CENTER);
+        } else if (busy || pending > 0) {
+            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.36, Graphics.FONT_MEDIUM, "Upload läuft…", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.56, Graphics.FONT_SMALL, pending + " offen", Graphics.TEXT_JUSTIFY_CENTER);
+        } else {
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.36, Graphics.FONT_MEDIUM, "Fertig", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setPenWidth(4);
+            dc.drawLine(w / 2 - 14, h * 0.56, w / 2 - 4, h * 0.60);
+            dc.drawLine(w / 2 - 4, h * 0.60, w / 2 + 16, h * 0.52);
+            dc.setPenWidth(1);
+        }
     }
 }
 
-class InfoDelegate extends WatchUi.BehaviorDelegate {
+class UploadDelegate extends WatchUi.BehaviorDelegate {
+    hidden var _timer;
+
     function initialize() {
         BehaviorDelegate.initialize();
+        _timer = new Timer.Timer();
+        _timer.start(method(:onTick), 1000, true);
+    }
+
+    function onTick() as Void {
+        WatchUi.requestUpdate();
+    }
+
+    function onBack() as Lang.Boolean {
+        if (_timer != null) { _timer.stop(); }
+        return false;
     }
 }
