@@ -35,7 +35,10 @@ class RecordView extends WatchUi.View {
         }
 
         if (screenIdx >= _rec.screens.size()) { screenIdx = 0; }
-        var fields = _rec.screens[screenIdx];
+        // Auto-Umschaltung: on foil -> zuletzt gewählte Datenansicht; off foil ->
+        // Zusammenfassungs-Screen (Uhrzeit + letzter Lauf, konfigurierbar).
+        var offFoil = !_rec.isFoiling();
+        var fields = offFoil ? _rec.offFoilView : _rec.screens[screenIdx];
         var active = [];
         for (var i = 0; i < 3; i++) {
             if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }
@@ -51,8 +54,9 @@ class RecordView extends WatchUi.View {
             _drawField(dc, active[i], w / 2, cy, n);
         }
 
-        // Seiten-Indikator (Punkte), wenn mehrere Screens konfiguriert sind.
-        if (_rec.screens.size() > 1) {
+        // Seiten-Indikator (Punkte) nur on foil (mehrere Datenansichten); off foil
+        // ist es der eine Zusammenfassungs-Screen.
+        if (!offFoil && _rec.screens.size() > 1) {
             for (var i = 0; i < _rec.screens.size(); i++) {
                 dc.setColor(i == screenIdx ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.fillCircle(w / 2 + (i - (_rec.screens.size() - 1) / 2.0) * 12, h * 0.92, 3);

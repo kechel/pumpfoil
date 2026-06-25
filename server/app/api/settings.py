@@ -107,6 +107,12 @@ def update_settings(
         cleaned = _clean_views(patch["views"])
         if cleaned:
             current["views"] = cleaned
+    # Off-Foil-Screen (Auto-Umschaltung): einzelne View aus bis zu 3 Feld-IDs.
+    if "off_foil_view" in patch and isinstance(patch["off_foil_view"], list):
+        v = [int(x) for x in patch["off_foil_view"][:3]
+             if isinstance(x, (int, float)) and 0 <= int(x) <= 20]
+        if v:
+            current["off_foil_view"] = v
     # Vibrationsalarm
     if "alarm_enabled" in patch:
         current["alarm_enabled"] = bool(patch["alarm_enabled"])

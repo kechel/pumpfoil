@@ -65,6 +65,9 @@ class SessionRecorder {
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
     var manualAlarm = false;          // true = Alarm manuell auf der Website gesetzt (hat Vorrang)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
+    // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
+    // Uhrzeit + letzter Lauf (Distanz/Dauer). Per Website konfigurierbar.
+    var offFoilView = [Config.FIELD_CLOCK, Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION];
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
 
@@ -143,6 +146,17 @@ class SessionRecorder {
         // Gecachte Foil-Liste (Auto-Alarm je Foil) offline verfügbar machen.
         var fc = Storage.getValue("foils_config");
         if (fc instanceof Lang.Array) { foils = fc; }
+        // Gecachter Off-Foil-Screen.
+        var of = Storage.getValue("offfoil_config");
+        if (of instanceof Lang.Array && of.size() == 3) { offFoilView = of; }
+    }
+
+    // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
+    hidden function _normView(v) {
+        return [
+            v.size() > 0 ? v[0] : Config.FIELD_NONE,
+            v.size() > 1 ? v[1] : Config.FIELD_NONE,
+            v.size() > 2 ? v[2] : Config.FIELD_NONE];
     }
 
     // --- Reverse-Pairing ---
@@ -266,6 +280,12 @@ class SessionRecorder {
             if (data.hasKey("foils") && data["foils"] instanceof Lang.Array) {
                 foils = data["foils"];
                 Storage.setValue("foils_config", foils);
+            }
+            // Off-Foil-Screen (Auto-Umschaltung) übernehmen + cachen.
+            if (data.hasKey("offFoilView") && data["offFoilView"] instanceof Lang.Array
+                    && data["offFoilView"].size() > 0) {
+                offFoilView = _normView(data["offFoilView"]);
+                Storage.setValue("offfoil_config", offFoilView);
             }
             WatchUi.requestUpdate();
         }

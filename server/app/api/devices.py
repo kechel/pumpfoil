@@ -52,6 +52,9 @@ def device_config(
         "alarmPatternLow": settings.get("alarm_pattern_low", "long2"),
         "alarmRepeat": settings.get("alarm_repeat", "once"),
         "foils": foils_out,
+        # Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird):
+        # Default Uhrzeit + letzter-Lauf-Distanz + letzter-Lauf-Dauer (Feld-IDs).
+        "offFoilView": settings.get("off_foil_view") or [12, 17, 16],
     }
 
 
