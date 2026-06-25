@@ -23,3 +23,13 @@ def client():
     init_db()
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit():
+    """Rate-Limiter-Zustand pro Test zurücksetzen (gemeinsamer In-Memory-Store,
+    sonst summieren sich Registrierungen/Logins über die Tests bis 429)."""
+    from app.ratelimit import _hits
+
+    _hits.clear()
+    yield

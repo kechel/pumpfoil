@@ -212,3 +212,24 @@ def test_like_state_in_detail(client):
     # get_session spiegelt den Zustand
     body = client.get(f"/api/sessions/{sid}", headers=auth).json()
     assert body["liked"] is True and body["like_count"] == 1
+
+
+def test_settings_roundtrip(client):
+    # Apps (Foils-Katalog) persistieren my_foils/foil_id via PUT /api/settings.
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "settings@b.de", "password": "supersecret"}).json()["access_token"]}
+    r = client.put("/api/settings", headers=auth, json={"my_foils": [3, 1, 2], "foil_id": 2, "weight_kg": 88})
+    assert r.status_code == 200, r.text
+    s = client.get("/api/settings", headers=auth).json()
+    assert s.get("my_foils") == [1, 2, 3]   # sortiert + dedupliziert
+    assert s.get("foil_id") == 2
+    assert s.get("weight_kg") == 88
+
+
+def test_foils_and_stats_shapes(client):
+    # Endpoints, auf denen Foils-Katalog/-Rechner/-Statistik der Apps bauen.
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "foils@b.de", "password": "supersecret"}).json()["access_token"]}
+    assert isinstance(client.get("/api/foils", headers=auth).json(), list)
+    assert isinstance(client.get("/api/foils/brands", headers=auth).json(), list)
+    assert isinstance(client.get("/api/community/foil-stats", headers=auth).json(), list)
