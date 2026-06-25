@@ -4,12 +4,15 @@ import WatchKit
 struct ContentView: View {
     @EnvironmentObject var rec: Recorder
     @State private var paired = Api.deviceToken != nil
+    @State private var skipped = false
 
     var body: some View {
-        if paired {
-            RecordView()
+        // Pairing ist optional: ohne Token kann man trotzdem aufnehmen (lokal) und
+        // später verbinden -> die Sessions werden dann automatisch nachgesynct.
+        if paired || skipped {
+            RecordView(onWantPair: { skipped = false })
         } else {
-            PairView(onPaired: { paired = true })
+            PairView(onPaired: { paired = true }, onSkip: { skipped = true })
         }
     }
 }
@@ -17,6 +20,7 @@ struct ContentView: View {
 // Pairing: Code aus der Web-App (Account-Seite) eingeben -> Device-Token holen.
 struct PairView: View {
     var onPaired: () -> Void
+    var onSkip: () -> Void
     @State private var code = ""
     @State private var busy = false
     @State private var error = ""
@@ -35,6 +39,9 @@ struct PairView: View {
                 if !error.isEmpty {
                     Text(error).font(.caption2).foregroundStyle(.red)
                 }
+                // Ohne Pairing aufnehmen — Sessions lokal speichern, später syncen.
+                Button("Später verbinden") { onSkip() }
+                    .font(.caption2).buttonStyle(.borderless).tint(.secondary)
             }.padding()
         }
     }
@@ -59,8 +66,10 @@ struct WatchAlarm { var enabled = false; var high = 0; var low = 0 }
 
 // Aufnahme: konfigurierte, wischbare Datenseiten (aus /api/devices/config) + Alarm.
 struct RecordView: View {
+    var onWantPair: () -> Void = {}
     @EnvironmentObject var rec: Recorder
-    @State private var views: [[Int]] = [[1, 2, 0]]
+    // Default = sinnvolles 3-Seiten-Layout, bis die Account-Config gesynct ist.
+    @State private var views: [[Int]] = [[1, 2], [6, 7], [4, 3]]
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
     @State private var page = 1
@@ -114,11 +123,31 @@ struct RecordView: View {
                     } else if !rec.status.isEmpty {
                         Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     }
+                    // Nicht verbunden: Hinweis + Verbinden (Aufnahme geht trotzdem, lokal).
+                    if Api.deviceToken == nil {
+                        Text("Nicht verbunden – Sessions lokal")
+                            .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+                        Button("Verbinden") { onWantPair() }
+                            .font(.caption2).buttonStyle(.borderless)
+                    }
+                    // Lokal wartende Sessions (+ manueller Upload, wenn möglich).
+                    if rec.pendingCount > 0 {
+                        Text("\(rec.pendingCount) warten auf Upload")
+                            .font(.caption2).foregroundStyle(.secondary)
+                        if Api.deviceToken != nil {
+                            Button("Jetzt hochladen") { Task { await rec.drain() } }
+                                .font(.caption2).buttonStyle(.borderless)
+                        }
+                    }
                     }
                 }.padding()
             }
         }
-        .task { startConfigLoad() }
+        .task {
+            startConfigLoad()
+            rec.refreshPending()   // wie viele Sessions warten lokal?
+            await rec.drain()      // gepairt + online -> jetzt hochladen
+        }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }
 

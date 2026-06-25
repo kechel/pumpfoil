@@ -3,6 +3,13 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- ✅ **Watch Offline-Recording + Sync-UI** (2026-06-25, Apple + Wear): Aufnahme ist **local-first**
+  (persistenter `LocalStore`, kein Netz/Pairing zum Start nötig); **Pairing optional** („Später
+  verbinden"), Sessions werden lokal gepuffert und per `drain()` automatisch nachgesynct, sobald
+  gepairt + online (resumebar via `received_chunks`, kein Serverumbau). UI: Sync-Banner + „Jetzt
+  nicht", Online-Erkennung (offline → letzte gecachte Datenseiten), Upload-Indikator, „N warten auf
+  Upload", Start-Button in Startphase ausgeblendet. Default-Datenseiten = 3 sinnvolle Seiten statt 1.
+
 - **/foil-stats: relevante Kennzahlen.** Statt **Max-Speed** lieber **Meter pro Pump** und **Ø-Speed**
   anzeigen (das ist beim Foil-Vergleich aussagekräftig). Endpoint `/api/community/foil-stats` +
   FoilStats-Seite anpassen.

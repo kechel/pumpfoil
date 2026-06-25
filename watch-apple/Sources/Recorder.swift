@@ -12,7 +12,8 @@ final class Recorder: NSObject, ObservableObject {
     static let accelScale: Double = 2048   // int16-Wert 2048 == 1 g
 
     @Published var isRecording = false
-    @Published var starting = false   // Startphase (GPS/Session) — Start-Button ausblenden
+    @Published var starting = false   // Startphase — Start-Button ausblenden
+    @Published var pendingCount = 0   // lokal gespeicherte, noch nicht hochgeladene Sessions
     @Published var elapsed: TimeInterval = 0
     @Published var speedKmh: Double = 0
     @Published var speed3sKmh: Double = 0
@@ -35,6 +36,7 @@ final class Recorder: NSObject, ObservableObject {
     private var uuid = ""
     private var startedAt = Date()
     private var chunkIndex = 0
+    private var draining = false
     private var flushTask: Task<Void, Never>?
     private var tick: Timer?
 
@@ -65,33 +67,27 @@ final class Recorder: NSObject, ObservableObject {
 
     // MARK: - Start / Stop
 
+    // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
+    // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
+    // später per drain(), sobald die Uhr gepairt + online ist.
     func start() async {
-        guard !isRecording && !starting else { return }
-        starting = true
+        guard !isRecording else { return }
         uuid = UUID().uuidString
         startedAt = Date()
         chunkIndex = 0
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
         prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
-        status = "starte…"
-        do {
-            _ = try await Api.startSession([
-                "session_uuid": uuid,
-                "started_at": startedAt.iso8601Z,
-                "sport": "pumpfoil",
-                "gps_hz": 1,
-                "accel_hz": Self.accelHz,
-                "accel_scale": Int(Self.accelScale),
-            ])
-        } catch {
-            status = "Start fehlgeschlagen: \(error.localizedDescription)"
-            starting = false
-            return
-        }
+        LocalStore.writeMeta(uuid, [
+            "session_uuid": uuid,
+            "started_at": startedAt.iso8601Z,
+            "sport": "pumpfoil",
+            "gps_hz": 1,
+            "accel_hz": Self.accelHz,
+            "accel_scale": Int(Self.accelScale),
+        ])
         startWorkout()
         startSensors()
         isRecording = true
-        starting = false
         status = "Aufnahme läuft"
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
@@ -107,15 +103,45 @@ final class Recorder: NSObject, ObservableObject {
         flushTask?.cancel()
         motion.stopAccelerometerUpdates()
         location.stopUpdatingLocation()
-        status = "lade Rest hoch…"
+        status = "speichere…"
         await flushAll()
-        do {
-            try await Api.complete(uuid, endedAt: Date().iso8601Z, totalChunks: chunkIndex)
-            status = "fertig & hochgeladen"
-        } catch {
-            status = "Abschluss fehlgeschlagen: \(error.localizedDescription)"
-        }
+        LocalStore.writeComplete(uuid, ["ended_at": Date().iso8601Z, "total_chunks": chunkIndex])
+        status = "gespeichert"
+        pendingCount = LocalStore.pendingCount()
         endWorkout()
+        await drain()   // sofort hochladen, falls gepairt + online
+    }
+
+    func refreshPending() { pendingCount = LocalStore.pendingCount() }
+
+    /// Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online.
+    func drain() async {
+        guard !draining, Api.deviceToken != nil, Reachability.shared.isOnline else { return }
+        draining = true
+        defer { draining = false; uploading = false; pendingCount = LocalStore.pendingCount() }
+        for dir in LocalStore.completedSessions() {
+            do { try await uploadSession(dir) } catch { /* später erneut */ }
+        }
+    }
+
+    private func uploadSession(_ dir: URL) async throws {
+        guard let meta = LocalStore.readJSON(dir.appendingPathComponent("meta.json")),
+              let sid = meta["session_uuid"] as? String else { return }
+        uploading = true
+        status = "lade hoch…"
+        let res = try await Api.startSession(meta)
+        let received = Set(res.received_chunks)
+        for cf in LocalStore.chunkFiles(dir) {
+            guard let chunk = LocalStore.readJSON(cf) else { continue }
+            let idx = chunk["index"] as? Int ?? -1
+            if received.contains(idx) { continue }
+            try await Api.uploadChunk(sid, chunk)
+        }
+        let comp = LocalStore.readJSON(dir.appendingPathComponent("complete.json"))
+        let endedAt = comp?["ended_at"] as? String ?? Date().iso8601Z
+        let total = comp?["total_chunks"] as? Int ?? chunkIndex
+        try await Api.complete(sid, endedAt: endedAt, totalChunks: total)
+        LocalStore.delete(sid)
     }
 
     // MARK: - Sensors
@@ -181,42 +207,37 @@ final class Recorder: NSObject, ObservableObject {
         }
     }
 
+    // Chunks werden persistent lokal abgelegt (kein Netz). Upload via drain().
     private func flushAll() async {
-        // Nur als "Upload läuft" markieren, wenn tatsächlich Daten anstehen.
-        lock.lock(); let pending = !(accel.isEmpty && gps.isEmpty); lock.unlock()
-        if pending { uploading = true }
-        await flushAccel()
-        await flushGps()
-        uploading = false
+        flushAccel()
+        flushGps()
     }
 
-    private func flushAccel() async {
+    private func flushAccel() {
         lock.lock()
         let buf = accel; let t0 = accelT0ms
         accel.removeAll()
         lock.unlock()
         guard !buf.isEmpty else { return }
         let data = buf.withUnsafeBufferPointer { Data(buffer: $0) } // little-endian int16
-        let body: [String: Any] = [
+        LocalStore.writeChunk(uuid, chunkIndex, [
             "index": chunkIndex, "kind": "accel", "encoding": "int16-b64",
             "t0_ms": t0, "count": buf.count / 3, "data": data.base64EncodedString(),
-        ]
-        do { try await Api.uploadChunk(uuid, body); chunkIndex += 1 }
-        catch { lock.lock(); accel.insert(contentsOf: buf, at: 0); lock.unlock() } // retry später
+        ])
+        chunkIndex += 1
     }
 
-    private func flushGps() async {
+    private func flushGps() {
         lock.lock()
         let buf = gps
         gps.removeAll()
         lock.unlock()
         guard !buf.isEmpty else { return }
-        let body: [String: Any] = [
+        LocalStore.writeChunk(uuid, chunkIndex, [
             "index": chunkIndex, "kind": "gps", "encoding": "json",
             "t0_ms": Int(buf.first?[0] ?? 0), "count": buf.count, "data": buf,
-        ]
-        do { try await Api.uploadChunk(uuid, body); chunkIndex += 1 }
-        catch { lock.lock(); gps.insert(contentsOf: buf, at: 0); lock.unlock() }
+        ])
+        chunkIndex += 1
     }
 }
 
