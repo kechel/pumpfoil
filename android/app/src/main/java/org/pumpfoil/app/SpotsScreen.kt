@@ -2,6 +2,8 @@ package org.pumpfoil.app
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,7 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +61,9 @@ fun SpotsScreen() {
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                    if (items.isNotEmpty()) {
+                        item { SpotsMap(items, Modifier.fillMaxWidth().height(260.dp)) }
+                    }
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text("Noch keine Spots", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
@@ -71,3 +83,42 @@ fun SpotsScreen() {
         }
     }
 }
+
+// FLOSS-Karte (OpenStreetMap via osmdroid) mit einem Pin je Spot, eingebettet per
+// AndroidView in Compose. Kein API-Key nötig.
+@Composable
+private fun SpotsMap(items: List<SpotMapItem>, modifier: Modifier = Modifier) {
+    AndroidView(
+        modifier = modifier,
+        factory = { c ->
+            Configuration.getInstance().userAgentValue = c.packageName
+            MapView(c).apply {
+                setTileSource(TileSourceFactory.MAPNIK)
+                setMultiTouchControls(true)
+                controller.setZoom(5.0)
+            }
+        },
+        update = { map ->
+            map.overlays.clear()
+            val pts = ArrayList<GeoPoint>()
+            for (s in items) {
+                val p = GeoPoint(s.lat, s.lon)
+                pts.add(p)
+                map.overlays.add(Marker(map).apply {
+                    position = p
+                    title = "${s.spot} (${s.sessions})"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                })
+            }
+            if (pts.size == 1) {
+                map.controller.setZoom(11.0)
+                map.controller.setCenter(pts[0])
+            } else if (pts.size > 1) {
+                val bb = BoundingBox.fromGeoPoints(pts)
+                map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+            }
+            map.invalidate()
+        },
+    )
+}
+

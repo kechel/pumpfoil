@@ -42,5 +42,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")   // FLOSS-Karte (OSM) für Spots
     testImplementation("junit:junit:4.13.2")
 }
