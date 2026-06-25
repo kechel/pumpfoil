@@ -85,11 +85,11 @@ class RecordView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.30 + 30, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.60, Graphics.FONT_SMALL, "START zum Aufnehmen", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START zum Aufnehmen", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Nach Stopp&Speichern: klare Erfolgsmeldung (nicht mit Aufnahme verwechselbar).
