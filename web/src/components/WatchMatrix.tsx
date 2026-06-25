@@ -8,8 +8,8 @@ type Status = "avail" | "planned" | "import" | "no";
 
 const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string }[] = [
   { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin" },
-  { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "planned", noteKey: "watches.nApple" },
-  { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "planned" },
+  { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple" },
+  { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "avail" },
   { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nAmazfit" },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "partial", status: "import", noteKey: "watches.nPolar" },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import" },

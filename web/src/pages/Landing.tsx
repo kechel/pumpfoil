@@ -8,6 +8,7 @@ import {
 import { useT } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
+import { WatchMatrix } from "../components/WatchMatrix";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -150,6 +151,13 @@ export default function Landing() {
               <p className="mt-1 text-sm text-slate-400">{f.body}</p>
             </div>
           ))}
+        </section>
+
+        {/* Unterstützte Uhren — Kompatibilitäts-Matrix */}
+        <section className="pb-10">
+          <h2 className="text-center text-xl font-bold sm:text-2xl">{t("watches.title")}</h2>
+          <p className="mx-auto mb-6 mt-2 max-w-2xl text-center text-slate-300">{t("watches.intro")}</p>
+          <WatchMatrix />
         </section>
 
         {/* Datenschutz & Open Source */}
