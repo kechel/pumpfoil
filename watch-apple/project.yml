@@ -17,6 +17,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
         PRODUCT_NAME: Pumpfoil
+        # Eigenständige Watch-App MUSS installiert werden, sonst archiviert Xcode sie
+        # als generisches Archive (keine Version, Distribute nur "Custom"). xcodegen
+        # setzt für Watch-Targets sonst fälschlich SKIP_INSTALL=YES.
+        SKIP_INSTALL: "NO"
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
