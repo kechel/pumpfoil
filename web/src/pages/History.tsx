@@ -158,7 +158,10 @@ export default function History() {
               <AggMetricChart key={m.key} data={data} metric={m} mode={mode} onPick={pick} domain={domain} />
             ))}
           </div>
-          <h3 className="mb-3 mt-8 text-lg font-bold">{t("history.aggTitle")}</h3>
+          <h3 className="mb-3 mt-8 text-lg font-bold">
+            {t("history.aggTitle")}
+            {mode !== "cumulative" ? ` · ${t(mode === "window7" ? "history.window7" : "history.window30")}` : ""}
+          </h3>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {AGG_SUM.map((m) => (
               <AggMetricChart key={m.key} data={data} metric={m} mode={mode} onPick={pick} domain={domain} />
