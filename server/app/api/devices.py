@@ -35,6 +35,12 @@ def device_config(
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start."""
     user = db.get(models.User, device.user_id)
     settings = json.loads(user.settings_json) if user and user.settings_json else {}
+
+    # Foil-Auswahl für die Uhr: je hinterlegtem Foil die aus Foil+Gewicht abgeleiteten
+    # Auto-Alarm-Schwellen (Min = Min-Viable, Max = Optimal-Speed). Der Nutzer wählt
+    # beim Start das heutige Foil; ein manuell gesetzter Alarm hat Vorrang (s. Uhr-Logik).
+    foils_out = _foil_alarm_list(db, settings)
+
     return {
         "views": settings.get("views", [[1, 2, 0]]),
         "colorByValue": bool(settings.get("colorByValue", False)),
@@ -45,7 +51,34 @@ def device_config(
         "alarmPatternHigh": settings.get("alarm_pattern_high", "short2"),
         "alarmPatternLow": settings.get("alarm_pattern_low", "long2"),
         "alarmRepeat": settings.get("alarm_repeat", "once"),
+        "foils": foils_out,
     }
+
+
+def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
+    from ..foil_physics import alarm_speeds
+
+    my = settings.get("my_foils") or []
+    if not isinstance(my, list) or not my:
+        return []
+    try:
+        weight = float(settings.get("weight_kg") or 0)
+    except (TypeError, ValueError):
+        weight = 0.0
+    if weight <= 0:
+        weight = 95.0  # Default-Reitergewicht wie im Web-Rechner
+    default_id = settings.get("foil_id")
+    out: list[dict] = []
+    for fid in my:
+        f = db.get(models.Foil, fid)
+        if f is None:
+            continue
+        lo, hi = alarm_speeds(f.span_cm or 0, f.area_cm2 or 0, f.thickness_mm or 0, weight)
+        label = " ".join(p for p in [f.brand, f.model, f.size] if p).strip() or f"Foil {fid}"
+        out.append({"id": f.id, "label": label[:24], "min": lo, "max": hi})
+    # Standard-Foil nach vorne.
+    out.sort(key=lambda x: x["id"] != default_id)
+    return out
 
 
 @router.get("/list")
