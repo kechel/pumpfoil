@@ -98,6 +98,14 @@ class RecordView extends WatchUi.View {
         var titleH = dc.getFontHeight(Graphics.FONT_MEDIUM);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, titleY + titleH + 2, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
+        if (_rec.hasGpsFix()) {
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, "GPS bereit", Graphics.TEXT_JUSTIFY_CENTER);
+        } else {
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, "GPS suchen…", Graphics.TEXT_JUSTIFY_CENTER);
+        }
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.56, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
         // Dezenter Hinweis: Einstellungen (Verbinden/Upload) liegen hinter MENU.

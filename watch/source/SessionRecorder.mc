@@ -299,7 +299,8 @@ class SessionRecorder {
         _accelBuf = new [0]b;
         _accelCount = 0;
         _gpsBuf = [];
-        _hasGpsFix = false;
+        // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter,
+        // der Fix bleibt gültig -> kein erneutes "GPS suchen".
         _syncTickCounter = 0;
         _registerSession();
         _saveState(false);
@@ -464,12 +465,20 @@ class SessionRecorder {
     function lastRunMaxSpeed() { return _lastRunMaxSpeed; }
 
     // --- Sensor-Callbacks --- (nur Roh-Datenerfassung für die spätere Auswertung)
+    // GPS schon beim App-Start vorwärmen (nicht-blockierend) -> beim Drücken von
+    // START ist der Fix meist schon da. Im Idle wird NICHT gepuffert (s. onPosition).
+    function startGps() as Void {
+        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+    }
+
     function onPosition(info as Position.Info) as Void {
         if (info == null || info.position == null) { return; }
         // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
         if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
             _hasGpsFix = true;
         }
+        // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
+        if (!_recording) { return; }
         var deg = info.position.toDegrees();
         var spd = info.speed == null ? 0.0 : info.speed;
         _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
@@ -550,6 +559,7 @@ class SessionRecorder {
     hidden var _alarmActive = false;   // aktuell über/unter Schwelle?
     hidden var _alarmTick = 0;         // s seit letztem Vibrieren (für "continuous")
     const ALARM_REPEAT_S = 3;          // dauerhaft: alle 3 s erneut
+    const LOW_ALARM_WINDOW_KMH = 2.0;  // Min-Alarm nur im Fenster [min-2, min)
 
     // Muster-ID -> Folge von VibeProfiles (Vibration mit Pausen via Intensität 0).
     hidden function _vibe(pattern) {
@@ -573,7 +583,10 @@ class SessionRecorder {
         if (!alarmEnabled) { return; }
         var kmh = speedMps * 3.6;
         var over = (speedHighKmh > 0 && kmh > speedHighKmh);
-        var under = (speedLowKmh > 0 && kmh < speedLowKmh);
+        // Min-Alarm nur in einem schmalen Fenster knapp UNTER min ([min-2, min)).
+        // So warnt es genau beim Abfallen unter min (wahrscheinlich noch am Foilen),
+        // aber nicht dauerhaft beim Stehen/Gehen weit darunter (kein On-Foil-Status).
+        var under = (speedLowKmh > 0 && kmh < speedLowKmh && kmh >= speedLowKmh - LOW_ALARM_WINDOW_KMH);
         var trip = over || under;
         if (trip && !_alarmActive) {
             _alarmActive = true;
