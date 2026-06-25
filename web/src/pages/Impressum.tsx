@@ -58,6 +58,18 @@ export default function Impressum() {
             {li("imp.operator2")}
           </ul>
         </section>
+
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.googleTitle")}</h3>
+          <p className="mb-2 text-slate-300">{t("imp.googleIntro")}</p>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.google1")}
+            {li("imp.google2")}
+            {li("imp.google3")}
+            {li("imp.google4")}
+          </ul>
+          <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.googleNote") }} />
+        </section>
       </div>
 
       <h2 className="mb-2 mt-8 text-lg font-bold">{t("imp.privacyTitle")}</h2>

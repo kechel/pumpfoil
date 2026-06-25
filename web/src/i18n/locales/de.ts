@@ -193,6 +193,7 @@ const de: Record<string, string> = {
   "common.deleteLower": "löschen",
 
   // Account / Uhr
+  "account.tabGuide": "Anleitung",
   "account.tabConnect": "Verbinden",
   "account.tabViews": "Ansichten",
   "account.tabApp": "App",
@@ -490,6 +491,13 @@ const de: Record<string, string> = {
   "imp.operator2": "Passwörter werden nur als gesalzener Hash (PBKDF2) gespeichert — auch ich sehe sie nicht im Klartext.",
   "imp.privacyTitle": "Datenschutz",
   "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Wer seine Daten gelöscht haben möchte, schreibt mir bitte eine nette E-Mail. Die Übertragung läuft verschlüsselt (HTTPS).",
+  "imp.googleTitle": "Google-Anmeldung (Google-Nutzerdaten)",
+  "imp.googleIntro": "Wenn du dich mit deinem Google-Konto anmeldest (Google Sign-In / OAuth), verarbeiten wir ausschließlich die folgenden Google-Nutzerdaten:",
+  "imp.google1": "<b>Zugriff (Data Accessed):</b> deine E-Mail-Adresse, dein Vorname und deine Google-Konto-ID (sub).",
+  "imp.google2": "<b>Verwendung (Data Usage):</b> ausschließlich zum Erstellen und Anmelden deines Pumpfoil-Kontos sowie zur Anzeige deines Vornamens in der App.",
+  "imp.google3": "Es erfolgt <b>kein Zugriff</b> auf weitere Google-Dienste oder -Daten (kein Google Drive, Gmail, Kalender o. Ä.).",
+  "imp.google4": "Diese Daten werden <b>nicht an Dritte weitergegeben</b>, nicht für Werbung verwendet und nicht zum Training von KI-/ML-Modellen genutzt.",
+  "imp.googleNote": "Die Verwendung von Informationen aus Google-APIs entspricht der <a href=\"https://developers.google.com/terms/api-services-user-data-policy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google API Services User Data Policy</a>, einschließlich der Limited-Use-Anforderungen.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "meine 2–3 Worte als Beschreibung",

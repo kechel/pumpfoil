@@ -5,6 +5,7 @@ import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { WatchMatrix } from "../components/WatchMatrix";
+import { WatchGuide } from "../components/WatchGuide";
 import { useT } from "../i18n";
 
 export default function Account() {
@@ -28,7 +29,7 @@ export default function Account() {
     }
   }
 
-  const [tab, setTab] = useState<"connect" | "views" | "alarm" | "app" | "compat">("views");
+  const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">("guide");
 
   return (
     <div className="w-full">
@@ -40,13 +41,16 @@ export default function Account() {
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>
 
-      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-5">
+      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-6">
+        <TabBtn active={tab === "guide"} onClick={() => setTab("guide")}>{t("account.tabGuide")}</TabBtn>
         <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
         <TabBtn active={tab === "alarm"} onClick={() => setTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
         <TabBtn active={tab === "app"} onClick={() => setTab("app")}>{t("account.tabApp")}</TabBtn>
         <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
         <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
+
+      {tab === "guide" && <WatchGuide />}
 
       {tab === "connect" && (
       <>

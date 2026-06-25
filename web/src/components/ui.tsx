@@ -1,9 +1,9 @@
 // Kleine, wiederverwendbare UI-Bausteine (Tailwind).
 import { ReactNode, useState } from "react";
 
-export function Card({ children, className = "", onClick }: { children: ReactNode; className?: string; onClick?: () => void }) {
+export function Card({ children, className = "", onClick, id }: { children: ReactNode; className?: string; onClick?: () => void; id?: string }) {
   return (
-    <div onClick={onClick} className={`rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur ${className}`}>
+    <div id={id} onClick={onClick} className={`rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur ${className}`}>
       {children}
     </div>
   );
