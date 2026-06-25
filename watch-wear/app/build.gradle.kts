@@ -8,7 +8,9 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "org.pumpfoil.watch"
+        // Gleiche applicationId wie die Phone-App: Voraussetzung für den Wearable
+        // Data Layer (Token-Push Phone->Watch). namespace bleibt org.pumpfoil.watch.
+        applicationId = "org.pumpfoil.app"
         minSdk = 30          // Wear OS 3
         targetSdk = 34
         versionCode = 1
@@ -37,5 +39,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }

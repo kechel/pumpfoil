@@ -102,8 +102,18 @@ object Api {
         json.parseToJsonElement(http("GET", "/api/settings", null, auth = true)).jsonObject
     }
 
+    // Companion-Pairing: eingeloggte Phone-App mintet ein Device-Token für die Wear-Uhr.
+    suspend fun mintDeviceToken(label: String = "Wear OS"): String = withContext(Dispatchers.IO) {
+        val l = java.net.URLEncoder.encode(label, "UTF-8")
+        json.decodeFromString(MintResp.serializer(),
+            http("POST", "/api/devices/mint?label=$l", null, auth = true)).device_token
+    }
+
     @kotlinx.serialization.Serializable
     private data class TokenResp(val access_token: String)
+
+    @kotlinx.serialization.Serializable
+    private data class MintResp(val device_token: String)
 
     private fun http(method: String, path: String, body: String?, auth: Boolean): String {
         val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {

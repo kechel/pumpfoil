@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import android.content.Context
+import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,30 @@ object WatchSync {
     val tick = MutableStateFlow(0)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // Companion-Pairing (Wear-idiomatisch): die eingeloggte Phone-App mintet ein
+    // Device-Token und schiebt es per Wearable Data Layer auf die Uhr -> kein
+    // Code-Tippen. Voraussetzung (jetzt erfüllt): gleiche applicationId Phone+Wear.
+    // Token wird gecacht, damit nicht bei jedem Start neu gemintet wird.
+    fun pushPairing(ctx: Context) {
+        if (Api.token == null) return
+        val app = ctx.applicationContext
+        scope.launch(Dispatchers.IO) {
+            try {
+                val prefs = app.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+                var token = prefs.getString("mintedWearToken", null)
+                if (token == null) {
+                    token = Api.mintDeviceToken()
+                    prefs.edit().putString("mintedWearToken", token).apply()
+                }
+                val req = PutDataMapRequest.create("/pairing").apply {
+                    dataMap.putString("device_token", token)
+                    dataMap.putLong("ts", System.currentTimeMillis())
+                }
+                Wearable.getDataClient(app).putDataItem(req.asPutDataRequest().setUrgent()).await()
+            } catch (_: Exception) { /* keine Uhr / offline -> später erneut */ }
+        }
+    }
 
     fun refreshConnection(ctx: Context) {
         val app = ctx.applicationContext

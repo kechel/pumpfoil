@@ -68,6 +68,7 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                     try {
                         val t = Api.login(email.trim(), password)
                         Api.saveToken(ctx, t)
+                        WatchSync.pushPairing(ctx)   // gekoppelte Wear-Uhr automatisch verknüpfen
                         onLoggedIn()
                     } catch (e: Exception) {
                         error = e.message

@@ -39,5 +39,15 @@
             android:name=".RecorderService"
             android:exported="false"
             android:foregroundServiceType="location|health" />
+
+        <!-- Empfängt das Device-Token von der Phone-App (Wearable Data Layer). -->
+        <service
+            android:name=".WearPairingService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/pairing" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
