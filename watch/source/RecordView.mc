@@ -1,29 +1,45 @@
 using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.System;
+using Toybox.Attention;
 
 // Aufzeichnungs-Ansicht: 1–3 konfigurierbare große Datenfelder.
 // Default: Speed (3 s) + Puls. Aktualisiert sich 1×/s via requestUpdate (Timer im Delegate).
 class RecordView extends WatchUi.View {
 
     hidden var _rec;
-    var screenIdx = 0;   // aktive Datenansicht während Aufnahme (UP/DOWN)
+    var screenIdx = 0;   // aktive Seite (Datenansichten 0..n-1, n = Übersicht)
+    hidden var _prevFoiling = false;
+    hidden var _prevRecording = false;
+    hidden var _lastDataIdx = 0;          // zuletzt gezeigte Datenansicht (Rücksprungziel)
+    hidden var _summaryShownAtMs = null;  // Zeitpunkt des Auto-Wechsels zur Übersicht (für 60-s-Rücksprung)
 
     function initialize(recorder) {
         View.initialize();
         _rec = recorder;
     }
 
-    function nextScreen() { screenIdx = (screenIdx + 1) % _rec.screens.size(); }
-    function prevScreen() { screenIdx = (screenIdx + _rec.screens.size() - 1) % _rec.screens.size(); }
+    // Seitenzahl inkl. Übersichts-Seite (Index = screens.size()).
+    hidden function _pageCount() { return _rec.screens.size() + 1; }
+
+    // UP/DOWN: manuelles Blättern bricht den Auto-Rücksprung ab (Nutzer hat Kontrolle).
+    function nextScreen() { screenIdx = (screenIdx + 1) % _pageCount(); _summaryShownAtMs = null; }
+    function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); _summaryShownAtMs = null; }
 
     function onUpdate(dc) {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
-        // Nicht am Aufzeichnen -> klar unterscheidbarer Start- bzw. Erfolgs-Screen
-        // (sonst sieht Idle genauso aus wie laufende Aufnahme).
-        if (!_rec.isRecording()) {
+        // Aufnahme-Start erkennen -> Seiten-State zurücksetzen (damit man vor der Fahrt
+        // die gewählte Ansicht sieht, nicht die Übersicht vom letzten Mal).
+        var recording = _rec.isRecording();
+        if (recording && !_prevRecording) {
+            screenIdx = 0; _prevFoiling = false; _summaryShownAtMs = null; _lastDataIdx = 0;
+        }
+        _prevRecording = recording;
+
+        // Nicht am Aufzeichnen -> klar unterscheidbarer Start- bzw. Erfolgs-Screen.
+        if (!recording) {
             if (_rec.stopped) { _drawStopped(dc); } else { _drawIdle(dc); }
             return;
         }
@@ -34,11 +50,34 @@ class RecordView extends WatchUi.View {
             return;
         }
 
-        if (screenIdx >= _rec.screens.size()) { screenIdx = 0; }
-        // Auto-Umschaltung: on foil -> zuletzt gewählte Datenansicht; off foil ->
-        // Zusammenfassungs-Screen (Uhrzeit + letzter Lauf, konfigurierbar).
-        var offFoil = !_rec.isFoiling();
-        var fields = offFoil ? _rec.offFoilView : _rec.screens[screenIdx];
+        var summaryIdx = _rec.screens.size();
+        if (screenIdx > summaryIdx) { screenIdx = 0; }
+
+        // Auto-Umschaltung NUR auf der Flanke: Lauf beendet (foil->off) -> einmalig zur
+        // Übersicht (+ kurze Vibration als Bestätigung); Lauf gestartet (off->foil) ->
+        // zurück zur letzten Datenansicht. Dazwischen blättert der Nutzer frei.
+        var foil = _rec.isFoiling();
+        if (foil != _prevFoiling) {
+            if (!foil) {
+                screenIdx = summaryIdx;
+                _summaryShownAtMs = System.getTimer();
+                _vibeSwitch();
+            } else {
+                if (screenIdx == summaryIdx) { screenIdx = _lastDataIdx; }
+                _summaryShownAtMs = null;
+            }
+            _prevFoiling = foil;
+        }
+        // Nach 60 s auf der Übersicht ohne Wischen -> automatisch zurück zur letzten Ansicht.
+        if (_summaryShownAtMs != null && screenIdx == summaryIdx) {
+            if (System.getTimer() - _summaryShownAtMs >= 60000) {
+                screenIdx = _lastDataIdx; _summaryShownAtMs = null;
+            }
+        }
+        if (screenIdx < summaryIdx) { _lastDataIdx = screenIdx; }
+
+        var summary = (screenIdx == summaryIdx);
+        var fields = summary ? _rec.offFoilView : _rec.screens[screenIdx];
         var active = [];
         for (var i = 0; i < 3; i++) {
             if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }
@@ -54,12 +93,11 @@ class RecordView extends WatchUi.View {
             _drawField(dc, active[i], w / 2, cy, n);
         }
 
-        // Seiten-Indikator (Punkte) nur on foil (mehrere Datenansichten); off foil
-        // ist es der eine Zusammenfassungs-Screen.
-        if (!offFoil && _rec.screens.size() > 1) {
-            for (var i = 0; i < _rec.screens.size(); i++) {
+        // Seiten-Indikator (Punkte): Datenansichten + Übersicht (letzter Punkt).
+        if (_pageCount() > 1) {
+            for (var i = 0; i < _pageCount(); i++) {
                 dc.setColor(i == screenIdx ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.fillCircle(w / 2 + (i - (_rec.screens.size() - 1) / 2.0) * 12, h * 0.92, 3);
+                dc.fillCircle(w / 2 + (i - (_pageCount() - 1) / 2.0) * 12, h * 0.92, 3);
             }
         }
 
@@ -248,6 +286,13 @@ class RecordView extends WatchUi.View {
     }
 
     // Dauer als M:SS, ab einer Stunde als H:MM:SS (Sekunden immer dabei).
+    // Kurze Vibration beim Auto-Wechsel zur Übersicht (= Bestätigung „Lauf beendet").
+    hidden function _vibeSwitch() {
+        if (Attention has :vibrate) {
+            Attention.vibrate([new Attention.VibeProfile(50, 200)]);
+        }
+    }
+
     // Distanz: < 1000 m als ganze Meter, ab 1000 m als km (2 Nachkommastellen).
     hidden function _distVal(m) {
         return m < 1000 ? m.toNumber().toString() : (m / 1000.0).format("%.2f");
