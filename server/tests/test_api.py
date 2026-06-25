@@ -186,3 +186,29 @@ def test_reverse_pairing_flow(client):
     assert client.post("/api/devices/pair-claim", json={"code": code}, headers=auth).json()["ok"] is True
     # danach liefert das Polling das Device-Token
     assert client.get(f"/api/devices/pair-poll?claim_token={claim}").json()["device_token"]
+
+
+def test_like_state_in_detail(client):
+    # get_session muss liked/like_count korrekt liefern (Apps/Web bauen darauf auf).
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "liker@b.de", "password": "supersecret"}).json()["access_token"]}
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair", json={"code": code}).json()["device_token"]}
+    uuid = "like-uuid-001"
+    client.post("/api/ingest/session", headers=dev,
+                json={"session_uuid": uuid, "started_at": "2026-06-20T09:00:00Z"})
+    client.post(f"/api/ingest/session/{uuid}/chunk", headers=dev,
+                json={"index": 0, "kind": "gps", "encoding": "json", "data": _gps_chunk()})
+    client.post(f"/api/ingest/session/{uuid}/chunk", headers=dev,
+                json={"index": 0, "kind": "accel", "encoding": "int16-b64", "data": _accel_chunk_b64()})
+    sid = client.post(f"/api/ingest/session/{uuid}/complete", headers=dev,
+                      json={"ended_at": "2026-06-20T09:01:00Z", "total_chunks": 1}).json()["session_id"]
+    # vor dem Like
+    body = client.get(f"/api/sessions/{sid}", headers=auth).json()
+    assert body["liked"] is False and body["like_count"] == 0
+    # Like umschalten
+    r = client.post(f"/api/community/sessions/{sid}/like", headers=auth).json()
+    assert r["liked"] is True and r["like_count"] == 1
+    # get_session spiegelt den Zustand
+    body = client.get(f"/api/sessions/{sid}", headers=auth).json()
+    assert body["liked"] is True and body["like_count"] == 1
