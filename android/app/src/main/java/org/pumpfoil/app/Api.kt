@@ -102,6 +102,11 @@ object Api {
         json.parseToJsonElement(http("GET", "/api/settings", null, auth = true)).jsonObject
     }
 
+    // Teil-Update der Settings (z. B. my_foils, foil_id) -> PUT.
+    suspend fun saveSettings(patch: JsonObject): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/settings", patch.toString(), auth = true)
+    }
+
     // Companion-Pairing: eingeloggte Phone-App mintet ein Device-Token für die Wear-Uhr.
     suspend fun mintDeviceToken(label: String = "Wear OS"): String = withContext(Dispatchers.IO) {
         val l = java.net.URLEncoder.encode(label, "UTF-8")

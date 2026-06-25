@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}) {
     val ctx = LocalContext.current
     var profile by remember { mutableStateOf<Profile?>(null) }
     LaunchedEffect(Unit) {
@@ -43,6 +44,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}) {
                 Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(24.dp))
+            ListItem(
+                modifier = Modifier.clickable { onFoils() },
+                headlineContent = { Text("Foils") },
+                supportingContent = { Text("Katalog · meine & Standard wählen") },
+                leadingContent = { Icon(Icons.Filled.Surfing, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
             ListItem(
                 modifier = Modifier.clickable { onFoilCalc() },
                 headlineContent = { Text("Foil-Rechner") },
