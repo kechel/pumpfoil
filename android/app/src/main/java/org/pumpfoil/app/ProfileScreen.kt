@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}) {
     val ctx = LocalContext.current
     var profile by remember { mutableStateOf<Profile?>(null) }
     LaunchedEffect(Unit) {
@@ -56,6 +57,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text("Foil-Rechner") },
                 supportingContent = { Text("Foils vergleichen & Pump-Leistung") },
                 leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { onFoilStats() },
+                headlineContent = { Text("Foil-Statistik") },
+                supportingContent = { Text("Community: Werte je Foil") },
+                leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             Spacer(Modifier.height(24.dp))

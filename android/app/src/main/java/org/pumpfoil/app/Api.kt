@@ -96,6 +96,10 @@ object Api {
         json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/foils/brands", null, auth = true))
     }
 
+    suspend fun foilStats(): List<FoilStat> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(FoilStat.serializer()), http("GET", "/api/community/foil-stats", null, auth = true))
+    }
+
     // Settings sind ein freies Key/Value-Objekt -> als JsonObject zurückgeben, der
     // Aufrufer pickt my_foils / weight_kg heraus.
     suspend fun settings(): JsonObject = withContext(Dispatchers.IO) {

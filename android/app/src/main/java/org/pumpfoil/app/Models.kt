@@ -91,6 +91,21 @@ data class Foil(
 )
 
 @Serializable
+data class FoilStat(
+    @SerialName("foil_id") val foilId: Int,
+    val brand: String = "",
+    val model: String = "",
+    val size: String = "",
+    @SerialName("aspect_ratio") val aspectRatio: Double? = null,
+    val sessions: Int = 0,
+    val users: Int = 0,
+    @SerialName("avg_speed_kmh") val avgSpeedKmh: Double? = null,
+    @SerialName("meters_per_pump") val metersPerPump: Double? = null,
+    @SerialName("best_distance_m") val bestDistanceM: Double? = null,
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+)
+
+@Serializable
 data class SessionDetail(
     val id: Int,
     val sport: String = "",
