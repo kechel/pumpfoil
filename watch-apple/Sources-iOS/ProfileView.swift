@@ -20,6 +20,11 @@ struct ProfileView: View {
                     .padding(.vertical, 4)
                 }
                 Section {
+                    NavigationLink {
+                        FoilCalculatorView()
+                    } label: {
+                        Label("Foil-Rechner", systemImage: "function")
+                    }
                     Link("pumpfoil.org öffnen", destination: URL(string: "https://pumpfoil.org")!)
                 }
                 Section {

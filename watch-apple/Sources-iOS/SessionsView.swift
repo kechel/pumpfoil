@@ -14,7 +14,7 @@ struct SessionsView: View {
                     Text(error).foregroundStyle(.secondary)
                 }
                 ForEach(items) { s in
-                    SessionRow(session: s)
+                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
                 }
                 if items.isEmpty && !loading && error == nil {
                     Text("Noch keine Sessions").foregroundStyle(.secondary)

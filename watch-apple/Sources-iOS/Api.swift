@@ -26,6 +26,30 @@ enum Api {
         try await request("/api/sessions", method: "GET", body: nil, auth: true)
     }
 
+    static func session(_ id: Int) async throws -> SessionDetail {
+        try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
+    }
+
+    static func foils() async throws -> [Foil] {
+        try await request("/api/foils", method: "GET", body: nil, auth: true)
+    }
+
+    static func foilBrands() async throws -> [String] {
+        try await request("/api/foils/brands", method: "GET", body: nil, auth: true)
+    }
+
+    // Settings sind freies Key/Value -> als Dictionary; der Aufrufer pickt weight_kg / my_foils.
+    static func settings() async throws -> [String: Any] {
+        guard let url = URL(string: baseURL + "/api/settings") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 20
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+    }
+
     // Absolute URL zu einem /media-Pfad (Avatare, Thumbnails).
     static func mediaURL(_ path: String?) -> URL? {
         guard let path, !path.isEmpty else { return nil }
