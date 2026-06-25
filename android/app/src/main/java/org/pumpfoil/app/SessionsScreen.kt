@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionsScreen() {
+fun SessionsScreen(onOpen: (Int) -> Unit) {
     var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -69,7 +70,7 @@ fun SessionsScreen() {
                         }
                     }
                     items(sessions) { s ->
-                        SessionRow(s)
+                        SessionRow(s, onClick = { onOpen(s.id) })
                         HorizontalDivider()
                     }
                 }
@@ -80,8 +81,9 @@ fun SessionsScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SessionRow(s: SessionSummary) {
+private fun SessionRow(s: SessionSummary, onClick: () -> Unit) {
     ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
         headlineContent = { Text(prettyDate(s.startedAt)) },
         supportingContent = {
             val sub = s.placeName?.takeIf { it.isNotBlank() } ?: s.caption?.takeIf { it.isNotBlank() }
@@ -98,7 +100,7 @@ private fun SessionRow(s: SessionSummary) {
     )
 }
 
-private fun prettyDate(iso: String): String = try {
+fun prettyDate(iso: String): String = try {
     java.time.OffsetDateTime.parse(iso)
         .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
 } catch (_: Exception) {

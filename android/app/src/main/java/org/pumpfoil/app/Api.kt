@@ -51,6 +51,17 @@ object Api {
         )
     }
 
+    suspend fun session(id: Int): SessionDetail = withContext(Dispatchers.IO) {
+        json.decodeFromString(SessionDetail.serializer(), http("GET", "/api/sessions/$id", null, auth = true))
+    }
+
+    suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<SessionSummary> = withContext(Dispatchers.IO) {
+        json.decodeFromString(
+            ListSerializer(SessionSummary.serializer()),
+            http("GET", "/api/community/sessions?limit=$limit&offset=$offset", null, auth = true),
+        )
+    }
+
     @kotlinx.serialization.Serializable
     private data class TokenResp(val access_token: String)
 
