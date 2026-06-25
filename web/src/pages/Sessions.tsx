@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
-import { Chat } from "../components/Chat";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -80,22 +79,15 @@ export default function Sessions() {
   );
 }
 
+// Verlinkt direkt in den Fullscreen-Spot-Chat (/chat?scope=spot:<name>).
 function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string }) {
-  const [open, setOpen] = useState(false);
   return (
-    <>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={`ml-auto rounded-lg px-3 py-1.5 text-sm ${open ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-      >
-        <span className="inline-flex items-center gap-1"><ChatBubbleIcon className="h-4 w-4" /> {t("chat.spotChat")}</span>
-      </button>
-      {open && (
-        <div className="w-full">
-          <Card className="mt-2 p-4"><Chat scope={`spot:${spot}`} /></Card>
-        </div>
-      )}
-    </>
+    <Link
+      to={`/chat?scope=${encodeURIComponent(`spot:${spot}`)}`}
+      className="ml-auto rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+    >
+      <span className="inline-flex items-center gap-1"><ChatBubbleIcon className="h-4 w-4" /> {t("chat.spotChat")}</span>
+    </Link>
   );
 }
 
