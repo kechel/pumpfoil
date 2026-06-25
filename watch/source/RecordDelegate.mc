@@ -36,10 +36,10 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
             } else if (_view.idlePage == 1) {
-                if (!_rec.isPaired()) { _rec.startPairing(); }   // Verbinden-Seite
+                Uploader.syncAll();                              // Upload-Seite
                 WatchUi.requestUpdate();
             } else if (_view.idlePage == 2) {
-                Uploader.syncAll();                              // Upload-Seite
+                if (!_rec.isPaired()) { _rec.startPairing(); }   // Verbinden-Seite
                 WatchUi.requestUpdate();
             } else {
                 _rec.start();                                    // Start-Seite

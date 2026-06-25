@@ -81,27 +81,33 @@ class RecordView extends WatchUi.View {
         }
     }
 
-    // Idle: 3 wischbare Seiten (UP/DOWN) — Start / Verbinden / Upload. START löst aus.
+    // Idle: 3 wischbare Seiten (UP/DOWN) — Start / Upload / Verbinden. START startet
+    // NUR auf der Start-Seite die Aufnahme; sonst löst es die jeweilige Aktion aus.
     hidden function _drawIdle(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
-        if (idlePage == 1) { _drawPairPage(dc, w, h); }
-        else if (idlePage == 2) { _drawUploadPage(dc, w, h); }
+        if (idlePage == 1) { _drawUploadPage(dc, w, h); }
+        else if (idlePage == 2) { _drawPairPage(dc, w, h); }
         else { _drawStartPage(dc, w, h); }
+        // Navigations-Hinweis: Pfeil nach unten + Name der nächsten Seite.
+        var nextName = (idlePage == 0) ? "Upload" : (idlePage == 1) ? "Verbinden" : "Start";
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon([[w / 2 - 5, (h * 0.80).toNumber()], [w / 2 + 5, (h * 0.80).toNumber()], [w / 2, (h * 0.80 + 6).toNumber()]]);
+        dc.drawText(w / 2, h * 0.82, Graphics.FONT_XTINY, nextName, Graphics.TEXT_JUSTIFY_CENTER);
         // Seiten-Punkte (3 Idle-Seiten).
         for (var i = 0; i < 3; i++) {
             dc.setColor(i == idlePage ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.fillCircle(w / 2 + (i - 1) * 12, h * 0.90, 3);
+            dc.fillCircle(w / 2 + (i - 1) * 12, h * 0.93, 3);
         }
     }
 
     hidden function _drawStartPage(dc, w, h) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.54, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.22, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.22 + 28, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.56, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     hidden function _drawPairPage(dc, w, h) {
@@ -119,15 +125,15 @@ class RecordView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Verbinden", Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START: Code holen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "Pairing-Code erzeugen", Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
     hidden function _drawUploadPage(dc, w, h) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Upload", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START: hochladen", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Upload / Sync", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, "ausstehende Sessions hochladen", Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Nach Stopp&Speichern: klare Erfolgsmeldung (nicht mit Aufnahme verwechselbar).

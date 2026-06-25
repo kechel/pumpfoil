@@ -378,20 +378,11 @@ class SessionRecorder {
         _speedRing[_speedRingPos] = spd;
         _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
         _checkAlarm(speed3s());
-        var runEnded = _updateRun(speed3s(), spd, distanceM(), elapsedTimeMs());
-        // Live-Sync: nach jedem beendeten Lauf sofort, sonst periodisch.
-        _syncTickCounter++;
-        if (runEnded || _syncTickCounter >= SYNC_INTERVAL_S) {
-            _syncTickCounter = 0;
-            _triggerSync();
-        }
-    }
-
-    // Partielle Chunks sichern und alle ausstehenden Sessions hochladen (WLAN-abhängig).
-    hidden function _triggerSync() {
-        _flushAccel(true);
-        _flushGps(true);
-        Uploader.syncAll();
+        _updateRun(speed3s(), spd, distanceM(), elapsedTimeMs());
+        // KEIN Live-Upload während der Aktivität: Garmin meldet sonst „Übertragung
+        // während der Aktivität nicht möglich". Chunks landen laufend in Storage
+        // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
+        // Upload-Seite (Idle).
     }
 
     // GPS-State-Machine für die Live-Lauferkennung (1-Hz-Tick).
