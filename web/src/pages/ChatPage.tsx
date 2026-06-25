@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ActiveRoom, ChatRoom } from "../lib/api";
 import { Card } from "../components/ui";
 import { Chat } from "../components/Chat";
@@ -10,6 +10,13 @@ import { useT } from "../i18n";
 // „Meine Chats" + die aktivsten fremden Chats der letzten 48 h.
 export default function ChatPage() {
   const t = useT();
+  const navigate = useNavigate();
+  // Echtes Zurück (dahin, wo man herkam); Fallback /home, wenn keine In-App-History.
+  const goBack = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) navigate(-1);
+    else navigate("/home");
+  };
   const [sp] = useSearchParams();
   const [scope, setScope] = useState<string | null>(sp.get("scope"));
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
@@ -38,9 +45,9 @@ export default function ChatPage() {
   return (
     <div className="w-full">
       <div className="mb-3 flex items-center gap-2">
-        <Link to="/home" className="text-slate-400 hover:text-slate-200" aria-label={t("nav.home")}>
+        <button onClick={goBack} className="text-slate-400 hover:text-slate-200" aria-label={t("common.back")}>
           <ChevronIcon className="h-5 w-5 rotate-180" />
-        </Link>
+        </button>
         <h2 className="flex items-center gap-1.5 text-lg font-bold">
           {scope ? (isSpot ? <LocationIcon className="h-5 w-5 text-brand-400" /> : <ChatBubbleIcon className="h-5 w-5 text-brand-400" />) : null}
           {label || t("chat.title")}
