@@ -35,14 +35,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
-            } else if (_view.idlePage == 1) {
-                Uploader.syncAll();                              // Upload-Seite
-                WatchUi.requestUpdate();
-            } else if (_view.idlePage == 2) {
-                if (!_rec.isPaired()) { _rec.startPairing(); }   // Verbinden-Seite
-                WatchUi.requestUpdate();
             } else {
-                _rec.start();                                    // Start-Seite
+                _rec.start();                                    // Start-Screen: Aufnahme starten
                 WatchUi.requestUpdate();
             }
             return true;
@@ -76,26 +70,29 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (_holdTimer != null) { _holdTimer.stop(); }
     }
 
-    // UP/DOWN -> während Aufnahme zwischen Datenansichten, im Idle zwischen den
-    // 3 Idle-Seiten (Start / Verbinden / Upload).
+    // UP/DOWN -> nur während Aufnahme zwischen den Datenansichten. Im Idle gibt es
+    // nur den Start-Screen, daher keine Seiten-Navigation.
     function onNextPage() as Lang.Boolean {
-        if (_rec.isRecording()) { _view.nextScreen(); }
-        else { _view.idlePage = (_view.idlePage + 1) % 3; }
-        WatchUi.requestUpdate();
-        return true;
+        if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
+        return false;
     }
     function onPreviousPage() as Lang.Boolean {
-        if (_rec.isRecording()) { _view.prevScreen(); }
-        else { _view.idlePage = (_view.idlePage + 2) % 3; }
-        WatchUi.requestUpdate();
-        return true;
+        if (_rec.isRecording()) { _view.prevScreen(); WatchUi.requestUpdate(); return true; }
+        return false;
     }
 
-    // Menü -> Upload anstoßen (manuell, am besten bei WLAN).
+    // MENU (Mitte-links halten) -> App-Einstellungen, wie "Laufen Einstellungen" bei
+    // nativen Aktivitäten. Nur im Idle (vor dem Start): Verbinden + Upload/Sync.
+    // Während der Aufnahme ist beides nicht möglich -> Menü unterdrücken.
     function onMenu() as Lang.Boolean {
-        var menu = new WatchUi.Menu2({:title => "Foil"});
+        if (_rec.isRecording()) { return true; }
+        var menu = new WatchUi.Menu2({:title => "Einstellungen"});
         menu.addItem(new WatchUi.MenuItem(
-            WatchUi.loadResource(Rez.Strings.Upload), null, :upload, {}));
+            _rec.isPaired() ? "Verbunden" : "Verbinden",
+            _rec.isPaired() ? "Konto verknüpft" : "Pairing-Code erzeugen",
+            :verbinden, {}));
+        menu.addItem(new WatchUi.MenuItem(
+            "Upload / Sync", "ausstehende Sessions", :upload, {}));
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
@@ -114,9 +111,14 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         _rec = recorder;
     }
     function onSelect(item as WatchUi.MenuItem) as Void {
-        if (item.getId() == :upload) {
+        var id = item.getId();
+        if (id == :upload) {
             Uploader.syncAll();   // alle ausstehenden Sessions hochladen (ohne neue Aktivität)
+            WatchUi.popView(WatchUi.SLIDE_DOWN);
+        } else if (id == :verbinden) {
+            if (!_rec.isPaired()) { _rec.startPairing(); }
+            // Menü ersetzen durch die Pair-Ansicht (zeigt Code + pollt auf Bestätigung).
+            WatchUi.switchToView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
         }
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }
