@@ -302,15 +302,16 @@ class SessionRecorder {
         if (alarmRepeat.equals("once")) { alarmRepeat = "continuous"; }  // Min-Warnung soll wiederholen
     }
 
-    // Default-Auswahl setzen: Website-Alarm hat Vorrang, sonst das Standard-Foil
-    // (erstes in der Liste). Wird nach Config-Load aufgerufen; nur wenn noch nichts gewählt.
+    // Default-Auswahl setzen: das Standard-Foil (erstes in der Liste) hat Vorrang,
+    // nur ohne Foils greift der Website-Alarm. Wird nach Config-Load aufgerufen;
+    // nur wenn noch nichts gewählt. (Website bleibt im DOWN-Menü manuell wählbar.)
     function initAlarmSelection() {
         if (!activeAlarmLabel.equals("")) { return; }     // bereits gewählt -> nicht überschreiben
-        if (manualAlarm) {
-            activeAlarmLabel = "Website";
-        } else if (foils.size() >= 1) {
+        if (foils.size() >= 1) {
             applyFoilAlarm(foils[0]["min"], foils[0]["max"]);
             activeAlarmLabel = foils[0]["label"];
+        } else if (manualAlarm) {
+            activeAlarmLabel = "Website";
         }
     }
 
