@@ -28,7 +28,7 @@ export default function Landing() {
     { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
   // Mobile-App-Screenshots (Hochformat). Reihenfolge = mobile-1..N.webp.
-  const SHOTS = Array.from({ length: 15 }, (_, i) => `/mobile-${i + 1}.webp`);
+  const SHOTS = Array.from({ length: 16 }, (_, i) => `/mobile-${i + 1}.webp`);
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
