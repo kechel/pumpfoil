@@ -171,6 +171,22 @@ def pair_claim(
     return {"ok": True, "label": device.label}
 
 
+@router.post("/mint", response_model=DeviceTokenOut)
+def mint_device(
+    label: str = "Watch",
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+    _rl: None = Depends(rate_limit(20, 300, "mint")),
+) -> DeviceTokenOut:
+    """Companion-App (eingeloggt) mintet direkt ein Device-Token für die gekoppelte Uhr.
+    Apple: per WatchConnectivity auf die Uhr geschoben; Wear: per Wearable Data Layer.
+    So entfällt das Code-Tippen ganz (plattform-gerechtes Pairing)."""
+    device = models.DeviceToken(token=new_token(), user_id=user.id, label=label[:40])
+    db.add(device)
+    db.commit()
+    return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
+
+
 @router.get("/pair-poll", response_model=PairPollOut)
 def pair_poll(
     claim_token: str,
