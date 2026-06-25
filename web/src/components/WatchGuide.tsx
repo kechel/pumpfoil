@@ -41,7 +41,7 @@ export function WatchGuide() {
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>1. App installieren:</b> „Pump Foil" aus dem Connect&nbsp;IQ&nbsp;Store laden — oder die
             <code className="mx-1 rounded bg-slate-800 px-1">.prg</code> für dein Modell von hier herunterladen
-            (Tab „App") und mit <b>OpenMTP</b> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
+            (Tab „App") und mit <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
             der Uhr kopieren.</li>
           <li><b>2. Code an der Uhr erzeugen:</b> Pump Foil öffnen (nicht starten) →
             <b> MENU halten</b> (Knopf Mitte-links) → <b>„Einstellungen"</b> → <b>„Verbinden"</b>.
