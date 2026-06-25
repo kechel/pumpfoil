@@ -348,6 +348,11 @@ export const api = {
     }),
   myDevices: () => req<PairedDevice[]>("/api/devices/list"),
   revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
+  // Reverse-Pairing: Code von der Uhr hier eingeben.
+  pairClaim: (code: string) =>
+    req<{ ok: boolean; label?: string; already?: boolean }>("/api/devices/pair-claim", {
+      method: "POST", body: JSON.stringify({ code, label: "Garmin" }),
+    }),
   uploadFit: async (file: File) => {
     const fd = new FormData();
     fd.append("file", file);

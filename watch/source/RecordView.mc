@@ -7,7 +7,8 @@ using Toybox.System;
 class RecordView extends WatchUi.View {
 
     hidden var _rec;
-    var screenIdx = 0;   // aktive Ansicht (mit UP/DOWN umschaltbar)
+    var screenIdx = 0;   // aktive Datenansicht während Aufnahme (UP/DOWN)
+    var idlePage = 0;    // Idle-Seite: 0=Start, 1=Verbinden, 2=Upload (UP/DOWN)
 
     function initialize(recorder) {
         View.initialize();
@@ -80,16 +81,53 @@ class RecordView extends WatchUi.View {
         }
     }
 
-    // Idle: bereit zum Aufnehmen. Zeigt App-Name, Version (Build-Check) + Start-Hinweis.
+    // Idle: 3 wischbare Seiten (UP/DOWN) — Start / Verbinden / Upload. START löst aus.
     hidden function _drawIdle(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
+        if (idlePage == 1) { _drawPairPage(dc, w, h); }
+        else if (idlePage == 2) { _drawUploadPage(dc, w, h); }
+        else { _drawStartPage(dc, w, h); }
+        // Seiten-Punkte (3 Idle-Seiten).
+        for (var i = 0; i < 3; i++) {
+            dc.setColor(i == idlePage ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.fillCircle(w / 2 + (i - 1) * 12, h * 0.90, 3);
+        }
+    }
+
+    hidden function _drawStartPage(dc, w, h) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START zum Aufnehmen", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.54, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    hidden function _drawPairPage(dc, w, h) {
+        if (_rec.isPaired()) {
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.42, Graphics.FONT_MEDIUM, "Verbunden", Graphics.TEXT_JUSTIFY_CENTER);
+        } else if (!_rec.pairCode.equals("")) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.22, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.42, Graphics.FONT_NUMBER_MEDIUM, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.66, Graphics.FONT_XTINY, "auf pumpfoil.org eingeben", Graphics.TEXT_JUSTIFY_CENTER);
+        } else {
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Verbinden", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START: Code holen", Graphics.TEXT_JUSTIFY_CENTER);
+        }
+    }
+
+    hidden function _drawUploadPage(dc, w, h) {
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.32, Graphics.FONT_MEDIUM, "Upload", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.58, Graphics.FONT_SMALL, "START: hochladen", Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Nach Stopp&Speichern: klare Erfolgsmeldung (nicht mit Aufnahme verwechselbar).

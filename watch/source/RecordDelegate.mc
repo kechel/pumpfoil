@@ -35,8 +35,14 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
                 _holdTimer.start(method(:onHoldTick), 50, true);
+            } else if (_view.idlePage == 1) {
+                if (!_rec.isPaired()) { _rec.startPairing(); }   // Verbinden-Seite
+                WatchUi.requestUpdate();
+            } else if (_view.idlePage == 2) {
+                Uploader.syncAll();                              // Upload-Seite
+                WatchUi.requestUpdate();
             } else {
-                _rec.start();
+                _rec.start();                                    // Start-Seite
                 WatchUi.requestUpdate();
             }
             return true;
@@ -70,14 +76,17 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (_holdTimer != null) { _holdTimer.stop(); }
     }
 
-    // UP/DOWN -> zwischen konfigurierten Ansichten umschalten.
+    // UP/DOWN -> während Aufnahme zwischen Datenansichten, im Idle zwischen den
+    // 3 Idle-Seiten (Start / Verbinden / Upload).
     function onNextPage() as Lang.Boolean {
-        _view.nextScreen();
+        if (_rec.isRecording()) { _view.nextScreen(); }
+        else { _view.idlePage = (_view.idlePage + 1) % 3; }
         WatchUi.requestUpdate();
         return true;
     }
     function onPreviousPage() as Lang.Boolean {
-        _view.prevScreen();
+        if (_rec.isRecording()) { _view.prevScreen(); }
+        else { _view.idlePage = (_view.idlePage + 2) % 3; }
         WatchUi.requestUpdate();
         return true;
     }

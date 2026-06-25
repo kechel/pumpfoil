@@ -66,6 +66,12 @@ class SessionRecorder {
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
 
+    // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
+    var pairCode = "";                // auf der Uhr angezeigter Code
+    var pairStatus = "";              // Status-Text auf dem Verbinden-Screen
+    hidden var _claimToken = "";
+    hidden var _pairPollCtr = 0;
+
     // --- On-Watch-Lauferkennung (Live-Näherung, GPS-Speed) ---
     // Bewusst simpel: Hysterese + Dwell auf dem 3-s-Speed. Der Server bleibt mit
     // Accel-ML die Wahrheit für die Auswertung; das hier dient dem Live-Feedback.
@@ -131,6 +137,63 @@ class SessionRecorder {
             if (ac.hasKey("ph")) { alarmPatternHigh = ac["ph"]; }
             if (ac.hasKey("pl")) { alarmPatternLow = ac["pl"]; }
             if (ac.hasKey("rep")) { alarmRepeat = ac["rep"]; }
+        }
+    }
+
+    // --- Reverse-Pairing ---
+    function isPaired() {
+        var t = Config.getString("deviceToken");
+        return t != null && !t.equals("");
+    }
+
+    // Holt einen Pairing-Code vom Server (zum Eintippen auf pumpfoil.org).
+    function startPairing() {
+        if (isPaired()) { return; }
+        pairCode = "";
+        _claimToken = "";
+        _pairPollCtr = 0;
+        pairStatus = "hole Code…";
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/devices/pair-init",
+            {},
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onPairInit));
+    }
+
+    function onPairInit(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        if (responseCode == 200 && data instanceof Lang.Dictionary && data.hasKey("code")) {
+            pairCode = data["code"];
+            _claimToken = data["claim_token"];
+            pairStatus = "auf pumpfoil.org eingeben";
+        } else {
+            pairStatus = "Fehler (" + responseCode + ")";
+        }
+    }
+
+    // Pollt, ob der Code auf der Website eingelöst wurde (vom 1-Hz-Tick alle 3 s).
+    hidden function _pollPairing() {
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/devices/pair-poll",
+            { "claim_token" => _claimToken },
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onPairPoll));
+    }
+
+    function onPairPoll(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        if (responseCode == 200 && data instanceof Lang.Dictionary
+                && data["device_token"] != null) {
+            Config.setString("deviceToken", data["device_token"]);
+            _claimToken = "";
+            pairCode = "";
+            pairStatus = "Verbunden!";
+            fetchConfig();      // Website-Einstellungen jetzt laden
+            Uploader.syncAll(); // ggf. vor dem Pairing aufgenommene Sessions nachschicken
         }
     }
 
@@ -303,6 +366,11 @@ class SessionRecorder {
     // zuverlässige Quelle (auch bei FIT-Wiedergabe im Simulator), unabhängig davon, ob
     // Positions-Callbacks feuern.
     function tick() as Void {
+        // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist.
+        if (!_claimToken.equals("") && !isPaired()) {
+            _pairPollCtr++;
+            if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
+        }
         if (!_recording) { return; }
         var act = Activity.getActivityInfo();
         var spd = (act.currentSpeed != null) ? act.currentSpeed : 0.0;

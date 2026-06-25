@@ -83,6 +83,7 @@ export default function Account() {
         )}
         {error && <div className="mt-4"><ErrorBox message={error} /></div>}
       </Card>
+      <ClaimFromWatch />
       <PairedDevices />
       </>
       )}
@@ -98,6 +99,48 @@ export default function Account() {
         </Card>
       )}
     </div>
+  );
+}
+
+// Reverse-Pairing: Code, den die Garmin-Uhr anzeigt, hier eingeben.
+function ClaimFromWatch() {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  async function claim() {
+    setBusy(true); setErr(null); setMsg(null);
+    try {
+      const r = await api.pairClaim(code.trim().toUpperCase());
+      setMsg(r.already ? "Diese Uhr ist bereits verbunden." : "Uhr verbunden! ✓");
+      setCode("");
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+    setBusy(false);
+  }
+  return (
+    <Card className="mt-5 p-5">
+      <h3 className="mb-1 font-semibold">Garmin: Code von der Uhr eingeben</h3>
+      <p className="mb-3 text-sm text-slate-300">
+        Auf der Uhr in der Pump-Foil-App nach oben/unten wischen zu „Verbinden", START drücken —
+        den angezeigten Code hier eintragen.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <input
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          maxLength={8}
+          placeholder="z. B. VURWGG"
+          className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 font-mono tracking-widest text-slate-100"
+        />
+        <Button onClick={claim} disabled={busy || code.trim().length < 4}>
+          {busy ? "…" : "Verbinden"}
+        </Button>
+      </div>
+      {msg && <div className="mt-3 text-sm text-emerald-400">{msg}</div>}
+      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
+    </Card>
   );
 }
 
