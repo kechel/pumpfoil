@@ -5,22 +5,33 @@ struct VerlaufView: View {
     @State private var items: [HistoryPoint] = []
     @State private var loading = false
     @State private var error: String?
+    @State private var windowDays = 0   // 0 = Gesamt
+
+    private var shown: [HistoryPoint] {
+        windowDays == 0 ? items : items.filter { withinDays($0.started_at, windowDays) }
+    }
 
     var body: some View {
         NavigationStack {
             List {
                 if let error { Text(error).foregroundStyle(.secondary) }
                 if !items.isEmpty {
-                    Section("Kumuliert · Gesamt") {
+                    Section {
+                        Picker("Zeitraum", selection: $windowDays) {
+                            Text("Gesamt").tag(0); Text("30 T").tag(30); Text("7 T").tag(7)
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    Section("Kumuliert · \(windowDays == 0 ? "Gesamt" : "\(windowDays) Tage")") {
                         HStack {
-                            stat("\(items.count)", "Sessions")
-                            Spacer(); stat(String(format: "%.1f", items.reduce(0) { $0 + $1.foiling_km }), "km")
-                            Spacer(); stat("\(items.reduce(0) { $0 + $1.runs })", "Läufe")
-                            Spacer(); stat("\(items.reduce(0) { $0 + $1.pumps })", "Pumps")
+                            stat("\(shown.count)", "Sessions")
+                            Spacer(); stat(String(format: "%.1f", shown.reduce(0) { $0 + $1.foiling_km }), "km")
+                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.runs })", "Läufe")
+                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.pumps })", "Pumps")
                         }
                     }
                 }
-                ForEach(items) { h in
+                ForEach(shown) { h in
                     NavigationLink { SessionDetailView(id: h.session_id) } label: { row(h) }
                 }
                 if items.isEmpty && !loading && error == nil {
@@ -62,6 +73,16 @@ struct VerlaufView: View {
         if d == nil { f.formatOptions = [.withInternetDateTime]; d = f.date(from: iso) }
         guard let date = d else { return iso }
         return date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    // started_at innerhalb der letzten N Tage? Bei Parse-Fehler einschließen.
+    private func withinDays(_ iso: String, _ days: Int) -> Bool {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var d = f.date(from: iso)
+        if d == nil { f.formatOptions = [.withInternetDateTime]; d = f.date(from: iso) }
+        guard let date = d else { return true }
+        return date > Date().addingTimeInterval(-Double(days) * 86400)
     }
 
     private func load() async {

@@ -39,22 +39,25 @@ struct SessionsView: View {
 
 struct SessionRow: View {
     let session: SessionSummary
+    var showOwner: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "water.waves")
-                .font(.title3)
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 36, height: 36)
-                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            leading
             VStack(alignment: .leading, spacing: 2) {
-                Text(dateText).font(.headline)
-                if let place = session.place_name, !place.isEmpty {
-                    Label(place, systemImage: "mappin.and.ellipse")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                        .labelStyle(.titleAndIcon)
-                } else if let cap = session.caption, !cap.isEmpty {
-                    Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                if showOwner, let owner = session.owner_name, !owner.isEmpty {
+                    Text(owner).font(.headline)
+                    Text(dateText + (session.place_name.map { " · \($0)" } ?? ""))
+                        .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                } else {
+                    Text(dateText).font(.headline)
+                    if let place = session.place_name, !place.isEmpty {
+                        Label(place, systemImage: "mappin.and.ellipse")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                            .labelStyle(.titleAndIcon)
+                    } else if let cap = session.caption, !cap.isEmpty {
+                        Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    }
                 }
             }
             Spacer()
@@ -64,6 +67,24 @@ struct SessionRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    @ViewBuilder private var leading: some View {
+        if showOwner, let url = Api.mediaURL(session.owner_avatar_url) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 36, height: 36).clipShape(Circle())
+        } else {
+            Image(systemName: showOwner ? "person.crop.circle.fill" : "water.waves")
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 36, height: 36)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        }
     }
 
     private var dateText: String {

@@ -12,7 +12,7 @@ struct CommunityView: View {
             List {
                 if let error { Text(error).foregroundStyle(.secondary) }
                 ForEach(items) { s in
-                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s, showOwner: true) }
                 }
                 if items.isEmpty && !loading && error == nil {
                     Text("Noch keine Sessions").foregroundStyle(.secondary)
