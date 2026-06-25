@@ -104,3 +104,17 @@ Polar (offene Cloud-API). Coros/Suunto/Garmin-Cloud opportunistisch (gated).
   (Ingest-Contract Path B ist FIT). Wird gebaut, sobald Creds + ein echtes Beispiel-Exercise da sind.
 - ⏳ **Garmin Activity API** (Weg B): wartet auf Programm-Freigabe.
 Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
+
+**Update 2026-06-25:**
+- ✅ **Garmin Watch-App v1.0.8** — Live-Upload während der Aktivität entfernt
+  (`makeWebRequest` ist während laufender Aktivität eingeschränkt → Meldung „Übertragung
+  während der Aktivität nicht möglich"). Upload nur noch nach Stopp / auf der Upload-Seite.
+  Reboot-Problem (Settings-Cache) bereits per neuer App-id gelöst; Settings laufen über die
+  Website (Pairing). Idle-Screen: Start → Upload → Verbinden mit ↓-Hinweis + 3-Punkt-Indikator.
+- ✅ **Reverse-Pairing auf allen Uhren** — Uhr erzeugt Code, Nutzer trägt ihn auf
+  pumpfoil.org (Account) ein; Uhr pollt `pair-poll` und holt das Token (Garmin/Apple/Wear).
+  Tippen an der Uhr entfällt.
+- ✅ **Android Phone-App** (`android/`, nativer PWA-Nachbau): Foil-Rechner (auf verifizierter
+  `FoilPhysics.kt`, 135/135 vs. JS-Referenz) + Session-Detail mit Track-Polyline (speed-gefärbt,
+  ohne Kartenkacheln) und Speed-Verlauf-Chart. Auf der VM kompiliert.
+- ⏳ **iOS Phone-App** (`watch-apple/Sources-iOS/`): SwiftUI Phase 1 geschrieben, von Jan in Xcode zu bauen.
