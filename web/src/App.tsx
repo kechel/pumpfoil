@@ -6,7 +6,7 @@ import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, Co
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { InstallPwa } from "./components/InstallPwa";
-import { warmMySessions } from "./lib/pwaCache";
+import { warmMySessions, warmMedia } from "./lib/pwaCache";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -31,6 +31,7 @@ export default function App() {
     api.getProfile().then((p) => {
       setProfile(p);
       setIsAdmin(p.is_admin);
+      warmMedia([p.avatar_url]);   // eigenes Profilbild offline-sicher vorladen
       // Serverseitig gespeicherte Sprachpräferenz anwenden (ohne erneut zu sichern).
       if (p.language) setLang(p.language as any, { persist: false });
     }).catch(() => {});

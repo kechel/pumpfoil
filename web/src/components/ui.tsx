@@ -1,5 +1,5 @@
 // Kleine, wiederverwendbare UI-Bausteine (Tailwind).
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 export function Card({ children, className = "", onClick }: { children: ReactNode; className?: string; onClick?: () => void }) {
   return (
@@ -68,11 +68,15 @@ export function Avatar({
   className?: string;
 }) {
   const initial = (name || "?").trim().charAt(0).toUpperCase() || "?";
-  if (url) {
+  const [failed, setFailed] = useState(false);
+  if (url && !failed) {
     return (
       <img
         src={url}
         alt={name || ""}
+        // Bei Lade-Fehler (offline/nicht gecacht) auf die Initialen zurückfallen
+        // statt ein kaputtes Bild zu zeigen.
+        onError={() => setFailed(true)}
         className={`object-cover ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-slate-700"} ${className}`}
         style={fill ? undefined : { width: size, height: size }}
       />
