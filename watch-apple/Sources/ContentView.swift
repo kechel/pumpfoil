@@ -107,6 +107,9 @@ struct RecordView: View {
     @State private var wasLow = false
     @State private var syncing = false
     @State private var configTask: Task<Void, Never>?
+    @State private var manualAlarm = false
+    @State private var foils: [Api.FoilOpt] = []
+    @State private var showFoilPicker = false
 
     var body: some View {
         Group {
@@ -141,7 +144,22 @@ struct RecordView: View {
                         Text(rec.status.isEmpty ? "starte…" : rec.status)
                             .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     } else {
-                    Button("Start") { skipSync(); Task { await rec.start() } }.tint(.green)
+                    Button("Start") {
+                        skipSync()
+                        if !manualAlarm && !foils.isEmpty { showFoilPicker = true }
+                        else { Task { await rec.start() } }
+                    }
+                    .tint(.green)
+                    .confirmationDialog("Foil heute?", isPresented: $showFoilPicker, titleVisibility: .visible) {
+                        ForEach(foils) { f in
+                            Button("\(f.label) · \(f.min)–\(f.max)") {
+                                alarm = WatchAlarm(enabled: true, high: f.max, low: f.min)
+                                Task { await rec.start() }
+                            }
+                        }
+                        Button("Ohne Alarm") { Task { await rec.start() } }
+                        Button("Abbrechen", role: .cancel) {}
+                    }
                     // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
                     if syncing {
                         HStack(spacing: 6) {
@@ -227,7 +245,9 @@ struct RecordView: View {
         guard let c else { return }
         if !c.views.isEmpty { views = c.views }
         colorBy = c.colorByValue
+        manualAlarm = c.alarmEnabled
         alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
+        foils = c.foils ?? []
     }
 
     private func checkAlarm(_ sp: Double) {

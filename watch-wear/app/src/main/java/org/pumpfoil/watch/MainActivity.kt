@@ -12,7 +12,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -132,6 +134,9 @@ class MainActivity : ComponentActivity() {
         var alarm by remember { mutableStateOf(WatchAlarm()) }
         var syncing by remember { mutableStateOf(false) }
         var configJob by remember { mutableStateOf<Job?>(null) }
+        var manualAlarm by remember { mutableStateOf(false) }
+        var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
+        var showFoilPicker by remember { mutableStateOf(false) }
 
         fun applyConfig(c: JSONObject) {
             val vs = c.optJSONArray("views")
@@ -142,8 +147,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
             colorBy = c.optBoolean("colorByValue", false)
+            manualAlarm = c.optBoolean("alarmEnabled", false)
             alarm = WatchAlarm(c.optBoolean("alarmEnabled", false),
                 c.optInt("speedHigh", 0), c.optInt("speedLow", 0))
+            val fa = c.optJSONArray("foils")
+            if (fa != null) {
+                foils = (0 until fa.length()).map { i ->
+                    val o = fa.getJSONObject(i)
+                    FoilOpt(o.optInt("id"), o.optString("label"), o.optInt("min"), o.optInt("max"))
+                }
+            }
         }
         fun skipSync() { configJob?.cancel(); syncing = false }
 
@@ -208,6 +221,17 @@ class MainActivity : ComponentActivity() {
                         strokeWidth = 2.dp)
                 }
             }
+        } else if (showFoilPicker) {
+            FoilPicker(
+                foils = foils,
+                onPick = { f ->
+                    alarm = WatchAlarm(true, f.max, f.min)
+                    showFoilPicker = false
+                    RecorderService.start(applicationContext)
+                },
+                onNone = { showFoilPicker = false; RecorderService.start(applicationContext) },
+                onBack = { showFoilPicker = false },
+            )
         } else {
             Column(Modifier.fillMaxSize().padding(12.dp),
                 verticalArrangement = Arrangement.Center,
@@ -222,7 +246,11 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 } else {
-                Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text("Start") }
+                Button(onClick = {
+                    skipSync()
+                    if (!manualAlarm && foils.isNotEmpty()) showFoilPicker = true
+                    else RecorderService.start(applicationContext)
+                }) { Text("Start") }
                 // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
                 if (syncing) {
                     Spacer(Modifier.height(8.dp))
@@ -312,6 +340,31 @@ private fun speedColor(kmh: Double): Color {
 }
 
 data class WatchAlarm(val enabled: Boolean = false, val high: Int = 0, val low: Int = 0)
+
+// Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
+data class FoilOpt(val id: Int, val label: String, val min: Int, val max: Int)
+
+// Foil-Auswahl beim Start: setzt den Auto-Alarm des gewählten Foils.
+@Composable
+fun FoilPicker(foils: List<FoilOpt>, onPick: (FoilOpt) -> Unit, onNone: () -> Unit, onBack: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text("Foil heute?", style = MaterialTheme.typography.title3)
+        foils.forEach { f ->
+            Chip(
+                onClick = { onPick(f) },
+                label = { Text(f.label, maxLines = 1) },
+                secondaryLabel = { Text("${f.min}–${f.max} km/h") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        CompactChip(onClick = onNone, label = { Text("Ohne Alarm") })
+        CompactChip(onClick = onBack, label = { Text("Zurück") })
+    }
+}
 
 // Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen (Flankenerkennung).
 @Composable

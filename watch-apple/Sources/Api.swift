@@ -51,12 +51,20 @@ enum Api {
         return try JSONDecoder().decode(PairPollResponse.self, from: data)
     }
 
+    struct FoilOpt: Codable, Identifiable, Equatable {
+        let id: Int
+        let label: String
+        let min: Int
+        let max: Int
+    }
+
     struct DeviceConfig: Codable {
         let views: [[Int]]
         let colorByValue: Bool
         let alarmEnabled: Bool
         let speedHigh: Int
         let speedLow: Int
+        let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt
