@@ -116,5 +116,6 @@ data class SessionDetail(
     val caption: String? = null,
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
+    val liked: Boolean = false,
     val analysis: Analysis? = null,
 )

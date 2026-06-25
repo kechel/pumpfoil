@@ -6,6 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -83,11 +89,27 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
 
 @Composable
 private fun DetailContent(s: SessionDetail) {
+    val scope = rememberCoroutineScope()
+    var liked by remember(s.id) { mutableStateOf(s.liked) }
+    var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
     Column(
         Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            FilledTonalButton(onClick = {
+                val prev = liked; liked = !liked; likeCount += if (liked) 1 else -1
+                scope.launch {
+                    try { val st = Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
+                    catch (_: Exception) { liked = prev; likeCount += if (liked) 1 else -1 }
+                }
+            }) {
+                Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Like")
+                Spacer(Modifier.width(6.dp))
+                Text("$likeCount")
+            }
+        }
         s.placeName?.takeIf { it.isNotBlank() }?.let {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

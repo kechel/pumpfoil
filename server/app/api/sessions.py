@@ -546,6 +546,10 @@ def get_session(
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
+    # Like-Zustand für die Detail-Ansicht (Web + Apps) berechnen.
+    out.like_count = int(
+        db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
+    out.liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
     return out
 
 

@@ -96,6 +96,13 @@ object Api {
         json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/foils/brands", null, auth = true))
     }
 
+    @kotlinx.serialization.Serializable
+    data class LikeState(val like_count: Int = 0, val liked: Boolean = false)
+
+    suspend fun toggleLike(id: Int): LikeState = withContext(Dispatchers.IO) {
+        json.decodeFromString(LikeState.serializer(), http("POST", "/api/community/sessions/$id/like", null, auth = true))
+    }
+
     suspend fun foilStats(): List<FoilStat> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(FoilStat.serializer()), http("GET", "/api/community/foil-stats", null, auth = true))
     }
