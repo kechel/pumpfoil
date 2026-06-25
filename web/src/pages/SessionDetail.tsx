@@ -67,7 +67,7 @@ function optimalColor(kmh: number, opt: number): string {
   return `hsl(${hue}, 80%, 48%)`;
 }
 
-type ColorMode = "speed" | "hr" | "pump" | "optimal";
+type ColorMode = "speed" | "hr" | "pump" | "optimal" | "pumpcycle";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -422,6 +422,17 @@ export default function SessionDetail() {
     return vals.length ? [Math.min(...vals), Math.max(...vals)] : [0, 2];
   }, [session]);
 
+  // Pump-Zyklus-Färbung braucht mind. 2 Pump-Marker in einem Lauf (-> Zyklen dazwischen).
+  const hasPumpCycles = useMemo(
+    () => (session?.analysis?.segments ?? []).some((s: any) => (s.pump_idx?.length ?? 0) >= 2),
+    [session],
+  );
+
+  // Pump-Zyklus-Modus aktiv, aber keine Pump-Marker -> zurück auf Speed.
+  useEffect(() => {
+    if (colorMode === "pumpcycle" && !hasPumpCycles) setColorMode("speed");
+  }, [colorMode, hasPumpCycles]);
+
   // Falls Pump-Modus aktiv, aber Session keine Pump-Daten hat -> zurück auf Speed.
   useEffect(() => {
     if (colorMode === "pump" && !hasPump) setColorMode("speed");
@@ -482,6 +493,7 @@ export default function SessionDetail() {
     const gj = session.analysis.track_geojson;
     const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
     const speeds: number[] = gj.properties?.speeds?.[win] ?? gj.properties?.speeds_mps ?? [];
+    const sp1: number[] = gj.properties?.speeds?.["1"] ?? speeds;  // ungeglättet -> echte Pump-Peaks
     const hr: (number | null)[] = gj.properties?.hr ?? [];
     const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
 
@@ -491,6 +503,26 @@ export default function SessionDetail() {
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
+
+      // Pump-Zyklus-Vorberechnung: je Punkt der Peak-Speed seines Zyklus (Pump→Pump)
+      // und die Phase (0 = am Pump, 1 = kurz vor dem nächsten Pump).
+      let cycPeak: Record<number, number> | null = null;
+      let cycPhase: Record<number, number> | null = null;
+      if (colorMode === "pumpcycle") {
+        const pumps: number[] = (seg.pump_idx ?? [])
+          .filter((p: number) => p >= seg.i_start && p <= seg.i_end)
+          .sort((a: number, b: number) => a - b);
+        if (pumps.length >= 2) {
+          cycPeak = {}; cycPhase = {};
+          for (let k = 0; k < pumps.length - 1; k++) {
+            const a = pumps[k], b = pumps[k + 1];
+            let pk = 0;
+            for (let j = a; j <= b; j++) { const v = sp1[j] ?? 0; if (v > pk) pk = v; }
+            for (let j = a; j < b; j++) { cycPeak[j] = pk; cycPhase[j] = (j - a) / Math.max(b - a, 1); }
+          }
+        }
+      }
+
       for (let i = seg.i_start; i < seg.i_end; i++) {
         if (map.distance(coords[i], coords[i + 1]) > MAX_DRAW_GAP_M) continue;
         let color: string;
@@ -498,6 +530,17 @@ export default function SessionDetail() {
           color = "#64748b";
         } else if (colorMode === "speed") {
           color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
+        } else if (colorMode === "pumpcycle") {
+          const pk = cycPeak ? cycPeak[i + 1] : undefined;
+          if (pk == null) {
+            color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
+          } else {
+            // Farbton = Peak-Speed des Zyklus (gleiche Skala wie Speed),
+            // Helligkeit fällt vom Pump (hell) bis zum nächsten Pump (dunkel).
+            const c = Math.min(Math.max((pk * 3.6 - speedMin) / Math.max(speedMax - speedMin, 1), 0), 1);
+            const light = 62 - (cycPhase![i + 1] ?? 0) * 42;
+            color = `hsl(${(1 - c) * 240}, 85%, ${light}%)`;
+          }
         } else if (colorMode === "optimal") {
           color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         } else if (colorMode === "pump") {
@@ -760,6 +803,9 @@ export default function SessionDetail() {
           {optimalKmh != null && (
             <ModeButton active={colorMode === "optimal"} onClick={() => setColorMode("optimal")}>{t("sd.colorOptimal")}</ModeButton>
           )}
+          {hasPumpCycles && (
+            <ModeButton active={colorMode === "pumpcycle"} onClick={() => setColorMode("pumpcycle")}>{t("sd.colorPumpCycle")}</ModeButton>
+          )}
           {(colorMode === "speed" || colorMode === "optimal") && (
             <>
               <span className="ml-2 text-xs text-slate-400">{t("sd.smoothing")}</span>
@@ -946,8 +992,9 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
       </div>
     );
   }
-  const [lo, hi] = mode === "speed" ? speedRange : mode === "pump" ? pumpRange : hrRange;
-  const unit = mode === "speed" ? "km/h" : mode === "pump" ? "Hz" : "bpm";
+  const speedScale = mode === "speed" || mode === "pumpcycle";
+  const [lo, hi] = speedScale ? speedRange : mode === "pump" ? pumpRange : hrRange;
+  const unit = speedScale ? "km/h" : mode === "pump" ? "Hz" : "bpm";
   const ticksT = [0, 0.25, 0.5, 0.75, 1];
   const stops = ticksT.map((tt) => rampColor(tt)).join(", ");
   const ticks = ticksT.map((tt) =>
@@ -967,6 +1014,9 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
           <span className="flex items-center gap-1">
             <i className="inline-block h-3 w-4 rounded border border-slate-600 bg-black" /> außerhalb
           </span>
+        )}
+        {mode === "pumpcycle" && (
+          <span className="text-slate-400">{t("sd.pumpCycleLegend")}</span>
         )}
       </div>
     </div>
