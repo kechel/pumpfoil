@@ -6,7 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.FilledTonalButton
@@ -114,6 +121,22 @@ private fun DetailContent(s: SessionDetail) {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
+
+        // Fotos der Session (read-only Strip).
+        var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
+        LaunchedEffect(s.id) { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
+        if (photos.isNotEmpty()) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(photos, key = { it.id }) { p ->
+                    AsyncImage(
+                        model = Api.mediaUrl(p.url),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(width = 200.dp, height = 140.dp).clip(RoundedCornerShape(12.dp)),
+                    )
+                }
+            }
+        }
 
         val a = s.analysis
         // Track: GPS-Polyline (speed-gefärbt) + Speed-Verlauf — ohne externe

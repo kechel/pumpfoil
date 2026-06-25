@@ -9,6 +9,7 @@ struct SessionDetailView: View {
     @State private var error: String?
     @State private var liked = false
     @State private var likeCount = 0
+    @State private var photos: [SessionPhoto] = []
 
     var body: some View {
         ScrollView {
@@ -47,6 +48,23 @@ struct SessionDetailView: View {
                         .foregroundStyle(liked ? .pink : .secondary)
                 }
                 .buttonStyle(.bordered)
+            }
+
+            if !photos.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(photos) { p in
+                            AsyncImage(url: Api.mediaURL(p.url)) { phase in
+                                switch phase {
+                                case .success(let img): img.resizable().scaledToFill()
+                                default: Color(.secondarySystemBackground)
+                                }
+                            }
+                            .frame(width: 200, height: 140)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                }
             }
 
             if let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2 {
@@ -113,6 +131,7 @@ struct SessionDetailView: View {
             session = s
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
+            photos = (try? await Api.sessionPhotos(id)) ?? []
             error = nil
         } catch { self.error = error.localizedDescription }
     }

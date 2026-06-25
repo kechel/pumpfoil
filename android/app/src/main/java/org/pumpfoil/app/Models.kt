@@ -91,6 +91,9 @@ data class Foil(
 )
 
 @Serializable
+data class SessionPhoto(val id: Int, val url: String = "")
+
+@Serializable
 data class FoilStat(
     @SerialName("foil_id") val foilId: Int,
     val brand: String = "",

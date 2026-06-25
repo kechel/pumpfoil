@@ -58,6 +58,10 @@ object Api {
         json.decodeFromString(SessionDetail.serializer(), http("GET", "/api/sessions/$id", null, auth = true))
     }
 
+    suspend fun sessionPhotos(id: Int): List<SessionPhoto> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SessionPhoto.serializer()), http("GET", "/api/sessions/$id/photos", null, auth = true))
+    }
+
     suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<SessionSummary> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),

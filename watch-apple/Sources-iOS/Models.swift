@@ -83,6 +83,11 @@ struct Foil: Codable, Identifiable {
     let aspect_ratio: Double?
 }
 
+struct SessionPhoto: Codable, Identifiable {
+    let id: Int
+    let url: String
+}
+
 struct FoilStat: Codable, Identifiable {
     let foil_id: Int
     let brand: String

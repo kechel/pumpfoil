@@ -30,6 +30,10 @@ enum Api {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    static func sessionPhotos(_ id: Int) async throws -> [SessionPhoto] {
+        try await request("/api/sessions/\(id)/photos", method: "GET", body: nil, auth: true)
+    }
+
     struct MintResponse: Decodable { let device_token: String; let user_id: Int }
 
     // Companion-Pairing: eingeloggte iPhone-App mintet ein Device-Token für die Uhr.
