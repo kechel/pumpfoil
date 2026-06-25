@@ -362,10 +362,13 @@ class SessionRecorder {
         _fitSession = null;
         _recording = false;
         stopped = true;   // -> Erfolgs-/Upload-Screen
-        // Session als abgeschlossen markieren; der SyncManager lädt den Rest hoch
-        // und ruft /complete. Bleibt im sessions-Index, bis vollständig bestätigt.
+        // Session als abgeschlossen markieren und SICHER in Storage persistieren.
+        // Bleibt im sessions-Index, bis vollständig hochgeladen+bestätigt.
         _saveState(true);
-        Uploader.syncAll();
+        // BEWUSST KEIN Upload direkt beim Stopp: ein makeWebRequest im Stopp-Moment
+        // könnte fehlschlagen/abstürzen -> Risiko für die gerade aufgenommene Session.
+        // Daten liegen sicher in Storage; hochgeladen wird erst beim nächsten App-Start
+        // bzw. manuell über Einstellungen -> Upload/Sync.
     }
 
     // --- Persistenter Multi-Session-Zustand (für robusten Sync) ---
