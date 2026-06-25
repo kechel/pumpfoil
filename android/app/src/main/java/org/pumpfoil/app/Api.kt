@@ -62,6 +62,29 @@ object Api {
         )
     }
 
+    suspend fun history(): List<HistoryPoint> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(HistoryPoint.serializer()), http("GET", "/api/sessions/history", null, auth = true))
+    }
+
+    suspend fun spotMap(): List<SpotMapItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map", null, auth = true))
+    }
+
+    suspend fun chatRooms(): List<ChatRoom> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
+    }
+
+    suspend fun chatLatest(scope: String, limit: Int = 30): List<ChatMsg> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&limit=$limit", null, auth = true))
+    }
+
+    suspend fun chatPost(scope: String, text: String): ChatMsg = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        val body = buildJsonObject { put("text", text) }.toString()
+        json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
+    }
+
     @kotlinx.serialization.Serializable
     private data class TokenResp(val access_token: String)
 

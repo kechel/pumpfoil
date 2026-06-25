@@ -6,8 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -47,7 +50,7 @@ fun App() {
     }
 }
 
-private val TOP_LEVEL = setOf("community", "sessions", "profile")
+private val TOP_LEVEL = setOf("community", "sessions", "verlauf", "spots", "chat", "profile")
 
 @Composable
 fun MainScaffold(onLogout: () -> Unit) {
@@ -62,17 +65,32 @@ fun MainScaffold(onLogout: () -> Unit) {
                     NavigationBarItem(
                         selected = route == "community", onClick = { nav.switchTab("community") },
                         icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
-                        label = { Text("Community") },
+                        label = { Text("Community") }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "sessions", onClick = { nav.switchTab("sessions") },
                         icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                        label = { Text("Sessions") },
+                        label = { Text("Sessions") }, alwaysShowLabel = false,
+                    )
+                    NavigationBarItem(
+                        selected = route == "verlauf", onClick = { nav.switchTab("verlauf") },
+                        icon = { Icon(Icons.Filled.ShowChart, contentDescription = null) },
+                        label = { Text("Verlauf") }, alwaysShowLabel = false,
+                    )
+                    NavigationBarItem(
+                        selected = route == "spots", onClick = { nav.switchTab("spots") },
+                        icon = { Icon(Icons.Filled.Place, contentDescription = null) },
+                        label = { Text("Spots") }, alwaysShowLabel = false,
+                    )
+                    NavigationBarItem(
+                        selected = route == "chat", onClick = { nav.switchTab("chat") },
+                        icon = { Icon(Icons.Filled.Forum, contentDescription = null) },
+                        label = { Text("Chat") }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "profile", onClick = { nav.switchTab("profile") },
                         icon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        label = { Text("Profil") },
+                        label = { Text("Profil") }, alwaysShowLabel = false,
                     )
                 }
             }
@@ -81,6 +99,9 @@ fun MainScaffold(onLogout: () -> Unit) {
         NavHost(nav, startDestination = "sessions", modifier = Modifier.padding(pad)) {
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }) }
+            composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
+            composable("spots") { SpotsScreen() }
+            composable("chat") { ChatScreen() }
             composable("profile") { ProfileScreen(onLogout = onLogout) }
             composable(
                 "session/{id}",

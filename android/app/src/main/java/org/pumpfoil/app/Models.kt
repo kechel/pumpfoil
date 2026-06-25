@@ -37,6 +37,45 @@ data class Analysis(
 )
 
 @Serializable
+data class HistoryPoint(
+    @SerialName("session_id") val sessionId: Int,
+    @SerialName("started_at") val startedAt: String = "",
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    val runs: Int = 0,
+    val pumps: Int = 0,
+    val speed: Double = 0.0,            // beste Lauf-Geschwindigkeit (m/s)
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+)
+
+@Serializable
+data class SpotMapItem(
+    val spot: String,
+    val lat: Double = 0.0,
+    val lon: Double = 0.0,
+    val sessions: Int = 0,
+)
+
+@Serializable
+data class ChatMsg(
+    val id: Int,
+    @SerialName("user_id") val userId: Int = 0,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val text: String = "",
+    @SerialName("created_at") val createdAt: String? = null,
+    val mine: Boolean = false,
+    val hidden: Boolean = false,
+)
+
+@Serializable
+data class ChatRoom(
+    val scope: String,
+    val label: String = "",
+    val unread: Int = 0,
+    @SerialName("last_text") val lastText: String = "",
+)
+
+@Serializable
 data class SessionDetail(
     val id: Int,
     val sport: String = "",
