@@ -34,6 +34,26 @@ enum Api {
         try await request("/api/sessions/\(id)/photos", method: "GET", body: nil, auth: true)
     }
 
+    // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
+    static func uploadSessionPhoto(_ id: Int, data: Data, filename: String = "photo.jpg", mime: String = "image/jpeg") async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(id)/photos") else { throw ApiError.badURL }
+        let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mime)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 60
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (respData, resp) = try await URLSession.shared.upload(for: req, from: body)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
+    }
+
     struct MintResponse: Decodable { let device_token: String; let user_id: Int }
 
     // Companion-Pairing: eingeloggte iPhone-App mintet ein Device-Token für die Uhr.

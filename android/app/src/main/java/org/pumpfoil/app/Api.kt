@@ -62,6 +62,30 @@ object Api {
         json.decodeFromString(ListSerializer(SessionPhoto.serializer()), http("GET", "/api/sessions/$id/photos", null, auth = true))
     }
 
+    // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
+    suspend fun uploadSessionPhoto(id: Int, bytes: ByteArray, filename: String = "photo.jpg", mime: String = "image/jpeg"): Unit =
+        withContext(Dispatchers.IO) {
+            val boundary = "----pumpfoil${System.nanoTime()}"
+            val conn = (URL(BASE + "/api/sessions/$id/photos").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                token?.let { setRequestProperty("Authorization", "Bearer $it") }
+                connectTimeout = 15000; readTimeout = 60000
+            }
+            conn.outputStream.use { out ->
+                out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                    "Content-Type: $mime\r\n\r\n").toByteArray())
+                out.write(bytes)
+                out.write("\r\n--$boundary--\r\n".toByteArray())
+            }
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
+                throw RuntimeException("Upload fehlgeschlagen ($code): $err")
+            }
+        }
+
     suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<SessionSummary> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),

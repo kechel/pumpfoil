@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 // Session-Detail: Kopf + Track-Polyline (speed-gefärbt, ohne Kartenkacheln) +
 // Speed-Verlauf-Chart + Kennzahlen. Spiegelt web/src/pages/SessionDetail.tsx.
@@ -10,6 +11,7 @@ struct SessionDetailView: View {
     @State private var liked = false
     @State private var likeCount = 0
     @State private var photos: [SessionPhoto] = []
+    @State private var pickerItem: PhotosPickerItem?
 
     var body: some View {
         ScrollView {
@@ -62,6 +64,19 @@ struct SessionDetailView: View {
                             }
                             .frame(width: 200, height: 140)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                }
+            }
+            if s.owned == true {
+                PhotosPicker(selection: $pickerItem, matching: .images) {
+                    Label("Foto hinzufügen", systemImage: "photo.badge.plus")
+                }
+                .onChange(of: pickerItem) { item in
+                    Task {
+                        if let data = try? await item?.loadTransferable(type: Data.self) {
+                            try? await Api.uploadSessionPhoto(id, data: data)
+                            photos = (try? await Api.sessionPhotos(id)) ?? []
                         }
                     }
                 }

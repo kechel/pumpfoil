@@ -1,5 +1,8 @@
 package org.pumpfoil.app
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.FilledTonalButton
@@ -34,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -122,9 +129,17 @@ private fun DetailContent(s: SessionDetail) {
         }
         s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
 
-        // Fotos der Session (read-only Strip).
+        // Fotos der Session: read-only Strip; Besitzer kann hinzufügen.
         var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
-        LaunchedEffect(s.id) { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
+        val ctx = LocalContext.current
+        suspend fun reloadPhotos() { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
+        LaunchedEffect(s.id) { reloadPhotos() }
+        val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) scope.launch {
+                val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+                if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
+            }
+        }
         if (photos.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(photos, key = { it.id }) { p ->
@@ -136,6 +151,11 @@ private fun DetailContent(s: SessionDetail) {
                     )
                 }
             }
+        }
+        if (s.owned) {
+            OutlinedButton(onClick = {
+                picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }) { Text("Foto hinzufügen") }
         }
 
         val a = s.analysis
