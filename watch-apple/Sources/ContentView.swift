@@ -17,47 +17,77 @@ struct ContentView: View {
     }
 }
 
-// Pairing: Code aus der Web-App (Account-Seite) eingeben -> Device-Token holen.
+// Reverse-Pairing: die Uhr erzeugt einen Code, der Nutzer trägt ihn auf
+// pumpfoil.org (Account) ein. Tippen auf der Uhr wäre umständlich -> stattdessen
+// pollt die Uhr, bis der Code eingelöst ist, und holt sich dann das Token.
 struct PairView: View {
     var onPaired: () -> Void
     var onSkip: () -> Void
     @State private var code = ""
+    @State private var claimToken = ""
     @State private var busy = false
     @State private var error = ""
+    @State private var pollTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
                 Text("Uhr verbinden").font(.headline)
-                Text("Pairing-Code aus der Pumpfoil-Web-App (Account).")
-                    .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                TextField("CODE", text: $code)
-                    .textCase(.uppercase)
-                    .multilineTextAlignment(.center)
-                Button(busy ? "…" : "Verbinden") { pair() }
-                    .disabled(busy || code.count < 4)
+                if code.isEmpty {
+                    Text("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.")
+                        .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Button(busy ? "…" : "Pairing-Code erzeugen") { startPairing() }
+                        .disabled(busy)
+                } else {
+                    Text("Auf pumpfoil.org eingeben:")
+                        .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Text(code)
+                        .font(.system(.largeTitle, design: .rounded)).bold()
+                        .monospacedDigit().kerning(2)
+                    HStack(spacing: 6) {
+                        ProgressView().scaleEffect(0.6)
+                        Text("warte auf Bestätigung…").font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
                 if !error.isEmpty {
                     Text(error).font(.caption2).foregroundStyle(.red)
                 }
                 // Ohne Pairing aufnehmen — Sessions lokal speichern, später syncen.
-                Button("Später verbinden") { onSkip() }
+                Button("Später verbinden") { pollTask?.cancel(); onSkip() }
                     .font(.caption2).buttonStyle(.borderless).tint(.secondary)
             }.padding()
         }
+        .onDisappear { pollTask?.cancel() }
     }
 
-    private func pair() {
+    private func startPairing() {
         busy = true; error = ""
         Task {
             do {
-                let r = try await Api.pair(code: code.trimmingCharacters(in: .whitespaces),
-                                           label: "Apple Watch")
-                Api.deviceToken = r.device_token
-                onPaired()
+                let r = try await Api.pairInit()
+                code = r.code
+                claimToken = r.claim_token
+                startPolling()
             } catch {
                 self.error = error.localizedDescription
             }
             busy = false
+        }
+    }
+
+    private func startPolling() {
+        pollTask?.cancel()
+        pollTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)   // alle 3 s
+                if Task.isCancelled { return }
+                if let r = try? await Api.pairPoll(claimToken: claimToken),
+                   let token = r.device_token {
+                    Api.deviceToken = token
+                    onPaired()
+                    return
+                }
+            }
         }
     }
 }

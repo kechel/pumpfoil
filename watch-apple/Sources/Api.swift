@@ -30,8 +30,25 @@ enum Api {
     struct StartResponse: Decodable { let session_id: Int; let received_chunks: [Int] }
     struct Ack: Decodable {}   // ignoriert Felder wie {"ok":true,...}
 
-    static func pair(code: String, label: String) async throws -> PairResponse {
-        try await post("/api/devices/pair", ["code": code, "label": label], auth: false)
+    // Reverse-Pairing: die Uhr erzeugt einen Code, der Nutzer trägt ihn auf der
+    // Web-App ein (Code an der Uhr tippen wäre umständlich).
+    struct PairInitResponse: Decodable { let code: String; let claim_token: String }
+    struct PairPollResponse: Decodable { let device_token: String? }
+
+    static func pairInit() async throws -> PairInitResponse {
+        try await post("/api/devices/pair-init", [:], auth: false)
+    }
+
+    // Pollt, ob der Code in der Web-App eingelöst wurde -> dann kommt das Device-Token.
+    static func pairPoll(claimToken: String) async throws -> PairPollResponse {
+        guard let url = URL(string: baseURL + "/api/devices/pair-poll?claim_token=" + claimToken)
+        else { throw err("Bad URL") }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 10
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw err("HTTP \(code)") }
+        return try JSONDecoder().decode(PairPollResponse.self, from: data)
     }
 
     struct DeviceConfig: Codable {

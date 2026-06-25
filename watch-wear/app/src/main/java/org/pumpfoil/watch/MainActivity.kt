@@ -13,15 +13,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.*
@@ -62,42 +58,61 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Reverse-Pairing: die Uhr erzeugt einen Code, der Nutzer trägt ihn auf
+    // pumpfoil.org (Account) ein. Tippen auf der Uhr wäre umständlich -> stattdessen
+    // pollt die Uhr, bis der Code eingelöst ist, und holt sich dann das Token.
     @Composable
     private fun PairScreen(onPaired: () -> Unit, onSkip: () -> Unit) {
         val scope = rememberCoroutineScope()
         var code by remember { mutableStateOf("") }
+        var claimToken by remember { mutableStateOf("") }
         var error by remember { mutableStateOf("") }
         var busy by remember { mutableStateOf(false) }
+
+        // Solange ein Code da ist: alle 3 s pollen, ob er eingelöst wurde.
+        LaunchedEffect(claimToken) {
+            if (claimToken.isEmpty()) return@LaunchedEffect
+            while (true) {
+                kotlinx.coroutines.delay(3000)
+                val token = try { Api.pairPoll(claimToken) } catch (_: Exception) { null }
+                if (token != null) { Api.saveToken(applicationContext, token); onPaired(); break }
+            }
+        }
+
         Column(
             Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text("Uhr verbinden", style = MaterialTheme.typography.title3)
-            Text("Pairing-Code aus der Web-App (Account)",
-                style = MaterialTheme.typography.caption2)
             Spacer(Modifier.height(6.dp))
-            BasicTextField(
-                value = code,
-                onValueChange = { code = it.uppercase() },
-                singleLine = true,
-                textStyle = TextStyle(color = Color.White, textAlign = TextAlign.Center),
-                cursorBrush = SolidColor(Color.White),
-                modifier = Modifier.fillMaxWidth()
-                    .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-            )
-            Spacer(Modifier.height(6.dp))
-            Button(enabled = !busy && code.length >= 4, onClick = {
-                busy = true; error = ""
-                scope.launch {
-                    try { Api.saveToken(applicationContext, Api.pair(code.trim(), "Wear OS")); onPaired() }
-                    catch (e: Exception) { error = e.message ?: "Fehler" }
-                    busy = false
+            if (code.isEmpty()) {
+                Text("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.",
+                    style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                Button(enabled = !busy, onClick = {
+                    busy = true; error = ""
+                    scope.launch {
+                        try { val (c, t) = Api.pairInit(); code = c; claimToken = t }
+                        catch (e: Exception) { error = e.message ?: "Fehler" }
+                        busy = false
+                    }
+                }) { Text(if (busy) "…" else "Pairing-Code erzeugen") }
+            } else {
+                Text("Auf pumpfoil.org eingeben:",
+                    style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(4.dp))
+                Text(code, style = MaterialTheme.typography.display2, color = Color(0xFF22D3EE))
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                    Text("warte auf Bestätigung…",
+                        style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                 }
-            }) { Text(if (busy) "…" else "Verbinden") }
+            }
             if (error.isNotEmpty()) Text(error, style = MaterialTheme.typography.caption2)
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
             // Ohne Pairing aufnehmen — Sessions werden lokal gespeichert, später gesynct.
             CompactChip(onClick = onSkip,
                 label = { Text("Später verbinden", style = MaterialTheme.typography.caption2) })

@@ -33,6 +33,19 @@ object Api {
         res.getString("device_token")
     }
 
+    // Reverse-Pairing: die Uhr erzeugt einen Code, der Nutzer trägt ihn auf der
+    // Web-App ein (Code an der Uhr tippen wäre umständlich). Rückgabe: code + claim_token.
+    suspend fun pairInit(): Pair<String, String> = withContext(Dispatchers.IO) {
+        val res = post("/api/devices/pair-init", JSONObject(), auth = false)
+        res.getString("code") to res.getString("claim_token")
+    }
+
+    // Pollt, ob der Code in der Web-App eingelöst wurde -> dann kommt das Device-Token (sonst null).
+    suspend fun pairPoll(claimToken: String): String? = withContext(Dispatchers.IO) {
+        val res = get("/api/devices/pair-poll?claim_token=$claimToken")
+        if (res.isNull("device_token")) null else res.optString("device_token", "").ifEmpty { null }
+    }
+
     // Besteht überhaupt eine Internetverbindung? Sonst Sync überspringen.
     // Bewusst NUR NET_CAPABILITY_INTERNET prüfen, nicht VALIDATED: Emulatoren (und manche
     // echten Netze) bestehen die Captive-Portal-Probe nicht und würden sonst fälschlich
