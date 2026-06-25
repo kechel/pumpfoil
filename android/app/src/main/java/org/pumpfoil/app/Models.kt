@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).
 @Serializable
@@ -34,6 +35,7 @@ data class Analysis(
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
     @SerialName("pump_count") val pumpCount: Int? = null,
     @SerialName("avg_cadence_hz") val avgCadenceHz: Double? = null,
+    @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
 )
 
 @Serializable

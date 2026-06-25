@@ -1,12 +1,17 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -26,7 +31,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlin.math.cos
+import kotlin.math.PI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +82,10 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
 
 @Composable
 private fun DetailContent(s: SessionDetail) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall)
         s.placeName?.takeIf { it.isNotBlank() }?.let {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -75,6 +93,15 @@ private fun DetailContent(s: SessionDetail) {
         s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
 
         val a = s.analysis
+        // Track: GPS-Polyline (speed-gefärbt) — ohne externe Kartenkacheln, leichtgewichtig.
+        a?.trackGeojson?.let { tg ->
+            val track = remember(tg) { parseTrack(tg) }
+            if (track.points.size >= 2) {
+                Card(Modifier.fillMaxWidth()) {
+                    TrackMap(track, Modifier.fillMaxWidth().aspectRatio(1.3f).padding(8.dp))
+                }
+            }
+        }
         if (a == null) {
             Text("Auswertung läuft noch …", color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
@@ -87,6 +114,67 @@ private fun DetailContent(s: SessionDetail) {
                 a.avgCadenceHz?.let { add("Cadence" to "%.2f Hz".format(it)) }
             }
             StatGrid(stats)
+        }
+    }
+}
+
+// Geparster Track: GPS-Punkte (lon,lat) + 3-s-Speed (m/s) je Punkt.
+private class Track(val points: List<Pair<Double, Double>>, val speedsMps: List<Double>)
+
+private fun parseTrack(tg: JsonElement): Track {
+    return try {
+        val obj = tg.jsonObject
+        val coords = obj["geometry"]!!.jsonObject["coordinates"]!!.jsonArray
+        val pts = coords.map { c ->
+            val arr = c.jsonArray
+            arr[0].jsonPrimitive.doubleOrNull!! to arr[1].jsonPrimitive.doubleOrNull!!  // lon,lat
+        }
+        val speeds = obj["properties"]?.jsonObject?.get("speeds_mps")?.jsonArray
+            ?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: emptyList()
+        Track(pts, speeds)
+    } catch (_: Exception) { Track(emptyList(), emptyList()) }
+}
+
+// Speed -> Farbe (blau langsam -> rot schnell), wie Wear/Web (8..25 km/h).
+private fun speedColor(kmh: Double): Color {
+    val t = ((kmh - 8) / (25 - 8)).coerceIn(0.0, 1.0)
+    val hue = ((1 - t) * 240).toFloat()
+    return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
+}
+
+// Track-Polyline auf Canvas: BoundingBox-normiert mit cos(lat)-Längenkorrektur,
+// Segmente nach 3-s-Speed eingefärbt. Keine Kartenkacheln nötig.
+@Composable
+private fun TrackMap(track: Track, modifier: Modifier = Modifier) {
+    val pts = track.points
+    val latMin = pts.minOf { it.second }; val latMax = pts.maxOf { it.second }
+    val lonMin = pts.minOf { it.first }; val lonMax = pts.maxOf { it.first }
+    val latMid = (latMin + latMax) / 2
+    val lonScale = cos(latMid * PI / 180.0)
+    val w = ((lonMax - lonMin) * lonScale).coerceAtLeast(1e-9)
+    val h = (latMax - latMin).coerceAtLeast(1e-9)
+    val grid = MaterialTheme.colorScheme.surfaceVariant
+
+    Canvas(modifier) {
+        val pad = 12f
+        val availW = size.width - 2 * pad
+        val availH = size.height - 2 * pad
+        val scale = minOf(availW / w, availH / h)
+        val drawW = w * scale; val drawH = h * scale
+        val offX = pad + (availW - drawW) / 2
+        val offY = pad + (availH - drawH) / 2
+        fun project(p: Pair<Double, Double>): Offset {
+            val x = (p.first - lonMin) * lonScale * scale + offX
+            val y = (latMax - p.second) * scale + offY   // lat invertiert (Norden oben)
+            return Offset(x.toFloat(), y.toFloat())
+        }
+        for (i in 0 until pts.size - 1) {
+            val sp = (track.speedsMps.getOrNull(i) ?: 0.0) * 3.6
+            drawLine(
+                color = if (track.speedsMps.isEmpty()) grid else speedColor(sp),
+                start = project(pts[i]), end = project(pts[i + 1]),
+                strokeWidth = 4f, cap = StrokeCap.Round,
+            )
         }
     }
 }
