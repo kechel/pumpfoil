@@ -114,31 +114,31 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Session löschen?") },
-            text = { Text("Diese Session wird ausgeblendet und aus der Community entfernt.") },
+            title = { Text(I18n.t("sd.deleteTitle")) },
+            text = { Text(I18n.t("sd.deleteBody")) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDelete = false
                     scope.launch { try { Api.deleteSession(id); onBack() } catch (_: Exception) {} }
-                }) { Text("Löschen") }
+                }) { Text(I18n.t("common.delete")) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
     if (showTrim) {
         AlertDialog(
             onDismissRequest = { showTrim = false },
-            title = { Text("Zuschneiden") },
+            title = { Text(I18n.t("sd.trim")) },
             text = {
                 Column {
-                    Text("Start: ${mmss(trimStart)}")
+                    Text("${I18n.t("common.start")}: ${mmss(trimStart)}")
                     Slider(value = trimStart, onValueChange = { trimStart = it.coerceIn(0f, (trimEnd - 1).coerceAtLeast(0f)) }, valueRange = 0f..durSec)
-                    Text("Ende: ${mmss(trimEnd)}")
+                    Text("${I18n.t("common.end")}: ${mmss(trimEnd)}")
                     Slider(value = trimEnd, onValueChange = { trimEnd = it.coerceIn(trimStart + 1, durSec) }, valueRange = 0f..durSec)
                     TextButton(onClick = {
                         showTrim = false
                         scope.launch { try { Api.setTrim(id, null, null); reloadTick++ } catch (_: Exception) {} }
-                    }) { Text("Zuschnitt aufheben") }
+                    }) { Text(I18n.t("sd.trimReset")) }
                 }
             },
             confirmButton = {
@@ -147,16 +147,16 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                     scope.launch {
                         try { Api.setTrim(id, (trimStart * 1000).toLong(), (trimEnd * 1000).toLong()); reloadTick++ } catch (_: Exception) {}
                     }
-                }) { Text("Anwenden") }
+                }) { Text(I18n.t("sd.apply")) }
             },
-            dismissButton = { TextButton(onClick = { showTrim = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { showTrim = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Session") },
+                title = { Text(I18n.t("sd.title")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
@@ -167,14 +167,14 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                     if (s != null && !s.owned) {
                         Box {
                             IconButton(onClick = { showReport = true }) {
-                                Icon(Icons.Filled.Flag, contentDescription = "Melden")
+                                Icon(Icons.Filled.Flag, contentDescription = I18n.t("sd.report"))
                             }
                             DropdownMenu(expanded = showReport, onDismissRequest = { showReport = false }) {
-                                DropdownMenuItem(text = { Text("Als Fake melden") }, onClick = {
+                                DropdownMenuItem(text = { Text(I18n.t("sd.reportFake")) }, onClick = {
                                     showReport = false
                                     scope.launch { try { Api.voteSession(id, "fake") } catch (_: Exception) {} }
                                 })
-                                DropdownMenuItem(text = { Text("Als unangemessen melden") }, onClick = {
+                                DropdownMenuItem(text = { Text(I18n.t("sd.reportInappropriate")) }, onClick = {
                                     showReport = false
                                     scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
                                 })
@@ -183,17 +183,17 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                     }
                     if (s?.owned == true) {
                         IconButton(onClick = { onLabel(id) }) {
-                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Labeling")
+                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = I18n.t("lab.title"))
                         }
                     }
                     if (s?.owned == true && durSec > 1f) {
                         IconButton(onClick = { trimStart = 0f; trimEnd = durSec; showTrim = true }) {
-                            Icon(Icons.Filled.ContentCut, contentDescription = "Zuschneiden")
+                            Icon(Icons.Filled.ContentCut, contentDescription = I18n.t("sd.trim"))
                         }
                     }
                     if (s?.owned == true) {
                         IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Löschen")
+                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.delete"))
                         }
                     }
                 },
@@ -237,7 +237,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
     if (editCaption) {
         AlertDialog(
             onDismissRequest = { editCaption = false },
-            title = { Text("Beschriftung") },
+            title = { Text(I18n.t("sd.caption")) },
             text = {
                 OutlinedTextField(
                     value = draftCaption, onValueChange = { if (it.length <= 30) draftCaption = it },
@@ -249,9 +249,9 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                     val c = draftCaption.trim(); editCaption = false
                     caption = c
                     scope.launch { try { Api.setCaption(s.id, c) } catch (_: Exception) {} }
-                }) { Text("Speichern") }
+                }) { Text(I18n.t("common.save")) }
             },
-            dismissButton = { TextButton(onClick = { editCaption = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { editCaption = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
     Column(
@@ -267,7 +267,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                     catch (_: Exception) { liked = prev; likeCount += if (liked) 1 else -1 }
                 }
             }) {
-                Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Like")
+                Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Like")  // a11y, neutral
                 Spacer(Modifier.width(6.dp))
                 Text("$likeCount")
             }
@@ -278,7 +278,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         if (caption.isNotBlank()) Text(caption)
         if (s.owned) {
             TextButton(onClick = { draftCaption = caption; editCaption = true }) {
-                Text(if (caption.isBlank()) "Beschriftung hinzufügen" else "Beschriftung bearbeiten")
+                Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
             }
         }
 
@@ -330,7 +330,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         if (s.owned) {
             OutlinedButton(onClick = {
                 picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) { Text("Foto hinzufügen") }
+            }) { Text(I18n.t("sd.addPhoto")) }
         }
 
         val a = s.analysis
@@ -352,9 +352,9 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                 }
                 if (hasHr || hasPump) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text("Speed") })
-                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text("Puls") })
-                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text("Pump") })
+                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) })
+                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) })
+                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) })
                     }
                 }
                 if (colorMode == ColorMode.SPEED) {
@@ -371,7 +371,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                         Spacer(Modifier.width(8.dp))
-                        Text("Pump-Marker", style = MaterialTheme.typography.bodyMedium)
+                        Text(I18n.t("sd.pumpMarker"), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -379,7 +379,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         // Foil dieser Session (Owner): beeinflusst Leistung + Community-Foil-Stats.
         if (s.owned && myFoils.isNotEmpty()) {
             Column {
-                Text("Foil dieser Session", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.t("sd.foilOfSession"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(4.dp))
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     myFoils.forEach { f ->
@@ -397,15 +397,15 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
             PowerCard(a, s.foil, weightKg)
         }
         if (a == null) {
-            Text("Auswertung läuft noch …", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(I18n.t("sd.analyzing"), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             val stats = buildList {
-                a.totalDistanceM?.let { add("Strecke" to "%.0f m".format(it)) }
-                a.foilingDistanceM?.let { add("Foiling" to "%.0f m".format(it)) }
-                a.maxSpeedMps?.let { add("Top-Speed" to "%.1f km/h".format(it * 3.6)) }
-                a.pumpCount?.let { add("Pumps" to it.toString()) }
-                a.foilingTimeS?.let { add("Foil-Zeit" to "%d:%02d".format((it / 60).toInt(), (it % 60).toInt())) }
-                a.avgCadenceHz?.let { add("Cadence" to "%.2f Hz".format(it)) }
+                a.totalDistanceM?.let { add(I18n.t("compare.distance") to "%.0f m".format(it)) }
+                a.foilingDistanceM?.let { add(I18n.t("home.foiling") to "%.0f m".format(it)) }
+                a.maxSpeedMps?.let { add(I18n.t("home.topSpeed") to "%.1f km/h".format(it * 3.6)) }
+                a.pumpCount?.let { add(I18n.t("home.pumps") to it.toString()) }
+                a.foilingTimeS?.let { add(I18n.t("compare.foilTime") to "%d:%02d".format((it / 60).toInt(), (it % 60).toInt())) }
+                a.avgCadenceHz?.let { add(I18n.t("compare.cadence") to "%.2f Hz".format(it)) }
             }
             StatGrid(stats)
             if (a.segments.isNotEmpty()) RunsTable(a.segments)
@@ -559,17 +559,17 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
         if (kmh == null) "–" else "%.0f W".format(FoilPhysics.computeFoilPowerAtSpeed(dims, kmh, rider, pump = pump).power)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text("Leistung (${foil.brand} ${foil.model} ${foil.size})",
+            Text("${I18n.t("sd.power")} (${foil.brand} ${foil.model} ${foil.size})",
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column {
                     Text(watt(avgKmh), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                    Text("bei Ø-Speed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(I18n.t("sd.atAvg"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Column {
                     Text(watt(topKmh), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                    Text("bei Top-Speed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(I18n.t("sd.atTop"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -581,11 +581,11 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
 private fun RunsTable(segments: List<Segment>) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text("Läufe (${segments.size})", style = MaterialTheme.typography.labelMedium,
+            Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                listOf("#", "Dist", "Zeit", "Ø", "Top", "Pumps").forEach {
+                listOf("#", I18n.t("sd.hDist"), I18n.t("field.3"), "Ø", "Top", I18n.t("home.pumps")).forEach {
                     Text(it, style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                 }

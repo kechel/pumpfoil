@@ -8,6 +8,7 @@ import UIKit
 // Kennzahlen. Spiegelt web/src/pages/SessionDetail.tsx.
 struct SessionDetailView: View {
     let id: Int
+    @AppStorage("appLang") private var lang = "de"
     @State private var session: SessionDetail?
     @State private var loading = true
     @State private var error: String?
@@ -40,7 +41,7 @@ struct SessionDetailView: View {
                 content(s)
             }
         }
-        .navigationTitle("Session")
+        .navigationTitle(Loc.t("sd.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if session?.owned == true {
@@ -58,26 +59,26 @@ struct SessionDetailView: View {
             } else if session != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button("Als Fake melden") { Task { try? await Api.vote(id, kind: "fake") } }
-                        Button("Als unangemessen melden") { Task { try? await Api.vote(id, kind: "inappropriate") } }
+                        Button(Loc.t("sd.reportFake", lang)) { Task { try? await Api.vote(id, kind: "fake") } }
+                        Button(Loc.t("sd.reportInappropriate", lang)) { Task { try? await Api.vote(id, kind: "inappropriate") } }
                     } label: { Image(systemName: "flag") }
                 }
             }
         }
-        .confirmationDialog("Session löschen?", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("Löschen", role: .destructive) {
+        .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button(Loc.t("common.delete", lang), role: .destructive) {
                 Task { try? await Api.deleteSession(id); dismiss() }
             }
-            Button("Abbrechen", role: .cancel) {}
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
         }
-        .alert("Beschriftung", isPresented: $editingCaption) {
-            TextField("Beschriftung", text: $draftCaption)
-            Button("Speichern") {
+        .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) {
+            TextField(Loc.t("sd.caption", lang), text: $draftCaption)
+            Button(Loc.t("common.save", lang)) {
                 let c = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
                 caption = c
                 Task { try? await Api.setCaption(id, caption: c) }
             }
-            Button("Abbrechen", role: .cancel) {}
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
         }
         .task { await load() }
         .onChange(of: selectedFoilId) { fid in
@@ -96,23 +97,23 @@ struct SessionDetailView: View {
     private var trimSheet: some View {
         NavigationStack {
             Form {
-                Section("Start: \(mmss(trimStart))") { Slider(value: $trimStart, in: 0...max(durSec, 1)) }
-                Section("Ende: \(mmss(trimEnd))") { Slider(value: $trimEnd, in: 0...max(durSec, 1)) }
+                Section("\(Loc.t("common.start", lang)): \(mmss(trimStart))") { Slider(value: $trimStart, in: 0...max(durSec, 1)) }
+                Section("\(Loc.t("common.end", lang)): \(mmss(trimEnd))") { Slider(value: $trimEnd, in: 0...max(durSec, 1)) }
                 Section {
-                    Button("Anwenden") {
+                    Button(Loc.t("sd.apply", lang)) {
                         let a = min(trimStart, trimEnd), b = max(trimStart, trimEnd)
                         showTrim = false
                         Task { try? await Api.setTrim(id, startMs: Int(a * 1000), endMs: Int(b * 1000)); await load() }
                     }
-                    Button("Zuschnitt aufheben", role: .destructive) {
+                    Button(Loc.t("sd.trimReset", lang), role: .destructive) {
                         showTrim = false
                         Task { try? await Api.setTrim(id, startMs: nil, endMs: nil); await load() }
                     }
                 }
             }
-            .navigationTitle("Zuschneiden")
+            .navigationTitle(Loc.t("sd.trim", lang))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { showTrim = false } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { showTrim = false } } }
         }
     }
 
@@ -128,7 +129,7 @@ struct SessionDetailView: View {
                     }
                     if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
                     if s.owned == true {
-                        Button(caption.isEmpty ? "Beschriftung hinzufügen" : "Beschriftung bearbeiten") {
+                        Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {
                             draftCaption = caption; editingCaption = true
                         }
                         .font(.caption).buttonStyle(.borderless)
@@ -184,7 +185,7 @@ struct SessionDetailView: View {
             }
             if s.owned == true {
                 PhotosPicker(selection: $pickerItem, matching: .images) {
-                    Label("Foto hinzufügen", systemImage: "photo.badge.plus")
+                    Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
                 }
                 .onChange(of: pickerItem) { item in
                     Task {
@@ -210,15 +211,15 @@ struct SessionDetailView: View {
                 let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
 
                 if hasHr || hasPump {
-                    Picker("Färbung", selection: $colorMode) {
-                        Text("Speed").tag(TrackColorMode.speed)
-                        if hasHr { Text("Puls").tag(TrackColorMode.hr) }
-                        if hasPump { Text("Pump").tag(TrackColorMode.pump) }
+                    Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
+                        Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
+                        if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
+                        if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
                     }
                     .pickerStyle(.segmented)
                 }
                 if colorMode == .speed {
-                    Picker("Glättung", selection: $win) {
+                    Picker(Loc.t("sd.smoothing", lang), selection: $win) {
                         Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
                     }
                     .pickerStyle(.segmented)
@@ -228,17 +229,17 @@ struct SessionDetailView: View {
                     .frame(height: 300).frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 if (s.analysis?.pump_count ?? 0) > 0 {
-                    Toggle("Pump-Marker", isOn: $showPumps).font(.subheadline)
+                    Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
                 }
             }
             if s.owned == true && !myFoils.isEmpty {
-                Picker("Foil dieser Session", selection: $selectedFoilId) {
+                Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
                     ForEach(myFoils) { f in Text("\(f.brand) \(f.model) \(f.size)").tag(f.id) }
                 }
                 .pickerStyle(.menu)
             }
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
-                PowerCard(analysis: a, foil: foil, weightKg: weightKg)
+                PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
 
             if let a = s.analysis {
@@ -255,9 +256,9 @@ struct SessionDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
-                if let segs = a.segments, !segs.isEmpty { RunsTable(segments: segs) }
+                if let segs = a.segments, !segs.isEmpty { RunsTable(segments: segs, lang: lang) }
             } else {
-                Text("Auswertung läuft noch …").foregroundStyle(.secondary)
+                Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
             }
         }
         .padding()
@@ -270,12 +271,12 @@ struct SessionDetailView: View {
 
     private func buildStats(_ a: Analysis) -> [(String, String)] {
         var out: [(String, String)] = []
-        if let v = a.total_distance_m { out.append(("Strecke", "\(Int(v)) m")) }
-        if let v = a.foiling_distance_m { out.append(("Foiling", "\(Int(v)) m")) }
-        if let v = a.max_speed_mps { out.append(("Top-Speed", String(format: "%.1f km/h", v * 3.6))) }
-        if let v = a.pump_count { out.append(("Pumps", "\(v)")) }
-        if let v = a.foiling_time_s { out.append(("Foil-Zeit", String(format: "%d:%02d", Int(v) / 60, Int(v) % 60))) }
-        if let v = a.avg_cadence_hz { out.append(("Cadence", String(format: "%.2f Hz", v))) }
+        if let v = a.total_distance_m { out.append((Loc.t("compare.distance", lang), "\(Int(v)) m")) }
+        if let v = a.foiling_distance_m { out.append((Loc.t("home.foiling", lang), "\(Int(v)) m")) }
+        if let v = a.max_speed_mps { out.append((Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
+        if let v = a.pump_count { out.append((Loc.t("home.pumps", lang), "\(v)")) }
+        if let v = a.foiling_time_s { out.append((Loc.t("compare.foilTime", lang), String(format: "%d:%02d", Int(v) / 60, Int(v) % 60))) }
+        if let v = a.avg_cadence_hz { out.append((Loc.t("compare.cadence", lang), String(format: "%.2f Hz", v))) }
         return out
     }
 
@@ -427,6 +428,7 @@ private struct PowerCard: View {
     let analysis: Analysis
     let foil: Foil
     let weightKg: Double
+    let lang: String
 
     var body: some View {
         let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm)
@@ -440,16 +442,16 @@ private struct PowerCard: View {
             return "\(Int(FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: kmh, rider: rider, pump: pump).power.rounded())) W"
         }
         return VStack(alignment: .leading, spacing: 6) {
-            Text("Leistung (\(foil.brand) \(foil.model) \(foil.size))")
+            Text("\(Loc.t("sd.power", lang)) (\(foil.brand) \(foil.model) \(foil.size))")
                 .font(.caption).foregroundStyle(.secondary)
             HStack(spacing: 24) {
                 VStack(alignment: .leading) {
                     Text(watt(avgKmh)).font(.title3).bold().foregroundStyle(Color.accentColor)
-                    Text("bei Ø-Speed").font(.caption2).foregroundStyle(.secondary)
+                    Text(Loc.t("sd.atAvg", lang)).font(.caption2).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading) {
                     Text(watt(topKmh)).font(.title3).bold().foregroundStyle(Color.accentColor)
-                    Text("bei Top-Speed").font(.caption2).foregroundStyle(.secondary)
+                    Text(Loc.t("sd.atTop", lang)).font(.caption2).foregroundStyle(.secondary)
                 }
             }
         }
@@ -463,12 +465,13 @@ private struct PowerCard: View {
 // Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps.
 private struct RunsTable: View {
     let segments: [Segment]
+    let lang: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Läufe (\(segments.count))").font(.caption).foregroundStyle(.secondary)
+            Text("\(Loc.t("home.runs", lang)) (\(segments.count))").font(.caption).foregroundStyle(.secondary)
             HStack {
-                ForEach(["#", "Dist", "Zeit", "Ø", "Top", "Pumps"], id: \.self) { h in
+                ForEach(["#", Loc.t("sd.hDist", lang), Loc.t("field.3", lang), "Ø", "Top", Loc.t("home.pumps", lang)], id: \.self) { h in
                     Text(h).font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
