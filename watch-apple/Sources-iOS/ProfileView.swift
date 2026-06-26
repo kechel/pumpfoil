@@ -47,6 +47,11 @@ struct ProfileView: View {
                         Label("Foil-Statistik", systemImage: "chart.bar")
                     }
                     NavigationLink {
+                        CompareView()
+                    } label: {
+                        Label("Sessions vergleichen", systemImage: "arrow.left.arrow.right")
+                    }
+                    NavigationLink {
                         AlarmView()
                     } label: {
                         Label("On-Foil Alarm", systemImage: "waveform.path")

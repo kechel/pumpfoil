@@ -121,6 +121,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onAlarm = { nav.navigate("alarm") },
                     onDataFields = { nav.navigate("datafields") },
                     onSettings = { nav.navigate("settings") },
+                    onCompare = { nav.navigate("compare") },
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen() }
@@ -129,6 +130,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             composable("datafields") { DataFieldsScreen(onBack = { nav.popBackStack() }) }
+            composable("compare") { CompareScreen(onBack = { nav.popBackStack() }) }
             composable(
                 "session/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType }),
