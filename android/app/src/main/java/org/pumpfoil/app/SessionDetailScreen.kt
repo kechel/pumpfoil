@@ -169,6 +169,7 @@ private fun DetailContent(s: SessionDetail) {
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
     var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
+    var win by remember(s.id) { mutableStateOf(3) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
@@ -300,8 +301,15 @@ private fun DetailContent(s: SessionDetail) {
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text("Pump") })
                     }
                 }
+                if (colorMode == ColorMode.SPEED) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(1, 3, 5).forEach { w ->
+                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") })
+                        }
+                    }
+                }
                 Card(Modifier.fillMaxWidth()) {
-                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, Modifier.fillMaxWidth().height(300.dp))
+                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win, Modifier.fillMaxWidth().height(300.dp))
                 }
                 if (a.pumpCount != null && a.pumpCount > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -333,13 +341,17 @@ private fun DetailContent(s: SessionDetail) {
     }
 }
 
-// Geparster Track: GPS-Punkte (lon,lat) + 3-s-Speed (m/s) + Puls + Pump-Hz je Punkt.
+// Geparster Track: GPS-Punkte (lon,lat) + Speed je Glättungsfenster (1/3/5 s) + Puls + Pump-Hz.
 private class Track(
     val points: List<Pair<Double, Double>>,
-    val speedsMps: List<Double>,
+    val speedsMps: List<Double>,         // 3 s (Default)
+    val speeds1: List<Double>,
+    val speeds5: List<Double>,
     val hr: List<Int?>,
     val pumpHz: List<Double?>,
-)
+) {
+    fun speedsFor(win: Int): List<Double> = when (win) { 1 -> speeds1; 5 -> speeds5; else -> speedsMps }
+}
 
 private enum class ColorMode { SPEED, HR, PUMP }
 
@@ -352,11 +364,14 @@ private fun parseTrack(tg: JsonElement): Track {
             arr[0].jsonPrimitive.doubleOrNull!! to arr[1].jsonPrimitive.doubleOrNull!!  // lon,lat
         }
         val props = obj["properties"]?.jsonObject
-        val speeds = props?.get("speeds_mps")?.jsonArray?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: emptyList()
+        val s3def = props?.get("speeds_mps")?.jsonArray?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: emptyList()
+        val sw = props?.get("speeds")?.jsonObject
+        fun win(key: String): List<Double> =
+            sw?.get(key)?.jsonArray?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: s3def
         val hr = props?.get("hr")?.jsonArray?.map { it.jsonPrimitive.intOrNull } ?: emptyList()
         val pumpHz = props?.get("pump_hz")?.jsonArray?.map { it.jsonPrimitive.doubleOrNull } ?: emptyList()
-        Track(pts, speeds, hr, pumpHz)
-    } catch (_: Exception) { Track(emptyList(), emptyList(), emptyList(), emptyList()) }
+        Track(pts, win("3"), win("1"), win("5"), hr, pumpHz)
+    } catch (_: Exception) { Track(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList()) }
 }
 
 // Wert -> Farbe (blau niedrig -> rot hoch).
@@ -390,12 +405,13 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
 @Composable
 private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
-    hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean,
+    hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, win: Int,
     modifier: Modifier = Modifier,
 ) {
     val pts = track.points
+    val speeds = track.speedsFor(win)
     fun colorAt(i: Int): Color = when (mode) {
-        ColorMode.SPEED -> speedColor((track.speedsMps.getOrNull(i) ?: 0.0) * 3.6)
+        ColorMode.SPEED -> speedColor((speeds.getOrNull(i) ?: 0.0) * 3.6)
         ColorMode.HR -> {
             val v = track.hr.getOrNull(i)
             val (lo, hi) = hrRange

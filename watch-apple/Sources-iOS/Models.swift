@@ -175,6 +175,7 @@ struct TrackGeo: Codable {
     struct Geometry: Codable { let coordinates: [[Double]] }
     struct Properties: Codable {
         let speeds_mps: [Double]?
+        let speeds: [String: [Double]]?   // Glättungsfenster {"1","3","5"}
         let hr: [Int?]?
         let pump_hz: [Double?]?
     }

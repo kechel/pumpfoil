@@ -16,6 +16,7 @@ struct SessionDetailView: View {
     @State private var photos: [SessionPhoto] = []
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
+    @State private var win = 3
     @State private var showPumps = true
     @State private var weightKg = 0.0
     @State private var confirmDelete = false
@@ -148,7 +149,8 @@ struct SessionDetailView: View {
 
             if let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2,
                let segs = s.analysis?.segments, !segs.isEmpty {
-                let speeds = track.properties?.speeds_mps ?? []
+                let speeds3 = track.properties?.speeds_mps ?? []
+                let speeds = colorMode == .speed ? (track.properties?.speeds?[String(win)] ?? speeds3) : speeds3
                 let hr = track.properties?.hr ?? []
                 let pumpHz = track.properties?.pump_hz ?? []
                 let hasHr = hr.contains { ($0 ?? 0) > 0 }
@@ -163,6 +165,12 @@ struct SessionDetailView: View {
                         Text("Speed").tag(TrackColorMode.speed)
                         if hasHr { Text("Puls").tag(TrackColorMode.hr) }
                         if hasPump { Text("Pump").tag(TrackColorMode.pump) }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                if colorMode == .speed {
+                    Picker("Glättung", selection: $win) {
+                        Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
                     }
                     .pickerStyle(.segmented)
                 }
