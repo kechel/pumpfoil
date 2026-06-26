@@ -38,6 +38,11 @@ final class SessionStore: ObservableObject {
         await finishAuth(t)
     }
 
+    func appleNative(idToken: String, name: String) async throws {
+        let t = try await Api.nativeApple(idToken: idToken, name: name)
+        await finishAuth(t)
+    }
+
     private func finishAuth(_ t: String) async {
         Api.token = t
         token = t

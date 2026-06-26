@@ -43,6 +43,11 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
+    entitlements:
+      path: Sources-iOS/Pumpfoil.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
 
   # --- Apple-Watch-Recorder (eingebettet, kein WKWatchOnly mehr) ---
   PumpfoilWatch:

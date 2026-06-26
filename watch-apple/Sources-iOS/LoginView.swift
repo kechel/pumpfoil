@@ -1,6 +1,7 @@
 import SwiftUI
+import AuthenticationServices
 
-// Native Login-Maske (Form). OAuth/Registrierung folgen später.
+// Native Login-Maske (Form): E-Mail Login/Register + „Sign in with Apple".
 struct LoginView: View {
     @EnvironmentObject var session: SessionStore
     @State private var email = ""
@@ -43,8 +44,35 @@ struct LoginView: View {
                     }
                     .font(.footnote)
                 }
+                Section {
+                    SignInWithAppleButton(.signIn,
+                        onRequest: { $0.requestedScopes = [.fullName, .email] },
+                        onCompletion: handleApple)
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(height: 44)
+                        .disabled(busy)
+                }
             }
             .navigationTitle("Pumpfoil")
+        }
+    }
+
+    private func handleApple(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let auth):
+            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
+                  let data = cred.identityToken, let token = String(data: data, encoding: .utf8) else {
+                error = "Apple-Anmeldung fehlgeschlagen"; return
+            }
+            let name = cred.fullName?.givenName ?? ""
+            Task {
+                busy = true; error = nil
+                do { try await session.appleNative(idToken: token, name: name) }
+                catch { self.error = error.localizedDescription }
+                busy = false
+            }
+        case .failure(let e):
+            error = e.localizedDescription
         }
     }
 

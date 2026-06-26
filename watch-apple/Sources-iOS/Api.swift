@@ -25,6 +25,13 @@ enum Api {
         return r.access_token
     }
 
+    static func nativeApple(idToken: String, name: String) async throws -> String {
+        var body: [String: Any] = ["id_token": idToken]
+        if !name.isEmpty { body["name"] = name }
+        let r: TokenResponse = try await request("/api/auth/oauth/native/apple", method: "POST", body: body, auth: false)
+        return r.access_token
+    }
+
     static func getProfile() async throws -> Profile {
         try await request("/api/auth/me", method: "GET", body: nil, auth: true)
     }

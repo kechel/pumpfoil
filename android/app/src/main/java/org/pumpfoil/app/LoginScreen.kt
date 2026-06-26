@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -100,6 +101,30 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
         TextButton(onClick = { register = !register; error = null }) {
             Text(if (register) "Schon ein Konto? Anmelden" else "Noch kein Konto? Registrieren")
         }
+
+        Spacer(Modifier.height(8.dp))
+        Text("oder", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = {
+                busy = true; error = null
+                scope.launch {
+                    try {
+                        val idToken = GoogleAuth.idToken(ctx)
+                        val t = Api.nativeGoogle(idToken)
+                        Api.saveToken(ctx, t)
+                        WatchSync.pushPairing(ctx)
+                        onLoggedIn()
+                    } catch (e: Exception) {
+                        error = e.message
+                    }
+                    busy = false
+                }
+            },
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Mit Google anmelden") }
     }
     }
 }
