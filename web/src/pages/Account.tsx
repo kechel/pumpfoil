@@ -55,6 +55,7 @@ export default function Account() {
 
 // Reverse-Pairing: Code, den die Garmin-Uhr anzeigt, hier eingeben.
 function ClaimFromWatch() {
+  const t = useT();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -63,7 +64,7 @@ function ClaimFromWatch() {
     setBusy(true); setErr(null); setMsg(null);
     try {
       const r = await api.pairClaim(code.trim().toUpperCase());
-      setMsg(r.already ? "Diese Uhr ist bereits verbunden." : "Uhr verbunden! ✓");
+      setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
       setCode("");
     } catch (e) {
       setErr((e as Error).message);
@@ -72,23 +73,18 @@ function ClaimFromWatch() {
   }
   return (
     <Card className="mt-5 p-5">
-      <h3 className="mb-1 font-semibold">Code von der Uhr eingeben</h3>
-      <p className="mb-3 text-sm text-slate-300">
-        Pump Foil auf der Uhr öffnen (nicht starten) → <strong>MENU halten</strong> (Knopf
-        Mitte-links) → „Einstellungen" → „Verbinden". Der angezeigte Code (6 Zeichen, Buchstaben
-        &amp; Ziffern) hier eintragen. Handy in der Nähe oder WLAN nötig, damit die Uhr den Code
-        erzeugen kann.
-      </p>
+      <h3 className="mb-1 font-semibold">{t("account.claimTitle")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("account.claimHelp")}</p>
       <div className="flex flex-wrap gap-2">
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           maxLength={8}
-          placeholder="z. B. VURWGG"
+          placeholder={t("account.claimPlaceholder")}
           className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 font-mono tracking-widest text-slate-100"
         />
         <Button onClick={claim} disabled={busy || code.trim().length < 4}>
-          {busy ? "…" : "Verbinden"}
+          {busy ? "…" : t("account.claimBtn")}
         </Button>
       </div>
       {msg && <div className="mt-3 text-sm text-emerald-400">{msg}</div>}
@@ -321,7 +317,7 @@ function ViewsEditor() {
                     className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
                   >
                     {FIELD_OPTIONS.map((o) => (
-                      <option key={o.id} value={o.id}>{o.label}</option>
+                      <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
                     ))}
                   </select>
                 ))}
@@ -332,12 +328,8 @@ function ViewsEditor() {
       </div>
 
       <div className="mt-5 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
-        <div className="mb-1 text-sm font-medium text-slate-200">Off-Foil-Screen</div>
-        <p className="mb-2 text-xs text-slate-400">
-          Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst
-          (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück
-          auf deine zuletzt gewählte Ansicht.
-        </p>
+        <div className="mb-1 text-sm font-medium text-slate-200">{t("account.offFoilTitle")}</div>
+        <p className="mb-2 text-xs text-slate-400">{t("account.offFoilDesc")}</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <WatchPreview fields={offFoil} colorByValue={colorByValue} />
           <div className="flex-1 space-y-2">
@@ -349,7 +341,7 @@ function ViewsEditor() {
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
               >
                 {FIELD_OPTIONS.map((o) => (
-                  <option key={o.id} value={o.id}>{o.label}</option>
+                  <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
                 ))}
               </select>
             ))}
