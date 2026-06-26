@@ -23,6 +23,7 @@ struct ContentView: View {
 struct PairView: View {
     var onPaired: () -> Void
     var onSkip: () -> Void
+    @AppStorage("appLang") private var lang = "de"
     @State private var code = ""
     @State private var claimToken = ""
     @State private var busy = false
@@ -32,28 +33,28 @@ struct PairView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
-                Text("Uhr verbinden").font(.headline)
+                Text(WLoc.t("pair.title", lang)).font(.headline)
                 if code.isEmpty {
-                    Text("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.")
+                    Text(WLoc.t("pair.howto", lang))
                         .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    Button(busy ? "…" : "Pairing-Code erzeugen") { startPairing() }
+                    Button(busy ? "…" : WLoc.t("pair.gen", lang)) { startPairing() }
                         .disabled(busy)
                 } else {
-                    Text("Auf pumpfoil.org eingeben:")
+                    Text(WLoc.t("pair.enterOn", lang))
                         .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     Text(code)
                         .font(.system(.largeTitle, design: .rounded)).bold()
                         .monospacedDigit().kerning(2)
                     HStack(spacing: 6) {
                         ProgressView().scaleEffect(0.6)
-                        Text("warte auf Bestätigung…").font(.caption2).foregroundStyle(.secondary)
+                        Text(WLoc.t("pair.waiting", lang)).font(.caption2).foregroundStyle(.secondary)
                     }
                 }
                 if !error.isEmpty {
                     Text(error).font(.caption2).foregroundStyle(.red)
                 }
                 // Ohne Pairing aufnehmen — Sessions lokal speichern, später syncen.
-                Button("Später verbinden") { pollTask?.cancel(); onSkip() }
+                Button(WLoc.t("pair.later", lang)) { pollTask?.cancel(); onSkip() }
                     .font(.caption2).buttonStyle(.borderless).tint(.secondary)
             }.padding()
         }
@@ -102,6 +103,7 @@ struct WatchAlarm {
 struct RecordView: View {
     var onWantPair: () -> Void = {}
     @EnvironmentObject var rec: Recorder
+    @AppStorage("appLang") private var lang = "de"
     // Default = sinnvolles 3-Seiten-Layout, bis die Account-Config gesynct ist.
     @State private var views: [[Int]] = [[1, 2], [6, 7], [4, 3]]
     @State private var colorBy = false
@@ -126,7 +128,7 @@ struct RecordView: View {
                 // wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" -> Übersicht
                 // (+kurze Vibration), nach 60 s ohne Wischen zurück; „Lauf gestartet" -> zurück.
                 TabView(selection: $page) {
-                    stopPage("Datenfelder →").tag(0)
+                    stopPage(WLoc.t("rec.toData", lang)).tag(0)
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
                         VStack(spacing: 10) {
                             ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
@@ -139,7 +141,7 @@ struct RecordView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .tag(views.count + 1)
-                    stopPage("← Übersicht").tag(views.count + 2)
+                    stopPage(WLoc.t("rec.toSummary", lang)).tag(views.count + 2)
                 }
                 .tabViewStyle(.page)
                 .onChange(of: rec.isRecording) { r in if r { page = 1 } }
@@ -173,10 +175,10 @@ struct RecordView: View {
                     if rec.starting {
                         // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                         ProgressView().scaleEffect(0.8)
-                        Text(rec.status.isEmpty ? "starte…" : rec.status)
+                        Text(rec.status.isEmpty ? WLoc.t("rec.starting", lang) : rec.status)
                             .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     } else {
-                    Button("Start") {
+                    Button(WLoc.t("rec.start", lang)) {
                         skipSync()
                         if manualAlarm || !foils.isEmpty { showFoilPicker = true }
                         else { Task { await rec.start() } }
@@ -193,8 +195,8 @@ struct RecordView: View {
                     if syncing {
                         HStack(spacing: 6) {
                             ProgressView().scaleEffect(0.6)
-                            Text("Sync…").font(.caption2).foregroundStyle(.secondary)
-                            Button("Jetzt nicht") { skipSync() }
+                            Text(WLoc.t("rec.sync", lang)).font(.caption2).foregroundStyle(.secondary)
+                            Button(WLoc.t("rec.notNow", lang)) { skipSync() }
                                 .font(.caption2).buttonStyle(.borderless).tint(.secondary)
                         }
                     } else if !rec.status.isEmpty {
@@ -202,17 +204,17 @@ struct RecordView: View {
                     }
                     // Nicht verbunden: Hinweis + Verbinden (Aufnahme geht trotzdem, lokal).
                     if Api.deviceToken == nil {
-                        Text("Nicht verbunden – Sessions lokal")
+                        Text(WLoc.t("rec.notLinked", lang))
                             .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
-                        Button("Verbinden") { onWantPair() }
+                        Button(WLoc.t("rec.connect", lang)) { onWantPair() }
                             .font(.caption2).buttonStyle(.borderless)
                     }
                     // Lokal wartende Sessions (+ manueller Upload, wenn möglich).
                     if rec.pendingCount > 0 {
-                        Text("\(rec.pendingCount) warten auf Upload")
+                        Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang))
                             .font(.caption2).foregroundStyle(.secondary)
                         if Api.deviceToken != nil {
-                            Button("Jetzt hochladen") { Task { await rec.drain() } }
+                            Button(WLoc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
                                 .font(.caption2).buttonStyle(.borderless)
                         }
                     }
@@ -230,7 +232,7 @@ struct RecordView: View {
 
     @ViewBuilder private func stopPage(_ hint: String) -> some View {
         VStack(spacing: 12) {
-            Button("Stop") { Task { await rec.stop() } }.tint(.red)
+            Button(WLoc.t("rec.stop", lang)) { Task { await rec.stop() } }.tint(.red)
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -242,7 +244,7 @@ struct RecordView: View {
     }
 
     @ViewBuilder private func fieldView(_ fid: Int) -> some View {
-        let fv = fieldValue(fid, rec)
+        let fv = fieldValue(fid, rec, lang)
         VStack(spacing: 0) {
             Text(fv.0).font(.system(.title, design: .rounded)).monospacedDigit()
                 .foregroundStyle(colorBy ? fieldColor(fid, rec) : Color.primary)
@@ -272,6 +274,7 @@ struct RecordView: View {
 
     private func applyConfig(_ c: Api.DeviceConfig?) {
         guard let c else { return }
+        if let l = c.language, !l.isEmpty { lang = l }   // Profil-Sprache übernehmen (persistiert via @AppStorage)
         if !c.views.isEmpty { views = c.views }
         colorBy = c.colorByValue
         manualAlarm = c.alarmEnabled
@@ -325,11 +328,12 @@ struct AlarmPickerSheet: View {
     @Binding var alarm: WatchAlarm
     var onPick: () -> Void
     var onCancel: () -> Void
+    @AppStorage("appLang") private var lang = "de"
 
     var body: some View {
         List {
-            Section("Auslösen") {
-                Toggle("Dauerhaft", isOn: Binding(
+            Section(WLoc.t("foil.trigger", lang)) {
+                Toggle(WLoc.t("foil.continuous", lang), isOn: Binding(
                     get: { alarm.repeatMode == "continuous" },
                     set: { alarm.repeatMode = $0 ? "continuous" : "once" }))
             }
@@ -341,17 +345,17 @@ struct AlarmPickerSheet: View {
                     if manualAlarm { fixedRow }
                     foilRows
                 }
-                Button { alarm.enabled = false; onPick() } label: { row("Ohne Alarm", "kein Alarm") }
-            } header: { Text("Alarm wählen") }
+                Button { alarm.enabled = false; onPick() } label: { row(WLoc.t("foil.none", lang), WLoc.t("foil.noneSub", lang)) }
+            } header: { Text(WLoc.t("foil.choose", lang)) }
             Section {
-                Button("Abbrechen", role: .cancel, action: onCancel)
+                Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel)
             }
         }
     }
 
     private var fixedRow: some View {
         Button { alarm.enabled = true; onPick() } label: {
-            row("Feste Werte", "\(alarm.low)–\(alarm.high) km/h")
+            row(WLoc.t("foil.fixed", lang), "\(alarm.low)–\(alarm.high) km/h")
         }
     }
     private var foilRows: some View {
@@ -370,20 +374,20 @@ struct AlarmPickerSheet: View {
 }
 
 // Kernfeldsatz (IDs wie web/src/lib/fields.ts); Rest "—".
-@MainActor private func fieldValue(_ id: Int, _ r: Recorder) -> (String, String) {
+@MainActor private func fieldValue(_ id: Int, _ r: Recorder, _ lang: String) -> (String, String) {
     switch id {
-    case 1: return (String(format: "%.1f", r.speed3sKmh), "km/h (3s)")
-    case 5: return (String(format: "%.1f", r.speedKmh), "km/h")
-    case 6: return (String(format: "%.1f", r.avgSpeedKmh), "Ø km/h")
-    case 7: return (String(format: "%.1f", r.maxSpeedKmh), "max km/h")
-    case 2: return (r.hr > 0 ? "\(r.hr)" : "–", "bpm")
-    case 8: return (r.avgHr > 0 ? "\(r.avgHr)" : "–", "Ø bpm")
-    case 9: return (r.maxHr > 0 ? "\(r.maxHr)" : "–", "max bpm")
-    case 3: let s = Int(r.elapsed); return (String(format: "%d:%02d", s / 60, s % 60), "Zeit")
+    case 1: return (String(format: "%.1f", r.speed3sKmh), WLoc.t("f.kmh3s", lang))
+    case 5: return (String(format: "%.1f", r.speedKmh), WLoc.t("f.kmh", lang))
+    case 6: return (String(format: "%.1f", r.avgSpeedKmh), WLoc.t("f.kmhAvg", lang))
+    case 7: return (String(format: "%.1f", r.maxSpeedKmh), WLoc.t("f.kmhMax", lang))
+    case 2: return (r.hr > 0 ? "\(r.hr)" : "–", WLoc.t("f.bpm", lang))
+    case 8: return (r.avgHr > 0 ? "\(r.avgHr)" : "–", WLoc.t("f.bpmAvg", lang))
+    case 9: return (r.maxHr > 0 ? "\(r.maxHr)" : "–", WLoc.t("f.bpmMax", lang))
+    case 3: let s = Int(r.elapsed); return (String(format: "%d:%02d", s / 60, s % 60), WLoc.t("f.time", lang))
     case 4: return r.distanceM < 1000
         ? (String(format: "%.0f", r.distanceM), "m")
         : (String(format: "%.2f", r.distanceM / 1000), "km")
-    case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), "Uhr")
+    case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), WLoc.t("f.clock", lang))
     default: return ("—", "")
     }
 }

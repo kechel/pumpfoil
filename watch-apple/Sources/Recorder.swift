@@ -96,7 +96,7 @@ final class Recorder: NSObject, ObservableObject {
         startSensors()
         isRecording = true
         isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0
-        status = "Aufnahme läuft"
+        status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in
@@ -210,7 +210,7 @@ final class Recorder: NSObject, ObservableObject {
             b.beginCollection(withStart: now) { _, _ in }
             session = s; builder = b
         } catch {
-            status = "Workout-Start fehlgeschlagen: \(error.localizedDescription)"
+            status = WLoc.t("rec.workoutFail", UserDefaults.standard.string(forKey: "appLang") ?? "de") + error.localizedDescription
         }
     }
 
