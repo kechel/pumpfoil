@@ -1,50 +1,52 @@
 import { useState } from "react";
 import { Card } from "./ui";
+import { useT } from "../i18n";
 
 // Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
-// wird eingeblendet (anfangs alle ausgeblendet). Deutsch-first.
+// wird eingeblendet (anfangs alle ausgeblendet). Texte über i18n (guide.*).
 const platforms = [
   { id: "garmin", label: "Garmin" },
   { id: "apple", label: "Apple Watch" },
   { id: "wear", label: "Wear OS" },
 ];
 
-// Garmin-Anleitungs-Screenshots (v1.0.24, rund) — erzeugt von scripts/make-landing-watch-shots.py.
+// Garmin-Anleitungs-Screenshots (v1.0.24, rund) — Captions über i18n (guide.cap.*).
 const garminShots = [
-  { src: "/guide/garmin/start.webp", cap: "Start: GPS bereit → START" },
-  { src: "/guide/garmin/settings.webp", cap: "MENU halten → Einstellungen" },
-  { src: "/guide/garmin/pairing-code.webp", cap: "Verbinden — Code an der Uhr" },
-  { src: "/guide/garmin/pairing-success.webp", cap: "Verbunden" },
-  { src: "/guide/garmin/alarm-1.webp", cap: "Alarm wählen" },
-  { src: "/guide/garmin/alarm-2.webp", cap: "Alarm — Foil / feste Werte" },
-  { src: "/guide/garmin/alarm-3.webp", cap: "Alarm — Auslösen" },
-  { src: "/guide/garmin/on-foil-1.webp", cap: "Während der Fahrt" },
-  { src: "/guide/garmin/on-foil-2.webp", cap: "Während der Fahrt" },
+  { src: "/guide/garmin/start.webp", cap: "guide.cap.gStart" },
+  { src: "/guide/garmin/settings.webp", cap: "guide.cap.gSettings" },
+  { src: "/guide/garmin/pairing-code.webp", cap: "guide.cap.gPairCode" },
+  { src: "/guide/garmin/pairing-success.webp", cap: "guide.cap.gPairOk" },
+  { src: "/guide/garmin/alarm-1.webp", cap: "guide.cap.gAlarm1" },
+  { src: "/guide/garmin/alarm-2.webp", cap: "guide.cap.gAlarm2" },
+  { src: "/guide/garmin/alarm-3.webp", cap: "guide.cap.gAlarm3" },
+  { src: "/guide/garmin/on-foil-1.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/garmin/on-foil-2.webp", cap: "guide.cap.onFoil" },
 ];
 
 // Apple-Watch-Anleitungs-Screenshots (rechteckig).
 const appleShots = [
-  { src: "/guide/apple/connect.webp", cap: "Verbinden — Code erzeugen" },
-  { src: "/guide/apple/code.webp", cap: "Code → auf pumpfoil.org" },
-  { src: "/guide/apple/start.webp", cap: "Start" },
-  { src: "/guide/apple/alarm.webp", cap: "Alarm wählen + Auslösen" },
-  { src: "/guide/apple/data-1.webp", cap: "Während der Fahrt" },
-  { src: "/guide/apple/data-2.webp", cap: "Während der Fahrt" },
-  { src: "/guide/apple/stop.webp", cap: "Stop" },
-  { src: "/guide/apple/upload.webp", cap: "Upload nach dem Stopp" },
+  { src: "/guide/apple/connect.webp", cap: "guide.cap.aConnect" },
+  { src: "/guide/apple/code.webp", cap: "guide.cap.aCode" },
+  { src: "/guide/apple/start.webp", cap: "guide.cap.aStart" },
+  { src: "/guide/apple/alarm.webp", cap: "guide.cap.aAlarm" },
+  { src: "/guide/apple/data-1.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/apple/data-2.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/apple/stop.webp", cap: "guide.cap.aStop" },
+  { src: "/guide/apple/upload.webp", cap: "guide.cap.aUpload" },
 ];
 
 export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
+  const t = useT();
   const [sel, setSel] = useState<string | null>(null);
   const connectLink = (
-    <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>„Verbinden"</b></button>
+    <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>{t("guide.connect")}</b></button>
   );
   return (
     <div className="space-y-5">
       {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
       <Card className="p-5">
-        <h3 className="font-semibold">So richtest du deine Uhr ein</h3>
-        <p className="mt-1 text-sm text-slate-300">Wähle deine Plattform.</p>
+        <h3 className="font-semibold">{t("guide.howto")}</h3>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.pick")}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {platforms.map((p) => {
             const active = sel === p.id;
@@ -70,33 +72,28 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       {sel === "garmin" && (
       <Card id="guide-garmin" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Garmin</h3>
-        <p className="mt-1 text-sm text-slate-300">Fenix, Forerunner, Epix, Instinct …</p>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.garminSub")}</p>
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
-          <li><b>1. App installieren:</b> „Pump Foil" aus dem Connect&nbsp;IQ&nbsp;Store laden — oder die
-            <code className="mx-1 rounded bg-slate-800 px-1">.prg</code> für dein Modell
-            <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>hier herunterladen</b></button>
-            und mit <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
-            der Uhr kopieren.</li>
-          <li><b>2. Code an der Uhr erzeugen:</b> Pump Foil öffnen (nicht starten) →
-            <b> MENU halten</b> (Knopf Mitte-links) → <b>„Einstellungen"</b> → <b>„Verbinden"</b>.
-            Die Uhr zeigt einen 6-stelligen Code (Handy in der Nähe oder WLAN nötig).</li>
-          <li><b>3. Code hier eintragen:</b> Tab {connectLink} → „Code von der Uhr eingeben".
-            Fertig — die Uhr ist deinem Konto zugeordnet.</li>
-          <li><b>4. Datenfelder &amp; Alarm:</b> hier auf pumpfoil.org in den Tabs <b>„Datenfelder"</b>
-            (bis zu 3 pro Screen) und <b>„Alarm"</b> einstellen — wird nach dem Verbinden auf die Uhr geladen.</li>
-          <li><b>5. Aufnehmen:</b> App öffnen → <b>„GPS bereit"</b> abwarten → <b>START</b> → foilen →
-            START <b>3&nbsp;s halten</b> zum Stoppen &amp; Speichern.</li>
-          <li><b>6. Upload:</b> automatisch beim nächsten App-Start (WLAN/Telefon), oder manuell
-            <b> MENU → Einstellungen → „Upload / Sync"</b>. Danach erscheint die Session hier.</li>
+          <li>
+            <b>{t("guide.g.s1Title")}</b> {t("guide.g.s1a")}
+            <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>{t("guide.g.s1Download")}</b></button>
+            {t("guide.g.s1b")} <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> {t("guide.g.s1c")}
+            <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>{t("guide.g.s1d")}
+          </li>
+          <li><b>{t("guide.g.s2Title")}</b> {t("guide.g.s2")}</li>
+          <li><b>{t("guide.g.s3Title")}</b> {connectLink}{t("guide.g.s3")}</li>
+          <li><b>{t("guide.g.s4Title")}</b> {t("guide.g.s4")}</li>
+          <li><b>{t("guide.g.s5Title")}</b> {t("guide.g.s5")}</li>
+          <li><b>{t("guide.g.s6Title")}</b> {t("guide.g.s6")}</li>
         </ol>
         <div className="mt-5">
-          <p className="mb-2 text-xs font-medium text-slate-400">So sieht's auf der Uhr aus (v1.0.24):</p>
+          <p className="mb-2 text-xs font-medium text-slate-400">{t("guide.previewVer")}</p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-            {garminShots.map((s) => (
-              <figure key={s.src} className="flex flex-col items-center gap-1">
-                <img src={s.src} alt={s.cap} loading="lazy"
+            {garminShots.map((s, i) => (
+              <figure key={`${s.src}-${i}`} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={t(s.cap)} loading="lazy"
                   className="w-full rounded-full border border-slate-800 shadow" />
-                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{s.cap}</figcaption>
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{t(s.cap)}</figcaption>
               </figure>
             ))}
           </div>
@@ -108,26 +105,21 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       {sel === "apple" && (
       <Card id="guide-apple" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Apple Watch</h3>
-        <p className="mt-1 text-sm text-slate-300">watchOS 9+</p>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.appleSub")}</p>
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
-          <li><b>1. App installieren:</b> aus dem App&nbsp;Store / TestFlight (in Vorbereitung).</li>
-          <li><b>2. Verbinden — optional:</b> Du kannst <b>sofort ohne Konto aufnehmen</b>
-            („Später verbinden") und die Session später hochladen. Zum Zuordnen: in der Watch-App
-            <b> „Verbinden" → „Pairing-Code erzeugen"</b> — den angezeigten Code hier im Tab
-            {connectLink} eintragen.</li>
-          <li><b>3. Datenfelder:</b> direkt auf der Uhr <b>wischbare Seiten</b> (konfigurierbar im Tab
-            „Datenfelder"). Stopp-Button am Anfang und Ende der Seiten.</li>
-          <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Aufnahme läuft auch
-            offline; Sync passiert automatisch, sobald online.</li>
+          <li><b>{t("guide.a.s1Title")}</b> {t("guide.a.s1")}</li>
+          <li><b>{t("guide.a.s2Title")}</b> {t("guide.a.s2a")}{connectLink}{t("guide.a.s2b")}</li>
+          <li><b>{t("guide.a.s3Title")}</b> {t("guide.a.s3")}</li>
+          <li><b>{t("guide.a.s4Title")}</b> {t("guide.a.s4")}</li>
         </ol>
         <div className="mt-5">
-          <p className="mb-2 text-xs font-medium text-slate-400">So sieht's auf der Uhr aus:</p>
+          <p className="mb-2 text-xs font-medium text-slate-400">{t("guide.preview")}</p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-            {appleShots.map((s) => (
-              <figure key={s.src} className="flex flex-col items-center gap-1">
-                <img src={s.src} alt={s.cap} loading="lazy"
+            {appleShots.map((s, i) => (
+              <figure key={`${s.src}-${i}`} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={t(s.cap)} loading="lazy"
                   className="w-full rounded-2xl border border-slate-800 shadow" />
-                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{s.cap}</figcaption>
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{t(s.cap)}</figcaption>
               </figure>
             ))}
           </div>
@@ -139,15 +131,12 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       {sel === "wear" && (
       <Card id="guide-wear" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Wear OS</h3>
-        <p className="mt-1 text-sm text-slate-300">Samsung Galaxy Watch, Google Pixel Watch …</p>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.wearSub")}</p>
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
-          <li><b>1. App installieren:</b> aus dem Google&nbsp;Play&nbsp;Store (in Vorbereitung).</li>
-          <li><b>2. Verbinden — optional:</b> wie bei Apple Watch — <b>ohne Konto aufnehmen</b> möglich,
-            später verbinden; oder in der Uhr-App <b>„Verbinden" → „Pairing-Code erzeugen"</b> und den
-            Code hier im Tab {connectLink} eintragen.</li>
-          <li><b>3. Datenfelder:</b> wischbare Seiten, konfigurierbar im Tab „Datenfelder".</li>
-          <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Offline-Aufnahme +
-            automatischer Sync.</li>
+          <li><b>{t("guide.w.s1Title")}</b> {t("guide.w.s1")}</li>
+          <li><b>{t("guide.w.s2Title")}</b> {t("guide.w.s2a")}{connectLink}{t("guide.w.s2b")}</li>
+          <li><b>{t("guide.w.s3Title")}</b> {t("guide.w.s3")}</li>
+          <li><b>{t("guide.w.s4Title")}</b> {t("guide.w.s4")}</li>
         </ol>
       </Card>
       )}
