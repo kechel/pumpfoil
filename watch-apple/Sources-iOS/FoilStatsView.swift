@@ -2,6 +2,7 @@ import SwiftUI
 
 // Foil-Statistik (spiegelt web/FoilStats): Community-Vergleich je Foil als Cards.
 struct FoilStatsView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var rows: [FoilStat] = []
     @State private var loading = true
     @State private var error: String?
@@ -9,30 +10,30 @@ struct FoilStatsView: View {
     var body: some View {
         List {
             Section {
-                Text("Welche Werte mit welchem Foil gefahren werden (Community).")
+                Text(Loc.t("foilstats.intro", lang))
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let error { Text(error).foregroundStyle(.secondary) }
             if !loading && rows.isEmpty && error == nil {
-                Text("Noch keine Daten").foregroundStyle(.secondary)
+                Text(Loc.t("common.noData", lang)).foregroundStyle(.secondary)
             }
             ForEach(rows) { s in
                 Section("\(s.brand) \(s.model) \(s.size)") {
                     HStack {
-                        metric("\(s.sessions)", "Sessions")
-                        Spacer(); metric("\(s.users)", "Fahrer")
+                        metric("\(s.sessions)", Loc.t("nav.sessions", lang))
+                        Spacer(); metric("\(s.users)", Loc.t("foilstats.riders", lang))
                         Spacer(); metric(s.avg_speed_kmh.map { String(format: "%.1f", $0) } ?? "–", "Ø km/h")
                     }
                     HStack {
                         metric(s.meters_per_pump.map { String(format: "%.1f", $0) } ?? "–", "m/Pump")
-                        Spacer(); metric(s.best_distance_m.map { String(format: "%.2f", $0 / 1000) } ?? "–", "best km")
+                        Spacer(); metric(s.best_distance_m.map { String(format: "%.2f", $0 / 1000) } ?? "–", Loc.t("foilstats.bestKm", lang))
                         Spacer(); metric(s.avg_pump_hz.map { String(format: "%.2f", $0) } ?? "–", "Ø Hz")
                     }
                 }
             }
         }
         .overlay { if loading { ProgressView() } }
-        .navigationTitle("Foil-Statistik")
+        .navigationTitle(Loc.t("profile.stats", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

@@ -26,6 +26,7 @@ enum Loc {
         "common.cancel": r("Abbrechen", "Abbräche", "Abbrechen", "Cancel", "Annuler", "Annulla", "Cancelar"),
         "common.delete": r("Löschen", "Lösche", "Löschen", "Delete", "Supprimer", "Elimina", "Eliminar"),
         "common.saved": r("Gespeichert", "Gspycheret", "Gespeichert", "Saved", "Enregistré", "Salvato", "Guardado"),
+        "common.noData": r("Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Aucune donnée", "Nessun dato", "Sin datos"),
 
         "login.email": r("E-Mail", "E-Mail", "E-Mail", "Email", "E-mail", "Email", "Correo"),
         "login.password": r("Passwort", "Passwort", "Passwort", "Password", "Mot de passe", "Password", "Contraseña"),
@@ -95,5 +96,16 @@ enum Loc {
         "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
         "chat.placeholder": r("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
         "chat.send": r("Senden", "Schicke", "Senden", "Send", "Envoyer", "Invia", "Enviar"),
+
+        "foils.search": r("Foil suchen", "Foil sueche", "Foil suchen", "Search foil", "Chercher un foil", "Cerca foil", "Buscar foil"),
+        "foils.brand": r("Marke", "Marke", "Marke", "Brand", "Marque", "Marca", "Marca"),
+        "foils.mine": r("Meine Foils", "Myni Foils", "Meine Foils", "My foils", "Mes foils", "I miei foil", "Mis foils"),
+        "foils.all": r("Alle Foils", "Alli Foils", "Alle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
+        "foils.more": r("Weitere", "Wytri", "Weitere", "More", "Autres", "Altri", "Más"),
+        "foils.default": r("Standard", "Standard", "Standard", "Default", "Défaut", "Predefinito", "Predet."),
+
+        "foilstats.intro": r("Welche Werte mit welchem Foil gefahren werden (Community).", "Weli Wärt mit welem Foil gfahre wärde (Community).", "Welche Werte mit welchem Foil gefahren werden (Community).", "Which values are ridden with which foil (community).", "Quelles valeurs avec quel foil (communauté).", "Quali valori con quale foil (community).", "Qué valores con qué foil (comunidad)."),
+        "foilstats.riders": r("Fahrer", "Fahrer", "Fahrer", "Riders", "Riders", "Rider", "Riders"),
+        "foilstats.bestKm": r("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
     ]
 }

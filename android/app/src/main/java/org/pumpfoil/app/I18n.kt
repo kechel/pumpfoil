@@ -43,6 +43,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "common.cancel" to row("Abbrechen", "Abbräche", "Abbrechen", "Cancel", "Annuler", "Annulla", "Cancelar"),
     "common.delete" to row("Löschen", "Lösche", "Löschen", "Delete", "Supprimer", "Elimina", "Eliminar"),
     "common.saved" to row("Gespeichert", "Gspycheret", "Gespeichert", "Saved", "Enregistré", "Salvato", "Guardado"),
+    "common.noData" to row("Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Aucune donnée", "Nessun dato", "Sin datos"),
 
     "login.email" to row("E-Mail", "E-Mail", "E-Mail", "Email", "E-mail", "Email", "Correo"),
     "login.password" to row("Passwort", "Passwort", "Passwort", "Password", "Mot de passe", "Password", "Contraseña"),
@@ -112,4 +113,15 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "chat.empty" to row("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
     "chat.placeholder" to row("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
     "chat.send" to row("Senden", "Schicke", "Senden", "Send", "Envoyer", "Invia", "Enviar"),
+
+    "foils.search" to row("Foil suchen", "Foil sueche", "Foil suchen", "Search foil", "Chercher un foil", "Cerca foil", "Buscar foil"),
+    "foils.brand" to row("Marke", "Marke", "Marke", "Brand", "Marque", "Marca", "Marca"),
+    "foils.mine" to row("Meine Foils", "Myni Foils", "Meine Foils", "My foils", "Mes foils", "I miei foil", "Mis foils"),
+    "foils.all" to row("Alle Foils", "Alli Foils", "Alle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
+    "foils.more" to row("Weitere", "Wytri", "Weitere", "More", "Autres", "Altri", "Más"),
+    "foils.default" to row("Standard", "Standard", "Standard", "Default", "Défaut", "Predefinito", "Predet."),
+
+    "foilstats.intro" to row("Welche Werte mit welchem Foil gefahren werden (Community).", "Weli Wärt mit welem Foil gfahre wärde (Community).", "Welche Werte mit welchem Foil gefahren werden (Community).", "Which values are ridden with which foil (community).", "Quelles valeurs avec quel foil (communauté).", "Quali valori con quale foil (community).", "Qué valores con qué foil (comunidad)."),
+    "foilstats.riders" to row("Fahrer", "Fahrer", "Fahrer", "Riders", "Riders", "Rider", "Riders"),
+    "foilstats.bestKm" to row("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
 )

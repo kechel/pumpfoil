@@ -86,7 +86,7 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Foils") },
+            title = { Text(I18n.t("profile.foils")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
         )
     }) { pad ->
@@ -105,25 +105,25 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
                 OutlinedTextField(value = query, onValueChange = { query = it },
-                    label = { Text("Foil suchen") }, singleLine = true,
+                    label = { Text(I18n.t("foils.search")) }, singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
                 if (brands.isNotEmpty()) {
                     Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = brand.isEmpty(), onClick = { brand = "" }, label = { Text("Alle") })
+                        FilterChip(selected = brand.isEmpty(), onClick = { brand = "" }, label = { Text(I18n.t("sessions.all")) })
                         brands.forEach { b -> FilterChip(selected = brand == b, onClick = { brand = b }, label = { Text(b) }) }
                     }
                 }
             }
             if (mineList.isNotEmpty()) {
-                item { sectionHeader("Meine Foils") }
+                item { sectionHeader(I18n.t("foils.mine")) }
                 items(mineList, key = { "m${it.id}" }) { f ->
                     foilRow(f, isMine = true, isDefault = f.id == def,
                         onToggleMine = { persist(mine - f.id, if (def == f.id) null else def) },
                         onSetDefault = { persist(if (mine.contains(f.id)) mine else mine + f.id, if (def == f.id) null else f.id) })
                 }
             }
-            item { sectionHeader(if (mineList.isEmpty()) "Alle Foils" else "Weitere") }
+            item { sectionHeader(if (mineList.isEmpty()) I18n.t("foils.all") else I18n.t("foils.more")) }
             items(restList, key = { "r${it.id}" }) { f ->
                 foilRow(f, isMine = false, isDefault = false,
                     onToggleMine = { persist(mine + f.id, def) },
@@ -153,12 +153,12 @@ private fun foilRow(
         }
         IconButton(onClick = onSetDefault) {
             Icon(if (isDefault) Icons.Filled.Star else Icons.Filled.StarBorder,
-                contentDescription = "Standard",
+                contentDescription = I18n.t("foils.default"),
                 tint = if (isDefault) Color(0xFFF59E0B) else MaterialTheme.colorScheme.onSurfaceVariant)
         }
         IconButton(onClick = onToggleMine) {
             Icon(if (isMine) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                contentDescription = "Meine",
+                contentDescription = I18n.t("sessions.mine"),
                 tint = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

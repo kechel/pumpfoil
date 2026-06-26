@@ -3,6 +3,7 @@ import SwiftUI
 // Foil-Katalog (spiegelt web/Foils): durchsuchen, „meine" merken, eines als Standard
 // (Stern). Persistiert via PUT /api/settings (my_foils, foil_id).
 struct FoilsView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var foils: [Foil] = []
     @State private var brands: [String] = []
     @State private var brand = ""
@@ -23,10 +24,10 @@ struct FoilsView: View {
         Form {
             if let error { Text(error).foregroundStyle(.secondary) }
             Section {
-                TextField("Foil suchen", text: $query)
+                TextField(Loc.t("foils.search", lang), text: $query)
                 if !brands.isEmpty {
-                    Picker("Marke", selection: $brand) {
-                        Text("Alle").tag("")
+                    Picker(Loc.t("foils.brand", lang), selection: $brand) {
+                        Text(Loc.t("sessions.all", lang)).tag("")
                         ForEach(brands, id: \.self) { b in Text(b).tag(b) }
                     }
                 }
@@ -37,12 +38,12 @@ struct FoilsView: View {
                 let mineList = filtered.filter { mine.contains($0.id) }.sorted { ($0.id == def ? 0 : 1) < ($1.id == def ? 0 : 1) }
                 let restList = filtered.filter { !mine.contains($0.id) }
                 if !mineList.isEmpty {
-                    Section("Meine Foils") { ForEach(mineList) { row($0) } }
+                    Section(Loc.t("foils.mine", lang)) { ForEach(mineList) { row($0) } }
                 }
-                Section(mineList.isEmpty ? "Alle Foils" : "Weitere") { ForEach(restList) { row($0) } }
+                Section(mineList.isEmpty ? Loc.t("foils.all", lang) : Loc.t("foils.more", lang)) { ForEach(restList) { row($0) } }
             }
         }
-        .navigationTitle("Foils")
+        .navigationTitle(Loc.t("profile.foils", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

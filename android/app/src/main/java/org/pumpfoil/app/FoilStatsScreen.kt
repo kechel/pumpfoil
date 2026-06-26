@@ -46,7 +46,7 @@ fun FoilStatsScreen(onBack: () -> Unit) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Foil-Statistik") },
+            title = { Text(I18n.t("profile.stats")) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
@@ -61,14 +61,14 @@ fun FoilStatsScreen(onBack: () -> Unit) {
         }
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
-                Text("Welche Werte mit welchem Foil gefahren werden (Community).",
+                Text(I18n.t("foilstats.intro"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp))
             }
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             if (list.isEmpty() && error == null) {
-                item { Text("Noch keine Daten", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)) }
+                item { Text(I18n.t("common.noData"), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)) }
             }
             items(list, key = { it.foilId }) { s -> statCard(s) }
         }
@@ -81,13 +81,13 @@ private fun statCard(s: FoilStat) {
         Column(Modifier.padding(12.dp)) {
             Text("${s.brand} ${s.model} ${s.size}", fontWeight = FontWeight.SemiBold)
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric("${s.sessions}", "Sessions")
-                metric("${s.users}", "Fahrer")
+                metric("${s.sessions}", I18n.t("nav.sessions"))
+                metric("${s.users}", I18n.t("foilstats.riders"))
                 metric(s.avgSpeedKmh?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
             }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 metric(s.metersPerPump?.let { "%.1f".format(it) } ?: "–", "m/Pump")
-                metric(s.bestDistanceM?.let { "${(it / 1000).let { km -> "%.2f".format(km) }}" } ?: "–", "best km")
+                metric(s.bestDistanceM?.let { "${(it / 1000).let { km -> "%.2f".format(km) }}" } ?: "–", I18n.t("foilstats.bestKm"))
                 metric(s.avgPumpHz?.let { "%.2f".format(it) } ?: "–", "Ø Hz")
             }
         }
