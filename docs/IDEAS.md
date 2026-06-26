@@ -10,12 +10,6 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   (offline), pro App ein kleines String-Lookup je Locale (Start-Screen, Menüs, Alarm-Picker, Status-/
   Erfolgstexte). Fallback auf eine unserer Sprachen (de/en), wenn `language` leer/unbekannt. Betrifft alle
   drei Recorder + die ebenfalls DE-hartcodierten Phone-Apps (s. [[../PARITY-AUDIT]] „i18n fehlt").
-- **iOS App-Store-Upload: iPad-Multitasking-Orientierungen.** Upload zu App Store Connect schlägt fehl:
-  „Invalid bundle … UIInterfaceOrientationPortrait … but you need to include all of
-  Portrait,PortraitUpsideDown,LandscapeLeft,LandscapeRight … to support iPad multitasking" für
-  `org.pumpfoil.coolwatch` (iOS-App). Fix in `watch-apple/project.yml`, Target `Pumpfoil`: entweder
-  alle 4 `UISupportedInterfaceOrientations` eintragen, **oder** `TARGETED_DEVICE_FAMILY` von `"1,2"`
-  auf `"1"` (nur iPhone) setzen → dann iPad-Multitasking irrelevant. Danach `xcodegen generate`.
 - **Board-/Foil-IMU → echte Pump-Technik-Analytik (R&D, Daten werden gesammelt).** Hintergrund:
   Intra-Pump-Geschwindigkeit ist aus dem 1-Hz-Wrist-GPS **nicht** rekonstruierbar (Phase-Folding-
   Experiment `server/scripts/accel_speed_experiment.py` besteht den Permutations-Null-Test nicht;

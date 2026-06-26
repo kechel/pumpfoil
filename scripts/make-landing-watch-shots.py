@@ -36,6 +36,15 @@ SOURCES = [
     ("screenshots/watch/garmin/garmin-watch-1.0.24-alarm-settings-3.png", "web/public/guide/garmin/alarm-3.webp"),
     ("screenshots/watch/garmin/garmin-watch-1.0.24-on-foil-1.png",       "web/public/guide/garmin/on-foil-1.webp"),
     ("screenshots/watch/garmin/garmin-watch-1.0.24-on-foil-2.png",       "web/public/guide/garmin/on-foil-2.webp"),
+    # Apple-Watch-Anleitungs-Galerie (WatchGuide). Quellen: Simulator-Screenshots (Reihenfolge nach Zeit).
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.01.46.png", "web/public/guide/apple/connect.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.01.50.png", "web/public/guide/apple/code.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.14.png", "web/public/guide/apple/start.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.28.png", "web/public/guide/apple/alarm.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.45.png", "web/public/guide/apple/data-1.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.50.png", "web/public/guide/apple/data-2.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.55.png", "web/public/guide/apple/stop.webp"),
+    ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.03.01.png", "web/public/guide/apple/upload.webp"),
 ]
 
 def main() -> None:

@@ -25,6 +25,18 @@ const garminShots = [
   { src: "/guide/garmin/on-foil-2.webp", cap: "Während der Fahrt" },
 ];
 
+// Apple-Watch-Anleitungs-Screenshots (rechteckig).
+const appleShots = [
+  { src: "/guide/apple/connect.webp", cap: "Verbinden — Code erzeugen" },
+  { src: "/guide/apple/code.webp", cap: "Code → auf pumpfoil.org" },
+  { src: "/guide/apple/start.webp", cap: "Start" },
+  { src: "/guide/apple/alarm.webp", cap: "Alarm wählen + Auslösen" },
+  { src: "/guide/apple/data-1.webp", cap: "Während der Fahrt" },
+  { src: "/guide/apple/data-2.webp", cap: "Während der Fahrt" },
+  { src: "/guide/apple/stop.webp", cap: "Stop" },
+  { src: "/guide/apple/upload.webp", cap: "Upload nach dem Stopp" },
+];
+
 export function WatchGuide() {
   return (
     <div className="space-y-5">
@@ -97,6 +109,18 @@ export function WatchGuide() {
           <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Aufnahme läuft auch
             offline; Sync passiert automatisch, sobald online.</li>
         </ol>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium text-slate-400">So sieht's auf der Uhr aus:</p>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            {appleShots.map((s) => (
+              <figure key={s.src} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={s.cap} loading="lazy"
+                  className="w-full rounded-2xl border border-slate-800 shadow" />
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{s.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
       </Card>
 
       {/* Wear OS */}
