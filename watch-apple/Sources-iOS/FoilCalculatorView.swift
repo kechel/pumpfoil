@@ -4,6 +4,7 @@ import SwiftUI
 // FoilPhysics.swift. iOS-typisch: Form mit Parametern (Stepper/Picker), Foil-Auswahl
 // und Ergebnis-Sektionen je Foil (Kennwerte + Pump-Leistung je km/h).
 struct FoilCalculatorView: View {
+    @AppStorage("appLang") private var lang = "de"
     private let speeds: [Double] = [10, 12, 14, 16, 18, 20]
 
     @State private var foils: [Foil] = []
@@ -41,28 +42,28 @@ struct FoilCalculatorView: View {
         Form {
             if let error { Text(error).foregroundStyle(.secondary) }
 
-            Section("Parameter") {
-                Stepper("Gewicht: \(Int(riderWeight)) kg", value: $riderWeight, in: 30...200, step: 1)
-                Stepper("Equipment: \(Int(equipWeight)) kg", value: $equipWeight, in: 0...40, step: 1)
-                Picker("Mast-Ø", selection: $mastDiameter) {
+            Section(Loc.t("calc.params", lang)) {
+                Stepper("\(Loc.t("settings.weight", lang)): \(Int(riderWeight)) kg", value: $riderWeight, in: 30...200, step: 1)
+                Stepper("\(Loc.t("calc.equipment", lang)): \(Int(equipWeight)) kg", value: $equipWeight, in: 0...40, step: 1)
+                Picker(Loc.t("calc.mastDiameter", lang), selection: $mastDiameter) {
                     Text("19 mm").tag(19.0); Text("17 mm").tag(17.0)
                 }
-                Picker("Mast-Tiefe", selection: $mastDepth) {
+                Picker(Loc.t("calc.mastDepth", lang), selection: $mastDepth) {
                     ForEach([0.2, 0.3, 0.4, 0.5], id: \.self) { d in Text("\(Int(d * 100)) cm").tag(d) }
                 }
-                Toggle("Mit Pump-Inertia", isOn: $withPump)
+                Toggle(Loc.t("calc.withPump", lang), isOn: $withPump)
                 if withPump {
-                    Stepper("Frequenz: \(pumpFreq, specifier: "%.1f") Hz", value: $pumpFreq, in: 0.3...3, step: 0.1)
-                    Stepper("Hub: \(Int(heaveAmp)) cm", value: $heaveAmp, in: 1...40, step: 1)
-                    Stepper("Verlust: \(Int(recoveryLoss)) %", value: $recoveryLoss, in: 0...100, step: 5)
+                    Stepper("\(Loc.t("calc.frequency", lang)): \(pumpFreq, specifier: "%.1f") Hz", value: $pumpFreq, in: 0.3...3, step: 0.1)
+                    Stepper("\(Loc.t("calc.heaveWord", lang)): \(Int(heaveAmp)) cm", value: $heaveAmp, in: 1...40, step: 1)
+                    Stepper("\(Loc.t("calc.lossWord", lang)): \(Int(recoveryLoss)) %", value: $recoveryLoss, in: 0...100, step: 5)
                 }
             }
 
-            Section("Foils") {
-                TextField("Foil suchen", text: $query)
+            Section(Loc.t("profile.foils", lang)) {
+                TextField(Loc.t("foils.search", lang), text: $query)
                 if !brands.isEmpty {
-                    Picker("Marke", selection: $brand) {
-                        Text("Alle").tag("")
+                    Picker(Loc.t("foils.brand", lang), selection: $brand) {
+                        Text(Loc.t("sessions.all", lang)).tag("")
                         ForEach(brands, id: \.self) { b in Text(b).tag(b) }
                     }
                 }
@@ -86,16 +87,16 @@ struct FoilCalculatorView: View {
             }
 
             if selectedFoils.isEmpty {
-                Section { Text("Foils auswählen, um Kennwerte zu vergleichen.").foregroundStyle(.secondary) }
+                Section { Text(Loc.t("calc.pickHint", lang)).foregroundStyle(.secondary) }
             } else {
                 ForEach(selectedFoils) { f in resultSection(f) }
                 Section {
-                    Text("Theoretisches Modell — Richtwerte, keine Garantie. Geschätzte Dicken sind markiert.")
+                    Text(Loc.t("calc.disclaimer", lang))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle("Foil-Rechner")
+        .navigationTitle(Loc.t("profile.calc", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
@@ -114,16 +115,16 @@ struct FoilCalculatorView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     metric("AR", String(format: "%.1f", ar))
-                    metric("Chord", "\(String(format: "%.1f", chordCm)) cm")
+                    metric(Loc.t("calc.chord", lang), "\(String(format: "%.1f", chordCm)) cm")
                     metric("t/c", "\(f.thickness_estimated == true ? "≈" : "")\(String(format: "%.1f", tc * 100))%")
                     metric("CLmax", String(format: "%.2f", clmax))
-                    metric("Stall", String(format: "%.1f", stall))
-                    metric("Min", String(format: "%.1f", minV))
-                    metric("Optimal", "\(Int(opt))")
+                    metric(Loc.t("calc.stall", lang), String(format: "%.1f", stall))
+                    metric(Loc.t("calc.minViable", lang), String(format: "%.1f", minV))
+                    metric(Loc.t("calc.optimal", lang), "\(Int(opt))")
                 }
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("Pump-Leistung (W) je km/h").font(.caption).foregroundStyle(.secondary)
+                Text(Loc.t("calc.powerRow", lang)).font(.caption).foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
                         ForEach(speeds, id: \.self) { sp in

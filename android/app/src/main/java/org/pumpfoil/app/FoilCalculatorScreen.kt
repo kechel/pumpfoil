@@ -90,7 +90,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Foil-Rechner") },
+            title = { Text(I18n.t("profile.calc")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
         )
     }) { pad ->
@@ -115,7 +115,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
 
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
-                Text("Vergleiche Foils: Basis-Kennwerte + theoretische Pump-Leistung.",
+                Text(I18n.t("calc.intro"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp))
@@ -126,14 +126,14 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
             item {
                 Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                     Column(Modifier.padding(12.dp)) {
-                        Text("Parameter", fontWeight = FontWeight.SemiBold)
+                        Text(I18n.t("calc.params"), fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            NumField("Gewicht (kg)", riderWeight, Modifier.weight(1f)) { riderWeight = it }
-                            NumField("Equip. (kg)", equipWeight, Modifier.weight(1f)) { equipWeight = it }
+                            NumField("${I18n.t("settings.weight")} (kg)", riderWeight, Modifier.weight(1f)) { riderWeight = it }
+                            NumField(I18n.t("calc.equip"), equipWeight, Modifier.weight(1f)) { equipWeight = it }
                         }
                         Spacer(Modifier.height(10.dp))
-                        Text("Mast-Ø", style = MaterialTheme.typography.labelSmall,
+                        Text(I18n.t("calc.mastDiameter"), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(19.0, 17.0).forEach { d ->
@@ -142,7 +142,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Mast-Tiefe", style = MaterialTheme.typography.labelSmall,
+                        Text(I18n.t("calc.mastDepth"), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(0.2, 0.3, 0.4, 0.5).forEach { dp ->
@@ -154,14 +154,14 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(checked = withPump, onCheckedChange = { withPump = it })
                             Spacer(Modifier.width(8.dp))
-                            Text("Mit Pump-Inertia")
+                            Text(I18n.t("calc.withPump"))
                         }
                         if (withPump) {
                             Spacer(Modifier.height(8.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                NumField("Freq. (Hz)", pumpFreq, Modifier.weight(1f)) { pumpFreq = it }
-                                NumField("Hub (cm)", heaveAmp, Modifier.weight(1f)) { heaveAmp = it }
-                                NumField("Verlust %", recoveryLoss, Modifier.weight(1f)) { recoveryLoss = it }
+                                NumField(I18n.t("calc.freq"), pumpFreq, Modifier.weight(1f)) { pumpFreq = it }
+                                NumField(I18n.t("calc.heave"), heaveAmp, Modifier.weight(1f)) { heaveAmp = it }
+                                NumField(I18n.t("calc.loss"), recoveryLoss, Modifier.weight(1f)) { recoveryLoss = it }
                             }
                         }
                     }
@@ -173,14 +173,14 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                 Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                     Column(Modifier.padding(12.dp)) {
                         OutlinedTextField(value = query, onValueChange = { query = it },
-                            label = { Text("Foil suchen") }, singleLine = true,
+                            label = { Text(I18n.t("foils.search")) }, singleLine = true,
                             modifier = Modifier.fillMaxWidth())
                         if (brands.isNotEmpty()) {
                             Spacer(Modifier.height(8.dp))
                             Row(Modifier.horizontalScroll(rememberScrollState()),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 FilterChip(selected = brand.isEmpty(), onClick = { brand = "" },
-                                    label = { Text("Alle") })
+                                    label = { Text(I18n.t("sessions.all")) })
                                 brands.forEach { b ->
                                     FilterChip(selected = brand == b, onClick = { brand = b },
                                         label = { Text(b) })
@@ -208,7 +208,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
             // --- Ergebnisse pro ausgewähltem Foil ---
             if (selFoils.isEmpty()) {
                 item {
-                    Text("Foils auswählen, um Kennwerte zu vergleichen.",
+                    Text(I18n.t("calc.pickHint"),
                         modifier = Modifier.padding(vertical = 24.dp).fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -219,7 +219,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                     ResultCard(f, rider, mast, pump)
                 }
                 item {
-                    Text("Theoretisches Modell — Richtwerte, keine Garantie. Geschätzte Dicken sind markiert.",
+                    Text(I18n.t("calc.disclaimer"),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 12.dp))
@@ -252,15 +252,15 @@ private fun ResultCard(
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Metric("AR", fmt(ar, 1))
-                Metric("Chord", "${fmt(chordCm, 1)} cm")
+                Metric(I18n.t("calc.chord"), "${fmt(chordCm, 1)} cm")
                 Metric("t/c", "${if (f.thicknessEstimated) "≈" else ""}${fmt(tc * 100, 1)}%")
                 Metric("CLmax", fmt(clmax, 2))
-                Metric("Stall", "${fmt(stall, 1)}")
-                Metric("Min", "${fmt(minV, 1)}")
-                Metric("Optimal", "${opt.roundToInt()} km/h")
+                Metric(I18n.t("calc.stall"), "${fmt(stall, 1)}")
+                Metric(I18n.t("calc.minViable"), "${fmt(minV, 1)}")
+                Metric(I18n.t("calc.optimal"), "${opt.roundToInt()} km/h")
             }
             Spacer(Modifier.height(12.dp))
-            Text("Pump-Leistung (W) je km/h", style = MaterialTheme.typography.labelSmall,
+            Text(I18n.t("calc.powerRow"), style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(4.dp))
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
