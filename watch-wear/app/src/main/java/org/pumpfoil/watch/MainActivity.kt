@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Api.load(applicationContext)
+        I18n.load(applicationContext)   // gecachte Profil-Sprache (offline-tauglich)
         requestPerms()
         setContent { AppUi() }
     }
@@ -86,22 +87,22 @@ class MainActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Uhr verbinden", style = MaterialTheme.typography.title3)
+            Text(I18n.t("pair.title"), style = MaterialTheme.typography.title3)
             Spacer(Modifier.height(6.dp))
             if (code.isEmpty()) {
-                Text("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.",
+                Text(I18n.t("pair.howto"),
                     style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(8.dp))
                 Button(enabled = !busy, onClick = {
                     busy = true; error = ""
                     scope.launch {
                         try { val (c, t) = Api.pairInit(); code = c; claimToken = t }
-                        catch (e: Exception) { error = e.message ?: "Fehler" }
+                        catch (e: Exception) { error = e.message ?: I18n.t("common.error") }
                         busy = false
                     }
-                }) { Text(if (busy) "…" else "Pairing-Code erzeugen") }
+                }) { Text(if (busy) "…" else I18n.t("pair.gen")) }
             } else {
-                Text("Auf pumpfoil.org eingeben:",
+                Text(I18n.t("pair.enterOn"),
                     style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(4.dp))
                 Text(code, style = MaterialTheme.typography.display2, color = Color(0xFF22D3EE))
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                    Text("warte auf Bestätigung…",
+                    Text(I18n.t("pair.waiting"),
                         style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                 }
             }
@@ -117,7 +118,7 @@ class MainActivity : ComponentActivity() {
             Spacer(Modifier.height(8.dp))
             // Ohne Pairing aufnehmen — Sessions werden lokal gespeichert, später gesynct.
             CompactChip(onClick = onSkip,
-                label = { Text("Später verbinden", style = MaterialTheme.typography.caption2) })
+                label = { Text(I18n.t("pair.later"), style = MaterialTheme.typography.caption2) })
         }
     }
 
@@ -141,6 +142,7 @@ class MainActivity : ComponentActivity() {
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
 
         fun applyConfig(c: JSONObject) {
+            if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
             val vs = c.optJSONArray("views")
             if (vs != null && vs.length() > 0) {
                 views = (0 until vs.length()).map { i ->
@@ -232,10 +234,10 @@ class MainActivity : ComponentActivity() {
                                     FieldView(fid, s, colorBy)
                                 }
                             else -> {  // Stop-Seiten (vorne & hinten)
-                                Button(onClick = { RecorderService.stop(applicationContext) }) { Text("Stop") }
+                                Button(onClick = { RecorderService.stop(applicationContext) }) { Text(I18n.t("rec.stop")) }
                                 Spacer(Modifier.height(6.dp))
                                 Text(if (s.status.isNotEmpty()) s.status
-                                     else if (page == 0) "Datenfelder →" else "← Übersicht",
+                                     else if (page == 0) I18n.t("rec.toData") else I18n.t("rec.toSummary"),
                                     style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                             }
                         }
@@ -286,7 +288,7 @@ class MainActivity : ComponentActivity() {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.height(6.dp))
-                    Text(if (s.status.isNotEmpty()) s.status else "starte…",
+                    Text(if (s.status.isNotEmpty()) s.status else I18n.t("rec.starting"),
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 } else {
@@ -294,18 +296,18 @@ class MainActivity : ComponentActivity() {
                     skipSync()
                     if (manualAlarm || foils.isNotEmpty()) showFoilPicker = true
                     else RecorderService.start(applicationContext)
-                }) { Text("Start") }
+                }) { Text(I18n.t("rec.start")) }
                 // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
                 if (syncing) {
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                        Text("Sync…", style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                        Text(I18n.t("rec.sync"), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                     }
                     Spacer(Modifier.height(4.dp))
                     CompactChip(onClick = { skipSync() },
-                        label = { Text("Jetzt nicht", style = MaterialTheme.typography.caption2) })
+                        label = { Text(I18n.t("rec.notNow"), style = MaterialTheme.typography.caption2) })
                 } else if (s.status.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
                     Text(s.status, style = MaterialTheme.typography.caption2,
@@ -314,22 +316,22 @@ class MainActivity : ComponentActivity() {
                 // Nicht verbunden: Hinweis + Verbinden-Chip (Aufnahme geht trotzdem, lokal).
                 if (Api.deviceToken == null) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Nicht verbunden – Sessions lokal",
+                    Text(I18n.t("rec.notLinked"),
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
                     Spacer(Modifier.height(4.dp))
                     CompactChip(onClick = onWantPair,
-                        label = { Text("Verbinden", style = MaterialTheme.typography.caption2) })
+                        label = { Text(I18n.t("rec.connect"), style = MaterialTheme.typography.caption2) })
                 }
                 // Lokal wartende Sessions anzeigen (+ manueller Upload, wenn möglich).
                 if (s.pendingCount > 0) {
                     Spacer(Modifier.height(8.dp))
-                    Text("${s.pendingCount} warten auf Upload",
+                    Text("${s.pendingCount} " + I18n.t("rec.pendingUpload"),
                         style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                     if (Api.deviceToken != null) {
                         Spacer(Modifier.height(4.dp))
                         CompactChip(onClick = { Recorder.drain(ctx) },
-                            label = { Text("Jetzt hochladen", style = MaterialTheme.typography.caption2) })
+                            label = { Text(I18n.t("rec.uploadNow"), style = MaterialTheme.typography.caption2) })
                     }
                 }
                 }
@@ -358,17 +360,17 @@ private val DEFAULT_VIEWS = listOf(
 
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (Kernsatz; Rest "—").
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
-    1 -> String.format("%.1f", s.speed3sKmh) to "km/h (3s)"
-    5 -> String.format("%.1f", s.speedKmh) to "km/h"
-    6 -> String.format("%.1f", s.avgSpeedKmh) to "Ø km/h"
-    7 -> String.format("%.1f", s.maxSpeedKmh) to "max km/h"
-    2 -> (if (s.hr > 0) s.hr.toString() else "–") to "bpm"
-    8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to "Ø bpm"
-    9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to "max bpm"
-    3 -> String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60) to "Zeit"
+    1 -> String.format("%.1f", s.speed3sKmh) to I18n.t("f.kmh3s")
+    5 -> String.format("%.1f", s.speedKmh) to I18n.t("f.kmh")
+    6 -> String.format("%.1f", s.avgSpeedKmh) to I18n.t("f.kmhAvg")
+    7 -> String.format("%.1f", s.maxSpeedKmh) to I18n.t("f.kmhMax")
+    2 -> (if (s.hr > 0) s.hr.toString() else "–") to I18n.t("f.bpm")
+    8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to I18n.t("f.bpmAvg")
+    9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to I18n.t("f.bpmMax")
+    3 -> String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60) to I18n.t("f.time")
     4 -> if (s.distanceM < 1000) String.format("%.0f", s.distanceM) to "m"
          else String.format("%.2f", s.distanceM / 1000.0) to "km"
-    12 -> java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()) to "Uhr"
+    12 -> java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()) to I18n.t("f.clock")
     else -> "—" to ""
 }
 
@@ -414,7 +416,7 @@ fun FoilPicker(
         if (websiteAlarm != null) {
             Chip(
                 onClick = onWebsite,
-                label = { Text("Feste Werte") },
+                label = { Text(I18n.t("foil.fixed")) },
                 secondaryLabel = { Text("${websiteAlarm.low}–${websiteAlarm.high} km/h") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -435,14 +437,14 @@ fun FoilPicker(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text("Alarm wählen", style = MaterialTheme.typography.title3)
+        Text(I18n.t("foil.choose"), style = MaterialTheme.typography.title3)
         if (foilsFirst) { foilChips(); fixedChip() } else { fixedChip(); foilChips() }
-        CompactChip(onClick = onNone, label = { Text("Ohne Alarm") })
+        CompactChip(onClick = onNone, label = { Text(I18n.t("foil.none")) })
         CompactChip(
             onClick = onToggleRepeat,
-            label = { Text("Auslösen: " + if (repeatMode == "continuous") "dauerhaft" else "einmalig") },
+            label = { Text(I18n.t("foil.triggerPrefix") + if (repeatMode == "continuous") I18n.t("foil.continuous") else I18n.t("foil.once")) },
         )
-        CompactChip(onClick = onBack, label = { Text("Zurück") })
+        CompactChip(onClick = onBack, label = { Text(I18n.t("common.back")) })
     }
 }
 
