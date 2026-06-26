@@ -34,7 +34,7 @@ const appleShots = [
   { src: "/guide/apple/upload.webp", cap: "Upload nach dem Stopp" },
 ];
 
-export function WatchGuide() {
+export function WatchGuide({ onOpenApp }: { onOpenApp?: () => void }) {
   const [sel, setSel] = useState<string | null>(null);
   return (
     <div className="space-y-5">
@@ -70,8 +70,9 @@ export function WatchGuide() {
         <p className="mt-1 text-sm text-slate-300">Fenix, Forerunner, Epix, Instinct …</p>
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>1. App installieren:</b> „Pump Foil" aus dem Connect&nbsp;IQ&nbsp;Store laden — oder die
-            <code className="mx-1 rounded bg-slate-800 px-1">.prg</code> für dein Modell von hier herunterladen
-            (Tab „App") und mit <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
+            <code className="mx-1 rounded bg-slate-800 px-1">.prg</code> für dein Modell
+            <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>hier herunterladen</b></button>
+            und mit <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> in den Ordner <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>
             der Uhr kopieren.</li>
           <li><b>2. Code an der Uhr erzeugen:</b> Pump Foil öffnen (nicht starten) →
             <b> MENU halten</b> (Knopf Mitte-links) → <b>„Einstellungen"</b> → <b>„Verbinden"</b>.

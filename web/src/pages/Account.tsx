@@ -22,16 +22,15 @@ export default function Account() {
         <h2 className="text-xl font-bold">{t("nav.watch")}</h2>
       </div>
 
-      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-6">
+      <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-5">
         <TabBtn active={tab === "guide"} onClick={() => setTab("guide")}>{t("account.tabGuide")}</TabBtn>
         <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
         <TabBtn active={tab === "alarm"} onClick={() => setTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
-        <TabBtn active={tab === "app"} onClick={() => setTab("app")}>{t("account.tabApp")}</TabBtn>
         <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
         <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
 
-      {tab === "guide" && <WatchGuide />}
+      {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} />}
 
       {tab === "connect" && (
       <>
