@@ -38,8 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-private val LABEL_TYPES = listOf("pump" to "Pump", "glide" to "Gleiten", "not_foiling" to "Kein Foiling")
-private fun labelText(id: String) = LABEL_TYPES.firstOrNull { it.first == id }?.second ?: id
+// Pro Aufruf evaluiert, damit der Sprachwechsel greift.
+private fun labelTypes() = listOf("pump" to I18n.t("lab.pump"), "glide" to I18n.t("lab.glide"), "not_foiling" to I18n.t("lab.notFoiling"))
+private fun labelText(id: String) = labelTypes().firstOrNull { it.first == id }?.second ?: id
 private fun mmssL(sec: Float): String = "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +67,7 @@ fun LabelingScreen(id: Int, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Labeling") },
+                title = { Text(I18n.t("lab.title")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
             )
         },
@@ -76,17 +77,17 @@ fun LabelingScreen(id: Int, onBack: () -> Unit) {
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text("Bereiche markieren (Trainingsdaten fürs Modell).",
+            Text(I18n.t("lab.introShort"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(12.dp))
 
             if (labels.isNotEmpty()) {
-                Text("Vorhandene Labels", style = MaterialTheme.typography.titleMedium)
+                Text(I18n.t("lab.existing"), style = MaterialTheme.typography.titleMedium)
                 labels.forEach { l ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("${labelText(l.label)}  ${mmssL(l.tStartMs / 1000f)}–${mmssL(l.tEndMs / 1000f)}", Modifier.weight(1f))
                         IconButton(onClick = { scope.launch { try { Api.deleteLabel(id, l.id); reload() } catch (_: Exception) {} } }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Löschen")
+                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.delete"))
                         }
                     }
                     HorizontalDivider()
@@ -94,23 +95,23 @@ fun LabelingScreen(id: Int, onBack: () -> Unit) {
                 Spacer(Modifier.height(16.dp))
             }
 
-            Text("Label hinzufügen", style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("lab.add"), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LABEL_TYPES.forEach { (id2, label) ->
+                labelTypes().forEach { (id2, label) ->
                     FilterChip(selected = type == id2, onClick = { type = id2 }, label = { Text(label) })
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text("Start: ${mmssL(start)}")
+            Text("${I18n.t("common.start")}: ${mmssL(start)}")
             Slider(value = start, onValueChange = { start = it.coerceIn(0f, (end - 1).coerceAtLeast(0f)) }, valueRange = 0f..durSec.coerceAtLeast(1f))
-            Text("Ende: ${mmssL(end)}")
+            Text("${I18n.t("common.end")}: ${mmssL(end)}")
             Slider(value = end, onValueChange = { end = it.coerceIn(start + 1, durSec.coerceAtLeast(1f)) }, valueRange = 0f..durSec.coerceAtLeast(1f))
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = { scope.launch { try { Api.addLabel(id, (start * 1000).toLong(), (end * 1000).toLong(), type); reload() } catch (_: Exception) {} } },
                 enabled = end > start,
-            ) { Text("Label hinzufügen") }
+            ) { Text(I18n.t("lab.add")) }
         }
     }
 }

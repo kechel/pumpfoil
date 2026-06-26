@@ -3,7 +3,10 @@ import SwiftUI
 // Bereiche labeln (Pump/Gleiten/Kein Foiling) als Trainingsdaten fürs Modell.
 struct LabelingView: View {
     let id: Int
-    private let types: [(String, String)] = [("pump", "Pump"), ("glide", "Gleiten"), ("not_foiling", "Kein Foiling")]
+    @AppStorage("appLang") private var lang = "de"
+    private var types: [(String, String)] {
+        [("pump", Loc.t("lab.pump", lang)), ("glide", Loc.t("lab.glide", lang)), ("not_foiling", Loc.t("lab.notFoiling", lang))]
+    }
 
     @State private var labels: [SessionLabel] = []
     @State private var durSec = 0.0
@@ -15,7 +18,7 @@ struct LabelingView: View {
     var body: some View {
         Form {
             if !labels.isEmpty {
-                Section("Vorhandene Labels") {
+                Section(Loc.t("lab.existing", lang)) {
                     ForEach(labels) { l in
                         HStack {
                             Text("\(typeText(l.label))  \(mmss(Double(l.t_start_ms) / 1000))–\(mmss(Double(l.t_end_ms) / 1000))")
@@ -28,25 +31,25 @@ struct LabelingView: View {
                     }
                 }
             }
-            Section("Label hinzufügen") {
-                Picker("Typ", selection: $type) {
+            Section(Loc.t("lab.add", lang)) {
+                Picker(Loc.t("lab.type", lang), selection: $type) {
                     ForEach(types, id: \.0) { id2, label in Text(label).tag(id2) }
                 }
                 .pickerStyle(.segmented)
                 VStack(alignment: .leading) {
-                    Text("Start: \(mmss(start))").font(.caption)
+                    Text("\(Loc.t("common.start", lang)): \(mmss(start))").font(.caption)
                     Slider(value: $start, in: 0...max(durSec, 1))
-                    Text("Ende: \(mmss(end))").font(.caption)
+                    Text("\(Loc.t("common.end", lang)): \(mmss(end))").font(.caption)
                     Slider(value: $end, in: 0...max(durSec, 1))
                 }
-                Button("Label hinzufügen") {
+                Button(Loc.t("lab.add", lang)) {
                     let a = min(start, end), b = max(start, end)
                     Task { try? await Api.addLabel(id, startMs: Int(a * 1000), endMs: Int(b * 1000), label: type); await reload() }
                 }
                 .disabled(end <= start)
             }
         }
-        .navigationTitle("Labeling")
+        .navigationTitle(Loc.t("lab.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .overlay { if loading { ProgressView() } }
         .task {

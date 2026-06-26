@@ -3,9 +3,12 @@ import SwiftUI
 // Community-Rekorde je Zeitraum (Top-Speed, weitester/längster Lauf, längster Gleit,
 // meiste Läufe), klickbar zur Session. Spiegelt web/Community-Records.
 struct CommunityRecordsView: View {
-    private let periods: [(String, String)] = [
-        ("today", "Heute"), ("10d", "10 T"), ("30d", "30 T"), ("365d", "Jahr"), ("all", "Gesamt"),
-    ]
+    @AppStorage("appLang") private var lang = "de"
+    private var periods: [(String, String)] {
+        [("today", Loc.t("records.today", lang)), ("10d", "10 \(Loc.t("verlauf.daysAbbr", lang))"),
+         ("30d", "30 \(Loc.t("verlauf.daysAbbr", lang))"), ("365d", Loc.t("records.year", lang)),
+         ("all", Loc.t("verlauf.total", lang))]
+    }
     @State private var data: [String: PeriodRecords] = [:]
     @State private var period = "all"
     @State private var loaded = false
@@ -13,7 +16,7 @@ struct CommunityRecordsView: View {
     var body: some View {
         List {
             Section {
-                Picker("Zeitraum", selection: $period) {
+                Picker(Loc.t("verlauf.period", lang), selection: $period) {
                     ForEach(periods, id: \.0) { id, label in Text(label).tag(id) }
                 }
                 .pickerStyle(.segmented)
@@ -21,7 +24,7 @@ struct CommunityRecordsView: View {
             let r = data[period]
             let rows = entries(r)
             if rows.isEmpty {
-                Text(loaded ? "Noch keine Rekorde in diesem Zeitraum." : "")
+                Text(loaded ? Loc.t("records.empty", lang) : "")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(rows, id: \.label) { row in
@@ -33,7 +36,7 @@ struct CommunityRecordsView: View {
                 }
             }
         }
-        .navigationTitle("Rekorde")
+        .navigationTitle(Loc.t("home.records", lang))
         .navigationBarTitleDisplayMode(.inline)
         .overlay { if !loaded { ProgressView() } }
         .task { data = (try? await Api.communityRecords()) ?? [:]; loaded = true }
@@ -44,11 +47,11 @@ struct CommunityRecordsView: View {
     private func entries(_ r: PeriodRecords?) -> [Row] {
         guard let r else { return [] }
         var out: [Row] = []
-        if let e = r.speed, (e.value ?? 0) > 0 { out.append(Row(label: "Top-Speed", value: String(format: "%.1f km/h", (e.value ?? 0) * 3.6), entry: e)) }
-        if let e = r.distance, (e.value ?? 0) > 0 { out.append(Row(label: "Weitester Lauf", value: dist(e.value ?? 0), entry: e)) }
-        if let e = r.duration, (e.value ?? 0) > 0 { out.append(Row(label: "Längster Lauf", value: dur(e.value ?? 0), entry: e)) }
-        if let e = r.glide, (e.value ?? 0) > 0 { out.append(Row(label: "Längster Gleit", value: dur(e.value ?? 0), entry: e)) }
-        if let e = r.runs, (e.value ?? 0) > 0 { out.append(Row(label: "Meiste Läufe", value: "\(Int(e.value ?? 0))", entry: e)) }
+        if let e = r.speed, (e.value ?? 0) > 0 { out.append(Row(label: Loc.t("home.topSpeed", lang), value: String(format: "%.1f km/h", (e.value ?? 0) * 3.6), entry: e)) }
+        if let e = r.distance, (e.value ?? 0) > 0 { out.append(Row(label: Loc.t("home.farthestRun", lang), value: dist(e.value ?? 0), entry: e)) }
+        if let e = r.duration, (e.value ?? 0) > 0 { out.append(Row(label: Loc.t("home.longestRun", lang), value: dur(e.value ?? 0), entry: e)) }
+        if let e = r.glide, (e.value ?? 0) > 0 { out.append(Row(label: Loc.t("home.longestGlide", lang), value: dur(e.value ?? 0), entry: e)) }
+        if let e = r.runs, (e.value ?? 0) > 0 { out.append(Row(label: Loc.t("home.mostRuns", lang), value: "\(Int(e.value ?? 0))", entry: e)) }
         return out
     }
 

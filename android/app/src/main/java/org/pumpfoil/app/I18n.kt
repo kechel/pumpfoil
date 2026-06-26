@@ -44,6 +44,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "common.delete" to row("Löschen", "Lösche", "Löschen", "Delete", "Supprimer", "Elimina", "Eliminar"),
     "common.saved" to row("Gespeichert", "Gspycheret", "Gespeichert", "Saved", "Enregistré", "Salvato", "Guardado"),
     "common.noData" to row("Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Aucune donnée", "Nessun dato", "Sin datos"),
+    "common.start" to row("Start", "Start", "Start", "Start", "Début", "Inizio", "Inicio"),
+    "common.end" to row("Ende", "Ändi", "Ende", "End", "Fin", "Fine", "Fin"),
 
     "login.email" to row("E-Mail", "E-Mail", "E-Mail", "Email", "E-mail", "Email", "Correo"),
     "login.password" to row("Passwort", "Passwort", "Passwort", "Password", "Mot de passe", "Password", "Contraseña"),
@@ -181,4 +183,17 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "compare.distance" to row("Strecke", "Strecki", "Strecke", "Distance", "Distance", "Distanza", "Distancia"),
     "compare.foilTime" to row("Foil-Zeit", "Foil-Ziit", "Foil-Zeit", "Foil time", "Temps foil", "Tempo foil", "Tiempo foil"),
     "compare.cadence" to row("Cadence", "Cadence", "Cadence", "Cadence", "Cadence", "Cadenza", "Cadencia"),
+
+    "lab.title" to row("Labeln", "Labele", "Labeln", "Label", "Étiqueter", "Etichetta", "Etiquetar"),
+    "lab.pump" to row("Pumpen", "Pumpe", "Pumpen", "Pumping", "Pump", "Pump", "Pump"),
+    "lab.glide" to row("Gleiten", "Gleite", "Gleiten", "Gliding", "Glisse", "Planata", "Planeo"),
+    "lab.notFoiling" to row("kein Foilen", "kei Foile", "kein Foilen", "not foiling", "pas de foil", "niente foil", "sin foil"),
+    "lab.existing" to row("Vorhandene Labels", "Vorhandeni Labels", "Vorhandene Labels", "Existing labels", "Labels existants", "Etichette esistenti", "Etiquetas existentes"),
+    "lab.add" to row("Label hinzufügen", "Label zuefüege", "Label hinzufügen", "Add label", "Ajouter un label", "Aggiungi etichetta", "Añadir etiqueta"),
+    "lab.type" to row("Typ", "Typ", "Typ", "Type", "Type", "Tipo", "Tipo"),
+    "lab.introShort" to row("Bereiche markieren (Trainingsdaten fürs Modell).", "Beriich markiere (Trainingsdate fürs Modäll).", "Bereiche markieren (Trainingsdaten fürs Modell).", "Mark ranges (training data for the model).", "Marquer des plages (données d'entraînement pour le modèle).", "Segna intervalli (dati di addestramento per il modello).", "Marca rangos (datos de entrenamiento del modelo)."),
+
+    "records.today" to row("Heute", "Hüt", "Heute", "Today", "Aujourd'hui", "Oggi", "Hoy"),
+    "records.year" to row("Jahr", "Jahr", "Jahr", "Year", "Année", "Anno", "Año"),
+    "records.empty" to row("Noch keine Rekorde in diesem Zeitraum.", "No kei Rekord i dem Ziitruum.", "Noch keine Rekorde in diesem Zeitraum.", "No records in this period yet.", "Aucun record sur cette période.", "Nessun record in questo periodo.", "Sin récords en este periodo."),
 )

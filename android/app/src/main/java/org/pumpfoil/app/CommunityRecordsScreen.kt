@@ -35,7 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
-private val PERIODS = listOf("today" to "Heute", "10d" to "10 T", "30d" to "30 T", "365d" to "Jahr", "all" to "Gesamt")
+// Pro Aufruf evaluiert, damit der Sprachwechsel greift.
+private fun periods() = listOf(
+    "today" to I18n.t("records.today"),
+    "10d" to "10 ${I18n.t("verlauf.daysAbbr")}", "30d" to "30 ${I18n.t("verlauf.daysAbbr")}",
+    "365d" to I18n.t("records.year"), "all" to I18n.t("verlauf.total"),
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +56,7 @@ fun CommunityRecordsScreen(onBack: () -> Unit, onOpen: (Int) -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rekorde") },
+                title = { Text(I18n.t("home.records")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
             )
         },
@@ -66,21 +71,21 @@ fun CommunityRecordsScreen(onBack: () -> Unit, onOpen: (Int) -> Unit) {
         }
         Column(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PERIODS.forEach { (id, label) ->
+                periods().forEach { (id, label) ->
                     FilterChip(selected = period == id, onClick = { period = id }, label = { Text(label) })
                 }
             }
             Spacer(Modifier.height(12.dp))
             val r = d[period]
             val tiles = buildList {
-                r?.speed?.let { add(Triple("Top-Speed", "%.1f km/h".format(it.value * 3.6), it)) }
-                r?.distance?.let { add(Triple("Weitester Lauf", fmtDistR(it.value), it)) }
-                r?.duration?.let { add(Triple("Längster Lauf", fmtDurR(it.value), it)) }
-                r?.glide?.let { add(Triple("Längster Gleit", fmtDurR(it.value), it)) }
-                r?.runs?.let { add(Triple("Meiste Läufe", it.value.roundToInt().toString(), it)) }
-            }.filter { it.third.value > 0.0 || it.first == "Meiste Läufe" }
+                r?.speed?.let { add(Triple(I18n.t("home.topSpeed"), "%.1f km/h".format(it.value * 3.6), it)) }
+                r?.distance?.let { add(Triple(I18n.t("home.farthestRun"), fmtDistR(it.value), it)) }
+                r?.duration?.let { add(Triple(I18n.t("home.longestRun"), fmtDurR(it.value), it)) }
+                r?.glide?.let { add(Triple(I18n.t("home.longestGlide"), fmtDurR(it.value), it)) }
+                r?.runs?.let { add(Triple(I18n.t("home.mostRuns"), it.value.roundToInt().toString(), it)) }
+            }.filter { it.third.value > 0.0 || it.first == I18n.t("home.mostRuns") }
             if (tiles.isEmpty()) {
-                Text("Noch keine Rekorde in diesem Zeitraum.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.t("records.empty"), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     tiles.forEach { (label, value, e) ->
