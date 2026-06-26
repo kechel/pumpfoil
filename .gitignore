@@ -55,3 +55,7 @@ backups/
 # Web-Push VAPID Private Key
 vapid_private.pem
 *.pem
+
+jk-readme.txt
+watch-apple/Sources-iOS/Info.plist
+
