@@ -230,7 +230,7 @@ export default function Settings() {
           <Button variant="ghost" onClick={exportData}>{t("profile.exportData")}</Button>
           <button
             onClick={deleteAccount}
-            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/20"
+            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-500/20 dark:text-red-300"
           >
             {t("profile.deleteAccount")}
           </button>

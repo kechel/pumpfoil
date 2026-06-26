@@ -128,14 +128,14 @@ function PairedDevices() {
                   {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
                 </div>
                 {d.update_available && !d.revoked_at && (
-                  <a href="#guide-garmin" className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-300 hover:bg-amber-500/25">
+                  <a href="#guide-garmin" className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
                     {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
                   </a>
                 )}
               </div>
               {!d.revoked_at && (
                 <button onClick={() => revoke(d.id, d.label)}
-                  className="btn-danger shrink-0 rounded-lg bg-red-950/40 px-2.5 py-1.5 text-xs text-red-300 hover:bg-red-950/70">
+                  className="btn-danger shrink-0 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">
                   {t("account.deviceRevoke")}
                 </button>
               )}

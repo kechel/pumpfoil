@@ -437,11 +437,11 @@ function ChatModTab() {
           <p className="mb-2 whitespace-pre-wrap break-words text-sm text-slate-100">{m.text}</p>
           <div className="flex flex-wrap gap-2 text-xs">
             {m.hidden ? (
-              <button onClick={() => hide(m.id, false)} className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-emerald-300 hover:bg-emerald-600/30">{t("chat.unhide")}</button>
+              <button onClick={() => hide(m.id, false)} className="rounded-lg bg-emerald-600/20 px-2.5 py-1 text-emerald-700 hover:bg-emerald-600/30 dark:text-emerald-300">{t("chat.unhide")}</button>
             ) : (
-              <button onClick={() => hide(m.id, true)} className="rounded-lg bg-amber-600/20 px-2.5 py-1 text-amber-300 hover:bg-amber-600/30">{t("chat.hide")}</button>
+              <button onClick={() => hide(m.id, true)} className="rounded-lg bg-amber-600/20 px-2.5 py-1 text-amber-700 hover:bg-amber-600/30 dark:text-amber-300">{t("chat.hide")}</button>
             )}
-            <button onClick={() => readonly(m.user_id, m.name)} className="rounded-lg bg-red-950/40 px-2.5 py-1 text-red-300 hover:bg-red-950/70">{t("chat.readonly")}</button>
+            <button onClick={() => readonly(m.user_id, m.name)} className="rounded-lg bg-red-500/10 px-2.5 py-1 text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">{t("chat.readonly")}</button>
           </div>
         </Card>
       ))}
