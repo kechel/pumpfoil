@@ -174,6 +174,19 @@ def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, s
     return sub, None, None
 
 
+def _fallback_display_name(db: Session) -> str:
+    """Eindeutiger Default-Anzeigename (Foiler / Foiler2 / …), wenn der Provider keinen
+    Namen liefert (z. B. Apple ab dem 2. Login)."""
+    base = "Foiler"
+    name, i = base, 1
+    while db.query(models.User).filter(func.lower(models.User.display_name) == name.lower()).first():
+        i += 1
+        name = f"{base}{i}"
+        if i > 99999:
+            break
+    return name
+
+
 def _unique_display_name(db: Session, name: str | None) -> str | None:
     n = (name or "").strip()
     if not (2 <= len(n) <= 40):
@@ -245,10 +258,13 @@ def _login_or_create(db: Session, provider: str, subject: str, email: str | None
             user = db.query(models.User).filter(func.lower(models.User.email) == email.lower()).first()
         if user is None:  # neues Konto
             login_email = (email or f"{provider}_{subject}@oauth.local").lower()
+            # Apple/Google liefern den Namen oft nur beim 1. Login -> Fallback, damit das
+            # Profil nie leer ist (Nutzer kann ihn jederzeit ändern).
+            display = _unique_display_name(db, name) or _fallback_display_name(db)
             user = models.User(
                 email=login_email,
                 password_hash=hash_password(secrets.token_urlsafe(24)),
-                display_name=_unique_display_name(db, name),
+                display_name=display,
                 language="de",
             )
             db.add(user)

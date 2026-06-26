@@ -15,7 +15,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("Gewicht") {
-                Stepper("\(weight) kg", value: $weight.onChange { saved = false }, in: 0...200)
+                Stepper("\(weight) kg", value: $weight.onChange { saved = false }, in: 0...300)
             }
             Section("Homespot") {
                 Picker("Homespot", selection: $homespot.onChange { saved = false }) {
@@ -48,7 +48,7 @@ struct SettingsView: View {
 
     private func load() async {
         let s = (try? await Api.settings()) ?? [:]
-        weight = (s["weight_kg"] as? Int) ?? 0
+        weight = min(max((s["weight_kg"] as? Int) ?? 0, 0), 300)   // in Stepper-Range klemmen (Release-Crash vermeiden)
         homespot = (s["homespot"] as? String) ?? ""
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
