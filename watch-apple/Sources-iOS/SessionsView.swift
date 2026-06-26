@@ -5,6 +5,7 @@ private enum SessionScope { case mine, spot, all }
 // Sessions-Liste mit Scope-Umschalter (Meine / Homespot / Alle) + Spot-Suche.
 struct SessionsView: View {
     @EnvironmentObject var sync: SyncManager
+    @AppStorage("appLang") private var lang = "de"
     @State private var own: [SessionSummary] = []
     @State private var feed: [CommunityItem] = []
     @State private var scope: SessionScope = .mine
@@ -20,7 +21,7 @@ struct SessionsView: View {
                 Section {
                     scopeChips
                     HStack {
-                        TextField("Spot suchen", text: $spotInput)
+                        TextField(Loc.t("sessions.searchSpot", lang), text: $spotInput)
                             .textInputAutocapitalization(.never)
                             .onSubmit { applySpotSearch() }
                         Button { applySpotSearch() } label: { Image(systemName: "magnifyingglass") }
@@ -38,7 +39,7 @@ struct SessionsView: View {
                     }
                 }
                 if isEmpty && !loading && error == nil {
-                    Text("Keine Sessions").foregroundStyle(.secondary)
+                    Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
@@ -61,9 +62,9 @@ struct SessionsView: View {
 
     private var title: String {
         switch scope {
-        case .mine: return "Sessions · Meine"
-        case .all: return "Sessions · Alle"
-        case .spot: return "Sessions · 📍\(spot)"
+        case .mine: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.mine", lang))"
+        case .all: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.all", lang))"
+        case .spot: return "\(Loc.t("nav.sessions", lang)) · 📍\(spot)"
         }
     }
 
@@ -71,11 +72,11 @@ struct SessionsView: View {
 
     @ViewBuilder private var scopeChips: some View {
         HStack(spacing: 8) {
-            chip("Meine", scope == .mine) { scope = .mine }
+            chip(Loc.t("sessions.mine", lang), scope == .mine) { scope = .mine }
             if !homespot.isEmpty {
                 chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
             }
-            chip("Alle", scope == .all) { scope = .all }
+            chip(Loc.t("sessions.all", lang), scope == .all) { scope = .all }
         }
     }
 

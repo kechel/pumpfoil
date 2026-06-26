@@ -49,42 +49,42 @@ fun HomeScreen(onOpen: (Int) -> Unit) {
         loading = false
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Home") }, actions = { SyncIndicator() }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.home")) }, actions = { SyncIndicator() }) }) { pad ->
         if (loading && stats == null) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text("Hallo ${profile?.displayName ?: ""}".trim(), style = MaterialTheme.typography.headlineSmall)
+            Text("${I18n.t("home.hello")} ${profile?.displayName ?: ""}".trim(), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
 
             stats?.let { st ->
                 // Gesamt-Kennzahlen.
                 val totals = listOf(
-                    "Sessions" to st.count.toString(),
-                    "Foiling" to "%.1f km".format(st.foilingKm),
-                    "Läufe" to st.runsTotal.toString(),
-                    "Pumps" to st.pumps.toString(),
+                    I18n.t("nav.sessions") to st.count.toString(),
+                    I18n.t("home.foiling") to "%.1f km".format(st.foilingKm),
+                    I18n.t("home.runs") to st.runsTotal.toString(),
+                    I18n.t("home.pumps") to st.pumps.toString(),
                 )
                 TileGrid(totals.map { Triple(it.first, it.second, null as Int?) }, onOpen)
                 Spacer(Modifier.height(16.dp))
                 // Persönliche Rekorde (klickbar zur Session).
-                Text("Rekorde", style = MaterialTheme.typography.titleMedium)
+                Text(I18n.t("home.records"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 val r = st.records
                 val recs = buildList {
-                    r?.speed?.let { add(Triple("Top-Speed", "%.1f km/h".format(it.value * 3.6), it.sessionId)) }
-                    r?.distance?.let { add(Triple("Weitester Lauf", fmtDist(it.value), it.sessionId)) }
-                    r?.duration?.let { add(Triple("Längster Lauf", fmtDur(it.value), it.sessionId)) }
-                    r?.glide?.let { add(Triple("Längster Gleit", fmtDur(it.value), it.sessionId)) }
-                    r?.runs?.let { add(Triple("Meiste Läufe", it.value.roundToInt().toString(), it.sessionId)) }
+                    r?.speed?.let { add(Triple(I18n.t("home.topSpeed"), "%.1f km/h".format(it.value * 3.6), it.sessionId)) }
+                    r?.distance?.let { add(Triple(I18n.t("home.farthestRun"), fmtDist(it.value), it.sessionId)) }
+                    r?.duration?.let { add(Triple(I18n.t("home.longestRun"), fmtDur(it.value), it.sessionId)) }
+                    r?.glide?.let { add(Triple(I18n.t("home.longestGlide"), fmtDur(it.value), it.sessionId)) }
+                    r?.runs?.let { add(Triple(I18n.t("home.mostRuns"), it.value.roundToInt().toString(), it.sessionId)) }
                 }
                 TileGrid(recs, onOpen)
             }
 
             if (latest.isNotEmpty()) {
                 Spacer(Modifier.height(16.dp))
-                Text("Letzte Sessions", style = MaterialTheme.typography.titleMedium)
+                Text(I18n.t("home.latest"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 latest.forEach { s ->
                     Column(Modifier.fillMaxWidth().clickable { onOpen(s.id) }.padding(vertical = 8.dp)) {

@@ -79,9 +79,9 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
     Scaffold(
         topBar = {
             val title = when (scope) {
-                Scope.MINE -> "Sessions · Meine"
-                Scope.ALL -> "Sessions · Alle"
-                Scope.SPOT -> "Sessions · 📍${spot}"
+                Scope.MINE -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.mine")}"
+                Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
+                Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}"
             }
             TopAppBar(title = { Text(title) }, actions = { SyncIndicator() })
         },
@@ -93,7 +93,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                FilterChip(selected = scope == Scope.MINE, onClick = { scope = Scope.MINE }, label = { Text("Meine") })
+                FilterChip(selected = scope == Scope.MINE, onClick = { scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) })
                 if (homespot.isNotBlank()) {
                     FilterChip(
                         selected = scope == Scope.SPOT && spot == homespot,
@@ -101,11 +101,11 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                         label = { Text("📍$homespot") },
                     )
                 }
-                FilterChip(selected = scope == Scope.ALL, onClick = { scope = Scope.ALL }, label = { Text("Alle") })
+                FilterChip(selected = scope == Scope.ALL, onClick = { scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) })
             }
             OutlinedTextField(
                 value = spotInput, onValueChange = { spotInput = it },
-                label = { Text("Spot suchen") }, singleLine = true,
+                label = { Text(I18n.t("sessions.searchSpot")) }, singleLine = true,
                 trailingIcon = {
                     IconButton(onClick = { if (spotInput.isNotBlank()) { spot = spotInput.trim(); scope = Scope.SPOT } }) {
                         Icon(Icons.Filled.Search, contentDescription = "Suchen")
@@ -122,7 +122,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                         LazyColumn(Modifier.fillMaxSize()) {
                             error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                             if (empty && !loading && error == null) {
-                                item { Text("Keine Sessions", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             if (scope == Scope.MINE) {
                                 items(own) { s -> SessionRow(s, onClick = { onOpen(s.id) }); HorizontalDivider() }

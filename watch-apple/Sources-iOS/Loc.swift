@@ -65,5 +65,22 @@ enum Loc {
         "settings.nLikes": r("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
         "settings.nAnalyzed": r("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
         "settings.nRecord": r("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
+
+        "home.hello": r("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
+        "home.foiling": r("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
+        "home.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
+        "home.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
+        "home.records": r("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),
+        "home.topSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Velocidad máx"),
+        "home.farthestRun": r("Weitester Lauf", "Wytischte Lauf", "Weitester Lauf", "Farthest run", "Plus longue distance", "Distanza max", "Distancia máx"),
+        "home.longestRun": r("Längster Lauf", "Längschte Lauf", "Längster Lauf", "Longest run", "Plus longue durée", "Durata max", "Duración máx"),
+        "home.longestGlide": r("Längster Gleit", "Längschte Gleit", "Längster Gleit", "Longest glide", "Plus long plané", "Planata max", "Planeo máx"),
+        "home.mostRuns": r("Meiste Läufe", "Meischti Läuf", "Meiste Läufe", "Most runs", "Plus de runs", "Più run", "Más tramos"),
+        "home.latest": r("Letzte Sessions", "Letschti Sessions", "Letzte Sessions", "Latest sessions", "Dernières sessions", "Ultime sessioni", "Últimas sesiones"),
+
+        "sessions.mine": r("Meine", "Myni", "Meine", "Mine", "Les miennes", "Le mie", "Mías"),
+        "sessions.all": r("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
+        "sessions.searchSpot": r("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
+        "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
     ]
 }

@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var session: SessionStore
     @EnvironmentObject var sync: SyncManager
+    @AppStorage("appLang") private var lang = "de"
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
     @State private var loading = true
@@ -14,30 +15,30 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Hallo \(session.profile?.display_name ?? "")".trimmingCharacters(in: .whitespaces))
+                    Text("\(Loc.t("home.hello", lang)) \(session.profile?.display_name ?? "")".trimmingCharacters(in: .whitespaces))
                         .font(.title2).bold()
 
                     if let st = stats {
                         LazyVGrid(columns: cols, spacing: 12) {
-                            tile("\(st.count ?? 0)", "Sessions")
-                            tile(String(format: "%.1f km", st.foiling_km ?? 0), "Foiling")
-                            tile("\(st.runs_total ?? 0)", "Läufe")
-                            tile("\(st.pumps ?? 0)", "Pumps")
+                            tile("\(st.count ?? 0)", Loc.t("nav.sessions", lang))
+                            tile(String(format: "%.1f km", st.foiling_km ?? 0), Loc.t("home.foiling", lang))
+                            tile("\(st.runs_total ?? 0)", Loc.t("home.runs", lang))
+                            tile("\(st.pumps ?? 0)", Loc.t("home.pumps", lang))
                         }
                         if let r = st.records {
-                            Text("Rekorde").font(.headline)
+                            Text(Loc.t("home.records", lang)).font(.headline)
                             LazyVGrid(columns: cols, spacing: 12) {
-                                if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), "Top-Speed", v.session_id) }
-                                if let v = r.distance { recordTile(fmtDist(v.value ?? 0), "Weitester Lauf", v.session_id) }
-                                if let v = r.duration { recordTile(fmtDur(v.value ?? 0), "Längster Lauf", v.session_id) }
-                                if let v = r.glide { recordTile(fmtDur(v.value ?? 0), "Längster Gleit", v.session_id) }
-                                if let v = r.runs { recordTile("\(Int(v.value ?? 0))", "Meiste Läufe", v.session_id) }
+                                if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), Loc.t("home.topSpeed", lang), v.session_id) }
+                                if let v = r.distance { recordTile(fmtDist(v.value ?? 0), Loc.t("home.farthestRun", lang), v.session_id) }
+                                if let v = r.duration { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestRun", lang), v.session_id) }
+                                if let v = r.glide { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestGlide", lang), v.session_id) }
+                                if let v = r.runs { recordTile("\(Int(v.value ?? 0))", Loc.t("home.mostRuns", lang), v.session_id) }
                             }
                         }
                     }
 
                     if !latest.isEmpty {
-                        Text("Letzte Sessions").font(.headline)
+                        Text(Loc.t("home.latest", lang)).font(.headline)
                         VStack(spacing: 0) {
                             ForEach(latest) { s in
                                 NavigationLink { SessionDetailView(id: s.id) } label: {
@@ -61,7 +62,7 @@ struct HomeView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Home")
+            .navigationTitle(Loc.t("nav.home", lang))
             .overlay { if loading && stats == nil { ProgressView() } }
             .refreshable { await load() }
             .task { await load() }

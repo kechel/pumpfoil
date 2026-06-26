@@ -82,4 +82,21 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "settings.nLikes" to row("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
     "settings.nAnalyzed" to row("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
     "settings.nRecord" to row("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
+
+    "home.hello" to row("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
+    "home.foiling" to row("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
+    "home.runs" to row("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
+    "home.pumps" to row("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
+    "home.records" to row("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),
+    "home.topSpeed" to row("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Velocidad máx"),
+    "home.farthestRun" to row("Weitester Lauf", "Wytischte Lauf", "Weitester Lauf", "Farthest run", "Plus longue distance", "Distanza max", "Distancia máx"),
+    "home.longestRun" to row("Längster Lauf", "Längschte Lauf", "Längster Lauf", "Longest run", "Plus longue durée", "Durata max", "Duración máx"),
+    "home.longestGlide" to row("Längster Gleit", "Längschte Gleit", "Längster Gleit", "Longest glide", "Plus long plané", "Planata max", "Planeo máx"),
+    "home.mostRuns" to row("Meiste Läufe", "Meischti Läuf", "Meiste Läufe", "Most runs", "Plus de runs", "Più run", "Más tramos"),
+    "home.latest" to row("Letzte Sessions", "Letschti Sessions", "Letzte Sessions", "Latest sessions", "Dernières sessions", "Ultime sessioni", "Últimas sesiones"),
+
+    "sessions.mine" to row("Meine", "Myni", "Meine", "Mine", "Les miennes", "Le mie", "Mías"),
+    "sessions.all" to row("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
+    "sessions.searchSpot" to row("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
+    "sessions.empty" to row("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
 )
