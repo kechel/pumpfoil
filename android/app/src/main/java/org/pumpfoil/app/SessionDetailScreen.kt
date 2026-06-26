@@ -25,8 +25,11 @@ import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,6 +89,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var showReport by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(id) {
@@ -120,7 +124,25 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
                     }
                 },
                 actions = {
-                    if (session?.owned == true) {
+                    val s = session
+                    if (s != null && !s.owned) {
+                        Box {
+                            IconButton(onClick = { showReport = true }) {
+                                Icon(Icons.Filled.Flag, contentDescription = "Melden")
+                            }
+                            DropdownMenu(expanded = showReport, onDismissRequest = { showReport = false }) {
+                                DropdownMenuItem(text = { Text("Als Fake melden") }, onClick = {
+                                    showReport = false
+                                    scope.launch { try { Api.voteSession(id, "fake") } catch (_: Exception) {} }
+                                })
+                                DropdownMenuItem(text = { Text("Als unangemessen melden") }, onClick = {
+                                    showReport = false
+                                    scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
+                                })
+                            }
+                        }
+                    }
+                    if (s?.owned == true) {
                         IconButton(onClick = { confirmDelete = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Löschen")
                         }

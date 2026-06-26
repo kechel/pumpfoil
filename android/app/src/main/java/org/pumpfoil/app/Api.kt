@@ -158,6 +158,10 @@ object Api {
         http("DELETE", "/api/sessions/$id", null, auth = true)
     }
 
+    suspend fun voteSession(id: Int, kind: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/community/sessions/$id/vote?kind=$kind", null, auth = true)
+    }
+
     suspend fun setCaption(id: Int, caption: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("caption", caption) }.toString(), auth = true)
     }

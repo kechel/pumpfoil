@@ -41,6 +41,13 @@ struct SessionDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(role: .destructive) { confirmDelete = true } label: { Image(systemName: "trash") }
                 }
+            } else if session != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Als Fake melden") { Task { try? await Api.vote(id, kind: "fake") } }
+                        Button("Als unangemessen melden") { Task { try? await Api.vote(id, kind: "inappropriate") } }
+                    } label: { Image(systemName: "flag") }
+                }
             }
         }
         .confirmationDialog("Session löschen?", isPresented: $confirmDelete, titleVisibility: .visible) {
