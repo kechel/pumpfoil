@@ -644,6 +644,7 @@ def _clean_youtube(raw: str | None) -> str | None:
 
 
 @router.patch("/{session_id}/meta", response_model=SessionOut)
+@router.put("/{session_id}/meta", response_model=SessionOut)  # PUT-Alias für Clients ohne PATCH (Android HttpURLConnection)
 def set_meta(
     session_id: int,
     body: SessionMetaIn,

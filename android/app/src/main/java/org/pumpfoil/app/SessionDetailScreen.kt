@@ -49,6 +49,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -148,8 +149,31 @@ private fun DetailContent(s: SessionDetail) {
     var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
     var weightKg by remember { mutableStateOf(0.0) }
+    var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
+    var editCaption by remember(s.id) { mutableStateOf(false) }
+    var draftCaption by remember(s.id) { mutableStateOf("") }
     LaunchedEffect(Unit) {
         weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
+    }
+    if (editCaption) {
+        AlertDialog(
+            onDismissRequest = { editCaption = false },
+            title = { Text("Beschriftung") },
+            text = {
+                OutlinedTextField(
+                    value = draftCaption, onValueChange = { if (it.length <= 30) draftCaption = it },
+                    singleLine = true, supportingText = { Text("${draftCaption.length}/30") },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val c = draftCaption.trim(); editCaption = false
+                    caption = c
+                    scope.launch { try { Api.setCaption(s.id, c) } catch (_: Exception) {} }
+                }) { Text("Speichern") }
+            },
+            dismissButton = { TextButton(onClick = { editCaption = false }) { Text("Abbrechen") } },
+        )
     }
     Column(
         Modifier.verticalScroll(rememberScrollState()),
@@ -172,7 +196,12 @@ private fun DetailContent(s: SessionDetail) {
         s.placeName?.takeIf { it.isNotBlank() }?.let {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        s.caption?.takeIf { it.isNotBlank() }?.let { Text(it) }
+        if (caption.isNotBlank()) Text(caption)
+        if (s.owned) {
+            TextButton(onClick = { draftCaption = caption; editCaption = true }) {
+                Text(if (caption.isBlank()) "Beschriftung hinzufügen" else "Beschriftung bearbeiten")
+            }
+        }
 
         // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
         val ytId = remember(s.youtubeUrl) { youtubeId(s.youtubeUrl) }

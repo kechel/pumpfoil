@@ -19,6 +19,9 @@ struct SessionDetailView: View {
     @State private var showPumps = true
     @State private var weightKg = 0.0
     @State private var confirmDelete = false
+    @State private var caption = ""
+    @State private var editingCaption = false
+    @State private var draftCaption = ""
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -46,6 +49,15 @@ struct SessionDetailView: View {
             }
             Button("Abbrechen", role: .cancel) {}
         }
+        .alert("Beschriftung", isPresented: $editingCaption) {
+            TextField("Beschriftung", text: $draftCaption)
+            Button("Speichern") {
+                let c = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
+                caption = c
+                Task { try? await Api.setCaption(id, caption: c) }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
         .task { await load() }
     }
 
@@ -57,7 +69,13 @@ struct SessionDetailView: View {
                     if let p = s.place_name, !p.isEmpty {
                         Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
                     }
-                    if let c = s.caption, !c.isEmpty { Text(c).foregroundStyle(.secondary) }
+                    if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
+                    if s.owned == true {
+                        Button(caption.isEmpty ? "Beschriftung hinzufügen" : "Beschriftung bearbeiten") {
+                            draftCaption = caption; editingCaption = true
+                        }
+                        .font(.caption).buttonStyle(.borderless)
+                    }
                 }
                 Spacer()
                 Button {
@@ -198,6 +216,7 @@ struct SessionDetailView: View {
             session = s
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
+            caption = s.caption ?? ""
             photos = (try? await Api.sessionPhotos(id)) ?? []
             weightKg = ((try? await Api.settings())?["weight_kg"] as? Int).map(Double.init) ?? 0
             error = nil

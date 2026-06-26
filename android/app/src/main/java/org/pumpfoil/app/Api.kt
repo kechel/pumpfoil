@@ -119,6 +119,10 @@ object Api {
         http("DELETE", "/api/sessions/$id", null, auth = true)
     }
 
+    suspend fun setCaption(id: Int, caption: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("caption", caption) }.toString(), auth = true)
+    }
+
     suspend fun spots(): SpotsList = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots", null, auth = true))
     }
