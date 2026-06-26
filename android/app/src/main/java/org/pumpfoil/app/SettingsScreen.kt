@@ -99,7 +99,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Einstellungen") },
+                title = { Text(I18n.t("settings.title")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
             )
         },
@@ -110,7 +110,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             // Gewicht.
-            Text("Gewicht (kg)", style = MaterialTheme.typography.labelLarge)
+            Text("${I18n.t("settings.weight")} (kg)", style = MaterialTheme.typography.labelLarge)
             OutlinedTextField(
                 value = weight, onValueChange = { weight = it.filter { c -> c.isDigit() }.take(3); saved = false },
                 singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -119,33 +119,33 @@ fun SettingsScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             // Homespot.
-            Text("Homespot", style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("settings.homespot"), style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(4.dp))
             Dropdown(
-                options = listOf("" to "Automatisch (letzter Spot)") + spots.map { it to it },
+                options = listOf("" to I18n.t("settings.auto")) + spots.map { it to it },
                 selected = homespot, onSelect = { homespot = it; saved = false },
             )
             Spacer(Modifier.height(16.dp))
 
             // Theme (lokal, sofort wirksam).
-            Text("Design", style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(4.dp))
             Dropdown(
-                options = listOf("auto" to "Automatisch", "light" to "Hell", "dark" to "Dunkel"),
+                options = listOf("auto" to I18n.t("settings.auto"), "light" to I18n.t("settings.light"), "dark" to I18n.t("settings.dark")),
                 selected = theme, onSelect = { theme = it; ThemeState.set(ctx, it) },
             )
             Spacer(Modifier.height(16.dp))
 
             // Push-Benachrichtigungen.
-            Text("Benachrichtigungen", style = MaterialTheme.typography.labelLarge)
-            ToggleRow("Likes", nLike) { nLike = it; saved = false }
-            ToggleRow("Auswertung fertig", nAnalyzed) { nAnalyzed = it; saved = false }
-            ToggleRow("Aufnahme/Records", nRecord) { nRecord = it; saved = false }
+            Text(I18n.t("settings.notifications"), style = MaterialTheme.typography.labelLarge)
+            ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
+            ToggleRow(I18n.t("settings.nAnalyzed"), nAnalyzed) { nAnalyzed = it; saved = false }
+            ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
 
             Spacer(Modifier.height(24.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text("Speichern") }
-                if (saved) { Spacer(Modifier.width(12.dp)); Text("Gespeichert", color = MaterialTheme.colorScheme.primary) }
+                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
+                if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
             }
         }
     }

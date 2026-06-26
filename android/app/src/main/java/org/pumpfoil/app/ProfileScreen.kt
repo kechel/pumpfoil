@@ -78,7 +78,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
     if (editing) {
         AlertDialog(
             onDismissRequest = { editing = false },
-            title = { Text("Anzeigename") },
+            title = { Text(I18n.t("profile.editName")) },
             text = {
                 OutlinedTextField(value = draftName, onValueChange = { draftName = it }, singleLine = true)
             },
@@ -89,12 +89,12 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     if (n.isNotEmpty()) scope.launch {
                         try { profile = Api.updateDisplayName(n) } catch (_: Exception) {}
                     }
-                }) { Text("Speichern") }
+                }) { Text(I18n.t("common.save")) }
             },
-            dismissButton = { TextButton(onClick = { editing = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
-    Scaffold(topBar = { TopAppBar(title = { Text("Profil") }, actions = { SyncIndicator() }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.profile")) }, actions = { SyncIndicator() }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val avatar = Api.mediaUrl(profile?.avatarUrl)
@@ -127,50 +127,52 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             Spacer(Modifier.height(24.dp))
             ListItem(
                 modifier = Modifier.clickable { onFoils() },
-                headlineContent = { Text("Foils") },
-                supportingContent = { Text("Katalog · meine & Standard wählen") },
+                headlineContent = { Text(I18n.t("profile.foils")) },
+                supportingContent = { Text(I18n.t("profile.foilsSub")) },
                 leadingContent = { Icon(Icons.Filled.Surfing, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onFoilCalc() },
-                headlineContent = { Text("Foil-Rechner") },
-                supportingContent = { Text("Foils vergleichen & Pump-Leistung") },
+                headlineContent = { Text(I18n.t("profile.calc")) },
+                supportingContent = { Text(I18n.t("profile.calcSub")) },
                 leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onFoilStats() },
-                headlineContent = { Text("Foil-Statistik") },
-                supportingContent = { Text("Community: Werte je Foil") },
+                headlineContent = { Text(I18n.t("profile.stats")) },
+                supportingContent = { Text(I18n.t("profile.statsSub")) },
                 leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onCompare() },
-                headlineContent = { Text("Sessions vergleichen") },
-                supportingContent = { Text("Kennzahlen mehrerer Sessions") },
+                headlineContent = { Text(I18n.t("profile.compare")) },
+                supportingContent = { Text(I18n.t("profile.compareSub")) },
                 leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onAlarm() },
-                headlineContent = { Text("On-Foil Alarm") },
-                supportingContent = { Text("Speed-Grenzen & Muster für die Uhr") },
+                headlineContent = { Text(I18n.t("profile.alarm")) },
+                supportingContent = { Text(I18n.t("profile.alarmSub")) },
                 leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onDataFields() },
-                headlineContent = { Text("Datenseiten") },
-                supportingContent = { Text("Felder je Uhr-Screen konfigurieren") },
+                headlineContent = { Text(I18n.t("profile.datafields")) },
+                supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
                 leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onSettings() },
-                headlineContent = { Text("Einstellungen") },
-                supportingContent = { Text("Gewicht, Homespot, Design, Benachrichtigungen") },
+                headlineContent = { Text(I18n.t("settings.title")) },
+                supportingContent = {
+                    Text("${I18n.t("settings.weight")}, ${I18n.t("settings.homespot")}, ${I18n.t("settings.design")}, ${I18n.t("settings.notifications")}")
+                },
                 leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
@@ -179,7 +181,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 onClick = { Api.logout(ctx); onLogout() },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
             ) {
-                Text("Abmelden")
+                Text(I18n.t("profile.logout"))
             }
         }
     }

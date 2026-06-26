@@ -4,6 +4,7 @@ import PhotosUI
 // Profil: Avatar (antippbar zum Ändern), Anzeigename, Navigationsziele, Abmelden.
 struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
+    @AppStorage("appLang") private var lang = "de"
     @State private var editing = false
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
@@ -34,50 +35,50 @@ struct ProfileView: View {
                     NavigationLink {
                         FoilsView()
                     } label: {
-                        Label("Foils", systemImage: "water.waves")
+                        Label(Loc.t("profile.foils", lang), systemImage: "water.waves")
                     }
                     NavigationLink {
                         FoilCalculatorView()
                     } label: {
-                        Label("Foil-Rechner", systemImage: "function")
+                        Label(Loc.t("profile.calc", lang), systemImage: "function")
                     }
                     NavigationLink {
                         FoilStatsView()
                     } label: {
-                        Label("Foil-Statistik", systemImage: "chart.bar")
+                        Label(Loc.t("profile.stats", lang), systemImage: "chart.bar")
                     }
                     NavigationLink {
                         CompareView()
                     } label: {
-                        Label("Sessions vergleichen", systemImage: "arrow.left.arrow.right")
+                        Label(Loc.t("profile.compare", lang), systemImage: "arrow.left.arrow.right")
                     }
                     NavigationLink {
                         AlarmView()
                     } label: {
-                        Label("On-Foil Alarm", systemImage: "waveform.path")
+                        Label(Loc.t("profile.alarm", lang), systemImage: "waveform.path")
                     }
                     NavigationLink {
                         DataFieldsView()
                     } label: {
-                        Label("Datenseiten", systemImage: "square.grid.2x2")
+                        Label(Loc.t("profile.datafields", lang), systemImage: "square.grid.2x2")
                     }
                     NavigationLink {
                         SettingsView()
                     } label: {
-                        Label("Einstellungen", systemImage: "gearshape")
+                        Label(Loc.t("settings.title", lang), systemImage: "gearshape")
                     }
-                    Link("pumpfoil.org öffnen", destination: URL(string: "https://pumpfoil.org")!)
+                    Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
                 }
                 Section {
-                    Button("Abmelden", role: .destructive) { session.logout() }
+                    Button(Loc.t("profile.logout", lang), role: .destructive) { session.logout() }
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Profil")
+            .navigationTitle(Loc.t("nav.profile", lang))
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
-            .alert("Anzeigename", isPresented: $editing) {
+            .alert(Loc.t("profile.editName", lang), isPresented: $editing) {
                 TextField("Name", text: $draftName)
-                Button("Speichern") {
+                Button(Loc.t("common.save", lang)) {
                     let n = draftName.trimmingCharacters(in: .whitespaces)
                     if !n.isEmpty {
                         Task { if let p = try? await Api.updateDisplayName(n) { session.profile = p } }

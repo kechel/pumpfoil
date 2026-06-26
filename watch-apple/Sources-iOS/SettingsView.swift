@@ -4,6 +4,7 @@ import SwiftUI
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.
 struct SettingsView: View {
     @AppStorage("themeMode") private var themeMode = "auto"
+    @AppStorage("appLang") private var lang = "de"
     @State private var weight = 0
     @State private var homespot = ""
     @State private var spots: [String] = []
@@ -14,34 +15,34 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Gewicht") {
+            Section(Loc.t("settings.weight", lang)) {
                 Stepper("\(weight) kg", value: $weight, in: 0...300)
             }
-            Section("Homespot") {
-                Picker("Homespot", selection: $homespot) {
-                    Text("Automatisch").tag("")
+            Section(Loc.t("settings.homespot", lang)) {
+                Picker(Loc.t("settings.homespot", lang), selection: $homespot) {
+                    Text(Loc.t("settings.auto", lang)).tag("")
                     ForEach(spots, id: \.self) { Text($0).tag($0) }
                 }
             }
-            Section("Design") {
-                Picker("Design", selection: $themeMode) {
-                    Text("Automatisch").tag("auto")
-                    Text("Hell").tag("light")
-                    Text("Dunkel").tag("dark")
+            Section(Loc.t("settings.design", lang)) {
+                Picker(Loc.t("settings.design", lang), selection: $themeMode) {
+                    Text(Loc.t("settings.auto", lang)).tag("auto")
+                    Text(Loc.t("settings.light", lang)).tag("light")
+                    Text(Loc.t("settings.dark", lang)).tag("dark")
                 }
                 .pickerStyle(.segmented)
             }
-            Section("Benachrichtigungen") {
-                Toggle("Likes", isOn: $nLike)
-                Toggle("Auswertung fertig", isOn: $nAnalyzed)
-                Toggle("Aufnahme/Records", isOn: $nRecord)
+            Section(Loc.t("settings.notifications", lang)) {
+                Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
+                Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
+                Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
             }
             Section {
-                Button("Speichern") { save() }
-                if saved { Text("Gespeichert").foregroundStyle(.green).font(.footnote) }
+                Button(Loc.t("common.save", lang)) { save() }
+                if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
             }
         }
-        .navigationTitle("Einstellungen")
+        .navigationTitle(Loc.t("settings.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: weight) { _ in saved = false }
