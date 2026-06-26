@@ -224,11 +224,14 @@ struct SessionDetail: Codable, Identifiable {
     let foil: Foil?        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     let analysis: Analysis?
 
-    var startedDate: Date? {
+    var startedDate: Date? { Self.parseDate(started_at) }
+    var endedDate: Date? { ended_at.flatMap(Self.parseDate) }
+
+    static func parseDate(_ s: String) -> Date? {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: started_at) { return d }
+        if let d = f.date(from: s) { return d }
         f.formatOptions = [.withInternetDateTime]
-        return f.date(from: started_at)
+        return f.date(from: s)
     }
 }

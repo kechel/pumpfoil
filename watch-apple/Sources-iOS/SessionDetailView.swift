@@ -20,6 +20,9 @@ struct SessionDetailView: View {
     @State private var showPumps = true
     @State private var myFoils: [Foil] = []
     @State private var selectedFoilId = 0
+    @State private var showTrim = false
+    @State private var trimStart = 0.0
+    @State private var trimEnd = 0.0
     @State private var weightKg = 0.0
     @State private var confirmDelete = false
     @State private var caption = ""
@@ -41,6 +44,11 @@ struct SessionDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if session?.owned == true {
+                if durSec > 1 {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { trimStart = 0; trimEnd = durSec; showTrim = true } label: { Image(systemName: "scissors") }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(role: .destructive) { confirmDelete = true } label: { Image(systemName: "trash") }
                 }
@@ -74,7 +82,38 @@ struct SessionDetailView: View {
                 Task { try? await Api.setSessionFoil(id, foilId: fid); await load() }
             }
         }
+        .sheet(isPresented: $showTrim) { trimSheet }
     }
+
+    private var durSec: Double {
+        guard let a = session?.startedDate, let b = session?.endedDate, b > a else { return 0 }
+        return b.timeIntervalSince(a)
+    }
+
+    private var trimSheet: some View {
+        NavigationStack {
+            Form {
+                Section("Start: \(mmss(trimStart))") { Slider(value: $trimStart, in: 0...max(durSec, 1)) }
+                Section("Ende: \(mmss(trimEnd))") { Slider(value: $trimEnd, in: 0...max(durSec, 1)) }
+                Section {
+                    Button("Anwenden") {
+                        let a = min(trimStart, trimEnd), b = max(trimStart, trimEnd)
+                        showTrim = false
+                        Task { try? await Api.setTrim(id, startMs: Int(a * 1000), endMs: Int(b * 1000)); await load() }
+                    }
+                    Button("Zuschnitt aufheben", role: .destructive) {
+                        showTrim = false
+                        Task { try? await Api.setTrim(id, startMs: nil, endMs: nil); await load() }
+                    }
+                }
+            }
+            .navigationTitle("Zuschneiden")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { showTrim = false } } }
+        }
+    }
+
+    private func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
 
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {

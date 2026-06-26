@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
@@ -55,6 +56,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -91,8 +93,15 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
+    var showTrim by remember { mutableStateOf(false) }
+    var trimStart by remember { mutableStateOf(0f) }
+    var trimEnd by remember { mutableStateOf(0f) }
     var reloadTick by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
+    val durSec = remember(session) {
+        val a = epochMs(session?.startedAt); val b = epochMs(session?.endedAt)
+        if (a != null && b != null && b > a) ((b - a) / 1000).toFloat() else 0f
+    }
 
     LaunchedEffect(id, reloadTick) {
         loading = true
@@ -113,6 +122,33 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
                 }) { Text("Löschen") }
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Abbrechen") } },
+        )
+    }
+    if (showTrim) {
+        AlertDialog(
+            onDismissRequest = { showTrim = false },
+            title = { Text("Zuschneiden") },
+            text = {
+                Column {
+                    Text("Start: ${mmss(trimStart)}")
+                    Slider(value = trimStart, onValueChange = { trimStart = it.coerceIn(0f, (trimEnd - 1).coerceAtLeast(0f)) }, valueRange = 0f..durSec)
+                    Text("Ende: ${mmss(trimEnd)}")
+                    Slider(value = trimEnd, onValueChange = { trimEnd = it.coerceIn(trimStart + 1, durSec) }, valueRange = 0f..durSec)
+                    TextButton(onClick = {
+                        showTrim = false
+                        scope.launch { try { Api.setTrim(id, null, null); reloadTick++ } catch (_: Exception) {} }
+                    }) { Text("Zuschnitt aufheben") }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showTrim = false
+                    scope.launch {
+                        try { Api.setTrim(id, (trimStart * 1000).toLong(), (trimEnd * 1000).toLong()); reloadTick++ } catch (_: Exception) {}
+                    }
+                }) { Text("Anwenden") }
+            },
+            dismissButton = { TextButton(onClick = { showTrim = false }) { Text("Abbrechen") } },
         )
     }
 
@@ -142,6 +178,11 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
                                     scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
                                 })
                             }
+                        }
+                    }
+                    if (s?.owned == true && durSec > 1f) {
+                        IconButton(onClick = { trimStart = 0f; trimEnd = durSec; showTrim = true }) {
+                            Icon(Icons.Filled.ContentCut, contentDescription = "Zuschneiden")
                         }
                     }
                     if (s?.owned == true) {
@@ -593,3 +634,8 @@ private fun youtubeId(url: String?): String? {
     for (p in patterns) p.find(url)?.let { return it.groupValues[1] }
     return null
 }
+
+private fun epochMs(iso: String?): Long? = iso?.let {
+    try { java.time.OffsetDateTime.parse(it).toInstant().toEpochMilli() } catch (_: Exception) { null }
+}
+private fun mmss(sec: Float): String = "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())

@@ -7,6 +7,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -168,6 +169,14 @@ object Api {
 
     suspend fun setSessionFoil(id: Int, foilId: Int): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("foil_id", foilId) }.toString(), auth = true)
+    }
+
+    suspend fun setTrim(id: Int, startMs: Long?, endMs: Long?): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            if (startMs == null) put("trim_start_ms", JsonNull) else put("trim_start_ms", startMs)
+            if (endMs == null) put("trim_end_ms", JsonNull) else put("trim_end_ms", endMs)
+        }.toString()
+        http("PUT", "/api/sessions/$id/trim", body, auth = true)
     }
 
     suspend fun spots(): SpotsList = withContext(Dispatchers.IO) {

@@ -602,6 +602,7 @@ def reanalyze(
 
 
 @router.patch("/{session_id}/trim", response_model=SessionOut)
+@router.put("/{session_id}/trim", response_model=SessionOut)  # PUT-Alias (Android HttpURLConnection kann kein PATCH)
 def set_trim(
     session_id: int,
     body: TrimIn,
