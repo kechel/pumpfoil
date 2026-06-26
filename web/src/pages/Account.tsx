@@ -30,7 +30,7 @@ export default function Account() {
         <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
 
-      {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} />}
+      {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} onOpenConnect={() => setTab("connect")} />}
 
       {tab === "connect" && (
       <>

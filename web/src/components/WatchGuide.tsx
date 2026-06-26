@@ -34,8 +34,11 @@ const appleShots = [
   { src: "/guide/apple/upload.webp", cap: "Upload nach dem Stopp" },
 ];
 
-export function WatchGuide({ onOpenApp }: { onOpenApp?: () => void }) {
+export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
   const [sel, setSel] = useState<string | null>(null);
+  const connectLink = (
+    <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>„Verbinden"</b></button>
+  );
   return (
     <div className="space-y-5">
       {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
@@ -77,7 +80,7 @@ export function WatchGuide({ onOpenApp }: { onOpenApp?: () => void }) {
           <li><b>2. Code an der Uhr erzeugen:</b> Pump Foil öffnen (nicht starten) →
             <b> MENU halten</b> (Knopf Mitte-links) → <b>„Einstellungen"</b> → <b>„Verbinden"</b>.
             Die Uhr zeigt einen 6-stelligen Code (Handy in der Nähe oder WLAN nötig).</li>
-          <li><b>3. Code hier eintragen:</b> Tab <b>„Verbinden"</b> → „Code von der Uhr eingeben".
+          <li><b>3. Code hier eintragen:</b> Tab {connectLink} → „Code von der Uhr eingeben".
             Fertig — die Uhr ist deinem Konto zugeordnet.</li>
           <li><b>4. Datenfelder &amp; Alarm:</b> hier auf pumpfoil.org in den Tabs <b>„Datenfelder"</b>
             (bis zu 3 pro Screen) und <b>„Alarm"</b> einstellen — wird nach dem Verbinden auf die Uhr geladen.</li>
@@ -111,7 +114,7 @@ export function WatchGuide({ onOpenApp }: { onOpenApp?: () => void }) {
           <li><b>2. Verbinden — optional:</b> Du kannst <b>sofort ohne Konto aufnehmen</b>
             („Später verbinden") und die Session später hochladen. Zum Zuordnen: in der Watch-App
             <b> „Verbinden" → „Pairing-Code erzeugen"</b> — den angezeigten Code hier im Tab
-            <b> „Verbinden"</b> eintragen.</li>
+            {connectLink} eintragen.</li>
           <li><b>3. Datenfelder:</b> direkt auf der Uhr <b>wischbare Seiten</b> (konfigurierbar im Tab
             „Datenfelder"). Stopp-Button am Anfang und Ende der Seiten.</li>
           <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Aufnahme läuft auch
@@ -141,7 +144,7 @@ export function WatchGuide({ onOpenApp }: { onOpenApp?: () => void }) {
           <li><b>1. App installieren:</b> aus dem Google&nbsp;Play&nbsp;Store (in Vorbereitung).</li>
           <li><b>2. Verbinden — optional:</b> wie bei Apple Watch — <b>ohne Konto aufnehmen</b> möglich,
             später verbinden; oder in der Uhr-App <b>„Verbinden" → „Pairing-Code erzeugen"</b> und den
-            Code hier im Tab „Verbinden" eintragen.</li>
+            Code hier im Tab {connectLink} eintragen.</li>
           <li><b>3. Datenfelder:</b> wischbare Seiten, konfigurierbar im Tab „Datenfelder".</li>
           <li><b>4. Aufnehmen:</b> App öffnen → <b>Start</b> → foilen → <b>Stop</b>. Offline-Aufnahme +
             automatischer Sync.</li>
