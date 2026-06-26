@@ -92,7 +92,11 @@ struct PairView: View {
     }
 }
 
-struct WatchAlarm { var enabled = false; var high = 0; var low = 0 }
+struct WatchAlarm {
+    var enabled = false; var high = 0; var low = 0
+    var patHigh = "short2"; var patLow = "long2"
+    var repeatMode = "once"   // "once" = einmalig | "continuous" = dauerhaft
+}
 
 // Aufnahme: konfigurierte, wischbare Datenseiten (aus /api/devices/config) + Alarm.
 struct RecordView: View {
@@ -108,6 +112,8 @@ struct RecordView: View {
     @State private var syncing = false
     @State private var configTask: Task<Void, Never>?
     @State private var manualAlarm = false
+    @State private var alarmDefault = "foil"   // Uhr-Vorwahl: "foil" | "fixed"
+    @State private var repeatTick = 0          // Zähler für continuous-Wiederholung
     @State private var foils: [Api.FoilOpt] = []
     @State private var showFoilPicker = false
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
@@ -173,24 +179,12 @@ struct RecordView: View {
                         else { Task { await rec.start() } }
                     }
                     .tint(.green)
-                    .confirmationDialog("Alarm wählen", isPresented: $showFoilPicker, titleVisibility: .visible) {
-                        if manualAlarm {
-                            Button("Website · \(alarm.low)–\(alarm.high)") {
-                                alarm = WatchAlarm(enabled: true, high: alarm.high, low: alarm.low)
-                                Task { await rec.start() }
-                            }
-                        }
-                        ForEach(foils) { f in
-                            Button("\(f.label) · \(f.min)–\(f.max)") {
-                                alarm = WatchAlarm(enabled: true, high: f.max, low: f.min)
-                                Task { await rec.start() }
-                            }
-                        }
-                        Button("Ohne Alarm") {
-                            alarm = WatchAlarm(enabled: false)
-                            Task { await rec.start() }
-                        }
-                        Button("Abbrechen", role: .cancel) {}
+                    .sheet(isPresented: $showFoilPicker) {
+                        AlarmPickerSheet(
+                            foils: foils, manualAlarm: manualAlarm, alarmDefault: alarmDefault,
+                            alarm: $alarm,
+                            onPick: { showFoilPicker = false; Task { await rec.start() } },
+                            onCancel: { showFoilPicker = false })
                     }
                     // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
                     if syncing {
@@ -278,22 +272,96 @@ struct RecordView: View {
         if !c.views.isEmpty { views = c.views }
         colorBy = c.colorByValue
         manualAlarm = c.alarmEnabled
-        alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow)
+        alarmDefault = c.alarmDefault ?? "foil"
+        alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow,
+                           patHigh: c.alarmPatternHigh ?? "short2", patLow: c.alarmPatternLow ?? "long2",
+                           repeatMode: c.alarmRepeat ?? "once")
         foils = c.foils ?? []
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
     }
 
+    // Flanke löst sofort aus; im Modus "continuous" alle ~3 Ticks erneut, solange drüber/drunter.
+    // Min-Alarm nur im Fenster [min-2, min) — identisch zur Garmin-/Wear-Logik.
     private func checkAlarm(_ sp: Double) {
-        guard alarm.enabled else { return }
-        if alarm.high > 0 {
-            let now = sp >= Double(alarm.high)
-            if now && !wasHigh { WKInterfaceDevice.current().play(.notification) }
-            wasHigh = now
+        guard alarm.enabled else { wasHigh = false; wasLow = false; repeatTick = 0; return }
+        let over = alarm.high > 0 && sp >= Double(alarm.high)
+        let under = alarm.low > 0 && sp < Double(alarm.low) && sp >= Double(alarm.low) - 2
+        if over && !wasHigh { playHaptic(alarm.patHigh) }
+        if under && !wasLow { playHaptic(alarm.patLow) }
+        let tripped = over || under
+        if tripped && alarm.repeatMode == "continuous" && (wasHigh || wasLow) {
+            repeatTick += 1
+            if repeatTick >= 3 { repeatTick = 0; playHaptic(over ? alarm.patHigh : alarm.patLow) }
+        } else if !tripped {
+            repeatTick = 0
         }
-        if alarm.low > 0 {
-            let now = sp > 0.1 && sp <= Double(alarm.low)
-            if now && !wasLow { WKInterfaceDevice.current().play(.directionUp) }
-            wasLow = now
+        wasHigh = over; wasLow = under
+    }
+
+    // watchOS bietet keine frei definierbaren Waveforms -> Muster auf den nächstliegenden
+    // System-Haptiktyp abbilden (IDs identisch mit Web/Garmin: short1/short2/long2/lsl).
+    private func playHaptic(_ pattern: String) {
+        let type: WKHapticType
+        switch pattern {
+        case "short1": type = .click
+        case "long2": type = .directionUp
+        case "lsl": type = .retry
+        default: type = .notification   // short2
+        }
+        WKInterfaceDevice.current().play(type)
+    }
+}
+
+// Alarm-Auswahl beim Start (Sheet mit Form): feste Website-Werte oder ein Foil, plus
+// Repeat-Modus pro Session umschaltbar. Reihenfolge folgt der Web-Vorwahl (alarmDefault).
+// Muster bleiben aus der Config erhalten.
+struct AlarmPickerSheet: View {
+    let foils: [Api.FoilOpt]
+    let manualAlarm: Bool
+    let alarmDefault: String
+    @Binding var alarm: WatchAlarm
+    var onPick: () -> Void
+    var onCancel: () -> Void
+
+    var body: some View {
+        List {
+            Section("Auslösen") {
+                Toggle("Dauerhaft", isOn: Binding(
+                    get: { alarm.repeatMode == "continuous" },
+                    set: { alarm.repeatMode = $0 ? "continuous" : "once" }))
+            }
+            Section {
+                if alarmDefault == "foil" {
+                    foilRows
+                    if manualAlarm { fixedRow }
+                } else {
+                    if manualAlarm { fixedRow }
+                    foilRows
+                }
+                Button { alarm.enabled = false; onPick() } label: { row("Ohne Alarm", "kein Alarm") }
+            } header: { Text("Alarm wählen") }
+            Section {
+                Button("Abbrechen", role: .cancel, action: onCancel)
+            }
+        }
+    }
+
+    private var fixedRow: some View {
+        Button { alarm.enabled = true; onPick() } label: {
+            row("Feste Werte", "\(alarm.low)–\(alarm.high) km/h")
+        }
+    }
+    private var foilRows: some View {
+        ForEach(foils) { f in
+            Button {
+                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; onPick()
+            } label: { row(f.label, "\(f.min)–\(f.max) km/h") }
+        }
+    }
+    @ViewBuilder private func row(_ title: String, _ sub: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(title)
+            Text(sub).font(.caption2).foregroundStyle(.secondary)
         }
     }
 }

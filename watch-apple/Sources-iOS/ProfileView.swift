@@ -43,6 +43,16 @@ struct ProfileView: View {
                     } label: {
                         Label("Foil-Statistik", systemImage: "chart.bar")
                     }
+                    NavigationLink {
+                        AlarmView()
+                    } label: {
+                        Label("On-Foil Alarm", systemImage: "waveform.path")
+                    }
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Label("Einstellungen", systemImage: "gearshape")
+                    }
                     Link("pumpfoil.org öffnen", destination: URL(string: "https://pumpfoil.org")!)
                 }
                 Section {

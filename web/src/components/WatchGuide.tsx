@@ -12,6 +12,19 @@ const platforms = [
   { id: "guide-wear", label: "Wear OS" },
 ];
 
+// Garmin-Anleitungs-Screenshots (v1.0.24, rund) — erzeugt von scripts/make-landing-watch-shots.py.
+const garminShots = [
+  { src: "/guide/garmin/start.webp", cap: "Start: GPS bereit → START" },
+  { src: "/guide/garmin/settings.webp", cap: "MENU halten → Einstellungen" },
+  { src: "/guide/garmin/pairing-code.webp", cap: "Verbinden — Code an der Uhr" },
+  { src: "/guide/garmin/pairing-success.webp", cap: "Verbunden" },
+  { src: "/guide/garmin/alarm-1.webp", cap: "Alarm wählen" },
+  { src: "/guide/garmin/alarm-2.webp", cap: "Alarm — Foil / feste Werte" },
+  { src: "/guide/garmin/alarm-3.webp", cap: "Alarm — Auslösen" },
+  { src: "/guide/garmin/on-foil-1.webp", cap: "Während der Fahrt" },
+  { src: "/guide/garmin/on-foil-2.webp", cap: "Während der Fahrt" },
+];
+
 export function WatchGuide() {
   return (
     <div className="space-y-5">
@@ -55,6 +68,18 @@ export function WatchGuide() {
           <li><b>6. Upload:</b> automatisch beim nächsten App-Start (WLAN/Telefon), oder manuell
             <b> MENU → Einstellungen → „Upload / Sync"</b>. Danach erscheint die Session hier.</li>
         </ol>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium text-slate-400">So sieht's auf der Uhr aus (v1.0.24):</p>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            {garminShots.map((s) => (
+              <figure key={s.src} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={s.cap} loading="lazy"
+                  className="w-full rounded-full border border-slate-800 shadow" />
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{s.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
       </Card>
 
       {/* Apple Watch */}

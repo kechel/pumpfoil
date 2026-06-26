@@ -51,6 +51,8 @@ def device_config(
         "alarmPatternHigh": settings.get("alarm_pattern_high", "short2"),
         "alarmPatternLow": settings.get("alarm_pattern_low", "long2"),
         "alarmRepeat": settings.get("alarm_repeat", "once"),
+        # Vorwahl für den Uhr-Start: "foil" = Standard-Foil | "fixed" = feste Werte.
+        "alarmDefault": settings.get("alarm_default", "foil"),
         "foils": foils_out,
         # Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird):
         # Default Uhrzeit + letzter-Lauf-Distanz + letzter-Lauf-Dauer (Feld-IDs).

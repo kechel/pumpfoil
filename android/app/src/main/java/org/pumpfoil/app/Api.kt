@@ -92,15 +92,31 @@ object Api {
             }
         }
 
-    suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<SessionSummary> = withContext(Dispatchers.IO) {
+    suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<CommunityItem> = withContext(Dispatchers.IO) {
         json.decodeFromString(
-            ListSerializer(SessionSummary.serializer()),
+            ListSerializer(CommunityItem.serializer()),
             http("GET", "/api/community/sessions?limit=$limit&offset=$offset", null, auth = true),
+        )
+    }
+
+    suspend fun spotSessions(spot: String, limit: Int = 50): List<CommunityItem> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(spot, "UTF-8")
+        json.decodeFromString(
+            ListSerializer(CommunityItem.serializer()),
+            http("GET", "/api/community/spot-sessions?spot=$s&limit=$limit", null, auth = true),
         )
     }
 
     suspend fun history(): List<HistoryPoint> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(HistoryPoint.serializer()), http("GET", "/api/sessions/history", null, auth = true))
+    }
+
+    suspend fun stats(): OverallStats = withContext(Dispatchers.IO) {
+        json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=true", null, auth = true))
+    }
+
+    suspend fun spots(): SpotsList = withContext(Dispatchers.IO) {
+        json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots", null, auth = true))
     }
 
     suspend fun spotMap(): List<SpotMapItem> = withContext(Dispatchers.IO) {

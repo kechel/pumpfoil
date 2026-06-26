@@ -80,6 +80,7 @@ html.theme-light .nav-active {
 
 /* Helle Brand-Textfarben haben auf Weiß zu wenig Kontrast -> im Light dunkler.
  * Betrifft nur Text (Zahlen/Links/Icons), nicht bg-brand-* (Buttons bleiben Cyan). */
+html.theme-light .text-brand-200,
 html.theme-light .text-brand-300,
 html.theme-light .text-brand-400 {
   color: #0e7490; /* cyan-700 */

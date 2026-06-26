@@ -6,7 +6,7 @@ import {
   LockIcon, HeartIcon,
 } from "../components/Icons";
 import { useT } from "../i18n";
-import { LanguageSelect } from "../components/LanguageSelect";
+import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 
@@ -51,7 +51,7 @@ export default function Landing() {
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
         <div className="flex items-center gap-3">
-          <LanguageSelect className="text-sm" />
+          <LanguageFlags />
           <Link
             to="/login"
             className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400"
@@ -76,6 +76,15 @@ export default function Landing() {
           <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
           <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
           <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
+            <figure className="flex flex-col items-center gap-2">
+              <div className="flex gap-3">
+                <img src="/watch-garmin-1.webp" alt="Garmin" loading="lazy"
+                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                <img src="/watch-garmin-2.webp" alt="Garmin" loading="lazy"
+                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+              </div>
+              <figcaption className="text-xs text-slate-500">Garmin</figcaption>
+            </figure>
             <figure className="flex flex-col items-center gap-2">
               <div className="flex gap-3">
                 <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"

@@ -28,6 +28,22 @@ data class SessionSummary(
     @SerialName("like_count") val likeCount: Int = 0,
 )
 
+// Community-/Spot-Feed liefert eine andere Shape als /api/sessions: session_id, name,
+// spot, avatar_url, foiling_km, runs … (siehe server community._brief/_attach_social).
+@Serializable
+data class CommunityItem(
+    @SerialName("session_id") val id: Int,
+    @SerialName("started_at") val startedAt: String = "",
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val spot: String? = null,
+    val caption: String? = null,
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    val runs: Int = 0,
+    @SerialName("like_count") val likeCount: Int = 0,
+    val liked: Boolean = false,
+)
+
 @Serializable
 data class Analysis(
     @SerialName("total_distance_m") val totalDistanceM: Double? = null,
@@ -37,6 +53,22 @@ data class Analysis(
     @SerialName("pump_count") val pumpCount: Int? = null,
     @SerialName("avg_cadence_hz") val avgCadenceHz: Double? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
+    // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
+    val segments: List<Segment> = emptyList(),
+)
+
+@Serializable
+data class Segment(
+    @SerialName("i_start") val iStart: Int = 0,
+    @SerialName("i_end") val iEnd: Int = 0,
+    @SerialName("distance_m") val distanceM: Double = 0.0,
+    @SerialName("duration_s") val durationS: Double = 0.0,
+    @SerialName("avg_speed_mps") val avgSpeedMps: Double = 0.0,
+    @SerialName("max_speed_mps") val maxSpeedMps: Double = 0.0,
+    val pumps: Int = 0,
+    @SerialName("pump_idx") val pumpIdx: List<Int> = emptyList(),
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    @SerialName("longest_glide_s") val longestGlideS: Double = 0.0,
 )
 
 @Serializable
@@ -49,6 +81,37 @@ data class HistoryPoint(
     val speed: Double = 0.0,            // beste Lauf-Geschwindigkeit (m/s)
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
+
+// Gesamt-Statistik + persönliche Rekorde (GET /api/sessions/stats).
+@Serializable
+data class RecordEntry(
+    @SerialName("session_id") val sessionId: Int? = null,
+    val value: Double = 0.0,
+    @SerialName("started_at") val startedAt: String? = null,
+    @SerialName("run_idx") val runIdx: Int? = null,
+)
+
+@Serializable
+data class OverallRecords(
+    val distance: RecordEntry? = null,
+    val duration: RecordEntry? = null,
+    val speed: RecordEntry? = null,
+    val runs: RecordEntry? = null,
+    val glide: RecordEntry? = null,
+)
+
+@Serializable
+data class OverallStats(
+    val count: Int = 0,
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    @SerialName("foiling_min") val foilingMin: Double = 0.0,
+    val pumps: Int = 0,
+    @SerialName("runs_total") val runsTotal: Int = 0,
+    val records: OverallRecords? = null,
+)
+
+@Serializable
+data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 
 @Serializable
 data class SpotMapItem(
@@ -123,5 +186,6 @@ data class SessionDetail(
     val liked: Boolean = false,
     val owned: Boolean = false,
     @SerialName("youtube_url") val youtubeUrl: String? = null,
+    val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
 )

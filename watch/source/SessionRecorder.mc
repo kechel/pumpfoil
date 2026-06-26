@@ -63,7 +63,8 @@ class SessionRecorder {
     var alarmPatternHigh = "short2";  // Muster beim Überschreiten der Max-Speed
     var alarmPatternLow = "long2";    // Muster beim Unterschreiten der Min-Speed
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
-    var manualAlarm = false;          // true = Alarm manuell auf der Website gesetzt (hat Vorrang)
+    var alarmDefault = "foil";        // Website-Vorwahl für die Uhr: "foil" = Standard-Foil | "fixed" = feste Werte
+    var manualAlarm = false;          // true = Vibrationsalarm auf der Website aktiviert (Master-Schalter)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
     var activeAlarmLabel = "";        // angezeigte Auswahl auf dem Start-Screen (Foil/„Website"/„Ohne")
     // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
@@ -143,6 +144,7 @@ class SessionRecorder {
             if (ac.hasKey("ph")) { alarmPatternHigh = ac["ph"]; }
             if (ac.hasKey("pl")) { alarmPatternLow = ac["pl"]; }
             if (ac.hasKey("rep")) { alarmRepeat = ac["rep"]; }
+            if (ac.hasKey("def")) { alarmDefault = ac["def"]; }
         }
         // Gecachte Foil-Liste (Auto-Alarm je Foil) offline verfügbar machen.
         var fc = Storage.getValue("foils_config");
@@ -274,9 +276,11 @@ class SessionRecorder {
                 if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
                 if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
                 if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
+                if (data.hasKey("alarmDefault") && data["alarmDefault"] != null) { alarmDefault = data["alarmDefault"]; }
                 Storage.setValue("alarm_config", {
                     "enabled" => alarmEnabled, "high" => speedHighKmh, "low" => speedLowKmh,
-                    "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat });
+                    "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat,
+                    "def" => alarmDefault });
             }
             // Foil-Liste (Auto-Alarm je Foil) übernehmen + cachen.
             if (data.hasKey("foils") && data["foils"] instanceof Lang.Array) {
@@ -295,23 +299,31 @@ class SessionRecorder {
     }
 
     // Auto-Alarm eines gewählten Foils für die Session setzen (min/max in km/h).
+    // alarmRepeat bleibt unangetastet (Website-Default; auf der Uhr pro Session umstellbar).
     function applyFoilAlarm(lo, hi) {
         speedLowKmh = lo;
         speedHighKmh = hi;
         alarmEnabled = true;
-        if (alarmRepeat.equals("once")) { alarmRepeat = "continuous"; }  // Min-Warnung soll wiederholen
     }
 
-    // Default-Auswahl setzen: das Standard-Foil (erstes in der Liste) hat Vorrang,
-    // nur ohne Foils greift der Website-Alarm. Wird nach Config-Load aufgerufen;
-    // nur wenn noch nichts gewählt. (Website bleibt im DOWN-Menü manuell wählbar.)
+    // Default-Auswahl für den Start-Screen setzen (nur wenn noch nichts gewählt).
+    // Master-Schalter ist der Website-Alarm (manualAlarm):
+    //   aus            -> Default "Alarm: aus" (Foils bleiben im DOWN-Menü wählbar)
+    //   an + "foil"    -> Standard-Foil (erstes der Liste) als Auto-Alarm
+    //   an + "fixed"   -> feste Website-Werte
     function initAlarmSelection() {
         if (!activeAlarmLabel.equals("")) { return; }     // bereits gewählt -> nicht überschreiben
-        if (foils.size() >= 1) {
-            applyFoilAlarm(foils[0]["min"], foils[0]["max"]);
-            activeAlarmLabel = foils[0]["label"];
-        } else if (manualAlarm) {
-            activeAlarmLabel = "Website";
+        if (manualAlarm) {
+            if (alarmDefault.equals("foil") && foils.size() >= 1) {
+                applyFoilAlarm(foils[0]["min"], foils[0]["max"]);
+                activeAlarmLabel = foils[0]["label"];
+            } else {
+                alarmEnabled = true;                      // feste Website-Werte
+                activeAlarmLabel = "Website";
+            }
+        } else {
+            alarmEnabled = false;                         // Master aus -> kein Alarm als Default
+            activeAlarmLabel = "Aus";
         }
     }
 

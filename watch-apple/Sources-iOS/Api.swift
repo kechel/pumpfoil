@@ -67,8 +67,21 @@ enum Api {
         return r.device_token
     }
 
-    static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [SessionSummary] {
+    static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [CommunityItem] {
         try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
+    }
+
+    static func spotSessions(_ spot: String, limit: Int = 50) async throws -> [CommunityItem] {
+        let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
+        return try await request("/api/community/spot-sessions?spot=\(s)&limit=\(limit)", method: "GET", body: nil, auth: true)
+    }
+
+    static func stats() async throws -> OverallStats {
+        try await request("/api/sessions/stats?accel_only=true", method: "GET", body: nil, auth: true)
+    }
+
+    static func spots() async throws -> SpotsList {
+        try await request("/api/community/spots", method: "GET", body: nil, auth: true)
     }
 
     static func history() async throws -> [HistoryPoint] {

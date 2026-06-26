@@ -16,7 +16,9 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.QueryStats
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Surfing
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,7 +50,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -125,6 +127,20 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text("Foil-Statistik") },
                 supportingContent = { Text("Community: Werte je Foil") },
                 leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { onAlarm() },
+                headlineContent = { Text("On-Foil Alarm") },
+                supportingContent = { Text("Speed-Grenzen & Muster für die Uhr") },
+                leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { onSettings() },
+                headlineContent = { Text("Einstellungen") },
+                supportingContent = { Text("Gewicht, Homespot, Design, Benachrichtigungen") },
+                leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             Spacer(Modifier.height(24.dp))

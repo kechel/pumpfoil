@@ -1,39 +1,105 @@
 import SwiftUI
 
-// Native Sessions-Liste mit Pull-to-Refresh + Large Title.
+private enum SessionScope { case mine, spot, all }
+
+// Sessions-Liste mit Scope-Umschalter (Meine / Homespot / Alle) + Spot-Suche.
 struct SessionsView: View {
     @EnvironmentObject var sync: SyncManager
-    @State private var items: [SessionSummary] = []
+    @State private var own: [SessionSummary] = []
+    @State private var feed: [CommunityItem] = []
+    @State private var scope: SessionScope = .mine
+    @State private var homespot = ""
+    @State private var spot = ""          // aktiver Spot (für .spot)
+    @State private var spotInput = ""
     @State private var loading = false
     @State private var error: String?
 
     var body: some View {
         NavigationStack {
             List {
-                if let error {
-                    Text(error).foregroundStyle(.secondary)
+                Section {
+                    scopeChips
+                    HStack {
+                        TextField("Spot suchen", text: $spotInput)
+                            .textInputAutocapitalization(.never)
+                            .onSubmit { applySpotSearch() }
+                        Button { applySpotSearch() } label: { Image(systemName: "magnifyingglass") }
+                            .buttonStyle(.borderless)
+                    }
                 }
-                ForEach(items) { s in
-                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                if let error { Text(error).foregroundStyle(.secondary) }
+                if scope == .mine {
+                    ForEach(own) { s in
+                        NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                    }
+                } else {
+                    ForEach(feed) { c in
+                        NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+                    }
                 }
-                if items.isEmpty && !loading && error == nil {
-                    Text("Noch keine Sessions").foregroundStyle(.secondary)
+                if isEmpty && !loading && error == nil {
+                    Text("Keine Sessions").foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Sessions")
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
-            .overlay { if loading && items.isEmpty { ProgressView() } }
+            .overlay { if loading && isEmpty { ProgressView() } }
             .refreshable { await load() }
-            .task { if items.isEmpty { await load() } }
+            .task {
+                if homespot.isEmpty {
+                    homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
+                }
+                await load()
+            }
+            .onChange(of: scope) { _ in Task { await load() } }
+            .onChange(of: spot) { _ in Task { await load() } }
             .onChange(of: sync.tick) { _ in Task { await load() } }
         }
     }
 
+    private var title: String {
+        switch scope {
+        case .mine: return "Sessions · Meine"
+        case .all: return "Sessions · Alle"
+        case .spot: return "Sessions · 📍\(spot)"
+        }
+    }
+
+    private var isEmpty: Bool { scope == .mine ? own.isEmpty : feed.isEmpty }
+
+    @ViewBuilder private var scopeChips: some View {
+        HStack(spacing: 8) {
+            chip("Meine", scope == .mine) { scope = .mine }
+            if !homespot.isEmpty {
+                chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
+            }
+            chip("Alle", scope == .all) { scope = .all }
+        }
+    }
+
+    private func chip(_ label: String, _ active: Bool, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) { Text(label).font(.subheadline) }
+            .buttonStyle(.bordered)
+            .tint(active ? .accentColor : .secondary)
+    }
+
+    private func applySpotSearch() {
+        let s = spotInput.trimmingCharacters(in: .whitespaces)
+        if !s.isEmpty { spot = s; scope = .spot }
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
-        do { items = try await Api.sessions(); error = nil }
-        catch { self.error = error.localizedDescription }
+        do {
+            switch scope {
+            case .mine: own = try await Api.sessions()
+            case .all: feed = try await Api.communitySessions()
+            case .spot: feed = spot.isEmpty ? [] : (try await Api.spotSessions(spot))
+            }
+            error = nil
+        } catch { self.error = error.localizedDescription }
     }
 }
 

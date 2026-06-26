@@ -23,6 +23,7 @@ DEFAULTS = {
     "speed_high": 0, "speed_low": 0,
     "alarm_pattern_high": "short2", "alarm_pattern_low": "long2",
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
+    "alarm_default": "foil",  # Uhr-Vorwahl bei aktivem Alarm: "foil" = Standard-Foil | "fixed" = feste Werte
     # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
     "notify_prefs": {"like": True, "analyzed": True, "record": True},
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
@@ -40,6 +41,7 @@ NOTIFY_TYPES = ("like", "analyzed", "record")
 # Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
 ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}
 ALARM_REPEATS = {"once", "continuous"}
+ALARM_DEFAULTS = {"foil", "fixed"}
 
 
 def _merged(user: models.User) -> dict:
@@ -127,6 +129,8 @@ def update_settings(
             current[k] = patch[k]
     if patch.get("alarm_repeat") in ALARM_REPEATS:
         current["alarm_repeat"] = patch["alarm_repeat"]
+    if patch.get("alarm_default") in ALARM_DEFAULTS:
+        current["alarm_default"] = patch["alarm_default"]
     if isinstance(patch.get("notify_prefs"), dict):
         prefs = dict(current.get("notify_prefs") or {})
         for k, v in patch["notify_prefs"].items():

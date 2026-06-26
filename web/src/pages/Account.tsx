@@ -73,7 +73,7 @@ function ClaimFromWatch() {
   }
   return (
     <Card className="mt-5 p-5">
-      <h3 className="mb-1 font-semibold">Garmin: Code von der Uhr eingeben</h3>
+      <h3 className="mb-1 font-semibold">Code von der Uhr eingeben</h3>
       <p className="mb-3 text-sm text-slate-300">
         Pump Foil auf der Uhr öffnen (nicht starten) → <strong>MENU halten</strong> (Knopf
         Mitte-links) → „Einstellungen" → „Verbinden". Der angezeigte Code (6 Zeichen, Buchstaben
@@ -438,6 +438,7 @@ function AlarmEditor() {
         alarm_pattern_high: s?.alarm_pattern_high ?? "short2",
         alarm_pattern_low: s?.alarm_pattern_low ?? "long2",
         alarm_repeat: s?.alarm_repeat ?? "once",
+        alarm_default: s?.alarm_default ?? "foil",
       });
       setS(res);
       setSaved(true);
@@ -464,6 +465,16 @@ function AlarmEditor() {
       </label>
 
       <div className={s.alarm_enabled ? "space-y-4" : "space-y-4 pointer-events-none opacity-40"}>
+        {/* Vorwahl auf der Uhr: Standard-Foil (Auto-Schwellen) oder feste Werte unten */}
+        <label className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-400">{t("alarm.defaultSource")}</span>
+          <select value={s.alarm_default ?? "foil"} onChange={(e) => set("alarm_default", e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+            <option value="foil">{t("alarm.defaultFoil")}</option>
+            <option value="fixed">{t("alarm.defaultFixed")}</option>
+          </select>
+        </label>
+        <p className="-mt-2 text-xs text-slate-400">{t("alarm.defaultHelp")}</p>
         {/* Max-Speed (Überschreiten) */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
           <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.overTitle")}</div>

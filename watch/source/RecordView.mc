@@ -148,19 +148,19 @@ class RecordView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, "GPS suchen…", Graphics.TEXT_JUSTIFY_CENTER);
         }
-        // Aktives Foil/Alarm (vor dem Start per DOWN wählbar). Zeigt die getroffene
-        // Auswahl, damit man mit dem richtigen Auto-Alarm losfährt.
+        // Aktiver Alarm (vor dem Start per DOWN wählbar). Zeigt die getroffene Auswahl
+        // (Standard-Foil, feste Werte oder „Aus"), damit man mit dem richtigen Alarm losfährt.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             var lbl = _rec.activeAlarmLabel.equals("") ? "—" : _rec.activeAlarmLabel;
-            dc.drawText(w / 2, h * 0.555, Graphics.FONT_XTINY, "Foil: " + lbl, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.555, Graphics.FONT_XTINY, "Alarm: " + lbl, Graphics.TEXT_JUSTIFY_CENTER);
         }
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.65, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
         // Dezente Hinweise: Foil-Auswahl per DOWN, Einstellungen (Verbinden/Upload) hinter MENU.
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
-            dc.drawText(w / 2, h * 0.79, Graphics.FONT_XTINY, "↓ Foil wählen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.79, Graphics.FONT_XTINY, "↓ Alarm wählen", Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY, "MENU: Einstellungen", Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, "MENU: Einstellungen", Graphics.TEXT_JUSTIFY_CENTER);

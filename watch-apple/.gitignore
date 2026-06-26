@@ -2,6 +2,8 @@
 Pumpfoil.xcodeproj/
 Sources/Info.plist
 Sources/Pumpfoil.entitlements
+Sources-iOS/Info.plist
+Sources-iOS/Pumpfoil.entitlements
 
 # Xcode
 build/

@@ -18,3 +18,30 @@ export function LanguageSelect({ className = "" }: { className?: string }) {
     </select>
   );
 }
+
+// Sprachauswahl als Flaggen-Reihe: alle Sprachen nebeneinander, ohne Bezeichnung,
+// immer sichtbar (für die öffentliche Startseite). Aktive Sprache hervorgehoben.
+export function LanguageFlags({ className = "" }: { className?: string }) {
+  const { lang, setLang } = useI18n();
+  return (
+    <div role="group" aria-label="Sprache / Language" className={`flex flex-wrap items-center gap-1 ${className}`}>
+      {LANGS.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          onClick={() => setLang(l.code)}
+          title={l.native}
+          aria-label={l.native}
+          aria-pressed={lang === l.code}
+          className={`rounded-md px-1 py-0.5 text-lg leading-none transition ${
+            lang === l.code
+              ? "opacity-100 ring-2 ring-brand-400"
+              : "opacity-80 hover:opacity-100"
+          }`}
+        >
+          {l.flag}
+        </button>
+      ))}
+    </div>
+  );
+}

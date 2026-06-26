@@ -135,6 +135,7 @@ class MainActivity : ComponentActivity() {
         var syncing by remember { mutableStateOf(false) }
         var configJob by remember { mutableStateOf<Job?>(null) }
         var manualAlarm by remember { mutableStateOf(false) }
+        var alarmDefault by remember { mutableStateOf("foil") }   // Vorwahl: "foil" | "fixed"
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showFoilPicker by remember { mutableStateOf(false) }
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
@@ -149,8 +150,13 @@ class MainActivity : ComponentActivity() {
             }
             colorBy = c.optBoolean("colorByValue", false)
             manualAlarm = c.optBoolean("alarmEnabled", false)
-            alarm = WatchAlarm(c.optBoolean("alarmEnabled", false),
-                c.optInt("speedHigh", 0), c.optInt("speedLow", 0))
+            alarmDefault = c.optString("alarmDefault", "foil")
+            alarm = WatchAlarm(
+                c.optBoolean("alarmEnabled", false),
+                c.optInt("speedHigh", 0), c.optInt("speedLow", 0),
+                c.optString("alarmPatternHigh", "short2"),
+                c.optString("alarmPatternLow", "long2"),
+                c.optString("alarmRepeat", "once"))
             val fa = c.optJSONArray("foils")
             if (fa != null) {
                 foils = (0 until fa.length()).map { i ->
@@ -254,13 +260,19 @@ class MainActivity : ComponentActivity() {
             FoilPicker(
                 foils = foils,
                 websiteAlarm = if (manualAlarm) alarm else null,
+                foilsFirst = alarmDefault == "foil",
+                repeatMode = alarm.repeat,
+                onToggleRepeat = {
+                    alarm = alarm.copy(repeat = if (alarm.repeat == "continuous") "once" else "continuous")
+                },
                 onWebsite = { showFoilPicker = false; RecorderService.start(applicationContext) },
                 onPick = { f ->
-                    alarm = WatchAlarm(true, f.max, f.min)
+                    // Foil-Schwellen setzen, Muster/Repeat aus der Config behalten.
+                    alarm = alarm.copy(enabled = true, high = f.max, low = f.min)
                     showFoilPicker = false
                     RecorderService.start(applicationContext)
                 },
-                onNone = { alarm = WatchAlarm(false); showFoilPicker = false; RecorderService.start(applicationContext) },
+                onNone = { alarm = alarm.copy(enabled = false); showFoilPicker = false; RecorderService.start(applicationContext) },
                 onBack = { showFoilPicker = false },
             )
         } else {
@@ -370,35 +382,44 @@ private fun speedColor(kmh: Double): Color {
     return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
 }
 
-data class WatchAlarm(val enabled: Boolean = false, val high: Int = 0, val low: Int = 0)
+data class WatchAlarm(
+    val enabled: Boolean = false,
+    val high: Int = 0,
+    val low: Int = 0,
+    val patHigh: String = "short2",
+    val patLow: String = "long2",
+    val repeat: String = "once",   // "once" = einmalig | "continuous" = dauerhaft
+)
 
 // Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
 data class FoilOpt(val id: Int, val label: String, val min: Int, val max: Int)
 
-// Foil-Auswahl beim Start: setzt den Auto-Alarm des gewählten Foils.
+// Alarm-Auswahl beim Start: feste Website-Werte oder ein Foil (setzt dessen Auto-Alarm).
+// Reihenfolge folgt der Web-Vorwahl (alarmDefault: foilsFirst). Repeat-Modus pro Session
+// umschaltbar (Website setzt nur den Default).
 @Composable
 fun FoilPicker(
     foils: List<FoilOpt>,
     websiteAlarm: WatchAlarm?,
+    foilsFirst: Boolean,
+    repeatMode: String,
+    onToggleRepeat: () -> Unit,
     onWebsite: () -> Unit,
     onPick: (FoilOpt) -> Unit,
     onNone: () -> Unit,
     onBack: () -> Unit,
 ) {
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text("Alarm wählen", style = MaterialTheme.typography.title3)
+    val fixedChip: @Composable () -> Unit = {
         if (websiteAlarm != null) {
             Chip(
                 onClick = onWebsite,
-                label = { Text("Website") },
+                label = { Text("Feste Werte") },
                 secondaryLabel = { Text("${websiteAlarm.low}–${websiteAlarm.high} km/h") },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+    val foilChips: @Composable () -> Unit = {
         foils.forEach { f ->
             Chip(
                 onClick = { onPick(f) },
@@ -407,35 +428,72 @@ fun FoilPicker(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text("Alarm wählen", style = MaterialTheme.typography.title3)
+        if (foilsFirst) { foilChips(); fixedChip() } else { fixedChip(); foilChips() }
         CompactChip(onClick = onNone, label = { Text("Ohne Alarm") })
+        CompactChip(
+            onClick = onToggleRepeat,
+            label = { Text("Auslösen: " + if (repeatMode == "continuous") "dauerhaft" else "einmalig") },
+        )
         CompactChip(onClick = onBack, label = { Text("Zurück") })
     }
 }
 
-// Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen (Flankenerkennung).
+// Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen. Flanke löst sofort aus;
+// im Modus "continuous" wird alle ~3 Ticks erneut vibriert, solange drüber/drunter.
+// Der Min-Alarm warnt nur im schmalen Fenster [min-2, min) (Abfall knapp unter Min,
+// nicht dauerhaft beim Stehen) — identisch zur Garmin-Logik.
+private const val ALARM_REPEAT_TICKS = 3
+
 @Composable
 fun AlarmEffect(speedKmh: Double, alarm: WatchAlarm) {
     val ctx = LocalContext.current
     var wasHigh by remember { mutableStateOf(false) }
     var wasLow by remember { mutableStateOf(false) }
+    var repeatTick by remember { mutableStateOf(0) }
     LaunchedEffect(speedKmh, alarm) {
-        if (!alarm.enabled) return@LaunchedEffect
-        if (alarm.high > 0) {
-            val now = speedKmh >= alarm.high
-            if (now && !wasHigh) vibrate(ctx, 200)
-            wasHigh = now
+        if (!alarm.enabled) { wasHigh = false; wasLow = false; repeatTick = 0; return@LaunchedEffect }
+        val over = alarm.high > 0 && speedKmh >= alarm.high
+        val under = alarm.low > 0 && speedKmh < alarm.low && speedKmh >= alarm.low - 2
+        if (over && !wasHigh) vibratePattern(ctx, alarm.patHigh)
+        if (under && !wasLow) vibratePattern(ctx, alarm.patLow)
+        val tripped = over || under
+        if (tripped && alarm.repeat == "continuous" && (wasHigh || wasLow)) {
+            repeatTick++
+            if (repeatTick >= ALARM_REPEAT_TICKS) {
+                repeatTick = 0
+                vibratePattern(ctx, if (over) alarm.patHigh else alarm.patLow)
+            }
+        } else if (!tripped) {
+            repeatTick = 0
         }
-        if (alarm.low > 0) {
-            val now = speedKmh in 0.1..alarm.low.toDouble()
-            if (now && !wasLow) vibrate(ctx, 400)
-            wasLow = now
-        }
+        wasHigh = over; wasLow = under
     }
 }
 
-private fun vibrate(ctx: Context, ms: Long) {
-    val v = if (Build.VERSION.SDK_INT >= 31)
+private fun vibrator(ctx: Context): android.os.Vibrator =
+    if (Build.VERSION.SDK_INT >= 31)
         (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
     else @Suppress("DEPRECATION") (ctx.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator)
-    v.vibrate(android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+
+private fun vibrate(ctx: Context, ms: Long) {
+    vibrator(ctx).vibrate(android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+}
+
+// Muster-ID -> Waveform (off/on-Dauern in ms, beginnend mit off). IDs identisch mit
+// Web + Garmin (short1/short2/long2/lsl).
+private fun vibratePattern(ctx: Context, pattern: String) {
+    val timings = when (pattern) {
+        "short1" -> longArrayOf(0, 150)
+        "long2" -> longArrayOf(0, 500, 150, 500)
+        "lsl" -> longArrayOf(0, 500, 120, 150, 120, 500)
+        else -> longArrayOf(0, 150, 120, 150)   // short2 (Default)
+    }
+    vibrator(ctx).vibrate(android.os.VibrationEffect.createWaveform(timings, -1))
 }

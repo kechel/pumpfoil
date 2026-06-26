@@ -3,6 +3,7 @@ import SwiftUI
 // Auth-Gate: eingeloggt -> Tab-Navigation, sonst Login.
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
+    @AppStorage("themeMode") private var themeMode = "auto"   // "auto" | "light" | "dark"
     var body: some View {
         Group {
             if session.isLoggedIn {
@@ -11,6 +12,7 @@ struct RootView: View {
                 LoginView()
             }
         }
+        .preferredColorScheme(themeMode == "light" ? .light : themeMode == "dark" ? .dark : nil)
         .task { await session.bootstrap() }
     }
 }
@@ -19,6 +21,8 @@ struct RootView: View {
 struct MainTabView: View {
     var body: some View {
         TabView {
+            HomeView()
+                .tabItem { Label("Home", systemImage: "house") }
             SessionsView()
                 .tabItem { Label("Sessions", systemImage: "list.bullet") }
             CommunityView()

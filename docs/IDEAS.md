@@ -3,6 +3,19 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- **Uhren auf die Benutzersprache einstellen.** Die Recorder-Apps (Garmin/Wear/watchOS) haben aktuell
+  hartcodierte deutsche Strings. Sie sollen die **im Profil gewählte Sprache** des Nutzers verwenden —
+  **NICHT** die Geräte-Locale, da wir nur genau unsere 7 Locales erzeugen (sonst fehlende Übersetzungen).
+  Weg: das `language`-Feld aus den Settings über `/api/devices/config` an die Uhr mitliefern und cachen
+  (offline), pro App ein kleines String-Lookup je Locale (Start-Screen, Menüs, Alarm-Picker, Status-/
+  Erfolgstexte). Fallback auf eine unserer Sprachen (de/en), wenn `language` leer/unbekannt. Betrifft alle
+  drei Recorder + die ebenfalls DE-hartcodierten Phone-Apps (s. [[../PARITY-AUDIT]] „i18n fehlt").
+- **iOS App-Store-Upload: iPad-Multitasking-Orientierungen.** Upload zu App Store Connect schlägt fehl:
+  „Invalid bundle … UIInterfaceOrientationPortrait … but you need to include all of
+  Portrait,PortraitUpsideDown,LandscapeLeft,LandscapeRight … to support iPad multitasking" für
+  `org.pumpfoil.coolwatch` (iOS-App). Fix in `watch-apple/project.yml`, Target `Pumpfoil`: entweder
+  alle 4 `UISupportedInterfaceOrientations` eintragen, **oder** `TARGETED_DEVICE_FAMILY` von `"1,2"`
+  auf `"1"` (nur iPhone) setzen → dann iPad-Multitasking irrelevant. Danach `xcodegen generate`.
 - **Board-/Foil-IMU → echte Pump-Technik-Analytik (R&D, Daten werden gesammelt).** Hintergrund:
   Intra-Pump-Geschwindigkeit ist aus dem 1-Hz-Wrist-GPS **nicht** rekonstruierbar (Phase-Folding-
   Experiment `server/scripts/accel_speed_experiment.py` besteht den Permutations-Null-Test nicht;

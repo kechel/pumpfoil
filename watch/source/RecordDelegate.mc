@@ -46,13 +46,13 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         return false;  // andere Tasten -> normale Behaviors (Menü/Back)
     }
 
-    // Öffnet die Foil-/Alarm-Auswahl (Website-Alarm, Foils, Ohne) — setzt die Auswahl
-    // für die nächste Aufnahme, ohne zu starten.
+    // Öffnet die Alarm-Auswahl (feste Website-Werte, Foils, Ohne) — setzt die Auswahl
+    // für die nächste Aufnahme, ohne zu starten. Zusätzlich der Repeat-Modus (umschaltbar).
     hidden function _openFoilMenu() as Void {
-        var menu = new WatchUi.Menu2({:title => "Foil / Alarm"});
+        var menu = new WatchUi.Menu2({:title => "Alarm"});
         if (_rec.manualAlarm) {
             menu.addItem(new WatchUi.MenuItem(
-                "Website",
+                "Feste Werte",
                 _rec.speedLowKmh.toString() + "–" + _rec.speedHighKmh.toString() + " km/h",
                 :website, {}));
         }
@@ -64,7 +64,14 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 i, {}));
         }
         menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "kein Alarm", :none, {}));
+        // Repeat-Modus pro Session umschaltbar (Website setzt nur den Default).
+        menu.addItem(new WatchUi.MenuItem(
+            "Auslösen", _repeatLabel(_rec.alarmRepeat), :repeat, {}));
         WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
+    }
+
+    static function _repeatLabel(rep) as Lang.String {
+        return rep.equals("continuous") ? "dauerhaft" : "einmalig";
     }
 
     // Loslassen vor 3 s = Stop abbrechen.
@@ -138,16 +145,23 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
+        if (id == :repeat) {
+            // Repeat-Modus umschalten, Menü offen lassen (keine Alarm-Auswahl).
+            _rec.alarmRepeat = _rec.alarmRepeat.equals("continuous") ? "once" : "continuous";
+            item.setSubLabel(_rec.alarmRepeat.equals("continuous") ? "dauerhaft" : "einmalig");
+            WatchUi.requestUpdate();
+            return;
+        }
         if (id instanceof Lang.Number) {
             var f = _rec.foils[id];
             _rec.applyFoilAlarm(f["min"], f["max"]);     // Foil-Auto-Alarm
             _rec.activeAlarmLabel = f["label"];
         } else if (id == :website) {
-            _rec.alarmEnabled = true;                    // Website-Werte (bereits geladen)
-            _rec.activeAlarmLabel = "Website";
+            _rec.alarmEnabled = true;                    // feste Website-Werte (bereits geladen)
+            _rec.activeAlarmLabel = "Feste Werte";
         } else if (id == :none) {
             _rec.alarmEnabled = false;                   // kein Alarm für diese Session
-            _rec.activeAlarmLabel = "Ohne";
+            _rec.activeAlarmLabel = "Aus";
         }
         // Nur Auswahl setzen, NICHT starten -> zurück zum Start-Screen.
         WatchUi.popView(WatchUi.SLIDE_DOWN);

@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +40,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,17 +57,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlin.math.cos
-import kotlin.math.PI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,11 +112,18 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DetailContent(s: SessionDetail) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
+    var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
+    var showPumps by remember(s.id) { mutableStateOf(true) }
+    var weightKg by remember { mutableStateOf(0.0) }
+    LaunchedEffect(Unit) {
+        weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
+    }
     Column(
         Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -185,26 +199,44 @@ private fun DetailContent(s: SessionDetail) {
         }
 
         val a = s.analysis
-        // Track: GPS-Polyline (speed-gefärbt) + Speed-Verlauf — ohne externe
-        // Kartenkacheln, leichtgewichtig.
+        // Track auf OSM-Karte (osmdroid): nur die Foiling-Läufe, gefärbt nach Modus (Speed/Puls/Pump),
+        // optional Pump-Marker — wie im Web.
         a?.trackGeojson?.let { tg ->
             val track = remember(tg) { parseTrack(tg) }
-            if (track.points.size >= 2) {
-                Card(Modifier.fillMaxWidth()) {
-                    TrackMap(track, Modifier.fillMaxWidth().aspectRatio(1.3f).padding(8.dp))
+            val segs = a.segments
+            if (track.points.size >= 2 && segs.isNotEmpty()) {
+                val hasHr = remember(track) { track.hr.any { it != null && it > 0 } }
+                val hasPump = remember(track) { track.pumpHz.any { it != null } }
+                val hrRange = remember(track) {
+                    val vs = track.hr.filterNotNull().filter { it > 0 }
+                    (vs.minOrNull() ?: 0) to (vs.maxOrNull() ?: 1)
                 }
-            }
-            val speedsKmh = remember(track) { track.speedsMps.map { it * 3.6 } }
-            if (speedsKmh.size >= 2) {
+                val pumpRange = remember(track) {
+                    val vs = track.pumpHz.filterNotNull()
+                    (vs.minOrNull() ?: 0.0) to (vs.maxOrNull() ?: 1.0)
+                }
+                if (hasHr || hasPump) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text("Speed") })
+                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text("Puls") })
+                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text("Pump") })
+                    }
+                }
                 Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Geschwindigkeit (km/h)", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(6.dp))
-                        SpeedChart(speedsKmh, Modifier.fillMaxWidth().aspectRatio(2.4f))
+                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, Modifier.fillMaxWidth().height(300.dp))
+                }
+                if (a.pumpCount != null && a.pumpCount > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                        Spacer(Modifier.width(8.dp))
+                        Text("Pump-Marker", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
+        }
+        // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed).
+        if (a != null && s.foil != null && weightKg > 0) {
+            PowerCard(a, s.foil, weightKg)
         }
         if (a == null) {
             Text("Auswertung läuft noch …", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -218,12 +250,20 @@ private fun DetailContent(s: SessionDetail) {
                 a.avgCadenceHz?.let { add("Cadence" to "%.2f Hz".format(it)) }
             }
             StatGrid(stats)
+            if (a.segments.isNotEmpty()) RunsTable(a.segments)
         }
     }
 }
 
-// Geparster Track: GPS-Punkte (lon,lat) + 3-s-Speed (m/s) je Punkt.
-private class Track(val points: List<Pair<Double, Double>>, val speedsMps: List<Double>)
+// Geparster Track: GPS-Punkte (lon,lat) + 3-s-Speed (m/s) + Puls + Pump-Hz je Punkt.
+private class Track(
+    val points: List<Pair<Double, Double>>,
+    val speedsMps: List<Double>,
+    val hr: List<Int?>,
+    val pumpHz: List<Double?>,
+)
+
+private enum class ColorMode { SPEED, HR, PUMP }
 
 private fun parseTrack(tg: JsonElement): Track {
     return try {
@@ -233,79 +273,172 @@ private fun parseTrack(tg: JsonElement): Track {
             val arr = c.jsonArray
             arr[0].jsonPrimitive.doubleOrNull!! to arr[1].jsonPrimitive.doubleOrNull!!  // lon,lat
         }
-        val speeds = obj["properties"]?.jsonObject?.get("speeds_mps")?.jsonArray
-            ?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: emptyList()
-        Track(pts, speeds)
-    } catch (_: Exception) { Track(emptyList(), emptyList()) }
+        val props = obj["properties"]?.jsonObject
+        val speeds = props?.get("speeds_mps")?.jsonArray?.map { it.jsonPrimitive.doubleOrNull ?: 0.0 } ?: emptyList()
+        val hr = props?.get("hr")?.jsonArray?.map { it.jsonPrimitive.intOrNull } ?: emptyList()
+        val pumpHz = props?.get("pump_hz")?.jsonArray?.map { it.jsonPrimitive.doubleOrNull } ?: emptyList()
+        Track(pts, speeds, hr, pumpHz)
+    } catch (_: Exception) { Track(emptyList(), emptyList(), emptyList(), emptyList()) }
 }
 
-// Speed -> Farbe (blau langsam -> rot schnell), wie Wear/Web (8..25 km/h).
-private fun speedColor(kmh: Double): Color {
-    val t = ((kmh - 8) / (25 - 8)).coerceIn(0.0, 1.0)
-    val hue = ((1 - t) * 240).toFloat()
+// Wert -> Farbe (blau niedrig -> rot hoch).
+private fun rampColor(t: Double): Color {
+    val hue = ((1 - t.coerceIn(0.0, 1.0)) * 240).toFloat()
     return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
 }
+// Speed -> Farbe (8..25 km/h), wie Wear/Web.
+private fun speedColor(kmh: Double): Color = rampColor((kmh - 8) / (25 - 8))
 
-// Track-Polyline auf Canvas: BoundingBox-normiert mit cos(lat)-Längenkorrektur,
-// Segmente nach 3-s-Speed eingefärbt. Keine Kartenkacheln nötig.
+private val GRAY = Color(0xFF64748B)
+
+// Track auf OSM-Karte (osmdroid, FLOSS — wie Spots/Web). Nur die Foiling-Läufe
+// (segments[].iStart..iEnd), je Punktpaar nach Modus gefärbt; Nicht-Foiling unsichtbar.
+// Optional weiße Pump-Marker an den erkannten Pump-Stößen.
+private const val MAX_DRAW_GAP_M = 30.0
+
+private fun pumpDot(): android.graphics.drawable.Drawable {
+    val s = 14
+    val bmp = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888)
+    val cv = android.graphics.Canvas(bmp)
+    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
+    val edge = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.rgb(15, 23, 42); style = android.graphics.Paint.Style.STROKE; strokeWidth = 2f
+    }
+    cv.drawCircle(s / 2f, s / 2f, s / 2f - 2, fill)
+    cv.drawCircle(s / 2f, s / 2f, s / 2f - 2, edge)
+    return android.graphics.drawable.BitmapDrawable(null, bmp)
+}
+
 @Composable
-private fun TrackMap(track: Track, modifier: Modifier = Modifier) {
+private fun TrackMap(
+    track: Track, segments: List<Segment>, mode: ColorMode,
+    hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val pts = track.points
-    val latMin = pts.minOf { it.second }; val latMax = pts.maxOf { it.second }
-    val lonMin = pts.minOf { it.first }; val lonMax = pts.maxOf { it.first }
-    val latMid = (latMin + latMax) / 2
-    val lonScale = cos(latMid * PI / 180.0)
-    val w = ((lonMax - lonMin) * lonScale).coerceAtLeast(1e-9)
-    val h = (latMax - latMin).coerceAtLeast(1e-9)
-    val grid = MaterialTheme.colorScheme.surfaceVariant
-
-    Canvas(modifier) {
-        val pad = 12f
-        val availW = size.width - 2 * pad
-        val availH = size.height - 2 * pad
-        val scale = minOf(availW / w, availH / h)
-        val drawW = w * scale; val drawH = h * scale
-        val offX = pad + (availW - drawW) / 2
-        val offY = pad + (availH - drawH) / 2
-        fun project(p: Pair<Double, Double>): Offset {
-            val x = (p.first - lonMin) * lonScale * scale + offX
-            val y = (latMax - p.second) * scale + offY   // lat invertiert (Norden oben)
-            return Offset(x.toFloat(), y.toFloat())
+    fun colorAt(i: Int): Color = when (mode) {
+        ColorMode.SPEED -> speedColor((track.speedsMps.getOrNull(i) ?: 0.0) * 3.6)
+        ColorMode.HR -> {
+            val v = track.hr.getOrNull(i)
+            val (lo, hi) = hrRange
+            if (v == null || v <= 0) GRAY else rampColor((v - lo).toDouble() / (hi - lo).coerceAtLeast(1).toDouble())
         }
-        for (i in 0 until pts.size - 1) {
-            val sp = (track.speedsMps.getOrNull(i) ?: 0.0) * 3.6
-            drawLine(
-                color = if (track.speedsMps.isEmpty()) grid else speedColor(sp),
-                start = project(pts[i]), end = project(pts[i + 1]),
-                strokeWidth = 4f, cap = StrokeCap.Round,
-            )
+        ColorMode.PUMP -> {
+            val v = track.pumpHz.getOrNull(i)
+            val (lo, hi) = pumpRange
+            if (v == null) GRAY else rampColor((v - lo) / (hi - lo).coerceAtLeast(1e-6))
+        }
+    }
+    AndroidView(
+        modifier = modifier,
+        factory = { c ->
+            Configuration.getInstance().userAgentValue = c.packageName
+            MapView(c).apply {
+                setTileSource(TileSourceFactory.MAPNIK)
+                setMultiTouchControls(true)
+                controller.setZoom(13.0)
+            }
+        },
+        update = { map ->
+            map.overlays.clear()
+            val foilPts = ArrayList<GeoPoint>()
+            for (seg in segments) {
+                val start = seg.iStart.coerceIn(0, pts.size - 1)
+                val end = seg.iEnd.coerceIn(0, pts.size - 1)
+                for (i in start until end) {
+                    val a = pts[i]; val b = pts[i + 1]
+                    val pa = GeoPoint(a.second, a.first)   // (lat, lon)
+                    val pb = GeoPoint(b.second, b.first)
+                    if (pa.distanceToAsDouble(pb) > MAX_DRAW_GAP_M) continue
+                    map.overlays.add(Polyline(map).apply {
+                        setPoints(listOf(pa, pb))
+                        outlinePaint.color = colorAt(i + 1).toArgb()
+                        outlinePaint.strokeWidth = 10f
+                    })
+                    foilPts.add(pa); foilPts.add(pb)
+                }
+            }
+            if (showPumps) {
+                val dot = pumpDot()
+                for (seg in segments) for (idx in seg.pumpIdx) {
+                    val p = pts.getOrNull(idx) ?: continue
+                    map.overlays.add(Marker(map).apply {
+                        position = GeoPoint(p.second, p.first)
+                        icon = dot
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        setInfoWindow(null)
+                        setOnMarkerClickListener { _, _ -> true }
+                    })
+                }
+            }
+            if (foilPts.isNotEmpty()) {
+                val bb = BoundingBox.fromGeoPoints(foilPts)
+                map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+            }
+            map.invalidate()
+        },
+    )
+}
+
+// Leistungs-Karte: theoretische Pump-Leistung (Watt) bei Ø- und Top-Speed.
+@Composable
+private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
+    val dims = FoilPhysics.FoilDims(foil.spanCm, foil.areaCm2, foil.thicknessMm)
+    val rider = FoilPhysics.RiderParams(riderWeight = weightKg)
+    val pump = a.avgCadenceHz?.let { FoilPhysics.PumpParams(pumpFreqHz = it) }
+    val avgKmh = if ((a.foilingTimeS ?: 0.0) > 0 && a.foilingDistanceM != null)
+        a.foilingDistanceM / a.foilingTimeS!! * 3.6 else null
+    val topKmh = a.maxSpeedMps?.let { it * 3.6 }
+    fun watt(kmh: Double?): String =
+        if (kmh == null) "–" else "%.0f W".format(FoilPhysics.computeFoilPowerAtSpeed(dims, kmh, rider, pump = pump).power)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text("Leistung (${foil.brand} ${foil.model} ${foil.size})",
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column {
+                    Text(watt(avgKmh), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Text("bei Ø-Speed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Column {
+                    Text(watt(topKmh), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Text("bei Top-Speed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }
 
-// Speed-Verlauf als Canvas-Liniendiagramm (speed-gefärbt), Baseline 0, Top = Maxwert.
+// Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps/Gleit.
 @Composable
-private fun SpeedChart(speedsKmh: List<Double>, modifier: Modifier = Modifier) {
-    val maxV = (speedsKmh.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
-    val axis = MaterialTheme.colorScheme.surfaceVariant
-    Canvas(modifier) {
-        val pad = 6f
-        val availW = size.width - 2 * pad
-        val availH = size.height - 2 * pad
-        // Nulllinie unten.
-        drawLine(axis, Offset(pad, pad + availH), Offset(pad + availW, pad + availH), strokeWidth = 2f)
-        val n = speedsKmh.size
-        fun project(i: Int, v: Double): Offset {
-            val x = pad + availW * (if (n > 1) i.toFloat() / (n - 1) else 0f)
-            val y = pad + availH * (1f - (v / maxV).toFloat())
-            return Offset(x, y)
-        }
-        for (i in 0 until n - 1) {
-            drawLine(
-                color = speedColor((speedsKmh[i] + speedsKmh[i + 1]) / 2),
-                start = project(i, speedsKmh[i]), end = project(i + 1, speedsKmh[i + 1]),
-                strokeWidth = 3f, cap = StrokeCap.Round,
-            )
+private fun RunsTable(segments: List<Segment>) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text("Läufe (${segments.size})", style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                listOf("#", "Dist", "Zeit", "Ø", "Top", "Pumps").forEach {
+                    Text(it, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                }
+            }
+            segments.forEachIndexed { i, seg ->
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    val cells = listOf(
+                        "${i + 1}",
+                        if (seg.distanceM < 1000) "%.0f m".format(seg.distanceM) else "%.2f km".format(seg.distanceM / 1000),
+                        "%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt()),
+                        "%.0f".format(seg.avgSpeedMps * 3.6),
+                        "%.0f".format(seg.maxSpeedMps * 3.6),
+                        if (seg.pumps > 0) "${seg.pumps}" else "–",
+                    )
+                    cells.forEach {
+                        Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
         }
     }
 }

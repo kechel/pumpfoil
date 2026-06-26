@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ShowChart
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Api.load(applicationContext)
+        ThemeState.load(applicationContext)
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         setContent { PumpfoilTheme { App() } }
     }
@@ -51,7 +53,7 @@ fun App() {
     }
 }
 
-private val TOP_LEVEL = setOf("community", "sessions", "verlauf", "spots", "chat", "profile")
+private val TOP_LEVEL = setOf("home", "community", "sessions", "verlauf", "spots", "chat", "profile")
 
 @Composable
 fun MainScaffold(onLogout: () -> Unit) {
@@ -63,6 +65,11 @@ fun MainScaffold(onLogout: () -> Unit) {
         bottomBar = {
             if (route in TOP_LEVEL) {
                 NavigationBar {
+                    NavigationBarItem(
+                        selected = route == "home", onClick = { nav.switchTab("home") },
+                        icon = { Icon(Icons.Filled.Home, contentDescription = null) },
+                        label = { Text("Home") }, alwaysShowLabel = false,
+                    )
                     NavigationBarItem(
                         selected = route == "community", onClick = { nav.switchTab("community") },
                         icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
@@ -97,7 +104,8 @@ fun MainScaffold(onLogout: () -> Unit) {
             }
         },
     ) { pad ->
-        NavHost(nav, startDestination = "sessions", modifier = Modifier.padding(pad)) {
+        NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
+            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
@@ -109,11 +117,15 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onFoilCalc = { nav.navigate("foilcalc") },
                     onFoils = { nav.navigate("foils") },
                     onFoilStats = { nav.navigate("foilstats") },
+                    onAlarm = { nav.navigate("alarm") },
+                    onSettings = { nav.navigate("settings") },
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen() }
             composable("foils") { FoilsScreen() }
             composable("foilstats") { FoilStatsScreen(onBack = { nav.popBackStack() }) }
+            composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
+            composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             composable(
                 "session/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType }),

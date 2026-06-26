@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(onOpen: (Int) -> Unit) {
-    var items by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
+    var items by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -64,12 +64,12 @@ fun CommunityScreen(onOpen: (Int) -> Unit) {
                     items(items) { s ->
                         ListItem(
                             modifier = Modifier.clickable { onOpen(s.id) },
-                            headlineContent = { Text(s.ownerName ?: "—") },
+                            headlineContent = { Text(s.name ?: "—") },
                             supportingContent = {
-                                Text(prettyDate(s.startedAt) + (s.placeName?.let { " · $it" } ?: ""))
+                                Text(prettyDate(s.startedAt) + (s.spot?.let { " · $it" } ?: ""))
                             },
                             leadingContent = {
-                                val av = Api.mediaUrl(s.ownerAvatarUrl)
+                                val av = Api.mediaUrl(s.avatarUrl)
                                 if (av != null) {
                                     AsyncImage(
                                         model = av, contentDescription = null,
