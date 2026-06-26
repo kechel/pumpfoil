@@ -125,9 +125,11 @@ class SessionSyncJob {
         _meta = Storage.getValue("meta_" + uuid);
         _token = Config.getString("deviceToken");
         if (st instanceof Lang.Dictionary) {
-            _accelTotal = st["accel_chunks"];
-            _gpsTotal = st["gps_chunks"];
-            _completed = st["completed"];
+            // Robust gegen fehlende/null Keys (z. B. GPS-only-Session ohne accel_chunks):
+            // sonst null-Arithmetik in begin() -> Crash schon beim App-Start (Sync).
+            _accelTotal = (st["accel_chunks"] instanceof Lang.Number) ? st["accel_chunks"] : 0;
+            _gpsTotal = (st["gps_chunks"] instanceof Lang.Number) ? st["gps_chunks"] : 0;
+            _completed = (st["completed"] == true);
         }
         var sa = Storage.getValue("sa_" + uuid); _sa = (sa == null) ? 0 : sa;
         var sg = Storage.getValue("sg_" + uuid); _sg = (sg == null) ? 0 : sg;

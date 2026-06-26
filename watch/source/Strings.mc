@@ -22,14 +22,20 @@ module Strings {
 
     // Lokalisierten String holen (Fallback: de-Spalte, dann der Key selbst).
     function s(key as Lang.String) as Lang.String {
-        var row = _T[key];
+        var row = _table()[key];
         if (row == null) { return key; }
         var v = row[_idx];
         if (v == null || v.equals("")) { v = row[0]; }
         return v;
     }
 
-    const _T = {
+    // Tabelle LAZY in einer Funktion bauen und cachen — NICHT als const-Dictionary auf
+    // Modulebene: das löste auf der Uhr einen Initialisierungs-Crash („IQ!" beim Start) aus.
+    var _T = null;
+
+    function _table() {
+        if (_T != null) { return _T; }
+        _T = {
         // Start-/GPS-/Stop-Screen
         "gps.ready"      => ["GPS bereit", "GPS bereit", "GPS bereit", "GPS ready", "GPS prêt", "GPS pronto", "GPS listo"],
         "gps.searching"  => ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…"],
@@ -89,5 +95,7 @@ module Strings {
         "up.linkHint"   => ["Konto verbinden (MENU)", "Konto verbinde (MENU)", "Konto verbinden (MENU)", "Link account (MENU)", "Lier le compte (MENU)", "Collega account (MENU)", "Vincular cuenta (MENU)"],
         "up.waiting"    => ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…"],
         "up.done"       => ["Fertig", "Fertig", "Fertig", "Done", "Terminé", "Fatto", "Listo"]
-    };
+        };
+        return _T;
+    }
 }
