@@ -9,8 +9,9 @@ struct CompareView: View {
     @State private var comparing = false
 
     var body: some View {
-        NavigationStack {
-            Group {
+        // Kein eigener NavigationStack: View wird aus ProfileView gepusht und nutzt
+        // dessen Stack (sonst verschachtelt -> Zurück-Button verschwindet).
+        Group {
                 if loading {
                     ProgressView()
                 } else if comparing {
@@ -57,7 +58,6 @@ struct CompareView: View {
                 }
             }
             .task { sessions = (try? await Api.sessions()) ?? []; loading = false }
-        }
     }
 
     private var compareTable: some View {
