@@ -147,6 +147,22 @@ def analyze_partial(
     return {"session_id": s.id, "status": "live", "analysis": "queued"}
 
 
+@router.get("/session/{session_uuid}/status")
+def session_status(
+    session_uuid: str,
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Abgleich für die Uhr: ist diese Session schon hochgeladen/abgeschlossen?
+    Damit kann die Uhr eine lokal hängende Session (verlorene /complete-Bestätigung)
+    erkennen und aufräumen, statt sie endlos erneut hochzuladen.
+    Antwortet immer 200: {exists, status} (status: none|recording|complete)."""
+    s = db.query(models.Session).filter_by(session_uuid=session_uuid).first()
+    if s is None or s.user_id != device.user_id:
+        return {"exists": False, "status": "none"}
+    return {"exists": True, "status": s.status or "recording"}
+
+
 @router.post("/session/{session_uuid}/complete")
 def complete_session(
     session_uuid: str,

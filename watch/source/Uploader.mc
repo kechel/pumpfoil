@@ -144,6 +144,14 @@ class SessionSyncJob {
         };
     }
 
+    hidden function _optsGet() as Lang.Dictionary {
+        return {
+            :method => Communications.HTTP_REQUEST_METHOD_GET,
+            :headers => { "X-Device-Token" => _token },
+            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+        };
+    }
+
     function begin() as Void {
         if (!(_meta instanceof Lang.Dictionary)) {
             _removeFromIndex();           // kein Meta -> nichts hochzuladen
@@ -169,18 +177,47 @@ class SessionSyncJob {
             );
             return;
         }
-        _startSession();
+        _checkStatus();
     }
 
     function onPair(responseCode as Lang.Number, data as WebData) as Void {
         if (responseCode == 200 && data instanceof Lang.Dictionary && data.hasKey("device_token")) {
             _token = data["device_token"] as Lang.String;
             Config.setString("deviceToken", _token);
-            _startSession();
+            _checkStatus();
         } else {
             Uploader.noteResult(responseCode);
             Uploader.sessionDone();   // später erneut
         }
+    }
+
+    // Zuerst mit dem Server abgleichen: ist die Session dort schon abgeschlossen?
+    // Falls ja (z. B. verlorene /complete-Bestätigung) -> lokal aufräumen statt endlos
+    // erneut hochzuladen. Sonst regulär hochladen.
+    hidden function _checkStatus() as Void {
+        _phase = :status;
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/status",
+            {},
+            _optsGet(),
+            method(:onStatus)
+        );
+    }
+
+    function onStatus(responseCode as Lang.Number, data as WebData) as Void {
+        if (responseCode != 200) {
+            Uploader.noteResult(responseCode);   // Server nicht erreichbar -> später erneut
+            Uploader.sessionDone();
+            return;
+        }
+        Uploader.noteResult(200);
+        if (data instanceof Lang.Dictionary && data["status"] != null
+                && (data["status"] as Lang.String).equals("complete")) {
+            _cleanup();              // Server hat die Session bereits vollständig -> lokal weg
+            Uploader.sessionDone();
+            return;
+        }
+        _startSession();             // noch nicht abgeschlossen -> regulär (weiter)hochladen
     }
 
     hidden function _startSession() as Void {
