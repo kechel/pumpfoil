@@ -1,17 +1,20 @@
 import SwiftUI
+import PhotosUI
 
-// Profil + Abmelden. Einstellungen/Avatar-Upload folgen in späteren Phasen.
+// Profil: Avatar (antippbar zum Ändern), Anzeigename, Navigationsziele, Abmelden.
 struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
     @State private var editing = false
     @State private var draftName = ""
+    @State private var avatarItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     HStack(spacing: 14) {
-                        avatar
+                        PhotosPicker(selection: $avatarItem, matching: .images) { avatar }
+                            .buttonStyle(.plain)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(session.profile?.display_name ?? "—").font(.headline)
                             if let email = session.profile?.email {
@@ -76,6 +79,14 @@ struct ProfileView: View {
                     }
                 }
                 Button("Abbrechen", role: .cancel) {}
+            }
+            .onChange(of: avatarItem) { item in
+                Task {
+                    if let data = try? await item?.loadTransferable(type: Data.self) {
+                        try? await Api.uploadAvatar(data: data)
+                        session.profile = try? await Api.getProfile()
+                    }
+                }
             }
         }
     }

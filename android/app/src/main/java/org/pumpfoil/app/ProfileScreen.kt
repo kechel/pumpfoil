@@ -1,6 +1,11 @@
 package org.pumpfoil.app
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -60,6 +65,14 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
     }
+    val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) scope.launch {
+            val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+            if (bytes != null) {
+                try { Api.uploadAvatar(bytes); profile = Api.me() } catch (_: Exception) {}
+            }
+        }
+    }
 
     if (editing) {
         AlertDialog(
@@ -84,17 +97,19 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
         Column(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val avatar = Api.mediaUrl(profile?.avatarUrl)
+                val pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                 if (avatar != null) {
                     AsyncImage(
                         model = avatar,
-                        contentDescription = null,
+                        contentDescription = "Profilbild ändern",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(56.dp).clip(CircleShape),
+                        modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
                     )
                 } else {
                     Icon(
-                        Icons.Filled.AccountCircle, contentDescription = null,
-                        modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Icons.Filled.AccountCircle, contentDescription = "Profilbild hinzufügen",
+                        modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Spacer(Modifier.width(14.dp))
