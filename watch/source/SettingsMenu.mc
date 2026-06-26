@@ -11,11 +11,11 @@ class SettingsMenu extends WatchUi.Menu2 {
     function initialize(rec) {
         Menu2.initialize({ :title => "Pump Foil" });
         addItem(new WatchUi.MenuItem(
-            rec.isPaired() ? "Verbunden" : "Verbinden",
-            rec.isPaired() ? "Konto verknüpft" : "Pairing-Code erzeugen",
+            rec.isPaired() ? Strings.s("menu.connected") : Strings.s("menu.connect"),
+            rec.isPaired() ? Strings.s("menu.linked") : Strings.s("menu.genCode"),
             :verbinden, {}));
         addItem(new WatchUi.MenuItem(
-            "Upload / Sync", "ausstehende Sessions", :upload, {}));
+            Strings.s("menu.upload"), Strings.s("menu.uploadSub"), :upload, {}));
     }
 }
 
@@ -63,50 +63,50 @@ class UploadView extends WatchUi.View {
         dc.setColor(connected ? Graphics.COLOR_GREEN : Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(w / 2 - 52, h * 0.16, 5);
         dc.drawText(w / 2 - 42, h * 0.16, Graphics.FONT_XTINY,
-            connected ? "Telefon verbunden" : "Kein Telefon",
+            connected ? Strings.s("up.connected") : Strings.s("up.noPhone"),
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
         if (_startCount == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.45, Graphics.FONT_MEDIUM, "Nichts offen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.45, Graphics.FONT_MEDIUM, Strings.s("up.nothing"), Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "alles hochgeladen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.allDone"), Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
 
         if (busy) {
             dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Upload läuft…", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.running"), Graphics.TEXT_JUSTIFY_CENTER);
             _drawBar(dc, w, h);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.78, Graphics.FONT_XTINY, pending + " offen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.78, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (pending > 0) {
             // Nicht busy, aber noch offen -> warum? Klartext statt scheinbarem Hängen.
             var err = Uploader.lastError();
             if (err == :auth) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Nicht verbunden", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.notLinked"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "Konto verbinden (MENU)", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.linkHint"), Graphics.TEXT_JUSTIFY_CENTER);
             } else if (!connected || err == :offline) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Wartet auf Verbindung", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waitConn"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " offen — wird fortgesetzt", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open") + " — " + Strings.s("up.willResume"), Graphics.TEXT_JUSTIFY_CENTER);
             } else if (err == :server) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Server-Fehler", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.serverErr"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "später erneut", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.later"), Graphics.TEXT_JUSTIFY_CENTER);
             } else {
                 dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "Warte…", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waiting"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " offen", Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open"), Graphics.TEXT_JUSTIFY_CENTER);
             }
         } else {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.42, Graphics.FONT_MEDIUM, "Fertig", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.42, Graphics.FONT_MEDIUM, Strings.s("up.done"), Graphics.TEXT_JUSTIFY_CENTER);
             dc.setPenWidth(4);
             dc.drawLine(w / 2 - 14, h * 0.62, w / 2 - 4, h * 0.66);
             dc.drawLine(w / 2 - 4, h * 0.66, w / 2 + 16, h * 0.58);

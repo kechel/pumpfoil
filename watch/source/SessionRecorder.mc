@@ -117,6 +117,8 @@ class SessionRecorder {
     }
 
     function reloadConfig() {
+        // Profil-Sprache (vom Server gecacht) anwenden — auch offline verfügbar.
+        Strings.setLang(Config.getString("lang"));
         // Bevorzugt die zuletzt von der Website geladene Konfiguration (Cache),
         // sonst die nativen Garmin-App-Settings (Offline-Fallback).
         var cached = Storage.getValue("views_config");
@@ -263,6 +265,11 @@ class SessionRecorder {
 
     function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         if (responseCode == 200 && data instanceof Lang.Dictionary) {
+            // Profil-Sprache übernehmen + cachen (für Offline-Anzeige).
+            if (data.hasKey("language") && data["language"] != null) {
+                Config.setString("lang", data["language"]);
+                Strings.setLang(data["language"]);
+            }
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
             if (data.hasKey("colorByValue") && data["colorByValue"] != null) {
                 colorByValue = data["colorByValue"];

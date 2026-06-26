@@ -44,6 +44,8 @@ def device_config(
     return {
         "views": settings.get("views", [[1, 2, 0]]),
         "colorByValue": bool(settings.get("colorByValue", False)),
+        # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
+        "language": (user.language if user and user.language else "de"),
         # Vibrationsalarm (per Website konfiguriert).
         "alarmEnabled": bool(settings.get("alarm_enabled", False)),
         "speedHigh": int(settings.get("speed_high", 0) or 0),

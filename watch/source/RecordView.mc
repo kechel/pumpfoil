@@ -117,7 +117,7 @@ class RecordView extends WatchUi.View {
             dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, endDeg);
             dc.setPenWidth(1);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.30, Graphics.FONT_TINY, "Stoppen…",
+            dc.drawText(w / 2, h * 0.30, Graphics.FONT_TINY, Strings.s("rec.stopping"),
                 Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
@@ -143,27 +143,27 @@ class RecordView extends WatchUi.View {
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, "GPS bereit", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.ready"), Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, "GPS suchen…", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching"), Graphics.TEXT_JUSTIFY_CENTER);
         }
         // Aktiver Alarm (vor dem Start per DOWN wählbar). Zeigt die getroffene Auswahl
         // (Standard-Foil, feste Werte oder „Aus"), damit man mit dem richtigen Alarm losfährt.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             var lbl = _rec.activeAlarmLabel.equals("") ? "—" : _rec.activeAlarmLabel;
-            dc.drawText(w / 2, h * 0.555, Graphics.FONT_XTINY, "Alarm: " + lbl, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.555, Graphics.FONT_XTINY, Strings.s("alarm.prefix") + lbl, Graphics.TEXT_JUSTIFY_CENTER);
         }
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.65, Graphics.FONT_SMALL, "START: Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.65, Graphics.FONT_SMALL, Strings.s("start.rec"), Graphics.TEXT_JUSTIFY_CENTER);
         // Dezente Hinweise: Foil-Auswahl per DOWN, Einstellungen (Verbinden/Upload) hinter MENU.
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
-            dc.drawText(w / 2, h * 0.79, Graphics.FONT_XTINY, "↓ Alarm wählen", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY, "MENU: Einstellungen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.79, Graphics.FONT_XTINY, Strings.s("start.chooseAlarm"), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY, Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, "MENU: Einstellungen", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
@@ -172,15 +172,15 @@ class RecordView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, "Gespeichert", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, Strings.s("saved.title"), Graphics.TEXT_JUSTIFY_CENTER);
         // grünes Häkchen
         dc.setPenWidth(4);
         dc.drawLine(w / 2 - 14, h * 0.46, w / 2 - 4, h * 0.50);
         dc.drawLine(w / 2 - 4, h * 0.50, w / 2 + 16, h * 0.42);
         dc.setPenWidth(1);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "Upload bei WLAN/Telefon", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(w / 2, h * 0.72, Graphics.FONT_XTINY, "START = neue Aufnahme", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("saved.upload"), Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.72, Graphics.FONT_XTINY, Strings.s("saved.newRec"), Graphics.TEXT_JUSTIFY_CENTER);
         dc.drawText(w / 2, h * 0.85, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
@@ -189,7 +189,7 @@ class RecordView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
         dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, "GPS wird gesucht",
+        dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("gps.searchBig"),
             Graphics.TEXT_JUSTIFY_CENTER);
         // animierte Punkte (1 Hz Update)
         var dots = "";
@@ -198,7 +198,7 @@ class RecordView extends WatchUi.View {
         dc.drawText(w / 2, h * 0.40 + 34, Graphics.FONT_SMALL, dots,
             Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, "bitte freien Himmel",
+        dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("gps.sky"),
             Graphics.TEXT_JUSTIFY_CENTER);
         // Aufnahme läuft bereits (roter Punkt oben).
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
@@ -212,66 +212,66 @@ class RecordView extends WatchUi.View {
         if (type == Config.FIELD_SPEED3S) {
             var kmh = _rec.speed3s() * 3.6;
             value = kmh.format("%.1f");
-            label = "km/h (3s)";
+            label = Strings.s("f.kmh3s");
             if (_rec.colorByValue) { color = _speedColor(kmh); }
         } else if (type == Config.FIELD_HR) {
             var hr = _rec.currentHr();
             value = hr == null ? "--" : hr.toString();
-            label = "bpm";
+            label = Strings.s("f.bpm");
             if (_rec.colorByValue && hr != null) { color = _hrColor(hr); }
         } else if (type == Config.FIELD_TIMER) {
             value = _fmtTime(_rec.elapsedTimeMs());
-            label = "Zeit";
+            label = Strings.s("f.time");
         } else if (type == Config.FIELD_DISTANCE) {
             value = _distVal(_rec.distanceM());
             label = _distUnit(_rec.distanceM());
         } else if (type == Config.FIELD_SPEED) {
             var kmh = _rec.currentSpeed() * 3.6;
-            value = kmh.format("%.1f"); label = "km/h";
+            value = kmh.format("%.1f"); label = Strings.s("f.kmh");
             if (_rec.colorByValue) { color = _speedColor(kmh); }
         } else if (type == Config.FIELD_AVG_SPEED) {
             var kmh = _rec.avgSpeed() * 3.6;
-            value = kmh.format("%.1f"); label = "km/h Ø";
+            value = kmh.format("%.1f"); label = Strings.s("f.kmhAvg");
         } else if (type == Config.FIELD_MAX_SPEED) {
             var kmh = _rec.maxSpeed() * 3.6;
-            value = kmh.format("%.1f"); label = "km/h max";
+            value = kmh.format("%.1f"); label = Strings.s("f.kmhMax");
             if (_rec.colorByValue) { color = _speedColor(kmh); }
         } else if (type == Config.FIELD_AVG_HR) {
             var v = _rec.avgHr();
-            value = v == null ? "--" : v.toString(); label = "bpm Ø";
+            value = v == null ? "--" : v.toString(); label = Strings.s("f.bpmAvg");
         } else if (type == Config.FIELD_MAX_HR) {
             var v = _rec.maxHr();
-            value = v == null ? "--" : v.toString(); label = "bpm max";
+            value = v == null ? "--" : v.toString(); label = Strings.s("f.bpmMax");
         } else if (type == Config.FIELD_ALTITUDE) {
             var v = _rec.altitudeM();
-            value = v == null ? "--" : v.format("%.0f"); label = "m Höhe";
+            value = v == null ? "--" : v.format("%.0f"); label = Strings.s("f.mAlt");
         } else if (type == Config.FIELD_ASCENT) {
             var v = _rec.ascentM();
-            value = v == null ? "--" : v.format("%.0f"); label = "m ↑";
+            value = v == null ? "--" : v.format("%.0f"); label = Strings.s("f.mAsc");
         } else if (type == Config.FIELD_TEMPERATURE) {
             var v = _rec.temperatureC();
-            value = v == null ? "--" : v.format("%.0f"); label = "°C";
+            value = v == null ? "--" : v.format("%.0f"); label = Strings.s("f.degC");
         } else if (type == Config.FIELD_CLOCK) {
             var c = System.getClockTime();
-            value = c.hour.format("%02d") + ":" + c.min.format("%02d"); label = "Uhr";
+            value = c.hour.format("%02d") + ":" + c.min.format("%02d"); label = Strings.s("f.clock");
         } else if (type == Config.FIELD_RUN_DURATION) {
             value = _fmtTime(_rec.runDurationMs());
-            label = _rec.isFoiling() ? "Lauf läuft" : "Lauf";
+            label = _rec.isFoiling() ? Strings.s("f.runActive") : Strings.s("f.run");
             if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
         } else if (type == Config.FIELD_RUN_DISTANCE) {
             value = _distVal(_rec.runDistanceM());
-            label = _distUnit(_rec.runDistanceM()) + (_rec.isFoiling() ? " Lauf läuft" : " Lauf");
+            label = _distUnit(_rec.runDistanceM()) + " " + (_rec.isFoiling() ? Strings.s("f.runActive") : Strings.s("f.run"));
             if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
         } else if (type == Config.FIELD_LAST_RUN_DURATION) {
-            value = _fmtTime(_rec.lastRunDurationMs()); label = "letzter Lauf";
+            value = _fmtTime(_rec.lastRunDurationMs()); label = Strings.s("f.lastRun");
         } else if (type == Config.FIELD_LAST_RUN_DISTANCE) {
-            value = _distVal(_rec.lastRunDistanceM()); label = _distUnit(_rec.lastRunDistanceM()) + " letzter";
+            value = _distVal(_rec.lastRunDistanceM()); label = _distUnit(_rec.lastRunDistanceM()) + " " + Strings.s("f.last");
         } else if (type == Config.FIELD_LAST_RUN_AVG_SPEED) {
-            value = (_rec.lastRunAvgSpeed() * 3.6).format("%.1f"); label = "km/h Ø letzt.";
+            value = (_rec.lastRunAvgSpeed() * 3.6).format("%.1f"); label = Strings.s("f.kmhAvgLast");
         } else if (type == Config.FIELD_LAST_RUN_MAX_SPEED) {
-            value = (_rec.lastRunMaxSpeed() * 3.6).format("%.1f"); label = "km/h max letzt.";
+            value = (_rec.lastRunMaxSpeed() * 3.6).format("%.1f"); label = Strings.s("f.kmhMaxLast");
         } else if (type == Config.FIELD_RUN_COUNT) {
-            value = _rec.runCount().toString(); label = "Läufe";
+            value = _rec.runCount().toString(); label = Strings.s("f.runs");
         } else {
             value = "--"; label = "";
         }
