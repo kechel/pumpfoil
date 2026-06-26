@@ -49,15 +49,10 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
-// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc.
-private val FIELD_OPTIONS = listOf(
-    0 to "— leer —", 1 to "Speed (3 s)", 5 to "Speed (aktuell)", 6 to "Ø Speed", 7 to "Max Speed",
-    2 to "Puls", 8 to "Ø Puls", 9 to "Max Puls", 3 to "Zeit", 4 to "Distanz", 10 to "Höhe",
-    13 to "Aufstieg", 11 to "Temperatur", 12 to "Uhrzeit", 14 to "Lauf Dauer (live)",
-    15 to "Lauf Strecke (live)", 16 to "Letzter Lauf: Dauer", 17 to "Letzter Lauf: Strecke",
-    18 to "Letzter Lauf: Ø Speed", 19 to "Letzter Lauf: Max Speed", 20 to "Läufe (Anzahl)",
-)
-private fun fieldLabel(id: Int) = FIELD_OPTIONS.firstOrNull { it.first == id }?.second ?: "—"
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc. Anzeigereihenfolge;
+// Labels lokalisiert über i18n-Key "field.<id>".
+private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 10, 13, 11, 12, 14, 15, 16, 17, 18, 19, 20)
+private fun fieldLabel(id: Int) = I18n.t("field.$id")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +95,7 @@ fun DataFieldsScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Datenseiten") },
+                title = { Text(I18n.t("profile.datafields")) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
             )
         },
@@ -110,17 +105,17 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text("Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.",
+            Text(I18n.t("datafields.intro"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(12.dp))
             views.forEachIndexed { vi, v ->
                 Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                     Column(Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Seite ${vi + 1}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                            Text("${I18n.t("datafields.page")} ${vi + 1}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
                             if (views.size > 1) {
                                 IconButton(onClick = { views = views.filterIndexed { i, _ -> i != vi }; saved = false }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Seite entfernen")
+                                    Icon(Icons.Filled.Delete, contentDescription = I18n.t("datafields.removePage"))
                                 }
                             }
                         }
@@ -133,13 +128,13 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             }
             if (views.size < 8) {
                 OutlinedButton(onClick = { views = views + listOf(listOf(0, 0, 0)); saved = false }) {
-                    Text("Seite hinzufügen")
+                    Text(I18n.t("datafields.addPage"))
                 }
             }
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text("Speichern") }
-                if (saved) { Spacer(Modifier.width(12.dp)); Text("Gespeichert", color = MaterialTheme.colorScheme.primary) }
+                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
+                if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
             }
         }
     }
@@ -154,8 +149,8 @@ private fun FieldDropdown(selected: Int, onSelect: (Int) -> Unit) {
             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            FIELD_OPTIONS.forEach { (id, label) ->
-                DropdownMenuItem(text = { Text(label) }, onClick = { onSelect(id); open = false })
+            FIELD_IDS.forEach { id ->
+                DropdownMenuItem(text = { Text(fieldLabel(id)) }, onClick = { onSelect(id); open = false })
             }
         }
     }

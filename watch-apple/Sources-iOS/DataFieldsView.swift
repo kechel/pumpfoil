@@ -1,44 +1,39 @@
 import SwiftUI
 
 // Uhr-Datenseiten konfigurieren (settings.views): bis zu 3 Felder pro Seite.
-// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin.
-private let FIELD_OPTIONS: [(Int, String)] = [
-    (0, "— leer —"), (1, "Speed (3 s)"), (5, "Speed (aktuell)"), (6, "Ø Speed"), (7, "Max Speed"),
-    (2, "Puls"), (8, "Ø Puls"), (9, "Max Puls"), (3, "Zeit"), (4, "Distanz"), (10, "Höhe"),
-    (13, "Aufstieg"), (11, "Temperatur"), (12, "Uhrzeit"), (14, "Lauf Dauer (live)"),
-    (15, "Lauf Strecke (live)"), (16, "Letzter Lauf: Dauer"), (17, "Letzter Lauf: Strecke"),
-    (18, "Letzter Lauf: Ø Speed"), (19, "Letzter Lauf: Max Speed"), (20, "Läufe (Anzahl)"),
-]
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin. Labels via Loc "field.<id>".
+private let FIELD_IDS = [0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 10, 13, 11, 12, 14, 15, 16, 17, 18, 19, 20]
 
 struct DataFieldsView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var views: [[Int]] = [[1, 2, 0]]
     @State private var loaded = false
     @State private var saved = false
 
     var body: some View {
         Form {
-            Section { Text("Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text(Loc.t("datafields.intro", lang)).font(.footnote).foregroundStyle(.secondary) }
             ForEach(views.indices, id: \.self) { vi in
-                Section("Seite \(vi + 1)") {
+                Section("\(Loc.t("datafields.page", lang)) \(vi + 1)") {
                     ForEach(0..<3, id: \.self) { slot in
-                        Picker("Feld \(slot + 1)", selection: binding(vi, slot)) {
-                            ForEach(FIELD_OPTIONS, id: \.0) { id, label in Text(label).tag(id) }
+                        Picker("\(Loc.t("datafields.field", lang)) \(slot + 1)", selection: binding(vi, slot)) {
+                            ForEach(FIELD_IDS, id: \.self) { id in Text(Loc.t("field.\(id)", lang)).tag(id) }
                         }
                     }
                     if views.count > 1 {
-                        Button("Seite entfernen", role: .destructive) { views.remove(at: vi); saved = false }
+                        Button(Loc.t("datafields.removePage", lang), role: .destructive) { views.remove(at: vi); saved = false }
                     }
                 }
             }
             Section {
                 if views.count < 8 {
-                    Button("Seite hinzufügen") { views.append([0, 0, 0]); saved = false }
+                    Button(Loc.t("datafields.addPage", lang)) { views.append([0, 0, 0]); saved = false }
                 }
-                Button("Speichern") { save() }
-                if saved { Text("Gespeichert").foregroundStyle(.green).font(.footnote) }
+                Button(Loc.t("common.save", lang)) { save() }
+                if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
             }
         }
-        .navigationTitle("Datenseiten")
+        .navigationTitle(Loc.t("profile.datafields", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }
