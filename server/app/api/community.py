@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, literal
+from sqlalchemy import func, literal, or_
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -50,13 +50,17 @@ def _cutoff(period: str) -> datetime | None:
     return now - timedelta(days=days)
 
 
-def _community(query):
-    """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten."""
+def _community(query, viewer_id: int | None = None):
+    """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten.
+
+    Versteckte Konten (hidden, App-Store-Tester) werden für alle ANDEREN ausgeblendet;
+    der Besitzer selbst (viewer_id) sieht seine Inhalte weiter."""
     return (
         query.select_from(AR)
         .join(S, AR.session_id == S.id)
         .join(U, S.user_id == U.id)
         .filter(S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True),
+                or_(U.hidden.isnot(True), U.id == viewer_id),
                 S.is_pumpfoil.is_(True), AR.detection == "model")
     )
 
@@ -87,7 +91,7 @@ def community_sessions(
 ) -> list[dict]:
     """Feed: community-sichtbare Sessions, neueste zuerst, echte SQL-Paginierung.
     Optional gefiltert nach Anzeigename (Teiltreffer) und/oder Spot."""
-    q = _community(db.query(*BRIEF_COLS))
+    q = _community(db.query(*BRIEF_COLS), user.id)
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
@@ -102,7 +106,7 @@ def spot_sessions(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        _community(db.query(*BRIEF_COLS)).filter(S.place_name == spot)
+        _community(db.query(*BRIEF_COLS), user.id).filter(S.place_name == spot)
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
@@ -110,10 +114,10 @@ def spot_sessions(
 
 
 # --------------------------------------------------------------------- Records ----
-def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None) -> dict:
+def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None) -> dict:
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
-    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, AR.track_preview))
+    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, AR.track_preview), viewer_id)
     q = q.filter(valcol > 0)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
@@ -132,7 +136,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
 
 @router.get("/records")
 def community_records(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    return {p: {m: _record_entry(db, m, _cutoff(p)) for m in METRICS} for p in PERIODS}
+    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id) for m in METRICS} for p in PERIODS}
 
 
 @router.get("/spot-records")
@@ -141,7 +145,7 @@ def spot_records(
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     cut = _cutoff(period)
-    return {m: _record_entry(db, m, cut, spot=spot) for m in METRICS}
+    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id) for m in METRICS}
 
 
 # ------------------------------------------------------------------- Leaders ----
@@ -153,7 +157,7 @@ def leaders(period: str = "all", _user: models.User = Depends(current_user), db:
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(AR.pump_count), 0),
-    ))
+    ), _user.id)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
@@ -174,7 +178,8 @@ def latest_photos(
     P = models.SessionPhoto
     lim = min(max(limit, 1), 20)
     items: list[dict] = []
-    _vis = (S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True), S.is_pumpfoil.is_(True))
+    _vis = (S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True),
+            or_(U.hidden.isnot(True), U.id == user.id), S.is_pumpfoil.is_(True))
 
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
@@ -231,9 +236,9 @@ def latest_photos(
 @router.get("/spots")
 def spots(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     has_place = (S.place_name.isnot(None), S.place_name != "")
-    qual = sorted({p for (p,) in _community(db.query(S.place_name)).filter(*has_place).distinct().all()})
+    qual = sorted({p for (p,) in _community(db.query(S.place_name), user.id).filter(*has_place).distinct().all()})
     mine_rows = (
-        _community(db.query(S.place_name)).filter(S.user_id == user.id, *has_place)
+        _community(db.query(S.place_name), user.id).filter(S.user_id == user.id, *has_place)
         .order_by(S.started_at.desc()).all()
     )
     qualset = set(qual)
@@ -250,7 +255,7 @@ def spots(user: models.User = Depends(current_user), db: Session = Depends(get_d
 def spot_map(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte."""
     rows = (
-        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()))
+        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()), _user.id)
         .filter(S.place_name.isnot(None), S.place_name != "", S.place_lat.isnot(None))
         .group_by(S.place_name).all()
     )
@@ -273,7 +278,7 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
             func.sum(AR.pump_count),
             func.max(AR.best_distance_m),
             func.avg(AR.avg_cadence_hz),
-        )).filter(S.foil_id.isnot(None))
+        ), _user.id).filter(S.foil_id.isnot(None))
         .group_by(S.foil_id).all()
     )
     if not rows:
@@ -311,7 +316,7 @@ def top_liked(
         db.query(models.SessionLike.session_id, func.count().label("n"))
         .group_by(models.SessionLike.session_id).subquery()
     )
-    q = _community(db.query(*BRIEF_COLS, likes_sq.c.n)).join(likes_sq, likes_sq.c.session_id == S.id)
+    q = _community(db.query(*BRIEF_COLS, likes_sq.c.n), user.id).join(likes_sq, likes_sq.c.session_id == S.id)
     cut = _cutoff(period)
     if cut is not None:
         q = q.filter(S.started_at >= cut)

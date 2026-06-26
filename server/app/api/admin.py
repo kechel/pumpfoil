@@ -167,6 +167,7 @@ def _user_brief(db: Session, u: models.User) -> dict:
         "avatar_url": u.avatar_url,
         "is_admin": bool(u.is_admin),
         "blocked": bool(u.blocked),
+        "hidden": bool(u.hidden),
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "sessions": nsess,
     }
@@ -210,6 +211,16 @@ def block_user(user_id: int, blocked: bool = Query(True), admin: models.User = D
     _log(db, admin, "user_block" if blocked else "user_unblock", "user", user_id)
     db.commit()
     return {"ok": True, "blocked": u.blocked}
+
+
+@router.post("/users/{user_id}/hide")
+def hide_user(user_id: int, hidden: bool = Query(True), admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Testkonto (App-Store-Review): Inhalte für alle anderen ausblenden, Login bleibt aktiv."""
+    u = _get_user(db, user_id)
+    u.hidden = hidden
+    _log(db, admin, "user_hide" if hidden else "user_unhide", "user", user_id)
+    db.commit()
+    return {"ok": True, "hidden": u.hidden}
 
 
 @router.post("/users/{user_id}/admin")
@@ -359,6 +370,7 @@ def overview(_a: models.User = Depends(current_admin), db: Session = Depends(get
     return {
         "users": c(models.User),
         "users_blocked": c(models.User, models.User.blocked.is_(True)),
+        "users_hidden": c(models.User, models.User.hidden.is_(True)),
         "admins": c(models.User, models.User.is_admin.is_(True)),
         "sessions": c(models.Session, models.Session.deleted.isnot(True)),
         "sessions_deleted": c(models.Session, models.Session.deleted.is_(True)),

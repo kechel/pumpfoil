@@ -75,6 +75,9 @@ def list_messages(
     )
     if not user.is_admin:
         q = q.filter(models.ChatMessage.hidden.isnot(True))
+    # Versteckte Testkonten: ihre Nachrichten nur für sie selbst sichtbar.
+    from sqlalchemy import or_
+    q = q.filter(or_(models.User.hidden.isnot(True), models.User.id == user.id))
     if after:
         # Neue Nachrichten seit `after`: aufsteigend ab dem Cursor.
         rows = q.filter(models.ChatMessage.id > after).order_by(

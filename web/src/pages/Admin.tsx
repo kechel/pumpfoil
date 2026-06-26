@@ -297,6 +297,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
             {u.display_name || <span className="text-slate-400">{t("adm.noName")}</span>}
             {u.is_admin && <span className="ml-1"><Badge tone="green">{t("adm.adminBadge")}</Badge></span>}
             {u.blocked && <span className="ml-1"><Badge tone="red">{t("adm.blockedBadge")}</Badge></span>}
+            {u.hidden && <span className="ml-1"><Badge tone="amber">{t("adm.testerBadge")}</Badge></span>}
           </div>
           <div className="truncate text-[11px] text-slate-400">{u.email} · {t("adm.sessionsSince", { sessions: u.sessions, date: fmtDate(u.created_at) })}</div>
         </div>
@@ -304,6 +305,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
           <Link to={`/admin?tab=sessions&user=${u.id}`} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{t("adm.sessionsLink")}</Link>
           <button onClick={toggleStats} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{open ? t("adm.statsHide") : t("adm.statsShow")}</button>
           <Act tone={u.blocked ? "green" : "red"} onClick={() => api.adminBlockUser(u.id, !u.blocked).then((r) => upd({ blocked: r.blocked }))}>{u.blocked ? t("adm.unblock") : t("adm.block")}</Act>
+          <Act tone={u.hidden ? "green" : "amber"} onClick={() => api.adminHideUser(u.id, !u.hidden).then((r) => upd({ hidden: r.hidden }))}>{u.hidden ? t("adm.unhideUser") : t("adm.hideUser")}</Act>
           <Act tone="slate" onClick={() => api.adminSetAdmin(u.id, !u.is_admin).then((r) => upd({ is_admin: r.is_admin }))}>{u.is_admin ? t("adm.adminRevoke") : t("adm.adminGrant")}</Act>
           <Act tone="slate" onClick={async () => {
             const pw = prompt(t("adm.pwPrompt", { email: u.email }), "");

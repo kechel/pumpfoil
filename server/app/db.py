@@ -95,6 +95,7 @@ def _migrate_add_columns() -> None:
             "is_admin": "BOOLEAN DEFAULT 0",
             "blocked": "BOOLEAN DEFAULT 0",
             "chat_readonly": "BOOLEAN DEFAULT false",
+            "hidden": "BOOLEAN DEFAULT false",
         },
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",

@@ -217,6 +217,7 @@ export interface AdminUser {
   avatar_url: string | null;
   is_admin: boolean;
   blocked: boolean;
+  hidden: boolean;
   created_at: string | null;
   sessions: number;
 }
@@ -459,6 +460,8 @@ export const api = {
     req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}${q ? "&q=" + encodeURIComponent(q) : ""}`),
   adminBlockUser: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/users/${id}/block?blocked=${blocked}`, { method: "POST" }),
+  adminHideUser: (id: number, hidden: boolean) =>
+    req<{ hidden: boolean }>(`/api/admin/users/${id}/hide?hidden=${hidden}`, { method: "POST" }),
   adminSetAdmin: (id: number, isAdmin: boolean) =>
     req<{ is_admin: boolean }>(`/api/admin/users/${id}/admin?is_admin=${isAdmin}`, { method: "POST" }),
   adminResetPassword: (id: number, password?: string) =>
