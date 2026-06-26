@@ -4,6 +4,7 @@ import AuthenticationServices
 // Native Login-Maske (Form): E-Mail Login/Register + „Sign in with Apple".
 struct LoginView: View {
     @EnvironmentObject var session: SessionStore
+    @AppStorage("appLang") private var lang = "de"
     @State private var email = ""
     @State private var password = ""
     @State private var name = ""
@@ -15,15 +16,15 @@ struct LoginView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("E-Mail", text: $email)
+                    TextField(Loc.t("login.email", lang), text: $email)
                         .keyboardType(.emailAddress)
                         .textContentType(.username)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    SecureField(register ? "Passwort (min. 8 Zeichen)" : "Passwort", text: $password)
+                    SecureField(Loc.t(register ? "login.passwordReg" : "login.password", lang), text: $password)
                         .textContentType(register ? .newPassword : .password)
                     if register {
-                        TextField("Anzeigename (optional)", text: $name)
+                        TextField(Loc.t("login.name", lang), text: $name)
                             .textInputAutocapitalization(.words)
                     }
                 }
@@ -34,12 +35,12 @@ struct LoginView: View {
                     Button(action: { Task { await submit() } }) {
                         HStack {
                             Spacer()
-                            if busy { ProgressView() } else { Text(register ? "Konto erstellen" : "Anmelden").bold() }
+                            if busy { ProgressView() } else { Text(Loc.t(register ? "login.create" : "login.signin", lang)).bold() }
                             Spacer()
                         }
                     }
                     .disabled(busy || email.isEmpty || password.isEmpty)
-                    Button(register ? "Schon ein Konto? Anmelden" : "Noch kein Konto? Registrieren") {
+                    Button(Loc.t(register ? "login.toLogin" : "login.toRegister", lang)) {
                         register.toggle(); error = nil
                     }
                     .font(.footnote)

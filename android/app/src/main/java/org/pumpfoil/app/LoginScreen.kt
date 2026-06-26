@@ -50,14 +50,14 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = email, onValueChange = { email = it },
-            label = { Text("E-Mail") }, singleLine = true,
+            label = { Text(I18n.t("login.email")) }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = password, onValueChange = { password = it },
-            label = { Text(if (register) "Passwort (min. 8 Zeichen)" else "Passwort") }, singleLine = true,
+            label = { Text(I18n.t(if (register) "login.passwordReg" else "login.password")) }, singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
@@ -66,7 +66,7 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
-                label = { Text("Anzeigename (optional)") }, singleLine = true,
+                label = { Text(I18n.t("login.name")) }, singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -95,15 +95,15 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            else Text(if (register) "Konto erstellen" else "Anmelden")
+            else Text(I18n.t(if (register) "login.create" else "login.signin"))
         }
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = { register = !register; error = null }) {
-            Text(if (register) "Schon ein Konto? Anmelden" else "Noch kein Konto? Registrieren")
+            Text(I18n.t(if (register) "login.toLogin" else "login.toRegister"))
         }
 
         Spacer(Modifier.height(8.dp))
-        Text("oder", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Text(I18n.t("login.or"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
@@ -124,7 +124,7 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
             },
             enabled = !busy,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Mit Google anmelden") }
+        ) { Text(I18n.t("login.google")) }
     }
     }
 }
