@@ -113,6 +113,25 @@ data class OverallStats(
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 
+// Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
+@Serializable
+data class CommunityRecordEntry(
+    @SerialName("session_id") val sessionId: Int? = null,
+    val value: Double = 0.0,
+    val name: String? = null,
+    val spot: String? = null,
+    @SerialName("started_at") val startedAt: String? = null,
+)
+
+@Serializable
+data class PeriodRecords(
+    val distance: CommunityRecordEntry? = null,
+    val duration: CommunityRecordEntry? = null,
+    val speed: CommunityRecordEntry? = null,
+    val glide: CommunityRecordEntry? = null,
+    val runs: CommunityRecordEntry? = null,
+)
+
 @Serializable
 data class SpotMapItem(
     val spot: String,

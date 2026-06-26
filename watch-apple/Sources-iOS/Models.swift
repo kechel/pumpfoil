@@ -84,6 +84,22 @@ struct OverallStats: Codable {
 
 struct SpotsList: Codable { let mine: [String]?; let all: [String]? }
 
+// Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
+struct CommunityRecordEntry: Codable {
+    let session_id: Int?
+    let value: Double?
+    let name: String?
+    let spot: String?
+}
+
+struct PeriodRecords: Codable {
+    let distance: CommunityRecordEntry?
+    let duration: CommunityRecordEntry?
+    let speed: CommunityRecordEntry?
+    let glide: CommunityRecordEntry?
+    let runs: CommunityRecordEntry?
+}
+
 struct SpotMapItem: Codable, Identifiable {
     let spot: String
     let lat: Double

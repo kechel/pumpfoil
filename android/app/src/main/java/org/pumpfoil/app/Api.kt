@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -140,6 +141,13 @@ object Api {
 
     suspend fun spots(): SpotsList = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots", null, auth = true))
+    }
+
+    suspend fun communityRecords(): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
+        json.decodeFromString(
+            MapSerializer(String.serializer(), PeriodRecords.serializer()),
+            http("GET", "/api/community/records", null, auth = true),
+        )
     }
 
     suspend fun spotMap(): List<SpotMapItem> = withContext(Dispatchers.IO) {

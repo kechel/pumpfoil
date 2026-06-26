@@ -20,7 +20,12 @@ struct CommunityView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Community")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink { CommunityRecordsView() } label: { Image(systemName: "trophy") }
+                }
+                ToolbarItem(placement: .topBarTrailing) { SyncButton() }
+            }
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }

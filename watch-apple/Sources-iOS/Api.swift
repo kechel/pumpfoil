@@ -98,6 +98,10 @@ enum Api {
         try await request("/api/community/spots", method: "GET", body: nil, auth: true)
     }
 
+    static func communityRecords() async throws -> [String: PeriodRecords] {
+        try await request("/api/community/records", method: "GET", body: nil, auth: true)
+    }
+
     static func deleteSession(_ id: Int) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)") else { throw ApiError.badURL }
         var req = URLRequest(url: url)

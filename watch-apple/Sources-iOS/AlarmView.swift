@@ -22,7 +22,7 @@ struct AlarmView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Vibrationsalarm aktivieren", isOn: $enabled.onChange { saved = false })
+                Toggle("Vibrationsalarm aktivieren", isOn: $enabled)
             } footer: {
                 Text("Die Uhr vibriert beim Foilen, sobald du eine Geschwindigkeitsgrenze über- oder "
                     + "unterschreitest – z. B. um in der optimalen Pump-Geschwindigkeit zu bleiben. "
@@ -31,7 +31,7 @@ struct AlarmView: View {
 
             if enabled {
                 Section {
-                    Picker("Standard auf der Uhr", selection: $def.onChange { saved = false }) {
+                    Picker("Standard auf der Uhr", selection: $def) {
                         Text("Mein Standard-Foil").tag("foil")
                         Text("Feste Werte (unten)").tag("fixed")
                     }
@@ -42,16 +42,16 @@ struct AlarmView: View {
                 }
 
                 Section("Max-Geschwindigkeit überschritten") {
-                    Stepper("Max: \(high) km/h", value: $high.onChange { saved = false }, in: 0...60)
+                    Stepper("Max: \(high) km/h", value: $high, in: 0...60)
                     patternPicker("Muster", selection: $patHigh)
                 }
                 Section("Min-Geschwindigkeit unterschritten") {
-                    Stepper("Min: \(low) km/h", value: $low.onChange { saved = false }, in: 0...60)
+                    Stepper("Min: \(low) km/h", value: $low, in: 0...60)
                     patternPicker("Muster", selection: $patLow)
                 }
 
                 Section {
-                    Picker("Auslösen", selection: $repeatMode.onChange { saved = false }) {
+                    Picker("Auslösen", selection: $repeatMode) {
                         Text("einmalig beim Über-/Unterschreiten").tag("once")
                         Text("dauerhaft, solange drüber/drunter").tag("continuous")
                     }
@@ -70,10 +70,17 @@ struct AlarmView: View {
         .navigationTitle("Vibrationsalarm")
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+        .onChange(of: enabled) { _ in saved = false }
+        .onChange(of: def) { _ in saved = false }
+        .onChange(of: high) { _ in saved = false }
+        .onChange(of: low) { _ in saved = false }
+        .onChange(of: patHigh) { _ in saved = false }
+        .onChange(of: patLow) { _ in saved = false }
+        .onChange(of: repeatMode) { _ in saved = false }
     }
 
     private func patternPicker(_ title: String, selection: Binding<String>) -> some View {
-        Picker(title, selection: selection.onChange { saved = false }) {
+        Picker(title, selection: selection) {
             ForEach(patterns, id: \.0) { id, label in Text(label).tag(id) }
         }
     }
@@ -103,12 +110,5 @@ struct AlarmView: View {
             ])
             saved = true
         }
-    }
-}
-
-// Kleiner Helfer: Binding-Änderung mit Seiteneffekt (z. B. „ungespeichert"-Flag zurücksetzen).
-extension Binding {
-    func onChange(_ action: @escaping () -> Void) -> Binding<Value> {
-        Binding(get: { wrappedValue }, set: { wrappedValue = $0; action() })
     }
 }
