@@ -61,7 +61,7 @@ fun CompareScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (comparing) "Vergleich" else "Vergleichen") },
+                title = { Text(if (comparing) I18n.t("compare.result") else I18n.t("compare.title")) },
                 navigationIcon = {
                     IconButton(onClick = { if (comparing) comparing = false else onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
@@ -75,7 +75,7 @@ fun CompareScreen(onBack: () -> Unit) {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 comparing -> CompareTable(results)
                 else -> Column(Modifier.fillMaxSize()) {
-                    Text("Wähle 2+ Sessions zum Vergleich.", Modifier.padding(16.dp),
+                    Text(I18n.t("compare.pick"), Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     LazyColumn(Modifier.weight(1f)) {
                         items(sessions) { s ->
@@ -106,7 +106,7 @@ fun CompareScreen(onBack: () -> Unit) {
                         },
                         enabled = selected.size >= 2,
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    ) { Text("Vergleichen (${selected.size})") }
+                    ) { Text("${I18n.t("compare.title")} (${selected.size})") }
                 }
             }
         }
@@ -117,12 +117,12 @@ fun CompareScreen(onBack: () -> Unit) {
 private fun CompareTable(sessions: List<SessionDetail>) {
     // Kennzahlen-Zeilen; Spalten = Sessions.
     val metrics: List<Pair<String, (SessionDetail) -> String>> = listOf(
-        "Strecke" to { s -> s.analysis?.totalDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        "Foiling" to { s -> s.analysis?.foilingDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        "Top-Speed" to { s -> s.analysis?.maxSpeedMps?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
-        "Pumps" to { s -> s.analysis?.pumpCount?.toString() ?: "–" },
-        "Foil-Zeit" to { s -> s.analysis?.foilingTimeS?.let { "%d:%02d".format((it / 60).toInt(), (it % 60).toInt()) } ?: "–" },
-        "Cadence" to { s -> s.analysis?.avgCadenceHz?.let { "%.2f Hz".format(it) } ?: "–" },
+        I18n.t("compare.distance") to { s -> s.analysis?.totalDistanceM?.let { "%.0f m".format(it) } ?: "–" },
+        I18n.t("home.foiling") to { s -> s.analysis?.foilingDistanceM?.let { "%.0f m".format(it) } ?: "–" },
+        I18n.t("home.topSpeed") to { s -> s.analysis?.maxSpeedMps?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
+        I18n.t("home.pumps") to { s -> s.analysis?.pumpCount?.toString() ?: "–" },
+        I18n.t("compare.foilTime") to { s -> s.analysis?.foilingTimeS?.let { "%d:%02d".format((it / 60).toInt(), (it % 60).toInt()) } ?: "–" },
+        I18n.t("compare.cadence") to { s -> s.analysis?.avgCadenceHz?.let { "%.2f Hz".format(it) } ?: "–" },
     )
     val cell = 110.dp
     Column(Modifier.fillMaxSize().horizontalScroll(rememberScrollState()).padding(12.dp)) {

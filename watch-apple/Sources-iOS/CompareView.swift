@@ -2,6 +2,7 @@ import SwiftUI
 
 // Mehrere eigene Sessions auswählen und Kennzahlen nebeneinander vergleichen.
 struct CompareView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var sessions: [SessionSummary] = []
     @State private var selected: Set<Int> = []
     @State private var results: [SessionDetail] = []
@@ -19,7 +20,7 @@ struct CompareView: View {
                 } else {
                     VStack(spacing: 0) {
                         List {
-                            Section("2+ Sessions wählen") {
+                            Section(Loc.t("compare.pick", lang)) {
                                 ForEach(sessions) { s in
                                     Button { toggle(s.id) } label: {
                                         HStack {
@@ -44,17 +45,17 @@ struct CompareView: View {
                                 results = out.sorted { ($0.started_at) < ($1.started_at) }
                                 comparing = true
                             }
-                        } label: { Text("Vergleichen (\(selected.count))").frame(maxWidth: .infinity) }
+                        } label: { Text("\(Loc.t("compare.title", lang)) (\(selected.count))").frame(maxWidth: .infinity) }
                         .buttonStyle(.borderedProminent)
                         .disabled(selected.count < 2)
                         .padding()
                     }
                 }
             }
-            .navigationTitle(comparing ? "Vergleich" : "Vergleichen")
+            .navigationTitle(comparing ? Loc.t("compare.result", lang) : Loc.t("compare.title", lang))
             .toolbar {
                 if comparing {
-                    ToolbarItem(placement: .topBarLeading) { Button("Auswahl") { comparing = false } }
+                    ToolbarItem(placement: .topBarLeading) { Button(Loc.t("compare.backToSelection", lang)) { comparing = false } }
                 }
             }
             .task { sessions = (try? await Api.sessions()) ?? []; loading = false }
@@ -62,12 +63,12 @@ struct CompareView: View {
 
     private var compareTable: some View {
         let metrics: [(String, (SessionDetail) -> String)] = [
-            ("Strecke", { $0.analysis?.total_distance_m.map { "\(Int($0)) m" } ?? "–" }),
-            ("Foiling", { $0.analysis?.foiling_distance_m.map { "\(Int($0)) m" } ?? "–" }),
-            ("Top-Speed", { $0.analysis?.max_speed_mps.map { String(format: "%.1f km/h", $0 * 3.6) } ?? "–" }),
-            ("Pumps", { $0.analysis?.pump_count.map { "\($0)" } ?? "–" }),
-            ("Foil-Zeit", { s in s.analysis?.foiling_time_s.map { String(format: "%d:%02d", Int($0) / 60, Int($0) % 60) } ?? "–" }),
-            ("Cadence", { $0.analysis?.avg_cadence_hz.map { String(format: "%.2f Hz", $0) } ?? "–" }),
+            (Loc.t("compare.distance", lang), { $0.analysis?.total_distance_m.map { "\(Int($0)) m" } ?? "–" }),
+            (Loc.t("home.foiling", lang), { $0.analysis?.foiling_distance_m.map { "\(Int($0)) m" } ?? "–" }),
+            (Loc.t("home.topSpeed", lang), { $0.analysis?.max_speed_mps.map { String(format: "%.1f km/h", $0 * 3.6) } ?? "–" }),
+            (Loc.t("home.pumps", lang), { $0.analysis?.pump_count.map { "\($0)" } ?? "–" }),
+            (Loc.t("compare.foilTime", lang), { s in s.analysis?.foiling_time_s.map { String(format: "%d:%02d", Int($0) / 60, Int($0) % 60) } ?? "–" }),
+            (Loc.t("compare.cadence", lang), { $0.analysis?.avg_cadence_hz.map { String(format: "%.2f Hz", $0) } ?? "–" }),
         ]
         return ScrollView([.horizontal]) {
             VStack(alignment: .leading, spacing: 8) {

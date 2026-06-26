@@ -52,9 +52,10 @@ import kotlinx.serialization.json.put
 
 // Vibrationsalarm konfigurieren (spiegelt web AlarmEditor). Persistiert via PUT /api/settings;
 // die Uhr-Recorder laden das über /api/devices/config.
-private val PATTERNS = listOf(
-    "short1" to "1× kurz", "short2" to "2× kurz",
-    "long2" to "2× lang", "lsl" to "lang-kurz-lang",
+// Pro Aufruf evaluiert, damit der Sprachwechsel greift.
+private fun patterns() = listOf(
+    "short1" to I18n.t("alarm.patShort1"), "short2" to I18n.t("alarm.patShort2"),
+    "long2" to I18n.t("alarm.patLong2"), "lsl" to I18n.t("alarm.patLsl"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +107,7 @@ fun AlarmScreen(onBack: () -> Unit) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Vibrationsalarm") },
+            title = { Text(I18n.t("alarm.title")) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
         )
     }) { pad ->
@@ -116,9 +117,7 @@ fun AlarmScreen(onBack: () -> Unit) {
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text(
-                "Die Uhr vibriert beim Foilen, sobald du eine Geschwindigkeitsgrenze über- oder " +
-                    "unterschreitest – z. B. um in der optimalen Pump-Geschwindigkeit zu bleiben. " +
-                    "Ist der Alarm aus, zeigt der Uhr-Startbildschirm „Alarm: aus“.",
+                I18n.t("alarm.desc"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -126,60 +125,58 @@ fun AlarmScreen(onBack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = enabled, onCheckedChange = { enabled = it; mark() })
                 Spacer(Modifier.width(10.dp))
-                Text("Vibrationsalarm aktivieren")
+                Text(I18n.t("alarm.enable"))
             }
             if (enabled) {
                 Spacer(Modifier.height(16.dp))
                 // Vorwahl auf der Uhr.
-                Text("Standard auf der Uhr", style = MaterialTheme.typography.labelLarge)
+                Text(I18n.t("alarm.defaultSource"), style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.height(4.dp))
                 Dropdown(
-                    options = listOf("foil" to "Mein Standard-Foil", "fixed" to "Feste Werte (unten)"),
+                    options = listOf("foil" to I18n.t("alarm.defaultFoil"), "fixed" to I18n.t("alarm.defaultFixed")),
                     selected = def, onSelect = { def = it; mark() },
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "Womit die Uhr beim Start vorbelegt ist – an der Uhr (↓) jederzeit umstellbar. " +
-                        "„Mein Standard-Foil“ nutzt die aus Foil + Gewicht berechneten Schwellen, " +
-                        "„Feste Werte“ die unten eingestellten.",
+                    I18n.t("alarm.defaultHelp"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(16.dp))
                 // Max-Speed.
                 ThresholdCard(
-                    title = "Max-Geschwindigkeit überschritten", fieldLabel = "Max",
+                    title = I18n.t("alarm.overTitle"), fieldLabel = I18n.t("alarm.maxSpeed"),
                     value = high, onValue = { high = it; mark() },
                     pattern = patHigh, onPattern = { patHigh = it; mark() },
                 )
                 Spacer(Modifier.height(12.dp))
                 // Min-Speed.
                 ThresholdCard(
-                    title = "Min-Geschwindigkeit unterschritten", fieldLabel = "Min",
+                    title = I18n.t("alarm.underTitle"), fieldLabel = I18n.t("alarm.minSpeed"),
                     value = low, onValue = { low = it; mark() },
                     pattern = patLow, onPattern = { patLow = it; mark() },
                 )
                 Spacer(Modifier.height(12.dp))
                 // Auslösen-Modus.
-                Text("Auslösen", style = MaterialTheme.typography.labelLarge)
+                Text(I18n.t("alarm.mode"), style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.height(4.dp))
                 Dropdown(
                     options = listOf(
-                        "once" to "einmalig beim Über-/Unterschreiten",
-                        "continuous" to "dauerhaft, solange drüber/drunter",
+                        "once" to I18n.t("alarm.modeOnce"),
+                        "continuous" to I18n.t("alarm.modeContinuous"),
                     ),
                     selected = repeat, onSelect = { repeat = it; mark() },
                 )
                 Spacer(Modifier.height(8.dp))
-                Text("Tipp: 0 km/h schaltet die jeweilige Grenze aus.",
+                Text(I18n.t("alarm.zeroHint"),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(24.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text("Speichern") }
+                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
                 if (saved) {
                     Spacer(Modifier.width(12.dp))
-                    Text("Gespeichert", color = MaterialTheme.colorScheme.primary)
+                    Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -206,7 +203,7 @@ private fun ThresholdCard(
                 )
                 Text("km/h")
                 Spacer(Modifier.width(4.dp))
-                Dropdown(options = PATTERNS, selected = pattern, onSelect = onPattern, modifier = Modifier.weight(1f))
+                Dropdown(options = patterns(), selected = pattern, onSelect = onPattern, modifier = Modifier.weight(1f))
             }
         }
     }

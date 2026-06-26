@@ -3,10 +3,11 @@ import SwiftUI
 // Vibrationsalarm konfigurieren (spiegelt web AlarmEditor). Persistiert via PUT /api/settings;
 // die Uhr-Recorder laden das über /api/devices/config.
 struct AlarmView: View {
-    private let patterns: [(String, String)] = [
-        ("short1", "1× kurz"), ("short2", "2× kurz"),
-        ("long2", "2× lang"), ("lsl", "lang-kurz-lang"),
-    ]
+    @AppStorage("appLang") private var lang = "de"
+    private var patterns: [(String, String)] {
+        [("short1", Loc.t("alarm.patShort1", lang)), ("short2", Loc.t("alarm.patShort2", lang)),
+         ("long2", Loc.t("alarm.patLong2", lang)), ("lsl", Loc.t("alarm.patLsl", lang))]
+    }
 
     @State private var loaded = false
     @State private var saved = false
@@ -22,52 +23,48 @@ struct AlarmView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Vibrationsalarm aktivieren", isOn: $enabled)
+                Toggle(Loc.t("alarm.enable", lang), isOn: $enabled)
             } footer: {
-                Text("Die Uhr vibriert beim Foilen, sobald du eine Geschwindigkeitsgrenze über- oder "
-                    + "unterschreitest – z. B. um in der optimalen Pump-Geschwindigkeit zu bleiben. "
-                    + "Ist der Alarm aus, zeigt der Uhr-Startbildschirm „Alarm: aus“.")
+                Text(Loc.t("alarm.desc", lang))
             }
 
             if enabled {
                 Section {
-                    Picker("Standard auf der Uhr", selection: $def) {
-                        Text("Mein Standard-Foil").tag("foil")
-                        Text("Feste Werte (unten)").tag("fixed")
+                    Picker(Loc.t("alarm.defaultSource", lang), selection: $def) {
+                        Text(Loc.t("alarm.defaultFoil", lang)).tag("foil")
+                        Text(Loc.t("alarm.defaultFixed", lang)).tag("fixed")
                     }
                 } footer: {
-                    Text("Womit die Uhr beim Start vorbelegt ist – an der Uhr (↓) jederzeit umstellbar. "
-                        + "„Mein Standard-Foil“ nutzt die aus Foil + Gewicht berechneten Schwellen, "
-                        + "„Feste Werte“ die unten eingestellten.")
+                    Text(Loc.t("alarm.defaultHelp", lang))
                 }
 
-                Section("Max-Geschwindigkeit überschritten") {
-                    Stepper("Max: \(high) km/h", value: $high, in: 0...60)
-                    patternPicker("Muster", selection: $patHigh)
+                Section(Loc.t("alarm.overTitle", lang)) {
+                    Stepper("\(Loc.t("alarm.maxSpeed", lang)): \(high) km/h", value: $high, in: 0...60)
+                    patternPicker(Loc.t("alarm.pattern", lang), selection: $patHigh)
                 }
-                Section("Min-Geschwindigkeit unterschritten") {
-                    Stepper("Min: \(low) km/h", value: $low, in: 0...60)
-                    patternPicker("Muster", selection: $patLow)
+                Section(Loc.t("alarm.underTitle", lang)) {
+                    Stepper("\(Loc.t("alarm.minSpeed", lang)): \(low) km/h", value: $low, in: 0...60)
+                    patternPicker(Loc.t("alarm.pattern", lang), selection: $patLow)
                 }
 
                 Section {
-                    Picker("Auslösen", selection: $repeatMode) {
-                        Text("einmalig beim Über-/Unterschreiten").tag("once")
-                        Text("dauerhaft, solange drüber/drunter").tag("continuous")
+                    Picker(Loc.t("alarm.mode", lang), selection: $repeatMode) {
+                        Text(Loc.t("alarm.modeOnce", lang)).tag("once")
+                        Text(Loc.t("alarm.modeContinuous", lang)).tag("continuous")
                     }
                 } footer: {
-                    Text("Tipp: 0 km/h schaltet die jeweilige Grenze aus.")
+                    Text(Loc.t("alarm.zeroHint", lang))
                 }
             }
 
             Section {
-                Button("Speichern") { save() }
+                Button(Loc.t("common.save", lang)) { save() }
                 if saved {
-                    Text("Gespeichert").foregroundStyle(.green).font(.footnote)
+                    Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote)
                 }
             }
         }
-        .navigationTitle("Vibrationsalarm")
+        .navigationTitle(Loc.t("alarm.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: enabled) { _ in saved = false }
