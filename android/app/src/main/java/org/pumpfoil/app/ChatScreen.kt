@@ -58,7 +58,7 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     }
     LaunchedEffect(Unit) { load() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Chat") }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.chat")) }) }) { pad ->
         androidx.compose.foundation.layout.Box(Modifier.padding(pad).fillMaxSize()) {
             if (loading && rooms.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -66,7 +66,7 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (rooms.isEmpty() && !loading && error == null) {
-                        item { Text("Keine Chaträume", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     items(rooms) { r ->
                         ListItem(
@@ -118,7 +118,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                 OutlinedTextField(
                     value = input, onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Nachricht…") }, maxLines = 3,
+                    placeholder = { Text("${I18n.t("chat.placeholder")}…") }, maxLines = 3,
                 )
                 IconButton(onClick = {
                     val t = input.trim()
@@ -129,7 +129,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                         catch (e: Exception) { error = e.message }
                         sending = false
                     }
-                }) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Senden", tint = MaterialTheme.colorScheme.primary) }
+                }) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = I18n.t("chat.send"), tint = MaterialTheme.colorScheme.primary) }
             }
         },
     ) { pad ->

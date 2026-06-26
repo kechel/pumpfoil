@@ -99,4 +99,17 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "sessions.all" to row("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
     "sessions.searchSpot" to row("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
     "sessions.empty" to row("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
+
+    "verlauf.empty" to row("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
+    "verlauf.total" to row("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),
+    "verlauf.cumulative" to row("Kumuliert", "Kumuliert", "Kumuliert", "Cumulative", "Cumulé", "Cumulato", "Acumulado"),
+    "verlauf.daysWord" to row("Tage", "Täg", "Tage", "days", "jours", "giorni", "días"),
+    "verlauf.daysAbbr" to row("T", "T", "T", "d", "j", "g", "d"),
+    "verlauf.period" to row("Zeitraum", "Ziitruum", "Zeitraum", "Period", "Période", "Periodo", "Periodo"),
+    "verlauf.kmFoiling" to row("km Foiling", "km Foiling", "km Foiling", "km foiling", "km foiling", "km foiling", "km foiling"),
+
+    "spots.empty" to row("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
+    "chat.empty" to row("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
+    "chat.placeholder" to row("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
+    "chat.send" to row("Senden", "Schicke", "Senden", "Send", "Envoyer", "Invia", "Enviar"),
 )

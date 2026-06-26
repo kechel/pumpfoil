@@ -2,6 +2,7 @@ import SwiftUI
 
 // Verlauf: chronologische Liste mit Kennzahlen je Session (spiegelt web/Verlauf).
 struct VerlaufView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var items: [HistoryPoint] = []
     @State private var loading = false
     @State private var error: String?
@@ -17,17 +18,19 @@ struct VerlaufView: View {
                 if let error { Text(error).foregroundStyle(.secondary) }
                 if !items.isEmpty {
                     Section {
-                        Picker("Zeitraum", selection: $windowDays) {
-                            Text("Gesamt").tag(0); Text("30 T").tag(30); Text("7 T").tag(7)
+                        Picker(Loc.t("verlauf.period", lang), selection: $windowDays) {
+                            Text(Loc.t("verlauf.total", lang)).tag(0)
+                            Text("30 \(Loc.t("verlauf.daysAbbr", lang))").tag(30)
+                            Text("7 \(Loc.t("verlauf.daysAbbr", lang))").tag(7)
                         }
                         .pickerStyle(.segmented)
                     }
-                    Section("Kumuliert · \(windowDays == 0 ? "Gesamt" : "\(windowDays) Tage")") {
+                    Section("\(Loc.t("verlauf.cumulative", lang)) · \(windowDays == 0 ? Loc.t("verlauf.total", lang) : "\(windowDays) \(Loc.t("verlauf.daysWord", lang))")") {
                         HStack {
-                            stat("\(shown.count)", "Sessions")
+                            stat("\(shown.count)", Loc.t("nav.sessions", lang))
                             Spacer(); stat(String(format: "%.1f", shown.reduce(0) { $0 + $1.foiling_km }), "km")
-                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.runs })", "Läufe")
-                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.pumps })", "Pumps")
+                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.runs })", Loc.t("home.runs", lang))
+                            Spacer(); stat("\(shown.reduce(0) { $0 + $1.pumps })", Loc.t("home.pumps", lang))
                         }
                     }
                 }
@@ -35,11 +38,11 @@ struct VerlaufView: View {
                     NavigationLink { SessionDetailView(id: h.session_id) } label: { row(h) }
                 }
                 if items.isEmpty && !loading && error == nil {
-                    Text("Noch keine Sessions").foregroundStyle(.secondary)
+                    Text(Loc.t("verlauf.empty", lang)).foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Verlauf")
+            .navigationTitle(Loc.t("nav.history", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
@@ -50,9 +53,9 @@ struct VerlaufView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(dateText(h.started_at)).font(.headline)
             HStack(spacing: 14) {
-                stat("\(String(format: "%.1f", h.foiling_km)) km", "Foiling")
-                stat("\(h.runs)", "Läufe")
-                stat("\(h.pumps)", "Pumps")
+                stat("\(String(format: "%.1f", h.foiling_km)) km", Loc.t("home.foiling", lang))
+                stat("\(h.runs)", Loc.t("home.runs", lang))
+                stat("\(h.pumps)", Loc.t("home.pumps", lang))
                 stat(h.pumps > 0 ? String(format: "%.1f", h.foiling_km * 1000 / Double(h.pumps)) : "–", "m/Pump")
                 stat("\(String(format: "%.1f", h.speed * 3.6))", "km/h")
             }

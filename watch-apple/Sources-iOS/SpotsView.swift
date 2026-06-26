@@ -4,6 +4,7 @@ import MapKit
 // Spots: native MapKit-Karte mit Pins (Session-Anzahl) + Liste darunter
 // (spiegelt web/Spots; auf iOS idiomatisch via MapKit, kein API-Key nötig).
 struct SpotsView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var items: [SpotMapItem] = []
     @State private var loading = false
     @State private var error: String?
@@ -44,12 +45,12 @@ struct SpotsView: View {
                         }
                     }
                     if items.isEmpty && !loading && error == nil {
-                        Text("Noch keine Spots").foregroundStyle(.secondary)
+                        Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
                     }
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Spots")
+            .navigationTitle(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }

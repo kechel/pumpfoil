@@ -52,7 +52,7 @@ fun SpotsScreen() {
     }
     LaunchedEffect(Unit) { load() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Spots") }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.spots")) }) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -65,12 +65,12 @@ fun SpotsScreen() {
                         item { SpotsMap(items, Modifier.fillMaxWidth().height(260.dp)) }
                     }
                     if (items.isEmpty() && !loading && error == null) {
-                        item { Text("Noch keine Spots", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     items(items) { s ->
                         ListItem(
                             headlineContent = { Text(s.spot) },
-                            supportingContent = { Text("${s.sessions} Sessions") },
+                            supportingContent = { Text("${s.sessions} ${I18n.t("nav.sessions")}") },
                             leadingContent = {
                                 Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             },

@@ -2,6 +2,7 @@ import SwiftUI
 
 // Chat: Räume (Spot/Community) -> Nachrichten + Senden (spiegelt web/Android-Chat).
 struct ChatView: View {
+    @AppStorage("appLang") private var lang = "de"
     @State private var rooms: [ChatRoom] = []
     @State private var loading = false
     @State private var error: String?
@@ -30,11 +31,11 @@ struct ChatView: View {
                     }
                 }
                 if rooms.isEmpty && !loading && error == nil {
-                    Text("Noch keine Chats").foregroundStyle(.secondary)
+                    Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Chat")
+            .navigationTitle(Loc.t("nav.chat", lang))
             .overlay { if loading && rooms.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if rooms.isEmpty { await load() } }
@@ -52,6 +53,7 @@ struct ChatView: View {
 struct ChatRoomView: View {
     let scope: String
     let title: String
+    @AppStorage("appLang") private var lang = "de"
     @State private var msgs: [ChatMsg] = []
     @State private var draft = ""
     @State private var sending = false
@@ -73,7 +75,7 @@ struct ChatRoomView: View {
             }
             if let error { Text(error).font(.caption).foregroundStyle(.red).padding(.horizontal) }
             HStack(spacing: 8) {
-                TextField("Nachricht", text: $draft, axis: .vertical)
+                TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(1...4)
                 Button {

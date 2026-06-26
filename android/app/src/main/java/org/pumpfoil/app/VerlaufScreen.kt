@@ -52,7 +52,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
     }
     LaunchedEffect(Unit) { load() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Verlauf") }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.history")) }) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -63,13 +63,13 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isEmpty() && !loading && error == null) {
-                        item { Text("Noch keine Auswertungen", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        item { Text(I18n.t("verlauf.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     if (items.isNotEmpty()) {
                         item {
                             Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                listOf(0 to "Gesamt", 30 to "30 T", 7 to "7 T").forEach { (d, lbl) ->
+                                listOf(0 to I18n.t("verlauf.total"), 30 to "30 ${I18n.t("verlauf.daysAbbr")}", 7 to "7 ${I18n.t("verlauf.daysAbbr")}").forEach { (d, lbl) ->
                                     FilterChip(selected = windowDays == d, onClick = { windowDays = d }, label = { Text(lbl) })
                                 }
                             }
@@ -80,10 +80,11 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                         ListItem(
                             modifier = Modifier.clickable { onOpen(p.sessionId) },
                             headlineContent = { Text(prettyDate(p.startedAt)) },
+                            // Verbund-String: Einheiten universell, nur Wörter lokalisiert.
                             supportingContent = {
                                 val mpp = if (p.pumps > 0) p.foilingKm * 1000.0 / p.pumps else 0.0
-                                Text("%.2f km · %d Läufe · %d Pumps · %s m/Pump · max %.1f km/h"
-                                    .format(p.foilingKm, p.runs, p.pumps,
+                                Text("%.2f km · %d %s · %d Pumps · %s m/Pump · max %.1f km/h"
+                                    .format(p.foilingKm, p.runs, I18n.t("home.runs"), p.pumps,
                                         if (mpp > 0) "%.1f".format(mpp) else "–", p.speed * 3.6))
                             },
                             leadingContent = {
@@ -105,16 +106,16 @@ private fun CumulativeSummary(items: List<HistoryPoint>, windowDays: Int) {
     val km = items.sumOf { it.foilingKm }
     val runs = items.sumOf { it.runs }
     val pumps = items.sumOf { it.pumps }
-    val windowLabel = if (windowDays == 0) "Gesamt" else "$windowDays Tage"
+    val windowLabel = if (windowDays == 0) I18n.t("verlauf.total") else "$windowDays ${I18n.t("verlauf.daysWord")}"
     Card(Modifier.fillMaxWidth().padding(12.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text("Kumuliert · $windowLabel", style = MaterialTheme.typography.labelMedium,
+            Text("${I18n.t("verlauf.cumulative")} · $windowLabel", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric("${items.size}", "Sessions")
-                metric("%.1f".format(km), "km Foiling")
-                metric("$runs", "Läufe")
-                metric("$pumps", "Pumps")
+                metric("${items.size}", I18n.t("nav.sessions"))
+                metric("%.1f".format(km), I18n.t("verlauf.kmFoiling"))
+                metric("$runs", I18n.t("home.runs"))
+                metric("$pumps", I18n.t("home.pumps"))
             }
         }
     }

@@ -3,6 +3,7 @@ import SwiftUI
 // Community: öffentliche Sessions anderer (spiegelt web/Community + Android).
 struct CommunityView: View {
     @EnvironmentObject var sync: SyncManager
+    @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
     @State private var loading = false
     @State private var error: String?
@@ -15,11 +16,11 @@ struct CommunityView: View {
                     NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
                 }
                 if items.isEmpty && !loading && error == nil {
-                    Text("Noch keine Sessions").foregroundStyle(.secondary)
+                    Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Community")
+            .navigationTitle(Loc.t("nav.community", lang))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NavigationLink { CommunityRecordsView() } label: { Image(systemName: "trophy") }

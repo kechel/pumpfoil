@@ -55,10 +55,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onRecords: () -> Unit = {}) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Community") },
+                title = { Text(I18n.t("nav.community")) },
                 actions = {
                     IconButton(onClick = onRecords) {
-                        Icon(Icons.Filled.EmojiEvents, contentDescription = "Rekorde")
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = I18n.t("home.records"))
                     }
                     SyncIndicator()
                 },

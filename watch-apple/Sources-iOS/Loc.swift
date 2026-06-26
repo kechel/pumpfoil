@@ -82,5 +82,18 @@ enum Loc {
         "sessions.all": r("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
         "sessions.searchSpot": r("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
         "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
+
+        "verlauf.empty": r("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
+        "verlauf.total": r("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),
+        "verlauf.cumulative": r("Kumuliert", "Kumuliert", "Kumuliert", "Cumulative", "Cumulé", "Cumulato", "Acumulado"),
+        "verlauf.daysWord": r("Tage", "Täg", "Tage", "days", "jours", "giorni", "días"),
+        "verlauf.daysAbbr": r("T", "T", "T", "d", "j", "g", "d"),
+        "verlauf.period": r("Zeitraum", "Ziitruum", "Zeitraum", "Period", "Période", "Periodo", "Periodo"),
+        "verlauf.kmFoiling": r("km Foiling", "km Foiling", "km Foiling", "km foiling", "km foiling", "km foiling", "km foiling"),
+
+        "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
+        "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
+        "chat.placeholder": r("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
+        "chat.send": r("Senden", "Schicke", "Senden", "Send", "Envoyer", "Invia", "Enviar"),
     ]
 }
