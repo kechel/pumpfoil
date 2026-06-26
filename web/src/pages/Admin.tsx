@@ -114,7 +114,9 @@ function OverviewTab() {
 
 // ---------------------------------------------------------------- Sessions ----
 function Badge({ tone, children }: { tone: "red" | "amber" | "green" | "slate"; children: React.ReactNode }) {
-  const c = { red: "bg-red-500/15 text-red-300", amber: "bg-amber-500/15 text-amber-300", green: "bg-emerald-500/15 text-emerald-300", slate: "bg-slate-700 text-slate-200" }[tone];
+  // Solide Akzentflächen + dunkler Text -> in BEIDEN Themes lesbar (der Light-Mode
+  // remappt nur slate via --s-*, nicht red/amber/emerald).
+  const c = { red: "bg-red-400 text-red-950", amber: "bg-amber-400 text-amber-950", green: "bg-emerald-400 text-emerald-950", slate: "bg-slate-700 text-slate-200" }[tone];
   return <span className={`rounded px-1.5 py-0.5 text-xs ${c}`}>{children}</span>;
 }
 
@@ -231,7 +233,8 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "all" | "deleted" 
 
 function Act({ tone, onClick, confirm: confirmMsg, children }: { tone: "red" | "green" | "slate" | "amber"; onClick: () => Promise<unknown>; confirm?: string; children: React.ReactNode }) {
   const t = useT();
-  const c = { red: "bg-red-600/20 text-red-300 hover:bg-red-600/30", green: "bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30", slate: "bg-slate-700 text-slate-200 hover:bg-slate-600", amber: "bg-amber-600/20 text-amber-300 hover:bg-amber-600/30" }[tone];
+  // Solide Akzentfarben + weißer Text -> in beiden Themes lesbar (slate bleibt remappt).
+  const c = { red: "bg-red-600 text-white hover:bg-red-700", green: "bg-emerald-600 text-white hover:bg-emerald-700", slate: "bg-slate-700 text-slate-200 hover:bg-slate-600", amber: "bg-amber-600 text-white hover:bg-amber-700" }[tone];
   return (
     <button
       onClick={() => { if (confirmMsg && !confirm(confirmMsg)) return; onClick().catch((e) => alert(t("adm.error") + e)); }}
