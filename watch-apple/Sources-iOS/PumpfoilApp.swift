@@ -17,7 +17,9 @@ struct PumpfoilApp: App {
 @MainActor
 final class SessionStore: ObservableObject {
     @Published var token: String? = Api.token
-    @Published var profile: Profile?
+    @Published var profile: Profile? {
+        didSet { UserDefaults.standard.set(profile?.language ?? "de", forKey: "appLang") }
+    }
     var isLoggedIn: Bool { token != nil }
 
     func bootstrap() async {

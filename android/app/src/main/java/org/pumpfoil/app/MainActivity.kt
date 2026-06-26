@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Api.load(applicationContext)
         ThemeState.load(applicationContext)
+        I18n.load(applicationContext)
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         setContent { PumpfoilTheme { App() } }
     }
@@ -60,6 +61,10 @@ fun MainScaffold(onLogout: () -> Unit) {
     val nav = rememberNavController()
     val backEntry by nav.currentBackStackEntryAsState()
     val route = backEntry?.destination?.route
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        try { Api.me().language?.let { I18n.set(ctx, it) } } catch (_: Exception) {}
+    }
 
     Scaffold(
         bottomBar = {
@@ -68,37 +73,37 @@ fun MainScaffold(onLogout: () -> Unit) {
                     NavigationBarItem(
                         selected = route == "home", onClick = { nav.switchTab("home") },
                         icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                        label = { Text("Home") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.home")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "community", onClick = { nav.switchTab("community") },
                         icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
-                        label = { Text("Community") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.community")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "sessions", onClick = { nav.switchTab("sessions") },
                         icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                        label = { Text("Sessions") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.sessions")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "verlauf", onClick = { nav.switchTab("verlauf") },
                         icon = { Icon(Icons.Filled.ShowChart, contentDescription = null) },
-                        label = { Text("Verlauf") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.history")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "spots", onClick = { nav.switchTab("spots") },
                         icon = { Icon(Icons.Filled.Place, contentDescription = null) },
-                        label = { Text("Spots") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.spots")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "chat", onClick = { nav.switchTab("chat") },
                         icon = { Icon(Icons.Filled.Forum, contentDescription = null) },
-                        label = { Text("Chat") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.chat")) }, alwaysShowLabel = false,
                     )
                     NavigationBarItem(
                         selected = route == "profile", onClick = { nav.switchTab("profile") },
                         icon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        label = { Text("Profil") }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.profile")) }, alwaysShowLabel = false,
                     )
                 }
             }

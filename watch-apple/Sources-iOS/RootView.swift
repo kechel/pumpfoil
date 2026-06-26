@@ -17,24 +17,25 @@ struct RootView: View {
     }
 }
 
-// iOS-typische Tab-Navigation mit SF Symbols.
+// iOS-typische Tab-Navigation mit SF Symbols. Labels nach Profil-Sprache.
 struct MainTabView: View {
+    @AppStorage("appLang") private var lang = "de"
     var body: some View {
         TabView {
             HomeView()
-                .tabItem { Label("Home", systemImage: "house") }
+                .tabItem { Label(Loc.t("nav.home", lang), systemImage: "house") }
             SessionsView()
-                .tabItem { Label("Sessions", systemImage: "list.bullet") }
+                .tabItem { Label(Loc.t("nav.sessions", lang), systemImage: "list.bullet") }
             CommunityView()
-                .tabItem { Label("Community", systemImage: "person.2") }
+                .tabItem { Label(Loc.t("nav.community", lang), systemImage: "person.2") }
             VerlaufView()
-                .tabItem { Label("Verlauf", systemImage: "chart.xyaxis.line") }
+                .tabItem { Label(Loc.t("nav.history", lang), systemImage: "chart.xyaxis.line") }
             SpotsView()
-                .tabItem { Label("Spots", systemImage: "mappin.and.ellipse") }
+                .tabItem { Label(Loc.t("nav.spots", lang), systemImage: "mappin.and.ellipse") }
             ChatView()
-                .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right") }
+                .tabItem { Label(Loc.t("nav.chat", lang), systemImage: "bubble.left.and.bubble.right") }
             ProfileView()
-                .tabItem { Label("Profil", systemImage: "person.crop.circle") }
+                .tabItem { Label(Loc.t("nav.profile", lang), systemImage: "person.crop.circle") }
         }
     }
 }
