@@ -143,6 +143,10 @@ def analyze_partial(
     bisher hochgeladenen Rohdaten neu durch, ohne die Session abzuschließen ->
     der aktuelle Lauf ist schon auswertbar, ohne die Aktivität zu beenden."""
     s = _get_owned_session(db, device, session_uuid)
+    # Bereits abgeschlossene Session NICHT durch einen späten /analyze wieder auf "live"
+    # zurückstufen (sonst hängt eine verwaiste Uhr-Session in der Analyze-Schleife).
+    if s.status == "complete":
+        return {"session_id": s.id, "status": "complete", "analysis": "skipped"}
     background.add_task(_analyze_in_background, s.id, False)
     return {"session_id": s.id, "status": "live", "analysis": "queued"}
 
@@ -160,7 +164,11 @@ def session_status(
     s = db.query(models.Session).filter_by(session_uuid=session_uuid).first()
     if s is None or s.user_id != device.user_id:
         return {"exists": False, "status": "none"}
-    return {"exists": True, "status": s.status or "recording"}
+    # Für die Uhr zählt nur: ist die Session serverseitig fertig? Jeder finalisierte
+    # Zustand (complete/analyzed/…) -> "complete", damit die Uhr aufräumt; nur die noch
+    # laufende Aufnahme (recording/live) hält sie offen.
+    done = s.status not in ("recording", "live", None)
+    return {"exists": True, "status": "complete" if done else (s.status or "recording")}
 
 
 @router.post("/session/{session_uuid}/complete")

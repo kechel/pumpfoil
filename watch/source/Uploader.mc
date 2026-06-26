@@ -304,30 +304,23 @@ class SessionSyncJob {
         );
     }
 
+    // syncAll() läuft NIE während der Aufnahme (nur Start/Pairing/Upload-Screen) -> jede
+    // gesyncte Session ist fertig. Daher immer /complete (auch bei _completed==false, z. B.
+    // verwaiste Sessions ohne sauberen Stopp), sonst hingen die in einer /analyze-Endlosschleife.
     hidden function _finalize() as Void {
-        if (_completed) {
-            _phase = :complete;
-            Communications.makeWebRequest(
-                Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
-                { "total_chunks" => _gpsTotal },
-                _opts(),
-                method(:onFinal)
-            );
-        } else {
-            _phase = :analyze;
-            Communications.makeWebRequest(
-                Config.baseUrl() + "/api/ingest/session/" + _uuid + "/analyze",
-                {},
-                _opts(),
-                method(:onFinal)
-            );
-        }
+        _phase = :complete;
+        Communications.makeWebRequest(
+            Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
+            { "total_chunks" => _gpsTotal },
+            _opts(),
+            method(:onFinal)
+        );
     }
 
     function onFinal(responseCode as Lang.Number, data as WebData) as Void {
         Uploader.noteResult(responseCode);
-        if (responseCode == 200 && _completed) {
-            _cleanup();   // abgeschlossen + vollständig -> lokal aufräumen
+        if (responseCode == 200) {
+            _cleanup();   // vollständig hochgeladen + abgeschlossen -> lokal aufräumen
         }
         Uploader.sessionDone();
     }
