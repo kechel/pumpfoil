@@ -44,6 +44,9 @@ struct SessionDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if session?.owned == true {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
+                }
                 if durSec > 1 {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { trimStart = 0; trimEnd = durSec; showTrim = true } label: { Image(systemName: "scissors") }

@@ -138,7 +138,14 @@ fun MainScaffold(onLogout: () -> Unit) {
                 SessionDetailScreen(
                     id = entry.arguments?.getInt("id") ?: 0,
                     onBack = { nav.popBackStack() },
+                    onLabel = { sid -> nav.navigate("labeling/$sid") },
                 )
+            }
+            composable(
+                "labeling/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.IntType }),
+            ) { entry ->
+                LabelingScreen(id = entry.arguments?.getInt("id") ?: 0, onBack = { nav.popBackStack() })
             }
         }
     }

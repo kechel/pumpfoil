@@ -140,6 +140,24 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
+    static func labels(_ id: Int) async throws -> [SessionLabel] {
+        try await request("/api/sessions/\(id)/labels", method: "GET", body: nil, auth: true)
+    }
+
+    static func addLabel(_ id: Int, startMs: Int, endMs: Int, label: String) async throws {
+        let _: SessionLabel = try await request("/api/sessions/\(id)/labels", method: "POST",
+            body: ["t_start_ms": startMs, "t_end_ms": endMs, "label": label], auth: true)
+    }
+
+    static func deleteLabel(_ id: Int, labelId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(id)/labels/\(labelId)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     static func setTrim(_ id: Int, startMs: Int?, endMs: Int?) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/trim") else { throw ApiError.badURL }
         var req = URLRequest(url: url)

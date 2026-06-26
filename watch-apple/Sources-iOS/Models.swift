@@ -155,6 +155,13 @@ struct SessionPhoto: Codable, Identifiable {
     let url: String
 }
 
+struct SessionLabel: Codable, Identifiable {
+    let id: Int
+    let t_start_ms: Int
+    let t_end_ms: Int
+    let label: String   // pump | glide | not_foiling
+}
+
 struct FoilStat: Codable, Identifiable {
     let foil_id: Int
     let brand: String

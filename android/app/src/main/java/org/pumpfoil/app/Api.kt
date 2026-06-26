@@ -171,6 +171,19 @@ object Api {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("foil_id", foilId) }.toString(), auth = true)
     }
 
+    suspend fun labels(id: Int): List<Label> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(Label.serializer()), http("GET", "/api/sessions/$id/labels", null, auth = true))
+    }
+
+    suspend fun addLabel(id: Int, startMs: Long, endMs: Long, label: String): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("t_start_ms", startMs); put("t_end_ms", endMs); put("label", label) }.toString()
+        http("POST", "/api/sessions/$id/labels", body, auth = true)
+    }
+
+    suspend fun deleteLabel(id: Int, labelId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/sessions/$id/labels/$labelId", null, auth = true)
+    }
+
     suspend fun setTrim(id: Int, startMs: Long?, endMs: Long?): Unit = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
             if (startMs == null) put("trim_start_ms", JsonNull) else put("trim_start_ms", startMs)

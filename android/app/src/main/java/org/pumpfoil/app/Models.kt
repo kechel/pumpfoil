@@ -177,6 +177,14 @@ data class Foil(
 data class SessionPhoto(val id: Int, val url: String = "")
 
 @Serializable
+data class Label(
+    val id: Int,
+    @SerialName("t_start_ms") val tStartMs: Long = 0,
+    @SerialName("t_end_ms") val tEndMs: Long = 0,
+    val label: String = "",   // pump | glide | not_foiling
+)
+
+@Serializable
 data class FoilStat(
     @SerialName("foil_id") val foilId: Int,
     val brand: String = "",

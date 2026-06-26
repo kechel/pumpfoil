@@ -45,6 +45,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -87,7 +88,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -178,6 +179,11 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
                                     scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
                                 })
                             }
+                        }
+                    }
+                    if (s?.owned == true) {
+                        IconButton(onClick = { onLabel(id) }) {
+                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Labeling")
                         }
                     }
                     if (s?.owned == true && durSec > 1f) {
