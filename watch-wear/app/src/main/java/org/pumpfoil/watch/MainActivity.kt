@@ -280,6 +280,7 @@ class MainActivity : ComponentActivity() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Pumpfoil", style = MaterialTheme.typography.title3)
+                Text("v" + appVersion(ctx), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                 Spacer(Modifier.height(10.dp))
                 if (s.starting) {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
@@ -481,6 +482,9 @@ private fun vibrator(ctx: Context): android.os.Vibrator =
     if (Build.VERSION.SDK_INT >= 31)
         (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
     else @Suppress("DEPRECATION") (ctx.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator)
+
+private fun appVersion(ctx: Context): String =
+    try { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "" } catch (_: Exception) { "" }
 
 private fun vibrate(ctx: Context, ms: Long) {
     vibrator(ctx).vibrate(android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE))

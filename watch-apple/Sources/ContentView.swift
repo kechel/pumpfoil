@@ -167,6 +167,9 @@ struct RecordView: View {
             } else {
                 VStack(spacing: 12) {
                     Text("Pumpfoil").font(.title3)
+                    if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                        Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+                    }
                     if rec.starting {
                         // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                         ProgressView().scaleEffect(0.8)
