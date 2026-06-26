@@ -118,7 +118,7 @@ class SessionRecorder {
 
     function reloadConfig() {
         // Profil-Sprache (vom Server gecacht) anwenden — auch offline verfügbar.
-        Strings.setLang(Config.getString("lang"));
+        Strings.setLang(Storage.getValue("lang"));
         // Bevorzugt die zuletzt von der Website geladene Konfiguration (Cache),
         // sonst die nativen Garmin-App-Settings (Offline-Fallback).
         var cached = Storage.getValue("views_config");
@@ -267,7 +267,7 @@ class SessionRecorder {
         if (responseCode == 200 && data instanceof Lang.Dictionary) {
             // Profil-Sprache übernehmen + cachen (für Offline-Anzeige).
             if (data.hasKey("language") && data["language"] != null) {
-                Config.setString("lang", data["language"]);
+                Storage.setValue("lang", data["language"]);
                 Strings.setLang(data["language"]);
             }
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }

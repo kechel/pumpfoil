@@ -1,7 +1,7 @@
 using Toybox.Lang;
 
 // On-Device-Lokalisierung des Garmin-Recorders nach Profil-Sprache (vom Server
-// via /api/devices/config geliefert, in Config "lang" gecacht). Fallback: de.
+// via /api/devices/config geliefert, in Storage "lang" gecacht). Fallback: de.
 // Reine Einheiten (km/h, bpm, °C, m) bleiben unlokalisiert; nur Wörter werden übersetzt.
 module Strings {
 
