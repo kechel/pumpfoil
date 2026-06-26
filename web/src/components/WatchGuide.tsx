@@ -1,15 +1,12 @@
+import { useState } from "react";
 import { Card } from "./ui";
 
-// Einrichtungs-Anleitung im Uhren-Bereich. Sprung-Links scrollen zur jeweiligen
-// Plattform-Sektion. Deutsch-first (andere Sprachen fallen via i18n auf DE zurück).
-function jump(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
+// Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
+// wird eingeblendet (anfangs alle ausgeblendet). Deutsch-first.
 const platforms = [
-  { id: "guide-garmin", label: "Garmin" },
-  { id: "guide-apple", label: "Apple Watch" },
-  { id: "guide-wear", label: "Wear OS" },
+  { id: "garmin", label: "Garmin" },
+  { id: "apple", label: "Apple Watch" },
+  { id: "wear", label: "Wear OS" },
 ];
 
 // Garmin-Anleitungs-Screenshots (v1.0.24, rund) — erzeugt von scripts/make-landing-watch-shots.py.
@@ -38,28 +35,36 @@ const appleShots = [
 ];
 
 export function WatchGuide() {
+  const [sel, setSel] = useState<string | null>(null);
   return (
     <div className="space-y-5">
-      {/* Sprung-Navigation */}
+      {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
       <Card className="p-5">
         <h3 className="font-semibold">So richtest du deine Uhr ein</h3>
-        <p className="mt-1 text-sm text-slate-300">
-          Wähle deine Plattform — oder scroll dich durch.
-        </p>
+        <p className="mt-1 text-sm text-slate-300">Wähle deine Plattform.</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {platforms.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => jump(p.id)}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700"
-            >
-              {p.label}
-            </button>
-          ))}
+          {platforms.map((p) => {
+            const active = sel === p.id;
+            return (
+              <button
+                key={p.id}
+                onClick={() => setSel(active ? null : p.id)}
+                className={
+                  "rounded-lg border px-3 py-1.5 text-sm " +
+                  (active
+                    ? "border-brand-500 bg-brand-500 text-slate-950 font-semibold"
+                    : "border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700")
+                }
+              >
+                {p.label}
+              </button>
+            );
+          })}
         </div>
       </Card>
 
       {/* Garmin */}
+      {sel === "garmin" && (
       <Card id="guide-garmin" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Garmin</h3>
         <p className="mt-1 text-sm text-slate-300">Fenix, Forerunner, Epix, Instinct …</p>
@@ -93,8 +98,10 @@ export function WatchGuide() {
           </div>
         </div>
       </Card>
+      )}
 
       {/* Apple Watch */}
+      {sel === "apple" && (
       <Card id="guide-apple" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Apple Watch</h3>
         <p className="mt-1 text-sm text-slate-300">watchOS 9+</p>
@@ -122,8 +129,10 @@ export function WatchGuide() {
           </div>
         </div>
       </Card>
+      )}
 
       {/* Wear OS */}
+      {sel === "wear" && (
       <Card id="guide-wear" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Wear OS</h3>
         <p className="mt-1 text-sm text-slate-300">Samsung Galaxy Watch, Google Pixel Watch …</p>
@@ -137,6 +146,7 @@ export function WatchGuide() {
             automatischer Sync.</li>
         </ol>
       </Card>
+      )}
     </div>
   );
 }
