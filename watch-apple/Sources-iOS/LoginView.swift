@@ -5,6 +5,8 @@ struct LoginView: View {
     @EnvironmentObject var session: SessionStore
     @State private var email = ""
     @State private var password = ""
+    @State private var name = ""
+    @State private var register = false
     @State private var busy = false
     @State private var error: String?
 
@@ -17,33 +19,41 @@ struct LoginView: View {
                         .textContentType(.username)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    SecureField("Passwort", text: $password)
-                        .textContentType(.password)
+                    SecureField(register ? "Passwort (min. 8 Zeichen)" : "Passwort", text: $password)
+                        .textContentType(register ? .newPassword : .password)
+                    if register {
+                        TextField("Anzeigename (optional)", text: $name)
+                            .textInputAutocapitalization(.words)
+                    }
                 }
                 if let error {
                     Text(error).foregroundStyle(.red).font(.footnote)
                 }
                 Section {
-                    Button(action: { Task { await doLogin() } }) {
+                    Button(action: { Task { await submit() } }) {
                         HStack {
                             Spacer()
-                            if busy { ProgressView() } else { Text("Anmelden").bold() }
+                            if busy { ProgressView() } else { Text(register ? "Konto erstellen" : "Anmelden").bold() }
                             Spacer()
                         }
                     }
                     .disabled(busy || email.isEmpty || password.isEmpty)
-                } footer: {
-                    Text("Konto anlegen auf pumpfoil.org")
+                    Button(register ? "Schon ein Konto? Anmelden" : "Noch kein Konto? Registrieren") {
+                        register.toggle(); error = nil
+                    }
+                    .font(.footnote)
                 }
             }
             .navigationTitle("Pumpfoil")
         }
     }
 
-    private func doLogin() async {
+    private func submit() async {
         busy = true; error = nil
-        do { try await session.login(email: email, password: password) }
-        catch { self.error = error.localizedDescription }
+        do {
+            if register { try await session.register(email: email, password: password, name: name) }
+            else { try await session.login(email: email, password: password) }
+        } catch { self.error = error.localizedDescription }
         busy = false
     }
 }

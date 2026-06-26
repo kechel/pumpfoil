@@ -30,6 +30,15 @@ final class SessionStore: ObservableObject {
 
     func login(email: String, password: String) async throws {
         let t = try await Api.login(email: email, password: password)
+        await finishAuth(t)
+    }
+
+    func register(email: String, password: String, name: String) async throws {
+        let t = try await Api.register(email: email, password: password, name: name)
+        await finishAuth(t)
+    }
+
+    private func finishAuth(_ t: String) async {
         Api.token = t
         token = t
         profile = try? await Api.getProfile()

@@ -18,6 +18,13 @@ enum Api {
         return r.access_token
     }
 
+    static func register(email: String, password: String, name: String) async throws -> String {
+        var body: [String: Any] = ["email": email, "password": password]
+        if !name.isEmpty { body["display_name"] = name }
+        let r: TokenResponse = try await request("/api/auth/register", method: "POST", body: body, auth: false)
+        return r.access_token
+    }
+
     static func getProfile() async throws -> Profile {
         try await request("/api/auth/me", method: "GET", body: nil, auth: true)
     }

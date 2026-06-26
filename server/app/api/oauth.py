@@ -20,17 +20,22 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import secrets
 
 import httpx
+import jwt as pyjwt
+from jwt import PyJWKClient
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import get_settings
 from ..db import get_db
+from ..schemas import TokenOut
 from ..security import create_access_token, hash_password
 
 router = APIRouter(prefix="/api/auth/oauth", tags=["oauth"])
@@ -219,15 +224,26 @@ async def callback(
     if not subject:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No identity from provider")
 
-    # 1) bekannte Verknüpfung?
+    user = _login_or_create(db, provider, subject, email, name)
+    jwt = create_access_token(user.id)
+    resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}")
+    resp.delete_cookie("oauth_state")
+    resp.delete_cookie("oauth_pkce")
+    return resp
+
+
+# ---------------------------------------------------------------- Find-or-create ----
+def _login_or_create(db: Session, provider: str, subject: str, email: str | None, name: str | None) -> models.User:
+    """Verknüpfte Identität finden oder Konto anlegen (E-Mail-Merge). Shared von
+    Web-Redirect-Callback UND nativen Sign-in-Endpoints."""
     ident = db.query(models.OAuthIdentity).filter_by(provider=provider, subject=subject).first()
     if ident:
         user = db.get(models.User, ident.user_id)
     else:
         user = None
-        if email:  # 2) per E-Mail einem bestehenden Konto zuordnen
+        if email:  # per verifizierter E-Mail einem bestehenden Konto zuordnen (Merge)
             user = db.query(models.User).filter(func.lower(models.User.email) == email.lower()).first()
-        if user is None:  # 3) neues Konto anlegen
+        if user is None:  # neues Konto
             login_email = (email or f"{provider}_{subject}@oauth.local").lower()
             user = models.User(
                 email=login_email,
@@ -241,9 +257,68 @@ async def callback(
     if user is None or user.blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account unavailable")
     db.commit()
+    return user
 
-    jwt = create_access_token(user.id)
-    resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}")
-    resp.delete_cookie("oauth_state")
-    resp.delete_cookie("oauth_pkce")
-    return resp
+
+# ------------------------------------------------------------- Native Sign-in ----
+# iOS „Sign in with Apple" / Android „Sign in with Google": die App holt sich vom
+# System ein signiertes id_token und schickt es hierher. Wir verifizieren es gegen
+# die JWKS des Providers (Signatur + audience), dann find-or-create + unser JWT.
+_APPLE_JWKS = "https://appleid.apple.com/auth/keys"
+_APPLE_ISS = "https://appleid.apple.com"
+_GOOGLE_JWKS = "https://www.googleapis.com/oauth2/v3/certs"
+_GOOGLE_ISS = {"https://accounts.google.com", "accounts.google.com"}
+
+
+class NativeAuthIn(BaseModel):
+    id_token: str
+    name: str | None = None   # Apple liefert den Namen nur beim 1. Login (über die App)
+
+
+def _csv(*vals: str | None) -> list[str]:
+    out: list[str] = []
+    for v in vals:
+        if v:
+            out.extend(a.strip() for a in v.split(",") if a.strip())
+    return list(dict.fromkeys(out))  # dedupe, Reihenfolge erhalten
+
+
+def _apple_audiences() -> list[str]:
+    # Native-Token-audience = App-Bundle-ID. Default = iOS-Bundle; per Env erweiterbar.
+    return _csv(os.environ.get("OAUTH_APPLE_NATIVE_AUD"), "org.pumpfoil.coolwatch")
+
+
+def _google_audiences() -> list[str]:
+    # audience = Google-OAuth-Client-ID(s) (Android/Web/iOS). Aus Env oder Settings.
+    cfg_cid = get_settings().oauth.get("google", {}).get("client_id")
+    return _csv(os.environ.get("OAUTH_GOOGLE_NATIVE_AUD"),
+                os.environ.get("OAUTH_GOOGLE_CLIENT_ID"), cfg_cid)
+
+
+def _verify_id_token(id_token: str, jwks_url: str, audiences: list[str]) -> dict:
+    try:
+        key = PyJWKClient(jwks_url).get_signing_key_from_jwt(id_token)
+        return pyjwt.decode(id_token, key.key, algorithms=["RS256"], audience=audiences)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid identity token") from exc
+
+
+@router.post("/native/apple", response_model=TokenOut)
+def native_apple(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut:
+    claims = _verify_id_token(body.id_token, _APPLE_JWKS, _apple_audiences())
+    if claims.get("iss") != _APPLE_ISS or not claims.get("sub"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Apple token")
+    user = _login_or_create(db, "apple", claims["sub"], claims.get("email"), body.name)
+    return TokenOut(access_token=create_access_token(user.id))
+
+
+@router.post("/native/google", response_model=TokenOut)
+def native_google(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut:
+    auds = _google_audiences()
+    if not auds:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Google sign-in not configured")
+    claims = _verify_id_token(body.id_token, _GOOGLE_JWKS, auds)
+    if claims.get("iss") not in _GOOGLE_ISS or not claims.get("sub"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Google token")
+    user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"))
+    return TokenOut(access_token=create_access_token(user.id))
