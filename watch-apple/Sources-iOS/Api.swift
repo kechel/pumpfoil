@@ -84,6 +84,16 @@ enum Api {
         try await request("/api/community/spots", method: "GET", body: nil, auth: true)
     }
 
+    static func deleteSession(_ id: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(id)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+    }
+
     static func history() async throws -> [HistoryPoint] {
         try await request("/api/sessions/history", method: "GET", body: nil, auth: true)
     }

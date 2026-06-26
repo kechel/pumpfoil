@@ -24,8 +24,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.aspectRatio
@@ -81,12 +84,29 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(id) {
         loading = true
         try { session = Api.session(id); error = null }
         catch (e: Exception) { error = e.message }
         loading = false
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Session löschen?") },
+            text = { Text("Diese Session wird ausgeblendet und aus der Community entfernt.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    scope.launch { try { Api.deleteSession(id); onBack() } catch (_: Exception) {} }
+                }) { Text("Löschen") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Abbrechen") } },
+        )
     }
 
     Scaffold(
@@ -96,6 +116,13 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                    }
+                },
+                actions = {
+                    if (session?.owned == true) {
+                        IconButton(onClick = { confirmDelete = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Löschen")
+                        }
                     }
                 },
             )

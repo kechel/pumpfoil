@@ -115,6 +115,10 @@ object Api {
         json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=true", null, auth = true))
     }
 
+    suspend fun deleteSession(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/sessions/$id", null, auth = true)
+    }
+
     suspend fun spots(): SpotsList = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots", null, auth = true))
     }

@@ -18,6 +18,8 @@ struct SessionDetailView: View {
     @State private var colorMode: TrackColorMode = .speed
     @State private var showPumps = true
     @State private var weightKg = 0.0
+    @State private var confirmDelete = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -31,6 +33,19 @@ struct SessionDetailView: View {
         }
         .navigationTitle("Session")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if session?.owned == true {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive) { confirmDelete = true } label: { Image(systemName: "trash") }
+                }
+            }
+        }
+        .confirmationDialog("Session löschen?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Löschen", role: .destructive) {
+                Task { try? await Api.deleteSession(id); dismiss() }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
         .task { await load() }
     }
 
