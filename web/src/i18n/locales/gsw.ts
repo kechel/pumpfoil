@@ -167,7 +167,7 @@ const gsw: Record<string, string> = {
   "common.deleteLower": "lösche",
 
   "account.tabConnect": "Verbinde",
-  "account.tabViews": "Aasichte",
+  "account.tabViews": "Datefälder",
   "account.tabApp": "App",
   "account.tabCompat": "Kompatibilität",
   "account.genCode": "Pairing-Code generiere",

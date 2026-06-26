@@ -196,7 +196,7 @@ const de: Record<string, string> = {
   // Account / Uhr
   "account.tabGuide": "Anleitung",
   "account.tabConnect": "Verbinden",
-  "account.tabViews": "Ansichten",
+  "account.tabViews": "Datenfelder",
   "account.tabApp": "App",
   "account.tabCompat": "Kompatibilität",
   "account.step1": "Unten einen Pairing-Code erzeugen.",

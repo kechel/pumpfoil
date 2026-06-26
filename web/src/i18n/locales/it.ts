@@ -175,7 +175,7 @@ const it: Record<string, string> = {
   "common.deleteLower": "elimina",
 
   "account.tabConnect": "Collega",
-  "account.tabViews": "Viste",
+  "account.tabViews": "Campi dati",
   "account.tabApp": "App",
   "account.tabCompat": "Compatibilità",
   "account.step1": "Genera un codice di abbinamento qui sotto.",

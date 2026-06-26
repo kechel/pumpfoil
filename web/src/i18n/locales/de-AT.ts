@@ -167,7 +167,7 @@ const deAT: Record<string, string> = {
   "common.deleteLower": "löschen",
 
   "account.tabConnect": "Verbinden",
-  "account.tabViews": "Ansichten",
+  "account.tabViews": "Datenfelder",
   "account.tabApp": "App",
   "account.tabCompat": "Kompatibilität",
   "account.genCode": "Pairing-Code erzeugen",

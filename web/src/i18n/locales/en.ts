@@ -175,7 +175,7 @@ const en: Record<string, string> = {
   "common.deleteLower": "delete",
 
   "account.tabConnect": "Connect",
-  "account.tabViews": "Views",
+  "account.tabViews": "Data fields",
   "account.tabApp": "App",
   "account.tabCompat": "Compatibility",
   "account.step1": "Generate a pairing code below.",
