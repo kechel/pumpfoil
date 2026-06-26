@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Star
@@ -52,7 +53,7 @@ import kotlin.math.roundToInt
 // Standard (Stern). Persistiert via PUT /api/settings (my_foils, foil_id).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoilsScreen() {
+fun FoilsScreen(onBack: () -> Unit = {}) {
     var foils by remember { mutableStateOf<List<Foil>?>(null) }
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var brand by remember { mutableStateOf("") }
@@ -83,7 +84,12 @@ fun FoilsScreen() {
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Foils") }) }) { pad ->
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text("Foils") },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
+        )
+    }) { pad ->
         val list = foils
         if (list == null) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }

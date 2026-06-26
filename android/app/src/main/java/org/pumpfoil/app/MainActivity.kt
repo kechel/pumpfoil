@@ -129,8 +129,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onCompare = { nav.navigate("compare") },
                 )
             }
-            composable("foilcalc") { FoilCalculatorScreen() }
-            composable("foils") { FoilsScreen() }
+            composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
+            composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }) }
             composable("foilstats") { FoilStatsScreen(onBack = { nav.popBackStack() }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
