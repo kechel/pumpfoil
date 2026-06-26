@@ -7,6 +7,25 @@ Stand: 2026-06-26. Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ 
 
 > Diese Datei ist die Soll-Ist-Liste. Erst abweichen/fehlen erfassen, dann priorisiert umsetzen.
 
+## Stand 2026-06-26 (autonome Serie) — Phone-Parität weitgehend hergestellt
+
+Beide Phone-Apps (Android verifiziert kompiliert, iOS in TestFlight gebaut/getestet) haben jetzt:
+Home-Dashboard · Sessions mit Scope (Meine/Homespot/Alle) + Spot-Suche · Community-Feed
+**+ Records/Leaderboards** · Spots · Chat · Profil (**Avatar-Upload**, Name) · **Einstellungen**
+(Gewicht/Homespot/Theme/Push) · Foils/Rechner/Stats · **Datenfelder-Editor** · **On-Foil-Alarm**.
+Session-Detail: Karte (nur Foiling, Farb-Modi Speed/Puls/Pump **+ Glättung 1/3/5 s**), Pump-Marker,
+Läufe-Tabelle, Power-Karte, **Per-Session-Foil**, Fotos+Upload, YouTube, Like, **löschen**,
+**Beschriftung**, **melden** (Fake/unangemessen).
+Auth: E-Mail Login/**Register** · **Sign in with Apple** (iOS) · **Mit Google** (Android) · Auto-Uhr-Verknüpfung.
+
+**Gefixte Bugs:** iOS Community-Decode; iOS Session-Detail (Kachel-Karte/on-foil/Speed-Chart raus);
+Android Login-Light-Mode; iOS Release-Crash in Einstellungen+Alarm (selbstgebautes `Binding.onChange`
+entfernt); Social-Login-Displayname-Fallback; diverse Web-Light-Mode-Kontraste.
+
+**Noch offen (niedriger Nutzen / Web-zentriert):** Farb-Modus „Optimal", Lauf-Auswahl-Highlight,
+Labeling, Trim-Editor, Vergleichsansicht. **Braucht dich/Geräte:** Recorder-P2 (Lauf-Felder,
+3-s-Stop-Ring, „GPS bereit", Forward-Pairing), i18n (Uhr+Phone), Google-Consent-Verifizierung.
+
 ---
 
 ## A) Phone-Apps vs. Web (`android/` = Compose, `Sources-iOS/` = SwiftUI)
