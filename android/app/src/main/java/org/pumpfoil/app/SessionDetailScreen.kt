@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -90,9 +91,10 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
+    var reloadTick by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(id) {
+    LaunchedEffect(id, reloadTick) {
         loading = true
         try { session = Api.session(id); error = null }
         catch (e: Exception) { error = e.message }
@@ -156,7 +158,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
             when {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                s != null -> DetailContent(s)
+                s != null -> DetailContent(s, onReload = { reloadTick++ })
             }
         }
     }
@@ -164,7 +166,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DetailContent(s: SessionDetail) {
+private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -175,8 +177,15 @@ private fun DetailContent(s: SessionDetail) {
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var editCaption by remember(s.id) { mutableStateOf(false) }
     var draftCaption by remember(s.id) { mutableStateOf("") }
+    var myFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
     LaunchedEffect(Unit) {
         weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
+        if (s.owned) {
+            try {
+                val ids = Api.settings()["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
+                if (ids.isNotEmpty()) myFoils = Api.foils().filter { it.id in ids }
+            } catch (_: Exception) {}
+        }
     }
     if (editCaption) {
         AlertDialog(
@@ -316,6 +325,22 @@ private fun DetailContent(s: SessionDetail) {
                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                         Spacer(Modifier.width(8.dp))
                         Text("Pump-Marker", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+        // Foil dieser Session (Owner): beeinflusst Leistung + Community-Foil-Stats.
+        if (s.owned && myFoils.isNotEmpty()) {
+            Column {
+                Text("Foil dieser Session", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(4.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    myFoils.forEach { f ->
+                        FilterChip(
+                            selected = s.foil?.id == f.id,
+                            onClick = { scope.launch { try { Api.setSessionFoil(s.id, f.id); onReload() } catch (_: Exception) {} } },
+                            label = { Text("${f.brand} ${f.model} ${f.size}", maxLines = 1) },
+                        )
                     }
                 }
             }

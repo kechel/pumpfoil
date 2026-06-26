@@ -140,6 +140,17 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
+    static func setSessionFoil(_ id: Int, foilId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(id)/meta") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "PUT"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["foil_id": foilId])
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     static func setCaption(_ id: Int, caption: String) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/meta") else { throw ApiError.badURL }
         var req = URLRequest(url: url)

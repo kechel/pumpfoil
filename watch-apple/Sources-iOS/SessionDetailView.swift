@@ -18,6 +18,8 @@ struct SessionDetailView: View {
     @State private var colorMode: TrackColorMode = .speed
     @State private var win = 3
     @State private var showPumps = true
+    @State private var myFoils: [Foil] = []
+    @State private var selectedFoilId = 0
     @State private var weightKg = 0.0
     @State private var confirmDelete = false
     @State private var caption = ""
@@ -67,6 +69,11 @@ struct SessionDetailView: View {
             Button("Abbrechen", role: .cancel) {}
         }
         .task { await load() }
+        .onChange(of: selectedFoilId) { fid in
+            if fid != 0 && fid != (session?.foil?.id ?? 0) {
+                Task { try? await Api.setSessionFoil(id, foilId: fid); await load() }
+            }
+        }
     }
 
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
@@ -182,6 +189,12 @@ struct SessionDetailView: View {
                     Toggle("Pump-Marker", isOn: $showPumps).font(.subheadline)
                 }
             }
+            if s.owned == true && !myFoils.isEmpty {
+                Picker("Foil dieser Session", selection: $selectedFoilId) {
+                    ForEach(myFoils) { f in Text("\(f.brand) \(f.model) \(f.size)").tag(f.id) }
+                }
+                .pickerStyle(.menu)
+            }
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg)
             }
@@ -232,8 +245,14 @@ struct SessionDetailView: View {
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
             caption = s.caption ?? ""
+            selectedFoilId = s.foil?.id ?? 0
             photos = (try? await Api.sessionPhotos(id)) ?? []
-            weightKg = ((try? await Api.settings())?["weight_kg"] as? Int).map(Double.init) ?? 0
+            let settings = (try? await Api.settings()) ?? [:]
+            weightKg = (settings["weight_kg"] as? Int).map(Double.init) ?? 0
+            if s.owned == true {
+                let ids = Set((settings["my_foils"] as? [Any])?.compactMap { $0 as? Int } ?? [])
+                if !ids.isEmpty { myFoils = (try? await Api.foils())?.filter { ids.contains($0.id) } ?? [] }
+            }
             error = nil
         } catch { self.error = error.localizedDescription }
     }
