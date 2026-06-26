@@ -26,6 +26,12 @@ module Uploader {
     var _queue = null;
     var _job = null;
 
+    // Fortschritt/Status für die UI (UploadView). Werden vom Job gepflegt.
+    var _curSent = 0;            // bestätigte Chunks der aktuellen Session
+    var _curTotal = 0;          // Gesamt-Chunks der aktuellen Session
+    var _lastError = :none;     // :none | :offline | :auth | :server
+    var _sentAny = false;       // mind. ein Chunk in diesem Lauf bestätigt (Aktivitätsnachweis)
+
     // Anzahl noch nicht vollständig hochgeladener Sessions (für UI-Feedback).
     function pendingCount() as Lang.Number {
         var s = Storage.getValue("sessions");
@@ -36,6 +42,31 @@ module Uploader {
         return _busy;
     }
 
+    // Chunk-Fortschritt der gerade laufenden Session (für Fortschrittsbalken).
+    function progressSent() as Lang.Number { return _curSent; }
+    function progressTotal() as Lang.Number { return _curTotal; }
+
+    // Letzter Fehlergrund des Sync-Laufs (für klare UI-Meldung statt „hängt").
+    function lastError() as Lang.Symbol { return _lastError; }
+
+    // Hat die Uhr aktuell eine Telefon-Verbindung? (Primärer Upload-Pfad.)
+    function phoneConnected() as Lang.Boolean {
+        return System.getDeviceSettings().phoneConnected;
+    }
+
+    // Vom Job gemeldet: Fehler einordnen (negativer Code = Transport/BLE/Netz weg).
+    function noteResult(responseCode as Lang.Number) as Void {
+        if (responseCode == 200) {
+            _lastError = :none;
+        } else if (responseCode <= 0) {
+            _lastError = :offline;   // BLE/Netz nicht verfügbar, Timeout etc.
+        } else if (responseCode == 401 || responseCode == 403) {
+            _lastError = :auth;
+        } else {
+            _lastError = :server;
+        }
+    }
+
     // Alle ausstehenden Sessions hochladen (manuell, periodisch, App-Start, Background).
     function syncAll() as Void {
         if (_busy) { return; }
@@ -44,6 +75,9 @@ module Uploader {
         _queue = [];
         for (var i = 0; i < sessions.size(); i++) { _queue.add(sessions[i]); }
         _busy = true;
+        _lastError = :none;
+        _sentAny = false;
+        _curSent = 0; _curTotal = 0;
         _next();
     }
 
@@ -116,6 +150,9 @@ class SessionSyncJob {
             Uploader.sessionDone();
             return;
         }
+        // Chunk-Fortschritt der aktuellen Session für die UI initialisieren.
+        Uploader._curTotal = _accelTotal + _gpsTotal;
+        Uploader._curSent = _sa + _sg;
         if (_token == null || _token.equals("")) {
             var code = Config.getString("pairingCode");
             if (code == null || code.equals("")) { Uploader.sessionDone(); return; }
@@ -141,6 +178,7 @@ class SessionSyncJob {
             Config.setString("deviceToken", _token);
             _startSession();
         } else {
+            Uploader.noteResult(responseCode);
             Uploader.sessionDone();   // später erneut
         }
     }
@@ -157,7 +195,11 @@ class SessionSyncJob {
 
     // Callback für /session und jeden Chunk: bestätigt den vorherigen Chunk, schickt den nächsten.
     function onStep(responseCode as Lang.Number, data as WebData) as Void {
-        if (responseCode != 200) { Uploader.sessionDone(); return; }  // Puffer bleibt -> später
+        if (responseCode != 200) {
+            Uploader.noteResult(responseCode);
+            Uploader.sessionDone(); return;   // Puffer bleibt -> später fortsetzen
+        }
+        Uploader.noteResult(200);
         if (_pendingKind != null) {
             if (_pendingKind.equals("accel")) {
                 Storage.deleteValue("ca_" + _uuid + "_" + _pendingIdx);
@@ -167,6 +209,8 @@ class SessionSyncJob {
                 _sg = _pendingIdx + 1; Storage.setValue("sg_" + _uuid, _sg);
             }
             _pendingKind = null;
+            Uploader._curSent = _sa + _sg;   // Fortschritt für die UI
+            Uploader._sentAny = true;
         }
         _advance();
     }
@@ -242,6 +286,7 @@ class SessionSyncJob {
     }
 
     function onFinal(responseCode as Lang.Number, data as WebData) as Void {
+        Uploader.noteResult(responseCode);
         if (responseCode == 200 && _completed) {
             _cleanup();   // abgeschlossen + vollständig -> lokal aufräumen
         }
