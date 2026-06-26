@@ -85,3 +85,10 @@ html.theme-light .text-brand-300,
 html.theme-light .text-brand-400 {
   color: #0e7490; /* cyan-700 */
 }
+
+/* Status-Badges/Buttons: helle Tints auf hellem Grund sind unlesbar -> im Light
+ * kräftigerer Hintergrund + dunkle Schrift. */
+html.theme-light .badge-ok { background-color: #d1fae5; color: #047857; }   /* emerald 100/700 */
+html.theme-light .badge-soon { background-color: #e0f2fe; color: #0369a1; } /* sky 100/700 */
+html.theme-light .badge-danger,
+html.theme-light .btn-danger { background-color: #ffe4e6; color: #be123c; } /* rose 100/700 */

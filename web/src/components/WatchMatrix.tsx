@@ -20,10 +20,10 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
 const CAP_ICON: Record<"partial" | "no", string> = { partial: "~", no: "–" };
 const CAP_CLASS: Record<Cap, string> = { yes: "text-emerald-400", partial: "text-amber-400", no: "text-slate-600" };
 const STATUS_CLASS: Record<Status, string> = {
-  avail: "bg-emerald-500/15 text-emerald-300",
-  planned: "bg-sky-500/15 text-sky-300",
+  avail: "badge-ok bg-emerald-500/15 text-emerald-300",
+  planned: "badge-soon bg-sky-500/15 text-sky-300",
   import: "bg-slate-500/15 text-slate-300",
-  no: "bg-rose-500/15 text-rose-300",
+  no: "badge-danger bg-rose-500/15 text-rose-300",
 };
 
 export function WatchMatrix() {

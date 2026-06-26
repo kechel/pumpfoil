@@ -133,7 +133,7 @@ function PairedDevices() {
               </div>
               {!d.revoked_at && (
                 <button onClick={() => revoke(d.id, d.label)}
-                  className="shrink-0 rounded-lg bg-red-950/40 px-2.5 py-1.5 text-xs text-red-300 hover:bg-red-950/70">
+                  className="btn-danger shrink-0 rounded-lg bg-red-950/40 px-2.5 py-1.5 text-xs text-red-300 hover:bg-red-950/70">
                   {t("account.deviceRevoke")}
                 </button>
               )}
