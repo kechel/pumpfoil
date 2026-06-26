@@ -49,6 +49,11 @@ struct ProfileView: View {
                         Label("On-Foil Alarm", systemImage: "waveform.path")
                     }
                     NavigationLink {
+                        DataFieldsView()
+                    } label: {
+                        Label("Datenseiten", systemImage: "square.grid.2x2")
+                    }
+                    NavigationLink {
                         SettingsView()
                     } label: {
                         Label("Einstellungen", systemImage: "gearshape")

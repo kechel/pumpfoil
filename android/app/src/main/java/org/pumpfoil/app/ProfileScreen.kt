@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
@@ -50,7 +51,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onSettings: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -134,6 +135,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text("On-Foil Alarm") },
                 supportingContent = { Text("Speed-Grenzen & Muster für die Uhr") },
                 leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { onDataFields() },
+                headlineContent = { Text("Datenseiten") },
+                supportingContent = { Text("Felder je Uhr-Screen konfigurieren") },
+                leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
