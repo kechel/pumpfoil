@@ -102,6 +102,8 @@ def _migrate_add_columns() -> None:
         },
         "device_tokens": {
             "revoked_at": "TIMESTAMP WITH TIME ZONE",
+            "app_version": "VARCHAR(20)",
+            "platform": "VARCHAR(16)",
         },
         "foils": {
             "thickness_estimated": "BOOLEAN DEFAULT false",

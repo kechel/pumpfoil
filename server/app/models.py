@@ -96,6 +96,10 @@ class DeviceToken(Base):
     label: Mapped[str | None] = mapped_column(String(120))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Zuletzt gemeldete App-Version der Uhr + Plattform (garmin/wear/apple) — beim Sync
+    # übertragen, um im Web einen Update-Hinweis zu zeigen.
+    app_version: Mapped[str | None] = mapped_column(String(20))
+    platform: Mapped[str | None] = mapped_column(String(16))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

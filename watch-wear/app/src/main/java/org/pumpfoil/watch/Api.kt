@@ -58,8 +58,11 @@ object Api {
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    suspend fun deviceConfig(): JSONObject = withContext(Dispatchers.IO) {
-        get("/api/devices/config")
+    // version: gemeldete App-Version (für den Update-Hinweis im Web), p=wear als Plattform.
+    suspend fun deviceConfig(version: String = ""): JSONObject = withContext(Dispatchers.IO) {
+        val q = if (version.isNotEmpty())
+            "?v=" + java.net.URLEncoder.encode(version, "UTF-8") + "&p=wear" else "?p=wear"
+        get("/api/devices/config$q")
     }
 
     // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt

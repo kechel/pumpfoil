@@ -370,6 +370,7 @@ const de: Record<string, string> = {
   "account.devicesNone": "Noch keine Uhr verbunden.",
   "account.deviceUnnamed": "Unbenannte Uhr",
   "account.deviceLastSeen": "zuletzt aktiv {time}",
+  "account.deviceUpdate": "Update verfügbar: v{version} → herunterladen",
   "account.devicePaired": "verbunden {time}",
   "account.deviceRevoke": "Widerrufen",
   "account.deviceRevoked": "widerrufen",

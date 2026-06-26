@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity() {
                 syncing = true
                 configJob = scope.launch {
                     try {
-                        val c = Api.deviceConfig()
+                        val c = Api.deviceConfig(appVersion(ctx))
                         applyConfig(c)
                         Api.cacheConfig(ctx, c)
                     } catch (_: Exception) {}

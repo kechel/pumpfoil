@@ -254,7 +254,7 @@ class SessionRecorder {
         if (token == null || token.equals("")) { return; }
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/config",
-            {},
+            { "v" => Config.VERSION, "p" => "garmin" },   // Version+Plattform melden -> Update-Hinweis im Web
             {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
                 :headers => { "X-Device-Token" => token },

@@ -86,7 +86,11 @@ enum Api {
     }
 
     static func deviceConfig() async throws -> DeviceConfig {
-        guard let url = URL(string: baseURL + "/api/devices/config") else { throw err("Bad URL") }
+        // Version + Plattform melden -> Update-Hinweis im Web.
+        let v = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
+        let q = v.isEmpty ? "?p=apple"
+            : "?v=\(v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v)&p=apple"
+        guard let url = URL(string: baseURL + "/api/devices/config" + q) else { throw err("Bad URL") }
         var req = URLRequest(url: url)
         req.timeoutInterval = 10   // nicht ewig warten — der Nutzer kann „Jetzt nicht" tippen
         if let t = deviceToken { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }

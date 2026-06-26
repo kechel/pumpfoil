@@ -121,11 +121,17 @@ function PairedDevices() {
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-slate-100">
                   {d.label || t("account.deviceUnnamed")}
+                  {d.app_version && <span className="ml-2 text-xs font-normal text-slate-400">v{d.app_version}</span>}
                   {d.revoked_at && <span className="ml-2 rounded bg-slate-700/60 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">{t("account.deviceRevoked")}</span>}
                 </div>
                 <div className="text-xs text-slate-400">
                   {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
                 </div>
+                {d.update_available && !d.revoked_at && (
+                  <a href="#guide-garmin" className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-300 hover:bg-amber-500/25">
+                    {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
+                  </a>
+                )}
               </div>
               {!d.revoked_at && (
                 <button onClick={() => revoke(d.id, d.label)}

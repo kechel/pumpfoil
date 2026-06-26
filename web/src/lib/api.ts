@@ -523,6 +523,10 @@ export interface PairedDevice {
   created_at: string | null;
   last_seen_at: string | null;
   revoked_at: string | null;
+  app_version: string | null;
+  platform: string | null;
+  latest_version: string | null;
+  update_available: boolean;
 }
 
 export interface AppDevice {

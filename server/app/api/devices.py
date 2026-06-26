@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -30,9 +30,18 @@ PAIRING_TTL_MIN = 15
 def device_config(
     device: models.DeviceToken = Depends(current_device),
     db: Session = Depends(get_db),
+    v: str | None = Query(None),   # gemeldete App-Version der Uhr
+    p: str | None = Query(None),   # Plattform: garmin | wear | apple
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
-    konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start."""
+    konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
+    meldet dabei ihre Version (v) + Plattform (p) -> Update-Hinweis im Web."""
+    if v is not None and v != "":
+        device.app_version = v[:20]
+    if p is not None and p != "":
+        device.platform = p[:16]
+    if v or p:
+        db.commit()
     user = db.get(models.User, device.user_id)
     settings = json.loads(user.settings_json) if user and user.settings_json else {}
 
@@ -100,13 +109,51 @@ def list_devices(
                   models.DeviceToken.created_at.desc())
         .all()
     )
-    return [{
-        "id": d.id,
-        "label": d.label,
-        "created_at": d.created_at.isoformat() if d.created_at else None,
-        "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
-        "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None,
-    } for d in rows]
+    latest_garmin = _latest_garmin_version()
+    out = []
+    for d in rows:
+        # Update-Hinweis nur für Garmin (Sideload). Wear/Apple aktualisieren über ihre Stores.
+        latest = latest_garmin if (d.platform == "garmin") else None
+        update = bool(latest and d.app_version and _version_lt(d.app_version, latest))
+        out.append({
+            "id": d.id,
+            "label": d.label,
+            "created_at": d.created_at.isoformat() if d.created_at else None,
+            "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
+            "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None,
+            "app_version": d.app_version,
+            "platform": d.platform,
+            "latest_version": latest,
+            "update_available": update,
+        })
+    return out
+
+
+def _latest_garmin_version() -> str | None:
+    """Neueste gebaute Garmin-App-Version aus dem Build-Katalog (Quelle der Wahrheit
+    für den Sideload-Download)."""
+    try:
+        from ..config import settings
+        cat = settings.app_builds_dir / "catalog.json"
+        if not cat.exists():
+            return None
+        data = json.loads(cat.read_text())
+        if isinstance(data, list) and data:
+            return data[0].get("version")
+    except Exception:
+        pass
+    return None
+
+
+def _version_lt(a: str, b: str) -> bool:
+    """a < b für „1.0.28"-artige Versionen (numerischer Vergleich je Segment)."""
+    def parts(s):
+        return [int(x) for x in str(s).split(".") if x.isdigit()]
+    pa, pb = parts(a), parts(b)
+    n = max(len(pa), len(pb))
+    pa += [0] * (n - len(pa))
+    pb += [0] * (n - len(pb))
+    return pa < pb
 
 
 @router.delete("/{device_id}")
