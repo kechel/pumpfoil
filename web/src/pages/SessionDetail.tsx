@@ -9,7 +9,6 @@ import { FoilSelect } from "../components/FoilSelect";
 import { FoilPowerStat } from "../components/FoilPower";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
-import { Chat } from "../components/Chat";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
@@ -858,10 +857,7 @@ export default function SessionDetail() {
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} />
 
-      <div className="mt-8">
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">{t("sd.discussion")}</h3>
-        <Card className="p-4"><Chat scope={`session:${session.id}`} /></Card>
-      </div>
+      {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 
       {owned && (
         <div className="mt-8 flex justify-end">

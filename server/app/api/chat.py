@@ -387,6 +387,9 @@ def my_rooms(
     )
     out = []
     for st in states:
+        # Session-Chats vorerst ausgeblendet — nur Spot-Chats anzeigen.
+        if st.scope.startswith("session:"):
+            continue
         last = (
             db.query(models.ChatMessage)
             .filter(models.ChatMessage.scope == st.scope, models.ChatMessage.hidden.isnot(True))
@@ -440,7 +443,7 @@ def active_rooms(
     )
     out = []
     for scope, n in rows:
-        if scope in mine:
+        if scope in mine or scope.startswith("session:"):
             continue
         last = (
             db.query(models.ChatMessage)

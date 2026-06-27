@@ -24,7 +24,9 @@ export default function ChatPage() {
   const [sessionLabel, setSessionLabel] = useState("");
 
   useEffect(() => {
-    if (sp.get("scope")) { setScope(sp.get("scope")); return; }
+    // Session-Chats vorerst ausgeblendet -> nur Spot-Scopes zulassen, sonst Homespot.
+    const q = sp.get("scope");
+    if (q && q.startsWith("spot:")) { setScope(q); return; }
     api.getSettings().then((s) => {
       const hs = (s.homespot as string) || "";
       setScope(hs ? `spot:${hs}` : "");
