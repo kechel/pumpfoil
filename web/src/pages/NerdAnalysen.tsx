@@ -30,7 +30,7 @@ function H({ children }: { children: React.ReactNode }) {
 export default function NerdAnalysen() {
   const photo = (h: string) => `/media/photos/${h}.webp`;
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="w-full">
       <Link to="/" className="text-sm text-brand-400 hover:underline">← Zurück</Link>
       <h1 className="mb-1 mt-4 text-2xl font-bold">🤓 Nerd-Analysen</h1>
       <p className="mb-2 text-sm text-slate-400">
@@ -52,12 +52,12 @@ export default function NerdAnalysen() {
         Start-Knopf in Fahrtrichtung. Beide liefen auf unserer eigenen Recorder-App (v1.0.37). Die
         Mast-Uhr hat unter Wasser <b>kein GPS</b> — sie misst nur die rohe Beschleunigung des Foils.
       </p>
-      <div className="my-5 grid grid-cols-2 gap-3">
-        <img src={photo("54d4248e35634dd6a9a4cda1a5f71b37")} alt="Foil mit Mast-Uhr am Steg" className="rounded-xl border border-slate-800" />
-        <img src={photo("4987d350f41c4e93813eda148c85f625")} alt="Spot Illmensee" className="rounded-xl border border-slate-800" />
-        <img src={photo("0bb596ff35864bfe8951cfa594038052")} alt="FR55 am Mast — Auto-Start" className="rounded-xl border border-slate-800" />
-        <img src={photo("979ca9ffa5f44f9cb0441f0b430bfd22")} alt="FR55 am Mast — GPS-Suche" className="rounded-xl border border-slate-800" />
+      <div className="my-5 grid grid-cols-3 gap-3">
+        <img src={photo("54d4248e35634dd6a9a4cda1a5f71b37")} alt="Foil mit Mast-Uhr am Steg" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
+        <img src={photo("0bb596ff35864bfe8951cfa594038052")} alt="FR55 am Mast — Auto-Start" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
+        <img src={photo("979ca9ffa5f44f9cb0441f0b430bfd22")} alt="FR55 am Mast — GPS-Suche" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
       </div>
+      <img src={photo("4987d350f41c4e93813eda148c85f625")} alt="Spot Illmensee bei Sonnenuntergang" className="my-3 w-full rounded-xl border border-slate-800" />
 
       <H>Die Daten</H>
       <p className="text-sm text-slate-300">
