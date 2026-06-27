@@ -1051,6 +1051,7 @@ function RunsTable({
         <table className="w-full min-w-[820px] text-sm">
           <thead>
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+              <th className="px-3 py-2 font-medium" title={t("compare.add")}><CompareIcon className="h-4 w-4" /></th>
               <th className="px-3 py-2 font-medium">#</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
@@ -1063,7 +1064,6 @@ function RunsTable({
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
-              <th className="px-3 py-2 font-medium"><CompareIcon className="h-4 w-4" /></th>
             </tr>
           </thead>
           <tbody>
@@ -1076,6 +1076,20 @@ function RunsTable({
                   onClick={() => onSelect(sel ? null : i)}
                   className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${sel ? "bg-brand-500/20" : best ? "bg-brand-500/5" : ""}`}
                 >
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: i }));
+                      return (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleCompare({ sessionId, runIdx: i }); }}
+                          title={inCmp ? t("compare.remove") : t("compare.add")}
+                          className={inCmp ? "text-brand-400" : "text-slate-400 hover:text-slate-200"}
+                        >
+                          <CompareIcon className="h-4 w-4" />
+                        </button>
+                      );
+                    })()}
+                  </td>
                   <td className="px-3 py-2 tabular-nums">
                     {i + 1}{best && <span className="ml-1 inline-flex align-middle text-brand-400" title={t("sd.farthestRunTitle")}><StarIcon className="h-3.5 w-3.5" filled /></span>}
                   </td>
@@ -1094,20 +1108,6 @@ function RunsTable({
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
-                  <td className="px-3 py-2">
-                    {(() => {
-                      const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: i }));
-                      return (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleCompare({ sessionId, runIdx: i }); }}
-                          title={inCmp ? t("compare.remove") : t("compare.add")}
-                          className={inCmp ? "text-brand-400" : "text-slate-400 hover:text-slate-200"}
-                        >
-                          <CompareIcon className="h-4 w-4" />
-                        </button>
-                      );
-                    })()}
-                  </td>
                 </tr>
               );
             })}
