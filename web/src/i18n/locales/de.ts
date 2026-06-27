@@ -726,6 +726,13 @@ const de: Record<string, string> = {
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",
 
+  "wx.title": "Wetter & Pegel",
+  "wx.now": "jetzt",
+  "wx.today": "Heute",
+  "wx.tomorrow": "Morgen",
+  "wx.gust": "B",
+  "wx.level": "Pegel",
+  "wx.source": "Quelle",
   "compare.title": "Vergleich",
   "compare.colorRider": "Je Fahrer",
   "compare.colorTrack": "Je Track",

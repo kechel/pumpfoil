@@ -692,6 +692,13 @@ const en: Record<string, string> = {
   "phome.allMine": "All mine",
   "phome.homespotChatSoon": "Spot chat coming",
 
+  "wx.title": "Weather & water level",
+  "wx.now": "now",
+  "wx.today": "Today",
+  "wx.tomorrow": "Tomorrow",
+  "wx.gust": "gust",
+  "wx.level": "Water level",
+  "wx.source": "Source",
   "compare.title": "Compare",
   "compare.colorRider": "By rider",
   "compare.colorTrack": "By track",

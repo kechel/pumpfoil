@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
+import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
@@ -20,12 +21,14 @@ export default function PersonalHome() {
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [homespot, setHomespot] = useState("");
 
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
     api.stats(true).then(setStats).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
     api.chatRooms().then(setRooms).catch(() => {});
+    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
 
   const recs = stats?.records;
@@ -88,6 +91,9 @@ export default function PersonalHome() {
           ))}
         </div>
       )}
+
+      {/* Wetter & Pegel für den eigenen Homespot */}
+      {homespot && <SpotWeather spot={homespot} />}
 
       {/* Meine Chats */}
       {rooms.length > 0 && (

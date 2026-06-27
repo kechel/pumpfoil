@@ -4,6 +4,7 @@ import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
+import { SpotWeather } from "../components/SpotWeather";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -74,6 +75,7 @@ export default function Sessions() {
         {spot && <SpotChatToggle spot={spot} t={t} />}
       </div>
 
+      {spot && <SpotWeather spot={spot} />}
       {isMine ? <MySessionsList myName={myName} /> : <CommunityList name="" spot={spot} />}
     </div>
   );

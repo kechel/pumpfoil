@@ -117,6 +117,20 @@ export interface SessionSummary {
   analysis: Analysis | null;
 }
 
+export interface SpotWeatherDay {
+  date: string; code: number | null; tmax: number | null; tmin: number | null;
+  wind_max: number | null; gust_max: number | null; dir: number | null; precip: number | null;
+}
+export interface SpotWeather {
+  lat: number; lon: number;
+  weather: {
+    current: { temp: number | null; wind: number | null; dir: number | null; code: number | null };
+    days: SpotWeatherDay[];
+    wind_unit: string;
+  } | null;
+  pegel: { station: string; water: string | null; value: number | null; unit: string; timestamp: string | null; trend: number | null; km: number } | null;
+}
+
 export interface HistoryPoint {
   session_id: number;
   started_at: string;
@@ -298,6 +312,7 @@ export const api = {
   getProfile: () => req<Profile>("/api/auth/me"),
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
+  spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
   chatBefore: (scope: string, before: number, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&before=${before}&limit=${limit}`),

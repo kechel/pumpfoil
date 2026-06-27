@@ -7,6 +7,8 @@ detection) -> reines SQL, keine Full-Scans/JSON-Parsing.
 """
 from __future__ import annotations
 
+import threading
+import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -16,6 +18,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
+from ..weather import spot_weather
 from .deps import current_user
 
 router = APIRouter(prefix="/api/community", tags=["community"])
@@ -266,6 +269,36 @@ def spot_map(_user: models.User = Depends(current_user), db: Session = Depends(g
         {"spot": name, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for name, lat, lon, n in rows if lat is not None and lon is not None
     ]
+
+
+# Spot-Wetter/Pegel: je Spot 1 h gemeinsam für ALLE Nutzer gecacht (schont die freien
+# APIs + schnelle Anzeige). In-Memory reicht für den Einzelprozess (wie ratelimit.py).
+_WX_TTL = 3600.0
+_wx_lock = threading.Lock()
+_wx_cache: dict[str, tuple[float, dict]] = {}
+
+
+@router.get("/spot/weather")
+def spot_weather_endpoint(
+    spot: str, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Wetter (heute/morgen/übermorgen + aktuell) und nächster Pegel für einen Spot.
+    Koordinaten = Mittel der community-sichtbaren Sessions an diesem Spot."""
+    now = time.monotonic()
+    with _wx_lock:
+        hit = _wx_cache.get(spot)
+        if hit and now - hit[0] < _WX_TTL:
+            return hit[1]
+    row = (
+        _community(db.query(func.avg(S.place_lat), func.avg(S.place_lon)), user.id)
+        .filter(S.place_name == spot, S.place_lat.isnot(None)).first()
+    )
+    if not row or row[0] is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
+    data = spot_weather(float(row[0]), float(row[1]))
+    with _wx_lock:
+        _wx_cache[spot] = (now, data)
+    return data
 
 
 @router.get("/foil-stats")
