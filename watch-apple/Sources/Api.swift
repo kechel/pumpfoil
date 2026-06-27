@@ -71,6 +71,7 @@ enum Api {
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
         let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)
         let language: String?   // Profil-Sprache (de/gsw/de-AT/en/fr/it/es) für On-Device-Texte
+        let recordMode: String? // Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren)
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt

@@ -170,6 +170,11 @@ class MainActivity : ComponentActivity() {
             if (ofa != null && ofa.length() > 0) {
                 offFoil = (0 until ofa.length()).map { ofa.getInt(it) }
             }
+            // Aufzeichnungsmodus (full/lite/gps) persistieren -> Recorder liest beim Start (offline-tauglich).
+            val rm = c.optString("recordMode", "full")
+            Recorder.recordMode = rm
+            ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+                .edit().putString("record_mode", rm).apply()
         }
         fun skipSync() { configJob?.cancel(); syncing = false }
 

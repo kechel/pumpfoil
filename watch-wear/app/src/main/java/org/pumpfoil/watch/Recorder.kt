@@ -22,8 +22,14 @@ import java.util.UUID
 // lädt in Chunks gemäß Raw-Ingest-Contract. Die Android-Sensorik liefert RecorderService.
 object Recorder {
     const val ACCEL_HZ = 25
+    const val ACCEL_HZ_LITE = 10     // sparsamer Modus für speicherarme Uhren
     const val ACCEL_SCALE = 2048.0   // int16 2048 == 1 g
     private const val G = 9.80665
+
+    // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = 10 Hz | "gps" = nur GPS.
+    // Aus der Config (pro Konto) gesetzt; RecorderService liest accelHzActual/recordMode.
+    @Volatile var recordMode = "full"
+    @Volatile var accelHzActual = ACCEL_HZ
 
     data class State(
         val recording: Boolean = false,
@@ -102,6 +108,10 @@ object Recorder {
         if (running) return
         appCtx = ctx.applicationContext
         Api.load(ctx)
+        // Aufzeichnungsmodus aus den gecachten Einstellungen (pro Konto), offline-tauglich.
+        recordMode = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .getString("record_mode", "full") ?: "full"
+        accelHzActual = if (recordMode == "lite") ACCEL_HZ_LITE else ACCEL_HZ
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
         chunkIndex = 0
@@ -113,7 +123,7 @@ object Recorder {
             .put("started_at", nowIso())
             .put("sport", "pumpfoil")
             .put("gps_hz", 1)
-            .put("accel_hz", ACCEL_HZ)
+            .put("accel_hz", accelHzActual)
             .put("accel_scale", ACCEL_SCALE.toInt()))
         running = true
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0

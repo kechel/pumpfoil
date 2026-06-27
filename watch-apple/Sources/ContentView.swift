@@ -309,6 +309,8 @@ struct RecordView: View {
                            repeatMode: c.alarmRepeat ?? "once")
         foils = c.foils ?? []
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
+        // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
+        UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
     }
 
     // Flanke löst sofort aus; im Modus "continuous" alle ~3 Ticks erneut, solange drüber/drunter.

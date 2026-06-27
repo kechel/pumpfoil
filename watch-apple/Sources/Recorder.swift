@@ -9,7 +9,11 @@ import HealthKit
 @MainActor
 final class Recorder: NSObject, ObservableObject {
     static let accelHz = 25
+    static let accelHzLite = 10   // sparsamer Modus für speicherarme Uhren
     static let accelScale: Double = 2048   // int16-Wert 2048 == 1 g
+    // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = 10 Hz | "gps" = nur GPS.
+    private var recordMode = "full"
+    private var accelHzActual = 25
 
     @Published var isRecording = false
     @Published var starting = false   // Startphase — Start-Button ausblenden
@@ -87,12 +91,15 @@ final class Recorder: NSObject, ObservableObject {
         chunkIndex = 0
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
         prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
+        // Aufzeichnungsmodus aus der (gecachten) Config — pro Konto, offline-tauglich.
+        recordMode = UserDefaults.standard.string(forKey: "recordMode") ?? "full"
+        accelHzActual = recordMode == "lite" ? Self.accelHzLite : Self.accelHz
         LocalStore.writeMeta(uuid, [
             "session_uuid": uuid,
             "started_at": startedAt.iso8601Z,
             "sport": "pumpfoil",
             "gps_hz": 1,
-            "accel_hz": Self.accelHz,
+            "accel_hz": accelHzActual,
             "accel_scale": Int(Self.accelScale),
         ])
         startWorkout()
@@ -217,8 +224,9 @@ final class Recorder: NSObject, ObservableObject {
         // die HKWorkoutSession die App + Standortupdates am Leben.
         location.startUpdatingLocation()
 
-        if motion.isAccelerometerAvailable {
-            motion.accelerometerUpdateInterval = 1.0 / Double(Self.accelHz)
+        // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
+        if recordMode != "gps", motion.isAccelerometerAvailable {
+            motion.accelerometerUpdateInterval = 1.0 / Double(accelHzActual)
             motion.startAccelerometerUpdates(to: motionQueue) { [weak self] data, _ in
                 guard let self, let a = data?.acceleration else { return }
                 self.lock.lock()

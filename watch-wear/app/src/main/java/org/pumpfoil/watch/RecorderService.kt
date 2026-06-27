@@ -47,8 +47,11 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun registerSensors() {
-        sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
-            sensors.registerListener(this, it, 1_000_000 / Recorder.ACCEL_HZ) // µs period → 25 Hz
+        // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
+        if (Recorder.recordMode != "gps") {
+            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
+                sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual) // µs period
+            }
         }
         sensors.getDefaultSensor(Sensor.TYPE_HEART_RATE)?.let {
             sensors.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
