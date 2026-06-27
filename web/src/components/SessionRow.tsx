@@ -68,6 +68,8 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
       onPointerCancel={cancel}
       onPointerMove={onPointerMove}
       onClickCapture={onClickCapture}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{ WebkitTouchCallout: "none" }}
       className={`relative flex select-none items-stretch overflow-hidden rounded-xl bg-slate-900 transition-colors hover:bg-slate-800 ${inCompare ? "ring-2 ring-brand-500" : ""}`}
     >
       {inCompare && (
@@ -80,7 +82,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
           <Avatar name={s.name} url={s.avatar_url} size={48} fill rounded="rounded-none" />
         </div>
       )}
-      <Link to={`/sessions/${s.session_id}`} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1">
+      <Link to={`/sessions/${s.session_id}`} draggable={false} style={{ WebkitTouchCallout: "none" }} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1">
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-slate-100">
             {showName && s.name && <span className="text-brand-300">{s.name}</span>}
