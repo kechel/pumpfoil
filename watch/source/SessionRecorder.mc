@@ -498,6 +498,15 @@ class SessionRecorder {
         }
     }
 
+    // Lokalen App-Storage leeren (alle gepufferten Aufnahmen + gecachte Config).
+    // Pairing (deviceToken) liegt in Application.Properties und bleibt erhalten; die
+    // Config wird beim nächsten Sync neu geladen. Entsperrt einen vollen Object-Store.
+    function clearLocalStorage() {
+        try { Storage.clearValues(); } catch (e) {}
+        storageFull = false;
+        reloadConfig();
+    }
+
     hidden function _registerSession() {
         var arr = Storage.getValue("sessions");
         if (!(arr instanceof Lang.Array)) { arr = []; }
