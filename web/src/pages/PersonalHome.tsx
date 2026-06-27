@@ -109,6 +109,9 @@ export default function PersonalHome() {
                       ? <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
                       : <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />}
                     <span className="font-medium text-slate-100">{r.label}</span>
+                    <span className="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">
+                      {t(r.scope.startsWith("spot:") ? "chat.kindSpot" : "chat.kindSession")}
+                    </span>
                     {r.push && <BellIcon className="h-3.5 w-3.5 text-brand-400" />}
                   </span>
                   <span className="block truncate text-xs text-slate-400">{r.last_text}</span>
