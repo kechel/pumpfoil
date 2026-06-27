@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
@@ -55,6 +55,27 @@ export function SessionCard({
     e.preventDefault(); e.stopPropagation();
     toggleCompare({ sessionId, runIdx: null });
   };
+  // Long-Press (gedrückt halten) markiert die ganze Karte für den Vergleich.
+  const timer = useRef<number | null>(null);
+  const longPressed = useRef(false);
+  const startPt = useRef<{ x: number; y: number } | null>(null);
+  const cancelHold = () => { if (timer.current != null) { clearTimeout(timer.current); timer.current = null; } };
+  const onPointerDown = (e: React.PointerEvent) => {
+    longPressed.current = false;
+    startPt.current = { x: e.clientX, y: e.clientY };
+    cancelHold();
+    timer.current = window.setTimeout(() => {
+      longPressed.current = true;
+      toggleCompare({ sessionId, runIdx: null });
+      if (navigator.vibrate) { navigator.vibrate(30); }
+    }, 450);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (startPt.current && (Math.abs(e.clientX - startPt.current.x) > 10 || Math.abs(e.clientY - startPt.current.y) > 10)) cancelHold();
+  };
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (longPressed.current) { e.preventDefault(); e.stopPropagation(); longPressed.current = false; }
+  };
   const dateStr = startedAt
     ? new Date(startedAt).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
     : "";
@@ -70,8 +91,17 @@ export function SessionCard({
   const trackEl = trackPreview ? <TrackPreview data={trackPreview} className="h-12 w-16 text-brand-400" /> : null;
 
   return (
-    <Link to={`/sessions/${sessionId}`} className="block">
-      <Card className="flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900">
+    <Link
+      to={`/sessions/${sessionId}`}
+      className="block select-none"
+      onPointerDown={onPointerDown}
+      onPointerUp={cancelHold}
+      onPointerLeave={cancelHold}
+      onPointerCancel={cancelHold}
+      onPointerMove={onPointerMove}
+      onClickCapture={onClickCapture}
+    >
+      <Card className={`flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900 ${inCompare ? "ring-2 ring-brand-500" : ""}`}>
         <div className="flex min-w-0 gap-3">
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />

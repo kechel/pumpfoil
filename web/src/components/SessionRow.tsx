@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { HeartIcon, LocationIcon } from "./Icons";
+import { HeartIcon, LocationIcon, CompareIcon } from "./Icons";
+import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
 export function fmtDay(iso: string | null): string {
@@ -34,8 +35,46 @@ function LikeButton({ id, liked0, count0 }: { id: number; liked0: boolean; count
 
 export function SessionRow({ s, showName = true, showSpot = true }: { s: CommunitySession; showName?: boolean; showSpot?: boolean }) {
   const t = useT();
+  // Long-Press (gedrückt halten) markiert die Session für den Vergleich — wie der
+  // Vergleichs-Button in der Detailansicht, nur direkt aus der Liste.
+  const refs = useCompare();
+  const inCompare = refs.some((r) => refKey(r) === refKey({ sessionId: s.session_id, runIdx: null }));
+  const timer = useRef<number | null>(null);
+  const longPressed = useRef(false);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const cancel = () => { if (timer.current != null) { clearTimeout(timer.current); timer.current = null; } };
+  const onPointerDown = (e: React.PointerEvent) => {
+    longPressed.current = false;
+    start.current = { x: e.clientX, y: e.clientY };
+    cancel();
+    timer.current = window.setTimeout(() => {
+      longPressed.current = true;
+      toggleCompare({ sessionId: s.session_id, runIdx: null });
+      if (navigator.vibrate) { navigator.vibrate(30); }
+    }, 450);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (start.current && (Math.abs(e.clientX - start.current.x) > 10 || Math.abs(e.clientY - start.current.y) > 10)) cancel();
+  };
+  // Long-Press hat schon getoggelt -> den darauffolgenden Klick (Navigation) schlucken.
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (longPressed.current) { e.preventDefault(); e.stopPropagation(); longPressed.current = false; }
+  };
   return (
-    <div className="flex items-stretch overflow-hidden rounded-xl bg-slate-900 transition-colors hover:bg-slate-800">
+    <div
+      onPointerDown={onPointerDown}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onPointerMove={onPointerMove}
+      onClickCapture={onClickCapture}
+      className={`relative flex select-none items-stretch overflow-hidden rounded-xl bg-slate-900 transition-colors hover:bg-slate-800 ${inCompare ? "ring-2 ring-brand-500" : ""}`}
+    >
+      {inCompare && (
+        <span className="absolute right-1 top-1 z-10 rounded-full bg-brand-500 p-0.5 text-slate-950" title={t("compare.inList")}>
+          <CompareIcon className="h-3.5 w-3.5" />
+        </span>
+      )}
       {showName && (
         <div className="w-14 shrink-0 self-stretch">
           <Avatar name={s.name} url={s.avatar_url} size={48} fill rounded="rounded-none" />
