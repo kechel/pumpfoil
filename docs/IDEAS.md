@@ -93,7 +93,8 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   `/alle-sessions` leitet weiter, `SessionScopeTabs`/`AllSessions` entfernt.
 - **Öffentliche Startseite** — *teilweise erledigt:* Feature-Kacheln für **Foil-DB/Stats, On-Foil-Alarm,
   Push, PWA/Offline** ergänzt; Wording generisch. ✅ **Community-Chat + Spots-Karte** als Feature-Kacheln
-  ergänzt (land.f11/f12). **Optional:** Slider-Screenshots der neuen Features.
+  ergänzt (land.f11/f12). ✅ **Screenshot-Slider** unter den Uhren (10 App-Screenshots `mobile-1..10.webp`,
+  `Landing.tsx`).
 - ✅ **Chatraum per Push abonnieren.** *umgesetzt:* `/chat/subscribe` (Opt-in je Raum), Glocken-Toggle in
   der Chat-Leiste; neue Nachrichten lösen Web-Push an Abonnenten aus (Notify-Typ „chat", respektiert
   globale notify_prefs). ✅ „chat" jetzt auch als eigener Schalter in den globalen Push-Einstellungen.
