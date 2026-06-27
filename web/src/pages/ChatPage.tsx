@@ -21,6 +21,7 @@ export default function ChatPage() {
   const [scope, setScope] = useState<string | null>(sp.get("scope"));
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [active, setActive] = useState<ActiveRoom[]>([]);
+  const [sessionLabel, setSessionLabel] = useState("");
 
   useEffect(() => {
     if (sp.get("scope")) { setScope(sp.get("scope")); return; }
@@ -35,9 +36,20 @@ export default function ChatPage() {
     api.chatActive(48, 3).then(setActive).catch(() => {});
   }, [scope]);
 
+  // Für Session-Chats den Spotnamen (+ Datum) als Titel laden statt „#4".
+  useEffect(() => {
+    if (!scope?.startsWith("session:")) { setSessionLabel(""); return; }
+    const id = Number(scope.slice(8));
+    setSessionLabel(`${t("row.session")} #${id}`);
+    api.session(id).then((s) => {
+      const date = s.started_at ? new Date(s.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" }) : "";
+      setSessionLabel(s.place_name ? `${s.place_name}${date ? ` · ${date}` : ""}` : (date || `${t("row.session")} #${id}`));
+    }).catch(() => {});
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const label = scope?.startsWith("spot:")
     ? scope.slice(5)
-    : scope?.startsWith("session:") ? `${t("row.session")} #${scope.slice(8)}` : "";
+    : scope?.startsWith("session:") ? sessionLabel : "";
   const isSpot = scope?.startsWith("spot:");
   // In den Listen den aktuell offenen Raum nicht nochmal zeigen.
   const myRooms = rooms.filter((r) => r.scope !== scope);

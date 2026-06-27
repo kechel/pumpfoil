@@ -41,6 +41,28 @@ def _scope_label(scope: str) -> str:
     return rest if kind == "spot" else f"Session #{rest}"
 
 
+def _scope_label_db(db: Session, scope: str) -> str:
+    """Sprechendes Label für einen Chatraum:
+    - spot:<name>     -> Spotname
+    - session:<id>    -> Spotname der Session (+ Datum); sonst Datum; sonst „Session #id".
+    Braucht die DB, um die Session-Session-Diskussion am Spot statt nur „#4" zu zeigen."""
+    kind, _, rest = scope.partition(":")
+    if kind == "spot":
+        return rest
+    try:
+        sid = int(rest)
+    except ValueError:
+        return _scope_label(scope)
+    s = db.get(models.Session, sid)
+    if s is not None:
+        date = s.started_at.strftime("%d.%m.%y") if s.started_at else None
+        if s.place_name:
+            return f"{s.place_name}{f' · {date}' if date else ''}"
+        if date:
+            return date
+    return f"Session #{rest}"
+
+
 def _scope_url(scope: str) -> str:
     # Push-Deeplink öffnet die eigenständige Chat-Ansicht (Fullscreen).
     from urllib.parse import quote
@@ -183,7 +205,7 @@ def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User)
     )
     if not subs:
         return
-    title = f"💬 {_scope_label(m.scope)}"
+    title = f"💬 {_scope_label_db(db, m.scope)}"
     body = f"{author.display_name or 'Jemand'}: {m.text[:120]}"
     url = _scope_url(m.scope)
     for st in subs:
@@ -376,7 +398,7 @@ def my_rooms(
         ) or 0
         out.append({
             "scope": st.scope,
-            "label": _scope_label(st.scope),
+            "label": _scope_label_db(db, st.scope),
             "url": _scope_url(st.scope),
             "push": st.push,
             "unread": int(unread),
@@ -419,7 +441,7 @@ def active_rooms(
             .order_by(models.ChatMessage.id.desc()).first()
         )
         out.append({
-            "scope": scope, "label": _scope_label(scope), "url": _scope_url(scope),
+            "scope": scope, "label": _scope_label_db(db, scope), "url": _scope_url(scope),
             "messages": int(n),
             "last_text": last.text[:120] if last else "",
             "last_at": last.created_at.isoformat() if last and last.created_at else None,
