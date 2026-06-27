@@ -289,9 +289,11 @@ def spot_weather_endpoint(
         hit = _wx_cache.get(spot)
         if hit and now - hit[0] < _WX_TTL:
             return hit[1]
+    # Koordinaten aus ALLEN Sessions am Spot (Ort ist nicht community-sensitiv) —
+    # auch GPS-only/eigene zählen, damit das Widget überall greift.
     row = (
-        _community(db.query(func.avg(S.place_lat), func.avg(S.place_lon)), user.id)
-        .filter(S.place_name == spot, S.place_lat.isnot(None)).first()
+        db.query(func.avg(S.place_lat), func.avg(S.place_lon))
+        .filter(S.place_name == spot, S.place_lat.isnot(None), S.deleted.isnot(True)).first()
     )
     if not row or row[0] is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
