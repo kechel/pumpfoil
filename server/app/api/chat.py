@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..db import get_db
 from ..push import send_push, wants
+from ..ratelimit import enforce_user_tiers
 from .deps import current_user
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -19,6 +20,18 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 _SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120})$")
 DUP_WINDOW_S = 120          # gleiches Posting innerhalb 2 min = Duplikat
 AUTOHIDE_REPORTS = 3        # ab so vielen Meldungen automatisch ausblenden
+
+# --- Anti-Spam (Flood-Schutz für eingeloggte Nutzer) ---------------------------
+# Per-User-Postlimit (Stufen: max_hits, window_s). Frische Konten strenger.
+NEW_ACCOUNT_AGE_S = 600                       # Konto jünger als 10 min = "neu"
+RATE_TIERS = [(5, 10), (30, 300)]             # etablierte Nutzer
+RATE_TIERS_NEW = [(2, 10), (8, 300)]          # frische Konten
+_URL_RE = re.compile(r"https?://|www\.", re.I)  # Link-Drossel für neue Konten
+
+
+def _norm(text: str) -> str:
+    """Normalisiert für Duplikatserkennung: Kleinschreibung + Whitespace kollabiert."""
+    return " ".join((text or "").lower().split())
 
 
 def _scope_label(scope: str) -> str:
@@ -104,16 +117,41 @@ def post_message(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leere Nachricht")
     if len(text) > 2000:
         text = text[:2000]
-    # Duplikatserkennung: gleicher Text desselben Nutzers im selben Raum kürzlich.
-    since = datetime.now(timezone.utc) - timedelta(seconds=DUP_WINDOW_S)
-    dup = (
+
+    now = datetime.now(timezone.utc)
+    age_s = (now - user.created_at).total_seconds() if user.created_at else 1e9
+    is_new = age_s < NEW_ACCOUNT_AGE_S
+
+    # Anti-Spam (Admins ausgenommen — sie moderieren).
+    if not user.is_admin:
+        # Layer 1+2: Per-User-Flood-Limit, frische Konten strenger.
+        enforce_user_tiers(user.id, RATE_TIERS_NEW if is_new else RATE_TIERS, scope="chat")
+        # Layer 3: Link-Drossel — neue Konten dürfen noch keine Links posten.
+        if is_new and _URL_RE.search(text):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Neue Konten können noch keine Links posten — bitte etwas später erneut.",
+            )
+
+    # Layer 4: Duplikatserkennung — normalisiert, raum-übergreifend, kürzlich.
+    since = now - timedelta(seconds=DUP_WINDOW_S)
+    norm = _norm(text)
+    recent = (
         db.query(models.ChatMessage)
-        .filter(models.ChatMessage.scope == scope, models.ChatMessage.user_id == user.id,
-                models.ChatMessage.text == text, models.ChatMessage.created_at >= since)
-        .first()
+        .filter(models.ChatMessage.user_id == user.id, models.ChatMessage.created_at >= since)
+        .order_by(models.ChatMessage.id.desc()).limit(20).all()
     )
-    if dup:
-        return _msg_out(dup, user.display_name, user.avatar_url, user.id)
+    for r in recent:
+        if _norm(r.text) != norm:
+            continue
+        if r.scope == scope:
+            # Gleicher Raum: idempotent zurückgeben (Doppel-Tap/Retry).
+            return _msg_out(r, user.display_name, user.avatar_url, user.id)
+        # Gleicher Text in einem ANDEREN Raum -> Cross-Room-Spam blocken.
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Bitte denselben Text nicht in mehrere Räume posten.",
+        )
     m = models.ChatMessage(scope=scope, user_id=user.id, text=text)
     db.add(m)
     db.flush()
