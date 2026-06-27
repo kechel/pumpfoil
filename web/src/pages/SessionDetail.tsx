@@ -461,6 +461,21 @@ export default function SessionDetail() {
     // Nur die Foiling-Läufe zeichnen — Nicht-Foiling wird komplett ausgeblendet.
     const MAX_DRAW_GAP_M = 30;
     const segs = session.analysis.segments ?? [];
+    // Ohne erkannte Läufe (z. B. grobes GPS aus FIT-Import): die ganze GPS-Spur als
+    // dezente Grundlinie zeichnen, damit die Karte nicht leer bleibt. Großzügige
+    // Lückenschwelle, damit auch grobe Trackpoints verbunden werden.
+    if (segs.length === 0) {
+      let run: [number, number][] = [];
+      const flushRun = () => {
+        if (run.length > 1) L.polyline(run, { color: "#64748b", weight: 3, opacity: 0.75 }).addTo(lg);
+        run = [];
+      };
+      for (let i = 0; i < coords.length; i++) {
+        if (i > 0 && map.distance(coords[i - 1], coords[i]) > 200) flushRun();
+        run.push(coords[i]);
+      }
+      flushRun();
+    }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
