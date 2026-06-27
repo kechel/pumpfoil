@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
@@ -10,7 +10,12 @@ import { useT } from "../i18n";
 
 export default function Account() {
   const t = useT();
-  const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">("guide");
+  const [sp] = useSearchParams();
+  const TABS = ["guide", "connect", "views", "alarm", "app", "compat"] as const;
+  const paramTab = sp.get("tab");
+  const initialTab = (TABS as readonly string[]).includes(paramTab ?? "") ? (paramTab as typeof TABS[number]) : "guide";
+  const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">(initialTab);
+  const dlQuery = sp.get("dl") ?? "";
 
   return (
     <div className="w-full">
@@ -41,7 +46,7 @@ export default function Account() {
 
       {tab === "views" && <ViewsEditor />}
       {tab === "alarm" && <AlarmEditor />}
-      {tab === "app" && <AppDownloads />}
+      {tab === "app" && <AppDownloads initialQuery={dlQuery} />}
       {tab === "compat" && (
         <Card className="mt-5 p-5">
           <h3 className="mb-1 font-semibold">{t("watches.title")}</h3>
@@ -160,10 +165,10 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-function AppDownloads() {
+function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
   const t = useT();
   const [devices, setDevices] = useState<import("../lib/api").AppDevice[] | null>(null);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
