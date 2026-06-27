@@ -3,13 +3,10 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
-- **Uhren auf die Benutzersprache einstellen.** Die Recorder-Apps (Garmin/Wear/watchOS) haben aktuell
-  hartcodierte deutsche Strings. Sie sollen die **im Profil gewählte Sprache** des Nutzers verwenden —
-  **NICHT** die Geräte-Locale, da wir nur genau unsere 7 Locales erzeugen (sonst fehlende Übersetzungen).
-  Weg: das `language`-Feld aus den Settings über `/api/devices/config` an die Uhr mitliefern und cachen
-  (offline), pro App ein kleines String-Lookup je Locale (Start-Screen, Menüs, Alarm-Picker, Status-/
-  Erfolgstexte). Fallback auf eine unserer Sprachen (de/en), wenn `language` leer/unbekannt. Betrifft alle
-  drei Recorder + die ebenfalls DE-hartcodierten Phone-Apps (s. [[../PARITY-AUDIT]] „i18n fehlt").
+- ✅ **Uhren auf die Benutzersprache einstellen** — *umgesetzt 2026-06-27.* Alle drei Recorder
+  (Garmin `Strings.mc`, Wear `I18n.kt`, watchOS `WLoc.swift`) + Phone-Apps (Android/iOS) sowie das
+  komplette Web nutzen jetzt die **Profil-Sprache** (7 Locales), via `language` aus `/api/devices/config`
+  (lokal gecacht, Fallback de). Reine Einheiten universell. fr/it/es best-effort (Muttersprachler-Review offen).
 - **Board-/Foil-IMU → echte Pump-Technik-Analytik (R&D, Daten werden gesammelt).** Hintergrund:
   Intra-Pump-Geschwindigkeit ist aus dem 1-Hz-Wrist-GPS **nicht** rekonstruierbar (Phase-Folding-
   Experiment `server/scripts/accel_speed_experiment.py` besteht den Permutations-Null-Test nicht;
@@ -125,8 +122,8 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 | ✅ **Foil je Nutzer/Session** — *umgesetzt: „Meine Foils" (mehrere + Default ★), Foil-Select je Session* | ★★★ | M | **Noch offen: je Lauf** (Labeling) — Segmente liegen in segments_json, braucht eigene Ablage. |
 | ✅ **Community-Stats je Foil** — *umgesetzt: /foil-stats (Sessions/Foiler/Top-Speed/weitester Lauf/Ø Pump), von Community verlinkt* | ★★ | M | |
 | ✅ **Gewicht im Profil** — *umgesetzt: Settings.weight_kg (optional, privat)* | ★★ | S | Input für Leistungsberechnung. |
-| **Leistungsberechnung (Watt)** aus Foil-Daten + Geschwindigkeit (+ Gewicht) | ★★★ | L | braucht Foil-DB + Gewicht. **Engine existiert schon** im Foil-Calculator (s. u.: Lift/Drag, Reynolds, CL/CD, Mast-Drag, Power, Pump-Inertia-Power). → Logik aus dem Calculator extrahieren und je Lauf mit echtem Speed/Gewicht füttern. |
-| ✅ **Foil-Calculator eingebunden** — *self-contained `/foilcalculator.html` + Profil-Link* (Physik-Modul-Extraktion bleibt offen für Watt) | ★★ | M | Referenz liegt im Repo: [`reference/foilcalculator.html`](reference/foilcalculator.html) (self-contained, ~4170 Zeilen, eigene i18n, `addFoil`/Foil-Liste, Funktionen u. a. `calculateFoilPerformance`, `calculateTotalDrag`, `computeFoilPowerAtSpeed`, `calculateOptimalSpeed`, `calculateReynolds`). Teilt sich Daten/Logik mit Foil-DB + Leistungsberechnung — sinnvoll, die Physik einmal als Modul rauszuziehen. |
+| ✅ **Leistungsberechnung (Watt)** — *umgesetzt: FoilPower-Karte in der Session-Detailansicht (Watt bei Ø-/Top-Speed, Gewicht aus Profil, reale Pump-Hz); Physik als verifiziertes Modul.* | ★★★ | L | **Noch offen: je *Lauf*** (per-Run-Watt, braucht Lauf-Foil/Labeling-Ablage). |
+| ✅ **Foil-Calculator eingebunden** — *vollständig: native `/foil-rechner`-Seite + Physik-Modul (verifiziert) + Watt in Detailansichten; statische HTML entfernt.* | ★★ | M | Referenz liegt im Repo: [`reference/foilcalculator.html`](reference/foilcalculator.html) (self-contained, ~4170 Zeilen, eigene i18n, `addFoil`/Foil-Liste, Funktionen u. a. `calculateFoilPerformance`, `calculateTotalDrag`, `computeFoilPowerAtSpeed`, `calculateOptimalSpeed`, `calculateReynolds`). Teilt sich Daten/Logik mit Foil-DB + Leistungsberechnung — sinnvoll, die Physik einmal als Modul rauszuziehen. |
 
 ## 2 · Community & Social
 
@@ -134,7 +131,7 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 |------|:------:|:------:|--------------------------|
 | **„Wer foilt jetzt gerade?"** – laufende Sessions live | ★★★ | L | braucht **Live-Upload während der Session** (Teilbasis da: `/ingest/.../analyze`, `status=recording`). Watch müsste periodisch hochladen + „live"-Flag; Privacy-Opt-in! |
 | **Session-Diskussion** (Kommentare unter jeder Session) | ★★★ | M | Eher Forum/Diskussion als Chat. **Nur Text.** Nutzt dieselbe Chat-Engine wie der Spot-Chat (gemeinsame Komponente/Tabelle, scope=session). Moderation/Meldefunktion mitdenken. |
-| **Spot-Chat** (ein Raum je Spot) | ★★ | L | **Eigener Bereich** (Spots-Tab). Default = **Hauptspot** des Nutzers (= Spot der letzten Session und/oder im Profil als **Homespot** konfigurierbar). Nur Text. Realtime (WebSocket/SSE) + Moderation/Spam-Schutz. |
+| ✅ **Spot-Chat** (ein Raum je Spot) — *umgesetzt: Chat-Engine mit `scope`, Spot-Räume, Homespot-Default, Moderation/Anti-Spam, Push-Abo.* | ★★ | L | Realtime per Polling (kein WebSocket nötig). |
 | ✅ **Homespot im Profil** — *umgesetzt: Settings.homespot, Auswahl aus Spots, „" = letzte Session* | ★★ | S | speist später Spot-Chat-Default + Sessions-Merge. |
 | **Kommentar-Auto-Übersetzung** in die Sprache des Lesers (auf Knopfdruck) | ★★ | M | günstiges Übersetzungsmodell; **Übersetzungen cachen** (pro Ziel-Sprache) und direkt mitladen, wenn vorhanden. Hängt an den Texten der Chat-Engine. |
 
