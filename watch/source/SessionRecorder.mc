@@ -808,7 +808,16 @@ class SessionRecorder {
     function _flushAccel(force) {
         if (_accelCount == 0) { return; }
         if (!force && _accelCount < ACCEL_CHUNK_SAMPLES) { return; }
-        if (!_store("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf)) { return; }
+        if (!_store("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf)) {
+            // Object-Store voll: diesen Chunk VERWERFEN statt den Puffer unbegrenzt wachsen
+            // zu lassen. Sonst hängt onAccel weiter dran -> RAM läuft voll (Crash-Gefahr auf
+            // speicherschwachen Uhren wie FR55) UND jeder weitere Flush scheitert dauerhaft.
+            // Die Roh-Accel steckt ohnehin im FIT (SensorLogging); klappt Storage später
+            // wieder frei (nach Sync), läuft die Aufnahme normal weiter.
+            _accelBuf = new [0]b;
+            _accelCount = 0;
+            return;
+        }
         _accelChunkIndex++;
         _accelBuf = new [0]b;
         _accelCount = 0;
@@ -818,7 +827,10 @@ class SessionRecorder {
     function _flushGps(force) {
         if (_gpsBuf.size() == 0) { return; }
         if (!force && _gpsBuf.size() < GPS_CHUNK_SAMPLES) { return; }
-        if (!_store("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf)) { return; }
+        if (!_store("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf)) {
+            _gpsBuf = [];   // Store voll: Chunk verwerfen (kein unbegrenztes Wachsen), s. _flushAccel
+            return;
+        }
         _gpsChunkIndex++;
         _gpsBuf = [];
         _saveState(false);
