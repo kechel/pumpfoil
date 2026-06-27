@@ -15,9 +15,15 @@ export function PwaStatus() {
     // manuelles Neuladen erscheint: stündlich + jedes Mal, wenn der Tab fokussiert wird.
     onRegisteredSW(_swUrl, r) {
       if (!r) { return; }
-      setInterval(() => { r.update(); }, 60 * 60 * 1000);
+      let last = Date.now();
+      setInterval(() => { last = Date.now(); r.update(); }, 60 * 60 * 1000);
+      // Bei Tab-Fokus nur prüfen, wenn länger nichts geprüft wurde (gedrosselt),
+      // sonst würde der wartende Service-Worker ständig neu erzeugt.
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") { r.update(); }
+        if (document.visibilityState === "visible" && Date.now() - last > 30 * 60 * 1000) {
+          last = Date.now();
+          r.update();
+        }
       });
     },
   });
@@ -45,7 +51,19 @@ export function PwaStatus() {
         <div className="fixed inset-x-0 bottom-0 z-[4000] flex items-center justify-center gap-3 border-t border-slate-700 bg-slate-900/95 px-4 py-2.5 text-sm text-slate-100 backdrop-blur">
           <span>{t("pwa.updateAvailable")}</span>
           <button
-            onClick={() => updateServiceWorker(true)}
+            onClick={() => {
+              // Normalfall: skip-waiting + Auto-Reload des vite-pwa-SW.
+              try { updateServiceWorker(true); } catch (_e) { /* ignore */ }
+              // Bulletproof-Fallback: kommt binnen 1,5 s kein Reload (z. B. weil die
+              // wartende SW-Referenz veraltet ist), SW abmelden und hart neu laden.
+              setTimeout(async () => {
+                try {
+                  const regs = (await navigator.serviceWorker?.getRegistrations()) ?? [];
+                  await Promise.all(regs.map((r) => r.unregister()));
+                } catch (_e) { /* ignore */ }
+                window.location.reload();
+              }, 1500);
+            }}
             className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400"
           >
             {t("pwa.update")}
