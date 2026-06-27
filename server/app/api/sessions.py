@@ -526,7 +526,10 @@ def get_session(
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     else:
         s = _readable(db, session_id)
-    # Gewässer-Name einmalig per OSM auflösen und cachen ("" = nachgeschlagen, nichts).
+    # Gewässer-Name per OSM auflösen und cachen. place_name is None = noch nicht (oder
+    # zuletzt fehlgeschlagen) -> erneut versuchen. "" = nachgeschlagen, kein Treffer (fix).
+    # Ein transienter Fehlschlag (lookup -> None) wird NICHT gecacht, sondern beim nächsten
+    # Aufruf erneut versucht -> self-healing statt dauerhaft „kein Spot".
     if s.place_name is None:
         import numpy as _np
 
@@ -536,10 +539,12 @@ def get_session(
         if gps:
             lat = float(_np.median([g[1] for g in gps]))
             lon = float(_np.median([g[2] for g in gps]))
-            s.place_name = lookup_water_name(lat, lon) or ""
-            s.place_lat = lat
-            s.place_lon = lon
-            db.commit()
+            name = lookup_water_name(lat, lon)
+            if name is not None:                 # Erfolg (Name oder definitiv leer)
+                s.place_name = name
+                s.place_lat = lat
+                s.place_lon = lon
+                db.commit()
     out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=s.user.display_name if s.user else None,

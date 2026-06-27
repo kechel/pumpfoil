@@ -45,7 +45,13 @@ def lookup_water_rings(lat: float, lon: float, timeout: float = 12.0) -> list | 
 
 
 def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | None:
-    """Name der Wasserfläche um (lat, lon) oder None. Sucht zunehmend weiter."""
+    """Name der Wasserfläche um (lat, lon). Tri-State, damit der Aufrufer einen
+    transienten Fehlschlag NICHT als Endergebnis cacht (sonst „kein Spot" für immer):
+      - str  : Gewässername gefunden.
+      - ""   : Abfrage lief, aber definitiv kein benanntes Gewässer in Reichweite.
+      - None : Abfrage fehlgeschlagen (Netz/Timeout/Parse) -> später erneut versuchen.
+    Sucht zunehmend weiter (60/200/600 m)."""
+    any_ok = False
     for radius in (60, 200, 600):
         q = (
             "[out:json][timeout:10];("
@@ -58,10 +64,11 @@ def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | Non
             req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 payload = json.loads(resp.read().decode())
-        except Exception:  # noqa: BLE001  (Netz/Timeout/Parse -> einfach kein Name)
-            return None
+        except Exception:  # noqa: BLE001  (diesen Radius als Fehlschlag werten, nächsten versuchen)
+            continue
+        any_ok = True
         for el in payload.get("elements", []):
             name = (el.get("tags") or {}).get("name")
             if name:
                 return name[:120]
-    return None
+    return "" if any_ok else None
