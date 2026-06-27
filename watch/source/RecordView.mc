@@ -150,6 +150,11 @@ class RecordView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching"), Graphics.TEXT_JUSTIFY_CENTER);
         }
+        // Object-Store voll (Aufnahme konnte nicht starten/sichern) -> klarer Hinweis statt Crash.
+        if (_rec.storageFull) {
+            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, Strings.s("err.storageFull"), Graphics.TEXT_JUSTIFY_CENTER);
+        }
         // Aktiver Alarm (vor dem Start per DOWN wählbar). Zeigt die getroffene Auswahl
         // (Standard-Foil, feste Werte oder „Aus"), damit man mit dem richtigen Alarm losfährt.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {

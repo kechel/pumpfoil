@@ -47,6 +47,7 @@ module Strings {
         "start.menu"     => ["MENU: Einstellungen", "MENU: Yystellige", "MENU: Einstellungen", "MENU: settings", "MENU : réglages", "MENU: impostazioni", "MENU: ajustes"],
         "alarm.prefix"   => ["Alarm: ", "Alarm: ", "Alarm: ", "Alarm: ", "Alarme : ", "Allarme: ", "Alarma: "],
         "alarm.off"      => ["aus", "us", "aus", "off", "off", "off", "off"],
+        "err.storageFull" => ["Speicher voll – App neu installieren", "Spycher voll – App neu installiere", "Speicher voll – App neu installieren", "Storage full – reinstall app", "Mémoire pleine – réinstaller l'app", "Memoria piena – reinstalla l'app", "Memoria llena – reinstala la app"],
         "saved.title"    => ["Gespeichert", "Gspycheret", "Gespeichert", "Saved", "Enregistré", "Salvato", "Guardado"],
         "saved.upload"   => ["Upload bei WLAN/Telefon", "Upload bi WLAN/Telefon", "Upload bei WLAN/Telefon", "Upload via Wi-Fi/phone", "Envoi via Wi-Fi/tél.", "Upload via Wi-Fi/telefono", "Subida por Wi-Fi/teléfono"],
         "saved.newRec"   => ["START = neue Aufnahme", "START = nöji Ufnahm", "START = neue Aufnahme", "START = new recording", "START = nouvel enreg.", "START = nuova registr.", "START = nueva grabación"],

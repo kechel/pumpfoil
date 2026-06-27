@@ -80,6 +80,7 @@ class SessionRecorder {
     var offFoilView = [Config.FIELD_CLOCK, Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION];
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
+    var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
 
     // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
     var pairCode = "";                // auf der Uhr angezeigter Code
@@ -397,6 +398,7 @@ class SessionRecorder {
     function start() {
         if (_recording) { return; }
         stopped = false;
+        storageFull = false;
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
@@ -409,6 +411,8 @@ class SessionRecorder {
         _syncTickCounter = 0;
         _registerSession();
         _saveState(false);
+        // Object-Store voll? -> gar nicht erst starten (kein Crash), UI zeigt Hinweis.
+        if (storageFull) { return; }
         // Lauferkennung zurücksetzen.
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
@@ -481,17 +485,30 @@ class SessionRecorder {
     }
 
     // --- Persistenter Multi-Session-Zustand (für robusten Sync) ---
+    // Storage-Schreibzugriff mit Schutz: ist der App-Object-Store voll, wirft setValue
+    // eine Exception -> wir fangen sie ab (kein „IQ!"-Crash), merken storageFull und melden
+    // es der UI. So gehen schlimmstenfalls die jüngsten Sekunden verloren statt der App.
+    hidden function _store(key, value) {
+        try {
+            Storage.setValue(key, value);
+            return true;
+        } catch (e) {
+            storageFull = true;
+            return false;
+        }
+    }
+
     hidden function _registerSession() {
         var arr = Storage.getValue("sessions");
         if (!(arr instanceof Lang.Array)) { arr = []; }
         if (arr.indexOf(_sessionUuid) < 0) {
             arr.add(_sessionUuid);
-            Storage.setValue("sessions", arr);
+            _store("sessions", arr);
         }
     }
 
     hidden function _saveState(completed) {
-        Storage.setValue("state_" + _sessionUuid, {
+        _store("state_" + _sessionUuid, {
             "uuid" => _sessionUuid,
             "started_at" => _startedAt.value(),
             "accel_chunks" => _accelChunkIndex,
@@ -748,7 +765,7 @@ class SessionRecorder {
     function _flushAccel(force) {
         if (_accelCount == 0) { return; }
         if (!force && _accelCount < ACCEL_CHUNK_SAMPLES) { return; }
-        Storage.setValue("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf);
+        if (!_store("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf)) { return; }
         _accelChunkIndex++;
         _accelBuf = new [0]b;
         _accelCount = 0;
@@ -758,14 +775,14 @@ class SessionRecorder {
     function _flushGps(force) {
         if (_gpsBuf.size() == 0) { return; }
         if (!force && _gpsBuf.size() < GPS_CHUNK_SAMPLES) { return; }
-        Storage.setValue("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf);
+        if (!_store("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf)) { return; }
         _gpsChunkIndex++;
         _gpsBuf = [];
         _saveState(false);
     }
 
     function _persistMeta() {
-        Storage.setValue("meta_" + _sessionUuid, {
+        _store("meta_" + _sessionUuid, {
             "session_uuid" => _sessionUuid,
             "started_at" => _startedAt.value(),
             "gps_hz" => 1,
