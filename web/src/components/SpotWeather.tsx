@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, SpotWeather as SpotWeatherData, SpotWeatherDay } from "../lib/api";
 import { Card } from "./ui";
+import { LocationIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // WMO-Wettercode -> Emoji (grobe Klassen, reicht für die Anzeige).
@@ -32,7 +33,7 @@ function WindArrow({ deg }: { deg: number | null | undefined }) {
 
 const kn = (v: number | null | undefined) => (v != null ? Math.round(v) : "–");
 
-export function SpotWeather({ spot }: { spot: string }) {
+export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot?: boolean }) {
   const t = useT();
   const [data, setData] = useState<SpotWeatherData | null>(null);
   const [done, setDone] = useState(false);
@@ -58,6 +59,11 @@ export function SpotWeather({ spot }: { spot: string }) {
 
   return (
     <Card className="mb-4 p-3">
+      {showSpot && (
+        <div className="mb-1 flex items-center gap-1.5 text-base font-semibold text-slate-100">
+          <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" /> {spot}
+        </div>
+      )}
       <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h3 className="text-sm font-semibold text-slate-200">{t("wx.title")}</h3>
         {cur && (

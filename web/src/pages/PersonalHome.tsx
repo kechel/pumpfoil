@@ -93,7 +93,7 @@ export default function PersonalHome() {
       )}
 
       {/* Wetter & Pegel für den eigenen Homespot */}
-      {homespot && <SpotWeather spot={homespot} />}
+      {homespot && <SpotWeather spot={homespot} showSpot />}
 
       {/* Meine Chats */}
       {rooms.length > 0 && (
