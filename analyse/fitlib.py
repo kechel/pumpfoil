@@ -43,3 +43,30 @@ def load_fit_gps(path):
         if ts is not None:
             out.append((_unix(ts), spd if spd is not None else 0.0))
     return out
+
+
+_SEMI = 180.0 / 2**31
+
+
+def load_fit_gps_samples(path):
+    """Für analyze_gps: (samples=[t_ms_rel,lat,lon,speed,hr,hacc], t0_abs_unix).
+    t_ms relativ zum ersten Record; lat/lon aus Semicircles."""
+    ff = fitparse.FitFile(path)
+    rows = []
+    for m in ff.get_messages("record"):
+        d = {f.name: f.value for f in m.fields}
+        ts = d.get("timestamp")
+        la = d.get("position_lat"); lo = d.get("position_long")
+        if ts is None or la is None or lo is None:
+            continue
+        spd = d.get("enhanced_speed", d.get("speed"))
+        hacc = d.get("gps_accuracy")
+        rows.append((_unix(ts), la * _SEMI, lo * _SEMI,
+                     float(spd) if spd is not None else None,
+                     d.get("heart_rate"), float(hacc) if hacc is not None else None))
+    if not rows:
+        return [], 0.0
+    rows.sort(key=lambda r: r[0])
+    t0 = rows[0][0]
+    samples = [[(r[0] - t0) * 1000.0, r[1], r[2], r[3], r[4], r[5]] for r in rows]
+    return samples, t0
