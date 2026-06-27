@@ -693,6 +693,12 @@ const en: Record<string, string> = {
   "phome.homespotChatSoon": "Spot chat coming",
 
   "compare.title": "Compare",
+  "compare.colorRider": "By rider",
+  "compare.colorTrack": "By track",
+  "compare.colorTrackHint": "Each marker in its legend colour",
+  "compare.runsTitle": "All individual runs ({count})",
+  "compare.colRider": "Rider",
+  "compare.colSession": "Session",
   "compare.add": "Add to compare",
   "compare.remove": "Remove from compare",
   "compare.inList": "In compare",

@@ -727,6 +727,12 @@ const de: Record<string, string> = {
   "phome.homespotChatSoon": "Spot-Chat folgt",
 
   "compare.title": "Vergleich",
+  "compare.colorRider": "Je Fahrer",
+  "compare.colorTrack": "Je Track",
+  "compare.colorTrackHint": "Jede Markierung in ihrer Legendenfarbe",
+  "compare.runsTitle": "Alle Einzelläufe ({count})",
+  "compare.colRider": "Fahrer",
+  "compare.colSession": "Session",
   "compare.add": "Zum Vergleich",
   "compare.remove": "Aus Vergleich entfernen",
   "compare.inList": "Im Vergleich",

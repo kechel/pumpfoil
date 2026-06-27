@@ -5,10 +5,13 @@ import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, CompareRef, refKey } from "../lib/compare";
+import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { useT } from "../i18n";
 
 // Farben zur Zuordnung Wert -> markiertes Element (Legende oben + Punkt je Wert).
 const COLORS = ["#2dd4bf", "#f59e0b", "#a78bfa", "#f472b6"];
+// Eigene, größere Palette für die Einfärbung je Fahrer.
+const RIDER_COLORS = ["#2dd4bf", "#f59e0b", "#a78bfa", "#f472b6", "#60a5fa", "#34d399", "#fbbf24", "#fb7185", "#22d3ee", "#c084fc"];
 
 function fmtMMSS(s: number) {
   const total = Math.round(s);
@@ -89,6 +92,8 @@ interface Item {
   session: SessionSummary | null;
   seg: any | null;
   color: string;
+  rider: string | null;
+  riderColor: string;
 }
 
 export default function Compare() {
@@ -123,11 +128,29 @@ export default function Compare() {
     }).finally(() => setLoading(false));
   }, [refs, sessions]);
 
+  // Farbe je Fahrer (gleicher Fahrer -> gleiche Farbe, auch über mehrere Sessions).
+  const riderColor = useMemo(() => {
+    const map = new Map<string, string>();
+    let n = 0;
+    for (const r of refs) {
+      const name = sessions[r.sessionId]?.owner_name ?? "?";
+      if (!map.has(name)) map.set(name, RIDER_COLORS[n++ % RIDER_COLORS.length]);
+    }
+    return map;
+  }, [refs, sessions]);
+
   const items: Item[] = useMemo(() => refs.map((r, i) => {
     const session = sessions[r.sessionId] ?? null;
     const seg = r.runIdx != null ? (session?.analysis?.segments?.[r.runIdx] ?? null) : null;
-    return { ref: r, session, seg, color: COLORS[i % COLORS.length] };
-  }), [refs, sessions]);
+    const rider = session?.owner_name ?? null;
+    return { ref: r, session, seg, color: COLORS[i % COLORS.length], rider, riderColor: riderColor.get(rider ?? "?") ?? COLORS[i % COLORS.length] };
+  }), [refs, sessions, riderColor]);
+
+  // Items mit geladener Session + Track für die Karte.
+  const mapItems: CompareMapItem[] = useMemo(() =>
+    items.filter((it) => it.session?.analysis?.track_geojson)
+      .map((it) => ({ key: refKey(it.ref), session: it.session!, runIdx: it.ref.runIdx, color: it.color, riderColor: it.riderColor, rider: it.rider })),
+    [items]);
 
   const itemStats = useMemo(() => items.map((it) => statsFor(it, win, weight)), [items, win, weight]);
 
@@ -194,6 +217,7 @@ export default function Compare() {
               <div key={refKey(it.ref)} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1.5">
                 <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
                 <Link to={`/sessions/${it.ref.sessionId}`} className="text-sm text-slate-200 hover:text-brand-300">
+                  {it.rider && <span className="font-semibold text-slate-100">{it.rider} · </span>}
                   <span>{itemLabel(it)}</span>
                   {foilLabel(it) && <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-slate-400"><FoilIcon className="h-3.5 w-3.5" />{foilLabel(it)}</span>}
                   {it.session === null && !loading && <span className="ml-1 text-xs text-slate-500">{t("compare.gone")}</span>}
@@ -216,6 +240,9 @@ export default function Compare() {
             ))}
             {loading && <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-700 border-t-brand-400" />}
           </div>
+
+          {/* Gemeinsame Karte aller verglichenen Sessions/Läufe. */}
+          {mapItems.length > 0 && <CompareMap items={mapItems} win={win} weight={weight} />}
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {metrics.map((mt) => {
@@ -248,8 +275,101 @@ export default function Compare() {
               );
             })}
           </div>
+
+          {/* Tabelle aller Einzelläufe aller verglichenen Sessions (mit Fahrer). */}
+          <AllRunsTable items={items} win={win} weight={weight} />
         </>
       )}
+    </div>
+  );
+}
+
+// Flache Tabelle: jeder Foiling-Lauf jeder verglichenen Session als eigene Zeile.
+function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | "5"; weight: number | null }) {
+  const t = useT();
+  const rows = useMemo(() => {
+    const out: { color: string; rider: string | null; date: string; runNo: number; sessionId: number; runIdx: number; seg: any; session: SessionSummary }[] = [];
+    for (const it of items) {
+      const session = it.session;
+      if (!session?.analysis?.segments?.length) continue;
+      const date = session.started_at ? new Date(session.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" }) : `#${it.ref.sessionId}`;
+      const idxs = it.ref.runIdx != null ? [it.ref.runIdx] : session.analysis.segments.map((_, i) => i);
+      for (const ri of idxs) {
+        const seg = session.analysis.segments[ri];
+        if (seg) out.push({ color: it.color, rider: it.rider, date, runNo: ri + 1, sessionId: it.ref.sessionId, runIdx: ri, seg, session });
+      }
+    }
+    return out;
+  }, [items]);
+
+  if (!rows.length) return null;
+  const hasPump = rows.some((r) => r.seg.avg_pump_hz != null && (r.seg.pumps ?? 0) > 0);
+  const showPower = rows.some((r) => powerOf(r.session, r.seg.avg_speed_mps, r.seg.avg_pump_hz, weight) != null);
+  const hz = (v: number | null | undefined) => (v != null ? v.toFixed(2) : "–");
+  const spd = (s: any, kind: "avg" | "max" | "min") => {
+    const v = s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps);
+    return v != null ? (v * 3.6).toFixed(1) : "–";
+  };
+  // Bestwerte über alle Zeilen für dezente Hervorhebung.
+  const bestDist = Math.max(...rows.map((r) => r.seg.distance_m ?? 0));
+
+  return (
+    <div className="mt-8">
+      <div className="mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-200">{t("compare.runsTitle", { count: rows.length })}</h3>
+        <span className="ml-auto text-xs text-slate-400">{t("sd.smoothToggle", { win })}</span>
+      </div>
+      <Card className="overflow-x-auto">
+        <table className="w-full min-w-[900px] text-sm">
+          <thead>
+            <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+              <th className="px-3 py-2 font-medium">{t("compare.colRider")}</th>
+              <th className="px-3 py-2 font-medium">{t("compare.colSession")}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.run")}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colAvg", { win })}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
+              {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
+              <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
+              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
+              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
+              <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const best = (r.seg.distance_m ?? 0) === bestDist && bestDist > 0;
+              const power = showPower ? powerOf(r.session, r.seg.avg_speed_mps, r.seg.avg_pump_hz, weight) : null;
+              return (
+                <tr key={`${r.sessionId}:${r.runIdx}`} className={`border-b border-slate-800/50 hover:bg-slate-800/50 ${best ? "bg-brand-500/5" : ""}`}>
+                  <td className="px-3 py-2">
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} />
+                      <span className="truncate text-slate-100">{r.rider ?? "—"}</span>
+                    </span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Link to={`/sessions/${r.sessionId}?run=${r.runIdx}`} className="text-slate-300 hover:text-brand-300">{r.date}</Link>
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">{r.runNo}</td>
+                  <td className="px-3 py-2 tabular-nums">{Math.round(r.seg.distance_m)} m</td>
+                  <td className="px-3 py-2 tabular-nums">{fmtMMSS(r.seg.duration_s)}</td>
+                  <td className="px-3 py-2 tabular-nums">{spd(r.seg, "avg")}</td>
+                  <td className="px-3 py-2 tabular-nums">{spd(r.seg, "max")}</td>
+                  <td className="px-3 py-2 tabular-nums">{spd(r.seg, "min")}</td>
+                  {showPower && <td className="px-3 py-2 tabular-nums text-brand-400">{power != null ? `${power} W` : "–"}</td>}
+                  <td className="px-3 py-2 tabular-nums">{r.seg.pumps ?? "–"}</td>
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{r.seg.pumps ? `${(r.seg.distance_m / r.seg.pumps).toFixed(1)} m` : "–"}</td>}
+                  {hasPump && <td className="px-3 py-2 tabular-nums">{hz(r.seg.avg_pump_hz)}</td>}
+                  <td className="px-3 py-2 tabular-nums">{r.seg.longest_glide_s != null ? `${r.seg.longest_glide_s.toFixed(1)} s` : "–"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
     </div>
   );
 }
