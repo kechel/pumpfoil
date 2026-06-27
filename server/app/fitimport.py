@@ -95,7 +95,12 @@ def accel_from_messages(accel_msgs: list[dict]) -> tuple[bytes, int]:
     if first and last:
         span_s = (last - first).total_seconds()
     hz = int(round(len(xs) / span_s)) if span_s > 0 else 25
-    return inter.tobytes(), max(hz, 1)
+    # Plausibilität: bei unzuverlässigen FIT-Zeitstempeln (z. B. SensorLogger, span~0)
+    # käme ein absurder Wert raus (z. B. 16675 Hz). Reale Accel-Raten ~10–50 Hz ->
+    # sonst auf 25 Hz (App-Default) zurückfallen, damit die Analyse korrekt alignt.
+    if hz < 5 or hz > 60:
+        hz = 25
+    return inter.tobytes(), hz
 
 
 def parse_fit_bytes(data: bytes) -> dict:
@@ -127,13 +132,16 @@ def parse_fit_bytes(data: bytes) -> dict:
     except Exception as exc:
         raise ValueError(f"Unreadable FIT file: {exc}") from exc
 
-    # Gemeinsame Zeitbasis: frühester Zeitstempel aus record + accel.
+    # Zeitbasis NUR aus den GPS-Record-Zeitstempeln. Accel-Zeitstempel (SensorLogger)
+    # sind teils unzuverlässig/konstant (z. B. alle == Aktivitäts-Start), würden t0
+    # verfälschen -> riesiger t_ms-Versatz + Accel/GPS-Fehlalignment. Nur wenn es gar
+    # keine Records gibt, als Notnagel die Accel-Zeit nehmen.
     times = [t for t in (_record_time(r) for r in records) if t]
-    a0 = _accel_msg_time(accel_msgs[0]) if accel_msgs else None
-    if a0:
-        times.append(a0)
     if not times:
-        return {"gps_samples": [], "accel_bytes": b"", "accel_hz": 0, "started_at": None, "sport": sport}
+        a0 = _accel_msg_time(accel_msgs[0]) if accel_msgs else None
+        if a0 is None:
+            return {"gps_samples": [], "accel_bytes": b"", "accel_hz": 0, "started_at": None, "sport": sport}
+        times = [a0]
     t0 = min(times)
 
     gps_samples = gps_from_records(records, t0)
