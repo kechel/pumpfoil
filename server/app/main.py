@@ -83,6 +83,11 @@ def app_devices() -> list[dict]:
     return _device_catalog()
 
 
+def _version_suffix(version: str | None) -> str:
+    """„-v1.0.33" für den Dateinamen, leer wenn keine Version bekannt."""
+    return f"-v{version}" if version else ""
+
+
 @app.get("/api/app/download")
 def download_app() -> FileResponse:
     """Default-Build (fēnix 7X Pro) — Rückwärtskompatibilität."""
@@ -91,8 +96,10 @@ def download_app() -> FileResponse:
         from fastapi import HTTPException
 
         raise HTTPException(404, "App-Build nicht verfügbar")
+    ver = next((d.get("version") for d in _device_catalog() if d["id"] == "fenix7xpro"), None)
     return FileResponse(
-        p, filename="PumpFoil-fenix7xpro.prg", media_type="application/octet-stream"
+        p, filename=f"PumpFoil-fenix7xpro{_version_suffix(ver)}.prg",
+        media_type="application/octet-stream"
     )
 
 
@@ -101,14 +108,15 @@ def download_app_device(device_id: str) -> FileResponse:
     """Gebaute .prg für ein bestimmtes Gerät (gegen Katalog validiert -> kein Path-Traversal)."""
     from fastapi import HTTPException
 
-    ids = {d["id"] for d in _device_catalog()}
-    if device_id not in ids:
+    by_id = {d["id"]: d for d in _device_catalog()}
+    if device_id not in by_id:
         raise HTTPException(404, "Unbekanntes Gerät")
     p = settings.app_builds_dir / f"foil-{device_id}.prg"
     if not p.exists():
         raise HTTPException(404, "App-Build nicht verfügbar")
     return FileResponse(
-        p, filename=f"PumpFoil-{device_id}.prg", media_type="application/octet-stream"
+        p, filename=f"PumpFoil-{device_id}{_version_suffix(by_id[device_id].get('version'))}.prg",
+        media_type="application/octet-stream"
     )
 
 
