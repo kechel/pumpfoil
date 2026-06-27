@@ -40,7 +40,7 @@ export default function Account() {
       {tab === "connect" && (
       <>
       <ClaimFromWatch />
-      <PairedDevices />
+      <PairedDevices onDownload={() => setTab("app")} />
       </>
       )}
 
@@ -98,7 +98,7 @@ function ClaimFromWatch() {
   );
 }
 
-function PairedDevices() {
+function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   const t = useT();
   const [devices, setDevices] = useState<import("../lib/api").PairedDevice[] | null>(null);
   const load = () => api.myDevices().then(setDevices).catch(() => setDevices([]));
@@ -133,9 +133,9 @@ function PairedDevices() {
                   {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
                 </div>
                 {d.update_available && !d.revoked_at && (
-                  <a href="#guide-garmin" className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
+                  <button onClick={() => onDownload?.()} className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
                     {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
-                  </a>
+                  </button>
                 )}
               </div>
               {!d.revoked_at && (
