@@ -209,11 +209,27 @@ struct RecordView: View {
                         Button(WLoc.t("rec.connect", lang)) { onWantPair() }
                             .font(.caption2).buttonStyle(.borderless)
                     }
-                    // Lokal wartende Sessions (+ manueller Upload, wenn möglich).
+                    // Lokal wartende Sessions: Fortschritt + Verbindungsstatus statt nur „X warten".
                     if rec.pendingCount > 0 {
-                        Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang))
-                            .font(.caption2).foregroundStyle(.secondary)
-                        if Api.deviceToken != nil {
+                        if rec.uploading {
+                            HStack(spacing: 6) {
+                                ProgressView().scaleEffect(0.6)
+                                Text(WLoc.t("rec.uploading", lang) + (rec.uploadTotal > 0 ? " \(rec.uploadSent)/\(rec.uploadTotal)" : ""))
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
+                        } else if rec.uploadError == "offline" || !Reachability.shared.isOnline {
+                            Text(WLoc.t("rec.waitConn", lang))
+                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+                            Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang) + " — " + WLoc.t("rec.willResume", lang))
+                                .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        } else if rec.uploadError == "server" {
+                            Text(WLoc.t("rec.serverErr", lang))
+                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+                        } else {
+                            Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang))
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                        if Api.deviceToken != nil && !rec.uploading {
                             Button(WLoc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
                                 .font(.caption2).buttonStyle(.borderless)
                         }
@@ -226,6 +242,15 @@ struct RecordView: View {
             startConfigLoad()
             rec.refreshPending()   // wie viele Sessions warten lokal?
             await rec.drain()      // gepairt + online -> jetzt hochladen
+        }
+        // Auto-Resume: solange lokal etwas wartet, alle 5 s erneut versuchen (drain prüft
+        // online/busy selbst). So lädt es von allein weiter, sobald die Verbindung zurück ist.
+        .task(id: rec.pendingCount > 0) {
+            while rec.pendingCount > 0 {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if Task.isCancelled { return }
+                await rec.drain()
+            }
         }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }

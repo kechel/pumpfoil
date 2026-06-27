@@ -36,6 +36,10 @@ enum WLoc {
         "rec.connect": r("Verbinden", "Verbinde", "Verbinden", "Connect", "Se connecter", "Connetti", "Conectar"),
         "rec.pendingUpload": r("warten auf Upload", "warte uf Upload", "warten auf Upload", "waiting to upload", "en attente d'envoi", "in attesa di upload", "esperando subida"),
         "rec.uploadNow": r("Jetzt hochladen", "Jetz ueglade", "Jetzt hochladen", "Upload now", "Envoyer maintenant", "Carica ora", "Subir ahora"),
+        "rec.waitConn": r("wartet auf Verbindung", "wartet uf Verbindig", "wartet auf Verbindung", "waiting for connection", "attente de connexion", "attesa connessione", "esperando conexión"),
+        "rec.willResume": r("wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"),
+        "rec.uploading": r("lädt hoch", "ladt ufe", "lädt hoch", "uploading", "envoi", "caricamento", "subiendo"),
+        "rec.serverErr": r("Server-Fehler – später erneut", "Server-Fähler – spöter nomal", "Server-Fehler – später erneut", "Server error – retry later", "Erreur serveur – réessai", "Errore server – riprova", "Error de servidor – reintento"),
 
         // Alarm-/Foil-Auswahl
         "foil.choose": r("Alarm wählen", "Alarm wähle", "Alarm wählen", "Choose alarm", "Choisir l'alarme", "Scegli allarme", "Elegir alarma"),

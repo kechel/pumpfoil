@@ -25,6 +25,9 @@ final class Recorder: NSObject, ObservableObject {
     @Published var maxHr: Int = 0
     @Published var status = ""
     @Published var uploading = false   // zeigt aktiven Chunk-Upload in der UI an
+    @Published var uploadSent = 0      // bestätigte Chunks der laufenden Session (Fortschritt)
+    @Published var uploadTotal = 0     // Gesamt-Chunks der laufenden Session
+    @Published var uploadError = ""    // letzte Fehlerursache: "" | "offline" | "server"
     @Published var isFoiling = false   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
 
     // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s anhaltend), raus unter ~9 km/h (3 s).
@@ -139,32 +142,56 @@ final class Recorder: NSObject, ObservableObject {
 
     /// Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online.
     func drain() async {
-        guard !draining, Api.deviceToken != nil, Reachability.shared.isOnline else { return }
+        guard !draining, Api.deviceToken != nil else { return }
+        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
+        guard Reachability.shared.isOnline else {
+            if LocalStore.pendingCount() > 0 { uploadError = "offline"; uploading = false }
+            return
+        }
         draining = true
-        defer { draining = false; uploading = false; pendingCount = LocalStore.pendingCount() }
+        uploadError = ""
+        var failed = false
+        defer {
+            draining = false; uploading = false
+            pendingCount = LocalStore.pendingCount()
+            uploadSent = 0; uploadTotal = 0
+            if !failed { uploadError = "" }
+        }
         for dir in LocalStore.completedSessions() {
-            do { try await uploadSession(dir) } catch { /* später erneut */ }
+            do { try await uploadSession(dir) }
+            catch {
+                // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
+                failed = true
+                uploadError = Reachability.shared.isOnline ? "server" : "offline"
+            }
         }
     }
 
     private func uploadSession(_ dir: URL) async throws {
         guard let meta = LocalStore.readJSON(dir.appendingPathComponent("meta.json")),
               let sid = meta["session_uuid"] as? String else { return }
-        uploading = true
-        status = "lade hoch…"
+        let chunkFiles = LocalStore.chunkFiles(dir)
+        // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
+        // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
         let res = try await Api.startSession(meta)
         let received = Set(res.received_chunks)
-        for cf in LocalStore.chunkFiles(dir) {
+        uploading = true
+        status = "lade hoch…"
+        uploadError = ""
+        uploadTotal = chunkFiles.count
+        uploadSent = min(received.count, chunkFiles.count)
+        for cf in chunkFiles {
             guard let chunk = LocalStore.readJSON(cf) else { continue }
             let idx = chunk["index"] as? Int ?? -1
             if received.contains(idx) { continue }
             try await Api.uploadChunk(sid, chunk)
+            uploadSent = min(uploadSent + 1, chunkFiles.count)
         }
         let comp = LocalStore.readJSON(dir.appendingPathComponent("complete.json"))
         let endedAt = comp?["ended_at"] as? String ?? Date().iso8601Z
         let total = comp?["total_chunks"] as? Int ?? chunkIndex
         try await Api.complete(sid, endedAt: endedAt, totalChunks: total)
-        LocalStore.delete(sid)
+        LocalStore.delete(sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 
     // MARK: - Sensors

@@ -190,6 +190,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        // Auto-Resume: solange lokal etwas wartet, alle 5 s erneut versuchen (drain prüft
+        // online/busy selbst). So lädt es von allein weiter, sobald die Verbindung zurück ist.
+        LaunchedEffect(s.pendingCount > 0) {
+            while (s.pendingCount > 0) {
+                kotlinx.coroutines.delay(5000)
+                Recorder.drain(ctx)
+            }
+        }
         // Vibrationsalarm bei Speed-Grenzen.
         AlarmEffect(s.speedKmh, alarm)
 
@@ -323,12 +331,33 @@ class MainActivity : ComponentActivity() {
                     CompactChip(onClick = onWantPair,
                         label = { Text(I18n.t("rec.connect"), style = MaterialTheme.typography.caption2) })
                 }
-                // Lokal wartende Sessions anzeigen (+ manueller Upload, wenn möglich).
+                // Lokal wartende Sessions: Fortschritt + Verbindungsstatus, statt nur „X warten".
                 if (s.pendingCount > 0) {
                     Spacer(Modifier.height(8.dp))
-                    Text("${s.pendingCount} " + I18n.t("rec.pendingUpload"),
-                        style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
-                    if (Api.deviceToken != null) {
+                    if (s.uploading) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                            val prog = if (s.uploadTotal > 0) " ${s.uploadSent}/${s.uploadTotal}" else ""
+                            Text(I18n.t("rec.uploading") + prog,
+                                style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                        }
+                    } else if (s.uploadError == "offline" || !Api.isOnline(ctx)) {
+                        Text(I18n.t("rec.waitConn"),
+                            style = MaterialTheme.typography.caption2,
+                            color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
+                        Text("${s.pendingCount} " + I18n.t("rec.pendingUpload") + " — " + I18n.t("rec.willResume"),
+                            style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8),
+                            textAlign = TextAlign.Center)
+                    } else if (s.uploadError == "server") {
+                        Text(I18n.t("rec.serverErr"),
+                            style = MaterialTheme.typography.caption2,
+                            color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
+                    } else {
+                        Text("${s.pendingCount} " + I18n.t("rec.pendingUpload"),
+                            style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    }
+                    if (Api.deviceToken != null && !s.uploading) {
                         Spacer(Modifier.height(4.dp))
                         CompactChip(onClick = { Recorder.drain(ctx) },
                             label = { Text(I18n.t("rec.uploadNow"), style = MaterialTheme.typography.caption2) })

@@ -39,6 +39,9 @@ object Recorder {
         val maxHr: Int = 0,
         val status: String = "",
         val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
+        val uploadSent: Int = 0,          // bestätigte Chunks der laufenden Session (Fortschritt)
+        val uploadTotal: Int = 0,         // Gesamt-Chunks der laufenden Session
+        val uploadError: String = "",     // letzte Fehlerursache: "" | "offline" | "server"
         val pendingCount: Int = 0,        // lokal gespeicherte, noch nicht hochgeladene Sessions
         val isFoiling: Boolean = false,   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
     )
@@ -142,17 +145,35 @@ object Recorder {
     /** Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online. */
     fun drain(ctx: Context) {
         if (draining) return
-        if (Api.deviceToken == null || !Api.isOnline(ctx)) return
+        if (Api.deviceToken == null) return
+        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
+        if (!Api.isOnline(ctx)) {
+            if (LocalStore.pendingCount(ctx) > 0) {
+                _state.value = _state.value.copy(uploadError = "offline", uploading = false)
+            }
+            return
+        }
         draining = true
         scope.launch {
+            var failed = false
             try {
+                _state.value = _state.value.copy(uploadError = "")
                 for (dir in LocalStore.completedSessions(ctx)) {
-                    try { uploadSession(ctx, dir) } catch (_: Exception) { /* später erneut */ }
+                    try { uploadSession(ctx, dir) }
+                    catch (e: Exception) {
+                        // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
+                        failed = true
+                        _state.value = _state.value.copy(
+                            uploadError = if (Api.isOnline(ctx)) "server" else "offline")
+                    }
                 }
             } finally {
                 draining = false
                 _state.value = _state.value.copy(
-                    uploading = false, pendingCount = LocalStore.pendingCount(ctx))
+                    uploading = false,
+                    pendingCount = LocalStore.pendingCount(ctx),
+                    uploadSent = 0, uploadTotal = 0,
+                    uploadError = if (!failed) "" else _state.value.uploadError)
             }
         }
     }
@@ -160,20 +181,26 @@ object Recorder {
     private suspend fun uploadSession(ctx: Context, dir: java.io.File) {
         val meta = LocalStore.readJson(java.io.File(dir, "meta.json")) ?: return
         val sid = meta.getString("session_uuid")
-        _state.value = _state.value.copy(uploading = true, status = "lade hoch…")
+        val chunkFiles = LocalStore.chunkFiles(dir)
+        // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
+        // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
         val res = Api.startSession(meta)
         val received = HashSet<Int>()
         res.optJSONArray("received_chunks")?.let { a ->
             for (i in 0 until a.length()) received.add(a.getInt(i))
         }
-        for (cf in LocalStore.chunkFiles(dir)) {
+        _state.value = _state.value.copy(
+            uploading = true, status = "lade hoch…", uploadError = "",
+            uploadTotal = chunkFiles.size, uploadSent = received.size.coerceAtMost(chunkFiles.size))
+        for (cf in chunkFiles) {
             val chunk = LocalStore.readJson(cf) ?: continue
             if (chunk.optInt("index", -1) in received) continue
             Api.uploadChunk(sid, chunk)
+            _state.value = _state.value.copy(uploadSent = (_state.value.uploadSent + 1).coerceAtMost(chunkFiles.size))
         }
         val comp = LocalStore.readJson(java.io.File(dir, "complete.json"))
         Api.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)
-        LocalStore.delete(ctx, sid)
+        LocalStore.delete(ctx, sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 
     // --- Sensor-Eingang (vom Service aufgerufen) ---
