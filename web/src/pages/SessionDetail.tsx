@@ -461,20 +461,24 @@ export default function SessionDetail() {
     // Nur die Foiling-Läufe zeichnen — Nicht-Foiling wird komplett ausgeblendet.
     const MAX_DRAW_GAP_M = 30;
     const segs = session.analysis.segments ?? [];
-    // Ohne erkannte Läufe (z. B. grobes GPS aus FIT-Import): die ganze GPS-Spur als
-    // dezente Grundlinie zeichnen, damit die Karte nicht leer bleibt. Großzügige
-    // Lückenschwelle, damit auch grobe Trackpoints verbunden werden.
+    // Ohne erkannte Foiling-Läufe (z. B. GPS-only / grobes FIT-GPS): die KOMPLETTE
+    // GPS-Spur normal speed-gefärbt zeichnen (so gut es eben ohne Accel/Pump-Erkennung
+    // geht), damit man die Fahrt trotzdem sieht. Großzügige Lückenschwelle für grobe
+    // Trackpoints.
     if (segs.length === 0) {
-      let run: [number, number][] = [];
-      const flushRun = () => {
-        if (run.length > 1) L.polyline(run, { color: "#64748b", weight: 3, opacity: 0.75 }).addTo(lg);
-        run = [];
-      };
-      for (let i = 0; i < coords.length; i++) {
-        if (i > 0 && map.distance(coords[i - 1], coords[i]) > 200) flushRun();
-        run.push(coords[i]);
+      for (let i = 0; i < coords.length - 1; i++) {
+        if (map.distance(coords[i], coords[i + 1]) > 200) continue;
+        let color: string;
+        if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
+        else if (colorMode === "pump") { const v = phz[i + 1]; const [lo, hi] = pumpRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
+        else if (colorMode === "hr") { const v = hr[i + 1]; const [lo, hi] = hrRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
+        else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
+        L.polyline([coords[i], coords[i + 1]], { color, weight: 5, opacity: 0.95 }).addTo(lg);
       }
-      flushRun();
+      if (coords.length) {
+        L.circleMarker(coords[0], { radius: 5, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1 }).addTo(lg);
+        L.circleMarker(coords[coords.length - 1], { radius: 5, color: "#450a0a", weight: 1.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(lg);
+      }
     }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
