@@ -48,6 +48,7 @@ import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
 import ChatPage from "./pages/ChatPage";
 import Admin from "./pages/Admin";
+import NerdAnalysen from "./pages/NerdAnalysen";
 import Reset from "./pages/Reset";
 import App from "./App";
 import Landing from "./pages/Landing";
@@ -84,6 +85,7 @@ const router = createBrowserRouter([
       { path: "sessions/:id", element: <SessionDetail /> },
       { path: "sessions/:id/label", element: <Labeling /> },
       { path: "admin", element: <Admin /> },
+      { path: "nerd-analysen", element: <NerdAnalysen /> },
     ],
   },
 ]);

@@ -100,7 +100,10 @@ export default function App() {
         >
           <LogoutIcon /> {t("nav.logout")}
         </button>
-        <Link to="/impressum" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300">
+        <Link to="/nerd-analysen" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
+          🤓 Nerd-Analysen
+        </Link>
+        <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>
       </aside>
