@@ -350,6 +350,7 @@ const en: Record<string, string> = {
   "account.deviceUnnamed": "Unnamed watch",
   "account.deviceLastSeen": "last active {time}",
   "account.deviceUpdate": "Update available: v{version} → download",
+  "settings.watchUpdate": "Update available: {platform} v{version}",
   "account.devicePaired": "linked {time}",
   "account.deviceRevoke": "Revoke",
   "account.deviceRevoked": "revoked",

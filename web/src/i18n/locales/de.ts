@@ -373,6 +373,7 @@ const de: Record<string, string> = {
   "account.deviceUnnamed": "Unbenannte Uhr",
   "account.deviceLastSeen": "zuletzt aktiv {time}",
   "account.deviceUpdate": "Update verfügbar: v{version} → herunterladen",
+  "settings.watchUpdate": "Update verfügbar: {platform} v{version}",
   "account.devicePaired": "verbunden {time}",
   "account.deviceRevoke": "Widerrufen",
   "account.deviceRevoked": "widerrufen",

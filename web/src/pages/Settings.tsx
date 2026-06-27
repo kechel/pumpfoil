@@ -26,6 +26,7 @@ export default function Settings() {
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
+  const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string } | null>(null);
 
   useEffect(() => {
     api.getSettings().then((s) => {
@@ -33,7 +34,13 @@ export default function Settings() {
       setWeight(s.weight_kg ? String(s.weight_kg) : "");
     }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
+    // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
+    api.myDevices().then((ds) => {
+      const d = ds.find((x) => x.update_available && !x.revoked_at);
+      if (d) setWatchUpdate({ version: d.latest_version ?? "", platform: d.platform ?? "" });
+    }).catch(() => {});
   }, []);
+  const platformLabel = (p: string) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : "");
   function saveHomespot(v: string) {
     setHomespot(v);
     api.saveSettings({ homespot: v }).catch(() => {});
@@ -91,11 +98,18 @@ export default function Settings() {
 
       <Link
         to="/account"
-        className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+        className={`mb-4 flex items-center justify-between rounded-2xl border bg-slate-900/60 p-4 hover:bg-slate-900 ${watchUpdate ? "border-amber-500/50 hover:border-amber-500" : "border-slate-800 hover:border-slate-700"}`}
       >
         <span className="flex items-center gap-3">
           <WatchIcon className="h-6 w-6 text-brand-400" />
-          <span className="font-medium text-slate-100">{t("nav.watch")}</span>
+          <span className="min-w-0">
+            <span className="block font-medium text-slate-100">{t("nav.watch")}</span>
+            {watchUpdate && (
+              <span className="block text-xs font-semibold text-amber-400">
+                {t("settings.watchUpdate", { platform: platformLabel(watchUpdate.platform), version: watchUpdate.version })}
+              </span>
+            )}
+          </span>
         </span>
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>

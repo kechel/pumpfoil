@@ -10,7 +10,17 @@ export function PwaStatus() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    // Aktiv nach Updates suchen, damit die „Seite aktualisieren"-Leiste auch ohne
+    // manuelles Neuladen erscheint: stündlich + jedes Mal, wenn der Tab fokussiert wird.
+    onRegisteredSW(_swUrl, r) {
+      if (!r) { return; }
+      setInterval(() => { r.update(); }, 60 * 60 * 1000);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") { r.update(); }
+      });
+    },
+  });
 
   useEffect(() => {
     const on = () => setOnline(true);
