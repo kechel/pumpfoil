@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon } from "./components/Icons";
+import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon } from "./components/Icons";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { CompareBar } from "./components/CompareBar";
@@ -100,8 +100,8 @@ export default function App() {
         >
           <LogoutIcon /> {t("nav.logout")}
         </button>
-        <Link to="/nerd-analysen" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
-          🤓 Nerd-Analysen
+        <Link to="/nerd-analysen" className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
+          <NerdIcon className="h-4 w-4" /> Nerd-Analysen
         </Link>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}

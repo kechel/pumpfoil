@@ -30,6 +30,18 @@ export const ShieldIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Nerd-Brille mit Klebeband-Steg (für die Nerd-Analysen).
+export const NerdIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6.5" cy="14" r="3.5" />
+    <circle cx="17.5" cy="14" r="3.5" />
+    <path d="M10 13c.7-.9 3.3-.9 4 0" />
+    <path d="M3.3 12 1.6 10" />
+    <path d="M20.7 12 22.4 10" />
+    <path d="M12 11.4v3.2" />
+  </svg>
+);
+
 export const SettingsIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3" />

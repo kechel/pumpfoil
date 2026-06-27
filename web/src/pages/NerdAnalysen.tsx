@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { NerdIcon } from "../components/Icons";
 
 // Nerd-Analysen — Easter-Egg-Seite: das Dual-Watch-Pumpfoil-Experiment (2026-06-27)
 // mit allen relevanten Grafiken & Erkenntnissen. Bewusst nur auf Deutsch.
@@ -32,7 +33,9 @@ export default function NerdAnalysen() {
   return (
     <div className="w-full">
       <Link to="/" className="text-sm text-brand-400 hover:underline">← Zurück</Link>
-      <h1 className="mb-1 mt-4 text-2xl font-bold">🤓 Nerd-Analysen</h1>
+      <h1 className="mb-1 mt-4 flex items-center gap-2 text-2xl font-bold">
+        <NerdIcon className="h-7 w-7 text-brand-400" /> Nerd-Analysen
+      </h1>
       <p className="mb-2 text-sm text-slate-400">
         Dual-Watch-Pumpfoil-Experiment · Illmensee, 27.06.2026 · rohe Beschleunigungs-Daten,
         viel Signalverarbeitung und ein bisschen Foil-Physik. Für alle, die's genau wissen wollen.
