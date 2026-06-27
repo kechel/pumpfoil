@@ -50,8 +50,12 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   Appletree, Moses …) — bei Bedarf mit verifizierten span/area ergänzen (Dicke weiter geschätzt+markiert).
 - ✅ **Spot-Sessions → Direktlink zum Spot-Chat.** *umgesetzt:* in `/alle-sessions?spot=…` aufklappbarer
   Spot-Chat (Button „💬 Spot-Chat"); Homespot-Karte auf /home zeigt den Spot-Chat direkt.
-- **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine):
-  - ✅ **Duplikatserkennung** — *umgesetzt:* gleicher Text desselben Users im selben Raum < 2 min -> kein Doppelpost.
+- ✅ **Chat-Moderation & Anti-Spam** (Teil der Chat-Engine) — *komplett.*
+  - ✅ **Duplikatserkennung** — *umgesetzt + erweitert (2026-06-27):* normalisiert (Kleinschreibung/
+    Whitespace) und **raum-übergreifend** — gleicher Raum = idempotent, anderer Raum = blockiert (Cross-Room-Spam).
+  - ✅ **Flood-Schutz (2026-06-27):** Per-User-Postlimit (`ratelimit.enforce_user_tiers`) 5/10 s + 30/5 min;
+    **Neukonto-Gate** (< 10 min strenger: 2/10 s + 8/5 min) + **Link-Drossel** (neue Konten keine URLs).
+    Admins ausgenommen.
   - ✅ **Melden-Icon** je Nachricht (klein). *umgesetzt (⚠ pro Fremdnachricht).*
   - ✅ **Auto-Ausblenden** ab **3+ Meldungen** (kein Auto-Löschen). *umgesetzt + Admin-Freigeben.*
   - ✅ **Admin:** ausgeblendete wieder **freigeben**, Nutzer auf **read-only** setzen, Melde-Zähler.
