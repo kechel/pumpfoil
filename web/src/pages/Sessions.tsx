@@ -282,7 +282,7 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
   );
 }
 
-function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
+export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
   const t = useT();
   const m = a.metrics;
   const kmh = (v?: number | null) => (v != null ? (v * 3.6).toFixed(1) : null);
@@ -301,7 +301,7 @@ function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]> }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   const t = useT();
   const map: Record<string, string> = {
     analyzed: "bg-emerald-500/15 text-emerald-400",

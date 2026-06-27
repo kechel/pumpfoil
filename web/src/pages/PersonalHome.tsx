@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
+import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
@@ -150,6 +151,8 @@ export default function PersonalHome() {
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
+              stats={s.analysis && <SessionStats a={s.analysis} />}
+              statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
             />
           ))}
         </div>
