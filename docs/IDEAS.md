@@ -25,11 +25,10 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   rechtfertigt später einen 6-Achsen-Logger (~10–25 €, ICM-42688 o. ä.) am Mast/Deck. Nächster Schritt:
   Jan liefert Session-IDs + welche Uhr wo/orientiert → serverseitige Auswertung.
 
-- **Google-OAuth-Verifizierung: Datenschutzerklärung ergänzen.** Google (Third Party Data Safety)
-  verlangt, dass die Privacy Policy unter `/impressum` explizit **Google-Nutzerdaten** dokumentiert:
-  *Data Accessed* (E-Mail, Vorname/`given_name`, Konto-ID `sub`) und *Data Usage* (nur Konto-Erstellung/
-  Anmeldung; kein Drive/Gmail/Kalender; keine Weitergabe an Dritte). Eigenen Abschnitt „Google-Nutzerdaten"
-  einfügen, dann per E-Mail-Reply bestätigen (Verification Center). Betrifft den OAuth-Login.
+- ✅ **Google-OAuth-Verifizierung: Datenschutzerklärung** — *umgesetzt:* Abschnitt
+  „Google-Anmeldung (Google-Nutzerdaten)" unter `/impressum` (Data Accessed: E-Mail/Vorname/`sub`;
+  Usage: nur Konto/Anmeldung; kein Drive/Gmail/Kalender; keine Weitergabe; kein KI-Training).
+  (Falls noch nicht geschehen: einmal im Google Verification Center per E-Mail bestätigen.)
 
 - ✅ **Watch Offline-Recording + Sync-UI** (2026-06-25, Apple + Wear): Aufnahme ist **local-first**
   (persistenter `LocalStore`, kein Netz/Pairing zum Start nötig); **Pairing optional** („Später
@@ -85,11 +84,8 @@ _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeord
   **Default = Auto** (folgt System, inkl. öffentlicher Startseite) — live aktiviert 2026-06-24 auf
   Wunsch (nur Tester Peter aktiv). Kontrast-Fix: `text-slate-950` (dunkle Tinte auf Akzent) bleibt im
   Light dunkel gepinnt. **Optional später:** Light-Palette weiter feinschleifen nach echtem Feedback.
-- **Einheitliches Icon-Set (Material).** Alle aktuell handgemalten Inline-SVG-Icons durch ein
-  konsistentes, schönes Set ersetzen. Option A: selbst im Material-Stil designen. Option B:
-  **Google Material Symbols** — Lizenz **Apache-2.0**, also erlaubt; **müssen self-hosted** sein
-  (SVGs/Variable-Font lokal bündeln) wegen CSP/Offline, **kein** Remote-Zugriff der Nutzer zu Google.
-  → vermutlich B (self-hosted Material Symbols) als gemeinsame `<Icon name=…>`-Komponente.
+- ❌ **Einheitliches Icon-Set (Material)** — *verworfen (2026-06-27):* die handgemalten Inline-SVGs
+  gefallen und bleiben. Kein Material-Symbols-Wechsel.
 - ✅ **Sessions-Seite vereinheitlicht.** *umgesetzt:* eine `/sessions`-Seite mit Umschalter
   **Meine / 📍\<Homespot\> / Alle** + **Spotsuche** in einer Zeile; dynamischer Titel
   („Sessions · \<Name\>" | „Sessions · 📍\<Spot\>" | „Sessions · Alle"). `Sessions`+`AllSessions` zu einer
@@ -130,7 +126,7 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 | Idee | Nutzen | Aufwand | Notizen / Abhängigkeiten |
 |------|:------:|:------:|--------------------------|
 | **„Wer foilt jetzt gerade?"** – laufende Sessions live | ★★★ | L | braucht **Live-Upload während der Session** (Teilbasis da: `/ingest/.../analyze`, `status=recording`). Watch müsste periodisch hochladen + „live"-Flag; Privacy-Opt-in! |
-| **Session-Diskussion** (Kommentare unter jeder Session) | ★★★ | M | Eher Forum/Diskussion als Chat. **Nur Text.** Nutzt dieselbe Chat-Engine wie der Spot-Chat (gemeinsame Komponente/Tabelle, scope=session). Moderation/Meldefunktion mitdenken. |
+| ✅ **Session-Diskussion** (Kommentare unter jeder Session) — *umgesetzt:* gleiche Chat-Engine, `scope=session:<id>`, „Diskussion"-Bereich in der Session-Detailansicht (inkl. Moderation/Melden). | ★★★ | M | |
 | ✅ **Spot-Chat** (ein Raum je Spot) — *umgesetzt: Chat-Engine mit `scope`, Spot-Räume, Homespot-Default, Moderation/Anti-Spam, Push-Abo.* | ★★ | L | Realtime per Polling (kein WebSocket nötig). |
 | ✅ **Homespot im Profil** — *umgesetzt: Settings.homespot, Auswahl aus Spots, „" = letzte Session* | ★★ | S | speist später Spot-Chat-Default + Sessions-Merge. |
 | **Kommentar-Auto-Übersetzung** in die Sprache des Lesers (auf Knopfdruck) | ★★ | M | günstiges Übersetzungsmodell; **Übersetzungen cachen** (pro Ziel-Sprache) und direkt mitladen, wenn vorhanden. Hängt an den Texten der Chat-Engine. |
@@ -141,7 +137,7 @@ CSP …) steht in [`ROADMAP.md`](ROADMAP.md).
 
 | Idee | Nutzen | Aufwand | Notizen / Abhängigkeiten |
 |------|:------:|:------:|--------------------------|
-| **Video direkt in der App aufnehmen** + klein skaliert **selbst hosten** | ★★ | XL | Aufnahme (MediaRecorder), serverseitige Transkodierung/Skalierung (ffmpeg), Storage/Bandbreite, Moderation. Bisher: nur YouTube-Verlinkung. |
+| ⏸ **Video direkt in der App aufnehmen** + selbst hosten — *vorerst zurückgestellt (2026-06-27); aktuell YouTube-Verlinkung reicht.* | ★★ | XL | Aufnahme (MediaRecorder), serverseitige Transkodierung/Skalierung (ffmpeg), Storage/Bandbreite, Moderation. |
 
 ---
 
