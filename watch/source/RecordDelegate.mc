@@ -79,7 +79,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
             var held = System.getTimer() - _rec.stopHoldStartMs;
             _cancelHold();
-            if (held >= _rec.STOP_HOLD_MS) { _rec.stop(); }
+            if (held >= _rec.STOP_HOLD_MS) { _rec.stop(); _showUploadIfConnected(); }
             WatchUi.requestUpdate();
             return true;
         }
@@ -91,8 +91,19 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         if (_rec.stopHoldStartMs != null && _rec.stopHoldProgress() >= 1.0) {
             _cancelHold();
             _rec.stop();
+            _showUploadIfConnected();
         }
         WatchUi.requestUpdate();
+    }
+
+    // Nach dem Stopp: bei Telefon-Verbindung den Upload-Screen (mit Fortschritt)
+    // automatisch öffnen — er startet den Upload selbst (Uploader.syncAll, derselbe
+    // robuste Pfad wie der manuelle Upload). Ohne Verbindung bleibt der Erfolgs-Screen
+    // (Daten liegen sicher in Storage, Upload später).
+    hidden function _showUploadIfConnected() as Void {
+        if (Uploader.phoneConnected() && Uploader.pendingCount() > 0) {
+            WatchUi.pushView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
+        }
     }
 
     hidden function _cancelHold() as Void {
