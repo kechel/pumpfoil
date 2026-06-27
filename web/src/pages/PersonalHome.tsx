@@ -70,13 +70,13 @@ export default function PersonalHome() {
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}
       {!stats ? <Spinner /> : (
-        <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mb-6 grid grid-cols-3 gap-1.5 lg:grid-cols-5">
           {recTiles.map((r) => {
             const v = r.rec?.value ?? 0;
             const inner = (
-              <Card className="h-full p-3">
-                <div className="text-xs text-slate-400">{r.label}</div>
-                <div className="mt-1 text-lg font-bold tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
+              <Card className="h-full px-2.5 py-1.5">
+                <div className="text-[11px] leading-tight text-slate-400">{r.label}</div>
+                <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
               </Card>
             );
             return v > 0 && r.rec?.session_id
@@ -84,9 +84,9 @@ export default function PersonalHome() {
               : <div key={r.label}>{inner}</div>;
           })}
           {statTiles.map((s) => (
-            <Card key={s.label} className="h-full p-3">
-              <div className="text-xs text-slate-400">{s.label}</div>
-              <div className="mt-1 text-lg font-bold tabular-nums text-brand-400">{s.value}</div>
+            <Card key={s.label} className="h-full px-2.5 py-1.5">
+              <div className="text-[11px] leading-tight text-slate-400">{s.label}</div>
+              <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{s.value}</div>
             </Card>
           ))}
         </div>
