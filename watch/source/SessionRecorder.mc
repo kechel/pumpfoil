@@ -291,7 +291,7 @@ class SessionRecorder {
         if (responseCode == 200 && data instanceof Lang.Dictionary) {
             // Profil-Sprache übernehmen + cachen (für Offline-Anzeige).
             if (data.hasKey("language") && data["language"] != null) {
-                Storage.setValue("lang", data["language"]);
+                _store("lang", data["language"]);
                 Strings.setLang(data["language"]);
             }
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
@@ -300,11 +300,11 @@ class SessionRecorder {
             }
             if (data.hasKey("autoStart") && data["autoStart"] != null) {
                 autoStart = data["autoStart"];
-                Storage.setValue("auto_start", autoStart);
+                _store("auto_start", autoStart);
             }
             if (data.hasKey("recordMode") && data["recordMode"] != null) {
                 recordMode = data["recordMode"];
-                Storage.setValue("record_mode", recordMode);
+                _store("record_mode", recordMode);
             }
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
             if (data.hasKey("alarmEnabled")) {
@@ -316,7 +316,7 @@ class SessionRecorder {
                 if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
                 if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
                 if (data.hasKey("alarmDefault") && data["alarmDefault"] != null) { alarmDefault = data["alarmDefault"]; }
-                Storage.setValue("alarm_config", {
+                _store("alarm_config", {
                     "enabled" => alarmEnabled, "high" => speedHighKmh, "low" => speedLowKmh,
                     "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat,
                     "def" => alarmDefault });
@@ -324,13 +324,13 @@ class SessionRecorder {
             // Foil-Liste (Auto-Alarm je Foil) übernehmen + cachen.
             if (data.hasKey("foils") && data["foils"] instanceof Lang.Array) {
                 foils = data["foils"];
-                Storage.setValue("foils_config", foils);
+                _store("foils_config", foils);
             }
             // Off-Foil-Screen (Auto-Umschaltung) übernehmen + cachen.
             if (data.hasKey("offFoilView") && data["offFoilView"] instanceof Lang.Array
                     && data["offFoilView"].size() > 0) {
                 offFoilView = _normView(data["offFoilView"]);
-                Storage.setValue("offfoil_config", offFoilView);
+                _store("offfoil_config", offFoilView);
             }
             initAlarmSelection();   // Default-Foil/Website vorauswählen (Start-Screen)
             WatchUi.requestUpdate();
@@ -369,7 +369,7 @@ class SessionRecorder {
     // Von der Website geladene Ansichten übernehmen + cachen.
     function setScreensFromConfig(views) {
         if (!(views instanceof Lang.Array) || views.size() == 0) { return; }
-        Storage.setValue("views_config", views);
+        _store("views_config", views);
         screens = _buildScreens(views);
     }
 
