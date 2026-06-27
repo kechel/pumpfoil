@@ -20,6 +20,8 @@ DEFAULTS = {
     "colorByValue": False,
     # Auto-Start der Aufnahme, sobald man losfährt (GPS-Geschwindigkeit). Default an.
     "auto_start": True,
+    # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
+    "record_mode": "full",
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
@@ -91,6 +93,8 @@ def update_settings(
         current["colorByValue"] = bool(patch["colorByValue"])
     if "auto_start" in patch:
         current["auto_start"] = bool(patch["auto_start"])
+    if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
+        current["record_mode"] = patch["record_mode"]
     if "homespot" in patch:
         v = patch["homespot"]
         current["homespot"] = str(v)[:120] if isinstance(v, str) else ""

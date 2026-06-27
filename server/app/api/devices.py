@@ -64,6 +64,9 @@ def device_config(
         "colorByValue": bool(settings.get("colorByValue", False)),
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
         "autoStart": bool(settings.get("auto_start", True)),
+        # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS) — für
+        # speicherarme Uhren (z. B. Forerunner 55), die sonst die Aufnahme abbrechen.
+        "recordMode": settings.get("record_mode", "full"),
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
         "language": (user.language if user and user.language else "de"),
         # Vibrationsalarm (per Website konfiguriert).

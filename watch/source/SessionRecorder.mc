@@ -23,6 +23,7 @@ class SessionRecorder {
 
     // --- Konstanten ---
     const ACCEL_HZ = 25;
+    const ACCEL_HZ_LITE = 10;   // sparsamer Modus für speicherarme Uhren (z. B. Forerunner 55)
     const ACCEL_SCALE = 2048;        // int16 pro 1 g
     const ACCEL_CHUNK_SAMPLES = 750; // 30 s -> ~6 KB base64
     const GPS_CHUNK_SAMPLES = 60;    // 60 s
@@ -58,6 +59,10 @@ class SessionRecorder {
     var screens = [[Config.FIELD_SPEED3S, Config.FIELD_HR, Config.FIELD_NONE]];
     var colorByValue = false;   // Speed/Puls je nach Wert einfärben
     var autoStart = true;       // Aufnahme automatisch starten, wenn man losfährt (GPS)
+    // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = Accel 10 Hz (sparsam) |
+    // "gps" = nur GPS (kein Roh-Accel) — für speicherarme Uhren (z. B. Forerunner 55).
+    var recordMode = "full";
+    hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     var alarmEnabled = false;
@@ -145,6 +150,8 @@ class SessionRecorder {
         // über Application.Properties (undeklarierte Keys werfen -> Crash-Klasse).
         var asv = Storage.getValue("auto_start");
         autoStart = (asv == null) ? true : asv;
+        var rm = Storage.getValue("record_mode");
+        recordMode = (rm != null) ? rm : "full";
         alarmEnabled = Config.getBool("alarmEnabled", false);
         speedHighKmh = Config.getNumber("speedHigh", 0);
         speedLowKmh = Config.getNumber("speedLow", 0);
@@ -294,6 +301,10 @@ class SessionRecorder {
                 autoStart = data["autoStart"];
                 Storage.setValue("auto_start", autoStart);
             }
+            if (data.hasKey("recordMode") && data["recordMode"] != null) {
+                recordMode = data["recordMode"];
+                Storage.setValue("record_mode", recordMode);
+            }
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
             if (data.hasKey("alarmEnabled")) {
                 alarmEnabled = data["alarmEnabled"];
@@ -405,9 +416,12 @@ class SessionRecorder {
 
         // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
         // ohne Roh-Beschleunigungs-Stream zeichnen GPS-only auf (Server -> gps_only).
+        // Im "gps"-Modus (speicherarme Uhren) bewusst KEIN Accel -> minimaler Speicher.
         _accelOn = false;
+        var gpsOnly = recordMode.equals("gps");
+        _accelHz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
         var logger = null;
-        if (Toybox has :SensorLogging) {
+        if (!gpsOnly && Toybox has :SensorLogging) {
             try {
                 logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
             } catch (e) {
@@ -425,13 +439,13 @@ class SessionRecorder {
         Position.enableLocationEvents(
             Position.LOCATION_CONTINUOUS, method(:onPosition));
 
-        // Roh-Accel-Stream (falls das Gerät es bietet). period<=4 s. 25 Hz ist für
-        // fenix 7 dokumentiert; kann ein Gerät es nicht, bleibt es bei GPS-only.
-        if (Sensor has :registerSensorDataListener) {
+        // Roh-Accel-Stream (falls das Gerät es bietet + nicht GPS-only). period<=4 s.
+        // Rate je Modus (full=25, lite=10). Kann ein Gerät es nicht, bleibt es GPS-only.
+        if (!gpsOnly && Sensor has :registerSensorDataListener) {
             try {
                 Sensor.registerSensorDataListener(method(:onAccel), {
                     :period => 1,
-                    :accelerometer => { :enabled => true, :sampleRate => ACCEL_HZ }
+                    :accelerometer => { :enabled => true, :sampleRate => _accelHz }
                 });
                 _accelOn = true;
             } catch (e) {
@@ -755,7 +769,7 @@ class SessionRecorder {
             "session_uuid" => _sessionUuid,
             "started_at" => _startedAt.value(),
             "gps_hz" => 1,
-            "accel_hz" => ACCEL_HZ,
+            "accel_hz" => _accelHz,
             "accel_scale" => ACCEL_SCALE
         });
     }
