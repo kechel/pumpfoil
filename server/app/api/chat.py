@@ -41,11 +41,12 @@ def _scope_label(scope: str) -> str:
     return rest if kind == "spot" else f"Session #{rest}"
 
 
-def _scope_label_db(db: Session, scope: str) -> str:
+def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> str:
     """Sprechendes Label für einen Chatraum:
     - spot:<name>     -> Spotname
-    - session:<id>    -> Spotname der Session (+ Datum); sonst Datum; sonst „Session #id".
-    Braucht die DB, um die Session-Session-Diskussion am Spot statt nur „#4" zu zeigen."""
+    - session:<id>    -> Spotname (+ Datum) der Session + Besitzername; sonst Datum;
+                         sonst „Session #id". Der eigene Name (viewer_id) wird weggelassen.
+    Braucht die DB, um die Session-Diskussion am Spot/Fahrer statt nur „#4" zu zeigen."""
     kind, _, rest = scope.partition(":")
     if kind == "spot":
         return rest
@@ -56,10 +57,18 @@ def _scope_label_db(db: Session, scope: str) -> str:
     s = db.get(models.Session, sid)
     if s is not None:
         date = s.started_at.strftime("%d.%m.%y") if s.started_at else None
-        if s.place_name:
-            return f"{s.place_name}{f' · {date}' if date else ''}"
-        if date:
-            return date
+        if s.place_name and date:
+            label = f"{s.place_name} · {date}"
+        elif s.place_name:
+            label = s.place_name
+        elif date:
+            label = date
+        else:
+            label = f"Session #{rest}"
+        owner = s.user.display_name if s.user else None
+        if owner and s.user_id != viewer_id:
+            label = f"{label} · {owner}"
+        return label
     return f"Session #{rest}"
 
 
@@ -398,7 +407,7 @@ def my_rooms(
         ) or 0
         out.append({
             "scope": st.scope,
-            "label": _scope_label_db(db, st.scope),
+            "label": _scope_label_db(db, st.scope, user.id),
             "url": _scope_url(st.scope),
             "push": st.push,
             "unread": int(unread),
@@ -441,7 +450,7 @@ def active_rooms(
             .order_by(models.ChatMessage.id.desc()).first()
         )
         out.append({
-            "scope": scope, "label": _scope_label_db(db, scope), "url": _scope_url(scope),
+            "scope": scope, "label": _scope_label_db(db, scope, user.id), "url": _scope_url(scope),
             "messages": int(n),
             "last_text": last.text[:120] if last else "",
             "last_at": last.created_at.isoformat() if last and last.created_at else None,

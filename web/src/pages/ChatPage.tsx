@@ -43,7 +43,9 @@ export default function ChatPage() {
     setSessionLabel(`${t("row.session")} #${id}`);
     api.session(id).then((s) => {
       const date = s.started_at ? new Date(s.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" }) : "";
-      setSessionLabel(s.place_name ? `${s.place_name}${date ? ` · ${date}` : ""}` : (date || `${t("row.session")} #${id}`));
+      let l = s.place_name ? `${s.place_name}${date ? ` · ${date}` : ""}` : (date || `${t("row.session")} #${id}`);
+      if (!s.owned && s.owner_name) l += ` · ${s.owner_name}`;  // Besitzer ergänzen (nicht bei eigenen)
+      setSessionLabel(l);
     }).catch(() => {});
   }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
 
