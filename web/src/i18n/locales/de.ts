@@ -218,6 +218,7 @@ const de: Record<string, string> = {
   "account.viewsTitle": "Ansichten der Uhr-App",
   "account.viewsDesc": "Beliebig viele Ansichten mit je bis zu 3 Feldern. Auf der Uhr mit UP/DOWN umschaltbar. (Die App lädt die Konfiguration beim Start.)",
   "account.colorByValue": "Werte je nach Höhe einfärben (Speed/Puls)",
+  "account.autoStart": "Aufnahme automatisch starten, wenn ich losfahre (GPS)",
   "account.viewN": "Ansicht {n}",
   "account.addView": "+ Ansicht hinzufügen",
   "account.saved": "gespeichert ✓",

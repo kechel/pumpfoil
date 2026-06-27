@@ -143,7 +143,9 @@ class RecordView extends WatchUi.View {
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.ready"), Graphics.TEXT_JUSTIFY_CENTER);
+            var gtxt = Strings.s("gps.ready");
+            if (_rec.autoStartOn()) { gtxt += " · " + Strings.s("auto.short"); }
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, gtxt, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching"), Graphics.TEXT_JUSTIFY_CENTER);

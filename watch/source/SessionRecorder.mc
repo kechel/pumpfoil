@@ -57,6 +57,9 @@ class SessionRecorder {
     // Aufzeichnung mit UP/DOWN umschaltbar. Leere Screens (alle Felder aus) entfallen.
     var screens = [[Config.FIELD_SPEED3S, Config.FIELD_HR, Config.FIELD_NONE]];
     var colorByValue = false;   // Speed/Puls je nach Wert einfärben
+    var autoStart = true;       // Aufnahme automatisch starten, wenn man losfährt (GPS)
+    hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
+    hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     var alarmEnabled = false;
     var speedHighKmh = 0;
     var speedLowKmh = 0;
@@ -86,6 +89,10 @@ class SessionRecorder {
     const RUN_EXIT_MPS = 2.5;    // ~9 km/h: darunter -> Lauf-Ende (Hysterese)
     const RUN_ENTER_DWELL = 3;   // s anhaltend -> foilend
     const RUN_EXIT_DWELL = 3;    // s anhaltend langsam -> Lauf-Ende
+    // Auto-Start: auf dem Start-Screen die GPS-Geschwindigkeit überwachen und die
+    // Aufnahme automatisch starten, sobald man losfährt (~10 km/h, 4 s anhaltend).
+    const AUTO_START_MPS = 2.8;
+    const AUTO_START_DWELL = 4;
     hidden var _foiling = false;
     hidden var _enterStreak = 0;
     hidden var _exitStreak = 0;
@@ -134,6 +141,10 @@ class SessionRecorder {
                  Config.getNumber("field6", Config.FIELD_NONE)]]);
         }
         colorByValue = Config.getBool("colorByValue", false);
+        // Auto-Start aus dem (vom Server gecachten) Storage; Default an. Bewusst NICHT
+        // über Application.Properties (undeklarierte Keys werfen -> Crash-Klasse).
+        var asv = Storage.getValue("auto_start");
+        autoStart = (asv == null) ? true : asv;
         alarmEnabled = Config.getBool("alarmEnabled", false);
         speedHighKmh = Config.getNumber("speedHigh", 0);
         speedLowKmh = Config.getNumber("speedLow", 0);
@@ -273,6 +284,10 @@ class SessionRecorder {
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
             if (data.hasKey("colorByValue") && data["colorByValue"] != null) {
                 colorByValue = data["colorByValue"];
+            }
+            if (data.hasKey("autoStart") && data["autoStart"] != null) {
+                autoStart = data["autoStart"];
+                Storage.setValue("auto_start", autoStart);
             }
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
             if (data.hasKey("alarmEnabled")) {
@@ -475,7 +490,7 @@ class SessionRecorder {
             _pairPollCtr++;
             if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
         }
-        if (!_recording) { return; }
+        if (!_recording) { _maybeAutoStart(); return; }
         var act = Activity.getActivityInfo();
         var spd = (act.currentSpeed != null) ? act.currentSpeed : 0.0;
         _currentHr = act.currentHeartRate;
@@ -488,6 +503,28 @@ class SessionRecorder {
         // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
         // Upload-Seite (Idle).
     }
+
+    // Auto-Start: im Idle bei anhaltender Fahrt-Geschwindigkeit die Aufnahme starten.
+    // Nicht direkt nach einem Stopp (stopped) und nur mit GPS-Fix; kurze Vibration als
+    // Bestätigung, damit man weiß, dass jetzt aufgezeichnet wird.
+    hidden function _maybeAutoStart() as Void {
+        if (!autoStart || stopped || !_hasGpsFix) { _autoStreak = 0; return; }
+        if (_idleSpeed >= AUTO_START_MPS) {
+            _autoStreak++;
+            if (_autoStreak >= AUTO_START_DWELL) {
+                _autoStreak = 0;
+                if (Attention has :vibrate) {
+                    Attention.vibrate([new Attention.VibeProfile(75, 200), new Attention.VibeProfile(0, 100), new Attention.VibeProfile(75, 200)]);
+                }
+                start();
+            }
+        } else {
+            _autoStreak = 0;
+        }
+    }
+
+    // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
+    function autoStartOn() { return autoStart; }
 
     // GPS-State-Machine für die Live-Lauferkennung (1-Hz-Tick).
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
@@ -551,6 +588,8 @@ class SessionRecorder {
         if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
             _hasGpsFix = true;
         }
+        // Aktuelle GPS-Geschwindigkeit immer merken (auch im Idle) -> Auto-Start.
+        _idleSpeed = info.speed == null ? 0.0 : info.speed;
         // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
         if (!_recording) { return; }
         var deg = info.position.toDegrees();

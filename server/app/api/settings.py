@@ -18,6 +18,8 @@ VALID_FIELD_IDS = set(range(0, 21))  # 0-13 Live-Felder, 14-20 Lauf-Felder
 DEFAULTS = {
     "speed_min": 8, "speed_max": 25, "speed_auto": True, "views": [[1, 2, 0]],
     "colorByValue": False,
+    # Auto-Start der Aufnahme, sobald man losfährt (GPS-Geschwindigkeit). Default an.
+    "auto_start": True,
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
@@ -87,6 +89,8 @@ def update_settings(
         current["speed_auto"] = bool(patch["speed_auto"])
     if "colorByValue" in patch:
         current["colorByValue"] = bool(patch["colorByValue"])
+    if "auto_start" in patch:
+        current["auto_start"] = bool(patch["auto_start"])
     if "homespot" in patch:
         v = patch["homespot"]
         current["homespot"] = str(v)[:120] if isinstance(v, str) else ""

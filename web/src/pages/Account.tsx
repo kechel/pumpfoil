@@ -242,6 +242,7 @@ function ViewsEditor() {
   const t = useT();
   const [views, setViews] = useState<number[][] | null>(null);
   const [colorByValue, setColorByValue] = useState(false);
+  const [autoStart, setAutoStart] = useState(true);
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -250,6 +251,7 @@ function ViewsEditor() {
     api.getSettings().then((s) => {
       setViews(s.views ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
+      setAutoStart(s.auto_start !== false);
       setOffFoil(s.off_foil_view ?? [12, 17, 16]);
     }).catch((e) => setErr(String(e)));
   }, []);
@@ -279,9 +281,10 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views, colorByValue, off_foil_view: offFoil });
+      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, off_foil_view: offFoil });
       setViews(res.views);
       setColorByValue(!!res.colorByValue);
+      setAutoStart(res.auto_start !== false);
       if (res.off_foil_view) setOffFoil(res.off_foil_view);
       setSaved(true);
     } catch (e) {
@@ -296,9 +299,13 @@ function ViewsEditor() {
       <p className="mb-3 text-sm text-slate-300">
         {t("account.viewsDesc")}
       </p>
-      <label className="mb-4 flex items-center gap-2 text-sm text-slate-200">
+      <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}
+      </label>
+      <label className="mb-4 flex items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
+        {t("account.autoStart")}
       </label>
 
       <div className="space-y-3">

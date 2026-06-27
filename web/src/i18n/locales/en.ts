@@ -197,6 +197,7 @@ const en: Record<string, string> = {
   "account.viewsTitle": "Watch app views",
   "account.viewsDesc": "Any number of views with up to 3 fields each. Switch with UP/DOWN on the watch. (The app loads the config on start.)",
   "account.colorByValue": "Color values by level (speed/HR)",
+  "account.autoStart": "Auto-start recording when I take off (GPS)",
   "account.viewN": "View {n}",
   "account.addView": "+ Add view",
   "account.saved": "saved ✓",
