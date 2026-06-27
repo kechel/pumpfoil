@@ -58,6 +58,20 @@ enum LocalStore {
     }
     static func pendingCount() -> Int { completedSessions().count }
 
+    // Abgebrochene Aufnahmen: meta + Chunks vorhanden, aber KEIN complete.json (App-Crash/
+    // -Kill vor dem Stopp). Würden sonst nie hochgeladen -> Datenverlust. Die aktive
+    // Aufnahme (activeUuid) wird ausgenommen.
+    static func interruptedSessions(activeUuid: String?) -> [URL] {
+        let fm = FileManager.default
+        let dirs = (try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
+        return dirs.filter {
+            $0.lastPathComponent != activeUuid &&
+                fm.fileExists(atPath: $0.appendingPathComponent("meta.json").path) &&
+                !fm.fileExists(atPath: $0.appendingPathComponent("complete.json").path) &&
+                !chunkFiles($0).isEmpty
+        }
+    }
+
     static func chunkFiles(_ dir: URL) -> [URL] {
         let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
         return files.filter { $0.lastPathComponent.hasPrefix("chunk-") }

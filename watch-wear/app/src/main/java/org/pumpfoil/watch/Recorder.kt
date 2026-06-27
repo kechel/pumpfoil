@@ -146,17 +146,19 @@ object Recorder {
     fun drain(ctx: Context) {
         if (draining) return
         if (Api.deviceToken == null) return
-        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
-        if (!Api.isOnline(ctx)) {
-            if (LocalStore.pendingCount(ctx) > 0) {
-                _state.value = _state.value.copy(uploadError = "offline", uploading = false)
-            }
-            return
-        }
         draining = true
         scope.launch {
             var failed = false
             try {
+                // Gestrandete Aufnahmen (Crash/Kill vor Stop) finalisieren -> kein Datenverlust.
+                // Läuft auch offline (rein lokal); danach zählen sie als „fertig" zum Upload.
+                recoverInterrupted(ctx)
+                val pend = LocalStore.pendingCount(ctx)
+                _state.value = _state.value.copy(pendingCount = pend)
+                if (!Api.isOnline(ctx)) {
+                    if (pend > 0) _state.value = _state.value.copy(uploadError = "offline", uploading = false)
+                    return@launch
+                }
                 _state.value = _state.value.copy(uploadError = "")
                 for (dir in LocalStore.completedSessions(ctx)) {
                     try { uploadSession(ctx, dir) }
@@ -175,6 +177,19 @@ object Recorder {
                     uploadSent = 0, uploadTotal = 0,
                     uploadError = if (!failed) "" else _state.value.uploadError)
             }
+        }
+    }
+
+    // Abgebrochene Aufnahmen (kein complete.json) finalisieren: synthetisches complete.json
+    // mit der Anzahl persistierter Chunks -> Session wird normal hochgeladen statt zu stranden.
+    // Die gerade laufende Aufnahme bleibt ausgenommen.
+    private fun recoverInterrupted(ctx: Context) {
+        val active = if (running) uuid else null
+        for (dir in LocalStore.interruptedSessions(ctx, active)) {
+            val n = LocalStore.chunkFiles(dir).size
+            if (n == 0) { continue }
+            LocalStore.writeComplete(ctx, dir.name, JSONObject()
+                .put("ended_at", nowIso()).put("total_chunks", n))
         }
     }
 

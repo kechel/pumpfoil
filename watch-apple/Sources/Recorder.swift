@@ -143,27 +143,40 @@ final class Recorder: NSObject, ObservableObject {
     /// Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online.
     func drain() async {
         guard !draining, Api.deviceToken != nil else { return }
-        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
-        guard Reachability.shared.isOnline else {
-            if LocalStore.pendingCount() > 0 { uploadError = "offline"; uploading = false }
-            return
-        }
         draining = true
-        uploadError = ""
-        var failed = false
         defer {
             draining = false; uploading = false
             pendingCount = LocalStore.pendingCount()
             uploadSent = 0; uploadTotal = 0
-            if !failed { uploadError = "" }
         }
+        // Gestrandete Aufnahmen (Crash/Kill vor Stop) finalisieren -> kein Datenverlust.
+        // Läuft auch offline (rein lokal); danach zählen sie als „fertig" zum Upload.
+        recoverInterrupted()
+        pendingCount = LocalStore.pendingCount()
+        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
+        guard Reachability.shared.isOnline else {
+            uploadError = pendingCount > 0 ? "offline" : ""
+            return
+        }
+        uploadError = ""   // online -> optimistisch; bei Fehler unten gesetzt
         for dir in LocalStore.completedSessions() {
             do { try await uploadSession(dir) }
             catch {
                 // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
-                failed = true
                 uploadError = Reachability.shared.isOnline ? "server" : "offline"
             }
+        }
+    }
+
+    // Abgebrochene Aufnahmen (kein complete.json) finalisieren: synthetisches complete.json
+    // mit der Anzahl persistierter Chunks -> Session wird normal hochgeladen statt zu stranden.
+    // Die gerade laufende Aufnahme bleibt ausgenommen.
+    private func recoverInterrupted() {
+        let active = isRecording ? uuid : nil
+        for dir in LocalStore.interruptedSessions(activeUuid: active) {
+            let n = LocalStore.chunkFiles(dir).count
+            if n == 0 { continue }
+            LocalStore.writeComplete(dir.lastPathComponent, ["ended_at": Date().iso8601Z, "total_chunks": n])
         }
     }
 

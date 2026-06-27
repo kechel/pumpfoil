@@ -37,6 +37,19 @@ object LocalStore {
 
     fun pendingCount(ctx: Context): Int = completedSessions(ctx).size
 
+    // Abgebrochene Aufnahmen: meta + Chunks vorhanden, aber KEIN complete.json (App-Crash/
+    // -Kill vor dem Stopp). Würden sonst nie hochgeladen -> Datenverlust. Die aktive
+    // Aufnahme (activeUuid) wird ausgenommen.
+    fun interruptedSessions(ctx: Context, activeUuid: String?): List<File> =
+        root(ctx).listFiles()
+            ?.filter {
+                it.isDirectory && it.name != activeUuid &&
+                    File(it, "meta.json").exists() &&
+                    !File(it, "complete.json").exists() &&
+                    chunkFiles(it).isNotEmpty()
+            }
+            ?.sortedBy { File(it, "meta.json").lastModified() } ?: emptyList()
+
     fun readJson(f: File): JSONObject? = try { JSONObject(f.readText()) } catch (_: Exception) { null }
 
     fun chunkFiles(dir: File): List<File> =
