@@ -135,8 +135,6 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             :verbinden, {}));
         menu.addItem(new WatchUi.MenuItem(
             "Upload / Sync", "ausstehende Sessions", :upload, {}));
-        menu.addItem(new WatchUi.MenuItem(
-            Strings.s("menu.clearStore"), Strings.s("menu.clearStoreSub"), :clearstore, {}));
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
@@ -197,13 +195,6 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             // Menü ersetzen durch die Pair-Ansicht (zeigt Code + pollt auf Bestätigung).
             WatchUi.switchToView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
-        } else if (id == :clearstore) {
-            // Lokalen App-Speicher leeren (gestrandete Aufnahmen) -> entsperrt „Speicher voll".
-            // Pairing (deviceToken) liegt in Properties und bleibt erhalten; Config wird beim
-            // nächsten Sync neu geladen. ACHTUNG: noch nicht hochgeladene Aufnahmen gehen verloren.
-            _rec.clearLocalStorage();
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            WatchUi.requestUpdate();
         }
     }
 }
