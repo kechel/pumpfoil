@@ -268,27 +268,36 @@ class SessionRecorder {
     }
 
     // Beim App-Start die auf der Website konfigurierten Ansichten laden (falls online).
+    // Komplett abgesichert: ein Fehler hier (z. B. makeWebRequest) darf den App-Start
+    // nicht crashen — die Aufnahme funktioniert auch ohne frische Config (Cache/Default).
     function fetchConfig() {
-        var token = Config.getString("deviceToken");
-        if (token == null || token.equals("")) { return; }
-        // Geräte-Part-Number melden -> Server kann später das Modell zuordnen
-        // (für den Update-Hinweis/Download). Null-sicher.
-        var pn = "";
-        var ds = System.getDeviceSettings();
-        if (ds != null && ds.partNumber != null) { pn = ds.partNumber; }
-        Communications.makeWebRequest(
-            Config.baseUrl() + "/api/devices/config",
-            { "v" => Config.VERSION, "p" => "garmin", "pn" => pn },   // Version+Plattform+PartNo melden
-            {
-                :method => Communications.HTTP_REQUEST_METHOD_GET,
-                :headers => { "X-Device-Token" => token },
-                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
-            },
-            method(:onConfig));
+        try {
+            var token = Config.getString("deviceToken");
+            if (token == null || token.equals("")) { return; }
+            // Geräte-Part-Number melden -> Server kann später das Modell zuordnen
+            // (für den Update-Hinweis/Download). Null-sicher.
+            var pn = "";
+            var ds = System.getDeviceSettings();
+            if (ds != null && ds.partNumber != null) { pn = ds.partNumber; }
+            Communications.makeWebRequest(
+                Config.baseUrl() + "/api/devices/config",
+                { "v" => Config.VERSION, "p" => "garmin", "pn" => pn },   // Version+Plattform+PartNo melden
+                {
+                    :method => Communications.HTTP_REQUEST_METHOD_GET,
+                    :headers => { "X-Device-Token" => token },
+                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                },
+                method(:onConfig));
+        } catch (e) {
+            // Offline/Fehler -> mit gecachter/Default-Config weiterarbeiten.
+        }
     }
 
     function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         if (responseCode == 200 && data instanceof Lang.Dictionary) {
+          // Komplette Verarbeitung abgesichert: eine unerwartete/kaputte Server-Antwort
+          // darf die App nicht crashen (die Aufnahme-Fähigkeit hängt nicht hieran).
+          try {
             // Profil-Sprache übernehmen + cachen (für Offline-Anzeige).
             if (data.hasKey("language") && data["language"] != null) {
                 _store("lang", data["language"]);
@@ -334,6 +343,9 @@ class SessionRecorder {
             }
             initAlarmSelection();   // Default-Foil/Website vorauswählen (Start-Screen)
             WatchUi.requestUpdate();
+          } catch (e) {
+            // Teil-Config evtl. übernommen; Rest ignorieren — kein Crash.
+          }
         }
     }
 
@@ -435,9 +447,16 @@ class SessionRecorder {
         _sensorLogger = logger;
 
         // SensorLogger nur mitgeben, wenn vorhanden (sonst normale FIT-Session).
+        // FIT-Session ist für Garmin Connect + Live-Stats; schlägt sie fehl, zeichnen
+        // wir trotzdem unsere Rohdaten-Chunks (GPS/Accel) auf — Priorität: nichts verlieren.
         var sessOpts = { :name => "Pump Foil", :sport => Activity.SPORT_SURFING };
         if (logger != null) { sessOpts[:sensorLogger] = logger; }
-        _fitSession = ActivityRecording.createSession(sessOpts);
+        _fitSession = null;
+        try {
+            _fitSession = ActivityRecording.createSession(sessOpts);
+        } catch (e) {
+            _fitSession = null;
+        }
 
         // GPS kontinuierlich.
         Position.enableLocationEvents(
@@ -458,26 +477,32 @@ class SessionRecorder {
         }
 
         _persistMeta();
-        _fitSession.start();
+        if (_fitSession != null) {
+            try { _fitSession.start(); } catch (e) { _fitSession = null; }
+        }
         _recording = true;
     }
 
     function stop() {
         if (!_recording) { return; }
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
+        // Reihenfolge so, dass die Rohdaten SICHER geschrieben werden, bevor irgendeine
+        // FIT-Operation fehlschlagen könnte — kein Crash darf die letzten Chunks kosten.
+        try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
         if (_accelOn) {
-            Sensor.unregisterSensorDataListener();
+            try { Sensor.unregisterSensorDataListener(); } catch (e) {}
             _flushAccel(true);
         }
         _flushGps(true);
-        _fitSession.stop();
-        _fitSession.save();
-        _fitSession = null;
         _recording = false;
         stopped = true;   // -> Erfolgs-/Upload-Screen
         // Session als abgeschlossen markieren und SICHER in Storage persistieren.
         // Bleibt im sessions-Index, bis vollständig hochgeladen+bestätigt.
         _saveState(true);
+        // FIT-Session zuletzt schließen — schlägt das fehl, sind unsere Chunks längst sicher.
+        if (_fitSession != null) {
+            try { _fitSession.stop(); _fitSession.save(); } catch (e) {}
+            _fitSession = null;
+        }
         // BEWUSST KEIN Upload direkt beim Stopp: ein makeWebRequest im Stopp-Moment
         // könnte fehlschlagen/abstürzen -> Risiko für die gerade aufgenommene Session.
         // Daten liegen sicher in Storage; hochgeladen wird erst beim nächsten App-Start
@@ -521,23 +546,31 @@ class SessionRecorder {
     // zuverlässige Quelle (auch bei FIT-Wiedergabe im Simulator), unabhängig davon, ob
     // Positions-Callbacks feuern.
     function tick() as Void {
-        // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist.
-        if (!_claimToken.equals("") && !isPaired()) {
-            _pairPollCtr++;
-            if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
+        // Komplett abgesichert: ein Fehler im 1-Hz-Tick darf weder die laufende
+        // Aufnahme noch die App beenden (Aufzeichnung läuft im Hintergrund weiter).
+        try {
+            // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist.
+            if (!_claimToken.equals("") && !isPaired()) {
+                _pairPollCtr++;
+                if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
+            }
+            if (!_recording) { _maybeAutoStart(); return; }
+            var act = Activity.getActivityInfo();
+            if (act == null) { return; }
+            var spd = (act.currentSpeed != null) ? act.currentSpeed : 0.0;
+            _currentHr = act.currentHeartRate;
+            _speedRing[_speedRingPos] = spd;
+            _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
+            _checkAlarm(speed3s());
+            _updateRun(speed3s(), spd, distanceM(), elapsedTimeMs());
+            // KEIN Live-Upload während der Aktivität: Garmin meldet sonst „Übertragung
+            // während der Aktivität nicht möglich". Chunks landen laufend in Storage
+            // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
+            // Upload-Seite (Idle).
+        } catch (e) {
+            // Live-Anzeige/Alarm-Fehler ignorieren — die Rohdaten-Erfassung in den
+            // Sensor-Callbacks läuft unabhängig davon weiter.
         }
-        if (!_recording) { _maybeAutoStart(); return; }
-        var act = Activity.getActivityInfo();
-        var spd = (act.currentSpeed != null) ? act.currentSpeed : 0.0;
-        _currentHr = act.currentHeartRate;
-        _speedRing[_speedRingPos] = spd;
-        _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
-        _checkAlarm(speed3s());
-        _updateRun(speed3s(), spd, distanceM(), elapsedTimeMs());
-        // KEIN Live-Upload während der Aktivität: Garmin meldet sonst „Übertragung
-        // während der Aktivität nicht möglich". Chunks landen laufend in Storage
-        // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
-        // Upload-Seite (Idle).
     }
 
     // Auto-Start: im Idle bei anhaltender Fahrt-Geschwindigkeit die Aufnahme starten.
@@ -619,34 +652,44 @@ class SessionRecorder {
     }
 
     function onPosition(info as Position.Info) as Void {
-        if (info == null || info.position == null) { return; }
-        // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
-        if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
-            _hasGpsFix = true;
+        // Abgesichert: ein fehlerhafter Positions-Callback darf die Aufnahme nicht beenden.
+        try {
+            if (info == null || info.position == null) { return; }
+            // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
+            if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
+                _hasGpsFix = true;
+            }
+            // Aktuelle GPS-Geschwindigkeit immer merken (auch im Idle) -> Auto-Start.
+            _idleSpeed = info.speed == null ? 0.0 : info.speed;
+            // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
+            if (!_recording) { return; }
+            var deg = info.position.toDegrees();
+            var spd = info.speed == null ? 0.0 : info.speed;
+            _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
+            if (_gpsBuf.size() >= GPS_CHUNK_SAMPLES) { _flushGps(false); }
+        } catch (e) {
+            // Einzelnen Punkt verwerfen, Aufnahme läuft weiter.
         }
-        // Aktuelle GPS-Geschwindigkeit immer merken (auch im Idle) -> Auto-Start.
-        _idleSpeed = info.speed == null ? 0.0 : info.speed;
-        // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
-        if (!_recording) { return; }
-        var deg = info.position.toDegrees();
-        var spd = info.speed == null ? 0.0 : info.speed;
-        _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
-        if (_gpsBuf.size() >= GPS_CHUNK_SAMPLES) { _flushGps(false); }
     }
 
     function hasGpsFix() { return _hasGpsFix; }
 
     function onAccel(sensorData as Sensor.SensorData) as Void {
-        if (sensorData == null || sensorData.accelerometerData == null) { return; }
-        var a = sensorData.accelerometerData;
-        var n = a.x.size();
-        for (var i = 0; i < n; i++) {
-            _appendI16(a.x[i]);
-            _appendI16(a.y[i]);
-            _appendI16(a.z[i]);
-            _accelCount++;
+        // Abgesichert: ein fehlerhaftes Accel-Paket darf die Aufnahme nicht beenden.
+        try {
+            if (sensorData == null || sensorData.accelerometerData == null) { return; }
+            var a = sensorData.accelerometerData;
+            var n = a.x.size();
+            for (var i = 0; i < n; i++) {
+                _appendI16(a.x[i]);
+                _appendI16(a.y[i]);
+                _appendI16(a.z[i]);
+                _accelCount++;
+            }
+            if (_accelCount >= ACCEL_CHUNK_SAMPLES) { _flushAccel(false); }
+        } catch (e) {
+            // Dieses Paket verwerfen, Aufnahme läuft weiter.
         }
-        if (_accelCount >= ACCEL_CHUNK_SAMPLES) { _flushAccel(false); }
     }
 
     // --- Live-Stats ---

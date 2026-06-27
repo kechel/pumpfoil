@@ -25,10 +25,12 @@ class FoilApp extends Application.AppBase {
     // Haupt-View beim Start.
     function getInitialView() {
         _recorder = new SessionRecorder();
-        _recorder.startGps();         // GPS sofort vorwärmen (nicht-blockierend) -> schneller Start
-        _recorder.claimPairingCode(); // ggf. im Settings-Feld eingetragenen Code einlösen
-        _recorder.fetchConfig();  // Web-konfigurierte Ansichten laden (async, mit Cache-Fallback)
-        Uploader.syncAll();       // beim Start ausstehende Sessions nachholen (falls WLAN)
+        // Jeder Startup-Schritt einzeln abgesichert: ein Fehler (z. B. Netz/Position)
+        // darf den App-Start nie crashen — die View muss immer hochkommen.
+        try { _recorder.startGps(); } catch (e) {}          // GPS vorwärmen -> schneller Start
+        try { _recorder.claimPairingCode(); } catch (e) {}  // ggf. eingetragenen Code einlösen
+        try { _recorder.fetchConfig(); } catch (e) {}       // Web-Config laden (mit Cache-Fallback)
+        try { Uploader.syncAll(); } catch (e) {}            // ausstehende Sessions nachholen
         var view = new RecordView(_recorder);
         var delegate = new RecordDelegate(_recorder, view);
         return [view, delegate];
