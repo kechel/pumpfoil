@@ -44,9 +44,9 @@ def _scope_label(scope: str) -> str:
 def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> str:
     """Sprechendes Label für einen Chatraum:
     - spot:<name>     -> Spotname
-    - session:<id>    -> Spotname (+ Datum) der Session + Besitzername; sonst Datum;
-                         sonst „Session #id". Der eigene Name (viewer_id) wird weggelassen.
-    Braucht die DB, um die Session-Diskussion am Spot/Fahrer statt nur „#4" zu zeigen."""
+    - session:<id>    -> „<Fahrer> · <Spot> · <Datum>" (Fahrername immer voran, auch
+                         bei der eigenen Session); fehlt der Spot -> Datum; sonst „Session #id".
+    Braucht die DB, um die Session-Diskussion nach Fahrer/Spot statt nur „#4" zu zeigen."""
     kind, _, rest = scope.partition(":")
     if kind == "spot":
         return rest
@@ -58,17 +58,15 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
     if s is not None:
         date = s.started_at.strftime("%d.%m.%y") if s.started_at else None
         if s.place_name and date:
-            label = f"{s.place_name} · {date}"
+            base = f"{s.place_name} · {date}"
         elif s.place_name:
-            label = s.place_name
+            base = s.place_name
         elif date:
-            label = date
+            base = date
         else:
-            label = f"Session #{rest}"
+            base = f"Session #{rest}"
         owner = s.user.display_name if s.user else None
-        if owner and s.user_id != viewer_id:
-            label = f"{label} · {owner}"
-        return label
+        return f"{owner} · {base}" if owner else base
     return f"Session #{rest}"
 
 
