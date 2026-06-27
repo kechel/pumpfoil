@@ -11,12 +11,53 @@ Ergebnis wird je Spot 1 h gecacht (gemeinsam für alle Nutzer), s. api/community
 from __future__ import annotations
 
 import math
+import re
 
 import httpx
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 PEGEL = "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations.json"
 _UA = {"User-Agent": "pumpfoil.org weather widget"}
+
+# Spot-spezifische Wassertemperatur-Quellen. Aktuell: Illmensee — die örtlichen
+# Funkamateure (db0wv.de) messen alle 5 min in ~1 m Tiefe und stellen die Werte als
+# plaintemp.txt bereit (Momentan/Min/Max/Mittel, heute + gestern).
+SPOT_WATER_SOURCES = {
+    "illmensee": "http://www.db0wv.de/wasser-out/plaintemp.txt",
+}
+
+
+def spot_water_temp(spot: str) -> dict | None:
+    """Wassertemperatur einer spotspezifischen Quelle (z. B. Illmensee/db0wv).
+    Parst plaintemp.txt -> {current, min, max, avg, at, source}. Fehler -> None."""
+    url = SPOT_WATER_SOURCES.get((spot or "").strip().lower())
+    if not url:
+        return None
+    try:
+        r = httpx.get(url, headers=_UA, timeout=6.0)
+        if r.status_code != 200:
+            return None
+        txt = r.text
+    except Exception:  # noqa: BLE001
+        return None
+
+    def num(pat):  # noqa: ANN001
+        m = re.search(pat, txt)
+        try:
+            return round(float(m.group(1)), 1) if m else None
+        except (TypeError, ValueError):
+            return None
+
+    # „Heute"-Block steht zuerst -> erstes Vorkommen je Kennzahl.
+    cur = num(r"Momentane Temperatur:\s*([0-9.]+)")
+    mn = num(r"Niedrigste Temperatur:\s*([0-9.]+)")
+    mx = num(r"H(?:&ouml;|ö)chste Temperatur:\s*([0-9.]+)")
+    avg = num(r"Tages\s*Mittelwert:\s*([0-9.]+)")
+    tsm = re.search(r"Momentane Temperatur:[^(]*\(([^)]+)\)", txt)
+    at = tsm.group(1).strip() if tsm else None
+    if cur is None and mx is None:
+        return None
+    return {"current": cur, "min": mn, "max": mx, "avg": avg, "at": at, "source": "db0wv.de"}
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

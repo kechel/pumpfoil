@@ -741,6 +741,7 @@ const de: Record<string, string> = {
   "wx.tomorrow": "Morgen",
   "wx.gust": "B",
   "wx.level": "Pegel",
+  "wx.water": "Wasser",
   "wx.source": "Quelle",
   "compare.title": "Vergleich",
   "compare.colorRider": "Je Fahrer",

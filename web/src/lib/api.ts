@@ -129,6 +129,7 @@ export interface SpotWeather {
     wind_unit: string;
   } | null;
   pegel: { station: string; water: string | null; value: number | null; unit: string; timestamp: string | null; trend: number | null; km: number } | null;
+  water?: { current: number | null; min: number | null; max: number | null; avg: number | null; at: string | null; source: string } | null;
 }
 
 export interface HistoryPoint {

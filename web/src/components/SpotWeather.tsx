@@ -48,7 +48,8 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
   if (!done) return null;
   const w = data?.weather;
   const pegel = data?.pegel;
-  if (!w && !pegel) return null;
+  const water = data?.water;
+  if (!w && !pegel && !water) return null;
 
   const dayLabel = (d: SpotWeatherDay, i: number): string => {
     if (i === 0) return t("wx.today");
@@ -110,8 +111,20 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
         </div>
       )}
 
+      {water && water.current != null && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-slate-300">
+          <span className="font-medium text-slate-200">🌊 {t("wx.water")}:</span>
+          <span className="tabular-nums text-cyan-300">{water.current.toFixed(1)} °C</span>
+          {(water.min != null && water.max != null) && (
+            <span className="text-slate-400 tabular-nums">{t("wx.today")} {water.min.toFixed(1)}–{water.max.toFixed(1)} °C</span>
+          )}
+          {water.avg != null && <span className="text-slate-400 tabular-nums">⌀ {water.avg.toFixed(1)} °C</span>}
+          {water.at && <span className="text-slate-500">({water.at})</span>}
+        </div>
+      )}
+
       <div className="mt-2 text-[10px] text-slate-500">
-        {t("wx.source")}: Open-Meteo{pegel ? " · PEGELONLINE" : ""}
+        {t("wx.source")}: Open-Meteo{pegel ? " · PEGELONLINE" : ""}{water ? ` · ${water.source}` : ""}
       </div>
     </Card>
   );

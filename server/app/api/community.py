@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
-from ..weather import spot_weather
+from ..weather import spot_water_temp, spot_weather
 from .deps import current_user
 
 router = APIRouter(prefix="/api/community", tags=["community"])
@@ -298,6 +298,8 @@ def spot_weather_endpoint(
     if not row or row[0] is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
     data = spot_weather(float(row[0]), float(row[1]))
+    # Spotspezifische Wassertemperatur (z. B. Illmensee/db0wv) — None, wenn keine Quelle.
+    data["water"] = spot_water_temp(spot)
     with _wx_lock:
         _wx_cache[spot] = (now, data)
     return data
