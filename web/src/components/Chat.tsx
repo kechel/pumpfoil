@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
-import { Avatar } from "./ui";
+import { Avatar, NewBadge } from "./ui";
 import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon } from "./Icons";
 import { useT } from "../i18n";
 
@@ -152,6 +152,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-semibold text-slate-200">{m.name || "—"}</span>
+                {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 <span className="ml-auto flex items-center gap-2">
                   {isAdmin && m.report_count > 0 && (

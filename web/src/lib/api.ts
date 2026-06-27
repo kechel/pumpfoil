@@ -44,6 +44,7 @@ async function uploadFile<T>(path: string, file: File): Promise<T> {
 export interface ChatMsg {
   id: number; user_id: number; name: string | null; avatar_url: string | null;
   text: string; created_at: string | null; mine: boolean; hidden: boolean; report_count: number;
+  author_new?: boolean;   // Konto jünger als 24 h -> "neu"-Badge
 }
 
 export interface ChatRoom {
@@ -146,6 +147,7 @@ export interface CommunitySession {
   session_id: number;
   started_at: string | null;
   name: string | null;
+  author_new?: boolean;   // Konto jünger als 24 h -> "neu"-Badge
   avatar_url: string | null;
   spot: string | null;
   caption?: string | null;
@@ -218,8 +220,18 @@ export interface AdminUser {
   is_admin: boolean;
   blocked: boolean;
   hidden: boolean;
+  new?: boolean;            // Konto jünger als 24 h
   created_at: string | null;
   sessions: number;
+}
+
+// Kategorie-Filter der Nutzerverwaltung (alle default true).
+export interface UserFilter { normal: boolean; tester: boolean; admin: boolean; new: boolean; }
+function userFilterQS(f?: UserFilter): string {
+  if (!f) return "";
+  // Nur explizit ausgeschaltete Klassen senden (Server-Default = true).
+  return (["normal", "tester", "admin", "new"] as const)
+    .filter((k) => !f[k]).map((k) => `&${k}=false`).join("");
 }
 
 export interface AdminPhoto {
@@ -456,8 +468,10 @@ export const api = {
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/dismiss?kind=${kind}`, { method: "POST" }),
   adminDeleteSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/delete`, { method: "POST" }),
   adminRestoreSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/restore`, { method: "POST" }),
-  adminUsers: (q = "", limit = 30, offset = 0) =>
-    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}${q ? "&q=" + encodeURIComponent(q) : ""}`),
+  adminUsers: (q = "", limit = 30, offset = 0, f?: UserFilter) =>
+    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}${q ? "&q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
+  adminUsersCount: (q = "", f?: UserFilter) =>
+    req<{ total: number }>(`/api/admin/users/count?${q ? "q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
   adminBlockUser: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/users/${id}/block?blocked=${blocked}`, { method: "POST" }),
   adminHideUser: (id: number, hidden: boolean) =>

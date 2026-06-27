@@ -144,6 +144,7 @@ const gsw: Record<string, string> = {
   "row.like": "Gfallt mer",
   "row.unlike": "Gfallt mer nüme",
   "row.session": "Session",
+  "badge.new": "neu",
 
   "history.title": "Verlauf",
   "history.cumulative": "Beschtwärt (kumuliert)",

@@ -14,6 +14,7 @@ from sqlalchemy import func, literal, or_
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..accounts import is_new_account
 from ..db import get_db
 from .deps import current_user
 
@@ -37,7 +38,7 @@ REC_COL = {
 }
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, S.caption, AR.track_preview,
-              S.foil_id)
+              S.foil_id, U.created_at)
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -65,11 +66,13 @@ def _community(query, viewer_id: int | None = None):
     )
 
 
-def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None, foil_id=None) -> dict:
+def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
+           foil_id=None, author_created_at=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
         "name": uname,
+        "author_new": is_new_account(author_created_at),
         "avatar_url": avatar,
         "spot": place or None,
         "caption": caption or None,
@@ -321,7 +324,7 @@ def top_liked(
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.order_by(likes_sq.c.n.desc(), S.started_at.desc()).limit(min(max(limit, 1), 20)).all()
-    return _attach_social(db, user, [_brief(*r[:10]) for r in rows])
+    return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)]) for r in rows])
 
 
 # ------------------------------------------------------------ Likes / Votes ----

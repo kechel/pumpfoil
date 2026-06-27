@@ -144,6 +144,7 @@ const deAT: Record<string, string> = {
   "row.like": "Gfoit ma",
   "row.unlike": "Gfoit ma nimmer",
   "row.session": "Session",
+  "badge.new": "neu",
 
   "history.title": "Verlauf",
   "history.cumulative": "Bestwert (kumuliert)",

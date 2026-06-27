@@ -1,5 +1,16 @@
 // Kleine, wiederverwendbare UI-Bausteine (Tailwind).
 import { ReactNode, useState } from "react";
+import { useT } from "../i18n";
+
+// „neu"-Badge für frische Konten (< 24 h) — sichtbar in Community & Chat.
+export function NewBadge({ className = "" }: { className?: string }) {
+  const t = useT();
+  return (
+    <span className={`inline-flex items-center rounded-full bg-emerald-500/15 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 ${className}`}>
+      {t("badge.new")}
+    </span>
+  );
+}
 
 export function Card({ children, className = "", onClick, id }: { children: ReactNode; className?: string; onClick?: () => void; id?: string }) {
   return (

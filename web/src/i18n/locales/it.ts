@@ -145,6 +145,7 @@ const it: Record<string, string> = {
   "row.like": "Mi piace",
   "row.unlike": "Non mi piace più",
   "row.session": "Sessione",
+  "badge.new": "nuovo",
 
   "history.title": "Cronologia",
   "history.cumulative": "Totale",

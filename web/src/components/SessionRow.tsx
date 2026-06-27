@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
-import { Avatar } from "./ui";
+import { Avatar, NewBadge } from "./ui";
 import { HeartIcon, LocationIcon } from "./Icons";
 import { useT } from "../i18n";
 
@@ -45,6 +45,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-slate-100">
             {showName && s.name && <span className="text-brand-300">{s.name}</span>}
+            {showName && s.name && s.author_new && <NewBadge className="ml-1 align-middle" />}
             {showName && s.name && (showSpot && s.spot ? " · " : "")}
             {showSpot && s.spot && <span className="inline-flex items-center gap-1 text-slate-200"><LocationIcon className="h-3.5 w-3.5" /> {s.spot}</span>}
             {!(showName && s.name) && !(showSpot && s.spot) && <span className="text-slate-300">{t("row.session")}</span>}

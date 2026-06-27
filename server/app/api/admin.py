@@ -10,11 +10,14 @@ from __future__ import annotations
 import secrets
 import shutil
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from .. import models, storage
+from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
 from ..media import delete_media
 from ..security import hash_password
@@ -168,23 +171,66 @@ def _user_brief(db: Session, u: models.User) -> dict:
         "is_admin": bool(u.is_admin),
         "blocked": bool(u.blocked),
         "hidden": bool(u.hidden),
+        "new": is_new_account(u.created_at),
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "sessions": nsess,
     }
 
 
-@router.get("/users")
-def list_users(
-    q: str | None = Query(None), limit: int = 50, offset: int = 0,
-    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
-) -> list[dict]:
+def _filtered_users(
+    db: Session, q: str | None, normal: bool, tester: bool, admin: bool, new: bool
+):
+    """Basis-Query mit Namensfilter + Kategorie-Filter (OR der angehakten Klassen).
+    Kategorien: admin=is_admin, tester=hidden, neu=Konto < 24 h, normal=keines davon.
+    Alle vier an = alle Nutzer; keiner an = leer."""
     query = db.query(models.User)
     if q:
         like = f"%{q.lower()}%"
         query = query.filter(func.lower(models.User.email).like(like)
                              | func.lower(func.coalesce(models.User.display_name, "")).like(like))
+    U = models.User
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=NEW_ACCOUNT_AGE_S)
+    c_admin = U.is_admin.is_(True)
+    c_tester = U.hidden.is_(True)
+    c_new = U.created_at > cutoff
+    c_normal = (U.is_admin.isnot(True) & U.hidden.isnot(True)
+                & (U.created_at <= cutoff))  # NULL created_at -> nicht "neu" -> ggf. normal über andere Klassen
+    conds = []
+    if admin:
+        conds.append(c_admin)
+    if tester:
+        conds.append(c_tester)
+    if new:
+        conds.append(c_new)
+    if normal:
+        conds.append(c_normal | U.created_at.is_(None))
+    if not conds:
+        return query.filter(func.coalesce(U.id, 0) < 0)  # nichts angehakt -> leer
+    return query.filter(or_(*conds))
+
+
+@router.get("/users")
+def list_users(
+    q: str | None = Query(None), limit: int = 50, offset: int = 0,
+    normal: bool = Query(True), tester: bool = Query(True),
+    admin: bool = Query(True), new: bool = Query(True),
+    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> list[dict]:
+    query = _filtered_users(db, q, normal, tester, admin, new)
     rows = query.order_by(models.User.id.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 200)).all()
     return [_user_brief(db, u) for u in rows]
+
+
+@router.get("/users/count")
+def count_users(
+    q: str | None = Query(None),
+    normal: bool = Query(True), tester: bool = Query(True),
+    admin: bool = Query(True), new: bool = Query(True),
+    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Anzahl der nach denselben Filtern gefundenen Nutzer (für die Trefferanzeige)."""
+    total = _filtered_users(db, q, normal, tester, admin, new).count()
+    return {"total": total}
 
 
 @router.get("/users/{user_id}/stats")

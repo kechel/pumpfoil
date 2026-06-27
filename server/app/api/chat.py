@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
 from ..push import send_push, wants
 from ..ratelimit import enforce_user_tiers
@@ -23,7 +24,8 @@ AUTOHIDE_REPORTS = 3        # ab so vielen Meldungen automatisch ausblenden
 
 # --- Anti-Spam (Flood-Schutz für eingeloggte Nutzer) ---------------------------
 # Per-User-Postlimit (Stufen: max_hits, window_s). Frische Konten strenger.
-NEW_ACCOUNT_AGE_S = 600                       # Konto jünger als 10 min = "neu"
+# „Neu" = jünger als NEW_ACCOUNT_AGE_S (24 h, s. accounts.py) — dieselbe Schwelle
+# wie das „neu"-Badge in Community & Chat.
 RATE_TIERS = [(5, 10), (30, 300)]             # etablierte Nutzer
 RATE_TIERS_NEW = [(2, 10), (8, 300)]          # frische Konten
 _URL_RE = re.compile(r"https?://|www\.", re.I)  # Link-Drossel für neue Konten
@@ -62,11 +64,13 @@ class PostIn(BaseModel):
     text: str
 
 
-def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int) -> dict:
+def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int,
+             author_new: bool = False) -> dict:
     return {
         "id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
         "text": m.text, "created_at": m.created_at.isoformat() if m.created_at else None,
         "mine": m.user_id == uid, "hidden": m.hidden, "report_count": m.report_count,
+        "author_new": author_new,
     }
 
 
@@ -82,7 +86,8 @@ def list_messages(
     _check_scope(scope)
     lim = min(max(limit, 1), 100)
     q = (
-        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url)
+        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url,
+                 models.User.created_at)
         .join(models.User, models.ChatMessage.user_id == models.User.id)
         .filter(models.ChatMessage.scope == scope)
     )
@@ -101,7 +106,8 @@ def list_messages(
             q = q.filter(models.ChatMessage.id < before)
         rows = q.order_by(models.ChatMessage.id.desc()).limit(lim).all()
         rows = list(reversed(rows))
-    return [_msg_out(m, name, avatar, user.id) for m, name, avatar in rows]
+    return [_msg_out(m, name, avatar, user.id, is_new_account(created))
+            for m, name, avatar, created in rows]
 
 
 @router.post("")
@@ -119,8 +125,7 @@ def post_message(
         text = text[:2000]
 
     now = datetime.now(timezone.utc)
-    age_s = (now - user.created_at).total_seconds() if user.created_at else 1e9
-    is_new = age_s < NEW_ACCOUNT_AGE_S
+    is_new = is_new_account(user.created_at)
 
     # Anti-Spam (Admins ausgenommen — sie moderieren).
     if not user.is_admin:
@@ -146,7 +151,7 @@ def post_message(
             continue
         if r.scope == scope:
             # Gleicher Raum: idempotent zurückgeben (Doppel-Tap/Retry).
-            return _msg_out(r, user.display_name, user.avatar_url, user.id)
+            return _msg_out(r, user.display_name, user.avatar_url, user.id, is_new)
         # Gleicher Text in einem ANDEREN Raum -> Cross-Room-Spam blocken.
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
@@ -163,7 +168,7 @@ def post_message(
     db.commit()
     db.refresh(m)
     _notify_subscribers(db, m, user)
-    return _msg_out(m, user.display_name, user.avatar_url, user.id)
+    return _msg_out(m, user.display_name, user.avatar_url, user.id, is_new)
 
 
 def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User) -> None:
@@ -233,15 +238,16 @@ def list_reported(
     """Admin: alle gemeldeten Nachrichten (report_count > 0), neueste zuerst."""
     _require_admin(user)
     rows = (
-        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url)
+        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url,
+                 models.User.created_at)
         .join(models.User, models.ChatMessage.user_id == models.User.id)
         .filter(models.ChatMessage.report_count > 0)
         .order_by(models.ChatMessage.report_count.desc(), models.ChatMessage.id.desc())
         .limit(200).all()
     )
     out = []
-    for m, name, avatar in rows:
-        d = _msg_out(m, name, avatar, user.id)
+    for m, name, avatar, created in rows:
+        d = _msg_out(m, name, avatar, user.id, is_new_account(created))
         d["scope"] = m.scope
         out.append(d)
     return out

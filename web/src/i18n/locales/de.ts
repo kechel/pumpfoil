@@ -160,6 +160,7 @@ const de: Record<string, string> = {
   "row.like": "Gefällt mir",
   "row.unlike": "Gefällt mir nicht mehr",
   "row.session": "Session",
+  "badge.new": "neu",
 
   // Verlauf
   "history.title": "Verlauf",
@@ -438,6 +439,11 @@ const de: Record<string, string> = {
   "adm.deleteSessionConfirm": "Session löschen?",
   "adm.error": "Fehler: ",
   "adm.searchUsers": "Nutzer suchen (E-Mail / Name)…",
+  "adm.filter.normal": "Normal",
+  "adm.filter.tester": "Tester",
+  "adm.filter.admin": "Admin",
+  "adm.filter.new": "Neu",
+  "adm.foundCount": "{count} gefunden",
   "adm.noUsers": "Keine Nutzer.",
   "adm.noName": "(kein Name)",
   "adm.adminBadge": "Admin",

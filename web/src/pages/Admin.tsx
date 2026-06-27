@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg } from "../lib/api";
-import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter } from "../lib/api";
+import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
@@ -246,6 +246,8 @@ function Act({ tone, onClick, confirm: confirmMsg, children }: { tone: "red" | "
 }
 
 // ------------------------------------------------------------------- Users ----
+const FILTER_KEYS = ["normal", "tester", "admin", "new"] as const;
+
 function UsersTab() {
   const t = useT();
   const [sp, setSp] = useSearchParams();
@@ -257,17 +259,35 @@ function UsersTab() {
     if (val) n.set("q", val); else n.delete("q");
     setSp(n);
   };
+  const [filter, setFilter] = useState<UserFilter>({ normal: true, tester: true, admin: true, new: true });
+  const [total, setTotal] = useState<number | null>(null);
+  const toggle = (k: keyof UserFilter) => setFilter((f) => ({ ...f, [k]: !f[k] }));
   const { items, setItems, loading, sentinel } = useInfinite<AdminUser>(
-    (off) => api.adminUsers(query, 30, off), [query]);
+    (off) => api.adminUsers(query, 30, off, filter),
+    [query, filter.normal, filter.tester, filter.admin, filter.new]);
+  useEffect(() => {
+    setTotal(null);
+    api.adminUsersCount(query, filter).then((r) => setTotal(r.total)).catch(() => {});
+  }, [query, filter.normal, filter.tester, filter.admin, filter.new]);
   const upd = (id: number, patch: Partial<AdminUser>) =>
     setItems((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
   return (
     <div>
-      <form onSubmit={(e) => { e.preventDefault(); setQuery(q); }} className="mb-4 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); setQuery(q); }} className="mb-3 flex gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.searchUsers")}
           className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
         <button className="rounded-xl bg-slate-800 px-4 text-sm text-slate-200">{t("common.search")}</button>
       </form>
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        {FILTER_KEYS.map((k) => (
+          <label key={k} className="flex cursor-pointer select-none items-center gap-1.5 text-sm text-slate-300">
+            <input type="checkbox" checked={filter[k]} onChange={() => toggle(k)}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-500 focus:ring-brand-500" />
+            {t(`adm.filter.${k}`)}
+          </label>
+        ))}
+        <span className="ml-auto text-xs text-slate-400">{total === null ? "…" : t("adm.foundCount", { count: total })}</span>
+      </div>
       {items.length === 0 && !loading ? <Card className="p-8 text-center text-slate-300">{t("adm.noUsers")}</Card> : (
         <div className="space-y-2">
           {items.map((u) => (
@@ -301,6 +321,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
             {u.is_admin && <span className="ml-1"><Badge tone="green">{t("adm.adminBadge")}</Badge></span>}
             {u.blocked && <span className="ml-1"><Badge tone="red">{t("adm.blockedBadge")}</Badge></span>}
             {u.hidden && <span className="ml-1"><Badge tone="amber">{t("adm.testerBadge")}</Badge></span>}
+            {u.new && <span className="ml-1"><NewBadge /></span>}
           </div>
           <div className="truncate text-[11px] text-slate-400">{u.email} · {t("adm.sessionsSince", { sessions: u.sessions, date: fmtDate(u.created_at) })}</div>
         </div>
