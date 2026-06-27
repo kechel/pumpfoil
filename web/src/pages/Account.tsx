@@ -125,7 +125,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
               <WatchIcon className="h-5 w-5 shrink-0 text-brand-400" />
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-slate-100">
-                  {d.label || t("account.deviceUnnamed")}
+                  {d.model || d.label || t("account.deviceUnnamed")}
                   {d.app_version && <span className="ml-2 text-xs font-normal text-slate-400">v{d.app_version}</span>}
                   {d.revoked_at && <span className="ml-2 rounded bg-slate-700/60 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">{t("account.deviceRevoked")}</span>}
                 </div>
@@ -133,9 +133,18 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                   {t("account.deviceLastSeen", { time: fmt(d.last_seen_at) })} · {t("account.devicePaired", { time: fmt(d.created_at) })}
                 </div>
                 {d.update_available && !d.revoked_at && (
-                  <button onClick={() => onDownload?.()} className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
-                    {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
-                  </button>
+                  d.model_id ? (
+                    // Modell bekannt -> 1-Klick-Direktdownload des passenden .prg.
+                    <a href={`/api/app/download/${d.model_id}`} download
+                      className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
+                      {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
+                    </a>
+                  ) : (
+                    // Modell noch unbekannt -> zur Download-Liste (Suche).
+                    <button onClick={() => onDownload?.()} className="mt-1 inline-block rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 hover:bg-amber-500/25 dark:text-amber-300">
+                      {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
+                    </button>
+                  )
                 )}
               </div>
               {!d.revoked_at && (

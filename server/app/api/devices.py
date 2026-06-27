@@ -45,6 +45,10 @@ def device_config(
         device.platform = p[:16]; dirty = True
     if pn is not None and pn != "":
         device.part_number = pn[:32]; dirty = True
+        # Generisches Label durch das echte Modell ersetzen, sobald auflösbar.
+        model = _partmap().get(pn)
+        if model and (not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch")):
+            device.label = model["name"][:120]
     if dirty:
         db.commit()
     user = db.get(models.User, device.user_id)
@@ -117,11 +121,14 @@ def list_devices(
         .all()
     )
     latest_garmin = _latest_garmin_version()
+    pm = _partmap()
     out = []
     for d in rows:
         # Update-Hinweis nur für Garmin (Sideload). Wear/Apple aktualisieren über ihre Stores.
         latest = latest_garmin if (d.platform == "garmin") else None
         update = bool(latest and d.app_version and _version_lt(d.app_version, latest))
+        # Modell aus der gemeldeten Part-Number auflösen -> Name + Download-ID (.prg).
+        model = pm.get(d.part_number) if d.part_number else None
         out.append({
             "id": d.id,
             "label": d.label,
@@ -132,8 +139,22 @@ def list_devices(
             "platform": d.platform,
             "latest_version": latest,
             "update_available": update,
+            "model": model["name"] if model else None,
+            "model_id": model["id"] if model else None,   # für /api/app/download/<id>
         })
     return out
+
+
+def _partmap() -> dict:
+    """Geräte-Part-Number -> {id, name} (aus dem Build, watch/bin/partmap.json).
+    Frisch gelesen (kleine Datei), damit Rebuilds sofort greifen."""
+    try:
+        p = get_settings().app_builds_dir / "partmap.json"
+        if p.exists():
+            return json.loads(p.read_text())
+    except Exception:  # noqa: BLE001
+        pass
+    return {}
 
 
 def _latest_garmin_version() -> str | None:

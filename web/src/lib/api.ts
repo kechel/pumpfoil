@@ -556,6 +556,8 @@ export interface PairedDevice {
   platform: string | null;
   latest_version: string | null;
   update_available: boolean;
+  model: string | null;       // aufgelöstes Modell (aus Part-Number), z. B. "fēnix® 7X Pro"
+  model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
 }
 
 export interface AppDevice {

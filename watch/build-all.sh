@@ -38,6 +38,7 @@ python3 - "$HERE" "$DEVDIR" "$VERSION" <<'PY'
 import json, os, sys
 here, devdir, version = sys.argv[1], sys.argv[2], sys.argv[3]
 cat = []
+partmap = {}   # Geräte-Part-Number (von der Uhr gemeldet) -> {id, name}
 for fn in sorted(os.listdir(os.path.join(here, "bin"))):
     if not (fn.startswith("foil-") and fn.endswith(".prg")):
         continue
@@ -50,11 +51,24 @@ for fn in sorted(os.listdir(os.path.join(here, "bin"))):
         fam = c.get("deviceFamily", "?")
         res = c.get("resolution", {})
         w, h = res.get("width"), res.get("height")
+        # Alle Part-Numbers des Geräts auf (id,name) abbilden — die Uhr meldet eine
+        # davon via getDeviceSettings().partNumber.
+        pns = set()
+        if c.get("worldWidePartNumber"):
+            pns.add(c["worldWidePartNumber"])
+        for pn in c.get("partNumbers", []) or []:
+            if isinstance(pn, dict) and pn.get("number"):
+                pns.add(pn["number"])
+        for pn in pns:
+            partmap[pn] = {"id": dev, "name": name}
     cat.append(dict(id=dev, name=name, family=fam, w=w, h=h,
                     bytes=os.path.getsize(os.path.join(here, "bin", fn)),
                     version=version))
 cat.sort(key=lambda x: x["name"])
 json.dump(cat, open(os.path.join(here, "bin", "catalog.json"), "w"),
           ensure_ascii=False, indent=0)
+json.dump(partmap, open(os.path.join(here, "bin", "partmap.json"), "w"),
+          ensure_ascii=False, indent=0)
 print(f"catalog.json: {len(cat)} Einträge")
+print(f"partmap.json: {len(partmap)} Part-Numbers")
 PY

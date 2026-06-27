@@ -26,7 +26,7 @@ export default function Settings() {
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
-  const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string } | null>(null);
+  const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
 
   useEffect(() => {
     api.getSettings().then((s) => {
@@ -37,7 +37,7 @@ export default function Settings() {
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
     api.myDevices().then((ds) => {
       const d = ds.find((x) => x.update_available && !x.revoked_at);
-      if (d) setWatchUpdate({ version: d.latest_version ?? "", platform: d.platform ?? "", label: d.label ?? "" });
+      if (d) setWatchUpdate({ version: d.latest_version ?? "", platform: d.platform ?? "", label: d.label ?? "", model: d.model ?? "" });
     }).catch(() => {});
   }, []);
   const platformLabel = (p: string) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : "");
@@ -104,7 +104,7 @@ export default function Settings() {
       </div>
 
       <Link
-        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.label, watchUpdate.platform)}` : "/account"}
+        to={watchUpdate ? `/account?tab=app${watchModelQuery(watchUpdate.model || watchUpdate.label, watchUpdate.platform)}` : "/account"}
         className={`mb-4 flex items-center justify-between rounded-2xl border bg-slate-900/60 p-4 hover:bg-slate-900 ${watchUpdate ? "border-amber-500/50 hover:border-amber-500" : "border-slate-800 hover:border-slate-700"}`}
       >
         <span className="flex items-center gap-3">
