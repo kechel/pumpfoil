@@ -59,3 +59,4 @@ vapid_private.pem
 jk-readme.txt
 watch-apple/Sources-iOS/Info.plist
 
+.venv-garmin/

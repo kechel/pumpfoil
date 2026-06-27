@@ -1,2 +1,4 @@
-fits/
 out/
+fits/
+.garmintokens
+fits_garmin/
