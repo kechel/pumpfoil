@@ -386,7 +386,7 @@ const de: Record<string, string> = {
   "sd.smoothToggle": "Glättung oben umschaltbar ({win}s)",
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Dauer",
-  "sd.colAvg": "Ø km/h ({win}s)",
+  "sd.colAvg": "Ø km/h",
   "sd.colMax": "Max km/h ({win}s)",
   "sd.colMin": "Min km/h ({win}s)",
   "sd.colPumps": "Pumps",

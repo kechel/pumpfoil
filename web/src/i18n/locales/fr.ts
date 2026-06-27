@@ -359,7 +359,7 @@ const fr: Record<string, string> = {
   "sd.smoothToggle": "Lissage réglable ci-dessus ({win}s)",
   "sd.colDistance": "Distance",
   "sd.colDuration": "Durée",
-  "sd.colAvg": "Ø km/h ({win}s)",
+  "sd.colAvg": "Ø km/h",
   "sd.colMax": "Max km/h ({win}s)",
   "sd.colMin": "Min km/h ({win}s)",
   "sd.colPumps": "Pumps",

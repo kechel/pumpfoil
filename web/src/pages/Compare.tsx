@@ -52,7 +52,7 @@ function statsFor(it: Item, win: "1" | "3" | "5", weight: number | null): Stats 
       foilingKm: s.distance_m != null ? s.distance_m / 1000 : null,
       foilingTimeS: s.duration_s ?? null,
       runs: null,
-      avgKmh: (s[`avg_${win}s`] ?? s.avg_speed_mps) != null ? (s[`avg_${win}s`] ?? s.avg_speed_mps) * 3.6 : null,
+      avgKmh: s.avg_speed_mps != null ? s.avg_speed_mps * 3.6 : null,
       powerW: powerOf(it.session, s.avg_speed_mps, s.avg_pump_hz, weight),
       maxKmh: (s[`max_${win}s`] ?? s.max_speed_mps) != null ? (s[`max_${win}s`] ?? s.max_speed_mps) * 3.6 : null,
       minKmh: (s[`min_${win}s`] ?? s.min_speed_mps) != null ? (s[`min_${win}s`] ?? s.min_speed_mps) * 3.6 : null,
@@ -328,7 +328,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
               <th className="px-3 py-2 font-medium">{t("sd.run")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colAvg", { win })}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
               {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
@@ -356,7 +356,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
                   <td className="px-3 py-2 tabular-nums">{r.runNo}</td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(r.seg.distance_m)} m</td>
                   <td className="px-3 py-2 tabular-nums">{fmtMMSS(r.seg.duration_s)}</td>
-                  <td className="px-3 py-2 tabular-nums">{spd(r.seg, "avg")}</td>
+                  <td className="px-3 py-2 tabular-nums">{r.seg.avg_speed_mps != null ? (r.seg.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
                   <td className="px-3 py-2 tabular-nums">{spd(r.seg, "max")}</td>
                   <td className="px-3 py-2 tabular-nums">{spd(r.seg, "min")}</td>
                   {showPower && <td className="px-3 py-2 tabular-nums text-brand-400">{power != null ? `${power} W` : "–"}</td>}

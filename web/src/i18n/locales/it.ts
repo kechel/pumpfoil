@@ -359,7 +359,7 @@ const it: Record<string, string> = {
   "sd.smoothToggle": "Smussatura regolabile sopra ({win}s)",
   "sd.colDistance": "Distanza",
   "sd.colDuration": "Durata",
-  "sd.colAvg": "Ø km/h ({win}s)",
+  "sd.colAvg": "Ø km/h",
   "sd.colMax": "Max km/h ({win}s)",
   "sd.colMin": "Min km/h ({win}s)",
   "sd.colPumps": "Pumps",

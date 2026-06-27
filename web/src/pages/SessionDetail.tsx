@@ -1055,7 +1055,7 @@ function RunsTable({
               <th className="px-3 py-2 font-medium">#</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
-              <th className="px-3 py-2 font-medium">{t("sd.colAvg", { win })}</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMax", { win })}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colMin", { win })}</th>
               {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
@@ -1095,7 +1095,7 @@ function RunsTable({
                   </td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
                   <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>
-                  <td className="px-3 py-2 tabular-nums">{val(s, "avg")}</td>
+                  <td className="px-3 py-2 tabular-nums">{s.avg_speed_mps != null ? (s.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "max")}</td>
                   <td className="px-3 py-2 tabular-nums">{val(s, "min")}</td>
                   {showPower && (
