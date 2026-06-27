@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..config import get_settings
 from ..db import get_db
 from ..ratelimit import rate_limit
 from ..schemas import (
@@ -135,8 +136,7 @@ def _latest_garmin_version() -> str | None:
     """Neueste gebaute Garmin-App-Version aus dem Build-Katalog (Quelle der Wahrheit
     für den Sideload-Download)."""
     try:
-        from ..config import settings
-        cat = settings.app_builds_dir / "catalog.json"
+        cat = get_settings().app_builds_dir / "catalog.json"
         if not cat.exists():
             return None
         data = json.loads(cat.read_text())
