@@ -37,6 +37,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..schemas import TokenOut
 from ..security import create_access_token, hash_password
+from .auth import _clean_lang
 
 router = APIRouter(prefix="/api/auth/oauth", tags=["oauth"])
 
@@ -108,8 +109,10 @@ def providers() -> list[dict]:
 
 
 @router.get("/{provider}/start")
-def start(provider: str):
-    """Startet den Login: leitet zum Provider-Consent weiter (state+PKCE im Cookie)."""
+def start(provider: str, lang: str | None = None):
+    """Startet den Login: leitet zum Provider-Consent weiter (state+PKCE im Cookie).
+    `lang` = aktuell gewählte UI-Sprache der öffentlichen Seite; wird über ein Cookie
+    durch den Redirect-Roundtrip getragen und bei NEUEN Konten als Profilsprache gesetzt."""
     cfg = _enabled(provider)
     state = secrets.token_urlsafe(24)
     params = {
@@ -134,6 +137,8 @@ def start(provider: str):
     resp.set_cookie("oauth_state", state, max_age=600, httponly=True, secure=secure, samesite="lax")
     if verifier:
         resp.set_cookie("oauth_pkce", verifier, max_age=600, httponly=True, secure=secure, samesite="lax")
+    if lang:
+        resp.set_cookie("oauth_lang", _clean_lang(lang), max_age=600, httponly=True, secure=secure, samesite="lax")
     return resp
 
 
@@ -203,6 +208,7 @@ async def callback(
     db: Session = Depends(get_db),
     oauth_state: str | None = Cookie(None),
     oauth_pkce: str | None = Cookie(None),
+    oauth_lang: str | None = Cookie(None),
 ):
     """Tauscht den Code gegen ein Token, ermittelt die Identität, loggt ein/registriert
     und leitet mit unserem JWT zurück ins Frontend (#token=...)."""
@@ -237,18 +243,21 @@ async def callback(
     if not subject:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No identity from provider")
 
-    user = _login_or_create(db, provider, subject, email, name)
+    user = _login_or_create(db, provider, subject, email, name, language=oauth_lang)
     jwt = create_access_token(user.id)
     resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}")
     resp.delete_cookie("oauth_state")
     resp.delete_cookie("oauth_pkce")
+    resp.delete_cookie("oauth_lang")
     return resp
 
 
 # ---------------------------------------------------------------- Find-or-create ----
-def _login_or_create(db: Session, provider: str, subject: str, email: str | None, name: str | None) -> models.User:
+def _login_or_create(db: Session, provider: str, subject: str, email: str | None, name: str | None,
+                     language: str | None = None) -> models.User:
     """Verknüpfte Identität finden oder Konto anlegen (E-Mail-Merge). Shared von
-    Web-Redirect-Callback UND nativen Sign-in-Endpoints."""
+    Web-Redirect-Callback UND nativen Sign-in-Endpoints. `language` = gewünschte
+    Profilsprache (UI-Sprache bei der Registrierung); greift NUR bei NEUEN Konten."""
     ident = db.query(models.OAuthIdentity).filter_by(provider=provider, subject=subject).first()
     if ident:
         user = db.get(models.User, ident.user_id)
@@ -265,7 +274,7 @@ def _login_or_create(db: Session, provider: str, subject: str, email: str | None
                 email=login_email,
                 password_hash=hash_password(secrets.token_urlsafe(24)),
                 display_name=display,
-                language="de",
+                language=_clean_lang(language),
             )
             db.add(user)
             db.flush()
@@ -289,6 +298,7 @@ _GOOGLE_ISS = {"https://accounts.google.com", "accounts.google.com"}
 class NativeAuthIn(BaseModel):
     id_token: str
     name: str | None = None   # Apple liefert den Namen nur beim 1. Login (über die App)
+    language: str | None = None  # App-UI-Sprache -> Profilsprache bei NEUEM Konto
 
 
 def _csv(*vals: str | None) -> list[str]:
@@ -324,7 +334,7 @@ def native_apple(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut:
     claims = _verify_id_token(body.id_token, _APPLE_JWKS, _apple_audiences())
     if claims.get("iss") != _APPLE_ISS or not claims.get("sub"):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Apple token")
-    user = _login_or_create(db, "apple", claims["sub"], claims.get("email"), body.name)
+    user = _login_or_create(db, "apple", claims["sub"], claims.get("email"), body.name, language=body.language)
     return TokenOut(access_token=create_access_token(user.id))
 
 
@@ -336,5 +346,5 @@ def native_google(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut
     claims = _verify_id_token(body.id_token, _GOOGLE_JWKS, auds)
     if claims.get("iss") not in _GOOGLE_ISS or not claims.get("sub"):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Google token")
-    user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"))
+    user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"), language=body.language)
     return TokenOut(access_token=create_access_token(user.id))

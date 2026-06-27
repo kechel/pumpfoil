@@ -118,7 +118,7 @@ export default function Login() {
                 return (
                   <a
                     key={p.id}
-                    href={`/api/auth/oauth/${p.id}/start`}
+                    href={`/api/auth/oauth/${p.id}/start?lang=${encodeURIComponent(lang)}`}
                     className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-100 hover:bg-slate-700"
                   >
                     {Icon && <Icon className="h-5 w-5" />}

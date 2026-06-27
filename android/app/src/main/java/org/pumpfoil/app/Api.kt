@@ -46,14 +46,14 @@ object Api {
     }
 
     suspend fun nativeGoogle(idToken: String): String = withContext(Dispatchers.IO) {
-        val body = buildJsonObject { put("id_token", idToken) }.toString()
+        val body = buildJsonObject { put("id_token", idToken); put("language", I18n.lang) }.toString()
         val resp = http("POST", "/api/auth/oauth/native/google", body, auth = false)
         json.decodeFromString(TokenResp.serializer(), resp).access_token
     }
 
     suspend fun register(email: String, password: String, displayName: String): String = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
-            put("email", email); put("password", password)
+            put("email", email); put("password", password); put("language", I18n.lang)
             if (displayName.isNotBlank()) put("display_name", displayName)
         }.toString()
         val resp = http("POST", "/api/auth/register", body, auth = false)
