@@ -100,6 +100,9 @@ class DeviceToken(Base):
     # übertragen, um im Web einen Update-Hinweis zu zeigen.
     app_version: Mapped[str | None] = mapped_column(String(20))
     platform: Mapped[str | None] = mapped_column(String(16))
+    # Roh gemeldete Geräte-Part-Number (Garmin worldWidePartNumber) -> später
+    # serverseitige Modell-Zuordnung (sobald echte Werte vorliegen).
+    part_number: Mapped[str | None] = mapped_column(String(32))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

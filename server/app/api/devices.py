@@ -33,15 +33,19 @@ def device_config(
     db: Session = Depends(get_db),
     v: str | None = Query(None),   # gemeldete App-Version der Uhr
     p: str | None = Query(None),   # Plattform: garmin | wear | apple
+    pn: str | None = Query(None),  # Geräte-Part-Number (Garmin) -> später Modell-Zuordnung
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
-    meldet dabei ihre Version (v) + Plattform (p) -> Update-Hinweis im Web."""
+    meldet dabei ihre Version (v) + Plattform (p) + Part-Number (pn) -> Update-Hinweis."""
+    dirty = False
     if v is not None and v != "":
-        device.app_version = v[:20]
+        device.app_version = v[:20]; dirty = True
     if p is not None and p != "":
-        device.platform = p[:16]
-    if v or p:
+        device.platform = p[:16]; dirty = True
+    if pn is not None and pn != "":
+        device.part_number = pn[:32]; dirty = True
+    if dirty:
         db.commit()
     user = db.get(models.User, device.user_id)
     settings = json.loads(user.settings_json) if user and user.settings_json else {}

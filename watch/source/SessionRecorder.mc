@@ -263,9 +263,14 @@ class SessionRecorder {
     function fetchConfig() {
         var token = Config.getString("deviceToken");
         if (token == null || token.equals("")) { return; }
+        // Geräte-Part-Number melden -> Server kann später das Modell zuordnen
+        // (für den Update-Hinweis/Download). Null-sicher.
+        var pn = "";
+        var ds = System.getDeviceSettings();
+        if (ds != null && ds.partNumber != null) { pn = ds.partNumber; }
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/config",
-            { "v" => Config.VERSION, "p" => "garmin" },   // Version+Plattform melden -> Update-Hinweis im Web
+            { "v" => Config.VERSION, "p" => "garmin", "pn" => pn },   // Version+Plattform+PartNo melden
             {
                 :method => Communications.HTTP_REQUEST_METHOD_GET,
                 :headers => { "X-Device-Token" => token },
