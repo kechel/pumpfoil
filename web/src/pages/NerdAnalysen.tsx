@@ -66,9 +66,7 @@ export default function NerdAnalysen() {
       <p className="text-sm text-slate-300">
         Statt der (auf der schwachen FR55 abbrechenden) Roh-Chunks haben wir die <b>Original-FIT-Dateien</b>
         aus Garmin Connect ausgewertet: fenix <b>100 Hz</b>, Mast <b>25 Hz</b>, jeweils über den ganzen Lauf.
-        Beide Uhren laufen über die Systemzeit synchron. Nebenbei fiel ein Skalierungs-Bug auf: Garmin
-        liefert die Beschleunigung in Milli-g (÷1000 = g), unsere App deklarierte fälschlich „2048" — das
-        verschluckt in der Server-Analyse reale Pump-Fenster (To-do: Fix auf 1000).
+        Beide Uhren laufen über die Systemzeit synchron.
       </p>
 
       <H>Die Startsequenz</H>
@@ -119,7 +117,7 @@ export default function NerdAnalysen() {
       <H>Was wir gelernt haben</H>
       <Key>
         <ul className="list-disc space-y-1.5 pl-5">
-          <li><b>Pump-Erkennung</b> trifft Rate & Anzahl (~1,29 Hz). Größter Hebel: den accel_scale-Bug (2048 → 1000) fixen.</li>
+          <li><b>Pump-Erkennung</b> trifft Rate & Anzahl gut (~1,29 Hz) — deckt sich mit der Foil-Wahrheit am Mast (wenige % Abweichung).</li>
           <li><b>On-Foil-Erkennung</b> liegt gut — sie zeigt den Steg/Absprung präzise (snappt auf den Aufsprung-Impuls).</li>
           <li><b>Gleitphase / Auslaufen</b>: hier ist das größte Potenzial — „On-Foil ∧ Pump-Aktivität ≈ 0" könnte das Gleiten am Ende explizit ausweisen.</li>
           <li>Alles davon ist <b>nur mit der Handgelenk-Uhr</b> machbar — die Mast-Uhr war nur die Wahrheits-Referenz.</li>
