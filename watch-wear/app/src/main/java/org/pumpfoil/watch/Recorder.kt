@@ -50,20 +50,57 @@ object Recorder {
         val uploadError: String = "",     // letzte Fehlerursache: "" | "offline" | "server"
         val pendingCount: Int = 0,        // lokal gespeicherte, noch nicht hochgeladene Sessions
         val isFoiling: Boolean = false,   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
+        // Lauf-Metriken (wie Garmin _updateRun): aktueller Lauf live, sonst letzter.
+        val runCount: Int = 0,
+        val runDurationMs: Long = 0,      // aktueller Lauf (foilend) bzw. letzter Lauf
+        val runDistanceM: Double = 0.0,
+        val runMaxSpeedKmh: Double = 0.0, // Max im aktuellen Lauf
+        val lastRunDurationMs: Long = 0,
+        val lastRunDistanceM: Double = 0.0,
+        val lastRunAvgSpeedKmh: Double = 0.0,
+        val lastRunMaxSpeedKmh: Double = 0.0,
     )
 
-    // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s), raus unter ~9 km/h (3 s).
+    // Foil-/Lauf-Erkennung wie Garmin: rein ab ~10 km/h (3 s Dwell), raus unter ~9 km/h (3 s).
+    private const val RUN_ENTER_DWELL = 3
+    private const val RUN_EXIT_DWELL = 3
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
     private var foiling = false
+    // Lauf-Metriken
+    private var runStartMs = 0L
+    private var runStartDist = 0.0
+    private var runMaxMps = 0.0
+    private var runCount = 0
+    private var lastRunDurMs = 0L
+    private var lastRunDistM = 0.0
+    private var lastRunAvgMps = 0.0
+    private var lastRunMaxMps = 0.0
 
-    private fun updateFoiling(sp3Kmh: Double): Boolean {
+    // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
+    private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
             foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
-            if (foilEnterStreak >= 3) { foiling = true; foilExitStreak = 0 }
+            if (foilEnterStreak >= RUN_ENTER_DWELL) {
+                foiling = true; foilExitStreak = 0
+                // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                runStartMs = tMs - RUN_ENTER_DWELL * 1000L
+                runStartDist = dist
+                runMaxMps = spMps
+            }
         } else {
+            if (spMps > runMaxMps) runMaxMps = spMps
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
-            if (foilExitStreak >= 3) { foiling = false; foilEnterStreak = 0 }
+            if (foilExitStreak >= RUN_EXIT_DWELL) {
+                foiling = false; foilEnterStreak = 0
+                // Lauf-Ende auf den Dwell-Beginn zurückdatieren; Kennzahlen festhalten.
+                val durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
+                lastRunDurMs = durMs
+                lastRunDistM = (dist - runStartDist).coerceAtLeast(0.0)
+                lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
+                lastRunMaxMps = runMaxMps
+                runCount++
+            }
         }
         return foiling
     }
@@ -127,6 +164,8 @@ object Recorder {
             .put("accel_scale", ACCEL_SCALE.toInt()))
         running = true
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0
+        runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
+        lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         _state.value = State(recording = true, status = "Aufnahme läuft",
             pendingCount = LocalStore.pendingCount(ctx))
         scope.launch { flushLoop() }
@@ -255,6 +294,11 @@ object Recorder {
         }
         val sec = (tMs / 1000.0).coerceAtLeast(1.0)
         val sp3 = if (spWin.isEmpty()) sp else spWin.sumOf { it[1] } / spWin.size
+        val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
+        // aktueller Lauf live (solange foilend), sonst letzter Lauf
+        val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
+        val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM
+        val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
         _state.value = _state.value.copy(
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
@@ -262,7 +306,15 @@ object Recorder {
             distanceM = distM,
             avgSpeedKmh = distM / sec * 3.6,
             elapsedSec = (tMs / 1000).toLong(),
-            isFoiling = updateFoiling(sp3 * 3.6),
+            isFoiling = nowFoiling,
+            runCount = runCount,
+            runDurationMs = runDur,
+            runDistanceM = runDist,
+            runMaxSpeedKmh = runMax * 3.6,
+            lastRunDurationMs = lastRunDurMs,
+            lastRunDistanceM = lastRunDistM,
+            lastRunAvgSpeedKmh = lastRunAvgMps * 3.6,
+            lastRunMaxSpeedKmh = lastRunMaxMps * 3.6,
         )
     }
     fun setHr(bpm: Int) {

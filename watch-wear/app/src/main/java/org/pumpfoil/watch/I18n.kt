@@ -82,4 +82,17 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "f.bpmMax" to row("max bpm", "max bpm", "max bpm", "max bpm", "max bpm", "max bpm", "máx bpm"),
     "f.time" to row("Zeit", "Ziit", "Zeit", "Time", "Temps", "Tempo", "Tiempo"),
     "f.clock" to row("Uhr", "Uhr", "Uhr", "Clock", "Heure", "Ora", "Hora"),
+    // Höhe / Temperatur / Aufstieg
+    "f.alt" to row("Höhe", "Höchi", "Höhe", "Altitude", "Altitude", "Altitudine", "Altitud"),
+    "f.temp" to row("Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp"),
+    "f.ascent" to row("Aufstieg", "Ufstig", "Aufstieg", "Ascent", "Dénivelé", "Dislivello", "Ascenso"),
+    // Lauf-Felder (aktueller Lauf)
+    "f.runTime" to row("Lauf-Zeit", "Lauf-Ziit", "Lauf-Zeit", "Run time", "Temps run", "Tempo run", "Tiempo run"),
+    "f.runDist" to row("Lauf-Dist", "Lauf-Dist", "Lauf-Dist", "Run dist", "Dist run", "Dist run", "Dist run"),
+    "f.runs" to row("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Runs"),
+    // Lauf-Felder (letzter Lauf)
+    "f.lastRunTime" to row("letzte Zeit", "letschti Ziit", "letzte Zeit", "last time", "dern. temps", "ult. tempo", "últ. tiempo"),
+    "f.lastRunDist" to row("letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist"),
+    "f.lastRunAvg" to row("letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med"),
+    "f.lastRunMax" to row("letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx"),
 )

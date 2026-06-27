@@ -392,7 +392,7 @@ private val DEFAULT_VIEWS = listOf(
     listOf(4, 3),   // Distanz + Zeit
 )
 
-// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (Kernsatz; Rest "—").
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 21 Felder).
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
     1 -> String.format("%.1f", s.speed3sKmh) to I18n.t("f.kmh3s")
     5 -> String.format("%.1f", s.speedKmh) to I18n.t("f.kmh")
@@ -401,17 +401,43 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     2 -> (if (s.hr > 0) s.hr.toString() else "–") to I18n.t("f.bpm")
     8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to I18n.t("f.bpmAvg")
     9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to I18n.t("f.bpmMax")
-    3 -> String.format("%d:%02d", s.elapsedSec / 60, s.elapsedSec % 60) to I18n.t("f.time")
+    3 -> msStr(s.elapsedSec * 1000) to I18n.t("f.time")
     4 -> if (s.distanceM < 1000) String.format("%.0f", s.distanceM) to "m"
          else String.format("%.2f", s.distanceM / 1000.0) to "km"
-    12 -> java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()) to I18n.t("f.clock")
+    10 -> "–" to I18n.t("f.alt")        // ohne Baro/Höhen-Erfassung (noch) nicht verfügbar
+    11 -> "–" to I18n.t("f.temp")       // kein Temperatursensor
+    12 -> clockStr() to I18n.t("f.clock")
+    13 -> "–" to I18n.t("f.ascent")
+    14 -> msStr(s.runDurationMs) to I18n.t("f.runTime")
+    15 -> distLabeled(s.runDistanceM) to I18n.t("f.runDist")
+    16 -> msStr(s.lastRunDurationMs) to I18n.t("f.lastRunTime")
+    17 -> distLabeled(s.lastRunDistanceM) to I18n.t("f.lastRunDist")
+    18 -> String.format("%.1f", s.lastRunAvgSpeedKmh) to I18n.t("f.lastRunAvg")
+    19 -> String.format("%.1f", s.lastRunMaxSpeedKmh) to I18n.t("f.lastRunMax")
+    20 -> s.runCount.toString() to I18n.t("f.runs")
     else -> "—" to ""
 }
 
+private fun msStr(ms: Long): String { val sec = ms / 1000; return String.format("%d:%02d", sec / 60, sec % 60) }
+private fun distLabeled(m: Double): String =
+    if (m < 1000) String.format("%.0f m", m) else String.format("%.2f km", m / 1000.0)
+private fun clockStr(): String =
+    java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+
 private fun fieldColor(id: Int, s: Recorder.State): Color = when (id) {
     1, 5, 6, 7 -> speedColor(when (id) { 1 -> s.speed3sKmh; 6 -> s.avgSpeedKmh; 7 -> s.maxSpeedKmh; else -> s.speedKmh })
-    2, 8, 9 -> Color(0xFFF87171) // Puls rötlich
+    18 -> speedColor(s.lastRunAvgSpeedKmh)
+    19 -> speedColor(s.lastRunMaxSpeedKmh)
+    2, 8, 9 -> hrColor(when (id) { 8 -> s.avgHr; 9 -> s.maxHr; else -> s.hr })
     else -> Color.Unspecified
+}
+// Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
+private fun hrColor(bpm: Int): Color = when {
+    bpm <= 0 -> Color.Unspecified
+    bpm < 120 -> Color(0xFF4ADE80)
+    bpm < 150 -> Color(0xFFFACC15)
+    bpm < 170 -> Color(0xFFFB923C)
+    else -> Color(0xFFF87171)
 }
 private fun speedColor(kmh: Double): Color {
     val tcl = ((kmh - 8) / (25 - 8)).coerceIn(0.0, 1.0)   // blau(langsam) -> rot(schnell)
