@@ -13,7 +13,9 @@ android {
         applicationId = "org.pumpfoil.app"
         minSdk = 30          // Wear OS 3
         targetSdk = 34
-        versionCode = 11
+        // Eigener hoher versionCode-Bereich für Wear: Phone + Wear teilen die applicationId,
+        // daher müssen die versionCodes über BEIDE AABs eindeutig sein. 1xxx = Wear, Phone bleibt klein.
+        versionCode = 1005
         versionName = "1.0.5"
     }
     buildFeatures { compose = true }
