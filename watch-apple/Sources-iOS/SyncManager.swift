@@ -15,6 +15,8 @@ final class SyncManager: NSObject, ObservableObject {
     @Published var connected = false
     @Published var syncing = false
     @Published var tick = 0
+    @Published var watchPaired = false        // ist überhaupt eine Apple Watch gekoppelt?
+    @Published var watchAppInstalled = false  // ist unsere Watch-App auf der Uhr installiert?
 
     private override init() {
         super.init()
@@ -25,8 +27,10 @@ final class SyncManager: NSObject, ObservableObject {
     }
 
     func refreshConnection() {
-        guard WCSession.isSupported() else { connected = false; return }
+        guard WCSession.isSupported() else { connected = false; watchPaired = false; watchAppInstalled = false; return }
         let s = WCSession.default
+        watchPaired = s.isPaired
+        watchAppInstalled = s.isWatchAppInstalled
         connected = s.isPaired && s.isWatchAppInstalled
         if connected { pushPairingToWatch() }
     }

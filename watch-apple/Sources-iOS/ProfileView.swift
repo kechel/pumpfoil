@@ -4,6 +4,7 @@ import PhotosUI
 // Profil: Avatar (antippbar zum Ändern), Anzeigename, Navigationsziele, Abmelden.
 struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
+    @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
     @State private var editing = false
     @State private var draftName = ""
@@ -31,6 +32,21 @@ struct ProfileView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                // Apple-Watch-Status: Updates kommen automatisch mit der iPhone-App (eingebettet);
+                // ist die Uhr gekoppelt, aber die App fehlt -> Hinweis (Installieren via Watch-App).
+                Section(Loc.t("watch.title", lang)) {
+                    if sync.watchAppInstalled {
+                        Label(Loc.t("watch.ok", lang), systemImage: "checkmark.circle.fill")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else if sync.watchPaired {
+                        Label(Loc.t("watch.notInstalled", lang), systemImage: "applewatch.slash")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Label(Loc.t("watch.none", lang), systemImage: "applewatch")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .task { sync.refreshConnection() }
                 Section {
                     NavigationLink {
                         FoilsView()

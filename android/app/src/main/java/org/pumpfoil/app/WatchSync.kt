@@ -1,6 +1,10 @@
 package org.pumpfoil.app
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.wear.remote.interactions.RemoteActivityHelper
+import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +27,11 @@ object WatchSync {
     val syncing = MutableStateFlow(false)
     val connected = MutableStateFlow(false)
     val tick = MutableStateFlow(0)
+    val watchPaired = MutableStateFlow(false)     // ist überhaupt eine Wear-Uhr gekoppelt?
+    val watchInstalled = MutableStateFlow(false)  // ist UNSERE Wear-App auf der Uhr installiert?
+
+    // Von der Wear-App via res/values/wear.xml (android_wear_capabilities) beworben.
+    private const val WEAR_CAP = "pumpfoil_wear_app"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -57,9 +66,37 @@ object WatchSync {
     fun refreshConnection(ctx: Context) {
         val app = ctx.applicationContext
         scope.launch {
-            connected.value = try {
+            val paired = try {
                 Wearable.getNodeClient(app).connectedNodes.await().isNotEmpty()
             } catch (_: Exception) { false }
+            watchPaired.value = paired
+            connected.value = paired
+            // Ist unsere Wear-App auf einer (gekoppelten) Uhr installiert? -> Capability.
+            watchInstalled.value = try {
+                Wearable.getCapabilityClient(app)
+                    .getCapability(WEAR_CAP, CapabilityClient.FILTER_ALL).await()
+                    .nodes.isNotEmpty()
+            } catch (_: Exception) { false }
+            if (paired) pushPairing(app)
+        }
+    }
+
+    // Öffnet den Play Store DIREKT auf der Uhr bei unserer App (Installieren/Aktualisieren).
+    // Wear-OS-idiomatisch: man kann die Uhr-App nicht vom Phone aus „pushen", aber den
+    // Store-Eintrag auf der Uhr aufrufen (RemoteActivityHelper).
+    fun installOnWatch(ctx: Context) {
+        val app = ctx.applicationContext
+        scope.launch {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                    .addCategory(Intent.CATEGORY_BROWSABLE)
+                    .setData(Uri.parse("market://details?id=org.pumpfoil.app"))
+                val nodes = Wearable.getNodeClient(app).connectedNodes.await()
+                val helper = RemoteActivityHelper(app)
+                for (n in nodes) {
+                    try { helper.startRemoteActivity(intent, n.id) } catch (_: Exception) {}
+                }
+            } catch (_: Exception) { /* keine Uhr / offline */ }
         }
     }
 

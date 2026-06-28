@@ -45,6 +45,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
+    implementation("androidx.wear:wear-remote-interactions:1.0.0")   // Play Store auf der Uhr öffnen
     implementation("org.osmdroid:osmdroid-android:6.1.18")   // FLOSS-Karte (OSM) für Spots
     implementation("io.coil-kt:coil-compose:2.6.0")          // Async-Bildladen (Fotos)
     implementation("androidx.credentials:credentials:1.3.0")                 // „Mit Google anmelden"

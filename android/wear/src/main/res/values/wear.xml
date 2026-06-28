@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bewirbt eine Capability, sobald die Wear-App installiert ist -> die Phone-App
+     erkennt damit, ob unsere App auf der gekoppelten Uhr vorhanden ist. -->
+<resources>
+    <string-array name="android_wear_capabilities">
+        <item>pumpfoil_wear_app</item>
+    </string-array>
+</resources>
