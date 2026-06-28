@@ -7,9 +7,17 @@ struct VerlaufView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var windowDays = 0   // 0 = Gesamt
+    @State private var metric: HMetric = .km
 
     private var shown: [HistoryPoint] {
         windowDays == 0 ? items : items.filter { withinDays($0.started_at, windowDays) }
+    }
+
+    // Chronologisch (alt→neu) für den Trend-Chart.
+    private var chartValues: [Double] {
+        shown.map { (parseDate($0.started_at) ?? Date.distantPast, metric.value($0)) }
+            .sorted { $0.0 < $1.0 }
+            .map { $0.1 }
     }
 
     var body: some View {
@@ -31,6 +39,21 @@ struct VerlaufView: View {
                             Spacer(); stat(String(format: "%.1f", shown.reduce(0) { $0 + $1.foiling_km }), "km")
                             Spacer(); stat("\(shown.reduce(0) { $0 + $1.runs })", Loc.t("home.runs", lang))
                             Spacer(); stat("\(shown.reduce(0) { $0 + $1.pumps })", Loc.t("home.pumps", lang))
+                        }
+                    }
+                    if shown.count >= 2 {
+                        Section(metric.title(lang)) {
+                            Picker("", selection: $metric) {
+                                ForEach(HMetric.allCases, id: \.self) { m in Text(m.short(lang)).tag(m) }
+                            }
+                            .pickerStyle(.segmented)
+                            VStack(alignment: .leading, spacing: 4) {
+                                HistoryChart(values: chartValues)
+                                    .frame(height: 120)
+                                if let mx = chartValues.max() {
+                                    Text("max \(metric.fmt(mx))").font(.caption2).foregroundStyle(.secondary)
+                                }
+                            }
                         }
                     }
                 }
@@ -89,9 +112,79 @@ struct VerlaufView: View {
         return date > Date().addingTimeInterval(-Double(days) * 86400)
     }
 
+    private func parseDate(_ iso: String) -> Date? {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: iso) { return d }
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: iso)
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         do { items = try await Api.history(); error = nil }
         catch { self.error = error.localizedDescription }
+    }
+}
+
+// Auswählbare Trend-Metrik (spiegelt die Web-History-Serien).
+enum HMetric: CaseIterable {
+    case km, runs, pumps, speed, perPump
+
+    func value(_ h: HistoryPoint) -> Double {
+        switch self {
+        case .km: return h.foiling_km
+        case .runs: return Double(h.runs)
+        case .pumps: return Double(h.pumps)
+        case .speed: return h.speed * 3.6
+        case .perPump: return h.pumps > 0 ? h.foiling_km * 1000 / Double(h.pumps) : 0
+        }
+    }
+
+    func short(_ lang: String) -> String {
+        switch self {
+        case .km: return "km"
+        case .runs: return Loc.t("home.runs", lang)
+        case .pumps: return Loc.t("home.pumps", lang)
+        case .speed: return "km/h"
+        case .perPump: return "m/P"
+        }
+    }
+
+    func title(_ lang: String) -> String {
+        switch self {
+        case .km: return Loc.t("home.foiling", lang)
+        case .runs: return Loc.t("home.runs", lang)
+        case .pumps: return Loc.t("home.pumps", lang)
+        case .speed: return "km/h"
+        case .perPump: return "m/Pump"
+        }
+    }
+
+    func fmt(_ v: Double) -> String {
+        switch self {
+        case .runs, .pumps: return String(Int(v.rounded()))
+        default: return String(format: "%.1f", v)
+        }
+    }
+}
+
+// Schlanker Balken-Trend (Canvas, iOS-15-sicher) — ein Balken je Session, alt→neu.
+struct HistoryChart: View {
+    let values: [Double]
+    var body: some View {
+        Canvas { ctx, size in
+            guard !values.isEmpty else { return }
+            let maxV = max(values.max() ?? 1, 0.0001)
+            let n = values.count
+            let gap: CGFloat = n > 1 ? min(3, size.width / CGFloat(n) * 0.3) : 0
+            let bw = max(1, (size.width - gap * CGFloat(n - 1)) / CGFloat(n))
+            for (i, v) in values.enumerated() {
+                let h = CGFloat(max(0, v) / maxV) * size.height
+                let x = CGFloat(i) * (bw + gap)
+                let rect = CGRect(x: x, y: size.height - h, width: bw, height: max(1, h))
+                ctx.fill(Path(roundedRect: rect, cornerRadius: min(2, bw / 2)), with: .color(.accentColor))
+            }
+        }
     }
 }
