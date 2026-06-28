@@ -30,11 +30,11 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_VERSION: "5.0"
-        # TEMP-Diagnose: pro Datei kompilieren (statt Whole-Module) -> Xcode zeigt
-        # "Compiling X.swift" einzeln und bleibt an der langsamen Datei sichtbar hängen.
-        # Plus: Type-Check >100 ms als gelbe Warnung (⌘5) mit Datei+Zeile. Nach dem Fund ENTFERNEN.
+        # Pro Datei kompilieren statt Whole-Module: der Release-Build hing minutenlang in der
+        # WMO-Optimierung (alle 28 Dateien als ein Block). Per-File baut zuverlässig schnell durch;
+        # der Type-Check selbst ist gesund (max ~450 ms). Laufzeit-Unterschied für diese App
+        # vernachlässigbar (keine cross-module Inlining-kritischen Hot-Paths).
         SWIFT_COMPILATION_MODE: singlefile
-        OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100"
         TARGETED_DEVICE_FAMILY: "1"   # nur iPhone (Portrait-Port; iPad-Multitasking-Orientierungen entfallen)
         # DEVELOPMENT_TEAM: MEKT477FXE  # <- in Xcode unter Signing & Capabilities (SmartKomm GmbH)
     info:
