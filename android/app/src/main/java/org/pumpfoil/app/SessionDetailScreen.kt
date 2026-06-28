@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -220,6 +221,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
     var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
     var win by remember(s.id) { mutableStateOf(3) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
+    var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var editCaption by remember(s.id) { mutableStateOf(false) }
@@ -365,7 +367,17 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                     }
                 }
                 Card(Modifier.fillMaxWidth()) {
-                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win, Modifier.fillMaxWidth().height(300.dp))
+                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                        selectedRun, { selectedRun = if (selectedRun == it) null else it },
+                        Modifier.fillMaxWidth().height(300.dp))
+                }
+                selectedRun?.let { sel ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("${I18n.t("home.runs")} #${sel + 1}", style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(8.dp))
+                        TextButton(onClick = { selectedRun = null }) { Text(I18n.t("sd.clearSelection")) }
+                    }
                 }
                 if (a.pumpCount != null && a.pumpCount > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -399,16 +411,30 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         if (a == null) {
             Text(I18n.t("sd.analyzing"), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
+            val m = a.metrics
+            val segList = a.segments.orEmpty()
+            fun dist(x: Double) = if (x < 1000) "%.0f m".format(x) else "%.2f km".format(x / 1000)
+            fun mmssD(x: Double) = "%d:%02d".format((x / 60).toInt(), (x % 60).toInt())
             val stats = buildList {
-                a.totalDistanceM?.let { add(I18n.t("compare.distance") to "%.0f m".format(it)) }
-                a.foilingDistanceM?.let { add(I18n.t("home.foiling") to "%.0f m".format(it)) }
+                a.totalDistanceM?.let { add(I18n.t("compare.distance") to dist(it)) }
+                a.foilingDistanceM?.let { add(I18n.t("home.foiling") to dist(it)) }
+                a.foilingTimeS?.let { add(I18n.t("compare.foilTime") to mmssD(it)) }
+                if (segList.isNotEmpty()) add(I18n.t("home.runs") to segList.size.toString())
+                (m?.avgSpeedMps)?.let { add(I18n.t("sd.avgSpeed") to "%.1f km/h".format(it * 3.6)) }
                 a.maxSpeedMps?.let { add(I18n.t("home.topSpeed") to "%.1f km/h".format(it * 3.6)) }
-                a.pumpCount?.let { add(I18n.t("home.pumps") to it.toString()) }
-                a.foilingTimeS?.let { add(I18n.t("compare.foilTime") to "%d:%02d".format((it / 60).toInt(), (it % 60).toInt())) }
-                a.avgCadenceHz?.let { add(I18n.t("compare.cadence") to "%.2f Hz".format(it)) }
+                a.pumpCount?.let { pc ->
+                    add(I18n.t("home.pumps") to pc.toString())
+                    if (pc > 0 && a.foilingDistanceM != null) add(I18n.t("sd.avgDistPerPump") to "%.1f m".format(a.foilingDistanceM / pc))
+                }
+                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(I18n.t("sd.avgPump") to "%.2f Hz".format(it)) }
+                (m?.avgHr)?.let { if (it > 0) add(I18n.t("sd.avgHr") to "$it") }
+                (m?.maxHr)?.let { if (it > 0) add(I18n.t("sd.maxHr") to "$it") }
+                (m?.longestSegmentS ?: segList.maxOfOrNull { it.durationS })?.let { if (it > 0) add(I18n.t("home.longestRun") to mmssD(it)) }
+                (m?.farthestSegmentM ?: segList.maxOfOrNull { it.distanceM })?.let { if (it > 0) add(I18n.t("home.farthestRun") to dist(it)) }
+                segList.maxOfOrNull { it.longestGlideS }?.let { if (it > 0) add(I18n.t("home.longestGlide") to "%.1f s".format(it)) }
             }
             StatGrid(stats)
-            a.segments?.takeIf { it.isNotEmpty() }?.let { RunsTable(it) }
+            if (segList.isNotEmpty()) RunsTable(segList, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
     }
 }
@@ -478,6 +504,7 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
 private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
     hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, win: Int,
+    selectedRun: Int?, onSelectRun: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pts = track.points
@@ -507,8 +534,10 @@ private fun TrackMap(
         },
         update = { map ->
             map.overlays.clear()
-            val foilPts = ArrayList<GeoPoint>()
-            for (seg in segments) {
+            val allPts = ArrayList<GeoPoint>()
+            val selPts = ArrayList<GeoPoint>()
+            segments.forEachIndexed { runIdx, seg ->
+                val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
                 val start = seg.iStart.coerceIn(0, pts.size - 1)
                 val end = seg.iEnd.coerceIn(0, pts.size - 1)
                 for (i in start until end) {
@@ -518,27 +547,32 @@ private fun TrackMap(
                     if (pa.distanceToAsDouble(pb) > MAX_DRAW_GAP_M) continue
                     map.overlays.add(Polyline(map).apply {
                         setPoints(listOf(pa, pb))
-                        outlinePaint.color = colorAt(i + 1).toArgb()
-                        outlinePaint.strokeWidth = 10f
+                        outlinePaint.color = if (dim) GRAY.copy(alpha = 0.5f).toArgb() else colorAt(i + 1).toArgb()
+                        outlinePaint.strokeWidth = if (dim) 5f else 10f
+                        setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }   // Lauf antippen -> auswählen
                     })
-                    foilPts.add(pa); foilPts.add(pb)
+                    allPts.add(pa); allPts.add(pb)
+                    if (!dim) { selPts.add(pa); selPts.add(pb) }
+                }
+                // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
+                if (showPumps && !dim) {
+                    val dot = pumpDot()
+                    for (idx in seg.pumpIdx) {
+                        val p = pts.getOrNull(idx) ?: continue
+                        map.overlays.add(Marker(map).apply {
+                            position = GeoPoint(p.second, p.first)
+                            icon = dot
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
+                    }
                 }
             }
-            if (showPumps) {
-                val dot = pumpDot()
-                for (seg in segments) for (idx in seg.pumpIdx) {
-                    val p = pts.getOrNull(idx) ?: continue
-                    map.overlays.add(Marker(map).apply {
-                        position = GeoPoint(p.second, p.first)
-                        icon = dot
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                        setInfoWindow(null)
-                        setOnMarkerClickListener { _, _ -> true }
-                    })
-                }
-            }
-            if (foilPts.isNotEmpty()) {
-                val bb = BoundingBox.fromGeoPoints(foilPts)
+            // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
+            val fitPts = if (selectedRun != null && selPts.isNotEmpty()) selPts else allPts
+            if (fitPts.isNotEmpty()) {
+                val bb = BoundingBox.fromGeoPoints(fitPts)
                 map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
             }
             map.invalidate()
@@ -576,22 +610,31 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
     }
 }
 
-// Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps/Gleit.
+// Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps. Zeile antippen -> Lauf auswählen
+// (Karte zeigt dann nur diesen farbig); ausgewählte Zeile ist hervorgehoben.
 @Composable
-private fun RunsTable(segments: List<Segment>) {
+private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 listOf("#", I18n.t("sd.hDist"), I18n.t("field.3"), "Ø", "Top", I18n.t("home.pumps")).forEach {
                     Text(it, style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                 }
             }
             segments.forEachIndexed { i, seg ->
-                Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                val sel = selected == i
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (sel) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent)
+                        .clickable { onSelect(i) }
+                        .padding(vertical = 4.dp, horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     val cells = listOf(
                         "${i + 1}",
                         if (seg.distanceM < 1000) "%.0f m".format(seg.distanceM) else "%.2f km".format(seg.distanceM / 1000),
@@ -601,7 +644,8 @@ private fun RunsTable(segments: List<Segment>) {
                         if (seg.pumps > 0) "${seg.pumps}" else "–",
                     )
                     cells.forEach {
-                        Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f),
+                            color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified)
                     }
                 }
             }
