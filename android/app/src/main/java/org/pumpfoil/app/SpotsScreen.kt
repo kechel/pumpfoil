@@ -53,7 +53,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}) {
     }
     LaunchedEffect(Unit) { load() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.spots")) }) }) { pad ->
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.spots")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {

@@ -49,7 +49,7 @@ fun HomeScreen(onOpen: (Int) -> Unit) {
         loading = false
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.home")) }, actions = { SyncIndicator() }) }) { pad ->
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.home")) { SyncIndicator() } }) { pad ->
         if (loading && stats == null) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold

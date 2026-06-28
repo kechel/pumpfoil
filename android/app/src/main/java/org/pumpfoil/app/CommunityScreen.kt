@@ -44,15 +44,12 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onRecords: () -> Unit = {}) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(I18n.t("nav.community")) },
-                actions = {
-                    IconButton(onClick = onRecords) {
-                        Icon(Icons.Filled.EmojiEvents, contentDescription = I18n.t("home.records"))
-                    }
-                    SyncIndicator()
-                },
-            )
+            PumpfoilTopBar(I18n.t("nav.community")) {
+                IconButton(onClick = onRecords) {
+                    Icon(Icons.Filled.EmojiEvents, contentDescription = I18n.t("home.records"))
+                }
+                SyncIndicator()
+            }
         },
     ) { pad ->
         val scope = rememberCoroutineScope()

@@ -58,7 +58,7 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     }
     LaunchedEffect(Unit) { load() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.chat")) }) }) { pad ->
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.chat")) }) { pad ->
         androidx.compose.foundation.layout.Box(Modifier.padding(pad).fillMaxSize()) {
             if (loading && rooms.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))

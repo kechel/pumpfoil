@@ -145,7 +145,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
         if (data.isEmpty()) 0L to 1L else data.first().first to data.last().first
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.history")) }) }) { pad ->
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.history")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {

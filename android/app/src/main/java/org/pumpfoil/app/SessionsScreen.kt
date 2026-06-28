@@ -101,7 +101,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                 Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
                 Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}"
             }
-            TopAppBar(title = { Text(title) }, actions = { SyncIndicator() })
+            PumpfoilTopBar(title) { SyncIndicator() }
         },
     ) { pad ->
         val scopeC = rememberCoroutineScope()
