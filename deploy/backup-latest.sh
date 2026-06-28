@@ -5,8 +5,10 @@
 # DATABASE_URL kommt aus dem systemd-EnvironmentFile (.env).
 set -euo pipefail
 
-PROJECT=/opt/foil/garmin-connect-iq/server
-BASE=/opt/foil/backups/pumpfoil.org
+# PROJECT robust aus dem Skript-Ort ableiten (Repo liegt unter /home/jan, nicht /opt).
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PROJECT="$(dirname "$HERE")/server"
+BASE="${BACKUP_BASE:-/opt/foil/backups/pumpfoil.org}"
 LATEST="$BASE/latest-backup"
 mkdir -p "$LATEST"
 
