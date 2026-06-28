@@ -1,4 +1,10 @@
-"""Test-Fixtures: isolierte SQLite-DB + temporäres Datenverzeichnis pro Testlauf."""
+"""Test-Fixtures: isolierte Test-DB + temporäres Datenverzeichnis pro Testlauf.
+
+Default ist Postgres (wie Prod) über TEST_DATABASE_URL — in CI ein wegwerfbarer
+postgres-Service-Container, lokal eine separate `foil_test`-DB. NUR wenn TEST_DATABASE_URL
+fehlt, fällt es auf eine Wegwerf-SQLite zurück (zero-setup; berührt nie die echte DB).
+Es wird bewusst NIE die Prod-`DATABASE_URL` (`.env`) verwendet, damit Tests nichts verschmutzen.
+"""
 from __future__ import annotations
 
 import os
@@ -7,7 +13,7 @@ import tempfile
 import pytest
 
 _tmp = tempfile.mkdtemp(prefix="foil-test-")
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.sqlite3"
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_tmp}/test.sqlite3"
 os.environ["DATA_DIR"] = f"{_tmp}/data"
 os.environ["JWT_SECRET"] = "test-secret"
 os.environ["WEB_DIST"] = f"{_tmp}/nonexistent-dist"
