@@ -181,6 +181,15 @@ class MainActivity : ComponentActivity() {
                     FoilOpt(o.optInt("id"), o.optString("label"), o.optInt("min"), o.optInt("max"))
                 }
             }
+            // Default-Auswahl für den Start-Screen (bis der Nutzer manuell wechselt) — wie Garmin.
+            if (foilLabel.isEmpty()) {
+                if (alarmDefault == "foil" && foils.isNotEmpty()) {
+                    foilLabel = foils[0].label
+                    alarm = alarm.copy(enabled = true, high = foils[0].max, low = foils[0].min)
+                } else if (manualAlarm) {
+                    foilLabel = I18n.t("foil.website")
+                }
+            }
             val ofa = c.optJSONArray("offFoilView")
             if (ofa != null && ofa.length() > 0) {
                 offFoil = (0 until ofa.length()).map { ofa.getInt(it) }
@@ -253,14 +262,14 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         when {
-                            page in 1..dataCount ->
-                                views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }.forEach { fid ->
-                                    FieldView(fid, s, colorBy)
-                                }
-                            page == summaryPage ->  // Übersicht (off foil)
-                                offFoil.filter { it != 0 }.ifEmpty { listOf(12) }.forEach { fid ->
-                                    FieldView(fid, s, colorBy)
-                                }
+                            page in 1..dataCount -> {
+                                val fields = views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }
+                                fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                            }
+                            page == summaryPage -> {  // Übersicht (off foil)
+                                val fields = offFoil.filter { it != 0 }.ifEmpty { listOf(12) }
+                                fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                            }
                             else -> {  // Stop-Seiten (vorne & hinten): 3 s halten zum Stoppen
                                 HoldStopButton()
                                 Spacer(Modifier.height(6.dp))
@@ -346,19 +355,20 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 } else {
-                Button(onClick = {
-                    skipSync()
-                    if (manualAlarm || foils.isNotEmpty()) { pendingStart = true; showFoilPicker = true }
-                    else RecorderService.start(applicationContext)
-                }) { Text(I18n.t("rec.start")) }
-                // Sekundär-Aktionen, immer erreichbar (nicht nur kontextuell): Foil vorwählen + manuell syncen.
+                // Aktuelle Foil-/Alarm-Auswahl anzeigen (wie Garmin) — Start nimmt sie direkt.
+                if (foilLabel.isNotEmpty()) {
+                    Text(foilLabel, style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                    Spacer(Modifier.height(4.dp))
+                }
+                // Start nimmt direkt mit der aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
+                Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text(I18n.t("rec.start")) }
+                // Sekundär-Aktionen (per vertikalem Scrollen erreichbar): Foil ändern + manuell syncen.
                 if (foils.isNotEmpty() || Api.deviceToken != null) {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (foils.isNotEmpty()) CompactChip(
                             onClick = { pendingStart = false; showFoilPicker = true },
-                            label = { Text(if (foilLabel.isNotEmpty()) foilLabel else I18n.t("rec.chooseFoil"),
-                                style = MaterialTheme.typography.caption2) })
+                            label = { Text(I18n.t("rec.chooseFoil"), style = MaterialTheme.typography.caption2) })
                         if (Api.deviceToken != null) CompactChip(
                             onClick = { Recorder.drain(ctx) },
                             label = { Text(I18n.t("rec.syncNow"), style = MaterialTheme.typography.caption2) })
@@ -428,12 +438,19 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun FieldView(fid: Int, s: Recorder.State, colorBy: Boolean) {
+    private fun FieldView(fid: Int, s: Recorder.State, colorBy: Boolean, count: Int = 3) {
         val (value, label) = fieldValue(fid, s)
         val color = if (colorBy) fieldColor(fid, s) else Color.Unspecified
+        // Weniger Felder pro Seite -> größere Schrift (1 Feld = riesig, z. B. Speed beim Pumpen).
+        val valueStyle = when (count) {
+            1 -> MaterialTheme.typography.display1
+            2 -> MaterialTheme.typography.display2
+            else -> MaterialTheme.typography.display3
+        }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 2.dp)) {
-            Text(value, style = MaterialTheme.typography.display3, color = color)
-            Text(label, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+            Text(value, style = valueStyle, color = color)
+            Text(label, style = if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
+                color = Color(0xFF94A3B8))
         }
     }
 
