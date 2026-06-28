@@ -179,6 +179,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "compare.title" to row("Vergleichen", "Vergliiche", "Vergleichen", "Compare", "Comparer", "Confronta", "Comparar"),
     "compare.result" to row("Vergleich", "Vergliich", "Vergleich", "Comparison", "Comparaison", "Confronto", "Comparación"),
     "compare.pick" to row("2+ Sessions zum Vergleich wählen", "2+ Sessions zum Vergliiche wähle", "2+ Sessions zum Vergleich wählen", "Select 2+ sessions to compare", "Sélectionner 2+ sessions à comparer", "Seleziona 2+ sessioni da confrontare", "Selecciona 2+ sesiones para comparar"),
+    "compare.hint" to row("Tipp: Session lange drücken zum Hinzufügen", "Tipp: Session lang drücke zum Hinzuefüege", "Tipp: Session lange drücken zum Hinzufügen", "Tip: long-press a session to add it", "Astuce : appui long sur une session pour l'ajouter", "Suggerimento: tieni premuta una sessione per aggiungerla", "Consejo: mantén pulsada una sesión para añadirla"),
+    "compare.clear" to row("Leeren", "Lääre", "Leeren", "Clear", "Effacer", "Svuota", "Vaciar"),
     "compare.backToSelection" to row("Auswahl", "Uswahl", "Auswahl", "Selection", "Sélection", "Selezione", "Selección"),
     "compare.distance" to row("Strecke", "Strecki", "Strecke", "Distance", "Distance", "Distanza", "Distancia"),
     "compare.foilTime" to row("Foil-Zeit", "Foil-Ziit", "Foil-Zeit", "Foil time", "Temps foil", "Tempo foil", "Tiempo foil"),

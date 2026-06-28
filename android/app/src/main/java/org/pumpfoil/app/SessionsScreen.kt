@@ -1,5 +1,8 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -155,12 +158,17 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val a = s.analysis
     val m = a?.metrics
-    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+    val inCompare = CompareStore.ids.collectAsState().value.contains(s.id)
+    Card(
+        modifier = modifier.fillMaxWidth().combinedClickable(
+            onClick = onClick, onLongClick = { CompareStore.toggle(s.id) }),
+        border = if (inCompare) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+    ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 val av = Api.mediaUrl(s.ownerAvatarUrl)
@@ -174,6 +182,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(prettyDate(s.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
                     val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel)
                     if (chips.isNotEmpty()) {
@@ -277,10 +286,15 @@ private fun TrackPreviewCanvas(data: String, modifier: Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+    val inCompare = CompareStore.ids.collectAsState().value.contains(c.id)
+    Card(
+        modifier = modifier.fillMaxWidth().combinedClickable(
+            onClick = onClick, onLongClick = { CompareStore.toggle(c.id) }),
+        border = if (inCompare) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+    ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 val av = Api.mediaUrl(c.avatarUrl)
@@ -294,6 +308,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(c.name ?: prettyDate(c.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     if (c.name != null) {
                         Text(prettyDate(c.startedAt), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)

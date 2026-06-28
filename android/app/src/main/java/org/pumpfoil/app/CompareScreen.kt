@@ -29,9 +29,11 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CompareScreen(onBack: () -> Unit) {
     var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
-    var selected by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    val selected by CompareStore.ids.collectAsState()   // per Long-Press in den Listen befüllt
     var results by remember { mutableStateOf<List<SessionDetail>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var comparing by remember { mutableStateOf(false) }
@@ -75,15 +77,20 @@ fun CompareScreen(onBack: () -> Unit) {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 comparing -> CompareTable(results)
                 else -> Column(Modifier.fillMaxSize()) {
-                    Text(I18n.t("compare.pick"), Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("compare.pick"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(I18n.t("compare.hint"), style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (selected.isNotEmpty()) TextButton(onClick = { CompareStore.clear() }) { Text(I18n.t("compare.clear")) }
+                    }
                     LazyColumn(Modifier.weight(1f)) {
                         items(sessions) { s ->
                             val on = selected.contains(s.id)
                             ListItem(
-                                modifier = Modifier.clickable {
-                                    selected = if (on) selected - s.id else selected + s.id
-                                },
+                                modifier = Modifier.clickable { CompareStore.toggle(s.id) },
                                 headlineContent = { Text(prettyDate(s.startedAt)) },
                                 supportingContent = { s.placeName?.takeIf { it.isNotBlank() }?.let { Text(it) } },
                                 leadingContent = {
