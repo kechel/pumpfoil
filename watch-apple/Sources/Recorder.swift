@@ -33,12 +33,31 @@ final class Recorder: NSObject, ObservableObject {
     @Published var uploadTotal = 0     // Gesamt-Chunks der laufenden Session
     @Published var uploadError = ""    // letzte Fehlerursache: "" | "offline" | "server"
     @Published var isFoiling = false   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
+    // Lauf-Metriken (wie Garmin _updateRun): aktueller Lauf live, sonst letzter.
+    @Published var runCount = 0
+    @Published var runDurationMs = 0
+    @Published var runDistanceM: Double = 0
+    @Published var runMaxSpeedKmh: Double = 0
+    @Published var lastRunDurationMs = 0
+    @Published var lastRunDistanceM: Double = 0
+    @Published var lastRunAvgSpeedKmh: Double = 0
+    @Published var lastRunMaxSpeedKmh: Double = 0
 
     // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s anhaltend), raus unter ~9 km/h (3 s).
     private let foilEnterKmh = 10.0
     private let foilExitKmh = 9.0
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
+    // Lauf-Tracking (intern)
+    private let runEnterDwellMs = 3000
+    private let runExitDwellMs = 3000
+    private var runStartMs = 0
+    private var runStartDist = 0.0
+    private var runMaxMps = 0.0
+    private var lastRunDurMs = 0
+    private var lastRunDistM = 0.0
+    private var lastRunAvgMps = 0.0
+    private var lastRunMaxMps = 0.0
 
     private let store = HKHealthStore()
     private let motion = CMMotionManager()
@@ -106,6 +125,10 @@ final class Recorder: NSObject, ObservableObject {
         startSensors()
         isRecording = true
         isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0
+        runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
+        lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
+        runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
+        lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0
         status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
@@ -119,13 +142,37 @@ final class Recorder: NSObject, ObservableObject {
 
     // Foil-Erkennung (Hysterese auf der 3-s-Geschwindigkeit) für den Auto-Screen-Wechsel.
     private func updateFoiling() {
+        let tMs = elapsedMs()
+        let dist = distAccum
+        let spMps = speedKmh / 3.6
         if !isFoiling {
             foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
-            if foilEnterStreak >= 3 { isFoiling = true; foilExitStreak = 0 }
+            if foilEnterStreak >= 3 {
+                isFoiling = true; foilExitStreak = 0
+                // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps
+            }
         } else {
+            if spMps > runMaxMps { runMaxMps = spMps }
             foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
-            if foilExitStreak >= 3 { isFoiling = false; foilEnterStreak = 0 }
+            if foilExitStreak >= 3 {
+                isFoiling = false; foilEnterStreak = 0
+                let durMs = max(0, tMs - runExitDwellMs - runStartMs)
+                lastRunDurMs = durMs
+                lastRunDistM = max(0, dist - runStartDist)
+                lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
+                lastRunMaxMps = runMaxMps
+                runCount += 1
+            }
         }
+        // Publizierte Lauf-Felder: aktueller Lauf live, sonst letzter.
+        runDurationMs = isFoiling ? max(0, tMs - runStartMs) : lastRunDurMs
+        runDistanceM = isFoiling ? max(0, dist - runStartDist) : lastRunDistM
+        runMaxSpeedKmh = (isFoiling ? runMaxMps : lastRunMaxMps) * 3.6
+        lastRunDurationMs = lastRunDurMs
+        lastRunDistanceM = lastRunDistM
+        lastRunAvgSpeedKmh = lastRunAvgMps * 3.6
+        lastRunMaxSpeedKmh = lastRunMaxMps * 3.6
     }
 
     func stop() async {

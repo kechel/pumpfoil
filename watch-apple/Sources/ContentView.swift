@@ -414,9 +414,24 @@ struct AlarmPickerSheet: View {
     case 4: return r.distanceM < 1000
         ? (String(format: "%.0f", r.distanceM), "m")
         : (String(format: "%.2f", r.distanceM / 1000), "km")
+    case 10: return ("–", WLoc.t("f.alt", lang))       // ohne Höhen-Erfassung (noch) nicht verfügbar
+    case 11: return ("–", WLoc.t("f.temp", lang))      // kein Temperatursensor
     case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), WLoc.t("f.clock", lang))
+    case 13: return ("–", WLoc.t("f.ascent", lang))
+    case 14: return (msStr(r.runDurationMs), WLoc.t("f.runTime", lang))
+    case 15: return (distLabeled(r.runDistanceM), WLoc.t("f.runDist", lang))
+    case 16: return (msStr(r.lastRunDurationMs), WLoc.t("f.lastRunTime", lang))
+    case 17: return (distLabeled(r.lastRunDistanceM), WLoc.t("f.lastRunDist", lang))
+    case 18: return (String(format: "%.1f", r.lastRunAvgSpeedKmh), WLoc.t("f.lastRunAvg", lang))
+    case 19: return (String(format: "%.1f", r.lastRunMaxSpeedKmh), WLoc.t("f.lastRunMax", lang))
+    case 20: return ("\(r.runCount)", WLoc.t("f.runs", lang))
     default: return ("—", "")
     }
+}
+
+private func msStr(_ ms: Int) -> String { let s = ms / 1000; return String(format: "%d:%02d", s / 60, s % 60) }
+private func distLabeled(_ m: Double) -> String {
+    m < 1000 ? String(format: "%.0f m", m) : String(format: "%.2f km", m / 1000)
 }
 
 @MainActor private func fieldColor(_ id: Int, _ r: Recorder) -> Color {
@@ -425,7 +440,11 @@ struct AlarmPickerSheet: View {
     case 5: return speedColor(r.speedKmh)
     case 6: return speedColor(r.avgSpeedKmh)
     case 7: return speedColor(r.maxSpeedKmh)
-    case 2, 8, 9: return Color(red: 0.97, green: 0.44, blue: 0.44)
+    case 18: return speedColor(r.lastRunAvgSpeedKmh)
+    case 19: return speedColor(r.lastRunMaxSpeedKmh)
+    case 2: return hrColor(r.hr)
+    case 8: return hrColor(r.avgHr)
+    case 9: return hrColor(r.maxHr)
     default: return .primary
     }
 }
@@ -433,4 +452,14 @@ struct AlarmPickerSheet: View {
 private func speedColor(_ kmh: Double) -> Color {
     let t = min(max((kmh - 8) / (25 - 8), 0), 1)
     return Color(hue: (1 - t) * 240 / 360, saturation: 0.85, brightness: 0.95)
+}
+// Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
+private func hrColor(_ bpm: Int) -> Color {
+    switch bpm {
+    case ..<1: return .primary
+    case ..<120: return Color(red: 0.29, green: 0.87, blue: 0.50)
+    case ..<150: return Color(red: 0.98, green: 0.80, blue: 0.08)
+    case ..<170: return Color(red: 0.98, green: 0.57, blue: 0.24)
+    default: return Color(red: 0.97, green: 0.44, blue: 0.44)
+    }
 }
