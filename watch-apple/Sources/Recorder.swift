@@ -285,12 +285,12 @@ final class Recorder: NSObject, ObservableObject {
             motion.accelerometerUpdateInterval = 1.0 / Double(accelHzActual)
             motion.startAccelerometerUpdates(to: motionQueue) { [weak self] data, _ in
                 guard let self, let a = data?.acceleration else { return }
-                self.lock.lock()
-                if self.accel.isEmpty { self.accelT0ms = self.elapsedMs() }
-                self.accel.append(Self.clampInt16(a.x * Self.accelScale))
-                self.accel.append(Self.clampInt16(a.y * Self.accelScale))
-                self.accel.append(Self.clampInt16(a.z * Self.accelScale))
-                self.lock.unlock()
+                self.lock.withLock {
+                    if self.accel.isEmpty { self.accelT0ms = self.elapsedMs() }
+                    self.accel.append(Self.clampInt16(a.x * Self.accelScale))
+                    self.accel.append(Self.clampInt16(a.y * Self.accelScale))
+                    self.accel.append(Self.clampInt16(a.z * Self.accelScale))
+                }
             }
         }
     }
@@ -321,7 +321,8 @@ final class Recorder: NSObject, ObservableObject {
     private func endWorkout() {
         session?.end()
         builder?.endCollection(withEnd: Date()) { [weak self] _, _ in
-            self?.builder?.finishWorkout { _, _ in }
+            // builder ist main-actor-isoliert -> Zugriff auf den MainActor hoppen.
+            Task { @MainActor in self?.builder?.finishWorkout { _, _ in } }
         }
     }
 
@@ -341,10 +342,11 @@ final class Recorder: NSObject, ObservableObject {
     }
 
     private func flushAccel() {
-        lock.lock()
-        let buf = accel; let t0 = accelT0ms
-        accel.removeAll()
-        lock.unlock()
+        let (buf, t0): ([Int16], Int) = lock.withLock {
+            let b = accel, t = accelT0ms
+            accel.removeAll()
+            return (b, t)
+        }
         guard !buf.isEmpty else { return }
         let data = buf.withUnsafeBufferPointer { Data(buffer: $0) } // little-endian int16
         LocalStore.writeChunk(uuid, chunkIndex, [
@@ -355,10 +357,11 @@ final class Recorder: NSObject, ObservableObject {
     }
 
     private func flushGps() {
-        lock.lock()
-        let buf = gps
-        gps.removeAll()
-        lock.unlock()
+        let buf: [[Double]] = lock.withLock {
+            let b = gps
+            gps.removeAll()
+            return b
+        }
         guard !buf.isEmpty else { return }
         LocalStore.writeChunk(uuid, chunkIndex, [
             "index": chunkIndex, "kind": "gps", "encoding": "json",
@@ -376,10 +379,10 @@ extension Recorder: CLLocationManagerDelegate {
         Task { @MainActor in
             let t = self.elapsedMs()
             let sp = max(0, loc.speed)
-            self.lock.lock()
-            self.gps.append([Double(t), loc.coordinate.latitude, loc.coordinate.longitude,
-                             sp, Double(self.lastHR), loc.horizontalAccuracy])
-            self.lock.unlock()
+            self.lock.withLock {
+                self.gps.append([Double(t), loc.coordinate.latitude, loc.coordinate.longitude,
+                                 sp, Double(self.lastHR), loc.horizontalAccuracy])
+            }
             // Live-Kennzahlen
             if let p = self.prevLoc { self.distAccum += max(0, loc.distance(from: p)) }
             self.prevLoc = loc
