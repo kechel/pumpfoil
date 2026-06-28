@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <strings>
-  <string id="AppName">Pump Foil</string>
+  <string id="AppName">Pumpfoil</string>
   <string id="Start">Start</string>
   <string id="Stop">Stop</string>
   <string id="Upload">Upload (WLAN)</string>

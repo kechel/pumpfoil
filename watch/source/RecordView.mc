@@ -135,7 +135,7 @@ class RecordView extends WatchUi.View {
     hidden function _drawStartPage(dc, w, h) {
         var titleY = h * 0.20;
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pump Foil", Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pumpfoil", Graphics.TEXT_JUSTIFY_CENTER);
         // Version anhand der echten Titel-Font-Höhe darunter -> kein Überlappen (geräteunabhängig).
         var titleH = dc.getFontHeight(Graphics.FONT_MEDIUM);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);

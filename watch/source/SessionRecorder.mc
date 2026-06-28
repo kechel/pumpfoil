@@ -456,7 +456,7 @@ class SessionRecorder {
         // SensorLogger nur mitgeben, wenn vorhanden (sonst normale FIT-Session).
         // FIT-Session ist für Garmin Connect + Live-Stats; schlägt sie fehl, zeichnen
         // wir trotzdem unsere Rohdaten-Chunks (GPS/Accel) auf — Priorität: nichts verlieren.
-        var sessOpts = { :name => "Pump Foil", :sport => Activity.SPORT_SURFING };
+        var sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SURFING };
         if (logger != null) { sessOpts[:sensorLogger] = logger; }
         _fitSession = null;
         try {

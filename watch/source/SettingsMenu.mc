@@ -9,7 +9,7 @@ using Toybox.Lang;
 // Verbinden + Upload hin, da während der laufenden Aktivität kein Upload geht.
 class SettingsMenu extends WatchUi.Menu2 {
     function initialize(rec) {
-        Menu2.initialize({ :title => "Pump Foil" });
+        Menu2.initialize({ :title => "Pumpfoil" });
         addItem(new WatchUi.MenuItem(
             rec.isPaired() ? Strings.s("menu.connected") : Strings.s("menu.connect"),
             rec.isPaired() ? Strings.s("menu.linked") : Strings.s("menu.genCode"),
