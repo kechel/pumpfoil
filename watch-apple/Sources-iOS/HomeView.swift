@@ -81,6 +81,7 @@ struct HomeView: View {
                 .padding()
             }
             .navigationTitle(Loc.t("nav.home", lang))
+            .brandToolbar(Loc.t("nav.home", lang))
             .overlay { if loading && stats == nil { ProgressView() } }
             .refreshable { await load() }
             .task { await load() }

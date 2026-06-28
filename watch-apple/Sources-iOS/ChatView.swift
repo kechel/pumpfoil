@@ -36,6 +36,7 @@ struct ChatView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.chat", lang))
+            .brandToolbar(Loc.t("nav.chat", lang))
             .overlay { if loading && rooms.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if rooms.isEmpty { await load() } }

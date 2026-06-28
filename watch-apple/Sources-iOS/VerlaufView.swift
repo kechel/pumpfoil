@@ -52,6 +52,7 @@ struct VerlaufView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle(Loc.t("nav.history", lang))
+            .brandToolbar(Loc.t("nav.history", lang))
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
         }

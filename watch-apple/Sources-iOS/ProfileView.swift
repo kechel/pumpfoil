@@ -75,6 +75,7 @@ struct ProfileView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.profile", lang))
+            .brandToolbar(Loc.t("nav.profile", lang))
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
             .alert(Loc.t("profile.editName", lang), isPresented: $editing) {
                 TextField("Name", text: $draftName)

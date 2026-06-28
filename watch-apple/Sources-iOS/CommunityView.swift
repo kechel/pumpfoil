@@ -111,6 +111,7 @@ struct CommunityView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.community", lang))
+            .brandToolbar(Loc.t("nav.community", lang))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NavigationLink { CommunityRecordsView() } label: { Image(systemName: "trophy") }

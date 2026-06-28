@@ -57,6 +57,7 @@ struct SpotsView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.spots", lang))
+            .brandToolbar(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }

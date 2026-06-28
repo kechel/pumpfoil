@@ -44,7 +44,7 @@ struct SessionsView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar(title)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
             .overlay { if loading && isEmpty { ProgressView() } }
             .refreshable { await load() }

@@ -4,6 +4,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
     @AppStorage("themeMode") private var themeMode = "auto"   // "auto" | "light" | "dark"
+    @State private var showSplash = true
     var body: some View {
         Group {
             if session.isLoggedIn {
@@ -14,6 +15,16 @@ struct RootView: View {
         }
         .preferredColorScheme(themeMode == "light" ? .light : themeMode == "dark" ? .dark : nil)
         .task { await session.bootstrap() }
+        .overlay {
+            if showSplash {
+                SplashView()
+                    .transition(.opacity)
+                    .task {
+                        try? await Task.sleep(nanoseconds: 1_100_000_000)
+                        withAnimation(.easeOut(duration: 0.4)) { showSplash = false }
+                    }
+            }
+        }
     }
 }
 
