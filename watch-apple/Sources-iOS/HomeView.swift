@@ -42,17 +42,7 @@ struct HomeView: View {
                         VStack(spacing: 0) {
                             ForEach(latest) { s in
                                 NavigationLink { SessionDetailView(id: s.id) } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(dateText(s)).font(.subheadline)
-                                            if let p = s.place_name, !p.isEmpty {
-                                                Text(p).font(.caption).foregroundStyle(.secondary)
-                                            }
-                                        }
-                                        Spacer()
-                                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-                                    }
-                                    .padding(.vertical, 8)
+                                    SessionRow(session: s)
                                 }
                                 .buttonStyle(.plain)
                                 Divider()

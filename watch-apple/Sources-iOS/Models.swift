@@ -22,6 +22,11 @@ struct SessionSummary: Codable, Identifiable {
     let thumb_url: String?
     let like_count: Int?
     let foil_id: Int?
+    let photo_count: Int?
+    let liked: Bool?
+    let track_preview: String?
+    let foil: FoilBrief?       // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
+    let analysis: Analysis?    // slim: Kennzahlen für die Listenkarte
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -211,8 +216,41 @@ struct Analysis: Codable {
     let max_speed_mps: Double?
     let pump_count: Int?
     let avg_cadence_hz: Double?
+    let metrics: Metrics?
     let track_geojson: TrackGeo?
     let segments: [Segment]?
+}
+
+// Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.
+// Numerische Felder bewusst Double? (toleriert Int/Float aus dem JSON, kein Decode-Bruch).
+struct Metrics: Codable {
+    let num_segments: Int?
+    let avg_speed_mps: Double?
+    let max_speed_mps: Double?
+    let avg_pump_hz: Double?
+    let avg_hr: Double?
+    let max_hr: Double?
+    let farthest_segment_m: Double?
+    let longest_segment_s: Double?
+}
+
+// Kompakte Foil-Info (Server liefert ein dict mit u.a. brand/model/size) — alles optional,
+// damit das Decoding der Liste nicht an fehlenden Foil-Maßen scheitert.
+struct FoilBrief: Codable {
+    let brand: String?
+    let model: String?
+    let size: String?
+}
+
+// Mini-Track-Vorschau (normalisierte Polylinien) wie web TrackPreview: {"w","h","lines":[[[x,y],...],...]}.
+struct TrackPreviewData: Codable {
+    let w: Double
+    let h: Double
+    let lines: [[[Double]]]
+    static func parse(_ s: String) -> TrackPreviewData? {
+        guard let d = s.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(TrackPreviewData.self, from: d)
+    }
 }
 
 struct SessionDetail: Codable, Identifiable {
