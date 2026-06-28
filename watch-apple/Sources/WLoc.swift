@@ -49,9 +49,9 @@ enum WLoc {
         "rec.holdProgress": r("halten…", "halte…", "halten…", "hold…", "maintenir…", "tieni…", "mantén…"),
 
         // Alarm-/Foil-Auswahl
-        "foil.choose": r("Alarm wählen", "Alarm wähle", "Alarm wählen", "Choose alarm", "Choisir l'alarme", "Scegli allarme", "Elegir alarma"),
+        "foil.choose": r("Foil wählen", "Foil wähle", "Foil wählen", "Choose foil", "Choisir le foil", "Scegli foil", "Elegir foil"),
         "foil.fixed": r("Feste Werte", "Feschti Wärt", "Feste Werte", "Fixed values", "Valeurs fixes", "Valori fissi", "Valores fijos"),
-        "foil.none": r("Ohne Alarm", "Ohni Alarm", "Ohne Alarm", "No alarm", "Sans alarme", "Senza allarme", "Sin alarma"),
+        "foil.none": r("Ohne Foil", "Ohni Foil", "Ohne Foil", "No foil", "Sans foil", "Senza foil", "Sin foil"),
         "foil.noneSub": r("kein Alarm", "kei Alarm", "kein Alarm", "no alarm", "aucune alarme", "nessun allarme", "sin alarma"),
         "foil.trigger": r("Auslösen", "Uslöse", "Auslösen", "Trigger", "Déclenchement", "Attivazione", "Activación"),
         "foil.continuous": r("Dauerhaft", "Dauerhaft", "Dauerhaft", "Continuous", "Continu", "Continuo", "Continuo"),

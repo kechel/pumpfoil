@@ -190,17 +190,15 @@ struct RecordView: View {
                         Text(rec.status.isEmpty ? WLoc.t("rec.starting", lang) : rec.status)
                             .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     } else {
-                    // Foil/Alarm-Vorwahl: Standard ist gesetzt, nur bei Bedarf vor dem Start
-                    // ändern (kein erzwungenes Sheet mehr beim Start).
+                    // Foil-Vorwahl: nur der Foil-Name (klein, lange Namen skalieren herunter);
+                    // antippen zum Ändern. Standard ist gesetzt -> kein Zwangs-Sheet beim Start.
                     if manualAlarm || !foils.isEmpty {
                         Button { showFoilPicker = true } label: {
-                            HStack(spacing: 4) {
-                                Text("\(WLoc.t("rec.alarm", lang)): \(currentAlarmLabel)").lineLimit(1)
-                                Spacer(minLength: 4)
-                                Text(WLoc.t("rec.change", lang)).foregroundStyle(.secondary)
-                            }.font(.caption2)
+                            Text(currentAlarmLabel)
+                                .font(.caption2).lineLimit(1).minimumScaleFactor(0.6)
                         }
                         .buttonStyle(.bordered)
+                        .tint(.secondary)
                     }
                     Button(WLoc.t("rec.start", lang)) {
                         skipSync()
