@@ -71,6 +71,10 @@ enum Loc {
         "settings.nRecord": r("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
 
         "home.hello": r("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
+        "home.weather": r("Wetter am Homespot", "Wätter am Homespot", "Wetter am Homespot", "Weather at home spot", "Météo au spot", "Meteo allo spot", "Tiempo en el spot"),
+        "home.myChats": r("Meine Chats", "Mini Chats", "Meine Chats", "My chats", "Mes chats", "Le mie chat", "Mis chats"),
+        "wx.today": r("Heute", "Hüt", "Heute", "Today", "Auj.", "Oggi", "Hoy"),
+        "wx.tomorrow": r("Morgen", "Morn", "Morgen", "Tomorrow", "Demain", "Domani", "Mañana"),
         "home.foiling": r("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
         "home.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
         "home.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
