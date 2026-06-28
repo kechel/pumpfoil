@@ -51,3 +51,33 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   es NICHT zuverlässig → läuft sonst gegen die alte SQLite und crasht auf `place_lat`).
 - **Keine Garmin-Passwörter** im Produkt speichern (nur Jans eigene R&D-Tokens, env, gitignored).
 - Commit-Trailer wie vom Harness vorgegeben.
+
+## Dokumentation & weitere Kontext-Quellen
+
+**Verträge & Datenformat**
+- [`docs/data-format.md`](docs/data-format.md) — Upload-Vertrag Watch↔Server (GPS + int16-Accel-Chunks).
+- [`docs/ingest-contract.md`](docs/ingest-contract.md) — wie eine beliebige Watch-Plattform zum Recorder wird (2 Upload-Wege).
+
+**Produkt & Planung**
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.
+- [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
+- [`docs/IDEAS.md`](docs/IDEAS.md) — Ideen-Backlog (noch nichts umgesetzt; nur sammeln).
+- [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛).
+
+**Komponenten-READMEs**
+- [`watch/README.md`](watch/README.md) · [`watch-apple/README.md`](watch-apple/README.md)
+  (+ [`UPLOAD.md`](watch-apple/UPLOAD.md), App-Store-Submit) — Recorder-Apps.
+- [`deploy/README.md`](deploy/README.md) — Apache/systemd-Deploy.
+- [`store-assets/README.md`](store-assets/README.md) — Store-Screenshots/Marketing (Icons separat).
+- [`analyse/README.md`](analyse/README.md) + [`FINDINGS.md`](analyse/FINDINGS.md) — Dual-Watch-Experiment (Pump-Wahrheit).
+
+**Memories (lokal, sessionübergreifend — NICHT im Repo)**
+Persistenter Kontext unter `~/.claude/projects/-home-jan-garmin-connect-iq/memory/`.
+[`MEMORY.md`](file:///home/jan/.claude/projects/-home-jan-garmin-connect-iq/memory/MEMORY.md) ist der
+**vollständige Index** und wird jede Session automatisch geladen. Schlüssel-Memories u. a.:
+- `build-deploy-matrix`, `github-repo`, `jan-knows-build-constraints` — wer baut/deployt was, Push-Konvention.
+- `connectiq-sdk-build`, `wear-build-jdk` — Watch-/Wear-Build-Details.
+- `backups`, `prod-restart-ok`, `web-deploy-build` — Betrieb/Deploy.
+- `wrist-detector-improvements`, `board-imu-experiment` — Detektor-Bilanz + offene ML-/FR55-Themen.
+- `garmin-watch-fieldtest-gotchas`, `garmin-settings-pairing`, `todo-watch-model-direct-download` — Garmin-Praxis.
+- `todo-oauth-login`, `ios-native-port`, `roadmap-multiplatform`, `user-technical-poweruser`, `jan-prefers-large-images`.
