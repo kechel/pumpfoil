@@ -25,7 +25,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
         PRODUCT_NAME: Pumpfoil
-        MARKETING_VERSION: "1.0.2"
+        MARKETING_VERSION: "1.1.0"
         CURRENT_PROJECT_VERSION: "3"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -36,7 +36,7 @@ targets:
       path: Sources-iOS/Info.plist
       properties:
         CFBundleDisplayName: Pumpfoil
-        CFBundleShortVersionString: "1.0.2"
+        CFBundleShortVersionString: "1.1.0"
         CFBundleVersion: "3"
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
@@ -59,7 +59,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch.watchkitapp
         PRODUCT_NAME: Pumpfoil
-        MARKETING_VERSION: "1.0.2"
+        MARKETING_VERSION: "1.1.0"
         CURRENT_PROJECT_VERSION: "3"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -71,7 +71,7 @@ targets:
         WKApplication: true
         WKCompanionAppBundleIdentifier: org.pumpfoil.coolwatch   # iOS-Companion
         CFBundleDisplayName: Pumpfoil
-        CFBundleShortVersionString: "1.0.2"
+        CFBundleShortVersionString: "1.1.0"
         CFBundleVersion: "3"
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
