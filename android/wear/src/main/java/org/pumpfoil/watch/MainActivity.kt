@@ -24,6 +24,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
@@ -320,6 +321,10 @@ class MainActivity : ComponentActivity() {
                 },
                 onBack = { showFoilPicker = false },
             )
+        } else if (s.uploading) {
+            // Nach dem Stop direkt online -> drain läuft -> hier prominent der Upload-Fortschritt
+            // (kehrt automatisch zum Idle-Screen zurück, sobald fertig).
+            UploadScreen(s)
         } else {
             // Auto-Start (Config): im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten.
             // Nur solange der Idle-Screen aktiv ist (Foreground) — beim Start räumt onDispose auf.
@@ -363,13 +368,15 @@ class MainActivity : ComponentActivity() {
                 // Start nimmt direkt mit der aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
                 Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text(I18n.t("rec.start")) }
                 // Sekundär-Aktionen (per vertikalem Scrollen erreichbar): Foil ändern + manuell syncen.
-                if (foils.isNotEmpty() || Api.deviceToken != null) {
+                // Sync-Chip nur, wenn es auch etwas hochzuladen gibt (gepairt + pending > 0).
+                val canSync = Api.deviceToken != null && s.pendingCount > 0
+                if (foils.isNotEmpty() || canSync) {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (foils.isNotEmpty()) CompactChip(
                             onClick = { pendingStart = false; showFoilPicker = true },
                             label = { Text(I18n.t("rec.chooseFoil"), style = MaterialTheme.typography.caption2) })
-                        if (Api.deviceToken != null) CompactChip(
+                        if (canSync) CompactChip(
                             onClick = { Recorder.drain(ctx) },
                             label = { Text(I18n.t("rec.syncNow"), style = MaterialTheme.typography.caption2) })
                     }
@@ -438,12 +445,30 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
+    private fun UploadScreen(s: Recorder.State) {
+        Column(
+            Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(44.dp), strokeWidth = 3.dp)
+            Spacer(Modifier.height(10.dp))
+            Text(I18n.t("rec.uploading"), style = MaterialTheme.typography.title3)
+            if (s.uploadTotal > 0) {
+                Spacer(Modifier.height(4.dp))
+                Text("${s.uploadSent}/${s.uploadTotal}",
+                    style = MaterialTheme.typography.caption1, color = Color(0xFF94A3B8))
+            }
+        }
+    }
+
+    @Composable
     private fun FieldView(fid: Int, s: Recorder.State, colorBy: Boolean, count: Int = 3) {
         val (value, label) = fieldValue(fid, s)
         val color = if (colorBy) fieldColor(fid, s) else Color.Unspecified
         // Weniger Felder pro Seite -> größere Schrift (1 Feld = riesig, z. B. Speed beim Pumpen).
         val valueStyle = when (count) {
-            1 -> MaterialTheme.typography.display1
+            1 -> MaterialTheme.typography.display1.copy(fontSize = 60.sp, lineHeight = 62.sp)   // ein Feld: maximal groß
             2 -> MaterialTheme.typography.display2
             else -> MaterialTheme.typography.display3
         }
