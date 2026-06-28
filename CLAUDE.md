@@ -27,6 +27,20 @@ Web-PWA + native Mobile-Apps als Frontend. Repo öffentlich (AGPL).
 Diese Verteilung ist Jan bekannt — **nicht in jeder Antwort wiederholen** („das kann nur ich in Xcode"
 etc.). Einfach die Code-Änderung liefern und sagen, was noch auf Jans Seite zu tun ist, falls relevant.
 
+## Backups
+
+Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
+- `foil-backup-latest.timer` → täglich 03:30 → `backup-latest.sh`: `pg_dump` (custom, atomar) +
+  `server/data` + `server/media` als Hardlinks nach `/opt/foil/backups/pumpfoil.org/latest-backup/`
+  (Pull-Quelle für externen Backup-Server). `BASE` per `BACKUP_BASE` überschreibbar.
+- `foil-backup-snapshot.timer` → Mi 04:00 → `backup-snapshot.sh`: `cp -al` → permanenter
+  Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
+
+## Git / GitHub
+
+- Remote: **`git@github.com:kechel/pumpfoil.git`** (`origin/main`). **Standing: nach jedem Commit
+  zu GitHub pushen** — Jan hält `main` immer aktuell auf GitHub.
+
 ## Konventionen
 
 - **Server neu starten** darf Claude jederzeit (Dev-Stadium): `sudo systemctl restart foil-server`.
