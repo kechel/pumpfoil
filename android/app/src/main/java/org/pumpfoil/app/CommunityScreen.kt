@@ -1,23 +1,16 @@
 package org.pumpfoil.app
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,10 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,40 +58,17 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onRecords: () -> Unit = {}) {
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
-            if (loading && items.isEmpty()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(Modifier.fillMaxSize()) {
-                    error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                    items(items) { s ->
-                        ListItem(
-                            modifier = Modifier.clickable { onOpen(s.id) },
-                            headlineContent = { Text(s.name ?: "—") },
-                            supportingContent = {
-                                Text(prettyDate(s.startedAt) + (s.spot?.let { " · $it" } ?: ""))
-                            },
-                            leadingContent = {
-                                val av = Api.mediaUrl(s.avatarUrl)
-                                if (av != null) {
-                                    AsyncImage(
-                                        model = av, contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.size(40.dp).clip(CircleShape),
-                                    )
-                                } else {
-                                    Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
-                            },
-                            trailingContent = {
-                                if (s.likeCount > 0) {
-                                    Icon(Icons.Filled.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
-                            },
-                        )
-                        HorizontalDivider()
+                if (loading && items.isEmpty()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(Modifier.fillMaxSize()) {
+                        error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                        // Reiche Karte (Avatar, Stats, Track-Vorschau, Thumbnail) — wie Sessions Alle/Spot.
+                        items(items) { c ->
+                            CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) }
+                        }
                     }
                 }
-            }
             }
         }
     }

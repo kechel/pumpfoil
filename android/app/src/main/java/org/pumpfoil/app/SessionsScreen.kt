@@ -279,7 +279,7 @@ private fun TrackPreviewCanvas(data: String, modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
