@@ -50,6 +50,30 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 | **Detailed per-run stats** | |
 | <img src="web/public/landing-stats.webp" alt="Detailed per-run statistics table"> | |
 
+## Apps & watches
+
+Native apps on every platform — one account, one analysis backend.
+
+**📱 Android phone**
+
+<img src="store-assets/google/phone/01.png" alt="Android — home" width="200"> <img src="store-assets/google/phone/02.png" alt="Android — sessions" width="200"> <img src="store-assets/google/phone/03.png" alt="Android — session detail" width="200"> <img src="store-assets/google/phone/04.png" alt="Android — community" width="200">
+
+**📱 iOS phone**
+
+<img src="store-assets/apple/iphone-6.5/01.png" alt="iOS — home" width="200"> <img src="store-assets/apple/iphone-6.5/02.png" alt="iOS — sessions" width="200"> <img src="store-assets/apple/iphone-6.5/03.png" alt="iOS — session detail" width="200"> <img src="store-assets/apple/iphone-6.5/04.png" alt="iOS — community" width="200">
+
+**⌚ Wear OS**
+
+<img src="store-assets/wear-os/wear-01.png" alt="Wear OS — recording" width="170"> <img src="store-assets/wear-os/wear-02.png" alt="Wear OS — data field" width="170"> <img src="store-assets/wear-os/wear-03.png" alt="Wear OS — data field" width="170"> <img src="store-assets/wear-os/wear-04.png" alt="Wear OS — summary" width="170">
+
+**⌚ Apple Watch**
+
+<img src="store-assets/apple-watch/ultra3-01.png" alt="Apple Watch — recording" width="170"> <img src="store-assets/apple-watch/ultra3-02.png" alt="Apple Watch — data field" width="170"> <img src="store-assets/apple-watch/ultra3-03.png" alt="Apple Watch — data field" width="170"> <img src="store-assets/apple-watch/ultra3-04.png" alt="Apple Watch — summary" width="170">
+
+**⌚ Garmin** (all ~78 Connect IQ devices)
+
+<img src="web/public/guide/garmin/start.webp" alt="Garmin — start" width="160"> <img src="web/public/guide/garmin/settings.webp" alt="Garmin — settings" width="160"> <img src="web/public/guide/garmin/alarm-2.webp" alt="Garmin — foil alarm" width="160"> <img src="web/public/guide/garmin/on-foil-1.webp" alt="Garmin — on foil" width="160"> <img src="web/public/guide/garmin/on-foil-2.webp" alt="Garmin — on foil" width="160">
+
 ## Architecture
 
 | Directory | Stack | Purpose |
