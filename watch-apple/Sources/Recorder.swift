@@ -320,9 +320,11 @@ final class Recorder: NSObject, ObservableObject {
 
     private func endWorkout() {
         session?.end()
-        builder?.endCollection(withEnd: Date()) { [weak self] _, _ in
-            // builder ist main-actor-isoliert -> Zugriff auf den MainActor hoppen.
-            Task { @MainActor in self?.builder?.finishWorkout { _, _ in } }
+        // Async-API statt Completion-Handler -> keine Sendable-/Main-Actor-Warnungen.
+        Task { @MainActor [weak self] in
+            guard let b = self?.builder else { return }
+            _ = try? await b.endCollection(at: Date())
+            _ = try? await b.finishWorkout()
         }
     }
 
