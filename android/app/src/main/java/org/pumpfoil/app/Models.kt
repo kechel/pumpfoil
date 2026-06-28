@@ -81,7 +81,8 @@ data class Analysis(
     val metrics: Metrics? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
-    val segments: List<Segment> = emptyList(),
+    // Nullable: die schlanke Listen-Analyse liefert "segments": null (nicht nur fehlend).
+    val segments: List<Segment>? = null,
 )
 
 // Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.

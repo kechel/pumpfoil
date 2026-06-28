@@ -338,7 +338,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         // optional Pump-Marker — wie im Web.
         a?.trackGeojson?.let { tg ->
             val track = remember(tg) { parseTrack(tg) }
-            val segs = a.segments
+            val segs = a.segments.orEmpty()
             if (track.points.size >= 2 && segs.isNotEmpty()) {
                 val hasHr = remember(track) { track.hr.any { it != null && it > 0 } }
                 val hasPump = remember(track) { track.pumpHz.any { it != null } }
@@ -408,7 +408,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                 a.avgCadenceHz?.let { add(I18n.t("compare.cadence") to "%.2f Hz".format(it)) }
             }
             StatGrid(stats)
-            if (a.segments.isNotEmpty()) RunsTable(a.segments)
+            a.segments?.takeIf { it.isNotEmpty() }?.let { RunsTable(it) }
         }
     }
 }
