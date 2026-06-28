@@ -191,6 +191,20 @@ object Recorder {
         _state.value = _state.value.copy(pendingCount = LocalStore.pendingCount(ctx))
     }
 
+    /** Nur für Screenshots/Debug: setzt einen aktiven Aufnahme-Zustand mit festen Werten,
+     *  ohne echte Sensoren/GPS (siehe DemoReceiver + scripts/wear-demo.sh). */
+    fun demo(speedKmh: Double, hr: Int) {
+        _state.value = _state.value.copy(
+            recording = true, starting = false, status = "",
+            speedKmh = speedKmh, speed3sKmh = speedKmh, maxSpeedKmh = speedKmh + 1.2, avgSpeedKmh = speedKmh - 0.8,
+            distanceM = 1234.0, elapsedSec = 312, isFoiling = true, runCount = 3,
+            runDurationMs = 84_000, runDistanceM = 420.0, runMaxSpeedKmh = speedKmh + 1.2,
+            lastRunDurationMs = 96_000, lastRunDistanceM = 480.0,
+            lastRunAvgSpeedKmh = speedKmh - 0.5, lastRunMaxSpeedKmh = speedKmh + 0.9,
+            hr = hr, maxHr = hr + 6, avgHr = hr - 4,
+        )
+    }
+
     /** Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online. */
     fun drain(ctx: Context) {
         if (draining) return

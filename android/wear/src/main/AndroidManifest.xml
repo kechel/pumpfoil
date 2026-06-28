@@ -41,6 +41,11 @@
             android:exported="false"
             android:foregroundServiceType="location|health" />
 
+        <!-- Nur Debug: feste Demo-Werte (Speed/Puls) für Screenshots (siehe scripts/wear-demo.sh). -->
+        <receiver android:name=".DemoReceiver" android:exported="true">
+            <intent-filter><action android:name="org.pumpfoil.watch.DEMO" /></intent-filter>
+        </receiver>
+
         <!-- Empfängt das Device-Token von der Phone-App (Wearable Data Layer). -->
         <service
             android:name=".WearPairingService"
