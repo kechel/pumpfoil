@@ -506,15 +506,20 @@ private val GRAY = Color(0xFF64748B)
 private const val MAX_DRAW_GAP_M = 30.0
 
 private fun pumpDot(): android.graphics.drawable.Drawable {
-    val s = 14
+    // Dichteskaliert: 14 PHYSISCHE px waren auf HiDPI-Displays winzig (~5 dp). Jetzt ~13 dp,
+    // weißer Punkt mit dunklem Ring -> gut sichtbar über der farbigen Linie (wie im Web).
+    val d = android.content.res.Resources.getSystem().displayMetrics.density
+    val s = (13f * d).toInt().coerceAtLeast(14)
+    val r = s / 2f
+    val ring = 2f * d
     val bmp = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888)
     val cv = android.graphics.Canvas(bmp)
     val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
     val edge = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.rgb(15, 23, 42); style = android.graphics.Paint.Style.STROKE; strokeWidth = 2f
+        color = android.graphics.Color.rgb(15, 23, 42); style = android.graphics.Paint.Style.STROKE; strokeWidth = ring
     }
-    cv.drawCircle(s / 2f, s / 2f, s / 2f - 2, fill)
-    cv.drawCircle(s / 2f, s / 2f, s / 2f - 2, edge)
+    cv.drawCircle(r, r, r - ring, fill)
+    cv.drawCircle(r, r, r - ring, edge)
     return android.graphics.drawable.BitmapDrawable(null, bmp)
 }
 
@@ -552,6 +557,7 @@ private fun TrackMap(
         },
         update = { map ->
             map.overlays.clear()
+            val dens = map.context.resources.displayMetrics.density   // px<->dp, sonst zu dünn auf HiDPI
             val allPts = ArrayList<GeoPoint>()
             val selPts = ArrayList<GeoPoint>()
             segments.forEachIndexed { runIdx, seg ->
@@ -566,7 +572,7 @@ private fun TrackMap(
                     map.overlays.add(Polyline(map).apply {
                         setPoints(listOf(pa, pb))
                         outlinePaint.color = if (dim) GRAY.copy(alpha = 0.5f).toArgb() else colorAt(i + 1).toArgb()
-                        outlinePaint.strokeWidth = if (dim) 5f else 10f
+                        outlinePaint.strokeWidth = (if (dim) 2.5f else 5f) * dens
                         setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }   // Lauf antippen -> auswählen
                     })
                     allPts.add(pa); allPts.add(pb)
