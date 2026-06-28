@@ -34,7 +34,7 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 - 🗺️ **Color-coded track** — foiling segments colored by speed / heart rate / pump frequency, with pump markers.
 - 📂 **FIT upload** — analyze old activities too: drop in a `.fit` file (or Garmin's ZIP export).
 - 🏷️ **Labeling UI** — mark pump / glide / not-foiling ranges to build training data for the ML model.
-- 🌍 **Community & history** — compare sessions over time, share runs; UI in 7 languages.
+- 🌍 **Community & history** — compare sessions over time, share runs; web UI in 7 languages.
 - 🔄 **One-click watch download** — the site detects your watch model and serves the matching build.
 
 ## A look inside the app

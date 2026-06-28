@@ -115,7 +115,7 @@ Labeling, Trim-Editor, Vergleichsansicht. **Braucht dich/Geräte:** Recorder-P2 
 
 ---
 
-## B) Recorder-Apps vs. Garmin (`watch-wear/` = Wear OS, `watch-apple/Sources/` = watchOS)
+## B) Recorder-Apps vs. Garmin (`android/wear/` = Wear OS, `watch-apple/Sources/` = watchOS)
 
 | Feature | Garmin | Wear OS | watchOS |
 |---|---|---|---|

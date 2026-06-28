@@ -2,7 +2,7 @@
 
 Screenshots & Marketing-Material für die App-Stores. **App-Icons** liegen NICHT hier,
 sondern als Quell-Assets in den Watch-Projekten (Apple: `watch-apple/Sources/Assets.xcassets/AppIcon`,
-Wear: `watch-wear/app/src/main/res/mipmap-*`) und kommen über den Build mit.
+Wear: `android/wear/src/main/res/mipmap-*`) und kommen über den Build mit.
 
 ## Struktur
 ```
