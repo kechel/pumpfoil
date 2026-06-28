@@ -204,6 +204,8 @@ final class Recorder: NSObject, ObservableObject {
             draining = false; uploading = false
             pendingCount = LocalStore.pendingCount()
             uploadSent = 0; uploadTotal = 0
+            // Erfolgreich fertig -> stehengebliebenes „lade hoch…"-Label aufräumen.
+            if uploadError.isEmpty && pendingCount == 0 { status = "" }
         }
         // Gestrandete Aufnahmen (Crash/Kill vor Stop) finalisieren -> kein Datenverlust.
         // Läuft auch offline (rein lokal); danach zählen sie als „fertig" zum Upload.
