@@ -15,6 +15,7 @@ struct SessionDetailView: View {
     @State private var liked = false
     @State private var likeCount = 0
     @State private var photos: [SessionPhoto] = []
+    @State private var lightbox: SessionPhoto?     // angetipptes Foto -> Vollbild
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
     @State private var win = 3
@@ -87,6 +88,9 @@ struct SessionDetailView: View {
             }
         }
         .sheet(isPresented: $showTrim) { trimSheet }
+        .fullScreenCover(item: $lightbox) { start in
+            PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
+        }
     }
 
     private var durSec: Double {
@@ -179,6 +183,7 @@ struct SessionDetailView: View {
                             }
                             .frame(width: 200, height: 140)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .onTapGesture { lightbox = p }
                         }
                     }
                 }
@@ -512,4 +517,32 @@ func youtubeId(_ url: String?) -> String? {
         }
     }
     return nil
+}
+
+// Vollbild-Foto-Ansicht: tippen schließt, bei mehreren Fotos horizontal wischen.
+private struct PhotoLightboxView: View {
+    let photos: [SessionPhoto]
+    let startId: Int
+    let onClose: () -> Void
+    @State private var sel: Int = 0
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            TabView(selection: $sel) {
+                ForEach(photos) { p in
+                    AsyncImage(url: Api.mediaURL(p.url)) { phase in
+                        switch phase {
+                        case .success(let img): img.resizable().scaledToFit()
+                        default: ProgressView()
+                        }
+                    }
+                    .tag(p.id)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: photos.count > 1 ? .automatic : .never))
+        }
+        .onTapGesture { onClose() }
+        .onAppear { sel = startId }
+    }
 }
