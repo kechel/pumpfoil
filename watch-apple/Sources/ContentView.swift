@@ -257,7 +257,12 @@ struct RecordView: View {
 
     @ViewBuilder private func stopPage(_ hint: String) -> some View {
         VStack(spacing: 12) {
-            Button(WLoc.t("rec.stop", lang)) { Task { await rec.stop() } }.tint(.red)
+            // 3 s halten zum Stoppen (verhindert versehentliches Stoppen, wie Garmin Stop-Halten).
+            Text(WLoc.t("rec.stopHold", lang))
+                .font(.headline)
+                .padding(.horizontal, 20).padding(.vertical, 10)
+                .background(Color.red.opacity(0.85), in: Capsule())
+                .onLongPressGesture(minimumDuration: 3) { Task { await rec.stop() } }
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
