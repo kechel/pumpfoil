@@ -192,11 +192,17 @@ def start(provider: str, lang: str | None = None):
 
     resp = RedirectResponse(f"{cfg['authorize_url']}?{urlencode(params)}")
     secure = get_settings().base_url.startswith("https")
-    resp.set_cookie("oauth_state", state, max_age=600, httponly=True, secure=secure, samesite="lax")
+    # Apple antwortet per response_mode=form_post -> ein CROSS-SITE-POST auf den Callback.
+    # Bei SameSite=Lax würde der Browser die Cookies dabei NICHT mitschicken (-> "Invalid
+    # OAuth state"). Daher für form_post-Provider SameSite=None (erfordert Secure).
+    samesite = "none" if cfg.get("response_mode") == "form_post" else "lax"
+    if samesite == "none":
+        secure = True
+    resp.set_cookie("oauth_state", state, max_age=600, httponly=True, secure=secure, samesite=samesite)
     if verifier:
-        resp.set_cookie("oauth_pkce", verifier, max_age=600, httponly=True, secure=secure, samesite="lax")
+        resp.set_cookie("oauth_pkce", verifier, max_age=600, httponly=True, secure=secure, samesite=samesite)
     if lang:
-        resp.set_cookie("oauth_lang", _clean_lang(lang), max_age=600, httponly=True, secure=secure, samesite="lax")
+        resp.set_cookie("oauth_lang", _clean_lang(lang), max_age=600, httponly=True, secure=secure, samesite=samesite)
     return resp
 
 
