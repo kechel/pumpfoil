@@ -70,3 +70,42 @@ def test_mixed_session_partial_foiling():
     res = analyze_gps(samples, gps_hz=1)
     assert len(res["segments"]) == 1
     assert 0 < res["foiling_distance_m"] < res["total_distance_m"]
+
+
+# --- Segment-Merge: ein durchgehender Lauf darf nicht künstlich geteilt werden ---
+# (Regression zu _merge_no_stop: Dropout am Sample-Abstand erkennen, nicht an der Wanduhr.)
+
+def test_mask_hole_does_not_split_continuous_run():
+    # Durchgehende Fahrt, 40 s konstant 5 m/s, GPS lückenlos (1 Hz). Das Accel-Modell
+    # setzt mitten im Lauf ein 15-Sample-Loch in die Maske -> Wanduhr-Abstand der beiden
+    # Maskenstücke = 16 s (>GAP_SPLIT_S). Da aber kein echter Stopp (Speed nie <2,8 m/s)
+    # und kein echter GPS-Dropout (Sample-Abstand 1 s) vorliegt, ist es EIN Lauf.
+    samples = _build_track([5.0] * 40)
+    mask = [True] * 40
+    for i in range(13, 28):          # 15 Samples Modell-Aussetzer (13..27)
+        mask[i] = False
+    res = analyze_gps(samples, gps_hz=1, mask_override=mask)
+    assert len(res["segments"]) == 1
+    assert res["segments"][0]["i_start"] == 0
+    assert res["segments"][0]["i_end"] >= 39
+
+
+def test_real_stop_still_splits_runs():
+    # Echter Stopp dazwischen (Speed fällt auf 0) -> zwei getrennte Läufe, NICHT gemergt.
+    samples = _build_track([5.0] * 15 + [0.0] * 8 + [5.0] * 15)
+    res = analyze_gps(samples, gps_hz=1)
+    assert len(res["segments"]) >= 2
+
+
+def test_gps_dropout_still_splits_runs():
+    # Lückenlose hohe Geschwindigkeit, aber ein echter GPS-Dropout (20 s ohne Sample)
+    # zwischen zwei Hälften -> bleibt getrennt (kein Merge über einen echten Dropout).
+    samples = _build_track([5.0] * 13)
+    lat, lon = samples[-1][1], samples[-1][2]
+    t = samples[-1][0] + 20_000       # 20-s-Zeitsprung = Dropout
+    for _ in range(20):
+        lat, lon = _point(lat, lon, 5.0, bearing_deg=90.0)
+        samples.append([t, lat, lon, 5.0, 130, 5.0])
+        t += 1000
+    res = analyze_gps(samples, gps_hz=1)
+    assert len(res["segments"]) >= 2

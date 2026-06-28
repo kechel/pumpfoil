@@ -3,9 +3,15 @@
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`).
 **Vorgabe Uhren:** Garmin (`watch/`).
 
-Stand: 2026-06-26. Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ fehlt · 🐛 Bug.
+Stand: 2026-06-26 (zuletzt geprüft 2026-06-28). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ fehlt · 🐛 Bug.
 
 > Diese Datei ist die Soll-Ist-Liste. Erst abweichen/fehlen erfassen, dann priorisiert umsetzen.
+
+**Update 2026-06-28:** Session-Liste, Community-Feed und Verlauf auf Android+iOS auf Web-Niveau
+nachgezogen (reiche Karten: Avatar/Stats/Track-Vorschau/Thumbnail; Verlauf-Trend-Chart). Garmin
+auf **v1.0.39** (Phantom-Lauf beim Zurückschwimmen behoben — Median + Re-Arm-Cooldown). Die unten
+beschriebene Phone-Detail-Parität (Farb-Modi/Pump-Marker/Läufe/löschen/melden) ist in beiden
+Apps **bestätigt vorhanden**. Offen bleibt die Detektor-Wurzel GPS-Fallback bei FR55/Lite.
 
 ## Stand 2026-06-26 (autonome Serie) — Phone-Parität weitgehend hergestellt
 

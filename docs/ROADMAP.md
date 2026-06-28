@@ -3,6 +3,23 @@
 Goal: support **all common sports watches**, and clearly document which watch
 delivers which data so the user can decide (see the in-app `/uhren` page).
 
+## Aktueller Stand (2026-06-28)
+
+| Plattform | Version | Status |
+|---|---|---|
+| Garmin (alle ~78 Geräte) | 1.0.39 | live; Recorder + 1-Klick-Modell-Download |
+| Android Phone (`:app`) | 1.0.3 | native Companion-App (Compile/CI verifiziert) |
+| Wear OS (`:wear`) | 0.2 | nativer Recorder |
+| iOS-App + Apple Watch | 1.0.1 | SwiftUI (Build in Xcode) |
+| Web-PWA | — | live ([pumpfoil.org](https://pumpfoil.org)), 7 Sprachen |
+
+Letzte Meilensteine: native iOS/Android-Companion-Apps auf Web-Niveau für Session-Liste,
+Community-Feed und Verlauf (inkl. Trend-Charts); Garmin **v1.0.39** (Phantom-Lauf beim
+Zurückschwimmen + Segment-Merge-Fix in der Detektion); Backups (systemd) repariert; **CI**
+(GitHub Actions: Server-Tests, Web-Build, Android-Compile). Feature-Parität im Detail:
+[`PARITY-AUDIT.md`](PARITY-AUDIT.md). Offene Detektor-Wurzel: GPS-Fallback bei FR55/Lite
+(ML überstimmt klares GPS) — siehe PARITY-AUDIT/Memory.
+
 ## Design principle: write the logic once
 
 Everything that can be shared **is** shared, so a new watch is a thin add-on:
