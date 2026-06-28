@@ -150,6 +150,8 @@ class MainActivity : ComponentActivity() {
         var alarmDefault by remember { mutableStateOf("foil") }   // Vorwahl: "foil" | "fixed"
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showFoilPicker by remember { mutableStateOf(false) }
+        var pendingStart by remember { mutableStateOf(true) }   // FoilPicker: nach Auswahl starten? (Start-Knopf=ja, Vorwahl=nein)
+        var foilLabel by remember { mutableStateOf("") }        // aktuelle Foil-Vorwahl (Chip-Anzeige)
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
 
@@ -293,14 +295,20 @@ class MainActivity : ComponentActivity() {
                 onToggleRepeat = {
                     alarm = alarm.copy(repeat = if (alarm.repeat == "continuous") "once" else "continuous")
                 },
-                onWebsite = { showFoilPicker = false; RecorderService.start(applicationContext) },
+                onWebsite = {
+                    foilLabel = I18n.t("foil.website"); showFoilPicker = false
+                    if (pendingStart) RecorderService.start(applicationContext)
+                },
                 onPick = { f ->
                     // Foil-Schwellen setzen, Muster/Repeat aus der Config behalten.
                     alarm = alarm.copy(enabled = true, high = f.max, low = f.min)
-                    showFoilPicker = false
-                    RecorderService.start(applicationContext)
+                    foilLabel = f.label; showFoilPicker = false
+                    if (pendingStart) RecorderService.start(applicationContext)   // nur vom Start-Knopf, nicht bei Vorwahl
                 },
-                onNone = { alarm = alarm.copy(enabled = false); showFoilPicker = false; RecorderService.start(applicationContext) },
+                onNone = {
+                    alarm = alarm.copy(enabled = false); foilLabel = I18n.t("foil.none"); showFoilPicker = false
+                    if (pendingStart) RecorderService.start(applicationContext)
+                },
                 onBack = { showFoilPicker = false },
             )
         } else {
@@ -340,9 +348,22 @@ class MainActivity : ComponentActivity() {
                 } else {
                 Button(onClick = {
                     skipSync()
-                    if (manualAlarm || foils.isNotEmpty()) showFoilPicker = true
+                    if (manualAlarm || foils.isNotEmpty()) { pendingStart = true; showFoilPicker = true }
                     else RecorderService.start(applicationContext)
                 }) { Text(I18n.t("rec.start")) }
+                // Sekundär-Aktionen, immer erreichbar (nicht nur kontextuell): Foil vorwählen + manuell syncen.
+                if (foils.isNotEmpty() || Api.deviceToken != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (foils.isNotEmpty()) CompactChip(
+                            onClick = { pendingStart = false; showFoilPicker = true },
+                            label = { Text(if (foilLabel.isNotEmpty()) foilLabel else I18n.t("rec.chooseFoil"),
+                                style = MaterialTheme.typography.caption2) })
+                        if (Api.deviceToken != null) CompactChip(
+                            onClick = { Recorder.drain(ctx) },
+                            label = { Text(I18n.t("rec.syncNow"), style = MaterialTheme.typography.caption2) })
+                    }
+                }
                 // Sync-Banner: nur online; „Jetzt nicht" überspringt sofort und gibt den Start frei.
                 if (syncing) {
                     Spacer(Modifier.height(8.dp))
@@ -422,33 +443,40 @@ class MainActivity : ComponentActivity() {
     private fun HoldStopButton() {
         var progress by remember { mutableStateOf(0f) }
         Box(contentAlignment = Alignment.Center) {
-            if (progress > 0f)
-                CircularProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.size(80.dp), strokeWidth = 3.dp,
-                    indicatorColor = Color(0xFFF87171))
-            Button(
-                onClick = {},
-                modifier = Modifier.pointerInput(Unit) {
-                    detectTapGestures(onPress = {
-                        progress = 0.0001f
-                        val held = coroutineScope {
-                            val timer = launch {
-                                val start = System.currentTimeMillis()
-                                while (isActive) {
-                                    progress = ((System.currentTimeMillis() - start) / 3000f).coerceIn(0f, 1f)
-                                    kotlinx.coroutines.delay(30)
+            CircularProgressIndicator(
+                progress = progress.coerceAtLeast(0.001f),   // immer sichtbarer Ring (zeigt „halten")
+                modifier = Modifier.size(96.dp), strokeWidth = 4.dp,
+                indicatorColor = Color(0xFFF87171))
+            // Plain Box (KEIN Material-Button) -> dessen clickable würde sonst die Press-
+            // Geste schlucken und onPress nie feuern.
+            Box(
+                modifier = Modifier
+                    .size(76.dp)
+                    .background(Color(0xFFB91C1C), CircleShape)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onPress = {
+                            progress = 0.0001f
+                            val held = coroutineScope {
+                                val timer = launch {
+                                    val start = System.currentTimeMillis()
+                                    while (isActive) {
+                                        progress = ((System.currentTimeMillis() - start) / 3000f).coerceIn(0f, 1f)
+                                        kotlinx.coroutines.delay(30)
+                                    }
                                 }
+                                val released = withTimeoutOrNull(3000) { tryAwaitRelease() }
+                                timer.cancel()
+                                released == null   // null => 3 s ohne Loslassen => stoppen
                             }
-                            val released = withTimeoutOrNull(3000) { tryAwaitRelease() }
-                            timer.cancel()
-                            released == null   // null => 3 s ohne Loslassen => stoppen
-                        }
-                        progress = 0f
-                        if (held) RecorderService.stop(applicationContext)
-                    })
-                },
-            ) { Text(I18n.t("rec.stopHold")) }
+                            progress = 0f
+                            if (held) RecorderService.stop(applicationContext)
+                        })
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(I18n.t("rec.stopHold"), textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.caption2, color = Color.White)
+            }
         }
     }
 }

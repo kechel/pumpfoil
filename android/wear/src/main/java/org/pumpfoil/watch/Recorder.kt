@@ -222,6 +222,7 @@ object Recorder {
                 draining = false
                 _state.value = _state.value.copy(
                     uploading = false,
+                    status = "",   // „lade hoch…" wieder entfernen (blieb sonst hängen)
                     pendingCount = LocalStore.pendingCount(ctx),
                     uploadSent = 0, uploadTotal = 0,
                     uploadError = if (!failed) "" else _state.value.uploadError)

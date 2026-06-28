@@ -13,8 +13,8 @@ android {
         applicationId = "org.pumpfoil.app"
         minSdk = 30          // Wear OS 3
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = 4
+        versionName = "0.4"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
