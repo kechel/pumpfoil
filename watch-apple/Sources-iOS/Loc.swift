@@ -98,6 +98,12 @@ enum Loc {
         "verlauf.daysAbbr": r("T", "T", "T", "d", "j", "g", "d"),
         "verlauf.period": r("Zeitraum", "Ziitruum", "Zeitraum", "Period", "Période", "Periodo", "Periodo"),
         "verlauf.kmFoiling": r("km Foiling", "km Foiling", "km Foiling", "km foiling", "km foiling", "km foiling", "km foiling"),
+        "verlauf.foilingPerSession": r("Foiling/Session", "Foiling/Session", "Foiling/Session", "Foiling/session", "Foiling/session", "Foiling/sessione", "Foiling/sesión"),
+        "verlauf.pumpsPerSession": r("Pumps/Session", "Pumps/Session", "Pumps/Session", "Pumps/session", "Pumps/session", "Pump/sessione", "Pumps/sesión"),
+        "verlauf.aggTitle": r("Summen & Schnitte", "Summe & Schnitt", "Summen & Schnitte", "Totals & averages", "Totaux & moyennes", "Totali & medie", "Totales y medias"),
+        "sd.avgSpeed": r("Ø Geschwindigkeit", "Ø Gschwindigkeit", "Ø Geschwindigkeit", "Avg speed", "Vitesse moy.", "Velocità media", "Velocidad media"),
+        "sd.avgPump": r("Ø Pump-Frequenz", "Ø Pump-Frequänz", "Ø Pump-Frequenz", "Avg pump rate", "Cadence moy.", "Cadenza media", "Cadencia media"),
+        "sd.avgDistPerPump": r("Ø Strecke/Pump", "Ø Strecki/Pump", "Ø Strecke/Pump", "Avg dist/pump", "Dist. moy./pump", "Dist. media/pump", "Dist. media/pump"),
 
         "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
         "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
