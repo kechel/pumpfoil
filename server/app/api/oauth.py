@@ -257,10 +257,12 @@ def _fallback_display_name(db: Session) -> str:
 
 
 def _unique_display_name(db: Session, name: str | None) -> str | None:
-    # Anzeigenamen müssen NICHT eindeutig sein -> echten (Vor-)Namen übernehmen, auch wenn
-    # er schon existiert. Fallback ("FoilerN") greift nur noch bei leerem/ungültigem Namen.
     n = (name or "").strip()
-    return n if 2 <= len(n) <= 40 else None
+    if not (2 <= len(n) <= 40):
+        return None
+    if db.query(models.User).filter(func.lower(models.User.display_name) == n.lower()).first():
+        return None  # vergeben -> Nutzer setzt später selbst einen
+    return n
 
 
 @router.api_route("/{provider}/callback", methods=["GET", "POST"])
