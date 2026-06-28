@@ -64,6 +64,11 @@ object Api {
         json.decodeFromString(Profile.serializer(), http("GET", "/api/auth/me", null, auth = true))
     }
 
+    // Profil-Sprache setzen (synct zu Web/Uhr über die User-Sprache).
+    suspend fun updateLanguage(lang: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/auth/me", "{\"language\":\"$lang\"}", auth = true)
+    }
+
     // Anzeigename ändern (PUT-Alias, da HttpURLConnection kein PATCH kann).
     suspend fun updateDisplayName(name: String): Profile = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("display_name", name) }.toString()

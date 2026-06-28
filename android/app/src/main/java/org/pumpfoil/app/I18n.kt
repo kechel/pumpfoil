@@ -79,6 +79,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "settings.homespot" to row("Homespot", "Homespot", "Homespot", "Home spot", "Spot principal", "Spot principale", "Spot principal"),
     "settings.auto" to row("Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático"),
     "settings.design" to row("Design", "Design", "Design", "Theme", "Thème", "Tema", "Tema"),
+    "settings.language" to row("Sprache", "Sprooch", "Sprache", "Language", "Langue", "Lingua", "Idioma"),
     "settings.light" to row("Hell", "Häll", "Hell", "Light", "Clair", "Chiaro", "Claro"),
     "settings.dark" to row("Dunkel", "Dunkel", "Dunkel", "Dark", "Sombre", "Scuro", "Oscuro"),
     "settings.notifications" to row("Benachrichtigungen", "Benachrichtigunge", "Benachrichtigungen", "Notifications", "Notifications", "Notifiche", "Notificaciones"),

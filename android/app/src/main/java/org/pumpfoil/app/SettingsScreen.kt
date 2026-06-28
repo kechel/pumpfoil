@@ -65,6 +65,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     var nAnalyzed by remember { mutableStateOf(true) }
     var nRecord by remember { mutableStateOf(true) }
     var theme by remember { mutableStateOf(ThemeState.mode) }
+    var lang by remember { mutableStateOf(I18n.lang) }
 
     LaunchedEffect(Unit) {
         try {
@@ -136,6 +137,16 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
 
+            // Sprache (sofort lokal + ans Profil, synct zu Web/Uhr).
+            Text(I18n.t("settings.language"), style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            Dropdown(
+                options = I18n.LANGS.map { it to (LANG_NAMES[it] ?: it) },
+                selected = lang,
+                onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
+            )
+            Spacer(Modifier.height(16.dp))
+
             // Push-Benachrichtigungen.
             Text(I18n.t("settings.notifications"), style = MaterialTheme.typography.labelLarge)
             ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
@@ -150,6 +161,12 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
     }
 }
+
+// Sprachnamen in der jeweiligen Sprache (Reihenfolge = I18n.LANGS).
+private val LANG_NAMES = mapOf(
+    "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
+    "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
+)
 
 @Composable
 private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
