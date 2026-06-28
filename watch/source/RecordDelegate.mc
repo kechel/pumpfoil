@@ -167,12 +167,15 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
             var f = _rec.foils[id];
             _rec.applyFoilAlarm(f["min"], f["max"]);     // Foil-Auto-Alarm
             _rec.activeAlarmLabel = f["label"];
+            _rec.sessionFoilId = f["id"];                // dieses Foil für die nächste Session übernehmen
         } else if (id == :website) {
             _rec.alarmEnabled = true;                    // feste Website-Werte (bereits geladen)
             _rec.activeAlarmLabel = "Feste Werte";
+            _rec.sessionFoilId = null;                   // kein Foil-Override -> User-Default
         } else if (id == :none) {
             _rec.alarmEnabled = false;                   // kein Alarm für diese Session
             _rec.activeAlarmLabel = "Aus";
+            _rec.sessionFoilId = null;                   // kein Foil-Override -> User-Default
         }
         // Nur Auswahl setzen, NICHT starten -> zurück zum Start-Screen.
         WatchUi.popView(WatchUi.SLIDE_DOWN);

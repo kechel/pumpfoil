@@ -40,13 +40,18 @@ def start_session(
     if s is None:
         # Standard-Foil des Nutzers beim Anlegen fest zuordnen (änderbar).
         import json as _json
-        _u = db.get(models.User, device.user_id)
         _foil = None
-        if _u and _u.settings_json:
-            try:
-                _foil = (_json.loads(_u.settings_json) or {}).get("foil_id")
-            except ValueError:
-                _foil = None
+        # Auf der Uhr für diese Session gewähltes Foil hat Vorrang (Override), sofern es
+        # im Katalog existiert. Sonst Standard-Foil des Nutzers aus den Settings.
+        if body.foil_id is not None and db.get(models.Foil, body.foil_id) is not None:
+            _foil = body.foil_id
+        else:
+            _u = db.get(models.User, device.user_id)
+            if _u and _u.settings_json:
+                try:
+                    _foil = (_json.loads(_u.settings_json) or {}).get("foil_id")
+                except ValueError:
+                    _foil = None
         s = models.Session(
             session_uuid=body.session_uuid,
             user_id=device.user_id,

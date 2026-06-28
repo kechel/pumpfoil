@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.39";
+    const VERSION = "1.0.40";
 
     // Server-Basis-URL (per -D base_url=... im Build überschreibbar).
     function baseUrl() {

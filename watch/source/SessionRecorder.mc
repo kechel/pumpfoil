@@ -74,6 +74,7 @@ class SessionRecorder {
     var alarmDefault = "foil";        // Website-Vorwahl für die Uhr: "foil" = Standard-Foil | "fixed" = feste Werte
     var manualAlarm = false;          // true = Vibrationsalarm auf der Website aktiviert (Master-Schalter)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
+    var sessionFoilId = null;         // auf der Uhr gewähltes Foil (Server-ID) -> Override für die NÄCHSTE Session; null = User-Default
     var activeAlarmLabel = "";        // angezeigte Auswahl auf dem Start-Screen (Foil/„Website"/„Ohne")
     // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
     // Uhrzeit + letzter Lauf (Distanz/Dauer). Per Website konfigurierbar.
@@ -483,6 +484,9 @@ class SessionRecorder {
         }
 
         _persistMeta();
+        // Foil-Auswahl gilt nur für diese (gerade gestartete) Session; im Storage-Meta steht
+        // sie schon -> live zurücksetzen, damit die nächste Session wieder den Default nutzt.
+        sessionFoilId = null;
         if (_fitSession != null) {
             try { _fitSession.start(); } catch (e) { _fitSession = null; }
         }
@@ -876,7 +880,8 @@ class SessionRecorder {
             "started_at" => _startedAt.value(),
             "gps_hz" => 1,
             "accel_hz" => _accelHz,
-            "accel_scale" => ACCEL_SCALE
+            "accel_scale" => ACCEL_SCALE,
+            "foil_id" => sessionFoilId
         });
     }
 

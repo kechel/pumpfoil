@@ -92,6 +92,7 @@ class SessionStartIn(BaseModel):
     gps_hz: int = 1
     accel_hz: int = 25
     accel_scale: int = 2048
+    foil_id: int | None = None   # auf der Uhr für diese Session gewähltes Foil (Override)
 
 
 class SessionStartOut(BaseModel):
