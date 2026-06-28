@@ -120,6 +120,8 @@ struct RecordView: View {
     @State private var showFoilPicker = false
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
     @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
+    @State private var autoStart = false                // GPS-Auto-Start (Config-Flag)
+    @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
 
     var body: some View {
         Group {
@@ -171,6 +173,9 @@ struct RecordView: View {
                     Text("Pumpfoil").font(.title3)
                     if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                         Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    if autoStart && !rec.starting {
+                        Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan)
                     }
                     if rec.starting {
                         // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
@@ -236,6 +241,14 @@ struct RecordView: View {
                     }
                     }
                 }.padding()
+                // Auto-Start: im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten
+                // (nur wenn Config autoStart=true; Foreground-only). Beim Start/Verlassen aufräumen.
+                .task(id: autoStart) {
+                    if autoStart && !rec.isRecording {
+                        autoMon.arm { Task { @MainActor in await rec.start() } }
+                    } else { autoMon.disarm() }
+                }
+                .onDisappear { autoMon.disarm() }
             }
         }
         .task {
@@ -314,6 +327,7 @@ struct RecordView: View {
                            repeatMode: c.alarmRepeat ?? "once")
         foils = c.foils ?? []
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
+        autoStart = c.autoStart ?? false
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
     }
