@@ -95,6 +95,10 @@ class SessionRecorder {
     const RUN_EXIT_MPS = 2.5;    // ~9 km/h: darunter -> Lauf-Ende (Hysterese)
     const RUN_ENTER_DWELL = 3;   // s anhaltend -> foilend
     const RUN_EXIT_DWELL = 3;    // s anhaltend langsam -> Lauf-Ende
+    // Nach einem Lauf-Ende kurze Sperre, bevor ein neuer Lauf starten darf. Fängt das
+    // Zurückschwimmen direkt nach dem Absteigen ab (GPS-Speed-Spikes der nassen Uhr
+    // sollen keinen Phantom-Lauf samt Übersichts-Screen auslösen).
+    const RUN_REARM_COOLDOWN_MS = 15000;
     // Auto-Start: auf dem Start-Screen die GPS-Geschwindigkeit überwachen und die
     // Aufnahme automatisch starten, sobald man losfährt (~10 km/h, 4 s anhaltend).
     const AUTO_START_MPS = 2.8;
@@ -102,6 +106,7 @@ class SessionRecorder {
     hidden var _foiling = false;
     hidden var _enterStreak = 0;
     hidden var _exitStreak = 0;
+    hidden var _runEndedMs = -100000;   // tMs des letzten Lauf-Endes (für Re-Arm-Cooldown)
     hidden var _runStartMs = 0;
     hidden var _runStartDist = 0.0;
     hidden var _runMaxSpeed = 0.0;
@@ -427,6 +432,7 @@ class SessionRecorder {
         if (storageFull) { return; }
         // Lauferkennung zurücksetzen.
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
+        _runEndedMs = -100000;
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
 
@@ -562,7 +568,7 @@ class SessionRecorder {
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
             _checkAlarm(speed3s());
-            _updateRun(speed3s(), spd, distanceM(), elapsedTimeMs());
+            _updateRun(speed3sMed(), spd, distanceM(), elapsedTimeMs());
             // KEIN Live-Upload während der Aktivität: Garmin meldet sonst „Übertragung
             // während der Aktivität nicht möglich". Chunks landen laufend in Storage
             // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
@@ -599,14 +605,20 @@ class SessionRecorder {
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
     hidden function _updateRun(v3, vInst, dist, tMs) {
         if (!_foiling) {
-            _enterStreak = (v3 >= RUN_ENTER_MPS) ? _enterStreak + 1 : 0;
-            if (_enterStreak >= RUN_ENTER_DWELL) {
-                _foiling = true;
-                _exitStreak = 0;
-                // Start rückdatieren auf den ersten schnellen Tick.
-                _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
-                _runStartDist = dist;
-                _runMaxSpeed = vInst;
+            // Re-Arm-Cooldown: direkt nach einem Lauf-Ende keinen neuen Lauf zulassen
+            // (Zurückschwimmen erzeugt sonst über Speed-Spikes einen Phantom-Lauf).
+            if (tMs - _runEndedMs < RUN_REARM_COOLDOWN_MS) {
+                _enterStreak = 0;
+            } else {
+                _enterStreak = (v3 >= RUN_ENTER_MPS) ? _enterStreak + 1 : 0;
+                if (_enterStreak >= RUN_ENTER_DWELL) {
+                    _foiling = true;
+                    _exitStreak = 0;
+                    // Start rückdatieren auf den ersten schnellen Tick.
+                    _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
+                    _runStartDist = dist;
+                    _runMaxSpeed = vInst;
+                }
             }
         } else {
             if (vInst > _runMaxSpeed) { _runMaxSpeed = vInst; }
@@ -623,6 +635,7 @@ class SessionRecorder {
                 _lastRunMaxSpeed = _runMaxSpeed;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
                 _runCount++;
+                _runEndedMs = tMs;   // Re-Arm-Cooldown starten
                 return true;   // Lauf gerade beendet -> Live-Sync anstoßen
             }
         }
@@ -699,6 +712,27 @@ class SessionRecorder {
             if (_speedRing[i] != null) { sum += _speedRing[i]; cnt++; }
         }
         return cnt == 0 ? 0.0 : sum / cnt;
+    }
+
+    // Median der bis zu 3 Speed-Samples — für die Lauferkennung. Ein einzelner GPS-
+    // Spike (nasse Uhr beim Schwimmen) bleibt sonst 3 Ticks im Mittelwert hängen und
+    // hält ihn über die Enter-Schwelle (Ring == Dwell). Der Median wirft ihn raus.
+    // Anzeige/Alarm nutzen weiter speed3s() (Mittelwert) -> unverändert.
+    function speed3sMed() {
+        var vals = [];
+        for (var i = 0; i < SPEED_AVG_SAMPLES; i++) {
+            if (_speedRing[i] != null) { vals.add(_speedRing[i]); }
+        }
+        var n = vals.size();
+        if (n == 0) { return 0.0; }
+        // Insertion-Sort (max. 3 Elemente).
+        for (var i = 1; i < n; i++) {
+            var key = vals[i]; var j = i - 1;
+            while (j >= 0 && vals[j] > key) { vals[j + 1] = vals[j]; j--; }
+            vals[j + 1] = key;
+        }
+        // Untere Mitte: n=3 -> Index 1 (echter Median); n=2 -> Index 0 (konservativ).
+        return vals[(n - 1) / 2];
     }
 
     function currentHr() { return _currentHr; }
