@@ -55,7 +55,6 @@ class MainActivity : ComponentActivity() {
         val p = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.BODY_SENSORS,
-            Manifest.permission.ACTIVITY_RECOGNITION,
         )
         if (Build.VERSION.SDK_INT >= 33) p.add(Manifest.permission.POST_NOTIFICATIONS)
         perms.launch(p.toTypedArray())
