@@ -801,6 +801,13 @@ const de: Record<string, string> = {
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "So richtest du deine Uhr ein",
+  "guide.pair.title": "Uhr mit deinem Konto verbinden",
+  "guide.pair.intro": "Ohne Verbinden kannst du trotzdem aufnehmen – die Sessions werden lokal gespeichert und später automatisch hochgeladen. Zum Zuordnen zu deinem Konto gibt es zwei Wege:",
+  "guide.pair.autoTitle": "Automatisch (Apple Watch & Wear OS):",
+  "guide.pair.auto": "App aufs Handy, einloggen – fertig. Die Uhr-App bekommt die Verbindung automatisch über das gekoppelte Handy, ohne Code. Zeigt die Uhr „Verbindung ungültig“, tippe „Neu verbinden“ – sie holt sich dann automatisch ein frisches Token.",
+  "guide.pair.codeTitle": "Mit Code (Garmin & als Fallback):",
+  "guide.pair.code": "An der Uhr „Verbinden“ → „Pairing-Code erzeugen“, dann den 6-stelligen Code hier eintragen:",
+  "guide.pair.note": "Login per E-Mail, Google oder Apple – gleiche E-Mail ergibt dasselbe Konto, ein separates Verknüpfen ist nicht nötig.",
   "guide.pick": "Wähle deine Plattform.",
   "guide.connect": "„Verbinden“",
   "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
@@ -848,7 +855,7 @@ const de: Record<string, string> = {
   "guide.a.s4Title": "4. Aufnehmen:",
   "guide.a.s4": "App öffnen → Start → foilen → Stop. Aufnahme läuft auch offline; Sync passiert automatisch, sobald online.",
   "guide.w.s1Title": "1. App installieren:",
-  "guide.w.s1": "aus dem Google Play Store (in Vorbereitung).",
+  "guide.w.s1": "aus dem Google Play Store.",
   "guide.w.s2Title": "2. Verbinden — optional:",
   "guide.w.s2a": "wie bei Apple Watch — ohne Konto aufnehmen möglich, später verbinden; oder in der Uhr-App „Verbinden“ → „Pairing-Code erzeugen“ und den Code hier im Tab",
   "guide.w.s2b": "eintragen.",

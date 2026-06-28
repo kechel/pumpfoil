@@ -512,6 +512,13 @@ const gsw: Record<string, string> = {
 
   // Uhr-Yyrichtigs-Aaleitig (WatchGuide)
   "guide.howto": "So richtisch dini Uhr y",
+  "guide.pair.title": "Uhr mit dim Konto verbinde",
+  "guide.pair.intro": "Ohni Verbinde chasch trotzdem ufnäh – d Sessions wärded lokal gspeicheret und spöter automatisch ueglade. Zum Zueordne zu dim Konto gits zwee Wäg:",
+  "guide.pair.autoTitle": "Automatisch (Apple Watch & Wear OS):",
+  "guide.pair.auto": "App ufs Handy, ylogge – fertig. D Uhr-App überchunnt d Verbindig automatisch übers kopplete Handy, ohni Code. Zeigt d Uhr „Verbindig ungültig“, tipp „Neu verbinde“ – si holt sich denn automatisch es frischs Token.",
+  "guide.pair.codeTitle": "Mit Code (Garmin & als Fallback):",
+  "guide.pair.code": "An de Uhr „Verbinde“ → „Pairing-Code erzüge“, denn de 6-stellig Code da yygeh:",
+  "guide.pair.note": "Login per E-Mail, Google oder Apple – gliichi E-Mail git s gliiche Konto, es separats Verknüpfe isch nöd nötig.",
   "guide.pick": "Wähl dini Plattform.",
   "guide.connect": "„Verbinde“",
   "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
@@ -559,7 +566,7 @@ const gsw: Record<string, string> = {
   "guide.a.s4Title": "4. Ufnäh:",
   "guide.a.s4": "App ufmache → Start → foile → Stop. Ufnahm lauft au offline; Sync passiert automatisch, sobald online.",
   "guide.w.s1Title": "1. App installiere:",
-  "guide.w.s1": "usem Google Play Store (chunnt no).",
+  "guide.w.s1": "usem Google Play Store.",
   "guide.w.s2Title": "2. Verbinde — optional:",
   "guide.w.s2a": "wie bi de Apple Watch — ohni Konto ufnäh isch möglich, spöter verbinde; oder i de Uhr-App „Verbinde“ → „Pairing-Code mache“ und de Code da im Tab",
   "guide.w.s2b": "ygäh.",

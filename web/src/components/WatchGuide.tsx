@@ -140,6 +140,17 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         </ol>
       </Card>
       )}
+
+      {/* Verbindung & Konto — plattformübergreifend, daher immer sichtbar. */}
+      <Card id="guide-pairing" className="scroll-mt-20 p-5">
+        <h3 className="text-lg font-bold text-brand-400">{t("guide.pair.title")}</h3>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.pair.intro")}</p>
+        <ul className="mt-4 space-y-3 text-sm text-slate-200">
+          <li><b>{t("guide.pair.autoTitle")}</b> {t("guide.pair.auto")}</li>
+          <li><b>{t("guide.pair.codeTitle")}</b> {t("guide.pair.code")}{connectLink}</li>
+        </ul>
+        <p className="mt-3 text-xs text-slate-400">{t("guide.pair.note")}</p>
+      </Card>
     </div>
   );
 }

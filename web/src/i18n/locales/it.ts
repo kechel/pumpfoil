@@ -583,6 +583,13 @@ const it: Record<string, string> = {
 
   // Guida alla configurazione dell'orologio (WatchGuide)
   "guide.howto": "Configura il tuo orologio",
+  "guide.pair.title": "Collega l’orologio al tuo account",
+  "guide.pair.intro": "Puoi registrare senza collegarti — le sessioni vengono salvate in locale e caricate automaticamente più tardi. Per assegnarle al tuo account ci sono due modi:",
+  "guide.pair.autoTitle": "Automatico (Apple Watch & Wear OS):",
+  "guide.pair.auto": "Installa l’app sul telefono e accedi — fatto. L’app dell’orologio riceve il collegamento automaticamente tramite il telefono accoppiato, senza codice. Se l’orologio mostra «Collegamento non valido», tocca «Ricollega» — recupera automaticamente un nuovo token.",
+  "guide.pair.codeTitle": "Con codice (Garmin e come fallback):",
+  "guide.pair.code": "Sull’orologio: «Collega» → «Genera codice», poi inserisci qui il codice a 6 cifre:",
+  "guide.pair.note": "Accesso con email, Google o Apple — la stessa email è lo stesso account, nessun collegamento separato necessario.",
   "guide.pick": "Scegli la tua piattaforma.",
   "guide.connect": "« Connetti »",
   "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
@@ -630,7 +637,7 @@ const it: Record<string, string> = {
   "guide.a.s4Title": "4. Registra:",
   "guide.a.s4": "apri l'app → Avvia → foila → Stop. La registrazione funziona anche offline; la sincronizzazione avviene automaticamente una volta online.",
   "guide.w.s1Title": "1. Installa l'app:",
-  "guide.w.s1": "dal Google Play Store (in arrivo).",
+  "guide.w.s1": "dal Google Play Store.",
   "guide.w.s2Title": "2. Connetti — facoltativo:",
   "guide.w.s2a": "come Apple Watch — registrazione senza account possibile, connetti più tardi; oppure nell'app dell'orologio « Connetti » → « Genera codice » e inserisci il codice qui nella scheda",
   "guide.w.s2b": ".",

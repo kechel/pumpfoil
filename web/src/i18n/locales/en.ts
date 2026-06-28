@@ -767,6 +767,13 @@ const en: Record<string, string> = {
 
   // Watch setup guide (WatchGuide)
   "guide.howto": "How to set up your watch",
+  "guide.pair.title": "Connect your watch to your account",
+  "guide.pair.intro": "You can record without connecting — sessions are saved locally and uploaded automatically later. To assign them to your account, there are two ways:",
+  "guide.pair.autoTitle": "Automatic (Apple Watch & Wear OS):",
+  "guide.pair.auto": "Install the app on your phone and sign in — done. The watch app gets the connection automatically via the paired phone, no code. If the watch shows “Link invalid”, tap “Reconnect” — it fetches a fresh token automatically.",
+  "guide.pair.codeTitle": "With a code (Garmin & as fallback):",
+  "guide.pair.code": "On the watch: “Connect” → “Generate pairing code”, then enter the 6-digit code here:",
+  "guide.pair.note": "Sign in with email, Google or Apple — the same email means the same account, no separate linking needed.",
   "guide.pick": "Choose your platform.",
   "guide.connect": "“Connect”",
   "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
@@ -814,7 +821,7 @@ const en: Record<string, string> = {
   "guide.a.s4Title": "4. Record:",
   "guide.a.s4": "open the app → Start → foil → Stop. Recording also works offline; sync happens automatically once online.",
   "guide.w.s1Title": "1. Install the app:",
-  "guide.w.s1": "from the Google Play Store (coming soon).",
+  "guide.w.s1": "from the Google Play Store.",
   "guide.w.s2Title": "2. Connect — optional:",
   "guide.w.s2a": "like Apple Watch — recording without an account is possible, connect later; or in the watch app “Connect” → “Generate pairing code” and enter the code here in the tab",
   "guide.w.s2b": ".",
