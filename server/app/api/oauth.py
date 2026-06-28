@@ -22,6 +22,7 @@ import hashlib
 import json
 import os
 import secrets
+import time
 
 import httpx
 import jwt as pyjwt
@@ -79,11 +80,68 @@ PROVIDERS: dict[str, dict] = {
 }
 
 
+# ---- Apple: client_secret wird aus dem .p8-Key signiert (kein statisches Secret) ----
+# Apple verlangt als Web-client_secret ein ES256-JWT, das max. 6 Monate gültig ist.
+# Wir erzeugen es aus den Apple-Schlüsseln und erneuern es automatisch -> kein
+# manuelles Nachpflegen. Benötigte Env: OAUTH_APPLE_CLIENT_ID (= Services ID),
+# OAUTH_APPLE_TEAM_ID, OAUTH_APPLE_KEY_ID und der Key als OAUTH_APPLE_PRIVATE_KEY
+# (.p8-Inhalt) ODER OAUTH_APPLE_KEY_FILE (Pfad zur .p8-Datei).
+_apple_secret_cache: dict = {"jwt": None, "exp": 0}
+
+
+def _apple_private_key() -> str | None:
+    raw = os.environ.get("OAUTH_APPLE_PRIVATE_KEY")
+    if raw:
+        return raw.replace("\\n", "\n")  # .env speichert Zeilenumbrüche oft als \n
+    path = os.environ.get("OAUTH_APPLE_KEY_FILE")
+    if path and os.path.isfile(path):
+        with open(path) as fh:
+            return fh.read()
+    return None
+
+
+def _apple_configured() -> bool:
+    return bool(
+        get_settings().oauth.get("apple", {}).get("client_id")
+        and os.environ.get("OAUTH_APPLE_TEAM_ID")
+        and os.environ.get("OAUTH_APPLE_KEY_ID")
+        and _apple_private_key()
+    )
+
+
+def apple_client_secret() -> str:
+    """Signiertes, gecachtes ES256-JWT als Apple-Web-client_secret (auto-erneuert)."""
+    now = int(time.time())
+    if _apple_secret_cache["jwt"] and _apple_secret_cache["exp"] - now > 3600:
+        return _apple_secret_cache["jwt"]
+    team = os.environ["OAUTH_APPLE_TEAM_ID"]
+    kid = os.environ["OAUTH_APPLE_KEY_ID"]
+    client_id = get_settings().oauth["apple"]["client_id"]  # Services ID
+    exp = now + 150 * 24 * 3600  # < 6 Monate (Apple-Maximum)
+    token = pyjwt.encode(
+        {"iss": team, "iat": now, "exp": exp, "aud": "https://appleid.apple.com", "sub": client_id},
+        _apple_private_key(),
+        algorithm="ES256",
+        headers={"kid": kid},
+    )
+    _apple_secret_cache.update(jwt=token, exp=exp)
+    return token
+
+
+def _creds(provider: str) -> dict:
+    """client_id/client_secret des Providers; bei Apple wird das Secret signiert,
+    falls kein statisches gesetzt ist (key-basierte Konfiguration)."""
+    creds = dict(get_settings().oauth.get(provider, {}))
+    if provider == "apple" and not creds.get("client_secret") and _apple_configured():
+        creds["client_secret"] = apple_client_secret()
+    return creds
+
+
 def _enabled(provider: str) -> dict:
     cfg = PROVIDERS.get(provider)
     if cfg is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown provider")
-    creds = get_settings().oauth.get(provider, {})
+    creds = _creds(provider)
     if not creds.get("client_id") or not creds.get("client_secret"):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Provider not configured")
     return {**cfg, **creds}
@@ -100,12 +158,12 @@ def _b64url(b: bytes) -> str:
 @router.get("/providers")
 def providers() -> list[dict]:
     """Liste der aktivierten Provider (für die Login-Buttons)."""
-    oauth = get_settings().oauth
-    return [
-        {"id": p, "label": cfg["label"]}
-        for p, cfg in PROVIDERS.items()
-        if oauth.get(p, {}).get("client_id") and oauth.get(p, {}).get("client_secret")
-    ]
+    out = []
+    for p, cfg in PROVIDERS.items():
+        creds = _creds(p)
+        if creds.get("client_id") and creds.get("client_secret"):
+            out.append({"id": p, "label": cfg["label"]})
+    return out
 
 
 @router.get("/{provider}/start")
