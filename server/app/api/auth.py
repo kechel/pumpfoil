@@ -35,18 +35,14 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 def _clean_display_name(db: Session, raw: str | None, exclude_id: int | None = None) -> str | None:
-    """Trimmt + validiert den Anzeigenamen und prüft Eindeutigkeit (case-insensitiv).
-    Leer -> None (kein Name). Bereits vergeben -> 409."""
+    """Trimmt + validiert den Anzeigenamen (nur Länge). Anzeigenamen müssen NICHT
+    eindeutig sein — die Identität läuft über E-Mail/ID, nicht über den Namen.
+    Leer -> None (kein Name). (db/exclude_id bleiben für Aufruf-Kompatibilität.)"""
     name = (raw or "").strip()
     if not name:
         return None
     if len(name) < 2 or len(name) > 40:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Anzeigename muss 2–40 Zeichen lang sein")
-    q = db.query(models.User).filter(func.lower(models.User.display_name) == name.lower())
-    if exclude_id is not None:
-        q = q.filter(models.User.id != exclude_id)
-    if q.first() is not None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Anzeigename ist bereits vergeben")
     return name
 
 
