@@ -7,6 +7,9 @@ venv/
 .pytest_cache/
 .env
 
+# Secrets — Apple „Sign in with Apple"-Key (.p8) niemals committen
+*.p8
+
 # Data / raw session blobs (never commit user data)
 server/data/
 server/media/
