@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🌊 Pumpfoil
+<img src="web/public/icon-512.png" alt="Pumpfoil logo" width="120">
+
+# Pumpfoil
 
 **Record and analyze pump foiling sessions from your sports watch — GPS track, foiling distance, pump cadence and glide phases. Garmin, Wear OS and Apple Watch, with native iOS/Android apps and a web PWA.**
 
