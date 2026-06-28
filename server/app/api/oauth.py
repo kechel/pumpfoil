@@ -309,7 +309,9 @@ async def callback(
 
     user = _login_or_create(db, provider, subject, email, name, language=oauth_lang)
     jwt = create_access_token(user.id)
-    resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}")
+    # 303 (See Other): erzwingt GET auf das Frontend. Wichtig bei Apple, dessen Callback
+    # ein POST ist — ein 307 würde die Methode beibehalten -> POST auf "/" -> 405.
+    resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}", status_code=303)
     resp.delete_cookie("oauth_state")
     resp.delete_cookie("oauth_pkce")
     resp.delete_cookie("oauth_lang")
