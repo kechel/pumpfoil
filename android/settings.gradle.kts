@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Pumpfoil"
-include(":app")
+include(":app", ":wear")
