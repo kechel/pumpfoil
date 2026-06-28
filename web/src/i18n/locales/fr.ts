@@ -406,6 +406,8 @@ const fr: Record<string, string> = {
   "land.f4Body": "Comparez vos sessions dans le temps et partagez vos runs avec d'autres foilers.",
   "land.ctaTitle": "Prêt pour votre première analyse ?",
   "land.ctaBody": "Créez un compte, connectez votre montre, allez foiler — l'analyse est automatique.",
+  "land.inclWear": "Wear OS inclus",
+  "land.inclWatch": "Apple Watch incluse",
   "land.qrHint": "Scanner avec le téléphone",
 
   "land.showcaseTitle": "Voyez exactement quand vous étiez en foil",

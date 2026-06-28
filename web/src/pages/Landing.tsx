@@ -244,6 +244,7 @@ export default function Landing() {
               >
                 <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
               </a>
+              <span className="text-xs font-medium text-slate-300">{t("land.inclWear")}</span>
               <img
                 src="/badges/qr-google-play.svg"
                 alt="QR-Code: Google Play"
@@ -260,6 +261,7 @@ export default function Landing() {
               >
                 <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-14 w-auto" />
               </a>
+              <span className="text-xs font-medium text-slate-300">{t("land.inclWatch")}</span>
               <img
                 src="/badges/qr-app-store.svg"
                 alt="QR-Code: App Store"

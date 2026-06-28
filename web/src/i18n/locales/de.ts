@@ -563,6 +563,8 @@ const de: Record<string, string> = {
   "land.f4Body": "Vergleiche Sessions über die Zeit und teile deine Läufe mit anderen Foilern.",
   "land.ctaTitle": "Bereit für deine erste Auswertung?",
   "land.ctaBody": "Konto anlegen, Uhr verbinden, losfoilen — die Analyse läuft automatisch.",
+  "land.inclWear": "inkl. Wear OS",
+  "land.inclWatch": "inkl. Apple Watch",
   "land.qrHint": "Mit dem Handy scannen",
 
   "land.showcaseTitle": "Sieh genau, wann du gefoilt hast",
