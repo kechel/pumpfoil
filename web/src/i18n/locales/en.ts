@@ -529,6 +529,7 @@ const en: Record<string, string> = {
   "land.f4Body": "Compare sessions over time and share your runs with other foilers.",
   "land.ctaTitle": "Ready for your first analysis?",
   "land.ctaBody": "Create an account, connect your watch, go foil — the analysis runs automatically.",
+  "land.qrHint": "Scan with your phone",
 
   "land.showcaseTitle": "See exactly when you were foiling",
   "land.showcaseBody": "The heart of it: Pumpfoil colors your track precisely over the foiling phases — by speed, heart rate or pump cadence — and marks every single pump stroke right on the route.",

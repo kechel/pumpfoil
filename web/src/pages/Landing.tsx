@@ -43,7 +43,6 @@ export default function Landing() {
   const [page, setPage] = useState(0);
   const cur = Math.min(page, pages - 1);
   const goPage = (d: number) => setPage((p) => (Math.min(p, pages - 1) + d + pages) % pages);
-  const slide = SHOTS.slice(cur * perView, cur * perView + perView);
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
@@ -115,16 +114,27 @@ export default function Landing() {
               aria-label={t("land.prev")}
               className="flex shrink-0 items-center px-1 text-slate-500 hover:text-brand-400"
             ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
-            <div className="flex items-center justify-center gap-6 sm:gap-12">
-              {slide.map((src) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt="Pumpfoil App"
-                  loading="lazy"
-                  className="w-[230px] shrink-0 rounded-[2rem] border border-slate-800 shadow-2xl sm:w-[260px]"
-                />
-              ))}
+            {/* Viewport + horizontal verschiebbarer Track: gleitet animiert (translateX),
+                statt die Bilder hart auszutauschen. Eine „Seite" = perView Screenshots. */}
+            <div className="w-[230px] overflow-hidden sm:w-[560px]">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${cur * 100}%)` }}
+              >
+                {Array.from({ length: pages }, (_, p) => (
+                  <div key={p} className="flex w-full shrink-0 items-center justify-center gap-4 sm:gap-8">
+                    {SHOTS.slice(p * perView, p * perView + perView).map((src) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt="Pumpfoil App"
+                        loading="lazy"
+                        className="w-[230px] shrink-0 rounded-[2rem] border border-slate-800 shadow-2xl sm:w-[256px]"
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
             <button
               onClick={() => goPage(1)}
@@ -203,6 +213,25 @@ export default function Landing() {
               {t("land.login")}
             </Link>
             <InstallPwa />
+          </div>
+          {/* Native Android-App: offizielles Google-Play-Badge + QR-Code zum Abscannen vom PC. */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-8">
+            <a
+              href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Get it on Google Play"
+            >
+              <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
+            </a>
+            <div className="flex flex-col items-center gap-1.5">
+              <img
+                src="/badges/qr-google-play.svg"
+                alt="QR-Code: Google Play"
+                className="h-28 w-28 rounded-lg bg-white p-1.5"
+              />
+              <span className="text-xs text-slate-400">{t("land.qrHint")}</span>
+            </div>
           </div>
         </section>
       </main>

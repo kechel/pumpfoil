@@ -406,6 +406,7 @@ const it: Record<string, string> = {
   "land.f4Body": "Confronta le sessioni nel tempo e condividi i tuoi run con altri foiler.",
   "land.ctaTitle": "Pronto per la tua prima analisi?",
   "land.ctaBody": "Crea un account, collega l'orologio, vai a foilare — l'analisi è automatica.",
+  "land.qrHint": "Scansiona col telefono",
 
   "land.showcaseTitle": "Vedi esattamente quando hai foilato",
   "land.showcaseBody": "Il cuore del progetto: Pumpfoil colora la traccia esattamente sulle fasi di foil — per velocità, battito o cadenza di pompata — e segna ogni singola pompata direttamente sul percorso.",

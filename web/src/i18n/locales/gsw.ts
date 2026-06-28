@@ -330,6 +330,7 @@ const gsw: Record<string, string> = {
   "land.f4Body": "Vergliich Sessions über d Ziit und teil dini Läuf mit andere Foiler.",
   "land.ctaTitle": "Parat für dini erschti Uswertig?",
   "land.ctaBody": "Konto aalege, Uhr verbinde, losfoile — d Analyse lauft automatisch.",
+  "land.qrHint": "Mitem Handy scanne",
 
   "land.showcaseTitle": "Gsehsch genau, wänn du gfoilt häsch",
   "land.showcaseBody": "S Härzstück: Pumpfoil färbt din Track genau uf de Foiling-Phase ii — nach Gschwindigkeit, Puls oder Pump-Frequänz — und markiert jede einzelni Pumpe grad ufem Wäg.",
