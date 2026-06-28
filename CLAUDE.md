@@ -36,6 +36,18 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - `foil-backup-snapshot.timer` → Mi 04:00 → `backup-snapshot.sh`: `cp -al` → permanenter
   Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
 
+## Netz / Deployment (WICHTIG für Tests)
+
+- Die App (`foil-server`, uvicorn `:8090`) läuft auf **dieser VM**. Der **Reverse-Proxy (Apache)
+  läuft auf einer SEPARATEN VM** und leitet nur weiter (`ProxyPass / → diese-VM:8090`; Template in
+  `deploy/`). Die SPA/`web/dist` + statische Assets liefert die FastAPI-App selbst aus.
+- **Diese VM erreicht `pumpfoil.org` / die externe IP NICHT** (ging noch nie) → **niemals
+  `curl https://pumpfoil.org/...` von hier** (hängt bis Timeout). Öffentliche Endpunkte **immer
+  lokal** testen: `curl http://localhost:8090/...`. `pumpfoil.org` selbst funktioniert einwandfrei
+  (PWA + Medien) — nur eben nicht von der VM aus erreichbar.
+- Öffentliche, nicht verlinkte Datei-URL (z. B. Play-Belege): über eine App-Route ausliefern
+  (Beispiel `GET /demo/wear-fgs.webm` in `main.py`) → erscheint dann unter `https://pumpfoil.org/...`.
+
 ## Git / GitHub
 
 - Remote: **`git@github.com:kechel/pumpfoil.git`** (`origin/main`). **Standing: nach jedem Commit
