@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -19,12 +20,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.*
+import android.os.Looper
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
@@ -140,6 +151,7 @@ class MainActivity : ComponentActivity() {
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showFoilPicker by remember { mutableStateOf(false) }
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
+        var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
 
         fun applyConfig(c: JSONObject) {
             if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
@@ -151,6 +163,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             colorBy = c.optBoolean("colorByValue", false)
+            autoStart = c.optBoolean("autoStart", false)
             manualAlarm = c.optBoolean("alarmEnabled", false)
             alarmDefault = c.optString("alarmDefault", "foil")
             alarm = WatchAlarm(
@@ -246,8 +259,8 @@ class MainActivity : ComponentActivity() {
                                 offFoil.filter { it != 0 }.ifEmpty { listOf(12) }.forEach { fid ->
                                     FieldView(fid, s, colorBy)
                                 }
-                            else -> {  // Stop-Seiten (vorne & hinten)
-                                Button(onClick = { RecorderService.stop(applicationContext) }) { Text(I18n.t("rec.stop")) }
+                            else -> {  // Stop-Seiten (vorne & hinten): 3 s halten zum Stoppen
+                                HoldStopButton()
                                 Spacer(Modifier.height(6.dp))
                                 Text(if (s.status.isNotEmpty()) s.status
                                      else if (page == 0) I18n.t("rec.toData") else I18n.t("rec.toSummary"),
@@ -291,11 +304,31 @@ class MainActivity : ComponentActivity() {
                 onBack = { showFoilPicker = false },
             )
         } else {
+            // Auto-Start (Config): im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten.
+            // Nur solange der Idle-Screen aktiv ist (Foreground) — beim Start räumt onDispose auf.
+            if (autoStart && !s.starting) {
+                DisposableEffect(autoStart) {
+                    val fused = LocationServices.getFusedLocationProviderClient(ctx)
+                    var streak = 0
+                    val cb = object : LocationCallback() {
+                        override fun onLocationResult(r: LocationResult) {
+                            val sp = r.lastLocation?.let { if (it.hasSpeed()) it.speed else 0f } ?: 0f
+                            if (sp * 3.6f >= 10f) { streak++; if (streak >= 4) RecorderService.start(ctx.applicationContext) }
+                            else streak = 0
+                        }
+                    }
+                    val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
+                    try { fused.requestLocationUpdates(req, cb, Looper.getMainLooper()) } catch (_: SecurityException) {}
+                    onDispose { fused.removeLocationUpdates(cb) }
+                }
+            }
             Column(Modifier.fillMaxSize().padding(12.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Pumpfoil", style = MaterialTheme.typography.title3)
                 Text("v" + appVersion(ctx), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                if (autoStart && !s.starting) Text(I18n.t("rec.autoStart"),
+                    style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
                 Spacer(Modifier.height(10.dp))
                 if (s.starting) {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
@@ -380,6 +413,42 @@ class MainActivity : ComponentActivity() {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 2.dp)) {
             Text(value, style = MaterialTheme.typography.display3, color = color)
             Text(label, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+        }
+    }
+
+    // 3 s halten zum Stoppen (wie Garmin Stop-Halten-Ring) — verhindert versehentliches Stoppen.
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun HoldStopButton() {
+        var progress by remember { mutableStateOf(0f) }
+        Box(contentAlignment = Alignment.Center) {
+            if (progress > 0f)
+                CircularProgressIndicator(
+                    progress = progress,
+                    modifier = Modifier.size(80.dp), strokeWidth = 3.dp,
+                    indicatorColor = Color(0xFFF87171))
+            Button(
+                onClick = {},
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures(onPress = {
+                        progress = 0.0001f
+                        val held = coroutineScope {
+                            val timer = launch {
+                                val start = System.currentTimeMillis()
+                                while (isActive) {
+                                    progress = ((System.currentTimeMillis() - start) / 3000f).coerceIn(0f, 1f)
+                                    kotlinx.coroutines.delay(30)
+                                }
+                            }
+                            val released = withTimeoutOrNull(3000) { tryAwaitRelease() }
+                            timer.cancel()
+                            released == null   // null => 3 s ohne Loslassen => stoppen
+                        }
+                        progress = 0f
+                        if (held) RecorderService.stop(applicationContext)
+                    })
+                },
+            ) { Text(I18n.t("rec.stopHold")) }
         }
     }
 }

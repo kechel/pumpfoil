@@ -47,7 +47,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
     // Aufnahme-Screen
     "rec.start" to row("Start", "Start", "Start", "Start", "Démarrer", "Avvia", "Iniciar"),
     "rec.stop" to row("Stop", "Stop", "Stop", "Stop", "Arrêter", "Stop", "Parar"),
+    "rec.stopHold" to row("Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén"),
     "rec.starting" to row("starte…", "start…", "starte…", "starting…", "démarrage…", "avvio…", "iniciando…"),
+    "rec.autoStart" to row("Auto-Start aktiv", "Auto-Start aktiv", "Auto-Start aktiv", "Auto-start on", "Démarrage auto", "Avvio auto", "Inicio auto"),
     "rec.sync" to row("Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…"),
     "rec.notNow" to row("Jetzt nicht", "Jetz nöd", "Jetzt nicht", "Not now", "Pas maintenant", "Non ora", "Ahora no"),
     "rec.toData" to row("Datenfelder →", "Datefälder →", "Datenfelder →", "Data fields →", "Champs →", "Campi →", "Campos →"),
