@@ -5,14 +5,17 @@ struct ContentView: View {
     @EnvironmentObject var rec: Recorder
     @State private var paired = Api.deviceToken != nil
     @State private var skipped = false
+    @State private var forcePair = false   // „Neu verbinden" — auch wenn (ungültiges) Token da ist
 
     var body: some View {
         // Pairing ist optional: ohne Token kann man trotzdem aufnehmen (lokal) und
         // später verbinden -> die Sessions werden dann automatisch nachgesynct.
-        if paired || skipped {
-            RecordView(onWantPair: { skipped = false })
+        // forcePair erzwingt den Pair-Screen auch bei vorhandenem (z. B. abgelaufenem) Token.
+        if forcePair || (!paired && !skipped) {
+            PairView(onPaired: { paired = true; forcePair = false; skipped = false },
+                     onSkip: { skipped = true; forcePair = false })
         } else {
-            PairView(onPaired: { paired = true }, onSkip: { skipped = true })
+            RecordView(onWantPair: { forcePair = true })
         }
     }
 }
@@ -118,6 +121,10 @@ struct RecordView: View {
     @State private var repeatTick = 0          // Zähler für continuous-Wiederholung
     @State private var foils: [Api.FoilOpt] = []
     @State private var showFoilPicker = false
+    @State private var selectedFoilId: Int?    // für diese Session gewähltes Foil (Server-Override)
+    @State private var fixedLow = 0            // feste Alarm-Werte aus der Config (für „Feste Werte")
+    @State private var fixedHigh = 0
+    @State private var selInit = false         // Default-Vorwahl nur einmal setzen
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
     @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Flag)
@@ -183,17 +190,29 @@ struct RecordView: View {
                         Text(rec.status.isEmpty ? WLoc.t("rec.starting", lang) : rec.status)
                             .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     } else {
+                    // Foil/Alarm-Vorwahl: Standard ist gesetzt, nur bei Bedarf vor dem Start
+                    // ändern (kein erzwungenes Sheet mehr beim Start).
+                    if manualAlarm || !foils.isEmpty {
+                        Button { showFoilPicker = true } label: {
+                            HStack(spacing: 4) {
+                                Text("\(WLoc.t("rec.alarm", lang)): \(currentAlarmLabel)").lineLimit(1)
+                                Spacer(minLength: 4)
+                                Text(WLoc.t("rec.change", lang)).foregroundStyle(.secondary)
+                            }.font(.caption2)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                     Button(WLoc.t("rec.start", lang)) {
                         skipSync()
-                        if manualAlarm || !foils.isEmpty { showFoilPicker = true }
-                        else { Task { await rec.start() } }
+                        Task { await rec.start(foilId: alarm.enabled ? selectedFoilId : nil) }
                     }
                     .tint(.green)
                     .sheet(isPresented: $showFoilPicker) {
                         AlarmPickerSheet(
                             foils: foils, manualAlarm: manualAlarm, alarmDefault: alarmDefault,
-                            alarm: $alarm,
-                            onPick: { showFoilPicker = false; Task { await rec.start() } },
+                            fixedLow: fixedLow, fixedHigh: fixedHigh,
+                            alarm: $alarm, selectedFoilId: $selectedFoilId,
+                            onPick: { showFoilPicker = false },
                             onCancel: { showFoilPicker = false })
                     }
                     // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
@@ -227,6 +246,12 @@ struct RecordView: View {
                                 .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
                             Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang) + " — " + WLoc.t("rec.willResume", lang))
                                 .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        } else if rec.uploadError == "auth" {
+                            // Token ungültig/abgelaufen -> neu pairen (Aufnahmen bleiben lokal).
+                            Text(WLoc.t("rec.authErr", lang))
+                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+                            Button(WLoc.t("rec.repair", lang)) { onWantPair() }
+                                .font(.caption2).buttonStyle(.borderless)
                         } else if rec.uploadError == "server" {
                             Text(WLoc.t("rec.serverErr", lang))
                                 .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
@@ -268,14 +293,17 @@ struct RecordView: View {
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
     }
 
+    // Aktuelle Alarm-/Foil-Vorwahl als Label (für den Selector-Button).
+    private var currentAlarmLabel: String {
+        if !alarm.enabled { return WLoc.t("foil.none", lang) }
+        if let id = selectedFoilId, let f = foils.first(where: { $0.id == id }) { return f.label }
+        return WLoc.t("foil.fixed", lang)
+    }
+
     @ViewBuilder private func stopPage(_ hint: String) -> some View {
         VStack(spacing: 12) {
-            // 3 s halten zum Stoppen (verhindert versehentliches Stoppen, wie Garmin Stop-Halten).
-            Text(WLoc.t("rec.stopHold", lang))
-                .font(.headline)
-                .padding(.horizontal, 20).padding(.vertical, 10)
-                .background(Color.red.opacity(0.85), in: Capsule())
-                .onLongPressGesture(minimumDuration: 3) { Task { await rec.stop() } }
+            // 3 s halten zum Stoppen; Ring füllt sich sichtbar als Fortschritt (wie Garmin Stop-Halten).
+            HoldToStopButton(label: WLoc.t("rec.stopHold", lang)) { Task { await rec.stop() } }
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -322,10 +350,23 @@ struct RecordView: View {
         colorBy = c.colorByValue
         manualAlarm = c.alarmEnabled
         alarmDefault = c.alarmDefault ?? "foil"
-        alarm = WatchAlarm(enabled: c.alarmEnabled, high: c.speedHigh, low: c.speedLow,
-                           patHigh: c.alarmPatternHigh ?? "short2", patLow: c.alarmPatternLow ?? "long2",
-                           repeatMode: c.alarmRepeat ?? "once")
+        fixedLow = c.speedLow; fixedHigh = c.speedHigh
         foils = c.foils ?? []
+        // Vibrationsmuster/Repeat immer aus der Config übernehmen.
+        alarm.patHigh = c.alarmPatternHigh ?? "short2"
+        alarm.patLow = c.alarmPatternLow ?? "long2"
+        alarm.repeatMode = c.alarmRepeat ?? "once"
+        // Default-Vorwahl nur EINMAL setzen — danach nicht die Nutzerwahl überschreiben.
+        if !selInit {
+            selInit = true
+            if alarmDefault == "foil", let f = foils.first {
+                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; selectedFoilId = f.id
+            } else if c.alarmEnabled {
+                alarm.enabled = true; alarm.high = c.speedHigh; alarm.low = c.speedLow; selectedFoilId = nil
+            } else {
+                alarm.enabled = false; selectedFoilId = nil
+            }
+        }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
         autoStart = c.autoStart ?? false
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
@@ -371,7 +412,10 @@ struct AlarmPickerSheet: View {
     let foils: [Api.FoilOpt]
     let manualAlarm: Bool
     let alarmDefault: String
+    let fixedLow: Int
+    let fixedHigh: Int
     @Binding var alarm: WatchAlarm
+    @Binding var selectedFoilId: Int?
     var onPick: () -> Void
     var onCancel: () -> Void
     @AppStorage("appLang") private var lang = "de"
@@ -391,7 +435,7 @@ struct AlarmPickerSheet: View {
                     if manualAlarm { fixedRow }
                     foilRows
                 }
-                Button { alarm.enabled = false; onPick() } label: { row(WLoc.t("foil.none", lang), WLoc.t("foil.noneSub", lang)) }
+                Button { alarm.enabled = false; selectedFoilId = nil; onPick() } label: { row(WLoc.t("foil.none", lang), WLoc.t("foil.noneSub", lang)) }
             } header: { Text(WLoc.t("foil.choose", lang)) }
             Section {
                 Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel)
@@ -400,14 +444,14 @@ struct AlarmPickerSheet: View {
     }
 
     private var fixedRow: some View {
-        Button { alarm.enabled = true; onPick() } label: {
-            row(WLoc.t("foil.fixed", lang), "\(alarm.low)–\(alarm.high) km/h")
+        Button { alarm.enabled = true; alarm.high = fixedHigh; alarm.low = fixedLow; selectedFoilId = nil; onPick() } label: {
+            row(WLoc.t("foil.fixed", lang), "\(fixedLow)–\(fixedHigh) km/h")
         }
     }
     private var foilRows: some View {
         ForEach(foils) { f in
             Button {
-                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; onPick()
+                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; selectedFoilId = f.id; onPick()
             } label: { row(f.label, "\(f.min)–\(f.max) km/h") }
         }
     }
@@ -416,6 +460,36 @@ struct AlarmPickerSheet: View {
             Text(title)
             Text(sub).font(.caption2).foregroundStyle(.secondary)
         }
+    }
+}
+
+// Stop-Knopf mit „3 s halten": ein Ring füllt sich während des Drückens, damit
+// sichtbar ist, wie lange noch zu halten ist. Loslassen vor Ablauf bricht ab.
+struct HoldToStopButton: View {
+    let label: String
+    let onStop: () -> Void
+    @State private var progress: CGFloat = 0
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.22), lineWidth: 6)
+            Circle().trim(from: 0, to: progress)
+                .stroke(Color.red, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(label).font(.caption).bold().multilineTextAlignment(.center)
+                .foregroundStyle(.white).padding(8)
+        }
+        .frame(width: 104, height: 104)
+        .contentShape(Circle())
+        .onLongPressGesture(minimumDuration: 3, maximumDistance: 60, pressing: { down in
+            withAnimation(down ? .linear(duration: 3) : .easeOut(duration: 0.25)) {
+                progress = down ? 1 : 0
+            }
+        }, perform: {
+            progress = 0
+            WKInterfaceDevice.current().play(.success)
+            onStop()
+        })
     }
 }
 

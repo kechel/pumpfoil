@@ -103,7 +103,7 @@ final class Recorder: NSObject, ObservableObject {
     // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
     // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
     // später per drain(), sobald die Uhr gepairt + online ist.
-    func start() async {
+    func start(foilId: Int? = nil) async {
         guard !isRecording else { return }
         uuid = UUID().uuidString
         startedAt = Date()
@@ -113,14 +113,16 @@ final class Recorder: NSObject, ObservableObject {
         // Aufzeichnungsmodus aus der (gecachten) Config — pro Konto, offline-tauglich.
         recordMode = UserDefaults.standard.string(forKey: "recordMode") ?? "full"
         accelHzActual = recordMode == "lite" ? Self.accelHzLite : Self.accelHz
-        LocalStore.writeMeta(uuid, [
+        var meta: [String: Any] = [
             "session_uuid": uuid,
             "started_at": startedAt.iso8601Z,
             "sport": "pumpfoil",
             "gps_hz": 1,
             "accel_hz": accelHzActual,
             "accel_scale": Int(Self.accelScale),
-        ])
+        ]
+        if let foilId { meta["foil_id"] = foilId }   // für diese Session gewähltes Foil (Server-Override)
+        LocalStore.writeMeta(uuid, meta)
         startWorkout()
         startSensors()
         isRecording = true
@@ -215,7 +217,12 @@ final class Recorder: NSObject, ObservableObject {
         uploadError = ""   // online -> optimistisch; bei Fehler unten gesetzt
         for dir in LocalStore.completedSessions() {
             do { try await uploadSession(dir) }
-            catch {
+            catch let e as Api.ApiError where e.status == 401 {
+                // Token ungültig/abgelaufen -> neu pairen. Weitere Versuche sind sinnlos,
+                // daher abbrechen statt mit dem schlechten Token weiterzuhämmern.
+                uploadError = "auth"
+                break
+            } catch {
                 // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
                 uploadError = Reachability.shared.isOnline ? "server" : "offline"
             }

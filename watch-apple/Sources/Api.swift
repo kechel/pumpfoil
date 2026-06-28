@@ -17,6 +17,12 @@ final class Reachability {
 
 // Server-Anbindung: Pairing + Raw-Ingest-Contract (docs/ingest-contract.md).
 enum Api {
+    // HTTP-Fehler mit Status -> Aufrufer kann 401 (ungültiges Token) gezielt behandeln.
+    struct ApiError: LocalizedError {
+        let status: Int
+        let body: String
+        var errorDescription: String? { "HTTP \(status)" + (body.isEmpty ? "" : ": \(body)") }
+    }
     // Default Produktion; für lokale Tests in den Einstellungen überschreibbar.
     static var baseURL: String {
         UserDefaults.standard.string(forKey: "baseURL") ?? "https://pumpfoil.org"
@@ -47,7 +53,7 @@ enum Api {
         req.timeoutInterval = 10
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
-        guard (200..<300).contains(code) else { throw err("HTTP \(code)") }
+        guard (200..<300).contains(code) else { throw ApiError(status: code, body: "") }
         return try JSONDecoder().decode(PairPollResponse.self, from: data)
     }
 
@@ -98,7 +104,7 @@ enum Api {
         if let t = deviceToken { req.setValue(t, forHTTPHeaderField: "X-Device-Token") }
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
-        guard (200..<300).contains(code) else { throw err("HTTP \(code)") }
+        guard (200..<300).contains(code) else { throw ApiError(status: code, body: "") }
         let c = try JSONDecoder().decode(DeviceConfig.self, from: data)
         cacheConfig(c)
         return c
@@ -127,7 +133,7 @@ enum Api {
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
         guard (200..<300).contains(code) else {
-            throw err("HTTP \(code): \(String(data: data, encoding: .utf8) ?? "")")
+            throw ApiError(status: code, body: String(data: data, encoding: .utf8) ?? "")
         }
         return try JSONDecoder().decode(T.self, from: data)
     }
