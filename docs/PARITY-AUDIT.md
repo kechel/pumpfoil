@@ -3,15 +3,29 @@
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`).
 **Vorgabe Uhren:** Garmin (`watch/`).
 
-Stand: 2026-06-26 (zuletzt geprüft 2026-06-28). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ fehlt · 🐛 Bug.
+Stand: 2026-06-28. Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ fehlt · 🐛 Bug.
 
 > Diese Datei ist die Soll-Ist-Liste. Erst abweichen/fehlen erfassen, dann priorisiert umsetzen.
 
-**Update 2026-06-28:** Session-Liste, Community-Feed und Verlauf auf Android+iOS auf Web-Niveau
-nachgezogen (reiche Karten: Avatar/Stats/Track-Vorschau/Thumbnail; Verlauf-Trend-Chart). Garmin
-auf **v1.0.39** (Phantom-Lauf beim Zurückschwimmen behoben — Median + Re-Arm-Cooldown). Die unten
-beschriebene Phone-Detail-Parität (Farb-Modi/Pump-Marker/Läufe/löschen/melden) ist in beiden
-Apps **bestätigt vorhanden**. Offen bleibt die Detektor-Wurzel GPS-Fallback bei FR55/Lite.
+**Release-Stand 2026-06-28:** Alles hochgeladen und **im Store-Review** — Google (Phone **+** Wear)
+und iOS (App **+** eingebettete Apple Watch, v1.1.0). Store-Anzeigename „Pumpfoil".
+
+**Update 2026-06-28 (Teil 2):** Weitere iOS-/Wear-Parität gebaut:
+- **iOS Verlauf**: Mehrfach-Linien-Charts (kumuliert/7T/30T) wie Web/Android (statt Einzel-Chart).
+- **iOS Session-Detail**: Lauf-Auswahl (Rekord-Kacheln + Tabelle + Karten-Tap; gewählter Lauf farbig,
+  Rest gedimmt) **inkl. Highlight**; erweiterte Stats; Pump-Marker default **aus** + kleiner.
+- **iOS Community**: Bestenliste/Leaderboards, neueste Medien, best bewertet, Spot-Rekorde + Suche.
+- **iOS**: Marken-Logo in der Nav-Leiste aller Tabs + Branded Splash.
+- **Apple Watch + Wear OS**: automatisches **Companion-Pairing** (Phone mintet Token, schiebt es per
+  WatchConnectivity/Data-Layer; self-healing bei 401 → „neu verbinden"); **Watch-Status-/Install-Karte**
+  im Phone-Profil; Apple-Foil-Vorwahl + Stop-Halte-Ring; Wear-Concurrency-Warnungen aufgeräumt.
+- **Web/Server**: App-Store-Link (+ „inkl. Apple Watch", Wear-Hinweis) auf der Landing-Seite;
+  **„Weiter mit Apple"** im Web-Login (client_secret aus .p8 signiert, auto-erneuert); Anzeigenamen
+  bei Kollision automatisch durchnummeriert (Register + OAuth); Hilfeseite mit Pairing-Abschnitt.
+
+**Update 2026-06-28 (Teil 1):** Session-Liste, Community-Feed und Verlauf auf Android+iOS auf Web-Niveau
+nachgezogen (reiche Karten: Avatar/Stats/Track-Vorschau/Thumbnail). Garmin auf **v1.0.40** (Foil-Override
++ Phantom-Lauf-Fix). Offen bleibt die Detektor-Wurzel GPS-Fallback bei FR55/Lite.
 
 ## Stand 2026-06-26 (autonome Serie) — Phone-Parität weitgehend hergestellt
 
@@ -28,9 +42,10 @@ Auth: E-Mail Login/**Register** · **Sign in with Apple** (iOS) · **Mit Google*
 Android Login-Light-Mode; iOS Release-Crash in Einstellungen+Alarm (selbstgebautes `Binding.onChange`
 entfernt); Social-Login-Displayname-Fallback; diverse Web-Light-Mode-Kontraste.
 
-**Noch offen (niedriger Nutzen / Web-zentriert):** Farb-Modus „Optimal", Lauf-Auswahl-Highlight,
-Labeling, Trim-Editor, Vergleichsansicht. **Braucht dich/Geräte:** Recorder-P2 (Lauf-Felder,
-3-s-Stop-Ring, „GPS bereit", Forward-Pairing), i18n (Uhr+Phone), Google-Consent-Verifizierung.
+**Noch offen (niedriger Nutzen / Web-zentriert):** Farb-Modus „Optimal", Labeling-Editor,
+Trim-Editor, Vergleichsansicht (auf den Phone-Apps). **Braucht dich/Geräte:** Detektor GPS-Fallback
+bei FR55/Lite, Watch-Face-Screenshots (Store), Garmin-FIT-Import (Programm-Freigabe).
+fr/it/es: best-effort, „gut genug" (kein Muttersprachler-Review nötig).
 
 ---
 

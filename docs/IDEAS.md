@@ -3,6 +3,21 @@
 ## 📥 Inbox (unsortiert, später einsortieren)
 _Schnell reingeworfene TODOs — keine Priorität, werden nach Ermessen eingeordnet & umgesetzt._
 
+- **Einheitliches „Pumpfoil"-Wording (offen).** Marke überall exakt **Pumpfoil** (ein Wort). Der Sport
+  bleibt generisch „Pump-Foiling"/„pump foiling". Noch zu ändern: **Garmin-Uhr** zeigt „Pump Foil"
+  (App-Name `Strings.AppName`, `RecordView`-Titel, `SettingsMenu`-Titel, Session-/Aktivitätsname in
+  `SessionRecorder`) → „Pumpfoil"; dazu Connect-IQ-Store-Listing umbenennen und die Guide-/`account.claimHelp`-
+  Texte (7 Sprachen, „Pump Foil … aus dem Connect IQ Store") angleichen. Apple/Wear/Android zeigen schon „Pumpfoil".
+- ✅ **Apple-Web-Login (2026-06-28):** „Weiter mit Apple" im Web; `client_secret` wird serverseitig aus dem
+  .p8-Key als ES256-JWT signiert + automatisch erneuert (kein 6-Monats-Ablauf). E-Mail-Merge greift.
+- ✅ **Automatisches Companion-Pairing der Uhren (2026-06-28):** eingeloggtes Phone mintet ein Device-Token
+  und schiebt es auf die Uhr (Apple: WatchConnectivity, Wear: Data Layer) — kein Code-Tippen. Self-healing
+  bei 401 („neu verbinden"); Logout verwirft den Cache; Watch-Status-/Install-Karte im Phone-Profil.
+- ✅ **Store-Verlinkung (2026-06-28):** App-Store- + Google-Play-Badge/QR auf der Landing-Seite
+  („inkl. Apple Watch" / „inkl. Wear OS"); Hilfeseite mit eigenem Pairing-Abschnitt.
+- ✅ **Anzeigenamen nicht-eindeutig-tolerant (2026-06-28):** beim Anlegen (Register + OAuth) wird bei
+  Kollision automatisch die nächste freie Zahl angehängt (Jan → Jan2); Unique-Constraint bleibt.
+
 - ✅ **Uhren auf die Benutzersprache einstellen** — *umgesetzt 2026-06-27.* Alle drei Recorder
   (Garmin `Strings.mc`, Wear `I18n.kt`, watchOS `WLoc.swift`) + Phone-Apps (Android/iOS) sowie das
   komplette Web nutzen jetzt die **Profil-Sprache** (7 Locales), via `language` aus `/api/devices/config`

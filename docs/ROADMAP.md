@@ -7,11 +7,11 @@ delivers which data so the user can decide (see the in-app `/uhren` page).
 
 | Plattform | Version | Status |
 |---|---|---|
-| Garmin (alle ~78 Geräte) | 1.0.39 | live; Recorder + 1-Klick-Modell-Download |
-| Android Phone (`:app`) | 1.0.3 | native Companion-App (Compile/CI verifiziert) |
-| Wear OS (`:wear`) | 0.2 | nativer Recorder |
-| iOS-App + Apple Watch | 1.0.1 | SwiftUI (Build in Xcode) |
-| Web-PWA | — | live ([pumpfoil.org](https://pumpfoil.org)), 7 Sprachen |
+| Garmin (alle ~78 Geräte) | 1.0.40 | live; Recorder + 1-Klick-Modell-Download |
+| Android Phone (`:app`) | 1.0.6 (vc 13) | **im Play-Review** (Companion-Pairing + Watch-Status-Karte) |
+| Wear OS (`:wear`) | 1.0.6 (vc 1007) | **im Play-Review** (self-healing Pairing) |
+| iOS-App + Apple Watch | 1.1.0 (b3) | **im App-Store-Review** (voller Port + Auto-Pairing) |
+| Web-PWA | — | live ([pumpfoil.org](https://pumpfoil.org)), 7 Sprachen, „Weiter mit Apple" |
 
 Letzte Meilensteine: native iOS/Android-Companion-Apps auf Web-Niveau für Session-Liste,
 Community-Feed und Verlauf (inkl. Trend-Charts); Garmin **v1.0.39** (Phantom-Lauf beim
@@ -134,9 +134,10 @@ Alles andere (Recorder-Quellcode, Server-Integrationen) macht Claude.
 - ✅ **Android Phone-App** (`android/`, nativer PWA-Nachbau): Foil-Rechner (auf verifizierter
   `FoilPhysics.kt`, 135/135 vs. JS-Referenz) + Session-Detail mit Track-Polyline (speed-gefärbt,
   ohne Kartenkacheln) und Speed-Verlauf-Chart. Auf der VM kompiliert.
-- ⏳ **iOS Phone-App** (`watch-apple/Sources-iOS/`): SwiftUI; Sessions/Profil + jetzt
-  Foil-Rechner (FoilPhysics.swift, 1:1-Port) und Session-Detail (Track-Polyline +
-  Speed-Chart), gespiegelt von Android. Auf Linux nicht baubar → von Jan in Xcode.
+- ✅ **iOS Phone-App** (`watch-apple/Sources-iOS/`): SwiftUI; voller PWA-Port (Home/Sessions/
+  Community/Verlauf-Charts/Spots/Chat/Profil/Foils/Rechner/Detail mit Lauf-Auswahl). **v1.1.0 im
+  App-Store-Review** (28.06.). Build-Hinweis: Release per-File kompilieren (`SWIFT_COMPILATION_MODE`),
+  WMO ließ den Optimizer minutenlang hängen.
 - ℹ️ **Garmin-Einstellungen** liegen jetzt hinter MENU auf dem Start-Screen (wie
   "Laufen Einstellungen"): Verbinden + Upload/Sync vor dem Start; Idle = nur Start-Screen.
 
