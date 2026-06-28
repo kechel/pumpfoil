@@ -2,4 +2,12 @@
 <resources>
     <!-- Basis-Theme; die eigentlichen Compose-Farben kommen aus PumpfoilTheme.kt. -->
     <style name="Theme.Pumpfoil" parent="android:Theme.Material.NoActionBar" />
+
+    <!-- Splash-Screen (core-splashscreen): Markenlogo (Wellen) auf Navy. -->
+    <color name="splash_navy">#0B1020</color>
+    <style name="Theme.Pumpfoil.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_navy</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_waves</item>
+        <item name="postSplashScreenTheme">@style/Theme.Pumpfoil</item>
+    </style>
 </resources>

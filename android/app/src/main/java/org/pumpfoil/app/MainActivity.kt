@@ -3,6 +3,7 @@ package org.pumpfoil.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -34,6 +35,7 @@ import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()   // Marken-Splash (Logo auf Navy) vor dem ersten Frame
         super.onCreate(savedInstanceState)
         Api.load(applicationContext)
         ThemeState.load(applicationContext)
