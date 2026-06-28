@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -113,6 +114,20 @@ def download_app_device(device_id: str) -> FileResponse:
     return FileResponse(
         p, filename=f"PumpFoil-{device_id}.prg", media_type="application/octet-stream"
     )
+
+
+@app.get("/demo/wear-fgs.webm")
+def wear_fgs_demo() -> FileResponse:
+    """Öffentliches Demo-Video (Wear-Aufnahme: Start/Aufzeichnung/Stopp) als Beleg für die
+    Play-Foreground-Service-Deklaration. Bewusst NICHT in der App/Website verlinkt — nur eine
+    stabile, öffentlich erreichbare URL für die Play Console."""
+    from fastapi import HTTPException
+
+    d = Path(__file__).resolve().parents[2] / "screenshots" / "watch" / "wear"
+    vids = sorted(d.glob("*.webm"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not vids:
+        raise HTTPException(404, "kein Demo-Video")
+    return FileResponse(vids[0], media_type="video/webm", filename="pumpfoil-wear-fgs.webm")
 
 
 app.include_router(auth.router)
