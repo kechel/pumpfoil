@@ -66,9 +66,12 @@ class MainActivity : ComponentActivity() {
         // später verbinden -> die Sessions werden dann automatisch nachgesynct.
         var paired by remember { mutableStateOf(Api.deviceToken != null) }
         var skipped by remember { mutableStateOf(false) }
+        var forcePair by remember { mutableStateOf(false) }   // „Neu verbinden" trotz (ungültigem) Token
         MaterialTheme {
-            if (paired || skipped) RecordScreen(onWantPair = { skipped = false })
-            else PairScreen(onPaired = { paired = true }, onSkip = { skipped = true })
+            if (forcePair || (!paired && !skipped))
+                PairScreen(onPaired = { paired = true; forcePair = false; skipped = false },
+                           onSkip = { skipped = true; forcePair = false })
+            else RecordScreen(onWantPair = { forcePair = true })
         }
     }
 
@@ -218,6 +221,11 @@ class MainActivity : ComponentActivity() {
                     syncing = false
                 }
             }
+        }
+        // Token serverseitig ungültig -> automatisch ein frisches vom Phone anfordern
+        // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
+        LaunchedEffect(s.uploadError) {
+            if (s.uploadError == "auth") WearLink.requestToken(ctx)
         }
         // Auto-Resume: solange lokal etwas wartet, alle 5 s erneut versuchen (drain prüft
         // online/busy selbst). So lädt es von allein weiter, sobald die Verbindung zurück ist.
@@ -424,6 +432,14 @@ class MainActivity : ComponentActivity() {
                         Text("${s.pendingCount} " + I18n.t("rec.pendingUpload") + " — " + I18n.t("rec.willResume"),
                             style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8),
                             textAlign = TextAlign.Center)
+                    } else if (s.uploadError == "auth") {
+                        // Token ungültig/abgelaufen -> neu pairen (Aufnahmen bleiben lokal).
+                        Text(I18n.t("rec.authErr"),
+                            style = MaterialTheme.typography.caption2,
+                            color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
+                        Spacer(Modifier.height(4.dp))
+                        CompactChip(onClick = onWantPair,
+                            label = { Text(I18n.t("rec.repair"), style = MaterialTheme.typography.caption2) })
                     } else if (s.uploadError == "server") {
                         Text(I18n.t("rec.serverErr"),
                             style = MaterialTheme.typography.caption2,

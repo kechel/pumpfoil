@@ -226,6 +226,18 @@ object Recorder {
                 _state.value = _state.value.copy(uploadError = "")
                 for (dir in LocalStore.completedSessions(ctx)) {
                     try { uploadSession(ctx, dir) }
+                    catch (e: ApiException) {
+                        failed = true
+                        if (e.status == 401) {
+                            // Token serverseitig ungültig -> frisches vom Phone anfordern (Companion).
+                            // Weiteres Hämmern mit dem schlechten Token ist sinnlos -> abbrechen.
+                            _state.value = _state.value.copy(uploadError = "auth")
+                            WearLink.requestToken(ctx)
+                            break
+                        }
+                        _state.value = _state.value.copy(
+                            uploadError = if (Api.isOnline(ctx)) "server" else "offline")
+                    }
                     catch (e: Exception) {
                         // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
                         failed = true

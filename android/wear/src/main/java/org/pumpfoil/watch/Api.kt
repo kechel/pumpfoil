@@ -10,6 +10,9 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
+// HTTP-Fehler mit Status -> Aufrufer kann 401 (ungültiges Token) gezielt behandeln.
+class ApiException(val status: Int, message: String) : RuntimeException(message)
+
 // Server-Anbindung: Pairing + Raw-Ingest-Contract (docs/ingest-contract.md).
 object Api {
     @Volatile var baseUrl = "https://pumpfoil.org"
@@ -101,7 +104,7 @@ object Api {
         val code = conn.responseCode
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
             ?.bufferedReader()?.readText() ?: ""
-        if (code !in 200..299) throw RuntimeException("HTTP $code: $text")
+        if (code !in 200..299) throw ApiException(code, "HTTP $code: $text")
         return if (text.isBlank()) JSONObject() else JSONObject(text)
     }
 
@@ -117,7 +120,7 @@ object Api {
         val code = conn.responseCode
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
             ?.bufferedReader()?.readText() ?: ""
-        if (code !in 200..299) throw RuntimeException("HTTP $code: $text")
+        if (code !in 200..299) throw ApiException(code, "HTTP $code: $text")
         return if (text.isBlank()) JSONObject() else JSONObject(text)
     }
 }

@@ -65,6 +65,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.willResume" to row("wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"),
     "rec.uploading" to row("lädt hoch", "ladt ufe", "lädt hoch", "uploading", "envoi", "caricamento", "subiendo"),
     "rec.serverErr" to row("Server-Fehler – später erneut", "Server-Fähler – spöter nomal", "Server-Fehler – später erneut", "Server error – retry later", "Erreur serveur – réessai", "Errore server – riprova", "Error de servidor – reintento"),
+    "rec.authErr" to row("Verbindung ungültig – neu verbinden", "Verbindig ungültig – neu verbinde", "Verbindung ungültig – neu verbinden", "Link invalid – reconnect", "Lien invalide – reconnecter", "Collegamento non valido – ricollega", "Vínculo no válido – reconectar"),
+    "rec.repair" to row("Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar"),
 
     // Alarm-/Foil-Auswahl
     "foil.choose" to row("Alarm wählen", "Alarm wähle", "Alarm wählen", "Choose alarm", "Choisir l'alarme", "Scegli allarme", "Elegir alarma"),

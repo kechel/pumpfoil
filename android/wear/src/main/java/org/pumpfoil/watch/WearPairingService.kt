@@ -16,8 +16,12 @@ class WearPairingService : WearableListenerService() {
                 val token = DataMapItem.fromDataItem(e.dataItem).dataMap.getString("device_token")
                 if (!token.isNullOrEmpty()) {
                     Api.load(applicationContext)
-                    if (Api.deviceToken == null) {   // vorhandenes (Reverse-)Token nicht überschreiben
+                    // Die Phone-App ist die Quelle der Wahrheit fürs Companion-Pairing: ein vom
+                    // (eingeloggten) Phone geschobenes Token überschreibt ein vorhandenes
+                    // (z. B. abgelaufenes). Danach sofort versuchen hochzuladen.
+                    if (Api.deviceToken != token) {
                         Api.saveToken(applicationContext, token)
+                        Recorder.drain(applicationContext)
                     }
                 }
             }

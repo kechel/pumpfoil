@@ -18,5 +18,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Empfängt die needToken-Anfrage der Uhr (Companion-Pairing) und mintet/schiebt neu. -->
+        <service
+            android:name=".PhonePairingService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/pumpfoil/need-token" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

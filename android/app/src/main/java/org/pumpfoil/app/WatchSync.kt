@@ -30,15 +30,19 @@ object WatchSync {
     // Device-Token und schiebt es per Wearable Data Layer auf die Uhr -> kein
     // Code-Tippen. Voraussetzung (jetzt erfüllt): gleiche applicationId Phone+Wear.
     // Token wird gecacht, damit nicht bei jedem Start neu gemintet wird.
-    fun pushPairing(ctx: Context) {
+    // force=true: neu minten (Recovery, wenn das bisherige Token serverseitig ungültig ist).
+    // Der Cache wird bei jedem Mint aktualisiert -> spätere proaktive Pushes tragen das GÜLTIGE.
+    fun pushPairing(ctx: Context, force: Boolean = false) {
         if (Api.token == null) return
         val app = ctx.applicationContext
         scope.launch(Dispatchers.IO) {
             try {
                 val prefs = app.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-                var token = prefs.getString("mintedWearToken", null)
+                var token = if (force) null else prefs.getString("mintedWearToken", null)
                 if (token == null) {
-                    token = Api.mintDeviceToken()
+                    token = try { Api.mintDeviceToken() }
+                            catch (_: Exception) { prefs.getString("mintedWearToken", null) }
+                        ?: return@launch
                     prefs.edit().putString("mintedWearToken", token).apply()
                 }
                 val req = PutDataMapRequest.create("/pairing").apply {
