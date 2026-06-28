@@ -104,6 +104,9 @@ enum Loc {
         "sd.avgSpeed": r("Ø Geschwindigkeit", "Ø Gschwindigkeit", "Ø Geschwindigkeit", "Avg speed", "Vitesse moy.", "Velocità media", "Velocidad media"),
         "sd.avgPump": r("Ø Pump-Frequenz", "Ø Pump-Frequänz", "Ø Pump-Frequenz", "Avg pump rate", "Cadence moy.", "Cadenza media", "Cadencia media"),
         "sd.avgDistPerPump": r("Ø Strecke/Pump", "Ø Strecki/Pump", "Ø Strecke/Pump", "Avg dist/pump", "Dist. moy./pump", "Dist. media/pump", "Dist. media/pump"),
+        "sd.avgHr": r("Ø Puls", "Ø Puls", "Ø Puls", "Avg HR", "FC moy.", "FC media", "FC media"),
+        "sd.maxHr": r("Max Puls", "Max Puls", "Max Puls", "Max HR", "FC max.", "FC max", "FC máx"),
+        "sd.clearSelection": r("Auswahl aufheben", "Uuswahl ufhebe", "Auswahl aufheben", "Clear selection", "Effacer", "Deseleziona", "Quitar selección"),
 
         "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
         "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),

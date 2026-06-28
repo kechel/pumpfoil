@@ -20,6 +20,7 @@ struct SessionDetailView: View {
     @State private var colorMode: TrackColorMode = .speed
     @State private var win = 3
     @State private var showPumps = true
+    @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
     @State private var myFoils: [Foil] = []
     @State private var selectedFoilId = 0
     @State private var showTrim = false
@@ -230,9 +231,17 @@ struct SessionDetailView: View {
                     .pickerStyle(.segmented)
                 }
                 TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
-                         segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange, showPumps: showPumps)
+                         segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
+                         showPumps: showPumps, selectedRun: selectedRun,
+                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 })
                     .frame(height: 300).frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                if let sel = selectedRun {
+                    HStack {
+                        Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
+                        Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
+                    }
+                }
                 if (s.analysis?.pump_count ?? 0) > 0 {
                     Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
                 }
@@ -250,18 +259,17 @@ struct SessionDetailView: View {
             if let a = s.analysis {
                 let stats = buildStats(a)
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(stats, id: \.0) { label, value in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(value).font(.title3).bold().foregroundStyle(Color.accentColor)
-                            Text(label).font(.caption).foregroundStyle(.secondary)
+                    ForEach(stats) { st in
+                        StatTile(item: st, selected: st.runIdx != nil && st.runIdx == selectedRun) {
+                            if let r = st.runIdx { selectedRun = (selectedRun == r) ? nil : r }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
-                if let segs = a.segments, !segs.isEmpty { RunsTable(segments: segs, lang: lang) }
+                if let segs = a.segments, !segs.isEmpty {
+                    RunsTable(segments: segs, selected: selectedRun, lang: lang) {
+                        selectedRun = (selectedRun == $0) ? nil : $0
+                    }
+                }
             } else {
                 Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
             }
@@ -274,14 +282,34 @@ struct SessionDetailView: View {
         return d.formatted(date: .abbreviated, time: .shortened)
     }
 
-    private func buildStats(_ a: Analysis) -> [(String, String)] {
-        var out: [(String, String)] = []
-        if let v = a.total_distance_m { out.append((Loc.t("compare.distance", lang), "\(Int(v)) m")) }
-        if let v = a.foiling_distance_m { out.append((Loc.t("home.foiling", lang), "\(Int(v)) m")) }
-        if let v = a.max_speed_mps { out.append((Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
-        if let v = a.pump_count { out.append((Loc.t("home.pumps", lang), "\(v)")) }
-        if let v = a.foiling_time_s { out.append((Loc.t("compare.foilTime", lang), String(format: "%d:%02d", Int(v) / 60, Int(v) % 60))) }
-        if let v = a.avg_cadence_hz { out.append((Loc.t("compare.cadence", lang), String(format: "%.2f Hz", v))) }
+    private func buildStats(_ a: Analysis) -> [StatItem] {
+        let segs = a.segments ?? []
+        let m = a.metrics
+        func dist(_ x: Double) -> String { x < 1000 ? "\(Int(x)) m" : String(format: "%.2f km", x / 1000) }
+        func mmssD(_ x: Double) -> String { String(format: "%d:%02d", Int(x) / 60, Int(x) % 60) }
+        // Rekord-Läufe -> anklickbare Kacheln (Lauf auswählen).
+        let bestSpeedIdx = segs.indices.max { (segs[$0].max_speed_mps ?? 0) < (segs[$1].max_speed_mps ?? 0) }
+        let longestRunIdx = segs.indices.max { (segs[$0].duration_s ?? 0) < (segs[$1].duration_s ?? 0) }
+        let farthestRunIdx = segs.indices.max { (segs[$0].distance_m ?? 0) < (segs[$1].distance_m ?? 0) }
+        let bestGlideIdx = segs.indices.max { (segs[$0].longest_glide_s ?? 0) < (segs[$1].longest_glide_s ?? 0) }
+
+        var out: [StatItem] = []
+        if let v = a.total_distance_m { out.append(StatItem(Loc.t("compare.distance", lang), dist(v))) }
+        if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
+        if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
+        if !segs.isEmpty { out.append(StatItem(Loc.t("home.runs", lang), "\(segs.count)")) }
+        if let v = m?.avg_speed_mps { out.append(StatItem(Loc.t("sd.avgSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
+        if let v = a.max_speed_mps { out.append(StatItem(Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6), runIdx: bestSpeedIdx)) }
+        if let pc = a.pump_count {
+            out.append(StatItem(Loc.t("home.pumps", lang), "\(pc)"))
+            if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
+        }
+        if let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), String(format: "%.2f Hz", v))) }
+        if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
+        if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }
+        if let i = longestRunIdx, let v = segs[i].duration_s { out.append(StatItem(Loc.t("home.longestRun", lang), mmssD(v), runIdx: i)) }
+        if let i = farthestRunIdx, let v = segs[i].distance_m { out.append(StatItem(Loc.t("home.farthestRun", lang), dist(v), runIdx: i)) }
+        if let i = bestGlideIdx, let v = segs[i].longest_glide_s, v > 0 { out.append(StatItem(Loc.t("home.longestGlide", lang), String(format: "%.1f s", v), runIdx: i)) }
         return out
     }
 
@@ -333,6 +361,8 @@ struct TrackMap: UIViewRepresentable {
     let hrRange: (Int, Int)
     let pumpRange: (Double, Double)
     let showPumps: Bool
+    let selectedRun: Int?
+    let onSelectRun: (Int) -> Void
     private let maxGapM = 30.0
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -342,6 +372,8 @@ struct TrackMap: UIViewRepresentable {
         map.delegate = context.coordinator
         map.isRotateEnabled = false
         map.isPitchEnabled = false
+        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
+        map.addGestureRecognizer(tap)
         return map
     }
 
@@ -361,9 +393,13 @@ struct TrackMap: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
-        context.coordinator.colors.removeAll()
+        let co = context.coordinator
+        co.colors.removeAll(); co.widths.removeAll()
+        co.points = points; co.segments = segments; co.onSelectRun = onSelectRun
         var all: [CLLocationCoordinate2D] = []
-        for seg in segments {
+        var sel: [CLLocationCoordinate2D] = []
+        for (runIdx, seg) in segments.enumerated() {
+            let dim = selectedRun != nil && runIdx != selectedRun   // anderer Lauf -> ausgegraut
             let lo = max(0, min(seg.i_start, points.count - 1))
             let hi = max(0, min(seg.i_end, points.count - 1))
             var i = lo
@@ -375,23 +411,26 @@ struct TrackMap: UIViewRepresentable {
                     .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
                 if gap <= maxGapM {
                     let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                    context.coordinator.colors[ObjectIdentifier(pl)] = colorAt(i + 1)
+                    co.colors[ObjectIdentifier(pl)] = dim ? UIColor.systemGray.withAlphaComponent(0.5) : colorAt(i + 1)
+                    co.widths[ObjectIdentifier(pl)] = dim ? 2.5 : 5
                     map.addOverlay(pl)
                     all.append(ca); all.append(cb)
+                    if !dim { sel.append(ca); sel.append(cb) }
                 }
                 i += 1
             }
-        }
-        if showPumps {
-            for seg in segments {
+            // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
+            if showPumps && !dim {
                 for idx in (seg.pump_idx ?? []) where points.indices.contains(idx) {
                     let p = points[idx]
                     map.addAnnotation(PumpDot(CLLocationCoordinate2D(latitude: p[1], longitude: p[0])))
                 }
             }
         }
-        if !all.isEmpty {
-            let lats = all.map { $0.latitude }, lons = all.map { $0.longitude }
+        // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
+        let fit = (selectedRun != nil && !sel.isEmpty) ? sel : all
+        if !fit.isEmpty {
+            let lats = fit.map { $0.latitude }, lons = fit.map { $0.longitude }
             let center = CLLocationCoordinate2D(
                 latitude: (lats.min()! + lats.max()!) / 2,
                 longitude: (lons.min()! + lons.max()!) / 2)
@@ -404,11 +443,16 @@ struct TrackMap: UIViewRepresentable {
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         var colors: [ObjectIdentifier: UIColor] = [:]
+        var widths: [ObjectIdentifier: CGFloat] = [:]
+        var points: [[Double]] = []
+        var segments: [Segment] = []
+        var onSelectRun: ((Int) -> Void)?
+
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue
-            r.lineWidth = 4
+            r.lineWidth = widths[ObjectIdentifier(pl)] ?? 4
             return r
         }
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
@@ -417,13 +461,36 @@ struct TrackMap: UIViewRepresentable {
             let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
                 ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
             v.annotation = annotation
-            v.frame = CGRect(x: 0, y: 0, width: 7, height: 7)
+            v.frame = CGRect(x: 0, y: 0, width: 13, height: 13)   // gut sichtbar (wie Web/Android)
             v.backgroundColor = .white
-            v.layer.cornerRadius = 3.5
+            v.layer.cornerRadius = 6.5
             v.layer.borderColor = UIColor(white: 0.06, alpha: 1).cgColor
-            v.layer.borderWidth = 1
+            v.layer.borderWidth = 2
             v.isEnabled = false
             return v
+        }
+
+        // Tipp auf die Karte -> nächstgelegenen Foiling-Lauf auswählen (≤ ~40 m am Bildschirm).
+        @objc func handleTap(_ g: UITapGestureRecognizer) {
+            guard let map = g.view as? MKMapView, let onSel = onSelectRun else { return }
+            let pt = g.location(in: map)
+            let coord = map.convert(pt, toCoordinateFrom: map)
+            let tapLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+            var best: (run: Int, d: CLLocationDistance)?
+            for (runIdx, seg) in segments.enumerated() {
+                let lo = max(0, min(seg.i_start, points.count - 1))
+                let hi = max(0, min(seg.i_end, points.count - 1))
+                guard lo <= hi else { continue }
+                for i in lo...hi where points.indices.contains(i) {
+                    let p = points[i]
+                    let d = tapLoc.distance(from: CLLocation(latitude: p[1], longitude: p[0]))
+                    if best == nil || d < best!.d { best = (runIdx, d) }
+                }
+            }
+            // Schwelle relativ zur Zoomstufe: 5 % der sichtbaren Breite.
+            let span = map.region.span.longitudeDelta
+            let threshM = max(40.0, span * 111_000 * 0.05)
+            if let b = best, b.d <= threshM { onSel(b.run) }
         }
     }
 }
@@ -467,10 +534,13 @@ private struct PowerCard: View {
     }
 }
 
-// Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps.
+// Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps. Zeile antippen -> Lauf auswählen
+// (Karte zeigt dann nur diesen farbig); ausgewählte Zeile ist hervorgehoben.
 private struct RunsTable: View {
     let segments: [Segment]
+    let selected: Int?
     let lang: String
+    let onSelect: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -481,14 +551,20 @@ private struct RunsTable: View {
                 }
             }
             ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
+                let sel = selected == i
                 HStack {
-                    cell("\(i + 1)")
-                    cell(dist(seg.distance_m ?? 0))
-                    cell(dur(seg.duration_s ?? 0))
-                    cell(String(format: "%.0f", (seg.avg_speed_mps ?? 0) * 3.6))
-                    cell(String(format: "%.0f", (seg.max_speed_mps ?? 0) * 3.6))
-                    cell((seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–")
+                    cell("\(i + 1)", sel)
+                    cell(dist(seg.distance_m ?? 0), sel)
+                    cell(dur(seg.duration_s ?? 0), sel)
+                    cell(String(format: "%.0f", (seg.avg_speed_mps ?? 0) * 3.6), sel)
+                    cell(String(format: "%.0f", (seg.max_speed_mps ?? 0) * 3.6), sel)
+                    cell((seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–", sel)
                 }
+                .padding(.vertical, 4).padding(.horizontal, 4)
+                .background(sel ? Color.accentColor.opacity(0.16) : .clear)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+                .onTapGesture { onSelect(i) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -497,11 +573,43 @@ private struct RunsTable: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func cell(_ s: String) -> some View {
-        Text(s).font(.caption).frame(maxWidth: .infinity, alignment: .leading)
+    private func cell(_ s: String, _ sel: Bool) -> some View {
+        Text(s).font(.caption).foregroundStyle(sel ? Color.accentColor : Color.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     private func dist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
     private func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+}
+
+// Eine Kennzahl-Kachel; runIdx != nil => an einen Lauf gebunden (antippen -> Lauf auswählen).
+struct StatItem: Identifiable {
+    let label: String
+    let value: String
+    let runIdx: Int?
+    let id = UUID()
+    init(_ label: String, _ value: String, runIdx: Int? = nil) {
+        self.label = label; self.value = value; self.runIdx = runIdx
+    }
+}
+
+private struct StatTile: View {
+    let item: StatItem
+    let selected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(item.value).font(.title3).bold().foregroundStyle(Color.accentColor)
+            Text(item.label).font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(selected ? Color.accentColor.opacity(0.18) : Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(item.runIdx != nil ? Color.accentColor.opacity(0.35) : .clear, lineWidth: 1))
+        .contentShape(Rectangle())
+        .onTapGesture { if item.runIdx != nil { onTap() } }
+    }
 }
 
 // YouTube-Video-ID aus watch?v=, youtu.be/, shorts/, embed/ ziehen (wie web/Android).
