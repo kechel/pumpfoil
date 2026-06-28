@@ -63,6 +63,9 @@ data class CommunityItem(
     val caption: String? = null,
     @SerialName("foiling_km") val foilingKm: Double = 0.0,
     val runs: Int = 0,
+    @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
+    @SerialName("track_preview") val trackPreview: String? = null,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
 )

@@ -1,6 +1,5 @@
 package org.pumpfoil.app
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,14 +14,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -147,7 +145,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                             if (scope == Scope.MINE) {
                                 items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id) } }
                             } else {
-                                items(feed) { c -> CommunityItemRow(c, onClick = { onOpen(c.id) }); HorizontalDivider() }
+                                items(feed) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) } }
                             }
                         }
                     }
@@ -281,22 +279,66 @@ private fun TrackPreviewCanvas(data: String, modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CommunityItemRow(c: CommunityItem, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = { Text(c.name ?: prettyDate(c.startedAt)) },
-        supportingContent = {
-            Text(prettyDate(c.startedAt) + (c.spot?.let { " · $it" } ?: ""))
-        },
-        leadingContent = {
-            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        },
-        trailingContent = {
-            if (c.likeCount > 0) {
-                Icon(Icons.Filled.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+private fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                val av = Api.mediaUrl(c.avatarUrl)
+                if (av != null) {
+                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(40.dp).clip(CircleShape))
+                } else {
+                    Icon(Icons.Filled.Person, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
+                }
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(c.name ?: prettyDate(c.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    if (c.name != null) {
+                        Text(prettyDate(c.startedAt), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    c.spot?.takeIf { it.isNotBlank() }?.let {
+                        Row(Modifier.padding(top = 3.dp)) { Pill(it) }
+                    }
+                    c.caption?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                c.trackPreview?.let { tp ->
+                    TrackPreviewCanvas(tp, Modifier.size(width = 58.dp, height = 42.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
+                Api.mediaUrl(c.thumbUrl)?.let { thumb ->
+                    AsyncImage(model = thumb, contentDescription = null, contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
+                }
             }
-        },
-    )
+            val stats = buildList {
+                if (c.runs > 0) add("${c.runs} " + if (c.runs == 1) "Lauf" else "Läufe")
+                if (c.foilingKm > 0) add("%.2f km".format(c.foilingKm))
+                c.maxSpeedMps?.let { add("max %.1f km/h".format(it * 3.6)) }
+            }
+            if (stats.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    stats.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
+                }
+            }
+            if (c.likeCount > 0) {
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.weight(1f))
+                    Icon(Icons.Filled.Favorite, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Text(" ${c.likeCount}", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+        }
+    }
 }
 
 fun prettyDate(iso: String): String = try {
