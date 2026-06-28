@@ -107,6 +107,10 @@ enum Loc {
         "sd.avgHr": r("Ø Puls", "Ø Puls", "Ø Puls", "Avg HR", "FC moy.", "FC media", "FC media"),
         "sd.maxHr": r("Max Puls", "Max Puls", "Max Puls", "Max HR", "FC max.", "FC max", "FC máx"),
         "sd.clearSelection": r("Auswahl aufheben", "Uuswahl ufhebe", "Auswahl aufheben", "Clear selection", "Effacer", "Deseleziona", "Quitar selección"),
+        "community.leaderboard": r("Bestenliste", "Bestelischte", "Bestenliste", "Leaderboard", "Classement", "Classifica", "Clasificación"),
+        "community.latestMedia": r("Neueste Medien", "Nöischti Medie", "Neueste Medien", "Latest media", "Médias récents", "Media recenti", "Medios recientes"),
+        "community.topRated": r("Best bewertet", "Bescht bewärtet", "Best bewertet", "Top rated", "Mieux notés", "Più apprezzati", "Mejor valorados"),
+        "community.spotRecords": r("Rekorde an einem Spot", "Rekord an eme Spot", "Rekorde an einem Spot", "Records at a spot", "Records sur un spot", "Record di uno spot", "Récords de un spot"),
 
         "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
         "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
