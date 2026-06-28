@@ -49,6 +49,9 @@ struct CommunityItem: Codable, Identifiable {
     let caption: String?
     let foiling_km: Double?
     let runs: Int?
+    let max_speed_mps: Double?
+    let track_preview: String?
+    let thumb_url: String?
     let like_count: Int?
     let liked: Bool?
     var id: Int { session_id }

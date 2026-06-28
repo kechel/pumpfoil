@@ -248,7 +248,14 @@ struct TrackPreviewView: View {
     }
 }
 
-private func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }
+// Wiederverwendbarer Chip (Spot/Foil) — auch von CommunityRow genutzt.
+@ViewBuilder func sessionPill(_ text: String) -> some View {
+    Text(text).font(.caption2).lineLimit(1)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(Color.secondary.opacity(0.15), in: Capsule())
+}
+
+func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }
 
 private func statusLabel(_ s: String) -> String {
     switch s {
