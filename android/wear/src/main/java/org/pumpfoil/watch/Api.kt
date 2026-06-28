@@ -50,12 +50,14 @@ object Api {
     // Bewusst NUR NET_CAPABILITY_INTERNET prüfen, nicht VALIDATED: Emulatoren (und manche
     // echten Netze) bestehen die Captive-Portal-Probe nicht und würden sonst fälschlich
     // als offline gelten. Bei echtem Offline ist activeNetwork null -> false.
-    fun isOnline(ctx: Context): Boolean {
+    fun isOnline(ctx: Context): Boolean = try {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            ?: return false
-        val net = cm.activeNetwork ?: return false
-        val caps = cm.getNetworkCapabilities(net) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        val net = cm?.activeNetwork
+        val caps = net?.let { cm.getNetworkCapabilities(it) }
+        caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
+    } catch (_: Exception) {
+        // z. B. fehlende ACCESS_NETWORK_STATE-Permission -> nie crashen, als offline werten.
+        false
     }
 
     // version: gemeldete App-Version (für den Update-Hinweis im Web), p=wear als Plattform.
