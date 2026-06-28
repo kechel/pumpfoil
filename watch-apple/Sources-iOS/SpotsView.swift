@@ -19,14 +19,16 @@ struct SpotsView: View {
                     Section {
                         Map(coordinateRegion: $region, annotationItems: items) { s in
                             MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: s.lat, longitude: s.lon)) {
-                                VStack(spacing: 0) {
-                                    Text("\(s.sessions)")
-                                        .font(.caption2).bold().foregroundStyle(.white)
-                                        .padding(6)
-                                        .background(Color.accentColor, in: Circle())
-                                    Image(systemName: "arrowtriangle.down.fill")
-                                        .font(.caption2).foregroundStyle(Color.accentColor)
-                                        .offset(y: -3)
+                                NavigationLink { SpotSessionsView(spot: s.spot) } label: {
+                                    VStack(spacing: 0) {
+                                        Text("\(s.sessions)")
+                                            .font(.caption2).bold().foregroundStyle(.white)
+                                            .padding(6)
+                                            .background(Color.accentColor, in: Circle())
+                                        Image(systemName: "arrowtriangle.down.fill")
+                                            .font(.caption2).foregroundStyle(Color.accentColor)
+                                            .offset(y: -3)
+                                    }
                                 }
                             }
                         }
@@ -37,11 +39,15 @@ struct SpotsView: View {
                 Section {
                     if let error { Text(error).foregroundStyle(.secondary) }
                     ForEach(items) { s in
-                        HStack {
-                            Image(systemName: "mappin.circle.fill").foregroundStyle(Color.accentColor)
-                            Text(s.spot)
-                            Spacer()
-                            Text("\(s.sessions)").font(.subheadline).foregroundStyle(.secondary)
+                        NavigationLink {
+                            SpotSessionsView(spot: s.spot)
+                        } label: {
+                            HStack {
+                                Image(systemName: "mappin.circle.fill").foregroundStyle(Color.accentColor)
+                                Text(s.spot)
+                                Spacer()
+                                Text("\(s.sessions)").font(.subheadline).foregroundStyle(.secondary)
+                            }
                         }
                     }
                     if items.isEmpty && !loading && error == nil {
