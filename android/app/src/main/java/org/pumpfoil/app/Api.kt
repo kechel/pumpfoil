@@ -31,7 +31,9 @@ object Api {
     }
     fun logout(ctx: Context) {
         token = null
-        prefs(ctx).edit().remove("token").apply()
+        // mintedWearToken mitlöschen: nach Account-Wechsel darf nicht der alte Token
+        // an die Uhr geschoben werden (sonst lädt die Uhr ins falsche Konto hoch).
+        prefs(ctx).edit().remove("token").remove("mintedWearToken").apply()
     }
     private fun prefs(ctx: Context) =
         ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
