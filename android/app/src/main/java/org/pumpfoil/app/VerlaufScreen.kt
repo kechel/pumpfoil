@@ -1,15 +1,23 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Card
@@ -43,6 +51,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var windowDays by remember { mutableStateOf(0) }   // 0 = Gesamt, sonst Tage
+    var metric by remember { mutableStateOf(HMetric.KM) }
 
     suspend fun load() {
         loading = true
@@ -75,6 +84,10 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                             }
                         }
                         item { CumulativeSummary(shown, windowDays) }
+                        if (shown.size >= 2) {
+                            // shown ist neueste-zuerst -> für den Chart chronologisch (alt->neu).
+                            item { HistoryChartCard(shown.asReversed().map { metric.value(it) }, metric) { metric = it } }
+                        }
                     }
                     items(shown) { p ->
                         ListItem(
@@ -95,6 +108,65 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                     }
                 }
             }
+            }
+        }
+    }
+}
+
+// Auswählbare Trend-Metrik (spiegelt iOS/Web-History-Serien).
+private enum class HMetric(val labelKey: String?, val literal: String?) {
+    KM(null, "km"), RUNS("home.runs", null), PUMPS("home.pumps", null), SPEED(null, "km/h"), PER_PUMP(null, "m/P");
+
+    fun short(): String = literal ?: I18n.t(labelKey!!)
+
+    fun value(p: HistoryPoint): Double = when (this) {
+        KM -> p.foilingKm
+        RUNS -> p.runs.toDouble()
+        PUMPS -> p.pumps.toDouble()
+        SPEED -> p.speed * 3.6
+        PER_PUMP -> if (p.pumps > 0) p.foilingKm * 1000.0 / p.pumps else 0.0
+    }
+
+    fun fmt(v: Double): String = when (this) {
+        RUNS, PUMPS -> v.toInt().toString()
+        else -> "%.1f".format(v)
+    }
+}
+
+// Schlanker Balken-Trend (Canvas) — ein Balken je Session, alt->neu; umschaltbare Metrik.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HistoryChartCard(points: List<Double>, metric: HMetric, onMetric: (HMetric) -> Unit) {
+    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                HMetric.values().forEach { m ->
+                    FilterChip(selected = m == metric, onClick = { onMetric(m) }, label = { Text(m.short()) })
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+            val barColor = MaterialTheme.colorScheme.primary
+            Canvas(Modifier.fillMaxWidth().height(120.dp)) {
+                if (points.isEmpty()) return@Canvas
+                val maxV = (points.maxOrNull() ?: 1.0).coerceAtLeast(1e-4)
+                val n = points.size
+                val gap = if (n > 1) (size.width / n * 0.3f).coerceAtMost(3f) else 0f
+                val bw = ((size.width - gap * (n - 1)) / n).coerceAtLeast(1f)
+                points.forEachIndexed { i, v ->
+                    val h = (v.coerceAtLeast(0.0) / maxV).toFloat() * size.height
+                    val x = i * (bw + gap)
+                    drawRoundRect(
+                        color = barColor,
+                        topLeft = Offset(x, size.height - h),
+                        size = Size(bw, h.coerceAtLeast(1f)),
+                        cornerRadius = CornerRadius(minOf(2f, bw / 2f)),
+                    )
+                }
+            }
+            points.maxOrNull()?.let {
+                Text("max ${metric.fmt(it)}", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
             }
         }
     }
