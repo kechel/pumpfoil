@@ -619,7 +619,7 @@ const fr: Record<string, string> = {
   "guide.g.s6Title": "6. Envoi :",
   "guide.g.s6": "automatique au prochain lancement de l'app (Wi-Fi/téléphone), ou manuellement MENU → Réglages → « Upload / Sync ». La session apparaît ensuite ici.",
   "guide.a.s1Title": "1. Installer l'app :",
-  "guide.a.s1": "depuis l'App Store / TestFlight (bientôt disponible).",
+  "guide.a.s1": "depuis l'App Store.",
   "guide.a.s2Title": "2. Connecter — optionnel :",
   "guide.a.s2a": "Tu peux enregistrer immédiatement sans compte (« Connecter plus tard ») et envoyer la session ensuite. Pour la lier : dans l'app de la montre « Connecter » → « Générer un code » — saisis le code affiché ici dans l'onglet",
   "guide.a.s2b": ".",

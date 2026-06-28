@@ -837,7 +837,7 @@ const de: Record<string, string> = {
   "guide.g.s6Title": "6. Upload:",
   "guide.g.s6": "automatisch beim nächsten App-Start (WLAN/Telefon), oder manuell MENU → Einstellungen → „Upload / Sync“. Danach erscheint die Session hier.",
   "guide.a.s1Title": "1. App installieren:",
-  "guide.a.s1": "aus dem App Store / TestFlight (in Vorbereitung).",
+  "guide.a.s1": "aus dem App Store.",
   "guide.a.s2Title": "2. Verbinden — optional:",
   "guide.a.s2a": "Du kannst sofort ohne Konto aufnehmen („Später verbinden“) und die Session später hochladen. Zum Zuordnen: in der Watch-App „Verbinden“ → „Pairing-Code erzeugen“ — den angezeigten Code hier im Tab",
   "guide.a.s2b": "eintragen.",

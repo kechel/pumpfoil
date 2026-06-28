@@ -803,7 +803,7 @@ const en: Record<string, string> = {
   "guide.g.s6Title": "6. Upload:",
   "guide.g.s6": "automatically on the next app start (Wi-Fi/phone), or manually MENU → Settings → “Upload / Sync”. The session then appears here.",
   "guide.a.s1Title": "1. Install the app:",
-  "guide.a.s1": "from the App Store / TestFlight (coming soon).",
+  "guide.a.s1": "from the App Store.",
   "guide.a.s2Title": "2. Connect — optional:",
   "guide.a.s2a": "You can record immediately without an account (“Connect later”) and upload the session afterwards. To link it: in the watch app “Connect” → “Generate pairing code” — enter the shown code here in the tab",
   "guide.a.s2b": ".",

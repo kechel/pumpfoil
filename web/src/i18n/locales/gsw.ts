@@ -548,7 +548,7 @@ const gsw: Record<string, string> = {
   "guide.g.s6Title": "6. Upload:",
   "guide.g.s6": "automatisch bim nächste App-Start (WLAN/Telefon), oder manuell MENU → Yystellige → „Upload / Sync“. Druf chunnt d Session da ufe.",
   "guide.a.s1Title": "1. App installiere:",
-  "guide.a.s1": "usem App Store / TestFlight (chunnt no).",
+  "guide.a.s1": "usem App Store.",
   "guide.a.s2Title": "2. Verbinde — optional:",
   "guide.a.s2a": "Du chasch sofort ohni Konto ufnäh („Spöter verbinde“) und d Session spöter ufelade. Zum Zuordne: i de Watch-App „Verbinde“ → „Pairing-Code mache“ — de aazeigti Code da im Tab",
   "guide.a.s2b": "ygäh.",

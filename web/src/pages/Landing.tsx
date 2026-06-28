@@ -232,25 +232,42 @@ export default function Landing() {
             </Link>
             <InstallPwa />
           </div>
-          {/* Native Android-App: offizielles Google-Play-Badge + QR-Code zum Abscannen vom PC. */}
-          <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-8">
-            <a
-              href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Get it on Google Play"
-            >
-              <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
-            </a>
-            <div className="flex flex-col items-center gap-1.5">
+          {/* Native Apps: offizielle Store-Badges + QR-Codes zum Abscannen vom PC. */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-8 sm:flex-row sm:items-start sm:gap-12">
+            {/* Android (Google Play) */}
+            <div className="flex flex-col items-center gap-3">
+              <a
+                href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Jetzt bei Google Play"
+              >
+                <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
+              </a>
               <img
                 src="/badges/qr-google-play.svg"
                 alt="QR-Code: Google Play"
                 className="h-28 w-28 rounded-lg bg-white p-1.5"
               />
-              <span className="text-xs text-slate-400">{t("land.qrHint")}</span>
+            </div>
+            {/* iPhone + Apple Watch (App Store) */}
+            <div className="flex flex-col items-center gap-3">
+              <a
+                href="https://apps.apple.com/app/id6783975714"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Laden im App Store"
+              >
+                <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-14 w-auto" />
+              </a>
+              <img
+                src="/badges/qr-app-store.svg"
+                alt="QR-Code: App Store"
+                className="h-28 w-28 rounded-lg bg-white p-1.5"
+              />
             </div>
           </div>
+          <p className="mt-3 text-xs text-slate-400">{t("land.qrHint")}</p>
         </section>
       </main>
 

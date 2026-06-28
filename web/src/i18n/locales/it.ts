@@ -619,7 +619,7 @@ const it: Record<string, string> = {
   "guide.g.s6Title": "6. Upload:",
   "guide.g.s6": "automatico al prossimo avvio dell'app (Wi-Fi/telefono), o manualmente MENU → Impostazioni → « Upload / Sync ». La sessione compare poi qui.",
   "guide.a.s1Title": "1. Installa l'app:",
-  "guide.a.s1": "dall'App Store / TestFlight (in arrivo).",
+  "guide.a.s1": "dall'App Store.",
   "guide.a.s2Title": "2. Connetti — facoltativo:",
   "guide.a.s2a": "Puoi registrare subito senza account (« Connetti più tardi ») e caricare la sessione in seguito. Per collegarla: nell'app dell'orologio « Connetti » → « Genera codice » — inserisci il codice mostrato qui nella scheda",
   "guide.a.s2b": ".",
