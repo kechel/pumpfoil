@@ -1,5 +1,9 @@
 import SwiftUI
 
+// Sprachnamen in der jeweiligen Sprache (Reihenfolge = Loc.langs).
+private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
+                         "en": "English", "fr": "Français", "it": "Italiano", "es": "Español"]
+
 // Allgemeine Einstellungen: Gewicht, Homespot, Design (Theme), Push-Benachrichtigungen.
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.
 struct SettingsView: View {
@@ -32,6 +36,14 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            // Sprache: wirkt sofort (appLang) + ans Profil gespeichert (synct zu Web/Uhr).
+            Section(Loc.t("settings.language", lang)) {
+                Picker(Loc.t("settings.language", lang), selection: $lang) {
+                    ForEach(Loc.langs, id: \.self) { code in
+                        Text(langNames[code] ?? code).tag(code)
+                    }
+                }
+            }
             Section(Loc.t("settings.notifications", lang)) {
                 Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
                 Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
@@ -50,6 +62,7 @@ struct SettingsView: View {
         .onChange(of: nLike) { _ in saved = false }
         .onChange(of: nAnalyzed) { _ in saved = false }
         .onChange(of: nRecord) { _ in saved = false }
+        .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
     }
 
     private func load() async {

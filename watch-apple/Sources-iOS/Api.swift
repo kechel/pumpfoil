@@ -124,6 +124,32 @@ enum Api {
         try await request("/api/community/records", method: "GET", body: nil, auth: true)
     }
 
+    static func updateLanguage(_ lang: String) async throws -> Profile {
+        try await request("/api/auth/me", method: "PUT", body: ["language": lang], auth: true)
+    }
+
+    static func leaders(period: String = "all") async throws -> Leaders {
+        try await request("/api/community/leaders?period=\(period)", method: "GET", body: nil, auth: true)
+    }
+
+    static func latestPhotos() async throws -> [MediaItem] {
+        try await request("/api/community/latest-photos", method: "GET", body: nil, auth: true)
+    }
+
+    static func topLiked(period: String = "all", limit: Int = 5) async throws -> [CommunityItem] {
+        try await request("/api/community/top-liked?period=\(period)&limit=\(limit)", method: "GET", body: nil, auth: true)
+    }
+
+    static func spotRecords(_ spot: String, period: String = "all") async throws -> PeriodRecords {
+        let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
+        return try await request("/api/community/spot-records?spot=\(s)&period=\(period)", method: "GET", body: nil, auth: true)
+    }
+
+    static func spotWeather(_ spot: String) async throws -> SpotWeather {
+        let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
+        return try await request("/api/community/spot/weather?spot=\(s)", method: "GET", body: nil, auth: true)
+    }
+
     static func deleteSession(_ id: Int) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)") else { throw ApiError.badURL }
         var req = URLRequest(url: url)

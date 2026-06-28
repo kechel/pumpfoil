@@ -123,8 +123,47 @@ struct HistoryPoint: Codable, Identifiable {
     let runs: Int
     let pumps: Int
     let speed: Double            // beste Lauf-Geschwindigkeit (m/s)
+    let distance: Double?        // bester Lauf: Distanz (m)
+    let duration: Double?        // bester Lauf: Dauer (s)
+    let glide: Double?           // längster Gleit (s)
+    let avg_speed: Double?       // Ø-Speed der Session (m/s)
     let avg_pump_hz: Double?
     var id: Int { session_id }
+}
+
+// Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
+struct SpotWeather: Codable { let weather: WeatherBlock? }
+struct WeatherBlock: Codable {
+    let current: WxCurrent?
+    let days: [WxDay]?
+}
+struct WxCurrent: Codable { let temp: Double?; let wind: Double?; let dir: Double?; let code: Int? }
+struct WxDay: Codable {
+    let date: String?; let code: Int?; let tmax: Double?; let tmin: Double?
+    let wind_max: Double?; let dir: Double?
+}
+
+// Bestenliste (GET /api/community/leaders) — je Metrik eine Rangliste.
+struct LeaderEntry: Codable, Identifiable {
+    let name: String?; let avatar_url: String?
+    let sessions: Int?; let runs: Int?; let spots: Int?; let pumps: Int?
+    var id: String { (name ?? "") + (avatar_url ?? "") }
+}
+struct Leaders: Codable {
+    let sessions: [LeaderEntry]?; let runs: [LeaderEntry]?; let spots: [LeaderEntry]?; let pumps: [LeaderEntry]?
+}
+
+// Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.
+struct MediaItem: Codable, Identifiable {
+    let kind: String?
+    let url: String?
+    let youtube_url: String?
+    let session_id: Int
+    let name: String?
+    let avatar_url: String?
+    let spot: String?
+    let caption: String?
+    var id: String { (kind ?? "") + "\(session_id)" + (url ?? youtube_url ?? "") }
 }
 
 struct ChatRoom: Codable, Identifiable {

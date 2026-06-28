@@ -62,6 +62,7 @@ enum Loc {
         "settings.homespot": r("Homespot", "Homespot", "Homespot", "Home spot", "Spot principal", "Spot principale", "Spot principal"),
         "settings.auto": r("Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático"),
         "settings.design": r("Design", "Design", "Design", "Theme", "Thème", "Tema", "Tema"),
+        "settings.language": r("Sprache", "Sprooch", "Sprache", "Language", "Langue", "Lingua", "Idioma"),
         "settings.light": r("Hell", "Häll", "Hell", "Light", "Clair", "Chiaro", "Claro"),
         "settings.dark": r("Dunkel", "Dunkel", "Dunkel", "Dark", "Sombre", "Scuro", "Oscuro"),
         "settings.notifications": r("Benachrichtigungen", "Benachrichtigunge", "Benachrichtigungen", "Notifications", "Notifications", "Notifiche", "Notificaciones"),
