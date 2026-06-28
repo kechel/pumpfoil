@@ -522,10 +522,14 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz) -> list[dict]:
         gap = speed_s[prev["i_end"] + 1 : seg["i_start"]]
         gap_len = seg["i_start"] - prev["i_end"] - 1
         no_stop = gap.size == 0 or float(np.nanmin(gap)) >= NOSTOP_SPEED
-        # auch eine große ZEIT-Lücke (GPS-Dropout) trennt -> nicht über sie mergen,
-        # selbst wenn die Sample-Lücke 0 ist (benachbarte Samples, 100+ s auseinander).
-        time_gap_s = (t_ms[seg["i_start"]] - t_ms[prev["i_end"]]) / 1000.0
-        if gap_len <= max_gap and no_stop and time_gap_s <= GAP_SPLIT_S:
+        # Ein echter GPS-Dropout (Uhr unter Wasser/Sturz) trennt -> nicht drüber mergen.
+        # Dropout = eine große SAMPLE-Lücke (>GAP_SPLIT_S zwischen zwei Punkten), NICHT
+        # die Wanduhr-Dauer: ein durchgehender Cruise, den das Accel-Modell kurz verliert
+        # oder bei spärlichem GPS-Log, ergibt viele Samples mit weiter hohem Speed (kein
+        # Dropout) -> derselbe Lauf. Sonst zerschneidet langes Cruisen einen Lauf künstlich.
+        seg_t = t_ms[prev["i_end"] : seg["i_start"] + 1]
+        max_sample_dt_s = float(np.max(np.diff(seg_t))) / 1000.0 if seg_t.size >= 2 else 0.0
+        if gap_len <= max_gap and no_stop and max_sample_dt_s <= GAP_SPLIT_S:
             out[-1] = _seg_fields(prev["i_start"], seg["i_end"] + 1, t_ms, step, speeds)
         else:
             out.append(seg)
