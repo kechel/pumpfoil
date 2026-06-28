@@ -211,6 +211,11 @@ object Api {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }
 
+    suspend fun spotWeather(spot: String): SpotWeather = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(spot, "UTF-8")
+        json.decodeFromString(SpotWeather.serializer(), http("GET", "/api/community/spot/weather?spot=$s", null, auth = true))
+    }
+
     suspend fun chatLatest(scope: String, limit: Int = 30): List<ChatMsg> = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
         json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&limit=$limit", null, auth = true))

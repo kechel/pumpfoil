@@ -127,6 +127,27 @@ data class HistoryPoint(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
+// Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
+@Serializable
+data class SpotWeather(val weather: WeatherBlock? = null)
+
+@Serializable
+data class WeatherBlock(
+    val current: WxCurrent? = null,
+    val days: List<WxDay> = emptyList(),
+)
+
+@Serializable
+data class WxCurrent(
+    val temp: Double? = null, val wind: Double? = null, val dir: Double? = null, val code: Int? = null,
+)
+
+@Serializable
+data class WxDay(
+    val date: String = "", val code: Int? = null, val tmax: Double? = null, val tmin: Double? = null,
+    @SerialName("wind_max") val windMax: Double? = null, val dir: Double? = null,
+)
+
 // Gesamt-Statistik + persönliche Rekorde (GET /api/sessions/stats).
 @Serializable
 data class RecordEntry(

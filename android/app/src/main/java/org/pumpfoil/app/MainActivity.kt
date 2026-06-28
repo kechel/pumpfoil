@@ -113,7 +113,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }) }
+            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }) }
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onRecords = { nav.navigate("records") }) }
             composable("records") { CommunityRecordsScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
