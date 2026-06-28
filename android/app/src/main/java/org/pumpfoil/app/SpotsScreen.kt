@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +40,7 @@ import org.osmdroid.views.overlay.Marker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotsScreen() {
+fun SpotsScreen(onOpenSpot: (String) -> Unit = {}) {
     var items by remember { mutableStateOf<List<SpotMapItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -62,13 +63,14 @@ fun SpotsScreen() {
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isNotEmpty()) {
-                        item { SpotsMap(items, Modifier.fillMaxWidth().height(260.dp)) }
+                        item { SpotsMap(items, onOpenSpot, Modifier.fillMaxWidth().height(260.dp)) }
                     }
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     items(items) { s ->
                         ListItem(
+                            modifier = Modifier.clickable { onOpenSpot(s.spot) },
                             headlineContent = { Text(s.spot) },
                             supportingContent = { Text("${s.sessions} ${I18n.t("nav.sessions")}") },
                             leadingContent = {
@@ -87,7 +89,7 @@ fun SpotsScreen() {
 // FLOSS-Karte (OpenStreetMap via osmdroid) mit einem Pin je Spot, eingebettet per
 // AndroidView in Compose. Kein API-Key nötig.
 @Composable
-private fun SpotsMap(items: List<SpotMapItem>, modifier: Modifier = Modifier) {
+private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier,
         factory = { c ->
@@ -108,6 +110,7 @@ private fun SpotsMap(items: List<SpotMapItem>, modifier: Modifier = Modifier) {
                     position = p
                     title = "${s.spot} (${s.sessions})"
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    setOnMarkerClickListener { _, _ -> onOpenSpot(s.spot); true }   // Pin tippen -> Sessions des Spots
                 })
             }
             if (pts.size == 1) {

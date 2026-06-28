@@ -5,8 +5,13 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -307,8 +312,9 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
             }
         }
 
-        // Fotos der Session: read-only Strip; Besitzer kann hinzufügen.
+        // Fotos der Session: read-only Strip; Besitzer kann hinzufügen. Tippen -> Vollbild.
         var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
+        var lightboxIdx by remember(s.id) { mutableStateOf<Int?>(null) }
         val ctx = LocalContext.current
         suspend fun reloadPhotos() { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
         LaunchedEffect(s.id) { reloadPhotos() }
@@ -320,15 +326,21 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         }
         if (photos.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(photos, key = { it.id }) { p ->
+                items(photos.size, key = { photos[it].id }) { i ->
                     AsyncImage(
-                        model = Api.mediaUrl(p.url),
+                        model = Api.mediaUrl(photos[i].url),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(width = 200.dp, height = 140.dp).clip(RoundedCornerShape(12.dp)),
+                        modifier = Modifier.size(width = 200.dp, height = 140.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { lightboxIdx = i },
                     )
                 }
             }
+        }
+        // Vollbild-Lightbox: tippen schließt; bei mehreren Fotos horizontal wischen.
+        lightboxIdx?.let { startIdx ->
+            PhotoLightbox(photos, startIdx, onClose = { lightboxIdx = null })
         }
         if (s.owned) {
             OutlinedButton(onClick = {
@@ -682,6 +694,30 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
                     }
                 }
                 if (rowItems.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+// Vollbild-Foto-Ansicht (Dialog): tippen schließt, bei mehreren Fotos horizontal wischen.
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PhotoLightbox(photos: List<SessionPhoto>, startIdx: Int, onClose: () -> Unit) {
+    if (photos.isEmpty()) return
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        val pager = rememberPagerState(
+            initialPage = startIdx.coerceIn(0, photos.size - 1), pageCount = { photos.size })
+        Box(
+            Modifier.fillMaxSize().background(Color.Black).clickable(onClick = onClose),
+            contentAlignment = Alignment.Center,
+        ) {
+            HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+                AsyncImage(
+                    model = Api.mediaUrl(photos[page].url),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
     }

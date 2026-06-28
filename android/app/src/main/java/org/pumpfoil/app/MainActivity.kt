@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -117,7 +118,17 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onRecords = { nav.navigate("records") }) }
             composable("records") { CommunityRecordsScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
-            composable("spots") { SpotsScreen() }
+            composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
+            composable(
+                "spot/{name}",
+                arguments = listOf(navArgument("name") { type = NavType.StringType }),
+            ) { entry ->
+                SpotSessionsScreen(
+                    spot = entry.arguments?.getString("name").orEmpty(),
+                    onBack = { nav.popBackStack() },
+                    onOpen = { id -> nav.navigate("session/$id") },
+                )
+            }
             composable("chat") { ChatScreen() }
             composable("profile") {
                 ProfileScreen(
