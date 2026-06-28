@@ -26,6 +26,29 @@ data class SessionSummary(
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
+    val liked: Boolean = false,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    @SerialName("photo_count") val photoCount: Int = 0,
+    @SerialName("track_preview") val trackPreview: String? = null,
+    val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
+    val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
+)
+
+// Kompakte Foil-Info für Listen/Karten (Server liefert ein dict mit u.a. brand/model/size).
+@Serializable
+data class FoilBrief(
+    val brand: String = "",
+    val model: String = "",
+    val size: String = "",
+)
+
+// Mini-Track-Vorschau (normalisierte Polylinien aus der Analyse), wie web TrackPreview:
+// {"w","h","lines":[[[x,y],...],...]}.
+@Serializable
+data class TrackPreview(
+    val w: Double = 100.0,
+    val h: Double = 100.0,
+    val lines: List<List<List<Double>>> = emptyList(),
 )
 
 // Community-/Spot-Feed liefert eine andere Shape als /api/sessions: session_id, name,
@@ -52,9 +75,23 @@ data class Analysis(
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
     @SerialName("pump_count") val pumpCount: Int? = null,
     @SerialName("avg_cadence_hz") val avgCadenceHz: Double? = null,
+    val metrics: Metrics? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
     val segments: List<Segment> = emptyList(),
+)
+
+// Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.
+@Serializable
+data class Metrics(
+    @SerialName("num_segments") val numSegments: Int? = null,
+    @SerialName("avg_speed_mps") val avgSpeedMps: Double? = null,
+    @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    @SerialName("avg_hr") val avgHr: Int? = null,
+    @SerialName("max_hr") val maxHr: Int? = null,
+    @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,
+    @SerialName("longest_segment_s") val longestSegmentS: Double? = null,
 )
 
 @Serializable

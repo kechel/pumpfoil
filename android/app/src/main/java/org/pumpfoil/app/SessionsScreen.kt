@@ -40,6 +40,26 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -125,7 +145,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                                 item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             if (scope == Scope.MINE) {
-                                items(own) { s -> SessionRow(s, onClick = { onOpen(s.id) }); HorizontalDivider() }
+                                items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id) } }
                             } else {
                                 items(feed) { c -> CommunityItemRow(c, onClick = { onOpen(c.id) }); HorizontalDivider() }
                             }
@@ -139,23 +159,124 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SessionRow(s: SessionSummary, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = { Text(prettyDate(s.startedAt)) },
-        supportingContent = {
-            val sub = s.placeName?.takeIf { it.isNotBlank() } ?: s.caption?.takeIf { it.isNotBlank() }
-            if (sub != null) Text(sub)
-        },
-        leadingContent = {
-            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        },
-        trailingContent = {
-            if (s.likeCount > 0) {
-                Icon(Icons.Filled.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val a = s.analysis
+    val m = a?.metrics
+    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                val av = Api.mediaUrl(s.ownerAvatarUrl)
+                if (av != null) {
+                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(40.dp).clip(CircleShape))
+                } else {
+                    Icon(Icons.Filled.LocationOn, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
+                }
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(prettyDate(s.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
+                    val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel)
+                    if (chips.isNotEmpty()) {
+                        Row(Modifier.padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            chips.forEach { Pill(it) }
+                        }
+                    }
+                    s.caption?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                s.trackPreview?.let { tp ->
+                    TrackPreviewCanvas(tp, Modifier.size(width = 58.dp, height = 42.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
+                Api.mediaUrl(s.thumbUrl)?.let { thumb ->
+                    AsyncImage(model = thumb, contentDescription = null, contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
+                }
             }
-        },
-    )
+            if (a != null) {
+                Spacer(Modifier.height(8.dp))
+                SessionStatsRow(a, m)
+            }
+            if (s.status != "analyzed" || s.likeCount > 0) {
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (s.status != "analyzed") {
+                        Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.tertiary)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (s.likeCount > 0) {
+                        Icon(Icons.Filled.Favorite, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                        Text(" ${s.likeCount}", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Pill(text: String) {
+    Text(text, style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 6.dp, vertical = 2.dp))
+}
+
+@Composable
+private fun SessionStatsRow(a: Analysis, m: Metrics?) {
+    val parts = buildList {
+        a.foilingDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
+        a.foilingTimeS?.let { add(fmtDur(it)) }
+        m?.numSegments?.let { if (it > 0) add("$it " + if (it == 1) "Lauf" else "Läufe") }
+        m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
+        a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · %.2f Hz".format(it) } ?: "")) }
+        m?.avgHr?.let { if (it > 0) add("♥ $it" + (m.maxHr?.let { mx -> "/$mx" } ?: "")) }
+    }
+    if (parts.isEmpty()) return
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        parts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
+    }
+}
+
+private fun fmtDur(s: Double): String { val t = s.toInt(); return "%d:%02d".format(t / 60, t % 60) }
+
+private fun statusLabel(s: String): String = when (s) {
+    "live" -> "läuft"
+    "uploaded", "processing", "analyzing" -> "verarbeite…"
+    else -> s
+}
+
+private val previewJson = Json { ignoreUnknownKeys = true }
+
+@Composable
+private fun TrackPreviewCanvas(data: String, modifier: Modifier) {
+    val tp = remember(data) { runCatching { previewJson.decodeFromString(TrackPreview.serializer(), data) }.getOrNull() }
+    if (tp == null || tp.lines.isEmpty()) return
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(modifier) {
+        val sc = minOf(size.width / tp.w.toFloat(), size.height / tp.h.toFloat())
+        val ox = (size.width - tp.w.toFloat() * sc) / 2f
+        val oy = (size.height - tp.h.toFloat() * sc) / 2f
+        tp.lines.forEach { line ->
+            if (line.size < 2) return@forEach
+            val path = Path()
+            line.forEachIndexed { i, pt ->
+                val x = ox + pt[0].toFloat() * sc
+                val y = oy + pt[1].toFloat() * sc
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            drawPath(path, color = color, style = Stroke(width = 3f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

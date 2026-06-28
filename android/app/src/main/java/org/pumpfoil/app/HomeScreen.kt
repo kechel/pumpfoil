@@ -87,13 +87,7 @@ fun HomeScreen(onOpen: (Int) -> Unit) {
                 Text(I18n.t("home.latest"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 latest.forEach { s ->
-                    Column(Modifier.fillMaxWidth().clickable { onOpen(s.id) }.padding(vertical = 8.dp)) {
-                        Text(prettyDate(s.startedAt), style = MaterialTheme.typography.bodyMedium)
-                        s.placeName?.takeIf { it.isNotBlank() }?.let {
-                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    HorizontalDivider()
+                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id) }
                 }
             }
         }
