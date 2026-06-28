@@ -14,7 +14,12 @@ enum Loc {
         ["de": de, "gsw": gsw, "de-AT": deAT, "en": en, "fr": fr, "it": it, "es": es]
     }
 
-    private static let table: [String: [String: String]] = [
+    // In 3 Teile gesplittet: ein einziges Riesen-Literal ließ den Release-Optimizer
+    // (Whole-/Per-File) minutenlang kauen. Zusammengeführt beim ersten Zugriff (static let).
+    private static let table: [String: [String: String]] =
+        _t1.merging(_t2) { a, _ in a }.merging(_t3) { a, _ in a }
+
+    private static let _t1: [String: [String: String]] = [
         "nav.home": r("Home", "Home", "Home", "Home", "Accueil", "Home", "Inicio"),
         "nav.community": r("Community", "Community", "Community", "Community", "Communauté", "Community", "Comunidad"),
         "nav.sessions": r("Sessions", "Sessions", "Sessions", "Sessions", "Sessions", "Sessioni", "Sesiones"),
@@ -93,6 +98,9 @@ enum Loc {
 
         "verlauf.empty": r("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
         "verlauf.total": r("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),
+    ]
+
+    private static let _t2: [String: [String: String]] = [
         "verlauf.cumulative": r("Kumuliert", "Kumuliert", "Kumuliert", "Cumulative", "Cumulé", "Cumulato", "Acumulado"),
         "verlauf.daysWord": r("Tage", "Täg", "Tage", "days", "jours", "giorni", "días"),
         "verlauf.daysAbbr": r("T", "T", "T", "d", "j", "g", "d"),
@@ -171,6 +179,9 @@ enum Loc {
         "alarm.underTitle": r("Min-Geschwindigkeit unterschritten", "Under de Min-Gschwindigkeit", "Min-Geschwindigkeit unterschritten", "Below min speed", "En dessous de la vitesse min", "Sotto la velocità min", "Por debajo de la velocidad mín"),
         "alarm.maxSpeed": r("Max", "Max", "Max", "Max", "Max", "Max", "Máx"),
         "alarm.minSpeed": r("Min", "Min", "Min", "Min", "Min", "Min", "Mín"),
+    ]
+
+    private static let _t3: [String: [String: String]] = [
         "alarm.pattern": r("Muster", "Muster", "Muster", "Pattern", "Motif", "Schema", "Patrón"),
         "alarm.mode": r("Auslösen", "Uslöse", "Auslösen", "Trigger", "Déclenchement", "Attivazione", "Activación"),
         "alarm.modeOnce": r("einmalig beim Über-/Unterschreiten", "eimal bim Über-/Underschriite", "einmalig beim Über-/Unterschreiten", "once when crossing", "une fois au franchissement", "una volta al superamento", "una vez al cruzar"),
@@ -249,4 +260,5 @@ enum Loc {
         "calc.powerRow": r("Pump-Leistung (W) je km/h", "Pump-Leischtig (W) pro km/h", "Pump-Leistung (W) je km/h", "Pump power (W) per km/h", "Puissance de pump (W) par km/h", "Potenza di pump (W) per km/h", "Potencia de pump (W) por km/h"),
         "calc.disclaimer": r("Theoretisches Modell — Richtwerte, keine Garantie. Geschätzte Dicken sind markiert.", "Theoretischs Modäll — Richtwärt, kei Garantie. Gschätzti Dicke sind markiert.", "Theoretisches Modell — Richtwerte, keine Garantie. Geschätzte Dicken sind markiert.", "Theoretical model — guideline values, no guarantee. Estimated thicknesses are marked.", "Modèle théorique — valeurs indicatives, sans garantie. Les épaisseurs estimées sont marquées.", "Modello teorico — valori indicativi, nessuna garanzia. Gli spessori stimati sono contrassegnati.", "Modelo teórico — valores orientativos, sin garantía. Los grosores estimados están marcados."),
     ]
+
 }
