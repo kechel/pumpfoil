@@ -19,7 +19,7 @@ struct SessionDetailView: View {
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
     @State private var win = 3
-    @State private var showPumps = true
+    @State private var showPumps = false   // Pump-Marker default aus
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
     @State private var myFoils: [Foil] = []
     @State private var selectedFoilId = 0
@@ -461,11 +461,11 @@ struct TrackMap: UIViewRepresentable {
             let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
                 ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
             v.annotation = annotation
-            v.frame = CGRect(x: 0, y: 0, width: 13, height: 13)   // gut sichtbar (wie Web/Android)
+            v.frame = CGRect(x: 0, y: 0, width: 9, height: 9)   // sichtbar, aber dezent
             v.backgroundColor = .white
-            v.layer.cornerRadius = 6.5
+            v.layer.cornerRadius = 4.5
             v.layer.borderColor = UIColor(white: 0.06, alpha: 1).cgColor
-            v.layer.borderWidth = 2
+            v.layer.borderWidth = 1.5
             v.isEnabled = false
             return v
         }
