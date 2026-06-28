@@ -12,7 +12,9 @@ android {
         applicationId = "org.pumpfoil.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
+        // Phone-versionCode über dem höchsten vor der 1000-Umstellung belegten Wear-Code (11),
+        // da Phone + Wear sich die applicationId (und damit den versionCode-Raum) teilen.
+        versionCode = 12
         versionName = "1.0.5"
     }
     buildFeatures { compose = true }
