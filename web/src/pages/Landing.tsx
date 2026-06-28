@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   WaveIcon, ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
@@ -43,6 +43,19 @@ export default function Landing() {
   const [page, setPage] = useState(0);
   const cur = Math.min(page, pages - 1);
   const goPage = (d: number) => setPage((p) => (Math.min(p, pages - 1) + d + pages) % pages);
+  // Swipe auf Mobile: Finger zieht den Track mit (drag px), beim Loslassen schnappt er
+  // und wechselt ab ~40 px die Seite. Während des Ziehens ist die Transition aus.
+  const [drag, setDrag] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startX = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; setDragging(true); };
+  const onTouchMove = (e: React.TouchEvent) => { if (dragging) setDrag(e.touches[0].clientX - startX.current); };
+  const onTouchEnd = () => {
+    setDragging(false);
+    const dx = drag; setDrag(0);
+    if (dx < -40) goPage(1);
+    else if (dx > 40) goPage(-1);
+  };
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
@@ -116,10 +129,15 @@ export default function Landing() {
             ><ChevronIcon className="h-12 w-12 rotate-180 sm:h-16 sm:w-16" /></button>
             {/* Viewport + horizontal verschiebbarer Track: gleitet animiert (translateX),
                 statt die Bilder hart auszutauschen. Eine „Seite" = perView Screenshots. */}
-            <div className="w-[230px] overflow-hidden sm:w-[560px]">
+            <div
+              className="w-[230px] touch-pan-y overflow-hidden sm:w-[560px]"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               <div
-                className="flex transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${cur * 100}%)` }}
+                className={`flex ${dragging ? "" : "transition-transform duration-500 ease-out"}`}
+                style={{ transform: `translateX(calc(-${cur * 100}% + ${drag}px))` }}
               >
                 {Array.from({ length: pages }, (_, p) => (
                   <div key={p} className="flex w-full shrink-0 items-center justify-center gap-4 sm:gap-8">
