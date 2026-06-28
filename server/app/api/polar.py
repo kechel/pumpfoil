@@ -136,7 +136,8 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         link.access_token = access
         link.member_id = member_id
     db.commit()
-    return RedirectResponse(f"{get_settings().base_url}/#polar=connected", status_code=303)
+    # Zurück auf die „Verknüpfte Konten"-Seite (nicht auf die Startseite).
+    return RedirectResponse(f"{get_settings().base_url}/konten?polar=connected", status_code=303)
 
 
 @router.post("/sync")
