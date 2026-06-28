@@ -34,6 +34,7 @@ import Account from "./pages/Account";
 import Home from "./pages/Home";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
+import LinkedAccounts from "./pages/LinkedAccounts";
 import Sessions from "./pages/Sessions";
 import AllSessionsRedirect from "./pages/AllSessionsRedirect";
 import SessionDetail from "./pages/SessionDetail";
@@ -81,6 +82,7 @@ const router = createBrowserRouter([
       { path: "foil-rechner", element: <FoilCalculator /> },
       { path: "account", element: <Account /> },
       { path: "einstellungen", element: <Settings /> },
+      { path: "konten", element: <LinkedAccounts /> },
       { path: "vergleich", element: <Compare /> },
       { path: "sessions/:id", element: <SessionDetail /> },
       { path: "sessions/:id/label", element: <Labeling /> },

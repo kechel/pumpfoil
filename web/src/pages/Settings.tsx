@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon, CalculatorIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon, CalculatorIcon, DownloadIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
@@ -122,6 +122,17 @@ export default function Settings() {
       </Link>
 
       <Link
+        to="/konten"
+        className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
+      >
+        <span className="flex items-center gap-3">
+          <DownloadIcon className="h-6 w-6 text-brand-400" />
+          <span className="font-medium text-slate-100">{t("linked.title")}</span>
+        </span>
+        <ChevronIcon className="h-5 w-5 text-slate-400" />
+      </Link>
+
+      <Link
         to="/foils"
         className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
       >
@@ -177,8 +188,6 @@ export default function Settings() {
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
       </Card>
-
-      <PolarCard />
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.weight")}</h3>
@@ -282,49 +291,4 @@ export default function Settings() {
       .then(() => { clearToken(); window.location.assign("/"); })
       .catch((e) => setErr(String(e)));
   }
-}
-
-// Polar-Import: nur sichtbar, wenn serverseitig konfiguriert (status.available).
-function PolarCard() {
-  const { t } = useI18n();
-  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const load = () => api.polarStatus().then(setSt).catch(() => setSt(null));
-  useEffect(() => { load(); }, []);
-  if (!st || !st.available) return null;
-
-  async function connect() {
-    try { const r = await api.polarConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
-  }
-  async function sync() {
-    setBusy(true); setMsg("");
-    try {
-      const r = await api.polarSync();
-      setMsg(r.message ?? t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
-      await load();
-    } catch (e) { setMsg(String(e)); }
-    finally { setBusy(false); }
-  }
-  async function unlink() {
-    await api.polarUnlink().catch(() => {});
-    setMsg(""); load();
-  }
-
-  return (
-    <Card className="mt-4 p-5">
-      <h3 className="mb-1 font-semibold">{t("settings.polar.title")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("settings.polar.hint")}</p>
-      {!st.linked ? (
-        <Button onClick={connect}>{t("settings.polar.connect")}</Button>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-400">{t("settings.polar.connected")}</span>
-          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
-          <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
-        </div>
-      )}
-      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
-    </Card>
-  );
 }

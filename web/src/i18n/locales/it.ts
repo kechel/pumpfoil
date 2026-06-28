@@ -573,6 +573,8 @@ const it: Record<string, string> = {
 
   "profile.weight": "Peso",
   "profile.weightHint": "Opzionale — usato in seguito per la stima della potenza (watt). Privato.",
+  "linked.title": "Account collegati",
+  "linked.hint": "Importa automaticamente gli allenamenti da altri servizi come sessioni.",
   "settings.polar.title": "Import Polar",
   "settings.polar.hint": "Collega il tuo account Polar (AccessLink) e importa automaticamente i tuoi allenamenti come sessioni.",
   "settings.polar.connect": "Collega Polar",
