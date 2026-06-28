@@ -127,6 +127,35 @@ data class HistoryPoint(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
+// Bestenliste (GET /api/community/leaders) — je Metrik eine Rangliste.
+@Serializable
+data class LeaderEntry(
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val sessions: Int = 0, val runs: Int = 0, val spots: Int = 0, val pumps: Int = 0,
+)
+
+@Serializable
+data class Leaders(
+    val sessions: List<LeaderEntry> = emptyList(),
+    val runs: List<LeaderEntry> = emptyList(),
+    val spots: List<LeaderEntry> = emptyList(),
+    val pumps: List<LeaderEntry> = emptyList(),
+)
+
+// Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.
+@Serializable
+data class MediaItem(
+    val kind: String = "photo",
+    val url: String? = null,
+    @SerialName("youtube_url") val youtubeUrl: String? = null,
+    @SerialName("session_id") val sessionId: Int = 0,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val spot: String? = null,
+    val caption: String? = null,
+)
+
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
 @Serializable
 data class SpotWeather(val weather: WeatherBlock? = null)

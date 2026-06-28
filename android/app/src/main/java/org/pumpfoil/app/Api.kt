@@ -211,6 +211,23 @@ object Api {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }
 
+    suspend fun leaders(period: String = "all"): Leaders = withContext(Dispatchers.IO) {
+        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period", null, auth = true))
+    }
+
+    suspend fun latestPhotos(): List<MediaItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(MediaItem.serializer()), http("GET", "/api/community/latest-photos", null, auth = true))
+    }
+
+    suspend fun topLiked(period: String = "all", limit: Int = 5): List<CommunityItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/top-liked?period=$period&limit=$limit", null, auth = true))
+    }
+
+    suspend fun spotRecords(spot: String, period: String = "all"): PeriodRecords = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(spot, "UTF-8")
+        json.decodeFromString(PeriodRecords.serializer(), http("GET", "/api/community/spot-records?spot=$s&period=$period", null, auth = true))
+    }
+
     suspend fun spotWeather(spot: String): SpotWeather = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
         json.decodeFromString(SpotWeather.serializer(), http("GET", "/api/community/spot/weather?spot=$s", null, auth = true))
