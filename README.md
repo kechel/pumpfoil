@@ -26,18 +26,18 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 
 ## Features
 
-- ⌚ **Watch recording on every platform** — a [Connect IQ](watch/) app for **all ~78 Garmin
+- <img src="docs/readme-icons/watch.svg" width="18"> **Watch recording on every platform** — a [Connect IQ](watch/) app for **all ~78 Garmin
   devices** (fēnix, Forerunner, epix, Instinct, vívoactive, …), plus native **Wear OS** and
   **Apple Watch** recorder apps. They capture GPS + raw acceleration and upload the raw data.
-- 📱 **Native companion apps** — full **iOS** and **Android** apps (sessions, map, track preview,
+- <img src="docs/readme-icons/phone.svg" width="18"> **Native companion apps** — full **iOS** and **Android** apps (sessions, map, track preview,
   per-run stats, history with trend charts, community) alongside the installable **web PWA**.
-- 📈 **Automatic analysis** — foiling phases, distance, pump cadence and glide phases per session,
+- <img src="docs/readme-icons/chart.svg" width="18"> **Automatic analysis** — foiling phases, distance, pump cadence and glide phases per session,
   detected server-side from GPS + accelerometer (ML model + GPS state machine).
-- 🗺️ **Color-coded track** — foiling segments colored by speed / heart rate / pump frequency, with pump markers.
-- 📂 **FIT upload** — analyze old activities too: drop in a `.fit` file (or Garmin's ZIP export).
-- 🏷️ **Labeling UI** — mark pump / glide / not-foiling ranges to build training data for the ML model.
-- 🌍 **Community & history** — compare sessions over time, share runs; web UI in 7 languages.
-- 🔄 **One-click watch download** — the site detects your watch model and serves the matching build.
+- <img src="docs/readme-icons/map.svg" width="18"> **Color-coded track** — foiling segments colored by speed / heart rate / pump frequency, with pump markers.
+- <img src="docs/readme-icons/upload.svg" width="18"> **FIT upload** — analyze old activities too: drop in a `.fit` file (or Garmin's ZIP export).
+- <img src="docs/readme-icons/tag.svg" width="18"> **Labeling UI** — mark pump / glide / not-foiling ranges to build training data for the ML model.
+- <img src="docs/readme-icons/community.svg" width="18"> **Community & history** — compare sessions over time, share runs; web UI in 7 languages.
+- <img src="docs/readme-icons/download.svg" width="18"> **One-click watch download** — the site detects your watch model and serves the matching build.
 
 ## A look inside the app
 
