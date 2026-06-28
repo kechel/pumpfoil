@@ -63,7 +63,7 @@ class Settings:
                 "client_id": os.environ.get(f"OAUTH_{p.upper()}_CLIENT_ID", ""),
                 "client_secret": os.environ.get(f"OAUTH_{p.upper()}_CLIENT_SECRET", ""),
             }
-            for p in ("google", "apple", "strava", "garmin")
+            for p in ("google", "apple", "strava", "garmin", "polar")
         }
 
         # Öffentliche Medien (Fotos, Profilbilder) — unter /media ausgeliefert.

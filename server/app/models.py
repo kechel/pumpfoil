@@ -418,3 +418,19 @@ class Feedback(Base):
     text: Mapped[str] = mapped_column(String(500))
     url: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class PolarLink(Base):
+    """Verknüpfung eines Nutzers mit Polar AccessLink: gespeichertes Access-Token +
+    die Polar-User-ID (x_user_id), um dessen Trainings (TCX) abzurufen und als Sessions
+    zu importieren. Ein Link pro Nutzer."""
+
+    __tablename__ = "polar_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    polar_user_id: Mapped[str] = mapped_column(String(40), index=True)  # x_user_id von Polar
+    access_token: Mapped[str] = mapped_column(String(255))             # langlebiges AccessLink-Token
+    member_id: Mapped[str] = mapped_column(String(64))                 # von uns vergebene member-id
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

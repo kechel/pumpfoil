@@ -573,6 +573,14 @@ const fr: Record<string, string> = {
 
   "profile.weight": "Poids",
   "profile.weightHint": "Optionnel — utilisé plus tard pour l'estimation de puissance (watts). Privé.",
+  "settings.polar.title": "Import Polar",
+  "settings.polar.hint": "Connecte ton compte Polar (AccessLink) et importe automatiquement tes entraînements comme sessions.",
+  "settings.polar.connect": "Connecter Polar",
+  "settings.polar.sync": "Importer les entraînements",
+  "settings.polar.unlink": "Déconnecter",
+  "settings.polar.connected": "Connecté",
+  "settings.polar.importing": "Import…",
+  "settings.polar.result": "{imported} importés, {skipped} ignorés",
 
   "profile.calculator": "Calculateur de foil",
 

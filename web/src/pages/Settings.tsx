@@ -178,6 +178,8 @@ export default function Settings() {
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
       </Card>
 
+      <PolarCard />
+
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.weight")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.weightHint")}</p>
@@ -280,4 +282,49 @@ export default function Settings() {
       .then(() => { clearToken(); window.location.assign("/"); })
       .catch((e) => setErr(String(e)));
   }
+}
+
+// Polar-Import: nur sichtbar, wenn serverseitig konfiguriert (status.available).
+function PolarCard() {
+  const { t } = useI18n();
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const load = () => api.polarStatus().then(setSt).catch(() => setSt(null));
+  useEffect(() => { load(); }, []);
+  if (!st || !st.available) return null;
+
+  async function connect() {
+    try { const r = await api.polarConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
+  }
+  async function sync() {
+    setBusy(true); setMsg("");
+    try {
+      const r = await api.polarSync();
+      setMsg(r.message ?? t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
+      await load();
+    } catch (e) { setMsg(String(e)); }
+    finally { setBusy(false); }
+  }
+  async function unlink() {
+    await api.polarUnlink().catch(() => {});
+    setMsg(""); load();
+  }
+
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("settings.polar.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("settings.polar.hint")}</p>
+      {!st.linked ? (
+        <Button onClick={connect}>{t("settings.polar.connect")}</Button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-emerald-400">{t("settings.polar.connected")}</span>
+          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
+        </div>
+      )}
+      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+    </Card>
+  );
 }

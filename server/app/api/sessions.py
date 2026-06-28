@@ -147,6 +147,73 @@ _WATER_SPORTS = {
 }
 
 
+def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str):
+    """Geparsten Track (aus FIT/TCX/GPX) als Session anlegen: Dup-Check (Hash ODER Startzeit,
+    pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
+    UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht)."""
+    import hashlib
+
+    samples = parsed["gps_samples"]
+    started_at = parsed["started_at"]
+    content_hash = hashlib.sha256(raw).hexdigest()
+    existing = (
+        db.query(models.Session)
+        .filter(
+            models.Session.user_id == user.id,
+            (models.Session.content_hash == content_hash)
+            | (models.Session.started_at == started_at),
+        )
+        .first()
+    )
+    if existing is not None:
+        return None if existing.deleted else existing
+
+    accel_bytes = parsed["accel_bytes"]
+    accel_hz = parsed["accel_hz"] or 25
+    session_uuid = uuid_prefix + uuid.uuid4().hex
+    last_ms = samples[-1][0]
+    s = models.Session(
+        session_uuid=session_uuid,
+        user_id=user.id,
+        content_hash=content_hash,
+        sport=parsed["sport"],
+        started_at=started_at,
+        ended_at=started_at + _ms(last_ms),
+        gps_hz=1,
+        accel_hz=accel_hz,
+        status="complete",
+        total_chunks=1,
+        foil_id=_user_default_foil_id(user),   # Standard-Foil fest zuordnen
+    )
+    db.add(s)
+    db.commit()
+    db.refresh(s)
+
+    storage.write_meta(session_uuid, {
+        "session_uuid": session_uuid,
+        "started_at": started_at,
+        "sport": parsed["sport"],
+        "gps_hz": 1,
+        "accel_hz": accel_hz,
+        "accel_scale": s.accel_scale,
+        "source": src_label,
+    })
+    storage.save_gps_chunk(session_uuid, 0, samples)
+    if accel_bytes:
+        storage.save_accel_raw(session_uuid, 0, accel_bytes)
+    foil = parsed.get("foil_status") or []
+    if any(v is not None for v in foil):
+        storage.save_foil_status(session_uuid, foil)
+
+    run_analysis(db, s)
+    if maybe_auto_trim(db, s):  # Heimfahrt o.ä. vor/nach der Session wegschneiden
+        run_analysis(db, s)
+    db.refresh(s)
+    from ..notify import notify_session_analyzed
+    notify_session_analyzed(db, s)
+    return s
+
+
 @router.post("/upload-fit")
 async def upload_fit(
     file: UploadFile = File(...),
@@ -202,70 +269,9 @@ async def upload_fit(
     if water_only and sport not in _WATER_SPORTS:
         return {"skipped": "not_water", "sport": sport, "started_at": started_at.isoformat()}
 
-    # Duplikat-Erkennung: gleicher Hash ODER gleiche Startzeit (ms-genau, pro Nutzer
-    # eindeutig je Aktivität) -> bestehende Session zurück. started_at macht den
-    # FIT-Import idempotent, auch wenn content_hash mal nicht passt.
-    import hashlib
-
-    content_hash = hashlib.sha256(raw).hexdigest()
-    existing = (
-        db.query(models.Session)
-        .filter(
-            models.Session.user_id == user.id,
-            (models.Session.content_hash == content_hash)
-            | (models.Session.started_at == started_at),
-        )
-        .first()
-    )
-    if existing is not None:
-        if existing.deleted:  # bewusst gelöschte Aktivität nicht wieder importieren
-            return {"skipped": "deleted", "sport": sport, "started_at": started_at.isoformat()}
-        return _session_out(existing, with_analysis=True)
-
-    accel_bytes = parsed["accel_bytes"]
-    accel_hz = parsed["accel_hz"] or 25
-    session_uuid = uuid_prefix + uuid.uuid4().hex
-    last_ms = samples[-1][0]
-    s = models.Session(
-        session_uuid=session_uuid,
-        user_id=user.id,
-        content_hash=content_hash,
-        sport=parsed["sport"],
-        started_at=started_at,
-        ended_at=started_at + _ms(last_ms),
-        gps_hz=1,
-        accel_hz=accel_hz,
-        status="complete",
-        total_chunks=1,
-        foil_id=_user_default_foil_id(user),   # Standard-Foil fest zuordnen
-    )
-    db.add(s)
-    db.commit()
-    db.refresh(s)
-
-    storage.write_meta(session_uuid, {
-        "session_uuid": session_uuid,
-        "started_at": started_at,
-        "sport": parsed["sport"],
-        "gps_hz": 1,
-        "accel_hz": accel_hz,
-        "accel_scale": s.accel_scale,
-        "source": src_label,
-    })
-    storage.save_gps_chunk(session_uuid, 0, samples)
-    if accel_bytes:
-        storage.save_accel_raw(session_uuid, 0, accel_bytes)
-    # foil_status als optionale Ground-Truth mitspeichern (für späteres Retraining).
-    foil = parsed.get("foil_status") or []
-    if any(v is not None for v in foil):
-        storage.save_foil_status(session_uuid, foil)
-
-    run_analysis(db, s)
-    if maybe_auto_trim(db, s):  # Heimfahrt o.ä. vor/nach der Session wegschneiden
-        run_analysis(db, s)
-    db.refresh(s)
-    from ..notify import notify_session_analyzed
-    notify_session_analyzed(db, s)
+    s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix)
+    if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren
+        return {"skipped": "deleted", "sport": sport, "started_at": started_at.isoformat()}
     return _session_out(s, with_analysis=True)
 
 
