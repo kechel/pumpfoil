@@ -202,6 +202,17 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
 def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     link = db.query(models.PolarLink).filter_by(user_id=user.id).first()
     if link is not None:
+        # Auch auf Polars Seite abmelden (AccessLink-User löschen) -> entzieht die App-Freigabe;
+        # beim nächsten Verbinden kommt wieder der Consent-Bildschirm. Fehler ignorieren
+        # (z. B. schon serverseitig entfernt) — unser Eintrag wird in jedem Fall gelöscht.
+        try:
+            httpx.delete(
+                f"{API}/v3/users/{link.polar_user_id}",
+                headers={"Authorization": f"Bearer {link.access_token}", "Accept": "application/json"},
+                timeout=20,
+            )
+        except Exception:  # noqa: BLE001
+            pass
         db.delete(link)
         db.commit()
     return {"ok": True}
