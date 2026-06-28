@@ -1,32 +1,20 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,9 +28,98 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+
+private enum class Mode { CUMULATIVE, W7, W30 }
+private enum class Kind { MAX, SUM, COUNT, AVG, RATIO }
+private const val DAY_MS = 24L * 3600 * 1000
+
+private class Pt(val t: Long, val v: Double)
+
+// Eine Verlauf-Kennzahl: wie über die Zeit aggregiert wird + Formatierung/Farbe.
+private class HMetric(
+    val labelKey: String,
+    val color: Color,
+    val kind: Kind,
+    val value: (HistoryPoint) -> Double?,
+    val num: ((HistoryPoint) -> Double?)? = null,
+    val den: ((HistoryPoint) -> Double?)? = null,
+    val fmt: (Double) -> String,
+)
+
+private fun mmssMin(s: Double) = "%d:%02d min".format((s / 60).toInt(), (s % 60).toInt())
+
+// Best-pro-Session-Metriken (kumuliert = laufender Bestwert, Fenster = Max im Fenster).
+private val METRICS = listOf(
+    HMetric("home.farthestRun", Color(0xFF22D3EE), Kind.MAX, { it.distance }, fmt = { "%.0f m".format(it) }),
+    HMetric("home.longestRun", Color(0xFF34D399), Kind.MAX, { it.duration }, fmt = { mmssMin(it) }),
+    HMetric("home.longestGlide", Color(0xFFA78BFA), Kind.MAX, { it.glide }, fmt = { "%.1f s".format(it) }),
+    HMetric("verlauf.foilingPerSession", Color(0xFF60A5FA), Kind.MAX, { it.foilingKm }, fmt = { "%.1f km".format(it) }),
+    HMetric("sd.avgSpeed", Color(0xFFF59E0B), Kind.MAX, { it.avgSpeed?.let { v -> v * 3.6 } }, fmt = { "%.1f km/h".format(it) }),
+    HMetric("sd.avgPump", Color(0xFFF472B6), Kind.MAX, { it.avgPumpHz }, fmt = { "%.2f Hz".format(it) }),
+    HMetric("verlauf.pumpsPerSession", Color(0xFFFB7185), Kind.RATIO, { null },
+        num = { it.pumps.toDouble() }, den = { 1.0 }, fmt = { "%.0f".format(it) }),
+    HMetric("sd.avgDistPerPump", Color(0xFF2DD4BF), Kind.RATIO, { null },
+        num = { it.foilingKm }, den = { it.pumps.toDouble() }, fmt = { "%.1f m".format(it * 1000) }),
+)
+
+// Summen über das Fenster bzw. kumuliert.
+private val METRICS_SUM = listOf(
+    HMetric("nav.sessions", Color(0xFF60A5FA), Kind.COUNT, { 1.0 }, fmt = { "%.0f".format(it) }),
+    HMetric("home.runs", Color(0xFF34D399), Kind.SUM, { it.runs.toDouble() }, fmt = { "%.0f".format(it) }),
+    HMetric("verlauf.kmFoiling", Color(0xFF22D3EE), Kind.SUM, { it.foilingKm }, fmt = { "%.1f km".format(it) }),
+    HMetric("home.pumps", Color(0xFFA78BFA), Kind.SUM, { it.pumps.toDouble() }, fmt = { "%.0f".format(it) }),
+)
+
+private fun winMs(mode: Mode) = (if (mode == Mode.W7) 7L else 30L) * DAY_MS
+
+// Zeitreihe für eine Metrik (kumuliert oder gleitendes Fenster über das Tagesraster).
+private fun series(data: List<Pair<Long, HistoryPoint>>, m: HMetric, mode: Mode, domain: Pair<Long, Long>): List<Pt> {
+    if (m.kind == Kind.RATIO) {
+        val valid = data.mapNotNull { (t, h) ->
+            val n = m.num!!(h); val d = m.den!!(h)
+            if (n != null && d != null && n.isFinite() && d.isFinite() && n > 0 && d > 0) Triple(t, n, d) else null
+        }
+        if (valid.size < 2) return emptyList()
+        if (mode == Mode.CUMULATIVE) {
+            var sn = 0.0; var sd = 0.0
+            return valid.map { (t, n, d) -> sn += n; sd += d; Pt(t, if (sd > 0) sn / sd else 0.0) }
+        }
+        val w = winMs(mode)
+        fun at(tt: Long): Pt {
+            var sn = 0.0; var sd = 0.0
+            for ((t, n, d) in valid) if (t > tt - w && t <= tt) { sn += n; sd += d }
+            return Pt(tt, if (sd > 0) sn / sd else 0.0)
+        }
+        val out = ArrayList<Pt>()
+        var tt = domain.first; while (tt < domain.second) { out.add(at(tt)); tt += DAY_MS }
+        out.add(at(domain.second)); return out
+    }
+    val valid = data.mapNotNull { (t, h) -> m.value(h)?.let { v -> if (v.isFinite()) t to v else null } }
+    if (valid.size < 2) return emptyList()
+    if (mode == Mode.CUMULATIVE) {
+        var sum = 0.0; var n = 0; var mx = 0.0
+        return valid.map { (t, v) ->
+            sum += v; n++; if (v > mx) mx = v
+            Pt(t, when (m.kind) { Kind.AVG -> sum / n; Kind.COUNT -> n.toDouble(); Kind.MAX -> mx; else -> sum })
+        }
+    }
+    val w = winMs(mode)
+    fun at(tt: Long): Pt {
+        var sum = 0.0; var n = 0; var mx = 0.0
+        for ((t, v) in valid) if (t > tt - w && t <= tt) { sum += v; n++; if (v > mx) mx = v }
+        return Pt(tt, when (m.kind) { Kind.AVG -> if (n > 0) sum / n else 0.0; Kind.COUNT -> n.toDouble(); Kind.MAX -> mx; else -> sum })
+    }
+    val out = ArrayList<Pt>()
+    var tt = domain.first; while (tt < domain.second) { out.add(at(tt)); tt += DAY_MS }
+    out.add(at(domain.second)); return out
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,162 +127,108 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
     var items by remember { mutableStateOf<List<HistoryPoint>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var windowDays by remember { mutableStateOf(0) }   // 0 = Gesamt, sonst Tage
-    var metric by remember { mutableStateOf(HMetric.KM) }
+    var mode by remember { mutableStateOf(Mode.W7) }
 
     suspend fun load() {
         loading = true
-        try { items = Api.history().reversed(); error = null }  // neueste zuerst
+        try { items = Api.history(); error = null }
         catch (e: Exception) { error = e.message }
         loading = false
     }
     LaunchedEffect(Unit) { load() }
 
+    // Gemeinsame Zeitachse (epoch ms), chronologisch.
+    val data = remember(items) {
+        items.mapNotNull { hp -> epochMsIso(hp.startedAt)?.let { it to hp } }.sortedBy { it.first }
+    }
+    val domain = remember(data) {
+        if (data.isEmpty()) 0L to 1L else data.first().first to data.last().first
+    }
+
     Scaffold(topBar = { TopAppBar(title = { Text(I18n.t("nav.history")) }) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
-            if (loading && items.isEmpty()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            } else {
-                val shown = if (windowDays == 0) items else items.filter { withinDays(it.startedAt, windowDays) }
-                LazyColumn(Modifier.fillMaxSize()) {
-                    error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                    if (items.isEmpty() && !loading && error == null) {
-                        item { Text(I18n.t("verlauf.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    }
-                    if (items.isNotEmpty()) {
+                if (loading && items.isEmpty()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                } else if (data.size < 2) {
+                    Text(I18n.t("verlauf.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         item {
-                            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                listOf(0 to I18n.t("verlauf.total"), 30 to "30 ${I18n.t("verlauf.daysAbbr")}", 7 to "7 ${I18n.t("verlauf.daysAbbr")}").forEach { (d, lbl) ->
-                                    FilterChip(selected = windowDays == d, onClick = { windowDays = d }, label = { Text(lbl) })
-                                }
+                            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) })
+                                FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") })
+                                FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") })
                             }
                         }
-                        item { CumulativeSummary(shown, windowDays) }
-                        if (shown.size >= 2) {
-                            // shown ist neueste-zuerst -> für den Chart chronologisch (alt->neu).
-                            item { HistoryChartCard(shown.asReversed().map { metric.value(it) }, metric) { metric = it } }
+                        items(METRICS) { m -> MetricChartCard(data, m, mode, domain) }
+                        item {
+                            Text(I18n.t("verlauf.aggTitle"), style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(top = 6.dp))
                         }
-                    }
-                    items(shown) { p ->
-                        ListItem(
-                            modifier = Modifier.clickable { onOpen(p.sessionId) },
-                            headlineContent = { Text(prettyDate(p.startedAt)) },
-                            // Verbund-String: Einheiten universell, nur Wörter lokalisiert.
-                            supportingContent = {
-                                val mpp = if (p.pumps > 0) p.foilingKm * 1000.0 / p.pumps else 0.0
-                                Text("%.2f km · %d %s · %d Pumps · %s m/Pump · max %.1f km/h"
-                                    .format(p.foilingKm, p.runs, I18n.t("home.runs"), p.pumps,
-                                        if (mpp > 0) "%.1f".format(mpp) else "–", p.speed * 3.6))
-                            },
-                            leadingContent = {
-                                Icon(Icons.Filled.ShowChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            },
-                        )
-                        HorizontalDivider()
+                        items(METRICS_SUM) { m -> MetricChartCard(data, m, mode, domain) }
+                        item { Box(Modifier.height(8.dp)) }
                     }
                 }
             }
-            }
         }
     }
 }
 
-// Auswählbare Trend-Metrik (spiegelt iOS/Web-History-Serien).
-private enum class HMetric(val labelKey: String?, val literal: String?) {
-    KM(null, "km"), RUNS("home.runs", null), PUMPS("home.pumps", null), SPEED(null, "km/h"), PER_PUMP(null, "m/P");
-
-    fun short(): String = literal ?: I18n.t(labelKey!!)
-
-    fun value(p: HistoryPoint): Double = when (this) {
-        KM -> p.foilingKm
-        RUNS -> p.runs.toDouble()
-        PUMPS -> p.pumps.toDouble()
-        SPEED -> p.speed * 3.6
-        PER_PUMP -> if (p.pumps > 0) p.foilingKm * 1000.0 / p.pumps else 0.0
-    }
-
-    fun fmt(v: Double): String = when (this) {
-        RUNS, PUMPS -> v.toInt().toString()
-        else -> "%.1f".format(v)
-    }
-}
-
-// Schlanker Balken-Trend (Canvas) — ein Balken je Session, alt->neu; umschaltbare Metrik.
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HistoryChartCard(points: List<Double>, metric: HMetric, onMetric: (HMetric) -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+private fun MetricChartCard(data: List<Pair<Long, HistoryPoint>>, metric: HMetric, mode: Mode, domain: Pair<Long, Long>) {
+    val pts = remember(data, metric, mode, domain) { series(data, metric, mode, domain) }
+    val cur = pts.lastOrNull()?.v ?: 0.0
+    Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                HMetric.values().forEach { m ->
-                    FilterChip(selected = m == metric, onClick = { onMetric(m) }, label = { Text(m.short()) })
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(I18n.t(metric.labelKey), style = MaterialTheme.typography.titleSmall)
+                Text(if (cur > 0) metric.fmt(cur) else "–", style = MaterialTheme.typography.titleSmall, color = metric.color)
+            }
+            LineChart(pts, metric.color, domain, Modifier.fillMaxWidth().height(110.dp).padding(top = 6.dp))
+            if (pts.size >= 2) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(monthYear(domain.first), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(monthYear(domain.second), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            val barColor = MaterialTheme.colorScheme.primary
-            Canvas(Modifier.fillMaxWidth().height(120.dp)) {
-                if (points.isEmpty()) return@Canvas
-                val maxV = (points.maxOrNull() ?: 1.0).coerceAtLeast(1e-4)
-                val n = points.size
-                val gap = if (n > 1) (size.width / n * 0.3f).coerceAtMost(3f) else 0f
-                val bw = ((size.width - gap * (n - 1)) / n).coerceAtLeast(1f)
-                points.forEachIndexed { i, v ->
-                    val h = (v.coerceAtLeast(0.0) / maxV).toFloat() * size.height
-                    val x = i * (bw + gap)
-                    drawRoundRect(
-                        color = barColor,
-                        topLeft = Offset(x, size.height - h),
-                        size = Size(bw, h.coerceAtLeast(1f)),
-                        cornerRadius = CornerRadius(minOf(2f, bw / 2f)),
-                    )
-                }
-            }
-            points.maxOrNull()?.let {
-                Text("max ${metric.fmt(it)}", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-            }
-        }
-    }
-}
-
-// Kumuliert über alle geladenen Sessions (wie web/Verlauf): Summen-Karte oben.
-@Composable
-private fun CumulativeSummary(items: List<HistoryPoint>, windowDays: Int) {
-    val km = items.sumOf { it.foilingKm }
-    val runs = items.sumOf { it.runs }
-    val pumps = items.sumOf { it.pumps }
-    val windowLabel = if (windowDays == 0) I18n.t("verlauf.total") else "$windowDays ${I18n.t("verlauf.daysWord")}"
-    Card(Modifier.fillMaxWidth().padding(12.dp)) {
-        Column(Modifier.padding(12.dp)) {
-            Text("${I18n.t("verlauf.cumulative")} · $windowLabel", style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric("${items.size}", I18n.t("nav.sessions"))
-                metric("%.1f".format(km), I18n.t("verlauf.kmFoiling"))
-                metric("$runs", I18n.t("home.runs"))
-                metric("$pumps", I18n.t("home.pumps"))
-            }
         }
     }
 }
 
 @Composable
-private fun metric(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun LineChart(pts: List<Pt>, color: Color, domain: Pair<Long, Long>, modifier: Modifier) {
+    if (pts.size < 2) {
+        Box(modifier) { Text(I18n.t("verlauf.empty"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        return
+    }
+    val tmin = domain.first.toDouble()
+    val tmax = domain.second.toDouble().coerceAtLeast(tmin + 1)
+    val vmax = (pts.maxOf { it.v } * 1.05).coerceAtLeast(1e-6)
+    Canvas(modifier) {
+        val w = size.width; val h = size.height; val padB = 6f
+        fun px(t: Long) = (((t - tmin) / (tmax - tmin)) * w).toFloat()
+        fun py(v: Double) = (h - padB - (v / vmax) * (h - padB)).toFloat()
+        val line = Path(); val area = Path()
+        pts.forEachIndexed { i, p ->
+            val x = px(p.t); val y = py(p.v)
+            if (i == 0) { line.moveTo(x, y); area.moveTo(x, h - padB); area.lineTo(x, y) }
+            else { line.lineTo(x, y); area.lineTo(x, y) }
+        }
+        area.lineTo(px(pts.last().t), h - padB); area.close()
+        drawPath(area, color = color, alpha = 0.13f)
+        drawPath(line, color = color, style = Stroke(width = 3f, cap = StrokeCap.Round))
+        drawLine(Color(0xFF334155), Offset(0f, h - padB), Offset(w, h - padB), strokeWidth = 1f)
     }
 }
 
-// started_at (ISO) innerhalb der letzten N Tage? Bei Parse-Fehler einschließen.
-private fun withinDays(iso: String, days: Int): Boolean {
-    return try {
-        val t = try { java.time.Instant.parse(iso) }
-        catch (_: Exception) { java.time.OffsetDateTime.parse(iso).toInstant() }
-        t.isAfter(java.time.Instant.now().minus(days.toLong(), java.time.temporal.ChronoUnit.DAYS))
-    } catch (_: Exception) { true }
+private fun epochMsIso(iso: String): Long? = try {
+    java.time.OffsetDateTime.parse(iso).toInstant().toEpochMilli()
+} catch (_: Exception) {
+    try { java.time.LocalDateTime.parse(iso).toInstant(java.time.ZoneOffset.UTC).toEpochMilli() } catch (_: Exception) { null }
 }
+
+private fun monthYear(ms: Long): String =
+    java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneId.systemDefault())
+        .format(java.time.format.DateTimeFormatter.ofPattern("MMM yy"))

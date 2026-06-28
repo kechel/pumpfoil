@@ -120,6 +120,10 @@ data class HistoryPoint(
     val runs: Int = 0,
     val pumps: Int = 0,
     val speed: Double = 0.0,            // beste Lauf-Geschwindigkeit (m/s)
+    val distance: Double = 0.0,         // bester Lauf: Distanz (m)
+    val duration: Double = 0.0,         // bester Lauf: Dauer (s)
+    val glide: Double = 0.0,            // längster Gleit (s)
+    @SerialName("avg_speed") val avgSpeed: Double? = null,   // Ø-Speed der Session (m/s)
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
