@@ -33,23 +33,27 @@ final class SyncManager: NSObject, ObservableObject {
 
     // Companion-Pairing (Apple-idiomatisch): die eingeloggte iPhone-App mintet ein
     // Device-Token und schiebt es per WatchConnectivity auf die Uhr -> kein Code-Tippen.
-    // Einmal minten und cachen; per applicationContext (auch wenn Uhr-App inaktiv) zustellen.
-    func pushPairingToWatch() {
+    // Token wird gecacht und per applicationContext (auch bei inaktiver Uhr-App) zugestellt.
+    func pushPairingToWatch(force: Bool = false) {
         guard Api.token != nil, WCSession.isSupported() else { return }
         let s = WCSession.default
         guard s.activationState == .activated, s.isPaired, s.isWatchAppInstalled else { return }
         Task {
-            let token: String
-            if let cached = UserDefaults.standard.string(forKey: "mintedWatchToken") {
-                token = cached
-            } else if let minted = try? await Api.mintDeviceToken() {
-                UserDefaults.standard.set(minted, forKey: "mintedWatchToken")
-                token = minted
-            } else {
-                return
-            }
+            guard let token = await mintedToken(force: force) else { return }
             try? s.updateApplicationContext(["deviceToken": token])
         }
+    }
+
+    // Liefert das Companion-Token; mit force=true wird neu gemintet (Recovery, wenn das
+    // bisherige Token serverseitig ungültig ist). Der Cache wird bei jedem Mint aktualisiert,
+    // damit spätere proaktive Pushes immer das GÜLTIGE Token tragen.
+    private func mintedToken(force: Bool) async -> String? {
+        if !force, let cached = UserDefaults.standard.string(forKey: "mintedWatchToken") { return cached }
+        if let minted = try? await Api.mintDeviceToken() {
+            UserDefaults.standard.set(minted, forKey: "mintedWatchToken")
+            return minted
+        }
+        return UserDefaults.standard.string(forKey: "mintedWatchToken")   // Fallback: alter Wert
     }
 
     func sync() {
@@ -81,6 +85,18 @@ extension SyncManager: WCSessionDelegate {
     }
     nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
         Task { @MainActor in self.refreshConnection() }
+    }
+
+    // Die Uhr bittet um ein (frisches) Token — z. B. nach 401 (Token serverseitig ungültig).
+    // Wir minten neu (force) und antworten direkt; zusätzlich via applicationContext absichern.
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any],
+                             replyHandler: @escaping ([String: Any]) -> Void) {
+        guard message["action"] as? String == "needToken" else { replyHandler([:]); return }
+        Task { @MainActor in
+            guard Api.token != nil, let token = await self.mintedToken(force: true) else { replyHandler([:]); return }
+            try? WCSession.default.updateApplicationContext(["deviceToken": token])
+            replyHandler(["deviceToken": token])
+        }
     }
 }
 

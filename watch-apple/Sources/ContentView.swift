@@ -291,6 +291,13 @@ struct RecordView: View {
             }
         }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
+        // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
+        // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
+        .onChange(of: rec.uploadError) { e in if e == "auth" { WatchLink.shared.requestToken() } }
+        // Frisches Token eingetroffen -> sofort erneut hochladen (statt 5 s zu warten).
+        .onReceive(NotificationCenter.default.publisher(for: .pumpfoilTokenUpdated)) { _ in
+            Task { await rec.drain() }
+        }
     }
 
     // Aktuelle Alarm-/Foil-Vorwahl als Label (für den Selector-Button).
