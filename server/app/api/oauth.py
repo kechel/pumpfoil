@@ -38,7 +38,7 @@ from ..config import get_settings
 from ..db import get_db
 from ..schemas import TokenOut
 from ..security import create_access_token, hash_password
-from .auth import _clean_lang
+from .auth import _clean_lang, next_free_display_name
 
 router = APIRouter(prefix="/api/auth/oauth", tags=["oauth"])
 
@@ -256,15 +256,6 @@ def _fallback_display_name(db: Session) -> str:
     return name
 
 
-def _unique_display_name(db: Session, name: str | None) -> str | None:
-    n = (name or "").strip()
-    if not (2 <= len(n) <= 40):
-        return None
-    if db.query(models.User).filter(func.lower(models.User.display_name) == n.lower()).first():
-        return None  # vergeben -> Nutzer setzt später selbst einen
-    return n
-
-
 @router.api_route("/{provider}/callback", methods=["GET", "POST"])
 async def callback(
     provider: str,
@@ -333,9 +324,11 @@ def _login_or_create(db: Session, provider: str, subject: str, email: str | None
             user = db.query(models.User).filter(func.lower(models.User.email) == email.lower()).first()
         if user is None:  # neues Konto
             login_email = (email or f"{provider}_{subject}@oauth.local").lower()
-            # Apple/Google liefern den Namen oft nur beim 1. Login -> Fallback, damit das
-            # Profil nie leer ist (Nutzer kann ihn jederzeit ändern).
-            display = _unique_display_name(db, name) or _fallback_display_name(db)
+            # Echten (Vor-)Namen übernehmen; bei Kollision automatisch durchnummerieren
+            # (Jan -> Jan2). Apple/Google liefern oft keinen Namen -> Fallback "FoilerN".
+            cleaned = (name or "").strip()
+            display = (next_free_display_name(db, cleaned)
+                       if 2 <= len(cleaned) <= 40 else _fallback_display_name(db))
             user = models.User(
                 email=login_email,
                 password_hash=hash_password(secrets.token_urlsafe(24)),

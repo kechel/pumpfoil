@@ -36,7 +36,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 def _clean_display_name(db: Session, raw: str | None, exclude_id: int | None = None) -> str | None:
     """Trimmt + validiert den Anzeigenamen und prüft Eindeutigkeit (case-insensitiv).
-    Leer -> None (kein Name). Bereits vergeben -> 409."""
+    Leer -> None (kein Name). Bereits vergeben -> 409. (Für Profil-EDIT: bewusste Wahl.)"""
     name = (raw or "").strip()
     if not name:
         return None
@@ -50,6 +50,37 @@ def _clean_display_name(db: Session, raw: str | None, exclude_id: int | None = N
     return name
 
 
+def _name_taken(db: Session, name: str) -> bool:
+    return db.query(models.User).filter(
+        func.lower(models.User.display_name) == name.lower()).first() is not None
+
+
+def next_free_display_name(db: Session, base: str) -> str:
+    """Freien Anzeigenamen ableiten: `base` nehmen; ist er vergeben, die nächste freie
+    Zahl ab 2 anhängen (Jan -> Jan2 -> Jan3 …). Case-insensitiv, max. 40 Zeichen."""
+    base = base.strip()[:40]
+    if not _name_taken(db, base):
+        return base
+    i = 2
+    while True:
+        suffix = str(i)
+        cand = base[:40 - len(suffix)] + suffix
+        if not _name_taken(db, cand):
+            return cand
+        i += 1
+
+
+def _create_display_name(db: Session, raw: str | None) -> str | None:
+    """Anzeigename beim ANLEGEN eines Kontos: Länge prüfen, dann bei Kollision automatisch
+    durchnummerieren (kein 409). Leer -> None."""
+    name = (raw or "").strip()
+    if not name:
+        return None
+    if len(name) < 2 or len(name) > 40:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Anzeigename muss 2–40 Zeichen lang sein")
+    return next_free_display_name(db, name)
+
+
 @router.post("/register", response_model=TokenOut)
 def register(
     body: RegisterIn, db: Session = Depends(get_db),
@@ -58,7 +89,7 @@ def register(
     existing = db.query(models.User).filter_by(email=body.email.lower()).first()
     if existing:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
-    name = _clean_display_name(db, body.display_name)
+    name = _create_display_name(db, body.display_name)   # bei Kollision automatisch durchnummerieren
     user = models.User(
         email=body.email.lower(), password_hash=hash_password(body.password), display_name=name,
         language=_clean_lang(body.language),
