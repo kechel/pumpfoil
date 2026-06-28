@@ -48,6 +48,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -415,25 +416,30 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
             val segList = a.segments.orEmpty()
             fun dist(x: Double) = if (x < 1000) "%.0f m".format(x) else "%.2f km".format(x / 1000)
             fun mmssD(x: Double) = "%d:%02d".format((x / 60).toInt(), (x % 60).toInt())
+            // Rekord-Läufe (für anklickbare Kacheln -> Lauf auswählen).
+            val bestSpeedIdx = segList.indices.maxByOrNull { segList[it].maxSpeedMps }
+            val longestRunIdx = segList.indices.maxByOrNull { segList[it].durationS }
+            val farthestRunIdx = segList.indices.maxByOrNull { segList[it].distanceM }
+            val bestGlideIdx = segList.indices.maxByOrNull { segList[it].longestGlideS }
             val stats = buildList {
-                a.totalDistanceM?.let { add(I18n.t("compare.distance") to dist(it)) }
-                a.foilingDistanceM?.let { add(I18n.t("home.foiling") to dist(it)) }
-                a.foilingTimeS?.let { add(I18n.t("compare.foilTime") to mmssD(it)) }
-                if (segList.isNotEmpty()) add(I18n.t("home.runs") to segList.size.toString())
-                (m?.avgSpeedMps)?.let { add(I18n.t("sd.avgSpeed") to "%.1f km/h".format(it * 3.6)) }
-                a.maxSpeedMps?.let { add(I18n.t("home.topSpeed") to "%.1f km/h".format(it * 3.6)) }
+                a.totalDistanceM?.let { add(StatItem(I18n.t("compare.distance"), dist(it))) }
+                a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
+                a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
+                if (segList.isNotEmpty()) add(StatItem(I18n.t("home.runs"), segList.size.toString()))
+                (m?.avgSpeedMps)?.let { add(StatItem(I18n.t("sd.avgSpeed"), "%.1f km/h".format(it * 3.6))) }
+                a.maxSpeedMps?.let { add(StatItem(I18n.t("home.topSpeed"), "%.1f km/h".format(it * 3.6), bestSpeedIdx)) }
                 a.pumpCount?.let { pc ->
-                    add(I18n.t("home.pumps") to pc.toString())
-                    if (pc > 0 && a.foilingDistanceM != null) add(I18n.t("sd.avgDistPerPump") to "%.1f m".format(a.foilingDistanceM / pc))
+                    add(StatItem(I18n.t("home.pumps"), pc.toString()))
+                    if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
-                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(I18n.t("sd.avgPump") to "%.2f Hz".format(it)) }
-                (m?.avgHr)?.let { if (it > 0) add(I18n.t("sd.avgHr") to "$it") }
-                (m?.maxHr)?.let { if (it > 0) add(I18n.t("sd.maxHr") to "$it") }
-                (m?.longestSegmentS ?: segList.maxOfOrNull { it.durationS })?.let { if (it > 0) add(I18n.t("home.longestRun") to mmssD(it)) }
-                (m?.farthestSegmentM ?: segList.maxOfOrNull { it.distanceM })?.let { if (it > 0) add(I18n.t("home.farthestRun") to dist(it)) }
-                segList.maxOfOrNull { it.longestGlideS }?.let { if (it > 0) add(I18n.t("home.longestGlide") to "%.1f s".format(it)) }
+                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), "%.2f Hz".format(it))) }
+                (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
+                (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
+                longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
+                farthestRunIdx?.let { add(StatItem(I18n.t("home.farthestRun"), dist(segList[it].distanceM), it)) }
+                bestGlideIdx?.let { if (segList[it].longestGlideS > 0) add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(segList[it].longestGlideS), it)) }
             }
-            StatGrid(stats)
+            StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             if (segList.isNotEmpty()) RunsTable(segList, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
     }
@@ -653,20 +659,29 @@ private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -
     }
 }
 
+// Eine Kennzahl-Kachel; runIdx != null => an einen Lauf gebunden (anklickbar -> Lauf auswählen).
+private data class StatItem(val label: String, val value: String, val runIdx: Int? = null)
+
 @Composable
-private fun StatGrid(stats: List<Pair<String, String>>) {
+private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (Int) -> Unit = {}) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        stats.chunked(2).forEach { row ->
+        stats.chunked(2).forEach { rowItems ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (label, value) ->
-                    Card(Modifier.weight(1f)) {
+                rowItems.forEach { st ->
+                    val sel = st.runIdx != null && st.runIdx == selected
+                    val mod = Modifier.weight(1f).then(
+                        if (st.runIdx != null) Modifier.clickable { onSelect(st.runIdx) } else Modifier
+                    )
+                    val colors = if (sel) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                                 else CardDefaults.cardColors()
+                    Card(mod, colors = colors) {
                         Column(Modifier.padding(12.dp)) {
-                            Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(st.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                            Text(st.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                if (rowItems.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
