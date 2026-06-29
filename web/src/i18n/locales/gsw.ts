@@ -363,6 +363,7 @@ const gsw: Record<string, string> = {
   "land.f6Body": "Die Siite und App blibed gratis. Wenn höheri Serverchöste afalled, versueched mer si z. B. mit Affiliate-Links oder Promo-Videos vo Foil-Hersteller z decke.",
 
   "land.watchesLink": "Weli Uhre wärded unterstützt?",
+  "watch.demoCaption": "Demo: Ufnahm uf de Uhr (Garmin-Emulator)",
   "watches.title": "Unterstützti Uhre",
   "watches.intro": "Weli Uhr liiferet weli Date — du entscheidsch. Langfristig wänd mer alli gängige Sportuhre aabinde.",
   "watches.colDevice": "Uhr",

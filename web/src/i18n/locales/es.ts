@@ -439,6 +439,7 @@ const es: Record<string, string> = {
   "land.f6Body": "Este sitio y la app seguirán siendo gratuitos. Si surgieran mayores costes de servidor, intentaremos cubrirlos p. ej. con enlaces de afiliados o vídeos promo de marcas de foil.",
 
   "land.watchesLink": "¿Qué relojes son compatibles?",
+  "watch.demoCaption": "Demo: grabación en el reloj (emulador Garmin)",
   "watches.title": "Relojes compatibles",
   "watches.intro": "Qué reloj da qué datos — tú decides. A largo plazo queremos admitir todos los relojes deportivos habituales.",
   "watches.colDevice": "Reloj",

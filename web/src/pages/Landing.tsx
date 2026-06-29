@@ -9,6 +9,7 @@ import { useT } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
+import { WatchDemoVideo } from "../components/WatchDemoVideo";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -116,6 +117,7 @@ export default function Landing() {
               <figcaption className="text-xs text-slate-500">Wear OS</figcaption>
             </figure>
           </div>
+          <WatchDemoVideo className="mt-8" />
         </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}

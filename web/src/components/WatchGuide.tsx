@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "./ui";
 import { useT } from "../i18n";
+import { WatchDemoVideo } from "./WatchDemoVideo";
 
 // Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
 // wird eingeblendet (anfangs alle ausgeblendet). Texte über i18n (guide.*).
@@ -43,6 +44,11 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
   );
   return (
     <div className="space-y-5">
+      {/* Demo-Clip (stellvertretend für alle Plattformen) ganz oben. */}
+      <Card className="p-5">
+        <WatchDemoVideo />
+      </Card>
+
       {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
       <Card className="p-5">
         <h3 className="font-semibold">{t("guide.howto")}</h3>

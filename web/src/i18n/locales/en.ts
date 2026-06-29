@@ -562,6 +562,7 @@ const en: Record<string, string> = {
   "land.f6Body": "This site and app stay free. Should higher server costs come up, we'll try to cover them e.g. via affiliate links or promo videos from foil brands.",
 
   "land.watchesLink": "Which watches are supported?",
+  "watch.demoCaption": "Demo: recording on the watch (Garmin emulator)",
   "watches.title": "Supported watches",
   "watches.intro": "Which watch gives which data — you decide. Long-term we want to support all common sports watches.",
   "watches.colDevice": "Watch",
