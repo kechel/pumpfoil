@@ -117,7 +117,6 @@ export default function Landing() {
               <figcaption className="text-xs text-slate-500">Wear OS</figcaption>
             </figure>
           </div>
-          <WatchDemoVideo className="mt-8" />
         </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
@@ -173,6 +172,11 @@ export default function Landing() {
               />
             ))}
           </div>
+        </section>
+
+        {/* Demo-Video (Garmin-Emulator) — direkt unter dem App-Screenshots-Slider */}
+        <section className="pb-10">
+          <WatchDemoVideo title={t("watch.demoTitle")} />
         </section>
 
         {/* Was ist Pumpfoil? */}

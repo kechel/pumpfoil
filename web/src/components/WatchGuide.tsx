@@ -46,7 +46,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
     <div className="space-y-5">
       {/* Demo-Clip (stellvertretend für alle Plattformen) ganz oben. */}
       <Card className="p-5">
-        <WatchDemoVideo />
+        <WatchDemoVideo title={t("watch.demoTitle")} />
       </Card>
 
       {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}

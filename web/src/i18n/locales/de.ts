@@ -596,7 +596,7 @@ const de: Record<string, string> = {
   "land.f6Body": "Diese Seite und App bleiben kostenfrei. Sollten höhere Serverkosten anfallen, versuchen wir sie z. B. über Affiliate-Links oder Promo-Videos von Foil-Herstellern zu decken.",
 
   "land.watchesLink": "Welche Uhren werden unterstützt?",
-  "watch.demoCaption": "Demo: Aufnahme auf der Uhr (Garmin-Emulator)",
+  "watch.demoTitle": "Demo-Video Garmin-Uhr",
   "watches.title": "Unterstützte Uhren",
   "watches.intro": "Welche Uhr liefert welche Daten — du entscheidest. Wir wollen langfristig alle gängigen Sportuhren anbinden.",
   "watches.colDevice": "Uhr",

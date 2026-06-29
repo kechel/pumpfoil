@@ -439,7 +439,7 @@ const fr: Record<string, string> = {
   "land.f6Body": "Ce site et cette app restent gratuits. En cas de coûts serveur plus élevés, nous essaierons de les couvrir p. ex. via des liens affiliés ou des vidéos promo de marques de foil.",
 
   "land.watchesLink": "Quelles montres sont prises en charge ?",
-  "watch.demoCaption": "Démo : enregistrement sur la montre (émulateur Garmin)",
+  "watch.demoTitle": "Vidéo de démo — montre Garmin",
   "watches.title": "Montres prises en charge",
   "watches.intro": "Quelle montre fournit quelles données — à toi de choisir. À terme, nous voulons prendre en charge toutes les montres de sport courantes.",
   "watches.colDevice": "Montre",
