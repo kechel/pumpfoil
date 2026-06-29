@@ -24,6 +24,18 @@ const garminShots = [
   { src: "/guide/garmin/on-foil-2.webp", cap: "guide.cap.onFoil" },
 ];
 
+// Wear-OS-Anleitungs-Screenshots (rund, wie Garmin). Flow: Verbinden -> Start ->
+// Alarm -> Daten -> Übersicht -> Lauf -> Stopp.
+const wearShots = [
+  { src: "/guide/wear/connect.webp", cap: "guide.cap.wConnect" },
+  { src: "/guide/wear/start.webp", cap: "guide.cap.wStart" },
+  { src: "/guide/wear/alarm.webp", cap: "guide.cap.wAlarm" },
+  { src: "/guide/wear/data.webp", cap: "guide.cap.onFoil" },
+  { src: "/guide/wear/stats.webp", cap: "guide.cap.wStats" },
+  { src: "/guide/wear/run.webp", cap: "guide.cap.wRun" },
+  { src: "/guide/wear/stop.webp", cap: "guide.cap.wStop" },
+];
+
 // Apple-Watch-Anleitungs-Screenshots (rechteckig).
 const appleShots = [
   { src: "/guide/apple/connect.webp", cap: "guide.cap.aConnect" },
@@ -144,6 +156,18 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <li><b>{t("guide.w.s3Title")}</b> {t("guide.w.s3")}</li>
           <li><b>{t("guide.w.s4Title")}</b> {t("guide.w.s4")}</li>
         </ol>
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-medium text-slate-400">{t("guide.preview")}</p>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            {wearShots.map((s, i) => (
+              <figure key={`${s.src}-${i}`} className="flex flex-col items-center gap-1">
+                <img src={s.src} alt={t(s.cap)} loading="lazy"
+                  className="w-full rounded-full border border-slate-800 shadow" />
+                <figcaption className="text-center text-[11px] leading-tight text-slate-500">{t(s.cap)}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
       </Card>
       )}
 

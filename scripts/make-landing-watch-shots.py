@@ -45,6 +45,15 @@ SOURCES = [
     ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.50.png", "web/public/guide/apple/data-2.webp"),
     ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.02.55.png", "web/public/guide/apple/stop.webp"),
     ("screenshots/watch/apple/Simulator Screenshot - Apple Watch Ultra 3 (49mm) - 2026-06-26 at 12.03.01.png", "web/public/guide/apple/upload.webp"),
+    # Wear-OS-Anleitungs-Galerie (WatchGuide). Flow: Verbinden -> Start -> Alarm ->
+    # Daten -> Übersicht -> Lauf -> Stopp (runde Darstellung wie Garmin via CSS).
+    ("screenshots/watch/wear/wear-01.png", "web/public/guide/wear/connect.webp"),
+    ("screenshots/watch/wear/wear-02.png", "web/public/guide/wear/start.webp"),
+    ("screenshots/watch/wear/wear-03.png", "web/public/guide/wear/alarm.webp"),
+    ("screenshots/watch/wear/wear-04.png", "web/public/guide/wear/data.webp"),
+    ("screenshots/watch/wear/wear-07.png", "web/public/guide/wear/stats.webp"),
+    ("screenshots/watch/wear/wear-08.png", "web/public/guide/wear/run.webp"),
+    ("screenshots/watch/wear/wear-11.png", "web/public/guide/wear/stop.webp"),
 ]
 
 def main() -> None:
