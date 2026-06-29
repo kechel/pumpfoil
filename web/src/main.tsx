@@ -69,8 +69,9 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootRoute />,
     children: [
-      { index: true, element: <Home /> },
-      { path: "home", element: <PersonalHome /> },
+      { index: true, element: <PersonalHome /> },
+      { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
+      { path: "community", element: <Home /> },
       { path: "chat", element: <ChatPage /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },

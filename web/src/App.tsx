@@ -11,8 +11,8 @@ import { warmMySessions, warmMedia } from "./lib/pwaCache";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
-  { to: "/home", labelKey: "nav.home", icon: HomeIcon, end: false },
-  { to: "/", labelKey: "home.community", icon: CommunityIcon, end: true },
+  { to: "/", labelKey: "nav.home", icon: HomeIcon, end: true },
+  { to: "/community", labelKey: "home.community", icon: CommunityIcon, end: false },
   { to: "/sessions", labelKey: "nav.sessions", icon: ListIcon, end: false },
   { to: "/chat", labelKey: "nav.chat", icon: ChatBubbleIcon, end: false },
   { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
@@ -62,7 +62,7 @@ export default function App() {
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
         {profile && (
-          <Link to="/home" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
+          <Link to="/" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-100">{profile.display_name || "—"}</div>

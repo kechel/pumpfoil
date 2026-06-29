@@ -16,7 +16,7 @@ export default function FoilStats() {
 
   return (
     <div className="w-full">
-      <Link to="/" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+      <Link to="/community" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("home.community")}
       </Link>
       <h2 className="mb-1 text-xl font-bold">{t("foilStats.title")}</h2>

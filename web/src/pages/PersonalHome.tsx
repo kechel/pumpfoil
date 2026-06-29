@@ -159,7 +159,7 @@ export default function PersonalHome() {
       )}
 
       <div className="mt-6">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-brand-300 hover:text-brand-200">
+        <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-300 hover:text-brand-200">
           <CommunityIcon className="h-4 w-4" /> {t("home.community")} →
         </Link>
       </div>
