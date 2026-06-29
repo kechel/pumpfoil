@@ -264,6 +264,14 @@ export default function SessionDetail() {
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
 
+  // --- Play-Animation: zeichnet die Strecke über die Zeit auf (wie beim Fahren) ---
+  const [playMode, setPlayMode] = useState(false);   // Wiedergabe-Modus aktiv (Teilstrecke sichtbar)
+  const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
+  const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
+  const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
+  const playheadRef = useRef(0);                      // aktueller Index in der Play-Timeline
+  const posMarkerRef = useRef<L.CircleMarker | null>(null);
+
   useEffect(() => {
     api.getSettings().then((s) => {
       const w = Number(s.weight_kg);
@@ -415,6 +423,42 @@ export default function SessionDetail() {
     if (colorMode === "optimal" && !optimalKmh) setColorMode("speed");
   }, [colorMode, optimalKmh]);
 
+  // Play-Timeline: geordnete Punkt-Indizes, die abgespielt werden — der gewählte Lauf,
+  // sonst alle Foiling-Läufe nacheinander, sonst (GPS-only) die ganze Spur. ~1 Hz GPS,
+  // d.h. ein Index ≈ eine Sekunde.
+  const playTimeline = useMemo<number[]>(() => {
+    const gj = session?.analysis?.track_geojson;
+    if (!gj) return [];
+    const n = gj.geometry.coordinates.length;
+    const segs = session?.analysis?.segments ?? [];
+    const push = (s: any, out: number[]) => {
+      for (let i = s.i_start; i <= s.i_end && i < n; i++) out.push(i);
+    };
+    if (selectedRun != null && segs[selectedRun]) { const a: number[] = []; push(segs[selectedRun], a); return a; }
+    if (segs.length) { const a: number[] = []; segs.forEach((s: any) => push(s, a)); return a; }
+    return Array.from({ length: n }, (_, i) => i);
+  }, [session, selectedRun]);
+
+  // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
+  useEffect(() => {
+    playheadRef.current = 0; setProgress(0); setPlaying(false); setPlayMode(false);
+  }, [playTimeline]);
+
+  const togglePlay = () => {
+    if (playTimeline.length < 2) return;
+    if (!playMode) {
+      if (playheadRef.current >= playTimeline.length - 1) { playheadRef.current = 0; setProgress(0); }
+      setPlayMode(true); setPlaying(true); return;
+    }
+    if (playing) { setPlaying(false); return; }              // Pause
+    if (playheadRef.current >= playTimeline.length - 1) { playheadRef.current = 0; setProgress(0); }
+    setPlaying(true);                                         // Fortsetzen / Neu
+  };
+  const stopPlay = () => {
+    setPlaying(false); setPlayMode(false);
+    playheadRef.current = 0; setProgress(0); posMarkerRef.current = null;
+  };
+
   // Beschriftung: Eingabewert bei Session-Wechsel initialisieren.
   useEffect(() => { setCap(session?.caption ?? ""); }, [session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveCaption = () => {
@@ -450,6 +494,7 @@ export default function SessionDetail() {
     const map = mapObj.current;
     const lg = trackLayer.current;
     if (!map || !lg || !session?.analysis?.track_geojson) return;
+    if (playMode) return;   // im Wiedergabe-Modus übernimmt der Play-Effekt das Zeichnen
     lg.clearLayers();
     const gj = session.analysis.track_geojson;
     const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
@@ -539,7 +584,78 @@ export default function SessionDetail() {
       const seg = segs[selectedRun];
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode]);
+
+  // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
+  // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
+  // falls laufend — pro Frame die neuen Segmente anhängen + Positionsmarker bewegen.
+  useEffect(() => {
+    const map = mapObj.current;
+    const lg = trackLayer.current;
+    const gj = session?.analysis?.track_geojson;
+    if (!map || !lg || !gj || !playMode || playTimeline.length < 2) return;
+
+    const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+    const speeds: number[] = gj.properties?.speeds?.[win] ?? gj.properties?.speeds_mps ?? [];
+    const hr: (number | null)[] = gj.properties?.hr ?? [];
+    const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
+    const segs = session?.analysis?.segments ?? [];
+    const runs = selectedRun != null && segs[selectedRun] ? [segs[selectedRun]] : segs;
+    const pumpSet = new Set<number>();
+    runs.forEach((s: any) => (s.pump_idx ?? []).forEach((pi: number) => pumpSet.add(pi)));
+    const MAX_GAP = 30;
+
+    const colorAt = (i: number): string => {
+      if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
+      if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
+      if (colorMode === "hr") { const v = hr[i]; const [lo, hi] = hrRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
+      return speedColor((speeds[i] ?? 0) * 3.6, speedMin, speedMax);
+    };
+    const addSeg = (a: number, b: number) => {
+      if (b === a + 1 && map.distance(coords[a], coords[b]) <= MAX_GAP)
+        L.polyline([coords[a], coords[b]], { color: colorAt(b), weight: 5, opacity: 0.95 }).addTo(lg);
+      if (showPumps && pumpSet.has(b) && coords[b])
+        L.circleMarker(coords[b], { radius: 2.5, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 0.9 }).addTo(lg);
+    };
+    const setPos = (k: number) => {
+      const ll = coords[playTimeline[k]];
+      if (!ll) return;
+      if (!posMarkerRef.current) posMarkerRef.current = L.circleMarker(ll, { radius: 7, color: "#0f172a", weight: 2, fillColor: "#22d3ee", fillOpacity: 1 }).addTo(lg);
+      else posMarkerRef.current.setLatLng(ll);
+    };
+
+    // Bis zum aktuellen Kopf neu aufbauen (Farb-/Lauf-/Pump-Änderungen greifen so live).
+    lg.clearLayers();
+    posMarkerRef.current = null;
+    let head = Math.min(playheadRef.current, playTimeline.length - 1);
+    if (coords[playTimeline[0]])
+      L.circleMarker(coords[playTimeline[0]], { radius: 5, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1 }).addTo(lg);
+    for (let k = 0; k < head; k++) addSeg(playTimeline[k], playTimeline[k + 1]);
+    setPos(head);
+
+    if (!playing) return;   // pausiert: Standbild, keine Animation
+
+    let raf = 0;
+    let last = performance.now();
+    let acc = 0;
+    const PPS = 1;   // ~1 GPS-Punkt/s -> 1× ≈ Echtzeit
+    const step = (now: number) => {
+      const dt = (now - last) / 1000; last = now;
+      acc += dt * playMul * PPS;
+      const adv = Math.floor(acc);
+      if (adv > 0) {
+        acc -= adv;
+        const target = Math.min(head + adv, playTimeline.length - 1);
+        for (let k = head; k < target; k++) addSeg(playTimeline[k], playTimeline[k + 1]);
+        head = target; playheadRef.current = head; setPos(head);
+        setProgress(head / (playTimeline.length - 1));
+        if (head >= playTimeline.length - 1) { setPlaying(false); return; }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen]);
 
   if (error) {
     // Offline + nicht im Cache -> klare Meldung statt technischem Fehler.
@@ -783,6 +899,51 @@ export default function SessionDetail() {
             {fullscreen ? t("sd.close") : t("sd.fullscreen")}
           </button>
         </div>
+
+        {/* Play: Strecke über die Zeit aufzeichnen (wie beim Fahren) — gesamt oder gewählter Lauf. */}
+        {playTimeline.length >= 2 && (
+          <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 px-2 pb-1" : "mt-2"}`}>
+            <button
+              onClick={togglePlay}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+              title={playing ? t("sd.pause") : t("sd.play")}
+            >
+              {playing
+                ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
+                : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
+            </button>
+            {playMode && (
+              <button
+                onClick={stopPlay}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-sm text-slate-200 hover:bg-slate-700"
+                title={t("sd.stop")}
+              >
+                <span className="inline-block h-3 w-3 bg-current" /> {t("sd.stop")}
+              </button>
+            )}
+            <span className="ml-1 text-xs text-slate-400">{t("sd.playSpeed")}</span>
+            {[1, 2, 4, 8, 16].map((m) => (
+              <button
+                key={m}
+                onClick={() => setPlayMul(m)}
+                className={`rounded-lg px-2 py-1 text-xs ${playMul === m ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
+              >
+                {m}×
+              </button>
+            ))}
+            <span className="text-xs tabular-nums text-slate-400">
+              {selectedRun != null ? t("sd.playRun") : t("sd.playWhole")}
+            </span>
+            <div className="flex min-w-[120px] flex-1 items-center gap-2">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
+                <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />
+              </div>
+              <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
+                {fmtMMSS(progress * (playTimeline.length - 1))} / {fmtMMSS(playTimeline.length - 1)}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
             flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}
