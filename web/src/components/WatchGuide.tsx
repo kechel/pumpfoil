@@ -148,6 +148,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         <ul className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>{t("guide.pair.autoTitle")}</b> {t("guide.pair.auto")}</li>
           <li><b>{t("guide.pair.codeTitle")}</b> {t("guide.pair.code")}{connectLink}</li>
+          <li><b>{t("guide.pair.relinkTitle")}</b> {t("guide.pair.relink")}</li>
         </ul>
         <p className="mt-3 text-xs text-slate-400">{t("guide.pair.note")}</p>
       </Card>

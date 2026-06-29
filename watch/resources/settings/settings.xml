@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   App-Settings (Garmin Connect am Handy / on-device unter Apps & Aktivitäten ->
-  Pump Foil). Das ist der einzige Weg, einer Connect-IQ-Device-App einen
+  Pumpfoil). Das ist der einzige Weg, einer Connect-IQ-Device-App einen
   Einstellungs-Eintrag zu geben, der OHNE Start der App erreichbar ist
   (getSettingsView() gilt nur für Watchfaces/Datafields).
 

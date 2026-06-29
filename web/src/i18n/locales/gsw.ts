@@ -528,6 +528,8 @@ const gsw: Record<string, string> = {
   "guide.pair.auto": "App ufs Handy, ylogge – fertig. D Uhr-App überchunnt d Verbindig automatisch übers kopplete Handy, ohni Code. Zeigt d Uhr „Verbindig ungültig“, tipp „Neu verbinde“ – si holt sich denn automatisch es frischs Token.",
   "guide.pair.codeTitle": "Mit Code (Garmin & als Fallback):",
   "guide.pair.code": "An de Uhr „Verbinde“ → „Pairing-Code erzüge“, denn de 6-stellig Code da yygeh:",
+  "guide.pair.relinkTitle": "Wächsle oder trenne (Garmin):",
+  "guide.pair.relink": "Trennsch d Uhr under „Verknüpfti Konte“, hebt si s Pairing s nächste Mal mit Server-Verbindig vo sälber uf – statt „Verbunde“ zeigt si denn wider en Code. Bestehends Pairing überschriibe (anderi Uhr/anders Konto): an de Uhr „Verbinde“ → ENTER macht jederzit en neue Code. S alt Token blibt aktiv, bis du de neu Code da yylösisch – en abbrochene Versuech ändered also nüt.",
   "guide.pair.note": "Login per E-Mail, Google oder Apple – gliichi E-Mail git s gliiche Konto, es separats Verknüpfe isch nöd nötig.",
   "guide.pick": "Wähl dini Plattform.",
   "guide.connect": "„Verbinde“",

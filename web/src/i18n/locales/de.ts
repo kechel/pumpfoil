@@ -817,6 +817,8 @@ const de: Record<string, string> = {
   "guide.pair.auto": "App aufs Handy, einloggen – fertig. Die Uhr-App bekommt die Verbindung automatisch über das gekoppelte Handy, ohne Code. Zeigt die Uhr „Verbindung ungültig“, tippe „Neu verbinden“ – sie holt sich dann automatisch ein frisches Token.",
   "guide.pair.codeTitle": "Mit Code (Garmin & als Fallback):",
   "guide.pair.code": "An der Uhr „Verbinden“ → „Pairing-Code erzeugen“, dann den 6-stelligen Code hier eintragen:",
+  "guide.pair.relinkTitle": "Wechseln oder trennen (Garmin):",
+  "guide.pair.relink": "Trennst du die Uhr unter „Verknüpfte Konten“, hebt sie das Pairing beim nächsten Mal mit Server-Verbindung von selbst auf – statt „Verbunden“ zeigt sie dann wieder einen Code. Bestehendes Pairing überschreiben (andere Uhr/anderes Konto): an der Uhr „Verbinden“ → ENTER erzeugt jederzeit einen neuen Code. Das alte Token bleibt aktiv, bis du den neuen Code hier einlöst – ein abgebrochener Versuch ändert also nichts.",
   "guide.pair.note": "Login per E-Mail, Google oder Apple – gleiche E-Mail ergibt dasselbe Konto, ein separates Verknüpfen ist nicht nötig.",
   "guide.pick": "Wähle deine Plattform.",
   "guide.connect": "„Verbinden“",

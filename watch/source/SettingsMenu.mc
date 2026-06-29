@@ -4,7 +4,7 @@ using Toybox.Timer;
 using Toybox.Lang;
 
 // On-Device-Settings (AppBase.getSettingsView): erscheint im Vorab-Menü an der
-// Aktivitäten-Auswahl ("Pump Foil markieren -> MENU halten -> Pump Foil
+// Aktivitäten-Auswahl ("Pumpfoil markieren -> MENU halten -> Pumpfoil
 // Einstellungen") — also OHNE die Aufnahme zu starten. Genau hier gehören
 // Verbinden + Upload hin, da während der laufenden Aktivität kein Upload geht.
 class SettingsMenu extends WatchUi.Menu2 {
@@ -33,7 +33,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
         } else if (id == :upload) {
-            WatchUi.pushView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
+            WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
         }
     }
 }
@@ -43,9 +43,11 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
 // kommt sie zurück, setzt der Delegate den Upload automatisch fort.
 class UploadView extends WatchUi.View {
     hidden var _startCount;
+    hidden var _rec;
 
-    function initialize() {
+    function initialize(rec) {
         View.initialize();
+        _rec = rec;
         _startCount = Uploader.pendingCount();
         if (_startCount > 0 && Uploader.phoneConnected()) { Uploader.syncAll(); }
     }
@@ -85,9 +87,13 @@ class UploadView extends WatchUi.View {
             var err = Uploader.lastError();
             if (err == :auth) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.notLinked"), Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.38, Graphics.FONT_MEDIUM, Strings.s("up.notLinked"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.linkHint"), Graphics.TEXT_JUSTIFY_CENTER);
+                // Direkte Aktion: START/Tap erzeugt hier den Pairing-Code (PairView).
+                // Fallback bleibt der MENU-Weg.
+                dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("up.pairAction"), Graphics.TEXT_JUSTIFY_CENTER);
+                dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(w / 2, h * 0.58 + 20, Graphics.FONT_XTINY, Strings.s("up.linkHint"), Graphics.TEXT_JUSTIFY_CENTER);
             } else if (!connected || err == :offline) {
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waitConn"), Graphics.TEXT_JUSTIFY_CENTER);
@@ -138,9 +144,11 @@ class UploadView extends WatchUi.View {
 
 class UploadDelegate extends WatchUi.BehaviorDelegate {
     hidden var _timer;
+    hidden var _rec;
 
-    function initialize() {
+    function initialize(rec) {
         BehaviorDelegate.initialize();
+        _rec = rec;
         _timer = new Timer.Timer();
         _timer.start(method(:onTick), 1000, true);
     }
@@ -152,6 +160,18 @@ class UploadDelegate extends WatchUi.BehaviorDelegate {
             Uploader.syncAll();
         }
         WatchUi.requestUpdate();
+    }
+
+    // START/Tap: ist die Uhr nicht verbunden, direkt den Pairing-Code-Screen öffnen
+    // (statt nur auf MENU zu verweisen — MENU greift hier im gepushten Upload-Screen nicht).
+    function onSelect() as Lang.Boolean {
+        if (_rec != null && !_rec.isPaired()) {
+            if (_timer != null) { _timer.stop(); }
+            _rec.startPairing();
+            WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
+            return true;
+        }
+        return false;
     }
 
     function onBack() as Lang.Boolean {

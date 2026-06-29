@@ -599,6 +599,8 @@ const fr: Record<string, string> = {
   "guide.pair.auto": "Installez l’app sur le téléphone et connectez-vous — c’est tout. L’app de la montre reçoit la connexion automatiquement via le téléphone associé, sans code. Si la montre affiche « Lien invalide », touchez « Reconnecter » — elle récupère un nouveau jeton automatiquement.",
   "guide.pair.codeTitle": "Avec un code (Garmin & en secours) :",
   "guide.pair.code": "Sur la montre : « Connecter » → « Générer un code », puis saisissez le code à 6 chiffres ici :",
+  "guide.pair.relinkTitle": "Changer ou dissocier (Garmin) :",
+  "guide.pair.relink": "Si vous dissociez la montre dans « Comptes liés », elle annule l’appairage d’elle-même à la prochaine connexion au serveur — au lieu de « Connecté », elle réaffiche un code. Pour remplacer un appairage existant (autre montre/autre compte) : sur la montre « Connecter » → ENTER génère un nouveau code à tout moment. L’ancien jeton reste actif jusqu’à ce que vous validiez le nouveau code ici ; une tentative annulée ne change donc rien.",
   "guide.pair.note": "Connexion par e-mail, Google ou Apple — la même adresse donne le même compte, aucune liaison séparée nécessaire.",
   "guide.pick": "Choisis ta plateforme.",
   "guide.connect": "« Connecter »",

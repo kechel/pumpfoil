@@ -599,6 +599,8 @@ const es: Record<string, string> = {
   "guide.pair.auto": "Instala la app en el móvil e inicia sesión — listo. La app del reloj recibe la conexión automáticamente a través del móvil emparejado, sin código. Si el reloj muestra «Vínculo no válido», toca «Reconectar» — obtiene un token nuevo automáticamente.",
   "guide.pair.codeTitle": "Con código (Garmin y como alternativa):",
   "guide.pair.code": "En el reloj: «Conectar» → «Generar código», luego introduce aquí el código de 6 dígitos:",
+  "guide.pair.relinkTitle": "Cambiar o desvincular (Garmin):",
+  "guide.pair.relink": "Si desvinculas el reloj en «Cuentas vinculadas», cancela el emparejamiento por sí solo la próxima vez que conecte con el servidor — en lugar de «Conectado» vuelve a mostrar un código. Para sobrescribir un emparejamiento existente (otro reloj/otra cuenta): en el reloj «Conectar» → ENTER genera un código nuevo en cualquier momento. El token antiguo sigue activo hasta que canjeas el nuevo código aquí; un intento cancelado no cambia nada.",
   "guide.pair.note": "Inicio de sesión con email, Google o Apple — el mismo email es la misma cuenta, sin vinculación aparte.",
   "guide.pick": "Elige tu plataforma.",
   "guide.connect": "« Conectar »",

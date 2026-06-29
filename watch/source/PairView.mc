@@ -21,15 +21,10 @@ class PairView extends WatchUi.View {
         var w = dc.getWidth();
         var h = dc.getHeight();
 
-        if (_rec.isPaired()) {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.34, Graphics.FONT_MEDIUM, "Verbunden", Graphics.TEXT_JUSTIFY_CENTER);
-            // grünes Häkchen
-            dc.setPenWidth(4);
-            dc.drawLine(w / 2 - 14, h * 0.54, w / 2 - 4, h * 0.58);
-            dc.drawLine(w / 2 - 4, h * 0.58, w / 2 + 16, h * 0.50);
-            dc.setPenWidth(1);
-        } else if (!_rec.pairCode.equals("")) {
+        // Reihenfolge: ein gerade erzeugter (Neu-)Code hat Vorrang vor der
+        // Verbunden-Anzeige — so kann ein bestehendes Pairing per ENTER überschrieben
+        // werden und der neue Code wird sofort sichtbar.
+        if (!_rec.pairCode.equals("")) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.18, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
@@ -39,6 +34,17 @@ class PairView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "auf pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, "eingeben", Graphics.TEXT_JUSTIFY_CENTER);
+        } else if (_rec.isPaired()) {
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, Strings.s("menu.connected"), Graphics.TEXT_JUSTIFY_CENTER);
+            // grünes Häkchen
+            dc.setPenWidth(4);
+            dc.drawLine(w / 2 - 14, h * 0.50, w / 2 - 4, h * 0.54);
+            dc.drawLine(w / 2 - 4, h * 0.54, w / 2 + 16, h * 0.46);
+            dc.setPenWidth(1);
+            // Bestehendes Pairing jederzeit überschreibbar.
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, Strings.s("pair.repairHint"), Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             // startPairing() wurde beim Öffnen schon ausgelöst -> Code wird gerade erzeugt.
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -72,7 +78,8 @@ class PairDelegate extends WatchUi.BehaviorDelegate {
     // ENTER -> (erneut) Pairing-Code anfordern, falls noch nicht verbunden.
     function onKeyPressed(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER) {
-            if (!_rec.isPaired()) { _rec.startPairing(); }
+            // Immer (neu) koppeln — auch ein bestehendes Pairing lässt sich so überschreiben.
+            _rec.startPairing();
             WatchUi.requestUpdate();
             return true;
         }

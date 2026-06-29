@@ -196,9 +196,23 @@ class SessionRecorder {
         return t != null && !t.equals("");
     }
 
-    // Holt einen Pairing-Code vom Server (zum Eintippen auf pumpfoil.org).
+    // Pairing lokal aufheben: der Server hat den Device-Token eindeutig verworfen
+    // (HTTP 401 trotz erreichbarem Server -> Verknüpfung auf pumpfoil.org gelöscht/
+    // widerrufen). Danach gilt die Uhr als nicht verbunden und kann neu gekoppelt
+    // werden. Gepufferte Sessions bleiben erhalten und gehen nach erneutem Pairing raus.
+    function unpair() {
+        Config.setString("deviceToken", "");
+        pairCode = "";
+        pairStatus = "";
+        _claimToken = "";
+        _pairPollCtr = 0;
+    }
+
+    // Holt einen Pairing-Code vom Server (zum Eintippen auf pumpfoil.org). Bewusst OHNE
+    // isPaired-Guard: ein bestehendes Pairing soll jederzeit überschreibbar sein. Der alte
+    // Token bleibt aktiv, bis ein neues Pairing tatsächlich durchläuft (onPairPoll) — back-out
+    // ohne Eingabe lässt die bestehende Verknüpfung also unangetastet.
     function startPairing() {
-        if (isPaired()) { return; }
         pairCode = "";
         _claimToken = "";
         _pairPollCtr = 0;
@@ -300,6 +314,14 @@ class SessionRecorder {
     }
 
     function onConfig(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
+        if (responseCode == 401) {
+            // Server erreichbar, hat den Device-Token aber eindeutig verworfen (Verknüpfung
+            // auf pumpfoil.org gelöscht/widerrufen) -> Pairing lokal zurücksetzen, damit die
+            // Uhr neu gekoppelt werden kann (statt fälschlich „Verbunden" zu zeigen).
+            unpair();
+            WatchUi.requestUpdate();
+            return;
+        }
         if (responseCode == 200 && data instanceof Lang.Dictionary) {
           // Komplette Verarbeitung abgesichert: eine unerwartete/kaputte Server-Antwort
           // darf die App nicht crashen (die Aufnahme-Fähigkeit hängt nicht hieran).

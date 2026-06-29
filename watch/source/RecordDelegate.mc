@@ -102,7 +102,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // (Daten liegen sicher in Storage, Upload später).
     hidden function _showUploadIfConnected() as Void {
         if (Uploader.phoneConnected() && Uploader.pendingCount() > 0) {
-            WatchUi.pushView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
+            WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
         }
     }
 
@@ -193,7 +193,7 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         var id = item.getId();
         if (id == :upload) {
             // Upload-Ansicht mit Live-Status (startet den Sync selbst).
-            WatchUi.switchToView(new UploadView(), new UploadDelegate(), WatchUi.SLIDE_LEFT);
+            WatchUi.switchToView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
         } else if (id == :verbinden) {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             // Menü ersetzen durch die Pair-Ansicht (zeigt Code + pollt auf Bestätigung).

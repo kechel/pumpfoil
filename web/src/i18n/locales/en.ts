@@ -783,6 +783,8 @@ const en: Record<string, string> = {
   "guide.pair.auto": "Install the app on your phone and sign in — done. The watch app gets the connection automatically via the paired phone, no code. If the watch shows “Link invalid”, tap “Reconnect” — it fetches a fresh token automatically.",
   "guide.pair.codeTitle": "With a code (Garmin & as fallback):",
   "guide.pair.code": "On the watch: “Connect” → “Generate pairing code”, then enter the 6-digit code here:",
+  "guide.pair.relinkTitle": "Switch or disconnect (Garmin):",
+  "guide.pair.relink": "If you disconnect the watch under “Linked accounts”, it drops the pairing by itself the next time it reaches the server — instead of “Connected” it shows a code again. To overwrite an existing pairing (different watch/account): on the watch “Connect” → ENTER generates a fresh code anytime. The old token stays active until you redeem the new code here, so an aborted attempt changes nothing.",
   "guide.pair.note": "Sign in with email, Google or Apple — the same email means the same account, no separate linking needed.",
   "guide.pick": "Choose your platform.",
   "guide.connect": "“Connect”",

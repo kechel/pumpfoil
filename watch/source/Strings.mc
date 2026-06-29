@@ -79,6 +79,7 @@ module Strings {
         "menu.connect"     => ["Verbinden", "Verbinde", "Verbinden", "Connect", "Se connecter", "Connetti", "Conectar"],
         "menu.linked"      => ["Konto verknüpft", "Konto verchnüpft", "Konto verknüpft", "Account linked", "Compte lié", "Account collegato", "Cuenta vinculada"],
         "menu.genCode"     => ["Pairing-Code erzeugen", "Pairing-Code erzüge", "Pairing-Code erzeugen", "Generate pairing code", "Générer un code", "Genera codice", "Generar código"],
+        "pair.repairHint"  => ["ENTER: neu verbinden", "ENTER: nöi verbinde", "ENTER: neu verbinden", "ENTER: re-pair", "ENTER : reconnecter", "ENTER: ricollega", "ENTER: reconectar"],
         "menu.upload"      => ["Upload / Sync", "Upload / Sync", "Upload / Sync", "Upload / Sync", "Envoi / Sync", "Upload / Sync", "Subir / Sync"],
         "menu.uploadSub"   => ["ausstehende Sessions", "offeni Sessions", "ausstehende Sessions", "pending sessions", "sessions en attente", "sessioni in sospeso", "sesiones pendientes"],
 
@@ -94,7 +95,8 @@ module Strings {
         "up.serverErr"  => ["Server-Fehler", "Server-Fähler", "Server-Fehler", "Server error", "Erreur serveur", "Errore server", "Error de servidor"],
         "up.later"      => ["später erneut", "spöter nomal", "später erneut", "retry later", "réessai plus tard", "riprova più tardi", "reintento más tarde"],
         "up.notLinked"  => ["Nicht verbunden", "Nöd verbunde", "Nicht verbunden", "Not linked", "Non lié", "Non collegato", "No vinculado"],
-        "up.linkHint"   => ["Konto verbinden (MENU)", "Konto verbinde (MENU)", "Konto verbinden (MENU)", "Link account (MENU)", "Lier le compte (MENU)", "Collega account (MENU)", "Vincular cuenta (MENU)"],
+        "up.pairAction" => ["START: Code erzeugen", "START: Code erzüge", "START: Code erzeugen", "START: get code", "START : générer le code", "START: genera codice", "START: generar código"],
+        "up.linkHint"   => ["oder MENU → Verbinden", "oder MENU → Verbinde", "oder MENU → Verbinden", "or MENU → Connect", "ou MENU → Connecter", "o MENU → Collega", "o MENU → Conectar"],
         "up.waiting"    => ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…"],
         "up.done"       => ["Fertig", "Fertig", "Fertig", "Done", "Terminé", "Fatto", "Listo"]
         };

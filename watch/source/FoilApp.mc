@@ -37,7 +37,7 @@ class FoilApp extends Application.AppBase {
     }
 
     // On-Device-Settings: vom Vorab-Menü an der Aktivitäten-Auswahl geöffnet
-    // ("Pump Foil markieren -> MENU halten -> Pump Foil Einstellungen") — OHNE die
+    // ("Pumpfoil markieren -> MENU halten -> Pumpfoil Einstellungen") — OHNE die
     // Aufnahme zu starten. Hier liegen Verbinden + Upload/Sync (während der
     // laufenden Aktivität ist Upload nicht möglich).
     function getSettingsView() {

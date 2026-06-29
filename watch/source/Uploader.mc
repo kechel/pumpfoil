@@ -60,7 +60,13 @@ module Uploader {
             _lastError = :none;
         } else if (responseCode <= 0) {
             _lastError = :offline;   // BLE/Netz nicht verfügbar, Timeout etc.
-        } else if (responseCode == 401 || responseCode == 403) {
+        } else if (responseCode == 401) {
+            _lastError = :auth;
+            // Server erreichbar, Device-Token aber eindeutig verworfen (widerrufen/ungültig)
+            // -> lokal entkoppeln, damit die Uhr neu gekoppelt werden kann. Die gepufferten
+            // Sessions bleiben im Storage und gehen nach erneutem Pairing raus.
+            Config.setString("deviceToken", "");
+        } else if (responseCode == 403) {
             _lastError = :auth;
         } else {
             _lastError = :server;
@@ -165,7 +171,13 @@ class SessionSyncJob {
         Uploader._curSent = _sa + _sg;
         if (_token == null || _token.equals("")) {
             var code = Config.getString("pairingCode");
-            if (code == null || code.equals("")) { Uploader.sessionDone(); return; }
+            if (code == null || code.equals("")) {
+                // Weder Device-Token noch Pairing-Code -> Uhr ist nicht verbunden. Klar
+                // melden, sonst zeigt der Upload-Screen fälschlich „Warte…" statt eines
+                // Verbinden-Hinweises. Die Session bleibt gepuffert.
+                Uploader._lastError = :auth;
+                Uploader.sessionDone(); return;
+            }
             _phase = :pair;
             Communications.makeWebRequest(
                 Config.baseUrl() + "/api/devices/pair",

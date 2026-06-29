@@ -95,7 +95,7 @@ def download_app() -> FileResponse:
     # Stabiler Dateiname (ohne Version): beim Sideload überschreibt die neue .prg die
     # alte automatisch (eine Datei pro App-ID). Die Version sieht man in der App selbst.
     return FileResponse(
-        p, filename="PumpFoil-fenix7xpro.prg", media_type="application/octet-stream"
+        p, filename="Pumpfoil-fenix7xpro.prg", media_type="application/octet-stream"
     )
 
 
@@ -112,7 +112,7 @@ def download_app_device(device_id: str) -> FileResponse:
         raise HTTPException(404, "App-Build nicht verfügbar")
     # Stabiler Dateiname -> neuer Sideload überschreibt die alte Datei.
     return FileResponse(
-        p, filename=f"PumpFoil-{device_id}.prg", media_type="application/octet-stream"
+        p, filename=f"Pumpfoil-{device_id}.prg", media_type="application/octet-stream"
     )
 
 

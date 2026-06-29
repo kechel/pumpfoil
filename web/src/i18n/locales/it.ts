@@ -599,6 +599,8 @@ const it: Record<string, string> = {
   "guide.pair.auto": "Installa l’app sul telefono e accedi — fatto. L’app dell’orologio riceve il collegamento automaticamente tramite il telefono accoppiato, senza codice. Se l’orologio mostra «Collegamento non valido», tocca «Ricollega» — recupera automaticamente un nuovo token.",
   "guide.pair.codeTitle": "Con codice (Garmin e come fallback):",
   "guide.pair.code": "Sull’orologio: «Collega» → «Genera codice», poi inserisci qui il codice a 6 cifre:",
+  "guide.pair.relinkTitle": "Cambiare o scollegare (Garmin):",
+  "guide.pair.relink": "Se scolleghi l’orologio in «Account collegati», annulla l’abbinamento da solo alla successiva connessione al server — invece di «Connesso» mostra di nuovo un codice. Per sovrascrivere un abbinamento esistente (altro orologio/altro account): sull’orologio «Collega» → ENTER genera un nuovo codice in qualsiasi momento. Il vecchio token resta attivo finché non riscatti qui il nuovo codice; un tentativo annullato quindi non cambia nulla.",
   "guide.pair.note": "Accesso con email, Google o Apple — la stessa email è lo stesso account, nessun collegamento separato necessario.",
   "guide.pick": "Scegli la tua piattaforma.",
   "guide.connect": "« Connetti »",
