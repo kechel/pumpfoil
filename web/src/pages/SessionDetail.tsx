@@ -269,8 +269,9 @@ export default function SessionDetail() {
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
   const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
-  const playheadRef = useRef(0);                      // aktueller Index in der Play-Timeline
+  const playheadRef = useRef(0);                      // aktuelle (Float-)Position in der Play-Timeline
   const posMarkerRef = useRef<L.CircleMarker | null>(null);
+  const tipRef = useRef<L.Polyline | null>(null);     // bewegliche Spitze (interpoliertes Teilstück)
 
   useEffect(() => {
     api.getSettings().then((s) => {
@@ -483,6 +484,11 @@ export default function SessionDetail() {
         maxZoom: 22,        // erlaubt weiteres Reinzoomen ...
         maxNativeZoom: 19,  // ... über die OSM-Kacheln hinaus (überzoomt/skaliert)
       }).addTo(mapObj.current);
+      // Eigene Panes über den Track-Linien (overlayPane z=400): Pump-Marker + die
+      // bewegte Position bleiben so immer sichtbar, egal in welcher Reihenfolge die
+      // Linien gezeichnet werden.
+      mapObj.current.createPane("pumpPane"); mapObj.current.getPane("pumpPane")!.style.zIndex = "640";
+      mapObj.current.createPane("posPane"); mapObj.current.getPane("posPane")!.style.zIndex = "650";
       trackLayer.current = L.layerGroup().addTo(mapObj.current);
     }
     mapObj.current.fitBounds(L.latLngBounds(coords), { padding: [24, 24] });
@@ -604,6 +610,7 @@ export default function SessionDetail() {
     const pumpSet = new Set<number>();
     runs.forEach((s: any) => (s.pump_idx ?? []).forEach((pi: number) => pumpSet.add(pi)));
     const MAX_GAP = 30;
+    const lastIdx = playTimeline.length - 1;
 
     const colorAt = (i: number): string => {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
@@ -611,46 +618,65 @@ export default function SessionDetail() {
       if (colorMode === "hr") { const v = hr[i]; const [lo, hi] = hrRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
       return speedColor((speeds[i] ?? 0) * 3.6, speedMin, speedMax);
     };
-    const addSeg = (a: number, b: number) => {
-      if (b === a + 1 && map.distance(coords[a], coords[b]) <= MAX_GAP)
-        L.polyline([coords[a], coords[b]], { color: colorAt(b), weight: 5, opacity: 0.95 }).addTo(lg);
-      if (showPumps && pumpSet.has(b) && coords[b])
-        L.circleMarker(coords[b], { radius: 2.5, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 0.9 }).addTo(lg);
+    // Sind timeline[k] und timeline[k+1] ein zeichenbares Nachbarpaar (keine Lücke)?
+    const adj = (k: number): boolean => {
+      const a = playTimeline[k], b = playTimeline[k + 1];
+      return b === a + 1 && map.distance(coords[a], coords[b]) <= MAX_GAP;
     };
-    const setPos = (k: number) => {
-      const ll = coords[playTimeline[k]];
-      if (!ll) return;
-      if (!posMarkerRef.current) posMarkerRef.current = L.circleMarker(ll, { radius: 7, color: "#0f172a", weight: 2, fillColor: "#22d3ee", fillOpacity: 1 }).addTo(lg);
+    const lerp = (a: [number, number], b: [number, number], f: number): [number, number] =>
+      [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+    // Permanentes Segment k->k+1 (Linie + ggf. Pump-Marker am Zielpunkt, eigene Pane = oben).
+    const addSeg = (k: number) => {
+      const a = playTimeline[k], b = playTimeline[k + 1];
+      if (adj(k)) L.polyline([coords[a], coords[b]], { color: colorAt(b), weight: 5, opacity: 0.95 }).addTo(lg);
+      if (showPumps && pumpSet.has(b) && coords[b])
+        L.circleMarker(coords[b], { pane: "pumpPane", radius: 3, color: "#0f172a", weight: 1, fillColor: "#f8fafc", fillOpacity: 1 }).addTo(lg);
+    };
+    const setPos = (ll: [number, number]) => {
+      if (!posMarkerRef.current) posMarkerRef.current = L.circleMarker(ll, { pane: "posPane", radius: 7, color: "#0f172a", weight: 2, fillColor: "#22d3ee", fillOpacity: 1 }).addTo(lg);
       else posMarkerRef.current.setLatLng(ll);
     };
+    // Bewegliche Spitze: interpoliertes Teilstück von Punkt hi zum nächsten + Positionsmarker
+    // an der interpolierten Stelle -> kontinuierlicher Verlauf statt punktweisem Springen.
+    const renderTip = (hi: number, frac: number) => {
+      const a = coords[playTimeline[hi]];
+      if (!a) return;
+      let p: [number, number] = a;
+      if (hi < lastIdx && frac > 0 && adj(hi)) {
+        p = lerp(a, coords[playTimeline[hi + 1]], Math.min(frac, 1));
+        if (!tipRef.current) tipRef.current = L.polyline([a, p], { color: colorAt(playTimeline[hi + 1]), weight: 5, opacity: 0.95 }).addTo(lg);
+        else { tipRef.current.setLatLngs([a, p]); tipRef.current.setStyle({ color: colorAt(playTimeline[hi + 1]) }); }
+      } else if (tipRef.current) {
+        tipRef.current.setLatLngs([a, a]);
+      }
+      setPos(p);
+    };
 
-    // Bis zum aktuellen Kopf neu aufbauen (Farb-/Lauf-/Pump-Änderungen greifen so live).
+    // Bis zum aktuellen (Float-)Kopf neu aufbauen (Farb-/Lauf-/Pump-Änderungen greifen live).
     lg.clearLayers();
-    posMarkerRef.current = null;
-    let head = Math.min(playheadRef.current, playTimeline.length - 1);
+    posMarkerRef.current = null; tipRef.current = null;
+    let headF = Math.min(playheadRef.current, lastIdx);
     if (coords[playTimeline[0]])
       L.circleMarker(coords[playTimeline[0]], { radius: 5, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1 }).addTo(lg);
-    for (let k = 0; k < head; k++) addSeg(playTimeline[k], playTimeline[k + 1]);
-    setPos(head);
+    let drawn = Math.floor(headF);
+    for (let k = 0; k < drawn; k++) addSeg(k);
+    renderTip(drawn, headF - drawn);
 
     if (!playing) return;   // pausiert: Standbild, keine Animation
 
     let raf = 0;
     let last = performance.now();
-    let acc = 0;
     const PPS = 1;   // ~1 GPS-Punkt/s -> 1× ≈ Echtzeit
     const step = (now: number) => {
       const dt = (now - last) / 1000; last = now;
-      acc += dt * playMul * PPS;
-      const adv = Math.floor(acc);
-      if (adv > 0) {
-        acc -= adv;
-        const target = Math.min(head + adv, playTimeline.length - 1);
-        for (let k = head; k < target; k++) addSeg(playTimeline[k], playTimeline[k + 1]);
-        head = target; playheadRef.current = head; setPos(head);
-        setProgress(head / (playTimeline.length - 1));
-        if (head >= playTimeline.length - 1) { setPlaying(false); return; }
-      }
+      headF = Math.min(headF + dt * playMul * PPS, lastIdx);
+      const hi = Math.floor(headF);
+      for (let k = drawn; k < hi; k++) addSeg(k);
+      drawn = hi;
+      renderTip(hi, headF - hi);
+      playheadRef.current = headF;
+      setProgress(lastIdx > 0 ? headF / lastIdx : 0);
+      if (headF >= lastIdx) { setPlaying(false); return; }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
@@ -900,9 +926,19 @@ export default function SessionDetail() {
           </button>
         </div>
 
-        {/* Play: Strecke über die Zeit aufzeichnen (wie beim Fahren) — gesamt oder gewählter Lauf. */}
+        {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
+            flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}
+        <div className={fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}>
+          <div
+            ref={mapRef}
+            style={{ width: "100%", height: fullscreen ? "100%" : "60vh", minHeight: fullscreen ? undefined : 320 }}
+          />
+        </div>
+
+        {/* Play: Strecke über die Zeit aufzeichnen (wie beim Fahren) — gesamt oder gewählter
+            Lauf. Sitzt zwischen Karte und Legende. */}
         {playTimeline.length >= 2 && (
-          <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 px-2 pb-1" : "mt-2"}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-1" : "mt-2"}`}>
             <button
               onClick={togglePlay}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400"
@@ -922,13 +958,13 @@ export default function SessionDetail() {
               </button>
             )}
             <span className="ml-1 text-xs text-slate-400">{t("sd.playSpeed")}</span>
-            {[1, 2, 4, 8, 16].map((m) => (
+            {[1, 2, 4, 8, 16].map((mul) => (
               <button
-                key={m}
-                onClick={() => setPlayMul(m)}
-                className={`rounded-lg px-2 py-1 text-xs ${playMul === m ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
+                key={mul}
+                onClick={() => setPlayMul(mul)}
+                className={`rounded-lg px-2 py-1 text-xs ${playMul === mul ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
               >
-                {m}×
+                {mul}×
               </button>
             ))}
             <span className="text-xs tabular-nums text-slate-400">
@@ -944,15 +980,6 @@ export default function SessionDetail() {
             </div>
           </div>
         )}
-
-        {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
-            flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}
-        <div className={fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}>
-          <div
-            ref={mapRef}
-            style={{ width: "100%", height: fullscreen ? "100%" : "60vh", minHeight: fullscreen ? undefined : 320 }}
-          />
-        </div>
 
         <div className={`flex flex-wrap items-center justify-between gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : ""}`}>
           <div className="flex flex-wrap items-center gap-4">
@@ -1016,7 +1043,7 @@ export default function SessionDetail() {
 
       {owned && <TrimEditor session={session} onSaved={setSession} />}
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} />
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} />
 
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 
@@ -1198,6 +1225,7 @@ function RunsTable({
   powerFor,
   sessionId,
   compareRefs,
+  startedAt,
 }: {
   segments: any[];
   selected: number | null;
@@ -1206,9 +1234,16 @@ function RunsTable({
   powerFor?: (avgMps?: number | null, pumpHz?: number | null) => number | null;
   sessionId: number;
   compareRefs: { sessionId: number; runIdx: number | null }[];
+  startedAt: string;
 }) {
   const t = useT();
   if (!segments.length) return null;
+  // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start).
+  const sessionStartMs = new Date(startedAt).getTime();
+  const runClock = (s: any): string =>
+    s?.t_start_ms == null
+      ? "–"
+      : new Date(sessionStartMs + s.t_start_ms).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
@@ -1229,6 +1264,7 @@ function RunsTable({
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-3 py-2 font-medium" title={t("compare.add")}><CompareIcon className="h-4 w-4" /></th>
               <th className="px-3 py-2 font-medium">#</th>
+              <th className="px-3 py-2 font-medium">{t("sd.colStart")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
               <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
@@ -1269,6 +1305,7 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">
                     {i + 1}{best && <span className="ml-1 inline-flex align-middle text-brand-400" title={t("sd.farthestRunTitle")}><StarIcon className="h-3.5 w-3.5" filled /></span>}
                   </td>
+                  <td className="px-3 py-2 tabular-nums text-slate-300">{runClock(s)}</td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(s.distance_m)} m</td>
                   <td className="px-3 py-2 tabular-nums">{fmtMMSS(s.duration_s)}</td>
                   <td className="px-3 py-2 tabular-nums">{s.avg_speed_mps != null ? (s.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>

@@ -363,6 +363,7 @@ const es: Record<string, string> = {
   "chat.reportConfirm": "¿Reportar este mensaje a los moderadores?",
   "sd.runsTitle": "Runs ({count})",
   "sd.smoothToggle": "Suavizado ajustable arriba ({win}s)",
+  "sd.colStart": "Inicio",
   "sd.colDistance": "Distancia",
   "sd.colDuration": "Duración",
   "sd.colAvg": "Ø km/h",

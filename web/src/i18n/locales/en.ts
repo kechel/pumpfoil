@@ -375,6 +375,7 @@ const en: Record<string, string> = {
   "chat.reportConfirm": "Report this message to the moderators?",
   "sd.runsTitle": "Runs ({count})",
   "sd.smoothToggle": "Smoothing switchable above ({win}s)",
+  "sd.colStart": "Start",
   "sd.colDistance": "Distance",
   "sd.colDuration": "Duration",
   "sd.colAvg": "Ø km/h",

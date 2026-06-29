@@ -312,6 +312,7 @@ const gsw: Record<string, string> = {
   "chat.report": "Mälde",
   "chat.reportConfirm": "Die Nachricht de Moderatore mälde?",
   "sd.runsTitle": "Läuf ({count})",
+  "sd.colStart": "Start",
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Duur",
   "sd.colGlide": "längschti Gleitphase",

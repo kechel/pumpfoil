@@ -398,6 +398,7 @@ const de: Record<string, string> = {
   "chat.reportConfirm": "Diese Nachricht den Moderatoren melden?",
   "sd.runsTitle": "Läufe ({count})",
   "sd.smoothToggle": "Glättung oben umschaltbar ({win}s)",
+  "sd.colStart": "Start",
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Dauer",
   "sd.colAvg": "Ø km/h",
