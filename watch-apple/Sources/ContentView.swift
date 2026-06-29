@@ -262,6 +262,13 @@ struct RecordView: View {
                                 .font(.caption2).buttonStyle(.borderless)
                         }
                     }
+                    // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das
+                    // Pairing erst, wenn ein neues tatsächlich durchläuft). Bei "auth" zeigt
+                    // der Block oben schon „Neu verbinden" -> hier nicht doppeln.
+                    if Api.deviceToken != nil && rec.uploadError != "auth" {
+                        Button(WLoc.t("rec.switch", lang)) { onWantPair() }
+                            .font(.caption2).buttonStyle(.borderless).tint(.secondary)
+                    }
                     }
                 }.padding()
                 // Auto-Start: im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten

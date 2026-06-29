@@ -454,6 +454,13 @@ class MainActivity : ComponentActivity() {
                             label = { Text(I18n.t("rec.uploadNow"), style = MaterialTheme.typography.caption2) })
                     }
                 }
+                // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das Pairing
+                // erst bei erfolgreichem Neu-Pairing). Bei "auth" zeigt der Block oben schon „Neu verbinden".
+                if (Api.deviceToken != null && s.uploadError != "auth") {
+                    Spacer(Modifier.height(6.dp))
+                    CompactChip(onClick = onWantPair,
+                        label = { Text(I18n.t("rec.switch"), style = MaterialTheme.typography.caption2) })
+                }
                 }
             }
         }

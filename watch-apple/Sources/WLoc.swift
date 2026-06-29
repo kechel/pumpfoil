@@ -44,6 +44,7 @@ enum WLoc {
         "rec.serverErr": r("Server-Fehler – später erneut", "Server-Fähler – spöter nomal", "Server-Fehler – später erneut", "Server error – retry later", "Erreur serveur – réessai", "Errore server – riprova", "Error de servidor – reintento"),
         "rec.authErr": r("Verbindung ungültig – neu verbinden", "Verbindig ungültig – neu verbinde", "Verbindung ungültig – neu verbinden", "Link invalid – reconnect", "Lien invalide – reconnecter", "Collegamento non valido – ricollega", "Vínculo no válido – reconectar"),
         "rec.repair": r("Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar"),
+        "rec.switch": r("Konto wechseln", "Konto wechsle", "Konto wechseln", "Switch account", "Changer de compte", "Cambia account", "Cambiar cuenta"),
         "rec.alarm": r("Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma"),
         "rec.change": r("ändern", "ändere", "ändern", "change", "modifier", "modifica", "cambiar"),
         "rec.holdProgress": r("halten…", "halte…", "halten…", "hold…", "maintenir…", "tieni…", "mantén…"),
