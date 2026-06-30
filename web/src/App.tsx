@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { WaveIcon, ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon } from "./components/Icons";
+import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon } from "./components/Icons";
+import { Wordmark } from "./components/Wordmark";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { CompareBar } from "./components/CompareBar";
@@ -58,8 +59,8 @@ export default function App() {
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 p-4 md:flex">
-        <Link to="/" className="mb-4 flex items-center gap-2 px-2 text-lg font-bold">
-          <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
+        <Link to="/" className="mb-4 px-2">
+          <Wordmark icon="h-6 w-6" text="text-lg" />
         </Link>
         {profile && (
           <Link to="/" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
@@ -110,8 +111,8 @@ export default function App() {
 
       {/* Mobile-Topbar */}
       <header className="flex items-center justify-between border-b border-slate-800/60 px-4 py-3 md:hidden">
-        <Link to="/" className="flex items-center gap-2 font-bold">
-          <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
+        <Link to="/">
+          <Wordmark icon="h-6 w-6" text="text-lg" />
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/import" className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400">

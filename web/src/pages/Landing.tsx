@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
-  WaveIcon, ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
+  ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
   LockIcon, HeartIcon,
 } from "../components/Icons";
+import { Wordmark } from "../components/Wordmark";
 import { useT } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -77,8 +78,8 @@ export default function Landing() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950" />
 
         <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-          <Link to="/" className="flex items-center gap-2 text-lg font-bold">
-            <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
+          <Link to="/">
+            <Wordmark icon="h-6 w-6" text="text-lg" />
           </Link>
           <div className="flex items-center gap-3">
             <LanguageFlags />

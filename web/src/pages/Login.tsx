@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { PROVIDER_ICONS } from "../components/BrandIcons";
-import { WaveIcon } from "../components/Icons";
 import { useI18n, TFunc } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { Wordmark } from "../components/Wordmark";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -65,9 +65,8 @@ export default function Login() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
       <Card className="relative z-10 w-full max-w-sm p-7">
         <div className="mb-6 flex flex-col items-center text-center">
-          <WaveIcon className="h-10 w-10 text-brand-400" />
-          <h1 className="mt-3 text-xl font-bold">Pumpfoil</h1>
-          <p className="mt-1 text-sm text-slate-300">
+          <h1><Wordmark icon="h-8 w-8" text="text-2xl" tagline /></h1>
+          <p className="mt-3 text-sm text-slate-300">
             {isRegister ? t("login.createAccount") : t("login.welcomeBack")}
           </p>
         </div>
