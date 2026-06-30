@@ -46,8 +46,24 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm p-7">
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden p-4">
+      {/* Hintergrund-Video (stumm, loop, textfrei). Browser wählt Hoch-/Querformat per
+          media-Query. Bei „reduzierter Bewegung" ausgeblendet -> Poster/Hintergrund bleibt. */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        poster="/login-bg-landscape-poster.jpg"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+      >
+        <source src="/login-bg-portrait.mp4" media="(max-aspect-ratio: 1/1)" type="video/mp4" />
+        <source src="/login-bg-landscape.mp4" type="video/mp4" />
+      </video>
+      {/* Abdunkelung für Lesbarkeit der Card. */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
+      <Card className="relative z-10 w-full max-w-sm p-7">
         <div className="mb-6 flex flex-col items-center text-center">
           <WaveIcon className="h-10 w-10 text-brand-400" />
           <h1 className="mt-3 text-xl font-bold">Pumpfoil</h1>
