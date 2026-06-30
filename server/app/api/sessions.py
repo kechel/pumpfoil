@@ -17,7 +17,7 @@ from ..analysis import maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..ml.features import bandpass_fft, magnitude_g
-from ..schemas import AnalysisOut, LabelIn, LabelOut, RawDataOut, SessionMetaIn, SessionOut, TrimIn
+from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, TrimIn
 from .deps import current_user
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -791,6 +791,45 @@ def delete_label(
     db.delete(lbl)
     db.commit()
     return {"ok": True}
+
+
+# --- Pump-Wahrheit (Tap-to-Label): getappte echte Pump-Zeitpunkte (Owner ODER Admin) ---
+def _owned_or_admin(db, user, session_id) -> models.Session:
+    s = db.get(models.Session, session_id)
+    if s is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    if s.user_id != user.id and not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not allowed")
+    return s
+
+
+@router.get("/{session_id}/pump-truth")
+def get_pump_truth(
+    session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    _owned_or_admin(db, user, session_id)
+    rows = (db.query(models.PumpTruth).filter_by(session_id=session_id)
+            .order_by(models.PumpTruth.t_ms).all())
+    return {"times_ms": [r.t_ms for r in rows], "run_idx": rows[0].run_idx if rows else None}
+
+
+@router.put("/{session_id}/pump-truth")
+def put_pump_truth(
+    session_id: int, body: PumpTruthIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Ersetzt die getappte Pump-Wahrheit. run_idx gesetzt -> nur dieser Lauf wird ersetzt
+    (pro-Lauf-Taggen akkumuliert über mehrere Läufe); sonst die ganze Session."""
+    _owned_or_admin(db, user, session_id)
+    q = db.query(models.PumpTruth).filter_by(session_id=session_id)
+    if body.run_idx is not None:
+        q = q.filter_by(run_idx=body.run_idx)
+    q.delete()
+    for t in body.times_ms:
+        db.add(models.PumpTruth(session_id=session_id, t_ms=int(t), run_idx=body.run_idx))
+    db.commit()
+    total = db.query(models.PumpTruth).filter_by(session_id=session_id).count()
+    return {"ok": True, "saved": len(body.times_ms), "total": total}
 
 
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---

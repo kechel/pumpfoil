@@ -320,6 +320,12 @@ export const api = {
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
   corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),
 
+  getPumpTruth: (id: number) => req<{ times_ms: number[]; run_idx: number | null }>(`/api/sessions/${id}/pump-truth`),
+  savePumpTruth: (id: number, timesMs: number[], runIdx: number | null) =>
+    req<{ ok: boolean; saved: number; total: number }>(`/api/sessions/${id}/pump-truth`, {
+      method: "PUT", body: JSON.stringify({ times_ms: timesMs, run_idx: runIdx }),
+    }),
+
   suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
   suuntoSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/suunto/sync", { method: "POST" }),

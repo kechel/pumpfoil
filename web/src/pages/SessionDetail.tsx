@@ -273,6 +273,14 @@ export default function SessionDetail() {
   const posMarkerRef = useRef<L.CircleMarker | null>(null);
   const tipRef = useRef<L.Polyline | null>(null);     // bewegliche Spitze (interpoliertes Teilstück)
 
+  // --- Tap-to-Label: echte Pump-Zeitpunkte antippen (Owner/Admin), für Modell-Training ---
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [tagMode, setTagMode] = useState(false);      // Tap-Modus aktiv (PUMP-Button + Leertaste)
+  const [taps, setTaps] = useState<number[]>([]);     // getappte Zeitpunkte (ms ab Session-Start)
+  const [countdown, setCountdown] = useState(0);      // 3-2-1 vor Play-Start (zum Sync mit Video)
+  const [tapSaved, setTapSaved] = useState<string>(""); // kurze Speicher-Rückmeldung
+  useEffect(() => { api.getProfile().then((p) => setIsAdmin(p.is_admin)).catch(() => {}); }, []);
+
   useEffect(() => {
     api.getSettings().then((s) => {
       const w = Number(s.weight_kg);
@@ -459,6 +467,65 @@ export default function SessionDetail() {
     setPlaying(false); setPlayMode(false);
     playheadRef.current = 0; setProgress(0); posMarkerRef.current = null;
   };
+
+  // coords-Index (aus der Play-Timeline) -> ms ab Session-Start, via Lauf-Segment-Interpolation.
+  const ciToMs = (ci: number): number | null => {
+    const segs = session?.analysis?.segments ?? [];
+    for (const s of segs) {
+      if (ci >= s.i_start && ci <= s.i_end) {
+        const span = s.i_end - s.i_start;
+        const f = span > 0 ? (ci - s.i_start) / span : 0;
+        return Math.round(s.t_start_ms + f * (s.t_end_ms - s.t_start_ms));
+      }
+    }
+    return null;
+  };
+
+  // Existierende Taps laden, wenn Tap-Modus betreten wird (pro gewähltem Lauf bzw. Session).
+  useEffect(() => {
+    if (!tagMode || !session) return;
+    api.getPumpTruth(session.id).then((r) => setTaps(r.times_ms ?? [])).catch(() => {});
+  }, [tagMode, session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Einen Tap aufnehmen: aktuelle Playhead-Position -> coords-Index -> ms.
+  const recordTap = () => {
+    if (!playTimeline.length) return;
+    const head = Math.min(Math.max(Math.round(playheadRef.current), 0), playTimeline.length - 1);
+    const ms = ciToMs(playTimeline[head]);
+    if (ms != null) setTaps((prev) => [...prev, ms].sort((a, b) => a - b));
+  };
+
+  // Play mit 3-2-1-Countdown starten (Zeit, um das Video synchron zu starten).
+  const startTagPlay = () => {
+    if (playTimeline.length < 2 || countdown > 0) return;
+    playheadRef.current = 0; setProgress(0); setPlayMode(true); setPlaying(false);
+    let c = 3; setCountdown(c);
+    const iv = setInterval(() => {
+      c -= 1;
+      if (c <= 0) { clearInterval(iv); setCountdown(0); setPlayMul(1); setPlaying(true); }
+      else setCountdown(c);
+    }, 1000);
+  };
+
+  const saveTaps = () => {
+    if (!session) return;
+    api.savePumpTruth(session.id, taps, selectedRun).then((r) => {
+      setTapSaved(t("sd.tapSaved", { n: r.saved }));
+      setTimeout(() => setTapSaved(""), 2500);
+    }).catch(() => setTapSaved("!"));
+  };
+
+  // Leertaste = Tap (nur im Tap-Modus, nicht in Eingabefeldern).
+  useEffect(() => {
+    if (!tagMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tgt = e.target as HTMLElement;
+      if (tgt && /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName)) return;
+      if (e.code === "Space") { e.preventDefault(); recordTap(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tagMode, playTimeline]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Beschriftung: Eingabewert bei Session-Wechsel initialisieren.
   useEffect(() => { setCap(session?.caption ?? ""); }, [session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -978,6 +1045,54 @@ export default function SessionDetail() {
                 {fmtMMSS(progress * (playTimeline.length - 1))} / {fmtMMSS(playTimeline.length - 1)}
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Tap-to-Label: echte Pumps antippen (synchron zum Video). Nur Owner/Admin. */}
+        {playTimeline.length >= 2 && (owned || isAdmin) && (
+          <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pb-1" : "mt-1"}`}>
+            <button
+              onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+              className={`rounded-lg px-2.5 py-1 text-xs ${tagMode ? "bg-amber-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+              title={t("sd.tapModeTitle")}
+            >
+              {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+            </button>
+            {tagMode && (
+              <>
+                <button
+                  onClick={startTagPlay}
+                  disabled={countdown > 0}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50"
+                  title={t("sd.tapStartTitle")}
+                >
+                  {countdown > 0 ? countdown : <><PlayIcon className="h-4 w-4" /> {t("sd.tapStart")}</>}
+                </button>
+                <button
+                  onClick={recordTap}
+                  disabled={!playing}
+                  className="rounded-lg bg-rose-500 px-5 py-1 text-base font-bold text-white hover:bg-rose-400 disabled:opacity-40"
+                  title={t("sd.tapHint")}
+                >
+                  PUMP
+                </button>
+                <span className="text-xs tabular-nums text-slate-300">{t("sd.tapCount", { n: taps.length })}</span>
+                <button onClick={() => setTaps((p) => p.slice(0, -1))} disabled={!taps.length}
+                  className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-40">
+                  {t("sd.tapUndo")}
+                </button>
+                <button onClick={() => setTaps([])} disabled={!taps.length}
+                  className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-40">
+                  {t("sd.tapClear")}
+                </button>
+                <button onClick={saveTaps}
+                  className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-emerald-400">
+                  {t("sd.tapSave")}
+                </button>
+                {tapSaved && <span className="text-xs text-emerald-400">{tapSaved}</span>}
+                <span className="w-full text-[11px] text-slate-400">{t("sd.tapHint")}</span>
+              </>
+            )}
           </div>
         )}
 

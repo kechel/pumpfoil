@@ -183,6 +183,11 @@ class LabelOut(LabelIn):
     id: int
 
 
+class PumpTruthIn(BaseModel):
+    times_ms: list[int]            # getappte Pump-Zeitpunkte (ms ab Session-Start)
+    run_idx: int | None = None     # optional: pro Lauf getappt
+
+
 # --- Rohdaten (für Labeling-/Chart-Ansicht) ---
 class RawDataOut(BaseModel):
     gps_t_ms: list[int]

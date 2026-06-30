@@ -436,6 +436,20 @@ class PolarLink(Base):
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class PumpTruth(Base):
+    """Vom Owner/Admin getappte echte Pump-Zeitpunkte (Tap-to-Label in der Play-Ansicht,
+    synchron zum Video). Ground Truth zur Validierung + zum Training der Pump-Erkennung.
+    t_ms = ms ab Session-Start. run_idx optional (pro Lauf getappt)."""
+
+    __tablename__ = "pump_truth"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    t_ms: Mapped[int] = mapped_column(Integer)
+    run_idx: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class CorosLink(Base):
     """Verknüpfung eines Nutzers mit der COROS Open API. Workouts kommen per Push
     (Abschnitt 5.3): COROS POSTet Summaries inkl. fitUrl, wir laden die .fit und
