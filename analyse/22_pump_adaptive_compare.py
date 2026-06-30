@@ -102,6 +102,7 @@ def main() -> None:
     rows = []           # je Lauf
     sess_rows = []      # je Session
     n_sess = n_runs = 0
+    val_ok = val_bad = 0   # Validierung: stimmt 'alt' mit dem DB-Wert (seg['pumps']) überein?
     for s in sessions:
         fs = float(s.accel_hz or 0)
         if fs <= 0:
@@ -115,6 +116,19 @@ def main() -> None:
             continue
         if accel.shape[0] == 0:
             continue
+        # WICHTIG: Accel exakt wie die Produktion auf [trim_start, trim_end] zuschneiden,
+        # sonst sind die Segment-Zeiten (ms ab getrimmtem Start) gegen das volle Accel
+        # versetzt -> falsche Pump-Zahlen. (Validierung unten: 'alt' == DB-Wert.)
+        ts0, ts1 = s.trim_start_ms, s.trim_end_ms
+        if ts0 is not None or ts1 is not None:
+            gps = storage.load_gps(s.session_uuid)
+            lo = ts0 if ts0 is not None else 0
+            hi = ts1 if ts1 is not None else (gps[-1][0] if gps else 0)
+            a_lo = max(int(round(lo / 1000.0 * fs)), 0)
+            a_hi = min(int(round(hi / 1000.0 * fs)), accel.shape[0])
+            accel = accel[a_lo:a_hi] if a_hi > a_lo else accel[0:0]
+            if accel.shape[0] == 0:
+                continue
         segs = json.loads(ar.segments_json)
         if not segs:
             continue
@@ -134,6 +148,10 @@ def main() -> None:
             new_idx = pumps_new_run(run, fs)
             new_pts = (a + new_idx) / fs * 1000.0
             do = derive(seg, old_pts); dn = derive(seg, new_pts)
+            stored = seg.get("pumps")
+            if stored is not None:
+                if do["pumps"] == int(stored): val_ok += 1
+                else: val_bad += 1
             s_old += do["pumps"]; s_new += dn["pumps"]
             s_zero_old += int(do["pumps"] == 0); s_zero_new += int(dn["pumps"] == 0)
             rows.append({
@@ -161,7 +179,8 @@ def main() -> None:
     zero_old = sum(1 for r in rows if r["pumps_old"] == 0)
     zero_new = sum(1 for r in rows if r["pumps_new"] == 0)
     flipped = sum(1 for r in rows if r["pumps_old"] == 0 and r["pumps_new"] > 0)
-    print(f"\nSessions mit Accel: {n_sess}   Läufe gesamt: {n_runs}")
+    print(f"\nValidierung 'alt' == DB-Wert: {val_ok} ok / {val_bad} abweichend  (sollte 0 abweichend sein)")
+    print(f"Sessions mit Accel: {n_sess}   Läufe gesamt: {n_runs}")
     print(f"Pumps gesamt:        alt {tot_old:>7}   neu {tot_new:>7}   ({tot_new/max(tot_old,1)*100:.0f} %)")
     print(f"Läufe OHNE Pump:     alt {zero_old:>7}   neu {zero_new:>7}   (davon {flipped} Läufe alt=0 -> neu>0)")
     print(f"Median Pumps/min:    alt {med([r['ppm_old'] for r in rows])}   neu {med([r['ppm_new'] for r in rows])}")
