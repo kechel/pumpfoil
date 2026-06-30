@@ -380,7 +380,7 @@ const deAT: Record<string, string> = {
   "watches.nGarmin": "Ältere Modelle ohne Roh-Accel: GPS-Stats werden trotzdem ausgewertet.",
   "watches.nApple": "Roh-Beschleunigung über Core Motion.",
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
-  "watches.nPolar": "Polar-Konto verknüpfen → Trainings importieren (GPS + HR). Pump-Analyse braucht Roh-Accel (separater BLE-Sensor).",
+  "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export net (nur via separatem BLE-Sensor).",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
 
   "sd.colDistPerPump": "Ø m/Pump",

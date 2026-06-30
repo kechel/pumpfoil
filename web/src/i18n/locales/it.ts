@@ -466,7 +466,7 @@ const it: Record<string, string> = {
   "watches.nGarmin": "Modelli più vecchi senza accel grezzo: le statistiche GPS vengono comunque analizzate.",
   "watches.nApple": "Accelerazione grezza via Core Motion.",
   "watches.nAmazfit": "Accesso ai sensori a seconda del modello.",
-  "watches.nPolar": "Collega l'account Polar → importa gli allenamenti (GPS + FC). L'analisi pump richiede accel grezzo (sensore BLE separato).",
+  "watches.nPolar": "Collega l'account → importa allenamenti (GPS + FC). L'export API non include il flusso accel grezzo ad alta frequenza per il rilevamento del pump (solo con sensore BLE separato).",
   "watches.nFitbit": "Le app di terze parti sono state dismesse.",
 
   "import.title": "Importa attività",
