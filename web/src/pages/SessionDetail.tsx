@@ -491,12 +491,19 @@ export default function SessionDetail() {
     api.getPumpTruth(session.id, selectedRun).then((r) => setTakeCount(r.takes.length)).catch(() => {});
   }, [tagMode, session?.id, selectedRun]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Einen Tap aufnehmen: aktuelle Playhead-Position -> coords-Index -> ms.
+  // Einen Tap aufnehmen: aktuelle (Float-)Playhead-Position -> ms. WICHTIG: die Nachkommastelle
+  // zwischen zwei GPS-Punkten interpolieren, NICHT runden — sonst wäre die Tap-Zeit auf das
+  // 1-Hz-GPS-Raster (±0,5 s) gequantelt und Offset/Jitter zwischen Takes verschwänden künstlich.
   const recordTap = () => {
     if (!playTimeline.length) return;
-    const head = Math.min(Math.max(Math.round(playheadRef.current), 0), playTimeline.length - 1);
-    const ms = ciToMs(playTimeline[head]);
-    if (ms != null) setTaps((prev) => [...prev, ms].sort((a, b) => a - b));
+    const f = Math.min(Math.max(playheadRef.current, 0), playTimeline.length - 1);
+    const i0 = Math.floor(f);
+    const i1 = Math.min(i0 + 1, playTimeline.length - 1);
+    const ms0 = ciToMs(playTimeline[i0]);
+    if (ms0 == null) return;
+    const ms1 = ciToMs(playTimeline[i1]);
+    const ms = ms1 == null ? ms0 : Math.round(ms0 + (f - i0) * (ms1 - ms0));
+    setTaps((prev) => [...prev, ms].sort((a, b) => a - b));
   };
 
   // Play mit 3-2-1-Countdown starten (Zeit, um das Video synchron zu starten).
@@ -524,6 +531,15 @@ export default function SessionDetail() {
   const runCompare = () => {
     if (!session) return;
     api.comparePumpTruth(session.id, selectedRun).then(setCmp).catch(() => setCmp(null));
+  };
+
+  // Alle gespeicherten Durchläufe dieses Laufs verwerfen (Bestätigung).
+  const clearTakes = () => {
+    if (!session || !takeCount) return;
+    if (!window.confirm(t("sd.tapDeleteConfirm", { n: takeCount }))) return;
+    api.deletePumpTruth(session.id, selectedRun).then(() => {
+      setTakeCount(0); setCmp(null); setTaps([]); setTapSaved("");
+    }).catch(() => {});
   };
 
   // Leertaste = Tap (nur im Tap-Modus, nicht in Eingabefeldern).
@@ -1059,18 +1075,10 @@ export default function SessionDetail() {
           </div>
         )}
 
-        {/* Tap-to-Label: echte Pumps antippen (synchron zum Video). Nur Owner/Admin. */}
-        {playTimeline.length >= 2 && (owned || isAdmin) && (
+        {/* Tap-to-Label: Steuerung — nur im Tag-Modus, linksbündig direkt unter der Karte.
+            Der Ein/Aus-Schalter „Pumps taggen" sitzt rechts neben „Labeln" (siehe unten). */}
+        {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
           <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pb-1" : "mt-1"}`}>
-            <button
-              onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-              className={`rounded-lg px-2.5 py-1 text-xs ${tagMode ? "bg-amber-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-              title={t("sd.tapModeTitle")}
-            >
-              {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
-            </button>
-            {tagMode && (
-              <>
                 <button
                   onClick={startTagPlay}
                   disabled={countdown > 0}
@@ -1105,8 +1113,13 @@ export default function SessionDetail() {
                   className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-40">
                   {t("sd.tapCompare")}
                 </button>
+                <button onClick={clearTakes} disabled={!takeCount}
+                  className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-rose-300 hover:bg-slate-700 disabled:opacity-40">
+                  {t("sd.tapDeleteAll")}
+                </button>
                 {tapSaved && <span className="text-xs text-emerald-400">{tapSaved}</span>}
-                <span className="w-full text-[11px] text-slate-400">{t("sd.tapHint")}</span>
+                <p className="w-full rounded-lg border border-slate-800 bg-slate-900/40 p-2 text-[11px] leading-relaxed text-slate-400"
+                  dangerouslySetInnerHTML={{ __html: t("sd.tapHelp") }} />
                 {cmp && (
                   <div className="w-full rounded-lg border border-slate-700 bg-slate-900/60 p-2 text-xs">
                     <div className="mb-1 text-slate-300">
@@ -1133,8 +1146,6 @@ export default function SessionDetail() {
                     </table>
                   </div>
                 )}
-              </>
-            )}
           </div>
         )}
 
@@ -1163,14 +1174,25 @@ export default function SessionDetail() {
               </span>
             )}
           </div>
-          {!fullscreen && owned && (
-            <Link
-              to={`/sessions/${session.id}/label`}
-              className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700"
-            >
-              {t("sd.label")}
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {playTimeline.length >= 2 && (owned || isAdmin) && (
+              <button
+                onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+                className={`rounded-xl px-3 py-2 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
+                title={t("sd.tapModeTitle")}
+              >
+                {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+              </button>
+            )}
+            {!fullscreen && owned && (
+              <Link
+                to={`/sessions/${session.id}/label`}
+                className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700"
+              >
+                {t("sd.label")}
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

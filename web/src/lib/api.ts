@@ -327,6 +327,8 @@ export const api = {
     req<{ ok: boolean; saved: number; take: number; n_takes: number }>(`/api/sessions/${id}/pump-truth`, {
       method: "PUT", body: JSON.stringify({ times_ms: timesMs, run_idx: runIdx }),
     }),
+  deletePumpTruth: (id: number, runIdx: number | null) =>
+    req<{ ok: boolean; deleted: number }>(`/api/sessions/${id}/pump-truth${runIdx != null ? `?run_idx=${runIdx}` : ""}`, { method: "DELETE" }),
   comparePumpTruth: (id: number, runIdx: number | null) =>
     req<{
       n_takes: number; ref_take?: number; consensus_n?: number; consensus_ms: number[];

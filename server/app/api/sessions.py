@@ -864,6 +864,22 @@ def compare_pump_truth(
     return compare_takes(_truth_takes(db, session_id, run_idx))
 
 
+@router.delete("/{session_id}/pump-truth")
+def delete_pump_truth(
+    session_id: int, run_idx: int | None = None,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Löscht alle getappten Durchläufe (Takes) der Session — bzw. nur eines Laufs, wenn
+    run_idx gesetzt ist."""
+    _owned_or_admin(db, user, session_id)
+    q = db.query(models.PumpTruth).filter_by(session_id=session_id)
+    if run_idx is not None:
+        q = q.filter_by(run_idx=run_idx)
+    n = q.delete()
+    db.commit()
+    return {"ok": True, "deleted": n}
+
+
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---
 MAX_PHOTOS_PER_SESSION = 12
 
