@@ -127,10 +127,16 @@ def compare_takes(takes: list[dict]) -> dict:
             if len(c) >= need:
                 consensus.append(int(round(float(np.median(c)))))
 
+    # Auswertungs-Fenster: erst ab dem ersten getappten Pump (Synchronpunkt/GPS-Knick) bis zum
+    # letzten. Davor/danach ist NICHT getappt (≠ „keine Pumps") -> für spätere Detektor-vs-
+    # Wahrheit-Auswertung + Training nur dieses Fenster als gelabelt behandeln.
+    window = [int(pool.min()), int(pool.max())] if pool.size else None
+
     return {
         "n_takes": n_takes,
         "ref_take": int(ref_take["take"]),
         "takes": report,
         "consensus_ms": consensus,
         "consensus_n": len(consensus),
+        "window_ms": window,
     }
