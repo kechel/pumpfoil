@@ -186,6 +186,7 @@ class LabelOut(LabelIn):
 class PumpTruthIn(BaseModel):
     times_ms: list[int]            # getappte Pump-Zeitpunkte (ms ab Session-Start)
     run_idx: int | None = None     # optional: pro Lauf getappt
+    take: int | None = None        # Durchlauf-Nr.; None = nächster freier Take (anhängen)
 
 
 # --- Rohdaten (für Labeling-/Chart-Ansicht) ---

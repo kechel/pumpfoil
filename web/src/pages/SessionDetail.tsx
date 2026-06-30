@@ -279,6 +279,8 @@ export default function SessionDetail() {
   const [taps, setTaps] = useState<number[]>([]);     // getappte Zeitpunkte (ms ab Session-Start)
   const [countdown, setCountdown] = useState(0);      // 3-2-1 vor Play-Start (zum Sync mit Video)
   const [tapSaved, setTapSaved] = useState<string>(""); // kurze Speicher-Rückmeldung
+  const [takeCount, setTakeCount] = useState(0);       // bereits gespeicherte Durchläufe
+  const [cmp, setCmp] = useState<Awaited<ReturnType<typeof api.comparePumpTruth>> | null>(null);
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(p.is_admin)).catch(() => {}); }, []);
 
   useEffect(() => {
@@ -481,11 +483,13 @@ export default function SessionDetail() {
     return null;
   };
 
-  // Existierende Taps laden, wenn Tap-Modus betreten wird (pro gewähltem Lauf bzw. Session).
+  // Beim Betreten des Tap-Modus (bzw. Lauf-Wechsel): gespeicherte Durchläufe zählen.
+  // Der Tap-Puffer bleibt LEER — jeder Durchlauf wird frisch getappt und als neuer Take gespeichert.
   useEffect(() => {
     if (!tagMode || !session) return;
-    api.getPumpTruth(session.id).then((r) => setTaps(r.times_ms ?? [])).catch(() => {});
-  }, [tagMode, session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    setTaps([]); setCmp(null);
+    api.getPumpTruth(session.id, selectedRun).then((r) => setTakeCount(r.takes.length)).catch(() => {});
+  }, [tagMode, session?.id, selectedRun]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Einen Tap aufnehmen: aktuelle Playhead-Position -> coords-Index -> ms.
   const recordTap = () => {
@@ -507,12 +511,19 @@ export default function SessionDetail() {
     }, 1000);
   };
 
+  // Aktuellen Durchlauf als NEUEN Take speichern (hängt an, überschreibt nichts) -> Puffer leeren.
   const saveTaps = () => {
-    if (!session) return;
+    if (!session || !taps.length) return;
     api.savePumpTruth(session.id, taps, selectedRun).then((r) => {
-      setTapSaved(t("sd.tapSaved", { n: r.saved }));
-      setTimeout(() => setTapSaved(""), 2500);
+      setTakeCount(r.n_takes); setTaps([]);
+      setTapSaved(t("sd.tapSavedTake", { take: r.take, saved: r.saved }));
+      setTimeout(() => setTapSaved(""), 3000);
     }).catch(() => setTapSaved("!"));
+  };
+
+  const runCompare = () => {
+    if (!session) return;
+    api.comparePumpTruth(session.id, selectedRun).then(setCmp).catch(() => setCmp(null));
   };
 
   // Leertaste = Tap (nur im Tap-Modus, nicht in Eingabefeldern).
@@ -1085,12 +1096,43 @@ export default function SessionDetail() {
                   className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-40">
                   {t("sd.tapClear")}
                 </button>
-                <button onClick={saveTaps}
-                  className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-emerald-400">
-                  {t("sd.tapSave")}
+                <button onClick={saveTaps} disabled={!taps.length}
+                  className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-40">
+                  {t("sd.tapSaveTake")}
+                </button>
+                <span className="text-xs tabular-nums text-slate-400">{t("sd.tapTakes", { n: takeCount })}</span>
+                <button onClick={runCompare} disabled={takeCount < 1}
+                  className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-40">
+                  {t("sd.tapCompare")}
                 </button>
                 {tapSaved && <span className="text-xs text-emerald-400">{tapSaved}</span>}
                 <span className="w-full text-[11px] text-slate-400">{t("sd.tapHint")}</span>
+                {cmp && (
+                  <div className="w-full rounded-lg border border-slate-700 bg-slate-900/60 p-2 text-xs">
+                    <div className="mb-1 text-slate-300">
+                      {t("sd.tapCmpHead", { n: cmp.n_takes, ref: cmp.ref_take ?? 0 })}
+                      {" · "}{t("sd.tapCmpConsensus", { n: cmp.consensus_n ?? 0 })}
+                    </div>
+                    <table className="tabular-nums text-slate-400">
+                      <thead><tr className="text-slate-500">
+                        <th className="pr-3 text-left">Take</th><th className="pr-3 text-right">{t("stat.pumps")}</th>
+                        <th className="pr-3 text-right">Offset</th><th className="pr-3 text-right">Match</th>
+                        <th className="pr-3 text-right">Jitter</th>
+                      </tr></thead>
+                      <tbody>
+                        {cmp.takes.map((r) => (
+                          <tr key={r.take} className={r.is_ref ? "text-brand-300" : ""}>
+                            <td className="pr-3">{r.take}{r.is_ref ? " ★" : ""}</td>
+                            <td className="pr-3 text-right">{r.n}</td>
+                            <td className="pr-3 text-right">{r.is_ref ? "–" : `${r.offset_ms > 0 ? "+" : ""}${(r.offset_ms / 1000).toFixed(2)}s`}</td>
+                            <td className="pr-3 text-right">{r.is_ref ? "–" : r.matched}</td>
+                            <td className="pr-3 text-right">{r.is_ref ? "–" : `±${Math.round(r.jitter_ms)}ms`}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </>
             )}
           </div>

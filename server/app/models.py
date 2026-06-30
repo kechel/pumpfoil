@@ -439,7 +439,8 @@ class PolarLink(Base):
 class PumpTruth(Base):
     """Vom Owner/Admin getappte echte Pump-Zeitpunkte (Tap-to-Label in der Play-Ansicht,
     synchron zum Video). Ground Truth zur Validierung + zum Training der Pump-Erkennung.
-    t_ms = ms ab Session-Start. run_idx optional (pro Lauf getappt)."""
+    t_ms = ms ab Session-Start. run_idx optional (pro Lauf getappt). take = Durchlauf-Nr.
+    (derselbe Lauf kann mehrfach getappt werden -> Vergleich/Konsens, Start-Offset rauskalibrieren)."""
 
     __tablename__ = "pump_truth"
 
@@ -447,6 +448,7 @@ class PumpTruth(Base):
     session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
     t_ms: Mapped[int] = mapped_column(Integer)
     run_idx: Mapped[int | None] = mapped_column(Integer)
+    take: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
@@ -480,5 +482,23 @@ class SuuntoLink(Base):
     access_token: Mapped[str] = mapped_column(Text)                    # JWT
     refresh_token: Mapped[str] = mapped_column(String(255))
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class StravaLink(Base):
+    """Verknüpfung eines Nutzers mit der Strava API (OAuth2). access_token läuft alle 6h ab
+    (expires_at = absoluter Unix-Stempel) -> refresh_token (langlebig). Aktivitäten werden
+    gezogen und aus den GPS-Streams (latlng/time/velocity) als Session importiert — Strava
+    bietet KEINEN FIT-Download über die API. Ein Link pro Nutzer."""
+
+    __tablename__ = "strava_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    access_token: Mapped[str] = mapped_column(Text)
+    refresh_token: Mapped[str] = mapped_column(String(255))
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    athlete_id: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

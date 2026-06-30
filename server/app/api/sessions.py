@@ -803,14 +803,27 @@ def _owned_or_admin(db, user, session_id) -> models.Session:
     return s
 
 
+def _truth_takes(db, session_id: int, run_idx: int | None) -> list[dict]:
+    """Getappte Pump-Zeiten als Take-Liste [{take, times_ms}] (für run_idx, oder run-übergreifend)."""
+    q = db.query(models.PumpTruth).filter_by(session_id=session_id)
+    if run_idx is not None:
+        q = q.filter_by(run_idx=run_idx)
+    rows = q.order_by(models.PumpTruth.take, models.PumpTruth.t_ms).all()
+    by_take: dict[int, list[int]] = {}
+    for r in rows:
+        by_take.setdefault(r.take, []).append(r.t_ms)
+    return [{"take": k, "times_ms": v} for k, v in sorted(by_take.items())]
+
+
 @router.get("/{session_id}/pump-truth")
 def get_pump_truth(
-    session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    session_id: int, run_idx: int | None = None,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     _owned_or_admin(db, user, session_id)
-    rows = (db.query(models.PumpTruth).filter_by(session_id=session_id)
-            .order_by(models.PumpTruth.t_ms).all())
-    return {"times_ms": [r.t_ms for r in rows], "run_idx": rows[0].run_idx if rows else None}
+    takes = _truth_takes(db, session_id, run_idx)
+    return {"run_idx": run_idx, "takes": takes,
+            "next_take": (max((t["take"] for t in takes), default=0) + 1)}
 
 
 @router.put("/{session_id}/pump-truth")
@@ -818,18 +831,37 @@ def put_pump_truth(
     session_id: int, body: PumpTruthIn,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Ersetzt die getappte Pump-Wahrheit. run_idx gesetzt -> nur dieser Lauf wird ersetzt
-    (pro-Lauf-Taggen akkumuliert über mehrere Läufe); sonst die ganze Session."""
+    """Speichert einen getappten Durchlauf (Take). take=None -> als NEUER Take anhängen
+    (überschreibt nichts, derselbe Lauf kann mehrfach getappt werden); take gesetzt ->
+    genau diesen Take ersetzen. run_idx grenzt auf einen Lauf ein."""
     _owned_or_admin(db, user, session_id)
-    q = db.query(models.PumpTruth).filter_by(session_id=session_id)
+    base = db.query(models.PumpTruth).filter_by(session_id=session_id)
     if body.run_idx is not None:
-        q = q.filter_by(run_idx=body.run_idx)
-    q.delete()
+        base = base.filter_by(run_idx=body.run_idx)
+    if body.take is None:
+        existing = [r.take for r in base.all()]
+        take = (max(existing) + 1) if existing else 1
+    else:
+        take = body.take
+        base.filter_by(take=take).delete()
     for t in body.times_ms:
-        db.add(models.PumpTruth(session_id=session_id, t_ms=int(t), run_idx=body.run_idx))
+        db.add(models.PumpTruth(session_id=session_id, t_ms=int(t),
+                                run_idx=body.run_idx, take=take))
     db.commit()
-    total = db.query(models.PumpTruth).filter_by(session_id=session_id).count()
-    return {"ok": True, "saved": len(body.times_ms), "total": total}
+    takes = _truth_takes(db, session_id, body.run_idx)
+    return {"ok": True, "saved": len(body.times_ms), "take": take, "n_takes": len(takes)}
+
+
+@router.get("/{session_id}/pump-truth/compare")
+def compare_pump_truth(
+    session_id: int, run_idx: int | None = None,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Vergleicht die getappten Durchläufe (Takes): richtet sie per Kreuzkorrelation aus,
+    liefert je Take Offset+Rest-Jitter und einen mehrheitlich bestätigten Konsens."""
+    _owned_or_admin(db, user, session_id)
+    from ..pumptruth import compare_takes
+    return compare_takes(_truth_takes(db, session_id, run_idx))
 
 
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---

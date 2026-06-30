@@ -320,11 +320,18 @@ export const api = {
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
   corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),
 
-  getPumpTruth: (id: number) => req<{ times_ms: number[]; run_idx: number | null }>(`/api/sessions/${id}/pump-truth`),
+  getPumpTruth: (id: number, runIdx: number | null) =>
+    req<{ run_idx: number | null; takes: { take: number; times_ms: number[] }[]; next_take: number }>(
+      `/api/sessions/${id}/pump-truth${runIdx != null ? `?run_idx=${runIdx}` : ""}`),
   savePumpTruth: (id: number, timesMs: number[], runIdx: number | null) =>
-    req<{ ok: boolean; saved: number; total: number }>(`/api/sessions/${id}/pump-truth`, {
+    req<{ ok: boolean; saved: number; take: number; n_takes: number }>(`/api/sessions/${id}/pump-truth`, {
       method: "PUT", body: JSON.stringify({ times_ms: timesMs, run_idx: runIdx }),
     }),
+  comparePumpTruth: (id: number, runIdx: number | null) =>
+    req<{
+      n_takes: number; ref_take?: number; consensus_n?: number; consensus_ms: number[];
+      takes: { take: number; n: number; offset_ms: number; matched: number; jitter_ms: number; is_ref: boolean }[];
+    }>(`/api/sessions/${id}/pump-truth/compare${runIdx != null ? `?run_idx=${runIdx}` : ""}`),
 
   suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
