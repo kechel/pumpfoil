@@ -59,8 +59,8 @@ export default function App() {
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 p-4 md:flex">
-        <Link to="/" className="mb-5 mt-1 block">
-          <Wordmark stacked tagline icon="h-9 w-9" text="text-2xl" className="mx-auto" />
+        <Link to="/" className="mb-5 mt-1 block px-1">
+          <Wordmark icon="h-7 w-7" text="text-xl" tagline />
         </Link>
         {profile && (
           <Link to="/" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
