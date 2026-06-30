@@ -58,7 +58,9 @@ def _find_peaks(sig: np.ndarray, fs: float) -> np.ndarray:
 # Statt einer globalen Amplituden-Schwelle (die starke Läufe hochziehen und glatte/kleine
 # Pumps eines Laufs ganz verschlucken) wird je Lauf relativ zur LAUF-eigenen Std geschwellt.
 PUMP_FLOOR_G = 0.04        # absoluter Boden (g) — niedriger als die alte |Betrag|-Schwelle
+PUMP_FLOOR_LO_G = 0.015    # abgesenkter Boden in klar rhythmischen Abschnitten (sanftes Pumpen)
 PUMP_RMS_GATE = 0.03       # Pro-Lauf-Gate: darunter kein Rhythmus -> 0 Pumps
+PUMP_RHYTHM_ON = 0.45      # Pump-Band-Anteil, ab dem ein Abschnitt als rhythmisch gilt
 
 
 def find_pumps_local(filt_run: np.ndarray, fs: float,
@@ -66,16 +68,21 @@ def find_pumps_local(filt_run: np.ndarray, fs: float,
                      floor: float = PUMP_FLOOR_G,
                      rms_gate: float = PUMP_RMS_GATE) -> np.ndarray:
     """Aufwärts-Push-Peaks in EINEM (lauf-lokalen) bandpassgefilterten Signal.
-    Schwelle = max(k·std(Lauf), floor); Mindestabstand wie _find_peaks. Gibt Indizes
-    relativ zum Lauf zurück. Pro-Lauf-RMS-Gate filtert reine Gleitphasen (kein Rhythmus)."""
+    Schwelle = max(k·std(Lauf), boden); Mindestabstand wie _find_peaks. Gibt Indizes relativ
+    zum Lauf zurück. Pro-Lauf-RMS-Gate filtert reine Gleitphasen. Der Boden wird in Abschnitten
+    mit klarer Pump-Periodik (pump_rhythmicity) abgesenkt -> sehr sanftes, aber rhythmisches
+    Pumpen wird erkannt, ohne in rhythmuslosen Gleitphasen zu über-zählen."""
+    from .features import pump_rhythmicity
     sig = np.asarray(filt_run, dtype=float)
     if sig.size < 3:
         return np.empty(0, dtype=int)
     if float(np.sqrt(np.mean(sig * sig))) < rms_gate:
         return np.empty(0, dtype=int)
-    thr = max(k * np.std(sig), floor)
+    rh = pump_rhythmicity(sig, fs)
+    floor_arr = np.where(rh >= PUMP_RHYTHM_ON, PUMP_FLOOR_LO_G, floor)
+    thr = np.maximum(k * np.std(sig), floor_arr)
     min_dist = max(int(round(MIN_PEAK_DISTANCE_S * fs)), 1)
-    cand = np.where((sig[1:-1] > sig[:-2]) & (sig[1:-1] >= sig[2:]) & (sig[1:-1] > thr))[0] + 1
+    cand = np.where((sig[1:-1] > sig[:-2]) & (sig[1:-1] >= sig[2:]) & (sig[1:-1] > thr[1:-1]))[0] + 1
     if cand.size == 0:
         return cand
     order = cand[np.argsort(-sig[cand])]

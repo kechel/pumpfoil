@@ -65,6 +65,34 @@ def vertical_against_gravity(raw_i16: np.ndarray, accel_scale: int, fs: float) -
     return np.sum((a - g) * gn, axis=1)
 
 
+RHYTHM_WIN_S = 6.0
+RHYTHM_HOP_S = 1.0
+
+
+def pump_rhythmicity(sig: np.ndarray, fs: float) -> np.ndarray:
+    """Pro-Sample [0..1]: Anteil der Spektral-Energie im Pump-Band (0.5–2 Hz) am Gesamt-Band
+    (0.3–3 Hz), in rollenden Fenstern. Hoch = klare Pump-Periodik (auch bei kleiner Amplitude),
+    niedrig = rhythmuslos (echtes Gleiten/Rauschen). Dient dazu, den Amplituden-Boden NUR in
+    rhythmischen Abschnitten abzusenken (sanftes Pumpen fangen, ohne Gleitphasen zu über-zählen)."""
+    sig = np.asarray(sig, dtype=float)
+    n = sig.size
+    w = int(RHYTHM_WIN_S * fs)
+    if w < 4 or n < w:
+        return np.zeros(n)
+    hop = max(int(RHYTHM_HOP_S * fs), 1)
+    win = np.hanning(w)
+    f = np.fft.rfftfreq(w, 1.0 / fs)
+    in_tot = (f >= FILTER_BAND[0]) & (f <= FILTER_BAND[1])
+    in_pmp = (f >= PUMP_BAND[0]) & (f <= PUMP_BAND[1])
+    centers, vals = [], []
+    for start in range(0, n - w + 1, hop):
+        spec = np.abs(np.fft.rfft(sig[start:start + w] * win)) ** 2
+        tot = spec[in_tot].sum()
+        centers.append(start + w // 2)
+        vals.append(float(spec[in_pmp].sum() / tot) if tot > 0 else 0.0)
+    return np.interp(np.arange(n), centers, vals, left=vals[0], right=vals[-1])
+
+
 def _spectral_entropy(power: np.ndarray) -> float:
     p = power[power > 0]
     if p.size == 0:
