@@ -39,7 +39,8 @@ from app.pumptruth import compare_takes  # noqa: E402
 MATCH_TOL_MS = 200
 CAND_FLOOR_G = 0.008   # sehr niedrig: Kandidaten sollen auch subtile echte Pumps enthalten
 CAND_MIN_DIST_S = 0.30
-FEATURES = ["amp", "rel_std", "prominence", "rhythmicity", "mag", "gap_prev_ms", "gap_next_ms"]
+FEATURES = ["amp", "rel_std", "prominence", "rhythmicity", "mag", "gap_prev_ms", "gap_next_ms",
+            "speed", "speed_trend"]   # speed/speed_trend = GPS-Kontext (1 Hz, nicht pro-Pump)
 
 
 def _prep(s):
@@ -56,7 +57,19 @@ def _prep(s):
                       impulse_times_ms=detect_jumps(accel, fs, s.accel_scale), water_rings=None)
     vsig = bandpass_fft(vertical_against_gravity(accel, s.accel_scale, fs), fs, *FILTER_BAND)
     mag = magnitude_g(accel, s.accel_scale)
-    return res, vsig, mag, fs
+    # GPS-Speed (1 Hz) als Zeitreihe (ms, m/s) — Lücken/None überspringen.
+    gt = np.array([g[0] for g in gps if len(g) > 3 and g[3] is not None], float)
+    gv = np.array([g[3] for g in gps if len(g) > 3 and g[3] is not None], float)
+    return res, vsig, mag, fs, gt, gv
+
+
+def _speed_feats(cand_ms, gt, gv):
+    """Pro Kandidat: GPS-Speed (interpoliert) + Speed-Trend (Steigung über ±2 s, m/s pro s)."""
+    if gt.size < 2:
+        return np.zeros(cand_ms.size), np.zeros(cand_ms.size)
+    sp = np.interp(cand_ms, gt, gv)
+    a = np.interp(cand_ms - 2000, gt, gv); b = np.interp(cand_ms + 2000, gt, gv)
+    return sp, (b - a) / 4.0
 
 
 def _candidates(vsig, mag, fs, seg):
@@ -109,7 +122,7 @@ def build():
         if not cmp.get("consensus_ms"):
             continue
         truth = np.asarray(cmp["consensus_ms"], float); w = cmp["window_ms"]
-        res, vsig, mag, fs = _prep(s)
+        res, vsig, mag, fs, gt, gv = _prep(s)
         segs = res["segments"] if run is None else [res["segments"][run]] if run < len(res["segments"]) else []
         feats, v3 = [], []
         for seg in segs:
@@ -119,6 +132,9 @@ def build():
         if not feats:
             continue
         cand_ms = np.array([f["i_global"] / fs * 1000 for f in feats])
+        sp, tr = _speed_feats(cand_ms, gt, gv)
+        for k, f in enumerate(feats):
+            f["speed"] = float(sp[k]); f["speed_trend"] = float(tr[k])
         period = float(np.median(np.diff(truth))) if truth.size > 1 else 700.0
         off = _best_offset(truth, cand_ms, int(period / 2))
         al = truth - off
