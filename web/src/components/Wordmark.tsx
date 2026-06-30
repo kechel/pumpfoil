@@ -1,37 +1,55 @@
 import { WaveIcon } from "./Icons";
 
-// Pumpfoil-Wortmarke als horizontale Sperrung: Wellen-Glyph LINKS neben „pumpfoil.org".
-// Entspricht dem Marken-Lockup (store-assets/logo, docs/BRAND.md). Wellen + „.org" in
-// Brand-Cyan; „pumpfoil" erbt die Textfarbe (passt sich Header-Kontext & Light/Dark an).
-// tagline=true blendet „TRACK EVERY PUMP" darunter ein (Login/Marketing-Kontexte).
+// Pumpfoil-Wortmarke als Vektor-Lockup (theme-fähig). Entspricht dem Marken-Lockup
+// (store-assets/logo, docs/BRAND.md).
 //
-// Für den großen Marketing-Titel (Landing-Hero) bleibt bewusst das PNG
-// (pumpfoil-wordmark-tagline.png) — dort zählt die exakte Schrift. In-App nutzen wir
-// diese Vektor-Variante (scharf, theme-/größenflexibel, kein Schrift-Mismatch).
+// Layout:
+//   stacked=false (default) -> horizontal: Wellen LINKS neben „pumpfoil.org" (Header).
+//   stacked=true            -> Wellen OBEN, darunter „pumpfoil.org" (+ Tagline) zentriert
+//                              — wie das große PNG-Lockup, z. B. in der App-Sidebar.
+//
+// Light/Dark: „.org" + Wellen nutzen text-brand-400 (in `html.theme-light` auf ein
+// dunkleres Cyan überschrieben -> lesbar). „pumpfoil" erbt die Textfarbe des Kontexts
+// (kippt mit dem Theme). Tagline = slate-400 (kippt automatisch via CSS-Variablen).
+// Für den großen Marketing-Hero bleibt das PNG (exakte Avenir-Next-Schrift).
 export function Wordmark({
   className = "",
   icon = "h-7 w-7",
   text = "text-xl",
   tagline = false,
+  stacked = false,
 }: {
   className?: string;
-  icon?: string;   // Tailwind-Größe des Wellen-Glyphs
-  text?: string;   // Tailwind-Schriftgröße der Wortmarke
+  icon?: string;
+  text?: string;
   tagline?: boolean;
+  stacked?: boolean;
 }) {
+  const mark = (
+    <span className={`flex flex-col leading-none ${stacked ? "items-center text-center" : ""}`}>
+      <span className={`font-extrabold tracking-tight ${text}`}>
+        pumpfoil<span className="text-brand-400">.org</span>
+      </span>
+      {tagline && (
+        <span className="mt-1.5 text-[0.5em] font-semibold uppercase tracking-[0.3em] text-slate-400">
+          track every pump
+        </span>
+      )}
+    </span>
+  );
+
+  if (stacked) {
+    return (
+      <span className={`inline-flex flex-col items-center gap-2 ${className}`}>
+        <WaveIcon className={`${icon} shrink-0 text-brand-400`} />
+        {mark}
+      </span>
+    );
+  }
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <WaveIcon className={`${icon} shrink-0 text-brand-400`} />
-      <span className="flex flex-col leading-none">
-        <span className={`font-extrabold tracking-tight ${text}`}>
-          pumpfoil<span className="text-brand-400">.org</span>
-        </span>
-        {tagline && (
-          <span className="mt-1.5 text-[0.5em] font-semibold uppercase tracking-[0.3em] text-slate-400">
-            track every pump
-          </span>
-        )}
-      </span>
+      {mark}
     </span>
   );
 }

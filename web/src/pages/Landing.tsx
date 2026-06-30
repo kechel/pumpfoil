@@ -5,7 +5,6 @@ import {
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
   LockIcon, HeartIcon,
 } from "../components/Icons";
-import { Wordmark } from "../components/Wordmark";
 import { useT } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -77,10 +76,9 @@ export default function Landing() {
         </video>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950" />
 
-        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-          <Link to="/">
-            <Wordmark icon="h-6 w-6" text="text-lg" />
-          </Link>
+        {/* Kein Wortmark-Link links: der große Hero-PNG-Titel direkt darunter wäre sonst
+            doppelt. Nur Sprachwahl + Login rechts. */}
+        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-end px-5 py-3">
           <div className="flex items-center gap-3">
             <LanguageFlags />
             <Link
