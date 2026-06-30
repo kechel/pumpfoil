@@ -77,9 +77,16 @@ export default function Landing() {
       <main className="mx-auto max-w-5xl px-5">
         {/* Hero */}
         <section className="pb-4 pt-3 text-center sm:pb-6 sm:pt-4">
-          <h1 className="flex items-center justify-center gap-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
-            <WaveIcon className="h-10 w-10 text-brand-400 sm:h-14 sm:w-14" />
-            Pumpfoil.org
+          {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
+              identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
+          <h1>
+            <img
+              src="/pumpfoil-wordmark-tagline.png"
+              alt="Pumpfoil.org — Track every pump"
+              width={1640}
+              height={760}
+              className="mx-auto h-auto w-full max-w-sm sm:max-w-md"
+            />
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
         </section>
