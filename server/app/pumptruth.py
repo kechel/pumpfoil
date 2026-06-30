@@ -127,10 +127,10 @@ def compare_takes(takes: list[dict]) -> dict:
             if len(c) >= need:
                 consensus.append(int(round(float(np.median(c)))))
 
-    # Auswertungs-Fenster: erst ab dem ersten getappten Pump (Synchronpunkt/GPS-Knick) bis zum
-    # letzten. Davor/danach ist NICHT getappt (≠ „keine Pumps") -> für spätere Detektor-vs-
-    # Wahrheit-Auswertung + Training nur dieses Fenster als gelabelt behandeln.
-    window = [int(pool.min()), int(pool.max())] if pool.size else None
+    # Auswertungs-Fenster: erster bis letzter KONSENS-Pump (nicht der Roh-Pool!). So verlängern
+    # einzelne Ausreißer-Taps (z. B. der „Platsch" beim Reinfallen, nur in einem Take) das
+    # Fenster NICHT in die Gleitphase hinein. Davor/danach ist nicht gelabelt -> ausgeschlossen.
+    window = [consensus[0], consensus[-1]] if consensus else None
 
     return {
         "n_takes": n_takes,
