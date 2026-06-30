@@ -9,7 +9,6 @@ import { useT } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
-import { WatchDemoVideo } from "../components/WatchDemoVideo";
 import { PromoVideos } from "../components/PromoVideos";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
@@ -200,11 +199,46 @@ export default function Landing() {
               />
             ))}
           </div>
-        </section>
 
-        {/* Demo-Video (Garmin-Emulator) — direkt unter dem App-Screenshots-Slider */}
-        <section className="pb-10">
-          <WatchDemoVideo title={t("watch.demoTitle")} />
+          {/* Native Apps: offizielle Store-Badges + QR-Codes zum Abscannen vom PC.
+              Direkt unter den Mobile-Screenshots (kein eigener Abschnitts-Titel). */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-8 sm:flex-row sm:items-start sm:gap-12">
+            {/* Android (Google Play) */}
+            <div className="flex flex-col items-center gap-3">
+              <a
+                href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Jetzt bei Google Play"
+              >
+                <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
+              </a>
+              <span className="text-xs font-medium text-slate-300">{t("land.inclWear")}</span>
+              <img
+                src="/badges/qr-google-play.svg"
+                alt="QR-Code: Google Play"
+                className="h-28 w-28 rounded-lg bg-white p-1.5"
+              />
+            </div>
+            {/* iPhone + Apple Watch (App Store) */}
+            <div className="flex flex-col items-center gap-3">
+              <a
+                href="https://apps.apple.com/app/id6783975714"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Laden im App Store"
+              >
+                <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-14 w-auto" />
+              </a>
+              <span className="text-xs font-medium text-slate-300">{t("land.inclWatch")}</span>
+              <img
+                src="/badges/qr-app-store.svg"
+                alt="QR-Code: App Store"
+                className="h-28 w-28 rounded-lg bg-white p-1.5"
+              />
+            </div>
+          </div>
+          <p className="mt-3 text-center text-xs text-slate-400">{t("land.qrHint")}</p>
         </section>
 
         {/* Promo-Videos vom YouTube-Kanal (live, selbst-aktualisierend) */}
@@ -269,44 +303,6 @@ export default function Landing() {
             </Link>
             <InstallPwa />
           </div>
-          {/* Native Apps: offizielle Store-Badges + QR-Codes zum Abscannen vom PC. */}
-          <div className="mt-8 flex flex-col items-center justify-center gap-8 sm:flex-row sm:items-start sm:gap-12">
-            {/* Android (Google Play) */}
-            <div className="flex flex-col items-center gap-3">
-              <a
-                href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Jetzt bei Google Play"
-              >
-                <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
-              </a>
-              <span className="text-xs font-medium text-slate-300">{t("land.inclWear")}</span>
-              <img
-                src="/badges/qr-google-play.svg"
-                alt="QR-Code: Google Play"
-                className="h-28 w-28 rounded-lg bg-white p-1.5"
-              />
-            </div>
-            {/* iPhone + Apple Watch (App Store) */}
-            <div className="flex flex-col items-center gap-3">
-              <a
-                href="https://apps.apple.com/app/id6783975714"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Laden im App Store"
-              >
-                <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-14 w-auto" />
-              </a>
-              <span className="text-xs font-medium text-slate-300">{t("land.inclWatch")}</span>
-              <img
-                src="/badges/qr-app-store.svg"
-                alt="QR-Code: App Store"
-                className="h-28 w-28 rounded-lg bg-white p-1.5"
-              />
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-slate-400">{t("land.qrHint")}</p>
         </section>
       </main>
 
