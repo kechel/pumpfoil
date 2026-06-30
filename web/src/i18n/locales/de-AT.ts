@@ -516,6 +516,11 @@ const deAT: Record<string, string> = {
   "settings.coros.connect": "Mit COROS verbinden",
   "settings.coros.connected": "Verbunden — automatischer Import",
   "settings.coros.unlink": "Verbindung trennen",
+  "settings.coros.help": "Wie funktioniert's?",
+  "settings.coros.help1": "COROS-Konto verbinden → neiche Trainings werdn automatisch importiert (GPS + Puls), kein manueller Sync.",
+  "settings.coros.help2": "Aufn da Uhr a Outdoor-Aktivität mit GPS aufnehmen (z. B. „Speedsurfing“). Indoor/ohne GPS wird übersprungen.",
+  "settings.coros.help3": "Pump-Analyse is begrenzt: Da COROS-Export liefert kein Roh-Accel-Stream — ausgwertet werdn GPS + Puls.",
+  "settings.coros.help4": "Trennen jederzeit möglich (entzieht'n Zugriff und stoppt'n Import).",
 
   "profile.calculator": "Foil-Rechner",
 

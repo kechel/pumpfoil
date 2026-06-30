@@ -597,6 +597,11 @@ const fr: Record<string, string> = {
   "settings.coros.connect": "Connecter COROS",
   "settings.coros.connected": "Connecté — import automatique",
   "settings.coros.unlink": "Déconnecter",
+  "settings.coros.help": "Comment ça marche ?",
+  "settings.coros.help1": "Connecte ton compte COROS → les nouveaux entraînements s'importent automatiquement (GPS + FC), sans sync manuel.",
+  "settings.coros.help2": "Sur la montre, enregistre une activité outdoor avec GPS (p. ex. „Speedsurfing“). Indoor/sans GPS est ignoré.",
+  "settings.coros.help3": "L'analyse pump est limitée : l'export COROS n'a pas de flux accel brut — GPS + FC sont analysés.",
+  "settings.coros.help4": "Déconnexion possible à tout moment (révoque l'accès et stoppe l'import).",
 
   "profile.calculator": "Calculateur de foil",
 

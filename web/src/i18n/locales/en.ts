@@ -720,6 +720,11 @@ const en: Record<string, string> = {
   "settings.coros.connect": "Connect COROS",
   "settings.coros.connected": "Connected — automatic import",
   "settings.coros.unlink": "Disconnect",
+  "settings.coros.help": "How does it work?",
+  "settings.coros.help1": "Connect your COROS account → new workouts import automatically (GPS + heart rate), no manual sync.",
+  "settings.coros.help2": "On the watch, record an outdoor activity with GPS (e.g. „Speedsurfing“). Indoor/no-GPS is skipped.",
+  "settings.coros.help3": "Pump analysis is limited: the COROS export has no raw accelerometer stream — GPS + heart rate are analyzed.",
+  "settings.coros.help4": "Disconnect anytime (revokes access and stops the import).",
 
   "profile.calculator": "Foil calculator",
 

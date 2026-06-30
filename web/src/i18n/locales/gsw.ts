@@ -526,6 +526,11 @@ const gsw: Record<string, string> = {
   "settings.coros.connect": "Mit COROS verbinde",
   "settings.coros.connected": "Verbunde — automatische Import",
   "settings.coros.unlink": "Verbindig trenne",
+  "settings.coros.help": "Wie gaht das?",
+  "settings.coros.help1": "COROS-Konto verbinde → neui Trainings werded automatisch importiert (GPS + Puls), kei manuelle Sync.",
+  "settings.coros.help2": "Uf de Uhr e Outdoor-Aktivität mit GPS ufnäh (z. B. „Speedsurfing“). Indoor/ohni GPS wird übersprunge.",
+  "settings.coros.help3": "Pump-Analyse isch begränzt: De COROS-Export liferet kei Roh-Accel-Stream — uusgwertet werded GPS + Puls.",
+  "settings.coros.help4": "Trenne jederzit möglich (entzieht de Zuegriff und stoppt de Import).",
 
   "profile.calculator": "Foil-Rechner",
 
