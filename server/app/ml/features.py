@@ -37,6 +37,34 @@ def bandpass_fft(sig: np.ndarray, fs: float, lo: float, hi: float) -> np.ndarray
     return np.fft.irfft(spec, n=n)
 
 
+GRAVITY_CUTOFF_HZ = 0.25   # darunter = Schwerkraft/Orientierung (langsam), darüber = Dynamik
+
+
+def lowpass_fft(sig: np.ndarray, fs: float, cutoff: float) -> np.ndarray:
+    """FFT-Tiefpass (offline; nullt Bins > cutoff). Behält den DC-Anteil (Mittelwert)."""
+    n = sig.size
+    if n < 4:
+        return np.asarray(sig, dtype=float)
+    spec = np.fft.rfft(sig)
+    freqs = np.fft.rfftfreq(n, d=1.0 / fs)
+    spec[freqs > cutoff] = 0.0
+    return np.fft.irfft(spec, n=n)
+
+
+def vertical_against_gravity(raw_i16: np.ndarray, accel_scale: int, fs: float) -> np.ndarray:
+    """(N,3) int16 -> (N,) vertikale Dynamik-Beschleunigung GEGEN die Schwerkraft, in g.
+    >0 = aufwärts (Push). Schwerkraft-Richtung per Tiefpass je Achse geschätzt, die
+    dynamische Beschleunigung (a−g) auf den Schwerkraft-Einheitsvektor projiziert. So
+    wird die wechselnde Handgelenks-Orientierung herausgerechnet — ein Pump zeigt als
+    Aufwärts-Push (statt als orientierungsloser |Betrag|, der Auf-/Abstrich doppelt zählt)."""
+    if raw_i16.ndim != 2 or raw_i16.shape[0] < 4 or raw_i16.shape[1] < 3:
+        return np.zeros(raw_i16.shape[0] if raw_i16.ndim == 2 else 0)
+    a = raw_i16.astype(np.float64) / float(accel_scale)
+    g = np.column_stack([lowpass_fft(a[:, k], fs, GRAVITY_CUTOFF_HZ) for k in range(3)])
+    gn = g / np.clip(np.linalg.norm(g, axis=1, keepdims=True), 1e-6, None)
+    return np.sum((a - g) * gn, axis=1)
+
+
 def _spectral_entropy(power: np.ndarray) -> float:
     p = power[power > 0]
     if p.size == 0:

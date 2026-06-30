@@ -54,6 +54,40 @@ def _find_peaks(sig: np.ndarray, fs: float) -> np.ndarray:
     return np.array(sorted(taken), dtype=int)
 
 
+# --- v2: Pumps auf dem vertikalen Signal (gegen Schwerkraft), LAUF-lokale Schwelle ---
+# Statt einer globalen Amplituden-Schwelle (die starke Läufe hochziehen und glatte/kleine
+# Pumps eines Laufs ganz verschlucken) wird je Lauf relativ zur LAUF-eigenen Std geschwellt.
+PUMP_FLOOR_G = 0.04        # absoluter Boden (g) — niedriger als die alte |Betrag|-Schwelle
+PUMP_RMS_GATE = 0.03       # Pro-Lauf-Gate: darunter kein Rhythmus -> 0 Pumps
+
+
+def find_pumps_local(filt_run: np.ndarray, fs: float,
+                     k: float = PEAK_PROMINENCE_STD,
+                     floor: float = PUMP_FLOOR_G,
+                     rms_gate: float = PUMP_RMS_GATE) -> np.ndarray:
+    """Aufwärts-Push-Peaks in EINEM (lauf-lokalen) bandpassgefilterten Signal.
+    Schwelle = max(k·std(Lauf), floor); Mindestabstand wie _find_peaks. Gibt Indizes
+    relativ zum Lauf zurück. Pro-Lauf-RMS-Gate filtert reine Gleitphasen (kein Rhythmus)."""
+    sig = np.asarray(filt_run, dtype=float)
+    if sig.size < 3:
+        return np.empty(0, dtype=int)
+    if float(np.sqrt(np.mean(sig * sig))) < rms_gate:
+        return np.empty(0, dtype=int)
+    thr = max(k * np.std(sig), floor)
+    min_dist = max(int(round(MIN_PEAK_DISTANCE_S * fs)), 1)
+    cand = np.where((sig[1:-1] > sig[:-2]) & (sig[1:-1] >= sig[2:]) & (sig[1:-1] > thr))[0] + 1
+    if cand.size == 0:
+        return cand
+    order = cand[np.argsort(-sig[cand])]
+    taken: list[int] = []
+    blocked = np.zeros(sig.size, dtype=bool)
+    for idx in order:
+        if not blocked[idx]:
+            taken.append(int(idx))
+            blocked[max(idx - min_dist, 0):min(idx + min_dist + 1, sig.size)] = True
+    return np.array(sorted(taken), dtype=int)
+
+
 def count_pumps(mag: np.ndarray, fs: float, mask: np.ndarray | None = None) -> int:
     """Anzahl Pumps. Optional nur innerhalb mask (z. B. Foiling-Phasen) zählen."""
     if mag.size == 0:

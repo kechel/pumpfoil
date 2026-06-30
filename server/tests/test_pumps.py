@@ -9,8 +9,39 @@ from __future__ import annotations
 
 import numpy as np
 
-from app.ml.features import magnitude_g, window_features
-from app.ml.pumps import analyze_accel, count_pumps
+from app.ml.features import magnitude_g, window_features, bandpass_fft, vertical_against_gravity, FILTER_BAND
+from app.ml.pumps import analyze_accel, count_pumps, find_pumps_local
+
+
+def test_find_pumps_local_recovers_smooth_run():
+    """Glatter, kleinamplitudiger Pump-Lauf (1 Hz, 0.1 g) -> lauf-lokale Schwelle findet ~20."""
+    fs = 25.0
+    t = np.arange(int(20 * fs)) / fs
+    sig = 0.1 * np.sin(2 * np.pi * 1.0 * t)
+    n = find_pumps_local(sig, fs).size
+    assert 16 <= n <= 24, f"erwartet ~20, war {n}"
+
+
+def test_find_pumps_local_gate_blocks_glide():
+    """Sehr kleine Amplitude (unter RMS-Gate) -> 0 Pumps (echte Gleitphase)."""
+    fs = 25.0
+    t = np.arange(int(20 * fs)) / fs
+    sig = 0.01 * np.sin(2 * np.pi * 1.0 * t)
+    assert find_pumps_local(sig, fs).size == 0
+
+
+def test_vertical_against_gravity_orientation_independent():
+    """Schwerkraft auf der X-Achse, Pumpen entlang X -> vertikales Signal ist rhythmisch
+    (Orientierung der Uhr wird herausgerechnet)."""
+    fs = 25.0
+    n = int(20 * fs)
+    t = np.arange(n) / fs
+    x = 1.0 + 0.3 * np.sin(2 * np.pi * 1.0 * t)   # 1g auf X + Pump entlang X
+    raw = (np.stack([x, np.zeros(n), np.zeros(n)], axis=1) * 2048).astype(np.int16)
+    v = vertical_against_gravity(raw, 2048, fs)
+    vf = bandpass_fft(v, fs, *FILTER_BAND)
+    assert vf.std() > 0.1, f"vertikales Pump-Signal zu schwach: std={vf.std():.3f}"
+    assert 16 <= find_pumps_local(vf, fs).size <= 24
 
 
 def _synth(freq_hz, secs, fs=25, scale=2048, amp_g=0.4, noise_g=0.02):
