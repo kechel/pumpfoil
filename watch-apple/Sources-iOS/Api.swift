@@ -43,6 +43,12 @@ enum Api {
         try await request("/api/auth/me", method: "PUT", body: ["display_name": name], auth: true)
     }
 
+    // DSGVO: eigenes Konto + ALLE Daten unwiderruflich löschen (App-Store-Pflicht 5.1.1(v)).
+    static func deleteAccount() async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/auth/me", method: "DELETE", body: nil, auth: true)
+    }
+
     static func sessions() async throws -> [SessionSummary] {
         try await request("/api/sessions", method: "GET", body: nil, auth: true)
     }

@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var editing = false
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
+    @State private var confirmingDelete = false
 
     var body: some View {
         NavigationStack {
@@ -88,6 +89,10 @@ struct ProfileView: View {
                 Section {
                     Button(Loc.t("profile.logout", lang), role: .destructive) { session.logout() }
                 }
+                // Konto-Löschung (App-Store-Pflicht 5.1.1(v)): DSGVO-Delete + danach abmelden.
+                Section {
+                    Button(Loc.t("profile.deleteAccount", lang), role: .destructive) { confirmingDelete = true }
+                }
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.profile", lang))
@@ -102,6 +107,14 @@ struct ProfileView: View {
                     }
                 }
                 Button("Abbrechen", role: .cancel) {}
+            }
+            .alert(Loc.t("profile.deleteAccount", lang), isPresented: $confirmingDelete) {
+                Button(Loc.t("profile.deleteConfirmBtn", lang), role: .destructive) {
+                    Task { try? await Api.deleteAccount(); session.logout() }
+                }
+                Button(Loc.t("common.cancel", lang), role: .cancel) {}
+            } message: {
+                Text(Loc.t("profile.deleteConfirm", lang))
             }
             .onChange(of: avatarItem) { item in
                 Task {
