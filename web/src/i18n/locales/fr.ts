@@ -465,7 +465,7 @@ const fr: Record<string, string> = {
   "watches.nGarmin": "Modèles plus anciens sans accel brut : les stats GPS sont quand même analysées.",
   "watches.nApple": "Accélération brute via Core Motion.",
   "watches.nAmazfit": "Accès aux capteurs selon le modèle.",
-  "watches.nPolar": "Accel brut uniquement via un capteur BLE séparé.",
+  "watches.nPolar": "Lier le compte Polar → importer les entraînements (GPS + FC). L'analyse pump nécessite l'accel brut (capteur BLE séparé).",
   "watches.nFitbit": "Les apps tierces ont été abandonnées.",
 
   "import.title": "Importer une activité",

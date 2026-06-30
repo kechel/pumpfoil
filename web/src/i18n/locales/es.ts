@@ -465,7 +465,7 @@ const es: Record<string, string> = {
   "watches.nGarmin": "Modelos antiguos sin accel bruto: las estadísticas GPS se analizan igualmente.",
   "watches.nApple": "Aceleración bruta vía Core Motion.",
   "watches.nAmazfit": "Acceso a sensores según el modelo.",
-  "watches.nPolar": "Accel bruto solo mediante un sensor BLE aparte.",
+  "watches.nPolar": "Vincula tu cuenta Polar → importa entrenamientos (GPS + FC). El análisis de pump necesita accel bruto (sensor BLE aparte).",
   "watches.nFitbit": "Las apps de terceros fueron descontinuadas.",
 
   "import.title": "Importar actividad",

@@ -389,7 +389,7 @@ const gsw: Record<string, string> = {
   "watches.nGarmin": "Älteri Modäll ohni Roh-Accel: GPS-Stats wärded trotzdem uswertet.",
   "watches.nApple": "Roh-Beschlünigung über Core Motion.",
   "watches.nAmazfit": "Sensor-Zuegriff je nach Modäll.",
-  "watches.nPolar": "Roh-Accel nume über en separate BLE-Sensor.",
+  "watches.nPolar": "Polar-Konto verchnüpfe → Trainings importiere (GPS + HR). Pump-Analyse bruucht Roh-Accel (separate BLE-Sensor).",
   "watches.nFitbit": "Drittaabieter-Apps sind iigstellt worde.",
 
   "sd.colDistPerPump": "Ø m/Pump",

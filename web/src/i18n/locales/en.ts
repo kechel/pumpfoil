@@ -588,7 +588,7 @@ const en: Record<string, string> = {
   "watches.nGarmin": "Older models without raw accel: GPS stats are still analyzed.",
   "watches.nApple": "Raw acceleration via Core Motion.",
   "watches.nAmazfit": "Sensor access depends on the model.",
-  "watches.nPolar": "Raw accel only via a separate BLE sensor.",
+  "watches.nPolar": "Link your Polar account → import workouts (GPS + HR). Pump analysis needs raw accel (separate BLE sensor).",
   "watches.nFitbit": "Third-party apps were discontinued.",
 
   "import.title": "Import activity",
