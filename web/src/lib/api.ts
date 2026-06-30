@@ -315,6 +315,10 @@ export const api = {
   polarConnect: () => req<{ authorize_url: string }>("/api/integrations/polar/connect"),
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
+
+  corosStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/status"),
+  corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
+  corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),

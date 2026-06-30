@@ -521,6 +521,11 @@ const gsw: Record<string, string> = {
   "settings.polar.connected": "Verbunde",
   "settings.polar.importing": "Importiere…",
   "settings.polar.result": "{imported} importiert, {skipped} übersprunge",
+  "settings.coros.title": "COROS-Import",
+  "settings.coros.hint": "Verbinde dis COROS-Konto (Open API). Neui Trainings werded automatisch als Sessions importiert.",
+  "settings.coros.connect": "Mit COROS verbinde",
+  "settings.coros.connected": "Verbunde — automatische Import",
+  "settings.coros.unlink": "Verbindig trenne",
 
   "profile.calculator": "Foil-Rechner",
 

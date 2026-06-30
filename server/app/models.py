@@ -434,3 +434,21 @@ class PolarLink(Base):
     member_id: Mapped[str] = mapped_column(String(64))                 # von uns vergebene member-id
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class CorosLink(Base):
+    """Verknüpfung eines Nutzers mit der COROS Open API. Workouts kommen per Push
+    (Abschnitt 5.3): COROS POSTet Summaries inkl. fitUrl, wir laden die .fit und
+    importieren sie. open_id ist die COROS-User-ID (Mapping Push -> unser Nutzer).
+    access_token/refresh_token für deauthorize + optionalen Pull. Ein Link pro Nutzer."""
+
+    __tablename__ = "coros_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    open_id: Mapped[str] = mapped_column(String(64), index=True)        # COROS openId
+    access_token: Mapped[str] = mapped_column(String(255))             # gültig 30 Tage
+    refresh_token: Mapped[str] = mapped_column(String(255))            # läuft nie ab
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

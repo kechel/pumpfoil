@@ -511,6 +511,11 @@ const deAT: Record<string, string> = {
   "settings.polar.connected": "Verbunden",
   "settings.polar.importing": "Importiere…",
   "settings.polar.result": "{imported} importiert, {skipped} übersprungen",
+  "settings.coros.title": "COROS-Import",
+  "settings.coros.hint": "Verbinde dei COROS-Konto (Open API). Neiche Trainings werdn automatisch als Sessions importiert.",
+  "settings.coros.connect": "Mit COROS verbinden",
+  "settings.coros.connected": "Verbunden — automatischer Import",
+  "settings.coros.unlink": "Verbindung trennen",
 
   "profile.calculator": "Foil-Rechner",
 

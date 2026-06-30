@@ -17,8 +17,46 @@ export default function LinkedAccounts() {
       </Link>
       <h2 className="mb-1 text-xl font-bold">{t("linked.title")}</h2>
       <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
-      <PolarCard />
+      <div className="space-y-4">
+        <PolarCard />
+        <CorosCard />
+      </div>
     </div>
+  );
+}
+
+// COROS Open API: Konto verknüpfen, Workouts kommen automatisch per Push. Nur sichtbar,
+// wenn serverseitig konfiguriert (status.available).
+function CorosCard() {
+  const { t } = useI18n();
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [msg, setMsg] = useState("");
+  const load = () => api.corosStatus().then(setSt).catch(() => setSt(null));
+  useEffect(() => { load(); }, []);
+  if (!st || !st.available) return null;
+
+  async function connect() {
+    try { const r = await api.corosConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
+  }
+  async function unlink() {
+    await api.corosUnlink().catch(() => {});
+    setMsg(""); load();
+  }
+
+  return (
+    <Card className="p-5">
+      <h3 className="mb-1 font-semibold">{t("settings.coros.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("settings.coros.hint")}</p>
+      {!st.linked ? (
+        <Button onClick={connect}>{t("settings.coros.connect")}</Button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-emerald-400">{t("settings.coros.connected")}</span>
+          <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
+        </div>
+      )}
+      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+    </Card>
   );
 }
 

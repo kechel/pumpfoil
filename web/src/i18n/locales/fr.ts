@@ -592,6 +592,11 @@ const fr: Record<string, string> = {
   "settings.polar.connected": "Connecté",
   "settings.polar.importing": "Import…",
   "settings.polar.result": "{imported} importés, {skipped} ignorés",
+  "settings.coros.title": "Import COROS",
+  "settings.coros.hint": "Connecte ton compte COROS (Open API). Les nouveaux entraînements sont importés automatiquement comme sessions.",
+  "settings.coros.connect": "Connecter COROS",
+  "settings.coros.connected": "Connecté — import automatique",
+  "settings.coros.unlink": "Déconnecter",
 
   "profile.calculator": "Calculateur de foil",
 
