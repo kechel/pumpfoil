@@ -22,7 +22,7 @@ const CAP_CLASS: Record<Cap, string> = { yes: "text-emerald-400", partial: "text
 const STATUS_CLASS: Record<Status, string> = {
   avail: "badge-ok bg-emerald-500/15 text-emerald-300",
   planned: "badge-soon bg-sky-500/15 text-sky-300",
-  import: "bg-slate-500/15 text-slate-300",
+  import: "badge-ok bg-emerald-500/15 text-emerald-300",   // wie „Verfügbar" — grün
   no: "badge-danger bg-rose-500/15 text-rose-300",
 };
 

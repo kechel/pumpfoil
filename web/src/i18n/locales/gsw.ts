@@ -380,7 +380,7 @@ const gsw: Record<string, string> = {
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfüegbar",
   "watches.st.planned": "Plant",
-  "watches.st.import": "Automatische Datenimport",
+  "watches.st.import": "Polar API",
   "watches.st.no": "Nöd möglich",
   "watches.legYes": "voll unterstützt",
   "watches.legPartial": "iigschränkt",

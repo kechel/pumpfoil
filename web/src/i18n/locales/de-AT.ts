@@ -370,7 +370,7 @@ const deAT: Record<string, string> = {
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfügbar",
   "watches.st.planned": "Geplant",
-  "watches.st.import": "Automatischer Datenimport",
+  "watches.st.import": "Polar API",
   "watches.st.no": "Nicht möglich",
   "watches.legYes": "voll unterstützt",
   "watches.legPartial": "eingeschränkt",

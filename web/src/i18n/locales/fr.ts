@@ -456,7 +456,7 @@ const fr: Record<string, string> = {
   "watches.colStatus": "Statut",
   "watches.st.avail": "Disponible",
   "watches.st.planned": "Prévu",
-  "watches.st.import": "Import auto des données",
+  "watches.st.import": "Polar API",
   "watches.st.no": "Impossible",
   "watches.legYes": "entièrement pris en charge",
   "watches.legPartial": "limité",
