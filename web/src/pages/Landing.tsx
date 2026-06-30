@@ -59,7 +59,7 @@ export default function Landing() {
   };
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
+      <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
         <Link to="/" className="flex items-center gap-2 text-lg font-bold">
           <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
         </Link>
@@ -76,7 +76,7 @@ export default function Landing() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* Hero */}
-        <section className="pb-4 pt-3 text-center sm:pb-6 sm:pt-4">
+        <section className="pb-4 pt-0 text-center sm:pb-6 sm:pt-0">
           {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
               identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
           <h1>
