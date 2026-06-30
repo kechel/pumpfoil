@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="web/public/icon-512.png" alt="Pumpfoil logo" width="120">
+<img src="store-assets/logo/app-icon-512.png" alt="Pumpfoil logo" width="120">
 
 # Pumpfoil
 
