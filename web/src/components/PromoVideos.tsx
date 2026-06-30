@@ -79,7 +79,7 @@ export function PromoVideos() {
                       ) : (
                         <button onClick={() => setActive(v.id)} className="group absolute inset-0 h-full w-full" aria-label={v.title}>
                           <img
-                            src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
+                            src={`/api/public/video-thumb/${v.id}`}
                             alt={v.title}
                             loading="lazy"
                             className="h-full w-full object-cover transition group-hover:scale-105"

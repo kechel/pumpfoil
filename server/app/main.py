@@ -168,6 +168,40 @@ def public_videos() -> dict:
     return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
 
 
+@app.get("/api/public/video-thumb/{vid}")
+def public_video_thumb(vid: str):
+    """YouTube-Vorschaubild über UNSEREN Server ausliefern (gecacht), statt es direkt von
+    i.ytimg.com zu laden. So entsteht beim Seitenaufbau KEIN Drittkontakt zu Google vor dem
+    Klick aufs Video -> kein Cookie-Banner nötig (Click-to-Load bleibt einwilligungsfrei)."""
+    import re
+    import httpx
+    from fastapi import Response, HTTPException
+
+    if not re.fullmatch(r"[A-Za-z0-9_-]{6,16}", vid):
+        raise HTTPException(400, "bad id")
+    cached = _yt_thumb_cache.get(vid)
+    if cached is None:
+        data = b""
+        for q in ("hqdefault", "mqdefault"):
+            try:
+                r = httpx.get(f"https://i.ytimg.com/vi/{vid}/{q}.jpg", timeout=10)
+                if r.status_code == 200 and r.content:
+                    data = r.content
+                    break
+            except Exception:  # noqa: BLE001
+                pass
+        if not data:
+            raise HTTPException(404, "no thumb")
+        if len(_yt_thumb_cache) < 64:
+            _yt_thumb_cache[vid] = data
+        cached = data
+    return Response(content=cached, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+_yt_thumb_cache: dict = {}
+
+
 app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(ingest.router)
