@@ -58,12 +58,12 @@ export default function App() {
       <FeedbackWidget />
       <CompareBar />
       {/* Desktop-Sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 p-4 md:flex">
-        <Link to="/" className="mb-5 mt-1 block px-1">
+      <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
+        <Link to="/" className="mb-3 block px-1">
           <Wordmark icon="h-7 w-7" text="text-xl" tagline />
         </Link>
         {profile && (
-          <Link to="/" className="mb-4 flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-slate-900">
+          <Link to="/" className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-100">{profile.display_name || "—"}</div>
