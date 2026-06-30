@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="180" viewBox="0 0 760 180">
+  <defs>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#22d3ee" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <g transform="translate(18,34) scale(5.4)" fill="none" stroke="#22d3ee" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/>
+    <path d="M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/>
+  </g>
+  <text x="150" y="120" font-family="Avenir Next, Helvetica Neue, sans-serif" font-weight="700"
+        font-size="74" fill="#ffffff" letter-spacing="1">pumpfoil<tspan fill="#22d3ee">.org</tspan></text>
+</svg>
