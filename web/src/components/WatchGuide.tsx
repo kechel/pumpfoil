@@ -56,11 +56,6 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
   );
   return (
     <div className="space-y-5">
-      {/* Demo-Clip (stellvertretend für alle Plattformen) ganz oben. */}
-      <Card className="p-5">
-        <WatchDemoVideo title={t("watch.demoTitle")} />
-      </Card>
-
       {/* Plattform-Auswahl: nur der gewählte Abschnitt wird eingeblendet. */}
       <Card className="p-5">
         <h3 className="font-semibold">{t("guide.howto")}</h3>
@@ -181,6 +176,11 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <li><b>{t("guide.pair.relinkTitle")}</b> {t("guide.pair.relink")}</li>
         </ul>
         <p className="mt-3 text-xs text-slate-400">{t("guide.pair.note")}</p>
+      </Card>
+
+      {/* Demo-Clip ganz unten, rund (passt zur runden Uhr). */}
+      <Card className="p-5">
+        <WatchDemoVideo title={t("watch.demoTitle")} round />
       </Card>
     </div>
   );

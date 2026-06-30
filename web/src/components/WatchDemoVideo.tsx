@@ -2,7 +2,7 @@
 // web/public — webm (klein) zuerst, mp4 (faststart) als Fallback. Bewusst KEIN
 // autoplay: der Nutzer startet selbst (controls). Wird auf der Startseite und im
 // Uhren-Guide eingebunden (stellvertretend für alle Plattformen).
-export function WatchDemoVideo({ className = "", title }: { className?: string; title?: string }) {
+export function WatchDemoVideo({ className = "", title, round = false }: { className?: string; title?: string; round?: boolean }) {
   return (
     <figure className={`mx-auto flex max-w-[280px] flex-col items-center gap-3 ${className}`}>
       {title && (
@@ -15,7 +15,7 @@ export function WatchDemoVideo({ className = "", title }: { className?: string; 
         loop
         preload="metadata"
         poster="/watch-garmin-1.webp"
-        className="w-full rounded-3xl border border-slate-800 shadow-xl"
+        className={`w-full border border-slate-800 shadow-xl ${round ? "aspect-square rounded-full object-cover" : "rounded-3xl"}`}
       >
         <source src="/watch-garmin-demo.webm" type="video/webm" />
         <source src="/watch-garmin-demo.mp4" type="video/mp4" />
