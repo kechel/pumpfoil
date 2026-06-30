@@ -130,6 +130,44 @@ def wear_fgs_demo() -> FileResponse:
     return FileResponse(vids[0], media_type="video/webm", filename="pumpfoil-wear-fgs.webm")
 
 
+# --- Öffentliche Promo-Videos vom YouTube-Kanal (@pumpfoil-org), gecacht. ---
+# Quelle: Kanal-RSS-Feed (kein API-Key, keine Quota). Selbst-aktualisierend, sobald Jan
+# neue Videos postet. Wird auf der öffentlichen Startseite (Landing) eingebunden.
+_YT_CHANNEL_ID = "UCb_1b-TkdGE4kZWX17HDH9g"
+_YT_FEED = f"https://www.youtube.com/feeds/videos.xml?channel_id={_YT_CHANNEL_ID}"
+_YT_TTL_S = 3600.0
+_yt_cache: dict = {"at": 0.0, "videos": []}
+
+
+@app.get("/api/public/videos")
+def public_videos() -> dict:
+    """Neueste Videos des YouTube-Kanals als [{id,title,published}] (1h gecacht)."""
+    import time
+    import httpx
+    from xml.etree import ElementTree as ET
+
+    now = time.time()
+    if now - _yt_cache["at"] < _YT_TTL_S and _yt_cache["videos"]:
+        return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
+    try:
+        r = httpx.get(_YT_FEED, timeout=10)
+        if r.status_code == 200:
+            ns = {"a": "http://www.w3.org/2005/Atom", "yt": "http://www.youtube.com/xml/schemas/2015"}
+            root = ET.fromstring(r.text)
+            vids = []
+            for e in root.findall("a:entry", ns):
+                vid = e.findtext("yt:videoId", default="", namespaces=ns)
+                title = e.findtext("a:title", default="", namespaces=ns)
+                pub = e.findtext("a:published", default="", namespaces=ns)
+                if vid:
+                    vids.append({"id": vid, "title": title, "published": pub})
+            if vids:
+                _yt_cache.update(at=now, videos=vids[:12])
+    except Exception:  # noqa: BLE001 — Feed-Ausfall darf die Startseite nicht stören
+        pass
+    return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
+
+
 app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(ingest.router)

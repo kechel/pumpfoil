@@ -343,6 +343,8 @@ export const api = {
   stravaSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/strava/sync", { method: "POST" }),
   stravaUnlink: () => req<{ ok: boolean }>("/api/integrations/strava", { method: "DELETE" }),
 
+  publicVideos: () => req<{ videos: { id: string; title: string; published: string }[]; channel: string }>("/api/public/videos"),
+
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),

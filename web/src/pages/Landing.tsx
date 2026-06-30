@@ -10,6 +10,7 @@ import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchDemoVideo } from "../components/WatchDemoVideo";
+import { PromoVideos } from "../components/PromoVideos";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -205,6 +206,9 @@ export default function Landing() {
         <section className="pb-10">
           <WatchDemoVideo title={t("watch.demoTitle")} />
         </section>
+
+        {/* Promo-Videos vom YouTube-Kanal (live, selbst-aktualisierend) */}
+        <PromoVideos />
 
         {/* Was ist Pumpfoil? */}
         <section className="mx-auto max-w-3xl pb-4 text-center">
