@@ -612,6 +612,7 @@ const de: Record<string, string> = {
   "watches.colPump": "Pumps & Gleitphasen",
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfügbar",
+  "watches.stGarmin": "bisher nur Sideload · Connect-IQ-App folgt",
   "watches.st.planned": "Geplant",
   "watches.st.import": "Polar API",
   "watches.st.no": "Nicht möglich",

@@ -6,8 +6,8 @@ import { useT } from "../i18n";
 type Cap = "yes" | "partial" | "no";
 type Status = "avail" | "planned" | "import" | "no";
 
-const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string }[] = [
-  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin" },
+const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string }[] = [
+  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", statusNoteKey: "watches.stGarmin" },
   { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple" },
   { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "avail" },
   { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nAmazfit" },
@@ -60,7 +60,10 @@ export function WatchMatrix() {
                 <td className="px-4 py-3 text-center">{cap(r.gps)}</td>
                 <td className="px-4 py-3 text-center">{cap(r.hr)}</td>
                 <td className="px-4 py-3 text-center">{cap(r.pump)}</td>
-                <td className="px-4 py-3">{status(r.status)}</td>
+                <td className="px-4 py-3">
+                  {status(r.status)}
+                  {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
+                </td>
               </tr>
             ))}
           </tbody>

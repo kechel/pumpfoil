@@ -578,6 +578,7 @@ const en: Record<string, string> = {
   "watches.colPump": "Pumps & glide phases",
   "watches.colStatus": "Status",
   "watches.st.avail": "Available",
+  "watches.stGarmin": "sideload for now · Connect IQ app coming",
   "watches.st.planned": "Planned",
   "watches.st.import": "Polar API",
   "watches.st.no": "Not possible",

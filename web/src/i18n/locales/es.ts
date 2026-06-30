@@ -455,6 +455,7 @@ const es: Record<string, string> = {
   "watches.colPump": "Bombeos & planeo",
   "watches.colStatus": "Estado",
   "watches.st.avail": "Disponible",
+  "watches.stGarmin": "por ahora solo sideload · app Connect IQ en camino",
   "watches.st.planned": "Previsto",
   "watches.st.import": "Polar API",
   "watches.st.no": "No posible",
