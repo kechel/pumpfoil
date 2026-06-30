@@ -9,7 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, auth, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api
+from .api import admin, auth, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api, suunto
 from .config import get_settings
 from .db import init_db
 
@@ -142,6 +142,7 @@ app.include_router(feedback.router)
 app.include_router(oauth.router)
 app.include_router(polar.router)
 app.include_router(coros.router)
+app.include_router(suunto.router)
 app.include_router(push.router)
 app.include_router(foils.router)
 app.include_router(chat.router)

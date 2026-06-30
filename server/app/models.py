@@ -452,3 +452,19 @@ class CorosLink(Base):
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SuuntoLink(Base):
+    """Verknüpfung eines Nutzers mit der Suunto Cloud API (OAuth2). accessToken läuft
+    täglich ab (expires_in 86400) -> refresh_token. Workouts werden gezogen und je FIT
+    importiert (fitimport/import_parsed_session). Ein Link pro Nutzer."""
+
+    __tablename__ = "suunto_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    access_token: Mapped[str] = mapped_column(Text)                    # JWT
+    refresh_token: Mapped[str] = mapped_column(String(255))
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

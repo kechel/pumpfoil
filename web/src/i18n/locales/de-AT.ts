@@ -521,6 +521,12 @@ const deAT: Record<string, string> = {
   "settings.coros.help2": "Aufn da Uhr a Outdoor-Aktivität mit GPS aufnehmen (z. B. „Speedsurfing“). Indoor/ohne GPS wird übersprungen.",
   "settings.coros.help3": "Pump-Analyse is begrenzt: Da COROS-Export liefert kein Roh-Accel-Stream — ausgwertet werdn GPS + Puls.",
   "settings.coros.help4": "Trennen jederzeit möglich (entzieht'n Zugriff und stoppt'n Import).",
+  "settings.suunto.title": "Suunto-Import",
+  "settings.suunto.hint": "Verbinde dei Suunto-Konto und importier deine Workouts als Sessions.",
+  "settings.suunto.connect": "Mit Suunto verbinden",
+  "settings.suunto.connected": "Verbunden",
+  "settings.suunto.sync": "Workouts importieren",
+  "settings.suunto.unlink": "Verbindung trennen",
 
   "profile.calculator": "Foil-Rechner",
 

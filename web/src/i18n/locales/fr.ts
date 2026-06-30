@@ -602,6 +602,12 @@ const fr: Record<string, string> = {
   "settings.coros.help2": "Sur la montre, enregistre une activité outdoor avec GPS (p. ex. „Speedsurfing“). Indoor/sans GPS est ignoré.",
   "settings.coros.help3": "L'analyse pump est limitée : l'export COROS n'a pas de flux accel brut — GPS + FC sont analysés.",
   "settings.coros.help4": "Déconnexion possible à tout moment (révoque l'accès et stoppe l'import).",
+  "settings.suunto.title": "Import Suunto",
+  "settings.suunto.hint": "Connecte ton compte Suunto et importe tes entraînements comme sessions.",
+  "settings.suunto.connect": "Connecter Suunto",
+  "settings.suunto.connected": "Connecté",
+  "settings.suunto.sync": "Importer les entraînements",
+  "settings.suunto.unlink": "Déconnecter",
 
   "profile.calculator": "Calculateur de foil",
 

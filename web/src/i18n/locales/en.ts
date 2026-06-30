@@ -725,6 +725,12 @@ const en: Record<string, string> = {
   "settings.coros.help2": "On the watch, record an outdoor activity with GPS (e.g. „Speedsurfing“). Indoor/no-GPS is skipped.",
   "settings.coros.help3": "Pump analysis is limited: the COROS export has no raw accelerometer stream — GPS + heart rate are analyzed.",
   "settings.coros.help4": "Disconnect anytime (revokes access and stops the import).",
+  "settings.suunto.title": "Suunto import",
+  "settings.suunto.hint": "Connect your Suunto account and import your workouts as sessions.",
+  "settings.suunto.connect": "Connect Suunto",
+  "settings.suunto.connected": "Connected",
+  "settings.suunto.sync": "Import workouts",
+  "settings.suunto.unlink": "Disconnect",
 
   "profile.calculator": "Foil calculator",
 
