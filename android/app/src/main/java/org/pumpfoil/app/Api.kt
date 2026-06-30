@@ -77,6 +77,11 @@ object Api {
         json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me", body, auth = true))
     }
 
+    // DSGVO: Konto + ALLE Daten unwiderruflich löschen (Google-Play-Pflicht).
+    suspend fun deleteAccount(): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/auth/me", null, auth = true)
+    }
+
     suspend fun sessions(): List<SessionSummary> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),

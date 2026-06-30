@@ -67,6 +67,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
     var profile by remember { mutableStateOf<Profile?>(null) }
     var editing by remember { mutableStateOf(false) }
     var draftName by remember { mutableStateOf("") }
+    var confirmingDelete by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
     }
@@ -189,7 +190,30 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             ) {
                 Text(I18n.t("profile.logout"))
             }
+            // Konto-Löschung (Google-Play-Pflicht, analog Apple 5.1.1(v)): DSGVO-Delete + Logout.
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = { confirmingDelete = true }) {
+                Text(I18n.t("profile.deleteAccount"), color = MaterialTheme.colorScheme.error)
+            }
         }
+    }
+
+    if (confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmingDelete = false },
+            title = { Text(I18n.t("profile.deleteAccount")) },
+            text = { Text(I18n.t("profile.deleteConfirm")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmingDelete = false
+                    scope.launch {
+                        try { Api.deleteAccount() } catch (_: Exception) {}
+                        Api.logout(ctx); onLogout()
+                    }
+                }) { Text(I18n.t("profile.deleteConfirmBtn"), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { confirmingDelete = false }) { Text(I18n.t("common.cancel")) } },
+        )
     }
 }
 

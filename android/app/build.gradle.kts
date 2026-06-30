@@ -14,8 +14,8 @@ android {
         targetSdk = 35
         // Phone-versionCode über dem höchsten vor der 1000-Umstellung belegten Wear-Code (11),
         // da Phone + Wear sich die applicationId (und damit den versionCode-Raum) teilen.
-        versionCode = 13
-        versionName = "1.0.6"
+        versionCode = 14
+        versionName = "1.0.7"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
