@@ -107,45 +107,45 @@ export default function Landing() {
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
           </section>
+
+          {/* „Auf der Uhr" liegt noch im Hero-Band -> vom Video hinterlegt (Apple rechteckig, Wear rund). */}
+          <section className="pb-12">
+            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
+            <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
+            <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
+              <figure className="flex flex-col items-center gap-2">
+                <div className="flex gap-3">
+                  <img src="/watch-garmin-1.webp" alt="Garmin" loading="lazy"
+                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                  <img src="/watch-garmin-2.webp" alt="Garmin" loading="lazy"
+                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                </div>
+                <figcaption className="text-xs text-slate-300">Garmin</figcaption>
+              </figure>
+              <figure className="flex flex-col items-center gap-2">
+                <div className="flex gap-3">
+                  <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"
+                    className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+                  <img src="/watch-apple-2.webp" alt="Apple Watch" loading="lazy"
+                    className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+                </div>
+                <figcaption className="text-xs text-slate-300">Apple Watch</figcaption>
+              </figure>
+              <figure className="flex flex-col items-center gap-2">
+                <div className="flex gap-3">
+                  <img src="/watch-wear-1.webp" alt="Wear OS" loading="lazy"
+                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                  <img src="/watch-wear-2.webp" alt="Wear OS" loading="lazy"
+                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                </div>
+                <figcaption className="text-xs text-slate-300">Wear OS</figcaption>
+              </figure>
+            </div>
+          </section>
         </div>
       </div>
 
       <main className="mx-auto max-w-5xl px-5">
-
-        {/* Auf der Uhr — native Watch-Apps nebeneinander (Apple rechteckig, Wear rund), kein Slider */}
-        <section className="pb-8">
-          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
-          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
-          <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
-            <figure className="flex flex-col items-center gap-2">
-              <div className="flex gap-3">
-                <img src="/watch-garmin-1.webp" alt="Garmin" loading="lazy"
-                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
-                <img src="/watch-garmin-2.webp" alt="Garmin" loading="lazy"
-                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
-              </div>
-              <figcaption className="text-xs text-slate-500">Garmin</figcaption>
-            </figure>
-            <figure className="flex flex-col items-center gap-2">
-              <div className="flex gap-3">
-                <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"
-                  className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
-                <img src="/watch-apple-2.webp" alt="Apple Watch" loading="lazy"
-                  className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
-              </div>
-              <figcaption className="text-xs text-slate-500">Apple Watch</figcaption>
-            </figure>
-            <figure className="flex flex-col items-center gap-2">
-              <div className="flex gap-3">
-                <img src="/watch-wear-1.webp" alt="Wear OS" loading="lazy"
-                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
-                <img src="/watch-wear-2.webp" alt="Wear OS" loading="lazy"
-                  className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
-              </div>
-              <figcaption className="text-xs text-slate-500">Wear OS</figcaption>
-            </figure>
-          </div>
-        </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
