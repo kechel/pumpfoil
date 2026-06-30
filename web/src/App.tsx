@@ -112,7 +112,7 @@ export default function App() {
       {/* Mobile-Topbar */}
       <header className="flex items-center justify-between border-b border-slate-800/60 px-4 py-3 md:hidden">
         <Link to="/">
-          <Wordmark icon="h-6 w-6" text="text-lg" />
+          <Wordmark icon="h-7 w-7" text="text-lg" tagline />
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/import" className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400">
