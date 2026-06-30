@@ -59,37 +59,58 @@ export default function Landing() {
   };
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold">
-          <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
-        </Link>
-        <div className="flex items-center gap-3">
-          <LanguageFlags />
-          <Link
-            to="/login"
-            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400"
-          >
-            {t("land.login")}
+      {/* Hero-Band mit Hintergrund-Video (Hoch-/Querformat, Scrim, reduced-motion).
+          Header + Logo liegen darüber; der Scrim blendet unten in den Seiten-Hintergrund. */}
+      <div className="relative overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/login-bg-landscape-poster.jpg"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+        >
+          <source src="/login-bg-portrait.mp4" media="(max-aspect-ratio: 1/1)" type="video/mp4" />
+          <source src="/login-bg-landscape.mp4" type="video/mp4" />
+        </video>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950" />
+
+        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
+          <Link to="/" className="flex items-center gap-2 text-lg font-bold">
+            <WaveIcon className="h-6 w-6 text-brand-400" /> Pumpfoil
           </Link>
+          <div className="flex items-center gap-3">
+            <LanguageFlags />
+            <Link
+              to="/login"
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+            >
+              {t("land.login")}
+            </Link>
+          </div>
+        </header>
+
+        <div className="relative z-10 mx-auto max-w-5xl px-5">
+          {/* Hero */}
+          <section className="pb-10 pt-0 text-center sm:pb-16 sm:pt-2">
+            {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
+                identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
+            <h1>
+              <img
+                src="/pumpfoil-wordmark-tagline.png"
+                alt="Pumpfoil.org — Track every pump"
+                width={1640}
+                height={760}
+                className="mx-auto h-auto w-full max-w-sm sm:max-w-md"
+              />
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
+          </section>
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto max-w-5xl px-5">
-        {/* Hero */}
-        <section className="pb-4 pt-0 text-center sm:pb-6 sm:pt-0">
-          {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
-              identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
-          <h1>
-            <img
-              src="/pumpfoil-wordmark-tagline.png"
-              alt="Pumpfoil.org — Track every pump"
-              width={1640}
-              height={760}
-              className="mx-auto h-auto w-full max-w-sm sm:max-w-md"
-            />
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
-        </section>
 
         {/* Auf der Uhr — native Watch-Apps nebeneinander (Apple rechteckig, Wear rund), kein Slider */}
         <section className="pb-8">
