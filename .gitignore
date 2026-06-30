@@ -64,3 +64,4 @@ watch-apple/Sources-iOS/Info.plist
 
 .venv-garmin/
 videos-raw/
+non-public-sdks/
