@@ -57,15 +57,15 @@ function CorosCard() {
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
 
-      <details className="mt-4 text-sm">
-        <summary className="cursor-pointer text-brand-300 hover:text-brand-200">{t("settings.coros.help")}</summary>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-400">
+      <div className="mt-4">
+        <p className="mb-2 text-xs font-medium text-slate-400">{t("settings.coros.help")}</p>
+        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-slate-300">
           <li>{t("settings.coros.help1")}</li>
           <li>{t("settings.coros.help2")}</li>
           <li>{t("settings.coros.help3")}</li>
           <li>{t("settings.coros.help4")}</li>
-        </ul>
-      </details>
+        </ol>
+      </div>
     </Card>
   );
 }
