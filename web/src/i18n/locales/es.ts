@@ -456,7 +456,7 @@ const es: Record<string, string> = {
   "watches.colStatus": "Estado",
   "watches.st.avail": "Disponible",
   "watches.st.planned": "Previsto",
-  "watches.st.import": "Solo import de datos",
+  "watches.st.import": "Importación automática",
   "watches.st.no": "No posible",
   "watches.legYes": "totalmente compatible",
   "watches.legPartial": "limitado",

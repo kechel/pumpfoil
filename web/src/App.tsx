@@ -114,14 +114,11 @@ export default function App() {
         <Link to="/">
           <Wordmark icon="h-7 w-7" text="text-lg" tagline />
         </Link>
-        <div className="flex items-center gap-3">
-          <Link to="/import" className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400">
-            {t("import.title")}
-          </Link>
-          <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
-            <LogoutIcon />
-          </button>
-        </div>
+        {/* Import bewusst NICHT im Mobile-Topbar (mobil selten gebraucht; Garmin-App
+            bietet eh keinen Export). Erreichbar über Profil/Einstellungen + Desktop-Sidebar. */}
+        <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
+          <LogoutIcon />
+        </button>
       </header>
 
       {/* Inhalt */}
