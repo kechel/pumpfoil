@@ -21,6 +21,7 @@ export default function LinkedAccounts() {
         <PolarCard />
         <CorosCard />
         <SuuntoCard />
+        <StravaCard />
       </div>
     </div>
   );
@@ -156,6 +157,50 @@ function SuuntoCard() {
           <span className="text-sm text-emerald-400">{t("settings.suunto.connected")}</span>
           <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
+        </div>
+      )}
+      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+    </Card>
+  );
+}
+
+function StravaCard() {
+  const { t } = useI18n();
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const load = () => api.stravaStatus().then(setSt).catch(() => setSt(null));
+  useEffect(() => { load(); }, []);
+  if (!st || !st.available) return null;
+
+  async function connect() {
+    try { const r = await api.stravaConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
+  }
+  async function sync() {
+    setBusy(true); setMsg("");
+    try {
+      const r = await api.stravaSync();
+      setMsg(r.message ?? t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
+      await load();
+    } catch (e) { setMsg(String(e)); }
+    finally { setBusy(false); }
+  }
+  async function unlink() {
+    await api.stravaUnlink().catch(() => {});
+    setMsg(""); load();
+  }
+
+  return (
+    <Card className="p-5">
+      <h3 className="mb-1 font-semibold">{t("settings.strava.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("settings.strava.hint")}</p>
+      {!st.linked ? (
+        <Button onClick={connect}>{t("settings.strava.connect")}</Button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-emerald-400">{t("settings.strava.connected")}</span>
+          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.strava.sync")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.strava.unlink")}</Button>
         </div>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}

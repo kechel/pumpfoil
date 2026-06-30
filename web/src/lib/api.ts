@@ -337,6 +337,12 @@ export const api = {
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
   suuntoSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/suunto/sync", { method: "POST" }),
   suuntoUnlink: () => req<{ ok: boolean }>("/api/integrations/suunto", { method: "DELETE" }),
+
+  stravaStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/strava/status"),
+  stravaConnect: () => req<{ authorize_url: string }>("/api/integrations/strava/connect"),
+  stravaSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/strava/sync", { method: "POST" }),
+  stravaUnlink: () => req<{ ok: boolean }>("/api/integrations/strava", { method: "DELETE" }),
+
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),

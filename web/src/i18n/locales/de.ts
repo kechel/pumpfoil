@@ -782,6 +782,12 @@ const de: Record<string, string> = {
   "settings.suunto.connected": "Verbunden",
   "settings.suunto.sync": "Workouts importieren",
   "settings.suunto.unlink": "Verbindung trennen",
+  "settings.strava.title": "Strava-Import",
+  "settings.strava.hint": "Verbinde dein Strava-Konto und importiere deine Aktivitäten als Sessions.",
+  "settings.strava.connect": "Mit Strava verbinden",
+  "settings.strava.connected": "Verbunden",
+  "settings.strava.sync": "Aktivitäten importieren",
+  "settings.strava.unlink": "Verbindung trennen",
 
   "profile.calculator": "Foil-Rechner",
 
