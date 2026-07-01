@@ -49,6 +49,10 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
   const w = data?.weather;
   const pegel = data?.pegel;
   const water = data?.water;
+  // Open-Meteo-Seite für DIESELBEN Koordinaten, die der Server abruft (= „abgerufene Werte").
+  const om = data
+    ? `https://open-meteo.com/en/docs?latitude=${data.lat.toFixed(4)}&longitude=${data.lon.toFixed(4)}`
+    : "https://open-meteo.com";
   if (!w && !pegel && !water) return null;
 
   const dayLabel = (d: SpotWeatherDay, i: number): string => {
@@ -69,7 +73,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
         <h3 className="text-sm font-semibold text-slate-200">{t("wx.title")}</h3>
         {cur && (
           <span className="flex items-center gap-2 text-sm text-slate-300">
-            <span className="text-base">{wxIcon(cur.code)}</span>
+            <a href={om} target="_blank" rel="noopener noreferrer" title="Open-Meteo" className="text-base hover:opacity-80">{wxIcon(cur.code)}</a>
             {cur.temp != null && <span className="tabular-nums text-slate-100">{Math.round(cur.temp)}°</span>}
             {cur.wind != null && (
               <span className="tabular-nums">{kn(cur.wind)} kn <WindArrow deg={cur.dir} /> {dirLabel(cur.dir)}</span>
@@ -84,7 +88,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
           {w.days.map((d, i) => (
             <div key={d.date} className="rounded-xl border border-slate-800 bg-slate-900/40 p-2 text-center">
               <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{dayLabel(d, i)}</div>
-              <div className="my-0.5 text-2xl leading-none">{wxIcon(d.code)}</div>
+              <a href={om} target="_blank" rel="noopener noreferrer" title="Open-Meteo" className="my-0.5 block text-2xl leading-none hover:opacity-80">{wxIcon(d.code)}</a>
               <div className="tabular-nums text-sm text-slate-100">
                 {d.tmax != null ? Math.round(d.tmax) : "–"}° <span className="text-slate-500">/ {d.tmin != null ? Math.round(d.tmin) : "–"}°</span>
               </div>
@@ -124,7 +128,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
       )}
 
       <div className="mt-2 text-[10px] text-slate-500">
-        {t("wx.source")}: Open-Meteo{pegel ? " · PEGELONLINE" : ""}{water ? ` · ${water.source}` : ""}
+        {t("wx.source")}: <a href={om} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">Open-Meteo.com</a>{pegel ? " · PEGELONLINE" : ""}{water ? ` · ${water.source}` : ""}
       </div>
     </Card>
   );
