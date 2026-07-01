@@ -5,6 +5,7 @@ import { Button, Card, ErrorBox } from "../components/ui";
 import { PROVIDER_ICONS } from "../components/BrandIcons";
 import { useI18n, TFunc } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { Wordmark } from "../components/Wordmark";
 
 export default function Login() {
@@ -63,6 +64,7 @@ export default function Login() {
       </video>
       {/* Abdunkelung für Lesbarkeit der Card. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
+      <div className="absolute right-4 top-4 z-10"><ThemeToggle /></div>
       <Card className="relative z-10 w-full max-w-sm p-7">
         <div className="mb-6 flex flex-col items-center text-center">
           <h1><Wordmark icon="h-8 w-8" text="text-2xl" tagline /></h1>

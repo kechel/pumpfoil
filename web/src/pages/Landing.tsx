@@ -10,6 +10,7 @@ import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { PromoVideos } from "../components/PromoVideos";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -80,6 +81,7 @@ export default function Landing() {
             doppelt. Nur Sprachwahl + Login rechts. */}
         <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-end px-5 py-3">
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <LanguageFlags />
             <Link
               to="/login"

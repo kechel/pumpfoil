@@ -4,6 +4,7 @@ import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon } from "./components/Icons";
 import { Wordmark } from "./components/Wordmark";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { CompareBar } from "./components/CompareBar";
@@ -59,9 +60,10 @@ export default function App() {
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
-        <Link to="/" className="mb-3 block px-1">
-          <Wordmark icon="h-7 w-7" text="text-xl" tagline />
-        </Link>
+        <div className="mb-3 flex items-center justify-between px-1">
+          <Link to="/"><Wordmark icon="h-7 w-7" text="text-xl" tagline /></Link>
+          <ThemeToggle />
+        </div>
         {profile && (
           <Link to="/" className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
@@ -116,9 +118,12 @@ export default function App() {
         </Link>
         {/* Import bewusst NICHT im Mobile-Topbar (mobil selten gebraucht; Garmin-App
             bietet eh keinen Export). Erreichbar über Profil/Einstellungen + Desktop-Sidebar. */}
-        <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
-          <LogoutIcon />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
+            <LogoutIcon />
+          </button>
+        </div>
       </header>
 
       {/* Inhalt */}
