@@ -22,7 +22,7 @@ export default function Impressum() {
 
       <div className="space-y-5 text-sm">
         <section className="rounded-xl border border-rose-900/50 bg-rose-950/20 p-4">
-          <h3 className="mb-2 font-semibold text-rose-300">{t("imp.publicTitle")}</h3>
+          <h3 className="mb-2 font-semibold text-rose-700 dark:text-rose-300">{t("imp.publicTitle")}</h3>
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.public1")}
             {li("imp.public2")}
@@ -30,7 +30,7 @@ export default function Impressum() {
         </section>
 
         <section className="rounded-xl border border-sky-900/50 bg-sky-950/20 p-4">
-          <h3 className="mb-2 font-semibold text-sky-300">{t("imp.communityTitle")}</h3>
+          <h3 className="mb-2 font-semibold text-sky-700 dark:text-sky-300">{t("imp.communityTitle")}</h3>
           <p className="mb-2 text-slate-300" dangerouslySetInnerHTML={{ __html: t("imp.communityIntro") }} />
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.community1")}
@@ -42,7 +42,7 @@ export default function Impressum() {
         </section>
 
         <section className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-4">
-          <h3 className="mb-2 font-semibold text-emerald-300">{t("imp.ownerTitle")}</h3>
+          <h3 className="mb-2 font-semibold text-emerald-700 dark:text-emerald-300">{t("imp.ownerTitle")}</h3>
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.owner1")}
             {li("imp.owner2")}
