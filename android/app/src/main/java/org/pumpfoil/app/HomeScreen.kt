@@ -47,8 +47,10 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
-    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only).
+    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
+    // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
     var accelOnly by remember { mutableStateOf(true) }
+    var decidedDefault by remember { mutableStateOf(false) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(tick) {
@@ -62,7 +64,17 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
     }
     // Stats separat: reagiert zusätzlich auf den Accel/alle-Umschalter.
     LaunchedEffect(tick, accelOnly) {
-        stats = try { Api.stats(accelOnly) } catch (_: Exception) { stats }
+        val s = try { Api.stats(accelOnly) } catch (_: Exception) { null }
+        if (s != null) {
+            if (!decidedDefault) {
+                decidedDefault = true
+                val r = s.records
+                val noAccel = (r?.distance?.value ?: 0.0) == 0.0 &&
+                    (r?.duration?.value ?: 0.0) == 0.0 && (r?.speed?.value ?: 0.0) == 0.0
+                if (accelOnly && noAccel) { accelOnly = false; return@LaunchedEffect }
+            }
+            stats = s
+        }
     }
 
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.home")) { SyncIndicator() } }) { pad ->
@@ -89,23 +101,25 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 )
                 TileGrid(totals.map { Triple(it.first, it.second, null as Int?) }, onOpen)
                 Spacer(Modifier.height(16.dp))
-                // Persönliche Rekorde (klickbar zur Session) + Accel/alle-Umschalter.
+                // Persönliche Rekorde (klickbar zur Session) + Accel/alle-Auswahl.
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(I18n.t("home.records"), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.width(8.dp))
-                    val on = accelOnly
-                    Surface(
-                        onClick = { accelOnly = !accelOnly },
-                        shape = MaterialTheme.shapes.small,
-                        color = if (on) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
-                    ) {
-                        Text(
-                            if (on) I18n.t("home.onlyAccel") else I18n.t("home.allRecords"),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        )
+                    @Composable
+                    fun seg(active: Boolean, label: String, onClick: () -> Unit) {
+                        Surface(
+                            onClick = onClick,
+                            shape = MaterialTheme.shapes.small,
+                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        ) {
+                            Text(label, style = MaterialTheme.typography.labelMedium,
+                                color = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                        }
                     }
+                    seg(accelOnly, I18n.t("home.onlyAccel")) { accelOnly = true }
+                    Spacer(Modifier.width(4.dp))
+                    seg(!accelOnly, I18n.t("home.allRecords")) { accelOnly = false }
                 }
                 Spacer(Modifier.height(8.dp))
                 val r = st.records

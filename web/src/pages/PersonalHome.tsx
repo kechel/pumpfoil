@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
@@ -24,7 +24,9 @@ export default function PersonalHome() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [homespot, setHomespot] = useState("");
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
+  // Default = nur Accel; hat der Nutzer gar keine Accel-Läufe, einmalig auf "alle" fallen.
   const [accelOnly, setAccelOnly] = useState(true);
+  const decidedRef = useRef(false);
 
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
@@ -33,7 +35,15 @@ export default function PersonalHome() {
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
-    api.stats(accelOnly).then(setStats).catch(() => {});
+    api.stats(accelOnly).then((s) => {
+      if (!decidedRef.current) {
+        decidedRef.current = true;
+        const noAccel = !s.records || (["distance", "duration", "speed"] as const)
+          .every((k) => (s.records?.[k]?.value ?? 0) === 0);
+        if (accelOnly && noAccel) { setAccelOnly(false); return; }  // -> Refetch mit "alle"
+      }
+      setStats(s);
+    }).catch(() => {});
   }, [accelOnly]);
 
   const recs = stats?.records;
@@ -73,16 +83,19 @@ export default function PersonalHome() {
       {/* App installieren (mobil, nur wenn installierbar) */}
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
 
-      {/* Rekorde-Kopf mit Accel/alle-Umschalter */}
+      {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
       <div className="mb-2 flex items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
-        <button
-          onClick={() => setAccelOnly((v) => !v)}
-          title={t("side.recordsHint")}
-          className={`rounded px-2 py-0.5 text-[11px] font-medium ${accelOnly ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-300"}`}
-        >
-          {accelOnly ? t("side.onlyAccel") : t("side.all")}
-        </button>
+        <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-[11px] font-medium" title={t("side.recordsHint")}>
+          <button onClick={() => setAccelOnly(true)}
+            className={`px-2.5 py-0.5 ${accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {t("side.onlyAccel")}
+          </button>
+          <button onClick={() => setAccelOnly(false)}
+            className={`px-2.5 py-0.5 ${!accelOnly ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {t("side.all")}
+          </button>
+        </div>
       </div>
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}

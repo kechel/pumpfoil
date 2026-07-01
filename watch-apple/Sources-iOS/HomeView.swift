@@ -10,8 +10,10 @@ struct HomeView: View {
     @State private var weather: WeatherBlock?
     @State private var rooms: [ChatRoom] = []
     @State private var loading = true
-    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only).
+    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
+    // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
     @State private var accelOnly = true
+    @State private var decidedDefault = false
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -34,15 +36,10 @@ struct HomeView: View {
                         if let r = st.records {
                             HStack(spacing: 8) {
                                 Text(Loc.t("home.records", lang)).font(.headline)
-                                Button { accelOnly.toggle() } label: {
-                                    Text(accelOnly ? Loc.t("home.onlyAccel", lang) : Loc.t("home.allRecords", lang))
-                                        .font(.caption).fontWeight(.medium)
-                                        .padding(.horizontal, 10).padding(.vertical, 4)
-                                        .background(accelOnly ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.18))
-                                        .foregroundColor(accelOnly ? .accentColor : .secondary)
-                                        .clipShape(Capsule())
+                                HStack(spacing: 4) {
+                                    segButton(Loc.t("home.onlyAccel", lang), active: accelOnly) { accelOnly = true }
+                                    segButton(Loc.t("home.allRecords", lang), active: !accelOnly) { accelOnly = false }
                                 }
-                                .buttonStyle(.plain)
                             }
                             LazyVGrid(columns: cols, spacing: 12) {
                                 if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), Loc.t("home.topSpeed", lang), v.session_id) }
@@ -130,9 +127,28 @@ struct HomeView: View {
     private func fmtDist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
     private func fmtDur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
 
+    @ViewBuilder
+    private func segButton(_ label: String, active: Bool, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label).font(.caption).fontWeight(.medium)
+                .padding(.horizontal, 10).padding(.vertical, 4)
+                .background(active ? Color.accentColor : Color.secondary.opacity(0.18))
+                .foregroundColor(active ? .white : .secondary)
+                .clipShape(Capsule())
+        }.buttonStyle(.plain)
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
-        stats = try? await Api.stats(accelOnly: accelOnly)
+        if let s = try? await Api.stats(accelOnly: accelOnly) {
+            let r = s.records
+            let noAccel = (r?.distance?.value ?? 0) == 0 && (r?.duration?.value ?? 0) == 0 && (r?.speed?.value ?? 0) == 0
+            if !decidedDefault && accelOnly && noAccel {
+                decidedDefault = true; accelOnly = false   // onChange lädt Stats mit "alle" neu
+            } else {
+                decidedDefault = true; stats = s
+            }
+        }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
         rooms = (try? await Api.chatRooms()) ?? []
         let hs = (try? await Api.settings())?["homespot"] as? String
