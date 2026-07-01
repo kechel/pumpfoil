@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api, HistoryPoint } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { ChartIcon } from "../components/Icons";
+import { SpotProgression } from "../components/SpotProgression";
 import { useT } from "../i18n";
 
 type Mode = "cumulative" | "window7" | "window30";
@@ -172,6 +173,11 @@ export default function History() {
           </div>
         </>
       )}
+
+      {/* Entwicklungs-Animation: eigene Läufe eines Spots chronologisch durchschalten */}
+      <div className="mt-8">
+        <SpotProgression />
+      </div>
     </div>
   );
 }

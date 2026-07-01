@@ -892,6 +892,65 @@ def delete_pump_truth(
     return {"ok": True, "deleted": n}
 
 
+# --- Spot-Entwicklung (Verlauf): eigene Spots + Bulk-Tracks für die Karten-Animation ---
+@router.get("/my-spots")
+def my_spots(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Alle Gewässer/Spots des Nutzers (ALLE Sessions, auch GPS-only), neueste zuerst."""
+    from datetime import datetime
+    rows = (
+        db.query(models.Session.place_name, func.count(), func.max(models.Session.started_at))
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.place_name.isnot(None), models.Session.place_name != "")
+        .group_by(models.Session.place_name).all()
+    )
+    rows.sort(key=lambda r: r[2] or datetime.min, reverse=True)
+    return [{"spot": p, "count": int(n)} for p, n, _ in rows]
+
+
+SPOT_TRACK_MAX_PTS = 150   # je Session herunterrechnen -> Bulk-Payload bleibt klein
+
+
+@router.get("/spot-tracks")
+def spot_tracks(spot: str, user: models.User = Depends(current_user),
+                db: Session = Depends(get_db)) -> list[dict]:
+    """Alle eigenen Sessions an einem Spot (chronologisch), je als komplette Spur
+    [[lat,lon,speed_mps]] (3s-Speed aus track_geojson, heruntergerechnet). Bulk-Load für die
+    Verlaufs-Animation — fixer Ausschnitt, keine Optionen; inkl. GPS-only-Sessions."""
+    rows = (
+        db.query(models.AnalysisResult.track_geojson, models.AnalysisResult.foiling_distance_m,
+                 models.Session.id, models.Session.started_at)
+        .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.place_name == spot)
+        .order_by(models.Session.started_at.asc()).all()
+    )
+    out = []
+    for gj_json, fdist, sid, ts in rows:
+        if not gj_json:
+            continue
+        try:
+            gj = json.loads(gj_json)
+        except ValueError:
+            continue
+        coords = (gj.get("geometry") or {}).get("coordinates") or []
+        props = gj.get("properties") or {}
+        speeds = (props.get("speeds") or {}).get("3") or props.get("speeds_mps") or []
+        if len(coords) < 2:
+            continue
+        stride = max(1, -(-len(coords) // SPOT_TRACK_MAX_PTS))  # ceil-Division
+        track = []
+        for i in range(0, len(coords), stride):
+            c = coords[i]
+            sp = speeds[i] if i < len(speeds) else None
+            track.append([round(c[1], 6), round(c[0], 6),
+                          round(float(sp), 2) if sp is not None else None])
+        out.append({
+            "session_id": sid, "started_at": ts.isoformat() if ts else None,
+            "foiling_km": round((fdist or 0.0) / 1000.0, 2), "track": track,
+        })
+    return out
+
+
 # --- Fotos (nur Besitzer hochladen/löschen; lesen darf jeder via Community-Social). ---
 MAX_PHOTOS_PER_SESSION = 12
 

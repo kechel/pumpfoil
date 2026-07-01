@@ -349,6 +349,10 @@ export const api = {
 
   publicVideos: () => req<{ videos: { id: string; title: string; published: string }[]; channel: string }>("/api/public/videos"),
 
+  mySpots: () => req<{ spot: string; count: number }[]>("/api/sessions/my-spots"),
+  spotTracks: (spot: string) => req<{ session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][] }[]>(
+    `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
+
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
   spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),

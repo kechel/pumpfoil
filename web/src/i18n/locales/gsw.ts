@@ -147,6 +147,8 @@ const gsw: Record<string, string> = {
   "badge.new": "neu",
 
   "history.title": "Verlauf",
+  "hist.spotAnim": "Entwicklig am Spot",
+  "hist.spotAnimHint": "Spot uswähle — dini Läuf det wärde chronologisch uf fixem Uusschnitt durepschaltet (Farb = Speed).",
   "history.cumulative": "Beschtwärt (kumuliert)",
   "history.window7": "7-Täg-Fenschter",
   "history.window30": "30-Täg-Fenschter",

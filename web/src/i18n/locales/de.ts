@@ -164,6 +164,8 @@ const de: Record<string, string> = {
 
   // Verlauf
   "history.title": "Verlauf",
+  "hist.spotAnim": "Entwicklung am Spot",
+  "hist.spotAnimHint": "Spot wählen — deine Läufe dort werden chronologisch auf festem Ausschnitt durchgeschaltet (Farbe = Speed).",
   "history.cumulative": "Gesamt",
   "history.window7": "7-Tage-Fenster",
   "history.window30": "30-Tage-Fenster",

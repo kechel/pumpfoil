@@ -148,6 +148,8 @@ const en: Record<string, string> = {
   "badge.new": "new",
 
   "history.title": "History",
+  "hist.spotAnim": "Progress at spot",
+  "hist.spotAnimHint": "Pick a spot — your runs there step through chronologically on a fixed map (color = speed).",
   "history.cumulative": "Total",
   "history.window7": "7-day window",
   "history.window30": "30-day window",
