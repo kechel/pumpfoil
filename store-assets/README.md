@@ -8,8 +8,17 @@ Wear: `android/wear/src/main/res/mipmap-*`) und kommen über den Build mit.
 ```
 store-assets/
 ├── apple-watch/   # App-Store-Connect-Screenshots (watchOS)
-└── wear-os/       # Google-Play-Screenshots (Wear OS)
+├── wear-os/       # Google-Play-Screenshots (Wear OS)
+└── garmin/        # Connect-IQ-Store-Listing (Hero 1440×720, Titelbild 500×500, Gerätesymbol 128×128)
 ```
+
+## Garmin (Connect IQ Store)
+Listing-Grafiken (Screenshots macht Jan frisch aus dem Simulator, aktuelles UI mit „Pumpfoil"/v1.0.44):
+- `hero-1440x720.png` — Hero-Bild (Wortmarke + TRACK EVERY PUMP, Slate-Hintergrund)
+- `store-icon-500x500.png` — Titelbild Internet/Mobil (<300 KB)
+- `device-icon-128x128.png` — Gerätesymbol für den App-Shop auf dem Gerät (optional)
+
+Alle aus dem Marken-Icon (`watch-apple/.../AppIcon/icon-1024.png`) via Pillow generiert.
 
 ## Apple Watch (App Store Connect)
 Pro Gerätegröße bis zu 10 Screenshots. Mindestens **eine** Größe genügt fürs Review.
