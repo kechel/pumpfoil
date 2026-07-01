@@ -2,19 +2,21 @@
   "configVersion": "v3",
   "app": {
     "appId": 21351,
-    "appName": "Fetch API",
+    "appName": "Pumpfoil",
     "appType": "app",
     "version": {
       "code": 1,
-      "name": "1.0.1"
+      "name": "0.1.0"
     },
     "icon": "icon.png",
-    "vender": "zepp",
-    "description": "A sample application to demonstrate the fetch API"
+    "vender": "pumpfoil.org",
+    "description": "Pump foiling recorder — GPS + heart rate → pumpfoil.org"
   },
   "permissions": [
     "data:os.device.info",
-    "device:os.local_storage"
+    "device:os.local_storage",
+    "device:os.geolocation",
+    "device:os.heart_rate"
   ],
   "runtime": {
     "apiVersion": {
@@ -33,6 +35,9 @@
         },
         "app-side": {
           "path": "app-side/index"
+        },
+        "setting": {
+          "path": "setting/index"
         }
       },
       "platforms": [
@@ -49,7 +54,10 @@
   },
   "i18n": {
     "en-US": {
-      "appName": "Fetch API"
+      "appName": "Pumpfoil"
+    },
+    "de-DE": {
+      "appName": "Pumpfoil"
     }
   },
   "defaultLanguage": "en-US"
