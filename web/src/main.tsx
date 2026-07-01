@@ -8,6 +8,9 @@ import { getToken, setToken } from "./lib/api";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { I18nProvider } from "./i18n";
 
+// Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; reiner Dev-Marker).
+console.info("pumpfoil build 2026-07-01-1");
+
 // Theme anwenden + bei "auto" auf System-Wechsel reagieren.
 applyTheme(getTheme());
 watchSystemTheme();
