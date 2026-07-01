@@ -604,8 +604,22 @@ def get_session(
 
         gps = storage.load_gps(s.session_uuid)
         if gps:
-            lat = float(_np.median([g[1] for g in gps]))
-            lon = float(_np.median([g[2] for g in gps]))
+            # Bevorzugt der START des ersten Foiling-Laufs: nah am Ufer/Steg, aber sicher AUF
+            # dem Wasser -> benennt den Launch-Spot und liegt im Reichweiten-Radius. Der Median
+            # läge bei großen Seen weit draußen (Ufer >600 m weg) -> nur Fallback.
+            pt = None
+            ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+            if ar and ar.segments_json:
+                try:
+                    segs = json.loads(ar.segments_json)
+                    i0 = segs[0].get("i_start") if segs else None
+                    if i0 is not None and 0 <= i0 < len(gps):
+                        pt = (float(gps[i0][1]), float(gps[i0][2]))
+                except ValueError:
+                    pass
+            if pt is None:
+                pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
+            lat, lon = pt
             name = lookup_water_name(lat, lon)
             if name is not None:                 # Erfolg (Name oder definitiv leer)
                 s.place_name = name

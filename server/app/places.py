@@ -50,25 +50,39 @@ def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | Non
       - str  : Gewässername gefunden.
       - ""   : Abfrage lief, aber definitiv kein benanntes Gewässer in Reichweite.
       - None : Abfrage fehlgeschlagen (Netz/Timeout/Parse) -> später erneut versuchen.
-    Sucht zunehmend weiter (60/200/600 m)."""
-    any_ok = False
+
+    Zuerst is_in (Punkt-in-Polygon): findet die UMSCHLIESSENDE benannte Wasserfläche
+    unabhängig von der Größe — bei großen Seen (z. B. Bodensee) ist das Ufer >600 m weg,
+    da verfehlt ein reiner around-Radius das Gewässer. around (60/200/600 m) bleibt Fallback
+    für ufernahe/kleine Features."""
+    # (Query, Socket-Timeout). is_in braucht mehr Zeit (Overpass baut Areas) -> großzügiger.
+    queries = [(
+        f"[out:json][timeout:25];is_in({lat},{lon})->.a;("
+        'way(pivot.a)["natural"="water"]["name"];'
+        'relation(pivot.a)["natural"="water"]["name"];'
+        ");out tags 1;", max(timeout, 18.0),
+    )]
     for radius in (60, 200, 600):
-        q = (
+        queries.append((
             "[out:json][timeout:10];("
             f'way(around:{radius},{lat},{lon})["natural"="water"]["name"];'
             f'relation(around:{radius},{lat},{lon})["natural"="water"]["name"];'
-            ");out tags 1;"
-        )
+            ");out tags 1;", timeout,
+        ))
+    isin_ok = False
+    for i, (q, sock) in enumerate(queries):
         try:
             data = urllib.parse.urlencode({"data": q}).encode()
             req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            with urllib.request.urlopen(req, timeout=sock) as resp:
                 payload = json.loads(resp.read().decode())
-        except Exception:  # noqa: BLE001  (diesen Radius als Fehlschlag werten, nächsten versuchen)
+        except Exception:  # noqa: BLE001  (diese Abfrage als Fehlschlag werten, nächste versuchen)
             continue
-        any_ok = True
+        if i == 0:
+            isin_ok = True   # der Punkt-in-Polygon-Test lief -> „kein Treffer" ist belastbar
         for el in payload.get("elements", []):
             name = (el.get("tags") or {}).get("name")
             if name:
                 return name[:120]
-    return "" if any_ok else None
+    # "" nur cachen, wenn der is_in-Test lief (sonst könnte er den großen See noch finden -> None = retry).
+    return "" if isin_ok else None
