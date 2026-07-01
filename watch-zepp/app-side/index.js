@@ -48,6 +48,9 @@ async function post(path, body) {
 }
 
 async function handle(req) {
+  if (req.method === "STATUS") {
+    return { paired: !!getItem("deviceToken"), hasCode: !!getItem("pairCode") };
+  }
   if (req.method === "START") {
     const m = req.meta;
     await post("/api/ingest/session", {
