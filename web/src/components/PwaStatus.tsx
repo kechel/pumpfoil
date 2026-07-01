@@ -26,6 +26,21 @@ export function PwaStatus() {
     },
   });
 
+  // autoUpdate skip-waitet den neuen SW, aber bei injectRegister:false lädt die Seite nicht
+  // von selbst neu -> ohne das hier bräuchte man ZWEI Reloads. Beim Kontrollwechsel EINMAL
+  // neu laden (Guard gegen Reload-Schleife) -> ein Reload reicht für den neuen Stand.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    let reloaded = false;
+    const onCtrl = () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onCtrl);
+    return () => navigator.serviceWorker.removeEventListener("controllerchange", onCtrl);
+  }, []);
+
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);
