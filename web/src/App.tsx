@@ -60,9 +60,9 @@ export default function App() {
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
-        <div className="mb-3 flex items-center justify-between px-1">
-          <Link to="/"><Wordmark icon="h-7 w-7" text="text-xl" tagline /></Link>
-          <ThemeToggle />
+        <div className="mb-3 flex items-center justify-between gap-3 px-1">
+          <Link to="/"><Wordmark icon="h-6 w-6" text="text-lg" tagline /></Link>
+          <ThemeToggle className="shrink-0" />
         </div>
         {profile && (
           <Link to="/" className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
