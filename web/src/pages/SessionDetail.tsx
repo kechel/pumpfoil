@@ -398,6 +398,26 @@ export default function SessionDetail() {
     api.session(Number(id)).then(setSession).catch((e) => setError(String(e)));
   }, [id]);
 
+  // Spot-Name wird serverseitig im HINTERGRUND aufgelöst (OSM/Overpass kann dauern) -> die
+  // Session kommt sofort ohne Namen. Solange place_name noch null ist (nicht "" = definitiv
+  // kein Gewässer), degressiv nachpollen und übernehmen, sobald da.
+  useEffect(() => {
+    if (!session || session.place_name != null) return;
+    const delays = [1000, 3000, 5000, 10000, 20000, 30000];
+    let cancelled = false;
+    let acc = 0;
+    const timers = delays.map((d) => {
+      acc += d;
+      return window.setTimeout(() => {
+        if (cancelled) return;
+        api.session(Number(id)).then((fresh) => {
+          if (!cancelled && fresh.place_name != null) setSession(fresh);
+        }).catch(() => {});
+      }, acc);
+    });
+    return () => { cancelled = true; timers.forEach(clearTimeout); };
+  }, [id, session?.place_name]);
+
   // HR-Bereich der Foiling-Punkte (für die Puls-Farbskala).
   const hrRange = useMemo<[number, number]>(() => {
     const hr: (number | null)[] = session?.analysis?.track_geojson?.properties?.hr ?? [];

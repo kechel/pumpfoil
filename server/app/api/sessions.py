@@ -8,7 +8,7 @@ import zipfile
 from datetime import timedelta, timezone
 
 import numpy as np
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
@@ -580,9 +580,50 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
     return out
 
 
+def _geocode_place(session_id: int) -> None:
+    """Gewässer-Name per OSM (Overpass) auflösen + cachen — als BACKGROUND-Task, damit der
+    Session-Endpoint NICHT auf Overpass wartet (is_in kann Sekunden dauern). Eigene DB-Session.
+    Punkt = Start des ersten Foiling-Laufs (nah am Ufer/Steg, sicher auf Wasser); Median-Fallback."""
+    import numpy as _np
+
+    from ..db import SessionLocal
+    from ..places import lookup_water_name
+
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, session_id)
+        if s is None or s.place_name is not None:
+            return
+        gps = storage.load_gps(s.session_uuid)
+        if not gps:
+            return
+        pt = None
+        ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+        if ar and ar.segments_json:
+            try:
+                segs = json.loads(ar.segments_json)
+                i0 = segs[0].get("i_start") if segs else None
+                if i0 is not None and 0 <= i0 < len(gps):
+                    pt = (float(gps[i0][1]), float(gps[i0][2]))
+            except ValueError:
+                pass
+        if pt is None:
+            pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
+        lat, lon = pt
+        name = lookup_water_name(lat, lon)
+        if name is not None:
+            s.place_name = name
+            s.place_lat = lat
+            s.place_lon = lon
+            db.commit()
+    finally:
+        db.close()
+
+
 @router.get("/{session_id}", response_model=SessionOut)
 def get_session(
     session_id: int,
+    background_tasks: BackgroundTasks,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
@@ -593,39 +634,11 @@ def get_session(
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     else:
         s = _readable(db, session_id)
-    # Gewässer-Name per OSM auflösen und cachen. place_name is None = noch nicht (oder
-    # zuletzt fehlgeschlagen) -> erneut versuchen. "" = nachgeschlagen, kein Treffer (fix).
-    # Ein transienter Fehlschlag (lookup -> None) wird NICHT gecacht, sondern beim nächsten
-    # Aufruf erneut versucht -> self-healing statt dauerhaft „kein Spot".
+    # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
+    # = noch nicht (oder zuletzt fehlgeschlagen). Der Task setzt den Namen; er erscheint beim
+    # nächsten Laden. So kommt die Session sofort zurück (Overpass/is_in kann Sekunden dauern).
     if s.place_name is None:
-        import numpy as _np
-
-        from ..places import lookup_water_name
-
-        gps = storage.load_gps(s.session_uuid)
-        if gps:
-            # Bevorzugt der START des ersten Foiling-Laufs: nah am Ufer/Steg, aber sicher AUF
-            # dem Wasser -> benennt den Launch-Spot und liegt im Reichweiten-Radius. Der Median
-            # läge bei großen Seen weit draußen (Ufer >600 m weg) -> nur Fallback.
-            pt = None
-            ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
-            if ar and ar.segments_json:
-                try:
-                    segs = json.loads(ar.segments_json)
-                    i0 = segs[0].get("i_start") if segs else None
-                    if i0 is not None and 0 <= i0 < len(gps):
-                        pt = (float(gps[i0][1]), float(gps[i0][2]))
-                except ValueError:
-                    pass
-            if pt is None:
-                pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
-            lat, lon = pt
-            name = lookup_water_name(lat, lon)
-            if name is not None:                 # Erfolg (Name oder definitiv leer)
-                s.place_name = name
-                s.place_lat = lat
-                s.place_lon = lon
-                db.commit()
+        background_tasks.add_task(_geocode_place, s.id)
     out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=s.user.display_name if s.user else None,
