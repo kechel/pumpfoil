@@ -29,6 +29,13 @@ node_modules/
 web/dist/
 *.local
 
+# Zepp OS / Zeus (watch-zepp) — Build-Artefakte, nicht committen
+# (Quelle bleibt: app.json, page/, app-side/, setting/, utils/, assets/)
+watch-zepp/dist/
+watch-zepp/.zeus/
+watch-zepp/build/
+*.zab
+
 # Connect IQ build output
 *.prg
 *.prg.debug.xml
