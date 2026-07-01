@@ -29,15 +29,16 @@ export function SpotProgression() {
     api.spotTracks(spot).then(setTracks).catch(() => setTracks([]));
   }, [spot]);
 
-  // Speed-Skala (km/h) aus den Daten: 5.–95. Perzentil für guten Kontrast.
+  // Speed-Skala (km/h): globales Min/Max über ALLE Sessions des Spots -> eine Skala, die
+  // für alle passt (jeder Punkt liegt im Bereich, nichts wird schwarz).
   const [lo, hi] = useMemo<[number, number]>(() => {
-    const sp: number[] = [];
-    tracks?.forEach((tr) => tr.track.forEach((p) => { if (p[2] != null) sp.push(p[2] * 3.6); }));
-    if (sp.length < 10) return [8, 25];
-    sp.sort((a, b) => a - b);
-    const q = (f: number) => sp[Math.min(sp.length - 1, Math.floor(f * sp.length))];
-    const a = Math.max(0, Math.round(q(0.05))), b = Math.round(q(0.95));
-    return [a, Math.max(b, a + 5)];
+    let mn = Infinity, mx = -Infinity;
+    tracks?.forEach((tr) => tr.track.forEach((p) => {
+      if (p[2] != null) { const k = p[2] * 3.6; if (k < mn) mn = k; if (k > mx) mx = k; }
+    }));
+    if (!isFinite(mn) || !isFinite(mx)) return [8, 25];
+    const a = Math.floor(mn), b = Math.ceil(mx);
+    return [a, Math.max(b, a + 1)];
   }, [tracks]);
 
   // Karte + fixer Ausschnitt (Union aller Spuren) — nur bei Spot-/Track-Wechsel.
@@ -49,13 +50,9 @@ export function SpotProgression() {
     }
     const map = mapObj.current;
     map.eachLayer((l) => { if (l instanceof L.LayerGroup || l instanceof L.Polyline) map.removeLayer(l); });
+    // Fixer Ausschnitt = Union ALLER Spuren (nur für die Bounds, nicht gezeichnet).
     const all: [number, number][] = [];
-    const ghost = L.layerGroup().addTo(map);
-    tracks.forEach((tr) => {
-      const pts = tr.track.map((p) => [p[0], p[1]] as [number, number]);
-      all.push(...pts);
-      L.polyline(pts, { color: "#334155", weight: 1.5, opacity: 0.35 }).addTo(ghost);
-    });
+    tracks.forEach((tr) => tr.track.forEach((p) => all.push([p[0], p[1]])));
     curRef.current = L.layerGroup().addTo(map);
     if (all.length) map.fitBounds(L.latLngBounds(all), { padding: [20, 20] });
     setTimeout(() => map.invalidateSize(), 50);
