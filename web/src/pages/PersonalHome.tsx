@@ -23,14 +23,18 @@ export default function PersonalHome() {
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [homespot, setHomespot] = useState("");
+  // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
+  const [accelOnly, setAccelOnly] = useState(true);
 
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
-    api.stats(true).then(setStats).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
     api.chatRooms().then(setRooms).catch(() => {});
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
+  useEffect(() => {
+    api.stats(accelOnly).then(setStats).catch(() => {});
+  }, [accelOnly]);
 
   const recs = stats?.records;
   // Rekord-Kacheln (klickbar -> Session) + Gesamt-Stat-Kacheln, alle zusammen oben.
@@ -68,6 +72,18 @@ export default function PersonalHome() {
 
       {/* App installieren (mobil, nur wenn installierbar) */}
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
+
+      {/* Rekorde-Kopf mit Accel/alle-Umschalter */}
+      <div className="mb-2 flex items-center gap-2">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
+        <button
+          onClick={() => setAccelOnly((v) => !v)}
+          title={t("side.recordsHint")}
+          className={`rounded px-2 py-0.5 text-[11px] font-medium ${accelOnly ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-300"}`}
+        >
+          {accelOnly ? t("side.onlyAccel") : t("side.all")}
+        </button>
+      </div>
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}
       {!stats ? <Spinner /> : (

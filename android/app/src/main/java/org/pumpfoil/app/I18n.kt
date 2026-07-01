@@ -100,6 +100,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "home.runs" to row("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
     "home.pumps" to row("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
     "home.records" to row("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),
+    "home.onlyAccel" to row("nur Accel", "nur Accel", "nur Accel", "accel only", "accel seul.", "solo accel", "solo accel"),
+    "home.allRecords" to row("alle", "alli", "alle", "all", "tous", "tutti", "todos"),
     "home.topSpeed" to row("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Velocidad máx"),
     "home.farthestRun" to row("Weitester Lauf", "Wytischte Lauf", "Weitester Lauf", "Farthest run", "Plus longue distance", "Distanza max", "Distancia máx"),
     "home.longestRun" to row("Längster Lauf", "Längschte Lauf", "Längster Lauf", "Longest run", "Plus longue durée", "Durata max", "Duración máx"),

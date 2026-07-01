@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,17 +47,22 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
+    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only).
+    var accelOnly by remember { mutableStateOf(true) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(tick) {
         loading = true
         profile = try { Api.me() } catch (_: Exception) { profile }
-        stats = try { Api.stats() } catch (_: Exception) { null }
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
         rooms = try { Api.chatRooms() } catch (_: Exception) { emptyList() }
         val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs).weather } catch (_: Exception) { null } else null
         loading = false
+    }
+    // Stats separat: reagiert zusätzlich auf den Accel/alle-Umschalter.
+    LaunchedEffect(tick, accelOnly) {
+        stats = try { Api.stats(accelOnly) } catch (_: Exception) { stats }
     }
 
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.home")) { SyncIndicator() } }) { pad ->
@@ -82,8 +89,24 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 )
                 TileGrid(totals.map { Triple(it.first, it.second, null as Int?) }, onOpen)
                 Spacer(Modifier.height(16.dp))
-                // Persönliche Rekorde (klickbar zur Session).
-                Text(I18n.t("home.records"), style = MaterialTheme.typography.titleMedium)
+                // Persönliche Rekorde (klickbar zur Session) + Accel/alle-Umschalter.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(I18n.t("home.records"), style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.width(8.dp))
+                    val on = accelOnly
+                    Surface(
+                        onClick = { accelOnly = !accelOnly },
+                        shape = MaterialTheme.shapes.small,
+                        color = if (on) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
+                    ) {
+                        Text(
+                            if (on) I18n.t("home.onlyAccel") else I18n.t("home.allRecords"),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        )
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
                 val r = st.records
                 val recs = buildList {

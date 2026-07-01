@@ -10,6 +10,8 @@ struct HomeView: View {
     @State private var weather: WeatherBlock?
     @State private var rooms: [ChatRoom] = []
     @State private var loading = true
+    // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only).
+    @State private var accelOnly = true
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -30,7 +32,18 @@ struct HomeView: View {
                             tile("\(st.pumps ?? 0)", Loc.t("home.pumps", lang))
                         }
                         if let r = st.records {
-                            Text(Loc.t("home.records", lang)).font(.headline)
+                            HStack(spacing: 8) {
+                                Text(Loc.t("home.records", lang)).font(.headline)
+                                Button { accelOnly.toggle() } label: {
+                                    Text(accelOnly ? Loc.t("home.onlyAccel", lang) : Loc.t("home.allRecords", lang))
+                                        .font(.caption).fontWeight(.medium)
+                                        .padding(.horizontal, 10).padding(.vertical, 4)
+                                        .background(accelOnly ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.18))
+                                        .foregroundColor(accelOnly ? .accentColor : .secondary)
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
                             LazyVGrid(columns: cols, spacing: 12) {
                                 if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), Loc.t("home.topSpeed", lang), v.session_id) }
                                 if let v = r.distance { recordTile(fmtDist(v.value ?? 0), Loc.t("home.farthestRun", lang), v.session_id) }
@@ -86,6 +99,7 @@ struct HomeView: View {
             .refreshable { await load() }
             .task { await load() }
             .onChange(of: sync.tick) { _ in Task { await load() } }
+            .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
         }
     }
 
@@ -118,7 +132,7 @@ struct HomeView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        stats = try? await Api.stats()
+        stats = try? await Api.stats(accelOnly: accelOnly)
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
         rooms = (try? await Api.chatRooms()) ?? []
         let hs = (try? await Api.settings())?["homespot"] as? String

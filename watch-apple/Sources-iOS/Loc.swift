@@ -87,6 +87,8 @@ enum Loc {
         "home.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
         "home.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
         "home.records": r("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),
+        "home.onlyAccel": r("nur Accel", "nur Accel", "nur Accel", "accel only", "accel seul.", "solo accel", "solo accel"),
+        "home.allRecords": r("alle", "alli", "alle", "all", "tous", "tutti", "todos"),
         "home.topSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Velocidad máx"),
         "home.farthestRun": r("Weitester Lauf", "Wytischte Lauf", "Weitester Lauf", "Farthest run", "Plus longue distance", "Distanza max", "Distancia máx"),
         "home.longestRun": r("Längster Lauf", "Längschte Lauf", "Längster Lauf", "Longest run", "Plus longue durée", "Durata max", "Duración máx"),

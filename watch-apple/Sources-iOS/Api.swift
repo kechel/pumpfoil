@@ -118,8 +118,8 @@ enum Api {
         return try await request("/api/community/spot-sessions?spot=\(s)&limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
-    static func stats() async throws -> OverallStats {
-        try await request("/api/sessions/stats?accel_only=true", method: "GET", body: nil, auth: true)
+    static func stats(accelOnly: Bool = true) async throws -> OverallStats {
+        try await request("/api/sessions/stats?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
     static func spots() async throws -> SpotsList {

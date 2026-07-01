@@ -163,8 +163,8 @@ object Api {
         json.decodeFromString(ListSerializer(HistoryPoint.serializer()), http("GET", "/api/sessions/history", null, auth = true))
     }
 
-    suspend fun stats(): OverallStats = withContext(Dispatchers.IO) {
-        json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=true", null, auth = true))
+    suspend fun stats(accelOnly: Boolean = true): OverallStats = withContext(Dispatchers.IO) {
+        json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=$accelOnly", null, auth = true))
     }
 
     suspend fun deleteSession(id: Int): Unit = withContext(Dispatchers.IO) {
