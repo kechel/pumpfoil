@@ -16,7 +16,7 @@ store-assets/
 Listing-Grafiken (Screenshots macht Jan frisch aus dem Simulator, aktuelles UI mit „Pumpfoil"/v1.0.44):
 - `hero-1440x720.png` — Hero-Bild (Wortmarke + TRACK EVERY PUMP, Slate-Hintergrund)
 - `store-icon-500x500.png` — Titelbild Internet/Mobil (<300 KB)
-- `device-icon-128x128.png` — Gerätesymbol für den App-Shop auf dem Gerät (optional)
+- `device-icon-128-24bit.png` / `device-icon-128-64color.png` — Gerätesymbole für den App-Shop auf dem Gerät (2 Felder: 24-Bit-Farbe + reduzierte 64er-Palette), optional
 
 Alle aus dem Marken-Icon (`watch-apple/.../AppIcon/icon-1024.png`) via Pillow generiert.
 
