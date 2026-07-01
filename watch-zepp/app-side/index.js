@@ -48,8 +48,23 @@ async function post(path, body) {
 }
 
 async function handle(req) {
-  if (req.method === "STATUS") {
-    return { paired: !!getItem("deviceToken"), hasCode: !!getItem("pairCode") };
+  if (req.method === "CONFIG") {
+    // Löst bei Bedarf den Pairing-Code ein; lädt dann die konfigurierten Datenfelder.
+    let token;
+    try { token = await ensureToken(); } catch (e) { return { paired: false }; }
+    try {
+      const r = await fetch({
+        url: BASE + "/api/devices/config?p=zepp",
+        method: "GET",
+        headers: { "X-Device-Token": token },
+      });
+      const b = typeof r.body === "string" ? JSON.parse(r.body) : r.body;
+      return {
+        paired: true,
+        views: b && b.views, offFoilView: b && b.offFoilView,
+        autoStart: b && b.autoStart, colorByValue: b && b.colorByValue,
+      };
+    } catch (e) { return { paired: true }; }   // Token da, aber Config-Load hakt -> Defaults nutzen
   }
   if (req.method === "START") {
     const m = req.meta;

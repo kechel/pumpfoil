@@ -8,8 +8,10 @@ für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `dete
 (Distanz/Speed/Läufe, **noch keine Pumps**). Accel nachrüsten, sobald die API bestätigt ist.
 
 ## Aufbau (auf dem „Fetch Api"-Template, `@zeppos/zml`)
-- `page/index.js` — Uhr-UI + Aufnahme: GPS (1 Hz) + Puls, Puffer im RAM, START/STOPP, Live-Speed/
-  Dauer/HR. Beim Stopp `this.request({method:"START"|"CHUNK"|"COMPLETE", …})` an den App-Side.
+- `page/index.js` — Uhr-UI + Aufnahme: GPS (1 Hz) + Puls, Puffer im RAM, START/STOPP. Rendert die
+  **konfigurierten Datenfelder** (aus `/api/devices/config`: `views` = wischbare Seiten, `offFoilView`
+  = Ruhe; Feld-IDs wie web/`fields.ts`/Garmin) — 3 Slots/Seite, Titel antippen = nächste Seite.
+  Beim Stopp `this.request({method:"START"|"CHUNK"|"COMPLETE", …})` an den App-Side.
 - `page/index.[r|s].layout.js` — Widget-Geometrie rund/eckig.
 - `app-side/index.js` — App-Side-Service (Handy): `onRequest` → `fetch` zu den Ingest-Endpoints
   mit `X-Device-Token`. Löst den Pairing-Code (`POST /api/devices/pair`) beim ersten Upload ein.
