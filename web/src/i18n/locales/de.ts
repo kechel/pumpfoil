@@ -524,7 +524,7 @@ const de: Record<string, string> = {
 
   // Impressum / Datenschutz (de + en; übrige erben de)
   "imp.title": "Impressum",
-  "imp.whoSees": "Wer sieht was?",
+  "imp.whoSees": "Datenschutz",
   "imp.intro": "Diese App ist eine Community: Foil-Sessions werden mit anderen geteilt. Hier steht genau, welche Daten für wen sichtbar sind.",
   "imp.publicTitle": "🌍 Öffentlich (jeder im Internet, ohne Login)",
   "imp.public1": "<b>Hochgeladene Fotos</b> und <b>Profilbilder</b>: Die Bilddateien liegen unter einem zufälligen, nicht erratbaren Link. Wer diesen Link kennt (z. B. weitergeleitet), kann das Bild auch ohne Konto öffnen. EXIF-/GPS-Daten in Fotos werden beim Upload entfernt.",
@@ -544,7 +544,7 @@ const de: Record<string, string> = {
   "imp.operatorTitle": "🛠 Nur der Betreiber (Jan)",
   "imp.operator1": "E-Mail-Adressen, alle Rohdaten, Geräte-Verknüpfungen und technische Server-Logs.",
   "imp.operator2": "Passwörter werden nur als gesalzener Hash (PBKDF2) gespeichert — auch ich sehe sie nicht im Klartext.",
-  "imp.privacyTitle": "Datenschutz",
+  "imp.privacyTitle": "Datenlöschung",
   "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Zum Löschen nutze bitte den Button „Konto löschen“ in deinem Profil (Web-App oder iOS-/Android-App) — er entfernt dein Konto mit allen Sessions, Rohdaten und Fotos endgültig. Die Übertragung läuft verschlüsselt (HTTPS).",
   "imp.googleTitle": "Google-Anmeldung (Google-Nutzerdaten)",
   "imp.googleIntro": "Wenn du dich mit deinem Google-Konto anmeldest (Google Sign-In / OAuth), verarbeiten wir ausschließlich die folgenden Google-Nutzerdaten:",

@@ -499,7 +499,7 @@ const en: Record<string, string> = {
   "adm.noActions": "No actions yet.",
 
   "imp.title": "Imprint",
-  "imp.whoSees": "Who sees what?",
+  "imp.whoSees": "Privacy",
   "imp.intro": "This app is a community: foil sessions are shared with others. Here's exactly which data is visible to whom.",
   "imp.publicTitle": "🌍 Public (anyone on the internet, no login)",
   "imp.public1": "<b>Uploaded photos</b> and <b>profile pictures</b>: the image files live under a random, unguessable link. Anyone who knows that link (e.g. forwarded) can open the image without an account. EXIF/GPS data in photos is stripped on upload.",
@@ -519,7 +519,7 @@ const en: Record<string, string> = {
   "imp.operatorTitle": "🛠 Only the operator (Jan)",
   "imp.operator1": "Email addresses, all raw data, device links and technical server logs.",
   "imp.operator2": "Passwords are stored only as a salted hash (PBKDF2) — even I can't see them in plain text.",
-  "imp.privacyTitle": "Privacy",
+  "imp.privacyTitle": "Data deletion",
   "imp.privacyText": "All uploaded data is stored permanently. To delete it, use the “Delete account” button in your profile (web app or iOS/Android app) — it permanently removes your account with all sessions, raw data and photos. Transmission is encrypted (HTTPS).",
 
   "meta.captionPlaceholder": "my 2–3 word description",
