@@ -333,6 +333,8 @@ export const api = {
     req<{
       n_takes: number; ref_take?: number; consensus_n?: number; consensus_ms: number[];
       takes: { take: number; n: number; offset_ms: number; matched: number; jitter_ms: number; is_ref: boolean }[];
+      verdict: "verified" | "unverified" | "implausible"; n_plausible: number; foil_s: number | null;
+      quality: { take: number; n: number; cadence_hz: number; coverage: number; recall: number | null; jitter_ms: number | null; plausible: boolean }[];
     }>(`/api/sessions/${id}/pump-truth/compare${runIdx != null ? `?run_idx=${runIdx}` : ""}`),
 
   suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),

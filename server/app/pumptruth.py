@@ -75,6 +75,47 @@ def _match_jitter(ref: np.ndarray, shifted: np.ndarray) -> tuple[int, float]:
     return len(diffs), float(np.std(diffs))
 
 
+# --- Plausibilität (Triage crowd-gesourcter Taps) ---
+# Detektor-UNABHÄNGIG (der Detektor verpasst ja gerade die subtilen Pumps, die wir taggen):
+# ein ernstgemeinter Take deckt den Lauf ab und hat eine physiologische Pump-Kadenz.
+CADENCE_MIN_HZ = 0.4    # Pumps pro Foiling-Sekunde: darunter zu spärlich (Ausprobieren)
+CADENCE_MAX_HZ = 2.5    # darüber Gehämmer
+COVERAGE_MIN = 0.5      # Tap-Spanne muss >= halben Lauf abdecken
+
+
+def assess_takes(takes: list[dict], foil_s: float | None) -> dict:
+    """compare_takes + Plausibilitäts-Triage. foil_s = Foiling-Dauer des Laufs (s).
+    Verdikt: 'verified' (>=2 plausible Takes), 'unverified' (1), 'implausible' (0).
+    Je Take: Kadenz (Pumps/Foiling-s), Abdeckung (Tap-Spanne/foil_s), Recall vs. Konsens, Jitter."""
+    cmp = compare_takes(takes)
+    consensus = np.asarray(cmp.get("consensus_ms") or [], dtype=float)
+    reports = {r["take"]: r for r in cmp.get("takes", [])}
+    per = []
+    for t in takes:
+        arr = np.sort(np.asarray(t.get("times_ms") or [], dtype=float))
+        n = int(arr.size)
+        if n == 0:
+            continue
+        span_s = float((arr[-1] - arr[0]) / 1000.0) if n > 1 else 0.0
+        cad = (n / foil_s) if foil_s and foil_s > 0 else 0.0
+        coverage = (span_s / foil_s) if foil_s and foil_s > 0 else 0.0
+        rep = reports.get(t["take"], {})
+        al = arr - rep.get("offset_ms", 0)
+        recall = (float(np.mean([np.min(np.abs(al - c)) < MATCH_TOL_MS for c in consensus]))
+                  if consensus.size else None)
+        plausible = (CADENCE_MIN_HZ <= cad <= CADENCE_MAX_HZ) and (coverage >= COVERAGE_MIN)
+        per.append({
+            "take": int(t["take"]), "n": n,
+            "cadence_hz": round(cad, 2), "coverage": round(coverage, 2),
+            "recall": round(recall, 2) if recall is not None else None,
+            "jitter_ms": rep.get("jitter_ms"), "plausible": plausible,
+        })
+    n_good = sum(1 for p in per if p["plausible"])
+    verdict = "verified" if n_good >= 2 else "unverified" if n_good == 1 else "implausible"
+    return {**cmp, "foil_s": round(foil_s, 1) if foil_s else None,
+            "verdict": verdict, "n_plausible": n_good, "quality": per}
+
+
 def compare_takes(takes: list[dict]) -> dict:
     """takes: [{"take": k, "times_ms": [...]}, ...] -> Vergleichs-Report.
 

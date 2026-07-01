@@ -1,5 +1,5 @@
-"""Tests für den Take-Vergleich (Tap-to-Label): Offset-Ausrichtung + Konsens."""
-from app.pumptruth import compare_takes
+"""Tests für den Take-Vergleich (Tap-to-Label): Offset-Ausrichtung + Konsens + Plausibilität."""
+from app.pumptruth import assess_takes, compare_takes
 
 
 def _base(n=20, step=1500):
@@ -45,3 +45,24 @@ def test_consensus_majority():
 def test_empty_takes():
     assert compare_takes([])["n_takes"] == 0
     assert compare_takes([{"take": 1, "times_ms": []}])["n_takes"] == 0
+
+
+def test_assess_verified_and_flags_junk():
+    """Zwei dichte, deckende Takes -> verified; ein spärlicher Zufalls-Take -> implausible."""
+    foil_s = 21.0
+    good = [i * 700 for i in range(30)]        # ~1.4 Hz, deckt den Lauf ab
+    junk = [i * 3000 for i in range(5)]        # 5 Taps, 0.24 Hz -> zu spärlich
+    a = assess_takes([
+        {"take": 1, "times_ms": good},
+        {"take": 2, "times_ms": [x + 120 for x in good]},
+        {"take": 3, "times_ms": junk},
+    ], foil_s)
+    assert a["verdict"] == "verified"          # >=2 plausible Takes
+    q = {p["take"]: p for p in a["quality"]}
+    assert q[1]["plausible"] and q[2]["plausible"]
+    assert not q[3]["plausible"]               # der Zufalls-Take fällt durch
+
+
+def test_assess_implausible_when_all_sparse():
+    a = assess_takes([{"take": 1, "times_ms": [i * 3000 for i in range(5)]}], 21.0)
+    assert a["verdict"] == "implausible"

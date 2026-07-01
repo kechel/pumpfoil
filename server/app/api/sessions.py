@@ -860,8 +860,20 @@ def compare_pump_truth(
     """Vergleicht die getappten Durchläufe (Takes): richtet sie per Kreuzkorrelation aus,
     liefert je Take Offset+Rest-Jitter und einen mehrheitlich bestätigten Konsens."""
     _owned_or_admin(db, user, session_id)
-    from ..pumptruth import compare_takes
-    return compare_takes(_truth_takes(db, session_id, run_idx))
+    from ..pumptruth import assess_takes
+    # Foiling-Dauer des Laufs (bzw. aller Läufe) für die Kadenz-/Abdeckungs-Plausibilität.
+    ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
+    segs = []
+    if ar and ar.segments_json:
+        try:
+            segs = json.loads(ar.segments_json)
+        except ValueError:
+            segs = []
+    if run_idx is not None:
+        foil_s = (segs[run_idx].get("duration_s") if 0 <= run_idx < len(segs) else 0) or 0
+    else:
+        foil_s = sum((s.get("duration_s") or 0) for s in segs)
+    return assess_takes(_truth_takes(db, session_id, run_idx), float(foil_s))
 
 
 @router.delete("/{session_id}/pump-truth")

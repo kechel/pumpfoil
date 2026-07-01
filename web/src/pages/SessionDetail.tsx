@@ -1120,32 +1120,46 @@ export default function SessionDetail() {
                 {tapSaved && <span className="text-xs text-emerald-400">{tapSaved}</span>}
                 <p className="w-full rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-sm leading-relaxed text-slate-300"
                   dangerouslySetInnerHTML={{ __html: t("sd.tapHelp") }} />
-                {cmp && (
+                {cmp && (() => {
+                  const qual = new Map(cmp.quality?.map((q) => [q.take, q]));
+                  const vClass = cmp.verdict === "verified" ? "bg-emerald-500/20 text-emerald-300"
+                    : cmp.verdict === "unverified" ? "bg-amber-500/20 text-amber-300"
+                    : "bg-rose-500/20 text-rose-300";
+                  return (
                   <div className="w-full rounded-lg border border-slate-700 bg-slate-900/60 p-2 text-xs">
-                    <div className="mb-1 text-slate-300">
-                      {t("sd.tapCmpHead", { n: cmp.n_takes, ref: cmp.ref_take ?? 0 })}
-                      {" · "}{t("sd.tapCmpConsensus", { n: cmp.consensus_n ?? 0 })}
+                    <div className="mb-1 flex flex-wrap items-center gap-2 text-slate-300">
+                      <span className={`rounded px-1.5 py-0.5 font-semibold ${vClass}`}>{t(`sd.tapVerdict.${cmp.verdict}`)}</span>
+                      <span>{t("sd.tapCmpHead", { n: cmp.n_takes, ref: cmp.ref_take ?? 0 })}
+                        {" · "}{t("sd.tapCmpConsensus", { n: cmp.consensus_n ?? 0 })}</span>
                     </div>
                     <table className="tabular-nums text-slate-400">
                       <thead><tr className="text-slate-500">
                         <th className="pr-3 text-left">Take</th><th className="pr-3 text-right">{t("stat.pumps")}</th>
                         <th className="pr-3 text-right">Offset</th><th className="pr-3 text-right">Match</th>
-                        <th className="pr-3 text-right">Jitter</th>
+                        <th className="pr-3 text-right">Jitter</th><th className="pr-2 text-right">Hz</th><th className="pl-1 text-center">✓</th>
                       </tr></thead>
                       <tbody>
-                        {cmp.takes.map((r) => (
-                          <tr key={r.take} className={r.is_ref ? "text-brand-300" : ""}>
+                        {cmp.takes.map((r) => {
+                          const q = qual.get(r.take);
+                          const bad = q && !q.plausible;
+                          return (
+                          <tr key={r.take} className={bad ? "text-rose-300/80" : r.is_ref ? "text-brand-300" : ""}>
                             <td className="pr-3">{r.take}{r.is_ref ? " ★" : ""}</td>
                             <td className="pr-3 text-right">{r.n}</td>
                             <td className="pr-3 text-right">{r.is_ref ? "–" : `${r.offset_ms > 0 ? "+" : ""}${(r.offset_ms / 1000).toFixed(2)}s`}</td>
                             <td className="pr-3 text-right">{r.is_ref ? "–" : r.matched}</td>
                             <td className="pr-3 text-right">{r.is_ref ? "–" : `±${Math.round(r.jitter_ms)}ms`}</td>
+                            <td className="pr-2 text-right">{q ? q.cadence_hz.toFixed(1) : "–"}</td>
+                            <td className="pl-1 text-center">{q ? (q.plausible ? "✓" : "⚠") : ""}</td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
+                    <p className="mt-1 text-[11px] text-slate-500">{t("sd.tapVerdictHint")}</p>
                   </div>
-                )}
+                  );
+                })()}
           </div>
         )}
 
