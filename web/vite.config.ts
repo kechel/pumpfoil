@@ -8,10 +8,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // autoUpdate: neuer SW skip-waitet + übernimmt, die Seite lädt automatisch neu.
-      // Vorher "prompt" -> normale Reloads lieferten die gecachte (alte) App, Updates kamen
-      // nur über einen oft übersehenen Banner -> Nutzer hingen auf alten Ständen.
-      registerType: "autoUpdate",
+      // prompt: neuer SW wartet, ein sichtbares Banner meldet "Neue Version verfügbar"
+      // + "Aktualisieren"-Button (skipWaiting -> Reload erst auf Klick). Der Nutzer sieht so
+      // klar, wann es was Neues gibt (autoUpdate griff hier unzuverlässig).
+      registerType: "prompt",
       injectRegister: false,        // Registrierung via useRegisterSW (PwaStatus)
       manifest: false,              // wir behalten public/manifest.webmanifest
       workbox: {

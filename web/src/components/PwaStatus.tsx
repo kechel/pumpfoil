@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useT } from "../i18n";
 
-// Offline-Indikator + automatischer Update-Check (vite-plugin-pwa, registerType
-// "autoUpdate"): ein neuer Service-Worker skip-waitet, übernimmt und die Seite lädt
-// automatisch neu — kein „Aktualisieren"-Banner nötig, keine hängenden Altstände.
+// Offline-Indikator + sichtbares Update-Banner (vite-plugin-pwa, registerType "prompt").
+// Ein neuer Service-Worker wartet; sobald verfügbar erscheint oben "Neue Version verfügbar"
+// mit "Aktualisieren"-Button -> updateServiceWorker(true) skip-waitet und lädt neu. So sieht
+// man klar, wann es was Neues gibt (autoUpdate hatte hier nicht zuverlässig neu geladen).
 export function PwaStatus() {
   const t = useT();
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
 
-  useRegisterSW({
-    // Aktiv nach Updates suchen, damit ein offener Tab den neuen Stand auch ohne
-    // manuelles Neuladen bekommt: stündlich + bei Tab-Fokus (gedrosselt). Gefundene
-    // Updates wendet autoUpdate selbst an (skipWaiting -> controllerchange -> reload).
+  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
+    // Aktiv nach Updates suchen, damit das Banner ohne manuelles Neuladen auftaucht:
+    // stündlich + bei Tab-Fokus (gedrosselt).
     onRegisteredSW(_swUrl, r) {
-      if (!r) { return; }
+      if (!r) return;
       let last = Date.now();
       setInterval(() => { last = Date.now(); r.update(); }, 60 * 60 * 1000);
       document.addEventListener("visibilitychange", () => {
@@ -25,21 +25,6 @@ export function PwaStatus() {
       });
     },
   });
-
-  // autoUpdate skip-waitet den neuen SW, aber bei injectRegister:false lädt die Seite nicht
-  // von selbst neu -> ohne das hier bräuchte man ZWEI Reloads. Beim Kontrollwechsel EINMAL
-  // neu laden (Guard gegen Reload-Schleife) -> ein Reload reicht für den neuen Stand.
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    let reloaded = false;
-    const onCtrl = () => {
-      if (reloaded) return;
-      reloaded = true;
-      window.location.reload();
-    };
-    navigator.serviceWorker.addEventListener("controllerchange", onCtrl);
-    return () => navigator.serviceWorker.removeEventListener("controllerchange", onCtrl);
-  }, []);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -52,11 +37,26 @@ export function PwaStatus() {
     };
   }, []);
 
-  if (online) { return null; }
-  return (
-    <div className="sticky top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 py-1 text-center text-xs font-medium text-slate-950">
-      <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-900" />
-      {t("pwa.offline")}
-    </div>
-  );
+  if (needRefresh) {
+    return (
+      <div className="sticky top-0 z-[4000] flex items-center justify-center gap-3 bg-brand-500 px-3 py-1.5 text-center text-xs font-medium text-slate-950">
+        <span>{t("pwa.updateAvailable")}</span>
+        <button
+          onClick={() => updateServiceWorker(true)}
+          className="rounded bg-slate-950/20 px-2 py-0.5 font-semibold hover:bg-slate-950/30"
+        >
+          {t("pwa.update")}
+        </button>
+      </div>
+    );
+  }
+  if (!online) {
+    return (
+      <div className="sticky top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 py-1 text-center text-xs font-medium text-slate-950">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-900" />
+        {t("pwa.offline")}
+      </div>
+    );
+  }
+  return null;
 }
