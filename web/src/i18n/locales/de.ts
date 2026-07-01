@@ -545,7 +545,7 @@ const de: Record<string, string> = {
   "imp.operator1": "E-Mail-Adressen, alle Rohdaten, Geräte-Verknüpfungen und technische Server-Logs.",
   "imp.operator2": "Passwörter werden nur als gesalzener Hash (PBKDF2) gespeichert — auch ich sehe sie nicht im Klartext.",
   "imp.privacyTitle": "Datenschutz",
-  "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Wer seine Daten gelöscht haben möchte, schreibt mir bitte eine nette E-Mail. Die Übertragung läuft verschlüsselt (HTTPS).",
+  "imp.privacyText": "Alle hochgeladenen Daten werden dauerhaft gespeichert. Zum Löschen nutze bitte den Button „Konto löschen“ in deinem Profil (Web-App oder iOS-/Android-App) — er entfernt dein Konto mit allen Sessions, Rohdaten und Fotos endgültig. Die Übertragung läuft verschlüsselt (HTTPS).",
   "imp.googleTitle": "Google-Anmeldung (Google-Nutzerdaten)",
   "imp.googleIntro": "Wenn du dich mit deinem Google-Konto anmeldest (Google Sign-In / OAuth), verarbeiten wir ausschließlich die folgenden Google-Nutzerdaten:",
   "imp.google1": "<b>Zugriff (Data Accessed):</b> deine E-Mail-Adresse, dein Vorname und deine Google-Konto-ID (sub).",

@@ -520,7 +520,7 @@ const en: Record<string, string> = {
   "imp.operator1": "Email addresses, all raw data, device links and technical server logs.",
   "imp.operator2": "Passwords are stored only as a salted hash (PBKDF2) — even I can't see them in plain text.",
   "imp.privacyTitle": "Privacy",
-  "imp.privacyText": "All uploaded data is stored permanently. If you want your data deleted, please send me a nice email. Transmission is encrypted (HTTPS).",
+  "imp.privacyText": "All uploaded data is stored permanently. To delete it, use the “Delete account” button in your profile (web app or iOS/Android app) — it permanently removes your account with all sessions, raw data and photos. Transmission is encrypted (HTTPS).",
 
   "meta.captionPlaceholder": "my 2–3 word description",
   "meta.youtubePlaceholder": "YouTube link (optional)",
