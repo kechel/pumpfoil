@@ -128,7 +128,9 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
       )}
 
       <div className="mt-2 text-[10px] text-slate-500">
-        {t("wx.source")}: <a href={om} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">Open-Meteo.com</a>{pegel ? " · PEGELONLINE" : ""}{water ? ` · ${water.source}` : ""}
+        {t("wx.source")}: <a href={om} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">Open-Meteo.com</a>
+        {pegel && <> · <a href="https://www.pegelonline.wsv.de/" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">PEGELONLINE</a></>}
+        {water && <> · <a href="http://www.db0wv.de/" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">{water.source}</a></>}
       </div>
     </Card>
   );
