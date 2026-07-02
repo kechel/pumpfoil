@@ -10,7 +10,7 @@ import { FoilPowerStat } from "../components/FoilPower";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
-import { setLastSession } from "../lib/lastSession";
+import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 function fmtKm(m: number | null | undefined) {
@@ -849,7 +849,7 @@ export default function SessionDetail() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <Link to="/sessions" className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+        <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
         <div className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
-import { getLastSession } from "../lib/lastSession";
+import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -35,6 +35,10 @@ export default function Sessions() {
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
   }, []);
+
+  // Aktuelle Listen-Query merken (scope/spot/filter/month), damit der Zurück-Link im Detail
+  // wieder in denselben Scope/Filter zurückführt.
+  useEffect(() => { setLastSessionsSearch(`?${sp.toString()}`); }, [sp]);
 
   const isMine = scope === "mine" && !spot;
   const setScope = (next: "mine" | "all", nextSpot = "") => {
