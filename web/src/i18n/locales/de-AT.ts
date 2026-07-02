@@ -370,7 +370,7 @@ const deAT: Record<string, string> = {
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfügbar",
   "watches.stGarmin": "auch per Sideload (.prg)",
-  "watches.st.planned": "Geplant",
+  "watches.st.planned": "wartet auf Freigabe",
   "watches.st.import": "Polar API",
   "watches.st.no": "Nicht möglich",
   "watches.legYes": "voll unterstützt",

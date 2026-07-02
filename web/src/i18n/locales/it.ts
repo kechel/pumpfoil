@@ -485,7 +485,7 @@ const it: Record<string, string> = {
   "watches.colStatus": "Stato",
   "watches.st.avail": "Disponibile",
   "watches.stGarmin": "anche via sideload (.prg)",
-  "watches.st.planned": "Pianificato",
+  "watches.st.planned": "in attesa di approvazione",
   "watches.st.import": "Polar API",
   "watches.st.no": "Non possibile",
   "watches.legYes": "pieno supporto",

@@ -613,7 +613,7 @@ const en: Record<string, string> = {
   "watches.st.avail": "Available",
   "watches.stGarmin": "also via sideload (.prg)",
   "watches.linkAccount": "Link account",
-  "watches.st.planned": "Planned",
+  "watches.st.planned": "awaiting approval",
   "watches.st.import": "Polar API",
   "watches.st.no": "Not possible",
   "watches.legYes": "fully supported",

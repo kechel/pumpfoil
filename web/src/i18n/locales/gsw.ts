@@ -409,7 +409,7 @@ const gsw: Record<string, string> = {
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfüegbar",
   "watches.stGarmin": "au als Sideload (.prg)",
-  "watches.st.planned": "Plant",
+  "watches.st.planned": "wartet uf Freigab",
   "watches.st.import": "Polar API",
   "watches.st.no": "Nöd möglich",
   "watches.legYes": "voll unterstützt",
