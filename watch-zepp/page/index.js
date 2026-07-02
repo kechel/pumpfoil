@@ -125,28 +125,29 @@ Page(
         })
         .catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
     },
+    // Pairing/Poll: DIREKTER this.request (ein Request pro Aufruf). Kein call()-Retry — der würde
+    // Folge-Requests feuern, die im Sim keine Antwort bekommen; der einzelne Request lief zuverlässig.
     beginPairing() {
       const s = this.state;
       s.paired = false;
-      this.call({ method: "PAIR_INIT" }, (r) => r && r.code)
-        .then((r) => { s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll(); })
-        .catch(() => this.rerender());
+      this.request({ method: "PAIR_INIT" }).then((r) => {
+        if (!r || !r.code) { this.rerender(); return; }
+        s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
+      }).catch(() => this.rerender());
     },
     startPoll() {
       const s = this.state;
       if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
       const tick = () => {
-        this.call({ method: "PAIR_POLL", claimToken: getClaim() }, (r) => r && typeof r.paired !== "undefined")
-          .then((r) => {
-            if (r && r.paired && r.device_token) {
-              store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
-              s.pollTimer = null; s.paired = true; s.code = "";
-              this.connect();
-              return;
-            }
-            s.pollTimer = setTimeout(tick, 3000);
-          })
-          .catch(() => { s.pollTimer = setTimeout(tick, 3000); });
+        this.request({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
+          if (r && r.paired && r.device_token) {
+            store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
+            s.pollTimer = null; s.paired = true; s.code = "";
+            this.connect();
+            return;
+          }
+          s.pollTimer = setTimeout(tick, 3000);
+        }).catch(() => { s.pollTimer = setTimeout(tick, 3000); });
       };
       s.pollTimer = setTimeout(tick, 500);
     },
