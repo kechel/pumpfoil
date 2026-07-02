@@ -833,6 +833,7 @@ const en: Record<string, string> = {
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Enter code from the watch",
   "account.claimHelp": "Open Pumpfoil on the watch (don't start) → hold MENU (middle-left button) → “Settings” → “Connect”. Enter the shown code (6 characters, letters & digits) here. Phone nearby or Wi-Fi required so the watch can generate the code.",
+  "account.claimReq": "Important: the Garmin Connect app on your phone must be open and connected to the watch, and the phone needs internet — the watch goes online via the phone. Enter the code within 15 min; if the watch shows no code, update the app.",
   "account.claimPlaceholder": "e.g. VURWGG",
   "account.claimBtn": "Connect",
   "account.claimAlready": "This watch is already connected.",

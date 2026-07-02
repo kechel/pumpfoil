@@ -881,6 +881,7 @@ const de: Record<string, string> = {
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code von der Uhr eingeben",
   "account.claimHelp": "Pumpfoil auf der Uhr öffnen (nicht starten) → MENU halten (Knopf Mitte-links) → „Einstellungen“ → „Verbinden“. Der angezeigte Code (6 Zeichen, Buchstaben & Ziffern) hier eintragen. Handy in der Nähe oder WLAN nötig, damit die Uhr den Code erzeugen kann.",
+  "account.claimReq": "Wichtig: Dabei muss die Garmin-Connect-App am Handy offen und mit der Uhr verbunden sein, und das Handy braucht Internet — die Uhr geht übers Handy online. Code innerhalb 15 Min eingeben; erzeugt die Uhr keinen Code, App aktualisieren.",
   "account.claimPlaceholder": "z. B. VURWGG",
   "account.claimBtn": "Verbinden",
   "account.claimAlready": "Diese Uhr ist bereits verbunden.",

@@ -80,7 +80,8 @@ function ClaimFromWatch() {
   return (
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">{t("account.claimTitle")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("account.claimHelp")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("account.claimHelp")}</p>
+      <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-700 dark:text-amber-300">{t("account.claimReq")}</p>
       <div className="flex flex-wrap gap-2">
         <input
           value={code}
