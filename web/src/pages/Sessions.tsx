@@ -14,6 +14,7 @@ const PAGE = 20;
 // der Detailansicht an dieselbe Stelle der Liste zurückkehrt statt oben zu landen (Feedback
 // Philipp). Nur im Speicher -> überlebt Client-Navigation, bei echtem Reload frisch.
 const listCache = new Map<string, { items: SessionSummary[]; offset: number; hasMore: boolean; scrollY: number }>();
+const communityCache = new Map<string, { items: CommunitySession[]; offset: number; more: boolean }>();
 
 function monthLabel(m: string) {
   return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -267,6 +268,9 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
   const moreRef = useRef(true);
   const loadingRef = useRef(false);
   const sentinel = useRef<HTMLDivElement>(null);
+  const restoreRef = useRef(false);
+  const itemsRef = useRef<CommunitySession[]>([]);
+  const lastViewed = getLastSession();
 
   const load = (reset: boolean) => {
     if (loadingRef.current || (!reset && !moreRef.current)) return;
@@ -282,12 +286,30 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
       .finally(() => { loadingRef.current = false; setLoading(false); });
   };
 
-  useEffect(() => { moreRef.current = true; offsetRef.current = 0; load(true); }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const cached = communityCache.get(`${name}|${spot}`);
+    if (cached && cached.items.length) {
+      setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
+      restoreRef.current = true;  // nach dem Render die markierte Karte einscrollen
+    } else {
+      moreRef.current = true; offsetRef.current = 0; load(true);
+    }
+    return () => { communityCache.set(`${name}|${spot}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current }); };
+  }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
     if (sentinel.current) o.observe(sentinel.current);
     return () => o.disconnect();
   }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    itemsRef.current = items;
+    if (restoreRef.current && items.length) {
+      restoreRef.current = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById("session-highlight")?.scrollIntoView({ block: "center" });
+      }));
+    }
+  }, [items]);
 
   return (
     <div>
@@ -311,6 +333,7 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
+              highlight={s.session_id === lastViewed}
               stats={
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
                   <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
