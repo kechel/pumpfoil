@@ -122,7 +122,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
   const cacheKey = () => `${filterRef.current}|${monthRef.current}`;
-  const restoreRef = useRef<number | null>(null);  // ausstehende Scroll-Wiederherstellung
+  const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
   const syncUrl = (f: string, m: string) => {
@@ -159,7 +159,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
       offsetRef.current = cached.offset;
       hasMoreRef.current = cached.hasMore;
       setHasMore(cached.hasMore);
-      restoreRef.current = cached.scrollY;  // nach dem Rendern der Items scrollen
+      restoreRef.current = true;  // nach dem Rendern die markierte Karte einscrollen
     } else {
       fetchPage(monthRef.current, true);
     }
@@ -173,12 +173,16 @@ function MySessionsList({ myName }: { myName: string | null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Items immer im Ref spiegeln + nach Wiederherstellung an die gemerkte Scroll-Position springen.
+  // Items immer im Ref spiegeln + nach dem Restore die markierte Karte in den Blick scrollen
+  // (robuster als eine Pixel-Position: unabhängig vom Scroll-Container). Doppeltes rAF, damit
+  // das Layout nach dem Render steht.
   useEffect(() => {
     itemsRef.current = items;
-    if (restoreRef.current != null && items.length) {
-      window.scrollTo(0, restoreRef.current);
-      restoreRef.current = null;
+    if (restoreRef.current && items.length) {
+      restoreRef.current = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById("session-highlight")?.scrollIntoView({ block: "center" });
+      }));
     }
   }, [items]);
 

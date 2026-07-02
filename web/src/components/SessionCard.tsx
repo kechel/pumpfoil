@@ -94,7 +94,8 @@ export function SessionCard({
   return (
     <Link
       to={`/sessions/${sessionId}`}
-      className="block select-none"
+      id={highlight ? "session-highlight" : undefined}
+      className="block select-none scroll-mt-24"
       style={{ WebkitTouchCallout: "none" }}
       draggable={false}
       onContextMenu={(e) => e.preventDefault()}
