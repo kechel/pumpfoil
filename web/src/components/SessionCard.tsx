@@ -23,7 +23,7 @@ function fmtSpan(start: string, end: string) {
 export function SessionCard({
   sessionId, startedAt, endedAt, spot, foil, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0,
-  likeCount0 = 0, liked0 = false, statusBadge, trackPreview,
+  likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false,
 }: {
   sessionId: number;
   startedAt: string | null;
@@ -41,6 +41,7 @@ export function SessionCard({
   liked0?: boolean;
   statusBadge?: ReactNode;
   trackPreview?: string | null;
+  highlight?: boolean;   // zuletzt angesehene Session in der Liste hervorheben
 }) {
   const t = useT();
   const [liked, setLiked] = useState(liked0);
@@ -104,7 +105,7 @@ export function SessionCard({
       onPointerMove={onPointerMove}
       onClickCapture={onClickCapture}
     >
-      <Card className={`flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900 ${inCompare ? "ring-2 ring-brand-500" : ""}`}>
+      <Card className={`flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900 ${inCompare ? "ring-2 ring-brand-500" : highlight ? "ring-2 ring-brand-400 ring-offset-2 ring-offset-slate-950" : ""}`}>
         <div className="flex min-w-0 gap-3">
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />

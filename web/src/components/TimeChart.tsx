@@ -109,15 +109,21 @@ export function TimeChart({
             opacity={0.18}
           />
         ))}
-        {/* aktuelle Auswahl */}
+        {/* aktuelle Auswahl — Brand-Cyan mit Kontur, damit sie auf dem halbtransparenten
+            Chart-Hintergrund in BEIDEN Themes sichtbar ist (der frühere helle Fill #e2e8f0
+            verschwand im Light-Mode, wo Weiß durchscheint). Konsistent mit dem Karten-Highlight. */}
         {active && (
           <rect
             x={xFor(Math.min(active[0], active[1]))}
             y={0}
             width={Math.max(xFor(Math.max(active[0], active[1])) - xFor(Math.min(active[0], active[1])), 1)}
             height={H}
-            fill="#e2e8f0"
-            opacity={0.15}
+            fill="#22d3ee"
+            fillOpacity={0.22}
+            stroke="#22d3ee"
+            strokeWidth={1}
+            strokeOpacity={0.9}
+            vectorEffect="non-scaling-stroke"
           />
         )}
         <path d={d} fill="none" stroke={color} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />

@@ -10,6 +10,7 @@ import { FoilPowerStat } from "../components/FoilPower";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
+import { setLastSession } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 function fmtKm(m: number | null | undefined) {
@@ -249,6 +250,7 @@ export default function SessionDetail() {
   const [neighbors, setNeighbors] = useState<{ older?: number; newer?: number }>({});
 
   useEffect(() => {
+    setLastSession(Number(id));  // Liste hebt die zuletzt geöffnete Session hervor
     api.sessionNeighbors(Number(id))
       .then((n) => setNeighbors({ older: n.older ?? undefined, newer: n.newer ?? undefined }))
       .catch(() => {});

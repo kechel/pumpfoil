@@ -5,9 +5,15 @@ import { Card, Spinner, ErrorBox } from "../components/ui";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
+import { getLastSession } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 const PAGE = 20;
+
+// Zurück-Navigation: geladene Items + Scroll-Position je Filter/Monat merken, damit man aus
+// der Detailansicht an dieselbe Stelle der Liste zurückkehrt statt oben zu landen (Feedback
+// Philipp). Nur im Speicher -> überlebt Client-Navigation, bei echtem Reload frisch.
+const listCache = new Map<string, { items: SessionSummary[]; offset: number; hasMore: boolean; scrollY: number }>();
 
 function monthLabel(m: string) {
   return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -115,6 +121,9 @@ function MySessionsList({ myName }: { myName: string | null }) {
   const offsetRef = useRef(0);
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}`;
+  const restoreRef = useRef<number | null>(null);  // ausstehende Scroll-Wiederherstellung
+  const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
   const syncUrl = (f: string, m: string) => {
     const n = new URLSearchParams(sp);
@@ -144,20 +153,47 @@ function MySessionsList({ myName }: { myName: string | null }) {
   useEffect(() => {
     api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
     api.getProfile().then((p) => setAvatar(p.avatar_url)).catch(() => {});
-    fetchPage(monthRef.current, true);
+    const cached = listCache.get(cacheKey());
+    if (cached && cached.items.length) {
+      setItems(cached.items);
+      offsetRef.current = cached.offset;
+      hasMoreRef.current = cached.hasMore;
+      setHasMore(cached.hasMore);
+      restoreRef.current = cached.scrollY;  // nach dem Rendern der Items scrollen
+    } else {
+      fetchPage(monthRef.current, true);
+    }
     const obs = new IntersectionObserver((e) => { if (e[0].isIntersecting) fetchPage(monthRef.current, false); }, { rootMargin: "300px" });
     if (sentinelRef.current) obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      // Aktuellen Listen-Zustand + Scroll-Position sichern (für die Rückkehr aus dem Detail).
+      listCache.set(cacheKey(), { items: itemsRef.current, offset: offsetRef.current, hasMore: hasMoreRef.current, scrollY: window.scrollY });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Items immer im Ref spiegeln + nach Wiederherstellung an die gemerkte Scroll-Position springen.
+  useEffect(() => {
+    itemsRef.current = items;
+    if (restoreRef.current != null && items.length) {
+      window.scrollTo(0, restoreRef.current);
+      restoreRef.current = null;
+    }
+  }, [items]);
+
   function changeMonth(v: string) {
-    setMonth(v); monthRef.current = v; hasMoreRef.current = true;
+    setMonth(v); monthRef.current = v; hasMoreRef.current = true; offsetRef.current = 0;
+    listCache.delete(cacheKey());
     syncUrl(filterRef.current, v); fetchPage(v, true);
   }
   function changeFilter(f: "pump" | "other") {
-    setFilter(f); filterRef.current = f; setMonth(""); monthRef.current = ""; hasMoreRef.current = true;
+    setFilter(f); filterRef.current = f; setMonth(""); monthRef.current = ""; hasMoreRef.current = true; offsetRef.current = 0;
+    listCache.delete(cacheKey());
     syncUrl(f, ""); api.sessionMonths(f).then(setMonths).catch(() => {}); fetchPage("", true);
   }
+
+  const lastViewed = getLastSession();
 
   return (
     <div>
@@ -198,6 +234,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
+              highlight={s.id === lastViewed}
               stats={s.analysis && <SessionStats a={s.analysis} />}
               statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
             />

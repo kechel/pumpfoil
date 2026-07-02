@@ -658,15 +658,19 @@ def session_neighbors(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Vorherige/nächste EIGENE Pumpfoil-Session (nach Startzeit) — für die Detail-
-    Navigation, ohne die ganze Liste zu laden."""
+    """Vorherige/nächste EIGENE Session (nach Startzeit) — für die Detail-Navigation,
+    ohne die ganze Liste zu laden. Bleibt in derselben Kategorie wie die aktuelle Session:
+    aus einer aussortierten Session navigiert 'älter/neuer' zu aussortierten (nicht zu den
+    erkannten Pumpfoil-Sessions) — passend zum Listen-Filter pump/other."""
     s = db.get(models.Session, session_id)
     if s is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    same_kind = (models.Session.is_pumpfoil.is_(True) if s.is_pumpfoil
+                 else models.Session.is_pumpfoil.isnot(True))
     base = db.query(models.Session.id).filter(
         models.Session.user_id == user.id,
         models.Session.deleted.isnot(True),
-        models.Session.is_pumpfoil.is_(True),
+        same_kind,
     )
     older = base.filter(models.Session.started_at < s.started_at).order_by(models.Session.started_at.desc()).first()
     newer = base.filter(models.Session.started_at > s.started_at).order_by(models.Session.started_at.asc()).first()

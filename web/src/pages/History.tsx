@@ -249,7 +249,10 @@ function LineChart({ pts, color, fmt, onPick, domain }: { pts: Pt[]; color: stri
   // ~4 Datums-Ticks gleichmäßig über die Zeitspanne.
   const N = 4;
   const ticks = Array.from({ length: N + 1 }, (_, i) => tmin + ((tmax - tmin) * i) / N);
-  const fmtDate = (t: number) => new Date(t).toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+  // Tick-Granularität an die Zeitspanne anpassen: liegen alle Daten in wenigen Wochen/Monaten,
+  // würde "Monat kurz + Jahr" mehrfach identisch ("Jun. 26") erscheinen -> dann Tag + Monat.
+  const spanDays = (tmax - tmin) / 86400000;
+  const fmtDate = (t: number) => new Date(t).toLocaleDateString(undefined, spanDays <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
 
   const [hov, setHov] = useState<Pt | null>(null);
   const nearest = (e: React.MouseEvent<SVGSVGElement>) => {
