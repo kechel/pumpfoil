@@ -14,12 +14,14 @@ function parse(r) { return typeof r.body === "string" ? JSON.parse(r.body) : r.b
 
 async function authPost(token, path, body) {
   if (!token) throw new Error("not paired");
+  console.log("[pumpfoil] POST " + path + " tok=" + (token ? token.slice(0, 6) : "-"));
   const r = await fetch({
     url: BASE + path, method: "POST",
     headers: { "Content-Type": "application/json", "X-Device-Token": token },
     body: JSON.stringify(body),
   });
   const code = r.status || 0;
+  console.log("[pumpfoil] POST " + path + " -> status=" + code + " body=" + (typeof r.body === "string" ? r.body.slice(0, 120) : JSON.stringify(r.body).slice(0, 120)));
   if (code < 200 || code >= 300) throw new Error("http " + code);
   return r;
 }
