@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.0";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.1";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
@@ -55,29 +55,19 @@ Page(
       _fi: 0, _flat: null, _flon: null,
     },
 
-    // Single-Flight: alle Requests serialisieren, damit nie zwei gleichzeitig über den BLE-Kanal
-    // gehen (sonst kommt beim Worker eine leere/kaputte Nachricht an -> onRequest feuert nie).
-    send(payload) {
-      const prev = this.state._chain || Promise.resolve();
-      const p = prev.then(() => this.request(payload), () => this.request(payload));
-      this.state._chain = p.catch(() => {});
-      return p;
-    },
+    // Direkter this.request (der send()-Single-Flight-Wrapper verursachte 'code of undefined').
+    // Validator ok(r) prüft echte Antwort; retry nur bei Verbindungsfehlern.
     call(payload, ok, tries) {
-      tries = tries || 8;
-      const tag = (payload && payload.method) || "?";
-      logger.log("[call] " + tag + " -> senden (try " + (9 - tries) + ")");
-      return this.send(payload).then((r) => {
-        logger.log("[call] " + tag + " <- typeof=" + (typeof r) + " json=" + JSON.stringify(r));
+      tries = tries || 6;
+      return this.request(payload).then((r) => {
         if (r && r.error) { const e = new Error(r.error); e.fatal = true; throw e; }
         if (ok && !ok(r)) throw new Error("no-ack");
         return r;
       }).catch((err) => {
-        const m = (err && err.message) || String(err);
-        logger.log("[call] " + tag + " !! " + m + (err && err.fatal ? " (fatal)" : ""));
         if (err && err.fatal) throw err;
-        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0 || m === "no-ack")) {
-          return new Promise((res) => setTimeout(res, 600)).then(() => this.call(payload, ok, tries - 1));
+        const m = (err && err.message) || String(err);
+        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0 || m.indexOf("no-ack") >= 0)) {
+          return new Promise((res) => setTimeout(res, 800)).then(() => this.call(payload, ok, tries - 1));
         }
         throw err;
       });
