@@ -11,7 +11,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.3";    // sichtbar oben links; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.4";    // sichtbar oben links; bei jedem Push hochzählen (Ladekontrolle)
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -168,8 +168,9 @@ Page(
         this.setButton("Fertig", BLUE, BLUE_P, () => this.done());
       } else if (s.idlePage === 0) {
         this.setButton("START", GREEN, GREEN_P, () => this.start());
-      } else if (s.idlePage === 1 && !s.paired) {
-        this.setButton("Neuer Code", BLUE, BLUE_P, () => this.beginPairing());
+      } else if (s.idlePage === 1) {
+        if (s.paired) this.setButton("Neu verbinden", BLUE, BLUE_P, () => this.repair());
+        else this.setButton("Neuer Code", BLUE, BLUE_P, () => this.beginPairing());
       } else if (s.idlePage === 2 && loadPending().length && getTok()) {
         this.setButton("Jetzt senden", BLUE, BLUE_P, () => this.flushPending());
       } else this.hideButton();
@@ -321,6 +322,7 @@ Page(
       }
     },
     done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this.hideBar(); this.applyButton(); this.renderIdle(); },
+    repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
     uploadSession(sess, onProg) {

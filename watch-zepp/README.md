@@ -45,6 +45,10 @@ zeus dev            # Simulator (Balance 2), Live-Reload
 # Der Simulator speist KEIN GPS ein -> page/index.js hat DEV_FAKE_GPS=true (synthetische Spur),
 # damit Aufnahme+Upload testbar sind. Vor echter Uhr/Release auf false setzen!
 zeus preview        # QR für echte Uhr (Zepp-App)
+# WICHTIG (Simulator): nach jedem Code-Change/`git pull` den Simulator KOMPLETT neu starten
+# (zeus dev beenden + Fenster schließen + neu). Hot-Reload spawnt den App-Side-Worker NICHT neu
+# -> sonst 'shake timeout' bei allen Requests. Worker lebt, sobald im JS-Log `[pumpfoil] app-side
+# onInit` steht. (Auf echter Uhr/echtem Handy kein Thema — dort spawnt der Worker beim App-Start.)
 ```
 
 ## Noch im Simulator zu verifizieren (blind portiert)
