@@ -6,6 +6,11 @@ module Config {
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
     const VERSION = "1.0.44";
 
+    // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
+    // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
+    // (HR-/Speed-Zonen, Erfolg-Gruen, Warn-Orange, Fehler-Rot) bleiben bewusst mehrfarbig.
+    const BRAND_CYAN = 0x22D3EE;
+
     // Server-Basis-URL (per -D base_url=... im Build überschreibbar).
     function baseUrl() {
         return "https://pumpfoil.org";

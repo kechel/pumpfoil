@@ -77,7 +77,7 @@ class UploadView extends WatchUi.View {
         }
 
         if (busy) {
-            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.running"), Graphics.TEXT_JUSTIFY_CENTER);
             _drawBar(dc, w, h);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -105,7 +105,7 @@ class UploadView extends WatchUi.View {
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.later"), Graphics.TEXT_JUSTIFY_CENTER);
             } else {
-                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waiting"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open"), Graphics.TEXT_JUSTIFY_CENTER);
@@ -133,7 +133,7 @@ class UploadView extends WatchUi.View {
         if (total > 0) {
             var frac = sent.toFloat() / total;
             if (frac > 1.0) { frac = 1.0; }
-            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(barX, barY, barW * frac, barH);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, barY + barH + 12, Graphics.FONT_XTINY,

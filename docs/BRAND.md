@@ -28,9 +28,28 @@ M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2
 | Rolle | Wert |
 |---|---|
 | Brand-Cyan (Akzent, `.org`, Wellen) | `#22d3ee` (Tailwind `brand-400`) |
+| Brand-Cyan dunkler (Light-BG-Text, Press) | `#0891b2` (`brand-600`) |
 | Hintergrund dunkel | `#020617` (`slate-950`) |
 | Text hell | weiß / `slate-100` |
 | Sekundärtext / Tagline | `#94a3b8` (`slate-400`) |
+
+### Cyan vs. funktionale Farben (gilt für ALLE Plattformen)
+
+Damit Blau-/Grün-Töne nicht pro Plattform auseinanderlaufen — **eine** Regel, Web ist
+Source of Truth:
+
+- **Cyan `#22d3ee`** = Marke **und** primärer/interaktiver Akzent: Buttons/CTA, Pairing-Code,
+  aktive Status-Titel („lädt hoch/wartet"), Fortschrittsbalken, aktive Pager-/Tab-Indikatoren.
+  Kein reines Blau (`#0000ff`/`#2563eb`/`#3b82f6`) und kein Grün als „Primär-Akzent".
+- **Grün** ausschließlich als **Erfolg/Bestätigung** (Häkchen: gespeichert/verbunden/hochgeladen,
+  „GPS bereit", „on foil"-Status).
+- **Funktionale Skalen** (HR-Zonen grün→gelb→orange→rot, Speed-Zonen blau→grün→gelb→rot,
+  Chart-Serien) sind **bewusst mehrfarbig** und **nicht** an die Marke gebunden — plattformgleich
+  halten, aber nicht auf Cyan zwingen.
+- **Orange** = Warnung/offline. **Rot** = Fehler/Stopp/destruktiv.
+
+Verankert: Web `tailwind brand-*`; Garmin `Config.BRAND_CYAN = 0x22D3EE`; Android
+`Theme.kt BrandDark 0xFF22D3EE`; Apple `Branding.swift 0x22D3EE`; Zepp `page/index.js CYAN`.
 
 ## Schrift
 

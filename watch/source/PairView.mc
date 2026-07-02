@@ -27,7 +27,7 @@ class PairView extends WatchUi.View {
         if (!_rec.pairCode.equals("")) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.18, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
             // WICHTIG: alphanumerische Font — der Code enthält Buchstaben (FONT_NUMBER_*
             // zeigt nur Ziffern und würde die Buchstaben verschlucken).
             dc.drawText(w / 2, h * 0.40, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
