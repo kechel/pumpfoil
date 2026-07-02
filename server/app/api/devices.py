@@ -308,9 +308,10 @@ def mint_device(
 def pair_poll(
     claim_token: str,
     db: Session = Depends(get_db),
-    _rl: None = Depends(rate_limit(120, 300, "pair_poll")),
 ) -> PairPollOut:
-    """Uhr pollt: sobald der Web-Nutzer den Code eingelöst hat, kommt hier der Device-Token."""
+    """Uhr pollt: sobald der Web-Nutzer den Code eingelöst hat, kommt hier der Device-Token.
+    Bewusst OHNE Rate-Limit: ältere Uhr-Apps pollen aggressiv (kein Backoff) und liefen sonst
+    in 429 (Feldtest Peter) — der Request ist billig (ein indexierter Lookup)."""
     p = db.query(models.DevicePairing).filter_by(claim_token=claim_token).first()
     now = datetime.now(timezone.utc)
     if p is None or _aware(p.expires_at) < now:
