@@ -49,10 +49,13 @@ Page(
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
       w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
+      // Gibt es schon ein Token, optimistisch als "verbunden" starten (kein "Neuer Code"-Flash).
+      if (getTok()) { this.state.paired = true; }
       this.renderButton();
-      // Config laden -> gepairt? Recorder : Pairing. (Ein direkter Request; bei "shake timeout"
-      // tippt der Nutzer "Neuer Code" = ein sauberer neuer Versuch.)
       if (!getTok()) { this.beginPairing(); return; }
+      this.showReady("lädt…");
+      // Config laden. (Ein direkter Request; bei "shake timeout" bleibt es beim Ruhe-Screen,
+      // Datenfelder ggf. Default, bis der nächste CONFIG durchgeht.)
       this.request({ method: "CONFIG", token: getTok() }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) this.state.views = r.views;
@@ -229,14 +232,16 @@ Page(
       const chunks = [];
       for (let i = 0; i < s.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
       const tok = getTok();
+      logger.log(">>> Upload: START (" + chunks.length + " chunks, " + s.gps.length + " pts)");
       const req = (p) => this.request(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
       req({ method: "START", token: tok, meta })
-        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()))
-        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }))
-        .then(() => s.w.status.setProperty(hmUI.prop.TEXT, "hochgeladen ✓"))
+        .then(() => { logger.log("Upload: START ok, sende chunks"); return chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()); })
+        .then(() => { logger.log("Upload: chunks ok, COMPLETE"); return req({ method: "COMPLETE", token: tok, session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }); })
+        .then(() => { logger.log("Upload: fertig ✓"); s.w.status.setProperty(hmUI.prop.TEXT, "hochgeladen ✓"); })
         .catch((err) => {
           const msg = (err && err.message) || "Fehler";
-          s.w.status.setProperty(hmUI.prop.TEXT, msg.indexOf("pair") >= 0 ? "nicht verbunden" : "Upload-Fehler");
+          logger.log("!!! Upload-Fehler: " + msg);
+          s.w.status.setProperty(hmUI.prop.TEXT, "Upload: " + msg);
         });
     },
     onDestroy() {
