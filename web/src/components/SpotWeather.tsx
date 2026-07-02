@@ -118,7 +118,7 @@ export function SpotWeather({ spot, showSpot = false }: { spot: string; showSpot
       {water && water.current != null && (
         <div className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-slate-300">
           <span className="font-medium text-slate-200">🌊 {t("wx.water")}:</span>
-          <span className="tabular-nums text-cyan-300">{water.current.toFixed(1)} °C</span>
+          <span className="tabular-nums text-brand-300">{water.current.toFixed(1)} °C</span>
           {(water.min != null && water.max != null) && (
             <span className="text-slate-400 tabular-nums">{t("wx.today")} {water.min.toFixed(1)}–{water.max.toFixed(1)} °C</span>
           )}
