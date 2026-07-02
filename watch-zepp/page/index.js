@@ -83,7 +83,13 @@ Page(
           if (e !== GESTURE_UP && e !== GESTURE_DOWN) return false;
           const dir = e === GESTURE_UP ? 1 : -1;
           if (s.recording) { const n = s.views.length + 1; s.page = (s.page + dir + n) % n; this.applyButton(); this.renderRecording(); return true; }
-          if (s.screen === "idle") { s.idlePage = (s.idlePage + dir + 3) % 3; this.applyButton(); this.renderIdle(); return true; }
+          if (s.screen === "idle") {
+            s.idlePage = (s.idlePage + dir + 3) % 3;
+            this.applyButton(); this.renderIdle();
+            // Beim Verlassen der Verbindungs-Seite den Poll stoppen. Start passiert NUR per "Neuer Code".
+            if (s.idlePage !== 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+            return true;
+          }
           return false;
         },
       });
@@ -105,7 +111,7 @@ Page(
     connect() {
       const s = this.state;
       if (!bleOk()) { this.rerender(); return; }
-      if (!getTok()) { this.beginPairing(); return; }
+      if (!getTok()) { this.rerender(); return; }   // kein Auto-Pairing — nur per "Neuer Code"
       this.reqQ({ method: "CONFIG", token: getTok() }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
@@ -130,6 +136,8 @@ Page(
       const s = this.state;
       if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
       const tick = () => {
+        // Nur pollen, solange die Verbindungs-Seite offen ist (nicht gepairt, keine Aufnahme).
+        if (s.paired || s.recording || s.idlePage !== 1) { s.pollTimer = null; return; }
         this.reqQ({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
@@ -148,7 +156,7 @@ Page(
       if (s.recording) return;
       if (!bleOk()) { this.rerender(); return; }
       if (getTok()) this.connect();
-      else if (!s.code && !s.pollTimer) this.beginPairing();
+      // Kein Auto-Pairing im Hintergrund — Pairing/Poll passiert nur auf der Verbindungs-Seite.
     },
 
     // ---- Fortschrittsbalken (oben) ----
