@@ -352,7 +352,13 @@ Page(
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
       const total = chunks.length + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
-      const req = (p) => this.call(p, (r) => r && r.ok === true);
+      // Direkter this.request (wie Pairing) — kein Retry (der würde Folge-Requests feuern);
+      // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
+      const req = (p) => this.request(p).then((r) => {
+        if (r && r.error) throw new Error(r.error);
+        if (!r || r.ok !== true) throw new Error("keine Antwort");
+        return r;
+      });
       return req({ method: "START", token: tok, meta }).then(bump)
         .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })).then(bump), Promise.resolve()))
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length })).then(bump);
