@@ -152,7 +152,9 @@ class SessionRecorder {
                  Config.getNumber("field5", Config.FIELD_NONE),
                  Config.getNumber("field6", Config.FIELD_NONE)]]);
         }
-        colorByValue = Config.getBool("colorByValue", false);
+        // Bevorzugt der von der Website gecachte Wert (Storage), sonst native Property (Fallback).
+        var cbv = Storage.getValue("colorByValue");
+        colorByValue = (cbv != null) ? cbv : Config.getBool("colorByValue", false);
         // Auto-Start aus dem (vom Server gecachten) Storage; Default an. Bewusst NICHT
         // über Application.Properties (undeklarierte Keys werfen -> Crash-Klasse).
         var asv = Storage.getValue("auto_start");
@@ -334,6 +336,7 @@ class SessionRecorder {
             if (data.hasKey("views")) { setScreensFromConfig(data["views"]); }
             if (data.hasKey("colorByValue") && data["colorByValue"] != null) {
                 colorByValue = data["colorByValue"];
+                _store("colorByValue", colorByValue);  // cachen -> ueberlebt reloadConfig/Neustart
             }
             if (data.hasKey("autoStart") && data["autoStart"] != null) {
                 autoStart = data["autoStart"];

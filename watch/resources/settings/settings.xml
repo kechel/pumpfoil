@@ -15,48 +15,11 @@
     <settingConfig type="alphaNumeric" />
   </setting>
 
-  <group id="fields" title="@Strings.AppName">
-    <setting propertyKey="@Properties.field1" title="@Strings.SettingField1">
-      <settingConfig type="list">
-        <listEntry value="0">@Strings.FieldNone</listEntry>
-        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-        <listEntry value="3">@Strings.FieldTimer</listEntry>
-        <listEntry value="4">@Strings.FieldDistance</listEntry>
-      </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.field2" title="@Strings.SettingField2">
-      <settingConfig type="list">
-        <listEntry value="0">@Strings.FieldNone</listEntry>
-        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-        <listEntry value="3">@Strings.FieldTimer</listEntry>
-        <listEntry value="4">@Strings.FieldDistance</listEntry>
-      </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.field3" title="@Strings.SettingField3">
-      <settingConfig type="list">
-        <listEntry value="0">@Strings.FieldNone</listEntry>
-        <listEntry value="1">@Strings.FieldSpeed3s</listEntry>
-        <listEntry value="2">@Strings.FieldHeartRate</listEntry>
-        <listEntry value="3">@Strings.FieldTimer</listEntry>
-        <listEntry value="4">@Strings.FieldDistance</listEntry>
-      </settingConfig>
-    </setting>
-  </group>
-
-  <group id="alarm" title="@Strings.SettingAlarmEnabled">
-    <setting propertyKey="@Properties.colorByValue" title="@Strings.SettingColorByValue">
-      <settingConfig type="boolean" />
-    </setting>
-    <setting propertyKey="@Properties.alarmEnabled" title="@Strings.SettingAlarmEnabled">
-      <settingConfig type="boolean" />
-    </setting>
-    <setting propertyKey="@Properties.speedHigh" title="@Strings.SettingSpeedHigh">
-      <settingConfig type="numeric" min="0" max="80" />
-    </setting>
-    <setting propertyKey="@Properties.speedLow" title="@Strings.SettingSpeedLow">
-      <settingConfig type="numeric" min="0" max="80" />
-    </setting>
-  </group>
+  <!--
+    Datenfelder + Vibrationsalarm werden zentral auf pumpfoil.org konfiguriert (Konto ->
+    Datenfelder/Alarm) und von der App gezogen; die nativen Einstellungs-Gruppen wurden
+    daher entfernt (2026-07-02). Die Properties (field1..6, colorByValue, alarmEnabled,
+    speedHigh/Low) bleiben in properties.xml als Offline-Defaults -> keine Codeaenderung
+    noetig, alle Lesestellen nutzen Config.getNumber/getBool(key, default).
+  -->
 </settings>
