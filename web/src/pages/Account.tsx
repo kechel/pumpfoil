@@ -40,6 +40,7 @@ export default function Account() {
       {tab === "connect" && (
       <>
       <ClaimFromWatch />
+      <GenerateCode />
       <PairedDevices onDownload={() => setTab("app")} />
       </>
       )}
@@ -93,6 +94,46 @@ function ClaimFromWatch() {
         </Button>
       </div>
       {msg && <div className="mt-3 text-sm text-emerald-400">{msg}</div>}
+      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
+    </Card>
+  );
+}
+
+// Forward-Pairing: Code hier erzeugen und in den Garmin-Connect-App-Einstellungen
+// (Pumpfoil → Einstellungen → Pairing-Code) eintragen. Alternative zum Code von der Uhr.
+function GenerateCode() {
+  const t = useT();
+  const [code, setCode] = useState<string | null>(null);
+  const [until, setUntil] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function gen() {
+    setBusy(true); setErr(null);
+    try {
+      const r = await api.pairingCode();
+      setCode(r.code);
+      setUntil(new Date(r.expires_at).toLocaleTimeString());
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+    setBusy(false);
+  }
+  return (
+    <Card className="mt-5 p-5">
+      <h3 className="mb-1 font-semibold">{t("account.genTitle")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("account.genHelp")}</p>
+      <ol className="mb-4 list-decimal space-y-1 pl-5 text-sm text-slate-300">
+        <li>{t("account.step1")}</li>
+        <li>{t("account.step2pre")}<b>Pumpfoil</b>{t("account.step2post")}</li>
+        <li>{t("account.step3")}</li>
+      </ol>
+      <Button onClick={gen} disabled={busy}>{busy ? "…" : t("account.genCode")}</Button>
+      {code && (
+        <div className="mt-4">
+          <div className="font-mono text-3xl font-bold tracking-[0.3em] text-brand-400">{code}</div>
+          {until && <div className="mt-1 text-xs text-slate-400">{t("account.validUntil", { time: until })}</div>}
+        </div>
+      )}
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
   );

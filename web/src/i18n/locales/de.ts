@@ -202,6 +202,8 @@ const de: Record<string, string> = {
   "account.tabViews": "Datenfelder",
   "account.tabApp": "App",
   "account.tabCompat": "Kompatibilität",
+  "account.genTitle": "Code für die Uhr erzeugen",
+  "account.genHelp": "Alternative zum Code von der Uhr: hier einen Code erzeugen und in der Garmin-Connect-App unter „Pumpfoil“ → Einstellungen eintragen.",
   "account.step1": "Unten einen Pairing-Code erzeugen.",
   "account.step2pre": "Garmin-Connect-App → ",
   "account.step2post": " → Einstellungen → Code eintragen.",

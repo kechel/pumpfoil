@@ -181,6 +181,8 @@ const en: Record<string, string> = {
   "account.tabViews": "Data fields",
   "account.tabApp": "App",
   "account.tabCompat": "Compatibility",
+  "account.genTitle": "Generate a code for the watch",
+  "account.genHelp": "Alternative to the code from the watch: generate a code here and enter it in the Garmin Connect app under “Pumpfoil” → Settings.",
   "account.step1": "Generate a pairing code below.",
   "account.step2pre": "Garmin Connect app → ",
   "account.step2post": " → Settings → enter code.",
