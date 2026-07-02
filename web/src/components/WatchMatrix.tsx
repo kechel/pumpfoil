@@ -1,25 +1,28 @@
+import { Link } from "react-router-dom";
 import { CheckIcon } from "./Icons";
 import { useT } from "../i18n";
-import { CONNECT_IQ_URL } from "./ConnectIqButton";
+import { CONNECT_IQ_URL, ConnectIqButton } from "./ConnectIqButton";
 
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
 // /uhren-Seite + Login-Bereich /account).
 type Cap = "yes" | "partial" | "no";
 type Status = "avail" | "planned" | "import" | "no";
-type Store = { url: string; badge: string; alt: string };
+type Store = { url: string; badge: string; alt: string; ciq?: boolean };  // ciq -> theme-aware ConnectIqButton
+type Account = { logo: string; alt: string; to: string; labelKey: string };  // Import per Konto-Verknüpfung
 
 const APP_STORE_URL = "https://apps.apple.com/app/id6783975714";
 const PLAY_URL = "https://play.google.com/store/apps/details?id=org.pumpfoil.app";
 
-const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: Store }[] = [
-  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", statusNoteKey: "watches.stGarmin",
-    store: { url: CONNECT_IQ_URL, badge: "/badges/connect-iq-badge-dark.svg", alt: "Available on Connect IQ Store" } },
+const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: Store; account?: Account }[] = [
+  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin",
+    store: { url: CONNECT_IQ_URL, badge: "/badges/connect-iq-badge-dark.svg", alt: "Available on Connect IQ Store", ciq: true } },
   { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple",
     store: { url: APP_STORE_URL, badge: "/badges/app-store-de.svg", alt: "Laden im App Store" } },
   { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "avail",
     store: { url: PLAY_URL, badge: "/badges/google-play-de.png", alt: "Jetzt bei Google Play" } },
   { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nAmazfit" },
-  { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar" },
+  { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
+    account: { logo: "/polar-logo.jpg", alt: "Polar", to: "/konten", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
@@ -69,12 +72,28 @@ export function WatchMatrix() {
                 <td className="px-4 py-3 text-center">{cap(r.hr)}</td>
                 <td className="px-4 py-3 text-center">{cap(r.pump)}</td>
                 <td className="px-4 py-3">
-                  {status(r.status)}
-                  {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
-                  {r.store && (
-                    <a href={r.store.url} target="_blank" rel="noopener noreferrer" className="mt-1.5 inline-block">
-                      <img src={r.store.badge} alt={r.store.alt} className="h-8 w-auto" />
-                    </a>
+                  {r.store ? (
+                    // App verfügbar -> offizielles Store-Badge (Garmin theme-abhängig) statt „Verfügbar".
+                    r.store.ciq ? (
+                      <ConnectIqButton height="h-8" />
+                    ) : (
+                      <a href={r.store.url} target="_blank" rel="noopener noreferrer" className="inline-block">
+                        <img src={r.store.badge} alt={r.store.alt} className="h-8 w-auto" />
+                      </a>
+                    )
+                  ) : r.account ? (
+                    // Kein App-Store, sondern Import per Konto-Verknüpfung.
+                    <Link to={r.account.to} className="inline-flex flex-col items-start gap-1">
+                      <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
+                        <img src={r.account.logo} alt={r.account.alt} className="h-4 w-auto" />
+                      </span>
+                      <span className="text-xs font-medium text-brand-400">{t(r.account.labelKey)}</span>
+                    </Link>
+                  ) : (
+                    <>
+                      {status(r.status)}
+                      {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
+                    </>
                   )}
                 </td>
               </tr>
