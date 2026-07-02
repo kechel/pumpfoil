@@ -16,6 +16,7 @@ const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 const APP_VERSION = "1.0.0";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
+const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
 const store = new LocalStorage();
@@ -196,14 +197,36 @@ Page(
     // ---- Rendering ----
     rerender() { const s = this.state; if (s.recording) this.renderRecording(); else if (s.screen === "summary") this.renderSummary(); else this.renderIdle(); },
     fieldPair(id) { if (!id || id === 0) return ["", ""]; return this.fieldValue(id); },
-    setSlots(a, b, c) { const w = this.state.w, arr = [a, b, c]; for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, arr[i][0]); w.f[i][1].setProperty(hmUI.prop.TEXT, arr[i][1]); } },
+    setSlots(a, b, c) { this.hideBig(); const w = this.state.w, arr = [a, b, c]; for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, arr[i][0]); w.f[i][1].setProperty(hmUI.prop.TEXT, arr[i][1]); } },
+    // Großes, zentriertes Einzelfeld (wenn eine Datenseite nur 1 Feld hat).
+    showBig(v, l) {
+      const w = this.state.w;
+      if (!w.bigV) w.bigV = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: Math.round(DH * 0.30), w: DW, h: Math.round(DH * 0.26), color: 0x22d3ee, text_size: Math.round(DH * 0.19), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "" });
+      if (!w.bigL) w.bigL = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: Math.round(DH * 0.57), w: DW, h: Math.round(DH * 0.08), color: 0x9aa4b2, text_size: Math.round(DH * 0.045), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "" });
+      w.bigV.setProperty(hmUI.prop.TEXT, v); w.bigL.setProperty(hmUI.prop.TEXT, l);
+    },
+    hideBig() { const w = this.state.w; if (w.bigV) { hmUI.deleteWidget(w.bigV); w.bigV = null; } if (w.bigL) { hmUI.deleteWidget(w.bigL); w.bigL = null; } },
+    // Datenseite rendern: 1 Feld -> groß & mittig; sonst bis zu 3 Slots.
+    renderFields(ids) {
+      const w = this.state.w;
+      const f = (ids || []).filter((id) => id && id !== 0).slice(0, 3);
+      if (f.length === 1) {
+        for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
+        const [v, l] = this.fieldValue(f[0]); this.showBig(v, l); return;
+      }
+      this.hideBig();
+      for (let i = 0; i < 3; i++) {
+        if (i < f.length) { const [v, l] = this.fieldValue(f[i]); w.f[i][0].setProperty(hmUI.prop.TEXT, v); w.f[i][1].setProperty(hmUI.prop.TEXT, l); }
+        else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
+      }
+    },
     renderIdle() {
       const s = this.state, w = s.w;
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/3");
       const gps = "GPS " + (s.fix ? "●" : "suche…");
       const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
       if (s.idlePage === 0) {
-        this.setSlots(this.fieldPair(s.offFoil[0]), this.fieldPair(s.offFoil[1]), this.fieldPair(s.offFoil[2]));
+        this.renderFields(s.offFoil);
         w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + " · " + conn);
       } else if (s.idlePage === 1) {
         if (!bleOk()) { this.setSlots(["—", "kein Handy"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Handy/Zepp-App nötig"); }
@@ -226,11 +249,7 @@ Page(
       }
       const pg = s.page;
       w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
-      const fields = (s.views[pg] || []).filter((id) => id && id !== 0).slice(0, 3);
-      for (let i = 0; i < 3; i++) {
-        if (i < fields.length) { const [v, l] = this.fieldValue(fields[i]); w.f[i][0].setProperty(hmUI.prop.TEXT, v); w.f[i][1].setProperty(hmUI.prop.TEXT, l); }
-        else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
-      }
+      this.renderFields(s.views[pg]);
       w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · wischen: Stopp");
     },
     renderSummary() {
