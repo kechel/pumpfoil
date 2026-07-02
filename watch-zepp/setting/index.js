@@ -29,9 +29,9 @@ AppSettingsPage({
     return View({ style: { padding: "16px" } }, [
       header,
       Text({ paragraph: true, style: { marginBottom: "8px" } },
-        "Zum Verbinden: die Uhr-App öffnen — sie zeigt einen Code an."),
+        "Zum Verbinden: die Uhr-App oeffnen - sie zeigt einen Code an."),
       Text({ paragraph: true, style: { marginBottom: "8px" } },
-        "Diesen Code auf pumpfoil.org → Konto → „Uhr verbinden" eintragen. Die Uhr verbindet sich dann automatisch."),
+        "Diesen Code auf pumpfoil.org, Konto, Uhr verbinden eintragen. Die Uhr verbindet sich dann automatisch."),
     ]);
   },
 });
