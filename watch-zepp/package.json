@@ -1,7 +1,7 @@
 {
-  "name": "fetch",
-  "version": "1.0.0",
-  "description": "",
+  "name": "pumpfoil-zepp",
+  "version": "0.2.0",
+  "description": "Pumpfoil recorder for Zepp OS (Amazfit)",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,6 +12,6 @@
     "@zeppos/device-types": "^3.0.0"
   },
   "dependencies": {
-    "@zeppos/zml": "^0.0.9"
+    "@zeppos/zml": "^0.0.43"
   }
 }

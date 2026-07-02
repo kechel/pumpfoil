@@ -11,11 +11,11 @@ import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLo
 const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
-const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.6";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
-// TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start EINEN Upload testen.
-// "" = normaler Betrieb. (Token = echtes uz2b13-Token, User 2, aus dem 07:34-Log.)
-const DEV_TOKEN = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
+const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
+const APP_BUILD = "0.2.0";   // zentriert unter dem Titel (Ladekontrolle)
+// TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start Upload testen.
+// "" = normaler Betrieb (Release). Nur zum Debuggen auf ein echtes Token setzen.
+const DEV_TOKEN = "";
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
