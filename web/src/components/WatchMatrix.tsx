@@ -78,7 +78,9 @@ export function WatchMatrix() {
                       <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
                         <img src={r.account.logo} alt={r.account.alt} className="h-5 w-auto" />
                       </span>
-                      <span className="text-xs text-slate-500">{t(r.account.labelKey)}</span>
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                        <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> {t(r.account.labelKey)}
+                      </span>
                     </div>
                   ) : (
                     <>
