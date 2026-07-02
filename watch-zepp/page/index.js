@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.5";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.6";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start EINEN Upload testen.
 // "" = normaler Betrieb. (Token = echtes uz2b13-Token, User 2, aus dem 07:34-Log.)
 const DEV_TOKEN = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
@@ -121,7 +121,7 @@ Page(
     devTestUpload() {
       this.state.w.status.setProperty(hmUI.prop.TEXT, "Upload-Test…");
       logger.log("[devtest] sende TESTUPLOAD (mini)");
-      this.request({ method: "TESTUPLOAD" }).then((r) => {
+      this.call({ method: "TESTUPLOAD" }, (r) => r && (r.ok || r.error)).then((r) => {
         logger.log("[devtest] <- " + JSON.stringify(r));
         this.state.w.status.setProperty(hmUI.prop.TEXT, (r && r.ok) ? ("Test OK http=" + r.http) : ("Test: " + (r && r.error)));
       }).catch((e) => { logger.log("[devtest] FAIL " + ((e && e.message) || e)); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test: " + ((e && e.message) || "?")); });
