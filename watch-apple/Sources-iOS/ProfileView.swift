@@ -50,6 +50,11 @@ struct ProfileView: View {
                 .task { sync.refreshConnection() }
                 Section {
                     NavigationLink {
+                        GarminPairView()
+                    } label: {
+                        Label(Loc.t("garmin.title", lang), systemImage: "link.circle")
+                    }
+                    NavigationLink {
                         FoilsView()
                     } label: {
                         Label(Loc.t("profile.foils", lang), systemImage: "water.waves")
@@ -92,6 +97,8 @@ struct ProfileView: View {
                 // Konto-Löschung (App-Store-Pflicht 5.1.1(v)): DSGVO-Delete + danach abmelden.
                 Section {
                     Button(Loc.t("profile.deleteAccount", lang), role: .destructive) { confirmingDelete = true }
+                } footer: {
+                    Text("Pumpfoil v\((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "")")
                 }
             }
             .listStyle(.insetGrouped)

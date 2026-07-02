@@ -113,6 +113,20 @@ enum Api {
         return r.device_token
     }
 
+    // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
+    struct ClaimResponse: Decodable { let ok: Bool }
+    static func pairClaim(code: String) async throws {
+        let _: ClaimResponse = try await request(
+            "/api/devices/pair-claim", method: "POST",
+            body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": "Garmin"], auth: true)
+    }
+
+    // Garmin Forward-Pairing: Code erzeugen -> in Garmin-Connect-App eintragen.
+    struct PairingCodeResponse: Decodable { let code: String; let expires_at: String }
+    static func generatePairingCode() async throws -> PairingCodeResponse {
+        try await request("/api/devices/pairing-code", method: "POST", body: nil, auth: true)
+    }
+
     static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [CommunityItem] {
         try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
     }
