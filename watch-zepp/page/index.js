@@ -11,7 +11,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.6";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.7";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -47,13 +47,21 @@ Page(
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
-      timer: null, pollTimer: null, hbTimer: null, geo: null, hrSensor: null, w: {},
+      timer: null, pollTimer: null, hbTimer: null, geo: null, hrSensor: null, w: {}, _chain: null,
       _fi: 0, _flat: null, _flon: null,
     },
 
+    // Single-Flight: alle Requests serialisieren, damit nie zwei gleichzeitig über den BLE-Kanal
+    // gehen (sonst kommt beim Worker eine leere/kaputte Nachricht an -> onRequest feuert nie).
+    send(payload) {
+      const prev = this.state._chain || Promise.resolve();
+      const p = prev.then(() => this.request(payload), () => this.request(payload));
+      this.state._chain = p.catch(() => {});
+      return p;
+    },
     call(payload, ok, tries) {
       tries = tries || 8;
-      return this.request(payload).then((r) => {
+      return this.send(payload).then((r) => {
         if (r && r.error) { const e = new Error(r.error); e.fatal = true; throw e; }
         if (ok && !ok(r)) throw new Error("no-ack");
         return r;
