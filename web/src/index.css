@@ -78,12 +78,12 @@ html.theme-light .nav-active {
   color: #0e7490; /* cyan-700 — dunkles Blau für hellen Hintergrund */
 }
 
-/* Connect-IQ-Store-Badge: passendes Kontrast-Motiv je Theme. Dunkler Grund (Dark-Mode)
- * -> helles (weisses) Badge; heller Grund (Light-Mode) -> dunkles (schwarzes) Badge. */
-.ciq-badge-on-dark { display: inline-block; }
-.ciq-badge-on-light { display: none; }
-html.theme-light .ciq-badge-on-dark { display: none; }
-html.theme-light .ciq-badge-on-light { display: inline-block; }
+/* Store-Badges (Connect IQ / App Store / Google Play): passend zum Theme. Dark-Mode
+ * -> dunkles Badge, Light-Mode -> helles Badge (beide Varianten gerendert, per CSS getauscht). */
+.storebadge-dark { display: inline-block; }
+.storebadge-light { display: none; }
+html.theme-light .storebadge-dark { display: none; }
+html.theme-light .storebadge-light { display: inline-block; }
 
 /* Helle Brand-Textfarben haben auf Weiß zu wenig Kontrast -> im Light dunkler.
  * Betrifft nur Text (Zahlen/Links/Icons), nicht bg-brand-* (Buttons bleiben Cyan). */

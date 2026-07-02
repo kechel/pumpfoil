@@ -3,6 +3,7 @@ import { Card } from "./ui";
 import { useT } from "../i18n";
 import { WatchDemoVideo } from "./WatchDemoVideo";
 import { ConnectIqButton } from "./ConnectIqButton";
+import { AppStoreBadge, PlayBadge } from "./StoreBadge";
 
 // Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
 // wird eingeblendet (anfangs alle ausgeblendet). Texte über i18n (guide.*).
@@ -125,9 +126,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card id="guide-apple" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Apple Watch</h3>
         <p className="mt-1 text-sm text-slate-300">{t("guide.appleSub")}</p>
-        <a href="https://apps.apple.com/app/id6783975714" target="_blank" rel="noopener noreferrer" aria-label="Laden im App Store" className="mt-3 inline-block">
-          <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-11 w-auto" />
-        </a>
+        <AppStoreBadge className="mt-3" />
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>{t("guide.a.s1Title")}</b> {t("guide.a.s1")}</li>
           <li><b>{t("guide.a.s2Title")}</b> {t("guide.a.s2a")}{connectLink}{t("guide.a.s2b")}</li>
@@ -154,9 +153,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card id="guide-wear" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Wear OS</h3>
         <p className="mt-1 text-sm text-slate-300">{t("guide.wearSub")}</p>
-        <a href="https://play.google.com/store/apps/details?id=org.pumpfoil.app" target="_blank" rel="noopener noreferrer" aria-label="Jetzt bei Google Play" className="mt-3 inline-block">
-          <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-11 w-auto" />
-        </a>
+        <PlayBadge className="mt-3" />
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
           <li><b>{t("guide.w.s1Title")}</b> {t("guide.w.s1")}</li>
           <li><b>{t("guide.w.s2Title")}</b> {t("guide.w.s2a")}{connectLink}{t("guide.w.s2b")}</li>
