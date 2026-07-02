@@ -3,6 +3,7 @@ import { log as Logger, px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
 import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN } from "@zos/interaction";
+import { getConnectStatus } from "@zos/ble";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
@@ -11,7 +12,10 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.7";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.8";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+// Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
+// die API fehlt/anders ist — dann nicht blockieren.
+const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -115,6 +119,7 @@ Page(
     // ---- Verbindung / Pairing (Hintergrund) ----
     connect() {
       const s = this.state;
+      if (!bleOk()) { this.rerender(); return; }   // kein Handy -> nicht versuchen, Heartbeat holt es nach
       if (!getTok()) { this.beginPairing(); return; }
       this.call({ method: "CONFIG", token: getTok() }, (r) => r && typeof r.paired !== "undefined")
         .then((r) => {
@@ -157,6 +162,7 @@ Page(
     heartbeat() {
       const s = this.state;
       if (s.recording) return;
+      if (!bleOk()) { this.rerender(); return; }   // kein Handy -> nur Anzeige aktualisieren
       if (getTok()) this.connect();
       else if (!s.code && !s.pollTimer) this.beginPairing();
     },
@@ -203,11 +209,13 @@ Page(
       const s = this.state, w = s.w;
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/3");
       const gps = "GPS " + (s.fix ? "●" : "suche…");
+      const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
       if (s.idlePage === 0) {
         this.setSlots(this.fieldPair(s.offFoil[0]), this.fieldPair(s.offFoil[1]), this.fieldPair(s.offFoil[2]));
-        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + " · " + (s.paired ? "verbunden ✓" : "verbinde…"));
+        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + " · " + conn);
       } else if (s.idlePage === 1) {
-        if (s.paired) { this.setSlots(["✓", "verbunden"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Uhr verbunden"); }
+        if (!bleOk()) { this.setSlots(["—", "kein Handy"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Handy/Zepp-App nötig"); }
+        else if (s.paired) { this.setSlots(["✓", "verbunden"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Uhr verbunden"); }
         else { this.setSlots([s.code || "—", "Pairing-Code"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "auf pumpfoil.org eintragen"); }
       } else {
         const n = loadPending().length;
