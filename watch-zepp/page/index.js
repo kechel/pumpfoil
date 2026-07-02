@@ -14,7 +14,7 @@ const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048;
 const GPS_CHUNK = 10;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
-const APP_VERSION = "0.2.0";
+const APP_VERSION = "1.0.0";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -56,22 +56,9 @@ Page(
       _fi: 0, _flat: null, _flon: null,
     },
 
-    // this.request + Retry. ok(r) validiert eine echte Antwort; Retry nur bei Verbindungsfehlern.
-    call(payload, ok, tries) {
-      tries = tries || 6;
-      return this.request(payload).then((r) => {
-        if (r && r.error) { const e = new Error(r.error); e.fatal = true; throw e; }
-        if (ok && !ok(r)) throw new Error("no-ack");
-        return r;
-      }).catch((err) => {
-        if (err && err.fatal) throw err;
-        const m = (err && err.message) || String(err);
-        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0 || m.indexOf("no-ack") >= 0)) {
-          return new Promise((res) => setTimeout(res, 800)).then(() => this.call(payload, ok, tries - 1));
-        }
-        throw err;
-      });
-    },
+    // WICHTIG: pro Aktion GENAU EIN direkter this.request, KEIN Retry/Overlap. zml macht pro
+    // Request einen BLE-Shake; Folge-/Parallel-Requests würgen sich gegenseitig ab (undefined/
+    // shake timeout). Ein sauberer Einzel-Request geht zuverlässig — Pairing, Poll, CONFIG, Upload.
 
     build() {
       const s = this.state, w = s.w;
@@ -113,17 +100,15 @@ Page(
       const s = this.state;
       if (!bleOk()) { this.rerender(); return; }
       if (!getTok()) { this.beginPairing(); return; }
-      this.call({ method: "CONFIG", token: getTok() }, (r) => r && typeof r.paired !== "undefined")
-        .then((r) => {
-          if (r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
-          if (Array.isArray(r.views) && r.views.length) s.views = r.views;
-          if (Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
-          if (typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
-          s.paired = true;
-          this.applyButton(); this.rerender();
-          this.flushPending();
-        })
-        .catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
+      this.request({ method: "CONFIG", token: getTok() }).then((r) => {
+        if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
+        if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
+        if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
+        if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
+        s.paired = true;
+        this.applyButton(); this.rerender();
+        this.flushPending();
+      }).catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
     },
     // Pairing/Poll: DIREKTER this.request (ein Request pro Aufruf). Kein call()-Retry — der würde
     // Folge-Requests feuern, die im Sim keine Antwort bekommen; der einzelne Request lief zuverlässig.
