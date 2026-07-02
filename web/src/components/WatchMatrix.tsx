@@ -44,14 +44,14 @@ export function WatchMatrix() {
   return (
     <>
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+        <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate-900/70 text-left text-slate-300">
               <th className="px-4 py-3 font-semibold">{t("watches.colDevice")}</th>
               <th className="px-4 py-3 text-center font-semibold">{t("watches.colGps")}</th>
               <th className="px-4 py-3 text-center font-semibold">{t("watches.colHr")}</th>
               <th className="px-4 py-3 text-center font-semibold">{t("watches.colPump")}</th>
-              <th className="px-4 py-3 font-semibold">{t("watches.colStatus")}</th>
+              <th className="w-48 whitespace-nowrap px-4 py-3 font-semibold">{t("watches.colStatus")}</th>
             </tr>
           </thead>
           <tbody>
@@ -68,15 +68,15 @@ export function WatchMatrix() {
                 <td className="px-4 py-3">
                   {r.store ? (
                     // App verfügbar -> offizielles Store-Badge (theme-abhängig) statt „Verfügbar".
-                    r.store === "ciq" ? <ConnectIqButton height="h-8" />
-                      : r.store === "appstore" ? <AppStoreBadge height="h-8" />
-                      : <PlayBadge height="h-8" />
+                    r.store === "ciq" ? <ConnectIqButton height="h-10" />
+                      : r.store === "appstore" ? <AppStoreBadge height="h-10" />
+                      : <PlayBadge height="h-10" />
                   ) : r.account ? (
                     // Kein App-Store, sondern Import per Konto-Verknüpfung — nur Hinweis (ohne Login
                     // nicht erreichbar), kein Link. Ablauf in „Verknüpfte Konten".
                     <div className="inline-flex flex-col items-start gap-1">
                       <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
-                        <img src={r.account.logo} alt={r.account.alt} className="h-4 w-auto" />
+                        <img src={r.account.logo} alt={r.account.alt} className="h-5 w-auto" />
                       </span>
                       <span className="text-xs text-slate-500">{t(r.account.labelKey)}</span>
                     </div>
