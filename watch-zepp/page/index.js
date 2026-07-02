@@ -69,7 +69,9 @@ Page(
       s.w.status.setProperty(hmUI.prop.TEXT, "verbinde…");
       this.setFields3(["…", ""], null, null);
       this.renderButton();
+      logger.log(">>> PAIR_INIT wird gesendet");
       this.request({ method: "PAIR_INIT" }).then((r) => {
+        logger.log("<<< PAIR_INIT Antwort: " + JSON.stringify(r));
         if (r && r.error) throw new Error(r.error);
         if (!r || !r.code) throw new Error("keine Antwort");
         s.code = r.code;
@@ -77,7 +79,10 @@ Page(
         this.setFields3([r.code, "Code"], ["pumpfoil.org", ""], ["Konto → Uhr verbinden", ""]);
         s.w.status.setProperty(hmUI.prop.TEXT, "warte auf Freigabe…");
         this.startPoll();
-      }).catch((err) => s.w.status.setProperty(hmUI.prop.TEXT, "Fehler: " + ((err && err.message) || "?")));
+      }).catch((err) => {
+        logger.log("!!! PAIR_INIT Fehler: " + ((err && err.message) || "?"));
+        s.w.status.setProperty(hmUI.prop.TEXT, "Fehler: " + ((err && err.message) || "?"));
+      });
     },
     startPoll() {
       const s = this.state;

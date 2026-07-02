@@ -25,9 +25,12 @@ async function authPost(token, path, body) {
 }
 
 async function handle(req) {
+  console.log("[pumpfoil] handle: " + (req && req.method));
   // --- Pairing (reverse) ---
   if (req.method === "PAIR_INIT") {
+    console.log("[pumpfoil] PAIR_INIT -> fetch " + BASE + "/api/devices/pair-init");
     const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    console.log("[pumpfoil] PAIR_INIT fetch status=" + (r && r.status));
     const b = parse(r);
     if (!b || !b.code) throw new Error("init failed");
     return { code: b.code, claim_token: b.claim_token };
@@ -70,9 +73,15 @@ async function handle(req) {
 
 AppSideService(
   BaseSideService({
-    onInit() {}, onRun() {}, onDestroy() {},
+    onInit() { console.log("[pumpfoil] app-side onInit"); },
+    onRun() { console.log("[pumpfoil] app-side onRun"); },
+    onDestroy() {},
     onRequest(req, res) {
-      handle(req).then((out) => res(null, out)).catch((err) => res(null, { error: (err && err.message) || String(err) }));
+      console.log("[pumpfoil] onRequest: " + JSON.stringify(req && req.method));
+      handle(req).then((out) => res(null, out)).catch((err) => {
+        console.log("[pumpfoil] onRequest ERROR: " + ((err && err.message) || String(err)));
+        res(null, { error: (err && err.message) || String(err) });
+      });
     },
   })
 );
