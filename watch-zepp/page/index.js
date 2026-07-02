@@ -155,7 +155,7 @@ Page(
         this.call({ method: "PAIR_POLL", claimToken: getClaim() }, (r) => r && typeof r.paired !== "undefined")
           .then((r) => {
             logger.log("[poll] <- " + JSON.stringify(r));
-            if (r.paired && r.device_token) {
+            if (r && r.paired && r.device_token) {
               store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
               s.pollTimer = null; s.paired = true; s.code = "";
               this.connect();
