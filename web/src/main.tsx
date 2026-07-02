@@ -5,11 +5,12 @@ import "leaflet/dist/leaflet.css";
 import "./index.css";
 
 import { getToken, setToken } from "./lib/api";
+import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { I18nProvider } from "./i18n";
 
-// Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; reiner Dev-Marker).
-console.info("pumpfoil build 2026-07-01-1");
+// Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; auch in den Einstellungen sichtbar).
+console.info(`pumpfoil build ${APP_BUILD}`);
 
 // Theme anwenden + bei "auto" auf System-Wechsel reagieren.
 applyTheme(getTheme());

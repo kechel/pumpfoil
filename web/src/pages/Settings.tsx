@@ -4,6 +4,7 @@ import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
 import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon, CalculatorIcon, DownloadIcon, UploadIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
+import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { InstallPwa } from "../components/InstallPwa";
@@ -279,6 +280,7 @@ export default function Settings() {
           </button>
         </div>
       </Card>
+      <p className="mt-6 text-center text-xs text-slate-500">Pumpfoil · Build {APP_BUILD}</p>
     </div>
   );
 
