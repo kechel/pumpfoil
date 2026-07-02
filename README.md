@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="store-assets/logo/pumpfoil-wordmark-tagline.png" alt="Pumpfoil — track every pump" width="480">
+<img src="store-assets/logo/pumpfoil-wordmark-tagline-light.png" alt="Pumpfoil — track every pump" width="480">
 
 # Pumpfoil
 
