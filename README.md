@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="store-assets/logo/app-icon-512.png" alt="Pumpfoil logo" width="120">
+<img src="store-assets/logo/pumpfoil-wordmark-tagline.png" alt="Pumpfoil — track every pump" width="480">
 
 # Pumpfoil
 
-**Record and analyze pump foiling sessions from your sports watch — GPS track, foiling distance, pump cadence and glide phases. Garmin, Wear OS and Apple Watch, with native iOS/Android apps and a web PWA.**
+**Record and analyze pump foiling sessions from your sports watch — GPS track, foiling distance, pump cadence and glide phases. Garmin, Wear OS, Apple Watch and Amazfit (Zepp OS), with native iOS/Android apps and a web PWA.**
 
 [pumpfoil.org](https://pumpfoil.org) · License: [AGPL-3.0](#license)
 
@@ -27,8 +27,9 @@ rate or pump cadence) with **every detected pump stroke marked right on the rout
 ## Features
 
 - <img src="docs/readme-icons/watch.svg" width="18"> **Watch recording on every platform** — a [Connect IQ](watch/) app for **all ~78 Garmin
-  devices** (fēnix, Forerunner, epix, Instinct, vívoactive, …), plus native **Wear OS** and
-  **Apple Watch** recorder apps. They capture GPS + raw acceleration and upload the raw data.
+  devices** (fēnix, Forerunner, epix, Instinct, vívoactive, …), plus native **Wear OS**,
+  **Apple Watch** and **Amazfit** (Zepp OS) recorder apps. They capture GPS + heart rate (Garmin
+  also raw acceleration) and upload the raw data.
 - <img src="docs/readme-icons/phone.svg" width="18"> **Native companion apps** — full **iOS** and **Android** apps (sessions, map, track preview,
   per-run stats, history with trend charts, community) alongside the installable **web PWA**.
 - <img src="docs/readme-icons/chart.svg" width="18"> **Automatic analysis** — foiling phases, distance, pump cadence and glide phases per session,
@@ -74,6 +75,10 @@ Native apps on every platform — one account, one analysis backend.
 
 <img src="web/public/guide/garmin/start.webp" alt="Garmin — start" width="160"> <img src="web/public/guide/garmin/settings.webp" alt="Garmin — settings" width="160"> <img src="web/public/guide/garmin/alarm-2.webp" alt="Garmin — foil alarm" width="160"> <img src="web/public/guide/garmin/on-foil-1.webp" alt="Garmin — on foil" width="160"> <img src="web/public/guide/garmin/on-foil-2.webp" alt="Garmin — on foil" width="160">
 
+**⌚ Amazfit** (Zepp OS)
+
+<img src="screenshots/watch/zepp/store360/rund/zepp-rund-01.png" alt="Amazfit — data fields" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-04.png" alt="Amazfit — recording" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-08.png" alt="Amazfit — summary" width="170"> <img src="screenshots/watch/zepp/store360/rund/zepp-rund-12.png" alt="Amazfit — connect" width="170">
+
 ## Architecture
 
 | Directory | Stack | Purpose |
@@ -81,6 +86,7 @@ Native apps on every platform — one account, one analysis backend.
 | [`watch/`](watch/) | Monkey C (Connect IQ) | Garmin recorder (all ~78 devices): records GPS + raw accelerometer, uploads raw data |
 | [`android/`](android/) | Kotlin · Jetpack Compose | One Gradle project: Android phone app (`:app`) + Wear OS recorder (`:wear`) |
 | [`watch-apple/`](watch-apple/) | Swift · SwiftUI | iOS companion app (`Sources-iOS/`) with embedded Apple Watch recorder (`Sources/`) |
+| [`watch-zepp/`](watch-zepp/) | JavaScript · Zepp OS (`@zeppos/zml`) | Amazfit recorder: records GPS + heart rate, uploads via the Zepp app |
 | [`server/`](server/) | Python · FastAPI · PostgreSQL · numpy/scipy/scikit-learn | Ingest, immutable raw storage, foiling/pump detection, REST API |
 | [`web/`](web/) | React · Vite · TypeScript · Tailwind · Leaflet | Installable PWA: sessions, map, charts, labeling, community |
 | [`deploy/`](deploy/) | systemd · Apache | Service unit, reverse-proxy config, backup timers |
