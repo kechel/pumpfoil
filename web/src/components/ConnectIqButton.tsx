@@ -11,7 +11,7 @@ export function ConnectIqButton({ className = "" }: { className?: string }) {
       href={CONNECT_IQ_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 ${className}`}
+      className={`inline-flex items-center gap-2 rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-300 ${className}`}
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="6" y="2" width="12" height="20" rx="3" />
