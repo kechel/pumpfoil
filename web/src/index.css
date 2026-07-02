@@ -78,6 +78,10 @@ html.theme-light .nav-active {
   color: #0e7490; /* cyan-700 — dunkles Blau für hellen Hintergrund */
 }
 
+/* Erfolg-/Verbunden-Text: im Dark helles Emerald, im Light dunkler (Kontrast auf Weiß). */
+.text-success { color: #34d399; }            /* emerald-400 */
+html.theme-light .text-success { color: #047857; }  /* emerald-700 */
+
 /* Store-Badges (Connect IQ / App Store / Google Play): passend zum Theme. Dark-Mode
  * -> dunkles Badge, Light-Mode -> helles Badge (beide Varianten gerendert, per CSS getauscht). */
 .storebadge-dark { display: inline-block; }

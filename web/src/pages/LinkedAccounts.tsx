@@ -104,15 +104,17 @@ function PolarCard() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.polar.title")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.polar.hint")}</p>
-      <a href="https://flow.polar.com/" target="_blank" rel="noopener noreferrer" title="Polar Flow"
-        className="mb-3 inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
-        <img src="/polar-logo.jpg" alt="Polar Flow" className="h-5 w-auto" />
-      </a>
+      <div className="mb-3 flex items-center gap-3">
+        <a href="https://flow.polar.com/" target="_blank" rel="noopener noreferrer" title="Polar Flow"
+          className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
+          <img src="/polar-logo.jpg" alt="Polar Flow" className="h-5 w-auto" />
+        </a>
+        {st.linked && <span className="text-sm font-medium text-success">{t("settings.polar.connected")}</span>}
+      </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.polar.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-400">{t("settings.polar.connected")}</span>
           <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
         </div>
