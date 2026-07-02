@@ -1,18 +1,19 @@
 import * as hmUI from "@zos/ui";
-import { log as Logger } from "@zos/utils";
+import { log as Logger, px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
+import { getDeviceInfo } from "@zos/device";
+import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN } from "@zos/interaction";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
 const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
-const AUTOSTART_SPEED = 7 / 3.6;   // m/s (~7 km/h) — ab hier zählt Auto-Start
-const AUTOSTART_TICKS = 3;         // aufeinanderfolgende Samples über der Schwelle
-// DEV: der Zepp-Simulator speist kein echtes GPS ein. true = synthetische Spur (Ruhe: 0, Aufnahme: bewegt).
-const DEV_FAKE_GPS = true;
+const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
+const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
+const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
+const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
-// Persistenz auf der Uhr (device:os.local_storage): Token/Claim + Offline-Queue nicht-gesendeter Sessions.
 const store = new LocalStorage();
 const getTok = () => store.getItem("deviceToken", "") || "";
 const getClaim = () => store.getItem("claimToken", "") || "";
@@ -30,25 +31,25 @@ function distM(a, b, c, d) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
 }
 
-// Recorder wie Garmin: GPS läuft ab dem Ruhe-Screen, Auto-Start, Aufnahme offline-fähig; Pairing +
-// Upload laufen im Hintergrund. Nicht-gesendete Sessions werden gepuffert und später nachgeschickt.
+// Recorder wie Garmin. Wischbare Seiten:
+//   Ruhe:     0 Daten(+START) · 1 Verbindung/Code · 2 Upload-Queue
+//   Aufnahme: 0..N-1 Datenseiten (kein Button) · N Stopp-Screen(+STOPP)
+// GPS ab Ruhe-Screen, Auto-Start, Pairing+Upload im Hintergrund. Aufnahme wird laufend persistent
+// gepuffert (Absturz-sicher); nach Stopp Summary mit Upload-Fortschritt; offline -> später senden.
 Page(
   BasePage({
     state: {
+      screen: "idle", idlePage: 0, page: 0,
       recording: false, startedAtMs: 0, uuid: "",
       paired: false, code: "",
       fix: false, autoTicks: 0,
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
-      last: null,                 // Zusammenfassung der letzten Session {dur,dist,avg,max}
-      upStatus: "",               // Upload-Statuszeile (nach Stopp / beim Nachschicken)
-      views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false, page: 0,
+      last: null, upStatus: "", upPct: 0,
+      views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
       timer: null, pollTimer: null, geo: null, hrSensor: null, w: {},
       _fi: 0, _flat: null, _flon: null,
     },
 
-    // this.request + Retry. ok(r) validiert eine "echte" Antwort; leere/verschluckte Antworten
-    // (Worker nach Spawn noch nicht dispatch-bereit -> nur Shake-ACK) gelten als retrybar.
-    // Echte Server-Fehler ({error:...}) sind fatal.
     call(payload, ok, tries) {
       tries = tries || 8;
       return this.request(payload).then((r) => {
@@ -75,20 +76,31 @@ Page(
         [hmUI.createWidget(hmUI.widget.TEXT, { ...F2V }), hmUI.createWidget(hmUI.widget.TEXT, { ...F2L })],
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
-      w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
 
-      // GPS + Puls sofort starten (Ruhe-Screen zeigt Suche/Fix), Sample-Timer läuft durchgehend.
+      onGesture({
+        callback: (e) => {
+          if (e !== GESTURE_UP && e !== GESTURE_DOWN) return false;
+          const dir = e === GESTURE_UP ? 1 : -1;
+          if (s.recording) { const n = s.views.length + 1; s.page = (s.page + dir + n) % n; this.applyButton(); this.renderRecording(); return true; }
+          if (s.screen === "idle") { s.idlePage = (s.idlePage + dir + 3) % 3; this.applyButton(); this.renderIdle(); return true; }
+          return false;
+        },
+      });
+
+      // Absturz-Recovery: eine unbeendete Aufnahme aus dem letzten Lauf in die Queue übernehmen.
+      this.recoverActive();
+
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) { logger.log("geo err " + e); }
       try { s.hrSensor = new HeartRate(); } catch (e) { s.hrSensor = null; }
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
 
-      if (getTok()) s.paired = true;   // optimistisch, bis CONFIG/Revoke Klarheit bringt
-      this.renderButton();
+      if (getTok()) s.paired = true;
+      this.applyButton();
       this.renderIdle();
-      this.connect();                  // Verbindung + Config + Nachhol-Upload im Hintergrund
+      this.connect();
     },
 
-    // ---- Verbindung / Pairing (Hintergrund, blockiert nie die Aufnahme) ----
+    // ---- Verbindung / Pairing (Hintergrund) ----
     connect() {
       const s = this.state;
       if (!getTok()) { this.beginPairing(); return; }
@@ -99,18 +111,17 @@ Page(
           if (Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
           if (typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
           s.paired = true;
-          this.renderIdle();
+          this.applyButton(); this.rerender();
           this.flushPending();
         })
-        .catch(() => { this.renderIdle(); this.flushPending(); });  // offline: bleibt verbunden, Queue später
+        .catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
     },
     beginPairing() {
       const s = this.state;
       s.paired = false;
-      logger.log(">>> PAIR_INIT");
       this.call({ method: "PAIR_INIT" }, (r) => r && r.code)
-        .then((r) => { s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.renderIdle(); this.startPoll(); })
-        .catch((err) => { logger.log("PAIR_INIT: " + ((err && err.message) || "?")); this.renderIdle(); });
+        .then((r) => { s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll(); })
+        .catch((err) => { logger.log("PAIR_INIT: " + ((err && err.message) || "?")); this.rerender(); });
     },
     startPoll() {
       const s = this.state;
@@ -128,51 +139,82 @@ Page(
       }, 3000);
     },
 
-    onTitle() {
-      const s = this.state;
-      if (s.recording) { if (s.views.length > 1) { s.page = (s.page + 1) % s.views.length; this.renderRecording(); } }
-      else if (!s.paired) this.beginPairing();     // neuen Code holen
-      else this.flushPending();                    // manuell nachschicken
+    // ---- Fortschrittsbalken (oben) ----
+    showBar(pct) {
+      const w = this.state.w;
+      if (!w.barBg) w.barBg = hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: px(2), w: DW, h: px(6), color: 0x334155 });
+      const width = Math.max(px(2), Math.round(DW * Math.min(100, Math.max(0, pct)) / 100));
+      if (!w.barFill) w.barFill = hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: px(2), w: width, h: px(6), color: 0x22d3ee });
+      else w.barFill.setProperty(hmUI.prop.MORE, { x: 0, y: px(2), w: width, h: px(6), color: 0x22d3ee });
+    },
+    hideBar() {
+      const w = this.state.w;
+      if (w.barFill) { hmUI.deleteWidget(w.barFill); w.barFill = null; }
+      if (w.barBg) { hmUI.deleteWidget(w.barBg); w.barBg = null; }
     },
 
-    // ---- Rendering ----
+    // ---- Button pro Screen/Seite (nur bei Übergängen, nicht pro Sekunde) ----
+    setButton(text, nc, pc, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, click_func: fn }); },
+    hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
+    applyButton() {
+      const s = this.state;
+      if (s.recording) {
+        if (s.page === s.views.length) this.setButton("STOPP", RED, RED_P, () => this.stop());
+        else this.hideButton();
+      } else if (s.screen === "summary") {
+        this.setButton("Fertig", BLUE, BLUE_P, () => this.done());
+      } else if (s.idlePage === 0) {
+        this.setButton("START", GREEN, GREEN_P, () => this.start());
+      } else if (s.idlePage === 1 && !s.paired) {
+        this.setButton("Neuer Code", BLUE, BLUE_P, () => this.beginPairing());
+      } else if (s.idlePage === 2 && loadPending().length && getTok()) {
+        this.setButton("Jetzt senden", BLUE, BLUE_P, () => this.flushPending());
+      } else this.hideButton();
+    },
+
+    // ---- Rendering (nur Texte; Button separat) ----
+    rerender() { const s = this.state; if (s.recording) this.renderRecording(); else if (s.screen === "summary") this.renderSummary(); else this.renderIdle(); },
     fieldPair(id) { if (!id || id === 0) return ["", ""]; return this.fieldValue(id); },
+    setSlots(a, b, c) { const w = this.state.w, arr = [a, b, c]; for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, arr[i][0]); w.f[i][1].setProperty(hmUI.prop.TEXT, arr[i][1]); } },
     renderIdle() {
       const s = this.state, w = s.w;
-      w.page.setProperty(hmUI.prop.TEXT, "");
-      let slots, line;
+      w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/3");
       const gps = "GPS " + (s.fix ? "●" : "suche…");
-      if (!s.paired && s.code) {
-        slots = [[s.code, "Code → pumpfoil.org"], this.fieldPair(s.offFoil[1]), this.fieldPair(s.offFoil[2])];
-        line = gps + " · Code eintragen";
+      if (s.idlePage === 0) {
+        this.setSlots(this.fieldPair(s.offFoil[0]), this.fieldPair(s.offFoil[1]), this.fieldPair(s.offFoil[2]));
+        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + " · " + (s.paired ? "verbunden ✓" : "verbinde…"));
+      } else if (s.idlePage === 1) {
+        if (s.paired) { this.setSlots(["✓", "verbunden"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Uhr verbunden"); }
+        else { this.setSlots([s.code || "—", "Pairing-Code"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "auf pumpfoil.org eintragen"); }
       } else {
-        slots = [this.fieldPair(s.offFoil[0]), this.fieldPair(s.offFoil[1]), this.fieldPair(s.offFoil[2])];
-        const conn = s.paired ? "verbunden ✓" : "verbinde…";
-        line = (s.upStatus ? s.upStatus : gps) + " · " + conn;
+        const n = loadPending().length;
+        this.setSlots(["" + n, "in Warteschlange"], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (n ? "warten auf Verbindung" : "nichts offen"));
       }
-      for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, slots[i][0]); w.f[i][1].setProperty(hmUI.prop.TEXT, slots[i][1]); }
-      w.status.setProperty(hmUI.prop.TEXT, line);
     },
     renderRecording() {
       const s = this.state, w = s.w;
-      const pg = s.page % s.views.length;
-      w.page.setProperty(hmUI.prop.TEXT, s.views.length > 1 ? (pg + 1) + "/" + s.views.length : "");
+      if (s.page === s.views.length) {   // Stopp-Screen
+        w.page.setProperty(hmUI.prop.TEXT, "");
+        const el = (Date.now() - s.startedAtMs) / 1000;
+        this.setSlots([mmss(el), "Zeit"], [fmtDist(s.dist), "Distanz"], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, "STOPP unten · ▲ zurück");
+        return;
+      }
+      const pg = s.page;
+      w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
       const fields = (s.views[pg] || []).filter((id) => id && id !== 0).slice(0, 3);
       for (let i = 0; i < 3; i++) {
         if (i < fields.length) { const [v, l] = this.fieldValue(fields[i]); w.f[i][0].setProperty(hmUI.prop.TEXT, v); w.f[i][1].setProperty(hmUI.prop.TEXT, l); }
         else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
       }
-      w.status.setProperty(hmUI.prop.TEXT, s.fix ? "GPS ● · Aufnahme" : "GPS suche…");
+      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · wischen: Stopp");
     },
-    renderButton() {
-      const s = this.state, w = s.w;
-      if (w.btn) hmUI.deleteWidget(w.btn);
-      const rec = s.recording;
-      w.btn = hmUI.createWidget(hmUI.widget.BUTTON, {
-        ...BUTTON, text: rec ? "STOPP" : "START",
-        normal_color: rec ? 0xdc2626 : 0x22c55e, press_color: rec ? 0xb91c1c : 0x16a34a,
-        click_func: () => (rec ? this.stop() : this.start()),
-      });
+    renderSummary() {
+      const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      this.setSlots([fmtDist(last.dist), "Distanz"], [mmss(last.dur), "Dauer"], [last.avg.toFixed(1), "Ø km/h"]);
+      w.status.setProperty(hmUI.prop.TEXT, s.upStatus);
     },
     fieldValue(id) {
       const s = this.state, last = s.last;
@@ -196,7 +238,7 @@ Page(
       }
     },
 
-    // ---- Sampling (durchgehend: Ruhe = GPS-Warmup + Auto-Start, Aufnahme = aufzeichnen) ----
+    // ---- Sampling ----
     sample() {
       const s = this.state;
       let fix = false, lat = null, lon = null, speed = 0;
@@ -225,22 +267,37 @@ Page(
           if (s.prev) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
           if (speed > s.max) s.max = speed;
+          if (s.gps.length % GPS_CHUNK === 0) this.persistActive();  // laufend sichern
         }
         this.renderRecording();
-      } else {
+      } else if (s.screen === "idle") {
         if (s.autoStart && fix && speed > AUTOSTART_SPEED) { s.autoTicks++; if (s.autoTicks >= AUTOSTART_TICKS) { this.start(); return; } }
         else s.autoTicks = 0;
         this.renderIdle();
       }
     },
 
+    // ---- Persistente Aufnahme (Absturz-sicher) ----
+    persistActive() { const s = this.state; try { store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps })); } catch (e) {} },
+    recoverActive() {
+      let a = null; try { a = JSON.parse(store.getItem("active", "null")); } catch (e) {}
+      if (a && a.gps && a.gps.length) {
+        const end = a.startedAtMs + (a.gps[a.gps.length - 1][0] || 0);
+        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end, gps: a.gps }); savePending(list);
+        logger.log("recovered active session " + a.uuid + " (" + a.gps.length + " pts)");
+      }
+      store.setItem("active", "");
+    },
+
     // ---- Aufnahme ----
     start() {
       const s = this.state, now = Date.now();
-      s.recording = true; s.startedAtMs = now; s.uuid = makeUuid(now);
+      s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 0; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
-      this.renderButton();
+      this.persistActive();
+      this.hideBar();
+      this.applyButton();
       this.renderRecording();
     },
     stop() {
@@ -248,44 +305,48 @@ Page(
       s.recording = false;
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
-      this.renderButton();
       if (s.gps.length) {
-        const sess = { uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice() };
-        const list = loadPending(); list.push(sess); savePending(list);
-        s.upStatus = "";
-        this.renderIdle();
+        s.screen = "summary"; s.upPct = 0; s.upStatus = "Lädt hoch… 0%";
+        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice() }); savePending(list);
+        store.setItem("active", "");
+        this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
       } else {
-        s.upStatus = "nichts aufgezeichnet";
-        this.renderIdle();
+        s.screen = "idle"; s.idlePage = 0; s.upStatus = "nichts aufgezeichnet";
+        store.setItem("active", "");
+        this.applyButton(); this.renderIdle();
       }
     },
+    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this.hideBar(); this.applyButton(); this.renderIdle(); },
 
     // ---- Upload / Offline-Queue ----
-    uploadSession(sess) {
+    uploadSession(sess, onProg) {
       const tok = getTok();
       if (!tok) return Promise.reject(new Error("not paired"));
       const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE };
       const chunks = [];
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
+      const total = chunks.length + 2; let done = 0;
+      const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
       const req = (p) => this.call(p, (r) => r && r.ok === true);
-      return req({ method: "START", token: tok, meta })
-        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })), Promise.resolve()))
-        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length }));
+      return req({ method: "START", token: tok, meta }).then(bump)
+        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })).then(bump), Promise.resolve()))
+        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length })).then(bump);
     },
     flushPending() {
       const s = this.state;
-      if (!getTok()) { if (loadPending().length) { s.upStatus = "Upload später"; this.renderIdle(); } return; }
+      const inSummary = s.screen === "summary";
       const list = loadPending();
-      if (!list.length) return;
-      s.upStatus = "lädt hoch… (" + list.length + ")"; this.renderIdle();
+      if (!getTok()) { if (list.length) { s.upStatus = "Upload später (" + list.length + ")"; this.rerender(); } return; }
+      if (!list.length) { if (inSummary) { s.upStatus = "Hochgeladen ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
+      const onProg = (pct) => { s.upPct = pct; s.upStatus = "Lädt hoch… " + pct + "%"; if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
-        if (i >= list.length) { s.upStatus = "hochgeladen ✓"; this.renderIdle(); return; }
+        if (i >= list.length) { s.upStatus = "Hochgeladen ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return; }
         const sess = list[i];
         logger.log(">>> Upload " + sess.uuid + " (" + sess.gps.length + " pts)");
-        this.uploadSession(sess)
+        this.uploadSession(sess, onProg)
           .then(() => { logger.log("Upload ok " + sess.uuid); removePending(sess.uuid); step(i + 1); })
-          .catch((err) => { logger.log("!!! Upload-Fehler: " + ((err && err.message) || "?")); s.upStatus = "Upload später (" + loadPending().length + ")"; this.renderIdle(); });
+          .catch((err) => { const msg = (err && err.message) || "?"; logger.log("!!! Upload-Fehler: " + msg); s.upStatus = "Upload: " + msg; this.rerender(); this.applyButton(); });
       };
       step(0);
     },
@@ -294,6 +355,7 @@ Page(
       const s = this.state;
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearInterval(s.pollTimer);
+      try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
     },
   })
