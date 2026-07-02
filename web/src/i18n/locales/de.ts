@@ -496,7 +496,7 @@ const de: Record<string, string> = {
   "adm.sessionsSince": "{sessions} Sessions · seit {date}",
   "adm.sessionsLink": "Sessions",
   "adm.edit": "Bearbeiten",
-  "adm.editClose": "Fertig",
+  "adm.editClose": "Abbrechen",
   "adm.statsShow": "Stats ▼",
   "adm.statsHide": "Stats ▲",
   "adm.unblock": "Entsperren",
