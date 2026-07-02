@@ -359,7 +359,7 @@ const en: Record<string, string> = {
   "adm.chat.hidden": "hidden",
   "adm.chat.readonlyDone": "User set to read-only in chat.",
   "land.f11Title": "Chat & discussion",
-  "land.f11Body": "Discuss under every session and in per-spot chat rooms — with push on new messages.",
+  "land.f11Body": "Discuss in per-spot chat rooms — with push on new messages.",
   "land.f12Title": "Spots & map",
   "land.f12Body": "Discover foil spots on the map, find sessions near you and connect with locals.",
   "foils.estimated": "≈ est. thickness",

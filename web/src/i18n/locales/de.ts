@@ -382,7 +382,7 @@ const de: Record<string, string> = {
   "adm.chat.hidden": "ausgeblendet",
   "adm.chat.readonlyDone": "Nutzer im Chat schreibgesperrt.",
   "land.f11Title": "Chat & Diskussion",
-  "land.f11Body": "Diskutiere unter jeder Session und in Chaträumen je Spot — mit Push bei neuen Nachrichten.",
+  "land.f11Body": "Diskutiere in Chaträumen je Spot — mit Push bei neuen Nachrichten.",
   "land.f12Title": "Spots & Karte",
   "land.f12Body": "Entdecke Foil-Spots auf der Karte, finde Sessions in deiner Nähe und tausch dich mit Locals aus.",
   "foils.estimated": "≈ Dicke geschätzt",

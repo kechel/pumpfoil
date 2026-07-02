@@ -299,7 +299,7 @@ const gsw: Record<string, string> = {
   "adm.chat.hidden": "uusgbländet",
   "adm.chat.readonlyDone": "Benutzer im Chat schribgsperrt.",
   "land.f11Title": "Chat & Diskussion",
-  "land.f11Body": "Diskutier under jedere Session und i Chaträum je Spot — mit Push bi neue Nachrichte.",
+  "land.f11Body": "Diskutier i Chaträum je Spot — mit Push bi neue Nachrichte.",
   "land.f12Title": "Spots & Charte",
   "land.f12Body": "Entdeck Foil-Spots uf de Charte, find Sessions i dinere Nöchi und tuusch di mit Locals uus.",
   "foils.estimated": "≈ Dicki gschätzt",

@@ -349,7 +349,7 @@ const it: Record<string, string> = {
   "adm.chat.hidden": "nascosto",
   "adm.chat.readonlyDone": "Utente impostato in sola lettura.",
   "land.f11Title": "Chat e discussione",
-  "land.f11Body": "Discuti sotto ogni sessione e nelle chat per spot — con push sui nuovi messaggi.",
+  "land.f11Body": "Discuti nelle chat per spot — con push sui nuovi messaggi.",
   "land.f12Title": "Spot e mappa",
   "land.f12Body": "Scopri gli spot da foil sulla mappa, trova sessioni vicino a te e confrontati con i local.",
   "foils.estimated": "≈ spessore stimato",
