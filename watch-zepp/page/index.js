@@ -6,6 +6,9 @@ import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLo
 
 const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
+// DEV: der Zepp-Simulator speist kein echtes GPS ein. true = synthetische Bewegungsspur,
+// damit Aufnahme/Felder/Upload im Simulator testbar sind. VOR echter Uhr/Release auf false!
+const DEV_FAKE_GPS = true;
 
 const makeUuid = (now) => "zepp-" + now + "-" + Math.floor(Math.random() * 1e9).toString(36);
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
@@ -134,11 +137,20 @@ Page(
       const s = this.state;
       if (!s.recording || !s.geo) return;
       let status = "V", lat = null, lon = null, speed = 0;
-      try {
-        status = s.geo.getStatus ? s.geo.getStatus() : "A";
-        lat = s.geo.getLatitude(); lon = s.geo.getLongitude();
-        speed = s.geo.getSpeed ? (s.geo.getSpeed() || 0) : 0;
-      } catch (e) {}
+      if (DEV_FAKE_GPS) {
+        // Synthetische Spur (Start Bodensee), Speed pendelt ~15–24 km/h.
+        s._fi = (s._fi || 0) + 1;
+        speed = (19 + 5 * Math.sin(s._fi / 6)) / 3.6;   // m/s
+        s._flat = (s._flat != null ? s._flat : 47.66) + (speed / 111320) * 0.7;
+        s._flon = (s._flon != null ? s._flon : 9.355) + (speed / (111320 * 0.673)) * 0.4;
+        status = "A"; lat = s._flat; lon = s._flon;
+      } else {
+        try {
+          status = s.geo.getStatus ? s.geo.getStatus() : "A";
+          lat = s.geo.getLatitude(); lon = s.geo.getLongitude();
+          speed = s.geo.getSpeed ? (s.geo.getSpeed() || 0) : 0;
+        } catch (e) {}
+      }
       let hr = 0;
       try { hr = s.hrSensor ? (s.hrSensor.getCurrent() || 0) : 0; } catch (e) {}
       if (hr) { s.hr = hr; s.hrSum += hr; s.hrN++; if (hr > s.hrMax) s.hrMax = hr; }
