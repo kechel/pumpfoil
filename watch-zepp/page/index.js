@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.1";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.2";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
@@ -147,18 +147,25 @@ Page(
     },
     startPoll() {
       const s = this.state;
-      if (s.pollTimer) clearInterval(s.pollTimer);
-      s.pollTimer = setInterval(() => {
+      if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+      // NICHT überlappend: nächsten Poll erst planen, wenn der vorige fertig ist (zml shaked pro
+      // Request; ein festes Intervall würde sich selbst abwürgen -> pair-poll käme nie durch).
+      const tick = () => {
+        logger.log("[poll] PAIR_POLL");
         this.call({ method: "PAIR_POLL", claimToken: getClaim() }, (r) => r && typeof r.paired !== "undefined")
           .then((r) => {
+            logger.log("[poll] <- " + JSON.stringify(r));
             if (r.paired && r.device_token) {
               store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
-              clearInterval(s.pollTimer); s.pollTimer = null;
-              s.paired = true; s.code = "";
+              s.pollTimer = null; s.paired = true; s.code = "";
               this.connect();
+              return;
             }
-          }).catch(() => {});
-      }, 3000);
+            s.pollTimer = setTimeout(tick, 3000);
+          })
+          .catch((err) => { logger.log("[poll] !! " + ((err && err.message) || err)); s.pollTimer = setTimeout(tick, 3000); });
+      };
+      s.pollTimer = setTimeout(tick, 500);
     },
 
     // Hintergrund-Reconnect: alle 20s (außer während Aufnahme) erneut verbinden/config holen +
