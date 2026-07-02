@@ -21,6 +21,9 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(path, { ...opts, headers });
+  // Sliding-Refresh: der Server schickt bei knapper Restlaufzeit ein frisches Token mit.
+  const refreshed = res.headers.get("X-Refresh-Token");
+  if (refreshed) setToken(refreshed);
   if (!res.ok) {
     const text = await res.text();
     // Abgelaufene/ungültige Session: war ein Token gesetzt und der Server lehnt mit 401 ab,

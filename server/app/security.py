@@ -53,6 +53,18 @@ def decode_access_token(token: str) -> int | None:
         return None
 
 
+def token_exp(token: str) -> datetime | None:
+    """Ablaufzeitpunkt eines gültigen Tokens (für Sliding-Refresh)."""
+    try:
+        payload = jwt.decode(
+            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+        )
+        exp = payload.get("exp")
+        return datetime.fromtimestamp(exp, tz=timezone.utc) if exp else None
+    except (jwt.PyJWTError, KeyError, ValueError):
+        return None
+
+
 def new_token(nbytes: int = 24) -> str:
     return secrets.token_urlsafe(nbytes)
 

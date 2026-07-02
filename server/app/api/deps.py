@@ -1,20 +1,21 @@
 """Gemeinsame FastAPI-Dependencies: aktueller Nutzer (JWT) und Gerät (Device-Token)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
-from ..security import decode_access_token
+from ..security import create_access_token, decode_access_token, token_exp
 
 _bearer = HTTPBearer(auto_error=False)
 
 
 def current_user(
+    response: Response,
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> models.User:
@@ -28,6 +29,11 @@ def current_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Unknown user")
     if user.blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Konto gesperrt")
+    # Sliding-Refresh (à la Let's Encrypt): läuft das Token in < 30 Tagen ab, ein frisches
+    # per Header mitgeben. Der Client (api.ts) speichert es -> aktive Nutzer bleiben eingeloggt.
+    exp = token_exp(creds.credentials)
+    if exp is not None and exp - datetime.now(timezone.utc) < timedelta(days=30):
+        response.headers["X-Refresh-Token"] = create_access_token(user_id)
     return user
 
 
