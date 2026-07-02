@@ -12,7 +12,10 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.2";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.3";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+// TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start EINEN Upload testen.
+// "" = normaler Betrieb. (Token = echtes uz2b13-Token, User 2, aus dem 07:34-Log.)
+const DEV_TOKEN = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
@@ -106,10 +109,24 @@ Page(
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
       s.hbTimer = setInterval(() => this.heartbeat(), 20000);   // Hintergrund-Reconnect / Nachhol-Upload
 
+      if (DEV_TOKEN) { store.setItem("deviceToken", DEV_TOKEN); s.paired = true; }
       if (getTok()) s.paired = true;
       this.applyButton();
       this.renderIdle();
-      this.connect();
+      if (DEV_TOKEN) { logger.log("[devtest] Upload-Test (erste Requests nach Spawn)"); this.devTestUpload(); }
+      else this.connect();
+    },
+
+    // TEST: winzige Session direkt hochladen (START/CHUNK/COMPLETE) + jeden Schritt loggen.
+    devTestUpload() {
+      const now = Date.now();
+      const sess = { uuid: makeUuid(now), startedAtMs: now - 3000, endedAtMs: now,
+        gps: [[0, 47.66, 9.355, 5, 0, 0], [1000, 47.6601, 9.3551, 5, 0, 0], [2000, 47.6602, 9.3552, 5, 0, 0]] };
+      this.state.w.status.setProperty(hmUI.prop.TEXT, "Upload-Test…");
+      logger.log("[devtest] START " + sess.uuid);
+      this.uploadSession(sess, (p) => logger.log("[devtest] " + p + "%"))
+        .then(() => { logger.log("[devtest] OK hochgeladen ✓"); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test OK ✓"); })
+        .catch((e) => { logger.log("[devtest] FAIL " + ((e && e.message) || e)); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test: " + ((e && e.message) || "?")); });
     },
 
     // ---- Verbindung / Pairing (Hintergrund) ----
@@ -173,6 +190,7 @@ Page(
     // direkt nach dem Beenden einer Aufnahme.
     heartbeat() {
       const s = this.state;
+      if (DEV_TOKEN) return;   // Test-Modus: kein Hintergrund-Reconnect dazwischenfunken
       if (s.recording) return;
       if (!bleOk()) { this.rerender(); return; }   // kein Handy -> nur Anzeige aktualisieren
       if (getTok()) this.connect();
@@ -374,7 +392,7 @@ Page(
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
       const total = chunks.length + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
-      const req = (p) => this.call(p, (r) => r && r.ok === true);
+      const req = (p) => { logger.log("[up] " + p.method + " ->"); return this.call(p, (r) => r && r.ok === true).then((r) => { logger.log("[up] " + p.method + " ok"); return r; }); };
       return req({ method: "START", token: tok, meta }).then(bump)
         .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })).then(bump), Promise.resolve()))
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length })).then(bump);
