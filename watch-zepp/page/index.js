@@ -11,7 +11,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.4";    // sichtbar oben links; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.5";    // sichtbar oben links; bei jedem Push hochzählen (Ladekontrolle)
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -47,7 +47,7 @@ Page(
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
-      timer: null, pollTimer: null, geo: null, hrSensor: null, w: {},
+      timer: null, pollTimer: null, hbTimer: null, geo: null, hrSensor: null, w: {},
       _fi: 0, _flat: null, _flon: null,
     },
 
@@ -96,6 +96,7 @@ Page(
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) { logger.log("geo err " + e); }
       try { s.hrSensor = new HeartRate(); } catch (e) { s.hrSensor = null; }
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
+      s.hbTimer = setInterval(() => this.heartbeat(), 20000);   // Hintergrund-Reconnect / Nachhol-Upload
 
       if (getTok()) s.paired = true;
       this.applyButton();
@@ -140,6 +141,16 @@ Page(
             }
           }).catch(() => {});
       }, 3000);
+    },
+
+    // Hintergrund-Reconnect: alle 20s (außer während Aufnahme) erneut verbinden/config holen +
+    // Warteschlange senden. Heilt sich selbst, sobald Bridge/Worker/Handy wieder da sind — auch
+    // direkt nach dem Beenden einer Aufnahme.
+    heartbeat() {
+      const s = this.state;
+      if (s.recording) return;
+      if (getTok()) this.connect();
+      else if (!s.code && !s.pollTimer) this.beginPairing();
     },
 
     // ---- Fortschrittsbalken (oben) ----
@@ -360,6 +371,7 @@ Page(
       const s = this.state;
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearInterval(s.pollTimer);
+      if (s.hbTimer) clearInterval(s.hbTimer);
       try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
     },
