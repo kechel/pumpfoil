@@ -41,12 +41,20 @@ Page(
     // this.request + sequenzieller Retry: nach Idle (z.B. während einer Aufnahme) ist der
     // Uhr<->Side-Shake stale, der erste Request danach läuft ins "shake timeout". Wir warten aufs
     // Timeout und versuchen erneut (NICHT parallel!) — nach 1 Runde steht der Kanal wieder.
-    call(payload, tries) {
-      tries = tries || 5;
-      return this.request(payload).catch((err) => {
+    // ok(r): Validator für eine "echte" Antwort. Leere/verschluckte Antworten (Worker beim ersten
+    // Request nach Spawn noch nicht dispatch-bereit -> nur Shake-ACK) gelten als retrybar. Echte
+    // Server-Fehler ({error:...}) sind fatal (kein Retry).
+    call(payload, ok, tries) {
+      tries = tries || 8;
+      return this.request(payload).then((r) => {
+        if (r && r.error) { const e = new Error(r.error); e.fatal = true; throw e; }
+        if (ok && !ok(r)) throw new Error("no-ack");
+        return r;
+      }).catch((err) => {
+        if (err && err.fatal) throw err;
         const m = (err && err.message) || "";
-        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0)) {
-          return new Promise((res) => setTimeout(res, 600)).then(() => this.call(payload, tries - 1));
+        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0 || m === "no-ack")) {
+          return new Promise((res) => setTimeout(res, 600)).then(() => this.call(payload, ok, tries - 1));
         }
         throw err;
       });
@@ -68,8 +76,8 @@ Page(
       this.renderButton();
       if (!getTok()) { this.beginPairing(); return; }
       this.showReady("lädt…");
-      // Config laden (mit Retry, falls der Shake nach Start noch nicht steht).
-      this.call({ method: "CONFIG", token: getTok() }).then((r) => {
+      // Config laden (mit Retry, falls der Shake/Worker nach Start noch nicht bereit ist).
+      this.call({ method: "CONFIG", token: getTok() }, (r) => r && typeof r.paired !== "undefined").then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) this.state.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) this.state.offFoil = r.offFoilView;
@@ -86,7 +94,7 @@ Page(
       this.setFields3(["…", ""], null, null);
       this.renderButton();
       logger.log(">>> PAIR_INIT wird gesendet");
-      this.call({ method: "PAIR_INIT" }).then((r) => {
+      this.call({ method: "PAIR_INIT" }, (r) => r && r.code).then((r) => {
         logger.log("<<< PAIR_INIT Antwort: " + JSON.stringify(r));
         if (r && r.error) throw new Error(r.error);
         if (!r || !r.code) throw new Error("keine Antwort");
@@ -108,7 +116,7 @@ Page(
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
             clearInterval(s.pollTimer); s.pollTimer = null;
-            this.call({ method: "CONFIG", token: getTok() }).then((c) => {
+            this.call({ method: "CONFIG", token: getTok() }, (c) => c && typeof c.paired !== "undefined").then((c) => {
               if (c && Array.isArray(c.views) && c.views.length) s.views = c.views;
               if (c && Array.isArray(c.offFoilView) && c.offFoilView.length) s.offFoil = c.offFoilView;
               this.showReady("verbunden ✓");
@@ -246,7 +254,7 @@ Page(
       for (let i = 0; i < s.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
       const tok = getTok();
       logger.log(">>> Upload: START (" + chunks.length + " chunks, " + s.gps.length + " pts)");
-      const req = (p) => this.call(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
+      const req = (p) => this.call(p, (r) => r && r.ok === true);
       req({ method: "START", token: tok, meta })
         .then(() => { logger.log("Upload: START ok, sende chunks"); return chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()); })
         .then(() => { logger.log("Upload: chunks ok, COMPLETE"); return req({ method: "COMPLETE", token: tok, session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }); })
