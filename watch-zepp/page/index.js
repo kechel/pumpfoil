@@ -6,8 +6,8 @@ import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLo
 
 const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
-// DEV: der Zepp-Simulator speist kein echtes GPS ein. true = synthetische Bewegungsspur,
-// damit Aufnahme/Felder/Upload im Simulator testbar sind. VOR echter Uhr/Release auf false!
+// DEV: der Zepp-Simulator speist kein echtes GPS ein. true = synthetische Bewegungsspur.
+// Vor echter Uhr/Release auf false!
 const DEV_FAKE_GPS = true;
 
 const makeUuid = (now) => "zepp-" + now + "-" + Math.floor(Math.random() * 1e9).toString(36);
@@ -18,14 +18,14 @@ function distM(a, b, c, d) {
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
 }
-// Labels für Felder, die GPS-only nicht liefert (nur Name + „–").
 const LABELS = { 10: "Höhe", 13: "Aufstieg", 11: "Temp", 16: "letzt. Dauer", 17: "letzt. Strecke", 18: "letzt. Ø", 19: "letzt. max", 20: "Läufe" };
 
-// Recorder mit KONFIGURIERTEN Datenfeldern (aus /api/devices/config, wie Garmin/Wear/Apple):
-// views = Datenseiten (Feld-IDs), offFoilView = Ruhe-Screen. GPS + Puls; GPS-only zum Server.
+// Recorder mit Reverse-Pairing (Uhr zeigt Code -> pumpfoil.org/Konto -> Uhr pollt Token) und
+// KONFIGURIERTEN Datenfeldern (aus /api/devices/config). GPS + Puls; GPS-only zum Server.
 Page(
   BasePage({
     state: {
+      paired: false, code: "", pollTimer: null,
       recording: false, startedAtMs: 0, uuid: "",
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], page: 0,
@@ -42,69 +42,99 @@ Page(
         [hmUI.createWidget(hmUI.widget.TEXT, { ...F2V }), hmUI.createWidget(hmUI.widget.TEXT, { ...F2L })],
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
-      // Titel antippen -> nächste Datenseite (bei mehreren views).
-      w.title.addEventListener(hmUI.event.CLICK_UP, () => this.cyclePage());
+      w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
       this.renderButton();
-      this.loadConfig();
-      this.renderFields();
+      // Config laden -> gepairt? Recorder : Pairing.
+      this.request({ method: "CONFIG" }).then((r) => {
+        if (r && Array.isArray(r.views) && r.views.length) this.state.views = r.views;
+        if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) this.state.offFoil = r.offFoilView;
+        if (r && r.paired) this.showReady("verbunden ✓");
+        else this.beginPairing();
+      }).catch(() => this.beginPairing());
     },
 
-    loadConfig() {
-      this.request({ method: "CONFIG" }).then((r) => {
-        if (!r) return;
-        if (Array.isArray(r.views) && r.views.length) this.state.views = r.views;
-        if (Array.isArray(r.offFoilView) && r.offFoilView.length) this.state.offFoil = r.offFoilView;
-        if (!this.state.recording) {
-          this.state.w.status.setProperty(hmUI.prop.TEXT, r.paired ? "verbunden ✓" : "Code in der App eintragen");
-          this.renderFields();
-        }
-      }).catch(() => {});
+    // ---- Pairing (reverse: Uhr zeigt Code) ----
+    beginPairing() {
+      const s = this.state;
+      s.paired = false;
+      s.w.status.setProperty(hmUI.prop.TEXT, "verbinde…");
+      this.setFields3(["…", ""], null, null);
+      this.renderButton();
+      this.request({ method: "PAIR_INIT" }).then((r) => {
+        if (!r || !r.code) throw new Error("init");
+        s.code = r.code;
+        this.setFields3([r.code, "Code"], ["pumpfoil.org", ""], ["Konto → Uhr verbinden", ""]);
+        s.w.status.setProperty(hmUI.prop.TEXT, "warte auf Freigabe…");
+        this.startPoll();
+      }).catch(() => s.w.status.setProperty(hmUI.prop.TEXT, "Fehler — Button: neuer Code"));
+    },
+    startPoll() {
+      const s = this.state;
+      if (s.pollTimer) clearInterval(s.pollTimer);
+      s.pollTimer = setInterval(() => {
+        this.request({ method: "PAIR_POLL" }).then((r) => {
+          if (r && r.paired) {
+            clearInterval(s.pollTimer); s.pollTimer = null;
+            this.request({ method: "CONFIG" }).then((c) => {
+              if (c && Array.isArray(c.views) && c.views.length) s.views = c.views;
+              if (c && Array.isArray(c.offFoilView) && c.offFoilView.length) s.offFoil = c.offFoilView;
+              this.showReady("verbunden ✓");
+            }).catch(() => this.showReady("verbunden ✓"));
+          }
+        }).catch(() => {});
+      }, 3000);
+    },
+
+    showReady(msg) {
+      const s = this.state;
+      s.paired = true; s.code = "";
+      this.renderButton();
+      this.renderFields();
+      s.w.status.setProperty(hmUI.prop.TEXT, msg || "");
+    },
+
+    // 3 Slots direkt setzen (val,label) — für Pairing-Anzeige.
+    setFields3(a, b, c) {
+      const w = this.state.w, arr = [a, b, c];
+      for (let i = 0; i < 3; i++) {
+        w.f[i][0].setProperty(hmUI.prop.TEXT, (arr[i] && arr[i][0]) || "");
+        w.f[i][1].setProperty(hmUI.prop.TEXT, (arr[i] && arr[i][1]) || "");
+      }
+      w.page.setProperty(hmUI.prop.TEXT, "");
     },
 
     renderButton() {
-      const w = this.state.w;
+      const w = this.state.w, s = this.state;
       if (w.btn) hmUI.deleteWidget(w.btn);
-      const rec = this.state.recording;
-      w.btn = hmUI.createWidget(hmUI.widget.BUTTON, {
-        ...BUTTON, text: rec ? "STOPP" : "START",
-        normal_color: rec ? 0xdc2626 : 0x22c55e, press_color: rec ? 0xb91c1c : 0x16a34a,
-        click_func: () => this.toggle(),
-      });
+      let text, nc, pc, fn;
+      if (!s.paired) { text = "Neuer Code"; nc = 0x2563eb; pc = 0x1d4ed8; fn = () => this.beginPairing(); }
+      else if (s.recording) { text = "STOPP"; nc = 0xdc2626; pc = 0xb91c1c; fn = () => this.stop(); }
+      else { text = "START"; nc = 0x22c55e; pc = 0x16a34a; fn = () => this.start(); }
+      w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, click_func: fn });
     },
 
+    onTitle() {
+      const s = this.state;
+      if (s.recording && s.views.length > 1) { s.page = (s.page + 1) % s.views.length; this.renderFields(); }
+      else if (s.paired && !s.recording) { this.request({ method: "UNPAIR" }).then(() => this.beginPairing()).catch(() => {}); }
+    },
+
+    // ---- Datenfelder ----
     activeFields() {
       const s = this.state;
-      const src = s.recording ? (s.views[s.page % s.views.length] || []) : s.offFoil;
-      return src.filter((id) => id && id !== 0).slice(0, 3);
+      return (s.recording ? (s.views[s.page % s.views.length] || []) : s.offFoil).filter((id) => id && id !== 0).slice(0, 3);
     },
-
-    cyclePage() {
-      const s = this.state;
-      if (!s.recording || s.views.length < 2) return;
-      s.page = (s.page + 1) % s.views.length;
-      this.renderFields();
-    },
-
     renderFields() {
       const s = this.state, w = this.state.w;
       const fields = this.activeFields();
       w.page.setProperty(hmUI.prop.TEXT, s.recording && s.views.length > 1 ? `${(s.page % s.views.length) + 1}/${s.views.length}` : "");
       for (let i = 0; i < 3; i++) {
-        const [vw, lw] = w.f[i];
-        if (i < fields.length) {
-          const [val, lbl] = this.fieldValue(fields[i]);
-          vw.setProperty(hmUI.prop.TEXT, val);
-          lw.setProperty(hmUI.prop.TEXT, lbl);
-        } else {
-          vw.setProperty(hmUI.prop.TEXT, "");
-          lw.setProperty(hmUI.prop.TEXT, "");
-        }
+        if (i < fields.length) { const [v, l] = this.fieldValue(fields[i]); w.f[i][0].setProperty(hmUI.prop.TEXT, v); w.f[i][1].setProperty(hmUI.prop.TEXT, l); }
+        else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
       }
     },
-
     fieldValue(id) {
-      const s = this.state;
-      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      const s = this.state, el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
       switch (id) {
         case 1: case 5: return [(s.cur * 3.6).toFixed(1), "km/h"];
         case 6: return [((el > 0 ? s.dist / el : 0) * 3.6).toFixed(1), "Ø km/h"];
@@ -119,12 +149,13 @@ Page(
       }
     },
 
-    toggle() { if (this.state.recording) this.stop(); else this.start(); },
-
+    // ---- Aufnahme ----
     start() {
       const s = this.state, now = Date.now();
+      if (!s.paired) return;
       s.recording = true; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.cur = 0; s.hr = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 0;
+      s._fi = 0; s._flat = null; s._flon = null;
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) { logger.log("geo err", e); }
       try { s.hrSensor = new HeartRate(); } catch (e) { s.hrSensor = null; }
       this.renderButton();
@@ -132,19 +163,17 @@ Page(
       this.renderFields();
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
     },
-
     sample() {
       const s = this.state;
-      if (!s.recording || !s.geo) return;
+      if (!s.recording) return;
       let status = "V", lat = null, lon = null, speed = 0;
       if (DEV_FAKE_GPS) {
-        // Synthetische Spur (Start Bodensee), Speed pendelt ~15–24 km/h.
         s._fi = (s._fi || 0) + 1;
-        speed = (19 + 5 * Math.sin(s._fi / 6)) / 3.6;   // m/s
+        speed = (19 + 5 * Math.sin(s._fi / 6)) / 3.6;
         s._flat = (s._flat != null ? s._flat : 47.66) + (speed / 111320) * 0.7;
         s._flon = (s._flon != null ? s._flon : 9.355) + (speed / (111320 * 0.673)) * 0.4;
         status = "A"; lat = s._flat; lon = s._flon;
-      } else {
+      } else if (s.geo) {
         try {
           status = s.geo.getStatus ? s.geo.getStatus() : "A";
           lat = s.geo.getLatitude(); lon = s.geo.getLongitude();
@@ -166,7 +195,6 @@ Page(
       }
       this.renderFields();
     },
-
     stop() {
       const s = this.state;
       s.recording = false;
@@ -176,16 +204,13 @@ Page(
       this.renderFields();
       this.upload();
     },
-
     upload() {
       const s = this.state;
       if (!s.gps.length) { s.w.status.setProperty(hmUI.prop.TEXT, "nichts aufgezeichnet"); return; }
       s.w.status.setProperty(hmUI.prop.TEXT, "lädt hoch…");
       const meta = { session_uuid: s.uuid, started_at_ms: s.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE };
       const chunks = [];
-      for (let i = 0; i < s.gps.length; i += GPS_CHUNK) {
-        chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
-      }
+      for (let i = 0; i < s.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
       const req = (p) => this.request(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
       req({ method: "START", meta })
         .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()))
@@ -193,13 +218,13 @@ Page(
         .then(() => s.w.status.setProperty(hmUI.prop.TEXT, "hochgeladen ✓"))
         .catch((err) => {
           const msg = (err && err.message) || "Fehler";
-          s.w.status.setProperty(hmUI.prop.TEXT, msg.indexOf("pair") >= 0 ? "nicht verbunden — Code in der App" : "Upload-Fehler");
+          s.w.status.setProperty(hmUI.prop.TEXT, msg.indexOf("pair") >= 0 ? "nicht verbunden" : "Upload-Fehler");
         });
     },
-
     onDestroy() {
       const s = this.state;
       if (s.timer) clearInterval(s.timer);
+      if (s.pollTimer) clearInterval(s.pollTimer);
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
     },
   })

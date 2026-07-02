@@ -1,6 +1,6 @@
-// App-Settings (in der Zepp-Handy-App): Pairing-Code eingeben. Der Code wird gespeichert;
-// der App-Side-Service löst ihn beim nächsten Upload gegen ein Device-Token ein
-// (POST /api/devices/pair). View/Text/TextInput/Button sind Settings-Runtime-Globals.
+// App-Settings (in der Zepp-Handy-App). PAIRING = REVERSE: die Uhr zeigt den Code an, er wird auf
+// pumpfoil.org → Konto → „Uhr verbinden" eingetragen. HIER gibt es KEINE Code-Eingabe — nur
+// Verbindungsstatus + „Trennen". (Web erzeugt keinen Code; siehe garmin-settings-pairing-Konvention.)
 //
 // VERIFY im Simulator/Zepp-App: Settings-Widget-API (evtl. Prop-Namen leicht abweichend).
 
@@ -8,7 +8,6 @@ AppSettingsPage({
   build(props) {
     const store = props.settingsStorage;
     const token = store.getItem("deviceToken");
-    const code = store.getItem("pairCode") || "";
 
     const header = Text(
       { bold: true, paragraph: true, style: { fontSize: "20px", marginBottom: "10px" } },
@@ -22,7 +21,7 @@ AppSettingsPage({
         Button({
           label: "Trennen",
           style: { background: "#ef4444", color: "#fff" },
-          onClick: () => { store.setItem("deviceToken", ""); },
+          onClick: () => { store.setItem("deviceToken", ""); store.setItem("claimToken", ""); },
         }),
       ]);
     }
@@ -30,14 +29,9 @@ AppSettingsPage({
     return View({ style: { padding: "16px" } }, [
       header,
       Text({ paragraph: true, style: { marginBottom: "8px" } },
-        "Auf pumpfoil.org → Konto einen Pairing-Code erzeugen und hier eintragen:"),
-      TextInput({
-        label: "Pairing-Code",
-        value: code,
-        onChange: (v) => { store.setItem("pairCode", v); },
-      }),
-      Text({ paragraph: true, style: { fontSize: "12px", color: "#888", marginTop: "8px" } },
-        "Nach dem Speichern verbindet sich die Uhr beim nächsten Upload automatisch."),
+        "Zum Verbinden: die Uhr-App öffnen — sie zeigt einen Code an."),
+      Text({ paragraph: true, style: { marginBottom: "8px" } },
+        "Diesen Code auf pumpfoil.org → Konto → „Uhr verbinden" eintragen. Die Uhr verbindet sich dann automatisch."),
     ]);
   },
 });
