@@ -133,6 +133,9 @@ export default function Landing() {
                     className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
                 </div>
                 <figcaption className="text-xs text-slate-300">Apple Watch</figcaption>
+                <a href="https://apps.apple.com/app/id6783975714" target="_blank" rel="noreferrer" aria-label="Laden im App Store" className="mt-1">
+                  <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-11 w-auto" />
+                </a>
               </figure>
               <figure className="flex flex-col items-center gap-2">
                 <div className="flex gap-3">
@@ -142,6 +145,9 @@ export default function Landing() {
                     className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
                 </div>
                 <figcaption className="text-xs text-slate-300">Wear OS</figcaption>
+                <a href="https://play.google.com/store/apps/details?id=org.pumpfoil.app" target="_blank" rel="noreferrer" aria-label="Jetzt bei Google Play" className="mt-1">
+                  <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-11 w-auto" />
+                </a>
               </figure>
             </div>
           </section>
