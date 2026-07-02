@@ -65,6 +65,18 @@ def token_exp(token: str) -> datetime | None:
         return None
 
 
+def token_iat(token: str) -> int | None:
+    """Ausstellungszeitpunkt (Unix-Sekunden) eines gültigen Tokens — für per-User-Invalidierung."""
+    try:
+        payload = jwt.decode(
+            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+        )
+        iat = payload.get("iat")
+        return int(iat) if iat is not None else None
+    except (jwt.PyJWTError, KeyError, ValueError):
+        return None
+
+
 def new_token(nbytes: int = 24) -> str:
     return secrets.token_urlsafe(nbytes)
 

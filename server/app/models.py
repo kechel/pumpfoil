@@ -51,6 +51,9 @@ class User(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Bevorzugte UI-Sprache (de, gsw, de-AT, en, fr, it, es). Default Deutsch.
     language: Mapped[str] = mapped_column(String(8), default="de", server_default="de")
+    # "Alle Geräte abmelden": Tokens, die VOR diesem Zeitpunkt ausgestellt wurden (iat),
+    # werden abgelehnt. NULL = keine Invalidierung. Betrifft nur diesen Nutzer.
+    session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     devices: Mapped[list["DeviceToken"]] = relationship(back_populates="user")
     sessions: Mapped[list["Session"]] = relationship(back_populates="user")

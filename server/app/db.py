@@ -96,6 +96,7 @@ def _migrate_add_columns() -> None:
             "blocked": "BOOLEAN DEFAULT 0",
             "chat_readonly": "BOOLEAN DEFAULT false",
             "hidden": "BOOLEAN DEFAULT false",
+            "session_epoch": "TIMESTAMP WITH TIME ZONE",
         },
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",

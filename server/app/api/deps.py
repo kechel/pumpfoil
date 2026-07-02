@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
-from ..security import create_access_token, decode_access_token, token_exp
+from ..security import create_access_token, decode_access_token, token_exp, token_iat
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -29,6 +29,12 @@ def current_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Unknown user")
     if user.blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Konto gesperrt")
+    # Per-User-Invalidierung ("alle Geräte abmelden"): Tokens, die vor session_epoch
+    # ausgestellt wurden, ablehnen (Sekunden-genau, damit ein frisches Login nicht kippt).
+    if user.session_epoch is not None:
+        iat = token_iat(creds.credentials)
+        if iat is not None and iat < int(user.session_epoch.timestamp()):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
     # Sliding-Refresh (à la Let's Encrypt): läuft das Token in < 30 Tagen ab, ein frisches
     # per Header mitgeben. Der Client (api.ts) speichert es -> aktive Nutzer bleiben eingeloggt.
     exp = token_exp(creds.credentials)
