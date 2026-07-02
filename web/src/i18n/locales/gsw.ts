@@ -408,7 +408,7 @@ const gsw: Record<string, string> = {
   "watches.colPump": "Pumps & Gleitphase",
   "watches.colStatus": "Status",
   "watches.st.avail": "Verfüegbar",
-  "watches.stGarmin": "bisher nume Sideload · Connect-IQ-App chunnt",
+  "watches.stGarmin": "au als Sideload (.prg)",
   "watches.st.planned": "Plant",
   "watches.st.import": "Polar API",
   "watches.st.no": "Nöd möglich",

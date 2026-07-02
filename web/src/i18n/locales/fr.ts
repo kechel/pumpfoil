@@ -484,7 +484,7 @@ const fr: Record<string, string> = {
   "watches.colPump": "Pompages & glisse",
   "watches.colStatus": "Statut",
   "watches.st.avail": "Disponible",
-  "watches.stGarmin": "sideload pour l'instant · app Connect IQ à venir",
+  "watches.stGarmin": "aussi en sideload (.prg)",
   "watches.st.planned": "Prévu",
   "watches.st.import": "Polar API",
   "watches.st.no": "Impossible",

@@ -1,15 +1,23 @@
 import { CheckIcon } from "./Icons";
 import { useT } from "../i18n";
+import { CONNECT_IQ_URL } from "./ConnectIqButton";
 
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
 // /uhren-Seite + Login-Bereich /account).
 type Cap = "yes" | "partial" | "no";
 type Status = "avail" | "planned" | "import" | "no";
+type Store = { url: string; badge: string; alt: string };
 
-const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string }[] = [
-  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", statusNoteKey: "watches.stGarmin" },
-  { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple" },
-  { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "avail" },
+const APP_STORE_URL = "https://apps.apple.com/app/id6783975714";
+const PLAY_URL = "https://play.google.com/store/apps/details?id=org.pumpfoil.app";
+
+const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: Store }[] = [
+  { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", statusNoteKey: "watches.stGarmin",
+    store: { url: CONNECT_IQ_URL, badge: "/badges/connect-iq-badge-dark.svg", alt: "Available on Connect IQ Store" } },
+  { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple",
+    store: { url: APP_STORE_URL, badge: "/badges/app-store-de.svg", alt: "Laden im App Store" } },
+  { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel …", gps: "yes", hr: "yes", pump: "yes", status: "avail",
+    store: { url: PLAY_URL, badge: "/badges/google-play-de.png", alt: "Jetzt bei Google Play" } },
   { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nAmazfit" },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar" },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
@@ -63,6 +71,11 @@ export function WatchMatrix() {
                 <td className="px-4 py-3">
                   {status(r.status)}
                   {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
+                  {r.store && (
+                    <a href={r.store.url} target="_blank" rel="noopener noreferrer" className="mt-1.5 inline-block">
+                      <img src={r.store.badge} alt={r.store.alt} className="h-8 w-auto" />
+                    </a>
+                  )}
                 </td>
               </tr>
             ))}
