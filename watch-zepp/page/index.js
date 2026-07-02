@@ -41,11 +41,11 @@ Page(
     // this.request mit Retry: der Uhr<->Side-Handshake ("shake") ist beim ersten Request nach
     // Start oft noch nicht fertig -> "shake timeout". Nach kurzem Warten steht er.
     call(payload, tries) {
-      tries = tries || 6;
+      tries = tries || 10;
       return this.request(payload).catch((err) => {
         const m = (err && err.message) || "";
         if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0)) {
-          return new Promise((res) => setTimeout(res, 700)).then(() => this.call(payload, tries - 1));
+          return new Promise((res) => setTimeout(res, 800)).then(() => this.call(payload, tries - 1));
         }
         throw err;
       });
@@ -63,6 +63,11 @@ Page(
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
       w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
       this.renderButton();
+      // Dem Uhr<->Side-Handshake kurz Zeit geben, bevor der erste Request feuert.
+      w.status.setProperty(hmUI.prop.TEXT, "starte…");
+      setTimeout(() => this.boot(), 1200);
+    },
+    boot() {
       // Config laden -> gepairt? Recorder : Pairing.
       if (!getTok()) { this.beginPairing(); return; }
       this.call({ method: "CONFIG", token: getTok() }).then((r) => {
