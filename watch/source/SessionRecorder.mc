@@ -74,8 +74,10 @@ class SessionRecorder {
     var alarmDefault = "foil";        // Website-Vorwahl für die Uhr: "foil" = Standard-Foil | "fixed" = feste Werte
     var manualAlarm = false;          // true = Vibrationsalarm auf der Website aktiviert (Master-Schalter)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
-    var sessionFoilId = null;         // auf der Uhr gewähltes Foil (Server-ID) -> Override für die NÄCHSTE Session; null = User-Default
-    var activeAlarmLabel = "";        // angezeigte Auswahl auf dem Start-Screen (Foil/„Website"/„Ohne")
+    var sessionFoilId = null;         // auf der Uhr gewähltes Foil (Server-ID) -> Metadaten + Auto-Schwellen; null = keine
+    var activeAlarmLabel = "";        // angezeigter Foil-Name auf dem Start-Screen ("Foil: <name>")
+    // Drei unabhängige Achsen: Foil (Metadaten, oben), alarmEnabled (An/Aus), alarmSource (Schwellen-Quelle).
+    var alarmSource = "foil";         // "foil" = Schwellen aus gewählter Foil | "manual" = feste Min/Max (speedLow/HighKmh)
     // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
     // Uhrzeit + letzter Lauf (Distanz/Dauer). Per Website konfigurierbar.
     var offFoilView = [Config.FIELD_CLOCK, Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION];
@@ -382,10 +384,23 @@ class SessionRecorder {
 
     // Auto-Alarm eines gewählten Foils für die Session setzen (min/max in km/h).
     // alarmRepeat bleibt unangetastet (Website-Default; auf der Uhr pro Session umstellbar).
-    function applyFoilAlarm(lo, hi) {
+    // Manuelle Schwellen setzen (Alarm-Quelle "manual"). Ändert alarmEnabled NICHT (entkoppelt).
+    function setManualThresholds(lo, hi) {
         speedLowKmh = lo;
         speedHighKmh = hi;
-        alarmEnabled = true;
+    }
+
+    // Effektive Alarm-Schwellen: bei "foil" aus der gewählten Foil, sonst die manuellen Werte.
+    // Rückgabe [lo, hi]. Fällt auf die manuellen/Website-Werte zurück, wenn keine Foil passt.
+    function effThresholds() {
+        if (alarmSource.equals("foil") && sessionFoilId != null) {
+            for (var i = 0; i < foils.size(); i++) {
+                if (foils[i]["id"] == sessionFoilId) {
+                    return [foils[i]["min"], foils[i]["max"]];
+                }
+            }
+        }
+        return [speedLowKmh, speedHighKmh];
     }
 
     // Default-Auswahl für den Start-Screen setzen (nur wenn noch nichts gewählt).
@@ -394,18 +409,16 @@ class SessionRecorder {
     //   an + "foil"    -> Standard-Foil (erstes der Liste) als Auto-Alarm
     //   an + "fixed"   -> feste Website-Werte
     function initAlarmSelection() {
-        if (!activeAlarmLabel.equals("")) { return; }     // bereits gewählt -> nicht überschreiben
-        if (manualAlarm) {
-            if (alarmDefault.equals("foil") && foils.size() >= 1) {
-                applyFoilAlarm(foils[0]["min"], foils[0]["max"]);
-                activeAlarmLabel = foils[0]["label"];
-            } else {
-                alarmEnabled = true;                      // feste Website-Werte
-                activeAlarmLabel = "Website";
-            }
+        if (!activeAlarmLabel.equals("")) { return; }     // schon initialisiert -> Uhr-Auswahl behalten (bis App-Ende)
+        alarmEnabled = manualAlarm;                        // Web-Master = Alarm-Default an/aus
+        if (alarmDefault.equals("foil") && foils.size() >= 1) {
+            sessionFoilId = foils[0]["id"];                // Standard-Foil vorwählen (Metadaten)
+            activeAlarmLabel = foils[0]["label"];
+            alarmSource = "foil";                          // Schwellen aus der Foil
         } else {
-            alarmEnabled = false;                         // Master aus -> kein Alarm als Default
-            activeAlarmLabel = "Aus";
+            sessionFoilId = null;
+            activeAlarmLabel = "—";
+            alarmSource = "manual";                        // feste Web-Werte (speedLow/HighKmh)
         }
     }
 
@@ -836,12 +849,15 @@ class SessionRecorder {
 
     function _checkAlarm(speedMps) {
         if (!alarmEnabled) { return; }
+        var eff = effThresholds();
+        var effLow = eff[0];
+        var effHigh = eff[1];
         var kmh = speedMps * 3.6;
-        var over = (speedHighKmh > 0 && kmh > speedHighKmh);
+        var over = (effHigh > 0 && kmh > effHigh);
         // Min-Alarm nur in einem schmalen Fenster knapp UNTER min ([min-2, min)).
         // So warnt es genau beim Abfallen unter min (wahrscheinlich noch am Foilen),
         // aber nicht dauerhaft beim Stehen/Gehen weit darunter (kein On-Foil-Status).
-        var under = (speedLowKmh > 0 && kmh < speedLowKmh && kmh >= speedLowKmh - LOW_ALARM_WINDOW_KMH);
+        var under = (effLow > 0 && kmh < effLow && kmh >= effLow - LOW_ALARM_WINDOW_KMH);
         var trip = over || under;
         if (trip && !_alarmActive) {
             _alarmActive = true;

@@ -155,12 +155,18 @@ class RecordView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, Strings.s("err.storageFull"), Graphics.TEXT_JUSTIFY_CENTER);
         }
-        // Aktiver Alarm (vor dem Start per DOWN wählbar). Zeigt die getroffene Auswahl
-        // (Standard-Foil, feste Werte oder „Aus"), damit man mit dem richtigen Alarm losfährt.
+        // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             var lbl = _rec.activeAlarmLabel.equals("") ? "—" : _rec.activeAlarmLabel;
-            dc.drawText(w / 2, h * 0.555, Graphics.FONT_XTINY, Strings.s("alarm.prefix") + lbl, Graphics.TEXT_JUSTIFY_CENTER);
+            var txt = Strings.s("foil.prefix") + lbl;
+            var ty = h * 0.555;
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, ty, Graphics.FONT_XTINY, txt, Graphics.TEXT_JUSTIFY_CENTER);
+            if (_rec.alarmEnabled) {
+                var tw = dc.getTextWidthInPixels(txt, Graphics.FONT_XTINY);
+                var bh = dc.getFontHeight(Graphics.FONT_XTINY);
+                _drawBell(dc, (w / 2) + (tw / 2) + 9, ty + (bh / 2));
+            }
         }
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.65, Graphics.FONT_SMALL, Strings.s("start.rec"), Graphics.TEXT_JUSTIFY_CENTER);
@@ -288,6 +294,16 @@ class RecordView extends WatchUi.View {
         dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, cy + 28, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
+    hidden function _drawBell(dc, cx, cy) {
+        dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(cx - 1, cy - 6, 2, 2);                                   // Griff oben
+        dc.fillCircle(cx, cy - 3, 3);                                             // Kuppel
+        dc.fillPolygon([[cx - 5, cy + 3], [cx + 5, cy + 3], [cx + 3, cy - 2], [cx - 3, cy - 2]]); // Körper
+        dc.fillRectangle(cx - 6, cy + 3, 12, 1);                                  // Rand unten
+        dc.fillCircle(cx, cy + 6, 1);                                             // Klöppel
     }
 
     // Wert-abhängige Farben (Buckets, gut ablesbar auf der Uhr).

@@ -46,32 +46,10 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         return false;  // andere Tasten -> normale Behaviors (Menü/Back)
     }
 
-    // Öffnet die Alarm-Auswahl (feste Website-Werte, Foils, Ohne) — setzt die Auswahl
-    // für die nächste Aufnahme, ohne zu starten. Zusätzlich der Repeat-Modus (umschaltbar).
+    // Öffnet „Foil & Alarm" — drei unabhängige Achsen: Foil (Metadaten), Alarm An/Aus,
+    // Schwellen-Quelle (Auto aus Foil / Manuell mit Min/Max auf der Uhr). Nur Auswahl, kein Start.
     hidden function _openFoilMenu() as Void {
-        var menu = new WatchUi.Menu2({:title => "Alarm"});
-        if (_rec.manualAlarm) {
-            menu.addItem(new WatchUi.MenuItem(
-                "Feste Werte",
-                _rec.speedLowKmh.toString() + "–" + _rec.speedHighKmh.toString() + " km/h",
-                :website, {}));
-        }
-        for (var i = 0; i < _rec.foils.size(); i++) {
-            var f = _rec.foils[i];
-            menu.addItem(new WatchUi.MenuItem(
-                f["label"],
-                f["min"].toString() + "–" + f["max"].toString() + " km/h",
-                i, {}));
-        }
-        menu.addItem(new WatchUi.MenuItem("Ohne Alarm", "kein Alarm", :none, {}));
-        // Repeat-Modus pro Session umschaltbar (Website setzt nur den Default).
-        menu.addItem(new WatchUi.MenuItem(
-            "Auslösen", _repeatLabel(_rec.alarmRepeat), :repeat, {}));
-        WatchUi.pushView(menu, new FoilMenuDelegate(_rec), WatchUi.SLIDE_UP);
-    }
-
-    static function _repeatLabel(rep) as Lang.String {
-        return rep.equals("continuous") ? "dauerhaft" : "einmalig";
+        FoilMenuDelegate.show(_rec);
     }
 
     // Loslassen vor 3 s = Stop abbrechen.
@@ -147,39 +125,117 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 }
 
 // Foil-Auswahl beim Start: gewähltes Foil setzt den Auto-Alarm, dann Aufnahme starten.
-// Back (ohne Auswahl) bricht ab und startet nicht.
+// „Foil & Alarm"-Menü: Foil (Metadaten) + Alarm An/Aus + Schwellen-Quelle (Auto/Manuell)
+// mit Min/Max direkt auf der Uhr. Back (ohne Foil-Auswahl) behält die aktuelle Auswahl.
 class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
     hidden var _rec;
     function initialize(recorder) {
         Menu2InputDelegate.initialize();
         _rec = recorder;
     }
+
+    // Menü frisch aufbauen + anzeigen (auch für Rebuild nach Min/Max-Änderung).
+    static function show(rec) as Void {
+        var menu = new WatchUi.Menu2({:title => "Foil & Alarm"});
+        menu.addItem(new WatchUi.MenuItem("Alarm", rec.alarmEnabled ? "An" : "Aus", :alarm, {}));
+        menu.addItem(new WatchUi.MenuItem("Schwellen",
+            rec.alarmSource.equals("foil") ? "Auto (Foil)" : "Manuell", :source, {}));
+        if (rec.alarmSource.equals("manual")) {
+            menu.addItem(new WatchUi.MenuItem("Min", rec.speedLowKmh.toString() + " km/h", :min, {}));
+            menu.addItem(new WatchUi.MenuItem("Max", rec.speedHighKmh.toString() + " km/h", :max, {}));
+        }
+        for (var i = 0; i < rec.foils.size(); i++) {
+            var f = rec.foils[i];
+            var sel = (rec.sessionFoilId == f["id"]) ? "✓ " : "";
+            menu.addItem(new WatchUi.MenuItem(
+                sel + f["label"], f["min"].toString() + "–" + f["max"].toString() + " km/h", i, {}));
+        }
+        menu.addItem(new WatchUi.MenuItem("Keine Foil",
+            rec.sessionFoilId == null ? "✓ nur Metadaten" : "nur Metadaten", :none, {}));
+        WatchUi.pushView(menu, new FoilMenuDelegate(rec), WatchUi.SLIDE_UP);
+    }
+
+    // Menü ersetzen (nach Layout-Änderung Manuell<->Auto oder Min/Max-Edit).
+    hidden function _rebuild() as Void {
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        FoilMenuDelegate.show(_rec);
+    }
+
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
-        if (id == :repeat) {
-            // Repeat-Modus umschalten, Menü offen lassen (keine Alarm-Auswahl).
-            _rec.alarmRepeat = _rec.alarmRepeat.equals("continuous") ? "once" : "continuous";
-            item.setSubLabel(_rec.alarmRepeat.equals("continuous") ? "dauerhaft" : "einmalig");
+        if (id == :alarm) {
+            _rec.alarmEnabled = !_rec.alarmEnabled;      // An/Aus, unabhängig von Foil
+            item.setSubLabel(_rec.alarmEnabled ? "An" : "Aus");
             WatchUi.requestUpdate();
+            return;
+        }
+        if (id == :source) {
+            _rec.alarmSource = _rec.alarmSource.equals("foil") ? "manual" : "foil";
+            _rebuild();                                  // Min/Max erscheinen/verschwinden
+            return;
+        }
+        if (id == :min || id == :max) {
+            var cur = (id == :min) ? _rec.speedLowKmh : _rec.speedHighKmh;
+            var picker = new WatchUi.Picker({
+                :title => new WatchUi.Text({:text => (id == :min) ? "Min km/h" : "Max km/h",
+                    :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_BOTTOM,
+                    :color => Graphics.COLOR_WHITE}),
+                :pattern => [new NumFactory(0, 80, 1)], :defaults => [cur]});
+            WatchUi.pushView(picker, new MinMaxPickerDelegate(_rec, id == :min), WatchUi.SLIDE_LEFT);
             return;
         }
         if (id instanceof Lang.Number) {
             var f = _rec.foils[id];
-            _rec.applyFoilAlarm(f["min"], f["max"]);     // Foil-Auto-Alarm
+            _rec.sessionFoilId = f["id"];                // Foil = Metadaten (+ Auto-Schwellen)
             _rec.activeAlarmLabel = f["label"];
-            _rec.sessionFoilId = f["id"];                // dieses Foil für die nächste Session übernehmen
-        } else if (id == :website) {
-            _rec.alarmEnabled = true;                    // feste Website-Werte (bereits geladen)
-            _rec.activeAlarmLabel = "Feste Werte";
-            _rec.sessionFoilId = null;                   // kein Foil-Override -> User-Default
         } else if (id == :none) {
-            _rec.alarmEnabled = false;                   // kein Alarm für diese Session
-            _rec.activeAlarmLabel = "Aus";
-            _rec.sessionFoilId = null;                   // kein Foil-Override -> User-Default
+            _rec.sessionFoilId = null;                   // keine Foil
+            _rec.activeAlarmLabel = "—";
         }
-        // Nur Auswahl setzen, NICHT starten -> zurück zum Start-Screen.
+        // Foil-Auswahl gesetzt -> zurück zum Start-Screen (Alarm-Zustand bleibt).
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         WatchUi.requestUpdate();
+    }
+}
+
+// Zahlen-Factory für den Min/Max-Picker (0..80 km/h). getValue = angezeigter Wert (Index=Wert bei step 1).
+class NumFactory extends WatchUi.PickerFactory {
+    hidden var _min, _max, _step;
+    function initialize(mn, mx, st) {
+        PickerFactory.initialize();
+        _min = mn; _max = mx; _step = st;
+    }
+    function getSize() { return (_max - _min) / _step + 1; }
+    function getValue(index) { return _min + index * _step; }
+    function getDrawable(index, selected) {
+        return new WatchUi.Text({
+            :text => getValue(index).toString(),
+            :color => Graphics.COLOR_WHITE, :font => Graphics.FONT_NUMBER_MEDIUM,
+            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_CENTER});
+    }
+}
+
+// Zahlenpicker für die manuellen Min/Max-Schwellen (direkt auf der Uhr).
+class MinMaxPickerDelegate extends WatchUi.PickerDelegate {
+    hidden var _rec;
+    hidden var _isMin;
+    function initialize(recorder, isMin) {
+        PickerDelegate.initialize();
+        _rec = recorder;
+        _isMin = isMin;
+    }
+    function onAccept(values) as Lang.Boolean {
+        var v = values[0];
+        if (_isMin) { _rec.speedLowKmh = v; } else { _rec.speedHighKmh = v; }
+        // Picker schließen, dann das Menü mit aktualisiertem Wert neu aufbauen.
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // Picker weg
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // altes Menü weg
+        FoilMenuDelegate.show(_rec);
+        return true;
+    }
+    function onCancel() as Lang.Boolean {
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        return true;
     }
 }
 
