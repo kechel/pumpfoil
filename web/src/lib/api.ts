@@ -23,6 +23,13 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(path, { ...opts, headers });
   if (!res.ok) {
     const text = await res.text();
+    // Abgelaufene/ungültige Session: war ein Token gesetzt und der Server lehnt mit 401 ab,
+    // Session verwerfen und zum Login schicken — statt stumm eine kaputte eingeloggte
+    // Oberfläche zu zeigen (JWT läuft nach JWT_EXPIRE_HOURS ab).
+    if (res.status === 401 && token) {
+      clearToken();
+      if (window.location.pathname !== "/login") window.location.assign("/login");
+    }
     throw new Error(`${res.status}: ${text}`);
   }
   return (await res.json()) as T;
