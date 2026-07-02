@@ -11,7 +11,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.5";    // sichtbar oben links; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.6";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
 
@@ -77,8 +77,8 @@ Page(
         [hmUI.createWidget(hmUI.widget.TEXT, { ...F2V }), hmUI.createWidget(hmUI.widget.TEXT, { ...F2L })],
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
-      // Versionsanzeige oben links (Ladekontrolle) — spiegelbildlich zur Seiten-Anzeige oben rechts.
-      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: px(12), y: PAGE.y, w: px(150), h: PAGE.h, color: 0x475569, text_size: px(16), align_h: hmUI.align.LEFT, align_v: hmUI.align.CENTER_V, text: APP_BUILD });
+      // Versionsanzeige mittig direkt unter dem Titel (Garmin-Style, Ladekontrolle).
+      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: TITLE.y + TITLE.h, w: DW, h: px(16), color: 0x64748b, text_size: px(14), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: APP_BUILD });
 
       onGesture({
         callback: (e) => {
