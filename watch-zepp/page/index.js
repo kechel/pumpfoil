@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.4";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.5";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start EINEN Upload testen.
 // "" = normaler Betrieb. (Token = echtes uz2b13-Token, User 2, aus dem 07:34-Log.)
 const DEV_TOKEN = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
@@ -117,16 +117,14 @@ Page(
       else this.connect();
     },
 
-    // TEST: winzige Session direkt hochladen (START/CHUNK/COMPLETE) + jeden Schritt loggen.
+    // TEST: winziger Trigger (~wie PAIR_INIT). App-Side lädt Mini-Session komplett selbst hoch.
     devTestUpload() {
-      const now = Date.now();
-      const sess = { uuid: makeUuid(now), startedAtMs: now - 3000, endedAtMs: now,
-        gps: [[0, 47.66, 9.355, 5, 0, 0], [1000, 47.6601, 9.3551, 5, 0, 0], [2000, 47.6602, 9.3552, 5, 0, 0]] };
       this.state.w.status.setProperty(hmUI.prop.TEXT, "Upload-Test…");
-      logger.log("[devtest] START " + sess.uuid);
-      this.uploadSession(sess, (p) => logger.log("[devtest] " + p + "%"))
-        .then(() => { logger.log("[devtest] OK hochgeladen ✓"); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test OK ✓"); })
-        .catch((e) => { logger.log("[devtest] FAIL " + ((e && e.message) || e)); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test: " + ((e && e.message) || "?")); });
+      logger.log("[devtest] sende TESTUPLOAD (mini)");
+      this.request({ method: "TESTUPLOAD" }).then((r) => {
+        logger.log("[devtest] <- " + JSON.stringify(r));
+        this.state.w.status.setProperty(hmUI.prop.TEXT, (r && r.ok) ? ("Test OK http=" + r.http) : ("Test: " + (r && r.error)));
+      }).catch((e) => { logger.log("[devtest] FAIL " + ((e && e.message) || e)); this.state.w.status.setProperty(hmUI.prop.TEXT, "Test: " + ((e && e.message) || "?")); });
     },
 
     // ---- Verbindung / Pairing (Hintergrund) ----

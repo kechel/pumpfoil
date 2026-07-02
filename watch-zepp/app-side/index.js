@@ -56,6 +56,18 @@ async function handle(req) {
     return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart, colorByValue: b && b.colorByValue };
   }
 
+  // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---
+  if (req.method === "TESTUPLOAD") {
+    const TOK = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
+    const now = Date.now();
+    const uuid = "zepp-mini-" + now;
+    console.log("[pumpfoil] TESTUPLOAD " + uuid);
+    const s = await authPost(TOK, "/api/ingest/session", { session_uuid: uuid, started_at: iso(now - 60000), sport: "pumpfoil", gps_hz: 1, accel_hz: 25, accel_scale: 2048 });
+    await authPost(TOK, `/api/ingest/session/${uuid}/chunk`, { index: 0, kind: "gps", encoding: "json", t0_ms: 0, count: 3, data: [[0, 47.66, 9.355, 5, 0, 0], [1000, 47.6601, 9.3551, 5, 0, 0], [2000, 47.6602, 9.3552, 5, 0, 0]] });
+    await authPost(TOK, `/api/ingest/session/${uuid}/complete`, { ended_at: iso(now), total_chunks: 1 });
+    return { ok: true, http: s.status, uuid: uuid };
+  }
+
   // --- Ingest-Upload (Token pro Request) ---
   if (req.method === "START") {
     const m = req.meta;
