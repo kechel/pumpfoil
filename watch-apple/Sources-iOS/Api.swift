@@ -9,6 +9,10 @@ enum Api {
         set { UserDefaults.standard.setValue(newValue, forKey: "authToken") }
     }
 
+    // Wird bei abgelaufener/ungültiger Session (401 auf authentifizierten Request) aufgerufen
+    // -> die UI schickt zum Login. Von SessionStore gesetzt.
+    static var onUnauthorized: (() -> Void)?
+
     private struct TokenResponse: Decodable { let access_token: String }
 
     static func login(email: String, password: String) async throws -> String {
@@ -318,8 +322,17 @@ enum Api {
             req.httpBody = try JSONSerialization.data(withJSONObject: body)
         }
         let (data, resp) = try await URLSession.shared.data(for: req)
-        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        let http = resp as? HTTPURLResponse
+        // Sliding-Refresh: bei knapper Restlaufzeit schickt der Server ein frisches Token mit.
+        if let rt = http?.value(forHTTPHeaderField: "X-Refresh-Token"), !rt.isEmpty { token = rt }
+        let code = http?.statusCode ?? -1
         guard (200..<300).contains(code) else {
+            // 401 auf einen authentifizierten Request = Session abgelaufen/ungültig -> abmelden + Login.
+            if code == 401 && auth {
+                token = nil
+                let cb = onUnauthorized
+                Task { @MainActor in cb?() }
+            }
             throw ApiError.http(code, String(data: data, encoding: .utf8) ?? "")
         }
         return try decoder.decode(T.self, from: data)

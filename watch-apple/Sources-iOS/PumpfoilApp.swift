@@ -22,6 +22,13 @@ final class SessionStore: ObservableObject {
     }
     var isLoggedIn: Bool { token != nil }
 
+    init() {
+        // Abgelaufene Session (401): Api hat schon abgemeldet, hier nur die UI zum Login.
+        Api.onUnauthorized = { [weak self] in
+            Task { @MainActor in self?.logout() }
+        }
+    }
+
     func bootstrap() async {
         guard token != nil else { return }
         if let p = try? await Api.getProfile() {
