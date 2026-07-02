@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.8";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v0.9";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
@@ -65,13 +65,17 @@ Page(
     },
     call(payload, ok, tries) {
       tries = tries || 8;
+      const tag = (payload && payload.method) || "?";
+      logger.log("[call] " + tag + " -> senden (try " + (9 - tries) + ")");
       return this.send(payload).then((r) => {
+        logger.log("[call] " + tag + " <- typeof=" + (typeof r) + " json=" + JSON.stringify(r));
         if (r && r.error) { const e = new Error(r.error); e.fatal = true; throw e; }
         if (ok && !ok(r)) throw new Error("no-ack");
         return r;
       }).catch((err) => {
+        const m = (err && err.message) || String(err);
+        logger.log("[call] " + tag + " !! " + m + (err && err.fatal ? " (fatal)" : ""));
         if (err && err.fatal) throw err;
-        const m = (err && err.message) || "";
         if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0 || m === "no-ack")) {
           return new Promise((res) => setTimeout(res, 600)).then(() => this.call(payload, ok, tries - 1));
         }
@@ -81,6 +85,7 @@ Page(
 
     build() {
       const s = this.state, w = s.w;
+      logger.log("[build] " + APP_BUILD + " start (tok=" + (getTok() ? "ja" : "nein") + ", pending=" + loadPending().length + ")");
       w.title = hmUI.createWidget(hmUI.widget.TEXT, { ...TITLE });
       w.page = hmUI.createWidget(hmUI.widget.TEXT, { ...PAGE });
       w.f = [
@@ -96,6 +101,7 @@ Page(
         callback: (e) => {
           if (e !== GESTURE_UP && e !== GESTURE_DOWN) return false;
           const dir = e === GESTURE_UP ? 1 : -1;
+          logger.log("[gesture] " + e + " screen=" + s.screen + " page=" + s.page + "/" + s.idlePage);
           if (s.recording) { const n = s.views.length + 1; s.page = (s.page + dir + n) % n; this.applyButton(); this.renderRecording(); return true; }
           if (s.screen === "idle") { s.idlePage = (s.idlePage + dir + 3) % 3; this.applyButton(); this.renderIdle(); return true; }
           return false;
@@ -135,6 +141,7 @@ Page(
     },
     beginPairing() {
       const s = this.state;
+      logger.log("[pair] beginPairing (bleOk=" + bleOk() + ", tok=" + (getTok() ? "ja" : "nein") + ")");
       s.paired = false;
       this.call({ method: "PAIR_INIT" }, (r) => r && r.code)
         .then((r) => { s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll(); })
@@ -182,7 +189,7 @@ Page(
     },
 
     // ---- Button pro Screen/Seite (nur bei Übergängen, nicht pro Sekunde) ----
-    setButton(text, nc, pc, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, click_func: fn }); },
+    setButton(text, nc, pc, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, click_func: () => { logger.log("[btn-click] " + text); fn(); } }); logger.log("[ui] Button = " + text); },
     hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
     applyButton() {
       const s = this.state;
@@ -322,6 +329,7 @@ Page(
 
     // ---- Aufnahme ----
     start() {
+      logger.log("[btn] START");
       const s = this.state, now = Date.now();
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 0; s.autoTicks = 0; s.upStatus = "";
@@ -332,6 +340,7 @@ Page(
       this.renderRecording();
     },
     stop() {
+      logger.log("[btn] STOPP");
       const s = this.state, now = Date.now();
       s.recording = false;
       const el = (now - s.startedAtMs) / 1000;
@@ -348,8 +357,8 @@ Page(
         this.applyButton(); this.renderIdle();
       }
     },
-    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this.hideBar(); this.applyButton(); this.renderIdle(); },
-    repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
+    done() { logger.log("[btn] Fertig"); const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this.hideBar(); this.applyButton(); this.renderIdle(); },
+    repair() { logger.log("[btn] Neu verbinden"); const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
     uploadSession(sess, onProg) {
