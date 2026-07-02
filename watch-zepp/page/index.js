@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v0.9";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.0";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // Ist das Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls
 // die API fehlt/anders ist — dann nicht blockieren.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
@@ -143,9 +143,17 @@ Page(
       const s = this.state;
       logger.log("[pair] beginPairing (bleOk=" + bleOk() + ", tok=" + (getTok() ? "ja" : "nein") + ")");
       s.paired = false;
-      this.call({ method: "PAIR_INIT" }, (r) => r && r.code)
-        .then((r) => { s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll(); })
-        .catch((err) => { logger.log("PAIR_INIT: " + ((err && err.message) || "?")); this.rerender(); });
+      // DIAGNOSE: direkter this.request (ohne call/Validator) + rohe Antwort/Stack loggen.
+      this.request({ method: "PAIR_INIT" }).then((r) => {
+        logger.log("[pair] RAW typeof=" + (typeof r) + " val=" + JSON.stringify(r));
+        if (r && r.error) { logger.log("[pair] app-side error: " + r.error); this.rerender(); return; }
+        if (!r || !r.code) { logger.log("[pair] keine code-property in Antwort"); this.rerender(); return; }
+        s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
+      }).catch((err) => {
+        logger.log("[pair] RAW err: " + ((err && err.message) || String(err)));
+        logger.log("[pair] stack: " + ((err && err.stack) ? String(err.stack).slice(0, 180) : "-"));
+        this.rerender();
+      });
     },
     startPoll() {
       const s = this.state;

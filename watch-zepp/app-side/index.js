@@ -80,7 +80,10 @@ AppSideService(
     onDestroy() {},
     onRequest(req, res) {
       console.log("[pumpfoil] onRequest raw=" + JSON.stringify(req));
-      handle(req).then((out) => res(null, out)).catch((err) => {
+      handle(req).then((out) => {
+        console.log("[pumpfoil] -> res " + JSON.stringify(out));
+        res(null, out);
+      }).catch((err) => {
         console.log("[pumpfoil] onRequest ERROR: " + ((err && err.message) || String(err)));
         res(null, { error: (err && err.message) || String(err) });
       });
