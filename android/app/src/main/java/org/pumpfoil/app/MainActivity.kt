@@ -50,6 +50,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     var token by remember { mutableStateOf(Api.token) }
+    // Abgelaufene Session (401 auf authentifizierten Request): Api hat schon abgemeldet,
+    // hier nur die UI zum Login zurückschicken (auf dem Main-Thread).
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        Api.onUnauthorized = {
+            android.os.Handler(android.os.Looper.getMainLooper()).post { token = null }
+        }
+        onDispose { Api.onUnauthorized = null }
+    }
     if (token == null) {
         LoginScreen(onLoggedIn = { token = Api.token })
     } else {

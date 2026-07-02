@@ -21,8 +21,13 @@ object Api {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile var token: String? = null
+    @Volatile private var appContext: Context? = null
+    // Wird bei abgelaufener/ungültiger Session (401 auf authentifizierten Request) aufgerufen
+    // -> die UI schickt zum Login. Von MainActivity gesetzt.
+    @Volatile var onUnauthorized: (() -> Unit)? = null
 
     fun load(ctx: Context) {
+        appContext = ctx.applicationContext
         token = prefs(ctx).getString("token", null)
     }
     fun saveToken(ctx: Context, t: String) {
@@ -312,10 +317,27 @@ object Api {
         }
         if (body != null) conn.outputStream.use { it.write(body.toByteArray()) }
         val code = conn.responseCode
+        // Sliding-Refresh: bei knapper Restlaufzeit schickt der Server ein frisches Token mit.
+        conn.getHeaderField("X-Refresh-Token")?.takeIf { it.isNotBlank() }?.let { rt ->
+            token = rt
+            appContext?.let { c -> prefs(c).edit().putString("token", rt).apply() }
+        }
         val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
             ?.bufferedReader()?.readText() ?: ""
         if (code !in 200..299) {
-            throw RuntimeException(if (code == 401) "E-Mail oder Passwort falsch" else "Serverfehler ($code)")
+            // 401 auf einen authentifizierten Request = Session abgelaufen/ungültig -> abmelden + Login.
+            // (Bei auth=false, z. B. Login, bleibt 401 = falsche Zugangsdaten.)
+            if (code == 401 && auth) {
+                appContext?.let { logout(it) }
+                onUnauthorized?.invoke()
+            }
+            throw RuntimeException(
+                when {
+                    code == 401 && auth -> "Sitzung abgelaufen"
+                    code == 401 -> "E-Mail oder Passwort falsch"
+                    else -> "Serverfehler ($code)"
+                }
+            )
         }
         return text
     }
