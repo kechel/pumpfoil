@@ -38,8 +38,8 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 ## Noch im Simulator zu verifizieren (blind portiert)
 1. `@zos/sensor` **Geolocation** (`getStatus`/`getLatitude`/`getLongitude`/`getSpeed`) + **HeartRate**
    (`getCurrent`) — Methodennamen/Verhalten auf Balance 2.
-2. `settingsLib.getItem/setItem` im **App-Side** (Token/Code lesen/schreiben) — ggf. anderer
-   Settings-Zugriff nötig.
+2. `@zos/storage` **LocalStorage** auf der Uhr (Token/Claim persistieren) — App-Side ist stateless
+   und bekommt Token/Claim pro Request mitgeschickt (`@zos/settings` ist im App-Side NICHT auflösbar).
 3. `fetch`-Response-Shape (`response.status`, `response.body` String vs. JSON).
 4. Pairing-Flow: Code auf der Uhr sichtbar → auf pumpfoil.org/Konto eintragen → Uhr pollt → „verbunden ✓".
 

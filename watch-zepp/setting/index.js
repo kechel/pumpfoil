@@ -5,33 +5,16 @@
 // VERIFY im Simulator/Zepp-App: Settings-Widget-API (evtl. Prop-Namen leicht abweichend).
 
 AppSettingsPage({
-  build(props) {
-    const store = props.settingsStorage;
-    const token = store.getItem("deviceToken");
-
-    const header = Text(
-      { bold: true, paragraph: true, style: { fontSize: "20px", marginBottom: "10px" } },
-      "Pumpfoil — Verbindung",
-    );
-
-    if (token) {
-      return View({ style: { padding: "16px" } }, [
-        header,
-        Text({ style: { color: "#16a34a", marginBottom: "10px" } }, "Verbunden ✓"),
-        Button({
-          label: "Trennen",
-          style: { background: "#ef4444", color: "#fff" },
-          onClick: () => { store.setItem("deviceToken", ""); store.setItem("claimToken", ""); },
-        }),
-      ]);
-    }
-
+  build() {
     return View({ style: { padding: "16px" } }, [
-      header,
+      Text({ bold: true, paragraph: true, style: { fontSize: "20px", marginBottom: "10px" } },
+        "Pumpfoil — Verbindung"),
       Text({ paragraph: true, style: { marginBottom: "8px" } },
-        "Zum Verbinden: die Uhr-App oeffnen - sie zeigt einen Code an."),
+        "Verbinden passiert auf der Uhr: die App zeigt einen Code an."),
       Text({ paragraph: true, style: { marginBottom: "8px" } },
         "Diesen Code auf pumpfoil.org, Konto, Uhr verbinden eintragen. Die Uhr verbindet sich dann automatisch."),
+      Text({ paragraph: true, style: { fontSize: "12px", color: "#888", marginTop: "8px" } },
+        "Trennen/neu verbinden: in der Uhr-App den Titel antippen."),
     ]);
   },
 });

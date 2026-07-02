@@ -1,10 +1,16 @@
 import * as hmUI from "@zos/ui";
 import { log as Logger } from "@zos/utils";
+import { LocalStorage } from "@zos/storage";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
 const logger = Logger.getLogger("pumpfoil");
+// Persistenz auf der Uhr (device:os.local_storage). Token/Claim leben hier, nicht im App-Side
+// (dort ist @zos/settings nicht auflösbar). Werden pro Request an den App-Side mitgeschickt.
+const store = new LocalStorage();
+const getTok = () => store.getItem("deviceToken", "") || "";
+const getClaim = () => store.getItem("claimToken", "") || "";
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 // DEV: der Zepp-Simulator speist kein echtes GPS ein. true = synthetische Bewegungsspur.
 // Vor echter Uhr/Release auf false!
@@ -45,12 +51,14 @@ Page(
       w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
       this.renderButton();
       // Config laden -> gepairt? Recorder : Pairing.
-      this.request({ method: "CONFIG" }).then((r) => {
+      if (!getTok()) { this.beginPairing(); return; }
+      this.request({ method: "CONFIG", token: getTok() }).then((r) => {
+        if (r && r.revoked) { store.setItem("deviceToken", ""); this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) this.state.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) this.state.offFoil = r.offFoilView;
         if (r && r.paired) this.showReady("verbunden ✓");
         else this.beginPairing();
-      }).catch(() => this.beginPairing());
+      }).catch(() => this.showReady("verbunden ✓"));
     },
 
     // ---- Pairing (reverse: Uhr zeigt Code) ----
@@ -63,6 +71,7 @@ Page(
       this.request({ method: "PAIR_INIT" }).then((r) => {
         if (!r || !r.code) throw new Error("init");
         s.code = r.code;
+        store.setItem("claimToken", r.claim_token || "");
         this.setFields3([r.code, "Code"], ["pumpfoil.org", ""], ["Konto → Uhr verbinden", ""]);
         s.w.status.setProperty(hmUI.prop.TEXT, "warte auf Freigabe…");
         this.startPoll();
@@ -72,10 +81,11 @@ Page(
       const s = this.state;
       if (s.pollTimer) clearInterval(s.pollTimer);
       s.pollTimer = setInterval(() => {
-        this.request({ method: "PAIR_POLL" }).then((r) => {
-          if (r && r.paired) {
+        this.request({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
+          if (r && r.paired && r.device_token) {
+            store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
             clearInterval(s.pollTimer); s.pollTimer = null;
-            this.request({ method: "CONFIG" }).then((c) => {
+            this.request({ method: "CONFIG", token: getTok() }).then((c) => {
               if (c && Array.isArray(c.views) && c.views.length) s.views = c.views;
               if (c && Array.isArray(c.offFoilView) && c.offFoilView.length) s.offFoil = c.offFoilView;
               this.showReady("verbunden ✓");
@@ -116,7 +126,7 @@ Page(
     onTitle() {
       const s = this.state;
       if (s.recording && s.views.length > 1) { s.page = (s.page + 1) % s.views.length; this.renderFields(); }
-      else if (s.paired && !s.recording) { this.request({ method: "UNPAIR" }).then(() => this.beginPairing()).catch(() => {}); }
+      else if (s.paired && !s.recording) { store.setItem("deviceToken", ""); store.setItem("claimToken", ""); this.beginPairing(); }
     },
 
     // ---- Datenfelder ----
@@ -211,10 +221,11 @@ Page(
       const meta = { session_uuid: s.uuid, started_at_ms: s.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE };
       const chunks = [];
       for (let i = 0; i < s.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
+      const tok = getTok();
       const req = (p) => this.request(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
-      req({ method: "START", meta })
-        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()))
-        .then(() => req({ method: "COMPLETE", session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }))
+      req({ method: "START", token: tok, meta })
+        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()))
+        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }))
         .then(() => s.w.status.setProperty(hmUI.prop.TEXT, "hochgeladen ✓"))
         .catch((err) => {
           const msg = (err && err.message) || "Fehler";
