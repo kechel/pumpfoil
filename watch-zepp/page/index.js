@@ -56,9 +56,15 @@ Page(
       _fi: 0, _flat: null, _flon: null,
     },
 
-    // WICHTIG: pro Aktion GENAU EIN direkter this.request, KEIN Retry/Overlap. zml macht pro
-    // Request einen BLE-Shake; Folge-/Parallel-Requests würgen sich gegenseitig ab (undefined/
-    // shake timeout). Ein sauberer Einzel-Request geht zuverlässig — Pairing, Poll, CONFIG, Upload.
+    // WICHTIG: zml macht pro Request einen BLE-Shake; PARALLELE Requests würgen sich gegenseitig ab
+    // (undefined/shake timeout). Daher ALLE Requests hier serialisieren — immer nur EINER gleichzeitig
+    // (FIFO), KEIN Retry. So kollidiert z.B. der Heartbeat-CONFIG nie mit einem laufenden Upload.
+    reqQ(payload) {
+      const prev = this._chain || Promise.resolve();
+      const p = prev.catch(() => {}).then(() => this.request(payload));
+      this._chain = p.catch(() => {});
+      return p;
+    },
 
     build() {
       const s = this.state, w = s.w;
@@ -100,7 +106,7 @@ Page(
       const s = this.state;
       if (!bleOk()) { this.rerender(); return; }
       if (!getTok()) { this.beginPairing(); return; }
-      this.request({ method: "CONFIG", token: getTok() }).then((r) => {
+      this.reqQ({ method: "CONFIG", token: getTok() }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
@@ -115,7 +121,7 @@ Page(
     beginPairing() {
       const s = this.state;
       s.paired = false;
-      this.request({ method: "PAIR_INIT" }).then((r) => {
+      this.reqQ({ method: "PAIR_INIT" }).then((r) => {
         if (!r || !r.code) { this.rerender(); return; }
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
       }).catch(() => this.rerender());
@@ -124,7 +130,7 @@ Page(
       const s = this.state;
       if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
       const tick = () => {
-        this.request({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
+        this.reqQ({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
             s.pollTimer = null; s.paired = true; s.code = "";
@@ -339,7 +345,7 @@ Page(
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
       // Direkter this.request (wie Pairing) — kein Retry (der würde Folge-Requests feuern);
       // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
-      const req = (p) => this.request(p).then((r) => {
+      const req = (p) => this.reqQ(p).then((r) => {
         if (r && r.error) throw new Error(r.error);
         if (!r || r.ok !== true) throw new Error("keine Antwort");
         return r;
