@@ -125,6 +125,7 @@ struct RecordView: View {
     @State private var fixedLow = 0            // feste Alarm-Werte aus der Config (für „Feste Werte")
     @State private var fixedHigh = 0
     @State private var selInit = false         // Default-Vorwahl nur einmal setzen
+    @State private var alarmSource = "foil"     // Schwellen-Quelle: "foil" (Auto) | "manual"
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
     @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Flag)
@@ -194,22 +195,25 @@ struct RecordView: View {
                     // antippen zum Ändern. Standard ist gesetzt -> kein Zwangs-Sheet beim Start.
                     if manualAlarm || !foils.isEmpty {
                         Button { showFoilPicker = true } label: {
-                            Text(currentAlarmLabel)
-                                .font(.caption2).lineLimit(1).minimumScaleFactor(0.6)
+                            HStack(spacing: 3) {
+                                Text("\(WLoc.t("foil.prefix", lang))\(foilLabel)")
+                                    .lineLimit(1).minimumScaleFactor(0.6)
+                                if alarm.enabled { Image(systemName: "bell.fill").foregroundStyle(.yellow) }
+                            }
+                            .font(.caption2)
                         }
                         .buttonStyle(.bordered)
                         .tint(.secondary)
                     }
                     Button(WLoc.t("rec.start", lang)) {
                         skipSync()
-                        Task { await rec.start(foilId: alarm.enabled ? selectedFoilId : nil) }
+                        Task { await rec.start(foilId: selectedFoilId) }   // Foil = Metadaten, unabhängig vom Alarm
                     }
                     .tint(.green)
                     .sheet(isPresented: $showFoilPicker) {
                         AlarmPickerSheet(
-                            foils: foils, manualAlarm: manualAlarm, alarmDefault: alarmDefault,
-                            fixedLow: fixedLow, fixedHigh: fixedHigh,
-                            alarm: $alarm, selectedFoilId: $selectedFoilId,
+                            foils: foils,
+                            alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
                             onPick: { showFoilPicker = false },
                             onCancel: { showFoilPicker = false })
                     }
@@ -305,11 +309,18 @@ struct RecordView: View {
         }
     }
 
-    // Aktuelle Alarm-/Foil-Vorwahl als Label (für den Selector-Button).
-    private var currentAlarmLabel: String {
-        if !alarm.enabled { return WLoc.t("foil.none", lang) }
+    // Gewählte Foil (Metadaten) als Label; "—" wenn keine.
+    private var foilLabel: String {
         if let id = selectedFoilId, let f = foils.first(where: { $0.id == id }) { return f.label }
-        return WLoc.t("foil.fixed", lang)
+        return "—"
+    }
+
+    // Effektive Alarm-Schwellen: bei "foil" aus der gewählten Foil, sonst die manuellen (alarm.low/high).
+    private func effThresholds() -> (Int, Int) {
+        if alarmSource == "foil", let id = selectedFoilId, let f = foils.first(where: { $0.id == id }) {
+            return (f.min, f.max)
+        }
+        return (alarm.low, alarm.high)
     }
 
     @ViewBuilder private func stopPage(_ hint: String) -> some View {
@@ -371,12 +382,12 @@ struct RecordView: View {
         // Default-Vorwahl nur EINMAL setzen — danach nicht die Nutzerwahl überschreiben.
         if !selInit {
             selInit = true
+            alarm.enabled = c.alarmEnabled                     // Web-Master = Alarm-Default
+            alarm.low = c.speedLow; alarm.high = c.speedHigh   // manuelle Schwellen = feste Web-Werte
             if alarmDefault == "foil", let f = foils.first {
-                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; selectedFoilId = f.id
-            } else if c.alarmEnabled {
-                alarm.enabled = true; alarm.high = c.speedHigh; alarm.low = c.speedLow; selectedFoilId = nil
+                selectedFoilId = f.id; alarmSource = "foil"    // Standard-Foil (Metadaten + Auto-Schwellen)
             } else {
-                alarm.enabled = false; selectedFoilId = nil
+                selectedFoilId = nil; alarmSource = "manual"
             }
         }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
@@ -389,8 +400,9 @@ struct RecordView: View {
     // Min-Alarm nur im Fenster [min-2, min) — identisch zur Garmin-/Wear-Logik.
     private func checkAlarm(_ sp: Double) {
         guard alarm.enabled else { wasHigh = false; wasLow = false; repeatTick = 0; return }
-        let over = alarm.high > 0 && sp >= Double(alarm.high)
-        let under = alarm.low > 0 && sp < Double(alarm.low) && sp >= Double(alarm.low) - 2
+        let (elow, ehigh) = effThresholds()
+        let over = ehigh > 0 && sp >= Double(ehigh)
+        let under = elow > 0 && sp < Double(elow) && sp >= Double(elow) - 2
         if over && !wasHigh { playHaptic(alarm.patHigh) }
         if under && !wasLow { playHaptic(alarm.patLow) }
         let tripped = over || under
@@ -422,11 +434,8 @@ struct RecordView: View {
 // Muster bleiben aus der Config erhalten.
 struct AlarmPickerSheet: View {
     let foils: [Api.FoilOpt]
-    let manualAlarm: Bool
-    let alarmDefault: String
-    let fixedLow: Int
-    let fixedHigh: Int
     @Binding var alarm: WatchAlarm
+    @Binding var alarmSource: String
     @Binding var selectedFoilId: Int?
     var onPick: () -> Void
     var onCancel: () -> Void
@@ -434,37 +443,30 @@ struct AlarmPickerSheet: View {
 
     var body: some View {
         List {
-            Section(WLoc.t("foil.trigger", lang)) {
-                Toggle(WLoc.t("foil.continuous", lang), isOn: Binding(
-                    get: { alarm.repeatMode == "continuous" },
-                    set: { alarm.repeatMode = $0 ? "continuous" : "once" }))
+            Section(WLoc.t("foil.alarm", lang)) {
+                Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
             }
-            Section {
-                if alarmDefault == "foil" {
-                    foilRows
-                    if manualAlarm { fixedRow }
-                } else {
-                    if manualAlarm { fixedRow }
-                    foilRows
+            Section(WLoc.t("foil.thresholds", lang)) {
+                Picker(WLoc.t("foil.source", lang), selection: $alarmSource) {
+                    Text(WLoc.t("foil.auto", lang)).tag("foil")
+                    Text(WLoc.t("foil.manual", lang)).tag("manual")
                 }
-                Button { alarm.enabled = false; selectedFoilId = nil; onPick() } label: { row(WLoc.t("foil.none", lang), WLoc.t("foil.noneSub", lang)) }
-            } header: { Text(WLoc.t("foil.choose", lang)) }
-            Section {
-                Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel)
+                if alarmSource == "manual" {
+                    Stepper("\(WLoc.t("foil.min", lang)): \(alarm.low) km/h", value: $alarm.low, in: 0...80)
+                    Stepper("\(WLoc.t("foil.max", lang)): \(alarm.high) km/h", value: $alarm.high, in: 0...80)
+                }
             }
-        }
-    }
-
-    private var fixedRow: some View {
-        Button { alarm.enabled = true; alarm.high = fixedHigh; alarm.low = fixedLow; selectedFoilId = nil; onPick() } label: {
-            row(WLoc.t("foil.fixed", lang), "\(fixedLow)–\(fixedHigh) km/h")
-        }
-    }
-    private var foilRows: some View {
-        ForEach(foils) { f in
-            Button {
-                alarm.enabled = true; alarm.high = f.max; alarm.low = f.min; selectedFoilId = f.id; onPick()
-            } label: { row(f.label, "\(f.min)–\(f.max) km/h") }
+            Section(WLoc.t("foil.choose", lang)) {
+                ForEach(foils) { f in
+                    Button { selectedFoilId = f.id; onPick() } label: {
+                        row((selectedFoilId == f.id ? "✓ " : "") + f.label, "\(f.min)–\(f.max) km/h")
+                    }
+                }
+                Button { selectedFoilId = nil; onPick() } label: {
+                    row((selectedFoilId == nil ? "✓ " : "") + WLoc.t("foil.noFoil", lang), WLoc.t("foil.noneSub", lang))
+                }
+            }
+            Section { Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel) }
         }
     }
     @ViewBuilder private func row(_ title: String, _ sub: String) -> some View {

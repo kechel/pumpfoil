@@ -51,6 +51,16 @@ enum WLoc {
 
         // Alarm-/Foil-Auswahl
         "foil.choose": r("Foil wählen", "Foil wähle", "Foil wählen", "Choose foil", "Choisir le foil", "Scegli foil", "Elegir foil"),
+        "foil.prefix": r("Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: "),
+        "foil.alarm": r("Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma"),
+        "foil.alarmOn": r("Vibrationsalarm", "Vibrationsalarm", "Vibrationsalarm", "Vibration alarm", "Alarme vibrante", "Allarme vibrazione", "Alarma vibración"),
+        "foil.thresholds": r("Schwellen", "Schwelle", "Schwellen", "Thresholds", "Seuils", "Soglie", "Umbrales"),
+        "foil.source": r("Quelle", "Quelle", "Quelle", "Source", "Source", "Sorgente", "Origen"),
+        "foil.auto": r("Auto (Foil)", "Auto (Foil)", "Auto (Foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)"),
+        "foil.manual": r("Manuell", "Manuell", "Manuell", "Manual", "Manuel", "Manuale", "Manual"),
+        "foil.min": r("Min", "Min", "Min", "Min", "Min", "Min", "Mín"),
+        "foil.max": r("Max", "Max", "Max", "Max", "Max", "Max", "Máx"),
+        "foil.noFoil": r("Keine Foil", "Kei Foil", "Keine Foil", "No foil", "Aucun foil", "Nessun foil", "Sin foil"),
         "foil.fixed": r("Feste Werte", "Feschti Wärt", "Feste Werte", "Fixed values", "Valeurs fixes", "Valori fissi", "Valores fijos"),
         "foil.none": r("Ohne Foil", "Ohni Foil", "Ohne Foil", "No foil", "Sans foil", "Senza foil", "Sin foil"),
         "foil.noneSub": r("kein Alarm", "kei Alarm", "kein Alarm", "no alarm", "aucune alarme", "nessun allarme", "sin alarma"),
