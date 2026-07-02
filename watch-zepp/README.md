@@ -10,11 +10,23 @@ auf pumpfoil.org → Konto → „Uhr verbinden" eintragen → die Uhr pollt und
 für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `detection = gps_only`
 (Distanz/Speed/Läufe, **noch keine Pumps**). Accel nachrüsten, sobald die API bestätigt ist.
 
+## Ablauf (wie Garmin: Aufnahme primär, Verbindung/Upload im Hintergrund)
+- **GPS läuft ab dem Ruhe-Screen** (durchgehender 1-Hz-Sampler) → Status „GPS suche… / GPS ●" vor
+  dem Start; Puls parallel.
+- **Auto-Start** (wenn `autoStart` in der Config): ab ~7 km/h über einige Samples startet die
+  Aufnahme selbst. Manuell per START jederzeit.
+- **Pairing im Hintergrund** (reverse): PAIR_INIT holt einen Code, Poll läuft nebenher; die Aufnahme
+  ist **nie blockiert** — auch unverbunden aufnehmbar. Code wird im Ruhe-Screen angezeigt.
+- **Nach Stopp**: Session wird **persistent gepuffert** (`@zos/storage`, Queue-Key `pending`), dann
+  Upload **falls verbunden**; sonst „Upload später" + **automatischer Nachhol-Upload** beim nächsten
+  App-Start/Verbindung (`flushPending`). Requests via `this.request` mit Retry (`call()`), der
+  verschluckte Antworten (Worker nach Spawn noch nicht bereit) erneut sendet.
+
 ## Aufbau (auf dem „Fetch Api"-Template, `@zeppos/zml`)
-- `page/index.js` — Uhr-UI + Aufnahme: GPS (1 Hz) + Puls, Puffer im RAM, START/STOPP. Rendert die
-  **konfigurierten Datenfelder** (aus `/api/devices/config`: `views` = wischbare Seiten, `offFoilView`
-  = Ruhe; Feld-IDs wie web/`fields.ts`/Garmin) — 3 Slots/Seite, Titel antippen = nächste Seite.
-  Beim Stopp `this.request({method:"START"|"CHUNK"|"COMPLETE", …})` an den App-Side.
+- `page/index.js` — State-Machine (Ruhe/Aufnahme), Rendering der **konfigurierten Datenfelder**
+  (`views` = wischbare Seiten, `offFoilView` = Ruhe; Feld-IDs wie web/`fields.ts`/Garmin), Sampling,
+  Auto-Start, Offline-Queue. Titel antippen: in Aufnahme = Seite wechseln, in Ruhe = neuer Code
+  (unverbunden) bzw. jetzt nachschicken (verbunden).
 - `page/index.[r|s].layout.js` — Widget-Geometrie rund/eckig.
 - `app-side/index.js` — App-Side-Service (Handy): `onRequest` → `fetch`. **Reverse-Pairing** wie
   bei allen Uhren: `PAIR_INIT` (`POST /api/devices/pair-init` → `{code, claim_token}`), `PAIR_POLL`
@@ -45,5 +57,6 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 
 ## TODO
 - Accel (25 Hz) erfassen, falls Zepp OS eine API bietet → int16-base64-Chunks (Pump/Gleit).
-- Aufnahme auf Datei puffern (`@zos/fs`) statt RAM (lange Sessions) + Resume.
-- Auto-Reconnect/Retry beim Upload; „N warten auf Upload"-Anzeige.
+- Offline-Queue liegt aktuell in `@zos/storage` (JSON). Für lange Sessions besser auf `@zos/fs`
+  (Datei) umstellen — LocalStorage-Größe ist begrenzt.
+- Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.
