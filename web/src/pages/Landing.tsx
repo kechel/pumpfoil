@@ -9,6 +9,7 @@ import { useT } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
+import { ConnectIqButton } from "../components/ConnectIqButton";
 import { PromoVideos } from "../components/PromoVideos";
 import { ThemeToggle } from "../components/ThemeToggle";
 
@@ -122,6 +123,7 @@ export default function Landing() {
                     className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
                 </div>
                 <figcaption className="text-xs text-slate-300">Garmin</figcaption>
+                <ConnectIqButton className="mt-1" />
               </figure>
               <figure className="flex flex-col items-center gap-2">
                 <div className="flex gap-3">

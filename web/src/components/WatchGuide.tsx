@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 import { WatchDemoVideo } from "./WatchDemoVideo";
+import { ConnectIqButton } from "./ConnectIqButton";
 
 // Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
 // wird eingeblendet (anfangs alle ausgeblendet). Texte über i18n (guide.*).
@@ -86,7 +87,12 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
       <Card id="guide-garmin" className="scroll-mt-20 p-5">
         <h3 className="text-lg font-bold text-brand-400">Garmin</h3>
         <p className="mt-1 text-sm text-slate-300">{t("guide.garminSub")}</p>
-        <ol className="mt-4 space-y-3 text-sm text-slate-200">
+        <div className="mt-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3">
+          <p className="mb-2 text-sm text-slate-200">{t("guide.g.storeLead")}</p>
+          <ConnectIqButton />
+        </div>
+        <p className="mt-4 text-xs font-medium text-slate-400">{t("guide.g.manualLead")}</p>
+        <ol className="mt-2 space-y-3 text-sm text-slate-200">
           <li>
             <b>{t("guide.g.s1Title")}</b> {t("guide.g.s1a")}
             <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>{t("guide.g.s1Download")}</b></button>
