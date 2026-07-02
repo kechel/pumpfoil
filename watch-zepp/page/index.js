@@ -17,7 +17,8 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 const APP_VERSION = "1.0.0";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
-const GREEN = 0x22c55e, GREEN_P = 0x16a34a, RED = 0xdc2626, RED_P = 0xb91c1c, BLUE = 0x2563eb, BLUE_P = 0x1d4ed8;
+// Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
+const CYAN = 0x22d3ee, CYAN_P = 0x0891b2, INK = 0x083344, RED = 0xdc2626, RED_P = 0xb91c1c, WHITE = 0xffffff;
 
 const store = new LocalStorage();
 const getTok = () => store.getItem("deviceToken", "") || "";
@@ -175,22 +176,22 @@ Page(
     },
 
     // ---- Button pro Screen/Seite ----
-    setButton(text, nc, pc, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, click_func: fn }); },
+    setButton(text, nc, pc, ink, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
     hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === s.views.length) this.setButton("STOPP", RED, RED_P, () => this.stop());
+        if (s.page === s.views.length) this.setButton("STOPP", RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
-        this.setButton("Fertig", BLUE, BLUE_P, () => this.done());
+        this.setButton("Fertig", CYAN, CYAN_P, INK, () => this.done());
       } else if (s.idlePage === 0) {
-        this.setButton("START", GREEN, GREEN_P, () => this.start());
+        this.setButton("START", CYAN, CYAN_P, INK, () => this.start());
       } else if (s.idlePage === 1) {
-        if (s.paired) this.setButton("Neu verbinden", BLUE, BLUE_P, () => this.repair());
-        else this.setButton("Neuer Code", BLUE, BLUE_P, () => this.beginPairing());
+        if (s.paired) this.setButton("Neu verbinden", CYAN, CYAN_P, INK, () => this.repair());
+        else this.setButton("Neuer Code", CYAN, CYAN_P, INK, () => this.beginPairing());
       } else if (s.idlePage === 2 && loadPending().length && getTok()) {
-        this.setButton("Jetzt senden", BLUE, BLUE_P, () => this.flushPending());
+        this.setButton("Jetzt senden", CYAN, CYAN_P, INK, () => this.flushPending());
       } else this.hideButton();
     },
 

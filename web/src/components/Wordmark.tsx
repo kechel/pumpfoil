@@ -31,7 +31,7 @@ export function Wordmark({
         pumpfoil<span className="text-brand-400">.org</span>
       </span>
       {tagline && (
-        <span className="mt-1.5 text-[0.5em] font-semibold uppercase tracking-[0.3em] text-slate-400">
+        <span className="mt-1 whitespace-nowrap text-[0.5em] font-semibold uppercase tracking-[0.3em] text-slate-400">
           track every pump
         </span>
       )}
