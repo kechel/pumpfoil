@@ -115,7 +115,7 @@ function PolarCard() {
         <Button onClick={connect}>{t("settings.polar.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
+          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
         </div>
       )}
@@ -161,7 +161,7 @@ function SuuntoCard() {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-emerald-400">{t("settings.suunto.connected")}</span>
-          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
+          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
         </div>
       )}
@@ -205,7 +205,7 @@ function StravaCard() {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-emerald-400">{t("settings.strava.connected")}</span>
-          <Button onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.strava.sync")}</Button>
+          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.strava.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.strava.unlink")}</Button>
         </div>
       )}

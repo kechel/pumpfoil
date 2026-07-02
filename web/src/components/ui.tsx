@@ -31,14 +31,17 @@ export function Button({
   children: ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost";
   className?: string;
   disabled?: boolean;
 }) {
   const styles =
     variant === "primary"
       ? "bg-brand-500 hover:bg-brand-400 text-slate-950 font-semibold"
-      : "bg-slate-800 hover:bg-slate-700 text-slate-100";
+      : variant === "secondary"
+        // gedämpftes Teal (dunkler als brand-500) — im Dark-Mode nicht zu grell, in beiden lesbar.
+        ? "bg-brand-700 hover:bg-brand-600 text-white font-medium"
+        : "bg-slate-800 hover:bg-slate-700 text-slate-100";
   return (
     <button
       type={type}
