@@ -69,13 +69,14 @@ Page(
       this.setFields3(["…", ""], null, null);
       this.renderButton();
       this.request({ method: "PAIR_INIT" }).then((r) => {
-        if (!r || !r.code) throw new Error("init");
+        if (r && r.error) throw new Error(r.error);
+        if (!r || !r.code) throw new Error("keine Antwort");
         s.code = r.code;
         store.setItem("claimToken", r.claim_token || "");
         this.setFields3([r.code, "Code"], ["pumpfoil.org", ""], ["Konto → Uhr verbinden", ""]);
         s.w.status.setProperty(hmUI.prop.TEXT, "warte auf Freigabe…");
         this.startPoll();
-      }).catch(() => s.w.status.setProperty(hmUI.prop.TEXT, "Fehler — Button: neuer Code"));
+      }).catch((err) => s.w.status.setProperty(hmUI.prop.TEXT, "Fehler: " + ((err && err.message) || "?")));
     },
     startPoll() {
       const s = this.state;
