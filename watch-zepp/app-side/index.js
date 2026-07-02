@@ -59,16 +59,16 @@ async function handle(req) {
   // --- Ingest-Upload (Token pro Request) ---
   if (req.method === "START") {
     const m = req.meta;
-    await authPost(req.token, "/api/ingest/session", { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale });
-    return { ok: true };
+    const r = await authPost(req.token, "/api/ingest/session", { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale });
+    return { ok: true, http: r.status, url: BASE + "/api/ingest/session", body: (typeof r.body === "string" ? r.body.slice(0, 50) : JSON.stringify(r.body).slice(0, 50)) };
   }
   if (req.method === "CHUNK") {
-    await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: (req.data && req.data.length) || 0, data: req.data });
-    return { ok: true, index: req.index };
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: (req.data && req.data.length) || 0, data: req.data });
+    return { ok: true, index: req.index, http: r.status };
   }
   if (req.method === "COMPLETE") {
-    await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks });
-    return { ok: true };
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks });
+    return { ok: true, http: r.status };
   }
   return { error: "unknown method" };
 }

@@ -12,7 +12,7 @@ const logger = Logger.getLogger("pumpfoil");
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048, GPS_CHUNK = 60;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = true;   // Simulator hat kein GPS -> synthetische Spur (Ruhe 0, Aufnahme bewegt)
-const APP_BUILD = "v1.3";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
+const APP_BUILD = "v1.4";    // zentriert unter dem Titel; bei jedem Push hochzählen (Ladekontrolle)
 // TEST: vorgegebenes Device-Token -> Pairing überspringen, direkt beim Start EINEN Upload testen.
 // "" = normaler Betrieb. (Token = echtes uz2b13-Token, User 2, aus dem 07:34-Log.)
 const DEV_TOKEN = "uz2b13aF54204SnQMRF_ZoINBkDTNE_j";
@@ -392,7 +392,7 @@ Page(
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
       const total = chunks.length + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
-      const req = (p) => { logger.log("[up] " + p.method + " ->"); return this.call(p, (r) => r && r.ok === true).then((r) => { logger.log("[up] " + p.method + " ok"); return r; }); };
+      const req = (p) => { logger.log("[up] " + p.method + " ->"); return this.call(p, (r) => r && r.ok === true).then((r) => { logger.log("[up] " + p.method + " ok http=" + (r && r.http) + (r && r.url ? " url=" + r.url : "") + (r && r.body ? " body=" + r.body : "")); return r; }); };
       return req({ method: "START", token: tok, meta }).then(bump)
         .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })).then(bump), Promise.resolve()))
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length })).then(bump);
