@@ -38,19 +38,6 @@ Page(
       timer: null, geo: null, hrSensor: null, w: {},
     },
 
-    // this.request mit Retry: der Uhr<->Side-Handshake ("shake") ist beim ersten Request nach
-    // Start oft noch nicht fertig -> "shake timeout". Nach kurzem Warten steht er.
-    call(payload, tries) {
-      tries = tries || 10;
-      return this.request(payload).catch((err) => {
-        const m = (err && err.message) || "";
-        if (tries > 1 && (m.indexOf("shake") >= 0 || m.indexOf("timeout") >= 0)) {
-          return new Promise((res) => setTimeout(res, 800)).then(() => this.call(payload, tries - 1));
-        }
-        throw err;
-      });
-    },
-
     build() {
       const w = this.state.w;
       w.title = hmUI.createWidget(hmUI.widget.TEXT, { ...TITLE });
@@ -63,14 +50,10 @@ Page(
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
       w.title.addEventListener(hmUI.event.CLICK_UP, () => this.onTitle());
       this.renderButton();
-      // Dem Uhr<->Side-Handshake kurz Zeit geben, bevor der erste Request feuert.
-      w.status.setProperty(hmUI.prop.TEXT, "starte…");
-      setTimeout(() => this.boot(), 1200);
-    },
-    boot() {
-      // Config laden -> gepairt? Recorder : Pairing.
+      // Config laden -> gepairt? Recorder : Pairing. (Ein direkter Request; bei "shake timeout"
+      // tippt der Nutzer "Neuer Code" = ein sauberer neuer Versuch.)
       if (!getTok()) { this.beginPairing(); return; }
-      this.call({ method: "CONFIG", token: getTok() }).then((r) => {
+      this.request({ method: "CONFIG", token: getTok() }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); this.beginPairing(); return; }
         if (r && Array.isArray(r.views) && r.views.length) this.state.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) this.state.offFoil = r.offFoilView;
@@ -86,7 +69,7 @@ Page(
       s.w.status.setProperty(hmUI.prop.TEXT, "verbinde…");
       this.setFields3(["…", ""], null, null);
       this.renderButton();
-      this.call({ method: "PAIR_INIT" }).then((r) => {
+      this.request({ method: "PAIR_INIT" }).then((r) => {
         if (r && r.error) throw new Error(r.error);
         if (!r || !r.code) throw new Error("keine Antwort");
         s.code = r.code;
@@ -100,11 +83,11 @@ Page(
       const s = this.state;
       if (s.pollTimer) clearInterval(s.pollTimer);
       s.pollTimer = setInterval(() => {
-        this.call({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
+        this.request({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
             clearInterval(s.pollTimer); s.pollTimer = null;
-            this.call({ method: "CONFIG", token: getTok() }).then((c) => {
+            this.request({ method: "CONFIG", token: getTok() }).then((c) => {
               if (c && Array.isArray(c.views) && c.views.length) s.views = c.views;
               if (c && Array.isArray(c.offFoilView) && c.offFoilView.length) s.offFoil = c.offFoilView;
               this.showReady("verbunden ✓");
@@ -241,7 +224,7 @@ Page(
       const chunks = [];
       for (let i = 0; i < s.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, kind: "gps", encoding: "json", data: s.gps.slice(i, i + GPS_CHUNK) });
       const tok = getTok();
-      const req = (p) => this.call(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
+      const req = (p) => this.request(p).then((r) => { if (r && r.error) throw new Error(r.error); return r; });
       req({ method: "START", token: tok, meta })
         .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: s.uuid, index: c.index, kind: c.kind, encoding: c.encoding, data: c.data })), Promise.resolve()))
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: s.uuid, ended_at_ms: Date.now(), total_chunks: chunks.length }))
