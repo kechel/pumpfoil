@@ -63,7 +63,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onGarminPair: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -135,6 +135,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             WatchCard(ctx)
             Spacer(Modifier.height(4.dp))
             ListItem(
+                modifier = Modifier.clickable { onGarminPair() },
+                headlineContent = { Text(I18n.t("garmin.title")) },
+                supportingContent = { Text(I18n.t("garmin.sub")) },
+                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
                 modifier = Modifier.clickable { onFoils() },
                 headlineContent = { Text(I18n.t("profile.foils")) },
                 supportingContent = { Text(I18n.t("profile.foilsSub")) },
@@ -197,6 +204,12 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             TextButton(onClick = { confirmingDelete = true }) {
                 Text(I18n.t("profile.deleteAccount"), color = MaterialTheme.colorScheme.error)
             }
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "Pumpfoil v${BuildConfig.VERSION_NAME}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             // Platz, damit der letzte Button nicht hinter der Mobile-Bottom-Nav klebt.
             Spacer(Modifier.height(96.dp))
         }

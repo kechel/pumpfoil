@@ -298,6 +298,19 @@ object Api {
             http("POST", "/api/devices/mint?label=$l", null, auth = true)).device_token
     }
 
+    // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
+    suspend fun pairClaim(code: String): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("code", code.trim().uppercase()); put("label", "Garmin") }.toString()
+        http("POST", "/api/devices/pair-claim", body, auth = true)
+    }
+
+    // Garmin Forward-Pairing: Code erzeugen -> in die Garmin-Connect-App-Einstellungen eintragen.
+    @kotlinx.serialization.Serializable
+    data class PairingCode(val code: String, val expires_at: String)
+    suspend fun generatePairingCode(): PairingCode = withContext(Dispatchers.IO) {
+        json.decodeFromString(PairingCode.serializer(), http("POST", "/api/devices/pairing-code", null, auth = true))
+    }
+
     @kotlinx.serialization.Serializable
     private data class TokenResp(val access_token: String)
 

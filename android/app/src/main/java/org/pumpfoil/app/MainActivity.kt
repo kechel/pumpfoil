@@ -148,6 +148,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onDataFields = { nav.navigate("datafields") },
                     onSettings = { nav.navigate("settings") },
                     onCompare = { nav.navigate("compare") },
+                    onGarminPair = { nav.navigate("garminpair") },
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
@@ -157,6 +158,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             composable("datafields") { DataFieldsScreen(onBack = { nav.popBackStack() }) }
             composable("compare") { CompareScreen(onBack = { nav.popBackStack() }) }
+            composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }
             composable(
                 "session/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType }),
