@@ -471,6 +471,8 @@ const en: Record<string, string> = {
   "adm.unhideUser": "Show",
   "adm.sessionsSince": "{sessions} sessions · since {date}",
   "adm.sessionsLink": "Sessions",
+  "adm.edit": "Edit",
+  "adm.editClose": "Done",
   "adm.statsShow": "Stats ▼",
   "adm.statsHide": "Stats ▲",
   "adm.unblock": "Unblock",

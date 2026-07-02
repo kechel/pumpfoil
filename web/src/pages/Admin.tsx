@@ -307,6 +307,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
   const t = useT();
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState(false);
   const toggleStats = () => {
     setOpen((v) => !v);
     if (!stats) api.adminUserStats(u.id).then((r) => setStats(r.stats)).catch(() => {});
@@ -328,22 +329,25 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
         <div className="flex flex-wrap gap-2">
           <Link to={`/admin?tab=sessions&user=${u.id}`} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{t("adm.sessionsLink")}</Link>
           <button onClick={toggleStats} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{open ? t("adm.statsHide") : t("adm.statsShow")}</button>
-          <Act tone={u.blocked ? "green" : "red"} onClick={() => api.adminBlockUser(u.id, !u.blocked).then((r) => upd({ blocked: r.blocked }))}>{u.blocked ? t("adm.unblock") : t("adm.block")}</Act>
-          <Act tone={u.hidden ? "green" : "amber"} onClick={() => api.adminHideUser(u.id, !u.hidden).then((r) => upd({ hidden: r.hidden }))}>{u.hidden ? t("adm.unhideUser") : t("adm.hideUser")}</Act>
-          <Act tone="slate" onClick={() => api.adminSetAdmin(u.id, !u.is_admin).then((r) => upd({ is_admin: r.is_admin }))}>{u.is_admin ? t("adm.adminRevoke") : t("adm.adminGrant")}</Act>
-          <Act tone="slate" onClick={async () => {
-            const pw = prompt(t("adm.pwPrompt", { email: u.email }), "");
-            if (!pw) return;
-            if (pw.length < 8) { alert(t("adm.pwMin")); return; }
-            return api.adminResetPassword(u.id, pw).then(() => alert(t("adm.pwSet", { email: u.email, pw })));
-          }}>{t("adm.setPassword")}</Act>
-          <Act tone="slate" onClick={async () => {
-            const n = prompt(t("adm.namePrompt"), u.display_name || "");
-            if (n === null) return;
-            return api.adminSetUserName(u.id, n).then((r) => upd({ display_name: r.display_name }));
-          }}>{t("adm.name")}</Act>
-          {u.avatar_url && <Act tone="slate" onClick={() => api.adminRemoveAvatar(u.id).then(() => upd({ avatar_url: null }))}>{t("adm.removeAvatar")}</Act>}
-          <Act tone="red" confirm={t("adm.deleteUserConfirm", { email: u.email })} onClick={() => api.adminDeleteUser(u.id).then(onRemove)}>{t("adm.delete")}</Act>
+          <button onClick={() => setEdit((v) => !v)} className={`rounded-lg px-3 py-1.5 text-xs font-medium ${edit ? "bg-brand-600 text-white hover:bg-brand-500" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}`}>{edit ? t("adm.editClose") : t("adm.edit")}</button>
+          {edit && <>
+            <Act tone={u.blocked ? "green" : "red"} onClick={() => api.adminBlockUser(u.id, !u.blocked).then((r) => upd({ blocked: r.blocked }))}>{u.blocked ? t("adm.unblock") : t("adm.block")}</Act>
+            <Act tone={u.hidden ? "green" : "amber"} onClick={() => api.adminHideUser(u.id, !u.hidden).then((r) => upd({ hidden: r.hidden }))}>{u.hidden ? t("adm.unhideUser") : t("adm.hideUser")}</Act>
+            <Act tone="slate" onClick={() => api.adminSetAdmin(u.id, !u.is_admin).then((r) => upd({ is_admin: r.is_admin }))}>{u.is_admin ? t("adm.adminRevoke") : t("adm.adminGrant")}</Act>
+            <Act tone="slate" onClick={async () => {
+              const pw = prompt(t("adm.pwPrompt", { email: u.email }), "");
+              if (!pw) return;
+              if (pw.length < 8) { alert(t("adm.pwMin")); return; }
+              return api.adminResetPassword(u.id, pw).then(() => alert(t("adm.pwSet", { email: u.email, pw })));
+            }}>{t("adm.setPassword")}</Act>
+            <Act tone="slate" onClick={async () => {
+              const n = prompt(t("adm.namePrompt"), u.display_name || "");
+              if (n === null) return;
+              return api.adminSetUserName(u.id, n).then((r) => upd({ display_name: r.display_name }));
+            }}>{t("adm.name")}</Act>
+            {u.avatar_url && <Act tone="slate" onClick={() => api.adminRemoveAvatar(u.id).then(() => upd({ avatar_url: null }))}>{t("adm.removeAvatar")}</Act>}
+            <Act tone="red" confirm={t("adm.deleteUserConfirm", { email: u.email })} onClick={() => api.adminDeleteUser(u.id).then(onRemove)}>{t("adm.delete")}</Act>
+          </>}
         </div>
       </div>
       {open && stats && (
