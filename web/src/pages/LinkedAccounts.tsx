@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Button } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
+import { ChevronIcon, CheckIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
@@ -109,7 +109,7 @@ function PolarCard() {
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
           <img src="/polar-logo.jpg" alt="Polar Flow" className="h-5 w-auto" />
         </a>
-        {st.linked && <span className="text-sm font-medium text-success">{t("settings.polar.connected")}</span>}
+        {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.polar.connected")}</span>}
       </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.polar.connect")}</Button>
