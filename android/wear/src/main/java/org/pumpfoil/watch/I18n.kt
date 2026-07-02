@@ -70,7 +70,17 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.switch" to row("Konto wechseln", "Konto wechsle", "Konto wechseln", "Switch account", "Changer de compte", "Cambia account", "Cambiar cuenta"),
 
     // Alarm-/Foil-Auswahl
-    "foil.choose" to row("Alarm wählen", "Alarm wähle", "Alarm wählen", "Choose alarm", "Choisir l'alarme", "Scegli allarme", "Elegir alarma"),
+    "foil.choose" to row("Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma"),
+    "foil.prefix" to row("Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: "),
+    "foil.alarm" to row("Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma"),
+    "foil.thresholds" to row("Schwellen", "Schwelle", "Schwellen", "Thresholds", "Seuils", "Soglie", "Umbrales"),
+    "foil.auto" to row("Auto (Foil)", "Auto (Foil)", "Auto (Foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)"),
+    "foil.manual" to row("Manuell", "Manuell", "Manuell", "Manual", "Manuel", "Manuale", "Manual"),
+    "foil.min" to row("Min", "Min", "Min", "Min", "Min", "Min", "Mín"),
+    "foil.max" to row("Max", "Max", "Max", "Max", "Max", "Max", "Máx"),
+    "foil.noFoil" to row("Keine Foil", "Kei Foil", "Keine Foil", "No foil", "Aucun foil", "Nessun foil", "Sin foil"),
+    "common.on" to row("An", "Aa", "An", "On", "Activé", "On", "Sí"),
+    "common.off" to row("Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No"),
     "foil.fixed" to row("Feste Werte", "Feschti Wärt", "Feste Werte", "Fixed values", "Valeurs fixes", "Valori fissi", "Valores fijos"),
     "foil.none" to row("Ohne Alarm", "Ohni Alarm", "Ohne Alarm", "No alarm", "Sans alarme", "Senza allarme", "Sin alarma"),
     "foil.triggerPrefix" to row("Auslösen: ", "Uslöse: ", "Auslösen: ", "Trigger: ", "Déclench. : ", "Attivazione: ", "Activación: "),

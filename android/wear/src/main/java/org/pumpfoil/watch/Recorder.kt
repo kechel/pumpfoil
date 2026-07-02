@@ -141,6 +141,8 @@ object Recorder {
     // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
     // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
     // später per drain(), sobald die Uhr gepairt + online ist.
+    var sessionFoilId: Int? = null   // auf der Uhr gewählte Foil (Metadaten) -> foil_id im Meta
+
     fun start(ctx: Context) {
         if (running) return
         appCtx = ctx.applicationContext
@@ -155,13 +157,15 @@ object Recorder {
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
-        LocalStore.writeMeta(ctx, uuid, JSONObject()
+        val meta = JSONObject()
             .put("session_uuid", uuid)
             .put("started_at", nowIso())
             .put("sport", "pumpfoil")
             .put("gps_hz", 1)
             .put("accel_hz", accelHzActual)
-            .put("accel_scale", ACCEL_SCALE.toInt()))
+            .put("accel_scale", ACCEL_SCALE.toInt())
+        sessionFoilId?.let { meta.put("foil_id", it) }   // gewählte Foil (Metadaten), unabhängig vom Alarm
+        LocalStore.writeMeta(ctx, uuid, meta)
         running = true
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0

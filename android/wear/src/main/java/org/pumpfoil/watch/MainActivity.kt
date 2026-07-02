@@ -153,8 +153,9 @@ class MainActivity : ComponentActivity() {
         var alarmDefault by remember { mutableStateOf("foil") }   // Vorwahl: "foil" | "fixed"
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showFoilPicker by remember { mutableStateOf(false) }
-        var pendingStart by remember { mutableStateOf(true) }   // FoilPicker: nach Auswahl starten? (Start-Knopf=ja, Vorwahl=nein)
-        var foilLabel by remember { mutableStateOf("") }        // aktuelle Foil-Vorwahl (Chip-Anzeige)
+        var foilLabel by remember { mutableStateOf("") }        // gewählte Foil (Anzeige "Foil: <name>")
+        var sessionFoilId by remember { mutableStateOf<Int?>(null) }   // Foil = Metadaten (+ Auto-Schwellen)
+        var alarmSource by remember { mutableStateOf("foil") }         // "foil" | "manual" (Schwellen-Quelle)
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
 
@@ -184,13 +185,14 @@ class MainActivity : ComponentActivity() {
                     FoilOpt(o.optInt("id"), o.optString("label"), o.optInt("min"), o.optInt("max"))
                 }
             }
-            // Default-Auswahl für den Start-Screen (bis der Nutzer manuell wechselt) — wie Garmin.
+            // Default-Auswahl (bis der Nutzer wechselt) — entkoppelt wie Garmin: Alarm-An/Aus vom
+            // Web-Master, Foil separat (Metadaten + Auto-Schwellen). alarm.high/low = feste Web-Werte.
             if (foilLabel.isEmpty()) {
+                alarm = alarm.copy(enabled = manualAlarm)
                 if (alarmDefault == "foil" && foils.isNotEmpty()) {
-                    foilLabel = foils[0].label
-                    alarm = alarm.copy(enabled = true, high = foils[0].max, low = foils[0].min)
-                } else if (manualAlarm) {
-                    foilLabel = I18n.t("foil.website")
+                    sessionFoilId = foils[0].id; foilLabel = foils[0].label; alarmSource = "foil"
+                } else {
+                    sessionFoilId = null; foilLabel = "—"; alarmSource = "manual"
                 }
             }
             val ofa = c.optJSONArray("offFoilView")
@@ -235,8 +237,14 @@ class MainActivity : ComponentActivity() {
                 Recorder.drain(ctx)
             }
         }
-        // Vibrationsalarm bei Speed-Grenzen.
-        AlarmEffect(s.speedKmh, alarm)
+        // Vibrationsalarm bei Speed-Grenzen. Effektive Schwellen: bei "foil" aus der gewählten
+        // Foil, sonst die manuellen (alarm.high/low). alarm.enabled = An/Aus (unabhängig).
+        val effAlarm = if (alarmSource == "foil" && sessionFoilId != null)
+            (foils.firstOrNull { it.id == sessionFoilId }?.let { alarm.copy(high = it.max, low = it.min) } ?: alarm)
+        else alarm
+        AlarmEffect(s.speedKmh, effAlarm)
+        // Gewählte Foil an den Recorder durchreichen (wird als foil_id ins Meta geschrieben).
+        LaunchedEffect(sessionFoilId) { Recorder.sessionFoilId = sessionFoilId }
 
         if (s.recording) {
             // Pager: Stop(0) | Datenansichten 1..n | Übersicht(n+1) | Stop(n+2).
@@ -306,26 +314,17 @@ class MainActivity : ComponentActivity() {
         } else if (showFoilPicker) {
             FoilPicker(
                 foils = foils,
-                websiteAlarm = if (manualAlarm) alarm else null,
-                foilsFirst = alarmDefault == "foil",
-                repeatMode = alarm.repeat,
-                onToggleRepeat = {
-                    alarm = alarm.copy(repeat = if (alarm.repeat == "continuous") "once" else "continuous")
-                },
-                onWebsite = {
-                    foilLabel = I18n.t("foil.website"); showFoilPicker = false
-                    if (pendingStart) RecorderService.start(applicationContext)
-                },
-                onPick = { f ->
-                    // Foil-Schwellen setzen, Muster/Repeat aus der Config behalten.
-                    alarm = alarm.copy(enabled = true, high = f.max, low = f.min)
-                    foilLabel = f.label; showFoilPicker = false
-                    if (pendingStart) RecorderService.start(applicationContext)   // nur vom Start-Knopf, nicht bei Vorwahl
-                },
-                onNone = {
-                    alarm = alarm.copy(enabled = false); foilLabel = I18n.t("foil.none"); showFoilPicker = false
-                    if (pendingStart) RecorderService.start(applicationContext)
-                },
+                alarmOn = alarm.enabled,
+                source = alarmSource,
+                manualLow = alarm.low,
+                manualHigh = alarm.high,
+                selectedFoilId = sessionFoilId,
+                onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
+                onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
+                onManualLow = { v -> alarm = alarm.copy(low = v) },
+                onManualHigh = { v -> alarm = alarm.copy(high = v) },
+                onPick = { f -> sessionFoilId = f.id; foilLabel = f.label; showFoilPicker = false },
+                onNone = { sessionFoilId = null; foilLabel = "—"; showFoilPicker = false },
                 onBack = { showFoilPicker = false },
             )
         } else if (s.uploading) {
@@ -367,9 +366,13 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 } else {
-                // Aktuelle Foil-/Alarm-Auswahl anzeigen (wie Garmin) — Start nimmt sie direkt.
+                // Gewählte Foil + Glocke, wenn der Alarm an ist (wie Garmin). Start nimmt es direkt.
                 if (foilLabel.isNotEmpty()) {
-                    Text(foilLabel, style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("${I18n.t("foil.prefix")}$foilLabel", style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                        if (alarm.enabled) Text("🔔", style = MaterialTheme.typography.caption2)
+                    }
                     Spacer(Modifier.height(4.dp))
                 }
                 // Start nimmt direkt mit der aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
@@ -381,7 +384,7 @@ class MainActivity : ComponentActivity() {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (foils.isNotEmpty()) CompactChip(
-                            onClick = { pendingStart = false; showFoilPicker = true },
+                            onClick = { showFoilPicker = true },
                             label = { Text(I18n.t("rec.chooseFoil"), style = MaterialTheme.typography.caption2) })
                         if (canSync) CompactChip(
                             onClick = { Recorder.drain(ctx) },
@@ -618,54 +621,72 @@ data class WatchAlarm(
 // Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
 data class FoilOpt(val id: Int, val label: String, val min: Int, val max: Int)
 
-// Alarm-Auswahl beim Start: feste Website-Werte oder ein Foil (setzt dessen Auto-Alarm).
-// Reihenfolge folgt der Web-Vorwahl (alarmDefault: foilsFirst). Repeat-Modus pro Session
-// umschaltbar (Website setzt nur den Default).
+// „Foil & Alarm" — drei unabhängige Achsen: Alarm An/Aus, Schwellen-Quelle (Auto aus Foil /
+// Manuell mit Min/Max direkt auf der Uhr), Foil-Auswahl (Metadaten). Muster/Auslösen: in den Apps.
 @Composable
 fun FoilPicker(
     foils: List<FoilOpt>,
-    websiteAlarm: WatchAlarm?,
-    foilsFirst: Boolean,
-    repeatMode: String,
-    onToggleRepeat: () -> Unit,
-    onWebsite: () -> Unit,
+    alarmOn: Boolean,
+    source: String,
+    manualLow: Int,
+    manualHigh: Int,
+    selectedFoilId: Int?,
+    onToggleAlarm: () -> Unit,
+    onToggleSource: () -> Unit,
+    onManualLow: (Int) -> Unit,
+    onManualHigh: (Int) -> Unit,
     onPick: (FoilOpt) -> Unit,
     onNone: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val fixedChip: @Composable () -> Unit = {
-        if (websiteAlarm != null) {
-            Chip(
-                onClick = onWebsite,
-                label = { Text(I18n.t("foil.fixed")) },
-                secondaryLabel = { Text("${websiteAlarm.low}–${websiteAlarm.high} km/h") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-    val foilChips: @Composable () -> Unit = {
-        foils.forEach { f ->
-            Chip(
-                onClick = { onPick(f) },
-                label = { Text(f.label, maxLines = 1) },
-                secondaryLabel = { Text("${f.min}–${f.max} km/h") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(I18n.t("foil.choose"), style = MaterialTheme.typography.title3)
-        if (foilsFirst) { foilChips(); fixedChip() } else { fixedChip(); foilChips() }
-        CompactChip(onClick = onNone, label = { Text(I18n.t("foil.none")) })
-        CompactChip(
-            onClick = onToggleRepeat,
-            label = { Text(I18n.t("foil.triggerPrefix") + if (repeatMode == "continuous") I18n.t("foil.continuous") else I18n.t("foil.once")) },
+        // Alarm An/Aus
+        Chip(
+            onClick = onToggleAlarm,
+            label = { Text(I18n.t("foil.alarm")) },
+            secondaryLabel = { Text(if (alarmOn) I18n.t("common.on") else I18n.t("common.off")) },
+            modifier = Modifier.fillMaxWidth(),
         )
+        // Schwellen-Quelle
+        Chip(
+            onClick = onToggleSource,
+            label = { Text(I18n.t("foil.thresholds")) },
+            secondaryLabel = { Text(if (source == "foil") I18n.t("foil.auto") else I18n.t("foil.manual")) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        // Manuell: Min/Max direkt auf der Uhr
+        if (source == "manual") {
+            StepperRow(I18n.t("foil.min"), manualLow, onManualLow)
+            StepperRow(I18n.t("foil.max"), manualHigh, onManualHigh)
+        }
+        // Foil-Auswahl (Metadaten + Auto-Schwellen)
+        foils.forEach { f ->
+            Chip(
+                onClick = { onPick(f) },
+                label = { Text((if (f.id == selectedFoilId) "✓ " else "") + f.label, maxLines = 1) },
+                secondaryLabel = { Text("${f.min}–${f.max} km/h") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        CompactChip(onClick = onNone,
+            label = { Text((if (selectedFoilId == null) "✓ " else "") + I18n.t("foil.noFoil")) })
         CompactChip(onClick = onBack, label = { Text(I18n.t("common.back")) })
+    }
+}
+
+// Min/Max-Stepper (−/Wert/+), 0..80 km/h.
+@Composable
+private fun StepperRow(label: String, value: Int, onChange: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = MaterialTheme.typography.caption2)
+        CompactChip(onClick = { onChange((value - 1).coerceAtLeast(0)) }, label = { Text("−") })
+        Text("$value", style = MaterialTheme.typography.title3)
+        CompactChip(onClick = { onChange((value + 1).coerceAtMost(80)) }, label = { Text("+") })
     }
 }
 
