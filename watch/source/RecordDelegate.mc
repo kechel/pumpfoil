@@ -191,13 +191,10 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
             return;
         }
         if (id == :min || id == :max) {
-            var cur = (id == :min) ? _rec.speedLowKmh : _rec.speedHighKmh;
-            var picker = new NumPicker({
-                :title => new WatchUi.Text({:text => (id == :min) ? "Min km/h" : "Max km/h",
-                    :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_BOTTOM,
-                    :color => Graphics.COLOR_WHITE}),
-                :pattern => [new NumFactory(0, 80, 1)], :defaults => [cur]});
-            WatchUi.pushView(picker, new MinMaxPickerDelegate(_rec, id == :min), WatchUi.SLIDE_LEFT);
+            var isMin = (id == :min);
+            var cur = isMin ? _rec.speedLowKmh : _rec.speedHighKmh;
+            var view = new MinMaxView(isMin ? "Min km/h" : "Max km/h", cur, 0, 80);
+            WatchUi.pushView(view, new MinMaxDelegate(_rec, isMin, view), WatchUi.SLIDE_LEFT);
             return;
         }
         if (id instanceof Lang.Number) {
@@ -214,56 +211,50 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 }
 
-// Picker mit eigenem schwarzem Hintergrund: sonst scheint das helle Menü durch und die
-// weiße Schrift ist auf hellem Grund unlesbar (robust für MIP und AMOLED).
-class NumPicker extends WatchUi.Picker {
-    function initialize(opts) { Picker.initialize(opts); }
+// Eigene Min/Max-Ansicht statt WatchUi.Picker: fest schwarzer Hintergrund + weiße Schrift,
+// damit sie in JEDEM Uhr-Theme (hell/dunkel) lesbar ist. UP/DOWN ändert den Wert, START/ENTER
+// bestätigt, BACK bricht ab (Bereich 0..80 km/h).
+class MinMaxView extends WatchUi.View {
+    hidden var _title, _val, _min, _max;
+    function initialize(title, val, mn, mx) {
+        View.initialize();
+        _title = title; _val = val; _min = mn; _max = mx;
+    }
+    function value() { return _val; }
+    function inc() { if (_val < _max) { _val++; WatchUi.requestUpdate(); } }
+    function dec() { if (_val > _min) { _val--; WatchUi.requestUpdate(); } }
     function onUpdate(dc) {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-        Picker.onUpdate(dc);
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.20, Graphics.FONT_MEDIUM, _title, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(w / 2, h * 0.44, Graphics.FONT_NUMBER_MEDIUM, _val.toString(),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, "UP/DOWN  START: OK", Graphics.TEXT_JUSTIFY_CENTER);
     }
 }
 
-// Zahlen-Factory für den Min/Max-Picker (0..80 km/h). getValue = angezeigter Wert (Index=Wert bei step 1).
-class NumFactory extends WatchUi.PickerFactory {
-    hidden var _min, _max, _step;
-    function initialize(mn, mx, st) {
-        PickerFactory.initialize();
-        _min = mn; _max = mx; _step = st;
+// Delegate für die Min/Max-Ansicht: UP/DOWN = +/-, START/ENTER = übernehmen, BACK = abbrechen.
+class MinMaxDelegate extends WatchUi.BehaviorDelegate {
+    hidden var _rec, _isMin, _view;
+    function initialize(recorder, isMin, view) {
+        BehaviorDelegate.initialize();
+        _rec = recorder; _isMin = isMin; _view = view;
     }
-    function getSize() { return (_max - _min) / _step + 1; }
-    function getValue(index) { return _min + index * _step; }
-    function getDrawable(index, selected) {
-        return new WatchUi.Text({
-            :text => getValue(index).toString(),
-            :color => Graphics.COLOR_WHITE, :font => Graphics.FONT_NUMBER_MEDIUM,
-            :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_CENTER});
-    }
-}
-
-// Zahlenpicker für die manuellen Min/Max-Schwellen (direkt auf der Uhr).
-class MinMaxPickerDelegate extends WatchUi.PickerDelegate {
-    hidden var _rec;
-    hidden var _isMin;
-    function initialize(recorder, isMin) {
-        PickerDelegate.initialize();
-        _rec = recorder;
-        _isMin = isMin;
-    }
-    function onAccept(values) as Lang.Boolean {
-        var v = values[0];
+    function onNextPage() { _view.dec(); return true; }      // DOWN
+    function onPreviousPage() { _view.inc(); return true; }  // UP
+    function onSelect() { _accept(); return true; }          // START/ENTER
+    function onBack() { WatchUi.popView(WatchUi.SLIDE_IMMEDIATE); return true; }
+    hidden function _accept() as Void {
+        var v = _view.value();
         if (_isMin) { _rec.speedLowKmh = v; } else { _rec.speedHighKmh = v; }
-        // Picker schließen, dann das Menü mit aktualisiertem Wert neu aufbauen — Fokus bleibt
-        // auf dem gerade bearbeiteten Min/Max-Eintrag (statt oben im Menü zu landen).
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // Picker weg
+        // Ansicht schließen, altes Menü weg, Menü neu aufbauen — Fokus bleibt auf dem Eintrag.
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // Min/Max-Ansicht weg
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // altes Menü weg
         FoilMenuDelegate.showFocused(_rec, _isMin ? :min : :max);
-        return true;
-    }
-    function onCancel() as Lang.Boolean {
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-        return true;
     }
 }
 
