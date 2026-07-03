@@ -487,6 +487,8 @@ struct AlarmPickerSheet: View {
             }
             Section(WLoc.t("foil.alarm", lang)) {
                 Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
+            } footer: {
+                Text(WLoc.t("foil.alarmHelp", lang))
             }
             Section(WLoc.t("foil.thresholds", lang)) {
                 Picker(WLoc.t("foil.source", lang), selection: $alarmSource) {
