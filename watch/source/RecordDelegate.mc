@@ -80,6 +80,9 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // (Daten liegen sicher in Storage, Upload später).
     hidden function _showUploadIfConnected() as Void {
         if (Uploader.phoneConnected() && Uploader.pendingCount() > 0) {
+            // Verbindungs-Fall -> nur der Upload-Screen ("Upload fertig"). Kein „Gespeichert"
+            // darunter (stopped=false), sonst kämen beide. BACK vom Upload-Screen -> Start.
+            _rec.stopped = false;
             WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
         }
     }
