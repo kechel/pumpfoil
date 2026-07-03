@@ -5,7 +5,7 @@ import { getDeviceInfo } from "@zos/device";
 import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN } from "@zos/interaction";
 import { getConnectStatus } from "@zos/ble";
 import { BasePage } from "@zeppos/zml/base-page";
-import { Geolocation, HeartRate } from "@zos/sensor";
+import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
 const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048;
@@ -54,6 +54,9 @@ Page(
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
+      // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
+      foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
+      vibrator: null, _almActive: false, _foilInit: false,
       timer: null, pollTimer: null, hbTimer: null, geo: null, hrSensor: null, w: {},
       _fi: 0, _flat: null, _flon: null,
     },
@@ -86,7 +89,7 @@ Page(
           const dir = e === GESTURE_UP ? 1 : -1;
           if (s.recording) { const n = s.views.length + 1; s.page = (s.page + dir + n) % n; this.applyButton(); this.renderRecording(); return true; }
           if (s.screen === "idle") {
-            s.idlePage = (s.idlePage + dir + 3) % 3;
+            s.idlePage = (s.idlePage + dir + 4) % 4;
             this.applyButton(); this.renderIdle();
             // Beim Verlassen der Verbindungs-Seite den Poll stoppen. Start passiert NUR per "Neuer Code".
             if (s.idlePage !== 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
@@ -119,6 +122,15 @@ Page(
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
         if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
+        // Foil-/Alarm-Config übernehmen; Default-Auswahl einmalig (bis App-Ende).
+        if (r && Array.isArray(r.foils)) s.foils = r.foils.map((f) => ({ id: f.id, label: f.label, min: f.min, max: f.max }));
+        if (r) { s.almLow = r.speedLow || 0; s.almHigh = r.speedHigh || 0; }
+        if (r && !s._foilInit) {
+          s._foilInit = true;
+          s.almOn = !!r.alarmEnabled;
+          if ((r.alarmDefault || "foil") === "foil" && s.foils.length) { s.foilId = s.foils[0].id; s.foilLabel = s.foils[0].label; s.almSrc = "foil"; }
+          else { s.foilId = null; s.foilLabel = "—"; s.almSrc = "manual"; }
+        }
         s.paired = true;
         this.applyButton(); this.rerender();
         this.flushPending();
@@ -223,12 +235,18 @@ Page(
     },
     renderIdle() {
       const s = this.state, w = s.w;
-      w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/3");
+      this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
+      w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
       const gps = "GPS " + (s.fix ? "●" : "suche…");
       const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
       if (s.idlePage === 0) {
         this.renderFields(s.offFoil);
-        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + " · " + conn);
+        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + (s.almOn ? " · 🔔" : "") + " · " + conn);
+      } else if (s.idlePage === 3) {
+        this.hideBig();
+        this.setSlots(["", ""], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, "Foil & Alarm · tippen");
+        this._buildFoilBtns();
       } else if (s.idlePage === 1) {
         if (!bleOk()) { this.setSlots(["—", "kein Handy"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Handy/Zepp-App nötig"); }
         else if (s.paired) { this.setSlots(["✓", "verbunden"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Uhr verbunden"); }
@@ -239,8 +257,57 @@ Page(
         w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (n ? "warten auf Verbindung" : "nichts offen"));
       }
     },
+    // Foil-/Alarm-Seite: drei Tap-Buttons (Alarm An/Aus, Schwellen Auto/Manuell, Foil zyklisch).
+    // Min/Max manuell setzt man im Web (Zepp-Eingabe ist zu knapp) — hier nur Auto/Manuell.
+    _buildFoilBtns() {
+      const s = this.state, w = s.w;
+      this._clearFoilBtns();
+      const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
+        x: px(30), y: y, w: DW - px(60), h: px(46), radius: px(23),
+        text: text, text_size: px(20), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
+      w.foilBtns = [
+        mk(Math.round(DH * 0.20), "Alarm: " + (s.almOn ? "An" : "Aus"), () => { s.almOn = !s.almOn; this.renderIdle(); }),
+        mk(Math.round(DH * 0.42), "Schwellen: " + (s.almSrc === "foil" ? "Auto" : "Manuell"), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
+        mk(Math.round(DH * 0.64), "Foil: " + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
+      ];
+    },
+    _clearFoilBtns() {
+      const w = this.state.w;
+      if (w.foilBtns) { w.foilBtns.forEach((b) => hmUI.deleteWidget(b)); w.foilBtns = null; }
+    },
+    _cycleFoil() {
+      const s = this.state;
+      if (!s.foils.length) { s.foilId = null; s.foilLabel = "—"; return; }
+      const idx = s.foils.findIndex((f) => f.id === s.foilId) + 1;   // -1(keine)->0; letzte->length(keine)
+      if (idx >= s.foils.length) { s.foilId = null; s.foilLabel = "—"; }
+      else { s.foilId = s.foils[idx].id; s.foilLabel = s.foils[idx].label; }
+    },
+    // Vibrationsalarm: effektive Schwellen (Foil oder manuell) gegen die aktuelle km/h.
+    _checkAlarm(kmh) {
+      const s = this.state;
+      let lo = s.almLow, hi = s.almHigh;
+      if (s.almSrc === "foil" && s.foilId != null) {
+        const f = s.foils.find((x) => x.id === s.foilId);
+        if (f) { lo = f.min; hi = f.max; }
+      }
+      const over = hi > 0 && kmh > hi;
+      const under = lo > 0 && kmh < lo && kmh >= lo - 2;
+      const trip = over || under;
+      if (trip && !s._almActive) { s._almActive = true; this._vibrate(); }
+      else if (!trip) { s._almActive = false; }
+    },
+    _vibrate() {
+      const s = this.state;
+      try {
+        if (!s.vibrator) s.vibrator = new Vibrator();
+        s.vibrator.stop();
+        s.vibrator.start();
+      } catch (e) {}
+    },
+
     renderRecording() {
       const s = this.state, w = s.w;
+      this._clearFoilBtns();
       if (s.page === s.views.length) {
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
@@ -310,6 +377,7 @@ Page(
           if (s.prev) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
           if (speed > s.max) s.max = speed;
+          if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
           if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
         }
         this.renderRecording();
@@ -349,7 +417,7 @@ Page(
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
         s.screen = "summary"; s.upPct = 0; s.upStatus = "Lädt hoch… 0%";
-        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice() }); savePending(list);
+        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice(), foilId: s.foilId }); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
@@ -367,6 +435,7 @@ Page(
       const tok = getTok();
       if (!tok) return Promise.reject(new Error("not paired"));
       const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE };
+      if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
       const chunks = [];
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
       const total = chunks.length + 2; let done = 0;

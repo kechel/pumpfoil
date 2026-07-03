@@ -53,7 +53,8 @@ async function handle(req) {
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };
     const b = parse(r);
-    return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart, colorByValue: b && b.colorByValue };
+    return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart, colorByValue: b && b.colorByValue,
+      foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow };
   }
 
   // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---
