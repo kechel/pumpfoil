@@ -614,6 +614,7 @@ const es: Record<string, string> = {
   "linked.title": "Cuentas vinculadas",
   "linked.hint": "Importa automáticamente entrenamientos de otros servicios como sesiones.",
   "linked.platformsTitle": "Dispositivos y vinculaciones posibles",
+  "linked.pendingLabel": "Esperando aprobación",
   "linked.accountShort": "vinculación de cuenta",
   "settings.polar.title": "Importar de Polar",
   "settings.polar.hint": "Conecta tu cuenta Polar (AccessLink) e importa tus entrenamientos automáticamente como sesiones.",

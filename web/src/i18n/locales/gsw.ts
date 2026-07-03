@@ -543,6 +543,7 @@ const gsw: Record<string, string> = {
   "linked.title": "Verknüpfti Konte",
   "linked.hint": "Importier Trainings vo andere Dienscht automatisch als Sessions.",
   "linked.platformsTitle": "Mögleschi Gerät & Verchnüpfige",
+  "linked.pendingLabel": "Wartet uf Freigab",
   "linked.accountShort": "Konto-Verchnüpfig",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dis Polar-Konto (AccessLink) und importier dini Trainings automatisch als Sessions.",

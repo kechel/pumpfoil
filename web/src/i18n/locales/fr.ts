@@ -614,6 +614,7 @@ const fr: Record<string, string> = {
   "linked.title": "Comptes liés",
   "linked.hint": "Importe automatiquement les entraînements d'autres services comme sessions.",
   "linked.platformsTitle": "Appareils et liaisons possibles",
+  "linked.pendingLabel": "En attente de validation",
   "linked.accountShort": "liaison de compte",
   "settings.polar.title": "Import Polar",
   "settings.polar.hint": "Connecte ton compte Polar (AccessLink) et importe automatiquement tes entraînements comme sessions.",

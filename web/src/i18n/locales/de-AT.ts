@@ -504,6 +504,7 @@ const deAT: Record<string, string> = {
   "linked.title": "Verknüpfte Konten",
   "linked.hint": "Importiere Trainings aus anderen Diensten automatisch als Sessions.",
   "linked.platformsTitle": "Mögliche Geräte & Verknüpfungen",
+  "linked.pendingLabel": "Wartet auf Freigabe",
   "linked.accountShort": "Konto-Verknüpfung",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dein Polar-Konto (AccessLink) und importiere deine Trainings automatisch als Sessions.",

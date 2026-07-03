@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon } from "../components/Icons";
-import { SupportedPlatforms } from "../components/SupportedPlatforms";
+import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
 
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
@@ -24,7 +24,11 @@ export default function LinkedAccounts() {
         <SuuntoCard />
         <StravaCard />
       </div>
-      <SupportedPlatforms className="mt-6" />
+      <div className="mt-6">
+        <p className="mb-1.5 text-xs font-medium text-slate-400">{t("linked.platformsTitle")}</p>
+        <PlatformSubline kind="watch" className="mb-0.5" />
+        <PlatformSubline kind="account" />
+      </div>
     </div>
   );
 }

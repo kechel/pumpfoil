@@ -742,6 +742,7 @@ const en: Record<string, string> = {
   "linked.title": "Linked accounts",
   "linked.hint": "Import trainings from other services automatically as sessions.",
   "linked.platformsTitle": "Possible devices & links",
+  "linked.pendingLabel": "Awaiting approval",
   "linked.accountShort": "account link",
   "settings.polar.title": "Polar import",
   "settings.polar.hint": "Connect your Polar account (AccessLink) and import your trainings automatically as sessions.",
