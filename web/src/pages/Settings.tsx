@@ -9,6 +9,7 @@ import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { PlatformSubline } from "../components/SupportedPlatforms";
+import { MyFoilsSubline } from "../components/MyFoilsSubline";
 import { NotificationsToggle } from "../components/NotificationsToggle";
 
 export default function Settings() {
@@ -146,7 +147,10 @@ export default function Settings() {
       >
         <span className="flex items-center gap-3">
           <WaveIcon className="h-6 w-6 text-brand-400" />
-          <span className="font-medium text-slate-100">{t("foils.title")}</span>
+          <span className="min-w-0">
+            <span className="block font-medium text-slate-100">{t("foils.title")}</span>
+            <MyFoilsSubline />
+          </span>
         </span>
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>
