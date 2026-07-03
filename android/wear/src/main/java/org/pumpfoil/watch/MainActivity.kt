@@ -513,8 +513,11 @@ class MainActivity : ComponentActivity() {
                 // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das Pairing
                 // erst bei erfolgreichem Neu-Pairing). Bei "auth" zeigt der Block oben schon „Neu verbinden".
                 if (Api.deviceToken != null && s.uploadError != "auth") {
-                    Spacer(Modifier.height(1.dp))   // „Konto wechseln" ganz eng an „Foil wählen"
+                    // Kein Spacer + negativer Offset: CompactChips reservieren 48dp Tap-Fläche,
+                    // wodurch trotz 0-Abstand eine sichtbare Lücke bleibt. Offset holt „Konto
+                    // wechseln" näher an „Foil wählen" heran.
                     CompactChip(onClick = onWantPair,
+                        modifier = Modifier.offset(y = (-8).dp),
                         label = { Text(I18n.t("rec.switch"), style = MaterialTheme.typography.caption2) })
                 }
                 }
