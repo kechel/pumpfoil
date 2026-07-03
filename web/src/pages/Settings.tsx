@@ -38,11 +38,16 @@ export default function Settings() {
     }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
-    // Nur für Garmin (Sideload-.prg) und nur, wenn der Nutzer auch eine Garmin-Uhr
-    // verknüpft hat — Wear/Apple aktualisieren über ihre Stores.
+    // Nur für Garmin (Sideload-.prg). Zeigen NUR, wenn KEINE der verbundenen Garmin-Uhren
+    // bereits die neueste Version hat — sobald eine aktuell ist, war das Update erfolgreich
+    // (alte Test-/Re-Pairing-Tokens sollen nicht mehr nerven). Wear/Apple: eigene Stores.
     api.myDevices().then((ds) => {
-      const d = ds.find((x) => x.update_available && !x.revoked_at && x.platform === "garmin");
-      if (d) setWatchUpdate({ version: d.latest_version ?? "", platform: d.platform ?? "", label: d.label ?? "", model: d.model ?? "" });
+      const garmins = ds.filter((x) => x.platform === "garmin" && !x.revoked_at);
+      const anyCurrent = garmins.some((x) => x.app_version && !x.update_available);
+      const outdated = garmins.find((x) => x.update_available);
+      if (!anyCurrent && outdated) {
+        setWatchUpdate({ version: outdated.latest_version ?? "", platform: outdated.platform ?? "", label: outdated.label ?? "", model: outdated.model ?? "" });
+      }
     }).catch(() => {});
   }, []);
   const platformLabel = (p: string) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : "");
