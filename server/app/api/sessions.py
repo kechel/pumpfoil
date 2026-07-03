@@ -635,8 +635,21 @@ def _geocode_place(session_id: int) -> None:
             s.place_lat = lat
             s.place_lon = lon
             db.commit()
+            _autojoin_spot_chat(db, s.user_id, name)
     finally:
         db.close()
+
+
+def _autojoin_spot_chat(db: Session, user_id: int, place_name: str) -> None:
+    """Neue Session an einem Spot -> Ersteller automatisch in den Spot-Chat aufnehmen — aber NUR,
+    wenn er dort noch nie war (kein ChatRoomState). Wer bewusst verlassen hat (left=True) bleibt
+    draußen. last_read_id=0 -> die bestehende Unterhaltung erscheint als ungelesen (Badge)."""
+    scope = f"spot:{place_name}"
+    exists = db.query(models.ChatRoomState.id).filter_by(user_id=user_id, scope=scope).first()
+    if exists is None:
+        # push=True: Spot-Chat gleich abonnieren (Benachrichtigungen), bis der Nutzer es abstellt.
+        db.add(models.ChatRoomState(user_id=user_id, scope=scope, left=False, last_read_id=0, push=True))
+        db.commit()
 
 
 @router.get("/{session_id}", response_model=SessionOut)
