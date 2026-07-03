@@ -191,12 +191,15 @@ struct RecordView: View {
                         if autoStart && !rec.starting {
                             // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
                             // (z.B. im Auto). Erst wenn scharf -> blau. Eng unter der Version.
-                            if autoArmed {
-                                Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan).padding(.top, 2)
-                            } else {
-                                Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s")
-                                    .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
+                            Group {
+                                if autoArmed {
+                                    Text(WLoc.t("rec.autoStart", lang)).foregroundStyle(.cyan)
+                                } else {
+                                    Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s").foregroundStyle(.secondary)
+                                }
                             }
+                            .font(.caption2).padding(.top, 2)
+                            .onTapGesture { showFoilPicker = true }   // Antippen -> Einstellungen
                         }
                     }
                     if rec.starting {
