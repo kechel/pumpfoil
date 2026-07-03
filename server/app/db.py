@@ -35,7 +35,32 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _migrate_add_columns()
+    _migrate_add_indexes()
     _seed_foils()
+
+
+def _migrate_add_indexes() -> None:
+    """Leichte Auto-Migration: fehlende Indexe für die häufigen Community-/Rekord-/Spot-
+    Queries ergänzen (idempotent, non-destruktiv). Bei kleiner DB noch egal, aber
+    zukunftssicher, sobald viele Sessions/Nachrichten zusammenkommen."""
+    from sqlalchemy import text
+
+    stmts = [
+        # Spot-Filter (WHERE place_name = …) + GROUP BY place_name (spot-map/-sessions/-records).
+        "CREATE INDEX IF NOT EXISTS ix_sessions_place_name ON sessions (place_name)",
+        # „Meine Sessions" paginiert: user_id + neueste zuerst in einem Composite.
+        "CREATE INDEX IF NOT EXISTS ix_sessions_user_id_started_at ON sessions (user_id, started_at DESC)",
+        # Rekord-Queries ORDER BY <spalte> DESC LIMIT 1 (best_distance_m/best_speed_mps gibt's schon).
+        "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_duration_s ON analysis_results (best_duration_s)",
+        "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_glide_s ON analysis_results (best_glide_s)",
+        "CREATE INDEX IF NOT EXISTS ix_analysis_results_num_runs ON analysis_results (num_runs)",
+    ]
+    with engine.begin() as conn:
+        for s in stmts:
+            try:
+                conn.execute(text(s))
+            except Exception:  # noqa: BLE001 — SQLite-Dev kann DESC/Teilsyntax anders handhaben; egal
+                pass
 
 
 def _seed_foils() -> None:
