@@ -12,10 +12,10 @@ android {
         applicationId = "org.pumpfoil.app"
         minSdk = 26
         targetSdk = 35
-        // Phone-versionCode über dem höchsten vor der 1000-Umstellung belegten Wear-Code (11),
-        // da Phone + Wear sich die applicationId (und damit den versionCode-Raum) teilen.
-        versionCode = 17
-        versionName = "1.0.10"
+        // Versionsschema (siehe wear/build.gradle.kts): PHONE = versionName 1.1.x + kleiner
+        // versionCode; WEAR = 1.2.x + 1xxx. Das „x" ist bei beiden gleich (gemeinsam hochzählen).
+        versionCode = 18
+        versionName = "1.1.2"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

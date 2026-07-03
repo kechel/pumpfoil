@@ -13,10 +13,12 @@ android {
         applicationId = "org.pumpfoil.app"
         minSdk = 30          // Wear OS 3
         targetSdk = 34
-        // Eigener hoher versionCode-Bereich für Wear: Phone + Wear teilen die applicationId,
-        // daher müssen die versionCodes über BEIDE AABs eindeutig sein. 1xxx = Wear, Phone bleibt klein.
-        versionCode = 1012
-        versionName = "1.0.11"
+        // Versionsschema zur klaren Trennung im Play-Console (Phone + Wear teilen die
+        // applicationId): WEAR = versionName 1.2.x + versionCode 1xxx; PHONE = 1.1.x + kleiner Code.
+        // Das „x" (letzte Ziffer) ist bei Phone und Wear IMMER gleich -> beide je Release-Runde
+        // gemeinsam hochzählen. -> „1.2." / 1xxx = Wear, „1.1." / kleine Zahl = Phone.
+        versionCode = 1013
+        versionName = "1.2.2"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
