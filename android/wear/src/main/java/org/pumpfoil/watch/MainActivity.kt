@@ -17,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
+import androidx.wear.compose.foundation.SwipeToDismissValue
+import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -314,23 +316,38 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } else if (showFoilPicker) {
-            FoilPicker(
-                foils = foils,
-                alarmOn = alarm.enabled,
-                source = alarmSource,
-                autoStart = autoStart,
-                manualLow = alarm.low,
-                manualHigh = alarm.high,
-                selectedFoilId = sessionFoilId,
-                onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
-                onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
-                onToggleAutoStart = { autoStart = !autoStart },
-                onManualLow = { v -> alarm = alarm.copy(low = v) },
-                onManualHigh = { v -> alarm = alarm.copy(high = v) },
-                onPick = { f -> sessionFoilId = f.id; foilLabel = f.label; showFoilPicker = false },
-                onNone = { sessionFoilId = null; foilLabel = "—"; showFoilPicker = false },
-                onBack = { showFoilPicker = false },
-            )
+            // Wear-Konvention: Wischen von links nach rechts schließt den Screen (statt bis
+            // ganz unten zum „Zurück"-Chip zu scrollen). SwipeToDismissBox liefert die Geste.
+            val dismiss = rememberSwipeToDismissBoxState()
+            LaunchedEffect(dismiss.currentValue) {
+                if (dismiss.currentValue == SwipeToDismissValue.Dismissed) {
+                    showFoilPicker = false
+                    dismiss.snapTo(SwipeToDismissValue.Default)
+                }
+            }
+            SwipeToDismissBox(state = dismiss) { isBackground ->
+                if (isBackground) {
+                    Box(Modifier.fillMaxSize().background(Color.Black))
+                } else {
+                    FoilPicker(
+                        foils = foils,
+                        alarmOn = alarm.enabled,
+                        source = alarmSource,
+                        autoStart = autoStart,
+                        manualLow = alarm.low,
+                        manualHigh = alarm.high,
+                        selectedFoilId = sessionFoilId,
+                        onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
+                        onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
+                        onToggleAutoStart = { autoStart = !autoStart },
+                        onManualLow = { v -> alarm = alarm.copy(low = v) },
+                        onManualHigh = { v -> alarm = alarm.copy(high = v) },
+                        onPick = { f -> sessionFoilId = f.id; foilLabel = f.label; showFoilPicker = false },
+                        onNone = { sessionFoilId = null; foilLabel = "—"; showFoilPicker = false },
+                        onBack = { showFoilPicker = false },
+                    )
+                }
+            }
         } else if (s.uploading) {
             // Nach dem Stop direkt online -> drain läuft -> hier prominent der Upload-Fortschritt
             // (kehrt automatisch zum Idle-Screen zurück, sobald fertig).
