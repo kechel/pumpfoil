@@ -422,7 +422,7 @@ class MainActivity : ComponentActivity() {
                 // Foil DARUNTER: sitzt so mittig auf der breitesten Stelle der runden Uhr
                 // (Platz für lange Namen). Tap -> Einstellungen (wie „Foil wählen").
                 if (foilLabel.isNotEmpty()) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(8.dp))   // etwas Luft nach dem Start-Button
                     Row(Modifier.clickable { showFoilPicker = true },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -434,7 +434,7 @@ class MainActivity : ComponentActivity() {
                 // Sync-Chip nur, wenn es auch etwas hochzuladen gibt (gepairt + pending > 0).
                 val canSync = Api.deviceToken != null && s.pendingCount > 0
                 if (foils.isNotEmpty() || canSync) {
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(6.dp))   // Foil-Zeile nah an „Foil wählen"
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (foils.isNotEmpty()) CompactChip(
                             onClick = { showFoilPicker = true },
@@ -513,7 +513,7 @@ class MainActivity : ComponentActivity() {
                 // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das Pairing
                 // erst bei erfolgreichem Neu-Pairing). Bei "auth" zeigt der Block oben schon „Neu verbinden".
                 if (Api.deviceToken != null && s.uploadError != "auth") {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(2.dp))   // „Konto wechseln" eng, sonst unten abgeschnitten
                     CompactChip(onClick = onWantPair,
                         label = { Text(I18n.t("rec.switch"), style = MaterialTheme.typography.caption2) })
                 }
