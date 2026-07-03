@@ -15,8 +15,8 @@ android {
         targetSdk = 34
         // Eigener hoher versionCode-Bereich für Wear: Phone + Wear teilen die applicationId,
         // daher müssen die versionCodes über BEIDE AABs eindeutig sein. 1xxx = Wear, Phone bleibt klein.
-        versionCode = 1011
-        versionName = "1.0.10"
+        versionCode = 1012
+        versionName = "1.0.11"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
