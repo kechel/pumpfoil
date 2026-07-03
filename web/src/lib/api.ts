@@ -364,7 +364,7 @@ export const api = {
     `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
 
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
-  spotMap: () => req<{ spot: string; lat: number; lon: number; sessions: number }[]>("/api/community/spot-map"),
+  spotMap: (accelOnly = true) => req<{ spot: string; lat: number; lon: number; sessions: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
@@ -458,19 +458,20 @@ export const api = {
   sessionMonths: (filter?: string) =>
     req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
   stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
-  communityRecords: () => req<CommunityRecords>("/api/community/records"),
-  communitySpots: () => req<{ mine: string[]; all: string[] }>("/api/community/spots"),
-  spotRecords: (spot: string, period = "all") =>
-    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}`),
-  communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string } = {}) => {
+  communityRecords: (accelOnly = true) => req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}`),
+  communitySpots: (accelOnly = true) => req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}`),
+  spotRecords: (spot: string, period = "all", accelOnly = true) =>
+    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}`),
+  communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);
+    if (opts.accelOnly === false) p.set("accel_only", "false");
     return req<CommunitySession[]>(`/api/community/sessions?${p}`);
   },
-  spotSessions: (spot: string) =>
-    req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}`),
-  leaders: (period = "all") => req<Leaders>(`/api/community/leaders?period=${period}`),
+  spotSessions: (spot: string, accelOnly = true) =>
+    req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
+  leaders: (period = "all", accelOnly = true) => req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   toggleLike: (id: number) =>

@@ -7,6 +7,7 @@ import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
 import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon } from "../components/Icons";
+import { AccelToggle } from "../components/AccelToggle";
 import { useT } from "../i18n";
 
 function InstallButton() {
@@ -234,12 +235,12 @@ function LatestMedia() {
   );
 }
 
-function Leaderboards({ period }: { period: string }) {
+function Leaderboards({ period, accelOnly }: { period: string; accelOnly: boolean }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   useEffect(() => {
-    api.leaders(period).then(setData).catch(() => {});
-  }, [period]);
+    api.leaders(period, accelOnly).then(setData).catch(() => {});
+  }, [period, accelOnly]);
   if (!data) return null;
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
   if (empty) return null;
@@ -277,16 +278,18 @@ function TopLiked({ period }: { period: string }) {
   );
 }
 
-function SpotSessions({ spot }: { spot: string }) {
+function SpotSessions({ spot, accelOnly }: { spot: string; accelOnly: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CommunitySession[] | null>(null);
 
+  // Umschalten Accel/GPS -> neu laden.
+  useEffect(() => { setItems(null); }, [accelOnly]);
   useEffect(() => {
     if (open && items === null) {
-      api.spotSessions(spot).then(setItems).catch(() => setItems([]));
+      api.spotSessions(spot, accelOnly).then(setItems).catch(() => setItems([]));
     }
-  }, [open, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mt-2">
@@ -310,10 +313,12 @@ function CommunitySection() {
   const t = useT();
   const [data, setData] = useState<CommunityRecords | null>(null);
   const [period, setPeriod] = useState("10d");
+  // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil).
+  const [accelOnly, setAccelOnly] = useState(true);
 
   useEffect(() => {
-    api.communityRecords().then(setData).catch(() => {});
-  }, []);
+    api.communityRecords(accelOnly).then(setData).catch(() => {});
+  }, [accelOnly]);
 
   if (!data) return null;
   return (
@@ -325,7 +330,7 @@ function CommunitySection() {
           <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
         </Link>
       </div>
-      <div className="mb-3 flex flex-wrap gap-1">
+      <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button
             key={k}
@@ -335,17 +340,18 @@ function CommunitySection() {
             {t(labelKey)}
           </button>
         ))}
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
       <RecordGrid rec={data[period]} showSpot />
       <LatestMedia />
-      <Leaderboards period={period} />
+      <Leaderboards period={period} accelOnly={accelOnly} />
       <TopLiked period={period} />
-      <SpotSection period={period} />
+      <SpotSection period={period} accelOnly={accelOnly} />
     </div>
   );
 }
 
-function SpotSection({ period }: { period: string }) {
+function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean }) {
   const t = useT();
   const [spots, setSpots] = useState<{ mine: string[]; all: string[] } | null>(null);
   const [shown, setShown] = useState<string[]>([]);
@@ -353,18 +359,18 @@ function SpotSection({ period }: { period: string }) {
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    api.communitySpots().then((s) => { setSpots(s); setShown(s.mine); }).catch(() => {});
-  }, []);
+    api.communitySpots(accelOnly).then((s) => { setSpots(s); setShown(s.mine); }).catch(() => {});
+  }, [accelOnly]);
 
-  // Rekorde je Spot für den aktuellen Zeitraum laden (Key = period:spot).
+  // Rekorde je Spot für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
   useEffect(() => {
     shown.forEach((sp) => {
-      const key = `${period}:${sp}`;
+      const key = `${accelOnly}:${period}:${sp}`;
       if (!(key in recs)) {
-        api.spotRecords(sp, period).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
+        api.spotRecords(sp, period, accelOnly).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
       }
     });
-  }, [shown, period]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shown, period, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!spots) return null;
 
@@ -411,8 +417,8 @@ function SpotSection({ period }: { period: string }) {
                   </button>
                 )}
               </div>
-              <RecordGrid rec={recs[`${period}:${sp}`]} />
-              <SpotSessions spot={sp} />
+              <RecordGrid rec={recs[`${accelOnly}:${period}:${sp}`]} />
+              <SpotSessions spot={sp} accelOnly={accelOnly} />
             </div>
           ))}
         </div>

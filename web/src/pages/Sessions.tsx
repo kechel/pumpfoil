@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
+import { AccelToggle } from "../components/AccelToggle";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
@@ -271,6 +272,7 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
   const t = useT();
   const [items, setItems] = useState<CommunitySession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [accelOnly, setAccelOnly] = useState(true);   // nur Accel vs. auch GPS-only (On-Foil)
   const offsetRef = useRef(0);
   const moreRef = useRef(true);
   const loadingRef = useRef(false);
@@ -283,7 +285,7 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
     if (loadingRef.current || (!reset && !moreRef.current)) return;
     loadingRef.current = true; setLoading(true);
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessions(PAGE, off, { name: name || undefined, spot: spot || undefined })
+    api.communitySessions(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly })
       .then((rows) => {
         offsetRef.current = off + rows.length;
         moreRef.current = rows.length === PAGE;
@@ -294,20 +296,20 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
   };
 
   useEffect(() => {
-    const cached = communityCache.get(`${name}|${spot}`);
+    const cached = communityCache.get(`${name}|${spot}|${accelOnly}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
       restoreRef.current = true;  // nach dem Render die markierte Karte einscrollen
     } else {
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
-    return () => { communityCache.set(`${name}|${spot}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current }); };
-  }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { communityCache.set(`${name}|${spot}|${accelOnly}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current }); };
+  }, [name, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
     if (sentinel.current) o.observe(sentinel.current);
     return () => o.disconnect();
-  }, [name, spot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [name, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     itemsRef.current = items;
     if (restoreRef.current && items.length) {
@@ -320,6 +322,9 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
 
   return (
     <div>
+      <div className="mb-3 flex justify-end">
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} />
+      </div>
       {items.length === 0 && !loading ? (
         <Card className="p-8 text-center text-slate-300">{t("all.none")}</Card>
       ) : (

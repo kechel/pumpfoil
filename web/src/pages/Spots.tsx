@@ -4,6 +4,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
+import { AccelToggle } from "../components/AccelToggle";
 import { useT } from "../i18n";
 
 type Spot = { spot: string; lat: number; lon: number; sessions: number };
@@ -14,10 +15,13 @@ export default function Spots() {
   const nav = useNavigate();
   const [spots, setSpots] = useState<Spot[] | null>(null);
   const [q, setQ] = useState("");
+  const [accelOnly, setAccelOnly] = useState(true);   // nur Accel vs. auch GPS-only (On-Foil)
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
+  const markers = useRef<L.LayerGroup | null>(null);
 
-  useEffect(() => { api.spotMap().then(setSpots).catch(() => setSpots([])); }, []);
+  // Bei Umschaltung neu laden (spots NICHT auf null setzen -> Karte bleibt gemountet).
+  useEffect(() => { api.spotMap(accelOnly).then(setSpots).catch(() => setSpots([])); }, [accelOnly]);
 
   // Spot suchen -> zentrieren + ~50 km Radius (Quadrat 100 km) als Zoom.
   function focusSpot(name: string) {
@@ -28,22 +32,31 @@ export default function Spots() {
   }
 
   useEffect(() => {
-    if (!spots || !mapRef.current || mapObj.current) return;
-    const m = L.map(mapRef.current, { attributionControl: false });
-    mapObj.current = m;
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(m);
+    if (!spots || !mapRef.current) return;
+    // Karte einmalig erstellen.
+    if (!mapObj.current) {
+      const m = L.map(mapRef.current, { attributionControl: false });
+      mapObj.current = m;
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(m);
+      markers.current = L.layerGroup().addTo(m);
+      setTimeout(() => m.invalidateSize(), 100);
+    }
+    // Marker bei jedem Datenwechsel (auch Accel/GPS-Umschaltung) neu setzen.
+    const m = mapObj.current;
+    const grp = markers.current!;
+    grp.clearLayers();
     const pts: [number, number][] = [];
     for (const s of spots) {
       const mk = L.circleMarker([s.lat, s.lon], {
         radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
-      }).addTo(m);
+      });
       mk.bindTooltip(`${s.spot} · ${s.sessions}`, { direction: "top" });
       mk.on("click", () => nav(`/sessions?spot=${encodeURIComponent(s.spot)}`));
+      grp.addLayer(mk);
       pts.push([s.lat, s.lon]);
     }
     if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 12 });
     else m.setView([47.5, 9.5], 6);
-    setTimeout(() => m.invalidateSize(), 100);
   }, [spots, nav]);
 
   return (
@@ -51,6 +64,7 @@ export default function Spots() {
       <div className="mb-4 flex items-center gap-2">
         <SpotsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("nav.spots")}</h2>
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
       {!spots ? (
         <Spinner />
