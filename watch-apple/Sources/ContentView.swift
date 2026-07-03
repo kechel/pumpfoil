@@ -182,26 +182,29 @@ struct RecordView: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    // Titel + Version (+ Auto-Start-Zeile) eng zusammen, damit oben wenig Platz verloren geht.
+                    // Titel + Version (+ Auto-Start-Zeile) eng zusammen. Der ganze Block ist ein
+                    // großer Tap-Bereich (dicke Finger) -> öffnet die Einstellungen.
                     VStack(spacing: 0) {
-                        Text("Pumpfoil").font(.title3)
+                        HStack(spacing: 6) {
+                            Image("Logo").resizable().frame(width: 22, height: 22)
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                            Text("Pumpfoil").font(.title3)
+                        }
                         if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                             Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
                         }
                         if autoStart && !rec.starting {
                             // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
                             // (z.B. im Auto). Erst wenn scharf -> blau. Eng unter der Version.
-                            Group {
-                                if autoArmed {
-                                    Text(WLoc.t("rec.autoStart", lang)).foregroundStyle(.cyan)
-                                } else {
-                                    Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s").foregroundStyle(.secondary)
-                                }
+                            if autoArmed {
+                                Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan).padding(.top, 2)
+                            } else {
+                                Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s").font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
                             }
-                            .font(.caption2).padding(.top, 2)
-                            .onTapGesture { showFoilPicker = true }   // Antippen -> Einstellungen
                         }
                     }
+                    .contentShape(Rectangle())
+                    .onTapGesture { showFoilPicker = true }   // ganzer Kopfbereich -> Einstellungen
                     if rec.starting {
                         // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                         ProgressView().scaleEffect(0.8)
