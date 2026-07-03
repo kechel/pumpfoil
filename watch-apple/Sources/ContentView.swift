@@ -1,5 +1,6 @@
 import SwiftUI
 import WatchKit
+import Combine
 
 struct ContentView: View {
     @EnvironmentObject var rec: Recorder
@@ -128,8 +129,11 @@ struct RecordView: View {
     @State private var alarmSource = "foil"     // Schwellen-Quelle: "foil" (Auto) | "manual"
     @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
     @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
-    @State private var autoStart = false                // GPS-Auto-Start (Config-Flag)
+    @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
     @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
+    @State private var autoCountdown = 10               // s Vorlauf ab Betreten des Start-Screens, bis scharf
+    @State private var autoArmed = false                // Monitor aktiv (Countdown durch)?
+    private let autoTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         Group {
@@ -183,7 +187,14 @@ struct RecordView: View {
                         Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
                     }
                     if autoStart && !rec.starting {
-                        Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan)
+                        // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
+                        // (z.B. im Auto). Erst wenn scharf -> blau.
+                        if autoArmed {
+                            Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan)
+                        } else {
+                            Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
                     }
                     if rec.starting {
                         // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
@@ -214,6 +225,7 @@ struct RecordView: View {
                         AlarmPickerSheet(
                             foils: foils,
                             alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
+                            autoStart: $autoStart,
                             onPick: { showFoilPicker = false },
                             onCancel: { showFoilPicker = false })
                     }
@@ -275,14 +287,9 @@ struct RecordView: View {
                     }
                     }
                 }.padding()
-                // Auto-Start: im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten
-                // (nur wenn Config autoStart=true; Foreground-only). Beim Start/Verlassen aufräumen.
-                .task(id: autoStart) {
-                    if autoStart && !rec.isRecording {
-                        autoMon.arm { Task { @MainActor in await rec.start() } }
-                    } else { autoMon.disarm() }
-                }
-                .onDisappear { autoMon.disarm() }
+                // Auto-Start-Monitor wird NICHT hier gearmt, sondern erst nach dem Countdown
+                // (tickAutoStart, autoTimer). Beim Verlassen des Idle sicher aufräumen.
+                .onDisappear { autoMon.disarm(); autoArmed = false }
             }
         }
         .task {
@@ -300,6 +307,7 @@ struct RecordView: View {
             }
         }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
+        .onReceive(autoTimer) { _ in tickAutoStart() }         // Auto-Start-Vorlauf + Arming
         // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
         // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
         .onChange(of: rec.uploadError) { e in if e == "auth" { WatchLink.shared.requestToken() } }
@@ -389,15 +397,34 @@ struct RecordView: View {
             } else {
                 selectedFoilId = nil; alarmSource = "manual"
             }
+            autoStart = c.autoStart ?? false                   // Config-Default; danach auf der Uhr umschaltbar
         }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
-        autoStart = c.autoStart ?? false
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
     }
 
     // Flanke löst sofort aus; im Modus "continuous" alle ~3 Ticks erneut, solange drüber/drunter.
     // Min-Alarm nur im Fenster [min-2, min) — identisch zur Garmin-/Wear-Logik.
+    // Auto-Start-Vorlauf: läuft nur auf dem Start-Screen (nicht Aufnahme/Startphase/Einstellungen-Sheet).
+    // Zählt ab Betreten von 10 herunter; bei 0 wird der GPS-Monitor scharf. Beim Verlassen -> Reset auf 10,
+    // sodass der Vorlauf bei jeder Rückkehr (App-Start, nach Session-Ende, Sheet zu) neu beginnt.
+    private func tickAutoStart() {
+        let onStart = !rec.isRecording && !rec.starting && !showFoilPicker
+        guard autoStart && onStart else {
+            if autoArmed { autoMon.disarm(); autoArmed = false }
+            autoCountdown = 10
+            return
+        }
+        if autoCountdown > 0 {
+            autoCountdown -= 1
+            if autoCountdown == 0 {
+                autoArmed = true
+                autoMon.arm { Task { @MainActor in await rec.start() } }
+            }
+        }
+    }
+
     private func checkAlarm(_ sp: Double) {
         guard alarm.enabled else { wasHigh = false; wasLow = false; repeatTick = 0; return }
         let (elow, ehigh) = effThresholds()
@@ -437,12 +464,16 @@ struct AlarmPickerSheet: View {
     @Binding var alarm: WatchAlarm
     @Binding var alarmSource: String
     @Binding var selectedFoilId: Int?
+    @Binding var autoStart: Bool
     var onPick: () -> Void
     var onCancel: () -> Void
     @AppStorage("appLang") private var lang = "de"
 
     var body: some View {
         List {
+            Section {
+                Toggle(WLoc.t("rec.autoStartToggle", lang), isOn: $autoStart)
+            }
             Section(WLoc.t("foil.alarm", lang)) {
                 Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
             }

@@ -28,6 +28,7 @@ enum WLoc {
         "rec.stopHold": r("Stop · 3 s halten", "Stop · 3 s halte", "Stop · 3 s halten", "Stop · hold 3 s", "Stop · 3 s", "Stop · tieni 3 s", "Stop · mantén 3 s"),
         "rec.starting": r("starte…", "start…", "starte…", "starting…", "démarrage…", "avvio…", "iniciando…"),
         "rec.autoStart": r("Auto-Start aktiv", "Auto-Start aktiv", "Auto-Start aktiv", "Auto-start on", "Démarrage auto", "Avvio auto", "Inicio auto"),
+        "rec.autoStartToggle": r("Auto-Start", "Auto-Start", "Auto-Start", "Auto-start", "Démarrage auto", "Avvio automatico", "Inicio automático"),
         "rec.recording": r("Aufnahme läuft", "Ufnahm lauft", "Aufnahme läuft", "Recording", "Enregistrement", "Registrazione", "Grabando"),
         "rec.workoutFail": r("Workout-Start fehlgeschlagen: ", "Workout-Start fehlgschlage: ", "Workout-Start fehlgeschlagen: ", "Workout start failed: ", "Échec démarrage workout : ", "Avvio workout fallito: ", "Error al iniciar workout: "),
         "rec.sync": r("Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…"),
