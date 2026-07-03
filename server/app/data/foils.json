@@ -1205,5 +1205,35 @@
     "thickness_mm": 23.1,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP EXTREME",
+    "size": "1400",
+    "span_cm": 145,
+    "area_cm2": 1400,
+    "thickness_mm": 17.5,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP EXTREME",
+    "size": "1600",
+    "span_cm": 155,
+    "area_cm2": 1600,
+    "thickness_mm": 19.0,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP EXTREME",
+    "size": "1800",
+    "span_cm": 164,
+    "area_cm2": 1800,
+    "thickness_mm": 20.5,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
