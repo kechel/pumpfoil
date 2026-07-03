@@ -48,7 +48,7 @@ export default function PersonalHome() {
 
   const recs = stats?.records;
   // Rekord-Kacheln (klickbar -> Session) + Gesamt-Stat-Kacheln, alle zusammen oben.
-  const recTiles: { label: string; rec?: { value: number; session_id: number | null }; fmt: (v: number) => string }[] = [
+  const recTiles: { label: string; rec?: { value: number; session_id: number | null; started_at?: string | null }; fmt: (v: number) => string }[] = [
     { label: t("rec.farthestRun"), rec: recs?.distance, fmt: (v) => `${Math.round(v)} m` },
     { label: t("rec.longestRun"), rec: recs?.duration, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
     { label: t("rec.topSpeed"), rec: recs?.speed, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
@@ -107,6 +107,11 @@ export default function PersonalHome() {
               <Card className="h-full px-2.5 py-1.5">
                 <div className="text-[11px] leading-tight text-slate-400">{r.label}</div>
                 <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
+                {v > 0 && r.rec?.started_at && (
+                  <div className="text-[10px] leading-tight tabular-nums text-slate-500">
+                    {new Date(r.rec.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                  </div>
+                )}
               </Card>
             );
             return v > 0 && r.rec?.session_id
