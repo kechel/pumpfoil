@@ -411,17 +411,25 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
                 } else {
-                // Gewählte Foil + Glocke, wenn der Alarm an ist (wie Garmin). Start nimmt es direkt.
+                // Start-Button OBEN, prominent (grün wie iOS, breit). Nimmt direkt mit der
+                // aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
+                Button(
+                    onClick = { skipSync(); RecorderService.start(applicationContext) },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xFF34C759), contentColor = Color.White),
+                    modifier = Modifier.fillMaxWidth(0.72f),
+                ) { Text(I18n.t("rec.start")) }
+                // Foil DARUNTER: sitzt so mittig auf der breitesten Stelle der runden Uhr
+                // (Platz für lange Namen). Tap -> Einstellungen (wie „Foil wählen").
                 if (foilLabel.isNotEmpty()) {
-                    Row(verticalAlignment = Alignment.CenterVertically,
+                    Spacer(Modifier.height(6.dp))
+                    Row(Modifier.clickable { showFoilPicker = true },
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("${I18n.t("foil.prefix")}$foilLabel", style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
                         if (alarm.enabled) Text("🔔", style = MaterialTheme.typography.caption2)
                     }
-                    Spacer(Modifier.height(4.dp))
                 }
-                // Start nimmt direkt mit der aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
-                Button(onClick = { skipSync(); RecorderService.start(applicationContext) }) { Text(I18n.t("rec.start")) }
                 // Sekundär-Aktionen (per vertikalem Scrollen erreichbar): Foil ändern + manuell syncen.
                 // Sync-Chip nur, wenn es auch etwas hochzuladen gibt (gepairt + pending > 0).
                 val canSync = Api.deviceToken != null && s.pendingCount > 0
