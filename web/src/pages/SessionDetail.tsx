@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
 import { invalidateSessionListCache } from "./Sessions";
@@ -854,6 +854,15 @@ export default function SessionDetail() {
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
         <div className="flex items-center gap-2">
+          {session.place_name && (
+            <Link
+              to={`/chat?scope=${encodeURIComponent(`spot:${session.place_name}`)}`}
+              title={t("chat.spotChat")}
+              className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
+            >
+              <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.title")}
+            </Link>
+          )}
           {(() => {
             const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
             return (

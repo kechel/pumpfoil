@@ -293,10 +293,12 @@ def list_sessions(
     offset: int = 0,
     month: str | None = None,
     filter: str = "pump",
+    accel_only: bool = False,
 ) -> list[SessionOut]:
     """Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
     seitenweise (Infinite-Scroll). Optionaler Monatsfilter 'YYYY-MM'.
-    filter='pump' (Default): nur Pumpfoilen; 'other': nur Aussortierte (kein Pumpfoil)."""
+    filter='pump' (Default): nur Pumpfoilen; 'other': nur Aussortierte (kein Pumpfoil).
+    accel_only=True: nur Sessions mit präzisem Accel-/Modell-Lauf (sonst auch GPS-only)."""
     # slim-Liste: result eager mitladen, aber die großen TEXT-Blobs (Track/Segmente/
     # Accel) NICHT — sonst zieht jeder Listeneintrag den ganzen GPS-Track aus der DB.
     q = db.query(models.Session).options(
@@ -306,6 +308,9 @@ def list_sessions(
     ).filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
     q = q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
                  else models.Session.is_pumpfoil.isnot(True))
+    if accel_only:
+        q = q.join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)\
+             .filter(models.AnalysisResult.detection == "model")
     if month:
         try:
             start, end = _month_bounds(month)
@@ -434,6 +439,20 @@ def overall_stats(
     accel_only: bool = True,
 ) -> dict:
     return compute_overall_stats(db, user.id, accel_only)
+
+
+@router.get("/has-accel")
+def has_accel(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Hat der Nutzer mind. einen präzisen Accel-/Modell-Lauf? -> steuert den UI-Default
+    des accel|alle-Umschalters (accel, wenn Accel-Daten vorhanden; sonst alle)."""
+    row = (
+        db.query(models.AnalysisResult.id)
+        .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.AnalysisResult.detection == "model")
+        .first()
+    )
+    return {"has_accel": row is not None}
 
 
 @router.get("/history")

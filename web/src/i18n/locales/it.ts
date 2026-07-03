@@ -99,6 +99,7 @@ const it: Record<string, string> = {
   "home.topRated": "Più apprezzate ❤️",
   "home.spots": "Spot",
   "home.spotSearch": "Cerca spot (altro lago)…",
+  "home.spotPick": "Scegli uno spot …",
   "home.noSpots": "Ancora nessuno spot — cerca sopra.",
   "home.remove": "rimuovi",
   "home.hideSessions": "▾ Nascondi sessioni",

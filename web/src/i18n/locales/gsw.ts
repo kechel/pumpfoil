@@ -99,6 +99,7 @@ const gsw: Record<string, string> = {
   "home.topRated": "Am beschte bewertet ❤️",
   "home.spots": "Spots",
   "home.spotSearch": "Spot sueche (en andere See)…",
+  "home.spotPick": "Spot wähle …",
   "home.noSpots": "No kei Spots — obe sueche.",
   "home.remove": "use",
   "home.hideSessions": "▾ Sessions usblände",

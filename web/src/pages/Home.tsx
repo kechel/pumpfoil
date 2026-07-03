@@ -8,6 +8,7 @@ import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
 import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon } from "../components/Icons";
 import { AccelToggle } from "../components/AccelToggle";
+import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
 
 function InstallButton() {
@@ -313,8 +314,9 @@ function CommunitySection() {
   const t = useT();
   const [data, setData] = useState<CommunityRecords | null>(null);
   const [period, setPeriod] = useState("10d");
-  // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil).
-  const [accelOnly, setAccelOnly] = useState(true);
+  // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
+  // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
+  const [accelOnly, setAccelOnly] = useAccelDefault();
 
   useEffect(() => {
     api.communityRecords(accelOnly).then(setData).catch(() => {});
@@ -358,9 +360,11 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
   const [recs, setRecs] = useState<Record<string, RecordSet>>({});
   const [q, setQ] = useState("");
 
+  // Spot-Liste immer vollständig (auch GPS-only) laden, damit man ALLE Spots findet;
+  // die Rekorde/Sessions je Spot respektieren weiterhin den accel|alle-Umschalter.
   useEffect(() => {
-    api.communitySpots(accelOnly).then((s) => { setSpots(s); setShown(s.mine); }).catch(() => {});
-  }, [accelOnly]);
+    api.communitySpots(false).then((s) => { setSpots(s); setShown(s.mine); }).catch(() => {});
+  }, []);
 
   // Rekorde je Spot für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
   useEffect(() => {
@@ -402,6 +406,20 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
           </div>
         )}
       </div>
+
+      {/* Dropdown zum Durchsehen aller Spots (bis es zu viele werden). */}
+      {spots.all.filter((s) => !shown.includes(s)).length > 0 && (
+        <div className="mb-4 max-w-xs">
+          <select
+            value=""
+            onChange={(e) => { if (e.target.value) addSpot(e.target.value); }}
+            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          >
+            <option value="">{t("home.spotPick")}</option>
+            {spots.all.filter((s) => !shown.includes(s)).map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      )}
 
       {shown.length === 0 ? (
         <p className="text-sm text-slate-400">{t("home.noSpots")}</p>

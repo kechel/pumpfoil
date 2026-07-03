@@ -99,6 +99,7 @@ const deAT: Record<string, string> = {
   "home.topRated": "Am besten bewertet ❤️",
   "home.spots": "Spots",
   "home.spotSearch": "Spot suchen (anderer See)…",
+  "home.spotPick": "Spot wählen …",
   "home.noSpots": "No kane Spots — oben suchen.",
   "home.remove": "weg",
   "home.hideSessions": "▾ Sessions ausblenden",

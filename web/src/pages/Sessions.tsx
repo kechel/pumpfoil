@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
+import { useAccelDefault } from "../lib/useAccelDefault";
 import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
@@ -38,10 +39,12 @@ export default function Sessions() {
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [myName, setMyName] = useState<string | null>(null);
+  // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
+  const [accelOnly, setAccelOnly] = useAccelDefault();
 
   useEffect(() => {
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
-    api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
+    api.communitySpots(false).then((s) => setSpots(s.all)).catch(() => {});  // alle Spots (auch GPS)
     api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
   }, []);
 
@@ -92,10 +95,11 @@ export default function Sessions() {
           {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         {spot && <SpotChatToggle spot={spot} t={t} />}
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
 
       {spot && <SpotWeather spot={spot} />}
-      {isMine ? <MySessionsList myName={myName} /> : <CommunityList name="" spot={spot} />}
+      {isMine ? <MySessionsList myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}
     </div>
   );
 }
@@ -115,8 +119,10 @@ function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string })
 
 // --- Eigene Sessions (mit Monats-/Sportart-Filter) --------------------------
 
-function MySessionsList({ myName }: { myName: string | null }) {
+function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnly: boolean }) {
   const t = useT();
+  const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
+  const firstAccel = useRef(true);
   const [sp, setSp] = useSearchParams();
   const [items, setItems] = useState<SessionSummary[]>([]);
   const [months, setMonths] = useState<{ month: string; count: number }[]>([]);
@@ -134,7 +140,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
   const offsetRef = useRef(0);
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
-  const cacheKey = () => `${filterRef.current}|${monthRef.current}`;
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
@@ -151,7 +157,7 @@ function MySessionsList({ myName }: { myName: string | null }) {
     loadingRef.current = true; setLoading(true); setError(null);
     try {
       const off = replace ? 0 : offsetRef.current;
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current });
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current });
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
       setHasMore(hasMoreRef.current);
@@ -185,6 +191,18 @@ function MySessionsList({ myName }: { myName: string | null }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // accel|alle umgeschaltet -> Liste zurücksetzen und neu laden (Erst-Mount überspringen).
+  useEffect(() => {
+    if (firstAccel.current) { firstAccel.current = false; return; }
+    hasMoreRef.current = true; offsetRef.current = 0;
+    const cached = listCache.get(cacheKey());
+    if (cached && cached.items.length) {
+      setItems(cached.items); offsetRef.current = cached.offset; hasMoreRef.current = cached.hasMore; setHasMore(cached.hasMore);
+    } else {
+      setItems([]); fetchPage(monthRef.current, true);
+    }
+  }, [accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Items immer im Ref spiegeln + nach dem Restore die markierte Karte in den Blick scrollen
   // (robuster als eine Pixel-Position: unabhängig vom Scroll-Container). Doppeltes rAF, damit
@@ -268,11 +286,10 @@ function MySessionsList({ myName }: { myName: string | null }) {
 
 // --- Community-Sessions (alle / je Spot) ------------------------------------
 
-function CommunityList({ name, spot }: { name: string; spot: string }) {
+function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; accelOnly: boolean }) {
   const t = useT();
   const [items, setItems] = useState<CommunitySession[]>([]);
   const [loading, setLoading] = useState(false);
-  const [accelOnly, setAccelOnly] = useState(true);   // nur Accel vs. auch GPS-only (On-Foil)
   const offsetRef = useRef(0);
   const moreRef = useRef(true);
   const loadingRef = useRef(false);
@@ -322,9 +339,6 @@ function CommunityList({ name, spot }: { name: string; spot: string }) {
 
   return (
     <div>
-      <div className="mb-3 flex justify-end">
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} />
-      </div>
       {items.length === 0 && !loading ? (
         <Card className="p-8 text-center text-slate-300">{t("all.none")}</Card>
       ) : (

@@ -446,17 +446,19 @@ export const api = {
     if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
     return (await res.json()) as SessionSummary;
   },
-  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string }) => {
+  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.limit != null) qs.set("limit", String(params.limit));
     if (params?.offset != null) qs.set("offset", String(params.offset));
     if (params?.month) qs.set("month", params.month);
     if (params?.filter) qs.set("filter", params.filter);
+    if (params?.accelOnly) qs.set("accel_only", "true");
     const q = qs.toString();
     return req<SessionSummary[]>(`/api/sessions${q ? "?" + q : ""}`);
   },
   sessionMonths: (filter?: string) =>
     req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
+  hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
   stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
   communityRecords: (accelOnly = true) => req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}`),
   communitySpots: (accelOnly = true) => req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}`),

@@ -4,7 +4,6 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
-import { AccelToggle } from "../components/AccelToggle";
 import { useT } from "../i18n";
 
 type Spot = { spot: string; lat: number; lon: number; sessions: number };
@@ -15,13 +14,12 @@ export default function Spots() {
   const nav = useNavigate();
   const [spots, setSpots] = useState<Spot[] | null>(null);
   const [q, setQ] = useState("");
-  const [accelOnly, setAccelOnly] = useState(true);   // nur Accel vs. auch GPS-only (On-Foil)
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
   const markers = useRef<L.LayerGroup | null>(null);
 
-  // Bei Umschaltung neu laden (spots NICHT auf null setzen -> Karte bleibt gemountet).
-  useEffect(() => { api.spotMap(accelOnly).then(setSpots).catch(() => setSpots([])); }, [accelOnly]);
+  // Immer ALLE Spots (auch GPS-only mit erkanntem On-Foil) — die Karte ist reine Übersicht.
+  useEffect(() => { api.spotMap(false).then(setSpots).catch(() => setSpots([])); }, []);
 
   // Spot suchen -> zentrieren + ~50 km Radius (Quadrat 100 km) als Zoom.
   function focusSpot(name: string) {
@@ -64,7 +62,6 @@ export default function Spots() {
       <div className="mb-4 flex items-center gap-2">
         <SpotsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("nav.spots")}</h2>
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
       {!spots ? (
         <Spinner />
@@ -72,19 +69,32 @@ export default function Spots() {
         <Card className="p-8 text-center text-slate-300">{t("spots.none")}</Card>
       ) : (
         <>
-          <form onSubmit={(e) => { e.preventDefault(); focusSpot(q); }} className="mb-3">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              onInput={(e) => { const v = (e.target as HTMLInputElement).value; if (spots.some((s) => s.spot === v)) focusSpot(v); }}
-              list="spot-list"
-              placeholder={t("spots.search")}
-              className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-            />
-            <datalist id="spot-list">
-              {spots.map((s) => <option key={s.spot} value={s.spot} />)}
-            </datalist>
-          </form>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <form onSubmit={(e) => { e.preventDefault(); focusSpot(q); }} className="max-w-sm flex-1">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onInput={(e) => { const v = (e.target as HTMLInputElement).value; if (spots.some((s) => s.spot === v)) focusSpot(v); }}
+                list="spot-list"
+                placeholder={t("spots.search")}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+              />
+              <datalist id="spot-list">
+                {spots.map((s) => <option key={s.spot} value={s.spot} />)}
+              </datalist>
+            </form>
+            {/* Alternativ: Dropdown zum Durchsehen aller Spots (bis es zu viele werden). */}
+            <select
+              value=""
+              onChange={(e) => { if (e.target.value) { setQ(e.target.value); focusSpot(e.target.value); } }}
+              className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+            >
+              <option value="">{t("home.spotPick")}</option>
+              {[...spots].sort((a, b) => a.spot.localeCompare(b.spot)).map((s) => (
+                <option key={s.spot} value={s.spot}>{s.spot} · {s.sessions}</option>
+              ))}
+            </select>
+          </div>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
         </>
       )}
