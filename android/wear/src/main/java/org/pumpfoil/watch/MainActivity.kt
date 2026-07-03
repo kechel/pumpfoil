@@ -101,9 +101,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // Scrollbar + großzügiger Rand: bei großer System-Schrift darf nichts am runden Rand
-        // abgeschnitten werden (Wear-Qualitätsrichtlinie Schriftgröße).
+        // abgeschnitten werden (Wear-Qualitätsrichtlinie Schriftgröße). Scaffold + PositionIndicator
+        // zeigt die von Wear geforderte Scroll-Anzeige.
+        val scroll = rememberScrollState()
+        Scaffold(positionIndicator = { PositionIndicator(scrollState = scroll) }) {
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            Modifier.fillMaxSize().verticalScroll(scroll)
                 .padding(horizontal = 16.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -141,6 +144,7 @@ class MainActivity : ComponentActivity() {
             // Ohne Pairing aufnehmen — Sessions werden lokal gespeichert, später gesynct.
             CompactChip(onClick = onSkip,
                 label = { Text(I18n.t("pair.later"), style = MaterialTheme.typography.caption2) })
+        }
         }
     }
 
@@ -398,8 +402,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
             // Scrollbar + Rand: bei großer System-Schrift darf unten nichts abgeschnitten werden
-            // (Wear-Schriftgrößen-Regel). Bei normaler Schrift passt alles ohne Scrollen.
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            // (Wear-Schriftgrößen-Regel). Scaffold+PositionIndicator zeigt die geforderte Scroll-
+            // Anzeige; bei normaler Schrift passt alles ohne Scrollen.
+            val startScroll = rememberScrollState()
+            Scaffold(positionIndicator = { PositionIndicator(scrollState = startScroll) }) {
+            Column(Modifier.fillMaxSize().verticalScroll(startScroll)
                     .padding(horizontal = 12.dp, vertical = 22.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
@@ -539,6 +546,7 @@ class MainActivity : ComponentActivity() {
                 }
                 }
             }
+            }
         }
     }
 
@@ -575,8 +583,10 @@ class MainActivity : ComponentActivity() {
             if (isBackground) {
                 Box(Modifier.fillMaxSize().background(Color.Black))
             } else {
+                val savedScroll = rememberScrollState()
+                Scaffold(positionIndicator = { PositionIndicator(scrollState = savedScroll) }) {
                 Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    Modifier.fillMaxSize().verticalScroll(savedScroll)
                         .padding(horizontal = 16.dp, vertical = 24.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -606,6 +616,7 @@ class MainActivity : ComponentActivity() {
                         CompactChip(onClick = onDone,
                             label = { Text(I18n.t("common.done")) })
                     }
+                }
                 }
             }
         }
@@ -773,8 +784,10 @@ fun FoilPicker(
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(horizontal = 6.dp, vertical = 0.dp),
     )
+    val foilScroll = rememberScrollState()
+    Scaffold(positionIndicator = { PositionIndicator(scrollState = foilScroll) }) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
+        Modifier.fillMaxSize().verticalScroll(foilScroll).padding(horizontal = 8.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -820,6 +833,7 @@ fun FoilPicker(
         CompactChip(onClick = onNone,
             label = { Text((if (selectedFoilId == null) "✓ " else "") + I18n.t("foil.noFoil")) })
         CompactChip(onClick = onBack, label = { Text(I18n.t("common.back")) })
+    }
     }
 }
 
