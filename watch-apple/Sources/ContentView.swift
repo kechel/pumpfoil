@@ -482,6 +482,8 @@ struct AlarmPickerSheet: View {
         List {
             Section {
                 Toggle(WLoc.t("rec.autoStartToggle", lang), isOn: $autoStart)
+            } footer: {
+                Text(WLoc.t("rec.autoStartHelp", lang))
             }
             Section(WLoc.t("foil.alarm", lang)) {
                 Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
