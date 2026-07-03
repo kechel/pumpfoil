@@ -120,6 +120,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Back während Aufzeichnung ignorieren (versehentliches Beenden vermeiden).
     function onBack() as Lang.Boolean {
         if (_rec.isRecording()) { return true; }
+        // Auf dem „Gespeichert"-Screen: BACK -> zurück zum Start-Screen, statt die App zu verlassen.
+        if (_rec.stopped) { _rec.stopped = false; WatchUi.requestUpdate(); return true; }
         return false;
     }
 }
