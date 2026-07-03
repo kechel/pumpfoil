@@ -156,6 +156,8 @@ class MainActivity : ComponentActivity() {
         var manualAlarm by remember { mutableStateOf(false) }
         var alarmDefault by remember { mutableStateOf("foil") }   // Vorwahl: "foil" | "fixed"
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
+        var showSaved by remember { mutableStateOf(false) }   // Post-Stop-Screen (wie Garmin)
+        var wasRecording by remember { mutableStateOf(false) }
         var showFoilPicker by remember { mutableStateOf(false) }
         var foilLabel by remember { mutableStateOf("") }        // gewählte Foil (Anzeige "Foil: <name>")
         var sessionFoilId by remember { mutableStateOf<Int?>(null) }   // Foil = Metadaten (+ Auto-Schwellen)
@@ -249,6 +251,12 @@ class MainActivity : ComponentActivity() {
         AlarmEffect(s.speedKmh, effAlarm)
         // Gewählte Foil an den Recorder durchreichen (wird als foil_id ins Meta geschrieben).
         LaunchedEffect(sessionFoilId) { Recorder.sessionFoilId = sessionFoilId }
+        // Post-Stop-Screen einblenden, sobald die Aufnahme endet (Flanke recording true->false).
+        // Verhindert, dass man direkt versehentlich wieder auf Start tippt (wie Garmin).
+        LaunchedEffect(s.recording) {
+            if (wasRecording && !s.recording) showSaved = true
+            wasRecording = s.recording
+        }
 
         if (s.recording) {
             // Pager: Stop(0) | Datenansichten 1..n | Übersicht(n+1) | Stop(n+2).
@@ -315,6 +323,8 @@ class MainActivity : ComponentActivity() {
                         strokeWidth = 2.dp)
                 }
             }
+        } else if (showSaved) {
+            SavedScreen(s) { showSaved = false }
         } else if (showFoilPicker) {
             // Wear-Konvention: Wischen von links nach rechts schließt den Screen (statt bis
             // ganz unten zum „Zurück"-Chip zu scrollen). SwipeToDismissBox liefert die Geste.
@@ -539,6 +549,56 @@ class MainActivity : ComponentActivity() {
                 Spacer(Modifier.height(4.dp))
                 Text("${s.uploadSent}/${s.uploadTotal}",
                     style = MaterialTheme.typography.caption1, color = Color(0xFF94A3B8))
+            }
+        }
+    }
+
+    // Post-Stop-Screen wie Garmin: erst „lädt hoch…", danach „Upload fertig" (gepairt +
+    // online + nichts offen) ODER „Gespeichert" (offline/ungepairt). Explizites „Fertig" bzw.
+    // Wischen nach rechts kehrt zum Start-Screen zurück — so tippt man nicht versehentlich Start.
+    @Composable
+    private fun SavedScreen(s: Recorder.State, onDone: () -> Unit) {
+        val dismiss = rememberSwipeToDismissBoxState()
+        LaunchedEffect(dismiss.currentValue) {
+            if (dismiss.currentValue == SwipeToDismissValue.Dismissed) {
+                onDone(); dismiss.snapTo(SwipeToDismissValue.Default)
+            }
+        }
+        SwipeToDismissBox(state = dismiss) { isBackground ->
+            if (isBackground) {
+                Box(Modifier.fillMaxSize().background(Color.Black))
+            } else {
+                Column(
+                    Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (s.uploading) {
+                        CircularProgressIndicator(modifier = Modifier.size(36.dp), strokeWidth = 3.dp)
+                        Spacer(Modifier.height(10.dp))
+                        Text(I18n.t("saved.uploading"), style = MaterialTheme.typography.title3)
+                        if (s.uploadTotal > 0) {
+                            Spacer(Modifier.height(4.dp))
+                            Text("${s.uploadSent}/${s.uploadTotal}",
+                                style = MaterialTheme.typography.caption1, color = Color(0xFF94A3B8))
+                        }
+                    } else {
+                        val uploaded = Api.deviceToken != null && s.pendingCount == 0 && s.uploadError.isEmpty()
+                        if (uploaded) {
+                            Text("✓", style = MaterialTheme.typography.display2, color = Color(0xFF34C759))
+                            Spacer(Modifier.height(2.dp))
+                            Text(I18n.t("saved.uploadDone"), style = MaterialTheme.typography.title3)
+                        } else {
+                            Text(I18n.t("saved.title"), style = MaterialTheme.typography.title3)
+                            Spacer(Modifier.height(4.dp))
+                            Text(I18n.t("saved.upload"), style = MaterialTheme.typography.caption2,
+                                color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        CompactChip(onClick = onDone,
+                            label = { Text(I18n.t("common.done")) })
+                    }
+                }
             }
         }
     }
