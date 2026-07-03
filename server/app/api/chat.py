@@ -459,3 +459,24 @@ def active_rooms(
         if len(out) >= min(max(limit, 1), 20):
             break
     return out
+
+
+@router.get("/all-spots")
+def all_spot_chats(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """ALLE Spot-Chats mit mind. einer sichtbaren Nachricht — für die Auswahl-Box, damit jeder
+    in jeden Spot-Chat schauen kann. Neueste Aktivität zuerst."""
+    from sqlalchemy import func
+
+    rows = (
+        db.query(models.ChatMessage.scope,
+                 func.count(models.ChatMessage.id).label("n"),
+                 func.max(models.ChatMessage.created_at).label("last"))
+        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.scope.like("spot:%"))
+        .group_by(models.ChatMessage.scope)
+        .order_by(func.max(models.ChatMessage.created_at).desc())
+        .all()
+    )
+    return [
+        {"scope": s, "label": _scope_label_db(db, s, user.id), "url": _scope_url(s), "messages": int(n)}
+        for s, n, _last in rows
+    ]

@@ -378,6 +378,8 @@ const en: Record<string, string> = {
   "foilStats.colMetersPerPump": "Meters/pump",
   "nav.chat": "Chat",
   "chat.activeOthers": "Most active chats (48 h)",
+  "chat.allSpots": "All spot chats",
+  "chat.allSpotsPick": "View a spot chat …",
   "chat.kindSpot": "Spot chat",
   "chat.kindSession": "Session chat",
   "chat.noMine": "You're not in any chat yet.",

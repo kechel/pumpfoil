@@ -318,6 +318,8 @@ const gsw: Record<string, string> = {
   "foilStats.colMetersPerPump": "Meter/Pump",
   "nav.chat": "Chat",
   "chat.activeOthers": "Aktivschti Chats (48 h)",
+  "chat.allSpots": "Alli Spot-Chats",
+  "chat.allSpotsPick": "Spot-Chat aaluege …",
   "chat.noMine": "Du bisch no i keim Chat.",
   "chat.noActive": "Kei aktivi Chats i de letschte 48 h.",
   "power.tip": "{foil}: theoretischi Leischtig bi Ø {speed} km/h, {weight} kg Gsamtgwicht. Vortrib {drag} W + Pump-Trägheit {inertia} W{note}.",

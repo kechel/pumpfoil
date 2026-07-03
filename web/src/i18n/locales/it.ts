@@ -368,6 +368,8 @@ const it: Record<string, string> = {
   "foilStats.colMetersPerPump": "Metri/pump",
   "nav.chat": "Chat",
   "chat.activeOthers": "Chat più attive (48 h)",
+  "chat.allSpots": "Tutte le chat degli spot",
+  "chat.allSpotsPick": "Vedi una chat di spot …",
   "chat.noMine": "Non sei ancora in nessuna chat.",
   "chat.noActive": "Nessuna chat attiva nelle ultime 48 h.",
   "power.tip": "{foil}: potenza teorica a {speed} km/h medi, {weight} kg totali. Resistenza {drag} W + inerzia di pump {inertia} W{note}.",

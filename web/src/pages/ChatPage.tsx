@@ -21,6 +21,7 @@ export default function ChatPage() {
   const [scope, setScope] = useState<string | null>(sp.get("scope"));
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [active, setActive] = useState<ActiveRoom[]>([]);
+  const [allSpots, setAllSpots] = useState<{ scope: string; label: string; url: string; messages: number }[]>([]);
   const [sessionLabel, setSessionLabel] = useState("");
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function ChatPage() {
   useEffect(() => {
     api.chatRooms().then(setRooms).catch(() => {});
     api.chatActive(48, 3).then(setActive).catch(() => {});
+    api.chatAllSpots().then(setAllSpots).catch(() => {});
   }, [scope]);
 
   // Für Session-Chats den Spotnamen (+ Datum) als Titel laden statt „#4".
@@ -81,6 +83,23 @@ export default function ChatPage() {
       <RoomList title={t("chat.activeOthers")} empty={t("chat.noActive")}
         items={active.map((r) => ({ scope: r.scope, label: r.label, url: r.url,
           last_text: r.last_text, badge: r.messages, push: false }))} />
+
+      {/* Alle Spot-Chats mit Nachrichten durchsehen — jeder darf in jeden Spot-Chat schauen. */}
+      {allSpots.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("chat.allSpots")}</h3>
+          <select
+            value={scope && scope.startsWith("spot:") ? scope : ""}
+            onChange={(e) => { if (e.target.value) navigate(`/chat?scope=${encodeURIComponent(e.target.value)}`); }}
+            className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          >
+            <option value="">{t("chat.allSpotsPick")}</option>
+            {allSpots.map((r) => (
+              <option key={r.scope} value={r.scope}>{r.label} ({r.messages})</option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }
