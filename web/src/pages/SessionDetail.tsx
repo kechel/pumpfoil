@@ -860,7 +860,7 @@ export default function SessionDetail() {
               title={t("chat.spotChat")}
               className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
             >
-              <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.title")}
+              <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.spotChat")} {session.place_name}
             </Link>
           )}
           {(() => {
