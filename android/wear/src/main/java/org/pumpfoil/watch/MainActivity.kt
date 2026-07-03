@@ -100,12 +100,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Scrollbar + großzügiger Rand: bei großer System-Schrift darf nichts am runden Rand
+        // abgeschnitten werden (Wear-Qualitätsrichtlinie Schriftgröße).
         Column(
-            Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.Center,
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(I18n.t("pair.title"), style = MaterialTheme.typography.title3)
+            Text(I18n.t("pair.title"), style = MaterialTheme.typography.title3, textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))
             if (code.isEmpty()) {
                 Text(I18n.t("pair.howto"),
@@ -395,7 +397,10 @@ class MainActivity : ComponentActivity() {
                     onDispose { fused.removeLocationUpdates(cb) }
                 }
             }
-            Column(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp),
+            // Scrollbar + Rand: bei großer System-Schrift darf unten nichts abgeschnitten werden
+            // (Wear-Schriftgrößen-Regel). Bei normaler Schrift passt alles ohne Scrollen.
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    .padding(horizontal = 12.dp, vertical = 22.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 // Kopf (Titel + Version + Auto-Start-Zeile) = ein Tap-Bereich -> Einstellungen (wie iOS).
@@ -571,7 +576,8 @@ class MainActivity : ComponentActivity() {
                 Box(Modifier.fillMaxSize().background(Color.Black))
             } else {
                 Column(
-                    Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 12.dp),
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 24.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
