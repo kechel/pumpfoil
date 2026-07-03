@@ -15,6 +15,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -316,11 +318,13 @@ class MainActivity : ComponentActivity() {
                 foils = foils,
                 alarmOn = alarm.enabled,
                 source = alarmSource,
+                autoStart = autoStart,
                 manualLow = alarm.low,
                 manualHigh = alarm.high,
                 selectedFoilId = sessionFoilId,
                 onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
                 onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
+                onToggleAutoStart = { autoStart = !autoStart },
                 onManualLow = { v -> alarm = alarm.copy(low = v) },
                 onManualHigh = { v -> alarm = alarm.copy(high = v) },
                 onPick = { f -> sessionFoilId = f.id; foilLabel = f.label; showFoilPicker = false },
@@ -332,10 +336,22 @@ class MainActivity : ComponentActivity() {
             // (kehrt automatisch zum Idle-Screen zurück, sobald fertig).
             UploadScreen(s)
         } else {
-            // Auto-Start (Config): im Idle GPS beobachten; bei ≥10 km/h für 4 s automatisch starten.
-            // Nur solange der Idle-Screen aktiv ist (Foreground) — beim Start räumt onDispose auf.
+            // Auto-Start: 10 s Vorlauf ab Betreten des Start-Screens, erst dann scharf. Dieser
+            // else-Zweig wird bei jedem Betreten des Start-Screens neu gemountet (auch nach
+            // Session-Ende) -> das remember-State setzt sich zurück, der Countdown startet neu.
+            var autoCountdown by remember { mutableStateOf(10) }
+            var autoArmed by remember { mutableStateOf(false) }
             if (autoStart && !s.starting) {
-                DisposableEffect(autoStart) {
+                LaunchedEffect(Unit) {
+                    autoCountdown = 10; autoArmed = false
+                    while (autoCountdown > 0) { delay(1000); autoCountdown-- }
+                    autoArmed = true
+                }
+            }
+            // Erst nach dem Countdown GPS beobachten; bei ≥10 km/h für 4 s automatisch starten.
+            // Nur solange der Idle-Screen aktiv ist (Foreground) — beim Start räumt onDispose auf.
+            if (autoStart && !s.starting && autoArmed) {
+                DisposableEffect(Unit) {
                     val fused = LocationServices.getFusedLocationProviderClient(ctx)
                     var streak = 0
                     val cb = object : LocationCallback() {
@@ -353,10 +369,22 @@ class MainActivity : ComponentActivity() {
             Column(Modifier.fillMaxSize().padding(12.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Pumpfoil", style = MaterialTheme.typography.title3)
-                Text("v" + appVersion(ctx), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
-                if (autoStart && !s.starting) Text(I18n.t("rec.autoStart"),
-                    style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                // Kopf (Titel + Version + Auto-Start-Zeile) = ein Tap-Bereich -> Einstellungen (wie iOS).
+                Column(
+                    Modifier.clickable { showFoilPicker = true },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text("Pumpfoil", style = MaterialTheme.typography.title3)
+                    Text("v" + appVersion(ctx), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln.
+                    // Erst wenn scharf -> cyan „Auto-Start aktiv".
+                    if (autoStart && !s.starting) {
+                        if (autoArmed) Text(I18n.t("rec.autoStart"),
+                            style = MaterialTheme.typography.caption2, color = Color(0xFF22D3EE))
+                        else Text("${I18n.t("rec.autoStartIn")} ${autoCountdown}s",
+                            style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 if (s.starting) {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
@@ -628,30 +656,49 @@ fun FoilPicker(
     foils: List<FoilOpt>,
     alarmOn: Boolean,
     source: String,
+    autoStart: Boolean,
     manualLow: Int,
     manualHigh: Int,
     selectedFoilId: Int?,
     onToggleAlarm: () -> Unit,
     onToggleSource: () -> Unit,
+    onToggleAutoStart: () -> Unit,
     onManualLow: (Int) -> Unit,
     onManualHigh: (Int) -> Unit,
     onPick: (FoilOpt) -> Unit,
     onNone: () -> Unit,
     onBack: () -> Unit,
 ) {
+    // Kleiner grauer Hinweistext unter einem Chip (Ersatz für die Section-Footer der Apple-Uhr).
+    @Composable fun Help(text: String) = Text(
+        text,
+        style = MaterialTheme.typography.caption2,
+        color = Color(0xFF94A3B8),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = 6.dp, vertical = 0.dp),
+    )
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(I18n.t("foil.choose"), style = MaterialTheme.typography.title3)
-        // Alarm An/Aus
+        // Auto-Start An/Aus (auf der Uhr umschaltbar) + Hinweis
+        Chip(
+            onClick = onToggleAutoStart,
+            label = { Text(I18n.t("rec.autoStartToggle")) },
+            secondaryLabel = { Text(if (autoStart) I18n.t("common.on") else I18n.t("common.off")) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Help(I18n.t("rec.autoStartHelp"))
+        // Alarm An/Aus + Hinweis
         Chip(
             onClick = onToggleAlarm,
             label = { Text(I18n.t("foil.alarm")) },
             secondaryLabel = { Text(if (alarmOn) I18n.t("common.on") else I18n.t("common.off")) },
             modifier = Modifier.fillMaxWidth(),
         )
+        Help(I18n.t("foil.alarmHelp"))
         // Schwellen-Quelle
         Chip(
             onClick = onToggleSource,
@@ -665,6 +712,7 @@ fun FoilPicker(
             StepperRow(I18n.t("foil.max"), manualHigh, onManualHigh)
         }
         // Foil-Auswahl (Metadaten + Auto-Schwellen)
+        Help(I18n.t("foil.chooseHelp"))
         foils.forEach { f ->
             Chip(
                 onClick = { onPick(f) },
