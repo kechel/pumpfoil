@@ -417,7 +417,7 @@ class MainActivity : ComponentActivity() {
                     onClick = { skipSync(); RecorderService.start(applicationContext) },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF34C759), contentColor = Color.White),
-                    modifier = Modifier.fillMaxWidth(0.72f),
+                    modifier = Modifier.fillMaxWidth(0.72f).height(42.dp),
                 ) { Text(I18n.t("rec.start")) }
                 // Foil DARUNTER: sitzt so mittig auf der breitesten Stelle der runden Uhr
                 // (Platz für lange Namen). Tap -> Einstellungen (wie „Foil wählen").
