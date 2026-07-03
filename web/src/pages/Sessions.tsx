@@ -16,6 +16,13 @@ const PAGE = 20;
 const listCache = new Map<string, { items: SessionSummary[]; offset: number; hasMore: boolean; scrollY: number }>();
 const communityCache = new Map<string, { items: CommunitySession[]; offset: number; more: boolean }>();
 
+// Nach dem Löschen einer Session muss der Listen-Cache raus, sonst zeigt die
+// zurückkehrende Liste die gelöschte Session noch (Feedback Jan).
+export function invalidateSessionListCache() {
+  listCache.clear();
+  communityCache.clear();
+}
+
 function monthLabel(m: string) {
   return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }

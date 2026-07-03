@@ -6,6 +6,7 @@ import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { FoilSelect } from "../components/FoilSelect";
+import { invalidateSessionListCache } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
@@ -1267,7 +1268,7 @@ export default function SessionDetail() {
           <button
             onClick={() => {
               if (!confirm(t("sd.deleteConfirm"))) return;
-              api.deleteSession(session.id).then(() => nav("/sessions")).catch((e) => alert(t("sd.deleteFail") + e));
+              api.deleteSession(session.id).then(() => { invalidateSessionListCache(); nav("/sessions"); }).catch((e) => alert(t("sd.deleteFail") + e));
             }}
             className="rounded-lg border border-red-300 bg-red-500/10 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/60"
           >
