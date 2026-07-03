@@ -41,9 +41,56 @@ export function WatchMatrix() {
       {t(`watches.st.${s}`)}
     </span>
   );
+  // Status/Store-Zelle (Tabelle + Karten teilen sich das): App-Store-Badge, Konto-Hinweis oder Status-Badge.
+  const statusCell = (r: (typeof ROWS)[number]) =>
+    r.store ? (
+      r.store === "ciq" ? <ConnectIqButton height="h-10" />
+        : r.store === "appstore" ? <AppStoreBadge height="h-10" />
+        : <PlayBadge height="h-10" />
+    ) : r.account ? (
+      <div className="inline-flex flex-col items-start gap-1">
+        <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
+          <img src={r.account.logo} alt={r.account.alt} className="h-5 w-auto" />
+        </span>
+        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+          <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> {t(r.account.labelKey)}
+        </span>
+      </div>
+    ) : (
+      <>
+        {status(r.status)}
+        {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
+      </>
+    );
+  // Eine Fähigkeit als Chip (für die Mobile-Karten): Label + Ja/Teilweise/Nein.
+  const capChip = (labelKey: string, c: Cap) => (
+    <span className="inline-flex items-center gap-1 text-slate-300">
+      {t(labelKey)} {c === "yes"
+        ? <CheckIcon className={`h-4 w-4 ${CAP_CLASS.yes}`} />
+        : <span className={`font-bold ${CAP_CLASS[c]}`}>{CAP_ICON[c]}</span>}
+    </span>
+  );
   return (
     <>
-      <div className="overflow-x-auto rounded-2xl border border-slate-800">
+      {/* Mobile: Kacheln (kein horizontales Scrollen). */}
+      <div className="space-y-3 sm:hidden">
+        {ROWS.map((r) => (
+          <div key={r.name} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+            <div className="font-semibold">{r.name}</div>
+            <div className="text-xs text-slate-400">{r.sub}</div>
+            {r.noteKey && <div className="mt-0.5 text-xs text-slate-500">{t(r.noteKey)}</div>}
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {capChip("watches.colGps", r.gps)}
+              {capChip("watches.colHr", r.hr)}
+              {capChip("watches.colPump", r.pump)}
+            </div>
+            <div className="mt-3">{statusCell(r)}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Ab sm: die Tabelle. */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-slate-800 sm:block">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate-900/70 text-left text-slate-300">
@@ -65,30 +112,7 @@ export function WatchMatrix() {
                 <td className="px-4 py-3 text-center">{cap(r.gps)}</td>
                 <td className="px-4 py-3 text-center">{cap(r.hr)}</td>
                 <td className="px-4 py-3 text-center">{cap(r.pump)}</td>
-                <td className="px-4 py-3">
-                  {r.store ? (
-                    // App verfügbar -> offizielles Store-Badge (theme-abhängig) statt „Verfügbar".
-                    r.store === "ciq" ? <ConnectIqButton height="h-10" />
-                      : r.store === "appstore" ? <AppStoreBadge height="h-10" />
-                      : <PlayBadge height="h-10" />
-                  ) : r.account ? (
-                    // Kein App-Store, sondern Import per Konto-Verknüpfung — nur Hinweis (ohne Login
-                    // nicht erreichbar), kein Link. Ablauf in „Verknüpfte Konten".
-                    <div className="inline-flex flex-col items-start gap-1">
-                      <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
-                        <img src={r.account.logo} alt={r.account.alt} className="h-5 w-auto" />
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                        <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> {t(r.account.labelKey)}
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      {status(r.status)}
-                      {r.statusNoteKey && <div className="mt-1 text-xs text-slate-500">{t(r.statusNoteKey)}</div>}
-                    </>
-                  )}
-                </td>
+                <td className="px-4 py-3">{statusCell(r)}</td>
               </tr>
             ))}
           </tbody>
