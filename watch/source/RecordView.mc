@@ -144,7 +144,11 @@ class RecordView extends WatchUi.View {
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
             var gtxt = Strings.s("gps.ready");
-            if (_rec.autoStartOn()) { gtxt += " · " + Strings.s("auto.short"); }
+            // Auto-Start: während des Vorlaufs Countdown „Auto-Start Ns", danach nur „Auto-Start" (scharf).
+            if (_rec.autoStartOn()) {
+                gtxt += " · " + Strings.s("auto.short");
+                if (!_rec.autoArmed()) { gtxt += " " + _rec.autoLead() + "s"; }
+            }
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, gtxt, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);

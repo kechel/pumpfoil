@@ -116,6 +116,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             :verbinden, {}));
         menu.addItem(new WatchUi.MenuItem(
             "Upload / Sync", "ausstehende Sessions", :upload, {}));
+        menu.addItem(new WatchUi.MenuItem(
+            "Auto-Start", _rec.autoStartOn() ? "An" : "Aus", :autostart, {}));
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
@@ -259,6 +261,11 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
             if (!_rec.isPaired()) { _rec.startPairing(); }
             // Menü ersetzen durch die Pair-Ansicht (zeigt Code + pollt auf Bestätigung).
             WatchUi.switchToView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
+        } else if (id == :autostart) {
+            // Auto-Start auf der Uhr umschalten; Menüpunkt sofort aktualisieren.
+            _rec.toggleAutoStart();
+            item.setSubLabel(_rec.autoStartOn() ? "An" : "Aus");
+            WatchUi.requestUpdate();
         }
     }
 }

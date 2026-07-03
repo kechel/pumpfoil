@@ -65,6 +65,7 @@ class SessionRecorder {
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
+    hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
     var alarmEnabled = false;
     var speedHighKmh = 0;
     var speedLowKmh = 0;
@@ -106,6 +107,7 @@ class SessionRecorder {
     // Aufnahme automatisch starten, sobald man losfährt (~10 km/h, 4 s anhaltend).
     const AUTO_START_MPS = 2.8;
     const AUTO_START_DWELL = 4;
+    const AUTO_START_LEAD = 10;   // s Vorlauf ab Betreten des Start-Screens, bis Auto-Start scharf
     hidden var _foiling = false;
     hidden var _enterStreak = 0;
     hidden var _exitStreak = 0;
@@ -625,7 +627,11 @@ class SessionRecorder {
     // Nicht direkt nach einem Stopp (stopped) und nur mit GPS-Fix; kurze Vibration als
     // Bestätigung, damit man weiß, dass jetzt aufgezeichnet wird.
     hidden function _maybeAutoStart() as Void {
-        if (!autoStart || stopped || !_hasGpsFix) { _autoStreak = 0; return; }
+        if (!autoStart || stopped || !_hasGpsFix) { _autoStreak = 0; _idleTicks = 0; return; }
+        // Vorlauf: erst nach AUTO_START_LEAD s auf dem Start-Screen scharf schalten (Zeit, um
+        // z.B. ins Einstellungs-Menü zu wechseln). Zähler wird bei Aufnahme/Stopp/GPS-Verlust
+        // zurückgesetzt -> startet nach Session-Ende erneut.
+        if (_idleTicks < AUTO_START_LEAD) { _idleTicks++; _autoStreak = 0; return; }
         if (_idleSpeed >= AUTO_START_MPS) {
             _autoStreak++;
             if (_autoStreak >= AUTO_START_DWELL) {
@@ -642,6 +648,12 @@ class SessionRecorder {
 
     // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
     function autoStartOn() { return autoStart; }
+    // Auto-Start scharf (Vorlauf-Countdown durch)?
+    function autoArmed() { return _hasGpsFix && _idleTicks >= AUTO_START_LEAD; }
+    // Verbleibende Vorlauf-Sekunden für die Countdown-Anzeige (0 = scharf).
+    function autoLead() { var r = AUTO_START_LEAD - _idleTicks; return (r < 0) ? 0 : r; }
+    // Auto-Start auf der Uhr umschalten (Einstellungs-Menü) + persistieren.
+    function toggleAutoStart() { autoStart = !autoStart; _idleTicks = 0; _store("auto_start", autoStart); }
 
     // GPS-State-Machine für die Live-Lauferkennung (1-Hz-Tick).
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
