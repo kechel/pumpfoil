@@ -181,10 +181,13 @@ struct RecordView: View {
                     }
                 }
             } else {
-                VStack(spacing: 12) {
-                    Text("Pumpfoil").font(.title3)
-                    if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                        Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+                VStack(spacing: 8) {
+                    // Titel + Version eng zusammen, damit oben weniger Platz verloren geht.
+                    VStack(spacing: 0) {
+                        Text("Pumpfoil").font(.title3)
+                        if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                            Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+                        }
                     }
                     if autoStart && !rec.starting {
                         // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
@@ -483,8 +486,12 @@ struct AlarmPickerSheet: View {
                     Text(WLoc.t("foil.manual", lang)).tag("manual")
                 }
                 if alarmSource == "manual" {
-                    Stepper("\(WLoc.t("foil.min", lang)): \(alarm.low) km/h", value: $alarm.low, in: 0...80)
-                    Stepper("\(WLoc.t("foil.max", lang)): \(alarm.high) km/h", value: $alarm.high, in: 0...80)
+                    Stepper(value: $alarm.low, in: 0...80) {
+                        Text("\(WLoc.t("foil.min", lang)): \(alarm.low) km/h").font(.footnote)
+                    }
+                    Stepper(value: $alarm.high, in: 0...80) {
+                        Text("\(WLoc.t("foil.max", lang)): \(alarm.high) km/h").font(.footnote)
+                    }
                 }
             }
             Section(WLoc.t("foil.choose", lang)) {
