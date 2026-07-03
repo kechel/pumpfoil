@@ -15,7 +15,7 @@ type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { cl
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.home", icon: HomeIcon, end: true },
   { to: "/community", labelKey: "home.community", icon: CommunityIcon, end: false },
-  { to: "/sessions", labelKey: "nav.sessions", icon: ListIcon, end: false },
+  { to: "/sessions?scope=all", labelKey: "nav.sessions", icon: ListIcon, end: false },
   { to: "/chat", labelKey: "nav.chat", icon: ChatBubbleIcon, end: false },
   { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
   { to: "/spots", labelKey: "nav.spots", icon: SpotsIcon, end: false },
