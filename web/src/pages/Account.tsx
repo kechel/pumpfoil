@@ -6,6 +6,7 @@ import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchGuide } from "../components/WatchGuide";
+import { ConnectIqButton } from "../components/ConnectIqButton";
 import { useT } from "../i18n";
 
 export default function Account() {
@@ -251,6 +252,13 @@ function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
           </span>
         )}
       </p>
+
+      {/* Bequemster Weg zuerst: direkt aus dem Connect IQ Store (dorthin verlinkt auch der
+          „neue Version"-Hinweis). Die Sideload-Liste darunter bleibt als Alternative. */}
+      <div className="mb-4 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3">
+        <p className="mb-2 text-sm text-slate-200">{t("guide.g.storeLead")}</p>
+        <ConnectIqButton />
+      </div>
 
       <input
         value={q}

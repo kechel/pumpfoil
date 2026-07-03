@@ -542,6 +542,8 @@ const gsw: Record<string, string> = {
   "profile.weightHint": "Optional — flüsst spöter i d Leistigsberächnig (Watt) ii. Privat.",
   "linked.title": "Verknüpfti Konte",
   "linked.hint": "Importier Trainings vo andere Dienscht automatisch als Sessions.",
+  "linked.platformsTitle": "Mögleschi Gerät & Verchnüpfige",
+  "linked.accountShort": "Konto-Verchnüpfig",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dis Polar-Konto (AccessLink) und importier dini Trainings automatisch als Sessions.",
   "settings.polar.connect": "Mit Polar verbinde",

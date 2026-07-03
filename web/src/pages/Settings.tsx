@@ -36,8 +36,10 @@ export default function Settings() {
     }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
+    // Nur für Garmin (Sideload-.prg) und nur, wenn der Nutzer auch eine Garmin-Uhr
+    // verknüpft hat — Wear/Apple aktualisieren über ihre Stores.
     api.myDevices().then((ds) => {
-      const d = ds.find((x) => x.update_available && !x.revoked_at);
+      const d = ds.find((x) => x.update_available && !x.revoked_at && x.platform === "garmin");
       if (d) setWatchUpdate({ version: d.latest_version ?? "", platform: d.platform ?? "", label: d.label ?? "", model: d.model ?? "" });
     }).catch(() => {});
   }, []);
