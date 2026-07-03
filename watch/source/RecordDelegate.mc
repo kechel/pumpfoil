@@ -146,12 +146,12 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         }
         for (var i = 0; i < rec.foils.size(); i++) {
             var f = rec.foils[i];
-            var sel = (rec.sessionFoilId == f["id"]) ? "✓ " : "";
+            var sel = (rec.sessionFoilId == f["id"]) ? "> " : "";
             menu.addItem(new WatchUi.MenuItem(
                 sel + f["label"], f["min"].toString() + "–" + f["max"].toString() + " km/h", i, {}));
         }
         menu.addItem(new WatchUi.MenuItem("Keine Foil",
-            rec.sessionFoilId == null ? "✓ nur Metadaten" : "nur Metadaten", :none, {}));
+            rec.sessionFoilId == null ? "> nur Metadaten" : "nur Metadaten", :none, {}));
         WatchUi.pushView(menu, new FoilMenuDelegate(rec), WatchUi.SLIDE_UP);
     }
 
@@ -190,7 +190,7 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
             _rec.activeAlarmLabel = f["label"];
         } else if (id == :none) {
             _rec.sessionFoilId = null;                   // keine Foil
-            _rec.activeAlarmLabel = "—";
+            _rec.activeAlarmLabel = "-";
         }
         // Foil-Auswahl gesetzt -> zurück zum Start-Screen (Alarm-Zustand bleibt).
         WatchUi.popView(WatchUi.SLIDE_DOWN);

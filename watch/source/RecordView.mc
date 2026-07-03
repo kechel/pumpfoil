@@ -157,7 +157,7 @@ class RecordView extends WatchUi.View {
         }
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
-            var lbl = _rec.activeAlarmLabel.equals("") ? "—" : _rec.activeAlarmLabel;
+            var lbl = _rec.activeAlarmLabel.equals("") ? "-" : _rec.activeAlarmLabel;
             var txt = Strings.s("foil.prefix") + lbl;
             var ty = h * 0.555;
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);

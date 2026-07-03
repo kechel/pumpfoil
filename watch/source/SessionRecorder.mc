@@ -417,7 +417,7 @@ class SessionRecorder {
             alarmSource = "foil";                          // Schwellen aus der Foil
         } else {
             sessionFoilId = null;
-            activeAlarmLabel = "—";
+            activeAlarmLabel = "-";
             alarmSource = "manual";                        // feste Web-Werte (speedLow/HighKmh)
         }
     }

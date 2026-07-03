@@ -43,7 +43,7 @@ module Strings {
         "gps.searchBig"  => ["GPS wird gesucht", "GPS wird gsuecht", "GPS wird gesucht", "Searching GPS", "Recherche GPS", "Ricerca GPS", "Buscando GPS"],
         "gps.sky"        => ["bitte freien Himmel", "bitte freie Himmel", "bitte freien Himmel", "please open sky", "ciel dégagé svp", "cielo libero", "cielo despejado"],
         "start.rec"      => ["START: Aufnahme", "START: Ufnahm", "START: Aufnahme", "START: record", "START : enreg.", "START: registra", "START: grabar"],
-        "start.chooseAlarm" => ["↓ Foil & Alarm", "↓ Foil & Alarm", "↓ Foil & Alarm", "↓ Foil & alarm", "↓ Foil & alarme", "↓ Foil & allarme", "↓ Foil & alarma"],
+        "start.chooseAlarm" => ["DOWN: Foil & Alarm", "DOWN: Foil & Alarm", "DOWN: Foil & Alarm", "DOWN: Foil & alarm", "DOWN: Foil & alarme", "DOWN: Foil & allarme", "DOWN: Foil & alarma"],
         "start.menu"     => ["MENU: Einstellungen", "MENU: Yystellige", "MENU: Einstellungen", "MENU: settings", "MENU : réglages", "MENU: impostazioni", "MENU: ajustes"],
         "alarm.prefix"   => ["Alarm: ", "Alarm: ", "Alarm: ", "Alarm: ", "Alarme : ", "Allarme: ", "Alarma: "],
         "foil.prefix"    => ["Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: "],
