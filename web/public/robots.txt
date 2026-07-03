@@ -1,0 +1,27 @@
+# Öffentlich indexierbar sind nur die Landing-Page (/) und /impressum.
+# Alle App-Routen zeigen Gästen/Crawlern nur dieselbe Landing-Page (login-gated)
+# -> vom Crawling ausschließen, sonst meldet Google "Duplikat ohne Canonical".
+# Statische Assets (/assets, /media, Bilder, manifest) bleiben crawlbar, damit
+# Google die Seite korrekt rendern kann.
+User-agent: *
+Disallow: /login
+Disallow: /reset
+Disallow: /home
+Disallow: /community
+Disallow: /chat
+Disallow: /verlauf
+Disallow: /sessions
+Disallow: /import
+Disallow: /alle-sessions
+Disallow: /spots
+Disallow: /foils
+Disallow: /foil-stats
+Disallow: /foil-rechner
+Disallow: /account
+Disallow: /einstellungen
+Disallow: /konten
+Disallow: /vergleich
+Disallow: /admin
+Disallow: /nerd-analysen
+
+Sitemap: https://pumpfoil.org/sitemap.xml
