@@ -141,31 +141,40 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         _rec = recorder;
     }
 
-    // Menü frisch aufbauen + anzeigen (auch für Rebuild nach Min/Max-Änderung).
-    static function show(rec) as Void {
+    // Menü frisch aufbauen + anzeigen (auch für Rebuild nach Min/Max-Änderung). focusId (:source/
+    // :min/:max/null) hält den Fokus nach einem Rebuild an der Stelle, statt oben zu landen.
+    static function show(rec) as Void { showFocused(rec, null); }
+    static function showFocused(rec, focusId) as Void {
         var menu = new WatchUi.Menu2({:title => "Foil & Alarm"});
-        menu.addItem(new WatchUi.MenuItem("Alarm", rec.alarmEnabled ? "An" : "Aus", :alarm, {}));
+        var idx = 0;
+        var focusIdx = -1;
+        menu.addItem(new WatchUi.MenuItem("Alarm", rec.alarmEnabled ? "An" : "Aus", :alarm, {})); idx++;
+        if (focusId == :source) { focusIdx = idx; }
         menu.addItem(new WatchUi.MenuItem("Schwellen",
-            rec.alarmSource.equals("foil") ? "Auto (Foil)" : "Manuell", :source, {}));
+            rec.alarmSource.equals("foil") ? "Auto (Foil)" : "Manuell", :source, {})); idx++;
         if (rec.alarmSource.equals("manual")) {
-            menu.addItem(new WatchUi.MenuItem("Min", rec.speedLowKmh.toString() + " km/h", :min, {}));
-            menu.addItem(new WatchUi.MenuItem("Max", rec.speedHighKmh.toString() + " km/h", :max, {}));
+            if (focusId == :min) { focusIdx = idx; }
+            menu.addItem(new WatchUi.MenuItem("Min", rec.speedLowKmh.toString() + " km/h", :min, {})); idx++;
+            if (focusId == :max) { focusIdx = idx; }
+            menu.addItem(new WatchUi.MenuItem("Max", rec.speedHighKmh.toString() + " km/h", :max, {})); idx++;
         }
         for (var i = 0; i < rec.foils.size(); i++) {
             var f = rec.foils[i];
             var sel = (rec.sessionFoilId == f["id"]) ? "> " : "";
             menu.addItem(new WatchUi.MenuItem(
-                sel + f["label"], f["min"].toString() + "–" + f["max"].toString() + " km/h", i, {}));
+                sel + f["label"], f["min"].toString() + "–" + f["max"].toString() + " km/h", i, {})); idx++;
         }
         menu.addItem(new WatchUi.MenuItem("Keine Foil",
             rec.sessionFoilId == null ? "> nur Metadaten" : "nur Metadaten", :none, {}));
+        if (focusIdx >= 0 && menu has :setFocus) { menu.setFocus(focusIdx); }
         WatchUi.pushView(menu, new FoilMenuDelegate(rec), WatchUi.SLIDE_UP);
     }
 
-    // Menü ersetzen (nach Layout-Änderung Manuell<->Auto oder Min/Max-Edit).
-    hidden function _rebuild() as Void {
+    // Menü ersetzen (nach Layout-Änderung Manuell<->Auto oder Min/Max-Edit); Fokus optional halten.
+    hidden function _rebuild() as Void { _rebuildFocused(:source); }
+    hidden function _rebuildFocused(focusId) as Void {
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-        FoilMenuDelegate.show(_rec);
+        FoilMenuDelegate.showFocused(_rec, focusId);
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
@@ -183,7 +192,7 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         }
         if (id == :min || id == :max) {
             var cur = (id == :min) ? _rec.speedLowKmh : _rec.speedHighKmh;
-            var picker = new WatchUi.Picker({
+            var picker = new NumPicker({
                 :title => new WatchUi.Text({:text => (id == :min) ? "Min km/h" : "Max km/h",
                     :locX => WatchUi.LAYOUT_HALIGN_CENTER, :locY => WatchUi.LAYOUT_VALIGN_BOTTOM,
                     :color => Graphics.COLOR_WHITE}),
@@ -202,6 +211,17 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         // Foil-Auswahl gesetzt -> zurück zum Start-Screen (Alarm-Zustand bleibt).
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         WatchUi.requestUpdate();
+    }
+}
+
+// Picker mit eigenem schwarzem Hintergrund: sonst scheint das helle Menü durch und die
+// weiße Schrift ist auf hellem Grund unlesbar (robust für MIP und AMOLED).
+class NumPicker extends WatchUi.Picker {
+    function initialize(opts) { Picker.initialize(opts); }
+    function onUpdate(dc) {
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.clear();
+        Picker.onUpdate(dc);
     }
 }
 
@@ -234,10 +254,11 @@ class MinMaxPickerDelegate extends WatchUi.PickerDelegate {
     function onAccept(values) as Lang.Boolean {
         var v = values[0];
         if (_isMin) { _rec.speedLowKmh = v; } else { _rec.speedHighKmh = v; }
-        // Picker schließen, dann das Menü mit aktualisiertem Wert neu aufbauen.
+        // Picker schließen, dann das Menü mit aktualisiertem Wert neu aufbauen — Fokus bleibt
+        // auf dem gerade bearbeiteten Min/Max-Eintrag (statt oben im Menü zu landen).
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // Picker weg
         WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);   // altes Menü weg
-        FoilMenuDelegate.show(_rec);
+        FoilMenuDelegate.showFocused(_rec, _isMin ? :min : :max);
         return true;
     }
     function onCancel() as Lang.Boolean {
