@@ -111,14 +111,16 @@ class MainActivity : ComponentActivity() {
                 Text(I18n.t("pair.howto"),
                     style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(8.dp))
-                Button(enabled = !busy, onClick = {
+                // Chip statt (rundem) Button: der lange Text „Pairing-Code erzeugen" passt
+                // sonst nicht in den Kreis und bricht um.
+                CompactChip(enabled = !busy, onClick = {
                     busy = true; error = ""
                     scope.launch {
                         try { val (c, t) = Api.pairInit(); code = c; claimToken = t }
                         catch (e: Exception) { error = e.message ?: I18n.t("common.error") }
                         busy = false
                     }
-                }) { Text(if (busy) "…" else I18n.t("pair.gen")) }
+                }, label = { Text(if (busy) "…" else I18n.t("pair.gen"), style = MaterialTheme.typography.caption2) })
             } else {
                 Text(I18n.t("pair.enterOn"),
                     style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
