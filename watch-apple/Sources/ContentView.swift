@@ -182,21 +182,21 @@ struct RecordView: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    // Titel + Version eng zusammen, damit oben weniger Platz verloren geht.
+                    // Titel + Version (+ Auto-Start-Zeile) eng zusammen, damit oben wenig Platz verloren geht.
                     VStack(spacing: 0) {
                         Text("Pumpfoil").font(.title3)
                         if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                             Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
                         }
-                    }
-                    if autoStart && !rec.starting {
-                        // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
-                        // (z.B. im Auto). Erst wenn scharf -> blau.
-                        if autoArmed {
-                            Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan)
-                        } else {
-                            Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s")
-                                .font(.caption2).foregroundStyle(.secondary)
+                        if autoStart && !rec.starting {
+                            // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
+                            // (z.B. im Auto). Erst wenn scharf -> blau. Eng unter der Version.
+                            if autoArmed {
+                                Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan).padding(.top, 2)
+                            } else {
+                                Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s")
+                                    .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
+                            }
                         }
                     }
                     if rec.starting {
