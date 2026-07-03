@@ -190,6 +190,7 @@ struct RecordView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 5))
                             Text("Pumpfoil").font(.title3)
                         }
+                        .padding(.top, 6)   // nicht in die Uhrzeit-Anzeige oben laufen
                         if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                             Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
                         }
