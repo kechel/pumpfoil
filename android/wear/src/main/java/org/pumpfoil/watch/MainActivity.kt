@@ -513,7 +513,7 @@ class MainActivity : ComponentActivity() {
                 // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das Pairing
                 // erst bei erfolgreichem Neu-Pairing). Bei "auth" zeigt der Block oben schon „Neu verbinden".
                 if (Api.deviceToken != null && s.uploadError != "auth") {
-                    Spacer(Modifier.height(2.dp))   // „Konto wechseln" eng, sonst unten abgeschnitten
+                    Spacer(Modifier.height(1.dp))   // „Konto wechseln" ganz eng an „Foil wählen"
                     CompactChip(onClick = onWantPair,
                         label = { Text(I18n.t("rec.switch"), style = MaterialTheme.typography.caption2) })
                 }
