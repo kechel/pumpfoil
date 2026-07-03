@@ -383,7 +383,7 @@ class MainActivity : ComponentActivity() {
                     onDispose { fused.removeLocationUpdates(cb) }
                 }
             }
-            Column(Modifier.fillMaxSize().padding(12.dp),
+            Column(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 // Kopf (Titel + Version + Auto-Start-Zeile) = ein Tap-Bereich -> Einstellungen (wie iOS).
@@ -402,7 +402,7 @@ class MainActivity : ComponentActivity() {
                             style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                     }
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(4.dp))   // wenig Luft über dem Start-Button
                 if (s.starting) {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -434,7 +434,7 @@ class MainActivity : ComponentActivity() {
                 // Sync-Chip nur, wenn es auch etwas hochzuladen gibt (gepairt + pending > 0).
                 val canSync = Api.deviceToken != null && s.pendingCount > 0
                 if (foils.isNotEmpty() || canSync) {
-                    Spacer(Modifier.height(6.dp))   // Foil-Zeile nah an „Foil wählen"
+                    Spacer(Modifier.height(3.dp))   // wenig Luft über „Foil wählen"
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (foils.isNotEmpty()) CompactChip(
                             onClick = { showFoilPicker = true },
