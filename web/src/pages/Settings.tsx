@@ -8,6 +8,7 @@ import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { InstallPwa } from "../components/InstallPwa";
+import { SupportedPlatforms } from "../components/SupportedPlatforms";
 import { NotificationsToggle } from "../components/NotificationsToggle";
 
 export default function Settings() {
@@ -134,6 +135,9 @@ export default function Settings() {
         </span>
         <ChevronIcon className="h-5 w-5 text-slate-400" />
       </Link>
+
+      {/* Dezente Übersicht, damit neue Nutzer sehen, welche Uhren/Konten möglich sind. */}
+      <SupportedPlatforms className="mb-5 px-1" />
 
       <Link
         to="/foils"
