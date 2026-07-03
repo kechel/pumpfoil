@@ -24,8 +24,8 @@ export default function PersonalHome() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [homespot, setHomespot] = useState("");
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
-  // Default = nur Accel; hat der Nutzer gar keine Accel-Läufe, einmalig auf "alle" fallen.
-  const [accelOnly, setAccelOnly] = useState(true);
+  // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
+  const [accelOnly, setAccelOnly] = useState(false);
   const decidedRef = useRef(false);
 
   useEffect(() => {
