@@ -19,6 +19,12 @@ class RecordView extends WatchUi.View {
         _rec = recorder;
     }
 
+    // Beim (Wieder-)Anzeigen des Start-Screens den Auto-Start-Vorlauf neu starten — z.B. nach
+    // Rückkehr aus dem Einstellungs-/Foil-Menü, damit die 10 s Countdown wieder von vorn laufen.
+    function onShow() {
+        _rec.resetAutoLead();
+    }
+
     // Seitenzahl inkl. Übersichts-Seite (Index = screens.size()).
     hidden function _pageCount() { return _rec.screens.size() + 1; }
 

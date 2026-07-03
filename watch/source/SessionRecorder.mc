@@ -654,6 +654,9 @@ class SessionRecorder {
     function autoLead() { var r = AUTO_START_LEAD - _idleTicks; return (r < 0) ? 0 : r; }
     // Auto-Start auf der Uhr umschalten (Einstellungs-Menü) + persistieren.
     function toggleAutoStart() { autoStart = !autoStart; _idleTicks = 0; _store("auto_start", autoStart); }
+    // Vorlauf-Countdown zurücksetzen — beim (Wieder-)Betreten des Start-Screens aufrufen
+    // (z.B. Rückkehr aus dem Menü), damit die 10 s neu laufen.
+    function resetAutoLead() { _idleTicks = 0; }
 
     // GPS-State-Machine für die Live-Lauferkennung (1-Hz-Tick).
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
