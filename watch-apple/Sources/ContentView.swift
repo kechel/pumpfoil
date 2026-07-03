@@ -506,7 +506,7 @@ struct AlarmPickerSheet: View {
                     }
                 }
             }
-            Section(WLoc.t("foil.choose", lang)) {
+            Section {
                 ForEach(foils) { f in
                     Button { selectedFoilId = f.id; onPick() } label: {
                         row((selectedFoilId == f.id ? "✓ " : "") + f.label, "\(f.min)–\(f.max) km/h")
@@ -515,6 +515,10 @@ struct AlarmPickerSheet: View {
                 Button { selectedFoilId = nil; onPick() } label: {
                     row((selectedFoilId == nil ? "✓ " : "") + WLoc.t("foil.noFoil", lang), WLoc.t("foil.noneSub", lang))
                 }
+            } header: {
+                Text(WLoc.t("foil.choose", lang))
+            } footer: {
+                Text(WLoc.t("foil.chooseHelp", lang))
             }
             Section { Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel) }
         }

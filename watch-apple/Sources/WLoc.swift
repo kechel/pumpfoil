@@ -60,6 +60,14 @@ enum WLoc {
 
         // Alarm-/Foil-Auswahl
         "foil.choose": r("Foil wählen", "Foil wähle", "Foil wählen", "Choose foil", "Choisir le foil", "Scegli foil", "Elegir foil"),
+        "foil.chooseHelp": r(
+            "Speichert deinen Foil zu dieser Session und legt die Alarm-Schwellen fest, wenn als Quelle Foil gewählt ist.",
+            "Speicheret dis Foil zu dere Session und leit d Alarm-Schwelle fescht, wenn als Quelle Foil gwählt isch.",
+            "Speichert deinen Foil zu dieser Session und legt die Alarm-Schwellen fest, wenn als Quelle Foil gewählt ist.",
+            "Saves your foil to this session and sets the alarm thresholds when the source is set to Foil.",
+            "Enregistre ton foil pour cette session et définit les seuils d'alarme si la source est réglée sur Foil.",
+            "Salva il tuo foil in questa sessione e imposta le soglie d'allarme se la sorgente è impostata su Foil.",
+            "Guarda tu foil en esta sesión y define los umbrales de alarma si la fuente es Foil."),
         "foil.prefix": r("Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: "),
         "foil.alarm": r("Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma"),
         "foil.alarmOn": r("Vibrationsalarm", "Vibrationsalarm", "Vibrationsalarm", "Vibration alarm", "Alarme vibrante", "Allarme vibrazione", "Alarma vibración"),
