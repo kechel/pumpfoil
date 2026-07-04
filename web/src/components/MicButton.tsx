@@ -122,7 +122,7 @@ export function MicButton({ value, onChange, disabled }: {
 
       {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit. */}
       {listening && (
-        <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950/97 p-5">
+        <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
             {t("mic.listening")}
