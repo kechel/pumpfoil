@@ -984,7 +984,9 @@ export default function SessionDetail() {
       )}
 
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
-        <Stat label={t("stat.foiling")} value={fmtKm(a?.foiling_distance_m)} sub="km" />
+        <Stat label={t("stat.foiling")}
+          value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
+          sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
         <Stat label={t("stat.foilingTime")} value={fmtMMSS(a?.foiling_time_s)} sub="min:s" />
         <Stat label={t("stat.runs")} value={String(segs.length)} />
         <Stat label={t("sd.avgSpeed")} value={kmh(m?.avg_speed_mps)} sub="km/h" />
