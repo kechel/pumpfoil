@@ -22,6 +22,7 @@ export function MicButton({ value, onChange, disabled }: {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
   const [preview, setPreview] = useState("");   // Live-Text (nur Vorschau, noch nicht im Feld)
+  const [review, setReview] = useState(false);  // nach dem Stoppen: übernehmen/neu/abbrechen
   const [err, setErr] = useState("");
   const recRef = useRef<any>(null);
   const activeRef = useRef(false);   // Nutzer will weiterdiktieren (steuert Auto-Restart)
@@ -73,9 +74,8 @@ export function MicButton({ value, onChange, disabled }: {
       } else {
         setListening(false);
         recRef.current = null;
-        const all = finalRef.current.trim();
-        if (all) onChange((baseRef.current + all).slice(0, 2000));
-        setPreview("");
+        setPreview(finalRef.current.trim());
+        setReview(true);   // nicht sofort übernehmen -> erst Review (übernehmen/neu/abbrechen)
       }
     };
     recRef.current = rec;
@@ -92,9 +92,25 @@ export function MicButton({ value, onChange, disabled }: {
     startSession();
   }
 
-  function stop() {
+  function stop() {   // Aufnahme beenden -> Review
     activeRef.current = false;
     try { recRef.current?.stop(); } catch { /* egal */ }
+  }
+
+  function closeOverlay() {
+    activeRef.current = false;
+    try { recRef.current?.stop(); } catch { /* egal */ }
+    recRef.current = null;
+    setReview(false); setListening(false); setPreview(""); finalRef.current = "";
+  }
+  function accept() {   // Text ins Eingabefeld übernehmen
+    const all = finalRef.current.trim();
+    if (all) onChange((baseRef.current + all).slice(0, 2000));
+    closeOverlay();
+  }
+  function redo() {   // verwerfen und neu aufnehmen
+    finalRef.current = ""; sessFinalRef.current = ""; setPreview(""); setReview(false);
+    activeRef.current = true; startSession();
   }
 
   return (
@@ -120,22 +136,44 @@ export function MicButton({ value, onChange, disabled }: {
         </svg>
       </button>
 
-      {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit. */}
-      {listening && (
+      {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit.
+          Während der Aufnahme: Stopp. Danach: übernehmen / neu / abbrechen. */}
+      {(listening || review) && (
         <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
-          <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
-            <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-            {t("mic.listening")}
+          <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+            {listening ? (
+              <><span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+                <span className="text-red-400">{t("mic.listening")}</span></>
+            ) : (
+              <span className="text-slate-300">{t("mic.review")}</span>
+            )}
           </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
             {preview || <span className="text-slate-500">…</span>}
           </div>
-          <button
-            onClick={stop}
-            className="mt-4 rounded-2xl bg-brand-500 py-4 text-lg font-semibold text-slate-950 hover:bg-brand-400"
-          >
-            {t("mic.stop")}
-          </button>
+          {listening ? (
+            <button
+              onClick={stop}
+              className="mt-4 rounded-2xl bg-brand-500 py-4 text-lg font-semibold text-slate-950 hover:bg-brand-400"
+            >
+              {t("mic.stop")}
+            </button>
+          ) : (
+            <div className="mt-4 flex gap-2">
+              <button onClick={accept} disabled={!preview}
+                className="flex-1 rounded-2xl bg-brand-500 py-4 text-base font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+                {t("mic.accept")}
+              </button>
+              <button onClick={redo}
+                className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-100 hover:bg-slate-700">
+                {t("mic.redo")}
+              </button>
+              <button onClick={closeOverlay}
+                className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-300 hover:bg-slate-700">
+                {t("mic.cancel")}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
