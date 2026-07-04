@@ -44,6 +44,18 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
   useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
 
+  // Bearbeiten/Löschen-Icons wieder ausblenden, sobald man woanders hin tippt/klickt.
+  // Listener verzögert anhängen, damit der öffnende Long-Press ihn nicht sofort auslöst.
+  useEffect(() => {
+    if (menuFor == null) return;
+    const close = () => setMenuFor(null);
+    const id = setTimeout(() => {
+      document.addEventListener("click", close);
+      document.addEventListener("scroll", close, true);
+    }, 350);
+    return () => { clearTimeout(id); document.removeEventListener("click", close); document.removeEventListener("scroll", close, true); };
+  }, [menuFor]);
+
   // Lesestand serverseitig setzen (für Unread auf der Startseite).
   function markRead(id: number) {
     if (id > 0) api.chatMarkRead(scope, id).catch(() => {});
