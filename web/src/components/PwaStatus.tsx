@@ -16,9 +16,10 @@ export function PwaStatus() {
     onRegisteredSW(_swUrl, r) {
       if (!r) return;
       let last = Date.now();
-      setInterval(() => { last = Date.now(); r.update(); }, 60 * 60 * 1000);
+      r.update();                                                    // sofort prüfen (frischer Deploy seit letztem Load)
+      setInterval(() => { last = Date.now(); r.update(); }, 5 * 60 * 1000);   // alle 5 min
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && Date.now() - last > 30 * 60 * 1000) {
+        if (document.visibilityState === "visible" && Date.now() - last > 60 * 1000) {
           last = Date.now();
           r.update();
         }
