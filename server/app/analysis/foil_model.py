@@ -17,8 +17,16 @@ from ..ml.features import bandpass_fft, magnitude_g
 FEATURE_NAMES = [
     "speed", "speed_3s", "speed_5s", "speed_cv",
     "accel_rms", "pump_rms", "hf_rms",
+    # Richtungs-/Delta-Features (aus GPS-Position): geben dem Modell Kontext, ohne
+    # den er ruhige Gleitphasen verliert (Zerstueckeln). Groesster F1-Hebel im Experiment.
+    "dspeed_1s", "dspeed_3s", "dspeed_5s", "path_5s", "net_5s", "straight_5s", "turn_5s",
 ]
 MODEL_PATH = Path(__file__).with_name("foil_rf.pkl")
+
+# Jede Sekunde wird im Kontext von ±WINDOW_RADIUS s klassifiziert (Center-Label):
+# der Feature-Vektor haengt die Features der Nachbarsekunden an. Fenster + Kontext
+# beheben das Zerstueckeln an der Wurzel (Experiment: Fragmentierung 1.10x -> 1.00x).
+WINDOW_RADIUS = 5
 
 
 def _running_median(x: np.ndarray, win: int) -> np.ndarray:
@@ -27,6 +35,56 @@ def _running_median(x: np.ndarray, win: int) -> np.ndarray:
     for i in range(x.size):
         out[i] = np.median(x[max(0, i - h): i + h + 1])
     return out
+
+
+def _haversine_np(lat1, lon1, lat2, lon2):
+    R = 6371000.0
+    p1 = np.radians(lat1); p2 = np.radians(lat2)
+    dp = np.radians(lat2 - lat1); dl = np.radians(lon2 - lon1)
+    a = np.sin(dp / 2) ** 2 + np.cos(p1) * np.cos(p2) * np.sin(dl / 2) ** 2
+    return 2 * R * np.arcsin(np.minimum(1.0, np.sqrt(a)))
+
+
+def _direction_features(lat: np.ndarray, lon: np.ndarray, speed: np.ndarray) -> np.ndarray:
+    """(n, 7): Delta-Speed 1/3/5 s, Pfadlaenge 5 s, Netto-Versatz 5 s,
+    Geradlinigkeit (netto/pfad), Kursaenderung 5 s. Alles aus GPS-Position/-Speed."""
+    n = lat.size
+    if n == 0:
+        return np.empty((0, 7))
+    step = np.zeros(n)
+    if n >= 2:
+        step[1:] = _haversine_np(lat[:-1], lon[:-1], lat[1:], lon[1:])
+    cs = np.concatenate([[0.0], np.cumsum(step)])   # cs[i] = Summe step[0..i-1]
+    d1 = speed - speed[np.clip(np.arange(n) - 1, 0, n - 1)]
+    d3 = speed - speed[np.clip(np.arange(n) - 3, 0, n - 1)]
+    d5 = speed - speed[np.clip(np.arange(n) - 5, 0, n - 1)]
+    j = np.clip(np.arange(n) - 5, 0, n - 1)
+    path5 = cs[np.arange(n) + 1] - cs[j + 1]
+    net5 = _haversine_np(lat[j], lon[j], lat, lon)
+    straight = np.where(path5 > 1e-6, net5 / path5, 0.0)
+    # Kursaenderung: Peilung (i-6..i-3) vs (i-3..i)
+    turn5 = np.zeros(n)
+    if n >= 7:
+        def bearing(a, b, c, d):
+            y = np.sin(np.radians(d - b)) * np.cos(np.radians(c))
+            x = (np.cos(np.radians(a)) * np.sin(np.radians(c))
+                 - np.sin(np.radians(a)) * np.cos(np.radians(c)) * np.cos(np.radians(d - b)))
+            return np.degrees(np.arctan2(y, x))
+        idx = np.arange(6, n)
+        b0 = bearing(lat[idx - 6], lon[idx - 6], lat[idx - 3], lon[idx - 3])
+        b1 = bearing(lat[idx - 3], lon[idx - 3], lat[idx], lon[idx])
+        turn5[idx] = np.abs((b1 - b0 + 180) % 360 - 180)
+    return np.stack([d1, d3, d5, path5, net5, straight, turn5], axis=1)
+
+
+def windowize(X: np.ndarray, r: int = WINDOW_RADIUS) -> np.ndarray:
+    """Zeile i -> aneinandergehaengte Features [i-r .. i+r] (Rand geklemmt).
+    Center-Label-Klassifikation: das Modell 'sieht' ±r s Kontext pro Sekunde."""
+    if X.shape[0] == 0:
+        return X.reshape(0, X.shape[1] * (2 * r + 1))
+    n, f = X.shape
+    idx = np.clip(np.arange(n)[:, None] + np.arange(-r, r + 1)[None, :], 0, n - 1)
+    return X[idx].reshape(n, (2 * r + 1) * f)
 
 
 def extract_features(gps_samples: list, accel: np.ndarray, accel_hz: float, accel_scale: int) -> np.ndarray:
@@ -58,7 +116,10 @@ def extract_features(gps_samples: list, accel: np.ndarray, accel_hz: float, acce
                 pump_rms[i] = np.sqrt(np.mean(pump[lo:hi] ** 2))
                 hf_rms[i] = np.sqrt(np.mean(hf[lo:hi] ** 2))
 
-    return np.stack([speed, speed_3s, speed_5s, cv, accel_rms, pump_rms, hf_rms], axis=1)
+    base = np.stack([speed, speed_3s, speed_5s, cv, accel_rms, pump_rms, hf_rms], axis=1)
+    lat = np.array([s[1] if len(s) > 2 else 0.0 for s in gps_samples], dtype=float)
+    lon = np.array([s[2] if len(s) > 2 else 0.0 for s in gps_samples], dtype=float)
+    return np.hstack([base, _direction_features(lat, lon, speed)])
 
 
 def save_model(clf) -> None:
@@ -126,4 +187,4 @@ def predict_foiling_mask(gps_samples: list, accel: np.ndarray, accel_hz: float, 
     if clf is None or accel.shape[0] == 0 or len(gps_samples) == 0:
         return None
     X = extract_features(gps_samples, accel, accel_hz, accel_scale)
-    return clf.predict(X).astype(bool)
+    return clf.predict(windowize(X)).astype(bool)
