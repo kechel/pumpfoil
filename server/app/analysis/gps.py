@@ -44,7 +44,11 @@ GAP_FILL_S = 2            # ML-Maske: Lücken bis 2 s schließen (Gleit-Pausen)
 # Prinzip: ein START setzt voraus, dass man davor langsam/stehend war. Lagen zwischen
 # zwei erkannten Läufen NIE ein echter Stopp (Speed blieb über NOSTOP_SPEED) und kein
 # GPS-Dropout, ist es in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, egal wie lang.
-NOSTOP_SPEED = 2.8        # ~10 km/h: kein echter Stopp, wenn der Speed nie darunter fiel
+# 1.5 m/s (~5,4 km/h): darunter = echter Stopp (abgesunken/gestanden/gestürzt), darüber nur
+# ein Soft-Moment/Touchdown zwischen Pumps (auf dem Foil hält man <5 km/h nicht). Trennt in
+# #361 sauber die Soft-Moments (dip 1,9-2,7) von echten Stopps (dip ~0) -> 22 Läufe (Markus'
+# Wahrheit); übrige Sessions regressionsgeprüft unverändert. War 2,8 = zu hoch (zerhackte Cruises).
+NOSTOP_SPEED = 1.5
 IMPULSE_BACK_S = 3        # Aufsprung-Impuls bis 3 s VOR dem erkannten Start suchen
 IMPULSE_FWD_S = 2         # ... bis 2 s danach
 SPEED_SPIKE_MPS = 2.5     # 1-s-Speed-Abweichung darüber (~9 km/h) = Glitch -> clampen
