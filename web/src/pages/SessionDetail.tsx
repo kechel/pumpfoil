@@ -849,11 +849,13 @@ export default function SessionDetail() {
   const hasPumpStats = m?.avg_pump_hz != null && (a?.pump_count ?? 0) > 0;
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+      {/* Kopfzeile: mobil zwei Reihen (Sessions+Nav / Spot-Chat+Vergleich), ab sm eine Reihe.
+          Der w-full-Umbruch greift nur mobil; ab sm sitzt alles nebeneinander (Spot-Chat inhaltsbreit). */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
-        <div className="inline-flex shrink-0 overflow-hidden rounded-lg">
+        <div className="ml-auto inline-flex shrink-0 overflow-hidden rounded-lg sm:order-last sm:ml-0">
           <button
             disabled={neighbors.older == null}
             onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`)}
@@ -871,13 +873,13 @@ export default function SessionDetail() {
             {t("sd.newer")}
           </button>
         </div>
-      </div>
-      <div className="mb-4 flex items-center gap-2">
+        {/* erzwingt mobil den Zeilenumbruch vor Spot-Chat; ab sm unsichtbar (eine Reihe) */}
+        <div className="w-full sm:hidden" />
         {session.place_name && (
           <Link
             to={`/chat?scope=${encodeURIComponent(`spot:${session.place_name}`)}`}
             title={`${t("chat.spotChat")} ${session.place_name}`}
-            className="flex min-w-0 flex-1 items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700 sm:ml-auto sm:flex-none"
           >
             <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />
             <span className="truncate">{t("chat.spotChat")} {session.place_name}</span>
@@ -889,7 +891,7 @@ export default function SessionDetail() {
             <button
               onClick={() => toggleCompare({ sessionId: session.id, runIdx: null })}
               title={inCmp ? t("compare.remove") : t("compare.add")}
-              className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1 text-sm ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+              className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1 text-sm ${session.place_name ? "sm:ml-0" : "sm:ml-auto"} ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
             >
               <CompareIcon className="h-4 w-4 shrink-0" /> {inCmp ? t("compare.inList") : t("compare.add")}
             </button>
