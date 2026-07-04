@@ -206,9 +206,15 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (
-          <div key={m.id} className={`flex gap-2 ${m.hidden ? "opacity-50" : ""}`}
+          <div key={m.id} className={`flex items-start gap-2 ${m.hidden ? "opacity-50" : ""}`}
             onContextMenu={(e) => { if (canEdit(m)) { e.preventDefault(); openMenu(m); } }}
             onTouchStart={() => pressStart(m)} onTouchEnd={pressCancel} onTouchMove={pressCancel}>
+            {menuFor === m.id && canEdit(m) && (
+              <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
+                className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-xl bg-slate-800 text-brand-300 hover:bg-slate-700">
+                <EditIcon className="h-5 w-5" />
+              </button>
+            )}
             <Avatar name={m.name} url={m.avatar_url} size={32} className="mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
@@ -216,12 +222,6 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 <span className="ml-auto flex items-center gap-2">
-                  {menuFor === m.id && canEdit(m) && (
-                    <>
-                      <button onClick={() => startEdit(m)} title={t("chat.edit")} className="text-slate-400 hover:text-brand-300"><EditIcon className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => del(m)} title={t("chat.delete")} className="text-slate-400 hover:text-red-400"><TrashIcon className="h-3.5 w-3.5" /></button>
-                    </>
-                  )}
                   {isAdmin && m.report_count > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400" title={t("chat.reports")}><FlagIcon className="h-3 w-3" />{m.report_count}</span>
                   )}
@@ -240,6 +240,12 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
               </div>
               <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>
             </div>
+            {menuFor === m.id && canEdit(m) && (
+              <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
+                className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-xl bg-slate-800 text-red-400 hover:bg-slate-700">
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            )}
           </div>
         ))}
       </div>
