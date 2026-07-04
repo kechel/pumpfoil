@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 
-// Diktier-Button: Browser-Spracherkennung (Web Speech API). Schreibt den erkannten Text
-// live ins Eingabefeld (via onChange), sendet NICHT automatisch — Absenden bleibt manuell.
-// Blendet sich aus, wenn der Browser keine SpeechRecognition kann (z. B. Firefox).
+// Diktier-Button: Browser-Spracherkennung (Web Speech API). Während des Sprechens läuft eine
+// Vollbild-Vorschau (große Schrift, Auto-Scroll); erst beim Stoppen wandert das fertige
+// Ergebnis EINMAL sauber ins Eingabefeld. Blendet sich aus, wenn der Browser es nicht kann.
+//
+// Robustheit gegen Android-Chrome: continuous=false + Auto-Restart. Pro Erkennungs-Session
+// gibt es genau eine finale Äußerung; wir akkumulieren sie selbst (finalRef). So entstehen
+// keine Browser-Dopplungen (continuous=true liefert Finals dort teils mehrfach).
 
-// i18n-Sprache -> BCP-47-Locale für die Erkennung.
 const SR_LANG: Record<string, string> = {
   de: "de-DE", gsw: "de-CH", "de-AT": "de-AT",
   en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES",
@@ -18,83 +21,88 @@ export function MicButton({ value, onChange, disabled }: {
 }) {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
-  const [preview, setPreview] = useState("");   // Live-Vorschau während des Sprechens (noch nicht im Feld)
+  const [preview, setPreview] = useState("");   // Live-Text (nur Vorschau, noch nicht im Feld)
   const [err, setErr] = useState("");
   const recRef = useRef<any>(null);
-  const baseRef = useRef("");
-  const finalRef = useRef("");   // bereits final erkannter Text (über Events hinweg akkumuliert)
+  const activeRef = useRef(false);   // Nutzer will weiterdiktieren (steuert Auto-Restart)
+  const baseRef = useRef("");        // Feld-Text bei Start (Diktat wird angehängt)
+  const finalRef = useRef("");       // von uns akkumulierter finaler Text (über Sessions)
+  const sessFinalRef = useRef("");   // finaler Text der laufenden Session
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const SR = typeof window !== "undefined"
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     : null;
 
-  // Beim Unmount laufende Erkennung stoppen.
-  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* egal */ } }, []);
-
-  // Fehler-Tooltip nicht „kleben" lassen: nach 6 s automatisch ausblenden.
-  useEffect(() => {
-    if (!err) return;
-    const id = setTimeout(() => setErr(""), 6000);
-    return () => clearTimeout(id);
-  }, [err]);
+  useEffect(() => () => { activeRef.current = false; try { recRef.current?.stop(); } catch { /* egal */ } }, []);
+  useEffect(() => { if (!err) return; const id = setTimeout(() => setErr(""), 6000); return () => clearTimeout(id); }, [err]);
+  // Vollbild-Vorschau immer ans untere Ende scrollen (aktuellen Abschnitt zeigen).
+  useEffect(() => { const el = scrollRef.current; if (el) el.scrollTop = el.scrollHeight; }, [preview]);
 
   if (!SR) return null;
 
-  function toggle() {
-    setErr("");
-    // Gegen Mehrfach-Instanzen die REF prüfen (nicht den listening-State — der kommt via
-    // onstart asynchron; sonst starten schnelle Doppel-Taps mehrere Erkenner -> Text doppelt/dreifach).
-    if (recRef.current) { try { recRef.current.stop(); } catch { /* egal */ } return; }
-    // WICHTIG: start() MUSS synchron im Klick-Handler laufen. Kein await davor (z. B.
-    // getUserMedia) — sonst geht der User-Gesten-Kontext verloren und Chrome lehnt start()
-    // still ab (kein Feedback). SpeechRecognition fordert die Mikro-Freigabe selbst an.
+  function startSession() {
     const rec = new SR();
     rec.lang = SR_LANG[lang] || "de-DE";
-    rec.continuous = true;
+    rec.continuous = false;   // eine Äußerung pro Session (Android-robust)
     rec.interimResults = true;
-    // Vorhandenen Text als Basis behalten, Diktat hinten anhängen (mit Trennleerzeichen).
+    sessFinalRef.current = "";
+    rec.onstart = () => setListening(true);
+    rec.onresult = (e: any) => {
+      let interim = "", fin = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) fin += r[0].transcript; else interim += r[0].transcript;
+      }
+      sessFinalRef.current = fin;
+      const joined = [finalRef.current, (fin + interim).trim()].filter(Boolean).join(" ");
+      setPreview(joined.trim());
+    };
+    rec.onerror = (e: any) => {
+      const code = e?.error;
+      if (code === "no-speech") return;   // Stille -> onend startet neu, kein Fehler zeigen
+      activeRef.current = false;
+      setErr(code === "not-allowed" ? t("mic.blocked") : t("mic.err"));
+      console.warn("SpeechRecognition error:", code);
+    };
+    rec.onend = () => {
+      // Final dieser Session EINMAL in den Gesamttext übernehmen.
+      const f = sessFinalRef.current.trim();
+      if (f) finalRef.current = [finalRef.current, f].filter(Boolean).join(" ");
+      if (activeRef.current) {
+        startSession();   // weiter diktieren -> nächste Session
+      } else {
+        setListening(false);
+        recRef.current = null;
+        const all = finalRef.current.trim();
+        if (all) onChange((baseRef.current + all).slice(0, 2000));
+        setPreview("");
+      }
+    };
+    recRef.current = rec;
+    try { rec.start(); }
+    catch (ex) { activeRef.current = false; setListening(false); recRef.current = null; setErr(t("mic.err")); console.warn("rec.start failed:", ex); }
+  }
+
+  function start() {
+    setErr("");
     baseRef.current = value ? value.replace(/\s+$/, "") + " " : "";
     finalRef.current = "";
     setPreview("");
-    rec.onstart = () => { setListening(true); setPreview(""); };
-    rec.onresult = (e: any) => {
-      // NUR Live-Vorschau aktualisieren (nicht ins Feld schreiben). Kanonisch: ab resultIndex
-      // nur neue Ergebnisse — finale Teile in finalRef sammeln, laufendes Interim anhängen.
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (r.isFinal) finalRef.current += r[0].transcript;
-        else interim += r[0].transcript;
-      }
-      setPreview((finalRef.current + interim).trim());
-    };
-    rec.onend = () => {
-      setListening(false);
-      recRef.current = null;
-      // Erst beim Stoppen das fertige Ergebnis EINMAL sauber ins Feld übernehmen.
-      const finalText = finalRef.current.trim();
-      if (finalText) onChange((baseRef.current + finalText).slice(0, 2000));
-      setPreview("");
-    };
-    rec.onerror = (e: any) => {
-      setListening(false);
-      recRef.current = null;
-      // Fehler NICHT verschlucken -> Nutzer sieht, warum nichts passiert.
-      const code = e?.error;
-      setErr(code === "no-speech" ? t("mic.nospeech")
-        : code === "not-allowed" ? t("mic.blocked")
-        : t("mic.err"));
-      console.warn("SpeechRecognition error:", code);
-    };
-    recRef.current = rec;
-    try { rec.start(); } catch (ex) { setListening(false); recRef.current = null; setErr(t("mic.err")); console.warn("rec.start failed:", ex); }
+    activeRef.current = true;
+    startSession();
+  }
+
+  function stop() {
+    activeRef.current = false;
+    try { recRef.current?.stop(); } catch { /* egal */ }
   }
 
   return (
     <div className="relative shrink-0">
       <button
         type="button"
-        onClick={toggle}
+        onClick={() => (listening ? stop() : start())}
         disabled={disabled}
         title={err || (listening ? t("mic.stop") : t("chat.dictate"))}
         aria-label={t("chat.dictate")}
@@ -102,9 +110,8 @@ export function MicButton({ value, onChange, disabled }: {
         className={`flex items-center justify-center rounded-xl border px-3 py-2 ${
           listening
             ? "animate-pulse border-red-500 bg-red-500/20 text-red-400"
-            : err
-              ? "border-red-500/50 bg-slate-900 text-red-400 hover:bg-slate-800"
-              : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+            : err ? "border-red-500/50 bg-slate-900 text-red-400 hover:bg-slate-800"
+                  : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
         } disabled:opacity-50`}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -113,13 +120,26 @@ export function MicButton({ value, onChange, disabled }: {
           <line x1="12" y1="19" x2="12" y2="22" />
         </svg>
       </button>
-      {/* Live-Vorschau während des Sprechens — landet erst beim Stoppen im Feld. */}
+
+      {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit. */}
       {listening && (
-        <div className="absolute bottom-full right-0 z-50 mb-1 w-56 rounded-lg bg-slate-800 px-2 py-1.5 text-[11px] leading-snug text-slate-200 shadow-lg">
-          <span className="mr-1 inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
-          {preview || <span className="text-slate-400">{t("mic.listening")}</span>}
+        <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950/97 p-5">
+          <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
+            <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+            {t("mic.listening")}
+          </div>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-2xl leading-relaxed text-slate-100 sm:text-3xl">
+            {preview || <span className="text-slate-500">…</span>}
+          </div>
+          <button
+            onClick={stop}
+            className="mt-4 rounded-2xl bg-brand-500 py-4 text-lg font-semibold text-slate-950 hover:bg-brand-400"
+          >
+            {t("mic.stop")}
+          </button>
         </div>
       )}
+
       {err && !listening && (
         <div
           role="button"
