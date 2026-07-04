@@ -83,6 +83,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       setHasMore(rows.length === PAGE);
       markRead(lastId.current);
       requestAnimationFrame(scrollToBottom);
+      setTimeout(scrollToBottom, 200);   // spät geladene Avatare/Höhen -> nochmal ganz nach unten
     }).catch(() => {});
     // Polling für neue Nachrichten.
     const poll = () => api.chatList(scope, lastId.current).then((rows) => {

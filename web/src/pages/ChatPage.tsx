@@ -72,7 +72,7 @@ export default function ChatPage() {
       </div>
 
       {scope ? (
-        <Card className="mb-6 p-4"><Chat scope={scope} /></Card>
+        <Card className="mb-6 p-4"><Chat key={scope} scope={scope} /></Card>
       ) : (
         <Card className="mb-6 p-6 text-center text-sm text-slate-400">{t("chat.noRoom")}</Card>
       )}
