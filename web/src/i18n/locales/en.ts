@@ -407,7 +407,7 @@ const en: Record<string, string> = {
   "mic.nospeech": "Didn't catch that — try again.",
   "mic.blocked": "Microphone blocked — allow it for this site in your browser.",
   "mic.dismiss": "Dismiss",
-  "mic.listening": "Listening… (tap mic when done)",
+  "mic.listening": "Recording – speak now",
   "mic.stop": "Stop",
   "mic.review": "Recording done",
   "mic.accept": "Insert",

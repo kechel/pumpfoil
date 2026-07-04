@@ -393,7 +393,7 @@ const fr: Record<string, string> = {
   "mic.nospeech": "Rien entendu — réessaie.",
   "mic.blocked": "Micro bloqué — autorise-le pour ce site dans ton navigateur.",
   "mic.dismiss": "Fermer",
-  "mic.listening": "J'écoute… (tape le micro quand c'est fini)",
+  "mic.listening": "Enregistrement – parle maintenant",
   "mic.stop": "Stop",
   "mic.review": "Enregistrement terminé",
   "mic.accept": "Insérer",
