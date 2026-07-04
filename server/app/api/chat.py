@@ -238,6 +238,54 @@ def report_message(
     return {"ok": True, "report_count": m.report_count, "hidden": m.hidden}
 
 
+# Eigene Nachrichten dürfen innerhalb dieses Fensters bearbeitet/gelöscht werden.
+EDIT_WINDOW_S = 3600  # 1 Stunde
+
+
+def _own_editable(message_id: int, user: models.User, db: Session) -> models.ChatMessage:
+    m = db.get(models.ChatMessage, message_id)
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    if m.user_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Nicht deine Nachricht")
+    created = m.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    if (datetime.now(timezone.utc) - created).total_seconds() > EDIT_WINDOW_S:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nachricht ist älter als 1 Stunde")
+    return m
+
+
+class EditIn(BaseModel):
+    text: str
+
+
+@router.patch("/{message_id}")
+def edit_message(
+    message_id: int, body: EditIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Nachricht bearbeiten (nur innerhalb 1 h)."""
+    m = _own_editable(message_id, user, db)
+    text = (body.text or "").strip()[:2000]
+    if not text:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leerer Text")
+    m.text = text
+    db.commit()
+    return {"ok": True, "id": m.id, "text": m.text}
+
+
+@router.delete("/{message_id}")
+def delete_message(
+    message_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Nachricht löschen (nur innerhalb 1 h)."""
+    m = _own_editable(message_id, user, db)
+    db.delete(m)
+    db.commit()
+    return {"ok": True, "id": message_id}
+
+
 def _require_admin(user: models.User) -> None:
     if not user.is_admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur für Admins")

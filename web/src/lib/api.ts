@@ -372,6 +372,8 @@ export const api = {
   chatBefore: (scope: string, before: number, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&before=${before}&limit=${limit}`),
   chatPost: (scope: string, text: string) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text }) }),
   chatReport: (id: number) => req<{ ok: boolean; report_count: number; hidden: boolean }>(`/api/chat/${id}/report`, { method: "POST" }),
+  chatEdit: (id: number, text: string) => req<{ ok: boolean; id: number; text: string }>(`/api/chat/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),
+  chatDelete: (id: number) => req<{ ok: boolean; id: number }>(`/api/chat/${id}`, { method: "DELETE" }),
   chatHide: (id: number, hidden: boolean) => req<{ ok: boolean; id: number; hidden: boolean }>(`/api/chat/${id}/hide`, { method: "POST", body: JSON.stringify({ hidden }) }),
   chatReported: () => req<(ChatMsg & { scope: string })[]>(`/api/chat/reported`),
   chatSetReadonly: (userId: number, readonly: boolean) => req<{ ok: boolean; user_id: number; chat_readonly: boolean }>(`/api/chat/moderation/readonly`, { method: "POST", body: JSON.stringify({ user_id: userId, readonly }) }),

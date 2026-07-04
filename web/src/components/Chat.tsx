@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon } from "./Icons";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
 
@@ -31,6 +31,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [hasMore, setHasMore] = useState(false);   // gibt es ältere (nachladbare) Nachrichten?
   const [capped, setCapped] = useState(false);     // 100er-Limit erreicht: ältere bleiben ausgeblendet
   const [loadingMore, setLoadingMore] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);   // id der Nachricht, die gerade bearbeitet wird
+  const [menuFor, setMenuFor] = useState<number | null>(null);    // per Long-Press geöffnete Aktionen (Bearbeiten/Löschen)
+  const inputRef = useRef<HTMLInputElement>(null);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastId = useRef(0);          // höchste geladene id (für Polling)
   const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -122,7 +126,41 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     api.chatLeave(scope).then(() => { setPush(false); alert(t("chat.leftDone")); }).catch(() => {});
   }
 
-  function send() { sendText(text); }
+  // Eigene Nachricht bearbeiten/löschen — nur innerhalb 1 h (Server prüft ebenfalls).
+  const canEdit = (m: ChatMsg) =>
+    m.mine && !!m.created_at && Date.now() - new Date(m.created_at).getTime() < 3600_000;
+
+  function openMenu(m: ChatMsg) { if (canEdit(m)) setMenuFor((cur) => (cur === m.id ? null : m.id)); }
+  function pressStart(m: ChatMsg) {
+    if (!canEdit(m)) return;
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => setMenuFor(m.id), 500);   // Long-Press ~0,5 s
+  }
+  function pressCancel() { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; } }
+
+  function startEdit(m: ChatMsg) {
+    setEditing(m.id); setText(m.text); setMenuFor(null);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+  function cancelEdit() { setEditing(null); setText(""); }
+  function saveEdit() {
+    const v = text.trim();
+    if (editing == null || !v || busy) return;
+    setBusy(true);
+    api.chatEdit(editing, v)
+      .then((r) => { setMsgs((prev) => prev.map((x) => x.id === editing ? { ...x, text: r.text } : x)); setEditing(null); setText(""); })
+      .catch((e) => alert(String(e)))
+      .finally(() => setBusy(false));
+  }
+  function del(m: ChatMsg) {
+    setMenuFor(null);
+    if (!confirm(t("chat.deleteConfirm"))) return;
+    api.chatDelete(m.id)
+      .then(() => setMsgs((prev) => prev.filter((x) => x.id !== m.id)))
+      .catch((e) => alert(String(e)));
+  }
+
+  function send() { if (editing != null) { saveEdit(); return; } sendText(text); }
   function sendText(raw: string) {
     const v = raw.trim();
     if (!v || busy) return;
@@ -168,7 +206,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (
-          <div key={m.id} className={`flex gap-2 ${m.hidden ? "opacity-50" : ""}`}>
+          <div key={m.id} className={`flex gap-2 ${m.hidden ? "opacity-50" : ""}`}
+            onContextMenu={(e) => { if (canEdit(m)) { e.preventDefault(); openMenu(m); } }}
+            onTouchStart={() => pressStart(m)} onTouchEnd={pressCancel} onTouchMove={pressCancel}>
             <Avatar name={m.name} url={m.avatar_url} size={32} className="mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
@@ -176,6 +216,12 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 <span className="ml-auto flex items-center gap-2">
+                  {menuFor === m.id && canEdit(m) && (
+                    <>
+                      <button onClick={() => startEdit(m)} title={t("chat.edit")} className="text-slate-400 hover:text-brand-300"><EditIcon className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => del(m)} title={t("chat.delete")} className="text-slate-400 hover:text-red-400"><TrashIcon className="h-3.5 w-3.5" /></button>
+                    </>
+                  )}
                   {isAdmin && m.report_count > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400" title={t("chat.reports")}><FlagIcon className="h-3 w-3" />{m.report_count}</span>
                   )}
@@ -197,19 +243,26 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           </div>
         ))}
       </div>
+      {editing != null && (
+        <div className="mb-1 flex items-center justify-between text-xs text-brand-300">
+          <span>{t("chat.editing")}</span>
+          <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200" title={t("chat.editCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
+        </div>
+      )}
       <div className="flex gap-2">
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+          onKeyDown={(e) => { if (e.key === "Enter") send(); if (e.key === "Escape" && editing != null) cancelEdit(); }}
           placeholder={t("chat.placeholder")}
           maxLength={2000}
           className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
-        <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy} />
+        {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy} />}
         <button onClick={send} disabled={busy || !text.trim()}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-          {t("chat.send")}
+          {editing != null ? t("chat.save") : t("chat.send")}
         </button>
       </div>
     </div>
