@@ -1235,5 +1235,1859 @@
     "thickness_mm": 20.5,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "GoFoil",
+    "model": "GL",
+    "size": "GL140",
+    "span_cm": 81,
+    "area_cm2": 1085,
+    "thickness_mm": 21,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "GoFoil",
+    "model": "GL",
+    "size": "GL180",
+    "span_cm": 96,
+    "area_cm2": 1290,
+    "thickness_mm": 20,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "GoFoil",
+    "model": "GL",
+    "size": "GL210",
+    "span_cm": 96.5,
+    "area_cm2": 1495,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "GoFoil",
+    "model": "GL",
+    "size": "GL240",
+    "span_cm": 107,
+    "area_cm2": 1875,
+    "thickness_mm": 26,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "640",
+    "span_cm": 81,
+    "area_cm2": 640,
+    "thickness_mm": 7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "840",
+    "span_cm": 90,
+    "area_cm2": 840,
+    "thickness_mm": 8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "1040",
+    "span_cm": 98,
+    "area_cm2": 1040,
+    "thickness_mm": 10,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "1240",
+    "span_cm": 103,
+    "area_cm2": 1240,
+    "thickness_mm": 11,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "1440",
+    "span_cm": 107,
+    "area_cm2": 1440,
+    "thickness_mm": 12,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "1640",
+    "span_cm": 110,
+    "area_cm2": 1640,
+    "thickness_mm": 13,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA",
+    "size": "1840",
+    "span_cm": 112,
+    "area_cm2": 1840,
+    "thickness_mm": 15,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H550",
+    "span_cm": 69.0,
+    "area_cm2": 550,
+    "thickness_mm": 12,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H700",
+    "span_cm": 81.5,
+    "area_cm2": 700,
+    "thickness_mm": 13,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H800",
+    "span_cm": 90.0,
+    "area_cm2": 800,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H850",
+    "span_cm": 90.0,
+    "area_cm2": 850,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H1000",
+    "span_cm": 90.0,
+    "area_cm2": 1000,
+    "thickness_mm": 17,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H1050",
+    "span_cm": 100.0,
+    "area_cm2": 1050,
+    "thickness_mm": 15,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series MKII",
+    "size": "H1300",
+    "span_cm": 109.0,
+    "area_cm2": 1300,
+    "thickness_mm": 17,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion X-Series",
+    "size": "X950",
+    "span_cm": 63.0,
+    "area_cm2": 950,
+    "thickness_mm": 21,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion X-Series",
+    "size": "X1300",
+    "span_cm": 78.0,
+    "area_cm2": 1300,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion X-Series",
+    "size": "X1600",
+    "span_cm": 90.0,
+    "area_cm2": 1600,
+    "thickness_mm": 25,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion X-Series",
+    "size": "X1950",
+    "span_cm": 100.0,
+    "area_cm2": 1950,
+    "thickness_mm": 27,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM 684",
+    "size": "684",
+    "span_cm": 68.4,
+    "area_cm2": 952,
+    "thickness_mm": 15,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM 825",
+    "size": "825",
+    "span_cm": 82.5,
+    "area_cm2": 758,
+    "thickness_mm": 10,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM 899",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 925,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM 930",
+    "size": "930",
+    "span_cm": 93.0,
+    "area_cm2": 950,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI 633",
+    "size": "633",
+    "span_cm": 63.3,
+    "area_cm2": 1270,
+    "thickness_mm": 34,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI 730",
+    "size": "730",
+    "span_cm": 73.0,
+    "area_cm2": 1456,
+    "thickness_mm": 26,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI 928",
+    "size": "928",
+    "span_cm": 92.8,
+    "area_cm2": 2389,
+    "thickness_mm": 42,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm E 866",
+    "size": "866",
+    "span_cm": 86.6,
+    "area_cm2": 1550,
+    "thickness_mm": 32,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm E 990",
+    "size": "990",
+    "span_cm": 99.0,
+    "area_cm2": 1800,
+    "thickness_mm": 34,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G 700",
+    "size": "700",
+    "span_cm": 70.0,
+    "area_cm2": 900,
+    "thickness_mm": 21,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G 800",
+    "size": "800",
+    "span_cm": 80.0,
+    "area_cm2": 1173,
+    "thickness_mm": 24,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G 900",
+    "size": "900",
+    "span_cm": 90.0,
+    "area_cm2": 1263,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G 1000",
+    "size": "1000",
+    "span_cm": 100.0,
+    "area_cm2": 1355,
+    "thickness_mm": 22,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 90 High Aspect",
+    "size": "90",
+    "span_cm": 80.0,
+    "area_cm2": 581,
+    "thickness_mm": 5.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 110 High Aspect X",
+    "size": "110",
+    "span_cm": 97.0,
+    "area_cm2": 710,
+    "thickness_mm": 5.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 120 High Aspect",
+    "size": "120",
+    "span_cm": 89.0,
+    "area_cm2": 775,
+    "thickness_mm": 7.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 150 High Aspect X",
+    "size": "150",
+    "span_cm": 99.0,
+    "area_cm2": 968,
+    "thickness_mm": 7.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 200 High Aspect",
+    "size": "200",
+    "span_cm": 94.0,
+    "area_cm2": 1290,
+    "thickness_mm": 13.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift Florence 110 X",
+    "size": "110",
+    "span_cm": 97.0,
+    "area_cm2": 710,
+    "thickness_mm": 5.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift Florence 130 X",
+    "size": "130",
+    "span_cm": 99.0,
+    "area_cm2": 839,
+    "thickness_mm": 6.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 92 Havoc",
+    "size": "92",
+    "span_cm": 71.0,
+    "area_cm2": 594,
+    "thickness_mm": 8.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 105 Havoc",
+    "size": "105",
+    "span_cm": 70.0,
+    "area_cm2": 677,
+    "thickness_mm": 11.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 121 Havoc",
+    "size": "121",
+    "span_cm": 74.0,
+    "area_cm2": 774,
+    "thickness_mm": 12.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 148 Havoc",
+    "size": "148",
+    "span_cm": 83.0,
+    "area_cm2": 955,
+    "thickness_mm": 13.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Lift 200 Surf V2",
+    "size": "200",
+    "span_cm": 83.0,
+    "area_cm2": 1290,
+    "thickness_mm": 18.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar SF",
+    "size": "SF680",
+    "span_cm": 79.0,
+    "area_cm2": 680,
+    "thickness_mm": 11.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar SF",
+    "size": "SF830",
+    "span_cm": 86.5,
+    "area_cm2": 830,
+    "thickness_mm": 13.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar SF",
+    "size": "SF930",
+    "span_cm": 90.0,
+    "area_cm2": 930,
+    "thickness_mm": 14.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar SF",
+    "size": "SF1080",
+    "span_cm": 91.5,
+    "area_cm2": 1080,
+    "thickness_mm": 17.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar SF",
+    "size": "SF1230",
+    "span_cm": 93.0,
+    "area_cm2": 1230,
+    "thickness_mm": 19.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA500",
+    "span_cm": 63.0,
+    "area_cm2": 500,
+    "thickness_mm": 10.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA600",
+    "span_cm": 68.0,
+    "area_cm2": 600,
+    "thickness_mm": 11.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA700",
+    "span_cm": 72.0,
+    "area_cm2": 700,
+    "thickness_mm": 13.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA850",
+    "span_cm": 78.0,
+    "area_cm2": 850,
+    "thickness_mm": 15.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA1050",
+    "span_cm": 85.0,
+    "area_cm2": 1050,
+    "thickness_mm": 18.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA1200",
+    "span_cm": 87.5,
+    "area_cm2": 1200,
+    "thickness_mm": 20.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA1500",
+    "span_cm": 92.0,
+    "area_cm2": 1500,
+    "thickness_mm": 25.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA1850",
+    "span_cm": 96.0,
+    "area_cm2": 1850,
+    "thickness_mm": 30.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA2100",
+    "span_cm": 100.0,
+    "area_cm2": 2100,
+    "thickness_mm": 33.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar MAv2",
+    "size": "MA2400",
+    "span_cm": 104.0,
+    "area_cm2": 2400,
+    "thickness_mm": 38.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA550",
+    "span_cm": 74.0,
+    "area_cm2": 550,
+    "thickness_mm": 8.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA650",
+    "span_cm": 81.0,
+    "area_cm2": 650,
+    "thickness_mm": 9.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA750",
+    "span_cm": 87.0,
+    "area_cm2": 750,
+    "thickness_mm": 9.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA850",
+    "span_cm": 92.0,
+    "area_cm2": 850,
+    "thickness_mm": 10.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA950",
+    "span_cm": 100.0,
+    "area_cm2": 950,
+    "thickness_mm": 10.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA1050",
+    "span_cm": 105.0,
+    "area_cm2": 1050,
+    "thickness_mm": 11.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA1150",
+    "span_cm": 110.0,
+    "area_cm2": 1150,
+    "thickness_mm": 12.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA1250",
+    "span_cm": 112.0,
+    "area_cm2": 1250,
+    "thickness_mm": 12.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar HA",
+    "size": "HA1450",
+    "span_cm": 120.0,
+    "area_cm2": 1450,
+    "thickness_mm": 14.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar DW",
+    "size": "DW750",
+    "span_cm": 100.0,
+    "area_cm2": 740,
+    "thickness_mm": 7.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar DW",
+    "size": "DW900",
+    "span_cm": 108.0,
+    "area_cm2": 890,
+    "thickness_mm": 8.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar DW",
+    "size": "DW1100",
+    "span_cm": 115.0,
+    "area_cm2": 1085,
+    "thickness_mm": 10.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "North",
+    "model": "Sonar DW",
+    "size": "DW1400",
+    "span_cm": 125.0,
+    "area_cm2": 1380,
+    "thickness_mm": 12.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero HA",
+    "size": "1250",
+    "span_cm": 90,
+    "area_cm2": 1250,
+    "thickness_mm": 13.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero HA",
+    "size": "1500",
+    "span_cm": 95,
+    "area_cm2": 1500,
+    "thickness_mm": 15.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero HA",
+    "size": "1750",
+    "span_cm": 100,
+    "area_cm2": 1750,
+    "thickness_mm": 17.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero HA",
+    "size": "2000",
+    "span_cm": 110,
+    "area_cm2": 2000,
+    "thickness_mm": 18.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Carve",
+    "size": "750",
+    "span_cm": 63,
+    "area_cm2": 750,
+    "thickness_mm": 13.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Carve",
+    "size": "900",
+    "span_cm": 70,
+    "area_cm2": 900,
+    "thickness_mm": 14.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Carve",
+    "size": "1150",
+    "span_cm": 78,
+    "area_cm2": 1150,
+    "thickness_mm": 16.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Carve",
+    "size": "1400",
+    "span_cm": 86,
+    "area_cm2": 1400,
+    "thickness_mm": 17.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Free",
+    "size": "800",
+    "span_cm": 78.6,
+    "area_cm2": 800,
+    "thickness_mm": 10.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Free",
+    "size": "1000",
+    "span_cm": 84.7,
+    "area_cm2": 1000,
+    "thickness_mm": 12.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Aero Free",
+    "size": "1250",
+    "span_cm": 90.7,
+    "area_cm2": 1250,
+    "thickness_mm": 14.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Flow Foil AL",
+    "size": "900",
+    "span_cm": 81.2,
+    "area_cm2": 900,
+    "thickness_mm": 12.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Flow Foil AL",
+    "size": "1000",
+    "span_cm": 86.4,
+    "area_cm2": 1000,
+    "thickness_mm": 12.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Flow Foil AL",
+    "size": "1250",
+    "span_cm": 74.0,
+    "area_cm2": 1250,
+    "thickness_mm": 18.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Fanatic",
+    "model": "Flow Foil AL",
+    "size": "1500",
+    "span_cm": 84.4,
+    "area_cm2": 1500,
+    "thickness_mm": 19.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Infinity ACE",
+    "size": "690",
+    "span_cm": 72.0,
+    "area_cm2": 690,
+    "thickness_mm": 10.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Infinity ACE",
+    "size": "840",
+    "span_cm": 79.5,
+    "area_cm2": 840,
+    "thickness_mm": 11.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Infinity ACE",
+    "size": "990",
+    "span_cm": 86.0,
+    "area_cm2": 990,
+    "thickness_mm": 12.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Infinity ACE",
+    "size": "1140",
+    "span_cm": 92.5,
+    "area_cm2": 1140,
+    "thickness_mm": 13.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Infinity ACE",
+    "size": "1390",
+    "span_cm": 102.0,
+    "area_cm2": 1390,
+    "thickness_mm": 15.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Stride ACE",
+    "size": "1360",
+    "span_cm": 110.0,
+    "area_cm2": 1360,
+    "thickness_mm": 11.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ensis",
+    "model": "Maniac Stride ACE",
+    "size": "1740",
+    "span_cm": 126.0,
+    "area_cm2": 1740,
+    "thickness_mm": 12.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "2000",
+    "span_cm": 140,
+    "area_cm2": 2000,
+    "thickness_mm": 15.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "1700",
+    "span_cm": 120,
+    "area_cm2": 1700,
+    "thickness_mm": 15.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "1400",
+    "span_cm": 101,
+    "area_cm2": 1400,
+    "thickness_mm": 15.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "1100",
+    "span_cm": 95,
+    "area_cm2": 1100,
+    "thickness_mm": 12.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "900",
+    "span_cm": 84,
+    "area_cm2": 900,
+    "thickness_mm": 11.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider 2",
+    "size": "750",
+    "span_cm": 74,
+    "area_cm2": 750,
+    "thickness_mm": 11.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider Pro",
+    "size": "1260",
+    "span_cm": 116,
+    "area_cm2": 1260,
+    "thickness_mm": 9.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider Pro",
+    "size": "1010",
+    "span_cm": 107,
+    "area_cm2": 1010,
+    "thickness_mm": 8.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider Pro",
+    "size": "860",
+    "span_cm": 99,
+    "area_cm2": 860,
+    "thickness_mm": 7.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "Glider Pro",
+    "size": "710",
+    "span_cm": 91,
+    "area_cm2": 710,
+    "thickness_mm": 7.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "MF",
+    "size": "1160",
+    "span_cm": 125,
+    "area_cm2": 1160,
+    "thickness_mm": 8.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "MF",
+    "size": "960",
+    "span_cm": 115,
+    "area_cm2": 960,
+    "thickness_mm": 7.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "MF",
+    "size": "820",
+    "span_cm": 112,
+    "area_cm2": 820,
+    "thickness_mm": 6.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "MF",
+    "size": "720",
+    "span_cm": 101,
+    "area_cm2": 720,
+    "thickness_mm": 6.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "MF",
+    "size": "640",
+    "span_cm": 98,
+    "area_cm2": 640,
+    "thickness_mm": 5.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "865",
+    "span_cm": 100,
+    "area_cm2": 865,
+    "thickness_mm": 7.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "765",
+    "span_cm": 100,
+    "area_cm2": 765,
+    "thickness_mm": 6.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "665",
+    "span_cm": 100,
+    "area_cm2": 665,
+    "thickness_mm": 6.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "565",
+    "span_cm": 86,
+    "area_cm2": 565,
+    "thickness_mm": 5.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "535",
+    "span_cm": 75,
+    "area_cm2": 535,
+    "thickness_mm": 6.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "495",
+    "span_cm": 72,
+    "area_cm2": 495,
+    "thickness_mm": 6.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "465",
+    "span_cm": 72,
+    "area_cm2": 465,
+    "thickness_mm": 5.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "435",
+    "span_cm": 68,
+    "area_cm2": 435,
+    "thickness_mm": 5.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "405",
+    "span_cm": 63,
+    "area_cm2": 405,
+    "thickness_mm": 5.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "SLX",
+    "size": "365",
+    "span_cm": 60,
+    "area_cm2": 365,
+    "thickness_mm": 5.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Starboard",
+    "model": "GT-R",
+    "size": "650",
+    "span_cm": 69,
+    "area_cm2": 650,
+    "thickness_mm": 8.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Onda 633",
+    "size": "633",
+    "span_cm": 63.3,
+    "area_cm2": 1250,
+    "thickness_mm": 34,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Medusa 790",
+    "size": "790",
+    "span_cm": 79.0,
+    "area_cm2": 1529,
+    "thickness_mm": 21.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Medusa 899",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 1383,
+    "thickness_mm": 21.6,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor 820",
+    "size": "820",
+    "span_cm": 82.0,
+    "area_cm2": 746,
+    "thickness_mm": 15.3,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor 880",
+    "size": "880",
+    "span_cm": 88.0,
+    "area_cm2": 843,
+    "thickness_mm": 17.8,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor Pro 975",
+    "size": "975",
+    "span_cm": 98.0,
+    "area_cm2": 942,
+    "thickness_mm": 16.77,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor Pro 1075",
+    "size": "1075",
+    "span_cm": 107.5,
+    "area_cm2": 1061,
+    "thickness_mm": 17,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Blade 700",
+    "size": "700",
+    "span_cm": 70.0,
+    "area_cm2": 552,
+    "thickness_mm": 13.1,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan 950",
+    "size": "950",
+    "span_cm": 95.0,
+    "area_cm2": 1300,
+    "thickness_mm": 22.9,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan 1150",
+    "size": "1150",
+    "span_cm": 115.0,
+    "area_cm2": 1580,
+    "thickness_mm": 22.9,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan 1350",
+    "size": "1350",
+    "span_cm": 135.0,
+    "area_cm2": 1870,
+    "thickness_mm": 22.9,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan 1550",
+    "size": "1550",
+    "span_cm": 155.0,
+    "area_cm2": 2140,
+    "thickness_mm": 22.9,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan 1750",
+    "size": "1750",
+    "span_cm": 175.0,
+    "area_cm2": 2400,
+    "thickness_mm": 22.9,
+    "thickness_estimated": false
+  },
+  {
+    "brand": "Moses",
+    "model": "Onda 1000 HA",
+    "size": "1000",
+    "span_cm": 100.0,
+    "area_cm2": 1200,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Shaka HA",
+    "size": "HA1100",
+    "span_cm": 85,
+    "area_cm2": 1100,
+    "thickness_mm": 13,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Shaka HA",
+    "size": "HA1600",
+    "span_cm": 111,
+    "area_cm2": 1600,
+    "thickness_mm": 14,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Shaka",
+    "size": "S 1200",
+    "span_cm": 68,
+    "area_cm2": 1200,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Shaka",
+    "size": "M 1500",
+    "span_cm": 73,
+    "area_cm2": 1500,
+    "thickness_mm": 27,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Shaka",
+    "size": "L 2000",
+    "span_cm": 95,
+    "area_cm2": 2000,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Aspect",
+    "size": "578",
+    "span_cm": 59.8,
+    "area_cm2": 578,
+    "thickness_mm": 11,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Cruizer",
+    "size": "989",
+    "span_cm": 63.2,
+    "area_cm2": 989,
+    "thickness_mm": 22,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Solus",
+    "size": "565",
+    "span_cm": 89.3,
+    "area_cm2": 565,
+    "thickness_mm": 5.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Solus",
+    "size": "650",
+    "span_cm": 95.5,
+    "area_cm2": 650,
+    "thickness_mm": 5.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Solus",
+    "size": "775",
+    "span_cm": 104.0,
+    "area_cm2": 775,
+    "thickness_mm": 6.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Solus",
+    "size": "930",
+    "span_cm": 114.0,
+    "area_cm2": 930,
+    "thickness_mm": 6.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Solus",
+    "size": "1110",
+    "span_cm": 125.0,
+    "area_cm2": 1110,
+    "thickness_mm": 7.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Halo",
+    "size": "550",
+    "span_cm": 66.5,
+    "area_cm2": 550,
+    "thickness_mm": 8.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Halo",
+    "size": "670",
+    "span_cm": 72.5,
+    "area_cm2": 670,
+    "thickness_mm": 9.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Halo",
+    "size": "800",
+    "span_cm": 80.0,
+    "area_cm2": 800,
+    "thickness_mm": 10.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Halo",
+    "size": "950",
+    "span_cm": 87.0,
+    "area_cm2": 950,
+    "thickness_mm": 10.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "570",
+    "span_cm": 77.5,
+    "area_cm2": 570,
+    "thickness_mm": 7.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "680",
+    "span_cm": 85.0,
+    "area_cm2": 680,
+    "thickness_mm": 8.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "790",
+    "span_cm": 92.0,
+    "area_cm2": 790,
+    "thickness_mm": 8.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "960",
+    "span_cm": 102.0,
+    "area_cm2": 960,
+    "thickness_mm": 9.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "1120",
+    "span_cm": 111.0,
+    "area_cm2": 1120,
+    "thickness_mm": 10.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Atlas",
+    "size": "1340",
+    "span_cm": 122.0,
+    "area_cm2": 1340,
+    "thickness_mm": 11.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad",
+    "size": "700",
+    "span_cm": 78.0,
+    "area_cm2": 700,
+    "thickness_mm": 9.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad",
+    "size": "830",
+    "span_cm": 86.0,
+    "area_cm2": 830,
+    "thickness_mm": 10.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad",
+    "size": "980",
+    "span_cm": 95.0,
+    "area_cm2": 980,
+    "thickness_mm": 11.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad",
+    "size": "1160",
+    "span_cm": 105.0,
+    "area_cm2": 1160,
+    "thickness_mm": 12.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Instinct",
+    "size": "720",
+    "span_cm": 76.5,
+    "area_cm2": 720,
+    "thickness_mm": 11.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Instinct",
+    "size": "920",
+    "span_cm": 88.0,
+    "area_cm2": 920,
+    "thickness_mm": 12.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Instinct",
+    "size": "1120",
+    "span_cm": 97.1,
+    "area_cm2": 1120,
+    "thickness_mm": 13.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "500",
+    "span_cm": 69.5,
+    "area_cm2": 500,
+    "thickness_mm": 10.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "615",
+    "span_cm": 76.5,
+    "area_cm2": 615,
+    "thickness_mm": 11.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "720",
+    "span_cm": 83.0,
+    "area_cm2": 720,
+    "thickness_mm": 12.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "850",
+    "span_cm": 90.0,
+    "area_cm2": 850,
+    "thickness_mm": 13.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "980",
+    "span_cm": 96.5,
+    "area_cm2": 980,
+    "thickness_mm": 14.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "1130",
+    "span_cm": 103.5,
+    "area_cm2": 1130,
+    "thickness_mm": 15.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "1300",
+    "span_cm": 111.5,
+    "area_cm2": 1300,
+    "thickness_mm": 16.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "1540",
+    "span_cm": 121.0,
+    "area_cm2": 1540,
+    "thickness_mm": 17.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "S",
+    "size": "1725",
+    "span_cm": 128.0,
+    "area_cm2": 1725,
+    "thickness_mm": 18.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "X",
+    "size": "700",
+    "span_cm": 75.5,
+    "area_cm2": 700,
+    "thickness_mm": 12.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "X",
+    "size": "740",
+    "span_cm": 78.0,
+    "area_cm2": 740,
+    "thickness_mm": 12.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "X",
+    "size": "810",
+    "span_cm": 81.4,
+    "area_cm2": 810,
+    "thickness_mm": 12.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "X",
+    "size": "890",
+    "span_cm": 85.2,
+    "area_cm2": 890,
+    "thickness_mm": 13.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "X",
+    "size": "985",
+    "span_cm": 89.6,
+    "area_cm2": 985,
+    "thickness_mm": 14.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "600",
+    "span_cm": 88.0,
+    "area_cm2": 600,
+    "thickness_mm": 8.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "680",
+    "span_cm": 93.5,
+    "area_cm2": 680,
+    "thickness_mm": 8.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "770",
+    "span_cm": 100.0,
+    "area_cm2": 770,
+    "thickness_mm": 9.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "860",
+    "span_cm": 105.0,
+    "area_cm2": 860,
+    "thickness_mm": 9.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "960",
+    "span_cm": 111.5,
+    "area_cm2": 960,
+    "thickness_mm": 10.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "1075",
+    "span_cm": 118.0,
+    "area_cm2": 1075,
+    "thickness_mm": 10.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R",
+    "size": "1250",
+    "span_cm": 127.5,
+    "area_cm2": 1250,
+    "thickness_mm": 11.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "Kanga",
+    "size": "1390",
+    "span_cm": 130.0,
+    "area_cm2": 1390,
+    "thickness_mm": 12.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "Kanga",
+    "size": "1600",
+    "span_cm": 130.0,
+    "area_cm2": 1600,
+    "thickness_mm": 14.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "Kanga",
+    "size": "1870",
+    "span_cm": 130.0,
+    "area_cm2": 1870,
+    "thickness_mm": 17.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Code Foils",
+    "model": "Kanga",
+    "size": "2220",
+    "span_cm": 170.0,
+    "area_cm2": 2220,
+    "thickness_mm": 15.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Omen",
+    "model": "Agent",
+    "size": "700",
+    "span_cm": 84.3,
+    "area_cm2": 700,
+    "thickness_mm": 10,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Omen",
+    "model": "Agent",
+    "size": "900",
+    "span_cm": 95.4,
+    "area_cm2": 900,
+    "thickness_mm": 11,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Omen",
+    "model": "Agent",
+    "size": "1100",
+    "span_cm": 107.0,
+    "area_cm2": 1100,
+    "thickness_mm": 12,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Omen",
+    "model": "Operator",
+    "size": "850",
+    "span_cm": 90.0,
+    "area_cm2": 850,
+    "thickness_mm": 12,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Omen",
+    "model": "Operator",
+    "size": "1050",
+    "span_cm": 90.0,
+    "area_cm2": 1050,
+    "thickness_mm": 15,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "FlightAttendant",
+    "size": "780",
+    "span_cm": 67,
+    "area_cm2": 780,
+    "thickness_mm": 15,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "FlightAttendant",
+    "size": "980",
+    "span_cm": 80,
+    "area_cm2": 980,
+    "thickness_mm": 16,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "FlightAttendant",
+    "size": "1280",
+    "span_cm": 85,
+    "area_cm2": 1280,
+    "thickness_mm": 20,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "FlightAttendant",
+    "size": "1480",
+    "span_cm": 95,
+    "area_cm2": 1480,
+    "thickness_mm": 20,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "FlightAttendant",
+    "size": "1880",
+    "span_cm": 105,
+    "area_cm2": 1880,
+    "thickness_mm": 23,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "ElCapitano",
+    "size": "575",
+    "span_cm": 74,
+    "area_cm2": 575,
+    "thickness_mm": 9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "ElCapitano",
+    "size": "795",
+    "span_cm": 87,
+    "area_cm2": 795,
+    "thickness_mm": 11,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "ElCapitano",
+    "size": "995",
+    "span_cm": 97,
+    "area_cm2": 995,
+    "thickness_mm": 12,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "ElCapitano",
+    "size": "1195",
+    "span_cm": 106,
+    "area_cm2": 1195,
+    "thickness_mm": 13,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Reedin",
+    "model": "ElCapitano",
+    "size": "1695",
+    "span_cm": 123,
+    "area_cm2": 1695,
+    "thickness_mm": 15,
+    "thickness_estimated": true
   }
 ]
