@@ -67,6 +67,13 @@ GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median e
 # Regressions-Check: nur #428 & #410 (James) kippen korrekt auf pumpfoil=true; #71 (echter
 # 2-s-Start-Glitch, keine echte Session) kippt korrekt auf false; sonst keine Klassifikations-
 # Änderung, alle betroffenen Topspeeds nur nach unten (Glitch-Bereinigung).
+# Kausaler Despike (Beschleunigung): ein Wert, der den Median der letzten Sekunden um mehr
+# als SPIKE_JUMP übersteigt UND absolut hoch ist, ist ein physikalisch unmöglicher Sprung
+# (GPS-Glitch). Wirkt auch am TRACK-ENDE, wo symmetrische Median-Filter durch Rand-Padding
+# versagen — z. B. Session #426 (Jan): letzter Punkt springt 15->33 km/h (+18/s, normal p95 +4).
+SPIKE_JUMP_MPS = 4.0            # ~14 km/h über dem Rückwärts-Median = unmöglich
+SPIKE_ABS_MIN_MPS = 20.0 / 3.6  # nur oberhalb ~20 km/h prüfen (langsame Übergänge unangetastet)
+SPIKE_TRAIL_WIN_S = 5
 BURST_MARGIN_MPS = 5.0          # ~18 km/h über 15-s-Median …
 BURST_ABS_MIN_MPS = 28.0 / 3.6  # … UND absolut über ~28 km/h (echte Pump-Läufe bleiben unberührt)
 BURST_MEDIAN_WIN_S = 15
@@ -229,6 +236,21 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     burst = (speed > med_burst + BURST_MARGIN_MPS) & (speed > BURST_ABS_MIN_MPS)
     if burst.any():
         speed = np.where(burst, med_burst, speed)
+
+    # Isolierter Despike: ein einzelner Ausreißer, der ÜBER BEIDEN Nachbarn liegt (>SPIKE_JUMP)
+    # und absolut hoch ist, ist ein GPS-Glitch (Details/Beispiel #426 siehe Konstanten oben).
+    # Bewusst nur Einzel-Peaks — echte, gehaltene Pump-Anstiege (beide Nachbarn ebenfalls hoch)
+    # bleiben unangetastet, damit sich die Lauf-Erkennung nicht verschiebt. Wirkt auch am Rand.
+    n = speed.size
+    if n >= 2:
+        cleaned = speed.copy()
+        for i in range(n):
+            prev = cleaned[i - 1] if i > 0 else speed[i + 1]
+            nxt = speed[i + 1] if i < n - 1 else cleaned[i - 1]
+            ref = prev if prev < nxt else nxt
+            if speed[i] > ref + SPIKE_JUMP_MPS and speed[i] > SPIKE_ABS_MIN_MPS:
+                cleaned[i] = ref
+        speed = cleaned
 
     # Einzel-Sekunden-Ausreißer (GPS-Doppler-Glitches) gegen lokalen Median clampen
     # -> keine Lone-Spike-Farbsegmente; saubere Basis für alle Glättungen.
