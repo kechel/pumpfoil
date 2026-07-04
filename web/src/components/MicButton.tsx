@@ -50,9 +50,10 @@ export function MicButton({ value, onChange, disabled }: {
         stream.getTracks().forEach((tr) => tr.stop());   // sofort freigeben, SR öffnet selbst
       }
     } catch (ex: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
-      setErr(ex?.name === "NotAllowedError" ? t("mic.blocked") : t("mic.err"));
-      console.warn("getUserMedia failed:", ex?.name || ex);
-      return;
+      // NICHT hart abbrechen: manche Browser (v. a. Android Chrome) erteilen der
+      // Spracherkennung die Berechtigung getrennt von getUserMedia. Weiterversuchen und
+      // SR.onerror final entscheiden lassen — sonst blockiert getUserMedia fälschlich.
+      console.warn("getUserMedia failed (fahre mit SpeechRecognition fort):", ex?.name || ex);
     }
     const rec = new SR();
     rec.lang = SR_LANG[lang] || "de-DE";
