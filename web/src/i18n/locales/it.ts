@@ -362,6 +362,7 @@ const it: Record<string, string> = {
   "theme.light": "Chiaro",
   "theme.auto": "Auto",
   "chat.start": "Inizio della chat",
+  "chat.capped": "Vengono mostrati solo gli ultimi 100 messaggi",
   "chat.title": "Chat",
   "chat.noRoom": "Nessuna chat selezionata.",
   "foilStats.colAvgSpeed": "Vel. media",

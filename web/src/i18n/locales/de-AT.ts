@@ -273,6 +273,7 @@ const deAT: Record<string, string> = {
   "theme.light": "Hell",
   "theme.auto": "Automatisch",
   "chat.start": "Aufang vom Chat",
+  "chat.capped": "Es wern nur de letztn 100 Nochrichtn ozeigt",
   "chat.title": "Chat",
   "chat.noRoom": "Kein Chatraum ausgwählt.",
   "foilStats.colAvgSpeed": "Ø-Speed",

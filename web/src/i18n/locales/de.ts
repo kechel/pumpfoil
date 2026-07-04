@@ -395,6 +395,7 @@ const de: Record<string, string> = {
   "theme.light": "Hell",
   "theme.auto": "Automatisch",
   "chat.start": "Anfang des Chats",
+  "chat.capped": "Nur die letzten 100 Nachrichten werden angezeigt",
   "chat.title": "Chat",
   "chat.noRoom": "Kein Chatraum ausgewählt.",
   "foilStats.colAvgSpeed": "Ø-Speed",

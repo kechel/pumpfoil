@@ -28,12 +28,14 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [busy, setBusy] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [push, setPush] = useState(false);
-  const [hasMore, setHasMore] = useState(false);   // gibt es ältere Nachrichten?
+  const [hasMore, setHasMore] = useState(false);   // gibt es ältere (nachladbare) Nachrichten?
+  const [capped, setCapped] = useState(false);     // 100er-Limit erreicht: ältere bleiben ausgeblendet
   const [loadingMore, setLoadingMore] = useState(false);
   const lastId = useRef(0);          // höchste geladene id (für Polling)
   const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
   const scrollRef = useRef<HTMLDivElement>(null);
   const PAGE = 30;
+  const CAP = 100;   // Anzeige-Limit: nur die letzten 100 Nachrichten; ältere bleiben serverseitig, werden aber nicht mehr angezeigt.
 
   useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
   useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
@@ -69,7 +71,11 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       if (!alive || rows.length === 0) return;
       const stick = atBottom();
       lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
-      setMsgs((prev) => [...prev, ...rows]);
+      setMsgs((prev) => {
+        const next = [...prev, ...rows];
+        if (next.length > CAP) { setCapped(true); return next.slice(next.length - CAP); }  // nur letzte 100
+        return next;
+      });
       markRead(lastId.current);
       if (stick) requestAnimationFrame(scrollToBottom);
     }).catch(() => {});
@@ -80,14 +86,19 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // Ältere Nachrichten beim Hochscrollen nachladen (Scrollposition halten).
   function loadOlder() {
     if (loadingMore || !hasMore || !firstId.current) return;
+    // 100er-Anzeige-Limit: nicht über CAP hinaus nachladen (ältere bleiben ausgeblendet).
+    const remaining = CAP - msgs.length;
+    if (remaining <= 0) { setHasMore(false); setCapped(true); return; }
     setLoadingMore(true);
     const el = scrollRef.current;
     const prevH = el ? el.scrollHeight : 0;
-    api.chatBefore(scope, firstId.current, PAGE).then((rows) => {
+    api.chatBefore(scope, firstId.current, Math.min(PAGE, remaining)).then((rows) => {
       if (rows.length) {
         firstId.current = rows[0].id;
         setMsgs((prev) => [...rows, ...prev]);
-        setHasMore(rows.length === PAGE);
+        const reachedCap = msgs.length + rows.length >= CAP;
+        setCapped(reachedCap);
+        setHasMore(rows.length === PAGE && !reachedCap);
         requestAnimationFrame(() => {
           const e = scrollRef.current;
           if (e) e.scrollTop = e.scrollHeight - prevH;  // Position beibehalten
@@ -118,7 +129,14 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     api.chatPost(scope, v)
       .then((m) => {
         setText("");
-        if (m.id > lastId.current) { lastId.current = m.id; setMsgs((prev) => [...prev, m]); }
+        if (m.id > lastId.current) {
+          lastId.current = m.id;
+          setMsgs((prev) => {
+            const next = [...prev, m];
+            if (next.length > CAP) { setCapped(true); return next.slice(next.length - CAP); }
+            return next;
+          });
+        }
         requestAnimationFrame(scrollToBottom);
       })
       .finally(() => setBusy(false));
@@ -145,7 +163,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       </div>
       <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto ${fill ? "min-h-0 flex-1" : "h-96"}`}>
         {loadingMore && <p className="py-1 text-center text-xs text-slate-500">…</p>}
-        {!hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
+        {capped && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.capped")}</p>}
+        {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
         {msgs.length === 0 && <p className="text-sm text-slate-400">{t("chat.empty")}</p>}
         {msgs.map((m) => (
           <div key={m.id} className={`flex gap-2 ${m.hidden ? "opacity-50" : ""}`}>

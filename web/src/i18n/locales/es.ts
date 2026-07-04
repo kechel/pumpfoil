@@ -362,6 +362,7 @@ const es: Record<string, string> = {
   "theme.light": "Claro",
   "theme.auto": "Auto",
   "chat.start": "Inicio del chat",
+  "chat.capped": "Solo se muestran los últimos 100 mensajes",
   "chat.title": "Chat",
   "chat.noRoom": "Ninguna sala seleccionada.",
   "foilStats.colAvgSpeed": "Vel. media",

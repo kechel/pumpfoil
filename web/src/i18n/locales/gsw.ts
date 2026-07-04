@@ -312,6 +312,7 @@ const gsw: Record<string, string> = {
   "theme.light": "Häll",
   "theme.auto": "Automatisch",
   "chat.start": "Aafang vom Chat",
+  "chat.capped": "Nur die letschte 100 Nachrichte wärded azeigt",
   "chat.title": "Chat",
   "chat.noRoom": "Kein Chatruum uusgwählt.",
   "foilStats.colAvgSpeed": "Ø-Speed",
