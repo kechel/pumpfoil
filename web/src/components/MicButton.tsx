@@ -38,23 +38,12 @@ export function MicButton({ value, onChange, disabled }: {
 
   if (!SR) return null;
 
-  async function toggle() {
+  function toggle() {
     setErr("");
     if (listening) { try { recRef.current?.stop(); } catch { /* egal */ } return; }
-    // Mikro-Berechtigung aktiv anfordern -> Browser zeigt den „Mikrofon erlauben?"-Dialog,
-    // falls nötig; ist sie schon erteilt, läuft das sofort durch. Danach gibt SpeechRecognition
-    // keinen zweiten Dialog. Bei Ablehnung/keinem Mikro klarer Hinweis statt stummem Nichts.
-    try {
-      if (navigator.mediaDevices?.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((tr) => tr.stop());   // sofort freigeben, SR öffnet selbst
-      }
-    } catch (ex: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
-      // NICHT hart abbrechen: manche Browser (v. a. Android Chrome) erteilen der
-      // Spracherkennung die Berechtigung getrennt von getUserMedia. Weiterversuchen und
-      // SR.onerror final entscheiden lassen — sonst blockiert getUserMedia fälschlich.
-      console.warn("getUserMedia failed (fahre mit SpeechRecognition fort):", ex?.name || ex);
-    }
+    // WICHTIG: start() MUSS synchron im Klick-Handler laufen. Kein await davor (z. B.
+    // getUserMedia) — sonst geht der User-Gesten-Kontext verloren und Chrome lehnt start()
+    // still ab (kein Feedback). SpeechRecognition fordert die Mikro-Freigabe selbst an.
     const rec = new SR();
     rec.lang = SR_LANG[lang] || "de-DE";
     rec.continuous = true;
