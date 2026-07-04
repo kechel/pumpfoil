@@ -61,7 +61,7 @@ def _direction_features(lat: np.ndarray, lon: np.ndarray, speed: np.ndarray) -> 
     j = np.clip(np.arange(n) - 5, 0, n - 1)
     path5 = cs[np.arange(n) + 1] - cs[j + 1]
     net5 = _haversine_np(lat[j], lon[j], lat, lon)
-    straight = np.where(path5 > 1e-6, net5 / path5, 0.0)
+    straight = np.divide(net5, path5, out=np.zeros_like(net5), where=path5 > 1e-6)
     # Kursaenderung: Peilung (i-6..i-3) vs (i-3..i)
     turn5 = np.zeros(n)
     if n >= 7:
