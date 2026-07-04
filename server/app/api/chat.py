@@ -79,7 +79,9 @@ def _scope_url(scope: str) -> str:
 def _state(db: Session, user_id: int, scope: str) -> models.ChatRoomState:
     st = db.query(models.ChatRoomState).filter_by(user_id=user_id, scope=scope).first()
     if st is None:
-        st = models.ChatRoomState(user_id=user_id, scope=scope)
+        # last_read_id explizit auf 0: der Spalten-Default greift erst beim Flush, vorher
+        # wäre der Wert None -> Vergleiche wie `up_to > last_read_id` crashen (int > None).
+        st = models.ChatRoomState(user_id=user_id, scope=scope, last_read_id=0)
         db.add(st)
     return st
 
@@ -316,7 +318,7 @@ def mark_read(
     """Lesestand setzen (Chat-Komponente meldet die höchste gesehene id)."""
     _check_scope(body.scope)
     st = _state(db, user.id, body.scope)
-    if body.up_to > st.last_read_id:
+    if st.last_read_id is None or body.up_to > st.last_read_id:
         st.last_read_id = body.up_to
     st.left = False
     st.updated_at = datetime.now(timezone.utc)
