@@ -388,6 +388,8 @@ const fr: Record<string, string> = {
   "chat.placeholder": "Écrire un message …",
   "chat.send": "Envoyer",
   "chat.dictate": "Dicter (saisie vocale)",
+  "mic.err": "Saisie vocale indisponible — autorise le micro ou essaie un autre navigateur (Chrome/Safari).",
+  "mic.nospeech": "Rien entendu — réessaie.",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",
   "chat.report": "Signaler",
   "chat.reportConfirm": "Signaler ce message aux modérateurs ?",

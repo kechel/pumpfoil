@@ -402,6 +402,8 @@ const en: Record<string, string> = {
   "chat.placeholder": "Write a message …",
   "chat.send": "Send",
   "chat.dictate": "Dictate (voice input)",
+  "mic.err": "Voice input unavailable — allow the mic or try another browser (Chrome/Safari).",
+  "mic.nospeech": "Didn't catch that — try again.",
   "chat.empty": "No messages yet. Be the first!",
   "chat.report": "Report",
   "chat.reportConfirm": "Report this message to the moderators?",
