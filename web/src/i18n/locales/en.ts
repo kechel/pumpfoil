@@ -404,6 +404,7 @@ const en: Record<string, string> = {
   "chat.dictate": "Dictate (voice input)",
   "mic.err": "Voice input unavailable — allow the mic or try another browser (Chrome/Safari).",
   "mic.nospeech": "Didn't catch that — try again.",
+  "mic.blocked": "Microphone blocked — allow it for this site in your browser.",
   "chat.empty": "No messages yet. Be the first!",
   "chat.report": "Report",
   "chat.reportConfirm": "Report this message to the moderators?",

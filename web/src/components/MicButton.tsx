@@ -31,9 +31,22 @@ export function MicButton({ value, onChange, disabled }: {
 
   if (!SR) return null;
 
-  function toggle() {
+  async function toggle() {
     setErr("");
     if (listening) { try { recRef.current?.stop(); } catch { /* egal */ } return; }
+    // Mikro-Berechtigung aktiv anfordern -> Browser zeigt den „Mikrofon erlauben?"-Dialog,
+    // falls nötig; ist sie schon erteilt, läuft das sofort durch. Danach gibt SpeechRecognition
+    // keinen zweiten Dialog. Bei Ablehnung/keinem Mikro klarer Hinweis statt stummem Nichts.
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((tr) => tr.stop());   // sofort freigeben, SR öffnet selbst
+      }
+    } catch (ex: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
+      setErr(ex?.name === "NotAllowedError" ? t("mic.blocked") : t("mic.err"));
+      console.warn("getUserMedia failed:", ex?.name || ex);
+      return;
+    }
     const rec = new SR();
     rec.lang = SR_LANG[lang] || "de-DE";
     rec.continuous = true;
@@ -50,8 +63,11 @@ export function MicButton({ value, onChange, disabled }: {
     rec.onerror = (e: any) => {
       setListening(false);
       // Fehler NICHT verschlucken -> Nutzer sieht, warum nichts passiert.
-      setErr(e?.error === "no-speech" ? t("mic.nospeech") : t("mic.err"));
-      console.warn("SpeechRecognition error:", e?.error);
+      const code = e?.error;
+      setErr(code === "no-speech" ? t("mic.nospeech")
+        : code === "not-allowed" ? t("mic.blocked")
+        : t("mic.err"));
+      console.warn("SpeechRecognition error:", code);
     };
     recRef.current = rec;
     try { rec.start(); } catch (ex) { setListening(false); setErr(t("mic.err")); console.warn("rec.start failed:", ex); }
