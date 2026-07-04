@@ -14,9 +14,6 @@ import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
 
-function fmtKm(m: number | null | undefined) {
-  return m == null ? "–" : `${(m / 1000).toFixed(2)}`;
-}
 function fmtMMSS(s: number | null | undefined) {
   if (s == null) return "–";
   const total = Math.round(s);
