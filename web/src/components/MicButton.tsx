@@ -29,6 +29,13 @@ export function MicButton({ value, onChange, disabled }: {
   // Beim Unmount laufende Erkennung stoppen.
   useEffect(() => () => { try { recRef.current?.stop(); } catch { /* egal */ } }, []);
 
+  // Fehler-Tooltip nicht „kleben" lassen: nach 6 s automatisch ausblenden.
+  useEffect(() => {
+    if (!err) return;
+    const id = setTimeout(() => setErr(""), 6000);
+    return () => clearTimeout(id);
+  }, [err]);
+
   if (!SR) return null;
 
   async function toggle() {
@@ -97,8 +104,13 @@ export function MicButton({ value, onChange, disabled }: {
         </svg>
       </button>
       {err && (
-        <div className="absolute bottom-full right-0 z-50 mb-1 w-52 rounded-lg bg-slate-800 px-2 py-1.5 text-[11px] leading-snug text-red-300 shadow-lg">
-          {err}
+        <div
+          role="button"
+          onClick={() => setErr("")}
+          title={t("mic.dismiss")}
+          className="absolute bottom-full right-0 z-50 mb-1 w-52 cursor-pointer rounded-lg bg-slate-800 px-2 py-1.5 text-[11px] leading-snug text-red-300 shadow-lg"
+        >
+          {err} <span className="text-slate-500">✕</span>
         </div>
       )}
     </div>

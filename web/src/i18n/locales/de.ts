@@ -428,6 +428,7 @@ const de: Record<string, string> = {
   "mic.err": "Spracheingabe nicht möglich — Mikro erlauben oder anderen Browser (Chrome/Safari) nutzen.",
   "mic.nospeech": "Nichts gehört — nochmal probieren.",
   "mic.blocked": "Mikrofon blockiert — im Browser für diese Seite erlauben.",
+  "mic.dismiss": "Schließen",
   "chat.empty": "Noch keine Nachrichten. Schreib die erste!",
   "chat.report": "Melden",
   "chat.reportConfirm": "Diese Nachricht den Moderatoren melden?",

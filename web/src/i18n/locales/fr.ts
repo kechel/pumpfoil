@@ -391,6 +391,7 @@ const fr: Record<string, string> = {
   "mic.err": "Saisie vocale indisponible — autorise le micro ou essaie un autre navigateur (Chrome/Safari).",
   "mic.nospeech": "Rien entendu — réessaie.",
   "mic.blocked": "Micro bloqué — autorise-le pour ce site dans ton navigateur.",
+  "mic.dismiss": "Fermer",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",
   "chat.report": "Signaler",
   "chat.reportConfirm": "Signaler ce message aux modérateurs ?",
