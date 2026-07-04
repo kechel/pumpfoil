@@ -522,7 +522,7 @@ const deAT: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Servas, {name}",
-  "banner.msg": "is gaaanz frisch — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs 💬 klickn →",
+  "banner.msg": "is gaaanz frisch (seit 23. Juni 2026) — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs 💬 klickn →",
   "banner.stats": "Mia san scho §{foilers}§ Foiler auf §{spots}§ Spots mit §{sessions}§ Sessions und zamm §{pumps}§ Pumps.",
   "banner.dismiss": "Ausblendn",
   "phome.latest": "Letzte Sessions",

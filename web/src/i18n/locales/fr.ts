@@ -653,7 +653,7 @@ const fr: Record<string, string> = {
   "profile.calculator": "Calculateur de foil",
 
   "phome.hello": "Salut, {name}",
-  "banner.msg": "est tout nouveau — de nouvelles fonctions & de nouveaux foils presque chaque jour. Dis-moi ce qui te plaît (et ce qui ne te plaît pas) : clique sur le 💬 à droite →",
+  "banner.msg": "est tout nouveau (depuis le 23 juin 2026) — de nouvelles fonctions & de nouveaux foils presque chaque jour. Dis-moi ce qui te plaît (et ce qui ne te plaît pas) : clique sur le 💬 à droite →",
   "banner.stats": "Nous sommes déjà §{foilers}§ foilers sur §{spots}§ spots avec §{sessions}§ sessions et §{pumps}§ pumps au total.",
   "banner.dismiss": "Masquer",
   "phome.latest": "Dernières sessions",

@@ -781,7 +781,7 @@ const en: Record<string, string> = {
   "profile.calculator": "Foil calculator",
 
   "phome.hello": "Hi, {name}",
-  "banner.msg": "is brand-new — new features & foils almost daily. Tell me what you like (and what you don't): just tap the 💬 on the right →",
+  "banner.msg": "is brand-new (since 23 June 2026) — new features & foils almost daily. Tell me what you like (and what you don't): just tap the 💬 on the right →",
   "banner.stats": "We're already §{foilers}§ foilers at §{spots}§ spots with §{sessions}§ sessions and §{pumps}§ pumps in total.",
   "banner.dismiss": "Dismiss",
   "phome.latest": "Latest sessions",
