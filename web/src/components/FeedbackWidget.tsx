@@ -17,8 +17,9 @@ export function FeedbackWidget() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
-  function send() {
-    const v = text.trim();
+  function send() { submitText(text); }
+  function submitText(raw: string) {
+    const v = raw.trim();
     if (!v) return;
     setBusy(true);
     api.submitFeedback(v.slice(0, MAX), loc.pathname + loc.search)
@@ -66,7 +67,7 @@ export function FeedbackWidget() {
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] tabular-nums text-slate-500">{text.length}/{MAX}</span>
               <div className="flex items-center gap-2">
-                <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} disabled={busy} />
+                <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} onSubmit={(v) => submitText(v)} disabled={busy} />
                 {sent ? (
                   <span className="text-sm text-emerald-400">{t("feedback.sent")}</span>
                 ) : (

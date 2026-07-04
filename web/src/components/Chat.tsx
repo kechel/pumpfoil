@@ -122,8 +122,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     api.chatLeave(scope).then(() => { setPush(false); alert(t("chat.leftDone")); }).catch(() => {});
   }
 
-  function send() {
-    const v = text.trim();
+  function send() { sendText(text); }
+  function sendText(raw: string) {
+    const v = raw.trim();
     if (!v || busy) return;
     setBusy(true);
     api.chatPost(scope, v)
@@ -205,7 +206,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           maxLength={2000}
           className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
-        <MicButton value={text} onChange={(v) => setText(v)} disabled={busy} />
+        <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy} />
         <button onClick={send} disabled={busy || !text.trim()}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {t("chat.send")}

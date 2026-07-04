@@ -434,6 +434,7 @@ const de: Record<string, string> = {
   "mic.stop": "Stopp",
   "mic.review": "Aufnahme fertig",
   "mic.accept": "Übernehmen",
+  "mic.send": "Senden",
   "mic.redo": "Neu aufnehmen",
   "mic.cancel": "Abbrechen",
   "chat.empty": "Noch keine Nachrichten. Schreib die erste!",

@@ -397,6 +397,7 @@ const fr: Record<string, string> = {
   "mic.stop": "Stop",
   "mic.review": "Enregistrement terminé",
   "mic.accept": "Insérer",
+  "mic.send": "Envoyer",
   "mic.redo": "Réenregistrer",
   "mic.cancel": "Annuler",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",

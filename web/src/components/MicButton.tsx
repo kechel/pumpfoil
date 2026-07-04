@@ -14,9 +14,10 @@ const SR_LANG: Record<string, string> = {
   en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES",
 };
 
-export function MicButton({ value, onChange, disabled }: {
+export function MicButton({ value, onChange, onSubmit, disabled }: {
   value: string;
   onChange: (v: string) => void;
+  onSubmit?: (text: string) => void;   // wenn gesetzt: „Übernehmen" sendet direkt (kein extra Senden-Klick)
   disabled?: boolean;
 }) {
   const { lang, t } = useI18n();
@@ -81,7 +82,11 @@ export function MicButton({ value, onChange, disabled }: {
       if (action === "accept") {
         pendingRef.current = null;
         const all = finalRef.current.trim();
-        if (all) onChange((baseRef.current + all).slice(0, 2000));
+        const full = (baseRef.current + all).slice(0, 2000);
+        if (full.trim()) {
+          if (onSubmit) onSubmit(full.trim());   // direkt senden, kein Umweg übers Feld
+          else onChange(full);
+        }
         resetState(); return;
       }
       // Natürliches Ende (Sprechpause): weiter aufnehmen, solange aktiv.
@@ -159,7 +164,7 @@ export function MicButton({ value, onChange, disabled }: {
             </button>
             <button onClick={() => endWith("accept")}
               className="flex-1 rounded-2xl bg-brand-500 py-4 text-base font-semibold text-slate-950 hover:bg-brand-400">
-              {t("mic.accept")}
+              {onSubmit ? t("mic.send") : t("mic.accept")}
             </button>
           </div>
         </div>
