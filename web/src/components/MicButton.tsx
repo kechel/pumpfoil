@@ -40,7 +40,9 @@ export function MicButton({ value, onChange, disabled }: {
 
   function toggle() {
     setErr("");
-    if (listening) { try { recRef.current?.stop(); } catch { /* egal */ } return; }
+    // Gegen Mehrfach-Instanzen die REF prüfen (nicht den listening-State — der kommt via
+    // onstart asynchron; sonst starten schnelle Doppel-Taps mehrere Erkenner -> Text doppelt/dreifach).
+    if (recRef.current) { try { recRef.current.stop(); } catch { /* egal */ } return; }
     // WICHTIG: start() MUSS synchron im Klick-Handler laufen. Kein await davor (z. B.
     // getUserMedia) — sonst geht der User-Gesten-Kontext verloren und Chrome lehnt start()
     // still ab (kein Feedback). SpeechRecognition fordert die Mikro-Freigabe selbst an.
@@ -59,6 +61,7 @@ export function MicButton({ value, onChange, disabled }: {
     rec.onend = () => { setListening(false); recRef.current = null; };
     rec.onerror = (e: any) => {
       setListening(false);
+      recRef.current = null;
       // Fehler NICHT verschlucken -> Nutzer sieht, warum nichts passiert.
       const code = e?.error;
       setErr(code === "no-speech" ? t("mic.nospeech")
@@ -67,7 +70,7 @@ export function MicButton({ value, onChange, disabled }: {
       console.warn("SpeechRecognition error:", code);
     };
     recRef.current = rec;
-    try { rec.start(); } catch (ex) { setListening(false); setErr(t("mic.err")); console.warn("rec.start failed:", ex); }
+    try { rec.start(); } catch (ex) { setListening(false); recRef.current = null; setErr(t("mic.err")); console.warn("rec.start failed:", ex); }
   }
 
   return (
