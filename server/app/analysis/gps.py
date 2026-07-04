@@ -50,6 +50,26 @@ IMPULSE_BACK_S = 3        # Aufsprung-Impuls bis 3 s VOR dem erkannten Start suc
 IMPULSE_FWD_S = 2         # ... bis 2 s danach
 SPEED_SPIKE_MPS = 2.5     # 1-s-Speed-Abweichung darüber (~9 km/h) = Glitch -> clampen
 GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median ersetzen
+# --- Mehrsekündige Doppler-Bursts abfangen (2026-07-04) ---------------------------------
+# Befund: GPS-only-Sessions (Polar-Import) enthalten kurze (~3 s) Doppler-Bursts, die WEIT
+# über der echten Fahrt liegen, aber UNTER GLITCH_SPEED (90) bleiben. Beispiele:
+#   • Session #428 (James): sonst p99=18,6 km/h, aber Sek. 3390-3392 = 56/48/49 km/h.
+#   • Session #410 (James): sonst ≤23 km/h, aber ein 3-s-Blip auf 30-33 km/h.
+#   • Session #71  (Jan):   221-s-Test, 95 % Stillstand, 2-s-Start-Blip auf 29-30 km/h.
+# Ein 3-s-Burst füllt das 3-s- UND 5-s-Median-Fenster -> der geglättete Max bleibt hoch und
+# reißt das 30-km/h-Pumpfoil-Gate (unten) -> Session fälschlich als „kein Pumpfoil" aussortiert
+# (+ falscher Topspeed-Rekord). Fix: gegen einen robusten 15-s-Median ersetzen, der gegen
+# kurze (bis ~halbes Fenster) Bursts unempfindlich ist.
+# Zwei Bedingungen, damit KEIN echter Lauf beschnitten wird (validiert über alle 381 Sessions):
+#   1) mehr als BURST_MARGIN über dem 15-s-Median  (relativ: isolierter Ausreißer)
+#   2) UND absolut über BURST_ABS_MIN (~28 km/h)    (schützt normale Foil-Läufe: ein 20-km/h-
+#      Lauf in einer idle-lastigen Session hätte sonst allein über Median+Marge ausgelöst).
+# Regressions-Check: nur #428 & #410 (James) kippen korrekt auf pumpfoil=true; #71 (echter
+# 2-s-Start-Glitch, keine echte Session) kippt korrekt auf false; sonst keine Klassifikations-
+# Änderung, alle betroffenen Topspeeds nur nach unten (Glitch-Bereinigung).
+BURST_MARGIN_MPS = 5.0          # ~18 km/h über 15-s-Median …
+BURST_ABS_MIN_MPS = 28.0 / 3.6  # … UND absolut über ~28 km/h (echte Pump-Läufe bleiben unberührt)
+BURST_MEDIAN_WIN_S = 15
 PUMPFOIL_GPS_MAX_MPS = 30.0 / 3.6   # OHNE Accel: geglätteter Max darüber = angetrieben = kein Pumpfoil
 # Ende-Klassifikation: Sturz = abrupter Einbruch von "auf Foil" -> "im Wasser".
 FALL_ONFOIL_MPS = 3.0     # ~11 km/h: am Lauf-Ende klar noch auf dem Foil
@@ -199,6 +219,16 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     if over.any():
         med_long = _running_median(np.where(over, 0.0, speed), max(int(round(15 * gps_hz)), 1))
         speed = np.where(over, med_long, speed)
+
+    # Mehrsekündige Doppler-Bursts (unter GLITCH_SPEED) gegen den robusten 15-s-Median
+    # ersetzen. Doppelbedingung (relativ + absolut) — Details/Beispiele/Regressions-Check
+    # siehe Konstanten-Block oben (BURST_MARGIN_MPS / BURST_ABS_MIN_MPS, 2026-07-04).
+    # Der 15-s-Median ist gegen kurze (≤ ~halbes Fenster) Bursts unempfindlich; echte
+    # gehaltene Passagen heben ihn selbst mit an und werden daher NICHT beschnitten.
+    med_burst = _running_median(speed, max(int(round(BURST_MEDIAN_WIN_S * gps_hz)), 1))
+    burst = (speed > med_burst + BURST_MARGIN_MPS) & (speed > BURST_ABS_MIN_MPS)
+    if burst.any():
+        speed = np.where(burst, med_burst, speed)
 
     # Einzel-Sekunden-Ausreißer (GPS-Doppler-Glitches) gegen lokalen Median clampen
     # -> keine Lone-Spike-Farbsegmente; saubere Basis für alle Glättungen.
