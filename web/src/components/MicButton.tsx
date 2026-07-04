@@ -24,7 +24,8 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
 }) {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
-  const [preview, setPreview] = useState("");   // Live-Text (nur Vorschau, noch nicht im Feld)
+  const [preview, setPreview] = useState("");   // diktierter Live-Text (noch nicht im Feld)
+  const [baseText, setBaseText] = useState(""); // bereits im Feld stehender Text (gedimmt vorangestellt)
   const [err, setErr] = useState("");
   const pendingRef = useRef<null | "accept" | "cancel" | "redo" | "edit">(null);  // Aktion, die den nächsten Stopp abschließt
   const recRef = useRef<any>(null);
@@ -108,6 +109,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
     baseRef.current = value ? value.replace(/\s+$/, "") + " " : "";
     finalRef.current = "";
     setPreview("");
+    setBaseText(value ? value.trim() : "");   // vorhandenen Feld-Text im Screen mit anzeigen
     activeRef.current = true;
     startSession();
   }
@@ -115,7 +117,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   // Overlay/Status zurücksetzen (nach Übernehmen/Abbrechen).
   function resetState() {
     activeRef.current = false; recRef.current = null;
-    setListening(false); setPreview(""); finalRef.current = ""; sessFinalRef.current = "";
+    setListening(false); setPreview(""); setBaseText(""); finalRef.current = ""; sessFinalRef.current = "";
   }
   // Die Aktionen stoppen jeweils die Aufnahme; onend führt sie dann aus.
   function endWith(action: "accept" | "cancel" | "redo" | "edit") {
@@ -159,7 +161,8 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
             {t("mic.listening")}
           </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
-            {preview || <span className="text-slate-500">…</span>}
+            {baseText && <span className="text-slate-500">{baseText} </span>}
+            {preview ? <span>{preview}</span> : (!baseText && <span className="text-slate-500">…</span>)}
           </div>
           <div className="mt-4 flex items-stretch gap-2">
             <button onClick={() => endWith("cancel")} title={t("mic.cancel")} aria-label={t("mic.cancel")}
