@@ -169,6 +169,23 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
     }
   }
 
+  // Stale-while-revalidate: nach dem Cache-Restore die erste Seite frisch holen und
+  // seither hochgeladene Sessions oben einfügen. So bleibt Scroll/Position beim Zurück
+  // aus dem Detail erhalten, aber neue Sessions erscheinen sofort (Cache „greift" online nicht dauerhaft).
+  async function revalidateHead(monthVal: string) {
+    try {
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current });
+      const known = new Set(itemsRef.current.map((s) => s.id));
+      const added = fresh.filter((s) => !known.has(s.id));
+      if (!added.length) return;
+      const merged = [...added, ...itemsRef.current];
+      itemsRef.current = merged;
+      offsetRef.current += added.length;   // vorne eingefügte Einträge -> Folge-Offset anheben
+      setItems(merged);
+      listCache.set(cacheKey(), { items: merged, offset: offsetRef.current, hasMore: hasMoreRef.current, scrollY: window.scrollY });
+    } catch (e) { /* offline/Fehler: Cache bleibt einfach stehen */ }
+  }
+
   useEffect(() => {
     api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
     api.getProfile().then((p) => setAvatar(p.avatar_url)).catch(() => {});
@@ -179,6 +196,8 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       hasMoreRef.current = cached.hasMore;
       setHasMore(cached.hasMore);
       restoreRef.current = true;  // nach dem Rendern die markierte Karte einscrollen
+      itemsRef.current = cached.items;
+      revalidateHead(monthRef.current);   // im Hintergrund neue Sessions nachziehen
     } else {
       fetchPage(monthRef.current, true);
     }
@@ -199,6 +218,8 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
     const cached = listCache.get(cacheKey());
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; hasMoreRef.current = cached.hasMore; setHasMore(cached.hasMore);
+      itemsRef.current = cached.items;
+      revalidateHead(monthRef.current);
     } else {
       setItems([]); fetchPage(monthRef.current, true);
     }
