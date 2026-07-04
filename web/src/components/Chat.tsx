@@ -240,9 +240,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                   {isDesktop && canEdit(m) && (
                     <>
                       <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
-                        className="text-slate-400 opacity-0 transition hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-4 w-4" /></button>
+                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-5 w-5" /></button>
                       <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
-                        className="text-slate-400 opacity-0 transition hover:text-red-400 group-hover:opacity-100"><TrashIcon className="h-4 w-4" /></button>
+                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-red-400 group-hover:opacity-100"><TrashIcon className="h-5 w-5" /></button>
                     </>
                   )}
                   {isAdmin && m.report_count > 0 && (
