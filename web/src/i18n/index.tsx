@@ -43,6 +43,9 @@ export function detectInitialLang(): Lang {
   const saved = localStorage.getItem(LS_KEY);
   if (isLang(saved)) return saved;
   const nav = (navigator.language || "").toLowerCase();
+  // Regional-Varianten vor dem generischen "de": Österreich -> de-AT, Schweiz -> Schwiizerdütsch.
+  if (nav.startsWith("de-at")) return "de-AT";
+  if (nav.startsWith("de-ch") || nav.startsWith("gsw")) return "gsw";
   if (nav.startsWith("de")) return "de";
   if (nav.startsWith("fr")) return "fr";
   if (nav.startsWith("it")) return "it";
