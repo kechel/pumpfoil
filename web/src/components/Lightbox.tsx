@@ -98,7 +98,7 @@ export function Lightbox({ photos, index, onClose, onChange }: {
             {p.caption && <div className="truncate text-xs italic text-slate-300">{p.caption}</div>}
           </div>
           <button onClick={like}
-            className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${st.liked ? "bg-rose-500/20 text-rose-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${st.liked ? "bg-rose-500/20 text-rose-500" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
             <HeartIcon className="h-4 w-4" filled={st.liked} /> {st.like_count > 0 && <span className="tabular-nums text-xs">{st.like_count}</span>}
           </button>
           <button onClick={report} title={st.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")}
