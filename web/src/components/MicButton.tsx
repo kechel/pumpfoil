@@ -56,7 +56,9 @@ export function MicButton({ value, onChange, onSubmit, disabled }: {
       // aktuelle Gesamttext dieser Session), NICHT aufsummieren -> keine Dopplung.
       const last = e.results[e.results.length - 1];
       const txt = last ? String(last[0].transcript) : "";
-      if (last && last.isFinal) sessFinalRef.current = txt;
+      // Bei JEDEM Ergebnis merken (nicht nur isFinal): endet die Session durch eine
+      // Sprechpause ohne finales Ergebnis, ginge der Text sonst beim Auto-Restart verloren.
+      if (txt.trim()) sessFinalRef.current = txt;
       setPreview([finalRef.current, txt.trim()].filter(Boolean).join(" ").trim());
     };
     rec.onerror = (e: any) => {
