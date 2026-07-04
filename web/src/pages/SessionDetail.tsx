@@ -633,22 +633,18 @@ export default function SessionDetail() {
     // Nur die Foiling-Läufe zeichnen — Nicht-Foiling wird komplett ausgeblendet.
     const MAX_DRAW_GAP_M = 30;
     const segs = session.analysis.segments ?? [];
-    // Ohne erkannte Foiling-Läufe die KOMPLETTE GPS-Spur zeichnen, damit man die Fahrt
-    // trotzdem sieht. ABER: nur bei ECHTEM GPS-only (kein Accel/pump_hz) speed-gefärbt —
-    // dann ist Speed die einzige Info. Hat die Session Accel und der Detektor fand
-    // trotzdem 0 Läufe (kein Foilen), die Spur NEUTRAL GRAU malen, sonst sähe es nach
-    // erkanntem Foilen aus (vgl. #427: kurzer Glide, kein Lauf). Große Lückenschwelle.
+    // Ohne erkannte Foiling-Läufe (z. B. GPS-only / grobes FIT-GPS, oder Accel-Session
+    // wo der Detektor nichts fand wie #427-Glide): die KOMPLETTE GPS-Spur speed-gefärbt
+    // zeichnen, damit man die Fahrt trotzdem sieht. Große Lückenschwelle für grobe Trackpoints.
     if (segs.length === 0) {
-      const gpsOnly = !phz.some((v) => v != null);
       for (let i = 0; i < coords.length - 1; i++) {
         if (map.distance(coords[i], coords[i + 1]) > 200) continue;
         let color: string;
-        if (!gpsOnly) color = "#64748b";   // Accel da, aber kein Lauf -> grau, kein Foiling-Look
-        else if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
+        if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         else if (colorMode === "pump") { const v = phz[i + 1]; const [lo, hi] = pumpRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
         else if (colorMode === "hr") { const v = hr[i + 1]; const [lo, hi] = hrRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
         else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
-        L.polyline([coords[i], coords[i + 1]], { color, weight: 5, opacity: gpsOnly ? 0.95 : 0.6 }).addTo(lg);
+        L.polyline([coords[i], coords[i + 1]], { color, weight: 5, opacity: 0.95 }).addTo(lg);
       }
       if (coords.length) {
         L.circleMarker(coords[0], { radius: 5, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1 }).addTo(lg);

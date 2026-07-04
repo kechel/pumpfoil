@@ -428,7 +428,12 @@ def my_rooms(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """„Meine Chats" mit Ungelesen-Zähler + letzter Nachricht. Verlassene ausgeblendet."""
-    from sqlalchemy import func
+    from sqlalchemy import func, or_
+
+    # Nachrichten ausgeblendeter Testkonten sind für andere unsichtbar (wie in list_messages)
+    # -> dürfen weder als „letzte Nachricht" noch als Ungelesen zählen (sonst ein (1)-Badge,
+    # das nie wegklickbar ist, weil die Nachricht gar nicht angezeigt wird).
+    _visible_author = or_(models.User.hidden.isnot(True), models.User.id == user.id)
 
     states = (
         db.query(models.ChatRoomState)
@@ -442,7 +447,9 @@ def my_rooms(
             continue
         last = (
             db.query(models.ChatMessage)
-            .filter(models.ChatMessage.scope == st.scope, models.ChatMessage.hidden.isnot(True))
+            .join(models.User, models.ChatMessage.user_id == models.User.id)
+            .filter(models.ChatMessage.scope == st.scope, models.ChatMessage.hidden.isnot(True),
+                    _visible_author)
             .order_by(models.ChatMessage.id.desc())
             .first()
         )
@@ -450,9 +457,11 @@ def my_rooms(
             continue
         unread = (
             db.query(func.count(models.ChatMessage.id))
+            .join(models.User, models.ChatMessage.user_id == models.User.id)
             .filter(models.ChatMessage.scope == st.scope,
                     models.ChatMessage.hidden.isnot(True),
                     models.ChatMessage.user_id != user.id,
+                    _visible_author,
                     models.ChatMessage.id > st.last_read_id)
             .scalar()
         ) or 0
