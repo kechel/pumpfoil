@@ -293,18 +293,26 @@ export default function SessionDetail() {
     }).catch(() => setWeightKg(DEFAULT_RIDER.riderWeight));
   }, []);
 
-  // Hotkeys: Ziffern 1–9 wählen den entsprechenden Lauf, 0 zeigt alle.
+  // Hotkeys: Ziffern 1–9 wählen den Lauf direkt, 0 zeigt alle; ←/→ (bzw. ↑/↓) blättern
+  // durch die Einzelläufe (Reihenfolge: alle → Lauf 1 → … → Lauf n → alle).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      const n = session?.analysis?.segments?.length ?? 0;
+      if (n === 0) return;
       if (e.key >= "1" && e.key <= "9") {
         const idx = Number(e.key) - 1;
-        const n = session?.analysis?.segments?.length ?? 0;
         if (idx < n) setSelectedRun(idx);
       } else if (e.key === "0") {
         setSelectedRun(null);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedRun((p) => (p === null ? 0 : p + 1 >= n ? null : p + 1));
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedRun((p) => (p === null ? n - 1 : p - 1 < 0 ? null : p - 1));
       }
     };
     window.addEventListener("keydown", onKey);
