@@ -155,15 +155,24 @@ export function MicButton({ value, onChange, onSubmit, disabled }: {
           </div>
           <div className="mt-4 flex gap-2">
             <button onClick={() => endWith("cancel")}
-              className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-300 hover:bg-slate-700">
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-slate-800 py-3.5 text-sm font-medium text-slate-300 hover:bg-slate-700">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" />
+              </svg>
               {t("mic.cancel")}
             </button>
             <button onClick={() => endWith("redo")}
-              className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-100 hover:bg-slate-700">
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-slate-800 py-3.5 text-sm font-medium text-slate-100 hover:bg-slate-700">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v4h4" />
+              </svg>
               {t("mic.redo")}
             </button>
             <button onClick={() => endWith("accept")}
-              className="flex-1 rounded-2xl bg-brand-500 py-4 text-base font-semibold text-slate-950 hover:bg-brand-400">
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-brand-500 py-3.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4 20-7z" />
+              </svg>
               {onSubmit ? t("mic.send") : t("mic.accept")}
             </button>
           </div>
