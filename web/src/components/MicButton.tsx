@@ -22,8 +22,8 @@ export function MicButton({ value, onChange, disabled }: {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
   const [preview, setPreview] = useState("");   // Live-Text (nur Vorschau, noch nicht im Feld)
-  const [review, setReview] = useState(false);  // nach dem Stoppen: übernehmen/neu/abbrechen
   const [err, setErr] = useState("");
+  const pendingRef = useRef<null | "accept" | "cancel" | "redo">(null);  // Aktion, die den nächsten Stopp abschließt
   const recRef = useRef<any>(null);
   const activeRef = useRef(false);   // Nutzer will weiterdiktieren (steuert Auto-Restart)
   const baseRef = useRef("");        // Feld-Text bei Start (Diktat wird angehängt)
@@ -66,17 +66,27 @@ export function MicButton({ value, onChange, disabled }: {
       console.warn("SpeechRecognition error:", code);
     };
     rec.onend = () => {
-      // Final dieser Session EINMAL in den Gesamttext übernehmen.
       const f = sessFinalRef.current.trim();
-      if (f) finalRef.current = [finalRef.current, f].filter(Boolean).join(" ");
-      if (activeRef.current) {
-        startSession();   // weiter diktieren -> nächste Session
-      } else {
-        setListening(false);
-        recRef.current = null;
-        setPreview(finalRef.current.trim());
-        setReview(true);   // nicht sofort übernehmen -> erst Review (übernehmen/neu/abbrechen)
+      const action = pendingRef.current;
+      // Abbrechen: alles verwerfen, Overlay zu.
+      if (action === "cancel") { pendingRef.current = null; resetState(); return; }
+      // Noch mal: verwerfen und sofort neu aufnehmen (Overlay bleibt offen).
+      if (action === "redo") {
+        pendingRef.current = null;
+        finalRef.current = ""; sessFinalRef.current = ""; setPreview("");
+        activeRef.current = true; startSession(); return;
       }
+      // Final dieser Session EINMAL in den Gesamttext übernehmen.
+      if (f) finalRef.current = [finalRef.current, f].filter(Boolean).join(" ");
+      if (action === "accept") {
+        pendingRef.current = null;
+        const all = finalRef.current.trim();
+        if (all) onChange((baseRef.current + all).slice(0, 2000));
+        resetState(); return;
+      }
+      // Natürliches Ende (Sprechpause): weiter aufnehmen, solange aktiv.
+      if (activeRef.current) { startSession(); }
+      else { resetState(); }
     };
     recRef.current = rec;
     try { rec.start(); }
@@ -92,34 +102,25 @@ export function MicButton({ value, onChange, disabled }: {
     startSession();
   }
 
-  function stop() {   // Aufnahme beenden -> Review
+  // Overlay/Status zurücksetzen (nach Übernehmen/Abbrechen).
+  function resetState() {
+    activeRef.current = false; recRef.current = null;
+    setListening(false); setPreview(""); finalRef.current = ""; sessFinalRef.current = "";
+  }
+  // Die drei Aktionen stoppen jeweils die Aufnahme; onend führt sie dann aus.
+  function endWith(action: "accept" | "cancel" | "redo") {
+    pendingRef.current = action;
     activeRef.current = false;
     try { recRef.current?.stop(); } catch { /* egal */ }
-  }
-
-  function closeOverlay() {
-    activeRef.current = false;
-    try { recRef.current?.stop(); } catch { /* egal */ }
-    recRef.current = null;
-    setReview(false); setListening(false); setPreview(""); finalRef.current = "";
-  }
-  function accept() {   // Text ins Eingabefeld übernehmen
-    const all = finalRef.current.trim();
-    if (all) onChange((baseRef.current + all).slice(0, 2000));
-    closeOverlay();
-  }
-  function redo() {   // verwerfen und neu aufnehmen
-    finalRef.current = ""; sessFinalRef.current = ""; setPreview(""); setReview(false);
-    activeRef.current = true; startSession();
   }
 
   return (
     <div className="relative shrink-0">
       <button
         type="button"
-        onClick={() => (listening ? stop() : start())}
+        onClick={() => { if (!listening) start(); }}
         disabled={disabled}
-        title={err || (listening ? t("mic.stop") : t("chat.dictate"))}
+        title={err || t("chat.dictate")}
         aria-label={t("chat.dictate")}
         aria-pressed={listening}
         className={`flex items-center justify-center rounded-xl border px-3 py-2 ${
@@ -137,43 +138,30 @@ export function MicButton({ value, onChange, disabled }: {
       </button>
 
       {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit.
-          Während der Aufnahme: Stopp. Danach: übernehmen / neu / abbrechen. */}
-      {(listening || review) && (
+          Unten drei Aktionen — alle stoppen die Aufnahme; „Noch mal" startet direkt neu. */}
+      {listening && (
         <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
-          <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-            {listening ? (
-              <><span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-                <span className="text-red-400">{t("mic.listening")}</span></>
-            ) : (
-              <span className="text-slate-300">{t("mic.review")}</span>
-            )}
+          <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
+            <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+            {t("mic.listening")}
           </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
             {preview || <span className="text-slate-500">…</span>}
           </div>
-          {listening ? (
-            <button
-              onClick={stop}
-              className="mt-4 rounded-2xl bg-brand-500 py-4 text-lg font-semibold text-slate-950 hover:bg-brand-400"
-            >
-              {t("mic.stop")}
+          <div className="mt-4 flex gap-2">
+            <button onClick={() => endWith("cancel")}
+              className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-300 hover:bg-slate-700">
+              {t("mic.cancel")}
             </button>
-          ) : (
-            <div className="mt-4 flex gap-2">
-              <button onClick={accept} disabled={!preview}
-                className="flex-1 rounded-2xl bg-brand-500 py-4 text-base font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-                {t("mic.accept")}
-              </button>
-              <button onClick={redo}
-                className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-100 hover:bg-slate-700">
-                {t("mic.redo")}
-              </button>
-              <button onClick={closeOverlay}
-                className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-300 hover:bg-slate-700">
-                {t("mic.cancel")}
-              </button>
-            </div>
-          )}
+            <button onClick={() => endWith("redo")}
+              className="flex-1 rounded-2xl bg-slate-800 py-4 text-base font-medium text-slate-100 hover:bg-slate-700">
+              {t("mic.redo")}
+            </button>
+            <button onClick={() => endWith("accept")}
+              className="flex-1 rounded-2xl bg-brand-500 py-4 text-base font-semibold text-slate-950 hover:bg-brand-400">
+              {t("mic.accept")}
+            </button>
+          </div>
         </div>
       )}
 
