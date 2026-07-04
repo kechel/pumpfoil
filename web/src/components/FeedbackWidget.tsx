@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { ChatBubbleIcon, CloseIcon } from "./Icons";
+import { MicButton } from "./MicButton";
 import { useT } from "../i18n";
 
 const MAX = 500;
@@ -64,17 +65,20 @@ export function FeedbackWidget() {
             />
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] tabular-nums text-slate-500">{text.length}/{MAX}</span>
-              {sent ? (
-                <span className="text-sm text-emerald-400">{t("feedback.sent")}</span>
-              ) : (
-                <button
-                  onClick={send}
-                  disabled={busy || !text.trim()}
-                  className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50"
-                >
-                  {busy ? "…" : t("feedback.send")}
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} disabled={busy} />
+                {sent ? (
+                  <span className="text-sm text-emerald-400">{t("feedback.sent")}</span>
+                ) : (
+                  <button
+                    onClick={send}
+                    disabled={busy || !text.trim()}
+                    className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50"
+                  >
+                    {busy ? "…" : t("feedback.send")}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
