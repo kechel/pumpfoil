@@ -3,6 +3,7 @@ import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
 import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon } from "./Icons";
 import { useT } from "../i18n";
+import { MicButton } from "./MicButton";
 
 // URLs im Text klickbar machen (öffnen in neuem Tab).
 function linkify(text: string) {
@@ -185,6 +186,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           maxLength={2000}
           className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
+        <MicButton value={text} onChange={(v) => setText(v)} disabled={busy} />
         <button onClick={send} disabled={busy || !text.trim()}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {t("chat.send")}

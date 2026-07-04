@@ -387,6 +387,7 @@ const it: Record<string, string> = {
   "account.revokeConfirm": "Revocare «{name}»? Il token diventa non valido (sessioni mantenute).",
   "chat.placeholder": "Scrivi un messaggio …",
   "chat.send": "Invia",
+  "chat.dictate": "Detta (input vocale)",
   "chat.empty": "Ancora nessun messaggio. Scrivi il primo!",
   "chat.report": "Segnala",
   "chat.reportConfirm": "Segnalare questo messaggio ai moderatori?",

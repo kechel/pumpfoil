@@ -387,6 +387,7 @@ const fr: Record<string, string> = {
   "account.revokeConfirm": "Révoquer « {name} » ? Le jeton devient invalide (sessions conservées).",
   "chat.placeholder": "Écrire un message …",
   "chat.send": "Envoyer",
+  "chat.dictate": "Dicter (saisie vocale)",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",
   "chat.report": "Signaler",
   "chat.reportConfirm": "Signaler ce message aux modérateurs ?",

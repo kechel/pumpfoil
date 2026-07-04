@@ -337,6 +337,7 @@ const gsw: Record<string, string> = {
   "account.revokeConfirm": "„{name}“ widerrueffe? De Token wird ungültig (Sessions bliibe).",
   "chat.placeholder": "Nachricht schribe …",
   "chat.send": "Schicke",
+  "chat.dictate": "Diktiere (Sprachigab)",
   "chat.empty": "No kei Nachrichte. Schrib di erscht!",
   "chat.report": "Mälde",
   "chat.reportConfirm": "Die Nachricht de Moderatore mälde?",
