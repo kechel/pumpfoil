@@ -856,7 +856,7 @@ const de: Record<string, string> = {
 
   "phome.hello": "Hallo, {name}",
   "banner.msg": "ist gaaanz neu (seit 23. Juni 2026) — fast täglich neue Features & Foils. Sag mir, was dir gefällt (und was nicht): einfach rechts aufs 💬 klicken →",
-  "banner.stats": "Wir sind schon §{foilers}§ Foiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",
+  "banner.stats": "Wir sind schon §{foilers}§ Pumpfoiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",
   "banner.dismiss": "Ausblenden",
   "phome.latest": "Letzte Sessions",
   "phome.allMine": "Alle meine",

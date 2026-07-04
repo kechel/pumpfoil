@@ -604,7 +604,7 @@ const gsw: Record<string, string> = {
 
   "phome.hello": "Hoi, {name}",
   "banner.msg": "isch ganz nöi (sit em 23. Juni 2026) — fascht jede Tag nöii Features & Foils. Säg mer, was der gfallt (und was nöd): eifach rächts ufs 💬 klicke →",
-  "banner.stats": "Mir sind scho §{foilers}§ Foiler a §{spots}§ Spots mit §{sessions}§ Sessions und zäme §{pumps}§ Pumps.",
+  "banner.stats": "Mir sind scho §{foilers}§ Pumpfoiler a §{spots}§ Spots mit §{sessions}§ Sessions und zäme §{pumps}§ Pumps.",
   "banner.dismiss": "Uusblände",
   "phome.latest": "Letschti Sessions",
   "phome.allMine": "Alli vo mir",
