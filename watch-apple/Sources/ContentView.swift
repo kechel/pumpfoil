@@ -127,7 +127,9 @@ struct RecordView: View {
     @State private var fixedHigh = 0
     @State private var selInit = false         // Default-Vorwahl nur einmal setzen
     @State private var alarmSource = "foil"     // Schwellen-Quelle: "foil" (Auto) | "manual"
-    @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen (Auto-Umschaltung)
+    @State private var offFoil: [Int] = [12, 17, 16]   // Lauf-Ende-Screen (kurz nach Lauf-Ende)
+    @State private var pauseView: [Int] = [12, 20, 2]  // Pausen-Screen: Uhrzeit · Läufe · Puls
+    @State private var showRunEnd = false               // true = Lauf-Ende-Screen, false = Pausen-Screen
     @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
     @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
@@ -150,8 +152,8 @@ struct RecordView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .tag(idx + 1)
                     }
-                    VStack(spacing: 10) {   // Übersicht (off foil)
-                        ForEach(activeFields(offFoil), id: \.self) { fid in fieldView(fid) }
+                    VStack(spacing: 10) {   // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls)
+                        ForEach(activeFields(showRunEnd ? offFoil : pauseView), id: \.self) { fid in fieldView(fid) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .tag(views.count + 1)
@@ -163,11 +165,14 @@ struct RecordView: View {
                 .onChange(of: rec.isFoiling) { foiling in
                     let summaryPage = views.count + 1
                     if !foiling {
+                        // Lauf beendet -> Übersicht: erst kurz Lauf-Ende, nach 8 s Pausen-Ansicht.
+                        // KEIN Rücksprung zur Datenansicht mehr — die bleibt bis zum nächsten Lauf.
                         page = summaryPage
+                        showRunEnd = true
                         WKInterfaceDevice.current().play(.click)
                         Task {
-                            try? await Task.sleep(nanoseconds: 60_000_000_000)
-                            if page == summaryPage { page = lastDataPage }
+                            try? await Task.sleep(nanoseconds: 8_000_000_000)
+                            if !rec.isFoiling { showRunEnd = false }
                         }
                     } else if page == summaryPage {
                         page = lastDataPage

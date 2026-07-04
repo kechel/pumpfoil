@@ -12,7 +12,8 @@ class RecordView extends WatchUi.View {
     hidden var _prevFoiling = false;
     hidden var _prevRecording = false;
     hidden var _lastDataIdx = 0;          // zuletzt gezeigte Datenansicht (Rücksprungziel)
-    hidden var _summaryShownAtMs = null;  // Zeitpunkt des Auto-Wechsels zur Übersicht (für 60-s-Rücksprung)
+    hidden var _summaryShownAtMs = null;  // Zeitpunkt des Lauf-Endes (steuert Lauf-Ende- vs. Pausen-Ansicht)
+    const RUNEND_SHOW_MS = 8000;          // so lange nach Lauf-Ende die Lauf-Zusammenfassung, dann Pausen-Ansicht
 
     function initialize(recorder) {
         View.initialize();
@@ -59,14 +60,14 @@ class RecordView extends WatchUi.View {
         var summaryIdx = _rec.screens.size();
         if (screenIdx > summaryIdx) { screenIdx = 0; }
 
-        // Auto-Umschaltung NUR auf der Flanke: Lauf beendet (foil->off) -> einmalig zur
-        // Übersicht (+ kurze Vibration als Bestätigung); Lauf gestartet (off->foil) ->
-        // zurück zur letzten Datenansicht. Dazwischen blättert der Nutzer frei.
+        // Auto-Umschaltung NUR auf der Flanke: Lauf beendet (foil->off) -> Übersichts-Slot
+        // (+ kurze Vibration als Bestätigung); Lauf gestartet (off->foil) -> zurück zur
+        // letzten Datenansicht. Dazwischen blättert der Nutzer frei.
         var foil = _rec.isFoiling();
         if (foil != _prevFoiling) {
             if (!foil) {
                 screenIdx = summaryIdx;
-                _summaryShownAtMs = System.getTimer();
+                _summaryShownAtMs = System.getTimer();   // Zeitpunkt Lauf-Ende
                 _vibeSwitch();
             } else {
                 if (screenIdx == summaryIdx) { screenIdx = _lastDataIdx; }
@@ -74,16 +75,21 @@ class RecordView extends WatchUi.View {
             }
             _prevFoiling = foil;
         }
-        // Nach 60 s auf der Übersicht ohne Wischen -> automatisch zurück zur letzten Ansicht.
-        if (_summaryShownAtMs != null && screenIdx == summaryIdx) {
-            if (System.getTimer() - _summaryShownAtMs >= 60000) {
-                screenIdx = _lastDataIdx; _summaryShownAtMs = null;
-            }
-        }
+        // Bewusst KEIN 60-s-Rücksprung mehr: in der Pause bleibt die Übersicht stehen.
+        // Die „volle" Datenansicht kommt erst mit dem nächsten Lauf (off->foil) zurück.
         if (screenIdx < summaryIdx) { _lastDataIdx = screenIdx; }
 
         var summary = (screenIdx == summaryIdx);
-        var fields = summary ? _rec.offFoilView : _rec.screens[screenIdx];
+        // Übersichts-Slot ist adaptiv: kurz nach Lauf-Ende die Lauf-Zusammenfassung
+        // (offFoilView), danach die Pausen-Ansicht (Uhrzeit/Läufe/Puls). Beides mit REC.
+        var fields;
+        if (summary) {
+            var justEnded = (_summaryShownAtMs != null
+                && System.getTimer() - _summaryShownAtMs < RUNEND_SHOW_MS);
+            fields = justEnded ? _rec.offFoilView : _rec.pauseView;
+        } else {
+            fields = _rec.screens[screenIdx];
+        }
         var active = [];
         for (var i = 0; i < 3; i++) {
             if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }

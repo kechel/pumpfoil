@@ -43,13 +43,18 @@ final class Recorder: NSObject, ObservableObject {
     @Published var lastRunAvgSpeedKmh: Double = 0
     @Published var lastRunMaxSpeedKmh: Double = 0
 
-    // Foil-Erkennung wie Garmin: rein ab ~10 km/h (3 s anhaltend), raus unter ~9 km/h (3 s).
+    // Foil-Erkennung wie Garmin: rein ab ~10 km/h (4 s anhaltend), raus unter ~9 km/h (3 s).
     private let foilEnterKmh = 10.0
     private let foilExitKmh = 9.0
+    private let foilEnterDwellS = 4   // s anhaltend -> foilend (träge: Waten/Steg-Gang = kein Phantom-Lauf)
+    private let foilExitDwellS = 3    // s anhaltend langsam -> Lauf-Ende
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
+    // Nach Lauf-Ende Sperre, bevor ein neuer Lauf starten darf (wie Garmin RUN_REARM_COOLDOWN).
+    private let runReArmCooldownMs = 25000
+    private var runEndedMs = -100000
     // Lauf-Tracking (intern)
-    private let runEnterDwellMs = 3000
+    private let runEnterDwellMs = 4000
     private let runExitDwellMs = 3000
     private var runStartMs = 0
     private var runStartDist = 0.0
@@ -126,7 +131,7 @@ final class Recorder: NSObject, ObservableObject {
         startWorkout()
         startSensors()
         isRecording = true
-        isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0
+        isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000
         runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
@@ -148,16 +153,22 @@ final class Recorder: NSObject, ObservableObject {
         let dist = distAccum
         let spMps = speedKmh / 3.6
         if !isFoiling {
-            foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
-            if foilEnterStreak >= 3 {
-                isFoiling = true; foilExitStreak = 0
-                // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps
+            // Re-Arm-Cooldown: direkt nach Lauf-Ende keinen neuen Lauf zulassen
+            // (Zurückschwimmen/Waten/zum-Steg-Laufen erzeugt sonst Phantom-Läufe).
+            if tMs - runEndedMs < runReArmCooldownMs {
+                foilEnterStreak = 0
+            } else {
+                foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
+                if foilEnterStreak >= foilEnterDwellS {
+                    isFoiling = true; foilExitStreak = 0
+                    // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps
+                }
             }
         } else {
             if spMps > runMaxMps { runMaxMps = spMps }
             foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
-            if foilExitStreak >= 3 {
+            if foilExitStreak >= foilExitDwellS {
                 isFoiling = false; foilEnterStreak = 0
                 let durMs = max(0, tMs - runExitDwellMs - runStartMs)
                 lastRunDurMs = durMs
@@ -165,6 +176,7 @@ final class Recorder: NSObject, ObservableObject {
                 lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
                 lastRunMaxMps = runMaxMps
                 runCount += 1
+                runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
         }
         // Publizierte Lauf-Felder: aktueller Lauf live, sonst letzter.

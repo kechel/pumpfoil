@@ -61,9 +61,12 @@ object Recorder {
         val lastRunMaxSpeedKmh: Double = 0.0,
     )
 
-    // Foil-/Lauf-Erkennung wie Garmin: rein ab ~10 km/h (3 s Dwell), raus unter ~9 km/h (3 s).
-    private const val RUN_ENTER_DWELL = 3
+    // Foil-/Lauf-Erkennung wie Garmin: rein ab ~10 km/h (4 s Dwell), raus unter ~9 km/h (3 s).
+    private const val RUN_ENTER_DWELL = 4   // träge: Waten/Steg-Gang soll keinen Phantom-Lauf auslösen
     private const val RUN_EXIT_DWELL = 3
+    // Nach Lauf-Ende Sperre, bevor ein neuer Lauf starten darf (Zurückschwimmen/Waten).
+    private const val RUN_REARM_COOLDOWN_MS = 25000L
+    private var runEndedMs = -100000L
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
     private var foiling = false
@@ -80,13 +83,18 @@ object Recorder {
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
-            foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
-            if (foilEnterStreak >= RUN_ENTER_DWELL) {
-                foiling = true; foilExitStreak = 0
-                // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                runStartMs = tMs - RUN_ENTER_DWELL * 1000L
-                runStartDist = dist
-                runMaxMps = spMps
+            // Re-Arm-Cooldown: direkt nach Lauf-Ende keinen neuen Lauf zulassen.
+            if (tMs - runEndedMs < RUN_REARM_COOLDOWN_MS) {
+                foilEnterStreak = 0
+            } else {
+                foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
+                if (foilEnterStreak >= RUN_ENTER_DWELL) {
+                    foiling = true; foilExitStreak = 0
+                    // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                    runStartMs = tMs - RUN_ENTER_DWELL * 1000L
+                    runStartDist = dist
+                    runMaxMps = spMps
+                }
             }
         } else {
             if (spMps > runMaxMps) runMaxMps = spMps
@@ -100,6 +108,7 @@ object Recorder {
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
                 runCount++
+                runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
         }
         return foiling
@@ -167,7 +176,7 @@ object Recorder {
         sessionFoilId?.let { meta.put("foil_id", it) }   // gewählte Foil (Metadaten), unabhängig vom Alarm
         LocalStore.writeMeta(ctx, uuid, meta)
         running = true
-        foiling = false; foilEnterStreak = 0; foilExitStreak = 0
+        foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         _state.value = State(recording = true, status = "Aufnahme läuft",

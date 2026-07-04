@@ -80,8 +80,12 @@ class SessionRecorder {
     // Drei unabhängige Achsen: Foil (Metadaten, oben), alarmEnabled (An/Aus), alarmSource (Schwellen-Quelle).
     var alarmSource = "foil";         // "foil" = Schwellen aus gewählter Foil | "manual" = feste Min/Max (speedLow/HighKmh)
     // Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird): Default
-    // Uhrzeit + letzter Lauf (Distanz/Dauer). Per Website konfigurierbar.
+    // Lauf-Ende-Ansicht: kurz nach Lauf-Ende eingeblendet — Uhrzeit + letzter Lauf
+    // (Distanz/Dauer). Per Website konfigurierbar.
     var offFoilView = [Config.FIELD_CLOCK, Config.FIELD_LAST_RUN_DISTANCE, Config.FIELD_LAST_RUN_DURATION];
+    // Pausen-Ansicht: Standard, solange nicht on-foil (nach der kurzen Lauf-Ende-Ansicht).
+    // Uhrzeit + Läufe der aktuellen Session + Puls. REC-Symbol bleibt dabei sichtbar.
+    var pauseView = [Config.FIELD_CLOCK, Config.FIELD_RUN_COUNT, Config.FIELD_HR];
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
@@ -97,12 +101,13 @@ class SessionRecorder {
     // Accel-ML die Wahrheit für die Auswertung; das hier dient dem Live-Feedback.
     const RUN_ENTER_MPS = 2.8;   // ~10 km/h: Lauf-Start
     const RUN_EXIT_MPS = 2.5;    // ~9 km/h: darunter -> Lauf-Ende (Hysterese)
-    const RUN_ENTER_DWELL = 3;   // s anhaltend -> foilend
+    const RUN_ENTER_DWELL = 4;   // s anhaltend -> foilend (bewusst träge: Waten/Steg-Gang
+                                 // soll keinen Phantom-Lauf samt Datenansicht auslösen)
     const RUN_EXIT_DWELL = 3;    // s anhaltend langsam -> Lauf-Ende
-    // Nach einem Lauf-Ende kurze Sperre, bevor ein neuer Lauf starten darf. Fängt das
-    // Zurückschwimmen direkt nach dem Absteigen ab (GPS-Speed-Spikes der nassen Uhr
-    // sollen keinen Phantom-Lauf samt Übersichts-Screen auslösen).
-    const RUN_REARM_COOLDOWN_MS = 15000;
+    // Nach einem Lauf-Ende Sperre, bevor ein neuer Lauf starten darf. Fängt das
+    // Zurückschwimmen/Waten/zum-Steg-Laufen direkt nach dem Absteigen ab (GPS-Speed-Spikes
+    // der nassen Uhr sollen keinen Phantom-Lauf samt Übersichts-Screen auslösen).
+    const RUN_REARM_COOLDOWN_MS = 25000;
     // Auto-Start: auf dem Start-Screen die GPS-Geschwindigkeit überwachen und die
     // Aufnahme automatisch starten, sobald man losfährt (~10 km/h, 4 s anhaltend).
     const AUTO_START_MPS = 2.8;

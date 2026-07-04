@@ -170,7 +170,8 @@ class MainActivity : ComponentActivity() {
         var foilLabel by remember { mutableStateOf("") }        // gewählte Foil (Anzeige "Foil: <name>")
         var sessionFoilId by remember { mutableStateOf<Int?>(null) }   // Foil = Metadaten (+ Auto-Schwellen)
         var alarmSource by remember { mutableStateOf("foil") }         // "foil" | "manual" (Schwellen-Quelle)
-        var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen
+        var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Lauf-Ende-Screen (kurz nach Lauf-Ende)
+        val pauseView = listOf(12, 20, 2)                                // Pausen-Screen: Uhrzeit · Läufe · Puls
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
 
         fun applyConfig(c: JSONObject) {
@@ -273,19 +274,20 @@ class MainActivity : ComponentActivity() {
             val pageCount = dataCount + 3
             val pager = rememberPagerState(initialPage = 1, pageCount = { pageCount })
             var prevFoil by remember { mutableStateOf(s.isFoiling) }
-            // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration,
-            // 60-s-Rücksprung); Lauf gestartet -> zurück zur Datenansicht. Manuelles Wischen
-            // bricht den Rücksprung ab (dann ist currentPage != summaryPage).
+            var showRunEnd by remember { mutableStateOf(false) }   // true = Lauf-Ende, false = Pause
+            // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration): erst
+            // kurz die Lauf-Zusammenfassung, nach 8 s die Pausen-Ansicht (bleibt bis zum nächsten
+            // Lauf stehen — KEIN Rücksprung zur Datenansicht). Lauf gestartet -> zurück zu Daten.
             LaunchedEffect(s.isFoiling) {
                 if (s.isFoiling == prevFoil) return@LaunchedEffect
                 val wasFoiling = prevFoil
                 prevFoil = s.isFoiling
                 if (!s.isFoiling && wasFoiling) {
-                    val back = pager.currentPage.coerceIn(1, dataCount)
                     pager.animateScrollToPage(summaryPage)
                     vibrate(ctx, 200)
-                    kotlinx.coroutines.delay(60_000)
-                    if (pager.currentPage == summaryPage) pager.animateScrollToPage(back)
+                    showRunEnd = true
+                    kotlinx.coroutines.delay(8_000)
+                    if (!Recorder.state.value.isFoiling) showRunEnd = false
                 } else if (s.isFoiling && pager.currentPage == summaryPage) {
                     pager.animateScrollToPage(dataCount)
                 }
@@ -302,8 +304,9 @@ class MainActivity : ComponentActivity() {
                                 val fields = views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }
                                 fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                             }
-                            page == summaryPage -> {  // Übersicht (off foil)
-                                val fields = offFoil.filter { it != 0 }.ifEmpty { listOf(12) }
+                            page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
+                                val v = if (showRunEnd) offFoil else pauseView
+                                val fields = v.filter { it != 0 }.ifEmpty { listOf(12) }
                                 fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                             }
                             else -> {  // Stop-Seiten (vorne & hinten): 3 s halten zum Stoppen
