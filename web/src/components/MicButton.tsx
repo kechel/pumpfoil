@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useI18n } from "../i18n";
 
 // Diktier-Button: Browser-Spracherkennung (Web Speech API). Während des Sprechens läuft eine
@@ -145,8 +146,10 @@ export function MicButton({ value, onChange, onSubmit, disabled }: {
       </button>
 
       {/* Vollbild-Diktat: große Schrift, füllt von oben nach unten, scrollt automatisch mit.
-          Unten drei Aktionen — alle stoppen die Aufnahme; „Noch mal" startet direkt neu. */}
-      {listening && (
+          Unten drei Aktionen — alle stoppen die Aufnahme; „Noch mal" startet direkt neu.
+          Per Portal an document.body -> echtes Viewport-Vollbild (nicht im Chat-Container
+          gefangen, der durch transform/backdrop-blur sonst „fixed" einsperrt). */}
+      {listening && createPortal(
         <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
@@ -178,7 +181,8 @@ export function MicButton({ value, onChange, onSubmit, disabled }: {
               {onSubmit ? t("mic.send") : t("mic.accept")}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {err && !listening && (
