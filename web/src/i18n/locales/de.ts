@@ -431,6 +431,7 @@ const de: Record<string, string> = {
   "chat.editing": "Nachricht bearbeiten",
   "chat.editCancel": "Abbrechen",
   "chat.save": "Speichern",
+  "chat.editHint": "Tipp: eigene Nachrichten der letzten Stunde per langem Drücken bearbeiten oder löschen.",
   "chat.dictate": "Diktieren (Spracheingabe)",
   "mic.err": "Spracheingabe nicht möglich — Mikro erlauben oder anderen Browser (Chrome/Safari) nutzen.",
   "mic.nospeech": "Nichts gehört — nochmal probieren.",

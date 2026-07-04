@@ -305,6 +305,7 @@ const deAT: Record<string, string> = {
   "chat.editing": "Nochricht bearbeitn",
   "chat.editCancel": "Obbrechn",
   "chat.save": "Speichern",
+  "chat.editHint": "Tipp: eigene Nochrichtn vo da letztn Stund mit langem Drückn bearbeitn oder löschn.",
   "chat.dictate": "Diktiern (Sprocheingob)",
   "mic.err": "Sprocheingob geht ned — s Mikro erlaubn oder an andan Browser (Chrome/Safari) hernehmen.",
   "mic.nospeech": "Nix ghört — nochmoi probiern.",

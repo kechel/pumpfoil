@@ -408,6 +408,7 @@ const en: Record<string, string> = {
   "chat.editing": "Editing message",
   "chat.editCancel": "Cancel",
   "chat.save": "Save",
+  "chat.editHint": "Tip: long-press your own messages from the last hour to edit or delete them.",
   "chat.dictate": "Dictate (voice input)",
   "mic.err": "Voice input unavailable — allow the mic or try another browser (Chrome/Safari).",
   "mic.nospeech": "Didn't catch that — try again.",

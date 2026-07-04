@@ -394,6 +394,7 @@ const fr: Record<string, string> = {
   "chat.editing": "Modification du message",
   "chat.editCancel": "Annuler",
   "chat.save": "Enregistrer",
+  "chat.editHint": "Astuce : appuie longuement sur tes messages de la dernière heure pour les modifier ou les supprimer.",
   "chat.dictate": "Dicter (saisie vocale)",
   "mic.err": "Saisie vocale indisponible — autorise le micro ou essaie un autre navigateur (Chrome/Safari).",
   "mic.nospeech": "Rien entendu — réessaie.",

@@ -265,6 +265,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           {editing != null ? t("chat.save") : t("chat.send")}
         </button>
       </div>
+      <p className="mt-1.5 text-[10px] leading-snug text-slate-500">{t("chat.editHint")}</p>
     </div>
   );
 }
