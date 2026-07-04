@@ -163,7 +163,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
           </div>
           <div className="mt-4 flex items-stretch gap-2">
             <button onClick={() => endWith("cancel")} title={t("mic.cancel")} aria-label={t("mic.cancel")}
-              className="flex items-center justify-center rounded-2xl bg-slate-800 px-4 py-3.5 text-red-400 hover:bg-slate-700">
+              className="flex flex-1 items-center justify-center rounded-2xl bg-slate-800 py-3.5 text-red-400 hover:bg-slate-700">
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
               </svg>
@@ -185,7 +185,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
               </button>
             )}
             <button onClick={() => endWith("accept")} title={onSubmit ? t("mic.send") : t("mic.accept")} aria-label={onSubmit ? t("mic.send") : t("mic.accept")}
-              className="flex items-center justify-center rounded-2xl bg-brand-500 px-4 py-3.5 text-slate-950 hover:bg-brand-400">
+              className="flex flex-1 items-center justify-center rounded-2xl bg-brand-500 py-3.5 text-slate-950 hover:bg-brand-400">
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4 20-7z" />
               </svg>
