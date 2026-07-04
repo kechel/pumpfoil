@@ -40,6 +40,11 @@ def current_user(
     exp = token_exp(creds.credentials)
     if exp is not None and exp - datetime.now(timezone.utc) < timedelta(days=30):
         response.headers["X-Refresh-Token"] = create_access_token(user_id)
+    # "Zuletzt aktiv" gedrosselt aktualisieren (höchstens 1×/Stunde) — kein Write je Request.
+    now = datetime.now(timezone.utc)
+    if user.last_seen_at is None or now - user.last_seen_at > timedelta(hours=1):
+        user.last_seen_at = now
+        db.commit()
     return user
 
 

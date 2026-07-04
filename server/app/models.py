@@ -54,6 +54,8 @@ class User(Base):
     # "Alle Geräte abmelden": Tokens, die VOR diesem Zeitpunkt ausgestellt wurden (iat),
     # werden abgelehnt. NULL = keine Invalidierung. Betrifft nur diesen Nutzer.
     session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Zuletzt aktiv (letzter authentifizierter Request; gedrosselt aktualisiert) — für den Admin.
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     devices: Mapped[list["DeviceToken"]] = relationship(back_populates="user")
     sessions: Mapped[list["Session"]] = relationship(back_populates="user")

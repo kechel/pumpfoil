@@ -247,6 +247,7 @@ export interface AdminUser {
   hidden: boolean;
   new?: boolean;            // Konto jünger als 24 h
   created_at: string | null;
+  last_seen_at: string | null;   // zuletzt aktiv (Admin)
   sessions: number;
 }
 

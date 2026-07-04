@@ -173,6 +173,7 @@ def _user_brief(db: Session, u: models.User) -> dict:
         "hidden": bool(u.hidden),
         "new": is_new_account(u.created_at),
         "created_at": u.created_at.isoformat() if u.created_at else None,
+        "last_seen_at": u.last_seen_at.isoformat() if u.last_seen_at else None,
         "sessions": nsess,
     }
 

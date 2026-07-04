@@ -499,6 +499,7 @@ const de: Record<string, string> = {
   "adm.hideUser": "Verstecken",
   "adm.unhideUser": "Sichtbar",
   "adm.sessionsSince": "{sessions} Sessions · seit {date}",
+  "adm.lastSeen": "Zuletzt aktiv",
   "adm.sessionsLink": "Sessions",
   "adm.edit": "Bearbeiten",
   "adm.editClose": "Abbrechen",

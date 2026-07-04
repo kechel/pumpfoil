@@ -325,6 +325,9 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
             {u.new && <span className="ml-1"><NewBadge /></span>}
           </div>
           <div className="truncate text-[11px] text-slate-400">{u.email} · {t("adm.sessionsSince", { sessions: u.sessions, date: fmtDate(u.created_at) })}</div>
+          <div className="truncate text-[11px] text-slate-500">
+            {t("adm.lastSeen")}: {u.last_seen_at ? new Date(u.last_seen_at).toLocaleString() : "–"}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to={`/admin?tab=sessions&user=${u.id}`} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{t("adm.sessionsLink")}</Link>
