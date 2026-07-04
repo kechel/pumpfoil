@@ -345,6 +345,7 @@ const gsw: Record<string, string> = {
   "chat.editCancel": "Abbräche",
   "chat.save": "Speichere",
   "chat.editHint": "Tipp: eigeni Nachrichte vo dr letschte Stund mit langem Drucke bearbeite oder lösche.",
+  "chat.editHintDesktop": "Tipp: mit dr Muus über eigeni Nachrichte vo dr letschte Stund fahre zum bearbeite oder lösche.",
   "chat.dictate": "Diktiere (Sprachigab)",
   "mic.err": "Sprachigab gaht nöd — s Mikrofon erlaube oder en andere Browser (Chrome/Safari) näh.",
   "mic.nospeech": "Nüt ghört — nomal probiere.",
