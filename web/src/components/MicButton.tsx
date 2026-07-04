@@ -18,6 +18,7 @@ export function MicButton({ value, onChange, disabled }: {
 }) {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
+  const [preview, setPreview] = useState("");   // Live-Vorschau während des Sprechens (noch nicht im Feld)
   const [err, setErr] = useState("");
   const recRef = useRef<any>(null);
   const baseRef = useRef("");
@@ -54,20 +55,27 @@ export function MicButton({ value, onChange, disabled }: {
     // Vorhandenen Text als Basis behalten, Diktat hinten anhängen (mit Trennleerzeichen).
     baseRef.current = value ? value.replace(/\s+$/, "") + " " : "";
     finalRef.current = "";
-    rec.onstart = () => setListening(true);          // zuverlässiges „Aufnahme läuft"-Feedback
+    setPreview("");
+    rec.onstart = () => { setListening(true); setPreview(""); };
     rec.onresult = (e: any) => {
-      // Kanonisch: ab resultIndex nur die NEUEN Ergebnisse verarbeiten. Finale Teile
-      // dauerhaft in finalRef sammeln, nur das laufende Interim hinten anhängen — sonst
-      // zählt Android-Chrome (mehrere Interim-Einträge) den Text doppelt/dreifach.
+      // NUR Live-Vorschau aktualisieren (nicht ins Feld schreiben). Kanonisch: ab resultIndex
+      // nur neue Ergebnisse — finale Teile in finalRef sammeln, laufendes Interim anhängen.
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
         if (r.isFinal) finalRef.current += r[0].transcript;
         else interim += r[0].transcript;
       }
-      onChange((baseRef.current + finalRef.current + interim).slice(0, 2000));
+      setPreview((finalRef.current + interim).trim());
     };
-    rec.onend = () => { setListening(false); recRef.current = null; };
+    rec.onend = () => {
+      setListening(false);
+      recRef.current = null;
+      // Erst beim Stoppen das fertige Ergebnis EINMAL sauber ins Feld übernehmen.
+      const finalText = finalRef.current.trim();
+      if (finalText) onChange((baseRef.current + finalText).slice(0, 2000));
+      setPreview("");
+    };
     rec.onerror = (e: any) => {
       setListening(false);
       recRef.current = null;
@@ -88,7 +96,7 @@ export function MicButton({ value, onChange, disabled }: {
         type="button"
         onClick={toggle}
         disabled={disabled}
-        title={err || t("chat.dictate")}
+        title={err || (listening ? t("mic.stop") : t("chat.dictate"))}
         aria-label={t("chat.dictate")}
         aria-pressed={listening}
         className={`flex items-center justify-center rounded-xl border px-3 py-2 ${
@@ -105,7 +113,14 @@ export function MicButton({ value, onChange, disabled }: {
           <line x1="12" y1="19" x2="12" y2="22" />
         </svg>
       </button>
-      {err && (
+      {/* Live-Vorschau während des Sprechens — landet erst beim Stoppen im Feld. */}
+      {listening && (
+        <div className="absolute bottom-full right-0 z-50 mb-1 w-56 rounded-lg bg-slate-800 px-2 py-1.5 text-[11px] leading-snug text-slate-200 shadow-lg">
+          <span className="mr-1 inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
+          {preview || <span className="text-slate-400">{t("mic.listening")}</span>}
+        </div>
+      )}
+      {err && !listening && (
         <div
           role="button"
           onClick={() => setErr("")}

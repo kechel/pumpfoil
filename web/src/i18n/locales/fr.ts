@@ -393,6 +393,8 @@ const fr: Record<string, string> = {
   "mic.nospeech": "Rien entendu — réessaie.",
   "mic.blocked": "Micro bloqué — autorise-le pour ce site dans ton navigateur.",
   "mic.dismiss": "Fermer",
+  "mic.listening": "J'écoute… (tape le micro quand c'est fini)",
+  "mic.stop": "Terminé — insérer",
   "chat.empty": "Aucun message pour l’instant. Sois le premier !",
   "chat.report": "Signaler",
   "chat.reportConfirm": "Signaler ce message aux modérateurs ?",

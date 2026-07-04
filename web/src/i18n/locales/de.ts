@@ -430,6 +430,8 @@ const de: Record<string, string> = {
   "mic.nospeech": "Nichts gehört — nochmal probieren.",
   "mic.blocked": "Mikrofon blockiert — im Browser für diese Seite erlauben.",
   "mic.dismiss": "Schließen",
+  "mic.listening": "Sprich… (Mikro tippen = fertig)",
+  "mic.stop": "Fertig – übernehmen",
   "chat.empty": "Noch keine Nachrichten. Schreib die erste!",
   "chat.report": "Melden",
   "chat.reportConfirm": "Diese Nachricht den Moderatoren melden?",
