@@ -70,5 +70,6 @@ jk-readme.txt
 watch-apple/Sources-iOS/Info.plist
 
 .venv-garmin/
+youtube/
 videos-raw/
 non-public-sdks/
