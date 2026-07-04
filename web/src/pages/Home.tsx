@@ -8,6 +8,7 @@ import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
 import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon } from "../components/Icons";
 import { AccelToggle } from "../components/AccelToggle";
+import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
 
@@ -66,6 +67,7 @@ function InstallButton() {
 export default function Home() {
   return (
     <div>
+      <CommunityStats className="mb-5" />
       <InstallButton />
       <CommunitySection />
     </div>
