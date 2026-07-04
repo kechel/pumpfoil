@@ -522,6 +522,9 @@ const deAT: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Servas, {name}",
+  "banner.msg": "is gaaanz frisch — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs 💬 klickn →",
+  "banner.stats": "Mia san scho §{foilers}§ Foiler auf §{spots}§ Spots mit §{sessions}§ Sessions und zamm §{pumps}§ Pumps.",
+  "banner.dismiss": "Ausblendn",
   "phome.latest": "Letzte Sessions",
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",

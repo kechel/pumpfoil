@@ -6,6 +6,7 @@ import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
+import { WelcomeBanner } from "../components/WelcomeBanner";
 import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
@@ -67,6 +68,7 @@ export default function PersonalHome() {
 
   return (
     <div className="w-full">
+      <WelcomeBanner />
       <div className="mb-5 flex items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}

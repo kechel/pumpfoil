@@ -668,6 +668,7 @@ const de: Record<string, string> = {
   "watches.st.planned": "wartet auf Freigabe",
   "watches.st.import": "Polar API",
   "watches.st.no": "Nicht möglich",
+  "watches.st.nope": "nope",
   "watches.legYes": "voll unterstützt",
   "watches.legPartial": "eingeschränkt",
   "watches.legNo": "nicht verfügbar",
@@ -677,6 +678,7 @@ const de: Record<string, string> = {
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export nicht (nur via separatem BLE-Sensor).",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
+  "watches.nStrava": "Import wäre technisch machbar, liefert per API aber keinen hochfrequenten Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",
 
   "import.title": "Aktivität importieren",
   "import.intro": "Lade eine aufgezeichnete Aktivität (FIT-Datei) hoch, um sie auszuwerten — auch ältere Sessions.",
@@ -830,6 +832,9 @@ const de: Record<string, string> = {
   "profile.calculator": "Foil-Rechner",
 
   "phome.hello": "Hallo, {name}",
+  "banner.msg": "ist gaaanz neu — fast täglich neue Features & Foils. Sag mir, was dir gefällt (und was nicht): einfach rechts aufs 💬 klicken →",
+  "banner.stats": "Wir sind schon §{foilers}§ Foiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",
+  "banner.dismiss": "Ausblenden",
   "phome.latest": "Letzte Sessions",
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",

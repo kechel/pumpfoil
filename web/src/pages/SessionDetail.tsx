@@ -849,36 +849,15 @@ export default function SessionDetail() {
   const hasPumpStats = m?.avg_pump_hz != null && (a?.pump_count ?? 0) > 0;
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
-        <div className="flex items-center gap-2">
-          {session.place_name && (
-            <Link
-              to={`/chat?scope=${encodeURIComponent(`spot:${session.place_name}`)}`}
-              title={t("chat.spotChat")}
-              className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
-            >
-              <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.spotChat")} {session.place_name}
-            </Link>
-          )}
-          {(() => {
-            const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
-            return (
-              <button
-                onClick={() => toggleCompare({ sessionId: session.id, runIdx: null })}
-                title={inCmp ? t("compare.remove") : t("compare.add")}
-                className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-sm ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-              >
-                <CompareIcon className="h-4 w-4" /> {inCmp ? t("compare.inList") : t("compare.add")}
-              </button>
-            );
-          })()}
+        <div className="inline-flex shrink-0 overflow-hidden rounded-lg">
           <button
             disabled={neighbors.older == null}
             onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`)}
-            className="rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
+            className="bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.olderTitle")}
           >
             {t("sd.older")}
@@ -886,12 +865,36 @@ export default function SessionDetail() {
           <button
             disabled={neighbors.newer == null}
             onClick={() => neighbors.newer != null && nav(`/sessions/${neighbors.newer}`)}
-            className="rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
+            className="border-l border-slate-900/60 bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.newerTitle")}
           >
             {t("sd.newer")}
           </button>
         </div>
+      </div>
+      <div className="mb-4 flex items-center gap-2">
+        {session.place_name && (
+          <Link
+            to={`/chat?scope=${encodeURIComponent(`spot:${session.place_name}`)}`}
+            title={`${t("chat.spotChat")} ${session.place_name}`}
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
+          >
+            <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />
+            <span className="truncate">{t("chat.spotChat")} {session.place_name}</span>
+          </Link>
+        )}
+        {(() => {
+          const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
+          return (
+            <button
+              onClick={() => toggleCompare({ sessionId: session.id, runIdx: null })}
+              title={inCmp ? t("compare.remove") : t("compare.add")}
+              className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1 text-sm ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+            >
+              <CompareIcon className="h-4 w-4 shrink-0" /> {inCmp ? t("compare.inList") : t("compare.add")}
+            </button>
+          );
+        })()}
       </div>
       <div className="mb-4 flex items-start gap-3">
         {/* Profilbild zuerst, daneben Überschrift + Meta + Medien/Aktionen */}

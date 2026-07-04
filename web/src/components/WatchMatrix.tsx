@@ -6,7 +6,7 @@ import { AppStoreBadge, PlayBadge } from "./StoreBadge";
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
 // /uhren-Seite + Login-Bereich /account).
 type Cap = "yes" | "partial" | "no";
-type Status = "avail" | "planned" | "import" | "no";
+type Status = "avail" | "planned" | "import" | "no" | "nope";
 type StoreKind = "ciq" | "appstore" | "play";                 // theme-aware Store-Badge
 type Account = { logo: string; alt: string; labelKey: string }; // Import per Konto-Verknüpfung (Hinweis, kein Link)
 
@@ -20,6 +20,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
+  { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },
 ];
 
 const CAP_ICON: Record<"partial" | "no", string> = { partial: "~", no: "–" };
@@ -29,6 +30,7 @@ const STATUS_CLASS: Record<Status, string> = {
   planned: "badge-soon bg-sky-500/15 text-sky-300",
   import: "badge-ok bg-emerald-500/15 text-emerald-300",   // wie „Verfügbar" — grün
   no: "badge-danger bg-rose-500/15 text-rose-300",
+  nope: "badge-danger bg-rose-500/15 text-rose-300",
 };
 
 export function WatchMatrix() {

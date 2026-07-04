@@ -464,6 +464,7 @@ export const api = {
   stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
   communityRecords: (accelOnly = true) => req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}`),
   communitySpots: (accelOnly = true) => req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}`),
+  communityStats: () => req<{ foilers: number; spots: number; sessions: number; pumps: number }>(`/api/community/stats`),
   spotRecords: (spot: string, period = "all", accelOnly = true) =>
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {

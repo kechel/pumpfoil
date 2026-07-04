@@ -314,6 +314,41 @@ def spot_weather_endpoint(
     return data
 
 
+_stats_lock = threading.Lock()
+_stats_cache: tuple[float, dict] | None = None
+_STATS_TTL = 300.0  # 5 min
+
+
+@router.get("/stats")
+def community_stats(
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Community-Kennzahlen für den Willkommens-Banner: Foiler (Nutzer mit ≥1
+    sichtbaren Session), Spots (distinct place_name), Sessions gesamt. Inkl.
+    GPS-only-Läufe (accel_only=False), gecacht (5 min), damit's billig bleibt."""
+    global _stats_cache
+    now = time.monotonic()
+    with _stats_lock:
+        if _stats_cache and now - _stats_cache[0] < _STATS_TTL:
+            return _stats_cache[1]
+    # Foiler = ALLE registrierten Nutzer (inkl. Testaccounts) — die Zahl wirkt sonst zu klein.
+    # Spots/Sessions bleiben community-sichtbar (accel_only=False, versteckte Konten raus).
+    foilers = db.query(func.count(U.id)).scalar()
+    row = _community(
+        db.query(
+            func.count(func.distinct(func.nullif(S.place_name, ""))),
+            func.count(func.distinct(S.id)),
+            func.coalesce(func.sum(AR.pump_count), 0),
+        ),
+        viewer_id=None, accel_only=False,
+    ).first()
+    data = {"foilers": int(foilers or 0), "spots": int(row[0] or 0),
+            "sessions": int(row[1] or 0), "pumps": int(row[2] or 0)}
+    with _stats_lock:
+        _stats_cache = (now, data)
+    return data
+
+
 @router.get("/foil-stats")
 def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil)."""
