@@ -42,9 +42,8 @@ OUTLIER_STEP_M = 25.0     # 1-s-Schritt darüber (~>90 km/h) = GPS-Glitch -> rep
 MIN_SEG_AVG_SPEED = 2.8   # ~10 km/h
 GAP_FILL_S = 2            # ML-Maske: Lücken bis 2 s schließen (Gleit-Pausen)
 # Prinzip: ein START setzt voraus, dass man davor langsam/stehend war. Lagen zwischen
-# zwei erkannten Läufen NIE ein echter Stopp (Speed blieb über NOSTOP_SPEED), ist es
-# in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, kein zweiter Start.
-NOSTOP_MERGE_MAX_S = 15   # nur Lücken bis hierhin betrachten (Sicherheitskappe)
+# zwei erkannten Läufen NIE ein echter Stopp (Speed blieb über NOSTOP_SPEED) und kein
+# GPS-Dropout, ist es in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, egal wie lang.
 NOSTOP_SPEED = 2.8        # ~10 km/h: kein echter Stopp, wenn der Speed nie darunter fiel
 IMPULSE_BACK_S = 3        # Aufsprung-Impuls bis 3 s VOR dem erkannten Start suchen
 IMPULSE_FWD_S = 2         # ... bis 2 s danach
@@ -567,21 +566,22 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz) -> list[dict]:
     langsam/stehend war — sonst ist es derselbe Lauf (z. B. Modell-Aussetzer)."""
     if len(segments) < 2:
         return segments
-    max_gap = max(int(round(NOSTOP_MERGE_MAX_S * gps_hz)), 1)
     out = [segments[0]]
     for seg in segments[1:]:
         prev = out[-1]
         gap = speed_s[prev["i_end"] + 1 : seg["i_start"]]
-        gap_len = seg["i_start"] - prev["i_end"] - 1
         no_stop = gap.size == 0 or float(np.nanmin(gap)) >= NOSTOP_SPEED
         # Ein echter GPS-Dropout (Uhr unter Wasser/Sturz) trennt -> nicht drüber mergen.
         # Dropout = eine große SAMPLE-Lücke (>GAP_SPLIT_S zwischen zwei Punkten), NICHT
         # die Wanduhr-Dauer: ein durchgehender Cruise, den das Accel-Modell kurz verliert
         # oder bei spärlichem GPS-Log, ergibt viele Samples mit weiter hohem Speed (kein
         # Dropout) -> derselbe Lauf. Sonst zerschneidet langes Cruisen einen Lauf künstlich.
+        # KEINE Dauer-Kappe: blieb der Speed die GANZE Lücke über >= NOSTOP_SPEED und lag
+        # kein Sample-Dropout vor, ist es derselbe Lauf — egal wie lang (Markus #361:
+        # 17-36 s ruhiges Gleiten, das das Modell verliert, wurde sonst künstlich zerhackt).
         seg_t = t_ms[prev["i_end"] : seg["i_start"] + 1]
         max_sample_dt_s = float(np.max(np.diff(seg_t))) / 1000.0 if seg_t.size >= 2 else 0.0
-        if gap_len <= max_gap and no_stop and max_sample_dt_s <= GAP_SPLIT_S:
+        if no_stop and max_sample_dt_s <= GAP_SPLIT_S:
             out[-1] = _seg_fields(prev["i_start"], seg["i_end"] + 1, t_ms, step, speeds)
         else:
             out.append(seg)
