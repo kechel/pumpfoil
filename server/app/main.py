@@ -43,7 +43,9 @@ async def security_headers(request: Request, call_next):
     h.setdefault("X-Content-Type-Options", "nosniff")
     h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     h.setdefault("X-Frame-Options", "SAMEORIGIN")
-    h.setdefault("Permissions-Policy", "microphone=(), camera=(), payment=()")
+    # microphone=(self): fürs Diktat (Web Speech API / getUserMedia) auf der eigenen Origin
+    # nötig — microphone=() (leer) sperrt es sonst komplett, auch für uns selbst.
+    h.setdefault("Permissions-Policy", "microphone=(self), camera=(), payment=()")
     h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return resp
 
