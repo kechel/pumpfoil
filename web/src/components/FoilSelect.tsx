@@ -19,7 +19,7 @@ export function FoilSelect({ session, owned, onMeta }: {
 
   const foil = session.foil;
   const chip = (text: string) =>
-    <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-200"><FoilIcon className="h-3.5 w-3.5" /> {text}</span>;
+    <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-slate-200"><FoilIcon className="h-3.5 w-3.5" /> {text}</span>;
 
   // Nicht-Owner: nur Anzeige (falls gesetzt).
   if (!owned) return foil ? chip(`${foil.brand} ${foil.model} ${foil.size}`) : null;
@@ -38,7 +38,7 @@ export function FoilSelect({ session, owned, onMeta }: {
     <select
       value={session.foil_id ?? ""}
       onChange={(e) => change(e.target.value)}
-      className="ml-2 max-w-[14rem] rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-200"
+      className="max-w-[14rem] rounded bg-slate-800 px-2 py-1 text-xs text-slate-200"
       title={t("foil.label")}
     >
       <option value="">{t("foil.useDefault")}</option>

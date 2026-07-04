@@ -945,7 +945,7 @@ export default function SessionDetail() {
           session.caption && <span className="text-brand-300"> · {session.caption}</span>
         )}
       </h2>
-      <p className="mb-5 text-sm text-slate-300">
+      <p className="mb-2 text-sm text-slate-300">
         {new Date(session.started_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
         {session.ended_at && (
           <>
@@ -954,11 +954,14 @@ export default function SessionDetail() {
             <span className="text-slate-400"> · {t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>
           </>
         )}
-        {session.place_name && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
-        {session.sport && <span className="ml-2 rounded bg-slate-800 px-1.5 py-0.5 text-xs">{session.sport}</span>}
-        <FoilSelect session={session} owned={owned} onMeta={setSession} />
-        {!owned && <span className="ml-2 rounded bg-sky-500/15 px-1.5 py-0.5 text-xs text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </p>
+      {/* Badges einheitlich hoch + horizontal ausgerichtet (flex, items-center). */}
+      <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+        {session.place_name && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
+        {session.sport && <span className="inline-flex items-center rounded bg-slate-800 px-2 py-1">{session.sport}</span>}
+        <FoilSelect session={session} owned={owned} onMeta={setSession} />
+        {!owned && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
+      </div>
         </div>
       </div>
 
