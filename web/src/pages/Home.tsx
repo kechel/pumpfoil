@@ -67,7 +67,6 @@ function InstallButton() {
 export default function Home() {
   return (
     <div>
-      <CommunityStats className="mb-5" />
       <InstallButton />
       <CommunitySection />
     </div>
@@ -334,6 +333,7 @@ function CommunitySection() {
           <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
         </Link>
       </div>
+      <CommunityStats className="mb-3" />
       <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button
