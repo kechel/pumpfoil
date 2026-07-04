@@ -109,7 +109,8 @@ function PolarCard() {
   return (
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.polar.title")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("settings.polar.hint")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("settings.polar.hint")}</p>
+      <p className="mb-3 rounded-lg bg-slate-800/60 px-3 py-2 text-xs text-slate-400">{t("settings.polar.scope")}</p>
       <div className="mb-3 flex items-center gap-3">
         <a href="https://flow.polar.com/" target="_blank" rel="noopener noreferrer" title="Polar Flow"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">

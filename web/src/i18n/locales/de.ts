@@ -681,6 +681,7 @@ const de: Record<string, string> = {
   "watches.nStrava": "Import wäre technisch machbar, liefert per API aber keinen hochfrequenten Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",
 
   "import.title": "Aktivität importieren",
+  "import.short": "Import",
   "import.intro": "Lade eine aufgezeichnete Aktivität (FIT-Datei) hoch, um sie auszuwerten — auch ältere Sessions.",
   "import.step1": "Öffne die Aktivität in Garmin Connect (Web, connect.garmin.com).",
   "import.step2": "Klick oben rechts auf das Zahnrad-Menü (⚙).",
@@ -800,6 +801,7 @@ const de: Record<string, string> = {
   "linked.accountShort": "Konto-Verknüpfung",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dein Polar-Konto (AccessLink) und importiere deine Trainings automatisch als Sessions.",
+  "settings.polar.scope": "Importiert automatisch neue Trainings ab dem Verknüpfen. Ältere Trainings von davor stellt Polar nicht bereit — und nur Aktivitäten mit GPS werden übernommen.",
   "settings.polar.connect": "Mit Polar verbinden",
   "settings.polar.sync": "Trainings importieren",
   "settings.polar.unlink": "Verbindung trennen",

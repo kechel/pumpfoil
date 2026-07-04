@@ -429,6 +429,7 @@ const gsw: Record<string, string> = {
   "sd.avgDistPerPump": "Ø Strecki/Pump",
 
   "import.title": "Aktivität importiere",
+  "import.short": "Import",
   "import.intro": "Lad e ufgezeichneti Aktivität (FIT-Datei) ufe zum uswerte — au älteri Sessions.",
   "import.step1": "Öffne d Aktivität i Garmin Connect (Web, connect.garmin.com).",
   "import.step2": "Klick obe rächts ufs Zahnrad-Menü (⚙).",
@@ -550,6 +551,7 @@ const gsw: Record<string, string> = {
   "linked.accountShort": "Konto-Verchnüpfig",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dis Polar-Konto (AccessLink) und importier dini Trainings automatisch als Sessions.",
+  "settings.polar.scope": "Importiert automatisch nöii Trainings ab em Verbinde. Ältери vo vorher git Polar nöd use — und nume Aktivitäte mit GPS chömed inä.",
   "settings.polar.connect": "Mit Polar verbinde",
   "settings.polar.sync": "Trainings importiere",
   "settings.polar.unlink": "Verbindig trenne",

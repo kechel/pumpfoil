@@ -19,7 +19,7 @@ from urllib.parse import urlencode
 import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -93,13 +93,43 @@ def connect(user: models.User = Depends(current_user)) -> dict:
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 
 
+def _ok_redirect() -> RedirectResponse:
+    """Erfolg -> zurück auf die „Verknüpfte Konten"-Seite (Toast via ?polar=connected)."""
+    return RedirectResponse(f"{get_settings().base_url}/konten?polar=connected", status_code=303)
+
+
+def _error_page(headline: str, why: str, http_status: int = status.HTTP_400_BAD_REQUEST) -> HTMLResponse:
+    """Menschenlesbare Fehlerseite (statt rohem JSON) im App-Look, mit klarer Ursache + Rück-Button."""
+    base = get_settings().base_url
+    html = f"""<!doctype html><html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polar-Verbindung</title></head>
+<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <div style="max-width:420px;text-align:center">
+    <div style="font-size:44px;line-height:1">⚠️</div>
+    <h1 style="font-size:20px;margin:14px 0 8px;font-weight:700">{headline}</h1>
+    <p style="color:#94a3b8;font-size:14px;line-height:1.55;margin:0 0 20px">{why}</p>
+    <a href="{base}/konten" style="display:inline-block;background:#22d3ee;color:#0f172a;font-weight:600;
+text-decoration:none;padding:11px 20px;border-radius:12px">Zurück &amp; erneut verbinden</a>
+  </div>
+</body></html>"""
+    return HTMLResponse(html, status_code=http_status)
+
+
 @router.get("/callback")
 def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
-    """Polar-Redirect (GET): Code -> Token, AccessLink-User registrieren, Link speichern."""
+    """Polar-Redirect (GET): Code -> Token, AccessLink-User registrieren, Link speichern.
+
+    Robust gegen Browser-Prefetch/Doppelaufruf: Polar-Codes gelten nur EINMAL. Lädt der Browser
+    die Callback-URL vorab oder doppelt, scheitert der zweite Token-Tausch (400). Existiert dann
+    bereits ein Link (der erste Aufruf war erfolgreich), melden wir trotzdem Erfolg statt Fehler."""
     cid, secret = _creds()
     uid = _uid_from_state(state or "")
     if not code or uid is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Polar state")
+        return _error_page("Verbindungs-Link ungültig oder abgelaufen",
+                           "Bitte starte die Verknüpfung neu: Verknüpfte Konten → Polar → Verbinden.")
+    existing = db.query(models.PolarLink).filter_by(user_id=uid).first()
     basic = base64.b64encode(f"{cid}:{secret}".encode()).decode()
     try:
         tr = httpx.post(
@@ -109,15 +139,27 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
                      "Content-Type": "application/x-www-form-urlencoded"},
             timeout=20,
         )
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Polar token exchange failed") from exc
+    except Exception:  # noqa: BLE001
+        if existing is not None:
+            return _ok_redirect()   # war schon verbunden -> kein Fehler zeigen
+        return _error_page("Polar war gerade nicht erreichbar",
+                           "Kurzes Netzproblem beim Verbinden. Bitte gleich noch einmal versuchen.",
+                           status.HTTP_502_BAD_GATEWAY)
     if tr.status_code != 200:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Polar token exchange failed ({tr.status_code})")
+        if existing is not None:
+            return _ok_redirect()   # Einmal-Code doppelt eingelöst, aber Link steht schon -> Erfolg
+        return _error_page("Verbindungs-Code bereits verbraucht oder abgelaufen",
+                           "Das passiert, wenn die Seite doppelt geladen oder vom Browser vorab "
+                           "geöffnet wird — Polar-Codes gelten nur einmal. Klick einfach noch einmal "
+                           "auf „Verbinden“.")
     tok = tr.json()
     access = tok.get("access_token")
     xuid = str(tok.get("x_user_id") or "")
     if not access or not xuid:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Polar token incomplete")
+        if existing is not None:
+            return _ok_redirect()
+        return _error_page("Polar hat kein gültiges Token geliefert",
+                           "Bitte versuch die Verknüpfung noch einmal.", status.HTTP_502_BAD_GATEWAY)
 
     member_id = f"pumpfoil-{uid}"
     # AccessLink-User registrieren (idempotent: 409 = bereits registriert).
@@ -127,7 +169,7 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     except Exception:  # noqa: BLE001
         pass  # Registrierung evtl. schon vorhanden -> Link trotzdem speichern
 
-    link = db.query(models.PolarLink).filter_by(user_id=uid).first()
+    link = existing
     if link is None:
         link = models.PolarLink(user_id=uid, polar_user_id=xuid, access_token=access, member_id=member_id)
         db.add(link)
@@ -136,8 +178,7 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
         link.access_token = access
         link.member_id = member_id
     db.commit()
-    # Zurück auf die „Verknüpfte Konten"-Seite (nicht auf die Startseite).
-    return RedirectResponse(f"{get_settings().base_url}/konten?polar=connected", status_code=303)
+    return _ok_redirect()
 
 
 @router.post("/sync")

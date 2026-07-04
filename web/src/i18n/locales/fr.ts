@@ -502,6 +502,7 @@ const fr: Record<string, string> = {
   "watches.nFitbit": "Les apps tierces ont été abandonnées.",
 
   "import.title": "Importer une activité",
+  "import.short": "Importer",
   "import.intro": "Importe une activité enregistrée (fichier FIT) pour l'analyser — y compris d'anciennes sessions.",
   "import.step1": "Ouvre l'activité dans Garmin Connect (web, connect.garmin.com).",
   "import.step2": "Clique sur le menu engrenage (⚙) en haut à droite.",
@@ -621,6 +622,7 @@ const fr: Record<string, string> = {
   "linked.accountShort": "liaison de compte",
   "settings.polar.title": "Import Polar",
   "settings.polar.hint": "Connecte ton compte Polar (AccessLink) et importe automatiquement tes entraînements comme sessions.",
+  "settings.polar.scope": "Importe automatiquement les nouveaux entraînements enregistrés après la connexion. Polar ne fournit pas les entraînements antérieurs — et seules les activités avec GPS sont importées.",
   "settings.polar.connect": "Connecter Polar",
   "settings.polar.sync": "Importer les entraînements",
   "settings.polar.unlink": "Déconnecter",

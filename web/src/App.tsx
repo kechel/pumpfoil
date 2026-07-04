@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon } from "./components/Icons";
+import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon, UploadIcon } from "./components/Icons";
 import { Wordmark } from "./components/Wordmark";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
@@ -116,9 +116,14 @@ export default function App() {
         <Link to="/">
           <Wordmark icon="h-7 w-7" text="text-lg" tagline />
         </Link>
-        {/* Import bewusst NICHT im Mobile-Topbar (mobil selten gebraucht; Garmin-App
-            bietet eh keinen Export). Erreichbar über Profil/Einstellungen + Desktop-Sidebar. */}
         <div className="flex items-center gap-2">
+          {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort). */}
+          <Link
+            to="/import"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-2.5 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400"
+          >
+            <UploadIcon className="h-4 w-4" /> {t("import.short")}
+          </Link>
           <ThemeToggle />
           <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
             <LogoutIcon />

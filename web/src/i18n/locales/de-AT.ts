@@ -379,6 +379,7 @@ const deAT: Record<string, string> = {
   "sd.avgDistPerPump": "Ø Strecke/Pump",
 
   "import.title": "Aktivität importieren",
+  "import.short": "Import",
   "import.intro": "Lade eine aufgezeichnete Aktivität (FIT-Datei) hoch, um sie auszuwerten — auch ältere Sessions.",
   "import.step1": "Öffne die Aktivität in Garmin Connect (Web, connect.garmin.com).",
   "import.step2": "Klick oben rechts auf das Zahnrad-Menü (⚙).",
@@ -496,6 +497,7 @@ const deAT: Record<string, string> = {
   "linked.accountShort": "Konto-Verknüpfung",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dein Polar-Konto (AccessLink) und importiere deine Trainings automatisch als Sessions.",
+  "settings.polar.scope": "Importiert automatisch neiche Trainings ob da Verknüpfung. Öltere vo vorher gibt Polar ned her — und nur Aktivitäten mit GPS kumman eina.",
   "settings.polar.connect": "Mit Polar verbinden",
   "settings.polar.sync": "Trainings importieren",
   "settings.polar.unlink": "Verbindung trennen",
