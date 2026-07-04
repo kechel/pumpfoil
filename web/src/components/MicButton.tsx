@@ -49,14 +49,13 @@ export function MicButton({ value, onChange, disabled }: {
     sessFinalRef.current = "";
     rec.onstart = () => setListening(true);
     rec.onresult = (e: any) => {
-      let interim = "", fin = "";
-      for (let i = 0; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (r.isFinal) fin += r[0].transcript; else interim += r[0].transcript;
-      }
-      sessFinalRef.current = fin;
-      const joined = [finalRef.current, (fin + interim).trim()].filter(Boolean).join(" ");
-      setPreview(joined.trim());
+      // Google liefert pro Runde den GESAMTEN aktuellen Text (und korrigiert frühere Wörter),
+      // teils über mehrere Einträge dupliziert. Daher NUR das letzte Ergebnis nehmen (= der
+      // aktuelle Gesamttext dieser Session), NICHT aufsummieren -> keine Dopplung.
+      const last = e.results[e.results.length - 1];
+      const txt = last ? String(last[0].transcript) : "";
+      if (last && last.isFinal) sessFinalRef.current = txt;
+      setPreview([finalRef.current, txt.trim()].filter(Boolean).join(" ").trim());
     };
     rec.onerror = (e: any) => {
       const code = e?.error;
@@ -128,7 +127,7 @@ export function MicButton({ value, onChange, disabled }: {
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
             {t("mic.listening")}
           </div>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-2xl leading-relaxed text-slate-100 sm:text-3xl">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
             {preview || <span className="text-slate-500">…</span>}
           </div>
           <button
