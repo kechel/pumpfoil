@@ -26,7 +26,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   const [listening, setListening] = useState(false);
   const [preview, setPreview] = useState("");   // Live-Text (nur Vorschau, noch nicht im Feld)
   const [err, setErr] = useState("");
-  const pendingRef = useRef<null | "accept" | "cancel" | "redo">(null);  // Aktion, die den nächsten Stopp abschließt
+  const pendingRef = useRef<null | "accept" | "cancel" | "redo" | "edit">(null);  // Aktion, die den nächsten Stopp abschließt
   const recRef = useRef<any>(null);
   const activeRef = useRef(false);   // Nutzer will weiterdiktieren (steuert Auto-Restart)
   const baseRef = useRef("");        // Feld-Text bei Start (Diktat wird angehängt)
@@ -83,12 +83,13 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
       }
       // Final dieser Session EINMAL in den Gesamttext übernehmen.
       if (f) finalRef.current = [finalRef.current, f].filter(Boolean).join(" ");
-      if (action === "accept") {
+      if (action === "accept" || action === "edit") {
         pendingRef.current = null;
         const all = finalRef.current.trim();
         const full = (baseRef.current + all).slice(0, 2000);
         if (full.trim()) {
-          if (onSubmit) onSubmit(full.trim());   // direkt senden, kein Umweg übers Feld
+          // „edit" (und der Fall ohne onSubmit): Text nur ins Feld -> manuell weiter bearbeiten.
+          if (onSubmit && action === "accept") onSubmit(full.trim());
           else onChange(full);
         }
         resetState(); return;
@@ -116,8 +117,8 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
     activeRef.current = false; recRef.current = null;
     setListening(false); setPreview(""); finalRef.current = ""; sessFinalRef.current = "";
   }
-  // Die drei Aktionen stoppen jeweils die Aufnahme; onend führt sie dann aus.
-  function endWith(action: "accept" | "cancel" | "redo") {
+  // Die Aktionen stoppen jeweils die Aufnahme; onend führt sie dann aus.
+  function endWith(action: "accept" | "cancel" | "redo" | "edit") {
     pendingRef.current = action;
     activeRef.current = false;
     try { recRef.current?.stop(); } catch { /* egal */ }
@@ -160,13 +161,12 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
           <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
             {preview || <span className="text-slate-500">…</span>}
           </div>
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => endWith("cancel")}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-slate-800 py-3.5 text-sm font-medium text-slate-300 hover:bg-slate-700">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" />
+          <div className="mt-4 flex items-stretch gap-2">
+            <button onClick={() => endWith("cancel")} title={t("mic.cancel")} aria-label={t("mic.cancel")}
+              className="flex items-center justify-center rounded-2xl bg-slate-800 px-4 py-3.5 text-red-400 hover:bg-slate-700">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
               </svg>
-              {t("mic.cancel")}
             </button>
             <button onClick={() => endWith("redo")}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-slate-800 py-3.5 text-sm font-medium text-slate-100 hover:bg-slate-700">
@@ -175,12 +175,20 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
               </svg>
               {t("mic.redo")}
             </button>
-            <button onClick={() => endWith("accept")}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-brand-500 py-3.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {onSubmit && (
+              <button onClick={() => endWith("edit")}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-slate-800 py-3.5 text-sm font-medium text-slate-100 hover:bg-slate-700">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 20h4L18 8l-4-4L4 16v4Z" /><path d="M13 5l4 4" />
+                </svg>
+                {t("chat.edit")}
+              </button>
+            )}
+            <button onClick={() => endWith("accept")} title={onSubmit ? t("mic.send") : t("mic.accept")} aria-label={onSubmit ? t("mic.send") : t("mic.accept")}
+              className="flex items-center justify-center rounded-2xl bg-brand-500 px-4 py-3.5 text-slate-950 hover:bg-brand-400">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4 20-7z" />
               </svg>
-              {onSubmit ? t("mic.send") : t("mic.accept")}
             </button>
           </div>
         </div>,

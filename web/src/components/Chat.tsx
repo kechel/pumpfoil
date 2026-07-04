@@ -33,7 +33,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [loadingMore, setLoadingMore] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);   // id der Nachricht, die gerade bearbeitet wird
   const [menuFor, setMenuFor] = useState<number | null>(null);    // per Long-Press geöffnete Aktionen (Bearbeiten/Löschen)
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastId = useRef(0);          // höchste geladene id (für Polling)
   const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
@@ -57,6 +57,14 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     }, 350);
     return () => { clearTimeout(id); document.removeEventListener("click", close); document.removeEventListener("scroll", close, true); };
   }, [menuFor]);
+
+  // Eingabefeld mit der Textmenge mitwachsen lassen (bis 50 % Bildschirmhöhe, dann scrollbar).
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, Math.round(window.innerHeight * 0.5)) + "px";
+  }, [text]);
 
   // Lesestand serverseitig setzen (für Unread auf der Startseite).
   function markRead(id: number) {
@@ -278,15 +286,19 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200" title={t("chat.editCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
         </div>
       )}
-      <div className="flex gap-2">
-        <input
+      <div className="flex items-end gap-2">
+        <textarea
           ref={inputRef}
           value={text}
+          rows={1}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") send(); if (e.key === "Escape" && editing != null) cancelEdit(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+            if (e.key === "Escape" && editing != null) cancelEdit();
+          }}
           placeholder={t("chat.placeholder")}
           maxLength={2000}
-          className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          className="max-h-[50vh] min-w-0 flex-1 resize-none overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
         {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy}
           title={scope.startsWith("spot:") ? `${t("chat.spotChat")} ${scope.slice(5)}` : scope.startsWith("session:") ? t("chat.kindSession") : ""} />}
