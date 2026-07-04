@@ -326,7 +326,7 @@ function CommunitySection() {
   if (!data) return null;
   return (
     <div>
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-2 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
         <Link to="/foil-stats" className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
