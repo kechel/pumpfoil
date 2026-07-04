@@ -21,6 +21,7 @@ export function MicButton({ value, onChange, disabled }: {
   const [err, setErr] = useState("");
   const recRef = useRef<any>(null);
   const baseRef = useRef("");
+  const finalRef = useRef("");   // bereits final erkannter Text (über Events hinweg akkumuliert)
 
   const SR = typeof window !== "undefined"
     ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -52,11 +53,19 @@ export function MicButton({ value, onChange, disabled }: {
     rec.interimResults = true;
     // Vorhandenen Text als Basis behalten, Diktat hinten anhängen (mit Trennleerzeichen).
     baseRef.current = value ? value.replace(/\s+$/, "") + " " : "";
+    finalRef.current = "";
     rec.onstart = () => setListening(true);          // zuverlässiges „Aufnahme läuft"-Feedback
     rec.onresult = (e: any) => {
-      let s = "";
-      for (let i = 0; i < e.results.length; i++) s += e.results[i][0].transcript;
-      onChange((baseRef.current + s).slice(0, 2000));
+      // Kanonisch: ab resultIndex nur die NEUEN Ergebnisse verarbeiten. Finale Teile
+      // dauerhaft in finalRef sammeln, nur das laufende Interim hinten anhängen — sonst
+      // zählt Android-Chrome (mehrere Interim-Einträge) den Text doppelt/dreifach.
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalRef.current += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      onChange((baseRef.current + finalRef.current + interim).slice(0, 2000));
     };
     rec.onend = () => { setListening(false); recRef.current = null; };
     rec.onerror = (e: any) => {
