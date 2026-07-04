@@ -288,7 +288,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           maxLength={2000}
           className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
-        {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy} />}
+        {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy}
+          title={scope.startsWith("spot:") ? `${t("chat.spotChat")} ${scope.slice(5)}` : scope.startsWith("session:") ? t("chat.kindSession") : ""} />}
         <button onClick={send} disabled={busy || !text.trim()}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {editing != null ? t("chat.save") : t("chat.send")}

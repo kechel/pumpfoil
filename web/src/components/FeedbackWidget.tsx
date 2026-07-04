@@ -67,7 +67,7 @@ export function FeedbackWidget() {
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] tabular-nums text-slate-500">{text.length}/{MAX}</span>
               <div className="flex items-center gap-2">
-                <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} onSubmit={(v) => submitText(v)} disabled={busy} />
+                <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} onSubmit={(v) => submitText(v)} disabled={busy} title={t("feedback.title")} />
                 {sent ? (
                   <span className="text-sm text-emerald-400">{t("feedback.sent")}</span>
                 ) : (

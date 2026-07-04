@@ -15,11 +15,12 @@ const SR_LANG: Record<string, string> = {
   en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES",
 };
 
-export function MicButton({ value, onChange, onSubmit, disabled }: {
+export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   value: string;
   onChange: (v: string) => void;
   onSubmit?: (text: string) => void;   // wenn gesetzt: „Übernehmen" sendet direkt (kein extra Senden-Klick)
   disabled?: boolean;
+  title?: string;                       // Kontext-Titel oben im Vollbild-Diktat (z. B. „Spot-Chat Illmensee")
 }) {
   const { lang, t } = useI18n();
   const [listening, setListening] = useState(false);
@@ -151,6 +152,7 @@ export function MicButton({ value, onChange, onSubmit, disabled }: {
           gefangen, der durch transform/backdrop-blur sonst „fixed" einsperrt). */}
       {listening && createPortal(
         <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
+          {title && <div className="mb-1 truncate text-base font-semibold text-slate-100">{title}</div>}
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
             {t("mic.listening")}
