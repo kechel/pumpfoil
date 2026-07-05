@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -93,6 +94,9 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+
+// Amber für „Fake melden" (wie im Web); Rot kommt aus dem Theme (error).
+private val AmberReport = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,35 +185,43 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                                 Icon(Icons.Filled.Flag, contentDescription = I18n.t("sd.report"))
                             }
                             DropdownMenu(expanded = showReport, onDismissRequest = { showReport = false }) {
-                                DropdownMenuItem(text = { Text(I18n.t("sd.reportFake")) }, onClick = {
-                                    showReport = false
-                                    scope.launch { try { Api.voteSession(id, "fake") } catch (_: Exception) {} }
-                                })
-                                DropdownMenuItem(text = { Text(I18n.t("sd.reportInappropriate")) }, onClick = {
-                                    showReport = false
-                                    scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
-                                })
+                                DropdownMenuItem(
+                                    text = { Text(I18n.t("sd.reportFake")) },
+                                    leadingIcon = { Icon(Icons.Filled.Flag, contentDescription = null, tint = AmberReport) },
+                                    onClick = {
+                                        showReport = false
+                                        scope.launch { try { Api.voteSession(id, "fake") } catch (_: Exception) {} }
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(I18n.t("sd.reportInappropriate")) },
+                                    leadingIcon = { Icon(Icons.Filled.Report, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        showReport = false
+                                        scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
+                                    },
+                                )
                             }
                         }
                     }
                     if (s?.owned == true && s.analysis?.trackGeojson != null) {
                         IconButton(onClick = { showShare = true }) {
-                            Icon(Icons.Filled.Share, contentDescription = I18n.t("sd.share"))
+                            Icon(Icons.Filled.Share, contentDescription = I18n.t("sd.share"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     if (s?.owned == true) {
                         IconButton(onClick = { onLabel(id) }) {
-                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = I18n.t("lab.title"))
+                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = I18n.t("lab.title"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     if (s?.owned == true && durSec > 1f) {
                         IconButton(onClick = { trimStart = 0f; trimEnd = durSec; showTrim = true }) {
-                            Icon(Icons.Filled.ContentCut, contentDescription = I18n.t("sd.trim"))
+                            Icon(Icons.Filled.ContentCut, contentDescription = I18n.t("sd.trim"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     if (s?.owned == true) {
                         IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.delete"))
+                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.delete"), tint = MaterialTheme.colorScheme.error)
                         }
                     }
                 },

@@ -67,8 +67,12 @@ struct SessionDetailView: View {
             } else if session != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button(Loc.t("sd.reportFake", lang)) { Task { try? await Api.vote(id, kind: "fake") } }
-                        Button(Loc.t("sd.reportInappropriate", lang)) { Task { try? await Api.vote(id, kind: "inappropriate") } }
+                        Button { Task { try? await Api.vote(id, kind: "fake") } } label: {
+                            Label(Loc.t("sd.reportFake", lang), systemImage: "flag")
+                        }
+                        Button(role: .destructive) { Task { try? await Api.vote(id, kind: "inappropriate") } } label: {
+                            Label(Loc.t("sd.reportInappropriate", lang), systemImage: "exclamationmark.octagon")
+                        }
                     } label: { Image(systemName: "flag") }
                 }
             }

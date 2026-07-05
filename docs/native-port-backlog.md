@@ -184,8 +184,9 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
 - Light- **und** Dark-Mode müssen beide sauber lesbar sein (im Web gab es viele Kontrast-Fixes).
 
 **Konkrete Detail-Checkliste (aus den Web-Politur-Commits — als Zielbild):**
-- ☐ Session-Detail: **Aktions-Icons in Brand-Cyan** (Herz/Share/Kamera/Video), Fake = **Amber**,
-  Unangemessen = **Rot**; alle Buttons **gleiche Höhe** (`d27c157`, Buttons-Alignment).
+- ✅ Session-Detail: **Aktions-Icons in Brand-Cyan** (Share/Label/Trim), **Fake = Amber**,
+  **Unangemessen = Rot**, Löschen = Rot (Android; iOS-Toolbar ist per Default Accent + destructive-Rolle).
+  Gebaut, Android compile-verifiziert.
 - ☐ Session-Badges **einheitlich hoch + horizontal ausgerichtet** (flex-Row, items-center) (`f97884a`).
 - ☐ Foto-Vorschau behält Seitenverhältnis (Querformat volle Breite, alle gleich hoch).
 - ☐ Community/„nur ansehen"-Badge im Light-Mode lesbar (`e03eb61`); Lightbox-Herz (`dfc968e`);
