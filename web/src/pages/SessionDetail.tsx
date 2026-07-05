@@ -162,14 +162,14 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           onClick={like}
           className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.liked ? "bg-rose-500/20 text-rose-600" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
         >
-          <HeartIcon className="h-4 w-4" filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
+          <HeartIcon className={`h-4 w-4 ${s.liked ? "" : "text-brand-400"}`} filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
         {owned && (
           <button
             onClick={() => setShareOpen(true)}
             className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
           >
-            <ShareIcon className="h-4 w-4" /> {t("sd.share")}
+            <ShareIcon className="h-4 w-4 text-brand-400" /> {t("sd.share")}
           </button>
         )}
         {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} onClose={() => setShareOpen(false)} />}
@@ -180,14 +180,14 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
               disabled={busy}
               className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
             >
-              <CameraIcon className="h-4 w-4" /> {busy ? t("common.loading") : t("sd.addPhoto")}
+              <CameraIcon className="h-4 w-4 text-brand-400" /> {busy ? t("common.loading") : t("sd.addPhoto")}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
             <button
               onClick={() => { setYt(youtubeUrl ?? ""); setMetaErr(null); setYtOpen((o) => !o); }}
               className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
             >
-              <VideoIcon className="h-4 w-4" /> {t("meta.linkVideo")}
+              <VideoIcon className="h-4 w-4 text-brand-400" /> {t("meta.linkVideo")}
             </button>
           </>
         )}
