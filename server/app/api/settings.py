@@ -151,6 +151,8 @@ def update_settings(
             sh["dim"] = max(0.0, min(0.9, float(p["dim"])))
         if isinstance(p.get("track"), bool):
             sh["track"] = p["track"]
+        if p.get("shade") in ("light", "dark"):
+            sh["shade"] = p["shade"]
         current["share"] = sh
     if isinstance(patch.get("notify_prefs"), dict):
         prefs = dict(current.get("notify_prefs") or {})

@@ -40,6 +40,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const [sel, setSel] = useState<Set<string>>(new Set(avail));
   const [dim, setDim] = useState(0.55);   // Abdunklung des Hintergrundfotos (Scrim-Deckkraft)
   const [showTrack, setShowTrack] = useState(true);   // Track (GPS-Läufe) anzeigen?
+  const [shade, setShade] = useState<"light" | "dark">("light");  // Textfarbe: helles/dunkles Blau
+  const [cardTitle, setCardTitle] = useState("");     // optionaler eigener Titel/Text
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -63,6 +65,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
       }
       if (typeof sh.dim === "number") setDim(sh.dim);
       if (typeof sh.track === "boolean") setShowTrack(sh.track);
+      if (sh.shade === "light" || sh.shade === "dark") setShade(sh.shade);
     }).catch(() => {}).finally(() => setLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -83,11 +86,11 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   useEffect(() => {
     if (!loaded) return;
     const id = setTimeout(() => {
-      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)), dim, track: showTrack } }).catch(() => {});
+      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)), dim, track: showTrack, shade } }).catch(() => {});
     }, 500);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), dim, showTrack, loaded]);
+  }, [color, [...sel].sort().join(","), dim, showTrack, shade, loaded]);
 
   // Dim ändert nur den Scrim -> lokal neu zeichnen (kein Server-Refetch).
   useEffect(() => { draw(); /* eslint-disable-next-line */ }, [dim]);
@@ -110,8 +113,9 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
       try {
         const tok = getToken();
         const chosen = STAT_ORDER.filter((k) => sel.has(k));
-        const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0" });
+        const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0", shade });
         if (chosen.length) q.set("stats", chosen.join(","));
+        if (cardTitle.trim()) q.set("title", cardTitle.trim());
         const res = await fetch(`/api/sessions/${sessionId}/share.png?${q}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
         if (!res.ok || !alive) return;
         const img = await loadImg(URL.createObjectURL(await res.blob()));
@@ -122,7 +126,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), hasPhoto, showTrack]);
+  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle]);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -209,6 +213,11 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         </div>
         {hasPhoto && <div className="mb-3 text-center text-[11px] text-slate-500">{t("share.photoHint")}</div>}
 
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.cardTitle")}</div>
+        <input value={cardTitle} onChange={(e) => setCardTitle(e.target.value)} maxLength={40}
+          placeholder={t("share.cardTitlePlaceholder")}
+          className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500" />
+
         <label className="mb-3 flex items-center gap-2 text-sm text-slate-200">
           <input type="checkbox" checked={showTrack} onChange={(e) => setShowTrack(e.target.checked)} className="accent-brand-500" />
           {t("share.showTrack")}
@@ -247,6 +256,15 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
               onChange={(e) => setDim(parseFloat(e.target.value))} className="w-full accent-brand-500" />
           </div>
         )}
+
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.textColor")}</div>
+        <div className="mb-3 flex gap-2">
+          {(["light", "dark"] as const).map((s) => (
+            <button key={s} onClick={() => setShade(s)} className={`${seg} ${shade === s ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+              {t(`share.shade.${s}`)}
+            </button>
+          ))}
+        </div>
 
         <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.stats")}</div>
         <div className="mb-4 flex flex-wrap gap-2">

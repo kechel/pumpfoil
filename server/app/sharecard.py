@@ -20,9 +20,17 @@ _FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf"
 
 NAVY = (2, 6, 23)
 WATER = (12, 20, 38)
-CYAN = (34, 211, 238)
+CYAN = (34, 211, 238)     # helles Brand-Cyan (#22d3ee) — fuer dunkle Hintergruende
+DCYAN = (14, 116, 144)    # dunkles Cyan (#0e7490) — fuer helle Hintergruende
 GREY = (148, 163, 184)
 WHITE = (255, 255, 255)
+
+# Text-Schattierung (Umschalter): "light" = helle Texte (dunkler Hintergrund),
+# "dark" = dunkle Texte (heller Hintergrund). Prim = Ueberschrift/Werte, Sec = Labels/Datum.
+SHADES = {
+    "light": {"prim": CYAN, "sec": (203, 213, 225), "logo": "wordmark-h-dark.png"},
+    "dark": {"prim": DCYAN, "sec": (71, 85, 105), "logo": "wordmark-h-light.png"},
+}
 
 
 def _font(sz, bold=True):
@@ -76,7 +84,9 @@ def available_stats(ar):
 
 
 def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
-                     bg="navy", size=1080, track=True) -> bytes:
+                     bg="navy", size=1080, track=True, title=None, shade="light") -> bytes:
+    sh = SHADES.get(shade, SHADES["light"])
+    prim, sec = sh["prim"], sh["sec"]
     W = H = size
     S = size / 1080.0
     def px(v): return int(v * S)
@@ -141,10 +151,12 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
                 continue
             d.line([p0, p1], fill=(*colfn(i + 1), 255), width=lw)
 
-    # Header
-    d.text((px(90), px(64)), (session.place_name or "Session"), font=_font(px(58)), fill=(*WHITE, 255))
-    d.text((px(90), px(128)), session.started_at.astimezone().strftime("%d.%m.%Y"),
-           font=_font(px(30), False), fill=(*GREY, 255))
+    # Header (Ueberschrift in Brand-Blau; optionaler eigener Titel, sonst Spot-Name)
+    head = (title or session.place_name or "Session")
+    date_str = session.started_at.astimezone().strftime("%d.%m.%Y")
+    sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
+    d.text((px(90), px(64)), head, font=_font(px(58)), fill=(*prim, 255))
+    d.text((px(90), px(128)), sub, font=_font(px(30), False), fill=(*sec, 255))
 
     # Stats (nur gewuenschte + verfuegbare, Reihenfolge des Katalogs)
     cat = {k: (lbl, v, ok) for k, lbl, v, ok in stat_catalog(ar)}
@@ -156,12 +168,13 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         lbl, val, _ok = cat[k]
         r, c = divmod(i, 3)
         x, y = gx + c * cw, gy + r * px(115)
-        d.text((x, y), val, font=_font(px(50)), fill=(*CYAN, 255))
-        d.text((x, y + px(58)), lbl.upper(), font=_font(px(24), False), fill=(*GREY, 255))
+        d.text((x, y), val, font=_font(px(50)), fill=(*prim, 255))
+        d.text((x, y + px(58)), lbl.upper(), font=_font(px(24), False), fill=(*sec, 255))
 
-    # Logo
-    if _LOGO.exists():
-        logo = Image.open(_LOGO).convert("RGBA")
+    # Logo (Variante passend zur Text-Schattierung: helle Texte -> weisses Logo, dunkle -> navy)
+    logo_path = _REPO / "web" / "public" / sh["logo"]
+    if logo_path.exists():
+        logo = Image.open(logo_path).convert("RGBA")
         lh = px(54); logo = logo.resize((round(logo.width * lh / logo.height), lh), Image.LANCZOS)
         img.alpha_composite(logo, (W - px(90) - logo.width, H - px(90)))
 

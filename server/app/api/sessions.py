@@ -760,6 +760,8 @@ def share_card(
     stats: str | None = None,
     bg: str = "navy",
     track: int = 1,
+    title: str = "",
+    shade: str = "light",
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -787,7 +789,10 @@ def share_card(
             rings = json.loads(wp.rings_json) if (wp and wp.rings_json) else None
     except Exception:
         rings = None
-    png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg, track=bool(track))
+    ttl = (title or "").strip()[:40] or None
+    sh = shade if shade in ("light", "dark") else "light"
+    png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg,
+                                     track=bool(track), title=ttl, shade=sh)
     return Response(content=png, media_type="image/png",
                     headers={"Cache-Control": "private, max-age=300"})
 
