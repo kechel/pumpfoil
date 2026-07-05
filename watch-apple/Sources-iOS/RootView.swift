@@ -38,7 +38,7 @@ struct MainTabView: View {
             SessionsView()
                 .tabItem { Label(Loc.t("nav.sessions", lang), systemImage: "list.bullet") }
             CommunityView()
-                .tabItem { Label(Loc.t("nav.community", lang), systemImage: "person.2") }
+                .tabItem { Label("Foilers", systemImage: "person.2") }
             VerlaufView()
                 .tabItem { Label(Loc.t("nav.history", lang), systemImage: "chart.xyaxis.line") }
             SpotsView()
