@@ -9,6 +9,11 @@ Wear, Store-Review) in der **PWA (`web/`)** dazukam und in die nativen Phone-App
 
 Detail zu jedem Punkt: `git show <hash>`. Stand der Erhebung: 2026-07-05.
 
+> **Nach Jans Review (2026-07-05) betont:** App-Update-Hinweis auch **nativ** (§1.7),
+> **alle Übersetzungen komplett** übernehmen (§2, wichtig), **spot_id-Umstellung** nicht
+> vergessen (§3), und die nativen Ansichten **so schön wie die PWA** machen — bis ins Detail
+> (§4, durchgehend). Ordentlich, mit Zeit.
+
 ---
 
 ## 1. Große Features (fehlen auf iOS **und** Android) — Hauptarbeit
@@ -45,7 +50,7 @@ iOS `SFSpeechRecognizer` + `AVAudioEngine`, Android `SpeechRecognizer`.
 - Vollbild-Overlay (weiche Brand-Farben, Diktattext fett + brand-blau), **Live-Vorschau**,
   Kontext-Titel (z. B. „Spot-Chat <Name>"), Aktionen **Senden / Noch mal / Abbrechen / Bearbeiten**
   (Bearbeiten = Text ins Feld statt senden). Vorbestehender Feldtext gedimmt sichtbar.
-- Sprachvariante nach Browser/Locale: AT → Österreichisch, CH → Schwiizerdütsch.
+- Sprachvariante nach Locale: AT → Österreichisch, CH → Schwiizerdütsch.
 - Web-Quelle: `web/src/components/MicButton.tsx` (im Chat + Feedback-Widget). Commits u. a.
   `281389f` `df125f1` `2ab181d` `011df7c` `a4199fd` `5eb428b` `ef6c4bf` `4e4d231` `09cfe29`.
 - Port: eigenständige native Umsetzung (Mikro-Permission, Recognizer-Lifecycle) — kein Web-Code
@@ -69,7 +74,7 @@ Eigene Seite **„Verknüpfte Konten"** mit OAuth-Verknüpfung + Import fremder 
   `01b361c` `18e2f20` `e181647`.
 - Port: „Verknüpfte Konten"-Screen + Import-Button (mobil), Status-Badges je Provider.
 
-### ☐ 1.6 Home: Willkommens-Banner + Community-Stats-Leiste
+### ☐ 1.6 Home: Willkommens-Banner + Community-Stats-Leiste  · Server bereit ✅
 - Community-Bereich zeigt oben dauerhaft eine **Stats-Leiste** (Foiler / Spots / Sessions / Pumps),
   Endpoint dafür existiert (`f593070`). Wording „Pumpfoiler" (nicht „Foiler").
 - Home-**Willkommens-Banner** inkl. Startdatum (23. Juni 2026).
@@ -77,79 +82,146 @@ Eigene Seite **„Verknüpfte Konten"** mit OAuth-Verknüpfung + Import fremder 
 - HomeScreen/HomeView existieren nativ → nur Banner + Stats-Leiste + Rekord-Datum ergänzen.
 - Commits: `dedf854` `953fb11` `6e7d786` `dfc968e` `8e8fd0d` `c0aecbb` `9ada8ff`.
 
+### ☐ 1.7 App-Update-Hinweis in den nativen Apps  · Server-Endpoint neu zu bauen
+Wie der PWA-Update-Banner, aber für iOS/Android: App fragt beim Server, ob eine **neuere Version**
+im Store ist, und zeigt einen **nicht-blockierenden** Hinweis („Neue Version verfügbar → im Store
+aktualisieren"). Kein Zwang, nur ein zusätzlicher Hinweis.
+- **Wichtig (Jans Vorgabe):** Der Server kennt die Store-Version **nicht automatisch** — die
+  neueste freigegebene Version wird **von Hand gesetzt**, erst **nachdem** der Store-Review durch ist
+  (sonst Hinweis auf eine noch nicht verfügbare Version).
+- Serverseitig neu: z. B. `GET /api/app/latest?platform=ios|android` → `{ latest: "1.1.8",
+  min_supported: "1.1.0", store_url: "…" }`, gepflegt in einer kleinen Config/Tabelle
+  (Analog zum Garmin-Update-Gate `88ad1f6`, aber für die Phone-Apps). Werte manuell nach jedem Release.
+- App vergleicht mit der eigenen Bundle-Version (`CFBundleShortVersionString` / `versionName`) und
+  blendet den Hinweis ein (optional Hard-Gate über `min_supported`, wenn eine Version wirklich raus muss).
+- Web-Analogie (nur Referenz, nicht 1:1): `12b346f` `67b2a07`.
+
 ---
 
-## 2. Mittlere Features / Verfeinerungen (prüfen & übernehmen)
+## 2. Übersetzungen — vollständig übernehmen (WICHTIG)
+Jan: **alle** Sprachen komplett in beide native Apps holen — inkl. der Dialekte.
+- **`gsw` (echtes Schwiizerdütsch)** — 195 nutzer-sichtbare Keys (`a6c933f` `f7b7dfe`).
+- **`de-AT` (Wienerisch)** — öffentliche + interne Touchpoints (`97d828a` `aaf2f6f` `c51f472`
+  `a5dfcce` `4a24111` inkl. Spracherkennungs-Locale AT/CH).
+- **`fr` / `it` / `es`** — nachgezogene nutzer-sichtbare Lücken (`8e4c5a9` `f1f1e3a` `da084be`).
+- **`en`** — fehlende Keys ergänzt (`da084be`).
+- Quelle der Wahrheit: `web/src/i18n*` (alle Keys + Sprachen). Native Tabellen: iOS `Loc.swift`,
+  Android `I18n.kt` → **auf Vollständigkeit gegen die Web-Keys abgleichen** und fehlende Sprachen/Keys
+  ergänzen. Ziel: gleiche Sprachliste + gleiche Keys wie Web, nichts fehlt.
+- Zusätzlich: Diktat-/Spracherkennungs-Locale nativ passend zur App-Sprache wählen (AT/CH-Varianten).
 
-### ☐ 2.1 Session-Detail: Play-Animation der Strecke
+---
+
+## 3. spot_id-Umstellung in den Apps  · Server bereit ✅ (kanonisiert id↔name)
+Nicht vergessen: die PWA nutzt jetzt **`spot_id`** statt Spot-Name für Navigation/Karte/Chat-Scope.
+Der Server kanonisiert id↔name (App-Kompat), aber die Apps sollen mitziehen.
+- Web-Quelle: `83f193f` (Navigation auf spot_id), `2768b3d` (Ufer-Venue-Name bevorzugt +
+  Gewässername als Zusatz-Label).
+- Nativ zu tun: Spot-Referenzen (Sessions-Scope, Spot-Chat-Scope, Karten-/Spot-Auswahl,
+  Homespot in Settings) additiv auf `spot_id` umstellen; Anzeige = Ufer-Venue-Name (+ Gewässer
+  als Zusatz). Namensbasiert als Fallback behalten, bis alle Clients umgestellt sind.
+- Modelle/DTOs: `spot_id` in die nativen Session-/Spot-Modelle aufnehmen (Server liefert es additiv).
+
+---
+
+## 4. UI-Parität & Politur — den PWA-Look nativ nachbauen (DURCHGEHEND)
+Jan: die nativen Ansichten sind noch nicht so hübsch wie die PWA. Ist viel aufwendiger als im Web —
+**trotzdem ordentlich, mit Zeit, bis ins Detail.** Nicht nur Funktion, sondern **Look & Feel**:
+kleine farbige Icons, saubere Ausrichtung, gleiche Abstände, Light/Dark sauber.
+
+**Vorgehen:** Screen für Screen die PWA neben die native App legen und angleichen. Design-Sprache
+zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
+
+**Design-Tokens (aus der PWA):**
+- Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
+- Konsistente Card-Radien/Schatten, einheitliche vertikale Abstände, Button-Höhen **gleich**.
+- Light- **und** Dark-Mode müssen beide sauber lesbar sein (im Web gab es viele Kontrast-Fixes).
+
+**Konkrete Detail-Checkliste (aus den Web-Politur-Commits — als Zielbild):**
+- ☐ Session-Detail: **Aktions-Icons in Brand-Cyan** (Herz/Share/Kamera/Video), Fake = **Amber**,
+  Unangemessen = **Rot**; alle Buttons **gleiche Höhe** (`d27c157`, Buttons-Alignment).
+- ☐ Session-Badges **einheitlich hoch + horizontal ausgerichtet** (flex-Row, items-center) (`f97884a`).
+- ☐ Foto-Vorschau behält Seitenverhältnis (Querformat volle Breite, alle gleich hoch).
+- ☐ Community/„nur ansehen"-Badge im Light-Mode lesbar (`e03eb61`); Lightbox-Herz (`dfc968e`);
+  Wassertemperatur-Farbe (`1180178`) — generell **Light-Mode-Kontraste** überall prüfen.
+- ☐ Reiche **Session-Karten**: Avatar (deterministische Farbe aus User-ID) / Stats /
+  Track-Vorschau / Thumbnail — auf PWA-Niveau.
+- ☐ **„User #<id>"-Fallback** für Nutzer ohne Anzeigenamen (Liste/Community/Chat), stabil & eindeutig.
+- ☐ Header/Logo: horizontales Lockup (3 versetzte Wellen), nicht verzerrt; Theme-Umschalter-Platzierung.
+- ☐ Community-Stats-Box schlank, unter dem Titel (siehe §1.6) — Abstände wie Web (`6e7d786` `80b7cb1`).
+- ☐ Track-Farbmodi (Speed/Puls/Pump) + Glättung; Pump-Marker default aus + klein; neutral-grau bei
+  Accel-Session ohne Läufe (`443b936`).
+- ☐ Distanz-/Zahl-Formatierung wie Web (Foiling-Distanz < 1 km in **Metern**, `9c51f52`).
+- ☐ Leere Zustände, Lade-Indikatoren, Scroll-/Highlight-Verhalten (zuletzt angesehene Session).
+- ☐ Icons: **SVG-basiert / vektor**, kein Material-Default-Look, wo die PWA eigene Icons nutzt.
+- ☐ Play-Animation der Strecke (§5.1) und Verlauf-Animation (§5.2) auch visuell wie Web.
+
+**Referenz-Screens zum 1:1-Abgleich:** Home, Community(+Records), Sessions(+Scope/Filter),
+Session-Detail, Verlauf, Spots, Chat, Foils/Rechner/Stats, Profil, Einstellungen, Login.
+
+---
+
+## 5. Mittlere Features / Verfeinerungen (prüfen & übernehmen)
+
+### ☐ 5.1 Session-Detail: Play-Animation der Strecke
 Track wird abspielbar animiert (verfeinert, mit Lauf-Startzeit in der Tabelle).
 Commits: `87aaaaa` `7db0b55`. Web: `SessionDetail.tsx`.
 
-### ☐ 2.2 Verlauf: Entwicklungs-Animation je Spot
+### ☐ 5.2 Verlauf: Entwicklungs-Animation je Spot
 Fixer Karten-Ausschnitt, alle Sessions des Spots, **globale** min/max-Speed-Skala (keine Ghost-Linien).
 Commits: `b37a21c` `43cfcc5`. Web: `Verlauf.tsx`.
 
-### ☐ 2.3 Foiling-Distanz < 1 km in Metern
-Formatierung: `0.02 km` → `17 m`. Commit `9c51f52`. Kleiner, aber überall spiegeln.
+### ☐ 5.3 Track neutral-grau bei Accel-Session ohne erkannte Läufe
+Statt speed-farbig (kein irreführendes Signal). Commit `443b936`. (Siehe auch §4.)
 
-### ☐ 2.4 Track neutral-grau bei Accel-Session ohne erkannte Läufe
-Statt speed-farbig (kein irreführendes Signal). Commit `443b936`.
-
-### ☐ 2.5 Tap-to-Label — Mehrfach-Takes + Konsens + Triage  · Server bereit ✅
+### ☐ 5.4 Tap-to-Label — Mehrfach-Takes + Konsens + Triage  · Server bereit ✅
 `LabelingScreen`/`LabelingView` existieren nativ, aber älter. Neu in Web/Server: mehrere Durchläufe
 (Takes) + Konsens via Kreuzkorrelation, Plausibilitäts-Triage (Scorer + Badge), Sub-Sekunden-Präzision.
 Commits: `550fdf7` `843b58c` `8ebf873` `edc9a05`. **Niedrige Prio** (R&D-Tool).
 
-### ☐ 2.6 Foils / Uhren-Discovery
+### ☐ 5.5 Foils / Uhren-Discovery
 „Meine Foils" mit Subzeile der gewählten Foils (`20f5527`); eigene Uhren/Verknüpfungen blau
 hervorheben (`f0e7875`); Plattform-Übersicht auf der Profil-Seite (`c82641f`).
 
-### ☐ 2.7 Sessions-Liste-Verhalten (prüfen — evtl. teils schon nativ)
+### ☐ 5.6 Sessions-Liste-Verhalten (prüfen — evtl. teils schon nativ)
 Default-Scope **„Alle"** (`7d6c04e`); Zurück behält Scope/Filter (`2739bb6`); Löschen leert
 Listen-Cache (`5e8106f`); zuletzt angesehene Session scrollen/highlighten (`8eeaeee` `30d8f79` `682732f`).
 
 ---
 
-## 3. Schon nativ erledigt (nur zur Kontrolle — nicht erneut bauen) ✅
+## 6. Schon nativ erledigt (nur zur Kontrolle — nicht erneut bauen) ✅
 - **Accel / „auch GPS-only"-Umschalter** (mit On-Foil) — `612a36c` explizit web+android+ios.
 - **Records/Accel-Toggle** (zwei Buttons, aktiver markiert) — `6e49e29`.
 - **Session-Handling**: Sliding-Token-Refresh + Auto-Logout bei 401 — nativ `d341884`/`f499dd6`.
 - **Garmin-Pairing** (beide Wege) + Versionsanzeige — nativ `b829c19`/`4cd957a`.
 - **In-App-Kontolöschung**, **Home-Dashboard**, **Compare**, **Community-Records/Leaderboards** — vorhanden.
-- **Brand-Icons/Splash/Launch** — heute erledigt (siehe `assets-master-logo-system`-Memory).
+- **Brand-Icons/Splash/Launch** — erledigt (siehe `assets-master-logo-system`-Memory).
 
 ---
 
-## 4. Web-only — NICHT nativ nachbauen 🌐
-- **PWA-Mechanik**: Build-Stempel + Update-Banner „Update auf Version xyz", autoUpdate-SW,
-  Update-Spinner-Fallback (`12b346f` `417349c` `74139fc` `a9606f6` `67b2a07`). Native = Store-Updates.
-- **Safari/Browser-Chrome**: Titelleiste cyan via body-Hintergrund (macOS 26) (`84b1832` `ab2908a` `bfaaf96`).
+## 7. Web-only — NICHT nativ nachbauen 🌐
+- **PWA-Mechanik**: Service-Worker/autoUpdate, Update-Spinner-Fallback (`417349c` `74139fc`
+  `a9606f6`). Der *Hinweis auf eine neue Version* ist dagegen sehr wohl nativ gewünscht → §1.7.
+- **Safari/Browser-Chrome**: Titelleiste cyan via body-Hintergrund (macOS 26) (`84b1832` `ab2908a`).
 - **Safe-Area-Insets** (Notch/Home-Indicator) (`8547e87` `833dca4`) — native Layouts lösen das selbst.
 - **SEO**: robots.txt + sitemap.xml (`f96e598`).
 - **Landing-/Marketing-Seite**: Hero-Hintergrundvideo, Promo-Video-Slider vom YouTube-Kanal,
-  Store-Badges, Uhren-Matrix, „inkl. Apple Watch/Wear" (`0bca6fb` `abf6516` `c06dc00` `f868e2e`
-  `1ab0569` …). App ist post-login → keine Landing.
+  Store-Badges, Uhren-Matrix, „inkl. Apple Watch/Wear" (`0bca6fb` `abf6516` `c06dc00` `1ab0569` …).
+  App ist post-login → keine Landing.
 - **Impressum/Datenschutz**-Texte (`e86cb04` `f19704e` `18da14c`).
 - **Admin-UI**: Spots einsehen/mergen/umbenennen, „Zuletzt aktiv", User-Aktionen hinter Toggle
   (`135270b` `80fa06b` `ac63c35`). Admin bleibt Web.
-- **spot_id-Umstieg**: PWA nutzt jetzt `spot_id` (Navigation/Karte), Server kanonisiert id↔name für
-  App-Kompat. Apps können **vorerst namensbasiert** bleiben; spot_id-Adoption später (Trigger:
-  App-Version-Header). Ufer-Venue-Name bevorzugt + Gewässer-Zusatz (`2768b3d` `83f193f`).
-
----
-
-## 5. Optional / Geschmack
-- **i18n-Zuwachs**: echtes Schwiizerdütsch (`gsw`, 195 Keys), Wienerisch (`de-AT`), fr/it/es-Lücken
-  (`a6c933f` `a5dfcce` `8e4c5a9` …). Native haben eigene `Loc.swift` / `I18n.kt` — nur bei Bedarf
-  nachziehen; „gut genug" ohne Muttersprachler-Review.
 
 ---
 
 ## Vorgeschlagene Reihenfolge
 1. **1.1 Share** (viel Sichtbarkeit, Server fertig, wenig App-Logik — reines Sheet + Konfig).
 2. **1.4 Chat Edit/Delete** (klein, Server fertig, Android-String existiert schon).
-3. **1.6 Home-Banner + Stats** (klein, Endpoint da).
-4. **1.2 Merge** (Compare existiert nativ → andocken).
-5. **1.5 Verknüpfte Konten** (OAuth-In-App-Browser-Flow).
-6. **1.3 Diktat** (größter native-spezifischer Aufwand, plattformeigene Speech-APIs).
-7. Rest aus §2 nach Bedarf.
+3. **1.6 Home-Banner + Stats** + **1.7 Update-Hinweis** (beide klein; Update-Endpoint zuerst bauen).
+4. **§2 Übersetzungen** komplett abgleichen (durchziehen, wichtig).
+5. **1.2 Merge** (Compare existiert nativ → andocken).
+6. **§3 spot_id** additiv umstellen.
+7. **1.5 Verknüpfte Konten** (OAuth-In-App-Browser-Flow).
+8. **1.3 Diktat** (größter native-spezifischer Aufwand, plattformeigene Speech-APIs).
+9. **§4 UI-Politur** begleitend zu jedem Screen, den man ohnehin anfasst — plus ein dedizierter
+   Feinschliff-Durchgang am Ende.
