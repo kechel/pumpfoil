@@ -698,7 +698,8 @@ def share_card(
     from fastapi.responses import Response
     from .. import sharecard
 
-    s = db.get(models.Session, session_id) if user.is_admin else _readable(db, session_id)
+    # Teilen nur der EIGENEN Sessions (Admin darf zwecks Debug auch fremde).
+    s = db.get(models.Session, session_id) if user.is_admin else _owned(db, user, session_id)
     if s is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()

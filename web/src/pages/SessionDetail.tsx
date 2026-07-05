@@ -164,13 +164,15 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
         >
           <HeartIcon className="h-4 w-4" filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
-        <button
-          onClick={() => setShareOpen(true)}
-          className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
-        >
-          <ShareIcon className="h-4 w-4" /> {t("sd.share")}
-        </button>
-        {shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} onClose={() => setShareOpen(false)} />}
+        {owned && (
+          <button
+            onClick={() => setShareOpen(true)}
+            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+          >
+            <ShareIcon className="h-4 w-4" /> {t("sd.share")}
+          </button>
+        )}
+        {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} onClose={() => setShareOpen(false)} />}
         {owned && (
           <>
             <button
