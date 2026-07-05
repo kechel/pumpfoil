@@ -6,7 +6,6 @@ import { PROVIDER_ICONS } from "../components/BrandIcons";
 import { useI18n, TFunc } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { Wordmark } from "../components/Wordmark";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -67,7 +66,10 @@ export default function Login() {
       <div className="absolute right-4 top-4 z-10"><ThemeToggle /></div>
       <Card className="relative z-10 w-full max-w-sm p-7">
         <div className="mb-6 flex flex-col items-center text-center">
-          <h1><Wordmark icon="h-8 w-8" text="text-2xl" tagline /></h1>
+          <h1>
+            <img src="/wordmark-stacked-dark.png" alt="Pumpfoil.org — Track every pump" className="logo-dark mx-auto h-20 w-auto max-w-none" />
+            <img src="/wordmark-stacked-light.png" alt="Pumpfoil.org — Track every pump" className="logo-light mx-auto h-20 w-auto max-w-none" />
+          </h1>
           <p className="mt-3 text-sm text-slate-300">
             {isRegister ? t("login.createAccount") : t("login.welcomeBack")}
           </p>

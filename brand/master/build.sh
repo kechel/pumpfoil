@@ -28,6 +28,10 @@ echo "== Web-Header: horizontales Lockup (transparent, tight), dark + light =="
 G --type horizontal --theme dark  --size fit --out "$WEB/wordmark-h-dark.png"
 G --type horizontal --theme light --size fit --out "$WEB/wordmark-h-light.png"
 
+echo "== Login/Landing-Hero: gestapeltes Lockup + Tagline (transparent, tight), dark + light =="
+G --type stacked --theme dark  --size fit --out "$WEB/wordmark-stacked-dark.png"
+G --type stacked --theme light --size fit --out "$WEB/wordmark-stacked-light.png"
+
 echo "== Referenz-Satz: die 6 Logos (brand/logo) =="
 G --type icon       --theme light --size 1024 --pad 0        --out "$REF/logo-icon-light.png"
 G --type icon       --theme dark  --size 1024 --pad 0        --out "$REF/logo-icon-dark.png"

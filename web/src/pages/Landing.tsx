@@ -100,13 +100,10 @@ export default function Landing() {
             {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
                 identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
             <h1>
-              <img
-                src="/pumpfoil-wordmark-tagline.png"
-                alt="Pumpfoil.org — Track every pump"
-                width={1640}
-                height={760}
-                className="mx-auto h-auto w-full max-w-sm sm:max-w-md"
-              />
+              <img src="/wordmark-stacked-dark.png" alt="Pumpfoil.org — Track every pump"
+                className="logo-dark mx-auto h-auto w-full max-w-sm sm:max-w-md" />
+              <img src="/wordmark-stacked-light.png" alt="Pumpfoil.org — Track every pump"
+                className="logo-light mx-auto h-auto w-full max-w-sm sm:max-w-md" />
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
           </section>
