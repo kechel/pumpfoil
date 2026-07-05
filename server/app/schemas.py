@@ -149,6 +149,7 @@ class SessionOut(BaseModel):
     merged_count: int = 0  # >0 = aus so vielen Sessions zusammengeführt (auflösbar)
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)
+    spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)
     caption: str | None = None  # eigene Beschriftung des Besitzers
     youtube_url: str | None = None  # optionale YouTube-URL
     thumb_url: str | None = None  # Vorschaubild (neuestes Foto der Session)

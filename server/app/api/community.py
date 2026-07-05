@@ -272,13 +272,14 @@ def spots(accel_only: bool = True, user: models.User = Depends(current_user), db
 def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte."""
     rows = (
-        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()), _user.id, accel_only)
+        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count(),
+                            func.max(S.spot_id)), _user.id, accel_only)
         .filter(S.place_name.isnot(None), S.place_name != "", S.place_lat.isnot(None))
         .group_by(S.place_name).all()
     )
     return [
-        {"spot": name, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
-        for name, lat, lon, n in rows if lat is not None and lon is not None
+        {"spot": name, "spot_id": sid, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
+        for name, lat, lon, n, sid in rows if lat is not None and lon is not None
     ]
 
 

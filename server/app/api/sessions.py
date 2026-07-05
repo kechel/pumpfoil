@@ -86,6 +86,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         owner_avatar_url=owner_avatar_url,
         place_name=s.place_name or None,
         place_water=s.place_water or None,
+        spot_id=s.spot_id,
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
@@ -548,13 +549,14 @@ def my_spots(user: models.User = Depends(current_user), db: Session = Depends(ge
     """Alle Gewässer/Spots des Nutzers (ALLE Sessions, auch GPS-only), neueste zuerst."""
     from datetime import datetime
     rows = (
-        db.query(models.Session.place_name, func.count(), func.max(models.Session.started_at))
+        db.query(models.Session.place_name, func.count(), func.max(models.Session.started_at),
+                 func.max(models.Session.spot_id))
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
                 models.Session.place_name.isnot(None), models.Session.place_name != "")
         .group_by(models.Session.place_name).all()
     )
     rows.sort(key=lambda r: r[2] or datetime.min, reverse=True)
-    return [{"spot": p, "count": int(n)} for p, n, _ in rows]
+    return [{"spot": p, "count": int(n), "spot_id": sid} for p, n, _, sid in rows]
 
 
 SPOT_TRACK_MAX_PTS = 150   # je Session herunterrechnen -> Bulk-Payload bleibt klein
