@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,18 +17,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -135,33 +138,28 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 )
                 Spacer(Modifier.height(16.dp))
             }
-            Text("${I18n.t("home.hello")} ${profile?.displayName ?: ""}".trim(), style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(12.dp))
-
-            weather?.let { wb ->
-                WeatherCard(wb)
-                Spacer(Modifier.height(16.dp))
+            // Begrüßung + Chat-Button (wie PWA).
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                val hello = profile?.displayName?.takeIf { it.isNotBlank() }
+                    ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
+                Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+                FilledTonalButton(onClick = { onOpenChat() }) {
+                    Icon(Icons.Filled.Forum, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("chat.title"))
+                }
             }
+            Spacer(Modifier.height(16.dp))
 
             stats?.let { st ->
-                // Gesamt-Kennzahlen.
-                val totals = listOf(
-                    I18n.t("nav.sessions") to st.count.toString(),
-                    I18n.t("home.foiling") to "%.1f km".format(st.foilingKm),
-                    I18n.t("home.runs") to st.runsTotal.toString(),
-                    I18n.t("home.pumps") to st.pumps.toString(),
-                )
-                TileGrid(totals.map { RecTile(it.first, it.second, null, null) }, onOpen)
-                Spacer(Modifier.height(16.dp))
-                // Persönliche Rekorde (klickbar zur Session) + Accel/alle-Auswahl.
+                // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(I18n.t("home.records"), style = MaterialTheme.typography.titleMedium)
+                    Text(I18n.t("side.records"), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.width(8.dp))
                     @Composable
                     fun seg(active: Boolean, label: String, onClick: () -> Unit) {
                         Surface(
-                            onClick = onClick,
-                            shape = MaterialTheme.shapes.small,
+                            onClick = onClick, shape = MaterialTheme.shapes.small,
                             color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                         ) {
                             Text(label, style = MaterialTheme.typography.labelMedium,
@@ -169,20 +167,37 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                         }
                     }
-                    seg(accelOnly, I18n.t("home.onlyAccel")) { accelOnly = true }
+                    seg(accelOnly, I18n.t("side.onlyAccel")) { accelOnly = true }
                     Spacer(Modifier.width(4.dp))
-                    seg(!accelOnly, I18n.t("home.allRecords")) { accelOnly = false }
+                    seg(!accelOnly, I18n.t("side.all")) { accelOnly = false }
                 }
                 Spacer(Modifier.height(8.dp))
+
+                // EIN Grid: 5 Rekorde (klickbar) + 5 Gesamtwerte — Reihenfolge/Format wie PWA.
                 val r = st.records
-                val recs = buildList {
-                    r?.speed?.let { add(RecTile(I18n.t("home.topSpeed"), "%.1f km/h".format(it.value * 3.6), it.sessionId, shortDate(it.startedAt))) }
-                    r?.distance?.let { add(RecTile(I18n.t("home.farthestRun"), fmtDist(it.value), it.sessionId, shortDate(it.startedAt))) }
-                    r?.duration?.let { add(RecTile(I18n.t("home.longestRun"), fmtDur(it.value), it.sessionId, shortDate(it.startedAt))) }
-                    r?.glide?.let { add(RecTile(I18n.t("home.longestGlide"), fmtDur(it.value), it.sessionId, shortDate(it.startedAt))) }
-                    r?.runs?.let { add(RecTile(I18n.t("home.mostRuns"), it.value.roundToInt().toString(), it.sessionId, shortDate(it.startedAt))) }
+                fun rt(label: String, rec: RecordEntry?, fmt: (Double) -> String): RecTile {
+                    val v = rec?.value ?: 0.0
+                    return if (v > 0) RecTile(label, fmt(v), rec?.sessionId, shortDate(rec?.startedAt))
+                           else RecTile(label, "–", null, null)
                 }
-                TileGrid(recs, onOpen)
+                val tiles = listOf(
+                    rt(I18n.t("rec.farthestRun"), r?.distance) { "%.0f m".format(it) },
+                    rt(I18n.t("rec.longestRun"), r?.duration) { fmtDur(it) },
+                    rt(I18n.t("rec.topSpeed"), r?.speed) { "%.1f km/h".format(it * 3.6) },
+                    rt(I18n.t("rec.longestGlide"), r?.glide) { "%.1f s".format(it) },
+                    rt(I18n.t("rec.mostRuns"), r?.runs) { "%.0f".format(it) },
+                    RecTile(I18n.t("side.sessions"), st.count.toString(), null, null),
+                    RecTile(I18n.t("stat.runs"), st.runsTotal.toString(), null, null),
+                    RecTile(I18n.t("side.foiling"), "%.1f km".format(st.foilingKm), null, null),
+                    RecTile(I18n.t("side.foilingTime"), fmtMin(st.foilingMin), null, null),
+                    RecTile(I18n.t("side.pumps"), "%,d".format(st.pumps), null, null),
+                )
+                TileGrid(tiles, onOpen, columns = 3)
+            }
+
+            weather?.let { wb ->
+                Spacer(Modifier.height(16.dp))
+                WeatherCard(wb)
             }
 
             if (rooms.isNotEmpty()) {
@@ -294,9 +309,9 @@ private fun dayLabel(i: Int, date: String): String = when (i) {
 private data class RecTile(val label: String, val value: String, val sessionId: Int?, val date: String?)
 
 @Composable
-private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit) {
+private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit, columns: Int = 3) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        tiles.chunked(2).forEach { row ->
+        tiles.chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { tile ->
                     Card(
@@ -304,16 +319,18 @@ private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit) {
                             if (tile.sessionId != null) Modifier.clickable { onOpen(tile.sessionId) } else Modifier
                         )
                     ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text(tile.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                            Text(tile.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(Modifier.padding(10.dp)) {
+                            Text(tile.value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary, maxLines = 1)
+                            Text(tile.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                             tile.date?.let {
                                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                // Restspalten auffüllen, damit die letzte Reihe gleich breite Kacheln behält.
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
@@ -321,6 +338,11 @@ private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit) {
 
 private fun fmtDist(m: Double): String = if (m < 1000) "%.0f m".format(m) else "%.2f km".format(m / 1000)
 private fun fmtDur(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
+// Foiling-Zeit aus Minuten, Format wie Web-fmtDur: "X h Y min" bzw. "Y min".
+private fun fmtMin(min: Double): String {
+    val h = (min / 60).toInt(); val m = (min % 60).roundToInt()
+    return if (h > 0) "$h h $m min" else "$m min"
+}
 
 // Kurzes Datum (dd.MM.yyyy) aus ISO-Startzeit fuer die Rekord-Kacheln.
 private fun shortDate(iso: String?): String? {
