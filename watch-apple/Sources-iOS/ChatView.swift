@@ -59,6 +59,8 @@ struct ChatRoomView: View {
     @State private var draft = ""
     @State private var sending = false
     @State private var error: String?
+    @State private var editMsg: ChatMsg?
+    @State private var editText = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -66,6 +68,10 @@ struct ChatRoomView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 8) {
                         ForEach(msgs) { m in bubble(m) }
+                        Text(Loc.t("chat.editHint", lang))
+                            .font(.caption2).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 6)
                     }
                     .padding()
                     .id("bottom")
@@ -92,6 +98,20 @@ struct ChatRoomView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+        .alert(Loc.t("chat.edit", lang), isPresented: Binding(get: { editMsg != nil }, set: { if !$0 { editMsg = nil } })) {
+            TextField(Loc.t("chat.placeholder", lang), text: $editText)
+            Button(Loc.t("common.save", lang)) {
+                if let m = editMsg { let t = editText.trimmingCharacters(in: .whitespaces); editMsg = nil
+                    if !t.isEmpty { Task { try? await Api.chatEdit(m.id, text: t); await load() } } }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) { editMsg = nil }
+        }
+    }
+
+    // Eigene Nachricht < 1 h -> bearbeitbar/löschbar (Server erzwingt es ohnehin).
+    private func editable(_ m: ChatMsg) -> Bool {
+        guard m.mine, let s = m.created_at, let d = SessionDetail.parseDate(s) else { return false }
+        return Date().timeIntervalSince(d) < 3600
     }
 
     @ViewBuilder private func bubble(_ m: ChatMsg) -> some View {
@@ -106,6 +126,14 @@ struct ChatRoomView: View {
                     .background(m.mine ? Color.accentColor : Color(.secondarySystemBackground),
                                 in: RoundedRectangle(cornerRadius: 14))
                     .foregroundStyle(m.mine ? .white : .primary)
+                    .contextMenu {
+                        if editable(m) {
+                            Button(Loc.t("chat.edit", lang)) { editText = m.text; editMsg = m }
+                            Button(Loc.t("common.delete", lang), role: .destructive) {
+                                Task { try? await Api.chatDelete(m.id); await load() }
+                            }
+                        }
+                    }
             }
             if !m.mine { Spacer(minLength: 40) }
         }
@@ -113,7 +141,7 @@ struct ChatRoomView: View {
     }
 
     private func load() async {
-        do { msgs = try await Api.chatLatest(scope: scope); error = nil }
+        do { msgs = try await Api.chatLatest(scope: scope, limit: 100); error = nil }
         catch { self.error = error.localizedDescription }
     }
 

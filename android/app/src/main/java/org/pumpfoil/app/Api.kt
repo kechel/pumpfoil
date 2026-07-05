@@ -272,6 +272,17 @@ object Api {
         httpBytes("/api/sessions/$id/share.png$q")
     }
 
+    // Eigene Chat-Nachricht bearbeiten (nur < 1 h). PUT-Alias, da HttpURLConnection kein PATCH kann.
+    suspend fun chatEdit(messageId: Int, text: String): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("text", text) }.toString()
+        http("PUT", "/api/chat/$messageId", body, auth = true)
+    }
+
+    // Eigene Chat-Nachricht löschen (nur < 1 h).
+    suspend fun chatDelete(messageId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/chat/$messageId", null, auth = true)
+    }
+
     suspend fun foils(): List<Foil> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(Foil.serializer()), http("GET", "/api/foils", null, auth = true))
     }

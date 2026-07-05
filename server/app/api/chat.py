@@ -287,6 +287,15 @@ def edit_message(
     return {"ok": True, "id": m.id, "text": m.text}
 
 
+@router.put("/{message_id}")
+def edit_message_put(
+    message_id: int, body: EditIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """PUT-Alias zu edit_message — native Clients (Android HttpURLConnection) koennen kein PATCH."""
+    return edit_message(message_id, body, user, db)
+
+
 @router.delete("/{message_id}")
 def delete_message(
     message_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),

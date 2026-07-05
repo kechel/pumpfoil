@@ -142,6 +142,8 @@ enum Loc {
         "chat.empty": r("Noch keine Chats", "No kei Chats", "Noch keine Chats", "No chats yet", "Aucun chat", "Nessuna chat", "Sin chats"),
         "chat.placeholder": r("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
         "chat.send": r("Senden", "Schicke", "Senden", "Send", "Envoyer", "Invia", "Enviar"),
+        "chat.edit": r("Bearbeiten", "Bearbeite", "Bearbeiten", "Edit", "Modifier", "Modifica", "Editar"),
+        "chat.editHint": r("Eigene Nachrichten (unter 1 h) lange drücken zum Bearbeiten/Löschen.", "Eigeni Nachrichte (unter 1 h) lang drücke zum Bearbeite/Lösche.", "Eigene Nachrichten (unter 1 h) lange drücken zum Bearbeiten/Löschen.", "Long-press your own messages (under 1 h) to edit/delete.", "Appuie longuement sur tes messages (< 1 h) pour modifier/supprimer.", "Tieni premuto i tuoi messaggi (< 1 h) per modificare/eliminare.", "Mantén pulsados tus mensajes (< 1 h) para editar/eliminar."),
 
         "foils.search": r("Foil suchen", "Foil sueche", "Foil suchen", "Search foil", "Chercher un foil", "Cerca foil", "Buscar foil"),
         "foils.brand": r("Marke", "Marke", "Marke", "Brand", "Marque", "Marca", "Marca"),

@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -22,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,20 +87,56 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var msgs by remember { mutableStateOf<List<ChatMsg>>(emptyList()) }
     var input by remember { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var actionMsg by remember { mutableStateOf<ChatMsg?>(null) }   // Long-Press -> Aktionsauswahl
+    var editMsg by remember { mutableStateOf<ChatMsg?>(null) }     // Bearbeiten-Dialog
+    var editText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     suspend fun load() {
-        try { msgs = Api.chatLatest(room.scope); error = null }
+        try { msgs = Api.chatLatest(room.scope, limit = 100); error = null }
         catch (e: Exception) { error = e.message }
     }
     LaunchedEffect(room.scope) { load() }
+
+    // Aktions-Auswahl (Bearbeiten/Löschen) für eigene, < 1 h alte Nachrichten.
+    actionMsg?.let { m ->
+        AlertDialog(
+            onDismissRequest = { actionMsg = null },
+            title = { Text(m.text, maxLines = 2) },
+            confirmButton = {
+                TextButton(onClick = { editText = m.text; editMsg = m; actionMsg = null }) { Text(I18n.t("chat.edit")) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    val id = m.id; actionMsg = null
+                    scope.launch { try { Api.chatDelete(id); load() } catch (e: Exception) { error = e.message } }
+                }) { Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error) }
+            },
+        )
+    }
+    editMsg?.let { m ->
+        AlertDialog(
+            onDismissRequest = { editMsg = null },
+            title = { Text(I18n.t("chat.edit")) },
+            text = {
+                OutlinedTextField(value = editText, onValueChange = { editText = it }, maxLines = 4)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val id = m.id; val t = editText.trim(); editMsg = null
+                    if (t.isNotEmpty()) scope.launch { try { Api.chatEdit(id, t); load() } catch (e: Exception) { error = e.message } }
+                }) { Text(I18n.t("common.save")) }
+            },
+            dismissButton = { TextButton(onClick = { editMsg = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -136,11 +175,38 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
-                Column(Modifier.padding(vertical = 6.dp)) {
+                val editable = m.mine && withinEditWindow(m.createdAt)
+                Column(
+                    Modifier.fillMaxWidth()
+                        .combinedClickable(enabled = editable, onClick = {}, onLongClick = { actionMsg = m })
+                        .padding(vertical = 6.dp),
+                ) {
                     Text(m.name ?: "—", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     Text(m.text)
                 }
             }
+            item {
+                Text(
+                    I18n.t("chat.editHint"),
+                    Modifier.padding(vertical = 10.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
+    }
+}
+
+// Eigene Nachricht < 1 h -> bearbeitbar/löschbar (Server erzwingt es ohnehin; hier nur UI-Gate).
+private fun withinEditWindow(createdAt: String?): Boolean {
+    if (createdAt == null) return false
+    return try {
+        val t = java.time.OffsetDateTime.parse(createdAt).toInstant()
+        java.time.Duration.between(t, java.time.Instant.now()).seconds < 3600
+    } catch (_: Exception) {
+        try {
+            val t = java.time.LocalDateTime.parse(createdAt).toInstant(java.time.ZoneOffset.UTC)
+            java.time.Duration.between(t, java.time.Instant.now()).seconds < 3600
+        } catch (_: Exception) { true }
     }
 }

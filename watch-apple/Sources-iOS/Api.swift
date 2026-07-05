@@ -290,6 +290,22 @@ enum Api {
         return data
     }
 
+    // Eigene Chat-Nachricht bearbeiten (nur < 1 h).
+    static func chatEdit(_ messageId: Int, text: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/\(messageId)", method: "PATCH", body: ["text": text], auth: true)
+    }
+
+    // Eigene Chat-Nachricht löschen (nur < 1 h).
+    static func chatDelete(_ messageId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/chat/\(messageId)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     static func foils() async throws -> [Foil] {
         try await request("/api/foils", method: "GET", body: nil, auth: true)
     }

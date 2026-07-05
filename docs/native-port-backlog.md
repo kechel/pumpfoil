@@ -60,7 +60,10 @@ iOS `SFSpeechRecognizer` + `AVAudioEngine`, Android `SpeechRecognizer`.
 - Port: eigenständige native Umsetzung (Mikro-Permission, Recognizer-Lifecycle) — kein Web-Code
   wiederverwendbar, nur UX/Buttons/Wording spiegeln.
 
-### ☐ 1.4 Chat: eigene Nachrichten bearbeiten & löschen (< 1 h)  · Server bereit ✅
+### ✅ 1.4 Chat: eigene Nachrichten bearbeiten & löschen (< 1 h)  · Server bereit ✅  — Android+iOS gebaut
+Umgesetzt: Long-Press (Android) / Kontextmenü (iOS) auf eigene, < 1 h alte Nachrichten →
+Bearbeiten (Dialog) / Löschen; Hinweistext unter dem Chat; Chat lädt jetzt 100 statt 30.
+Server: PUT-Alias zu PATCH ergänzt (Android HttpURLConnection kann kein PATCH).
 Long-Press (mobil) bzw. Hover (Desktop) → Bearbeiten/Löschen-Icons; nur eigene, < 1 h alt.
 - Endpoints in `api/chat.py`. Android hat bisher nur den **I18n-String**, keine Funktion.
 - Web-Quelle: `web/src/pages/Chat.tsx`. Commits: `4c2cc96` `ed26810` `13b4d10` `0c752d0`.
