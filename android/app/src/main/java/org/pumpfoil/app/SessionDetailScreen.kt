@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.rememberCoroutineScope
@@ -289,14 +290,22 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            FilledTonalButton(onClick = {
-                val prev = liked; liked = !liked; likeCount += if (liked) 1 else -1
-                scope.launch {
-                    try { val st = Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
-                    catch (_: Exception) { liked = prev; likeCount += if (liked) 1 else -1 }
-                }
-            }) {
-                Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Like")  // a11y, neutral
+            FilledTonalButton(
+                onClick = {
+                    val prev = liked; liked = !liked; likeCount += if (liked) 1 else -1
+                    scope.launch {
+                        try { val st = Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
+                        catch (_: Exception) { liked = prev; likeCount += if (liked) 1 else -1 }
+                    }
+                },
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                ),
+            ) {
+                // Herz rosa im „geliked"-Zustand (wie Web), sonst Marken-Cyan.
+                Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = "Like",
+                    tint = if (liked) Color(0xFFF43F5E) else MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(6.dp))
                 Text("$likeCount")
             }
@@ -391,15 +400,15 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                 }
                 if (hasHr || hasPump) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) })
-                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) })
-                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) })
+                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
+                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
+                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                     }
                 }
                 if (colorMode == ColorMode.SPEED) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(1, 3, 5).forEach { w ->
-                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") })
+                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") }, colors = cyanChipColors())
                         }
                     }
                 }
@@ -436,6 +445,7 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
                             selected = s.foil?.id == f.id,
                             onClick = { scope.launch { try { Api.setSessionFoil(s.id, f.id); onReload() } catch (_: Exception) {} } },
                             label = { Text("${f.brand} ${f.model} ${f.size}", maxLines = 1) },
+                            colors = cyanChipColors(),
                         )
                     }
                 }

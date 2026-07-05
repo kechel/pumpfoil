@@ -165,7 +165,7 @@ struct SessionDetailView: View {
                     }
                 } label: {
                     Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
-                        .foregroundStyle(liked ? .pink : .secondary)
+                        .foregroundStyle(liked ? .pink : Color.accentColor)
                 }
                 .buttonStyle(.bordered)
             }

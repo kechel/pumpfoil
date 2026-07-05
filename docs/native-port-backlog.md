@@ -193,7 +193,13 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   Monats-Leerzustand. API um month/filter/accel_only (sessions, sessionMonths, communitySessions) erweitert;
   i18n (7 Spr.): sessions.filterPump/filterOther/allMonths/noneMonth/listEnd, all.allSpots.
   Offen (klein): ♥-HR wird als rotes Emoji gerendert (Web nutzt Slate-HeartPulse-Icon) — Politur später.
-- ☐ Session-Detail → Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
+- ✅ **Session-Detail** (Android verifiziert, iOS gespiegelt): war schon inhaltlich vollständig
+  (OSM-Track farbcodiert, Foto-Strip, Stats-Grid, Läufe-Tabelle, Pump-Marker, Foil-Auswahl,
+  Aktions-Icons Cyan + Löschen Rot). Fix: alle ausgewählten Chips (Speed/Puls/Pump, 1s/3s/5s, Foil)
+  in Marken-Cyan statt M3-Lavendel; Like-Pill entlavendelt (Cyan-Ton, Herz rosa im Liked-Zustand).
+  iOS nutzt segmented Picker + accentColor (schon markenkonform); Unliked-Herz auf accentColor gezogen.
+  Rest-Diff (klein, Politur): Web zeigt Stats VOR der Karte, nativ danach; Web-Dauerzeile unter Titel fehlt nativ.
+- ☐ Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
