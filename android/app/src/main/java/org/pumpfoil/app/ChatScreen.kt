@@ -4,16 +4,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +41,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 @Composable
@@ -198,13 +207,31 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)
-                Column(
+                Row(
                     Modifier.fillMaxWidth()
                         .combinedClickable(enabled = editable, onClick = {}, onLongClick = { actionMsg = m })
                         .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    Text(m.name ?: "—", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                    Text(m.text)
+                    val av = Api.mediaUrl(m.avatarUrl)
+                    if (av != null) {
+                        AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(32.dp).clip(CircleShape))
+                    } else {
+                        Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Column(Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(m.name ?: "—", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                            hhmmChat(m.createdAt)?.let {
+                                Spacer(Modifier.width(6.dp))
+                                Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        Text(m.text)
+                    }
                 }
             }
             item {
@@ -216,6 +243,20 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+// Zeitstempel wie im Web (dd.MM. HH:mm).
+private fun hhmmChat(iso: String?): String? {
+    if (iso.isNullOrBlank()) return null
+    return try {
+        java.time.OffsetDateTime.parse(iso).toLocalDateTime()
+            .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM. HH:mm"))
+    } catch (_: Exception) {
+        try {
+            java.time.LocalDateTime.parse(iso)
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM. HH:mm"))
+        } catch (_: Exception) { null }
     }
 }
 

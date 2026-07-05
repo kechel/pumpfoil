@@ -209,7 +209,14 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   das nur Suche+Karte hat). Fix: Android-Marker jetzt Marken-Cyan-Punkte (#22d3ee, Navy-Rand) statt
   Default-osmdroid-Pins — wie die circleMarker der PWA. iOS nutzt MapKit-Annotationen + Liste schon in
   accentColor. Liste (Name · Sessions, Cyan-Pin) → tippt auf Sessions des Spots.
-- ☐ Chat → Profil → Einstellungen (in Arbeit).
+- ✅ **Chat** (Android verifiziert, iOS gespiegelt): Web-Chat ist ein flacher Diskussions-Thread
+  (Avatar + Name + Zeitstempel + Text), KEINE iMessage-Blasen. Angeglichen: Android-Nachrichten haben
+  jetzt Avatar (32dp) + Zeitstempel (dd.MM. HH:mm) je Nachricht; iOS von iMessage-Blasen auf denselben
+  flachen Thread umgestellt (konsistent mit Web/Android, passend für öffentlichen Spot-Gruppenchat).
+  Master→Detail (Raumliste → Raum) als Mobile-Muster beibehalten. Editieren/Löschen per Long-Press/Kontextmenü.
+  Offen (klein): Abo-/Verlassen-Leiste, Report/Hide-/Admin-Aktionen, URL-Linkify — nur Web. Falls Jan
+  iMessage-Blasen auf iOS bevorzugt, leicht rückändern.
+- ☐ Profil → Einstellungen (in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**

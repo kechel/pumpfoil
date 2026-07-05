@@ -127,30 +127,52 @@ struct ChatRoomView: View {
         return Date().timeIntervalSince(d) < 3600
     }
 
+    // Flacher Diskussions-Thread wie die PWA (Avatar + Name + Zeit + Text), nicht iMessage-Blasen —
+    // passend für den öffentlichen Spot-Gruppenchat und konsistent mit Web/Android.
     @ViewBuilder private func bubble(_ m: ChatMsg) -> some View {
-        HStack {
-            if m.mine { Spacer(minLength: 40) }
-            VStack(alignment: m.mine ? .trailing : .leading, spacing: 2) {
-                if !m.mine, let n = m.name, !n.isEmpty {
-                    Text(n).font(.caption2).foregroundStyle(.secondary)
-                }
-                Text(m.text)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(m.mine ? Color.accentColor : Color(.secondarySystemBackground),
-                                in: RoundedRectangle(cornerRadius: 14))
-                    .foregroundStyle(m.mine ? .white : .primary)
-                    .contextMenu {
-                        if editable(m) {
-                            Button(Loc.t("chat.edit", lang)) { editText = m.text; editMsg = m }
-                            Button(Loc.t("common.delete", lang), role: .destructive) {
-                                Task { try? await Api.chatDelete(m.id); await load() }
-                            }
-                        }
+        HStack(alignment: .top, spacing: 8) {
+            chatAvatar(m)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(m.name ?? "—").font(.subheadline).fontWeight(.semibold)
+                    if let ts = hhmmChat(m.created_at) {
+                        Text(ts).font(.caption2).foregroundStyle(.secondary)
                     }
+                }
+                Text(m.text).fixedSize(horizontal: false, vertical: true)
             }
-            if !m.mine { Spacer(minLength: 40) }
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: m.mine ? .trailing : .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contextMenu {
+            if editable(m) {
+                Button(Loc.t("chat.edit", lang)) { editText = m.text; editMsg = m }
+                Button(Loc.t("common.delete", lang), role: .destructive) {
+                    Task { try? await Api.chatDelete(m.id); await load() }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {
+        if let url = Api.mediaURL(m.avatar_url) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 32, height: 32).clipShape(Circle())
+        } else {
+            Image(systemName: "person.crop.circle.fill").resizable().scaledToFit()
+                .frame(width: 32, height: 32).foregroundStyle(Color.accentColor)
+        }
+    }
+
+    private func hhmmChat(_ iso: String?) -> String? {
+        guard let iso, let d = SessionDetail.parseDate(iso) else { return nil }
+        let f = DateFormatter(); f.dateFormat = "dd.MM. HH:mm"
+        return f.string(from: d)
     }
 
     private func load() async {
