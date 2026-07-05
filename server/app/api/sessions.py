@@ -696,13 +696,9 @@ def merge_suggestions_endpoint(
 ) -> list[dict]:
     """Vorschlag NUR fuer HEUTIGE eigene Sessions, die zusammengehoeren koennten
     (aufeinanderfolgend, <=1 h Luecke). Aeltere gehen manuell ueber Vergleichen."""
-    from datetime import date, datetime
+    from datetime import datetime
     from .. import merge
     today = datetime.now().astimezone().date()
-    # TEMP (nur Jan, zum echten Testen): „heute" auf den 28.06.2026 pinnen, sonst
-    # unveraenderte Logik (Gruppe zaehlt, wenn ihr letzter Lauf an diesem Tag war).
-    if user.email == "jan@kechel.de":
-        today = date(2026, 6, 28)
     out = []
     for g in merge.merge_suggestions(db, user.id):
         if max(g, key=lambda s: s.started_at).started_at.astimezone().date() != today:
