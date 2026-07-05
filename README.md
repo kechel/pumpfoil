@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="store-assets/logo/pumpfoil-wordmark-tagline-light.png" alt="Pumpfoil — track every pump" width="480">
+<img src="brand/logo/logo-stacked-light.png" alt="Pumpfoil — track every pump" width="480">
 
 # Pumpfoil
 
@@ -57,19 +57,19 @@ Native apps on every platform — one account, one analysis backend.
 
 **📱 Android phone**
 
-<img src="store-assets/google/phone/01.png" alt="Android — home" width="200"> <img src="store-assets/google/phone/02.png" alt="Android — sessions" width="200"> <img src="store-assets/google/phone/03.png" alt="Android — session detail" width="200"> <img src="store-assets/google/phone/04.png" alt="Android — community" width="200">
+<img src="brand/stores/google/phone/01.png" alt="Android — home" width="200"> <img src="brand/stores/google/phone/02.png" alt="Android — sessions" width="200"> <img src="brand/stores/google/phone/03.png" alt="Android — session detail" width="200"> <img src="brand/stores/google/phone/04.png" alt="Android — community" width="200">
 
 **📱 iOS phone**
 
-<img src="store-assets/apple/iphone-6.5/01.png" alt="iOS — home" width="200"> <img src="store-assets/apple/iphone-6.5/02.png" alt="iOS — sessions" width="200"> <img src="store-assets/apple/iphone-6.5/03.png" alt="iOS — session detail" width="200"> <img src="store-assets/apple/iphone-6.5/04.png" alt="iOS — community" width="200">
+<img src="brand/stores/apple/iphone-6.5/01.png" alt="iOS — home" width="200"> <img src="brand/stores/apple/iphone-6.5/02.png" alt="iOS — sessions" width="200"> <img src="brand/stores/apple/iphone-6.5/03.png" alt="iOS — session detail" width="200"> <img src="brand/stores/apple/iphone-6.5/04.png" alt="iOS — community" width="200">
 
 **⌚ Wear OS**
 
-<img src="store-assets/wear-os/wear-01.png" alt="Wear OS — recording" width="170"> <img src="store-assets/wear-os/wear-02.png" alt="Wear OS — data field" width="170"> <img src="store-assets/wear-os/wear-03.png" alt="Wear OS — data field" width="170"> <img src="store-assets/wear-os/wear-04.png" alt="Wear OS — summary" width="170">
+<img src="brand/stores/google/wear-os/wear-01.png" alt="Wear OS — recording" width="170"> <img src="brand/stores/google/wear-os/wear-02.png" alt="Wear OS — data field" width="170"> <img src="brand/stores/google/wear-os/wear-03.png" alt="Wear OS — data field" width="170"> <img src="brand/stores/google/wear-os/wear-04.png" alt="Wear OS — summary" width="170">
 
 **⌚ Apple Watch**
 
-<img src="store-assets/apple-watch/ultra3-01.png" alt="Apple Watch — recording" width="170"> <img src="store-assets/apple-watch/ultra3-02.png" alt="Apple Watch — data field" width="170"> <img src="store-assets/apple-watch/ultra3-03.png" alt="Apple Watch — data field" width="170"> <img src="store-assets/apple-watch/ultra3-04.png" alt="Apple Watch — summary" width="170">
+<img src="brand/stores/apple/apple-watch/ultra3-01.png" alt="Apple Watch — recording" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-02.png" alt="Apple Watch — data field" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-03.png" alt="Apple Watch — data field" width="170"> <img src="brand/stores/apple/apple-watch/ultra3-04.png" alt="Apple Watch — summary" width="170">
 
 **⌚ Garmin** (all ~78 Connect IQ devices)
 

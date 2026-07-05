@@ -2,7 +2,7 @@
 """Erzeugt die vier Watch-Screenshots für die Landing-Page ("Auf der Uhr"-Sektion)
 aus den Store-Asset-PNGs (-> WebP nach web/public/).
 
-Neue Screenshots? PNGs in store-assets/{apple-watch,wear-os}/ ablegen, ggf. die
+Neue Screenshots? PNGs in brand/stores/{apple/apple-watch,google/wear-os}/ ablegen, ggf. die
 QUELLEN unten anpassen, dann ausführen:
 
     python3 scripts/make-landing-watch-shots.py
@@ -19,10 +19,10 @@ ROOT = Path(__file__).resolve().parent.parent
 # (Quelle relativ zum Repo-Root, Ziel in web/public) — Liste, da dieselbe Quelle
 # mehrfach genutzt werden darf (z. B. Garmin-Start für Landing UND Anleitung).
 SOURCES = [
-    ("store-assets/apple-watch/ultra3-02.png", "web/public/watch-apple-1.webp"),
-    ("store-assets/apple-watch/ultra3-04.png", "web/public/watch-apple-2.webp"),
-    ("store-assets/wear-os/wear-02.png",       "web/public/watch-wear-1.webp"),
-    ("store-assets/wear-os/wear-04.png",       "web/public/watch-wear-2.webp"),
+    ("brand/stores/apple/apple-watch/ultra3-02.png", "web/public/watch-apple-1.webp"),
+    ("brand/stores/apple/apple-watch/ultra3-04.png", "web/public/watch-apple-2.webp"),
+    ("brand/stores/google/wear-os/wear-02.png",       "web/public/watch-wear-1.webp"),
+    ("brand/stores/google/wear-os/wear-04.png",       "web/public/watch-wear-2.webp"),
     # Garmin (fenix, rund) — Landing-Sektion „Auf der Uhr".
     ("screenshots/watch/garmin/garmin-watch-1.0.24-start.png",    "web/public/watch-garmin-1.webp"),
     ("screenshots/watch/garmin/garmin-watch-1.0.24-on-foil-1.png", "web/public/watch-garmin-2.webp"),

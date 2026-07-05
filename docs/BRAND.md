@@ -16,7 +16,7 @@ Brand-Cyan**, der Rest in der jeweiligen Vordergrundfarbe (weiß auf Dunkel).
 ## Wellen-Glyph
 
 **Drei versetzte (nicht synchrone) Wellenlinien**, gebürstet/organisch, runde Enden.
-Kanonische Quelle: **`assets-master/base/waves.svg`** (`fill=currentColor`, beliebig
+Kanonische Quelle: **`brand/master/base/waves.svg`** (`fill=currentColor`, beliebig
 einfärbbar). Cyan `#22d3ee` auf hellem/dunklem Grund, weiß auf Cyan-Kachel.
 
 > ⚠️ Historie: Früher gab es *zwei dünne, synchrone* Wellen (die Pfade
@@ -26,7 +26,7 @@ einfärbbar). Cyan `#22d3ee` auf hellem/dunklem Grund, weiß auf Cyan-Kachel.
 
 ## Logo-System (Master)
 
-**Alle Logos werden aus einer Basis per Skript erzeugt** — `assets-master/` (Generator
+**Alle Logos werden aus einer Basis per Skript erzeugt** — `brand/master/` (Generator
 `gen.py`, Basis `base/`, `build.sh`, eigene README). Nie wieder von Hand nachbauen; jede
 Größe/Padding/Zoom aus dem identischen Original. Es gibt **3 Logos × 2 Themes = 6**:
 
@@ -77,7 +77,7 @@ gebacken → überall identisch). In-App rendert die Vektor-Wortmarke mit der Ap
 ## Lockups (zwei Varianten)
 
 1. **Gestapelt** (Wellen oben, Wortmarke, Tagline darunter) — der große Marketing-/Hero-
-   Titel. Als **PNG** verwenden: `store-assets/logo/pumpfoil-wordmark-tagline.png`
+   Titel. Als **PNG** verwenden: `brand/logo/logo-stacked-light.png`
    (→ `web/public/`), z. B. Landing-Hero. Hier zählt die exakte Schrift.
 2. **Horizontal** (Wellen **links** neben der Wortmarke, Tagline optional darunter) —
    für **Header/überall in der App**. Als Vektor-Komponente:
@@ -86,8 +86,8 @@ gebacken → überall identisch). In-App rendert die Vektor-Wortmarke mit der Ap
 
 ## Assets
 
-- `store-assets/logo/pumpfoil-wordmark-tagline.{png,svg}` — gestapelt mit Tagline.
-- `store-assets/logo/pumpfoil-wordmark.{png,svg}` — horizontal ohne Tagline.
+- `brand/logo/logo-stacked-{light,dark}.png + pumpfoil-wordmark-tagline.svg` — gestapelt mit Tagline.
+- `brand/logo/logo-horizontal-{light,dark}.png + pumpfoil-wordmark.svg` — horizontal ohne Tagline.
 - `web/public/pumpfoil-wordmark-tagline.png` — Kopie fürs Web (Landing-Hero).
 
 ## Verwendung

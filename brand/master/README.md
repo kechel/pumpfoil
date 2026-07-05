@@ -1,4 +1,4 @@
-# Pumpfoil — Logo-Master (assets-master/)
+# Pumpfoil — Logo-Master (brand/master/)
 
 **Eine Basis, ein Generator, alle Logos.** Sämtliche Logo-Assets für Web, Stores,
 Uhren etc. werden hier per Skript aus einer einzigen Basis erzeugt — beliebige Größe,

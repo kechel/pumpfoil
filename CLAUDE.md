@@ -80,7 +80,7 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - [`watch/README.md`](watch/README.md) · [`watch-apple/README.md`](watch-apple/README.md)
   (+ [`UPLOAD.md`](watch-apple/UPLOAD.md), App-Store-Submit) — Recorder-Apps.
 - [`deploy/README.md`](deploy/README.md) — Apache/systemd-Deploy.
-- [`store-assets/README.md`](store-assets/README.md) — Store-Screenshots/Marketing (Icons separat).
+- [`brand/README.md`](brand/README.md) — Marken-/Store-/Social-Assets + Generator (`brand/master/`); Zuordnungs-Karte.
 - [`analyse/README.md`](analyse/README.md) + [`FINDINGS.md`](analyse/FINDINGS.md) — Dual-Watch-Experiment (Pump-Wahrheit).
 
 **Memories (lokal, sessionübergreifend — NICHT im Repo)**
