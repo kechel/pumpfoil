@@ -80,6 +80,11 @@ export function clearCompare() {
   write([]);
 }
 
+// Korb komplett ersetzen (z. B. Merge-Vorschlag: genau diese Sessions vorauswaehlen).
+export function setCompare(refs: CompareRef[]) {
+  write(refs.slice(0, MAX).map((r) => ({ sessionId: r.sessionId, runIdx: r.runIdx ?? null, owned: r.owned, date: r.date })));
+}
+
 export const COMPARE_MAX = MAX;
 
 // -> ids der zu mergenden Sessions, wenn die Auswahl mergebar ist: nur ganze Sessions

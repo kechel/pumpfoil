@@ -76,7 +76,7 @@ def available_stats(ar):
 
 
 def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
-                     bg="navy", size=1080) -> bytes:
+                     bg="navy", size=1080, track=True) -> bytes:
     W = H = size
     S = size / 1080.0
     def px(v): return int(v * S)
@@ -103,7 +103,7 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         vmax = max([s for s in speeds if s] or [1])
         colfn = lambda i: _ramp(CYAN_STOPS, (speeds[i] if i < len(speeds) else 0) / max(vmax, 1e-6))
 
-    if len(coords) >= 2:
+    if track and len(coords) >= 2:
         lons = np.array([c[0] for c in coords], float)
         lats = np.array([c[1] for c in coords], float)
         n = len(coords)

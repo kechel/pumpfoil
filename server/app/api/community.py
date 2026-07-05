@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
+from ..naming import owner_label_sql
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user
 
@@ -30,6 +31,7 @@ VOTE_KINDS = ("fake", "inappropriate")
 AR = models.AnalysisResult
 S = models.Session
 U = models.User
+NAME = owner_label_sql(U)  # display_name mit Fallback "User #<id>"
 
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
 REC_COL = {
@@ -40,7 +42,7 @@ REC_COL = {
     "runs": (AR.num_runs, None),
 }
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
-              S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, S.caption, AR.track_preview,
+              S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
               S.foil_id, U.created_at)
 
 
@@ -132,7 +134,7 @@ def spot_sessions(
 def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True) -> dict:
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
-    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, U.display_name, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only)
+    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only)
     q = q.filter(valcol > 0)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
@@ -168,7 +170,7 @@ def spot_records(
 def leaders(period: str = "all", accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     cut = _cutoff(period)
     q = _community(db.query(
-        U.display_name, U.avatar_url,
+        NAME, U.avatar_url,
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(AR.pump_count), 0),
@@ -198,7 +200,7 @@ def latest_photos(
 
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
-        db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, U.display_name, U.avatar_url, S.place_name, S.caption)
+        db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
         .select_from(P).join(S, P.session_id == S.id).join(U, S.user_id == U.id)
         .filter(P.blocked.isnot(True), *_vis)
         .order_by(P.id.desc()).limit(80).all()
@@ -214,7 +216,7 @@ def latest_photos(
 
     # Videos: Sessions mit verlinktem YouTube-Video, nach Verlink-Zeit.
     vrows = (
-        db.query(S.id, S.youtube_url, S.youtube_added_at, S.started_at, U.display_name, U.avatar_url, S.place_name, S.caption)
+        db.query(S.id, S.youtube_url, S.youtube_added_at, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
         .select_from(S).join(U, S.user_id == U.id)
         .filter(S.youtube_url.isnot(None), S.youtube_url != "", *_vis)
         .order_by(func.coalesce(S.youtube_added_at, S.started_at).desc()).limit(80).all()

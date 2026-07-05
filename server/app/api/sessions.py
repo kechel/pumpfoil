@@ -16,6 +16,7 @@ from .. import models, storage
 from ..analysis import maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
+from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, TrimIn
 from .deps import current_user
@@ -695,17 +696,29 @@ def merge_suggestions_endpoint(
 ) -> list[dict]:
     """Vorschlag NUR fuer HEUTIGE eigene Sessions, die zusammengehoeren koennten
     (aufeinanderfolgend, <=1 h Luecke). Aeltere gehen manuell ueber Vergleichen."""
-    from datetime import datetime
+    from datetime import date, datetime
     from .. import merge
     today = datetime.now().astimezone().date()
+    # TEMP (nur Jan, zum echten Testen): „heute" auf den 28.06.2026 pinnen, sonst
+    # unveraenderte Logik (Gruppe zaehlt, wenn ihr letzter Lauf an diesem Tag war).
+    if user.email == "jan@kechel.de":
+        today = date(2026, 6, 28)
     out = []
     for g in merge.merge_suggestions(db, user.id):
         if max(g, key=lambda s: s.started_at).started_at.astimezone().date() != today:
             continue
+        g = sorted(g, key=lambda s: s.started_at)
         out.append({
             "ids": [s.id for s in g],
             "count": len(g),
             "place": next((s.place_name for s in g if s.place_name), None),
+            "date": g[0].started_at.astimezone().date().isoformat(),
+            "sessions": [
+                {"id": s.id,
+                 "start": s.started_at.astimezone().isoformat(),
+                 "end": merge._end(s).astimezone().isoformat()}
+                for s in g
+            ],
         })
     return out
 
@@ -731,7 +744,7 @@ def get_session(
         background_tasks.add_task(_geocode_place, s.id)
     out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
-        owner_name=s.user.display_name if s.user else None,
+        owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
@@ -750,6 +763,7 @@ def share_card(
     color: str = "cyan",
     stats: str | None = None,
     bg: str = "navy",
+    track: int = 1,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -777,7 +791,7 @@ def share_card(
             rings = json.loads(wp.rings_json) if (wp and wp.rings_json) else None
     except Exception:
         rings = None
-    png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg)
+    png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg, track=bool(track))
     return Response(content=png, media_type="image/png",
                     headers={"Cache-Control": "private, max-age=300"})
 
@@ -908,7 +922,7 @@ def set_meta(
     db.refresh(s)
     out = _session_out(
         s, with_analysis=True,
-        owner_name=s.user.display_name if s.user else None,
+        owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
+from ..naming import owner_label, owner_label_sql
 from ..push import send_push, wants
 from ..ratelimit import enforce_user_tiers
 from .deps import current_user
@@ -65,7 +66,7 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
             base = date
         else:
             base = f"Session #{rest}"
-        owner = s.user.display_name if s.user else None
+        owner = owner_label(s.user.display_name, s.user.id) if s.user else None
         return f"{owner} · {base}" if owner else base
     return f"Session #{rest}"
 
@@ -117,7 +118,7 @@ def list_messages(
     _check_scope(scope)
     lim = min(max(limit, 1), 100)
     q = (
-        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url,
+        db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
                  models.User.created_at)
         .join(models.User, models.ChatMessage.user_id == models.User.id)
         .filter(models.ChatMessage.scope == scope)
@@ -317,7 +318,7 @@ def list_reported(
     """Admin: alle gemeldeten Nachrichten (report_count > 0), neueste zuerst."""
     _require_admin(user)
     rows = (
-        db.query(models.ChatMessage, models.User.display_name, models.User.avatar_url,
+        db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
                  models.User.created_at)
         .join(models.User, models.ChatMessage.user_id == models.User.id)
         .filter(models.ChatMessage.report_count > 0)

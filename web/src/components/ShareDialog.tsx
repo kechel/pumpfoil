@@ -38,6 +38,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const hasHr = !!((analysis?.track_geojson?.properties?.hr || []).some((v: number | null) => v != null));
   const [color, setColor] = useState<"cyan" | "speed" | "hr">("cyan");
   const [sel, setSel] = useState<Set<string>>(new Set(avail));
+  const [dim, setDim] = useState(0.55);   // Abdunklung des Hintergrundfotos (Scrim-Deckkraft)
+  const [showTrack, setShowTrack] = useState(true);   // Track (GPS-Läufe) anzeigen?
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -59,6 +61,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         const keep = sh.stats.filter((k: string) => avail.includes(k));
         if (keep.length) setSel(new Set(keep));
       }
+      if (typeof sh.dim === "number") setDim(sh.dim);
+      if (typeof sh.track === "boolean") setShowTrack(sh.track);
     }).catch(() => {}).finally(() => setLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -79,18 +83,21 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   useEffect(() => {
     if (!loaded) return;
     const id = setTimeout(() => {
-      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)) } }).catch(() => {});
+      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)), dim, track: showTrack } }).catch(() => {});
     }, 500);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), loaded]);
+  }, [color, [...sel].sort().join(","), dim, showTrack, loaded]);
+
+  // Dim ändert nur den Scrim -> lokal neu zeichnen (kein Server-Refetch).
+  useEffect(() => { draw(); /* eslint-disable-next-line */ }, [dim]);
 
   function draw() {
     const cv = canvasRef.current; if (!cv) return;
     const ctx = cv.getContext("2d")!; ctx.clearRect(0, 0, N, N);
     if (hasPhoto && photoRef.current) {
       const r = xf.current; ctx.drawImage(photoRef.current, r.x, r.y, r.w, r.h);
-      ctx.fillStyle = "rgba(2,6,23,0.55)"; ctx.fillRect(0, 0, N, N);
+      ctx.fillStyle = `rgba(2,6,23,${dim})`; ctx.fillRect(0, 0, N, N);
     }
     if (cardRef.current) ctx.drawImage(cardRef.current, 0, 0, N, N);
   }
@@ -103,7 +110,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
       try {
         const tok = getToken();
         const chosen = STAT_ORDER.filter((k) => sel.has(k));
-        const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy" });
+        const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0" });
         if (chosen.length) q.set("stats", chosen.join(","));
         const res = await fetch(`/api/sessions/${sessionId}/share.png?${q}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
         if (!res.ok || !alive) return;
@@ -115,7 +122,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), hasPhoto]);
+  }, [color, [...sel].sort().join(","), hasPhoto, showTrack]);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -202,14 +209,23 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         </div>
         {hasPhoto && <div className="mb-3 text-center text-[11px] text-slate-500">{t("share.photoHint")}</div>}
 
-        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.trackColor")}</div>
-        <div className="mb-3 flex gap-2">
-          {((hasHr ? ["cyan", "speed", "hr"] : ["cyan", "speed"]) as ("cyan" | "speed" | "hr")[]).map((c) => (
-            <button key={c} onClick={() => setColor(c)} className={`${seg} ${color === c ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
-              {t(`share.color.${c}`)}
-            </button>
-          ))}
-        </div>
+        <label className="mb-3 flex items-center gap-2 text-sm text-slate-200">
+          <input type="checkbox" checked={showTrack} onChange={(e) => setShowTrack(e.target.checked)} className="accent-brand-500" />
+          {t("share.showTrack")}
+        </label>
+
+        {showTrack && (
+          <>
+            <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.trackColor")}</div>
+            <div className="mb-3 flex gap-2">
+              {((hasHr ? ["cyan", "speed", "hr"] : ["cyan", "speed"]) as ("cyan" | "speed" | "hr")[]).map((c) => (
+                <button key={c} onClick={() => setColor(c)} className={`${seg} ${color === c ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+                  {t(`share.color.${c}`)}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.background")}</div>
         <div className="mb-3 flex gap-2">
@@ -221,6 +237,16 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
         </div>
+
+        {hasPhoto && (
+          <div className="mb-3">
+            <div className="mb-1 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-slate-400">
+              <span>{t("share.darken")}</span><span className="tabular-nums">{Math.round(dim * 100)}%</span>
+            </div>
+            <input type="range" min={0} max={0.85} step={0.05} value={dim}
+              onChange={(e) => setDim(parseFloat(e.target.value))} className="w-full accent-brand-500" />
+          </div>
+        )}
 
         <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.stats")}</div>
         <div className="mb-4 flex flex-wrap gap-2">

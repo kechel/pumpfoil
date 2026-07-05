@@ -6,6 +6,8 @@ import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Ico
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
+import { invalidateSessionListCache } from "./Sessions";
+import { setLastSession } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 // Farben zur Zuordnung Wert -> markiertes Element (Legende oben + Punkt je Wert).
@@ -105,7 +107,7 @@ export default function Compare() {
   async function doMerge() {
     if (!canMergeIds) return;
     setMerging(true);
-    try { const r = await api.mergeSessions(canMergeIds); clearCompare(); nav(`/sessions/${r.id}`); }
+    try { const r = await api.mergeSessions(canMergeIds); invalidateSessionListCache(); clearCompare(); setLastSession(r.id); nav(`/sessions/${r.id}`); }
     catch { setMerging(false); }
   }
   const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});

@@ -147,6 +147,10 @@ def update_settings(
             sh["color"] = p["color"]
         if isinstance(p.get("stats"), list):
             sh["stats"] = [str(x) for x in p["stats"] if isinstance(x, str)][:8]
+        if isinstance(p.get("dim"), (int, float)):
+            sh["dim"] = max(0.0, min(0.9, float(p["dim"])))
+        if isinstance(p.get("track"), bool):
+            sh["track"] = p["track"]
         current["share"] = sh
     if isinstance(patch.get("notify_prefs"), dict):
         prefs = dict(current.get("notify_prefs") or {})

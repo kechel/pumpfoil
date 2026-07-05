@@ -8,6 +8,7 @@ import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, Loca
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
+import { setCompare } from "../lib/compare";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -17,24 +18,29 @@ const PAGE = 20;
 function MergeHint() {
   const t = useT();
   const nav = useNavigate();
-  const [sugs, setSugs] = useState<{ ids: number[]; count: number; place: string | null }[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [sugs, setSugs] = useState<{ ids: number[]; count: number; place: string | null; date: string; sessions: { id: number; start: string; end: string }[] }[]>([]);
   useEffect(() => { api.mergeSuggestions().then(setSugs).catch(() => {}); }, []);
   if (!sugs.length) return null;
   const s = sugs[0];
-  async function doMerge() {
-    setBusy(true);
-    try { const r = await api.mergeSessions(s.ids); invalidateSessionListCache(); nav(`/sessions/${r.id}`); }
-    catch { setBusy(false); }
+  const hhmm = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const dateStr = new Date(s.date + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
+  // Klick -> genau diese Sessions in den Vergleichskorb (bestehende Auswahl ersetzen) und
+  // die Vergleichen-&-Mergen-Ansicht oeffnen (dort Vorschau + Zusammenfuehren).
+  function review() {
+    setCompare(s.sessions.map((x) => ({ sessionId: x.id, runIdx: null, owned: true, date: s.date })));
+    nav("/vergleich");
   }
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
+    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
       <span className="text-slate-200">
         {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
       </span>
-      <button onClick={doMerge} disabled={busy}
-        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-        {busy ? "…" : t("merge.action")}
+      <span className="w-full text-xs text-slate-400 sm:w-auto">
+        {dateStr} · {s.sessions.map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(" · ")}
+      </span>
+      <button onClick={review}
+        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+        {t("merge.action")}
       </button>
     </div>
   );
@@ -48,7 +54,12 @@ const communityCache = new Map<string, { items: CommunitySession[]; offset: numb
 
 // Nach dem Löschen einer Session muss der Listen-Cache raus, sonst zeigt die
 // zurückkehrende Liste die gelöschte Session noch (Feedback Jan).
+// Erzwingt beim naechsten Mount einen Refetch (statt Cache) — noetig z.B. nach Merge/
+// Loeschen, weil die noch gemountete Liste beim Wegnavigieren sonst ihre veralteten
+// Items zurueck in den Cache schreibt.
+let listDirty = false;
 export function invalidateSessionListCache() {
+  listDirty = true;
   listCache.clear();
   communityCache.clear();
 }
@@ -208,7 +219,9 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
       if (!added.length) return;
-      const merged = [...added, ...itemsRef.current];
+      // Nach Datum einsortieren (neueste zuerst) — nicht blind vorne anhaengen:
+      // eine zusammengefuehrte Session hat ein aelteres Datum, gehoert nicht an den Kopf.
+      const merged = [...added, ...itemsRef.current].sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
       itemsRef.current = merged;
       offsetRef.current += added.length;   // vorne eingefügte Einträge -> Folge-Offset anheben
       setItems(merged);
@@ -220,7 +233,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
     api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
     api.getProfile().then((p) => setAvatar(p.avatar_url)).catch(() => {});
     const cached = listCache.get(cacheKey());
-    if (cached && cached.items.length) {
+    if (!listDirty && cached && cached.items.length) {
       setItems(cached.items);
       offsetRef.current = cached.offset;
       hasMoreRef.current = cached.hasMore;
@@ -229,6 +242,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       itemsRef.current = cached.items;
       revalidateHead(monthRef.current);   // im Hintergrund neue Sessions nachziehen
     } else {
+      listDirty = false;
       fetchPage(monthRef.current, true);
     }
     const obs = new IntersectionObserver((e) => { if (e[0].isIntersecting) fetchPage(monthRef.current, false); }, { rootMargin: "300px" });

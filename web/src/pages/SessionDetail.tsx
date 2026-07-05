@@ -122,8 +122,8 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
         <div className="flex flex-wrap items-center gap-2">
           {s.photos.map((ph, idx) => (
             <div key={ph.id} className="relative">
-              <button onClick={() => setLb(idx)}>
-                <img src={ph.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+              <button onClick={() => setLb(idx)} className="block">
+                <img src={ph.url} alt="" className="h-20 w-auto rounded-lg object-cover" />
               </button>
               {owned && (
                 <button
@@ -138,7 +138,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           {vid && (
             <div className="relative">
               <button onClick={() => setVideo(true)} className="block">
-                <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
                 <span className="absolute inset-0 flex items-center justify-center">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
                 </span>
@@ -167,7 +167,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
         {owned && (
           <button
             onClick={() => setShareOpen(true)}
-            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
           >
             <ShareIcon className="h-4 w-4 text-brand-400" /> {t("sd.share")}
           </button>
@@ -178,14 +178,14 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
             <button
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
             >
               <CameraIcon className="h-4 w-4 text-brand-400" /> {busy ? t("common.loading") : t("sd.addPhoto")}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
             <button
               onClick={() => { setYt(youtubeUrl ?? ""); setMetaErr(null); setYtOpen((o) => !o); }}
-              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+              className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
             >
               <VideoIcon className="h-4 w-4 text-brand-400" /> {t("meta.linkVideo")}
             </button>
@@ -194,15 +194,15 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => vote("fake")}
-            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
           >
-            <FakeIcon className="h-4 w-4" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
+            <FakeIcon className="h-4 w-4 text-amber-400" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
           </button>
           <button
             onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.reportConfirm"))) return; vote("inappropriate"); }}
-            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs ${s.my_inappropriate ? "bg-red-500/20 text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_inappropriate ? "bg-red-500/20 text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
           >
-            <FlagIcon className="h-4 w-4" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
+            <FlagIcon className="h-4 w-4 text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
           </button>
         </div>
       </div>
