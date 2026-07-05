@@ -123,8 +123,11 @@ export default function App() {
         </Link>
       </aside>
 
-      {/* Mobile-Topbar */}
-      <header className="flex items-center justify-between border-b border-slate-800/60 px-4 py-3 md:hidden">
+      {/* Mobile-Topbar (Safe-Area oben fuer iPhone-Notch/Statusleiste) */}
+      <header
+        className="flex items-center justify-between border-b border-slate-800/60 px-4 pb-3 md:hidden"
+        style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
+      >
         <Link to="/">
           <BrandLogo className="h-9" />
         </Link>
@@ -150,8 +153,11 @@ export default function App() {
         <Outlet />
       </main>
 
-      {/* Mobile-Bottom-Nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-[1000] flex border-t border-slate-800 bg-slate-950/95 backdrop-blur md:hidden">
+      {/* Mobile-Bottom-Nav (Safe-Area unten fuer iPhone-Home-Indicator) */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-[1000] flex border-t border-slate-800 bg-slate-950/95 backdrop-blur md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {navItems.map((it) => (
           <NavLink
             key={it.to}
