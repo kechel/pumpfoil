@@ -26,6 +26,18 @@ router = APIRouter(prefix="/api/devices", tags=["devices"])
 
 PAIRING_TTL_MIN = 15
 
+# Speicherarme Uhren, die bei voller Accel-Rate (25 Hz) die Aufnahme abbrechen/abstürzen
+# -> serverseitig auf 'lite' kappen. FR55 belegt (Philipp); Vorgänger der Reihe vermutlich auch.
+_LOW_ACCEL_MODEL_HINTS = ("Forerunner® 55", "Forerunner® 45", "Forerunner® 35", "Forerunner® 30", "Forerunner® 25")
+
+
+def _is_low_accel_model(part_number: str | None) -> bool:
+    if not part_number:
+        return False
+    m = _partmap().get(part_number)
+    name = (m or {}).get("name", "")
+    return any(h in name for h in _LOW_ACCEL_MODEL_HINTS)
+
 
 @router.get("/config")
 def device_config(
@@ -64,9 +76,13 @@ def device_config(
         "colorByValue": bool(settings.get("colorByValue", False)),
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
         "autoStart": bool(settings.get("auto_start", True)),
-        # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS) — für
-        # speicherarme Uhren (z. B. Forerunner 55), die sonst die Aufnahme abbrechen.
-        "recordMode": settings.get("record_mode", "full"),
+        # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS). Für speicherarme
+        # Uhren (FR55 & Vorgänger) serverseitig PRO GERÄT auf 'lite' gekappt (nur runter;
+        # explizites 'gps' bleibt) — verhindert den Absturz, ohne die Profil-Einstellung oder
+        # andere Uhren des Nutzers zu beeinflussen. Kein Uhr-Update nötig.
+        "recordMode": ("lite" if settings.get("record_mode", "full") == "full"
+                       and _is_low_accel_model(device.part_number)
+                       else settings.get("record_mode", "full")),
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
         "language": (user.language if user and user.language else "de"),
         # Vibrationsalarm (per Website konfiguriert).
