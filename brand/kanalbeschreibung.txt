@@ -1,0 +1,110 @@
+---------------------------------------------
+Deutsch
+---------------------------------------------
+Track Every Pump
+
+Verwandle deine Sportuhr in einen Pumpfoil-Computer: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen – vollautomatisch aus jeder Session.
+
+Direkt auf Uhr & Handy
+Apps für Garmin, Apple Watch, iOS, Wear OS, Android und Polar-API-Anbindung.
+(COROS, Amazfit & Suunto folgen – Stand Juli 2026)
+
+Was du bekommst:
+* Konfigurierbare Datenfelder: Geschwindigkeit, Puls, Distanz, Zeit
+* On-Foil-Vibrationsalarm beim Über- oder Unterschreiten deiner Zielgeschwindigkeit (berechnet nach Foil & Gewicht)
+* Aufnahme läuft lokal & offline – synchronisiert automatisch
+
+Community & Open Source
+Pumpfoil ist ein Community-Projekt mit freier Software unter der AGPL-3.0.
+
+App & Infos: https://pumpfoil.org
+Code: https://github.com/kechel/pumpfoil
+
+---------------------------------------------
+English
+---------------------------------------------
+Track Every Pump
+
+Turn your sports watch into a pumpfoil computer: GPS track, foiling distance, pump frequency and glide phases – fully automatic, from every session.
+
+Right on Your Watch & Phone
+Apps for Garmin, Apple Watch, iOS, Wear OS, Android and Polar API integration.
+(COROS, Amazfit & Suunto coming soon – as of July 2026)
+
+What you get:
+
+Configurable data fields: speed, heart rate, distance, time
+On-foil vibration alert when you go above or below your target speed (calculated from foil & weight)
+Recording runs locally & offline – syncs automatically
+Community & Open Source
+Pumpfoil is a community project with free, open-source software under the AGPL-3.0.
+
+App & info: https://pumpfoil.org
+Code: https://github.com/kechel/pumpfoil
+
+---------------------------------------------
+Español
+---------------------------------------------
+Track Every Pump
+
+Convierte tu reloj deportivo en un ordenador de pumpfoil: track GPS, distancia de foiling, frecuencia de bombeo y fases de planeo, de forma totalmente automática en cada sesión.
+
+Directo en el reloj y el móvil
+Apps para Garmin, Apple Watch, iOS, Wear OS, Android e integración con la API de Polar.
+(COROS, Amazfit y Suunto llegarán pronto – a fecha de julio de 2026)
+
+Lo que obtienes:
+
+Campos de datos configurables: velocidad, frecuencia cardíaca, distancia, tiempo
+Alerta por vibración on-foil al superar o bajar de tu velocidad objetivo (calculada según foil y peso)
+La grabación funciona en local y sin conexión – se sincroniza automáticamente
+Comunidad y código abierto
+Pumpfoil es un proyecto comunitario con software libre y de código abierto bajo la licencia AGPL-3.0.
+
+App e información: https://pumpfoil.org
+Código: https://github.com/kechel/pumpfoil
+
+---------------------------------------------
+Français
+---------------------------------------------
+Track Every Pump
+
+Transforme ta montre de sport en ordinateur de pumpfoil : tracé GPS, distance de foil, fréquence de pump et phases de glisse, entièrement automatique à chaque session.
+
+Directement sur la montre et le téléphone
+Applications pour Garmin, Apple Watch, iOS, Wear OS, Android et connexion à l'API Polar.
+(COROS, Amazfit et Suunto à venir – état juillet 2026)
+
+Ce que tu obtiens :
+
+Champs de données configurables : vitesse, fréquence cardiaque, distance, temps
+Alerte vibrante on-foil en cas de dépassement ou de passage sous ta vitesse cible (calculée selon le foil et le poids)
+L'enregistrement fonctionne en local et hors ligne – synchronisation automatique
+Communauté et open source
+Pumpfoil est un projet communautaire au logiciel libre et open source sous licence AGPL-3.0.
+
+Appli & infos : https://pumpfoil.org
+Code : https://github.com/kechel/pumpfoil
+
+---------------------------------------------
+Italiano
+---------------------------------------------
+Track Every Pump
+
+Trasforma il tuo sportwatch in un computer da pumpfoil: traccia GPS, distanza di foiling, frequenza di pump e fasi di planata, in modo completamente automatico a ogni sessione.
+
+Direttamente su orologio e telefono
+App per Garmin, Apple Watch, iOS, Wear OS, Android e integrazione con l'API Polar.
+(COROS, Amazfit e Suunto in arrivo – aggiornato a luglio 2026)
+
+Cosa ottieni:
+
+Campi dati configurabili: velocità, frequenza cardiaca, distanza, tempo
+Avviso a vibrazione on-foil al superamento o calo sotto la tua velocità obiettivo (calcolata in base a foil e peso)
+La registrazione funziona in locale e offline – si sincronizza automaticamente
+Community e open source
+Pumpfoil è un progetto community con software libero e open source sotto licenza AGPL-3.0.
+
+App e info: https://pumpfoil.org
+Codice: https://github.com/kechel/pumpfoil
+---------------------------------------------
