@@ -70,9 +70,6 @@ export default function App() {
       <ScrollRestoration />
       <FeedbackWidget />
       <CompareBar />
-      {/* Theme-Umschalter oben rechts auf allen Seiten erreichbar. Desktop schwebend
-          (ohne Logout, der bleibt im Menü); mobil sitzt er in der Topbar-Zeile. */}
-      <ThemeToggle className="fixed right-4 top-3 z-[1100] hidden shadow-lg backdrop-blur md:inline-flex" />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
         <Link to="/" className="mb-3 block px-1"><BrandLogo className="w-full h-auto" /></Link>
@@ -109,12 +106,15 @@ export default function App() {
 
         <InstallPwa className="mt-3" />
 
-        <button
-          onClick={logout}
-          className="mt-3 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-slate-900 hover:text-slate-200"
-        >
-          <LogoutIcon /> {t("nav.logout")}
-        </button>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-slate-900 hover:text-slate-200"
+          >
+            <LogoutIcon /> {t("nav.logout")}
+          </button>
+          <ThemeToggle className="shrink-0" />
+        </div>
         <Link to="/nerd-analysen" className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
           <NerdIcon className="h-4 w-4" /> Nerd-Analysen
         </Link>
