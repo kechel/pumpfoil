@@ -161,7 +161,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
             {t("mic.listening")}
           </div>
           <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-400">
-            {baseText && <span className="text-slate-500">{baseText} </span>}
+            {baseText && <span className="text-slate-400">{baseText} </span>}
             {preview ? <span className="font-bold text-brand-400">{preview}</span> : (!baseText && <span className="text-slate-500">…</span>)}
           </div>
           <div className="mt-4 flex items-stretch gap-2">
