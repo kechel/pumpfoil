@@ -122,16 +122,22 @@ def _session_geom(db, s):
 
 
 def name_for(lat, lon):
-    """(name, source, water) für einen Punkt: Ufer-Venue bevorzugt, sonst Gewässer.
-    name=None -> Geocode fehlgeschlagen ODER nichts gefunden (Aufrufer kann später erneut)."""
-    from .places import lookup_shore_name, lookup_water_name
+    """(name, source, water) für einen Punkt. Priorität:
+      1. Ufer-Venue (leisure=sports_centre/marina/beach…) — spezifische Launch-Stelle
+      2. Ortschaft (place=village/town/city) — Locals benennen Spots oft nach dem Ort
+      3. Gewässername
+    Gewässername kommt IMMER als Label (water) mit. name=None -> nichts gefunden/Fehler (retry)."""
+    from .places import lookup_place_name, lookup_shore_name, lookup_water_name
     shore = lookup_shore_name(lat, lon)
     water = lookup_water_name(lat, lon)          # str | "" | None
     if shore:
         return shore, "venue", (water or None)
+    town = lookup_place_name(lat, lon)
+    if town:
+        return town, "town", (water or None)
     if water:
         return water, "water", water
-    return None, None, None
+    return None, None, (water or None)
 
 
 def rebuild_all(db, apply: bool = False):

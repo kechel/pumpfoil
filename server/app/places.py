@@ -100,6 +100,29 @@ def lookup_shore_name(lat: float, lon: float, timeout: float = 25.0) -> str | No
     return best[1][:120] if best else None
 
 
+def lookup_place_name(lat: float, lon: float, radius_m: int = 3500, timeout: float = 20.0) -> str | None:
+    """Nächste echte Ortschaft (place=village|town|city) im Umkreis — Locals benennen
+    Spots an großen Gewässern oft nach dem Ort (z. B. „Immenstaad am Bodensee"). BEWUSST
+    ohne suburb/neighbourhood/hamlet (das liefert bei Städten Mikro-Viertel-Müll, siehe Paris).
+    Fehlertolerant -> None."""
+    q = (f'[out:json][timeout:25];(node(around:{radius_m},{lat},{lon})'
+         '["place"~"^(village|town|city)$"]["name"];);out center 60;')
+    payload = _overpass(q, timeout, tries=3)
+    if payload is None:
+        return None
+    best = None
+    for el in payload.get("elements", []):
+        name = (el.get("tags") or {}).get("name")
+        la = el.get("lat") or (el.get("center") or {}).get("lat")
+        lo = el.get("lon") or (el.get("center") or {}).get("lon")
+        if not name or la is None:
+            continue
+        d = _hav_m(lat, lon, la, lo)
+        if best is None or d < best[0]:
+            best = (d, name)
+    return best[1][:120] if best else None
+
+
 def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | None:
     """Name der Wasserfläche um (lat, lon). Tri-State, damit der Aufrufer einen
     transienten Fehlschlag NICHT als Endergebnis cacht (sonst „kein Spot" für immer):
