@@ -40,7 +40,10 @@ export function PwaStatus() {
 
   if (needRefresh) {
     return (
-      <div className="sticky top-0 z-[4000] flex items-center justify-center gap-3 bg-brand-500 px-3 py-1.5 text-center text-xs font-medium text-slate-950">
+      <div
+        className="sticky top-0 z-[4000] flex items-center justify-center gap-3 bg-brand-500 px-3 pb-1.5 text-center text-xs font-medium text-slate-950"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.375rem)" }}
+      >
         <span>{t("pwa.updateAvailable")}</span>
         <button
           onClick={() => updateServiceWorker(true)}
@@ -53,7 +56,10 @@ export function PwaStatus() {
   }
   if (!online) {
     return (
-      <div className="sticky top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 py-1 text-center text-xs font-medium text-slate-950">
+      <div
+        className="sticky top-0 z-[4000] flex items-center justify-center gap-2 bg-amber-500/90 px-3 pb-1 text-center text-xs font-medium text-slate-950"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.25rem)" }}
+      >
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-900" />
         {t("pwa.offline")}
       </div>
