@@ -116,6 +116,7 @@ export interface SessionSummary {
   owner_name?: string | null;
   owner_avatar_url?: string | null;
   place_name?: string | null;
+  place_water?: string | null;
   caption?: string | null;
   youtube_url?: string | null;
   thumb_url?: string | null;

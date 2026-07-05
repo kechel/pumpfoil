@@ -106,6 +106,7 @@ def _migrate_add_columns() -> None:
             "trim_start_ms": "INTEGER",
             "trim_end_ms": "INTEGER",
             "place_name": "VARCHAR(120)",
+            "place_water": "VARCHAR(120)",
             "deleted": "BOOLEAN DEFAULT 0",
             "is_pumpfoil": "BOOLEAN",
             "flagged": "BOOLEAN DEFAULT 0",

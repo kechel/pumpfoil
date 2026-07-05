@@ -213,8 +213,12 @@ class Session(Base):
     # [trim_start_ms, trim_end_ms] (z. B. Auto-Heimfahrt nach dem Foilen abschneiden).
     trim_start_ms: Mapped[int | None] = mapped_column(Integer)
     trim_end_ms: Mapped[int | None] = mapped_column(Integer)
-    # Name des Gewässers (per OSM/Overpass aufgelöst, gecacht). "" = nachgeschlagen, nichts gefunden.
+    # Spot-Name (per OSM/Overpass, gecacht). "" = nachgeschlagen, nichts gefunden.
+    # Bevorzugt ein Ufer-/Venue-Name (leisure=sports_centre/marina/beach…), sonst der Gewässername.
     place_name: Mapped[str | None] = mapped_column(String(120))
+    # Gewässername als Zusatz-Label (immer mitgenommen, wenn gefunden) — z. B. wenn place_name
+    # ein Ufer-Venue ist, steht hier weiterhin der See/Fluss.
+    place_water: Mapped[str | None] = mapped_column(String(120))
     # Repräsentative Koordinaten (Median der GPS-Punkte) — für die Spot-Karte.
     place_lat: Mapped[float | None] = mapped_column(Float)
     place_lon: Mapped[float | None] = mapped_column(Float)

@@ -7,12 +7,28 @@ Namen. Best-effort mit kurzem Timeout — Fehler/kein Treffer -> None.
 from __future__ import annotations
 
 import json
+import math
 import urllib.parse
 import urllib.request
 
 from .config import get_settings
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+
+# Land-Features, nach denen man einen Launch-Spot benennt (konservative Whitelist —
+# nur eindeutige „Venue"-artige Tags, KEINE Restaurants/Schulen/Regionen).
+_SHORE_TAGS = [
+    ("leisure", "sports_centre"), ("leisure", "marina"), ("leisure", "water_park"),
+    ("leisure", "beach_resort"), ("leisure", "slipway"), ("natural", "beach"),
+    ("man_made", "pier"),
+]
+
+
+def _hav_m(lat1, lon1, lat2, lon2) -> float:
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * 6371000.0 * math.asin(min(1.0, math.sqrt(h)))
 
 
 def _ua() -> str:
@@ -42,6 +58,42 @@ def lookup_water_rings(lat: float, lon: float, timeout: float = 12.0) -> list | 
         ways.sort(key=lambda w: len(w["geometry"]), reverse=True)
         return [[[p["lat"], p["lon"]] for p in ways[0]["geometry"]]]
     return None
+
+
+def lookup_shore_name(lat: float, lon: float, timeout: float = 25.0) -> str | None:
+    """Best-Guess-Ufer-/Venue-Name nahe (lat,lon): das NÄCHSTE benannte Feature aus der
+    konservativen Whitelist (_SHORE_TAGS) im Umkreis. Fehlertolerant — bei Netz-/Parse-
+    Fehler oder keinem eindeutigen Treffer -> None (Aufrufer faellt auf den Gewaessernamen
+    zurueck). Bewusst eng, damit kein Restaurant/keine Region als Spot-Name landet.
+    Läuft als Background-Task -> großzügiger Timeout + 1 Retry (Overpass ist flaky)."""
+    import time
+    q = f'[out:json][timeout:25];(nwr(around:300,{lat},{lon})["name"];);out tags center 80;'
+    payload = None
+    for attempt in range(2):
+        try:
+            data = urllib.parse.urlencode({"data": q}).encode()
+            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                payload = json.loads(resp.read().decode())
+            break
+        except Exception:  # noqa: BLE001
+            if attempt == 0:
+                time.sleep(2)
+    if payload is None:
+        return None
+    best = None
+    for el in payload.get("elements", []):
+        tags = el.get("tags") or {}
+        name = tags.get("name")
+        if not name or not any(tags.get(k) == v for k, v in _SHORE_TAGS):
+            continue
+        c = el.get("center") or {"lat": el.get("lat"), "lon": el.get("lon")}
+        if c.get("lat") is None:
+            continue
+        d = _hav_m(lat, lon, c["lat"], c["lon"])
+        if best is None or d < best[0]:
+            best = (d, name)
+    return best[1][:120] if best else None
 
 
 def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | None:

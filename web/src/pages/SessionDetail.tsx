@@ -901,6 +901,9 @@ export default function SessionDetail() {
             <span className="truncate">{t("chat.spotChat")} {session.place_name}</span>
           </Link>
         )}
+        {session.place_water && session.place_water !== session.place_name && (
+          <span className="shrink-0 text-xs text-slate-500" title={t("sd.waterBody")}>· {session.place_water}</span>
+        )}
         {(() => {
           const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
           return (

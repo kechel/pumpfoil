@@ -336,6 +336,7 @@ const de: Record<string, string> = {
   "sd.addPhoto": "Foto hinzufügen",
   "sd.likes": "Likes",
   "sd.share": "Teilen",
+  "sd.waterBody": "Gewässer",
   "share.darken": "Abdunkeln",
   "share.showTrack": "Track anzeigen",
   "share.cardTitle": "Titel / Text",

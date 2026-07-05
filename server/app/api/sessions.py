@@ -85,6 +85,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         owner_name=owner_name,
         owner_avatar_url=owner_avatar_url,
         place_name=s.place_name or None,
+        place_water=s.place_water or None,
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
@@ -607,7 +608,7 @@ def _geocode_place(session_id: int) -> None:
     import numpy as _np
 
     from ..db import SessionLocal
-    from ..places import lookup_water_name
+    from ..places import lookup_shore_name, lookup_water_name
 
     db = SessionLocal()
     try:
@@ -630,9 +631,12 @@ def _geocode_place(session_id: int) -> None:
         if pt is None:
             pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
         lat, lon = pt
-        name = lookup_water_name(lat, lon)
+        water = lookup_water_name(lat, lon)     # str | "" | None (Tri-State)
+        shore = lookup_shore_name(lat, lon)     # str | None (Best-Guess, sonst None)
+        name = shore or water                    # Ufer-Venue bevorzugt, sonst Gewaesser
         if name is not None:
             s.place_name = name
+            s.place_water = water or None        # Gewaessername immer als Zusatz-Label
             s.place_lat = lat
             s.place_lon = lon
             db.commit()

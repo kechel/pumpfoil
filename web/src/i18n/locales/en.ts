@@ -313,6 +313,7 @@ const en: Record<string, string> = {
   "sd.addPhoto": "Add photo",
   "sd.likes": "Likes",
   "sd.share": "Share",
+  "sd.waterBody": "Water body",
   "share.darken": "Darken",
   "share.showTrack": "Show track",
   "share.cardTitle": "Title / text",
