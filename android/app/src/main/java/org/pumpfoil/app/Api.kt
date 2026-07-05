@@ -69,6 +69,11 @@ object Api {
         json.decodeFromString(TokenResp.serializer(), resp).access_token
     }
 
+    // Feedback senden (POST /api/feedback {text, url}).
+    suspend fun submitFeedback(text: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/feedback", buildJsonObject { put("text", text); put("url", "android-app") }.toString(), auth = true)
+    }
+
     // Passwort-Reset anstoßen (Server verschickt Mail; Antwort ignorieren).
     suspend fun forgotPassword(email: String): Unit = withContext(Dispatchers.IO) {
         http("POST", "/api/auth/forgot-password", buildJsonObject { put("email", email) }.toString(), auth = false)

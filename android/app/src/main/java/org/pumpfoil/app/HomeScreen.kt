@@ -17,12 +17,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,6 +32,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Icon
@@ -42,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -74,7 +79,10 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     var bannerDismissed by remember {
         mutableStateOf(ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).getString("foil_banner_v1", null) == "1")
     }
+    var showFeedback by remember { mutableStateOf(false) }
     val tick by WatchSync.tick.collectAsState()
+
+    if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
 
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.
     LaunchedEffect(Unit) {
@@ -111,13 +119,20 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
         }
     }
 
-    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.home")) { SyncIndicator() } }) { pad ->
+    Scaffold(topBar = {
+        PumpfoilTopBar(I18n.t("nav.home")) {
+            IconButton(onClick = { showFeedback = true }) {
+                Icon(Icons.Filled.Feedback, contentDescription = I18n.t("feedback.title"), tint = MaterialTheme.colorScheme.primary)
+            }
+            SyncIndicator()
+        }
+    }) { pad ->
         if (loading && stats == null) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold
         }
         val ctx = androidx.compose.ui.platform.LocalContext.current
-        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)) {
             val uv = updateVer
             if (uv != null && !updateDismissed) {
                 UpdateBanner(
@@ -138,7 +153,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                         bannerDismissed = true
                     },
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
             }
             // Begrüßung + Chat-Button (wie PWA).
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -151,7 +166,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                     Text(I18n.t("chat.title"))
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
             stats?.let { st ->
                 // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
@@ -198,12 +213,12 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
             }
 
             weather?.let { wb ->
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 WeatherCard(wb)
             }
 
             if (rooms.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(I18n.t("home.myChats"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 rooms.forEach { room ->
@@ -233,7 +248,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
             }
 
             // Letzte Sessions: immer Kopf + "Alle meine →" (wie PWA), Liste oder leer-Hinweis.
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = onOpenSessions) {
@@ -254,7 +269,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
             }
 
             // Community-Link (wie PWA).
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
             TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
@@ -443,4 +458,44 @@ private fun versionNewer(latest: String, current: String): Boolean {
         if (x != y) return x > y
     }
     return false
+}
+
+// Feedback-Dialog (wie das PWA-Feedback-Widget): kurzer Text an POST /api/feedback.
+@Composable
+private fun FeedbackDialog(onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var text by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var sent by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(I18n.t("feedback.title")) },
+        text = {
+            if (sent) {
+                Text(I18n.t("feedback.sent"), color = MaterialTheme.colorScheme.primary)
+            } else {
+                Column {
+                    Text(I18n.t("feedback.intro"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = text, onValueChange = { if (it.length <= 500) text = it },
+                        placeholder = { Text(I18n.t("feedback.placeholder")) },
+                        minLines = 3, modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (sent) {
+                TextButton(onClick = onDismiss) { Text("OK") }
+            } else {
+                TextButton(
+                    enabled = !busy && text.isNotBlank(),
+                    onClick = { busy = true; scope.launch { try { Api.submitFeedback(text.trim()); sent = true } catch (_: Exception) {}; busy = false } },
+                ) { Text(I18n.t("feedback.send")) }
+            }
+        },
+        dismissButton = { if (!sent) TextButton(onClick = onDismiss) { Text(I18n.t("common.cancel")) } },
+    )
 }
