@@ -50,13 +50,14 @@ body {
 
 /* body-Hintergrund = Farbe, die macOS-Safari (26+) fuer die Fenster-Titelleiste
  * sampelt (nicht mehr theme-color). #root deckt die UI opak ab -> Cyan zeigt sich
- * nur im Overscroll + faerbt die Titelleiste. Dark = Brand, Light = dunkleres Cyan. */
+ * nur im Overscroll + faerbt die Titelleiste. Dark = dunkleres Cyan (dunkles
+ * Fenster-Chrome), Light = helles Brand-Cyan (helles Chrome). */
 body {
   @apply text-slate-100 antialiased;
-  background-color: #22d3ee;
+  background-color: #0e7490;
 }
 html.theme-light body {
-  background-color: #0e7490;
+  background-color: #22d3ee;
 }
 
 /* 1px-Streifen ganz oben -> Safari (macOS) sampelt die background-color des obersten
@@ -68,12 +69,12 @@ html.theme-light body {
   left: 0;
   right: 0;
   height: 1px;
-  background: #22d3ee;
+  background: #0e7490;
   z-index: 9999;
   pointer-events: none;
 }
 html.theme-light #titlebar-tint {
-  background: #0e7490;
+  background: #22d3ee;
 }
 
 /* Platzhalter (Sonnenlicht-Lesbarkeit) — slate-400 in beiden Themes. */
