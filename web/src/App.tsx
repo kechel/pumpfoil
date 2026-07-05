@@ -66,7 +66,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
+    <div className="flex min-h-full flex-col bg-slate-950 md:flex-row">
       <ScrollRestoration />
       <FeedbackWidget />
       <CompareBar />

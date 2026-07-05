@@ -38,13 +38,25 @@ html.theme-light {
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
 }
 
+/* App-Hintergrund liegt auf #root (deckt jede Seite ab, waechst mit dem Inhalt). */
+#root {
+  @apply bg-slate-950;
+  min-height: 100%;
+}
+
+/* body-Hintergrund = Farbe, die macOS-Safari (26+) fuer die Fenster-Titelleiste
+ * sampelt (nicht mehr theme-color). #root deckt die UI opak ab -> Cyan zeigt sich
+ * nur im Overscroll + faerbt die Titelleiste. Dark = Brand, Light = dunkleres Cyan. */
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply text-slate-100 antialiased;
+  background-color: #22d3ee;
+}
+html.theme-light body {
+  background-color: #0e7490;
 }
 
 /* 1px-Streifen ganz oben -> Safari (macOS) sampelt die background-color des obersten
