@@ -86,6 +86,20 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}) {
     }
 }
 
+// Kleiner Marken-Cyan-Punkt (#22d3ee, Navy-Rand) als Marker-Icon — wie die circleMarker der PWA.
+private fun cyanDot(ctx: android.content.Context): android.graphics.drawable.Drawable {
+    val size = (ctx.resources.displayMetrics.density * 14).toInt().coerceAtLeast(20)
+    val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val cx = size / 2f; val r = size / 2f - ctx.resources.displayMetrics.density * 1.5f
+    val fill = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF22D3EE.toInt() }
+    val stroke = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF0F172A.toInt(); style = android.graphics.Paint.Style.STROKE; strokeWidth = ctx.resources.displayMetrics.density * 1.5f
+    }
+    c.drawCircle(cx, cx, r, fill); c.drawCircle(cx, cx, r, stroke)
+    return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
+}
+
 // FLOSS-Karte (OpenStreetMap via osmdroid) mit einem Pin je Spot, eingebettet per
 // AndroidView in Compose. Kein API-Key nötig.
 @Composable
@@ -102,6 +116,7 @@ private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, mod
         },
         update = { map ->
             map.overlays.clear()
+            val dot = cyanDot(map.context)   // Marken-Cyan-Punkt statt Default-Pin (wie Web)
             val pts = ArrayList<GeoPoint>()
             for (s in items) {
                 val p = GeoPoint(s.lat, s.lon)
@@ -109,7 +124,8 @@ private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, mod
                 map.overlays.add(Marker(map).apply {
                     position = p
                     title = "${s.spot} (${s.sessions})"
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    icon = dot
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     setOnMarkerClickListener { _, _ -> onOpenSpot(s.spot); true }   // Pin tippen -> Sessions des Spots
                 })
             }

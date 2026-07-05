@@ -205,7 +205,11 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   Monat+Jahr (wie Web); aggTitle bekommt Fenster-Suffix (· 7 T / · 30 T) auf beiden Plattformen.
   Offen (§5, geräteabhängig): SpotProgression-Animation (Läufe eines Spots chronologisch) fehlt nativ;
   Chart-Klick→Session + Hover-Tooltip nur Web.
-- ☐ Spots → Chat → Profil → Einstellungen (in Arbeit).
+- ✅ **Spots** (Android verifiziert, iOS bereits konform): Karte + Spot-Liste (nativ reicher als Web,
+  das nur Suche+Karte hat). Fix: Android-Marker jetzt Marken-Cyan-Punkte (#22d3ee, Navy-Rand) statt
+  Default-osmdroid-Pins — wie die circleMarker der PWA. iOS nutzt MapKit-Annotationen + Liste schon in
+  accentColor. Liste (Name · Sessions, Cyan-Pin) → tippt auf Sessions des Spots.
+- ☐ Chat → Profil → Einstellungen (in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
