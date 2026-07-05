@@ -54,7 +54,14 @@ export function PwaStatus() {
           <>
             <span>{t("pwa.updateAvailable")}</span>
             <button
-              onClick={() => { setUpdating(true); updateServiceWorker(true); }}
+              onClick={() => {
+                setUpdating(true);
+                // Neue SW übernimmt -> reload. Fallback nach 3.5 s, falls kein controllerchange
+                // kommt (dann hängt der Spinner sonst ewig, nur manuelles Reload half).
+                navigator.serviceWorker?.addEventListener("controllerchange", () => window.location.reload(), { once: true });
+                updateServiceWorker(true);
+                setTimeout(() => window.location.reload(), 3500);
+              }}
               className="rounded bg-slate-950/20 px-2 py-0.5 font-semibold hover:bg-slate-950/30"
             >
               {t("pwa.update")}
