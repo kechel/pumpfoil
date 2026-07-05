@@ -122,19 +122,20 @@ def _session_geom(db, s):
 
 
 def name_for(lat, lon):
-    """(name, source, water) für einen Punkt. Priorität:
-      1. Ufer-Venue (leisure=sports_centre/marina/beach…) — spezifische Launch-Stelle
-      2. Ortschaft (place=village/town/city) — Locals benennen Spots oft nach dem Ort
+    """(name, source, water) für einen Punkt. Priorität (Locals benennen Spots nach dem ORT):
+      1. Ortschaft (place=village/town/city) — z. B. „Immenstaad am Bodensee", „Vaires-sur-Marne"
+      2. Ufer-Venue (leisure=sports_centre/marina/beach…) — falls kein Ort in Reichweite
       3. Gewässername
-    Gewässername kommt IMMER als Label (water) mit. name=None -> nichts gefunden/Fehler (retry)."""
+    Ort-zuerst ist auch am konsistentesten (die Venue-Abfrage ist flakiger). Gewässername kommt
+    IMMER als Label (water) mit. name=None -> nichts gefunden/Fehler (Aufrufer kann später erneut)."""
     from .places import lookup_place_name, lookup_shore_name, lookup_water_name
-    shore = lookup_shore_name(lat, lon)
     water = lookup_water_name(lat, lon)          # str | "" | None
-    if shore:
-        return shore, "venue", (water or None)
     town = lookup_place_name(lat, lon)
     if town:
         return town, "town", (water or None)
+    shore = lookup_shore_name(lat, lon)
+    if shore:
+        return shore, "venue", (water or None)
     if water:
         return water, "water", water
     return None, None, (water or None)
@@ -144,46 +145,56 @@ def rebuild_all(db, apply: bool = False):
     """Alle (nicht gelöschten) Sessions mit Track zu Spots clustern. apply=True schreibt
     spots-Tabelle + sessions.spot_id/place_name/place_water. Rückgabe: Report-Liste."""
     from . import models
+    # Nur Sessions mit On-Foil-Erkennung (num_runs>0) clustern — bei allen anderen ist der Spot egal.
     rows = (db.query(models.Session)
-            .filter(models.Session.deleted.isnot(True), models.Session.place_lat.isnot(None))
+            .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+            .filter(models.Session.deleted.isnot(True), models.Session.place_lat.isnot(None),
+                    models.AnalysisResult.num_runs > 0)
             .all())
     geoms = [g for g in (_session_geom(db, s) for s in rows) if g and g.points]
     all_pts = [p for g in geoms for p in g.points]
     lat0 = sorted(p[0] for p in all_pts)[len(all_pts) // 2]
     spots, assign = build_spots(geoms)
-    start_of = {g.sid: g.start for g in geoms}
-    report = []
+    report = [{"spot": sp.id, "n": len(sp.session_ids), "sessions": sp.session_ids} for sp in spots]
+    n_multi = sum(1 for v in assign.values() if v is None)
     if apply:
+        # SCHNELL: nur clustern + spot_id setzen, KEIN Geocoding (das macht name_pending_spots
+        # separat, pro Spot committed). place_name bleibt vorerst wie es ist.
         db.query(models.Session).update({models.Session.spot_id: None})
         db.query(models.Spot).delete()
         db.flush()
-    spot_row = {}
-    for sp in spots:
-        rep = sp.rep
-        name, src, water = name_for(*rep)
-        report.append({"spot": sp.id, "n": len(sp.session_ids), "name": name, "source": src, "water": water,
-                       "sessions": sp.session_ids})
-        if apply:
-            row = models.Spot(name=name, name_source=src, water_name=water, lat=rep[0], lon=rep[1],
-                              poly_wkt=_m_to_wkt(sp.poly, lat0))
+        for sp in spots:
+            row = models.Spot(name=None, lat=sp.rep[0], lon=sp.rep[1], poly_wkt=_m_to_wkt(sp.poly, lat0))
             db.add(row); db.flush()
-            spot_row[sp.id] = row
             for sid in sp.session_ids:
-                s = db.get(models.Session, sid)
-                s.spot_id = row.id
-                s.place_name = name if name is not None else s.place_name
-                s.place_water = water
-    if apply:
+                db.get(models.Session, sid).spot_id = row.id
         for sid, v in assign.items():
-            if v is None:  # ≥2 Spots -> nur Gewässer
-                s = db.get(models.Session, sid)
-                _, _, w = name_for(*start_of[sid])
-                s.spot_id = None
-                if w:
-                    s.place_name = w
-                    s.place_water = w
+            if v is None:                      # ≥2 Spots -> kein Spot (später Gewässername)
+                db.get(models.Session, sid).spot_id = None
         db.commit()
-    return report
+    return {"spots": len(spots), "multi_spot_sessions": n_multi, "detail": report}
+
+
+def name_pending_spots(db, max_spots: int | None = None) -> dict:
+    """Geocodet noch unbenannte Spots (name IS NULL) — pro Spot committed, fehlertolerant
+    (name_for None -> bleibt offen, nächster Lauf erneut). Setzt Spot-Name + place_name/
+    place_water aller Mitglieds-Sessions. Wiederholt aufrufbar (Overpass ist flaky)."""
+    from . import models
+    q = db.query(models.Spot).filter(models.Spot.name.is_(None), models.Spot.merged_into.is_(None))
+    if max_spots:
+        q = q.limit(max_spots)
+    named = pending = 0
+    for sp in q.all():
+        name, src, water = name_for(sp.lat, sp.lon)
+        if name is None:
+            pending += 1
+            continue
+        sp.name, sp.name_source, sp.water_name = name, src, water
+        (db.query(models.Session).filter(models.Session.spot_id == sp.id)
+         .update({models.Session.place_name: name, models.Session.place_water: water}))
+        db.commit()
+        named += 1
+    return {"named": named, "still_pending": pending}
 
 
 def assign_one(db, s):
