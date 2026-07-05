@@ -16,8 +16,6 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +23,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -81,50 +95,7 @@ fun MainScaffold(onLogout: () -> Unit) {
     Scaffold(
         bottomBar = {
             if (route in TOP_LEVEL) {
-                val navColors = androidx.compose.material3.NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = route == "home", onClick = { nav.switchTab("home") },
-                        icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                        label = { Text(I18n.t("nav.home")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "community", onClick = { nav.switchTab("community") },
-                        icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
-                        label = { Text(I18n.t("nav.community")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "sessions", onClick = { nav.switchTab("sessions") },
-                        icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                        label = { Text(I18n.t("nav.sessions")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "verlauf", onClick = { nav.switchTab("verlauf") },
-                        icon = { Icon(Icons.Filled.ShowChart, contentDescription = null) },
-                        label = { Text(I18n.t("nav.history")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "spots", onClick = { nav.switchTab("spots") },
-                        icon = { Icon(Icons.Filled.Place, contentDescription = null) },
-                        label = { Text(I18n.t("nav.spots")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "chat", onClick = { nav.switchTab("chat") },
-                        icon = { Icon(Icons.Filled.Forum, contentDescription = null) },
-                        label = { Text(I18n.t("nav.chat")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                    NavigationBarItem(
-                        selected = route == "profile", onClick = { nav.switchTab("profile") },
-                        icon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        label = { Text(I18n.t("nav.profile")) }, alwaysShowLabel = true, colors = navColors,
-                    )
-                }
+                PumpfoilBottomBar(route) { nav.switchTab(it) }
             }
         },
     ) { pad ->
@@ -197,5 +168,42 @@ private fun NavController.switchTab(route: String) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+// Eigene Bottom-Nav: Markierung umschließt Icon UND Label, enger Icon<->Label-Abstand.
+@Composable
+private fun PumpfoilBottomBar(route: String?, onSelect: (String) -> Unit) {
+    data class Tab(val route: String, val label: String, val icon: ImageVector)
+    val tabs = listOf(
+        Tab("home", I18n.t("nav.home"), Icons.Filled.Home),
+        Tab("community", "Foilers", Icons.Filled.Groups),
+        Tab("sessions", I18n.t("nav.sessions"), Icons.AutoMirrored.Filled.List),
+        Tab("verlauf", I18n.t("nav.history"), Icons.Filled.ShowChart),
+        Tab("spots", I18n.t("nav.spots"), Icons.Filled.Place),
+        Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum),
+        Tab("profile", I18n.t("nav.profile"), Icons.Filled.Person),
+    )
+    Surface(tonalElevation = 3.dp, color = MaterialTheme.colorScheme.surface) {
+        Row(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
+        ) {
+            tabs.forEach { t ->
+                val sel = route == t.route
+                val c = if (sel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                Column(
+                    Modifier.weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { onSelect(t.route) }
+                        .then(if (sel) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)) else Modifier)
+                        .padding(vertical = 5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(t.icon, contentDescription = null, tint = c, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.height(1.dp))
+                    Text(t.label, color = c, maxLines = 1, softWrap = false, fontSize = 10.sp)
+                }
+            }
+        }
     }
 }
