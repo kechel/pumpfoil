@@ -15,33 +15,38 @@ const PAGE = 20;
 
 // Hinweis oben in „Meine Sessions": heutige, aufeinanderfolgende Sessions (<=1 h)
 // koennten zusammengehoeren -> Vorschlag zum Zusammenfuehren (mit Bestaetigung).
+type MergeSug = { ids: number[]; count: number; place: string | null; date: string; sessions: { id: number; start: string; end: string }[] };
+
 function MergeHint() {
   const t = useT();
   const nav = useNavigate();
-  const [sugs, setSugs] = useState<{ ids: number[]; count: number; place: string | null; date: string; sessions: { id: number; start: string; end: string }[] }[]>([]);
+  const [sugs, setSugs] = useState<MergeSug[]>([]);
   useEffect(() => { api.mergeSuggestions().then(setSugs).catch(() => {}); }, []);
   if (!sugs.length) return null;
-  const s = sugs[0];
   const hhmm = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const dateStr = new Date(s.date + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
+  const dateStr = (d: string) => new Date(d + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
   // Klick -> genau diese Sessions in den Vergleichskorb (bestehende Auswahl ersetzen) und
   // die Vergleichen-&-Mergen-Ansicht oeffnen (dort Vorschau + Zusammenfuehren).
-  function review() {
+  function review(s: MergeSug) {
     setCompare(s.sessions.map((x) => ({ sessionId: x.id, runIdx: null, owned: true, date: s.date })));
     nav("/vergleich");
   }
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
-      <span className="text-slate-200">
-        {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
-      </span>
-      <span className="w-full text-xs text-slate-400 sm:w-auto">
-        {dateStr} · {s.sessions.map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(" · ")}
-      </span>
-      <button onClick={review}
-        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-        {t("merge.action")}
-      </button>
+    <div className="mb-4 space-y-2">
+      {sugs.map((s) => (
+        <div key={s.ids.join("-")} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
+          <span className="text-slate-200">
+            {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
+          </span>
+          <span className="w-full text-xs text-slate-400 sm:w-auto">
+            {dateStr(s.date)} · {s.sessions.map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(" · ")}
+          </span>
+          <button onClick={() => review(s)}
+            className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+            {t("merge.action")}
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
