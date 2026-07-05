@@ -81,7 +81,10 @@ Eigene Seite **„Verknüpfte Konten"** mit OAuth-Verknüpfung + Import fremder 
   `01b361c` `18e2f20` `e181647`.
 - Port: „Verknüpfte Konten"-Screen + Import-Button (mobil), Status-Badges je Provider.
 
-### ☐ 1.6 Home: Willkommens-Banner + Community-Stats-Leiste  · Server bereit ✅
+### ✅ 1.6 Home: Willkommens-Banner + Community-Stats-Leiste  · Server bereit ✅  — Android+iOS gebaut
+Umgesetzt: schließbarer Willkommens-Banner auf Home (Intro + Stats-Satz mit fett/cyan Zahlen,
+`foil_banner_v1`), dauerhafte Community-Stats-Leiste oben im Community-Bereich (gleiche Zahlen),
+Rekord-Kacheln zeigen jetzt das Datum des Rekords. Endpoint `/api/community/stats`.
 - Community-Bereich zeigt oben dauerhaft eine **Stats-Leiste** (Foiler / Spots / Sessions / Pumps),
   Endpoint dafür existiert (`f593070`). Wording „Pumpfoiler" (nicht „Foiler").
 - Home-**Willkommens-Banner** inkl. Startdatum (23. Juni 2026).

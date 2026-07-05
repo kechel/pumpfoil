@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -64,12 +65,14 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onRecords: () -> Unit = {}) {
     var spotQuery by remember { mutableStateOf("") }
     var spotRecords by remember { mutableStateOf<PeriodRecords?>(null) }
     var spotShown by remember { mutableStateOf("") }
+    var cstats by remember { mutableStateOf<Api.CommunityStats?>(null) }
     val scope = rememberCoroutineScope()
 
     suspend fun load() {
         loading = true
         try {
             feed = Api.communitySessions(); error = null
+            cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
             leaders = try { Api.leaders() } catch (_: Exception) { null }
             media = try { Api.latestPhotos() } catch (_: Exception) { emptyList() }
             topLiked = try { Api.topLiked(limit = 5) } catch (_: Exception) { emptyList() }
@@ -95,6 +98,18 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onRecords: () -> Unit = {}) {
                 } else {
                     LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 12.dp)) {
                         error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+
+                        // Dauerhafte Community-Stats-Leiste (Foiler/Spots/Sessions/Pumps).
+                        cstats?.let { cs ->
+                            item {
+                                Card(
+                                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
+                                ) {
+                                    Text(bannerStatsAnnotated(cs), Modifier.padding(horizontal = 14.dp, vertical = 8.dp), style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
 
                         // Bestenliste (Rangliste je Metrik).
                         leaders?.let { lb ->

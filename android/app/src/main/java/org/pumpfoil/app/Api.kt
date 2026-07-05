@@ -273,6 +273,14 @@ object Api {
     }
 
     @kotlinx.serialization.Serializable
+    data class CommunityStats(val foilers: Int = 0, val spots: Int = 0, val sessions: Int = 0, val pumps: Int = 0)
+
+    // Community-Kennzahlen (Willkommens-Banner + Stats-Leiste).
+    suspend fun communityStats(): CommunityStats = withContext(Dispatchers.IO) {
+        json.decodeFromString(CommunityStats.serializer(), http("GET", "/api/community/stats", null, auth = true))
+    }
+
+    @kotlinx.serialization.Serializable
     data class AppLatest(val latest: String = "", val min_supported: String = "", val store_url: String = "")
 
     // Neueste Store-Version (server-seitig manuell gepflegt) — fuer den In-App-Update-Hinweis.

@@ -16,6 +16,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +64,11 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
     var updateVer by remember { mutableStateOf<String?>(null) }
     var updateUrl by remember { mutableStateOf("") }
     var updateDismissed by remember { mutableStateOf(false) }
+    var community by remember { mutableStateOf<Api.CommunityStats?>(null) }
+    val ctxTop = androidx.compose.ui.platform.LocalContext.current
+    var bannerDismissed by remember {
+        mutableStateOf(ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).getString("foil_banner_v1", null) == "1")
+    }
     val tick by WatchSync.tick.collectAsState()
 
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.
@@ -77,6 +86,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
         profile = try { Api.me() } catch (_: Exception) { profile }
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
         rooms = try { Api.chatRooms() } catch (_: Exception) { emptyList() }
+        if (!bannerDismissed) community = try { Api.communityStats() } catch (_: Exception) { community }
         val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs).weather } catch (_: Exception) { null } else null
         loading = false
@@ -115,6 +125,16 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 )
                 Spacer(Modifier.height(12.dp))
             }
+            if (!bannerDismissed) {
+                WelcomeBanner(
+                    stats = community,
+                    onDismiss = {
+                        ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit().putString("foil_banner_v1", "1").apply()
+                        bannerDismissed = true
+                    },
+                )
+                Spacer(Modifier.height(16.dp))
+            }
             Text("${I18n.t("home.hello")} ${profile?.displayName ?: ""}".trim(), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
 
@@ -131,7 +151,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                     I18n.t("home.runs") to st.runsTotal.toString(),
                     I18n.t("home.pumps") to st.pumps.toString(),
                 )
-                TileGrid(totals.map { Triple(it.first, it.second, null as Int?) }, onOpen)
+                TileGrid(totals.map { RecTile(it.first, it.second, null, null) }, onOpen)
                 Spacer(Modifier.height(16.dp))
                 // Persönliche Rekorde (klickbar zur Session) + Accel/alle-Auswahl.
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,11 +176,11 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 Spacer(Modifier.height(8.dp))
                 val r = st.records
                 val recs = buildList {
-                    r?.speed?.let { add(Triple(I18n.t("home.topSpeed"), "%.1f km/h".format(it.value * 3.6), it.sessionId)) }
-                    r?.distance?.let { add(Triple(I18n.t("home.farthestRun"), fmtDist(it.value), it.sessionId)) }
-                    r?.duration?.let { add(Triple(I18n.t("home.longestRun"), fmtDur(it.value), it.sessionId)) }
-                    r?.glide?.let { add(Triple(I18n.t("home.longestGlide"), fmtDur(it.value), it.sessionId)) }
-                    r?.runs?.let { add(Triple(I18n.t("home.mostRuns"), it.value.roundToInt().toString(), it.sessionId)) }
+                    r?.speed?.let { add(RecTile(I18n.t("home.topSpeed"), "%.1f km/h".format(it.value * 3.6), it.sessionId, shortDate(it.startedAt))) }
+                    r?.distance?.let { add(RecTile(I18n.t("home.farthestRun"), fmtDist(it.value), it.sessionId, shortDate(it.startedAt))) }
+                    r?.duration?.let { add(RecTile(I18n.t("home.longestRun"), fmtDur(it.value), it.sessionId, shortDate(it.startedAt))) }
+                    r?.glide?.let { add(RecTile(I18n.t("home.longestGlide"), fmtDur(it.value), it.sessionId, shortDate(it.startedAt))) }
+                    r?.runs?.let { add(RecTile(I18n.t("home.mostRuns"), it.value.roundToInt().toString(), it.sessionId, shortDate(it.startedAt))) }
                 }
                 TileGrid(recs, onOpen)
             }
@@ -271,20 +291,25 @@ private fun dayLabel(i: Int, date: String): String = when (i) {
     } catch (_: Exception) { "" }
 }
 
+private data class RecTile(val label: String, val value: String, val sessionId: Int?, val date: String?)
+
 @Composable
-private fun TileGrid(tiles: List<Triple<String, String, Int?>>, onOpen: (Int) -> Unit) {
+private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         tiles.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (label, value, sid) ->
+                row.forEach { tile ->
                     Card(
                         Modifier.weight(1f).then(
-                            if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier
+                            if (tile.sessionId != null) Modifier.clickable { onOpen(tile.sessionId) } else Modifier
                         )
                     ) {
                         Column(Modifier.padding(12.dp)) {
-                            Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(tile.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                            Text(tile.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            tile.date?.let {
+                                Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
@@ -296,6 +321,56 @@ private fun TileGrid(tiles: List<Triple<String, String, Int?>>, onOpen: (Int) ->
 
 private fun fmtDist(m: Double): String = if (m < 1000) "%.0f m".format(m) else "%.2f km".format(m / 1000)
 private fun fmtDur(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
+
+// Kurzes Datum (dd.MM.yyyy) aus ISO-Startzeit fuer die Rekord-Kacheln.
+private fun shortDate(iso: String?): String? {
+    if (iso.isNullOrBlank()) return null
+    return try {
+        val d = java.time.OffsetDateTime.parse(iso).toLocalDate()
+        "%02d.%02d.%d".format(d.dayOfMonth, d.monthValue, d.year)
+    } catch (_: Exception) {
+        try {
+            val d = java.time.LocalDate.parse(iso.take(10))
+            "%02d.%02d.%d".format(d.dayOfMonth, d.monthValue, d.year)
+        } catch (_: Exception) { null }
+    }
+}
+
+// Community-Stats-Satz mit fett/cyan hervorgehobenen Zahlen (§-markiert, wie im Web).
+@Composable
+internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
+    val primary = MaterialTheme.colorScheme.primary
+    val raw = I18n.t("banner.stats")
+        .replace("{foilers}", s.foilers.toString())
+        .replace("{spots}", s.spots.toString())
+        .replace("{sessions}", s.sessions.toString())
+        .replace("{pumps}", "%,d".format(s.pumps))
+    return buildAnnotatedString {
+        raw.split("§").forEachIndexed { i, p ->
+            if (i % 2 == 1) withStyle(SpanStyle(color = primary, fontWeight = FontWeight.Bold)) { append(p) }
+            else append(p)
+        }
+    }
+}
+
+// Willkommens-/Community-Banner oben auf Home (schließbar). Spiegelt web WelcomeBanner.
+@Composable
+private fun WelcomeBanner(stats: Api.CommunityStats?, onDismiss: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f))) {
+        Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 10.dp, bottom = 12.dp, end = 4.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text("👋 Pumpfoil.org ${I18n.t("banner.msg")}", style = MaterialTheme.typography.bodyMedium)
+                stats?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(bannerStatsAnnotated(it), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = I18n.t("banner.dismiss"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
 
 // Nicht-blockierender Update-Hinweis (wie das PWA-Update-Banner).
 @Composable

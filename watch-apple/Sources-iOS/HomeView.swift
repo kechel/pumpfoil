@@ -18,6 +18,8 @@ struct HomeView: View {
     @State private var updateVer: String?
     @State private var updateURL = ""
     @State private var updateDismissed = false
+    @State private var community: Api.CommunityStats?
+    @AppStorage("foil_banner_v1") private var bannerDismissed = false
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -26,6 +28,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if let uv = updateVer, !updateDismissed { updateBanner(uv) }
+                    if !bannerDismissed { welcomeBanner() }
 
                     Text("\(Loc.t("home.hello", lang)) \(session.profile?.display_name ?? "")".trimmingCharacters(in: .whitespaces))
                         .font(.title2).bold()
@@ -48,11 +51,11 @@ struct HomeView: View {
                                 }
                             }
                             LazyVGrid(columns: cols, spacing: 12) {
-                                if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), Loc.t("home.topSpeed", lang), v.session_id) }
-                                if let v = r.distance { recordTile(fmtDist(v.value ?? 0), Loc.t("home.farthestRun", lang), v.session_id) }
-                                if let v = r.duration { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestRun", lang), v.session_id) }
-                                if let v = r.glide { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestGlide", lang), v.session_id) }
-                                if let v = r.runs { recordTile("\(Int(v.value ?? 0))", Loc.t("home.mostRuns", lang), v.session_id) }
+                                if let v = r.speed { recordTile(String(format: "%.1f km/h", (v.value ?? 0) * 3.6), Loc.t("home.topSpeed", lang), v.session_id, v.started_at) }
+                                if let v = r.distance { recordTile(fmtDist(v.value ?? 0), Loc.t("home.farthestRun", lang), v.session_id, v.started_at) }
+                                if let v = r.duration { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestRun", lang), v.session_id, v.started_at) }
+                                if let v = r.glide { recordTile(fmtDur(v.value ?? 0), Loc.t("home.longestGlide", lang), v.session_id, v.started_at) }
+                                if let v = r.runs { recordTile("\(Int(v.value ?? 0))", Loc.t("home.mostRuns", lang), v.session_id, v.started_at) }
                             }
                         }
                     }
@@ -107,6 +110,26 @@ struct HomeView: View {
         }
     }
 
+    // Willkommens-/Community-Banner (schließbar). Spiegelt web WelcomeBanner.
+    @ViewBuilder private func welcomeBanner() -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top) {
+                (Text("👋 ") + Text("Pumpfoil.org").bold() + Text(" " + Loc.t("banner.msg", lang)))
+                    .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 4)
+                Button { bannerDismissed = true } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain).foregroundStyle(.secondary)
+            }
+            if let c = community {
+                communityStatsText(c, lang).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.accentColor.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
     // Nicht-blockierender Update-Hinweis (wie das PWA-Update-Banner).
     @ViewBuilder private func updateBanner(_ version: String) -> some View {
         HStack {
@@ -129,6 +152,7 @@ struct HomeView: View {
     }
 
     private func checkUpdate() async {
+        if !bannerDismissed { community = try? await Api.communityStats() }
         guard let a = try? await Api.appLatest(platform: "ios"), !a.latest.isEmpty else { return }
         let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
         if Self.versionNewer(a.latest, current) { updateVer = a.latest; updateURL = a.store_url }
@@ -145,10 +169,11 @@ struct HomeView: View {
         return false
     }
 
-    private func tile(_ value: String, _ label: String) -> some View {
+    private func tile(_ value: String, _ label: String, _ date: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value).font(.title3).bold().foregroundStyle(Color.accentColor)
             Text(label).font(.caption).foregroundStyle(.secondary)
+            if let date { Text(date).font(.caption2).foregroundStyle(.secondary) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -156,12 +181,13 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?) -> some View {
+    @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?, _ startedAt: String? = nil) -> some View {
+        let date = startedAt.flatMap(SessionDetail.parseDate).map { $0.formatted(date: .numeric, time: .omitted) }
         if let sessionId {
-            NavigationLink { SessionDetailView(id: sessionId) } label: { tile(value, label) }
+            NavigationLink { SessionDetailView(id: sessionId) } label: { tile(value, label, date) }
                 .buttonStyle(.plain)
         } else {
-            tile(value, label)
+            tile(value, label, date)
         }
     }
 

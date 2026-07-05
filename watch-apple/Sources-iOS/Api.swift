@@ -290,6 +290,13 @@ enum Api {
         return data
     }
 
+    struct CommunityStats: Decodable { let foilers: Int; let spots: Int; let sessions: Int; let pumps: Int }
+
+    // Community-Kennzahlen (Willkommens-Banner + Stats-Leiste).
+    static func communityStats() async throws -> CommunityStats {
+        try await request("/api/community/stats", method: "GET", body: nil, auth: true)
+    }
+
     struct AppLatest: Decodable { let latest: String; let min_supported: String; let store_url: String }
 
     // Neueste Store-Version (server-seitig manuell gepflegt) — fuer den In-App-Update-Hinweis.

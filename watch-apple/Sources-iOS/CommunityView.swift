@@ -15,6 +15,7 @@ struct CommunityView: View {
     @State private var spotQuery = ""
     @State private var spotRecords: PeriodRecords?
     @State private var spotShown = ""
+    @State private var cstats: Api.CommunityStats?
 
     private var lbMetrics: [(String, String)] {
         [("sessions", Loc.t("nav.sessions", lang)), ("runs", Loc.t("home.runs", lang)),
@@ -33,6 +34,12 @@ struct CommunityView: View {
         NavigationStack {
             List {
                 if let error { Text(error).foregroundStyle(.secondary) }
+
+                if let cs = cstats {
+                    communityStatsText(cs, lang)
+                        .font(.caption)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+                }
 
                 if let lb = leaders, !lbList(lb).isEmpty || !(lb.sessions ?? []).isEmpty {
                     Section(Loc.t("community.leaderboard", lang)) {
@@ -200,6 +207,7 @@ struct CommunityView: View {
         loading = true; defer { loading = false }
         do {
             items = try await Api.communitySessions(); error = nil
+            cstats = try? await Api.communityStats()
             leaders = try? await Api.leaders()
             media = (try? await Api.latestPhotos()) ?? []
             topLiked = (try? await Api.topLiked(limit: 5)) ?? []
