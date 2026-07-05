@@ -607,7 +607,7 @@ def _geocode_place(session_id: int) -> None:
     import numpy as _np
 
     from ..db import SessionLocal
-    from ..places import lookup_water_name
+    from ..places import lookup_water_name, override_spot_name
 
     db = SessionLocal()
     try:
@@ -630,7 +630,7 @@ def _geocode_place(session_id: int) -> None:
         if pt is None:
             pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
         lat, lon = pt
-        name = lookup_water_name(lat, lon)
+        name = override_spot_name(lat, lon) or lookup_water_name(lat, lon)
         if name is not None:
             s.place_name = name
             s.place_lat = lat

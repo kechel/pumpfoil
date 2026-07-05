@@ -7,12 +7,32 @@ Namen. Best-effort mit kurzem Timeout — Fehler/kein Treffer -> None.
 from __future__ import annotations
 
 import json
+import math
 import urllib.parse
 import urllib.request
 
 from .config import get_settings
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+
+# Manuelle Spot-Namen-Overrides: OSM benennt manche Gewässer mit Namen, die vor Ort
+# niemand nutzt (Rückmeldung von Nutzern). (lat, lon, radius_km, Name). Greift VOR Overpass
+# und wird auch rückwirkend auf bestehende Sessions angewandt (fix_place_overrides).
+SPOT_OVERRIDES = [
+    # Base olympique de Vaires-sur-Marne (OSM: „Bassin de Champfleuri" — lokal unüblich). Nutzer James.
+    (48.8602, 2.6363, 2.0, "Base olympique de Vaires-sur-Marne"),
+]
+
+
+def override_spot_name(lat: float, lon: float) -> str | None:
+    """Manueller Override, wenn (lat,lon) im Radius eines Eintrags liegt — sonst None."""
+    for olat, olon, rkm, name in SPOT_OVERRIDES:
+        p1, p2 = math.radians(lat), math.radians(olat)
+        dp, dl = math.radians(olat - lat), math.radians(olon - lon)
+        h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+        if 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h))) <= rkm:
+            return name
+    return None
 
 
 def _ua() -> str:
