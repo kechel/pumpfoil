@@ -112,6 +112,7 @@ export interface SessionSummary {
   trim_start_ms?: number | null;
   trim_end_ms?: number | null;
   owned?: boolean;
+  merged_count?: number;   // >0 = zusammengeführt (auflösbar)
   owner_name?: string | null;
   owner_avatar_url?: string | null;
   place_name?: string | null;
@@ -517,6 +518,8 @@ export const api = {
   mergeSuggestions: () => req<{ ids: number[]; count: number; place: string | null }[]>("/api/sessions/merge-suggestions"),
   mergeSessions: (ids: number[]) =>
     req<{ id: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
+  unmergeSession: (id: number) =>
+    req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
   getSettings: () => req<Record<string, any>>("/api/settings"),
   saveSettings: (patch: Record<string, unknown>) =>
     req<Record<string, any>>("/api/settings", {

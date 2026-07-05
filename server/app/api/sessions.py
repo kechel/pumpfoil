@@ -673,6 +673,22 @@ def merge_own_sessions(
     return {"id": ns.id}
 
 
+@router.post("/{session_id}/unmerge")
+def unmerge_session_endpoint(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Zusammenfuehrung wieder aufloesen: Quell-Sessions zurueckholen, gemergte entfernen."""
+    from .. import merge
+    s = _owned(db, user, session_id)
+    try:
+        sources = merge.unmerge_session(db, s)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
+    return {"ids": [x.id for x in sources]}
+
+
 @router.get("/merge-suggestions")
 def merge_suggestions_endpoint(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -723,6 +739,8 @@ def get_session(
     out.like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     out.liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
+    out.merged_count = int(db.query(func.count()).select_from(models.Session)
+                           .filter(models.Session.merged_into == s.id).scalar() or 0)
     return out
 
 

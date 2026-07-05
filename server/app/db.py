@@ -127,6 +127,7 @@ def _migrate_add_columns() -> None:
         },
         "session_photos": {
             "blocked": "BOOLEAN DEFAULT 0",
+            "merged_from_session_id": "INTEGER",
         },
         "device_tokens": {
             "revoked_at": "TIMESTAMP WITH TIME ZONE",

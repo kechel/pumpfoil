@@ -84,10 +84,11 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     )
     db.add(ns)
     db.flush()
-    # Fotos uebernehmen; Quellen archivieren.
+    # Fotos uebernehmen (mit Herkunft fuers Auflösen); Quellen archivieren.
     for s in sessions:
         db.query(models.SessionPhoto).filter_by(session_id=s.id).update(
-            {models.SessionPhoto.session_id: ns.id})
+            {models.SessionPhoto.session_id: ns.id,
+             models.SessionPhoto.merged_from_session_id: s.id})
         s.deleted = True
         s.merged_into = ns.id
     db.flush()
@@ -103,6 +104,36 @@ def _end(session) -> "datetime":
         return session.ended_at
     gps = storage.load_gps(session.session_uuid)
     return session.started_at + timedelta(milliseconds=(gps[-1][0] if gps else 0))
+
+
+def unmerge_session(db: DbSession, merged: models.Session) -> list[models.Session]:
+    """Zusammenfuehrung aufloesen: Quell-Sessions wiederherstellen (deleted=False,
+    merged_into=None), Fotos an ihre Ursprungs-Session zurueck, gemergte Session +
+    Analyse + Rohdaten entfernen. -> wiederhergestellte Quellen."""
+    import shutil
+    sources = (db.query(models.Session)
+               .filter(models.Session.merged_into == merged.id).all())
+    if not sources:
+        raise ValueError("keine Zusammenfuehrung")
+    for s in sources:
+        s.deleted = False
+        s.merged_into = None
+    for p in db.query(models.SessionPhoto).filter_by(session_id=merged.id).all():
+        p.session_id = p.merged_from_session_id or sources[0].id
+        p.merged_from_session_id = None
+    db.query(models.AnalysisResult).filter_by(session_id=merged.id).delete()
+    db.query(models.Label).filter_by(session_id=merged.id).delete()
+    db.query(models.SessionLike).filter_by(session_id=merged.id).delete()
+    db.query(models.SessionVote).filter_by(session_id=merged.id).delete()
+    try:
+        d = storage.session_dir(merged.session_uuid)
+        if d.exists():
+            shutil.rmtree(d, ignore_errors=True)
+    except ValueError:
+        pass
+    db.delete(merged)
+    db.commit()
+    return sources
 
 
 def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]:

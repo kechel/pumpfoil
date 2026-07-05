@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
-import { MergeConfirm } from "../components/MergeConfirm";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -19,23 +18,24 @@ function MergeHint() {
   const t = useT();
   const nav = useNavigate();
   const [sugs, setSugs] = useState<{ ids: number[]; count: number; place: string | null }[]>([]);
-  const [confirmIds, setConfirmIds] = useState<number[] | null>(null);
+  const [busy, setBusy] = useState(false);
   useEffect(() => { api.mergeSuggestions().then(setSugs).catch(() => {}); }, []);
   if (!sugs.length) return null;
   const s = sugs[0];
+  async function doMerge() {
+    setBusy(true);
+    try { const r = await api.mergeSessions(s.ids); invalidateSessionListCache(); nav(`/sessions/${r.id}`); }
+    catch { setBusy(false); }
+  }
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
       <span className="text-slate-200">
         {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
       </span>
-      <button onClick={() => setConfirmIds(s.ids)}
-        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-        {t("merge.action")}
+      <button onClick={doMerge} disabled={busy}
+        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+        {busy ? "…" : t("merge.action")}
       </button>
-      {confirmIds && (
-        <MergeConfirm ids={confirmIds} onClose={() => setConfirmIds(null)}
-          onDone={(id) => { invalidateSessionListCache(); nav(`/sessions/${id}`); }} />
-      )}
     </div>
   );
 }

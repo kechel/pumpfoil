@@ -146,6 +146,7 @@ class SessionOut(BaseModel):
     owned: bool = True   # gehört die Session dem aktuellen Nutzer? (Community = read-only)
     owner_name: str | None = None  # Anzeigename des Besitzers (für Community-Ansicht)
     owner_avatar_url: str | None = None  # Profilbild des Besitzers
+    merged_count: int = 0  # >0 = aus so vielen Sessions zusammengeführt (auflösbar)
     place_name: str | None = None  # Name des Gewässers (OSM)
     caption: str | None = None  # eigene Beschriftung des Besitzers
     youtube_url: str | None = None  # optionale YouTube-URL

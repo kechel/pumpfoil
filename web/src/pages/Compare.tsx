@@ -5,7 +5,6 @@ import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
-import { MergeConfirm } from "../components/MergeConfirm";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { useT } from "../i18n";
 
@@ -101,8 +100,14 @@ export default function Compare() {
   const t = useT();
   const refs = useCompare();
   const nav = useNavigate();
-  const [mergeIds, setMergeIds] = useState<number[] | null>(null);
+  const [merging, setMerging] = useState(false);
   const canMergeIds = mergeableIds(refs);
+  async function doMerge() {
+    if (!canMergeIds) return;
+    setMerging(true);
+    try { const r = await api.mergeSessions(canMergeIds); clearCompare(); nav(`/sessions/${r.id}`); }
+    catch { setMerging(false); }
+  }
   const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
   const [weight, setWeight] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -214,15 +219,11 @@ export default function Compare() {
       {canMergeIds && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
           <span className="text-slate-200">{t("merge.compareHint")}</span>
-          <button onClick={() => setMergeIds(canMergeIds)}
-            className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-            {t("merge.action")}
+          <button onClick={doMerge} disabled={merging}
+            className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+            {merging ? "…" : t("merge.action")}
           </button>
         </div>
-      )}
-      {mergeIds && (
-        <MergeConfirm ids={mergeIds} onClose={() => setMergeIds(null)}
-          onDone={(id) => { clearCompare(); nav(`/sessions/${id}`); }} />
       )}
 
       {empty ? (

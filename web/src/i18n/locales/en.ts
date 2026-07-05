@@ -2,6 +2,8 @@ const en: Record<string, string> = {
   "common.save": "Save",
   "compare.barMerge": "Compare & merge ({n})",
   "merge.compareHint": "Only your own sessions from the same day – you can merge them into one.",
+  "merge.mergedInfo": "Merged from {n} sessions.",
+  "merge.unmerge": "Un-merge",
   "merge.title": "Merge sessions",
   "merge.hint": "{n} sessions from today might belong together.",
   "merge.action": "Merge",

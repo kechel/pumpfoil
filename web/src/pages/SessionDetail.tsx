@@ -251,6 +251,7 @@ export default function SessionDetail() {
   const t = useT();
   const { id } = useParams();
   const nav = useNavigate();
+  const [unmerging, setUnmerging] = useState(false);
   const [searchParams] = useSearchParams();
   const [session, setSession] = useState<SessionSummary | null>(null);
   const [cap, setCap] = useState("");            // Beschriftungs-Eingabe (Inline-Edit in der Überschrift)
@@ -984,6 +985,23 @@ export default function SessionDetail() {
           analysis={session.analysis}
         />
       </div>
+
+      {owned && (session.merged_count ?? 0) > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm text-slate-400">
+          <span>{t("merge.mergedInfo", { n: session.merged_count ?? 0 })}</span>
+          <button
+            onClick={async () => {
+              setUnmerging(true);
+              try { const r = await api.unmergeSession(session.id); invalidateSessionListCache(); nav(`/sessions/${r.ids[0]}`); }
+              catch { setUnmerging(false); }
+            }}
+            disabled={unmerging}
+            className="ml-auto rounded-lg bg-slate-800 px-2.5 py-1 text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+          >
+            {unmerging ? "…" : t("merge.unmerge")}
+          </button>
+        </div>
+      )}
 
       {m?.detection === "gps_only" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">

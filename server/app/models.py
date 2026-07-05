@@ -357,6 +357,9 @@ class SessionPhoto(Base):
     session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     url: Mapped[str] = mapped_column(String(255))           # öffentliche /media-URL
+    # Ursprungs-Session, falls dieses Foto beim Zusammenfuehren uebernommen wurde
+    # (fuer sauberes Auflösen -> Foto wandert zurueck). NULL = original hier.
+    merged_from_session_id: Mapped[int | None] = mapped_column(Integer)
     # Vom Admin geblockt -> aus Anzeige/Feed raus (Datei bleibt, kann freigegeben werden).
     blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
