@@ -5,6 +5,7 @@ werden archiviert (deleted=True, merged_into=Ziel-id), also nicht hart geloescht
 """
 from __future__ import annotations
 
+import math
 import uuid as _uuid
 
 import numpy as np
@@ -15,6 +16,25 @@ from .analysis import run_analysis
 
 GAP_MS = 20_000          # Luecke zwischen Teilen (ms) -> Dropout -> Lauf-Trennung
 AUTO_MAX_GAP_S = 3600    # Auto-Merge: max. Abstand Ende->Start zweier Teile (1 h)
+MAX_GROUP_DIST_KM = 25.0  # Teile muessen am selben Ort sein (sonst kein sinnvoller Merge)
+
+
+def _latlon(s):
+    """Startort einer Session (Spot-Koordinaten des Geocoders). None = unbekannt."""
+    if s.place_lat is not None and s.place_lon is not None:
+        return (s.place_lat, s.place_lon)
+    return None
+
+
+def _dist_km(a, b) -> float:
+    """Haversine (km). Unbekannte Koordinaten -> 0 (nicht blockieren)."""
+    if not a or not b:
+        return 0.0
+    (la1, lo1), (la2, lo2) = a, b
+    p1, p2 = math.radians(la1), math.radians(la2)
+    dp, dl = math.radians(la2 - la1), math.radians(lo2 - lo1)
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
 
 
 def _eligible(s) -> bool:
@@ -44,6 +64,9 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
         return False, "unterschiedliche Geraete-Raten"
+    locs = [_latlon(s) for s in sessions]
+    if any(_dist_km(a, b) > MAX_GROUP_DIST_KM for a in locs for b in locs):
+        return False, "Sessions an verschiedenen Orten"
     return True, ""
 
 
@@ -180,7 +203,8 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
         if not chain:
             chain = [s]; continue
         gap = (s.started_at - _end(chain[-1])).total_seconds()
-        if 0 <= gap <= AUTO_MAX_GAP_S and s.accel_hz == chain[-1].accel_hz:
+        near = _dist_km(_latlon(s), _latlon(chain[-1])) <= MAX_GROUP_DIST_KM
+        if 0 <= gap <= AUTO_MAX_GAP_S and s.accel_hz == chain[-1].accel_hz and near:
             chain.append(s)
         else:
             if len(chain) >= 2:
