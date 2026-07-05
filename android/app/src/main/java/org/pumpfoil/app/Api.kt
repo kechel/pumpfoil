@@ -275,6 +275,29 @@ object Api {
     }
 
     @kotlinx.serialization.Serializable
+    data class IntegrationStatus(val available: Boolean = false, val linked: Boolean = false, val last_sync_at: String? = null)
+
+    @kotlinx.serialization.Serializable
+    private data class ConnectResp(val authorize_url: String = "")
+
+    @kotlinx.serialization.Serializable
+    data class SyncResp(val imported: Int = 0, val ok: Boolean = true)
+
+    // Fremdkonten (Polar/COROS/Suunto) verknüpfen/importieren. provider = "polar"|"coros"|"suunto".
+    suspend fun integrationStatus(provider: String): IntegrationStatus = withContext(Dispatchers.IO) {
+        json.decodeFromString(IntegrationStatus.serializer(), http("GET", "/api/integrations/$provider/status", null, auth = true))
+    }
+    suspend fun integrationAuthorizeUrl(provider: String): String = withContext(Dispatchers.IO) {
+        json.decodeFromString(ConnectResp.serializer(), http("GET", "/api/integrations/$provider/connect", null, auth = true)).authorize_url
+    }
+    suspend fun integrationSync(provider: String): SyncResp = withContext(Dispatchers.IO) {
+        json.decodeFromString(SyncResp.serializer(), http("POST", "/api/integrations/$provider/sync", null, auth = true))
+    }
+    suspend fun integrationUnlink(provider: String): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/integrations/$provider", null, auth = true)
+    }
+
+    @kotlinx.serialization.Serializable
     private data class MergeResp(val id: Int)
 
     // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.

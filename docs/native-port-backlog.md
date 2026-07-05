@@ -75,7 +75,13 @@ Long-Press (mobil) bzw. Hover (Desktop) → Bearbeiten/Löschen-Icons; nur eigen
   beim Spot-Wechsel ans Ende scrollen (`4ce3c08`), Auswahl **„Alle Spot-Chats"** — jeder darf in
   jeden Spot-Chat schauen (`7e79eff`).
 
-### ☐ 1.5 Verknüpfte Konten / Fremd-Import (Polar / COROS / Suunto / Strava)  · Server bereit ✅
+### ✅ 1.5 Verknüpfte Konten / Fremd-Import (Polar / COROS / Suunto)  · Server bereit ✅  — Android+iOS gebaut
+Umgesetzt: eigener „Verknüpfte Konten"-Screen (Profil → Eintrag) mit Provider-Karten. Status je Provider
+(`/status`), **Verbinden** öffnet die OAuth-URL (`/connect`) im In-App-Browser (Android ACTION_VIEW /
+iOS SFSafariViewController) → bei Rückkehr Status neu laden; **Importieren** (`/sync`, Polar+Suunto),
+**Trennen** (`DELETE`). COROS ist push-basiert → kein Import-Button, Hinweis „kommt automatisch".
+Nicht konfigurierte Provider erscheinen als „Bald verfügbar". accounts.*-Keys (7 Sprachen).
+**TODO Jan (kein Code):** COROS/Suunto sind credential-gated → echtes End-to-End-Testen erst nach Freigabe.
 Eigene Seite **„Verknüpfte Konten"** mit OAuth-Verknüpfung + Import fremder Trainings als Sessions.
 - **Polar** AccessLink: LIVE (verknüpfen + Trainings importieren). **COROS**/**Suunto**: gebaut,
   credential-gated (erscheinen erst nach Freigabe). **Strava**: schlafend/gated (nicht weiterverfolgen).

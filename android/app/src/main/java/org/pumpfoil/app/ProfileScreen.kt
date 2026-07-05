@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -63,7 +64,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onGarminPair: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onGarminPair: () -> Unit = {}, onAccounts: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -139,6 +140,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text(I18n.t("garmin.title")) },
                 supportingContent = { Text(I18n.t("garmin.sub")) },
                 leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { onAccounts() },
+                headlineContent = { Text(I18n.t("accounts.title")) },
+                supportingContent = { Text(I18n.t("accounts.sub")) },
+                leadingContent = { Icon(Icons.Filled.Link, contentDescription = null) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(

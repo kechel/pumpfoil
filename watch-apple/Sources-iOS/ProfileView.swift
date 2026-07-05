@@ -55,6 +55,11 @@ struct ProfileView: View {
                         Label(Loc.t("garmin.title", lang), systemImage: "link.circle")
                     }
                     NavigationLink {
+                        LinkedAccountsView()
+                    } label: {
+                        Label(Loc.t("accounts.title", lang), systemImage: "link")
+                    }
+                    NavigationLink {
                         FoilsView()
                     } label: {
                         Label(Loc.t("profile.foils", lang), systemImage: "water.waves")

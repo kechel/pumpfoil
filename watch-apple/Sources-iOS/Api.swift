@@ -290,6 +290,29 @@ enum Api {
         return data
     }
 
+    struct IntegrationStatus: Decodable { let available: Bool; let linked: Bool; let last_sync_at: String? }
+    private struct ConnectResp: Decodable { let authorize_url: String }
+
+    // Fremdkonten (Polar/COROS/Suunto). provider = "polar"|"coros"|"suunto".
+    static func integrationStatus(_ provider: String) async throws -> IntegrationStatus {
+        try await request("/api/integrations/\(provider)/status", method: "GET", body: nil, auth: true)
+    }
+    static func integrationAuthorizeURL(_ provider: String) async throws -> String {
+        let r: ConnectResp = try await request("/api/integrations/\(provider)/connect", method: "GET", body: nil, auth: true)
+        return r.authorize_url
+    }
+    static func integrationSync(_ provider: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/integrations/\(provider)/sync", method: "POST", body: nil, auth: true)
+    }
+    static func integrationUnlink(_ provider: String) async throws {
+        guard let url = URL(string: baseURL + "/api/integrations/\(provider)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url); req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     struct MergeResp: Decodable { let id: Int }
 
     // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.
