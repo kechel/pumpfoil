@@ -1,0 +1,7 @@
+{
+  "images" : [
+    { "idiom" : "universal", "filename" : "wordmark-h-light.png" },
+    { "idiom" : "universal", "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ], "filename" : "wordmark-h-dark.png" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

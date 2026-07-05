@@ -87,8 +87,17 @@ struct HomeView: View {
                         }
                     }
 
-                    if !latest.isEmpty {
-                        Text(Loc.t("home.latest", lang)).font(.headline)
+                    // Letzte Sessions: immer Kopf + "Alle meine →" (wie PWA), Liste oder Leer-Hinweis.
+                    HStack {
+                        Text(Loc.t("phome.latest", lang)).font(.headline)
+                        Spacer()
+                        Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
+                    }
+                    if latest.isEmpty {
+                        Text(Loc.t("sessions.empty", lang))
+                            .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
+                            .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    } else {
                         VStack(spacing: 0) {
                             ForEach(latest) { s in
                                 NavigationLink { SessionDetailView(id: s.id) } label: {

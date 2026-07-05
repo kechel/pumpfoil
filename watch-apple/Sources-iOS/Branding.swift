@@ -44,15 +44,13 @@ struct SplashView: View {
 }
 
 extension View {
-    // Logo + Titel mittig in der Navigationsleiste (spiegelt Androids PumpfoilTopBar).
+    // Horizontales Marken-Wortmarken-Logo in der Navigationsleiste (theme-adaptiv, wie PWA/Android).
     func brandToolbar(_ title: String) -> some View {
         self.navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 7) {
-                        WavesLogo().frame(width: 22, height: 22)
-                        Text(title).font(.headline)
-                    }
+                    Image("WordmarkH").resizable().scaledToFit().frame(height: 24)
+                        .accessibilityLabel("Pumpfoil.org — \(title)")
                 }
             }
     }
