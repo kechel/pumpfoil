@@ -39,6 +39,11 @@ enum Api {
         return r.access_token
     }
 
+    static func forgotPassword(_ email: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/auth/forgot-password", method: "POST", body: ["email": email], auth: false)
+    }
+
     static func getProfile() async throws -> Profile {
         try await request("/api/auth/me", method: "GET", body: nil, auth: true)
     }
