@@ -293,6 +293,7 @@ const it: Record<string, string> = {
   "sd.photoDeleteConfirm": "Eliminare la foto?",
   "sd.addPhoto": "Aggiungi foto",
   "sd.likes": "Mi piace",
+  "sd.share": "Condividi",
   "sd.removeVideo": "Rimuovi video",
   "sd.removeVideoConfirm": "Rimuovere il video collegato?",
   "sd.fake": "sembra falso",

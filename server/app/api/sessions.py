@@ -684,6 +684,38 @@ def get_session(
     return out
 
 
+@router.get("/{session_id}/share.png")
+def share_card(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Teilbare Social-Media-Card (PNG) der Session — Track + Stats + Logo."""
+    from fastapi.responses import Response
+    from .. import sharecard
+
+    s = db.get(models.Session, session_id) if user.is_admin else _readable(db, session_id)
+    if s is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
+    if ar is None or not ar.track_geojson:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Track-Daten")
+    # Wasser-Silhouette aus dem Cache (kein Netz): grid_key aus Track-Median
+    rings = None
+    try:
+        gj = json.loads(ar.track_geojson); c = (gj.get("geometry") or {}).get("coordinates") or []
+        if c:
+            import numpy as _np
+            la = float(_np.median([p[1] for p in c])); lo = float(_np.median([p[0] for p in c]))
+            wp = db.query(models.WaterPolygon).filter_by(grid_key=f"{round(la,3)},{round(lo,3)}").first()
+            rings = json.loads(wp.rings_json) if (wp and wp.rings_json) else None
+    except Exception:
+        rings = None
+    png = sharecard.render_share_png(s, ar, rings)
+    return Response(content=png, media_type="image/png",
+                    headers={"Cache-Control": "private, max-age=300"})
+
+
 @router.get("/{session_id}/neighbors")
 def session_neighbors(
     session_id: int,

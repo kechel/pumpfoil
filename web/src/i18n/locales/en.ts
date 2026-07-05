@@ -303,6 +303,7 @@ const en: Record<string, string> = {
   "sd.photoDeleteConfirm": "Delete photo?",
   "sd.addPhoto": "Add photo",
   "sd.likes": "Likes",
+  "sd.share": "Share",
   "sd.removeVideo": "Remove video",
   "sd.removeVideoConfirm": "Really remove the linked video?",
   "sd.fake": "looks fake",
