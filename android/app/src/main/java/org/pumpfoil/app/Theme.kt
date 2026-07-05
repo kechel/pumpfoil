@@ -19,9 +19,10 @@ object ThemeState {
     fun set(ctx: Context, m: String) { mode = m; prefs(ctx).edit().putString("theme", m).apply() }
 }
 
-// Material-3-Theme mit Pumpfoil-Akzent (Cyan), folgt System Light/Dark.
-private val Brand = Color(0xFF06B6D4)
-private val BrandDark = Color(0xFF22D3EE)
+// Material-3-Theme mit Pumpfoil-Akzent (Cyan). Wie die PWA: auf DUNKLEM Grund das helle Cyan
+// (#22d3ee), auf HELLEM Grund das dunkle Cyan (#0e7490) — damit blauer Text/Akzent lesbar bleibt.
+private val BrandLight = Color(0xFF0E7490)   // dark cyan (brand-700) — Text/Akzent auf Weiß
+private val BrandDark = Color(0xFF22D3EE)    // bright cyan (brand-400) — auf Navy
 
 private val DarkColors = darkColorScheme(
     primary = BrandDark,
@@ -30,7 +31,8 @@ private val DarkColors = darkColorScheme(
     surface = Color(0xFF0F172A),
 )
 private val LightColors = lightColorScheme(
-    primary = Brand,
+    primary = BrandLight,
+    onPrimary = Color(0xFFFFFFFF),
 )
 
 @Composable
