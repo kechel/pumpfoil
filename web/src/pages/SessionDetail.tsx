@@ -172,7 +172,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
             <ShareIcon className="h-4 w-4 text-brand-400" /> {t("sd.share")}
           </button>
         )}
-        {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} onClose={() => setShareOpen(false)} />}
+        {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} onClose={() => setShareOpen(false)} />}
         {owned && (
           <>
             <button

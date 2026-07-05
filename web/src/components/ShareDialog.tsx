@@ -30,8 +30,8 @@ function loadImg(src: string): Promise<HTMLImageElement> {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
 }
 
-export function ShareDialog({ sessionId, analysis, onClose }: {
-  sessionId: number; analysis: any; onClose: () => void;
+export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
+  sessionId: number; analysis: any; defaultPhoto?: string | null; onClose: () => void;
 }) {
   const t = useT();
   const avail = availableStats(analysis);
@@ -41,6 +41,7 @@ export function ShareDialog({ sessionId, analysis, onClose }: {
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);   // Vorschau wird (neu) berechnet
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRef = useRef<HTMLImageElement | null>(null);      // server-Card (navy o. transparent)
@@ -59,6 +60,18 @@ export function ShareDialog({ sessionId, analysis, onClose }: {
         if (keep.length) setSel(new Set(keep));
       }
     }).catch(() => {}).finally(() => setLoaded(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Session-Foto (falls vorhanden) automatisch als Hintergrund vorbelegen.
+  useEffect(() => {
+    if (!defaultPhoto) return;
+    loadImg(defaultPhoto).then((img) => {
+      photoRef.current = img;
+      const s = Math.max(N / img.width, N / img.height);
+      xf.current = { x: (N - img.width * s) / 2, y: (N - img.height * s) / 2, w: img.width * s, h: img.height * s };
+      setHasPhoto(true);
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -82,9 +95,10 @@ export function ShareDialog({ sessionId, analysis, onClose }: {
     if (cardRef.current) ctx.drawImage(cardRef.current, 0, 0, N, N);
   }
 
-  // Card (server) neu holen bei Farbe/Stats/Foto-An-Aus
+  // Card (server) neu holen bei Farbe/Stats/Foto-An-Aus -> solange Vorschau veraltet: Ladeindikator
   useEffect(() => {
     let alive = true;
+    setLoading(true);
     const id = setTimeout(async () => {
       try {
         const tok = getToken();
@@ -97,6 +111,7 @@ export function ShareDialog({ sessionId, analysis, onClose }: {
         if (!alive) return;
         cardRef.current = img; draw();
       } catch { /* ignore */ }
+      finally { if (alive) setLoading(false); }
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,11 +188,18 @@ export function ShareDialog({ sessionId, analysis, onClose }: {
           <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
         </div>
 
-        <canvas
-          ref={canvasRef} width={N} height={N}
-          onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onWheel={onWheel}
-          className={`mb-1 block aspect-square w-full touch-none rounded-xl bg-slate-950 ${hasPhoto ? "cursor-move" : ""}`}
-        />
+        <div className="relative mb-1">
+          <canvas
+            ref={canvasRef} width={N} height={N}
+            onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onWheel={onWheel}
+            className={`block aspect-square w-full touch-none rounded-xl bg-slate-950 ${hasPhoto ? "cursor-move" : ""}`}
+          />
+          {loading && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-950/50">
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-500 border-t-brand-400" />
+            </div>
+          )}
+        </div>
         {hasPhoto && <div className="mb-3 text-center text-[11px] text-slate-500">{t("share.photoHint")}</div>}
 
         <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.trackColor")}</div>
