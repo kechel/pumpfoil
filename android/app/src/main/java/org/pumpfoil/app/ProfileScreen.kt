@@ -140,56 +140,56 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 modifier = Modifier.clickable { onGarminPair() },
                 headlineContent = { Text(I18n.t("garmin.title")) },
                 supportingContent = { Text(I18n.t("garmin.sub")) },
-                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onAccounts() },
                 headlineContent = { Text(I18n.t("accounts.title")) },
                 supportingContent = { Text(I18n.t("accounts.sub")) },
-                leadingContent = { Icon(Icons.Filled.Link, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Link, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onFoils() },
                 headlineContent = { Text(I18n.t("profile.foils")) },
                 supportingContent = { Text(I18n.t("profile.foilsSub")) },
-                leadingContent = { Icon(Icons.Filled.Surfing, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Surfing, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onFoilCalc() },
                 headlineContent = { Text(I18n.t("profile.calc")) },
                 supportingContent = { Text(I18n.t("profile.calcSub")) },
-                leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onFoilStats() },
                 headlineContent = { Text(I18n.t("profile.stats")) },
                 supportingContent = { Text(I18n.t("profile.statsSub")) },
-                leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onCompare() },
                 headlineContent = { Text(I18n.t("profile.compare")) },
                 supportingContent = { Text(I18n.t("profile.compareSub")) },
-                leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null) },
+                leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onAlarm() },
                 headlineContent = { Text(I18n.t("profile.alarm")) },
                 supportingContent = { Text(I18n.t("profile.alarmSub")) },
-                leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onDataFields() },
                 headlineContent = { Text(I18n.t("profile.datafields")) },
                 supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
-                leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
@@ -198,13 +198,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 supportingContent = {
                     Text("${I18n.t("settings.weight")}, ${I18n.t("settings.homespot")}, ${I18n.t("settings.design")}, ${I18n.t("settings.notifications")}")
                 },
-                leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
                 modifier = Modifier.clickable { onImprint() },
                 headlineContent = { Text(I18n.t("nav.imprint")) },
-                leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
+                leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             Spacer(Modifier.height(24.dp))

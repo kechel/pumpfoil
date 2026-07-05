@@ -52,47 +52,47 @@ struct ProfileView: View {
                     NavigationLink {
                         GarminPairView()
                     } label: {
-                        Label(Loc.t("garmin.title", lang), systemImage: "link.circle")
+                        Label { Text(Loc.t("garmin.title", lang)) } icon: { Image(systemName: "link.circle").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         LinkedAccountsView()
                     } label: {
-                        Label(Loc.t("accounts.title", lang), systemImage: "link")
+                        Label { Text(Loc.t("accounts.title", lang)) } icon: { Image(systemName: "link").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         FoilsView()
                     } label: {
-                        Label(Loc.t("profile.foils", lang), systemImage: "water.waves")
+                        Label { Text(Loc.t("profile.foils", lang)) } icon: { Image(systemName: "water.waves").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         FoilCalculatorView()
                     } label: {
-                        Label(Loc.t("profile.calc", lang), systemImage: "function")
+                        Label { Text(Loc.t("profile.calc", lang)) } icon: { Image(systemName: "function").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         FoilStatsView()
                     } label: {
-                        Label(Loc.t("profile.stats", lang), systemImage: "chart.bar")
+                        Label { Text(Loc.t("profile.stats", lang)) } icon: { Image(systemName: "chart.bar").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         CompareView()
                     } label: {
-                        Label(Loc.t("profile.compare", lang), systemImage: "arrow.left.arrow.right")
+                        Label { Text(Loc.t("profile.compare", lang)) } icon: { Image(systemName: "arrow.left.arrow.right").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         AlarmView()
                     } label: {
-                        Label(Loc.t("profile.alarm", lang), systemImage: "waveform.path")
+                        Label { Text(Loc.t("profile.alarm", lang)) } icon: { Image(systemName: "waveform.path").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         DataFieldsView()
                     } label: {
-                        Label(Loc.t("profile.datafields", lang), systemImage: "square.grid.2x2")
+                        Label { Text(Loc.t("profile.datafields", lang)) } icon: { Image(systemName: "square.grid.2x2").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         SettingsView()
                     } label: {
-                        Label(Loc.t("settings.title", lang), systemImage: "gearshape")
+                        Label { Text(Loc.t("settings.title", lang)) } icon: { Image(systemName: "gearshape").foregroundStyle(Color.accentColor) }
                     }
                     Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
                 }

@@ -216,7 +216,12 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   Master→Detail (Raumliste → Raum) als Mobile-Muster beibehalten. Editieren/Löschen per Long-Press/Kontextmenü.
   Offen (klein): Abo-/Verlassen-Leiste, Report/Hide-/Admin-Aktionen, URL-Linkify — nur Web. Falls Jan
   iMessage-Blasen auf iOS bevorzugt, leicht rückändern.
-- ☐ Profil → Einstellungen (in Arbeit).
+- ✅ **Profil** (Android verifiziert, iOS gespiegelt): nativer Hub (Avatar/Name/E-Mail + Bearbeiten,
+  Wear-OS-Karte, Menü: Garmin-Pairing/Verknüpfte Konten/Foils/Foil-Rechner/Foil-Statistik/Vergleich/
+  Alarm/Datenfelder/Einstellungen/Impressum, Abmelden + Konto löschen rot, Version). Kein direktes
+  Web-Pendant (Web verteilt das auf Nav) — sinnvolle mobile Bündelung. Fix: Menü-Leading-Icons jetzt
+  Marken-Cyan (wie Web-Nav-Icons) auf Android + iOS; Chevrons neutral. Abmelden/Löschen rot (destruktiv).
+- ☐ Einstellungen (letzter Screen, in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
