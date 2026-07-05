@@ -63,8 +63,15 @@ enum Api {
         let _: Ok = try await request("/api/auth/me", method: "DELETE", body: nil, auth: true)
     }
 
-    static func sessions() async throws -> [SessionSummary] {
-        try await request("/api/sessions", method: "GET", body: nil, auth: true)
+    static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false) async throws -> [SessionSummary] {
+        var qs = "?filter=\(filter)"
+        if let month, !month.isEmpty { qs += "&month=\(month)" }
+        if accelOnly { qs += "&accel_only=true" }
+        return try await request("/api/sessions\(qs)", method: "GET", body: nil, auth: true)
+    }
+
+    static func sessionMonths(filter: String = "pump") async throws -> [MonthCount] {
+        try await request("/api/sessions/months?filter=\(filter)", method: "GET", body: nil, auth: true)
     }
 
     static func session(_ id: Int) async throws -> SessionDetail {
@@ -137,8 +144,9 @@ enum Api {
         try await request("/api/devices/pairing-code", method: "POST", body: nil, auth: true)
     }
 
-    static func communitySessions(limit: Int = 30, offset: Int = 0) async throws -> [CommunityItem] {
-        try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
+    static func communitySessions(limit: Int = 30, offset: Int = 0, accelOnly: Bool = true) async throws -> [CommunityItem] {
+        let qs = "?limit=\(limit)&offset=\(offset)" + (accelOnly ? "" : "&accel_only=false")
+        return try await request("/api/community/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
 
     static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50) async throws -> [CommunityItem] {

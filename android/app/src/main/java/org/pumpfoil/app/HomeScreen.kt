@@ -281,7 +281,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
 }
 
 @Composable
-private fun WeatherCard(wb: WeatherBlock) {
+internal fun WeatherCard(wb: WeatherBlock) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text(I18n.t("home.weather"), style = MaterialTheme.typography.labelMedium,

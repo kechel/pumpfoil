@@ -19,7 +19,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -80,6 +84,11 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var accelOnly by remember { mutableStateOf(false) }   // wie PWA-Umschalter (Default: alle)
+    var filter by remember { mutableStateOf("pump") }      // pump | other (nur eigene)
+    var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
+    var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
+    var weather by remember { mutableStateOf<WeatherBlock?>(null) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -88,20 +97,28 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
     }
+    // Monats-Facetten je Filter (für den Monats-Dropdown der eigenen Sessions).
+    LaunchedEffect(filter) {
+        months = try { Api.sessionMonths(filter) } catch (_: Exception) { emptyList() }
+    }
+    // Spot-Wetter im Spot-Scope (wie PWA).
+    LaunchedEffect(spot) {
+        weather = if (spot.isNotBlank()) try { Api.spotWeather(spot).weather } catch (_: Exception) { null } else null
+    }
 
     suspend fun load() {
         loading = true
         try {
             when (scope) {
-                Scope.MINE -> own = Api.sessions()
-                Scope.ALL -> feed = Api.communitySessions()
-                Scope.SPOT -> feed = if (spot.isNotBlank()) Api.spotSessions(spot) else emptyList()
+                Scope.MINE -> own = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
+                Scope.ALL -> feed = Api.communitySessions(accelOnly = accelOnly)
+                Scope.SPOT -> feed = if (spot.isNotBlank()) Api.spotSessions(spot, accelOnly) else emptyList()
             }
             error = null
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(scope, spot, tick) { load() }
+    LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
 
     Scaffold(
         topBar = {
@@ -115,20 +132,24 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
     ) { pad ->
         val scopeC = rememberCoroutineScope()
         Column(Modifier.padding(pad).fillMaxSize()) {
-            // Scope-Umschalter + Spotsuche.
+            // Scope-Umschalter (scrollbar) + Accel/alle-Umschalter rechts.
             Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                FilterChip(selected = scope == Scope.MINE, onClick = { scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) })
-                if (homespot.isNotBlank()) {
-                    FilterChip(
-                        selected = scope == Scope.SPOT && spot == homespot,
-                        onClick = { spot = homespot; scope = Scope.SPOT },
-                        label = { Text("📍$homespot") },
-                    )
+                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = scope == Scope.MINE, onClick = { scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
+                    if (homespot.isNotBlank()) {
+                        FilterChip(
+                            selected = scope == Scope.SPOT && spot == homespot,
+                            onClick = { spot = homespot; scope = Scope.SPOT },
+                            label = { Text("📍$homespot") }, colors = cyanChipColors(),
+                        )
+                    }
+                    FilterChip(selected = scope == Scope.ALL, onClick = { scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
                 }
-                FilterChip(selected = scope == Scope.ALL, onClick = { scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) })
+                Spacer(Modifier.width(8.dp))
+                AccelSeg(accelOnly) { accelOnly = it }
             }
             OutlinedTextField(
                 value = spotInput, onValueChange = { spotInput = it },
@@ -140,6 +161,23 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
             )
+            // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
+            if (scope == Scope.MINE) {
+                Row(
+                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    FilterChip(selected = filter == "pump", onClick = { filter = "pump"; month = "" },
+                        label = { Text(I18n.t("sessions.filterPump")) }, colors = cyanChipColors())
+                    FilterChip(selected = filter == "other", onClick = { filter = "other"; month = "" },
+                        label = { Text(I18n.t("sessions.filterOther")) }, colors = cyanChipColors())
+                    MonthDropdown(months, month) { month = it }
+                }
+            }
+            if (scope == Scope.SPOT) {
+                weather?.let { wb -> Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
+            }
             Box(Modifier.fillMaxSize()) {
                 Refreshable(refreshing = loading, onRefresh = { scopeC.launch { load() } }) {
                     val empty = (scope == Scope.MINE && own.isEmpty()) || (scope != Scope.MINE && feed.isEmpty())
@@ -156,10 +194,16 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
                                 }
                             }
                             if (empty && !loading && error == null) {
-                                item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                val msg = if (scope == Scope.MINE && month.isNotBlank()) I18n.t("sessions.noneMonth") else I18n.t("sessions.empty")
+                                item { Text(msg, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             if (scope == Scope.MINE) {
                                 items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id) } }
+                                if (own.isNotEmpty()) item {
+                                    Text(I18n.t("sessions.listEnd"), Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                }
                             } else {
                                 items(feed) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) } }
                             }
@@ -368,6 +412,31 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
         }
     }
 }
+
+// Monats-Auswahl (wie das PWA-<select>): „Alle Monate" + Monat (Anzahl).
+@Composable
+private fun MonthDropdown(months: List<MonthCount>, month: String, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        AssistChip(
+            onClick = { open = true },
+            label = { Text(if (month.isBlank()) I18n.t("sessions.allMonths") else monthLabel(month)) },
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(I18n.t("sessions.allMonths")) }, onClick = { onSelect(""); open = false })
+            months.forEach { mc ->
+                DropdownMenuItem(text = { Text("${monthLabel(mc.month)} (${mc.count})") }, onClick = { onSelect(mc.month); open = false })
+            }
+        }
+    }
+}
+
+private fun monthLabel(m: String): String = try {
+    val ym = java.time.YearMonth.parse(m)
+    ym.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+        .replaceFirstChar { it.uppercase() } + " " + ym.year
+} catch (_: Exception) { m }
 
 fun prettyDate(iso: String): String = try {
     java.time.OffsetDateTime.parse(iso)

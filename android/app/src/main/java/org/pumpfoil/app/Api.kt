@@ -99,10 +99,22 @@ object Api {
         http("DELETE", "/api/auth/me", null, auth = true)
     }
 
-    suspend fun sessions(): List<SessionSummary> = withContext(Dispatchers.IO) {
+    suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {
+        val qs = buildString {
+            append("?filter=$filter")
+            if (!month.isNullOrBlank()) append("&month=$month")
+            if (accelOnly) append("&accel_only=true")
+        }
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),
-            http("GET", "/api/sessions", null, auth = true),
+            http("GET", "/api/sessions$qs", null, auth = true),
+        )
+    }
+
+    suspend fun sessionMonths(filter: String = "pump"): List<MonthCount> = withContext(Dispatchers.IO) {
+        json.decodeFromString(
+            ListSerializer(MonthCount.serializer()),
+            http("GET", "/api/sessions/months?filter=$filter", null, auth = true),
         )
     }
 
@@ -161,10 +173,11 @@ object Api {
             }
         }
 
-    suspend fun communitySessions(limit: Int = 20, offset: Int = 0): List<CommunityItem> = withContext(Dispatchers.IO) {
+    suspend fun communitySessions(limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true): List<CommunityItem> = withContext(Dispatchers.IO) {
+        val qs = "?limit=$limit&offset=$offset" + if (!accelOnly) "&accel_only=false" else ""
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
-            http("GET", "/api/community/sessions?limit=$limit&offset=$offset", null, auth = true),
+            http("GET", "/api/community/sessions$qs", null, auth = true),
         )
     }
 

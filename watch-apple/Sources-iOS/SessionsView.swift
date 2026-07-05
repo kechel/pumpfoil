@@ -15,6 +15,11 @@ struct SessionsView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
+    @State private var accelOnly = false      // wie PWA-Umschalter (Default: alle)
+    @State private var filter = "pump"         // pump | other (nur eigene)
+    @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
+    @State private var months: [MonthCount] = []
+    @State private var weather: WeatherBlock?
 
     var body: some View {
         NavigationStack {
@@ -32,7 +37,12 @@ struct SessionsView: View {
                     }
                 }
                 Section {
-                    scopeChips
+                    HStack {
+                        ScrollView(.horizontal, showsIndicators: false) { scopeChips }
+                        Spacer(minLength: 8)
+                        chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                        chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                    }
                     HStack {
                         TextField(Loc.t("sessions.searchSpot", lang), text: $spotInput)
                             .textInputAutocapitalization(.never)
@@ -40,11 +50,35 @@ struct SessionsView: View {
                         Button { applySpotSearch() } label: { Image(systemName: "magnifyingglass") }
                             .buttonStyle(.borderless)
                     }
+                    if scope == .mine {
+                        HStack(spacing: 8) {
+                            chip(Loc.t("sessions.filterPump", lang), filter == "pump") { filter = "pump"; month = "" }
+                            chip(Loc.t("sessions.filterOther", lang), filter == "other") { filter = "other"; month = "" }
+                            Menu {
+                                Button(Loc.t("sessions.allMonths", lang)) { month = "" }
+                                ForEach(months) { mc in
+                                    Button("\(monthLabel(mc.month)) (\(mc.count))") { month = mc.month }
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(month.isEmpty ? Loc.t("sessions.allMonths", lang) : monthLabel(month)).font(.subheadline)
+                                    Image(systemName: "chevron.down").font(.caption2)
+                                }
+                            }
+                        }
+                    }
+                }
+                if scope == .spot, let wb = weather {
+                    Section { HomeWeatherCard(wb: wb, lang: lang) }
                 }
                 if let error { Text(error).foregroundStyle(.secondary) }
                 if scope == .mine {
                     ForEach(own) { s in
                         NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                    }
+                    if !own.isEmpty {
+                        Text(Loc.t("sessions.listEnd", lang)).font(.caption2).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
                 } else {
                     ForEach(feed) { c in
@@ -52,7 +86,8 @@ struct SessionsView: View {
                     }
                 }
                 if isEmpty && !loading && error == nil {
-                    Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
+                    Text(scope == .mine && !month.isEmpty ? Loc.t("sessions.noneMonth", lang) : Loc.t("sessions.empty", lang))
+                        .foregroundStyle(.secondary)
                 }
             }
             .listStyle(.insetGrouped)
@@ -69,9 +104,24 @@ struct SessionsView: View {
                 await load()
             }
             .onChange(of: scope) { _ in Task { await load() } }
-            .onChange(of: spot) { _ in Task { await load() } }
+            .onChange(of: spot) { _ in Task { await loadWeather(); await load() } }
+            .onChange(of: accelOnly) { _ in Task { await load() } }
+            .onChange(of: filter) { _ in Task { await loadMonths(); await load() } }
+            .onChange(of: month) { _ in Task { await load() } }
             .onChange(of: sync.tick) { _ in Task { await load() } }
+            .task { await loadMonths() }
         }
+    }
+
+    private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter)) ?? [] }
+    private func loadWeather() async {
+        weather = spot.isEmpty ? nil : (try? await Api.spotWeather(spot))?.weather
+    }
+    private func monthLabel(_ m: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM"
+        guard let d = f.date(from: m) else { return m }
+        let out = DateFormatter(); out.dateFormat = "LLLL yyyy"
+        return out.string(from: d).capitalized
     }
 
     private var title: String {
@@ -109,9 +159,9 @@ struct SessionsView: View {
         loading = true; defer { loading = false }
         do {
             switch scope {
-            case .mine: own = try await Api.sessions()
-            case .all: feed = try await Api.communitySessions()
-            case .spot: feed = spot.isEmpty ? [] : (try await Api.spotSessions(spot))
+            case .mine: own = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
+            case .all: feed = try await Api.communitySessions(accelOnly: accelOnly)
+            case .spot: feed = spot.isEmpty ? [] : (try await Api.spotSessions(spot, accelOnly: accelOnly))
             }
             error = nil
         } catch { self.error = error.localizedDescription }

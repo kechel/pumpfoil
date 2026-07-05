@@ -187,7 +187,13 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   bewertet → **Spots** (eigene Spots + Suche, je Spot ein Rekord-Grid). Generischer „alle Sessions"-Feed
   entfernt (nicht in PWA), separater Records-Screen entfällt (inline). Chips in Marken-Cyan statt M3-Lavendel.
   API um `accel_only`/`period` erweitert; i18n-Keys (period/leader/unit/spots) in allen 7 Sprachen.
-- ☐ Sessions → Session-Detail → Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
+- ✅ **Sessions** (Android verifiziert, iOS gespiegelt): Scope-Chips (Meine/Homespot/Alle) jetzt in
+  Marken-Cyan + **Accel/alle-Umschalter** rechts; für „Meine" **Pumpfoil/Aussortiert-Filter** +
+  **Monats-Dropdown** (mit Anzahl); Spot-Scope zeigt **Spot-Wetter** (HomeWeatherCard); „— Ende —"-Fuß;
+  Monats-Leerzustand. API um month/filter/accel_only (sessions, sessionMonths, communitySessions) erweitert;
+  i18n (7 Spr.): sessions.filterPump/filterOther/allMonths/noneMonth/listEnd, all.allSpots.
+  Offen (klein): ♥-HR wird als rotes Emoji gerendert (Web nutzt Slate-HeartPulse-Icon) — Politur später.
+- ☐ Session-Detail → Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**

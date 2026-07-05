@@ -136,6 +136,8 @@ struct HistoryPoint: Codable, Identifiable {
 }
 
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
+struct MonthCount: Codable, Identifiable { let month: String; let count: Int; var id: String { month } }
+
 struct SpotWeather: Codable { let weather: WeatherBlock? }
 struct WeatherBlock: Codable {
     let current: WxCurrent?

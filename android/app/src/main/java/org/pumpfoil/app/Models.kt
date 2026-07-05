@@ -208,6 +208,10 @@ data class OverallStats(
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 
+// Monats-Facetten für den Sessions-Monatsfilter (GET /api/sessions/months).
+@Serializable
+data class MonthCount(val month: String = "", val count: Int = 0)
+
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
 @Serializable
 data class CommunityRecordEntry(

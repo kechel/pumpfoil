@@ -266,21 +266,21 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}) {
 
 // Ausgewählter Chip in Marken-Cyan (statt M3-Lavendel), wie die PWA-Pills.
 @Composable
-private fun cyanChipColors() = FilterChipDefaults.filterChipColors(
+internal fun cyanChipColors() = FilterChipDefaults.filterChipColors(
     selectedContainerColor = MaterialTheme.colorScheme.primary,
     selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
 )
 
 // Accel/alle-Umschalter (zwei Segmente, wie PWA + Home).
 @Composable
-private fun AccelSeg(accelOnly: Boolean, onChange: (Boolean) -> Unit) {
+internal fun AccelSeg(accelOnly: Boolean, onChange: (Boolean) -> Unit) {
     @Composable
     fun seg(active: Boolean, label: String, onClick: () -> Unit) {
         Surface(
             onClick = onClick, shape = MaterialTheme.shapes.small,
             color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            Text(label, style = MaterialTheme.typography.labelMedium,
+            Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1, softWrap = false,
                 color = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
         }
