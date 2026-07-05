@@ -157,14 +157,19 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         item {
                             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) })
-                                FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") })
-                                FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") })
+                                FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
+                                FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+                                FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
                             }
                         }
                         items(METRICS) { m -> MetricChartCard(data, m, mode, domain) }
                         item {
-                            Text(I18n.t("verlauf.aggTitle"), style = MaterialTheme.typography.titleMedium,
+                            val suffix = when (mode) {
+                                Mode.W7 -> " · 7 ${I18n.t("verlauf.daysAbbr")}"
+                                Mode.W30 -> " · 30 ${I18n.t("verlauf.daysAbbr")}"
+                                else -> ""
+                            }
+                            Text(I18n.t("verlauf.aggTitle") + suffix, style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(top = 6.dp))
                         }
                         items(METRICS_SUM) { m -> MetricChartCard(data, m, mode, domain) }
@@ -188,9 +193,11 @@ private fun MetricChartCard(data: List<Pair<Long, HistoryPoint>>, metric: HMetri
             }
             LineChart(pts, metric.color, domain, Modifier.fillMaxWidth().height(110.dp).padding(top = 6.dp))
             if (pts.size >= 2) {
+                // Kurze Zeitspanne -> Tag+Monat (wie Web), sonst Monat+Jahr.
+                val shortSpan = (domain.second - domain.first) <= 120L * DAY_MS
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(monthYear(domain.first), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(monthYear(domain.second), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(histDate(domain.first, shortSpan), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(histDate(domain.second, shortSpan), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -229,6 +236,6 @@ private fun epochMsIso(iso: String): Long? = try {
     try { java.time.LocalDateTime.parse(iso).toInstant(java.time.ZoneOffset.UTC).toEpochMilli() } catch (_: Exception) { null }
 }
 
-private fun monthYear(ms: Long): String =
+private fun histDate(ms: Long, shortSpan: Boolean): String =
     java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneId.systemDefault())
-        .format(java.time.format.DateTimeFormatter.ofPattern("MMM yy"))
+        .format(java.time.format.DateTimeFormatter.ofPattern(if (shortSpan) "dd. MMM" else "MMM yy"))

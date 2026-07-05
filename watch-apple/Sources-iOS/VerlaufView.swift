@@ -39,7 +39,7 @@ struct VerlaufView: View {
                             ForEach(VerlaufView.metrics) { m in
                                 MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
                             }
-                            Text(Loc.t("verlauf.aggTitle", lang))
+                            Text(Loc.t("verlauf.aggTitle", lang) + aggSuffix)
                                 .font(.title3).fontWeight(.semibold).padding(.top, 6)
                             ForEach(VerlaufView.metricsSum) { m in
                                 MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
@@ -55,6 +55,14 @@ struct VerlaufView: View {
             .brandToolbar(Loc.t("nav.history", lang))
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
+        }
+    }
+
+    private var aggSuffix: String {
+        switch mode {
+        case .w7: return " · 7 \(Loc.t("verlauf.daysAbbr", lang))"
+        case .w30: return " · 30 \(Loc.t("verlauf.daysAbbr", lang))"
+        case .cumulative: return ""
         }
     }
 
@@ -210,10 +218,11 @@ struct MetricChartCard: View {
             }
             LineChartView(pts: pts, color: metric.color, domain: domain, lang: lang).frame(height: 110)
             if pts.count >= 2 {
+                let shortSpan = (domain.1 - domain.0) <= 120 * 86400
                 HStack {
-                    Text(monthYear(domain.0)).font(.caption2).foregroundStyle(.secondary)
+                    Text(axisDate(domain.0, shortSpan)).font(.caption2).foregroundStyle(.secondary)
                     Spacer()
-                    Text(monthYear(domain.1)).font(.caption2).foregroundStyle(.secondary)
+                    Text(axisDate(domain.1, shortSpan)).font(.caption2).foregroundStyle(.secondary)
                 }
             }
         }
@@ -222,8 +231,9 @@ struct MetricChartCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func monthYear(_ s: Double) -> String {
-        let f = DateFormatter(); f.dateFormat = "MMM yy"
+    // Kurze Zeitspanne -> Tag+Monat (wie Web), sonst Monat+Jahr.
+    private func axisDate(_ s: Double, _ shortSpan: Bool) -> String {
+        let f = DateFormatter(); f.dateFormat = shortSpan ? "dd. MMM" : "MMM yy"
         return f.string(from: Date(timeIntervalSince1970: s))
     }
 }

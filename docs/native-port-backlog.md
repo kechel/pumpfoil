@@ -199,7 +199,13 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   in Marken-Cyan statt M3-Lavendel; Like-Pill entlavendelt (Cyan-Ton, Herz rosa im Liked-Zustand).
   iOS nutzt segmented Picker + accentColor (schon markenkonform); Unliked-Herz auf accentColor gezogen.
   Rest-Diff (klein, Politur): Web zeigt Stats VOR der Karte, nativ danach; Web-Dauerzeile unter Titel fehlt nativ.
-- ☐ Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
+- ✅ **Verlauf** (Android verifiziert, iOS gespiegelt): war schon ein treuer Port (gleiche 8 Metriken +
+  4 Summen, gleiche Farben, Flächen-Liniendiagramme, Modus Kumuliert/7T/30T). Fix: Modus-Chips in
+  Marken-Cyan (Android; iOS nutzte schon accentColor); Achsen-Datum bei kurzer Spanne Tag+Monat statt
+  Monat+Jahr (wie Web); aggTitle bekommt Fenster-Suffix (· 7 T / · 30 T) auf beiden Plattformen.
+  Offen (§5, geräteabhängig): SpotProgression-Animation (Läufe eines Spots chronologisch) fehlt nativ;
+  Chart-Klick→Session + Hover-Tooltip nur Web.
+- ☐ Spots → Chat → Profil → Einstellungen (in Arbeit).
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
