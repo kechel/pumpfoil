@@ -51,6 +51,8 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
+        NSMicrophoneUsageDescription: "Zum Diktieren von Chat-Nachrichten per Sprache."
+        NSSpeechRecognitionUsageDescription: "Wandelt deine gesprochenen Chat-Nachrichten in Text um."
     entitlements:
       path: Sources-iOS/Pumpfoil.entitlements
       properties:

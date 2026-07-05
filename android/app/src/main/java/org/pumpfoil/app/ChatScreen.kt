@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,6 +98,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var actionMsg by remember { mutableStateOf<ChatMsg?>(null) }   // Long-Press -> Aktionsauswahl
     var editMsg by remember { mutableStateOf<ChatMsg?>(null) }     // Bearbeiten-Dialog
     var editText by remember { mutableStateOf("") }
+    var showDict by remember { mutableStateOf(false) }            // Diktat-Vollbild
     val scope = rememberCoroutineScope()
 
     suspend fun load() {
@@ -104,6 +106,23 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         catch (e: Exception) { error = e.message }
     }
     LaunchedEffect(room.scope) { load() }
+
+    if (showDict) {
+        DictationOverlay(
+            existing = input,
+            title = room.label.ifBlank { room.scope },
+            onDismiss = { showDict = false },
+            onResult = { text, send ->
+                showDict = false
+                val t = (if (input.isBlank()) text else "$input $text").trim()
+                if (send) {
+                    if (t.isNotEmpty()) scope.launch { try { Api.chatPost(room.scope, t); input = ""; load() } catch (e: Exception) { error = e.message } }
+                } else {
+                    input = t
+                }
+            },
+        )
+    }
 
     // Aktions-Auswahl (Bearbeiten/Löschen) für eigene, < 1 h alte Nachrichten.
     actionMsg?.let { m ->
@@ -159,6 +178,9 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("${I18n.t("chat.placeholder")}…") }, maxLines = 3,
                 )
+                IconButton(onClick = { showDict = true }) {
+                    Icon(Icons.Filled.Mic, contentDescription = I18n.t("dict.button"), tint = MaterialTheme.colorScheme.primary)
+                }
                 IconButton(onClick = {
                     val t = input.trim()
                     if (t.isEmpty() || sending) return@IconButton

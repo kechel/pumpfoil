@@ -52,7 +52,13 @@ Mehrere Aufnahmen derselben Foil-Session zu einer verschmelzen.
   `494f26d` `d7e1ff5` `7df5cc5` `9ac7e03` `6971014` `9357b0f`.
 - Port: Compare gibt es nativ schon (`CompareView`/`CompareScreen`) → Merge-Aktion + Suggestions-Banner dort andocken.
 
-### ☐ 1.3 Sprach-Diktat im Chat (+ Feedback-Widget)
+### ✅ 1.3 Sprach-Diktat im Chat  — Android+iOS gebaut
+Umgesetzt: Mikro-Button in der Chat-Eingabe → **Vollbild-Diktat** (Kontext-Titel, „Sprich jetzt …",
+Diktattext **fett + brand-blau**, vorbestehender Text gedimmt) mit Aktionen **Abbrechen / Noch mal /
+Bearbeiten / Senden**. Spracherkennung nativ: Android `SpeechRecognizer` (Live-Partials, RECORD_AUDIO-
+Permission + `<queries>`), iOS `SFSpeechRecognizer`+`AVAudioEngine` (Info.plist: Mikro + Speech-Usage,
+iOS-16-kompatible Permission-API). Locale folgt der App-Sprache inkl. AT (de-AT) / CH (de-CH).
+Android compile-verifiziert. **Offen (optional):** Diktat auch im Feedback-Widget (nur Chat portiert).
 Web nutzt die **Web Speech API**; nativ **plattformeigene** APIs:
 iOS `SFSpeechRecognizer` + `AVAudioEngine`, Android `SpeechRecognizer`.
 - Vollbild-Overlay (weiche Brand-Farben, Diktattext fett + brand-blau), **Live-Vorschau**,

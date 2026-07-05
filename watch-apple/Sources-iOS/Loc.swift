@@ -170,6 +170,11 @@ enum Loc {
         "update.available": r("Update verfügbar", "Update verfüegbar", "Update verfügbar", "Update available", "Mise à jour disponible", "Aggiornamento disponibile", "Actualización disponible"),
         "update.action": r("Aktualisieren", "Aktualisiere", "Aktualisieren", "Update", "Mettre à jour", "Aggiorna", "Actualizar"),
         "chat.edit": r("Bearbeiten", "Bearbeite", "Bearbeitn", "Edit", "Modifier", "Modifica", "Editar"),
+        "dict.button": r("Diktieren", "Diktiere", "Diktiern", "Dictate", "Dicter", "Detta", "Dictar"),
+        "dict.listening": r("Sprich jetzt …", "Red jetz …", "Red jetz …", "Speak now …", "Parle maintenant …", "Parla ora …", "Habla ahora …"),
+        "dict.retry": r("Noch mal", "Nomol", "Nu amoi", "Again", "Encore", "Ancora", "Otra vez"),
+        "dict.edit": r("Bearbeiten", "Bearbeite", "Bearbeitn", "Edit", "Modifier", "Modifica", "Editar"),
+        "dict.permDenied": r("Mikrofon-Zugriff nötig", "Mikrofon-Zuegriff nötig", "Mikrofon-Zuagriff notwendig", "Microphone access needed", "Accès au micro requis", "Serve l'accesso al microfono", "Se necesita acceso al micrófono"),
         "chat.editHint": r("Tipp: eigene Nachrichten der letzten Stunde per langem Drücken bearbeiten oder löschen.", "Tipp: eigeni Nachrichte vo dr letschte Stund mit langem Drucke bearbeite oder lösche.", "Tipp: eigene Nochrichtn vo da letztn Stund mit langem Drückn bearbeitn oder löschn.", "Tip: long-press your own messages from the last hour to edit or delete them.", "Astuce : appuie longuement sur tes messages de la dernière heure pour les modifier ou les supprimer.", "Suggerimento: tieni premuto sui tuoi messaggi dell'ultima ora per modificarli o eliminarli.", "Consejo: mantén pulsados tus mensajes de la última hora para editarlos o eliminarlos."),
 
         "foils.search": r("Foil suchen…", "Foil sueche…", "Foil suachn…", "Search foil…", "Chercher un foil…", "Cerca foil…", "Buscar foil…"),

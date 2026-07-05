@@ -61,6 +61,7 @@ struct ChatRoomView: View {
     @State private var error: String?
     @State private var editMsg: ChatMsg?
     @State private var editText = ""
+    @State private var showDict = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -85,6 +86,7 @@ struct ChatRoomView: View {
                 TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(1...4)
+                Button { showDict = true } label: { Image(systemName: "mic.fill") }
                 Button {
                     Task { await send() }
                 } label: {
@@ -98,6 +100,17 @@ struct ChatRoomView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+        .fullScreenCover(isPresented: $showDict) {
+            DictationView(existing: draft, title: title, lang: lang) { text, send in
+                let t = (draft.isEmpty ? text : "\(draft) \(text)").trimmingCharacters(in: .whitespaces)
+                if send {
+                    draft = t
+                    Task { await self.send() }
+                } else {
+                    draft = t
+                }
+            }
+        }
         .alert(Loc.t("chat.edit", lang), isPresented: Binding(get: { editMsg != nil }, set: { if !$0 { editMsg = nil } })) {
             TextField(Loc.t("chat.placeholder", lang), text: $editText)
             Button(Loc.t("common.save", lang)) {

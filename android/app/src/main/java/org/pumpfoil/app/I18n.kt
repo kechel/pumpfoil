@@ -167,6 +167,11 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "update.available" to row("Update verfügbar", "Update verfüegbar", "Update verfügbar", "Update available", "Mise à jour disponible", "Aggiornamento disponibile", "Actualización disponible"),
     "update.action" to row("Aktualisieren", "Aktualisiere", "Aktualisieren", "Update", "Mettre à jour", "Aggiorna", "Actualizar"),
     "chat.edit" to row("Bearbeiten", "Bearbeite", "Bearbeitn", "Edit", "Modifier", "Modifica", "Editar"),
+    "dict.button" to row("Diktieren", "Diktiere", "Diktiern", "Dictate", "Dicter", "Detta", "Dictar"),
+    "dict.listening" to row("Sprich jetzt …", "Red jetz …", "Red jetz …", "Speak now …", "Parle maintenant …", "Parla ora …", "Habla ahora …"),
+    "dict.retry" to row("Noch mal", "Nomol", "Nu amoi", "Again", "Encore", "Ancora", "Otra vez"),
+    "dict.edit" to row("Bearbeiten", "Bearbeite", "Bearbeitn", "Edit", "Modifier", "Modifica", "Editar"),
+    "dict.permDenied" to row("Mikrofon-Zugriff nötig", "Mikrofon-Zuegriff nötig", "Mikrofon-Zuagriff notwendig", "Microphone access needed", "Accès au micro requis", "Serve l'accesso al microfono", "Se necesita acceso al micrófono"),
     "chat.editHint" to row("Tipp: eigene Nachrichten der letzten Stunde per langem Drücken bearbeiten oder löschen.", "Tipp: eigeni Nachrichte vo dr letschte Stund mit langem Drucke bearbeite oder lösche.", "Tipp: eigene Nochrichtn vo da letztn Stund mit langem Drückn bearbeitn oder löschn.", "Tip: long-press your own messages from the last hour to edit or delete them.", "Astuce : appuie longuement sur tes messages de la dernière heure pour les modifier ou les supprimer.", "Suggerimento: tieni premuto sui tuoi messaggi dell'ultima ora per modificarli o eliminarli.", "Consejo: mantén pulsados tus mensajes de la última hora para editarlos o eliminarlos."),
 
     "foils.search" to row("Foil suchen…", "Foil sueche…", "Foil suachn…", "Search foil…", "Chercher un foil…", "Cerca foil…", "Buscar foil…"),
