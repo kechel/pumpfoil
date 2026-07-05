@@ -5,7 +5,7 @@ import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
-type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "audit" | "feedback";
+type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["flagged", "adm.tab.flagged"],
@@ -13,6 +13,7 @@ const TABS: [Tab, string][] = [
   ["users", "adm.tab.users"],
   ["photos", "adm.tab.photos"],
   ["chat", "adm.tab.chat"],
+  ["spots", "adm.tab.spots"],
   ["sessions", "adm.tab.sessions"],
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
@@ -47,6 +48,7 @@ export default function Admin() {
       {tab === "users" && <UsersTab />}
       {tab === "photos" && <PhotosTab />}
       {tab === "chat" && <ChatModTab />}
+      {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "audit" && <AuditTab />}
     </div>
@@ -496,6 +498,56 @@ function AuditTab() {
           <span className="text-slate-400">{a.target_type}#{a.target_id}{a.detail ? ` (${a.detail})` : ""}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function SpotsTab() {
+  const t = useT();
+  const { data, error, reload } = useAsync(() => api.adminSpots(), []);
+  const [sel, setSel] = useState<Set<number>>(new Set());
+  const [into, setInto] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (error) return <ErrorBox message={error} />;
+  if (!data) return <Spinner />;
+  const selIds = [...sel];
+  const toggle = (id: number) => setSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  async function merge() {
+    if (into == null || selIds.filter((i) => i !== into).length === 0) return;
+    setBusy(true);
+    try { await api.adminMergeSpots(into, selIds); setSel(new Set()); setInto(null); reload(); }
+    finally { setBusy(false); }
+  }
+  async function rename(id: number, cur: string | null) {
+    const name = prompt(t("adm.spot.renamePrompt"), cur ?? "");
+    if (name == null || !name.trim()) return;
+    await api.adminRenameSpot(id, name.trim()); reload();
+  }
+  return (
+    <div>
+      {selIds.length >= 2 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-800 p-2 text-sm">
+          <span>{t("adm.spot.mergeSel", { n: selIds.length })}</span>
+          <select value={into ?? ""} onChange={(e) => setInto(e.target.value ? Number(e.target.value) : null)}
+            className="rounded bg-slate-900 px-2 py-1 text-slate-100">
+            <option value="">{t("adm.spot.mergeTarget")}</option>
+            {selIds.map((id) => <option key={id} value={id}>{data.find((s) => s.id === id)?.name ?? id}</option>)}
+          </select>
+          <button onClick={merge} disabled={busy || into == null}
+            className="rounded bg-brand-500 px-3 py-1 font-semibold text-slate-950 disabled:opacity-50">{t("adm.spot.merge")}</button>
+        </div>
+      )}
+      <div className="space-y-1">
+        {data.map((s) => (
+          <div key={s.id} className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm">
+            <input type="checkbox" checked={sel.has(s.id)} onChange={() => toggle(s.id)} className="accent-brand-500" />
+            <span className="min-w-0 truncate font-medium">{s.name ?? "—"}</span>
+            <span className="shrink-0 text-xs text-slate-500">#{s.id} · {s.name_source ?? "?"}{s.water ? ` · ${s.water}` : ""}</span>
+            <span className="ml-auto shrink-0 tabular-nums text-slate-400">{s.sessions}</span>
+            <button onClick={() => rename(s.id, s.name)} className="shrink-0 rounded bg-slate-800 px-2 py-1 text-xs hover:bg-slate-700">{t("adm.spot.rename")}</button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

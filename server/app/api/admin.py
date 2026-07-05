@@ -471,3 +471,84 @@ def delete_feedback(feedback_id: int, _a: models.User = Depends(current_admin), 
     db.delete(fb)
     db.commit()
     return {"ok": True}
+
+
+# ------------------------------------------------------------------- Spots ----
+@router.get("/spots")
+def list_spots(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
+    """Alle (nicht zusammengeführten) Spots + Session-Zahl — zum Einsehen/Mergen."""
+    rows = db.query(models.Spot).filter(models.Spot.merged_into.is_(None)).order_by(models.Spot.name).all()
+    out = []
+    for sp in rows:
+        n = (db.query(func.count()).select_from(models.Session)
+             .filter(models.Session.spot_id == sp.id, models.Session.deleted.isnot(True)).scalar() or 0)
+        out.append({"id": sp.id, "name": sp.name, "name_source": sp.name_source,
+                    "water": sp.water_name, "lat": sp.lat, "lon": sp.lon, "sessions": int(n)})
+    return out
+
+
+@router.post("/spots/merge")
+def merge_spots(body: dict, admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Spots zusammenführen: alle Quell-Spots -> Ziel-Spot (into). Sessions umgehängt
+    (spot_id + place_name/place_water = Ziel), Quell-Spots als merged_into markiert,
+    Ziel-Polygon vereinigt."""
+    from shapely import wkt as _wkt
+    from shapely.ops import unary_union
+    into = body.get("into")
+    frm = [int(x) for x in (body.get("from") or []) if str(x).isdigit() and int(x) != int(into)]
+    target = db.get(models.Spot, int(into)) if str(into).isdigit() else None
+    if target is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Ziel-Spot nicht gefunden")
+    polys = [target.poly_wkt] if target.poly_wkt else []
+    moved = 0
+    for sid in frm:
+        sp = db.get(models.Spot, sid)
+        if sp is None or sp.merged_into is not None:
+            continue
+        (db.query(models.Session).filter(models.Session.spot_id == sid)
+         .update({models.Session.spot_id: target.id, models.Session.place_name: target.name,
+                  models.Session.place_water: target.water_name}))
+        if sp.poly_wkt:
+            polys.append(sp.poly_wkt)
+        sp.merged_into = target.id
+        moved += 1
+    if len(polys) > 1:
+        try:
+            target.poly_wkt = unary_union([_wkt.loads(p) for p in polys]).wkt
+        except Exception:  # noqa: BLE001
+            pass
+    _log(db, admin, "spot_merge", "spot", target.id, f"from={frm}")
+    db.commit()
+    return {"ok": True, "into": target.id, "merged": moved}
+
+
+@router.post("/spots/{spot_id}/rename")
+def rename_spot(spot_id: int, name: str = Query(...),
+                admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Spot umbenennen (manuell). Kaskadiert place_name auf alle Sessions und migriert
+    Chat-Scope + Homespot vom alten auf den neuen Namen (Name ist kanonisch)."""
+    sp = db.get(models.Spot, spot_id)
+    if sp is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot nicht gefunden")
+    old, new = sp.name, (name or "").strip()[:120]
+    if not new:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Name leer")
+    sp.name, sp.name_source = new, "manual"
+    (db.query(models.Session).filter(models.Session.spot_id == spot_id)
+     .update({models.Session.place_name: new}))
+    if old and old != new:
+        for m in (models.ChatMessage, models.ChatRoomState):
+            db.query(m).filter(m.scope == f"spot:{old}").update({m.scope: f"spot:{new}"})
+        # Homespot-Einstellungen, die auf den alten Namen zeigen, mitziehen (kleine Tabelle).
+        import json as _json
+        for u in db.query(models.User).filter(models.User.settings_json.isnot(None)).all():
+            try:
+                st = _json.loads(u.settings_json)
+            except ValueError:
+                continue
+            if st.get("homespot") == old:
+                st["homespot"] = new
+                u.settings_json = _json.dumps(st)
+    _log(db, admin, "spot_rename", "spot", spot_id, f"{old!r}->{new!r}")
+    db.commit()
+    return {"ok": True, "name": new}

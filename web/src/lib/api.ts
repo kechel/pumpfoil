@@ -534,6 +534,9 @@ export const api = {
   mlTrain: () => req<any>("/api/ml/train", { method: "POST" }),
   appDevices: () => req<AppDevice[]>("/api/app/devices"),
   adminOverview: () => req<AdminOverview>("/api/admin/overview"),
+  adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
+  adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
+  adminRenameSpot: (id: number, name: string) => req<{ ok: boolean; name: string }>(`/api/admin/spots/${id}/rename?name=${encodeURIComponent(name)}`, { method: "POST" }),
   adminFlagged: () => req<AdminSession[]>("/api/admin/flagged"),
   adminSessions: (scope: "all" | "flagged" | "fake" | "deleted" = "all",
                   opts: { limit?: number; offset?: number; q?: string; userId?: number } = {}) => {
