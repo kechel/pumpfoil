@@ -39,6 +39,11 @@ enum Api {
         return r.access_token
     }
 
+    static func submitFeedback(_ text: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/feedback", method: "POST", body: ["text": text, "url": "ios-app"], auth: true)
+    }
+
     static func forgotPassword(_ email: String) async throws {
         struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/auth/forgot-password", method: "POST", body: ["email": email], auth: false)

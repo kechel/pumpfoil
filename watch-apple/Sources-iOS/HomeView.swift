@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var updateURL = ""
     @State private var updateDismissed = false
     @State private var community: Api.CommunityStats?
+    @State private var showFeedback = false
     @AppStorage("foil_banner_v1") private var bannerDismissed = false
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
@@ -113,6 +114,12 @@ struct HomeView: View {
             }
             .navigationTitle(Loc.t("nav.home", lang))
             .brandToolbar(Loc.t("nav.home", lang))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showFeedback = true } label: { Image(systemName: "exclamationmark.bubble.fill") }
+                }
+            }
+            .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
             .overlay { if loading && stats == nil { ProgressView() } }
             .refreshable { await load() }
             .task { await load() }
