@@ -95,6 +95,76 @@ def find_pumps_local(filt_run: np.ndarray, fs: float,
     return np.array(sorted(taken), dtype=int)
 
 
+# --- v3: kadenz-gefuehrtes Peak-Picking (gegen echte Pump-Wahrheit kalibriert) ---
+# find_pumps_local (Amplituden-Schwelle) unter-erkennt strukturell ~2x: es pickt nur die
+# groessten Peaks und verschluckt kleinere rhythmische Pumps dazwischen. Gegen die
+# run_pumps-Wahrheit der Label-App UND Jans Video-Tap-Labels (pump_truth) trifft eine
+# kadenz-gefuehrte Suche ~85-94 % (statt ~40 %): in rhythmischen, energiereichen Abschnitten
+# die LOKALE Pump-Kadenz schaetzen und pro Periode das ECHTE lokale Maximum als Pump waehlen
+# -> Count UND echte Positionen (Marker=Count konsistent). Params getunt in
+# scripts/pump_cadence_peaks.py. Physische Endkalibrierung spaeter via Insta360 X5.
+PUMP_CAD_WIN_S = 4.0            # Fenster fuer die lokale Kadenz-Schaetzung (s)
+PUMP_CAD_BAND = (0.8, 2.0)     # plausible Pump-Kadenz (Hz)
+PUMP_CAD_GATE = 0.02           # RMS-Gate: rhythmisch+energiereich (g, bandpass)
+
+
+def _dom_pump_freq(seg: np.ndarray, fs: float, blo: float, bhi: float) -> float:
+    """Dominante Frequenz im Pump-Band (Hz) via FFT-Peak; 0.0 wenn keins."""
+    if seg.size < fs:
+        return 0.0
+    w = seg * np.hanning(seg.size)
+    sp = np.abs(np.fft.rfft(w))
+    fr = np.fft.rfftfreq(seg.size, 1.0 / fs)
+    band = (fr >= blo) & (fr <= bhi)
+    if not band.any():
+        return 0.0
+    return float(fr[band][np.argmax(sp[band])])
+
+
+def find_pumps_cadence(filt_run: np.ndarray, fs: float, win_s: float = PUMP_CAD_WIN_S,
+                       band: tuple = PUMP_CAD_BAND, rms_gate: float = PUMP_CAD_GATE) -> np.ndarray:
+    """Kadenz-gefuehrtes Peak-Picking: ein echter Peak je Pump-Periode in rhythmischen,
+    energiereichen Abschnitten. Lokal adaptive Kadenz -> folgt Tempowechseln. Gibt
+    Pump-Positionen (Indizes relativ zum Lauf) zurueck. Ersetzt find_pumps_local."""
+    sig = np.asarray(filt_run, dtype=float)
+    n = sig.size
+    blo, bhi = band
+    if n < fs:
+        return np.empty(0, dtype=int)
+    w = max(int(round(win_s * fs)), 1)
+    hop = max(int(round(0.5 * fs)), 1)
+    # rhythmisch+energiereich: gleitendes RMS >= gate
+    rms_ok = np.zeros(n, dtype=bool)
+    for pos in range(0, n, hop):
+        seg = sig[pos:pos + w]
+        if seg.size >= fs and float(np.sqrt(np.mean(seg * seg))) >= rms_gate:
+            rms_ok[pos:min(pos + hop, n)] = True
+    peaks: list[int] = []
+    i = 0
+    while i < n:
+        if not rms_ok[i]:
+            i += 1
+            continue
+        j = i
+        while j < n and rms_ok[j]:
+            j += 1
+        if j - i >= fs:               # rhythmische Region: pro Kadenz-Periode ein Peak
+            pos = i
+            while pos < j:
+                lo = max(pos - w // 2, i)
+                hi = min(pos + w // 2, j)
+                f = _dom_pump_freq(sig[lo:hi], fs, blo, bhi)
+                if f <= 0:
+                    break
+                T = max(int(round(fs / f)), 1)
+                seg = sig[pos:min(pos + T, j)]
+                if seg.size > 0:
+                    peaks.append(pos + int(np.argmax(seg)))
+                pos += T
+        i = j
+    return np.array(sorted(set(peaks)), dtype=int)
+
+
 def count_pumps(mag: np.ndarray, fs: float, mask: np.ndarray | None = None) -> int:
     """Anzahl Pumps. Optional nur innerhalb mask (z. B. Foiling-Phasen) zählen."""
     if mag.size == 0:

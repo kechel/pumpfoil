@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from .. import models, storage
 from ..ml.features import magnitude_g, bandpass_fft, vertical_against_gravity, FILTER_BAND
-from ..ml.pumps import analyze_accel, find_pumps_local
+from ..ml.pumps import analyze_accel, find_pumps_cadence
 from .gps import analyze_gps
 
 # Eine Pump-Frequenz (max/min) ist erst ab genügend Pumps aussagekräftig. Sehr kurze
@@ -198,9 +198,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         mask = _foiling_mask_for_accel(res["segments"], accel.shape[0], session.accel_hz)
         accel_res = analyze_accel(accel, session.accel_scale, fs, foiling_mask=mask)
         # Pumps + Gleitphasen pro Segment (Glide = Lücke zwischen zwei Pump-Impulsen).
-        # v2: Pump-Peaks auf dem VERTIKALEN Signal gegen die Schwerkraft (Aufwärts-Push),
-        # mit LAUF-lokaler Schwelle (find_pumps_local) — robuster gegen Orientierung der
-        # Uhr und gegen das Verschlucken glatter Läufe durch eine globale Schwelle.
+        # v3: Pump-Peaks auf dem VERTIKALEN Signal gegen die Schwerkraft, KADENZ-geführt
+        # (find_pumps_cadence): pro lokaler Pump-Periode ein echter Peak. Gegen echte
+        # Wahrheit (App-run_pumps + Jans Video-Taps) kalibriert; die alte Amplituden-
+        # Schwelle (find_pumps_local) unter-erkannte ~2x (verschluckte kleine Pumps).
         mag = magnitude_g(accel, session.accel_scale)
         vsig = bandpass_fft(vertical_against_gravity(accel, session.accel_scale, fs), fs, *FILTER_BAND)
         t_ms = np.arange(mag.size) / fs * 1000.0
@@ -211,7 +212,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         for seg in res["segments"]:
             a_lo = max(int(round(seg["t_start_ms"] / 1000.0 * fs)), 0)
             a_hi = min(int(round(seg["t_end_ms"] / 1000.0 * fs)), vsig.size)
-            local_idx = find_pumps_local(vsig[a_lo:a_hi], fs) if a_hi > a_lo else np.empty(0, dtype=int)
+            local_idx = find_pumps_cadence(vsig[a_lo:a_hi], fs) if a_hi > a_lo else np.empty(0, dtype=int)
             pts = (a_lo + local_idx) / fs * 1000.0
             seg["pumps"] = int(pts.size)
             # Pump-Positionen als Track-Index (für ein-/ausblendbare Marker auf der Karte).
