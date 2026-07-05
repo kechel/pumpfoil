@@ -687,10 +687,14 @@ def get_session(
 @router.get("/{session_id}/share.png")
 def share_card(
     session_id: int,
+    color: str = "cyan",
+    stats: str | None = None,
+    bg: str = "navy",
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
-    """Teilbare Social-Media-Card (PNG) der Session — Track + Stats + Logo."""
+    """Teilbare Social-Media-Card (PNG). color=cyan|speed|hr, stats=komma-Keys,
+    bg=navy|transparent (transparent = nur Elemente, fuers Foto-Compositing im Client)."""
     from fastapi.responses import Response
     from .. import sharecard
 
@@ -700,6 +704,7 @@ def share_card(
     ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
     if ar is None or not ar.track_geojson:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Track-Daten")
+    stat_keys = [k for k in (stats.split(",") if stats else []) if k] or None
     # Wasser-Silhouette aus dem Cache (kein Netz): grid_key aus Track-Median
     rings = None
     try:
@@ -711,7 +716,7 @@ def share_card(
             rings = json.loads(wp.rings_json) if (wp and wp.rings_json) else None
     except Exception:
         rings = None
-    png = sharecard.render_share_png(s, ar, rings)
+    png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg)
     return Response(content=png, media_type="image/png",
                     headers={"Cache-Control": "private, max-age=300"})
 

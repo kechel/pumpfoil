@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
-import { api, getToken, SessionSummary, SessionSocial as SocialData } from "../lib/api";
+import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
+import { ShareDialog } from "../components/ShareDialog";
 import { FoilSelect } from "../components/FoilSelect";
 import { invalidateSessionListCache } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
@@ -54,14 +55,14 @@ function ytId(url: string | null | undefined): string {
   }
 }
 
-function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMeta }: {
+function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMeta, analysis }: {
   sessionId: number; owned: boolean; ownerName: string | null; ownerAvatar: string | null;
-  youtubeUrl: string | null; onMeta: (s: SessionSummary) => void;
+  youtubeUrl: string | null; onMeta: (s: SessionSummary) => void; analysis: any;
 }) {
   const t = useT();
   const [s, setS] = useState<SocialData | null>(null);
   const [busy, setBusy] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [lb, setLb] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [ytOpen, setYtOpen] = useState(false);
@@ -91,30 +92,6 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
 
   const like = () =>
     api.toggleLike(sessionId).then((r) => setS((p) => (p ? { ...p, liked: r.liked, like_count: r.like_count } : p))).catch(() => {});
-
-  // Teilbare Session-Card (server-generiertes PNG) holen und via Web-Share teilen
-  // (mobil: nativer Share-Sheet) bzw. herunterladen (Desktop-Fallback).
-  const shareCard = async () => {
-    setSharing(true);
-    try {
-      const tok = getToken();
-      const res = await fetch(`/api/sessions/${sessionId}/share.png`, {
-        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
-      });
-      if (!res.ok) throw new Error("share");
-      const blob = await res.blob();
-      const file = new File([blob], `pumpfoil-${sessionId}.png`, { type: "image/png" });
-      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
-      if (nav.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: "pumpfoil.org" } as ShareData);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch { /* abgebrochen/Fehler -> ignorieren */ }
-    finally { setSharing(false); }
-  };
   const vote = (kind: "fake" | "inappropriate") =>
     api.toggleVote(sessionId, kind).then((r) => setS((p) => (p ? { ...p, ...r } : p))).catch(() => {});
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,12 +165,12 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           <HeartIcon className="h-4 w-4" filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
         <button
-          onClick={shareCard}
-          disabled={sharing}
-          className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+          onClick={() => setShareOpen(true)}
+          className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
         >
-          <ShareIcon className="h-4 w-4" /> {sharing ? t("common.loading") : t("sd.share")}
+          <ShareIcon className="h-4 w-4" /> {t("sd.share")}
         </button>
+        {shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} onClose={() => setShareOpen(false)} />}
         {owned && (
           <>
             <button
@@ -1002,6 +979,7 @@ export default function SessionDetail() {
           ownerAvatar={session.owner_avatar_url ?? null}
           youtubeUrl={session.youtube_url ?? null}
           onMeta={setSession}
+          analysis={session.analysis}
         />
       </div>
 
