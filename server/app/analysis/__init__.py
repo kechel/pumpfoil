@@ -26,6 +26,11 @@ GPS_ONLY_SPORTS = {
 }
 
 
+# Accel-Modell ist auf ~25 Hz trainiert; darunter (z. B. FR55 real ~2,5 Hz) sind die
+# frequenzbasierten Features + Pump-Kadenz unbrauchbar -> als gps_only auswerten.
+MODEL_MIN_ACCEL_HZ = 15.0
+
+
 def _gps_only_ok(sport) -> bool:
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
@@ -128,6 +133,16 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     gps_samples = storage.load_gps(session.session_uuid)
     accel = storage.load_accel(session.session_uuid)
 
+    # Effektive Accel-Rate GENERISCH aus den Daten bestimmen (quellen-unabhängig): manche Uhren
+    # liefern eine andere Rate als getaggt (FR55: real ~2,5 statt 10 Hz). Da die Accel während der
+    # Aufnahme durchläuft, ist samples/GPS-Dauer die wahre Rate. Weicht sie deutlich vom Tag ab,
+    # diese verwenden. (Bestätigt via Korrelation Accel-Aktivität↔GPS-Speed über die ganze Session.)
+    accel_hz = float(session.accel_hz)
+    if accel.shape[0] > 0 and gps_samples and gps_samples[-1][0] > 0 and session.accel_hz:
+        real_hz = accel.shape[0] / (gps_samples[-1][0] / 1000.0)
+        if abs(real_hz - session.accel_hz) / session.accel_hz > 0.25:
+            accel_hz = round(real_hz, 2)
+
     # Optionaler Zuschnitt: nur [trim_start_ms, trim_end_ms] auswerten (ms ab Start).
     # GPS aufs Fenster filtern + auf 0 re-basen, Accel index-gleich zuschneiden
     # (gleiche Zeitbasis, accel_hz) -> alle nachfolgenden Berechnungen sehen nur den Teil.
@@ -137,19 +152,22 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         hi = ts1 if ts1 is not None else gps_samples[-1][0]
         gps_samples = [[s[0] - lo] + list(s[1:]) for s in gps_samples if lo <= s[0] <= hi]
         if accel.shape[0] > 0:
-            a_lo = max(int(round(lo / 1000.0 * session.accel_hz)), 0)
-            a_hi = min(int(round(hi / 1000.0 * session.accel_hz)), accel.shape[0])
+            a_lo = max(int(round(lo / 1000.0 * accel_hz)), 0)
+            a_hi = min(int(round(hi / 1000.0 * accel_hz)), accel.shape[0])
             accel = accel[a_lo:a_hi] if a_hi > a_lo else accel[0:0]
+
+    # Accel nur nutzen, wenn die (effektive) Rate hoch genug fürs Modell ist — sonst wie gps_only.
+    accel_usable = accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ
 
     # Foiling-Maske: ML-Modell (GPS+Accel), Fallback = GPS-Heuristik in analyze_gps.
     from .foil_model import detect_jumps, predict_foiling_mask
 
-    if accel.shape[0] > 0:
+    if accel_usable:
         mask_override = predict_foiling_mask(
-            gps_samples, accel, float(session.accel_hz), session.accel_scale
+            gps_samples, accel, accel_hz, session.accel_scale
         )
         # Präziser Start: nur starke Aufsprung-Impulse (Jump) zum Snappen verwenden.
-        impulses = detect_jumps(accel, float(session.accel_hz), session.accel_scale)
+        impulses = detect_jumps(accel, accel_hz, session.accel_scale)
         detection = "model"
     elif _gps_only_ok(session.sport):
         # Wassersport-FIT ohne Beschleunigung (z. B. Surf-Modus): nur grobe GPS-
@@ -175,6 +193,8 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         water_rings=water_rings,
     )
     res.setdefault("metrics", {})["detection"] = detection
+    if accel.shape[0] > 0:
+        res["metrics"]["accel_hz_effective"] = round(accel_hz, 2)   # tatsächliche Rate (kann != getaggt)
     # Pumpfoil-Klassifikation:
     #  - mit Accel (model): der Pump/On-Foil-Erkennung vertrauen -> Foil-Läufe genügen.
     #  - ohne Accel (gps_only): zusätzlich Speed-Gate (<=30 km/h), da GPS allein unsicherer;
@@ -193,9 +213,9 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
 
     # Accel-Analyse (Pump-Count nur innerhalb der Foiling-Segmente).
     accel_res = None
-    if accel.shape[0] > 0:
-        fs = float(session.accel_hz)
-        mask = _foiling_mask_for_accel(res["segments"], accel.shape[0], session.accel_hz)
+    if accel_usable:
+        fs = accel_hz
+        mask = _foiling_mask_for_accel(res["segments"], accel.shape[0], accel_hz)
         accel_res = analyze_accel(accel, session.accel_scale, fs, foiling_mask=mask)
         # Pumps + Gleitphasen pro Segment (Glide = Lücke zwischen zwei Pump-Impulsen).
         # v3: Pump-Peaks auf dem VERTIKALEN Signal gegen die Schwerkraft, KADENZ-geführt
