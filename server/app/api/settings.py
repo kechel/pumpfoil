@@ -70,8 +70,12 @@ def _clean_views(views) -> list | None:
 
 
 @router.get("")
-def get_settings(user: models.User = Depends(current_user)) -> dict:
-    return _merged(user)
+def get_settings(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    m = _merged(user)
+    # Homespot ist namensbasiert (mit Apps geteilt); zusätzlich die spot_id für neue Clients.
+    from ..spots import spot_id_by_name
+    m["homespot_id"] = spot_id_by_name(db, m["homespot"]) if m.get("homespot") else None
+    return m
 
 
 @router.put("")
@@ -97,7 +101,12 @@ def update_settings(
         current["record_mode"] = patch["record_mode"]
     if "homespot" in patch:
         v = patch["homespot"]
-        current["homespot"] = str(v)[:120] if isinstance(v, str) else ""
+        # id ODER Name akzeptieren -> kanonisch als Name speichern (mit Apps geteilt).
+        if v in (None, ""):
+            current["homespot"] = ""
+        else:
+            from ..spots import canon_spot_name
+            current["homespot"] = str(canon_spot_name(db, v))[:120]
     if "weight_kg" in patch:
         try:
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))

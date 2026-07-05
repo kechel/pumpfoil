@@ -573,7 +573,8 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
                  models.Session.id, models.Session.started_at)
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
-                models.Session.place_name == spot)
+                (models.Session.spot_id == int(spot)) if str(spot).isdigit()
+                else (models.Session.place_name == spot))
         .order_by(models.Session.started_at.asc()).all()
     )
     out = []

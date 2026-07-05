@@ -92,6 +92,15 @@ def _check_scope(scope: str) -> None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger Chat-scope")
 
 
+def _canon_scope(db: Session, scope: str) -> str:
+    """Spot-Scope kanonisieren: `spot:<id>` -> `spot:<name>` (kanonisch = Name), damit
+    App (Name) und PWA (id) im SELBEN Raum landen. Andere Scopes unverändert."""
+    if scope and scope.startswith("spot:"):
+        from ..spots import canon_spot_name
+        return "spot:" + canon_spot_name(db, scope[5:])
+    return scope
+
+
 class PostIn(BaseModel):
     text: str
 
@@ -116,6 +125,7 @@ def list_messages(
     - after=<id>: alle Nachrichten neuer als id (Polling).
     - before=<id>: die `limit` Nachrichten direkt vor id (Hochscroll-Nachladen)."""
     _check_scope(scope)
+    scope = _canon_scope(db, scope)
     lim = min(max(limit, 1), 100)
     q = (
         db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
@@ -148,6 +158,7 @@ def post_message(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     _check_scope(scope)
+    scope = _canon_scope(db, scope)
     if user.chat_readonly:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
     text = (body.text or "").strip()
@@ -366,6 +377,7 @@ def mark_read(
 ) -> dict:
     """Lesestand setzen (Chat-Komponente meldet die höchste gesehene id)."""
     _check_scope(body.scope)
+    body.scope = _canon_scope(db, body.scope)
     st = _state(db, user.id, body.scope)
     if st.last_read_id is None or body.up_to > st.last_read_id:
         st.last_read_id = body.up_to
@@ -381,6 +393,7 @@ def leave_room(
 ) -> dict:
     """Chatraum verlassen — taucht nicht mehr in „meine Chats"/Unread auf."""
     _check_scope(scope)
+    scope = _canon_scope(db, scope)
     st = _state(db, user.id, scope)
     st.left = True
     st.push = False
@@ -400,6 +413,7 @@ def subscribe_room(
 ) -> dict:
     """Push-Benachrichtigung für neue Nachrichten in diesem Raum an/aus."""
     _check_scope(body.scope)
+    body.scope = _canon_scope(db, body.scope)
     st = _state(db, user.id, body.scope)
     st.push = bool(body.on)
     if body.on:
@@ -415,6 +429,7 @@ def room_state(
 ) -> dict:
     """Status des aktuellen Raums für den Nutzer (Abo/verlassen/Lesestand)."""
     _check_scope(scope)
+    scope = _canon_scope(db, scope)
     st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
     return {
         "scope": scope,

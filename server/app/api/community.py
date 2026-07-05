@@ -33,6 +33,12 @@ S = models.Session
 U = models.User
 NAME = owner_label_sql(U)  # display_name mit Fallback "User #<id>"
 
+
+def _spot_cond(spot: str):
+    """Filter für den spot-Param: numerisch -> spot_id (neue Clients/PWA), sonst
+    place_name (Rückwärtskompat für released Apps). Namen sind eindeutig -> korrekt."""
+    return S.spot_id == int(spot) if str(spot).isdigit() else S.place_name == spot
+
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
 REC_COL = {
     "distance": (AR.best_distance_m, AR.best_distance_idx),
@@ -112,7 +118,7 @@ def community_sessions(
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
-        q = q.filter(S.place_name == spot)
+        q = q.filter(_spot_cond(spot))
     rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     return _attach_social(db, user, [_brief(*r) for r in rows])
 
@@ -123,7 +129,7 @@ def spot_sessions(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        _community(db.query(*BRIEF_COLS), user.id, accel_only).filter(S.place_name == spot)
+        _community(db.query(*BRIEF_COLS), user.id, accel_only).filter(_spot_cond(spot))
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
@@ -139,7 +145,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
-        q = q.filter(S.place_name == spot)
+        q = q.filter(_spot_cond(spot))
     row = q.order_by(valcol.desc()).first()
     if row is None:
         return {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None, "name": None, "avatar_url": None, "spot": None, "track_preview": None}
@@ -296,24 +302,26 @@ def spot_weather_endpoint(
 ) -> dict:
     """Wetter (heute/morgen/übermorgen + aktuell) und nächster Pegel für einen Spot.
     Koordinaten = Mittel der community-sichtbaren Sessions an diesem Spot."""
+    from ..spots import canon_spot_name
+    name = canon_spot_name(db, spot)   # id ODER Name -> kanonischer Name (Cache/Wassertemp teilen)
     now = time.monotonic()
     with _wx_lock:
-        hit = _wx_cache.get(spot)
+        hit = _wx_cache.get(name)
         if hit and now - hit[0] < _WX_TTL:
             return hit[1]
     # Koordinaten aus ALLEN Sessions am Spot (Ort ist nicht community-sensitiv) —
     # auch GPS-only/eigene zählen, damit das Widget überall greift.
     row = (
         db.query(func.avg(S.place_lat), func.avg(S.place_lon))
-        .filter(S.place_name == spot, S.place_lat.isnot(None), S.deleted.isnot(True)).first()
+        .filter(_spot_cond(spot), S.place_lat.isnot(None), S.deleted.isnot(True)).first()
     )
     if not row or row[0] is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
     data = spot_weather(float(row[0]), float(row[1]))
     # Spotspezifische Wassertemperatur (z. B. Illmensee/db0wv) — None, wenn keine Quelle.
-    data["water"] = spot_water_temp(spot)
+    data["water"] = spot_water_temp(name)
     with _wx_lock:
-        _wx_cache[spot] = (now, data)
+        _wx_cache[name] = (now, data)
     return data
 
 

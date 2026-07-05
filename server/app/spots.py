@@ -177,6 +177,31 @@ def rebuild_all(db, apply: bool = False):
     return {"spots": len(spots), "multi_spot_sessions": n_multi, "detail": report}
 
 
+def spot_name_by_id(db, sid) -> str | None:
+    from . import models
+    row = db.get(models.Spot, int(sid)) if str(sid).isdigit() else None
+    return row.name if row else None
+
+
+def spot_id_by_name(db, name: str) -> int | None:
+    from . import models
+    row = (db.query(models.Spot)
+           .filter(models.Spot.name == name, models.Spot.merged_into.is_(None)).first())
+    return row.id if row else None
+
+
+def canon_spot_name(db, ref) -> str:
+    """Kanonischer Spot-NAME aus id ODER Name (austauschbar). Kanonisch = Name (eindeutig),
+    da bestehende Daten (Chat-Scopes, Homespot) namensbasiert sind -> keine Migration nötig.
+    Unauflösbare id/Name werden unverändert zurückgegeben."""
+    if ref is None:
+        return ref
+    ref = str(ref)
+    if ref.isdigit():
+        return spot_name_by_id(db, ref) or ref
+    return ref
+
+
 def _unique_name(db, name: str, exclude_id: int | None = None) -> str:
     """Macht einen Spot-Namen eindeutig (zwei echte Spots, gleicher Ort -> „X", „X 2" …),
     damit die String-basierte Gruppierung nicht zwei Spots verschmilzt."""
