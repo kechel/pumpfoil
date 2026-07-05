@@ -41,6 +41,8 @@ nach `app-icons/`. Nach Änderungen an `master/base/` einfach neu laufen lassen.
 | **COROS** | `app-icons/coros/pumpfoil-102.png`, `pumpfoil-144.png` | 102 / 144 |
 | **Zepp / Amazfit** | `app-icons/zepp-240-round.png` | 240 rund |
 | **YouTube** | `social/youtube-banner-2560x1440.png` (+ `.svg`) | 2560×1440 |
+| **YouTube-Overlay** | `social/youtube-overlay-1080x1920.png` | 1080×1920 (9:16) |
+| **YouTube-Short-Outro** | `social/youtube-outro.html` (fullscreen abspielen + abfilmen; `R`/Reload = Neustart) | 9:16, schwarzer BG |
 | **Instagram / Avatar** | `logo/logo-icon-light.png` (Kreis-Icon) | 1024 |
 
 ## App-Icon-Master → in den Projekten eingebettet
