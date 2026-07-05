@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -80,48 +81,55 @@ fun MainScaffold(onLogout: () -> Unit) {
     Scaffold(
         bottomBar = {
             if (route in TOP_LEVEL) {
+                val navColors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 NavigationBar {
                     NavigationBarItem(
                         selected = route == "home", onClick = { nav.switchTab("home") },
                         icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                        label = { Text(I18n.t("nav.home")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.home")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "community", onClick = { nav.switchTab("community") },
                         icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
-                        label = { Text(I18n.t("nav.community")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.community")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "sessions", onClick = { nav.switchTab("sessions") },
                         icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                        label = { Text(I18n.t("nav.sessions")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.sessions")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "verlauf", onClick = { nav.switchTab("verlauf") },
                         icon = { Icon(Icons.Filled.ShowChart, contentDescription = null) },
-                        label = { Text(I18n.t("nav.history")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.history")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "spots", onClick = { nav.switchTab("spots") },
                         icon = { Icon(Icons.Filled.Place, contentDescription = null) },
-                        label = { Text(I18n.t("nav.spots")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.spots")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "chat", onClick = { nav.switchTab("chat") },
                         icon = { Icon(Icons.Filled.Forum, contentDescription = null) },
-                        label = { Text(I18n.t("nav.chat")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.chat")) }, alwaysShowLabel = false, colors = navColors,
                     )
                     NavigationBarItem(
                         selected = route == "profile", onClick = { nav.switchTab("profile") },
                         icon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        label = { Text(I18n.t("nav.profile")) }, alwaysShowLabel = false,
+                        label = { Text(I18n.t("nav.profile")) }, alwaysShowLabel = false, colors = navColors,
                     )
                 }
             }
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }) }
+            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }) }
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onRecords = { nav.navigate("records") }) }
             composable("records") { CommunityRecordsScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }

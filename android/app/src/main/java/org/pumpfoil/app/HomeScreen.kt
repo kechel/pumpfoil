@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,7 +55,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
+fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
@@ -143,7 +145,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 val hello = profile?.displayName?.takeIf { it.isNotBlank() }
                     ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
                 Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-                FilledTonalButton(onClick = { onOpenChat() }) {
+                Button(onClick = { onOpenChat() }) {
                     Icon(Icons.Filled.Forum, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(I18n.t("chat.title"))
@@ -230,14 +232,35 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
                 }
             }
 
-            if (latest.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                Text(I18n.t("home.latest"), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
+            // Letzte Sessions: immer Kopf + "Alle meine →" (wie PWA), Liste oder leer-Hinweis.
+            Spacer(Modifier.height(16.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TextButton(onClick = onOpenSessions) {
+                    Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            if (latest.isEmpty()) {
+                Card(Modifier.fillMaxWidth()) {
+                    Text(I18n.t("sessions.empty"), Modifier.padding(20.dp).fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
                 latest.forEach { s ->
                     SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id) }
                 }
             }
+
+            // Community-Link (wie PWA).
+            Spacer(Modifier.height(16.dp))
+            TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("${I18n.t("home.community")} →", style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

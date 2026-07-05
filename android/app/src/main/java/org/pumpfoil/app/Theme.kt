@@ -24,15 +24,32 @@ object ThemeState {
 private val BrandLight = Color(0xFF0E7490)   // dark cyan (brand-700) — Text/Akzent auf Weiß
 private val BrandDark = Color(0xFF22D3EE)    // bright cyan (brand-400) — auf Navy
 
+// Neutrale Slate-Flächen (wie die PWA) — sonst tönt Material-3 die Neutrals lila ("Rotstich").
 private val DarkColors = darkColorScheme(
     primary = BrandDark,
     onPrimary = Color(0xFF00363D),
     background = Color(0xFF020617),
+    onBackground = Color(0xFFE2E8F0),
     surface = Color(0xFF0F172A),
+    onSurface = Color(0xFFE2E8F0),
+    surfaceVariant = Color(0xFF1E293B),
+    onSurfaceVariant = Color(0xFF94A3B8),
+    surfaceContainerHighest = Color(0xFF1E293B),
+    surfaceContainerHigh = Color(0xFF1A2436),
+    surfaceContainer = Color(0xFF152032),
 )
 private val LightColors = lightColorScheme(
     primary = BrandLight,
     onPrimary = Color(0xFFFFFFFF),
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF0F172A),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF0F172A),
+    surfaceVariant = Color(0xFFF1F5F9),
+    onSurfaceVariant = Color(0xFF475569),
+    surfaceContainerHighest = Color(0xFFF1F5F9),
+    surfaceContainerHigh = Color(0xFFF1F5F9),
+    surfaceContainer = Color(0xFFF8FAFC),
 )
 
 @Composable
