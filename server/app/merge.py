@@ -37,6 +37,15 @@ def _dist_km(a, b) -> float:
     return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
 
 
+def _same_spot(a, b) -> bool:
+    """Gleicher Spot? Verschiedene benannte Spots -> nie. Sonst per Koordinaten-
+    Naehe (Haversine <= MAX_GROUP_DIST_KM; unbekannte Koordinaten -> erlaubt)."""
+    na, nb = (a.place_name or "").strip().lower(), (b.place_name or "").strip().lower()
+    if na and nb and na != nb:
+        return False
+    return _dist_km(_latlon(a), _latlon(b)) <= MAX_GROUP_DIST_KM
+
+
 def _eligible(s) -> bool:
     """Mergebar ist eine Session nur, wenn sie nicht geloescht/bereits zusammengefuehrt,
     nicht aussortiert (is_pumpfoil) ist UND eine On-Foil-Erkennung hat (num_runs>0)."""
@@ -64,9 +73,8 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
         return False, "unterschiedliche Geraete-Raten"
-    locs = [_latlon(s) for s in sessions]
-    if any(_dist_km(a, b) > MAX_GROUP_DIST_KM for a in locs for b in locs):
-        return False, "Sessions an verschiedenen Orten"
+    if any(not _same_spot(a, b) for a in sessions for b in sessions):
+        return False, "Sessions an verschiedenen Spots"
     return True, ""
 
 
@@ -203,8 +211,7 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
         if not chain:
             chain = [s]; continue
         gap = (s.started_at - _end(chain[-1])).total_seconds()
-        near = _dist_km(_latlon(s), _latlon(chain[-1])) <= MAX_GROUP_DIST_KM
-        if 0 <= gap <= AUTO_MAX_GAP_S and s.accel_hz == chain[-1].accel_hz and near:
+        if 0 <= gap <= AUTO_MAX_GAP_S and s.accel_hz == chain[-1].accel_hz and _same_spot(s, chain[-1]):
             chain.append(s)
         else:
             if len(chain) >= 2:
