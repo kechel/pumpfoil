@@ -47,6 +47,23 @@ body {
   @apply bg-slate-950 text-slate-100 antialiased;
 }
 
+/* 1px-Streifen ganz oben -> Safari (macOS) sampelt die background-color des obersten
+ * fixed/sticky-Elements fuer die Fenster-/Tableiste. Dark = Brand-Cyan, Light = dunkleres
+ * Cyan (wie nav-active) fuer Kontrast. */
+#titlebar-tint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #22d3ee;
+  z-index: 9999;
+  pointer-events: none;
+}
+html.theme-light #titlebar-tint {
+  background: #0e7490;
+}
+
 /* Platzhalter (Sonnenlicht-Lesbarkeit) — slate-400 in beiden Themes. */
 ::placeholder {
   color: rgb(var(--s-400));
