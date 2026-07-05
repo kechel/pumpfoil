@@ -209,6 +209,10 @@ Session-Detail, Verlauf, Spots, Chat, Foils/Rechner/Stats, Profil, Einstellungen
 ---
 
 ## 5. Mittlere Features / Verfeinerungen (prüfen & übernehmen)
+> **Loop-Stand:** Die restlichen Punkte hier (Play-/Verlauf-Animation, voller visueller Feinschliff)
+> sind bewusst **noch offen** — sie brauchen Geräte-/Sicht-Feedback und (iOS) einen Xcode-Build zur
+> Verifikation, den ich hier nicht habe. Distanz-in-Metern (`<1 km → m`) ist auf beiden Apps bereits
+> vorhanden (`fmtDist`). Rest wenn du live drüberschauen kannst.
 
 ### ☐ 5.1 Session-Detail: Play-Animation der Strecke
 Track wird abspielbar animiert (verfeinert, mit Lauf-Startzeit in der Tabelle).
