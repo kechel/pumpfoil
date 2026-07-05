@@ -114,8 +114,17 @@ aktualisieren"). Kein Zwang, nur ein zusätzlicher Hinweis.
 
 ---
 
-## 2. Übersetzungen — vollständig übernehmen (WICHTIG)
-Jan: **alle** Sprachen komplett in beide native Apps holen — inkl. der Dialekte.
+## 2. Übersetzungen — vollständig übernehmen (WICHTIG)  — ✅ Kern-Sync gebaut
+**Stand:** Alle native Keys (Android 262 / iOS 257) haben strukturell **alle 7 Sprachen**
+(row()/r()-7-Tupel). Für die **~106 Keys mit demselben Namen wie im Web** wurden die Zellen
+**autoritativ aus den Web-Locales** gesynct (Skript, Android compile-verifiziert, iOS-Integrität
+per Parser geprüft): **Android 51 Keys / 188 Zellen**, **iOS 50 Keys / 190 Zellen** aktualisiert —
+v. a. **de-AT jetzt echt Wienerisch** (war 25× Hochdeutsch-Kopie), gsw/fr/it/es korrigiert.
+**Offen (manuell, kein Blocker):** ~150 **native-only** Keys (Screens ohne Web-Pendant) haben zwar
+alle 7 Sprachen, deren gsw/de-AT sind aber teils Hochdeutsch-nah — feiner Dialekt-Schliff wäre
+Handarbeit ohne Web-Vorlage. Als laufende Politur mitziehen, wenn man die Screens ohnehin anfasst.
+
+Ursprüngliche Vorgabe (Referenz):
 - **`gsw` (echtes Schwiizerdütsch)** — 195 nutzer-sichtbare Keys (`a6c933f` `f7b7dfe`).
 - **`de-AT` (Wienerisch)** — öffentliche + interne Touchpoints (`97d828a` `aaf2f6f` `c51f472`
   `a5dfcce` `4a24111` inkl. Spracherkennungs-Locale AT/CH).
