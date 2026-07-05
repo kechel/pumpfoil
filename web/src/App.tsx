@@ -29,8 +29,8 @@ function BrandLogo({ className = "h-9" }: { className?: string }) {
   const alt = "pumpfoil.org — track every pump";
   return (
     <>
-      <img src="/wordmark-h-dark.png" alt={alt} className={`logo-dark ${className} w-auto`} />
-      <img src="/wordmark-h-light.png" alt={alt} className={`logo-light ${className} w-auto`} />
+      <img src="/wordmark-h-dark.png" alt={alt} className={`logo-dark ${className} w-auto max-w-none`} />
+      <img src="/wordmark-h-light.png" alt={alt} className={`logo-light ${className} w-auto max-w-none`} />
     </>
   );
 }
@@ -129,7 +129,7 @@ export default function App() {
         style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
       >
         <Link to="/">
-          <BrandLogo className="h-9" />
+          <BrandLogo className="h-8" />
         </Link>
         <div className="flex items-center gap-2">
           {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort). */}
