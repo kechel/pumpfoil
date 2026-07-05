@@ -29,8 +29,8 @@ function BrandLogo({ className = "h-9" }: { className?: string }) {
   const alt = "pumpfoil.org — track every pump";
   return (
     <>
-      <img src="/wordmark-h-dark.png" alt={alt} className={`logo-dark ${className} w-auto max-w-none`} />
-      <img src="/wordmark-h-light.png" alt={alt} className={`logo-light ${className} w-auto max-w-none`} />
+      <img src="/wordmark-h-dark.png" alt={alt} className={`logo-dark ${className} max-w-none`} />
+      <img src="/wordmark-h-light.png" alt={alt} className={`logo-light ${className} max-w-none`} />
     </>
   );
 }
@@ -70,12 +70,12 @@ export default function App() {
       <ScrollRestoration />
       <FeedbackWidget />
       <CompareBar />
+      {/* Theme-Umschalter oben rechts auf allen Seiten erreichbar. Desktop schwebend
+          (ohne Logout, der bleibt im Menü); mobil sitzt er in der Topbar-Zeile. */}
+      <ThemeToggle className="fixed right-4 top-3 z-[1100] hidden shadow-lg backdrop-blur md:inline-flex" />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
-        <div className="mb-3 flex items-center justify-between gap-3 px-1">
-          <Link to="/"><BrandLogo className="h-8" /></Link>
-          <ThemeToggle className="shrink-0" />
-        </div>
+        <Link to="/" className="mb-3 block px-1"><BrandLogo className="w-full h-auto" /></Link>
         {profile && (
           <Link to="/" className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
