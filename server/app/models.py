@@ -227,6 +227,9 @@ class Session(Base):
     youtube_added_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Soft-Delete: Tombstone bleibt erhalten (content_hash/started_at) -> blockt Reimport.
     deleted: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Gehoert zu einer zusammengefuehrten Session: id der Ziel-Session (Quellen archiviert,
+    # deleted=True). NULL = eigenstaendig. Siehe app/merge.py.
+    merged_into: Mapped[int | None] = mapped_column(Integer)
     # Pumpfoil-Klassifikation (bei der Analyse gesetzt). NULL = noch nicht analysiert.
     is_pumpfoil: Mapped[bool | None] = mapped_column(Boolean)
     # Moderation: flagged = als unangemessen gemeldet -> in Community ausgeblendet,

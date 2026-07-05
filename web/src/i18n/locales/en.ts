@@ -1,5 +1,10 @@
 const en: Record<string, string> = {
   "common.save": "Save",
+  "merge.title": "Merge sessions",
+  "merge.hint": "{n} sessions from today might belong together.",
+  "merge.action": "Merge",
+  "merge.now": "Merge now",
+  "merge.confirm": "You can merge these {n} sessions into a single one. This cannot be undone.",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
   "common.search": "Search",

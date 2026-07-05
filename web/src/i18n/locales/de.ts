@@ -3,6 +3,11 @@
 const de: Record<string, string> = {
   // Common
   "common.save": "Speichern",
+  "merge.title": "Sessions zusammenführen",
+  "merge.hint": "{n} Sessions von heute könnten zusammengehören.",
+  "merge.action": "Zusammenführen",
+  "merge.now": "Jetzt mergen",
+  "merge.confirm": "Du kannst diese {n} Sessions zu einer einzigen Session zusammenführen. Der Vorgang kann nicht rückgängig gemacht werden.",
   "common.cancel": "Abbrechen",
   "common.delete": "Löschen",
   "common.search": "Suchen",

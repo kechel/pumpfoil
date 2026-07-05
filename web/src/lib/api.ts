@@ -514,6 +514,9 @@ export const api = {
     }),
   deleteLabel: (id: number, labelId: number) =>
     req(`/api/sessions/${id}/labels/${labelId}`, { method: "DELETE" }),
+  mergeSuggestions: () => req<{ ids: number[]; count: number; place: string | null }[]>("/api/sessions/merge-suggestions"),
+  mergeSessions: (ids: number[]) =>
+    req<{ id: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
   getSettings: () => req<Record<string, any>>("/api/settings"),
   saveSettings: (patch: Record<string, unknown>) =>
     req<Record<string, any>>("/api/settings", {

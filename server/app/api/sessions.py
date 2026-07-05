@@ -652,6 +652,48 @@ def _autojoin_spot_chat(db: Session, user_id: int, place_name: str) -> None:
         db.commit()
 
 
+@router.post("/merge")
+def merge_own_sessions(
+    body: dict,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Mehrere EIGENE Sessions zu einer zusammenfuehren (Rohdaten + Reanalyse).
+    Quellen werden archiviert (reversibel). body = {session_ids: [..]}."""
+    from .. import merge
+    ids = body.get("session_ids") or []
+    ss = [db.get(models.Session, int(i)) for i in ids if isinstance(i, (int, float, str)) and str(i).isdigit()]
+    ss = [s for s in ss if s and s.user_id == user.id and not s.deleted]
+    if len(ss) < 2:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Mindestens 2 eigene Sessions waehlen")
+    ok, why = merge.can_merge(ss)
+    if not ok:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, why)
+    ns = merge.merge_sessions(db, ss)
+    return {"id": ns.id}
+
+
+@router.get("/merge-suggestions")
+def merge_suggestions_endpoint(
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Vorschlag NUR fuer HEUTIGE eigene Sessions, die zusammengehoeren koennten
+    (aufeinanderfolgend, <=1 h Luecke). Aeltere gehen manuell ueber Vergleichen."""
+    from datetime import datetime
+    from .. import merge
+    today = datetime.now().astimezone().date()
+    out = []
+    for g in merge.merge_suggestions(db, user.id):
+        if max(g, key=lambda s: s.started_at).started_at.astimezone().date() != today:
+            continue
+        out.append({
+            "ids": [s.id for s in g],
+            "count": len(g),
+            "place": next((s.place_name for s in g if s.place_name), None),
+        })
+    return out
+
+
 @router.get("/{session_id}", response_model=SessionOut)
 def get_session(
     session_id: int,

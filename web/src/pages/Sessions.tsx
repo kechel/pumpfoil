@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
+import { MergeConfirm } from "../components/MergeConfirm";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -11,6 +12,33 @@ import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
 
 const PAGE = 20;
+
+// Hinweis oben in „Meine Sessions": heutige, aufeinanderfolgende Sessions (<=1 h)
+// koennten zusammengehoeren -> Vorschlag zum Zusammenfuehren (mit Bestaetigung).
+function MergeHint() {
+  const t = useT();
+  const nav = useNavigate();
+  const [sugs, setSugs] = useState<{ ids: number[]; count: number; place: string | null }[]>([]);
+  const [confirmIds, setConfirmIds] = useState<number[] | null>(null);
+  useEffect(() => { api.mergeSuggestions().then(setSugs).catch(() => {}); }, []);
+  if (!sugs.length) return null;
+  const s = sugs[0];
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
+      <span className="text-slate-200">
+        {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
+      </span>
+      <button onClick={() => setConfirmIds(s.ids)}
+        className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+        {t("merge.action")}
+      </button>
+      {confirmIds && (
+        <MergeConfirm ids={confirmIds} onClose={() => setConfirmIds(null)}
+          onDone={(id) => { invalidateSessionListCache(); nav(`/sessions/${id}`); }} />
+      )}
+    </div>
+  );
+}
 
 // Zurück-Navigation: geladene Items + Scroll-Position je Filter/Monat merken, damit man aus
 // der Detailansicht an dieselbe Stelle der Liste zurückkehrt statt oben zu landen (Feedback
@@ -97,6 +125,8 @@ export default function Sessions() {
         {spot && <SpotChatToggle spot={spot} t={t} />}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
+
+      {isMine && <MergeHint />}
 
       {spot && <SpotWeather spot={spot} />}
       {isMine ? <MySessionsList myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}

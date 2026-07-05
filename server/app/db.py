@@ -113,6 +113,7 @@ def _migrate_add_columns() -> None:
             "place_lat": "FLOAT",
             "place_lon": "FLOAT",
             "foil_id": "INTEGER",
+            "merged_into": "INTEGER",
         },
         "users": {
             "display_name": "VARCHAR(40)",
