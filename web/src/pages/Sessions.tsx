@@ -308,6 +308,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
             <SessionCard
               key={s.id}
               sessionId={s.id}
+              owned={s.owned ?? true}
               startedAt={s.started_at}
               endedAt={s.ended_at}
               spot={s.place_name}

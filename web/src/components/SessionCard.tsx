@@ -23,9 +23,10 @@ function fmtSpan(start: string, end: string) {
 export function SessionCard({
   sessionId, startedAt, endedAt, spot, foil, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0,
-  likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false,
+  likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
 }: {
   sessionId: number;
+  owned?: boolean;   // eigene Session? -> Merge-Angebot in Vergleichen
   startedAt: string | null;
   endedAt?: string | null;
   spot?: string | null;
@@ -54,7 +55,7 @@ export function SessionCard({
   };
   const onCompare = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    toggleCompare({ sessionId, runIdx: null });
+    toggleCompare({ sessionId, runIdx: null, owned, date: startedAt ? startedAt.slice(0, 10) : undefined });
   };
   // Long-Press (gedrückt halten) markiert die ganze Karte für den Vergleich.
   const timer = useRef<number | null>(null);
@@ -67,7 +68,7 @@ export function SessionCard({
     cancelHold();
     timer.current = window.setTimeout(() => {
       longPressed.current = true;
-      toggleCompare({ sessionId, runIdx: null });
+      toggleCompare({ sessionId, runIdx: null, owned, date: startedAt ? startedAt.slice(0, 10) : undefined });
       if (navigator.vibrate) { navigator.vibrate(30); }
     }, 450);
   };

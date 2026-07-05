@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
-import { useCompare, removeCompare, clearCompare, CompareRef, refKey } from "../lib/compare";
+import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
+import { MergeConfirm } from "../components/MergeConfirm";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { useT } from "../i18n";
 
@@ -99,6 +100,9 @@ interface Item {
 export default function Compare() {
   const t = useT();
   const refs = useCompare();
+  const nav = useNavigate();
+  const [mergeIds, setMergeIds] = useState<number[] | null>(null);
+  const canMergeIds = mergeableIds(refs);
   const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
   const [weight, setWeight] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -206,6 +210,20 @@ export default function Compare() {
           </>
         )}
       </div>
+
+      {canMergeIds && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
+          <span className="text-slate-200">{t("merge.compareHint")}</span>
+          <button onClick={() => setMergeIds(canMergeIds)}
+            className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+            {t("merge.action")}
+          </button>
+        </div>
+      )}
+      {mergeIds && (
+        <MergeConfirm ids={mergeIds} onClose={() => setMergeIds(null)}
+          onDone={(id) => { clearCompare(); nav(`/sessions/${id}`); }} />
+      )}
 
       {empty ? (
         <Card className="p-6 text-center text-sm text-slate-300">{t("compare.empty")}</Card>

@@ -3,6 +3,8 @@
 const de: Record<string, string> = {
   // Common
   "common.save": "Speichern",
+  "compare.barMerge": "Vergleichen & Mergen ({n})",
+  "merge.compareHint": "Nur eigene Sessions vom selben Tag ausgewählt – du kannst sie zu einer zusammenführen.",
   "merge.title": "Sessions zusammenführen",
   "merge.hint": "{n} Sessions von heute könnten zusammengehören.",
   "merge.action": "Zusammenführen",

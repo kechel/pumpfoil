@@ -6,6 +6,8 @@ import { useSyncExternalStore } from "react";
 export interface CompareRef {
   sessionId: number;
   runIdx: number | null;
+  owned?: boolean;   // gehoert mir? (fuer Merge-Angebot in Vergleichen)
+  date?: string;     // YYYY-MM-DD (Start), fuer „gleiches Datum"-Merge
 }
 
 const KEY = "foil_compare";
@@ -23,7 +25,7 @@ function read(): CompareRef[] {
     if (!Array.isArray(arr)) return [];
     return arr
       .filter((x) => x && typeof x.sessionId === "number")
-      .map((x) => ({ sessionId: x.sessionId, runIdx: x.runIdx ?? null }));
+      .map((x) => ({ sessionId: x.sessionId, runIdx: x.runIdx ?? null, owned: x.owned, date: x.date }));
   } catch {
     return [];
   }
@@ -64,7 +66,7 @@ export function toggleCompare(r: CompareRef): boolean {
     return false;
   }
   if (list.length >= MAX) return false;
-  list.push({ sessionId: r.sessionId, runIdx: r.runIdx });
+  list.push({ sessionId: r.sessionId, runIdx: r.runIdx, owned: r.owned, date: r.date });
   write(list);
   return true;
 }
@@ -79,6 +81,17 @@ export function clearCompare() {
 }
 
 export const COMPARE_MAX = MAX;
+
+// -> ids der zu mergenden Sessions, wenn die Auswahl mergebar ist: nur ganze Sessions
+// (keine einzelnen Laeufe), alle EIGENE, gleiches Datum, >=2 verschiedene. Sonst null.
+export function mergeableIds(refs: CompareRef[]): number[] | null {
+  if (refs.some((r) => r.runIdx != null)) return null;
+  const ids = [...new Set(refs.map((r) => r.sessionId))];
+  if (ids.length < 2) return null;
+  if (!refs.every((r) => r.owned && r.date)) return null;
+  if (new Set(refs.map((r) => r.date)).size !== 1) return null;
+  return ids;
+}
 
 // Reaktiver Zugriff: Komponenten re-rendern bei Korb-Änderungen (auch tab-übergreifend).
 export function useCompare(): CompareRef[] {

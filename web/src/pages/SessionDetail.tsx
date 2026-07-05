@@ -904,7 +904,7 @@ export default function SessionDetail() {
           const inCmp = compareRefs.some((r) => refKey(r) === refKey({ sessionId: session.id, runIdx: null }));
           return (
             <button
-              onClick={() => toggleCompare({ sessionId: session.id, runIdx: null })}
+              onClick={() => toggleCompare({ sessionId: session.id, runIdx: null, owned, date: session.started_at ? session.started_at.slice(0, 10) : undefined })}
               title={inCmp ? t("compare.remove") : t("compare.add")}
               className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1 text-sm ${session.place_name ? "sm:ml-0" : "sm:ml-auto"} ${inCmp ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
             >
