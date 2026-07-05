@@ -69,6 +69,11 @@ object Api {
         json.decodeFromString(TokenResp.serializer(), resp).access_token
     }
 
+    // Passwort-Reset anstoßen (Server verschickt Mail; Antwort ignorieren).
+    suspend fun forgotPassword(email: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/auth/forgot-password", buildJsonObject { put("email", email) }.toString(), auth = false)
+    }
+
     suspend fun me(): Profile = withContext(Dispatchers.IO) {
         json.decodeFromString(Profile.serializer(), http("GET", "/api/auth/me", null, auth = true))
     }

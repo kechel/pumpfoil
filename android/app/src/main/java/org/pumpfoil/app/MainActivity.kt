@@ -150,6 +150,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onCompare = { nav.navigate("compare") },
                     onGarminPair = { nav.navigate("garminpair") },
                     onAccounts = { nav.navigate("accounts") },
+                    onImprint = { nav.navigate("impressum") },
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
@@ -161,6 +162,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("compare") { CompareScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }
             composable("accounts") { LinkedAccountsScreen(onBack = { nav.popBackStack() }) }
+            composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable(
                 "session/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType }),
