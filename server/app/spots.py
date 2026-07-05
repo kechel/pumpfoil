@@ -145,10 +145,12 @@ def rebuild_all(db, apply: bool = False):
     """Alle (nicht gelöschten) Sessions mit Track zu Spots clustern. apply=True schreibt
     spots-Tabelle + sessions.spot_id/place_name/place_water. Rückgabe: Report-Liste."""
     from . import models
-    # Nur Sessions mit On-Foil-Erkennung (num_runs>0) clustern — bei allen anderen ist der Spot egal.
+    # Nur ECHTE Pumpfoil-Sessions mit On-Foil-Erkennung clustern (is_pumpfoil + num_runs>0) —
+    # aussortierte (is_pumpfoil=False) bekommen keinen Spot.
     rows = (db.query(models.Session)
             .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
             .filter(models.Session.deleted.isnot(True), models.Session.place_lat.isnot(None),
+                    models.Session.is_pumpfoil.is_(True),
                     models.AnalysisResult.num_runs > 0)
             .all())
     geoms = [g for g in (_session_geom(db, s) for s in rows) if g and g.points]
@@ -175,6 +177,21 @@ def rebuild_all(db, apply: bool = False):
     return {"spots": len(spots), "multi_spot_sessions": n_multi, "detail": report}
 
 
+def _unique_name(db, name: str, exclude_id: int | None = None) -> str:
+    """Macht einen Spot-Namen eindeutig (zwei echte Spots, gleicher Ort -> „X", „X 2" …),
+    damit die String-basierte Gruppierung nicht zwei Spots verschmilzt."""
+    from . import models
+    base = name
+    for i in range(1, 50):
+        cand = base if i == 1 else f"{base} {i}"
+        q = db.query(models.Spot).filter(models.Spot.name == cand, models.Spot.merged_into.is_(None))
+        if exclude_id is not None:
+            q = q.filter(models.Spot.id != exclude_id)
+        if not db.query(q.exists()).scalar():
+            return cand
+    return base
+
+
 def name_pending_spots(db, max_spots: int | None = None) -> dict:
     """Geocodet noch unbenannte Spots (name IS NULL) — pro Spot committed, fehlertolerant
     (name_for None -> bleibt offen, nächster Lauf erneut). Setzt Spot-Name + place_name/
@@ -189,7 +206,7 @@ def name_pending_spots(db, max_spots: int | None = None) -> dict:
         if name is None:
             pending += 1
             continue
-        sp.name, sp.name_source, sp.water_name = name, src, water
+        sp.name, sp.name_source, sp.water_name = _unique_name(db, name, sp.id), src, water
         (db.query(models.Session).filter(models.Session.spot_id == sp.id)
          .update({models.Session.place_name: name, models.Session.place_water: water}))
         db.commit()
@@ -203,6 +220,16 @@ def assign_one(db, s):
     from . import models
     g = _session_geom(db, s)
     if g is None:
+        return
+    # Spot nur fuer echte Pumpfoil-Sessions mit On-Foil. Sonst: nur Name (kein Spot).
+    r = s.result
+    if not (s.is_pumpfoil and r and (r.num_runs or 0) > 0):
+        name, src, water = name_for(*g.start)
+        s.spot_id = None
+        if name:
+            s.place_name = name
+            s.place_water = water
+        db.commit()
         return
     lat0 = g.start[0]
     new_m = _poly_m(g.points or [g.start], lat0)
@@ -226,6 +253,8 @@ def assign_one(db, s):
             s.place_name = w; s.place_water = w
     else:                          # neuer Spot
         name, src, water = name_for(*g.start)
+        if name:
+            name = _unique_name(db, name)
         sp = models.Spot(name=name, name_source=src, water_name=water,
                          lat=g.start[0], lon=g.start[1], poly_wkt=_m_to_wkt(new_m, lat0))
         db.add(sp); db.flush()
