@@ -59,4 +59,10 @@ G --type stacked --theme light --size 600x220  --pad 0 --out "$IOSLS/logo-1x.png
 G --type stacked --theme light --size 1200x440 --pad 0 --out "$IOSLS/logo-2x.png"
 G --type stacked --theme light --size 1800x660 --pad 0 --out "$IOSLS/logo-3x.png"
 
+echo "== Garmin-Store-Icon (500) full-bleed (cyan Kachel + weisse Wellen) =="
+G --type icon --theme light --size 500 --pad 0 --bg cyan --out "$REPO/brand/stores/garmin/store-icon-500x500.png"
+
+echo "== Social: YouTube-Banner (kanonische Wellen + Lockup + Montserrat-Subline) =="
+"$PY" banner.py
+
 echo "fertig."
