@@ -67,6 +67,9 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
     rec.onerror = (e: any) => {
       const code = e?.error;
       if (code === "no-speech") return;   // Stille -> onend startet neu, kein Fehler zeigen
+      // Absichtliches Beenden (Abbrechen/Übernehmen/Nochmal/Bearbeiten) stoppt die Erkennung ->
+      // Browser feuert dann „aborted": kein echter Fehler, onend erledigt den Rest.
+      if (code === "aborted" || pendingRef.current) return;
       activeRef.current = false;
       setErr(code === "not-allowed" ? t("mic.blocked") : t("mic.err"));
       console.warn("SpeechRecognition error:", code);
