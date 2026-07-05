@@ -103,12 +103,18 @@ export default function Compare() {
   const refs = useCompare();
   const nav = useNavigate();
   const [merging, setMerging] = useState(false);
+  const [mergeErr, setMergeErr] = useState<string | null>(null);
   const canMergeIds = mergeableIds(refs);
   async function doMerge() {
     if (!canMergeIds) return;
-    setMerging(true);
+    setMerging(true); setMergeErr(null);
     try { const r = await api.mergeSessions(canMergeIds); invalidateSessionListCache(); clearCompare(); setLastSession(r.id); nav(`/sessions/${r.id}`); }
-    catch { setMerging(false); }
+    catch (e) {
+      const raw = e instanceof Error ? e.message : String(e);
+      const m = raw.match(/\{"detail":"(.*?)"\}/);
+      setMergeErr(m ? m[1] : raw);
+      setMerging(false);
+    }
   }
   const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
   const [weight, setWeight] = useState<number | null>(null);
@@ -221,6 +227,7 @@ export default function Compare() {
       {canMergeIds && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
           <span className="text-slate-200">{t("merge.compareHint")}</span>
+          {mergeErr && <span className="w-full text-xs text-rose-400 sm:w-auto">{mergeErr}</span>}
           <button onClick={doMerge} disabled={merging}
             className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
             {merging ? "…" : t("merge.action")}

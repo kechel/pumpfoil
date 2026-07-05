@@ -17,11 +17,30 @@ GAP_MS = 20_000          # Luecke zwischen Teilen (ms) -> Dropout -> Lauf-Trennu
 AUTO_MAX_GAP_S = 3600    # Auto-Merge: max. Abstand Ende->Start zweier Teile (1 h)
 
 
+def _eligible(s) -> bool:
+    """Mergebar ist eine Session nur, wenn sie nicht geloescht/bereits zusammengefuehrt,
+    nicht aussortiert (is_pumpfoil) ist UND eine On-Foil-Erkennung hat (num_runs>0)."""
+    if s.deleted or s.merged_into is not None:
+        return False
+    if not s.is_pumpfoil:
+        return False
+    r = s.result
+    return bool(r and (r.num_runs or 0) > 0)
+
+
 def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
     if len(sessions) < 2:
         return False, "min. 2 Sessions"
     if len({s.user_id for s in sessions}) > 1:
         return False, "verschiedene Nutzer"
+    for s in sessions:
+        if s.deleted or s.merged_into is not None:
+            return False, "geloeschte/zusammengefuehrte Session"
+        if not s.is_pumpfoil:
+            return False, "aussortierte Session (kein Pumpfoilen)"
+        r = s.result
+        if not (r and (r.num_runs or 0) > 0):
+            return False, "keine On-Foil-Erkennung"
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
         return False, "unterschiedliche Geraete-Raten"
@@ -98,12 +117,18 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
 
 
 def _end(session) -> "datetime":
-    """Effektives Ende = Start + letzter GPS-Zeitstempel (ended_at ist bei Importen leer)."""
+    """Effektives Ende = Start + letzter GPS-Zeitstempel (ended_at ist bei Importen leer).
+    Kaputtes ended_at (vor Start oder weit hinter dem GPS-Ende) wird ignoriert."""
     from datetime import timedelta
-    if session.ended_at:
-        return session.ended_at
     gps = storage.load_gps(session.session_uuid)
-    return session.started_at + timedelta(milliseconds=(gps[-1][0] if gps else 0))
+    gps_end = session.started_at + timedelta(milliseconds=(gps[-1][0] if gps else 0))
+    if session.ended_at:
+        if session.ended_at < session.started_at:
+            return gps_end
+        if gps and session.ended_at > gps_end + timedelta(hours=1):
+            return gps_end
+        return session.ended_at
+    return gps_end
 
 
 def unmerge_session(db: DbSession, merged: models.Session) -> list[models.Session]:
@@ -140,11 +165,15 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
     """Gruppen eigener Sessions, die zusammengehoeren koennten: aufeinanderfolgend,
     Luecke Ende<->Start <= 1 h, gleiche Accel-Rate. Nur Vorschlaege (kein Auto-Merge).
     Neueste Gruppe zuerst."""
+    from sqlalchemy.orm import joinedload
     ss = (db.query(models.Session)
+          .options(joinedload(models.Session.result))
           .filter(models.Session.user_id == user_id,
                   models.Session.deleted.is_(False),
-                  models.Session.merged_into.is_(None))
+                  models.Session.merged_into.is_(None),
+                  models.Session.is_pumpfoil.is_(True))
           .order_by(models.Session.started_at).all())
+    ss = [s for s in ss if _eligible(s)]   # nur On-Foil-erkannte, nicht aussortiert/geloescht
     groups: list[list[models.Session]] = []
     chain: list[models.Session] = []
     for s in ss:
