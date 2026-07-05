@@ -367,7 +367,7 @@ export const api = {
     `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
 
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
-  spotMap: (accelOnly = true) => req<{ spot: string; lat: number; lon: number; sessions: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
+  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; lat: number; lon: number; sessions: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),

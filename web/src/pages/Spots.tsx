@@ -6,7 +6,7 @@ import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
-type Spot = { spot: string; lat: number; lon: number; sessions: number };
+type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number };
 
 // Kartenansicht aller Spot-Locations. Marker -> Sessions an dem Spot.
 export default function Spots() {
@@ -49,7 +49,7 @@ export default function Spots() {
         radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
       });
       mk.bindTooltip(`${s.spot} · ${s.sessions}`, { direction: "top" });
-      mk.on("click", () => nav(`/sessions?spot=${encodeURIComponent(s.spot)}`));
+      mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`));
       grp.addLayer(mk);
       pts.push([s.lat, s.lon]);
     }

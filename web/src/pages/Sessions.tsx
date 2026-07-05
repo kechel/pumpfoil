@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
@@ -94,16 +94,22 @@ export default function Sessions() {
   const t = useT();
   const [sp, setSp] = useSearchParams();
   const scope = sp.get("scope") === "all" ? "all" : "mine";
-  const spot = sp.get("spot") || "";
+  const spot = sp.get("spot") || "";   // spot_id (String) — Name wird für Anzeige/Chat aufgelöst
   const [homespot, setHomespot] = useState("");
-  const [spots, setSpots] = useState<string[]>([]);
+  const [homespotId, setHomespotId] = useState<number | null>(null);
+  const [spots, setSpots] = useState<{ id: number; name: string }[]>([]);
+  const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
+  const spotName = spot ? (nameById[spot] ?? spot) : "";
+  const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
   const [myName, setMyName] = useState<string | null>(null);
   // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
   const [accelOnly, setAccelOnly] = useAccelDefault();
 
   useEffect(() => {
-    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
-    api.communitySpots(false).then((s) => setSpots(s.all)).catch(() => {});  // alle Spots (auch GPS)
+    api.getSettings().then((s) => { setHomespot((s.homespot as string) ?? ""); setHomespotId((s.homespot_id as number | null) ?? null); }).catch(() => {});
+    api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
+      m.filter((x) => x.spot_id != null).map((x) => ({ id: x.spot_id as number, name: x.spot }))
+       .sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
     api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
   }, []);
 
@@ -122,7 +128,7 @@ export default function Sessions() {
   const title = isMine
     ? `${t("sessions.title")}${myName ? ` · ${myName}` : ""}`
     : spot
-      ? `${t("sessions.title")} · ${spot}`
+      ? `${t("sessions.title")} · ${spotName}`
       : `${t("sessions.title")} · ${t("nav.allSessions.short")}`;
 
   const tabCls = (active: boolean) =>
@@ -141,7 +147,7 @@ export default function Sessions() {
         <div className="inline-flex gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
           <button className={tabCls(isMine)} onClick={() => setScope("mine")}>{t("nav.mySessions.short")}</button>
           {homespot && (
-            <button className={`inline-flex items-center gap-1 ${tabCls(spot === homespot)}`} onClick={() => setScope("all", homespot)}><LocationIcon className="h-4 w-4" /> {homespot}</button>
+            <button className={`inline-flex items-center gap-1 ${tabCls(spot === hsRef)}`} onClick={() => setScope("all", hsRef)}><LocationIcon className="h-4 w-4" /> {homespot}</button>
           )}
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
@@ -151,9 +157,9 @@ export default function Sessions() {
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
         >
           <option value="">{t("all.allSpots")}</option>
-          {spots.map((s) => <option key={s} value={s}>{s}</option>)}
+          {spots.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
         </select>
-        {spot && <SpotChatToggle spot={spot} t={t} />}
+        {spot && <SpotChatToggle spot={spotName} t={t} />}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
 
