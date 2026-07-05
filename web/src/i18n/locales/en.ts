@@ -305,6 +305,7 @@ const en: Record<string, string> = {
   "sd.likes": "Likes",
   "sd.share": "Share",
   "share.stats": "Stats",
+  "share.photoHint": "Drag to move · pinch to zoom",
   "share.noPhoto": "None",
   "share.changePhoto": "Change photo",
   "share.addPhoto": "Photo",

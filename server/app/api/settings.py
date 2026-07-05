@@ -139,6 +139,15 @@ def update_settings(
         current["alarm_repeat"] = patch["alarm_repeat"]
     if patch.get("alarm_default") in ALARM_DEFAULTS:
         current["alarm_default"] = patch["alarm_default"]
+    # Teilen-Card-Defaults (Track-Farbe + gewaehlte Stats) — Foto ist NICHT dabei.
+    if isinstance(patch.get("share"), dict):
+        sh = dict(current.get("share") or {})
+        p = patch["share"]
+        if p.get("color") in ("cyan", "speed", "hr"):
+            sh["color"] = p["color"]
+        if isinstance(p.get("stats"), list):
+            sh["stats"] = [str(x) for x in p["stats"] if isinstance(x, str)][:8]
+        current["share"] = sh
     if isinstance(patch.get("notify_prefs"), dict):
         prefs = dict(current.get("notify_prefs") or {})
         for k, v in patch["notify_prefs"].items():

@@ -106,11 +106,22 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     if len(coords) >= 2:
         lons = np.array([c[0] for c in coords], float)
         lats = np.array([c[1] for c in coords], float)
-        latref = float(np.median(lats))
+        n = len(coords)
+        # Nur Foiling-Laeufe zeichnen (kein Land/Nicht-Foilen), wie die Web-Karte.
+        # Segment-Indizes -> Maske; ohne Segmente (GPS-only/0 Laeufe) ganze Spur.
+        segs = json.loads(ar.segments_json) if ar and ar.segments_json else []
+        foil = np.zeros(n, dtype=bool)
+        for sg in segs:
+            a, b = int(sg.get("i_start", 0)), int(sg.get("i_end", 0))
+            foil[max(a, 0):min(b + 1, n)] = True
+        if not foil.any():
+            foil[:] = True   # Fallback: keine Laeufe -> ganze Spur
+        latref = float(np.median(lats[foil]))
         mx = 111320.0 * math.cos(math.radians(latref)); my = 111320.0
         xs = lons * mx; ys = lats * my
         bx0, by0, bx1, by1 = px(90), px(160), px(990), px(720)
-        minx, maxx, miny, maxy = xs.min(), xs.max(), ys.min(), ys.max()
+        fx, fy = xs[foil], ys[foil]
+        minx, maxx, miny, maxy = fx.min(), fx.max(), fy.min(), fy.max()
         sc = min((bx1 - bx0) / max(maxx - minx, 1), (by1 - by0) / max(maxy - miny, 1)) * 0.92
         cxp, cyp = (bx0 + bx1) / 2, (by0 + by1) / 2
         cmx, cmy = (minx + maxx) / 2, (miny + maxy) / 2
@@ -122,7 +133,9 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
                 if len(pts) >= 3:
                     d.polygon(pts, fill=WATER)
         lw = max(px(10), 3)
-        for i in range(len(xs) - 1):
+        for i in range(n - 1):
+            if not (foil[i] and foil[i + 1]):     # nur innerhalb der Laeufe
+                continue
             p0 = toXY(xs[i], ys[i]); p1 = toXY(xs[i + 1], ys[i + 1])
             if math.dist(p0, p1) > px(200):
                 continue

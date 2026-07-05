@@ -328,6 +328,7 @@ const de: Record<string, string> = {
   "sd.likes": "Likes",
   "sd.share": "Teilen",
   "share.stats": "Stats",
+  "share.photoHint": "Ziehen zum Verschieben · zwei Finger zum Zoomen",
   "share.noPhoto": "Ohne",
   "share.changePhoto": "Foto ändern",
   "share.addPhoto": "Foto",
