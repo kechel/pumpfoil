@@ -73,7 +73,7 @@ export default function App() {
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
         <div className="mb-3 flex items-center justify-between gap-3 px-1">
-          <Link to="/"><BrandLogo className="h-9" /></Link>
+          <Link to="/"><BrandLogo className="h-8" /></Link>
           <ThemeToggle className="shrink-0" />
         </div>
         {profile && (
@@ -129,7 +129,7 @@ export default function App() {
         style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
       >
         <Link to="/">
-          <BrandLogo className="h-8" />
+          <BrandLogo className="h-7" />
         </Link>
         <div className="flex items-center gap-2">
           {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort). */}
