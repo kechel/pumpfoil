@@ -608,7 +608,7 @@ def _geocode_place(session_id: int) -> None:
     import numpy as _np
 
     from ..db import SessionLocal
-    from ..places import lookup_shore_name, lookup_water_name
+    from ..spots import assign_one
 
     db = SessionLocal()
     try:
@@ -618,6 +618,7 @@ def _geocode_place(session_id: int) -> None:
         gps = storage.load_gps(s.session_uuid)
         if not gps:
             return
+        # Repraesentativpunkt (Start des ersten Foiling-Laufs, nah am Ufer) fuer place_lat/lon.
         pt = None
         ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
         if ar and ar.segments_json:
@@ -630,17 +631,12 @@ def _geocode_place(session_id: int) -> None:
                 pass
         if pt is None:
             pt = (float(_np.median([g[1] for g in gps])), float(_np.median([g[2] for g in gps])))
-        lat, lon = pt
-        water = lookup_water_name(lat, lon)     # str | "" | None (Tri-State)
-        shore = lookup_shore_name(lat, lon)     # str | None (Best-Guess, sonst None)
-        name = shore or water                    # Ufer-Venue bevorzugt, sonst Gewaesser
-        if name is not None:
-            s.place_name = name
-            s.place_water = water or None        # Gewaessername immer als Zusatz-Label
-            s.place_lat = lat
-            s.place_lon = lon
-            db.commit()
-            _autojoin_spot_chat(db, s.user_id, name)
+        s.place_lat, s.place_lon = pt
+        db.commit()
+        # Spot-Zuordnung (Track-Ueberlappung) setzt place_name/place_water/spot_id.
+        assign_one(db, s)
+        if s.place_name:
+            _autojoin_spot_chat(db, s.user_id, s.place_name)
     finally:
         db.close()
 

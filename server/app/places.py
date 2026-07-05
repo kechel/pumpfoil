@@ -35,6 +35,21 @@ def _ua() -> str:
     return get_settings().osm_user_agent
 
 
+def _overpass(q: str, timeout: float, tries: int = 3):
+    """Overpass-Request mit Retry/Backoff (die API ist flaky). -> payload | None."""
+    import time
+    for attempt in range(tries):
+        try:
+            data = urllib.parse.urlencode({"data": q}).encode()
+            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode())
+        except Exception:  # noqa: BLE001
+            if attempt < tries - 1:
+                time.sleep(2 * (attempt + 1))
+    return None
+
+
 def lookup_water_rings(lat: float, lon: float, timeout: float = 12.0) -> list | None:
     """Polygon-Ringe (Liste von [[lat,lon],...]) der umgebenden Wasserfläche, oder None.
     Für Point-in-Polygon (Land/Wasser). Nimmt den nächstgelegenen benannten Wasser-Way."""
@@ -65,20 +80,9 @@ def lookup_shore_name(lat: float, lon: float, timeout: float = 25.0) -> str | No
     konservativen Whitelist (_SHORE_TAGS) im Umkreis. Fehlertolerant — bei Netz-/Parse-
     Fehler oder keinem eindeutigen Treffer -> None (Aufrufer faellt auf den Gewaessernamen
     zurueck). Bewusst eng, damit kein Restaurant/keine Region als Spot-Name landet.
-    Läuft als Background-Task -> großzügiger Timeout + 1 Retry (Overpass ist flaky)."""
-    import time
+    Läuft als Background-Task -> großzügiger Timeout + Retries (Overpass ist flaky)."""
     q = f'[out:json][timeout:25];(nwr(around:300,{lat},{lon})["name"];);out tags center 80;'
-    payload = None
-    for attempt in range(2):
-        try:
-            data = urllib.parse.urlencode({"data": q}).encode()
-            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                payload = json.loads(resp.read().decode())
-            break
-        except Exception:  # noqa: BLE001
-            if attempt == 0:
-                time.sleep(2)
+    payload = _overpass(q, timeout, tries=3)
     if payload is None:
         return None
     best = None
@@ -123,12 +127,8 @@ def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | Non
         ))
     isin_ok = False
     for i, (q, sock) in enumerate(queries):
-        try:
-            data = urllib.parse.urlencode({"data": q}).encode()
-            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
-            with urllib.request.urlopen(req, timeout=sock) as resp:
-                payload = json.loads(resp.read().decode())
-        except Exception:  # noqa: BLE001  (diese Abfrage als Fehlschlag werten, nächste versuchen)
+        payload = _overpass(q, sock, tries=3)
+        if payload is None:
             continue
         if i == 0:
             isin_ok = True   # der Punkt-in-Polygon-Test lief -> „kein Treffer" ist belastbar

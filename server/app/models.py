@@ -234,6 +234,9 @@ class Session(Base):
     # Gehoert zu einer zusammengefuehrten Session: id der Ziel-Session (Quellen archiviert,
     # deleted=True). NULL = eigenstaendig. Siehe app/merge.py.
     merged_into: Mapped[int | None] = mapped_column(Integer)
+    # Spot-Cluster (Track-Ueberlappung, siehe app/spots.py). NULL = kein/mehrdeutiger Spot
+    # (dann steht in place_name der Gewaessername). Spots sind review-/mergebar (spots-Tabelle).
+    spot_id: Mapped[int | None] = mapped_column(Integer, index=True)
     # Pumpfoil-Klassifikation (bei der Analyse gesetzt). NULL = noch nicht analysiert.
     is_pumpfoil: Mapped[bool | None] = mapped_column(Boolean)
     # Moderation: flagged = als unangemessen gemeldet -> in Community ausgeblendet,
@@ -405,6 +408,24 @@ class WaterPolygon(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     grid_key: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     rings_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class Spot(Base):
+    """Spot = Cluster sich überschneidender Foiling-Tracks (siehe app/spots.py).
+    Der Name hängt hier (einmal geocodet / admin-korrigierbar), nicht an jeder Session.
+    name=None → noch nicht benannt (Geocode-Retry). merged_into → Admin-Merge."""
+
+    __tablename__ = "spots"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(120), index=True)  # Spot-Name (venue/water/manual)
+    name_source: Mapped[str | None] = mapped_column(String(12))        # "venue" | "water" | "manual"
+    water_name: Mapped[str | None] = mapped_column(String(120))        # Gewässer-Label
+    lat: Mapped[float | None] = mapped_column(Float)
+    lon: Mapped[float | None] = mapped_column(Float)
+    poly_wkt: Mapped[str | None] = mapped_column(Text)                 # gepuffertes Cluster-Polygon (lat/lon-WKT)
+    merged_into: Mapped[int | None] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
