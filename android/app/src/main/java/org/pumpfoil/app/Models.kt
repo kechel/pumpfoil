@@ -214,8 +214,10 @@ data class CommunityRecordEntry(
     @SerialName("session_id") val sessionId: Int? = null,
     val value: Double = 0.0,
     val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
     val spot: String? = null,
     @SerialName("started_at") val startedAt: String? = null,
+    @SerialName("run_idx") val runIdx: Int? = null,
 )
 
 @Serializable

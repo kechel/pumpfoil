@@ -1,25 +1,31 @@
 import SwiftUI
 
-// Community: Bestenliste, neueste Medien, best bewertet, Spot-Rekorde + Feed
-// (spiegelt web/Community + Android).
+// Community/Foilers: Stats → Zeitraum+Accel → Community-Rekorde → Medien → Bestenliste →
+// Best bewertet → Spots (spiegelt web/pages/Home.tsx + Android CommunityScreen).
 struct CommunityView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
-    @State private var items: [CommunityItem] = []
+    @State private var records: [String: PeriodRecords]?
     @State private var leaders: Leaders?
     @State private var media: [MediaItem] = []
     @State private var topLiked: [CommunityItem] = []
+    @State private var cstats: Api.CommunityStats?
+    @State private var spots: SpotsList?
+    @State private var spotShown: [String] = []
+    @State private var spotRecs: [String: PeriodRecords] = [:]
+    @State private var spotQuery = ""
     @State private var loading = false
     @State private var error: String?
+    @State private var period = "10d"
+    @State private var accelOnly = true
     @State private var lbMetric = "sessions"
-    @State private var spotQuery = ""
-    @State private var spotRecords: PeriodRecords?
-    @State private var spotShown = ""
-    @State private var cstats: Api.CommunityStats?
+
+    private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
+    private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     private var lbMetrics: [(String, String)] {
-        [("sessions", Loc.t("nav.sessions", lang)), ("runs", Loc.t("home.runs", lang)),
-         ("pumps", Loc.t("home.pumps", lang)), ("spots", Loc.t("nav.spots", lang))]
+        [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
+         ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang))]
     }
     private func lbList(_ lb: Leaders) -> [LeaderEntry] {
         switch lbMetric { case "runs": return lb.runs ?? []; case "pumps": return lb.pumps ?? []
@@ -28,6 +34,15 @@ struct CommunityView: View {
     private func lbValue(_ e: LeaderEntry) -> Int {
         switch lbMetric { case "runs": return e.runs ?? 0; case "pumps": return e.pumps ?? 0
         case "spots": return e.spots ?? 0; default: return e.sessions ?? 0 }
+    }
+    private var lbUnit: String {
+        switch lbMetric { case "runs": return Loc.t("unit.runs", lang); case "pumps": return Loc.t("unit.pumps", lang)
+        case "spots": return Loc.t("unit.spots", lang); default: return Loc.t("unit.sessions", lang) }
+    }
+    private var spotMatches: [String] {
+        let q = spotQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !q.isEmpty, let all = spots?.all else { return [] }
+        return all.filter { $0.lowercased().contains(q) && !spotShown.contains($0) }.prefix(6).map { $0 }
     }
 
     var body: some View {
@@ -41,7 +56,39 @@ struct CommunityView: View {
                         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
                 }
 
-                if let lb = leaders, !lbList(lb).isEmpty || !(lb.sessions ?? []).isEmpty {
+                // Zeitraum-Filter + Accel/alle-Umschalter.
+                Section {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
+                        }
+                    }
+                    HStack {
+                        Spacer()
+                        chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                        chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                    }
+                }
+
+                // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
+                if records != nil {
+                    Section { recordGrid(records?[period], showSpot: true) }
+                }
+
+                if !media.isEmpty {
+                    Section(Loc.t("community.latestMedia", lang)) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(media) { m in
+                                    NavigationLink { SessionDetailView(id: m.session_id) } label: { mediaThumb(m) }
+                                        .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
                     Section(Loc.t("community.leaderboard", lang)) {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
@@ -59,19 +106,7 @@ struct CommunityView: View {
                                     Text(e.name ?? "—").lineLimit(1)
                                     Spacer()
                                     Text("\(lbValue(e))").fontWeight(.semibold)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if !media.isEmpty {
-                    Section(Loc.t("community.latestMedia", lang)) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(media) { m in
-                                    NavigationLink { SessionDetailView(id: m.session_id) } label: { mediaThumb(m) }
-                                        .buttonStyle(.plain)
+                                    Text(lbUnit).font(.caption2).foregroundStyle(.secondary)
                                 }
                             }
                         }
@@ -86,33 +121,29 @@ struct CommunityView: View {
                     }
                 }
 
-                Section(Loc.t("community.spotRecords", lang)) {
-                    HStack {
-                        TextField(Loc.t("sessions.searchSpot", lang), text: $spotQuery)
-                            .textInputAutocapitalization(.never).onSubmit { searchSpot() }
-                        Button { searchSpot() } label: { Image(systemName: "magnifyingglass") }
-                    }
-                    if let rec = spotRecords {
-                        Text("📍 \(spotShown)").font(.caption).foregroundStyle(.secondary)
-                        let tiles = spotTiles(rec)
-                        if tiles.isEmpty {
-                            Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
-                        } else {
-                            ForEach(tiles, id: \.label) { t in
-                                if let sid = t.entry.session_id {
-                                    NavigationLink { SessionDetailView(id: sid) } label: { recordTile(t) }
-                                } else { recordTile(t) }
-                            }
+                // Spots: eigene Spots + Suche, je Spot ein Rekord-Grid.
+                Section(Loc.t("home.spots", lang)) {
+                    TextField(Loc.t("home.spotSearch", lang), text: $spotQuery).textInputAutocapitalization(.never)
+                    ForEach(spotMatches, id: \.self) { m in
+                        Button {
+                            if !spotShown.contains(m) { spotShown.insert(m, at: 0) }
+                            spotQuery = ""
+                        } label: {
+                            Label(m, systemImage: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
                         }
                     }
-                }
-
-                Section(Loc.t("sessions.all", lang)) {
-                    ForEach(items) { s in
-                        NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
+                    if spotShown.isEmpty {
+                        Text(Loc.t("home.noSpots", lang)).font(.caption).foregroundStyle(.secondary)
                     }
-                    if items.isEmpty && !loading && error == nil {
-                        Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
+                    ForEach(spotShown, id: \.self) { sp in
+                        HStack {
+                            Text("📍 \(sp)").font(.subheadline).bold().foregroundStyle(Color.accentColor)
+                            if spots?.mine?.contains(sp) != true {
+                                Button(Loc.t("home.remove", lang)) { spotShown.removeAll { $0 == sp } }
+                                    .font(.caption).foregroundStyle(.secondary).buttonStyle(.plain)
+                            }
+                        }
+                        recordGrid(spotRecs["\(accelOnly):\(period):\(sp)"], showSpot: false)
                     }
                 }
             }
@@ -121,37 +152,79 @@ struct CommunityView: View {
             .brandToolbar(Loc.t("nav.community", lang))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink { CommunityRecordsView() } label: { Image(systemName: "trophy") }
+                    NavigationLink { FoilStatsView() } label: { Image(systemName: "figure.surfing") }
                 }
                 ToolbarItem(placement: .topBarTrailing) { SyncButton() }
             }
-            .overlay { if loading && items.isEmpty { ProgressView() } }
-            .refreshable { await load() }
-            .task { if items.isEmpty { await load() } }
+            .overlay { if loading && records == nil { ProgressView() } }
+            .refreshable { await loadBase(); await loadPeriod(); await loadSpotRecs() }
+            .task { if records == nil { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
+            .onChange(of: accelOnly) { _ in Task { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
+            .onChange(of: period) { _ in Task { await loadPeriod(); await loadSpotRecs() } }
+            .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
         }
     }
 
-    private struct RecRow { let label: String; let value: String; let entry: CommunityRecordEntry }
+    // MARK: - Rekord-Grid
 
-    private func spotTiles(_ r: PeriodRecords) -> [RecRow] {
-        var out: [RecRow] = []
-        func dist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
+    private struct RecRow: Identifiable { let id = UUID(); let label: String; let value: String; let entry: CommunityRecordEntry? }
+
+    private func recordRows(_ r: PeriodRecords?) -> [RecRow] {
+        func ok(_ e: CommunityRecordEntry?) -> Bool { e?.session_id != nil && (e?.value ?? 0) > 0 }
+        func row(_ key: String, _ e: CommunityRecordEntry?, _ fmt: (Double) -> String) -> RecRow {
+            RecRow(label: Loc.t(key, lang), value: ok(e) ? fmt(e!.value ?? 0) : "–", entry: ok(e) ? e : nil)
+        }
         func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
-        if let e = r.speed, (e.value ?? 0) > 0 { out.append(RecRow(label: Loc.t("home.topSpeed", lang), value: String(format: "%.1f km/h", (e.value ?? 0) * 3.6), entry: e)) }
-        if let e = r.distance, (e.value ?? 0) > 0 { out.append(RecRow(label: Loc.t("home.farthestRun", lang), value: dist(e.value ?? 0), entry: e)) }
-        if let e = r.duration, (e.value ?? 0) > 0 { out.append(RecRow(label: Loc.t("home.longestRun", lang), value: dur(e.value ?? 0), entry: e)) }
-        if let e = r.glide, (e.value ?? 0) > 0 { out.append(RecRow(label: Loc.t("home.longestGlide", lang), value: dur(e.value ?? 0), entry: e)) }
-        if let e = r.runs, (e.value ?? 0) > 0 { out.append(RecRow(label: Loc.t("home.mostRuns", lang), value: "\(Int(e.value ?? 0))", entry: e)) }
-        return out
+        return [
+            row("rec.farthestRun", r?.distance) { "\(Int($0.rounded())) m" },
+            row("rec.longestRun", r?.duration) { dur($0) },
+            row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
+            row("rec.longestGlide", r?.glide) { String(format: "%.1f s", $0) },
+            row("rec.mostRuns", r?.runs) { "\(Int($0))" },
+        ]
     }
 
-    private func recordTile(_ t: RecRow) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(t.label).font(.caption).foregroundStyle(.secondary)
-            Text(t.value).font(.title3).bold().foregroundStyle(Color.accentColor)
-            if let n = t.entry.name, !n.isEmpty { Text(n).font(.caption).foregroundStyle(.secondary) }
+    @ViewBuilder private func recordGrid(_ r: PeriodRecords?, showSpot: Bool) -> some View {
+        let rows = recordRows(r)
+        if rows.allSatisfy({ $0.entry == nil }) {
+            Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
+        } else {
+            LazyVGrid(columns: gridCols, spacing: 8) {
+                ForEach(rows) { t in
+                    if let sid = t.entry?.session_id {
+                        NavigationLink { SessionDetailView(id: sid) } label: { recordCell(t, showSpot: showSpot) }
+                            .buttonStyle(.plain)
+                    } else {
+                        recordCell(t, showSpot: showSpot)
+                    }
+                }
+            }
+            .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
         }
     }
+
+    private func recordCell(_ t: RecRow, showSpot: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(t.value).font(.title3).bold().foregroundStyle(Color.accentColor).lineLimit(1)
+            Text(t.label).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            if let e = t.entry {
+                if let n = e.name, !n.isEmpty {
+                    HStack(spacing: 4) {
+                        recAvatar(e.avatar_url)
+                        Text(n).font(.caption).foregroundStyle(Color.accentColor).lineLimit(1)
+                    }
+                }
+                let sub = [shortDate(e.started_at), showSpot ? e.spot : nil].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                if !sub.isEmpty { Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Kleine Bausteine
 
     private func chip(_ label: String, _ on: Bool, _ tap: @escaping () -> Void) -> some View {
         Button(action: tap) {
@@ -161,6 +234,18 @@ struct CommunityView: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder private func recAvatar(_ url: String?) -> some View {
+        if let u = Api.mediaURL(url) {
+            AsyncImage(url: u) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 18, height: 18).clipShape(Circle())
+        }
     }
 
     @ViewBuilder private func leaderAvatar(_ e: LeaderEntry) -> some View {
@@ -194,24 +279,43 @@ struct CommunityView: View {
         .frame(width: 150, height: 100).clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private func searchSpot() {
-        let q = spotQuery.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return }
-        Task {
-            spotShown = q
-            spotRecords = try? await Api.spotRecords(q)
-        }
+    private func shortDate(_ iso: String?) -> String? {
+        guard let iso, !iso.isEmpty else { return nil }
+        let iso1 = ISO8601DateFormatter(); iso1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let iso2 = ISO8601DateFormatter(); iso2.formatOptions = [.withInternetDateTime]
+        guard let d = iso1.date(from: iso) ?? iso2.date(from: iso) else { return nil }
+        let out = DateFormatter(); out.dateFormat = "dd.MM.yy"
+        return out.string(from: d)
     }
 
-    private func load() async {
+    // MARK: - Laden
+
+    private func loadBase() async {
         loading = true; defer { loading = false }
         do {
-            items = try await Api.communitySessions(); error = nil
+            records = try await Api.communityRecords(accelOnly: accelOnly); error = nil
             cstats = try? await Api.communityStats()
-            leaders = try? await Api.leaders()
             media = (try? await Api.latestPhotos()) ?? []
-            topLiked = (try? await Api.topLiked(limit: 5)) ?? []
+            if let sp = try? await Api.spots(accelOnly: false) {
+                spots = sp
+                spotShown = sp.mine ?? []
+                spotRecs = [:]
+            }
         } catch { self.error = error.localizedDescription }
+    }
+
+    private func loadPeriod() async {
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly)
+        topLiked = (try? await Api.topLiked(period: period)) ?? []
+    }
+
+    private func loadSpotRecs() async {
+        for sp in spotShown {
+            let key = "\(accelOnly):\(period):\(sp)"
+            if spotRecs[key] == nil, let r = try? await Api.spotRecords(sp, period: period, accelOnly: accelOnly) {
+                spotRecs[key] = r
+            }
+        }
     }
 }
 

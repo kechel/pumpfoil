@@ -97,7 +97,10 @@ struct CommunityRecordEntry: Codable {
     let session_id: Int?
     let value: Double?
     let name: String?
+    let avatar_url: String?
     let spot: String?
+    let started_at: String?
+    let run_idx: Int?
 }
 
 struct PeriodRecords: Codable {

@@ -141,42 +141,42 @@ enum Api {
         try await request("/api/community/sessions?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
     }
 
-    static func spotSessions(_ spot: String, limit: Int = 50) async throws -> [CommunityItem] {
+    static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50) async throws -> [CommunityItem] {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
-        return try await request("/api/community/spot-sessions?spot=\(s)&limit=\(limit)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
     static func stats(accelOnly: Bool = true) async throws -> OverallStats {
         try await request("/api/sessions/stats?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
-    static func spots() async throws -> SpotsList {
-        try await request("/api/community/spots", method: "GET", body: nil, auth: true)
+    static func spots(accelOnly: Bool = true) async throws -> SpotsList {
+        try await request("/api/community/spots?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
-    static func communityRecords() async throws -> [String: PeriodRecords] {
-        try await request("/api/community/records", method: "GET", body: nil, auth: true)
+    static func communityRecords(accelOnly: Bool = true) async throws -> [String: PeriodRecords] {
+        try await request("/api/community/records?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
     static func updateLanguage(_ lang: String) async throws -> Profile {
         try await request("/api/auth/me", method: "PUT", body: ["language": lang], auth: true)
     }
 
-    static func leaders(period: String = "all") async throws -> Leaders {
-        try await request("/api/community/leaders?period=\(period)", method: "GET", body: nil, auth: true)
+    static func leaders(period: String = "all", accelOnly: Bool = true) async throws -> Leaders {
+        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
-    static func latestPhotos() async throws -> [MediaItem] {
-        try await request("/api/community/latest-photos", method: "GET", body: nil, auth: true)
+    static func latestPhotos(limit: Int = 8) async throws -> [MediaItem] {
+        try await request("/api/community/latest-photos?limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
     static func topLiked(period: String = "all", limit: Int = 5) async throws -> [CommunityItem] {
         try await request("/api/community/top-liked?period=\(period)&limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
-    static func spotRecords(_ spot: String, period: String = "all") async throws -> PeriodRecords {
+    static func spotRecords(_ spot: String, period: String = "all", accelOnly: Bool = true) async throws -> PeriodRecords {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
-        return try await request("/api/community/spot-records?spot=\(s)&period=\(period)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/spot-records?spot=\(s)&period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
     static func spotWeather(_ spot: String) async throws -> SpotWeather {

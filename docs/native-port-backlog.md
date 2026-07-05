@@ -178,6 +178,17 @@ kleine farbige Icons, saubere Ausrichtung, gleiche Abstände, Light/Dark sauber.
 **Vorgehen:** Screen für Screen die PWA neben die native App legen und angleichen. Design-Sprache
 zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
 
+**Screen-Audit-Fortschritt (penibler 1:1-Abgleich, Emulator+Playwright):**
+- ✅ Login (branded), Impressum/Datenschutz, Home (Reihenfolge/Kacheln/Chat-Button/letzte Sessions/Feedback),
+  Farbcodes (hell = `#0e7490`, dunkel = `#22d3ee`), Bottom-Nav (eigene Bar, aktives Icon+Label cyan).
+- ✅ **Foilers/Community** (Android verifiziert, iOS gespiegelt): Reihenfolge jetzt wie PWA — Stats →
+  **Zeitraum-Filter** (Heute/10 T/30 T/1 J/Allzeit) + **Accel/alle-Umschalter** → **Community-Rekorde-Grid**
+  (Wert cyan + Avatar/Name/Datum/Spot, klickbar) → Neueste Medien → Bestenliste (mit Einheit) → Best
+  bewertet → **Spots** (eigene Spots + Suche, je Spot ein Rekord-Grid). Generischer „alle Sessions"-Feed
+  entfernt (nicht in PWA), separater Records-Screen entfällt (inline). Chips in Marken-Cyan statt M3-Lavendel.
+  API um `accel_only`/`period` erweitert; i18n-Keys (period/leader/unit/spots) in allen 7 Sprachen.
+- ☐ Sessions → Session-Detail → Verlauf → Spots → Chat → Profil → Einstellungen (in Arbeit).
+
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
 - Konsistente Card-Radien/Schatten, einheitliche vertikale Abstände, Button-Höhen **gleich**.
