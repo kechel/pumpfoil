@@ -44,7 +44,10 @@ targets:
         CFBundleShortVersionString: "1.1.7"
         CFBundleVersion: "11"
         ITSAppUsesNonExemptEncryption: false
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
+          UIImageRespectsSafeAreaInsets: true
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
