@@ -855,6 +855,7 @@ const en: Record<string, string> = {
   "compare.bar": "Compare ({n})",
   "compare.open": "Open comparison",
   "compare.clear": "Clear",
+  "compare.tip": "Tip: long-press a session to mark and compare several at once.",
   "compare.full": "Compare full (max {n})",
   "compare.empty": "Nothing marked yet. Mark sessions in the list or single runs inside a session to compare them here.",
   "compare.session": "Session",

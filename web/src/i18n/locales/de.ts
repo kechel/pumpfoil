@@ -906,6 +906,7 @@ const de: Record<string, string> = {
   "compare.bar": "Vergleich ({n})",
   "compare.open": "Vergleich öffnen",
   "compare.clear": "Leeren",
+  "compare.tip": "Tipp: Eine Session lange gedrückt halten, um mehrere zu markieren und zu vergleichen.",
   "compare.full": "Vergleich voll (max. {n})",
   "compare.empty": "Noch nichts markiert. Markiere Sessions in der Liste oder einzelne Läufe in einer Session, um sie hier gegenüberzustellen.",
   "compare.session": "Session",

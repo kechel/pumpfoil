@@ -66,9 +66,23 @@ export function Stat({ label, value, sub }: { label: string; value: string; sub?
   );
 }
 
+// Fallback-Farben fuer Avatare ohne Bild: mittlere, gesaettigte Toene, die mit
+// weisser Initiale sowohl im Light- als auch im Dark-Mode gut lesbar sind.
+const AVATAR_COLORS = [
+  "#0284c7", "#4f46e5", "#7c3aed", "#c026d3", "#db2777", "#e11d48",
+  "#dc2626", "#ea580c", "#ca8a04", "#16a34a", "#059669", "#0d9488", "#0e7490",
+];
+
+function avatarColor(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
 export function Avatar({
   name,
   url,
+  seed,
   size = 32,
   fill = false,
   rounded = "rounded-full",
@@ -76,6 +90,7 @@ export function Avatar({
 }: {
   name?: string | null;
   url?: string | null;
+  seed?: string | number | null; // stabiler Schluessel fuer die Fallback-Farbe (z. B. User-ID); default = name
   size?: number;
   fill?: boolean; // füllt den Eltern-Container (h-full w-full) statt fester Größe
   rounded?: string;
@@ -96,10 +111,11 @@ export function Avatar({
       />
     );
   }
+  const bg = avatarColor(String(seed ?? name ?? "?"));
   return (
     <div
-      className={`flex items-center justify-center bg-slate-700 font-semibold text-slate-200 ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-slate-600"} ${className}`}
-      style={fill ? { fontSize: size * 0.45 } : { width: size, height: size, fontSize: size * 0.45 }}
+      className={`flex items-center justify-center font-semibold text-white ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-black/10"} ${className}`}
+      style={fill ? { backgroundColor: bg, fontSize: size * 0.45 } : { backgroundColor: bg, width: size, height: size, fontSize: size * 0.45 }}
     >
       {initial}
     </div>

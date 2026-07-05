@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#020617" />
+    <meta name="theme-color" content="#22d3ee" />
     <meta
       name="description"
       content="Pumpfoil zeichnet deine Pump-Foiling-Sessions mit der Garmin-Uhr auf und wertet sie automatisch aus: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen."
@@ -41,8 +41,6 @@
           var light = mode === "light" || (mode === "auto" && systemLight);
           if (light) {
             document.documentElement.classList.add("theme-light");
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) meta.setAttribute("content", "#f8fafc");
           }
         } catch (e) {}
       })();

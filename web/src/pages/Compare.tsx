@@ -217,7 +217,7 @@ export default function Compare() {
         {!empty && (
           <>
             <span className="text-sm text-slate-400">{t("compare.subtitle", { n: refs.length })}</span>
-            <button onClick={clearCompare} className="ml-auto rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700">
+            <button onClick={clearCompare} className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
               {t("compare.clear")}
             </button>
           </>

@@ -17,9 +17,10 @@ export function effectiveDark(theme: Theme): boolean {
 export function applyTheme(theme: Theme): void {
   const dark = effectiveDark(theme);
   document.documentElement.classList.toggle("theme-light", !dark);
-  // Browser-Chrome (Mobile) passend einfärben.
+  // Browser-Chrome (Mobile): immer unser Brand-Cyan (wie das Update-Banner),
+  // unabhaengig vom Theme.
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", dark ? "#020617" : "#f8fafc");
+  if (meta) meta.setAttribute("content", "#22d3ee");
 }
 
 export function setTheme(theme: Theme): void {

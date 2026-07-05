@@ -4,7 +4,7 @@ import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon } from "../components/Icons";
+import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -47,6 +47,21 @@ function MergeHint() {
           </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Kleiner, wegklickbarer Hinweis: Session lange druecken -> markieren & vergleichen.
+function CompareTip() {
+  const t = useT();
+  const [hidden, setHidden] = useState(() => localStorage.getItem("hideCompareTip") === "1");
+  if (hidden) return null;
+  return (
+    <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-400">
+      <CompareIcon className="h-4 w-4 shrink-0 text-brand-400" />
+      <span className="flex-1">{t("compare.tip")}</span>
+      <button onClick={() => { localStorage.setItem("hideCompareTip", "1"); setHidden(true); }}
+        className="shrink-0 rounded p-1 text-slate-500 hover:text-slate-300" aria-label="OK">✕</button>
     </div>
   );
 }
@@ -143,6 +158,7 @@ export default function Sessions() {
       </div>
 
       {isMine && <MergeHint />}
+      <CompareTip />
 
       {spot && <SpotWeather spot={spot} />}
       {isMine ? <MySessionsList myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}

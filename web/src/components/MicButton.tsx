@@ -154,13 +154,13 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
           Per Portal an document.body -> echtes Viewport-Vollbild (nicht im Chat-Container
           gefangen, der durch transform/backdrop-blur sonst „fixed" einsperrt). */}
       {listening && createPortal(
-        <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-950 p-5">
-          {title && <div className="mb-1 truncate text-base font-semibold text-slate-100">{title}</div>}
+        <div className="fixed inset-0 z-[3000] flex flex-col bg-slate-900 p-5">
+          {title && <div className="mb-1 truncate text-base font-semibold text-slate-200">{title}</div>}
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-red-400">
             <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
             {t("mic.listening")}
           </div>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-100">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto whitespace-pre-wrap text-xl leading-relaxed text-slate-200">
             {baseText && <span className="text-slate-500">{baseText} </span>}
             {preview ? <span>{preview}</span> : (!baseText && <span className="text-slate-500">…</span>)}
           </div>
