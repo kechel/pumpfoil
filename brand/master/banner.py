@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """YouTube-/Social-Banner (2560x1440) reproduzierbar aus der Brand-Basis.
-Nutzt das gestapelte Lockup (kanonische Wellen + Avenir-Wordmark + Tagline) aus gen.py,
-auf Navy-Verlauf + dezentem Wellen-Wasserzeichen. Plattform-Subline bewusst unverändert.
+Horizontales Lockup (kanonische Wellen LINKS + Avenir-Wordmark + Tagline) aus gen.py +
+Plattform-Subline, komplett in die YouTube-Safe-Zone (1546x423, „auf allen Geräten sichtbar")
+skaliert; auf Navy-Verlauf + dezentem Wellen-Wasserzeichen. Plattform-Subline bewusst unverändert.
 Aufruf:  ../../server/.venv/bin/python banner.py   (aus brand/master/)"""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,42 +27,56 @@ def gradient():
     img = (lo + (hi - lo) * seg).astype(np.uint8)
     return Image.fromarray(img, "RGB").convert("RGBA")
 
+# YouTube-Safe-Zone (mittiger Streifen, auf ALLEN Geräten sichtbar).
+SAFE_W, SAFE_H = 1546, 423
+MARGIN = 24   # etwas Luft im Kasten
+
+def subline_image(px: int, tracking: int) -> Image.Image:
+    """Plattform-Subline als tightes, transparentes Bild (Montserrat, cyan, gesperrt)."""
+    _mont = "/usr/share/fonts/opentype/montserrat/Montserrat-SemiBold.otf"
+    _fallback = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    font = ImageFont.truetype(_mont if os.path.exists(_mont) else _fallback, px)
+    probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
+    widths = [probe.textlength(ch, font=font) + tracking for ch in SUBLINE]
+    total = int(sum(widths) - tracking)
+    asc, desc = font.getmetrics()
+    img = Image.new("RGBA", (total, asc + desc), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    x = 0
+    for ch, w in zip(SUBLINE, widths):
+        d.text((x, 0), ch, font=font, fill=_hex("#22d3ee"))
+        x += w
+    return img
+
 def main():
     base = gradient()
 
-    # Dezentes Wellen-Wasserzeichen (kanonisch, cyan, ~8% Deckkraft), oversized, zwei Reihen.
+    # Dezentes Wellen-Wasserzeichen (kanonisch, cyan, ~9% Deckkraft), oversized, zwei Reihen.
     wm = gen.render_waves(gen.CYAN, 900)
     for (x, y) in ((-200, -120), (W - wm.width + 300, H - wm.height + 120)):
         layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
         faint = wm.copy(); a = faint.split()[3].point(lambda v: int(v * 0.09)); faint.putalpha(a)
         layer.alpha_composite(faint, (x, y)); base.alpha_composite(layer)
 
-    # Gestapeltes Lockup (Wellen + pumpfoil.org + TRACK EVERY PUMP), dark, tight -> auf Zielbreite.
-    lock = gen.build_fit("stacked", "dark", tagline=True)
-    target_w = 1500
-    scale = target_w / lock.width
-    lock = lock.resize((target_w, int(lock.height * scale)), Image.LANCZOS)
-    lx = (W - lock.width) // 2
-    ly = (H - lock.height) // 2 - 40
-    base.alpha_composite(lock, (lx, ly))
+    # Horizontales Lockup (Wellen LINKS + pumpfoil.org + TRACK EVERY PUMP), dark, tight.
+    lock = gen.build_fit("horizontal", "dark", tagline=True)
+    sub = subline_image(px=max(24, lock.height // 8), tracking=lock.height // 26)
+    gap = lock.height // 8
 
-    # Plattform-Subline (Montserrat SemiBold = freier Avenir-naher Ersatz, cyan, gesperrt).
-    d = ImageDraw.Draw(base)
-    _mont = "/usr/share/fonts/opentype/montserrat/Montserrat-SemiBold.otf"
-    _fallback = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    font = ImageFont.truetype(_mont if os.path.exists(_mont) else _fallback, 34)
-    tracking = 10
-    widths = [d.textlength(ch, font=font) + tracking for ch in SUBLINE]
-    total = sum(widths) - tracking
-    x = (W - total) / 2
-    y = ly + lock.height + 34
-    for ch, w in zip(SUBLINE, widths):
-        d.text((x, y), ch, font=font, fill=_hex("#22d3ee"))
-        x += w
+    # Lockup + Subline zu EINEM Block (zentriert), dann in die Safe-Zone skalieren.
+    block_w = max(lock.width, sub.width)
+    block_h = lock.height + gap + sub.height
+    block = Image.new("RGBA", (block_w, block_h), (0, 0, 0, 0))
+    block.alpha_composite(lock, ((block_w - lock.width) // 2, 0))
+    block.alpha_composite(sub, ((block_w - sub.width) // 2, lock.height + gap))
+
+    scale = min((SAFE_W - 2 * MARGIN) / block_w, (SAFE_H - 2 * MARGIN) / block_h)
+    block = block.resize((round(block_w * scale), round(block_h * scale)), Image.LANCZOS)
+    base.alpha_composite(block, ((W - block.width) // 2, (H - block.height) // 2))
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     base.convert("RGB").save(OUT)
-    print(f"{OUT}  {base.size}")
+    print(f"{OUT}  {base.size}  block={block.width}x{block.height} (Safe {SAFE_W}x{SAFE_H})")
 
 if __name__ == "__main__":
     main()
