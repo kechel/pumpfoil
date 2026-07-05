@@ -58,17 +58,26 @@ def main():
         faint = wm.copy(); a = faint.split()[3].point(lambda v: int(v * 0.09)); faint.putalpha(a)
         layer.alpha_composite(faint, (x, y)); base.alpha_composite(layer)
 
-    # Horizontales Lockup (Wellen LINKS + pumpfoil.org + TRACK EVERY PUMP), dark, tight.
-    lock = gen.build_fit("horizontal", "dark", tagline=True)
-    sub = subline_image(px=max(24, lock.height // 8), tracking=lock.height // 26)
-    gap = lock.height // 8
+    # Horizontales Lockup selbst zusammensetzen: Wellen LINKS, rechts eine Spalte aus
+    # Wordmark+Tagline (load_text) und darunter die Plattform-Subline — beide MITTIG
+    # unter der Domain (Subline bündig zur Tagline, nicht unter die Wellen verschoben).
+    text = gen.load_text("dark", tagline=True); tw, th = text.size
+    waves = gen.render_waves(gen.CYAN, int(th * 0.66)); gapw = int(th * 0.17)
+    row_w = waves.width + gapw + tw; row_h = max(waves.height, th)
+    row = Image.new("RGBA", (row_w, row_h), (0, 0, 0, 0))
+    row.alpha_composite(waves, (0, (row_h - waves.height) // 2))
+    x_text = waves.width + gapw
+    row.alpha_composite(text, (x_text, (row_h - th) // 2))
 
-    # Lockup + Subline zu EINEM Block (zentriert), dann in die Safe-Zone skalieren.
-    block_w = max(lock.width, sub.width)
-    block_h = lock.height + gap + sub.height
+    sub = subline_image(px=max(20, int(th * 0.16)), tracking=max(4, int(th * 0.032)))
+    if sub.width > tw:                                   # nie breiter als der Wordmark
+        s = tw / sub.width; sub = sub.resize((tw, int(sub.height * s)), Image.LANCZOS)
+    gap_sub = int(th * 0.12)
+
+    block_w = row_w; block_h = row_h + gap_sub + sub.height
     block = Image.new("RGBA", (block_w, block_h), (0, 0, 0, 0))
-    block.alpha_composite(lock, ((block_w - lock.width) // 2, 0))
-    block.alpha_composite(sub, ((block_w - sub.width) // 2, lock.height + gap))
+    block.alpha_composite(row, (0, 0))
+    block.alpha_composite(sub, (x_text + (tw - sub.width) // 2, row_h + gap_sub))
 
     scale = min((SAFE_W - 2 * MARGIN) / block_w, (SAFE_H - 2 * MARGIN) / block_h)
     block = block.resize((round(block_w * scale), round(block_h * scale)), Image.LANCZOS)

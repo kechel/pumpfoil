@@ -67,5 +67,7 @@ convert "$REPO/brand/stores/garmin/device-icon-128-24bit.png" -colors 64 -type P
 
 echo "== Social: YouTube-Banner (kanonische Wellen + Lockup + Montserrat-Subline) =="
 "$PY" banner.py
+echo "== Social: YouTube-Video-Overlay (transparent, Lockup oben + weicher Schatten) =="
+"$PY" overlay.py
 
 echo "fertig."
