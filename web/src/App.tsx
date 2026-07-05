@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, ChatBubbleIcon, NerdIcon, UploadIcon } from "./components/Icons";
-import { Wordmark } from "./components/Wordmark";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
@@ -22,6 +21,19 @@ const navItems: NavItem[] = [
   { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
+
+// Brand-Logo = horizontales Lockup (assets-master, 3 versetzte Wellen). dark-Bild
+// (weisser Text) auf dunklem UI, light-Bild (navy Text) im Light-Mode — CSS-Swap
+// via .logo-dark/.logo-light (index.css). Ersetzt das alte 2-Wellen-<Wordmark>.
+function BrandLogo({ className = "h-9" }: { className?: string }) {
+  const alt = "pumpfoil.org — track every pump";
+  return (
+    <>
+      <img src="/wordmark-h-dark.png" alt={alt} className={`logo-dark ${className} w-auto`} />
+      <img src="/wordmark-h-light.png" alt={alt} className={`logo-light ${className} w-auto`} />
+    </>
+  );
+}
 
 export default function App() {
   const { t, setLang } = useI18n();
@@ -61,7 +73,7 @@ export default function App() {
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
         <div className="mb-3 flex items-center justify-between gap-3 px-1">
-          <Link to="/"><Wordmark icon="h-6 w-6" text="text-lg" tagline /></Link>
+          <Link to="/"><BrandLogo className="h-9" /></Link>
           <ThemeToggle className="shrink-0" />
         </div>
         {profile && (
@@ -114,7 +126,7 @@ export default function App() {
       {/* Mobile-Topbar */}
       <header className="flex items-center justify-between border-b border-slate-800/60 px-4 py-3 md:hidden">
         <Link to="/">
-          <Wordmark icon="h-7 w-7" text="text-lg" tagline />
+          <BrandLogo className="h-9" />
         </Link>
         <div className="flex items-center gap-2">
           {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort). */}

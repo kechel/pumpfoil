@@ -174,9 +174,25 @@ def build(type_: str, theme: str, size: tuple[int, int], *, tagline=True, **plac
 
 
 def _parse_size(s: str):
+    if s.lower() == "fit":
+        return "fit"
     if "x" in s.lower():
         w, h = re.split("[xX]", s); return int(w), int(h)
     return int(s), int(s)
+
+
+def build_fit(type_: str, theme: str, tagline=True, pad=0.0, bg="transparent") -> Image.Image:
+    """Eng zugeschnitten (Content-Groesse), optional transparenter Rand (pad = Anteil)."""
+    if type_ == "icon":
+        c = content_icon(theme, tile_px=1024)
+    else:
+        c = content_stacked(theme, tagline) if type_ == "stacked" else content_horizontal(theme, tagline)
+    if pad:
+        m = int(max(c.size) * pad)
+        canvas = Image.new("RGBA", (c.width + 2 * m, c.height + 2 * m),
+                           (0, 0, 0, 0) if bg == "transparent" else _hex(bg))
+        canvas.alpha_composite(c, (m, m)); return canvas
+    return c
 
 
 def main():
@@ -199,7 +215,11 @@ def main():
     if a.content_height: kw["content_h"] = a.content_height
     if a.zoom: kw["zoom"] = a.zoom
     if a.pad is not None: kw["pad"] = a.pad
-    img = build(a.type, a.theme, _parse_size(a.size), tagline=not a.no_tagline, **kw)
+    size = _parse_size(a.size)
+    if size == "fit":
+        img = build_fit(a.type, a.theme, tagline=not a.no_tagline, pad=a.pad or 0.0, bg=a.bg)
+    else:
+        img = build(a.type, a.theme, size, tagline=not a.no_tagline, **kw)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     img.save(a.out)
     print(f"{a.out}  {img.size}  type={a.type} theme={a.theme}")

@@ -20,9 +20,9 @@ G --type icon --theme light --size 16  --pad 0 --out "$WEB/favicon-16.png"
 G --type icon --theme light --size 512 --pad 0 --out "$WEB/oauth-logo-512.png"
 G --type icon --theme light --size 120 --pad 0 --out "$WEB/oauth-logo-120.png"
 
-echo "== Web-Header: horizontales Lockup (transparent), dark + light =="
-G --type horizontal --theme dark  --size 1200x300 --content-height 210 --out "$WEB/wordmark-h-dark.png"
-G --type horizontal --theme light --size 1200x300 --content-height 210 --out "$WEB/wordmark-h-light.png"
+echo "== Web-Header: horizontales Lockup (transparent, tight), dark + light =="
+G --type horizontal --theme dark  --size fit --out "$WEB/wordmark-h-dark.png"
+G --type horizontal --theme light --size fit --out "$WEB/wordmark-h-light.png"
 
 echo "== Referenz-Satz: die 6 Logos (store-assets/logo) =="
 G --type icon       --theme light --size 1024 --pad 0        --out "$REF/logo-icon-light.png"
