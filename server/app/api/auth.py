@@ -223,6 +223,7 @@ def reset_password(
 
 
 @router.patch("/me/password")
+@router.put("/me/password")  # PUT-Alias: native Clients (HttpURLConnection) koennen kein PATCH
 def change_password(
     body: PasswordChangeIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:

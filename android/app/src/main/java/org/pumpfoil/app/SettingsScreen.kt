@@ -66,6 +66,10 @@ fun SettingsScreen(onBack: () -> Unit) {
     var nRecord by remember { mutableStateOf(true) }
     var theme by remember { mutableStateOf(ThemeState.mode) }
     var lang by remember { mutableStateOf(I18n.lang) }
+    var pwCur by remember { mutableStateOf("") }
+    var pwNew by remember { mutableStateOf("") }
+    var pwMsg by remember { mutableStateOf<Pair<Boolean, String>?>(null) }   // (ok, text)
+    var pwBusy by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         try {
@@ -152,6 +156,49 @@ fun SettingsScreen(onBack: () -> Unit) {
             ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
             ToggleRow(I18n.t("settings.nAnalyzed"), nAnalyzed) { nAnalyzed = it; saved = false }
             ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
+            Spacer(Modifier.height(20.dp))
+
+            // Passwort ändern (wie PWA-Settings).
+            Text(I18n.t("profile.changePw"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("profile.changePwHint"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            OutlinedTextField(
+                value = pwCur, onValueChange = { pwCur = it; pwMsg = null },
+                singleLine = true, label = { Text(I18n.t("profile.curPw")) },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = pwNew, onValueChange = { pwNew = it; pwMsg = null },
+                singleLine = true, label = { Text(I18n.t("profile.newPw")) },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    pwMsg = null
+                    if (pwNew.length < 8) { pwMsg = false to I18n.t("profile.pwMin"); return@Button }
+                    pwBusy = true
+                    scope.launch {
+                        try {
+                            Api.changePassword(pwCur, pwNew)
+                            pwMsg = true to I18n.t("profile.pwChanged"); pwCur = ""; pwNew = ""
+                        } catch (e: Exception) {
+                            pwMsg = false to (if ((e.message ?: "").contains("400")) I18n.t("profile.pwWrong") else I18n.t("profile.error"))
+                        }
+                        pwBusy = false
+                    }
+                },
+                enabled = !pwBusy && pwCur.isNotBlank() && pwNew.isNotBlank(),
+            ) { Text(I18n.t("profile.changePw")) }
+            pwMsg?.let { (ok, text) ->
+                Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp),
+                    color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+            }
 
             Spacer(Modifier.height(24.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

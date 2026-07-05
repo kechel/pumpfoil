@@ -79,6 +79,12 @@ object Api {
         http("POST", "/api/auth/forgot-password", buildJsonObject { put("email", email) }.toString(), auth = false)
     }
 
+    // Eigenes Passwort ändern (PUT-Alias, da HttpURLConnection kein PATCH kann).
+    suspend fun changePassword(current: String, newPw: String): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("current_password", current); put("new_password", newPw) }.toString()
+        http("PUT", "/api/auth/me/password", body, auth = true)
+    }
+
     suspend fun me(): Profile = withContext(Dispatchers.IO) {
         json.decodeFromString(Profile.serializer(), http("GET", "/api/auth/me", null, auth = true))
     }

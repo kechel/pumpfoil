@@ -74,6 +74,13 @@ enum Api {
         try await request("/api/sessions/months?filter=\(filter)", method: "GET", body: nil, auth: true)
     }
 
+    // Eigenes Passwort ändern (PUT-Alias; funktioniert auch für iOS).
+    static func changePassword(current: String, newPw: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/auth/me/password", method: "PUT",
+                                      body: ["current_password": current, "new_password": newPw], auth: true)
+    }
+
     static func session(_ id: Int) async throws -> SessionDetail {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }

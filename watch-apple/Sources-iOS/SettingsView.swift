@@ -16,6 +16,10 @@ struct SettingsView: View {
     @State private var nAnalyzed = true
     @State private var nRecord = true
     @State private var saved = false
+    @State private var pwCur = ""
+    @State private var pwNew = ""
+    @State private var pwMsg: (ok: Bool, text: String)?
+    @State private var pwBusy = false
 
     var body: some View {
         Form {
@@ -49,6 +53,17 @@ struct SettingsView: View {
                 Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
                 Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
             }
+            // Passwort ändern (wie PWA-Settings).
+            Section {
+                Text(Loc.t("profile.changePwHint", lang)).font(.footnote).foregroundStyle(.secondary)
+                SecureField(Loc.t("profile.curPw", lang), text: $pwCur)
+                SecureField(Loc.t("profile.newPw", lang), text: $pwNew)
+                Button(Loc.t("profile.changePw", lang)) { changePassword() }
+                    .disabled(pwBusy || pwCur.isEmpty || pwNew.isEmpty)
+                if let m = pwMsg {
+                    Text(m.text).font(.footnote).foregroundStyle(m.ok ? Color.accentColor : .red)
+                }
+            } header: { Text(Loc.t("profile.changePw", lang)) }
             Section {
                 Button(Loc.t("common.save", lang)) { save() }
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
@@ -75,6 +90,22 @@ struct SettingsView: View {
             nRecord = (np["record"] as? Bool) ?? true
         }
         spots = (try? await Api.spots())?.all ?? []
+    }
+
+    private func changePassword() {
+        pwMsg = nil
+        if pwNew.count < 8 { pwMsg = (false, Loc.t("profile.pwMin", lang)); return }
+        pwBusy = true
+        Task {
+            do {
+                try await Api.changePassword(current: pwCur, newPw: pwNew)
+                pwMsg = (true, Loc.t("profile.pwChanged", lang)); pwCur = ""; pwNew = ""
+            } catch {
+                let s = error.localizedDescription
+                pwMsg = (false, s.contains("400") ? Loc.t("profile.pwWrong", lang) : Loc.t("profile.error", lang))
+            }
+            pwBusy = false
+        }
     }
 
     private func save() {

@@ -221,7 +221,17 @@ zentral verankern (Theme/Design-Tokens), dann pro Screen anwenden.
   Alarm/Datenfelder/Einstellungen/Impressum, Abmelden + Konto löschen rot, Version). Kein direktes
   Web-Pendant (Web verteilt das auf Nav) — sinnvolle mobile Bündelung. Fix: Menü-Leading-Icons jetzt
   Marken-Cyan (wie Web-Nav-Icons) auf Android + iOS; Chevrons neutral. Abmelden/Löschen rot (destruktiv).
-- ☐ Einstellungen (letzter Screen, in Arbeit).
+- ✅ **Einstellungen** (Android verifiziert, iOS gespiegelt): Gewicht, Homespot, Design/Theme, Sprache,
+  Benachrichtigungs-Toggles, Speichern — war schon vollständig + markenkonform (Cyan-Dropdowns/-Switches).
+  Ergänzt: **Passwort ändern** (aktuelles + neues PW, Validierung ≥8, Fehlermeldungen) auf beiden
+  Plattformen — Server bekam PUT-Alias `/api/auth/me/password` (native HttpURLConnection kann kein PATCH),
+  Endpoint per emu-test-Token verifiziert (falsches PW → 400). i18n (7 Spr.): profile.changePw/curPw/newPw/
+  pwMin/pwChanged/pwWrong/error. Offen (§5, mobile Datei-UX): DSGVO-Daten-Export (Web-JSON-Download).
+
+**Screen-Audit ABGESCHLOSSEN — alle 8 Ziel-Screens angeglichen** (Home/Login/Impressum + die 8 oben).
+Rest-Kleinpunkte (Politur/§5, geräteabhängig): SpotProgression- & Play-Animation, Chart-Klick/Hover,
+Chat-Abo/Report/Linkify, DSGVO-Export nativ, ♥-HR-Emoji in Session-Karten. **Wichtigster Gesamtpunkt:
+iOS ist nur code-gespiegelt (hier nicht baubar) → Jan muss iOS in Xcode bauen + drüberschauen.**
 
 **Design-Tokens (aus der PWA):**
 - Brand-Cyan **`#22d3ee`** (hell) / **`#0e7490`** (dunkel), Navy **`#020617`**. **Keine Verläufe.**
