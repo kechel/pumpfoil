@@ -12,7 +12,7 @@ import gen
 
 W, H = 2560, 1440
 OUT = os.path.join(os.path.dirname(__file__), "../social/youtube-banner-2560x1440.png")
-SUBLINE = "GARMIN · WEAR OS · APPLE WATCH"   # Plattform-Liste NICHT ändern (erst nach Approval erweitern)
+SUBLINE = "GARMIN · WEAR OS · APPLE WATCH · POLAR"   # Polar live (AccessLink); COROS/Suunto/iOS/Android erst nach Approval
 
 def _hex(h): h = h.lstrip("#"); return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
