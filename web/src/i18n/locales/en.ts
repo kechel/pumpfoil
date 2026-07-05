@@ -727,6 +727,7 @@ const en: Record<string, string> = {
 
   "pwa.offline": "Offline – showing saved data.",
   "pwa.updateAvailable": "New version available.",
+  "pwa.updateTo": "Update to version {v}",
   "pwa.update": "Update",
 
   "pwa.sessionOfflineTitle": "Offline",

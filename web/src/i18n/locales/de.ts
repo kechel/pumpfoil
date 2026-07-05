@@ -778,6 +778,7 @@ const de: Record<string, string> = {
 
   "pwa.offline": "Offline – es werden gespeicherte Daten angezeigt.",
   "pwa.updateAvailable": "Neue Version verfügbar.",
+  "pwa.updateTo": "Update auf Version {v}",
   "pwa.update": "Aktualisieren",
 
   "pwa.sessionOfflineTitle": "Offline",

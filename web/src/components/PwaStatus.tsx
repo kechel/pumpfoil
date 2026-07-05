@@ -10,6 +10,7 @@ export function PwaStatus() {
   const t = useT();
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
   const [updating, setUpdating] = useState(false);
+  const [newVer, setNewVer] = useState<string | null>(null);   // Build der wartenden neuen Version
 
   const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
     // Aktiv nach Updates suchen, damit das Banner ohne manuelles Neuladen auftaucht:
@@ -27,6 +28,13 @@ export function PwaStatus() {
       });
     },
   });
+
+  // Sobald ein Update wartet: Build der NEUEN Version holen (frisch, ohne Cache) für den Hinweis.
+  useEffect(() => {
+    if (!needRefresh) return;
+    fetch("/version.json", { cache: "no-store" })
+      .then((r) => r.json()).then((d) => setNewVer(d?.build ?? null)).catch(() => {});
+  }, [needRefresh]);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -52,7 +60,7 @@ export function PwaStatus() {
           </span>
         ) : (
           <>
-            <span>{t("pwa.updateAvailable")}</span>
+            <span>{newVer ? t("pwa.updateTo", { v: newVer }) : t("pwa.updateAvailable")}</span>
             <button
               onClick={() => {
                 setUpdating(true);
