@@ -44,4 +44,19 @@ echo "== App-Icon-Master 1024 (brand/app-icons) — Quelle fuer Apple/Android/Ga
 G --type icon --theme light --size 1024 --pad 0 --out "$ICO/icon-1024-light.png"
 G --type icon --theme dark  --size 1024 --pad 0 --out "$ICO/icon-1024-dark.png"
 
+echo "== App-Splash / Launch / Adaptive / Zepp (direkt an die Plattform-Ziele) =="
+AND=$REPO/android/app/src/main/res
+# Android-Splash: cyan Wellen auf transparent (Navy kommt aus dem Theme)
+G --type waves --theme light --size 512 --pad 0.2  --out "$AND/drawable-nodpi/splash_waves.png"
+# Android Adaptive-Icon-Foreground: weisse Wellen (auf cyan Background)
+G --type waves --theme dark  --size 432 --pad 0.29 --out "$AND/drawable-nodpi/ic_launcher_foreground.png"
+# Zepp: 248x248 full-bleed Icon (cyan Kachel + weisse Wellen)
+G --type icon  --theme light --size 248 --pad 0 --bg cyan --out "$REPO/watch-zepp/assets/common.r/icon.png"
+cp "$REPO/watch-zepp/assets/common.r/icon.png" "$REPO/watch-zepp/assets/common.s/icon.png"
+# iOS-Launch: gestapelte Wortmarke (light) @1x/2x/3x
+IOSLS=$REPO/watch-apple/Sources-iOS/Assets.xcassets/LaunchLogo.imageset
+G --type stacked --theme light --size 600x220  --pad 0 --out "$IOSLS/logo-1x.png"
+G --type stacked --theme light --size 1200x440 --pad 0 --out "$IOSLS/logo-2x.png"
+G --type stacked --theme light --size 1800x660 --pad 0 --out "$IOSLS/logo-3x.png"
+
 echo "fertig."

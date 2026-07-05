@@ -169,6 +169,15 @@ def build(type_: str, theme: str, size: tuple[int, int], *, tagline=True, **plac
         tile = content_icon(theme, tile_px=max(cw, ch))
         return place(tile, cw, ch, pad=pad if pad else 0.0, bg=place_kw.pop("bg", "transparent"),
                      **{k: v for k, v in place_kw.items() if k in ("offset", "content_w", "content_h", "zoom")})
+    if type_ == "waves":
+        # Nur die kanonischen Wellen (ohne Kachel) zentriert auf transparent — fuer
+        # App-Splash/Adaptive-Foreground. theme=light -> cyan (auf dunklem BG),
+        # theme=dark -> weiss (auf cyan BG). pad = Rand-Anteil (Default 0.12).
+        pad = place_kw.pop("pad", 0.12)
+        w = render_waves(CYAN if theme == "light" else WHITE, int(min(cw, ch) * (1 - 2 * max(pad, 0.0))))
+        canvas = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        canvas.alpha_composite(w, ((cw - w.width) // 2, (ch - w.height) // 2))
+        return canvas
     content = content_stacked(theme, tagline) if type_ == "stacked" else content_horizontal(theme, tagline)
     return place(content, cw, ch, **place_kw)
 
@@ -197,7 +206,7 @@ def build_fit(type_: str, theme: str, tagline=True, pad=0.0, bg="transparent") -
 
 def main():
     ap = argparse.ArgumentParser(description="Pumpfoil-Logo-Generator")
-    ap.add_argument("--type", required=True, choices=["icon", "stacked", "horizontal"])
+    ap.add_argument("--type", required=True, choices=["icon", "stacked", "horizontal", "waves"])
     ap.add_argument("--theme", required=True, choices=["light", "dark"])
     ap.add_argument("--size", required=True, help="WxH oder N (quadratisch)")
     ap.add_argument("--content-width", type=int)
