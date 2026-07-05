@@ -28,7 +28,7 @@ fun PumpfoilTopBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(R.drawable.logo_waves),
+                    painter = painterResource(R.drawable.splash_waves),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(28.dp),
