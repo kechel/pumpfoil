@@ -292,6 +292,9 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         s.placeName?.takeIf { it.isNotBlank() }?.let {
             Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        s.placeWater?.takeIf { it.isNotBlank() && it != s.placeName }?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (caption.isNotBlank()) Text(caption)
         if (s.owned) {
             TextButton(onClick = { draftCaption = caption; editCaption = true }) {

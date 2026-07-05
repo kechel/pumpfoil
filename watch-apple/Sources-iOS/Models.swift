@@ -110,6 +110,7 @@ struct PeriodRecords: Codable {
 
 struct SpotMapItem: Codable, Identifiable {
     let spot: String
+    let spot_id: Int?   // additiv (neue Clients); Nav bleibt namensbasiert
     let lat: Double
     let lon: Double
     let sessions: Int
@@ -316,6 +317,8 @@ struct SessionDetail: Codable, Identifiable {
     let liked: Bool?
     let owned: Bool?
     let youtube_url: String?
+    let place_water: String?   // Gewässer als Zusatz-Label
+    let spot_id: Int?          // additiv; Nav bleibt namensbasiert
     let foil: Foil?        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     let analysis: Analysis?
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt

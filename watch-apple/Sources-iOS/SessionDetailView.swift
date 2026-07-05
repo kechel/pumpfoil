@@ -141,6 +141,9 @@ struct SessionDetailView: View {
                     if let p = s.place_name, !p.isEmpty {
                         Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
                     }
+                    if let w = s.place_water, !w.isEmpty, w != s.place_name {
+                        Text(w).font(.caption).foregroundStyle(.secondary)
+                    }
                     if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
                     if s.owned == true {
                         Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {

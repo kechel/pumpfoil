@@ -230,6 +230,7 @@ data class PeriodRecords(
 @Serializable
 data class SpotMapItem(
     val spot: String,
+    @SerialName("spot_id") val spotId: Int? = null,   // additiv (neue Clients); Nav bleibt namensbasiert
     val lat: Double = 0.0,
     val lon: Double = 0.0,
     val sessions: Int = 0,
@@ -308,6 +309,8 @@ data class SessionDetail(
     val liked: Boolean = false,
     val owned: Boolean = false,
     @SerialName("youtube_url") val youtubeUrl: String? = null,
+    @SerialName("place_water") val placeWater: String? = null,   // Gewässer als Zusatz-Label
+    @SerialName("spot_id") val spotId: Int? = null,               // additiv; Nav bleibt namensbasiert
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt

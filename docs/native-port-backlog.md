@@ -141,7 +141,12 @@ Ursprüngliche Vorgabe (Referenz):
 
 ---
 
-## 3. spot_id-Umstellung in den Apps  · Server bereit ✅ (kanonisiert id↔name)
+## 3. spot_id-Umstellung in den Apps  · Server bereit ✅ (kanonisiert id↔name)  — ✅ additiv gebaut
+**Umgesetzt (additiv):** `spot_id` + `place_water` in die nativen Modelle (SessionDetail, SpotMapItem);
+Gewässer wird als Zusatz-Label unter dem Ort in der Session-Detail angezeigt (beide Apps). Der
+**volle Nav-Umstieg auf spot_id bleibt bewusst aufgeschoben** (Server kanonisiert id↔name, Apps laufen
+namensbasiert weiter → kein Bruch; Umstieg getriggert durch App-Adoption, siehe Memory `spot-name-overrides`).
+ Referenz-Original:
 Nicht vergessen: die PWA nutzt jetzt **`spot_id`** statt Spot-Name für Navigation/Karte/Chat-Scope.
 Der Server kanonisiert id↔name (App-Kompat), aber die Apps sollen mitziehen.
 - Web-Quelle: `83f193f` (Navigation auf spot_id), `2768b3d` (Ufer-Venue-Name bevorzugt +
