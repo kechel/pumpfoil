@@ -15,20 +15,37 @@ Brand-Cyan**, der Rest in der jeweiligen Vordergrundfarbe (weiß auf Dunkel).
 
 ## Wellen-Glyph
 
-Zwei gestapelte Wellenlinien (≈), Brand-Cyan, runde Linienenden, mit weichem Cyan-Glow
-(Drop-Shadow) in den großen Varianten. Exakt die Pfade aus `WaveIcon`
-(`web/src/components/Icons.tsx`) bzw. den Logo-SVGs:
-```
-M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2
-M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2
-```
+**Drei versetzte (nicht synchrone) Wellenlinien**, gebürstet/organisch, runde Enden.
+Kanonische Quelle: **`assets-master/base/waves.svg`** (`fill=currentColor`, beliebig
+einfärbbar). Cyan `#22d3ee` auf hellem/dunklem Grund, weiß auf Cyan-Kachel.
+
+> ⚠️ Historie: Früher gab es *zwei dünne, synchrone* Wellen (die Pfade
+> `M2 12c…`/`M2 17c…` in `WaveIcon` bzw. `logo_waves.xml`). Das war die falsche,
+> nachgebaute Variante — sie hatte den Stil auf mehreren Flächen verbreitet. Das echte
+> Logo hat **drei versetzte** Wellen; `waves.svg` wurde aus dem echten Icon vektorisiert.
+
+## Logo-System (Master)
+
+**Alle Logos werden aus einer Basis per Skript erzeugt** — `assets-master/` (Generator
+`gen.py`, Basis `base/`, `build.sh`, eigene README). Nie wieder von Hand nachbauen; jede
+Größe/Padding/Zoom aus dem identischen Original. Es gibt **3 Logos × 2 Themes = 6**:
+
+| Typ | Beschreibung | Verwendung |
+|---|---|---|
+| **icon** | Kachel + Wellen (dark = navy Kachel/cyan Wellen · light = cyan Kachel/weiße Wellen) | App-/Store-Icon, Favicon, Avatar |
+| **stacked** | Wellen **oben**, darunter `pumpfoil.org` + Tagline | Hero-Titel |
+| **horizontal** | Wellen **links**, daneben `pumpfoil.org` + Tagline | Header/überall, Banner |
+
+`dark` = für dunkle Flächen (heller Inhalt), `light` = für helle Flächen (dunkler Inhalt).
+**Keine Verläufe** — Cyan überall exakt `#22d3ee` (auch die Icon-Kachel ist flach).
 
 ## Farben
 
 | Rolle | Wert |
 |---|---|
-| Brand-Cyan (Akzent, `.org`, Wellen) | `#22d3ee` (Tailwind `brand-400`) |
-| Brand-Cyan dunkler (Light-BG-Text, Press) | `#0891b2` (`brand-600`) |
+| Brand-Cyan (Akzent, `.org`, Wellen — ÜBERALL identisch, auch auf Weiß) | `#22d3ee` (Tailwind `brand-400`) |
+| Brand-Cyan dunkler (nur UI-Press-State, NICHT fürs Logo) | `#0891b2` (`brand-600`) |
+| **Keine Verläufe** — alle Flächen/Wellen flach | — |
 | Hintergrund dunkel | `#020617` (`slate-950`) |
 | Text hell | weiß / `slate-100` |
 | Sekundärtext / Tagline | `#94a3b8` (`slate-400`) |
