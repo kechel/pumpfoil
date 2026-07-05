@@ -89,7 +89,13 @@ Eigene Seite **„Verknüpfte Konten"** mit OAuth-Verknüpfung + Import fremder 
 - HomeScreen/HomeView existieren nativ → nur Banner + Stats-Leiste + Rekord-Datum ergänzen.
 - Commits: `dedf854` `953fb11` `6e7d786` `dfc968e` `8e8fd0d` `c0aecbb` `9ada8ff`.
 
-### ☐ 1.7 App-Update-Hinweis in den nativen Apps  · Server-Endpoint neu zu bauen
+### ✅ 1.7 App-Update-Hinweis in den nativen Apps  — Server + Android+iOS gebaut
+Umgesetzt: Server `GET /api/app/latest?platform=ios|android` (`app/api/appmeta.py`, Werte MANUELL
+gepflegt — `latest` leer ⇒ kein Hinweis). Home zeigt nicht-blockierenden Banner „Update verfügbar
+· Version x" + Button zum Store, wenn die Store-Version neuer als die eigene Bundle-Version ist
+(semantischer Vergleich). **TODO Jan:** in `appmeta.py` nach jedem Store-Review `latest` + echte
+`store_url`/App-ID setzen (aktuell Platzhalter). `min_supported` optional für Hard-Gate (Feld da,
+Hard-Gate-UI noch nicht — bei Bedarf später).
 Wie der PWA-Update-Banner, aber für iOS/Android: App fragt beim Server, ob eine **neuere Version**
 im Store ist, und zeigt einen **nicht-blockierenden** Hinweis („Neue Version verfügbar → im Store
 aktualisieren"). Kein Zwang, nur ein zusätzlicher Hinweis.

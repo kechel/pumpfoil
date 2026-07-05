@@ -272,6 +272,14 @@ object Api {
         httpBytes("/api/sessions/$id/share.png$q")
     }
 
+    @kotlinx.serialization.Serializable
+    data class AppLatest(val latest: String = "", val min_supported: String = "", val store_url: String = "")
+
+    // Neueste Store-Version (server-seitig manuell gepflegt) — fuer den In-App-Update-Hinweis.
+    suspend fun appLatest(platform: String = "android"): AppLatest = withContext(Dispatchers.IO) {
+        json.decodeFromString(AppLatest.serializer(), http("GET", "/api/app/latest?platform=$platform", null, auth = false))
+    }
+
     // Eigene Chat-Nachricht bearbeiten (nur < 1 h). PUT-Alias, da HttpURLConnection kein PATCH kann.
     suspend fun chatEdit(messageId: Int, text: String): Unit = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("text", text) }.toString()

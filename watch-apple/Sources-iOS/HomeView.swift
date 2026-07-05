@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Persönliches Dashboard: Gesamt-Kennzahlen, Rekorde (klickbar zur Session), letzte Sessions.
 struct HomeView: View {
@@ -14,6 +15,9 @@ struct HomeView: View {
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
     @State private var accelOnly = true
     @State private var decidedDefault = false
+    @State private var updateVer: String?
+    @State private var updateURL = ""
+    @State private var updateDismissed = false
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -21,6 +25,8 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    if let uv = updateVer, !updateDismissed { updateBanner(uv) }
+
                     Text("\(Loc.t("home.hello", lang)) \(session.profile?.display_name ?? "")".trimmingCharacters(in: .whitespaces))
                         .font(.title2).bold()
 
@@ -95,9 +101,48 @@ struct HomeView: View {
             .overlay { if loading && stats == nil { ProgressView() } }
             .refreshable { await load() }
             .task { await load() }
+            .task { await checkUpdate() }
             .onChange(of: sync.tick) { _ in Task { await load() } }
             .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
         }
+    }
+
+    // Nicht-blockierender Update-Hinweis (wie das PWA-Update-Banner).
+    @ViewBuilder private func updateBanner(_ version: String) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Loc.t("update.available", lang)).font(.subheadline).bold()
+                Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button(Loc.t("update.action", lang)) {
+                if let url = URL(string: updateURL.isEmpty ? "https://apps.apple.com/app/pumpfoil" : updateURL) {
+                    UIApplication.shared.open(url)
+                }
+            }.buttonStyle(.borderedProminent).controlSize(.small)
+            Button { updateDismissed = true } label: { Image(systemName: "xmark") }
+                .buttonStyle(.plain).foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(Color.accentColor.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func checkUpdate() async {
+        guard let a = try? await Api.appLatest(platform: "ios"), !a.latest.isEmpty else { return }
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        if Self.versionNewer(a.latest, current) { updateVer = a.latest; updateURL = a.store_url }
+    }
+
+    // Semantischer Versionsvergleich "1.1.8" > "1.1.5".
+    static func versionNewer(_ latest: String, _ current: String) -> Bool {
+        func parts(_ v: String) -> [Int] { v.split(separator: ".").map { Int($0.filter(\.isNumber)) ?? 0 } }
+        let a = parts(latest), b = parts(current)
+        for i in 0..<max(a.count, b.count) {
+            let x = i < a.count ? a[i] : 0, y = i < b.count ? b[i] : 0
+            if x != y { return x > y }
+        }
+        return false
     }
 
     private func tile(_ value: String, _ label: String) -> some View {

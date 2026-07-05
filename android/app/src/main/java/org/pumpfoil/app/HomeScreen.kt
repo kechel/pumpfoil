@@ -14,12 +14,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +57,20 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
     var accelOnly by remember { mutableStateOf(true) }
     var decidedDefault by remember { mutableStateOf(false) }
+    var updateVer by remember { mutableStateOf<String?>(null) }
+    var updateUrl by remember { mutableStateOf("") }
+    var updateDismissed by remember { mutableStateOf(false) }
     val tick by WatchSync.tick.collectAsState()
+
+    // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.
+    LaunchedEffect(Unit) {
+        try {
+            val a = Api.appLatest("android")
+            if (a.latest.isNotBlank() && versionNewer(a.latest, BuildConfig.VERSION_NAME)) {
+                updateVer = a.latest; updateUrl = a.store_url
+            }
+        } catch (_: Exception) {}
+    }
 
     LaunchedEffect(tick) {
         loading = true
@@ -82,7 +101,20 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold
         }
+        val ctx = androidx.compose.ui.platform.LocalContext.current
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+            val uv = updateVer
+            if (uv != null && !updateDismissed) {
+                UpdateBanner(
+                    version = uv,
+                    onUpdate = {
+                        val url = updateUrl.ifBlank { "https://play.google.com/store/apps/details?id=${ctx.packageName}" }
+                        try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (_: Exception) {}
+                    },
+                    onDismiss = { updateDismissed = true },
+                )
+                Spacer(Modifier.height(12.dp))
+            }
             Text("${I18n.t("home.hello")} ${profile?.displayName ?: ""}".trim(), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
 
@@ -264,3 +296,31 @@ private fun TileGrid(tiles: List<Triple<String, String, Int?>>, onOpen: (Int) ->
 
 private fun fmtDist(m: Double): String = if (m < 1000) "%.0f m".format(m) else "%.2f km".format(m / 1000)
 private fun fmtDur(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
+
+// Nicht-blockierender Update-Hinweis (wie das PWA-Update-Banner).
+@Composable
+private fun UpdateBanner(version: String, onUpdate: () -> Unit, onDismiss: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+        Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 6.dp, bottom = 6.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(I18n.t("update.available"), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text("Version $version", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+            Button(onClick = onUpdate) { Text(I18n.t("update.action")) }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = I18n.t("common.cancel"), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+    }
+}
+
+// Semantischer Versionsvergleich "1.1.8" > "1.1.5". Nicht-numerische Teile -> 0.
+private fun versionNewer(latest: String, current: String): Boolean {
+    fun parts(v: String) = v.trim().split(".").map { it.filter(Char::isDigit).toIntOrNull() ?: 0 }
+    val a = parts(latest); val b = parts(current)
+    for (i in 0 until maxOf(a.size, b.size)) {
+        val x = a.getOrElse(i) { 0 }; val y = b.getOrElse(i) { 0 }
+        if (x != y) return x > y
+    }
+    return false
+}

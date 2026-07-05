@@ -290,6 +290,13 @@ enum Api {
         return data
     }
 
+    struct AppLatest: Decodable { let latest: String; let min_supported: String; let store_url: String }
+
+    // Neueste Store-Version (server-seitig manuell gepflegt) — fuer den In-App-Update-Hinweis.
+    static func appLatest(platform: String = "ios") async throws -> AppLatest {
+        try await request("/api/app/latest?platform=\(platform)", method: "GET", body: nil, auth: false)
+    }
+
     // Eigene Chat-Nachricht bearbeiten (nur < 1 h).
     static func chatEdit(_ messageId: Int, text: String) async throws {
         struct Ok: Decodable { let ok: Bool? }
