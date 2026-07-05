@@ -261,6 +261,17 @@ object Api {
         json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
     }
 
+    // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:
+    // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
+    suspend fun shareCard(
+        id: Int, color: String, stats: List<String>, track: Boolean, title: String, shade: String,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val q = StringBuilder("?color=$color&bg=navy&track=${if (track) 1 else 0}&shade=$shade")
+        if (stats.isNotEmpty()) q.append("&stats=").append(java.net.URLEncoder.encode(stats.joinToString(","), "UTF-8"))
+        if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
+        httpBytes("/api/sessions/$id/share.png$q")
+    }
+
     suspend fun foils(): List<Foil> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(Foil.serializer()), http("GET", "/api/foils", null, auth = true))
     }
@@ -316,6 +327,23 @@ object Api {
 
     @kotlinx.serialization.Serializable
     private data class MintResp(val device_token: String)
+
+    // Authentifizierter GET, der rohe Bytes zurückgibt (z. B. share.png).
+    private fun httpBytes(path: String): ByteArray {
+        val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"; connectTimeout = 15000; readTimeout = 30000
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+        }
+        val code = conn.responseCode
+        conn.getHeaderField("X-Refresh-Token")?.takeIf { it.isNotBlank() }?.let { rt ->
+            token = rt; appContext?.let { c -> prefs(c).edit().putString("token", rt).apply() }
+        }
+        if (code !in 200..299) {
+            if (code == 401) { appContext?.let { logout(it) }; onUnauthorized?.invoke() }
+            throw RuntimeException(if (code == 401) "Sitzung abgelaufen" else "Serverfehler ($code)")
+        }
+        return conn.inputStream.use { it.readBytes() }
+    }
 
     private fun http(method: String, path: String, body: String?, auth: Boolean): String {
         val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {

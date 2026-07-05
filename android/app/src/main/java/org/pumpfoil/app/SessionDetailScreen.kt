@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -102,6 +103,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var confirmDelete by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
     var showTrim by remember { mutableStateOf(false) }
+    var showShare by remember { mutableStateOf(false) }
     var trimStart by remember { mutableStateOf(0f) }
     var trimEnd by remember { mutableStateOf(0f) }
     var reloadTick by remember { mutableStateOf(0) }
@@ -160,6 +162,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         )
     }
 
+    if (showShare) session?.let { ShareDialog(it) { showShare = false } }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -186,6 +190,11 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                                     scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
                                 })
                             }
+                        }
+                    }
+                    if (s?.owned == true && s.analysis?.trackGeojson != null) {
+                        IconButton(onClick = { showShare = true }) {
+                            Icon(Icons.Filled.Share, contentDescription = I18n.t("sd.share"))
                         }
                     }
                     if (s?.owned == true) {

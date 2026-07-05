@@ -268,6 +268,28 @@ enum Api {
         return try await request("/api/chat?scope=\(s)", method: "POST", body: ["text": text], auth: true)
     }
 
+    // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
+    static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String) async throws -> Data {
+        guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }
+        var q = [
+            URLQueryItem(name: "color", value: color),
+            URLQueryItem(name: "bg", value: "navy"),
+            URLQueryItem(name: "track", value: track ? "1" : "0"),
+            URLQueryItem(name: "shade", value: shade),
+        ]
+        if !stats.isEmpty { q.append(URLQueryItem(name: "stats", value: stats.joined(separator: ","))) }
+        let tt = title.trimmingCharacters(in: .whitespaces)
+        if !tt.isEmpty { q.append(URLQueryItem(name: "title", value: tt)) }
+        comps.queryItems = q
+        guard let url = comps.url else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        return data
+    }
+
     static func foils() async throws -> [Foil] {
         try await request("/api/foils", method: "GET", body: nil, auth: true)
     }

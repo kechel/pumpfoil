@@ -18,7 +18,11 @@ Detail zu jedem Punkt: `git show <hash>`. Stand der Erhebung: 2026-07-05.
 
 ## 1. Große Features (fehlen auf iOS **und** Android) — Hauptarbeit
 
-### ☐ 1.1 Social-Share / teilbare Session-Card  · Server bereit ✅
+### ✅ 1.1 Social-Share / teilbare Session-Card  · Server bereit ✅  — Android+iOS gebaut
+Umgesetzt: Share-Button in Session-Detail (nur eigene, mit Track), Konfig-Sheet (Titel, Track an/aus,
+Farbmodus cyan/speed/hr, Hell/Dunkel-Blau, Stats-Auswahl), Live-Vorschau, System-Share-Sheet,
+Default-Speicherung in `settings.share`. **Offen (Follow-up §4):** Foto-Hintergrund mit Pinch/Pan
+(Web komponiert lokal per Canvas; nativ noch nicht — aktuell bg=navy).
 Server rendert ein PNG der Session-Karte; App zeigt Teilen-Button + System-Share-Sheet.
 - Endpoint: `GET /api/sessions/{id}/share.png` (server `app/sharecard.py`, `api/sessions.py`).
   Query-Params: `title`, `shade` (light/dark-Blau), Farbmodus, Stats-Auswahl, Foto-BG.

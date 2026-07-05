@@ -21,6 +21,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Teilt das generierte Share-PNG per System-Share-Sheet (content://-URI). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Empfängt die needToken-Anfrage der Uhr (Companion-Pairing) und mintet/schiebt neu. -->
         <service
             android:name=".PhonePairingService"

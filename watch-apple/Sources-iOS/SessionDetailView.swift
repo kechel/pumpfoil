@@ -24,6 +24,7 @@ struct SessionDetailView: View {
     @State private var myFoils: [Foil] = []
     @State private var selectedFoilId = 0
     @State private var showTrim = false
+    @State private var showShare = false
     @State private var trimStart = 0.0
     @State private var trimEnd = 0.0
     @State private var weightKg = 0.0
@@ -47,6 +48,11 @@ struct SessionDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if session?.owned == true {
+                if session?.analysis?.track_geojson != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
                 }
@@ -89,6 +95,9 @@ struct SessionDetailView: View {
             }
         }
         .sheet(isPresented: $showTrim) { trimSheet }
+        .sheet(isPresented: $showShare) {
+            if let s = session { ShareCardView(session: s, lang: lang) }
+        }
         .fullScreenCover(item: $lightbox) { start in
             PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
         }
