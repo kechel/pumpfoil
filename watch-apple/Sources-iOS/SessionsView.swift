@@ -14,10 +14,23 @@ struct SessionsView: View {
     @State private var spotInput = ""
     @State private var loading = false
     @State private var error: String?
+    @State private var suggestions: [MergeSuggestion] = []
 
     var body: some View {
         NavigationStack {
             List {
+                if scope == .mine {
+                    ForEach(suggestions) { sug in
+                        NavigationLink { CompareView(preselect: Set(sug.ids)) } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(Loc.t("merge.suggestTitle", lang)).font(.subheadline).bold()
+                                Text([sug.place, sug.date, "\(sug.count)×"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .listRowBackground(Color.accentColor.opacity(0.12))
+                    }
+                }
                 Section {
                     scopeChips
                     HStack {
@@ -52,6 +65,7 @@ struct SessionsView: View {
                 if homespot.isEmpty {
                     homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
                 }
+                suggestions = (try? await Api.mergeSuggestions()) ?? []
                 await load()
             }
             .onChange(of: scope) { _ in Task { await load() } }

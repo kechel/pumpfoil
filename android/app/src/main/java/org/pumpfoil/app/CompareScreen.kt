@@ -47,12 +47,14 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CompareScreen(onBack: () -> Unit) {
+fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     val selected by CompareStore.ids.collectAsState()   // per Long-Press in den Listen befüllt
     var results by remember { mutableStateOf<List<SessionDetail>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var comparing by remember { mutableStateOf(false) }
+    var merging by remember { mutableStateOf(false) }
+    var mergeError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -104,16 +106,34 @@ fun CompareScreen(onBack: () -> Unit) {
                             HorizontalDivider()
                         }
                     }
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                results = selected.toList().mapNotNull { try { Api.session(it) } catch (_: Exception) { null } }
-                                comparing = true
-                            }
-                        },
-                        enabled = selected.size >= 2,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    ) { Text("${I18n.t("compare.title")} (${selected.size})") }
+                    mergeError?.let {
+                        Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    results = selected.toList().mapNotNull { try { Api.session(it) } catch (_: Exception) { null } }
+                                    comparing = true
+                                }
+                            },
+                            enabled = selected.size >= 2,
+                            modifier = Modifier.weight(1f),
+                        ) { Text("${I18n.t("compare.title")} (${selected.size})") }
+                        Button(
+                            onClick = {
+                                val ids = selected.toList(); mergeError = null; merging = true
+                                scope.launch {
+                                    try {
+                                        val newId = Api.mergeSessions(ids)
+                                        CompareStore.clear(); WatchSync.tick.value++; merging = false; onOpen(newId)
+                                    } catch (e: Exception) { mergeError = e.message; merging = false }
+                                }
+                            },
+                            enabled = selected.size >= 2 && !merging,
+                            modifier = Modifier.weight(1f),
+                        ) { Text(I18n.t("merge.action")) }
+                    }
                 }
             }
         }

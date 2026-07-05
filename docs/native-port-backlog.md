@@ -35,7 +35,11 @@ Server rendert ein PNG der Session-Karte; App zeigt Teilen-Button + System-Share
 - Port: iOS `ShareLink`/`UIActivityViewController` mit dem PNG; Android `Intent.ACTION_SEND`.
   Konfig-Sheet nachbauen; Default in denselben Profil-Settings-Keys speichern.
 
-### ☐ 1.2 Sessions zusammenführen (Merge)  · Server bereit ✅
+### ✅ 1.2 Sessions zusammenführen (Merge)  · Server bereit ✅  — Android+iOS gebaut
+Umgesetzt: In **Compare** neben „Vergleichen" ein **Zusammenführen**-Button (≥2 gewählt; Server
+prüft same-spot/on-foil, Fehlermeldung inline) → öffnet die neue Session. **Vorschlags-Banner** oben
+in der Sessions-Liste (heutige Kandidaten) → tippt in Compare **vorausgewählt**. **Un-Merge** unten in
+der Session-Detail (Besitzer, wenn `merged_count>0`). Endpoints merge/unmerge/merge-suggestions.
 Mehrere Aufnahmen derselben Foil-Session zu einer verschmelzen.
 - Regeln: nur **On-Foil-erkannte** (is_pumpfoil + num_runs>0), **nicht** aussortierte/gelöschte,
   **nur gleicher Spot**. Umkehrbar (**Un-Merge**), Merge ohne Warn-Popup.

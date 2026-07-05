@@ -310,4 +310,13 @@ data class SessionDetail(
     @SerialName("youtube_url") val youtubeUrl: String? = null,
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
+    @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt
+)
+
+@Serializable
+data class MergeSuggestion(
+    val ids: List<Int> = emptyList(),
+    val count: Int = 0,
+    val place: String? = null,
+    val date: String = "",
 )

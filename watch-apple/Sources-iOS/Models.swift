@@ -295,6 +295,14 @@ struct TrackPreviewData: Codable {
     }
 }
 
+struct MergeSuggestion: Codable, Identifiable {
+    let ids: [Int]
+    let count: Int
+    let place: String?
+    let date: String
+    var id: String { ids.map(String.init).joined(separator: "-") }
+}
+
 struct SessionDetail: Codable, Identifiable {
     let id: Int
     let sport: String
@@ -310,6 +318,7 @@ struct SessionDetail: Codable, Identifiable {
     let youtube_url: String?
     let foil: Foil?        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     let analysis: Analysis?
+    let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

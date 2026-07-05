@@ -49,7 +49,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -68,19 +70,23 @@ private enum class Scope { MINE, SPOT, ALL }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionsScreen(onOpen: (Int) -> Unit) {
+fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     var spotInput by remember { mutableStateOf("") }     // Eingabefeld
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var feed by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
+    var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(Unit) {
         homespot = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: "" } catch (_: Exception) { "" }
+    }
+    LaunchedEffect(tick) {
+        suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
     }
 
     suspend fun load() {
@@ -142,6 +148,13 @@ fun SessionsScreen(onOpen: (Int) -> Unit) {
                     } else {
                         LazyColumn(Modifier.fillMaxSize()) {
                             error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                            if (scope == Scope.MINE && suggestions.isNotEmpty()) {
+                                items(suggestions) { sug ->
+                                    MergeSuggestionCard(sug) {
+                                        CompareStore.clear(); sug.ids.forEach { CompareStore.toggle(it) }; onCompare()
+                                    }
+                                }
+                            }
                             if (empty && !loading && error == null) {
                                 item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
@@ -364,4 +377,22 @@ fun prettyDate(iso: String): String = try {
         java.time.LocalDateTime.parse(iso)
             .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
     } catch (_: Exception) { iso }
+}
+
+// Vorschlags-Karte: heutige Sessions, die zusammengehören könnten -> Vergleichen & Mergen.
+@Composable
+private fun MergeSuggestionCard(sug: MergeSuggestion, onOpen: () -> Unit) {
+    Card(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
+    ) {
+        Row(Modifier.padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(I18n.t("merge.suggestTitle"), style = MaterialTheme.typography.titleSmall)
+                val sub = listOfNotNull(sug.place?.takeIf { it.isNotBlank() }, sug.date, "${sug.count}×").joinToString(" · ")
+                Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Button(onClick = onOpen) { Text(I18n.t("merge.open")) }
+        }
+    }
 }

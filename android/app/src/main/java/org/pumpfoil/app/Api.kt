@@ -9,6 +9,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
@@ -270,6 +272,25 @@ object Api {
         if (stats.isNotEmpty()) q.append("&stats=").append(java.net.URLEncoder.encode(stats.joinToString(","), "UTF-8"))
         if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
         httpBytes("/api/sessions/$id/share.png$q")
+    }
+
+    @kotlinx.serialization.Serializable
+    private data class MergeResp(val id: Int)
+
+    // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.
+    suspend fun mergeSessions(ids: List<Int>): Int = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("session_ids", buildJsonArray { ids.forEach { add(it) } }) }.toString()
+        json.decodeFromString(MergeResp.serializer(), http("POST", "/api/sessions/merge", body, auth = true)).id
+    }
+
+    // Zusammenführung wieder auflösen.
+    suspend fun unmergeSession(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/sessions/$id/unmerge", null, auth = true)
+    }
+
+    // Vorschläge für heutige zusammengehörige eigene Sessions.
+    suspend fun mergeSuggestions(): List<MergeSuggestion> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(MergeSuggestion.serializer()), http("GET", "/api/sessions/merge-suggestions", null, auth = true))
     }
 
     @kotlinx.serialization.Serializable

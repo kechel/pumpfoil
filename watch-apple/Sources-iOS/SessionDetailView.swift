@@ -282,6 +282,17 @@ struct SessionDetailView: View {
             } else {
                 Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
             }
+
+            // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
+            if s.owned == true, (s.merged_count ?? 0) > 0 {
+                HStack {
+                    Text(Loc.t("merge.mergedFrom", lang)).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button(Loc.t("merge.unmerge", lang), role: .destructive) {
+                        Task { try? await Api.unmergeSession(id); await load() }
+                    }.font(.caption)
+                }
+            }
         }
         .padding()
     }

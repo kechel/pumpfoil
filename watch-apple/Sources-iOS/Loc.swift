@@ -228,6 +228,12 @@ enum Loc {
         "alarm.patLsl": r("lang-kurz-lang", "lang-churz-lang", "lang-kurz-lang", "long-short-long", "long-court-long", "lungo-breve-lungo", "largo-corto-largo"),
 
         "compare.title": r("Vergleich", "Verglych", "Vergleich", "Compare", "Comparaison", "Confronto", "Comparación"),
+        "merge.action": r("Zusammenführen", "Zämeführe", "Zsammführn", "Merge", "Fusionner", "Unisci", "Combinar"),
+        "merge.done": r("Zusammengeführt ✓", "Zämegführt ✓", "Zsammgführt ✓", "Merged ✓", "Fusionné ✓", "Unito ✓", "Combinado ✓"),
+        "merge.suggestTitle": r("Zusammenführen?", "Zämeführe?", "Zsammführn?", "Merge sessions?", "Fusionner ?", "Unire?", "¿Combinar?"),
+        "merge.open": r("Vergleichen & Mergen", "Vergliiche & Merge", "Vergleichn & Mergn", "Compare & merge", "Comparer & fusionner", "Confronta & unisci", "Comparar y combinar"),
+        "merge.unmerge": r("Auflösen", "Uflöse", "Auflösn", "Un-merge", "Dissocier", "Separa", "Deshacer"),
+        "merge.mergedFrom": r("Aus mehreren zusammengeführt", "Us mehrere zämegführt", "Aus mehrern zsammgführt", "Merged from several", "Fusionné depuis plusieurs", "Unito da più sessioni", "Combinado de varias"),
         "compare.result": r("Vergleich", "Vergliich", "Vergleich", "Comparison", "Comparaison", "Confronto", "Comparación"),
         "compare.pick": r("2+ Sessions zum Vergleich wählen", "2+ Sessions zum Vergliiche wähle", "2+ Sessions zum Vergleich wählen", "Select 2+ sessions to compare", "Sélectionner 2+ sessions à comparer", "Seleziona 2+ sessioni da confrontare", "Selecciona 2+ sesiones para comparar"),
         "compare.backToSelection": r("Auswahl", "Uswahl", "Auswahl", "Selection", "Sélection", "Selezione", "Selección"),

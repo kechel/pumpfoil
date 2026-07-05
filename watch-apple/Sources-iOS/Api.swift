@@ -290,6 +290,25 @@ enum Api {
         return data
     }
 
+    struct MergeResp: Decodable { let id: Int }
+
+    // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.
+    static func mergeSessions(_ ids: [Int]) async throws -> Int {
+        let r: MergeResp = try await request("/api/sessions/merge", method: "POST", body: ["session_ids": ids], auth: true)
+        return r.id
+    }
+
+    // Zusammenführung wieder auflösen.
+    static func unmergeSession(_ id: Int) async throws {
+        struct Ok: Decodable { let ids: [Int]? }
+        let _: Ok = try await request("/api/sessions/\(id)/unmerge", method: "POST", body: nil, auth: true)
+    }
+
+    // Vorschläge für heutige zusammengehörige eigene Sessions.
+    static func mergeSuggestions() async throws -> [MergeSuggestion] {
+        try await request("/api/sessions/merge-suggestions", method: "GET", body: nil, auth: true)
+    }
+
     struct CommunityStats: Decodable { let foilers: Int; let spots: Int; let sessions: Int; let pumps: Int }
 
     // Community-Kennzahlen (Willkommens-Banner + Stats-Leiste).

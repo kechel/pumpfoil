@@ -463,6 +463,18 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             if (segList.isNotEmpty()) RunsTable(segList, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
+
+        // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
+        if (s.owned && s.mergedCount > 0) {
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("merge.mergedFrom"), Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton(onClick = {
+                    scope.launch { try { Api.unmergeSession(s.id); WatchSync.tick.value++; onReload() } catch (_: Exception) {} }
+                }) { Text(I18n.t("merge.unmerge")) }
+            }
+        }
     }
 }
 

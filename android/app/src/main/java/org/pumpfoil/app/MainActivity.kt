@@ -122,7 +122,7 @@ fun MainScaffold(onLogout: () -> Unit) {
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }) }
-            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }) }
+            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onRecords = { nav.navigate("records") }) }
             composable("records") { CommunityRecordsScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
@@ -157,7 +157,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             composable("datafields") { DataFieldsScreen(onBack = { nav.popBackStack() }) }
-            composable("compare") { CompareScreen(onBack = { nav.popBackStack() }) }
+            composable("compare") { CompareScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }
             composable(
                 "session/{id}",
