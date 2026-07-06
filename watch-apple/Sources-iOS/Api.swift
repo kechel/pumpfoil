@@ -340,11 +340,11 @@ enum Api {
     }
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
-    static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String) async throws -> Data {
+    static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String, bg: String = "navy") async throws -> Data {
         guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }
         var q = [
             URLQueryItem(name: "color", value: color),
-            URLQueryItem(name: "bg", value: "navy"),
+            URLQueryItem(name: "bg", value: bg),
             URLQueryItem(name: "track", value: track ? "1" : "0"),
             URLQueryItem(name: "shade", value: shade),
         ]
