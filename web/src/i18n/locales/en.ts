@@ -841,6 +841,9 @@ const en: Record<string, string> = {
 
   "phome.hello": "Hi, {name}",
   "banner.msg": "is brand-new (since 23 June 2026) — new features & foils almost daily. Tell me what you like (and what you don't): just tap the 💬 on the right →",
+  "banner.nerdLead": "🤓 Nerd analytics:",
+  "banner.nerd1": "Part 1 — the experiment",
+  "banner.nerd2": "Part 2 — how it works",
   "banner.stats": "We're already §{foilers}§ pumpfoilers at §{spots}§ spots with §{sessions}§ sessions and §{pumps}§ pumps in total.",
   "banner.dismiss": "Dismiss",
   "phome.latest": "Latest sessions",

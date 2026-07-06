@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { CloseIcon } from "./Icons";
@@ -52,6 +53,12 @@ export function WelcomeBanner() {
           )}
         </p>
       )}
+      <p className="mt-2 text-sm text-slate-300">
+        {t("banner.nerdLead")}{" "}
+        <Link to="/nerd-analysen" className="font-medium text-brand-300 hover:underline">{t("banner.nerd1")}</Link>
+        <span className="mx-1 text-slate-500">·</span>
+        <Link to="/nerd-analysen-2" className="font-medium text-brand-300 hover:underline">{t("banner.nerd2")}</Link>
+      </p>
     </div>
   );
 }

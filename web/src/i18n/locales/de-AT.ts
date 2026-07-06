@@ -544,6 +544,9 @@ const deAT: Record<string, string> = {
 
   "phome.hello": "Servas, {name}",
   "banner.msg": "is gaaanz frisch (seit 23. Juni 2026) — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs 💬 klickn →",
+  "banner.nerdLead": "🤓 Nerd-Analysen:",
+  "banner.nerd1": "Teil 1 — des Experiment",
+  "banner.nerd2": "Teil 2 — wia's funktioniert",
   "banner.stats": "Mia san scho §{foilers}§ Pumpfoiler auf §{spots}§ Spots mit §{sessions}§ Sessions und zamm §{pumps}§ Pumps.",
   "banner.dismiss": "Ausblendn",
   "phome.latest": "Letzte Sessions",
