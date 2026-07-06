@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
@@ -261,37 +261,40 @@ function UsersTab() {
   };
   const [filter, setFilter] = useState<UserFilter>({ normal: true, tester: true, admin: true, new: true });
   const [sort, setSort] = useState<UserSort>("created");
+  const [stat, setStat] = useState<StatKey | null>(null);
   const [total, setTotal] = useState<number | null>(null);
   const [act, setAct] = useState<AdminUserActivity | null>(null);
   const toggle = (k: keyof UserFilter) => setFilter((f) => ({ ...f, [k]: !f[k] }));
+  const pickStat = (k: StatKey) => setStat((s) => (s === k ? null : k));  // Einzelauswahl: nochmal = aus
   const { items, setItems, loading, sentinel } = useInfinite<AdminUser>(
-    (off) => api.adminUsers(query, 30, off, filter, sort),
-    [query, filter.normal, filter.tester, filter.admin, filter.new, sort]);
+    (off) => api.adminUsers(query, 30, off, filter, sort, stat),
+    [query, filter.normal, filter.tester, filter.admin, filter.new, sort, stat]);
   useEffect(() => {
     setTotal(null);
-    api.adminUsersCount(query, filter).then((r) => setTotal(r.total)).catch(() => {});
-  }, [query, filter.normal, filter.tester, filter.admin, filter.new]);
+    api.adminUsersCount(query, filter, stat).then((r) => setTotal(r.total)).catch(() => {});
+  }, [query, filter.normal, filter.tester, filter.admin, filter.new, stat]);
   useEffect(() => { api.adminUsersActivity().then(setAct).catch(() => {}); }, []);
   const upd = (id: number, patch: Partial<AdminUser>) =>
     setItems((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
   return (
     <div>
-      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {([["today", "adm.act.today"], ["week", "adm.act.week"], ["month", "adm.act.month"], ["total", "adm.act.total"]] as const).map(([k, lbl]) => (
-          <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
-            <div className="text-2xl font-bold tabular-nums text-brand-400">{act ? act[k] : "…"}</div>
-            <div className="text-[11px] text-slate-400">{t(lbl)}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {([["new_today", "adm.act.newToday"], ["new_week", "adm.act.newWeek"], ["new_month", "adm.act.newMonth"], ["inactive_week", "adm.act.inactive"]] as const).map(([k, lbl]) => (
-          <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
-            <div className={`text-2xl font-bold tabular-nums ${k === "inactive_week" ? "text-slate-400" : "text-emerald-400"}`}>{act ? act[k] : "…"}</div>
-            <div className="text-[11px] text-slate-400">{t(lbl)}</div>
-          </div>
-        ))}
-      </div>
+      {([
+        [["today", "adm.act.today", "text-brand-400"], ["week", "adm.act.week", "text-brand-400"], ["month", "adm.act.month", "text-brand-400"], ["total", "adm.act.total", "text-brand-400"]],
+        [["new_today", "adm.act.newToday", "text-emerald-400"], ["new_week", "adm.act.newWeek", "text-emerald-400"], ["new_month", "adm.act.newMonth", "text-emerald-400"], ["inactive_week", "adm.act.inactive", "text-slate-400"]],
+      ] as const).map((row, ri) => (
+        <div key={ri} className={`grid grid-cols-2 gap-2 sm:grid-cols-4 ${ri === 0 ? "mb-2" : "mb-4"}`}>
+          {row.map(([k, lbl, color]) => {
+            const on = stat === k;
+            return (
+              <button key={k} onClick={() => pickStat(k as StatKey)} aria-pressed={on}
+                className={`rounded-xl border p-3 text-center transition-colors ${on ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500" : "border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
+                <div className={`text-2xl font-bold tabular-nums ${color}`}>{act ? act[k] : "…"}</div>
+                <div className="text-[11px] text-slate-400">{t(lbl)}</div>
+              </button>
+            );
+          })}
+        </div>
+      ))}
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
         <form onSubmit={(e) => { e.preventDefault(); setQuery(q); }} className="flex gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.searchUsers")}

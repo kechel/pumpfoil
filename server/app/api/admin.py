@@ -262,15 +262,55 @@ def _filtered_users(
     return query.filter(or_(*conds))
 
 
+def _stat_condition(stat: str):
+    """SQL-Bedingung, die GENAU die in der Statistik gezählten Nutzer liefert
+    (zum Klick-Filter). None = keine Einschränkung (Gesamt). Unbekannt -> None."""
+    U = models.User
+    now = datetime.now(timezone.utc)
+    day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week = day - timedelta(days=day.weekday())
+    month = day.replace(day=1)
+    week_ago = now - timedelta(days=7)
+    return {
+        "today": U.last_seen_at >= day,
+        "week": U.last_seen_at >= week,
+        "month": U.last_seen_at >= month,
+        "total": None,
+        "new_today": U.created_at >= day,
+        "new_week": U.created_at >= week,
+        "new_month": U.created_at >= month,
+        "inactive_week": or_(U.last_seen_at < week_ago,
+                             U.last_seen_at.is_(None) & (U.created_at < week_ago)),
+    }.get(stat, None)
+
+
+def _users_query(db: Session, q: str | None, normal: bool, tester: bool,
+                 admin: bool, new: bool, stat: str | None):
+    """Nutzer-Query: bei aktivem Stat-Klick-Filter NUR die Stat-Bedingung (+ Suche),
+    damit die Liste exakt der gezählten Statistik entspricht; sonst die Kategorie-Filter."""
+    if stat:
+        query = db.query(models.User)
+        if q:
+            like = f"%{q.lower()}%"
+            query = query.filter(func.lower(models.User.email).like(like)
+                                 | func.lower(func.coalesce(models.User.display_name, "")).like(like))
+        cond = _stat_condition(stat)
+        if cond is not None:
+            query = query.filter(cond)
+        return query
+    return _filtered_users(db, q, normal, tester, admin, new)
+
+
 @router.get("/users")
 def list_users(
     q: str | None = Query(None), limit: int = 50, offset: int = 0,
     normal: bool = Query(True), tester: bool = Query(True),
     admin: bool = Query(True), new: bool = Query(True),
     sort: str = Query("id"),   # id | seen (zuletzt aktiv) | created (neueste) | sessions
+    stat: str | None = Query(None),   # Klick-Filter aus der Statistik (today|new_week|inactive_week|…)
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
-    query = _filtered_users(db, q, normal, tester, admin, new)
+    query = _users_query(db, q, normal, tester, admin, new, stat)
     U = models.User
     if sort == "seen":
         order = U.last_seen_at.desc().nullslast()
@@ -325,10 +365,11 @@ def count_users(
     q: str | None = Query(None),
     normal: bool = Query(True), tester: bool = Query(True),
     admin: bool = Query(True), new: bool = Query(True),
+    stat: str | None = Query(None),
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> dict:
     """Anzahl der nach denselben Filtern gefundenen Nutzer (für die Trefferanzeige)."""
-    total = _filtered_users(db, q, normal, tester, admin, new).count()
+    total = _users_query(db, q, normal, tester, admin, new, stat).count()
     return {"total": total}
 
 

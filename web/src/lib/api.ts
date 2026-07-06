@@ -271,6 +271,9 @@ export interface AdminUserActivity {
 // Sortierung der Nutzerliste.
 export type UserSort = "id" | "seen" | "created" | "sessions";
 
+// Anklickbare Statistik-Kacheln = Klick-Filter der Nutzerliste.
+export type StatKey = "today" | "week" | "month" | "total" | "new_today" | "new_week" | "new_month" | "inactive_week";
+
 // Kategorie-Filter der Nutzerverwaltung (alle default true).
 export interface UserFilter { normal: boolean; tester: boolean; admin: boolean; new: boolean; }
 function userFilterQS(f?: UserFilter): string {
@@ -572,10 +575,10 @@ export const api = {
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/dismiss?kind=${kind}`, { method: "POST" }),
   adminDeleteSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/delete`, { method: "POST" }),
   adminRestoreSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/restore`, { method: "POST" }),
-  adminUsers: (q = "", limit = 30, offset = 0, f?: UserFilter, sort: UserSort = "id") =>
-    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}&sort=${sort}${q ? "&q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
-  adminUsersCount: (q = "", f?: UserFilter) =>
-    req<{ total: number }>(`/api/admin/users/count?${q ? "q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
+  adminUsers: (q = "", limit = 30, offset = 0, f?: UserFilter, sort: UserSort = "id", stat?: StatKey | null) =>
+    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}&sort=${sort}${stat ? "&stat=" + stat : ""}${q ? "&q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
+  adminUsersCount: (q = "", f?: UserFilter, stat?: StatKey | null) =>
+    req<{ total: number }>(`/api/admin/users/count?${stat ? "stat=" + stat + "&" : ""}${q ? "q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
   adminUsersActivity: () => req<AdminUserActivity>("/api/admin/users/activity"),
   adminBlockUser: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/users/${id}/block?blocked=${blocked}`, { method: "POST" }),
