@@ -41,7 +41,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,6 +97,16 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}) {
         loading = false
     }
     LaunchedEffect(accelOnly) { loadBase() }
+    // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA/iOS).
+    // Im NavHost ist LocalLifecycleOwner der NavBackStackEntry -> ON_RESUME feuert beim Tab-Wechsel.
+    val mediaOwner = LocalLifecycleOwner.current
+    DisposableEffect(mediaOwner) {
+        val obs = LifecycleEventObserver { _, e ->
+            if (e == Lifecycle.Event.ON_RESUME) scope.launch { media = try { Api.latestPhotos() } catch (_: Exception) { media } }
+        }
+        mediaOwner.lifecycle.addObserver(obs)
+        onDispose { mediaOwner.lifecycle.removeObserver(obs) }
+    }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
     LaunchedEffect(period, accelOnly) {
         leaders = try { Api.leaders(period, accelOnly) } catch (_: Exception) { leaders }

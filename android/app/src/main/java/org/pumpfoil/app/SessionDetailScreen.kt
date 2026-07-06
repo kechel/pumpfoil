@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -378,14 +379,28 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         if (photos.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(photos.size, key = { photos[it].id }) { i ->
-                    AsyncImage(
-                        model = Api.mediaUrl(photos[i].url),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(width = 200.dp, height = 140.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { lightboxIdx = i },
-                    )
+                    Box {
+                        AsyncImage(
+                            model = Api.mediaUrl(photos[i].url),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(width = 200.dp, height = 140.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { lightboxIdx = i },
+                        )
+                        // Eigene Session: kleines X oben rechts zum Löschen (wie PWA/iOS).
+                        if (s.owned) {
+                            val pid = photos[i].id
+                            Icon(
+                                Icons.Filled.Close, contentDescription = I18n.t("common.delete"),
+                                tint = Color.White,
+                                modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .clickable { scope.launch { try { Api.deleteSessionPhoto(s.id, pid); reloadPhotos() } catch (_: Exception) {} } }
+                                    .padding(3.dp),
+                            )
+                        }
+                    }
                 }
             }
         }

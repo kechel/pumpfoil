@@ -41,7 +41,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -122,6 +126,15 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
         loading = false
     }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
+    // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA/iOS). Im NavHost ist
+    // LocalLifecycleOwner der NavBackStackEntry -> ON_RESUME feuert beim Tab-Wechsel.
+    val listScope = rememberCoroutineScope()
+    val listOwner = LocalLifecycleOwner.current
+    DisposableEffect(listOwner) {
+        val obs = LifecycleEventObserver { _, e -> if (e == Lifecycle.Event.ON_RESUME) listScope.launch { load() } }
+        listOwner.lifecycle.addObserver(obs)
+        onDispose { listOwner.lifecycle.removeObserver(obs) }
+    }
 
     Scaffold(
         topBar = {

@@ -139,6 +139,10 @@ object Api {
         json.decodeFromString(ListSerializer(SessionPhoto.serializer()), http("GET", "/api/sessions/$id/photos", null, auth = true))
     }
 
+    suspend fun deleteSessionPhoto(id: Int, photoId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/sessions/$id/photos/$photoId", null, auth = true)
+    }
+
     // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
     suspend fun uploadSessionPhoto(id: Int, bytes: ByteArray, filename: String = "photo.jpg", mime: String = "image/jpeg"): Unit =
         withContext(Dispatchers.IO) {
