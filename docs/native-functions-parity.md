@@ -51,6 +51,18 @@ i18n chat.report/subscribe/subscribed/leave/leaveConfirm/hide/unhide/readonly (7
 Endpunkte sind POST/GET → kein PATCH-Problem. Android im Emulator verifiziert (Glocke/Verlassen-Leiste,
 Long-Press fremd → „Melden").
 
+## Foilers/Community
+Bereits funktions-gleich aus der UI-Runde:
+Zeitraum + Accel wirken auf ALLE Sektionen (Rekorde/Bestenliste/TopLiked/Spots je period+accel neu geladen) ✅ ·
+Rekord-Karte → Session ✅ · TopLiked-Zeile → Session ✅ · Bestenlisten-Tabs ✅ ·
+Medien-Thumb → Session ⚠️ (Web öffnet Lightbox/Player; nativ direkt zur Session — Mobile-Adaption) ·
+Spot-Suche/hinzufügen/entfernen + je-Spot-Rekord-Grid ✅.
+| Verhalten (Web) | Android | iOS |
+|---|---|---|
+| Like an „Neueste Medien" | ❌ bewusst (Like via Session-Detail / Best-bewertet vorhanden; Strip kompakt) | ❌ dito |
+| „▸ Sessions an diesem Spot" ein-/ausklappen | ❌ bewusst (Sessions je Spot über Sessions-Tab-Spotfilter erreichbar) | ❌ dito |
+Kein Code nötig — Kern-Interaktionen decken sich.
+
 ## Offen / nächste Bereiche
 - Chat: Report/Hide/Mute/Admin + Abo/Verlassen (❌ nativ), URL-Linkify (❌ nativ), Edit/Delete 1 h (✅).
 - Verlauf: Chart-Klick → Session + Hover-Tooltip (❌ nativ).
