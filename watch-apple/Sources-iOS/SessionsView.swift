@@ -244,10 +244,16 @@ struct SessionRow: View {
                 }
             }
             .frame(width: 40, height: 40).clipShape(Circle())
-        } else {
-            Image(systemName: showOwner ? "person.crop.circle.fill" : "water.waves")
+        } else if showOwner {
+            Image(systemName: "person.crop.circle.fill")
                 .font(.title3)
                 .foregroundStyle(Color.accentColor)
+                .frame(width: 40, height: 40)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        } else {
+            // Marken-Wellen (versetzt, helles Brand-Cyan #22d3ee) statt SF-Symbol „water.waves".
+            WavesLogo(tint: Color(red: 0x22 / 255, green: 0xD3 / 255, blue: 0xEE / 255), lineWidth: 1.8)
+                .frame(width: 24, height: 24)
                 .frame(width: 40, height: 40)
                 .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
         }

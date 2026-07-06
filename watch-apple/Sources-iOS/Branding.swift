@@ -9,22 +9,27 @@ struct WavesLogo: View {
     var body: some View {
         Canvas { ctx, size in
             let s = min(size.width, size.height) / 24
-            // Eine Welle (x 3..18) um die Grundlinie b, wie das Original-Pfaddaten-Set.
-            func wave(_ b: CGFloat) -> Path {
+            // Eine Welle um Grundlinie b, horizontal um dx phasenverschoben (Marken-Look:
+            // die drei Wellen sind VERSETZT/verschränkt, nicht gleichphasig gestapelt).
+            // Periode = 6; über 0..24 durchgezeichnet, Canvas clippt den Überstand.
+            func wave(_ b: CGFloat, _ dx: CGFloat) -> Path {
                 var p = Path()
-                p.move(to: CGPoint(x: 3, y: b))
-                p.addCurve(to: CGPoint(x: 6, y: b - 1.5), control1: CGPoint(x: 4.5, y: b), control2: CGPoint(x: 4.5, y: b - 1.5))
-                p.addCurve(to: CGPoint(x: 9, y: b), control1: CGPoint(x: 7.5, y: b - 1.5), control2: CGPoint(x: 7.5, y: b))
-                p.addCurve(to: CGPoint(x: 12, y: b - 1.5), control1: CGPoint(x: 10.5, y: b), control2: CGPoint(x: 10.5, y: b - 1.5))
-                p.addCurve(to: CGPoint(x: 15, y: b), control1: CGPoint(x: 13.5, y: b - 1.5), control2: CGPoint(x: 13.5, y: b))
-                p.addCurve(to: CGPoint(x: 18, y: b - 1.5), control1: CGPoint(x: 16.5, y: b), control2: CGPoint(x: 16.5, y: b - 1.5))
+                var x: CGFloat = -6
+                p.move(to: CGPoint(x: x + dx, y: b))
+                while x < 24 {
+                    p.addCurve(to: CGPoint(x: x + 3 + dx, y: b - 1.5),
+                               control1: CGPoint(x: x + 1.5 + dx, y: b), control2: CGPoint(x: x + 1.5 + dx, y: b - 1.5))
+                    p.addCurve(to: CGPoint(x: x + 6 + dx, y: b),
+                               control1: CGPoint(x: x + 4.5 + dx, y: b - 1.5), control2: CGPoint(x: x + 4.5 + dx, y: b))
+                    x += 6
+                }
                 return p
             }
-            // zentrieren (Wellen sitzen links/oben im 24er-Raster) und skalieren.
             let t = CGAffineTransform(translationX: 1.5, y: 0.75).concatenating(CGAffineTransform(scaleX: s, y: s))
             let style = StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
-            for b in [CGFloat(8.5), 12, 15.5] {
-                ctx.stroke(wave(b).applying(t), with: .color(tint), style: style)
+            // (Grundlinie, Phasenversatz) — mittlere Welle um halbe Periode versetzt.
+            for (b, dx) in [(CGFloat(8.5), CGFloat(0)), (12, 3), (15.5, 0)] {
+                ctx.stroke(wave(b, dx).applying(t), with: .color(tint), style: style)
             }
         }
     }
