@@ -195,10 +195,16 @@ def main():
     ios_files, an_files = sorted_ios(), sorted_android()
     print(f"iOS-Quellen: {len(ios_files)} · Android-Quellen: {len(an_files)}")
 
-    print("iOS (1290x2796):")
+    # App Store Connect (2025): 6.9" = 1320x2868 (Pflicht-Slot), 6.5" = 1242x2688.
+    # Der alte 6.7"-Slot (1290x2796) existiert nicht mehr -> "falsche Auflösung".
+    print("iOS 6.9\" (1320x2868):")
     for i, (idx, title) in enumerate(IOS, 1):
-        make(ios_files[idx - 1], title, (1290, 2796),
+        make(ios_files[idx - 1], title, (1320, 2868),
              HERE / "ios-store" / f"{i:02d}.png", cache)
+    print("iOS 6.5\" (1242x2688):")
+    for i, (idx, title) in enumerate(IOS, 1):
+        make(ios_files[idx - 1], title, (1242, 2688),
+             HERE / "ios-store-65" / f"{i:02d}.png", cache)
 
     print("Android (1080x2160):")
     for i, (idx, title) in enumerate(ANDROID, 1):
