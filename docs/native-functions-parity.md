@@ -21,8 +21,19 @@ Shared: iOS `CompareStore` (ObservableObject) analog Android `CompareStore`; Com
 über beide erreichbar. HR in Listenkarten von rotem ♥-Emoji auf „xx/yy bpm" umgestellt (kollidierte
 optisch mit dem Like-Herz).
 
+## Session-Detail
+War bereits weitgehend funktions-gleich auf beiden Plattformen:
+Like ✅ · Share ✅ · Label/Pump-Tap ✅ · Trim (Slider+Reset) ✅ · Delete+Bestätigung ✅ ·
+Report Fake/Unangemessen (fremde) ✅ · Foil-Wechsel ✅ · Farb-Modus/Glättung ✅ ·
+Tap Stat/Lauf → Lauf auswählen + Clear ✅ · Fotos+Lightbox ✅ · YouTube-Link ✅ · Caption-Edit ✅.
+| Verhalten (Web) | Android | iOS |
+|---|---|---|
+| **Älter/Neuer-Navigation** (Nachbar-Sessions) | ✅ (neu) | ✅ (neu) |
+
+Neu: `GET /api/sessions/{id}/neighbors` in beide Clients; Vor/Zurück-Zeile oben (deaktiviert, wenn
+keine Nachbarn). Android navigiert via `onOpenSession`, iOS via NavigationLink. i18n sd.older/newer (7 Spr.).
+
 ## Offen / nächste Bereiche
-- Session-Detail: Tap-Stat→Lauf, Trim, Pump-Tap-Label, Foil-Wechsel, Share — Interaktionen prüfen.
 - Chat: Report/Hide/Mute/Admin + Abo/Verlassen (❌ nativ), URL-Linkify (❌ nativ), Edit/Delete 1 h (✅).
 - Verlauf: Chart-Klick → Session + Hover-Tooltip (❌ nativ).
 - Spots, Home, Profil, Einstellungen, Login, Foils/Compare/Import/Alarm/Datenfelder — folgen.

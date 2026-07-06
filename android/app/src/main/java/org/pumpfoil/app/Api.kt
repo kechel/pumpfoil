@@ -128,6 +128,11 @@ object Api {
         json.decodeFromString(SessionDetail.serializer(), http("GET", "/api/sessions/$id", null, auth = true))
     }
 
+    // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
+    suspend fun sessionNeighbors(id: Int): Neighbors = withContext(Dispatchers.IO) {
+        json.decodeFromString(Neighbors.serializer(), http("GET", "/api/sessions/$id/neighbors", null, auth = true))
+    }
+
     suspend fun sessionPhotos(id: Int): List<SessionPhoto> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(SessionPhoto.serializer()), http("GET", "/api/sessions/$id/photos", null, auth = true))
     }

@@ -101,8 +101,9 @@ private val AmberReport = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
+    var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
@@ -124,6 +125,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         catch (e: Exception) { error = e.message }
         loading = false
     }
+    LaunchedEffect(id) { neighbors = try { Api.sessionNeighbors(id) } catch (_: Exception) { null } }
 
     if (confirmDelete) {
         AlertDialog(
@@ -234,7 +236,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             when {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                s != null -> DetailContent(s, onReload = { reloadTick++ })
+                s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ })
             }
         }
     }
@@ -242,7 +244,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
+private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -288,6 +290,15 @@ private fun DetailContent(s: SessionDetail, onReload: () -> Unit = {}) {
         Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Vor/Zurück zu Nachbar-Sessions (wie Web): deaktiviert, wenn es keine gibt.
+        neighbors?.let { nb ->
+            if (nb.older != null || nb.newer != null) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    TextButton(onClick = { nb.older?.let(onOpenSession) }, enabled = nb.older != null) { Text(I18n.t("sd.older")) }
+                    TextButton(onClick = { nb.newer?.let(onOpenSession) }, enabled = nb.newer != null) { Text(I18n.t("sd.newer")) }
+                }
+            }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             FilledTonalButton(

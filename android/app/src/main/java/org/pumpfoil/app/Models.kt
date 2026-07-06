@@ -212,6 +212,10 @@ data class SpotsList(val mine: List<String> = emptyList(), val all: List<String>
 @Serializable
 data class MonthCount(val month: String = "", val count: Int = 0)
 
+// Nachbar-Sessions (GET /api/sessions/{id}/neighbors) für Vor/Zurück im Detail.
+@Serializable
+data class Neighbors(val older: Int? = null, val newer: Int? = null)
+
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
 @Serializable
 data class CommunityRecordEntry(

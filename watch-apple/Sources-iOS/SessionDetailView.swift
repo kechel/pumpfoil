@@ -32,6 +32,7 @@ struct SessionDetailView: View {
     @State private var caption = ""
     @State private var editingCaption = false
     @State private var draftCaption = ""
+    @State private var neighbors: Api.Neighbors?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -139,6 +140,19 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Vor/Zurück zu Nachbar-Sessions (wie Web).
+            if let nb = neighbors, nb.older != nil || nb.newer != nil {
+                HStack {
+                    if let o = nb.older {
+                        NavigationLink { SessionDetailView(id: o) } label: { Text(Loc.t("sd.older", lang)) }
+                    } else { Text(Loc.t("sd.older", lang)).foregroundStyle(.tertiary) }
+                    Spacer()
+                    if let n = nb.newer {
+                        NavigationLink { SessionDetailView(id: n) } label: { Text(Loc.t("sd.newer", lang)) }
+                    } else { Text(Loc.t("sd.newer", lang)).foregroundStyle(.tertiary) }
+                }
+                .font(.subheadline)
+            }
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dateText(s)).font(.title2).bold()
@@ -345,6 +359,7 @@ struct SessionDetailView: View {
         do {
             let s = try await Api.session(id)
             session = s
+            neighbors = try? await Api.sessionNeighbors(id)
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
             caption = s.caption ?? ""

@@ -166,6 +166,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     id = entry.arguments?.getInt("id") ?: 0,
                     onBack = { nav.popBackStack() },
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
+                    onOpenSession = { sid -> nav.navigate("session/$sid") },
                 )
             }
             composable(

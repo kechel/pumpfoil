@@ -362,6 +362,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "compare.open" to row("Vergleich öffnen", "Verglych uufmache", "Vergleich aufmachn", "Open comparison", "Ouvrir la comparaison", "Apri confronto", "Abrir comparación"),
     "row.like" to row("Gefällt mir", "Gfallt mer", "Gfoit ma", "Like", "J'aime", "Mi piace", "Me gusta"),
     "row.unlike" to row("Gefällt mir nicht mehr", "Gfallt mer nüme", "Gfoit ma nimmer", "Unlike", "Je n'aime plus", "Non mi piace più", "Ya no me gusta"),
+    "sd.older" to row("← älter", "← elter", "← älter", "← older", "← précédente", "← prec.", "← anterior"),
+    "sd.newer" to row("neuer →", "nöier →", "neicher →", "newer →", "suivante →", "succ. →", "siguiente →"),
     "home.showSpotSessions" to row("▸ Sessions an diesem Spot", "▸ Sessions a dem Spot", "▸ Sessions an dem Spot", "▸ Sessions at this spot", "▸ Sessions sur ce spot", "▸ Sessioni su questo spot", "▸ Sesiones en este spot"),
     "home.hideSessions" to row("▾ Sessions ausblenden", "▾ Sessions usblände", "▾ Sessions ausblendn", "▾ Hide sessions", "▾ Masquer les sessions", "▾ Nascondi sessioni", "▾ Ocultar sesiones"),
     "home.noSessionsShort" to row("Keine Sessions.", "Kei Sessions.", "Kane Sessions.", "No sessions.", "Aucune session.", "Nessuna sessione.", "Sin sesiones."),
