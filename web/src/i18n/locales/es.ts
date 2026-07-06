@@ -676,7 +676,7 @@ const es: Record<string, string> = {
 
   "phome.hello": "Hola, {name}",
   "banner.msg": "es totalmente nuevo (desde el 23 de junio de 2026) — nuevas funciones y foils casi a diario. Dime qué te gusta (y qué no): pulsa el 💬 de la derecha →",
-  "dm.title": "Mensajes directos",
+  "dm.title": "Chats",
   "dm.back": "Volver",
   "dm.block": "Bloquear",
   "dm.unblock": "Desbloquear",

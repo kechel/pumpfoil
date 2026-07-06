@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
-import { ChatBubbleIcon, CloseIcon } from "./Icons";
+import { ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
 
@@ -18,8 +18,8 @@ export function DmWidget() {
   const [results, setResults] = useState<DmUser[]>([]);
   const [blocked, setBlocked] = useState<Set<number>>(new Set());
 
-  const dmRooms = rooms.filter((r) => r.kind === "dm");
-  const unreadTotal = dmRooms.reduce((s, r) => s + r.unread, 0);
+  // Alle offenen Räume: Direktnachrichten + Spot-Chats (Session-Chats sind serverseitig aus).
+  const unreadTotal = rooms.reduce((s, r) => s + r.unread, 0);
 
   const loadRooms = () => api.chatRooms().then(setRooms).catch(() => {});
   useEffect(() => { loadRooms(); const iv = setInterval(loadRooms, 15000); return () => clearInterval(iv); }, []);
@@ -110,10 +110,12 @@ export function DmWidget() {
                     ))}
                   </div>
                 )}
-                {dmRooms.length === 0 && !q && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
-                {dmRooms.map((r) => (
+                {rooms.length === 0 && !q && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
+                {rooms.map((r) => (
                   <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
-                    <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
+                    {r.kind === "dm"
+                      ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
+                      : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>

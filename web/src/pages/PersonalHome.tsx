@@ -64,23 +64,13 @@ export default function PersonalHome() {
     { label: t("side.pumps"), value: stats.pumps.toLocaleString("de") },
   ] : [];
 
-  const unreadTotal = rooms.reduce((n, r) => n + r.unread, 0);
 
   return (
     <div className="w-full">
       <WelcomeBanner />
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold">
-          {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
-        </h2>
-        <Link to="/chat"
-          className="relative flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-          <ChatBubbleIcon className="h-4 w-4" /> {t("chat.title")}
-          {unreadTotal > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 rounded-full bg-rose-500 px-1.5 text-xs font-bold text-white">{unreadTotal}</span>
-          )}
-        </Link>
-      </div>
+      <h2 className="mb-5 text-2xl font-bold">
+        {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
+      </h2>
 
       {/* App installieren (mobil, nur wenn installierbar) */}
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />

@@ -672,7 +672,7 @@ const de: Record<string, string> = {
   "adm.tab.blocks": "Blockierungen",
   "adm.blocks.empty": "Niemand blockiert.",
   "adm.blocks.blocked": "hat blockiert →",
-  "dm.title": "Direktnachrichten",
+  "dm.title": "Chats",
   "dm.back": "Zurück",
   "dm.block": "Blockieren",
   "dm.unblock": "Entblocken",

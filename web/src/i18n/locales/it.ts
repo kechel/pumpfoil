@@ -676,7 +676,7 @@ const it: Record<string, string> = {
 
   "phome.hello": "Ciao, {name}",
   "banner.msg": "è nuovissimo (dal 23 giugno 2026) — nuove funzioni e nuovi foil quasi ogni giorno. Dimmi cosa ti piace (e cosa no): basta cliccare sul 💬 a destra →",
-  "dm.title": "Messaggi diretti",
+  "dm.title": "Chat",
   "dm.back": "Indietro",
   "dm.block": "Blocca",
   "dm.unblock": "Sblocca",

@@ -678,7 +678,7 @@ const fr: Record<string, string> = {
 
   "phome.hello": "Salut, {name}",
   "banner.msg": "est tout nouveau (depuis le 23 juin 2026) — de nouvelles fonctions & de nouveaux foils presque chaque jour. Dis-moi ce qui te plaît (et ce qui ne te plaît pas) : clique sur le 💬 à droite →",
-  "dm.title": "Messages directs",
+  "dm.title": "Discussions",
   "dm.back": "Retour",
   "dm.block": "Bloquer",
   "dm.unblock": "Débloquer",

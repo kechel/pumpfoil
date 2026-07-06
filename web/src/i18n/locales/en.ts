@@ -841,7 +841,7 @@ const en: Record<string, string> = {
 
   "phome.hello": "Hi, {name}",
   "banner.msg": "is brand-new (since 23 June 2026) — new features & foils almost daily. Tell me what you like (and what you don't): just tap the 💬 on the right →",
-  "dm.title": "Direct messages",
+  "dm.title": "Chats",
   "dm.back": "Back",
   "dm.block": "Block",
   "dm.unblock": "Unblock",
