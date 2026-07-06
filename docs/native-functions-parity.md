@@ -63,8 +63,25 @@ Spot-Suche/hinzufügen/entfernen + je-Spot-Rekord-Grid ✅.
 | „▸ Sessions an diesem Spot" ein-/ausklappen | ❌ bewusst (Sessions je Spot über Sessions-Tab-Spotfilter erreichbar) | ❌ dito |
 Kein Code nötig — Kern-Interaktionen decken sich.
 
-## Offen / nächste Bereiche
-- Chat: Report/Hide/Mute/Admin + Abo/Verlassen (❌ nativ), URL-Linkify (❌ nativ), Edit/Delete 1 h (✅).
-- Verlauf: Chart-Klick → Session + Hover-Tooltip (❌ nativ).
-- Spots, Home, Profil, Einstellungen, Login, Foils/Compare/Import/Alarm/Datenfelder — folgen.
-- DSGVO-Daten-Export (❌ nativ, mobile Datei-UX).
+## Restbereiche (Abschluss-Sweep) — geprüft, größtenteils deckungsgleich
+- **Verlauf**: Modus-Umschalter + Metriken/Werte ✅. Chart-Punkt-Klick → Session + Hover-Tooltip ⚠️
+  (nur Web; auf Mobil fummelig — Session über Liste erreichbar). SpotProgression-Animation ❌ (§5, geräteabhängig).
+- **Spots**: Karten-Marker → Spot-Sessions ✅, Spot-Liste → Sessions ✅. Such-Fokus auf Karte ⚠️
+  (nativ Liste statt Suchfeld). Marker in Marken-Cyan ✅.
+- **Home**: Feedback-Sheet ✅, Chat-Button ✅, Records Accel/alle-Toggle ✅, Wetter ✅, Meine Chats ✅,
+  letzte Sessions → Detail ✅. Deckungsgleich.
+- **Profil**: Avatar ändern ✅, Name bearbeiten ✅, Abmelden/Konto löschen (Bestätigung) ✅, Nav-Links ✅.
+- **Einstellungen**: Gewicht/Homespot/Design/Sprache/Benachrichtigungen speichern ✅, Passwort ändern ✅ (Runde 1).
+- **Login**: Google + E-Mail + Passwort-vergessen + Sprachwahl + Impressum ✅.
+- **Foils**: „meine" wählen + Standard setzen + Marken-Filter + speichern ✅ (Web hat kein Custom-CRUD).
+- **Compare**: Vergleichskorb (neu) + Mergen ✅.
+- **Alarm** / **Datenfelder**: Uhr-Einstellungen speichern ✅.
+- **Import** (manueller FIT/GPX-Upload): ❌ nativ bewusst — auf Mobil lädt die Uhr/App direkt hoch,
+  kein Datei-Picker-Import; Web-only.
+- **DSGVO-Daten-Export**: ❌ nativ (mobile Datei-UX); Konto-Löschung ist vorhanden.
+
+## Fazit
+Alle **hoch-wertigen** Verhaltens-/Interaktions-Lücken portiert (Sessions-Vergleichskorb + Like-aus-Liste,
+Session-Detail Älter/Neuer, Chat Melden/Admin/Abo/Verlassen/Live-Polling/Linkify). Restliche ⚠️/❌ sind
+bewusste Mobile-Adaptionen oder geräte-/Web-spezifisch (Chart-Tap, Medien-Like, Such-Fokus, Import, Export,
+SpotProgression). iOS ist code-gespiegelt (kompiliert bei Jan, läuft) → finaler Xcode-Durchblick durch Jan.
