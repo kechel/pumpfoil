@@ -68,11 +68,12 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   **Click-to-Load** über `youtube-nocookie.com` (Impressum-Keys `imp.yt*`). → **Kein Cookie-Banner
   nötig** (Consent braucht es nur für nicht-essentielle/Tracking-Speicherung, die wir nicht haben).
   Erst neu bewerten, falls je ein Dritt-Skript/Analytics/externe Font/Karte dazukommt.
-- **News-Banner (`WelcomeBanner.tsx`):** `BANNER_VERSION` (Zahl) hochzählen = allen Nutzern den Banner
-  erneut zeigen (News-Mechanismus). localStorage-Key `foil_banner_v1` speichert die zuletzt
-  weggeklickte **Version**; angezeigt wenn fehlend oder `< BANNER_VERSION`. Beim Bump auch die
-  Banner-Texte aktualisieren. **TODO:** dasselbe versionierte Banner in Android/iOS übernehmen, damit
-  die Apps es bei jedem Bump ebenfalls wieder anzeigen.
+- **News-Banner (DB-getrieben, kein PWA-Rebuild):** Inhalt + Version stehen in der DB
+  (`NewsBanner`-Singleton), öffentlicher `GET /api/app/news`. `WelcomeBanner.tsx` holt das und zeigt den
+  Banner, wenn `enabled` und `version` > weggeklickter Wert (localStorage `foil_banner_v1`); Text =
+  `texts[lang]||de`. **Gepflegt im Admin-Tab „News-Banner"** (`PUT /api/admin/news`): Text je Sprache +
+  Version-Bump → News posten ohne Deploy. **TODO:** dasselbe in Android/iOS (könnten `/api/app/news` auch
+  abfragen).
 - Commit-Trailer wie vom Harness vorgegeben.
 
 ## Dokumentation & weitere Kontext-Quellen
