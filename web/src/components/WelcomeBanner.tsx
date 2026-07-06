@@ -4,14 +4,17 @@ import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { CloseIcon } from "./Icons";
 
-// Willkommens-/Community-Banner oben im Start-Bereich. Schließbar (localStorage);
-// beim Bump von DISMISS_KEY taucht er wieder auf (z. B. bei großen Neuerungen).
+// Willkommens-/Community-Banner oben im Start-Bereich. Schließbar (localStorage speichert
+// die zuletzt weggeklickte Banner-VERSION als Zahl). Zum News-Posten einfach BANNER_VERSION
+// erhöhen -> alle, die eine ältere Version weggeklickt haben (oder noch nie), sehen ihn wieder.
+// (Der Key-Name bleibt "foil_banner_v1" — der Wert darin ist die Version, der Name egal.)
 const DISMISS_KEY = "foil_banner_v1";
+const BANNER_VERSION = 2;
 
 export function WelcomeBanner() {
   const t = useT();
   const [stats, setStats] = useState<{ foilers: number; spots: number; sessions: number; pumps: number } | null>(null);
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === "1");
+  const [dismissed, setDismissed] = useState(() => Number(localStorage.getItem(DISMISS_KEY) || 0) >= BANNER_VERSION);
 
   useEffect(() => {
     if (dismissed) return;
@@ -21,7 +24,7 @@ export function WelcomeBanner() {
   if (dismissed) return null;
 
   const close = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    localStorage.setItem(DISMISS_KEY, String(BANNER_VERSION));
     setDismissed(true);
   };
 

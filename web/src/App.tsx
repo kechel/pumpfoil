@@ -115,12 +115,14 @@ export default function App() {
           </button>
           <ThemeToggle className="shrink-0" />
         </div>
-        <Link to="/nerd-analysen" className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
+        <NavLink to="/nerd-analysen" end title="Dual-Watch-Pumpfoil-Experiment"
+          className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           <NerdIcon className="h-4 w-4" /> Nerd-Analysen
-        </Link>
-        <Link to="/nerd-analysen-2" className="mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs text-slate-400 hover:text-slate-300" title="Wie die Erkennung funktioniert (Signalverarbeitung, ML, Labeling)">
+        </NavLink>
+        <NavLink to="/nerd-analysen-2" end title="Wie die Erkennung funktioniert (Signalverarbeitung, ML, Labeling)"
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 2: Wie es funktioniert
-        </Link>
+        </NavLink>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>
