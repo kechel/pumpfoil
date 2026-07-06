@@ -98,7 +98,17 @@ struct SessionsView: View {
             .listStyle(.insetGrouped)
             .navigationTitle(title)
             .brandToolbar(title)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { SyncButton() } }
+            .toolbar {
+                // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/SpotSessions).
+                if scope == .spot, !spot.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                        }
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) { SyncButton() }
+            }
             .overlay { if loading && isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task {
