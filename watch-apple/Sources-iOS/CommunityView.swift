@@ -159,6 +159,8 @@ struct CommunityView: View {
             .overlay { if loading && records == nil { ProgressView() } }
             .refreshable { await loadBase(); await loadPeriod(); await loadSpotRecs() }
             .task { if records == nil { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
+            // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
+            .onAppear { Task { media = (try? await Api.latestPhotos()) ?? [] } }
             .onChange(of: accelOnly) { _ in Task { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
             .onChange(of: period) { _ in Task { await loadPeriod(); await loadSpotRecs() } }
             .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }

@@ -109,6 +109,9 @@ struct SessionsView: View {
                 spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
                 await load()
             }
+            // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA) — leert
+            // die Liste nicht, aktualisiert nur im Hintergrund.
+            .onAppear { Task { await load() } }
             .onChange(of: scope) { _ in Task { await load() } }
             .onChange(of: spot) { _ in Task { await loadWeather(); await load() } }
             .onChange(of: accelOnly) { _ in Task { await load() } }
