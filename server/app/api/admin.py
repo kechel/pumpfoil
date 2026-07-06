@@ -633,6 +633,20 @@ def news_set(payload: dict = Body(...), admin: models.User = Depends(current_adm
     return _news_dict(row)
 
 
+@router.get("/blocks")
+def list_blocks(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
+    """Alle 1:1-Chat-Blockierungen (wer hat wen blockiert) — für die Moderations-Übersicht."""
+    def brief(uid: int) -> dict:
+        u = db.get(models.User, uid)
+        return {"id": uid, "email": u.email if u else None,
+                "display_name": u.display_name if u else None}
+    out = []
+    for b in db.query(models.UserBlock).order_by(models.UserBlock.id.desc()).all():
+        out.append({"id": b.id, "created_at": b.created_at.isoformat() if b.created_at else None,
+                    "blocker": brief(b.blocker_id), "blocked": brief(b.blocked_id)})
+    return out
+
+
 @router.get("/audit")
 def audit_log(
     limit: int = 100, _a: models.User = Depends(current_admin), db: Session = Depends(get_db),

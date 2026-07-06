@@ -6,6 +6,7 @@ import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIco
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
+import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
 import { warmMySessions, warmMedia } from "./lib/pwaCache";
@@ -76,6 +77,7 @@ export default function App() {
     <div className="flex min-h-full flex-col bg-slate-950 md:flex-row">
       <ScrollRestoration />
       <FeedbackWidget />
+      <DmWidget />
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">

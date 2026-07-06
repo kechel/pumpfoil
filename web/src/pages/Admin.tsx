@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
-type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news";
+type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["flagged", "adm.tab.flagged"],
@@ -18,6 +18,7 @@ const TABS: [Tab, string][] = [
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
   ["news", "adm.tab.news"],
+  ["blocks", "adm.tab.blocks"],
   ["audit", "adm.tab.audit"],
 ];
 
@@ -50,6 +51,7 @@ export default function Admin() {
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "news" && <NewsTab />}
+      {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
     </div>
   );
@@ -122,6 +124,35 @@ function OverviewTab() {
           <Card key={labelKey} className="p-3">{inner}</Card>
         );
       })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Blocks ----
+function BlocksTab() {
+  const t = useT();
+  const { data, error } = useAsync<AdminBlock[]>(() => api.adminBlocks());
+  if (error) return <ErrorBox message={error} />;
+  if (!data) return <Spinner />;
+  const nm = (u: { display_name: string | null; email: string | null }) => u.display_name || u.email || "?";
+  return (
+    <div>
+      {data.length === 0 ? (
+        <Card className="p-8 text-center text-slate-300">{t("adm.blocks.empty")}</Card>
+      ) : (
+        <div className="space-y-2">
+          {data.map((b) => (
+            <Card key={b.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
+              <span className="font-medium text-slate-100">{nm(b.blocker)}</span>
+              <span className="text-slate-500">{b.blocker.email}</span>
+              <span className="text-red-400">⛔ {t("adm.blocks.blocked")}</span>
+              <span className="font-medium text-slate-100">{nm(b.blocked)}</span>
+              <span className="text-slate-500">{b.blocked.email}</span>
+              <span className="ml-auto text-[11px] text-slate-500">{fmtDate(b.created_at)}</span>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

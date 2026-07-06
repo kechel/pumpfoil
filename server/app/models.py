@@ -554,3 +554,16 @@ class NewsBanner(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     text_json: Mapped[str | None] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class UserBlock(Base):
+    """1:1-Chat: blocker_id hat blocked_id blockiert -> keine Direktnachrichten mehr
+    zwischen den beiden (in beide Richtungen geprüft). Melden bleibt davon unberührt."""
+
+    __tablename__ = "user_blocks"
+    __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_user_block"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    blocker_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    blocked_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

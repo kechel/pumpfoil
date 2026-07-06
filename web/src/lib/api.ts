@@ -60,7 +60,11 @@ export interface ChatMsg {
 export interface ChatRoom {
   scope: string; label: string; url: string; push: boolean;
   unread: number; last_text: string; last_at: string | null;
+  kind?: string;   // spot | dm | session
+  other?: { id: number; name: string | null; avatar_url: string | null };  // nur bei dm
 }
+
+export interface DmUser { id: number; display_name: string | null; avatar_url: string | null; }
 
 export interface ActiveRoom {
   scope: string; label: string; url: string;
@@ -302,6 +306,12 @@ export interface AdminPending { flagged: number; fake: number; total: number; }
 
 export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; }
 
+export interface AdminBlock {
+  id: number; created_at: string | null;
+  blocker: { id: number; email: string | null; display_name: string | null };
+  blocked: { id: number; email: string | null; display_name: string | null };
+}
+
 export interface AdminAuditEntry {
   id: number; action: string; target_type: string; target_id: number | null;
   detail: string | null; at: string | null; admin: string | null;
@@ -409,6 +419,11 @@ export const api = {
   chatSubscribe: (scope: string, on: boolean) => req<{ ok: boolean; push: boolean }>(`/api/chat/subscribe`, { method: "POST", body: JSON.stringify({ scope, on }) }),
   chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
   chatRooms: () => req<ChatRoom[]>(`/api/chat/rooms`),
+  chatDmOpen: (userId: number) => req<{ scope: string; other: { id: number; name: string | null; avatar_url: string | null }; blocked: boolean }>(`/api/chat/dm?user_id=${userId}`),
+  chatSearchUsers: (q: string) => req<DmUser[]>(`/api/chat/users?q=${encodeURIComponent(q)}`),
+  chatBlock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block`, { method: "POST", body: JSON.stringify({ user_id: userId }) }),
+  chatUnblock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block?user_id=${userId}`, { method: "DELETE" }),
+  chatBlocks: () => req<DmUser[]>(`/api/chat/blocks`),
   chatActive: (hours = 48, limit = 3) => req<ActiveRoom[]>(`/api/chat/active?hours=${hours}&limit=${limit}`),
   chatAllSpots: () => req<{ scope: string; label: string; url: string; messages: number }[]>(`/api/chat/all-spots`),
   foils: (params?: { q?: string; brand?: string }) => {
@@ -560,6 +575,7 @@ export const api = {
   appDevices: () => req<AppDevice[]>("/api/app/devices"),
   adminOverview: () => req<AdminOverview>("/api/admin/overview"),
   adminPending: () => req<AdminPending>("/api/admin/pending"),
+  adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),
   adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),

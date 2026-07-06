@@ -32,7 +32,7 @@ export default function PersonalHome() {
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
-    api.chatRooms().then(setRooms).catch(() => {});
+    api.chatRooms().then((rs) => setRooms(rs.filter((r) => r.kind !== "dm"))).catch(() => {});   // DMs laufen im Floating-Widget
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {

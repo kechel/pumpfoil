@@ -19,7 +19,33 @@ from .deps import current_user
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120})$")
+_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120}|dm:\d+-\d+)$")
+
+
+def _dm_parts(scope: str) -> tuple[int, int] | None:
+    """(a, b) der beiden User-IDs eines dm:-Scopes, sonst None."""
+    if not scope or not scope.startswith("dm:"):
+        return None
+    try:
+        a, b = scope[3:].split("-", 1)
+        return (int(a), int(b))
+    except Exception:
+        return None
+
+
+def _require_access(scope: str, user_id: int) -> None:
+    """DM-Scopes sind privat: nur die beiden Beteiligten dürfen lesen/schreiben."""
+    parts = _dm_parts(scope)
+    if parts is not None and user_id not in parts:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Kein Zugriff auf diesen Chat")
+
+
+def _blocked_between(db: Session, a: int, b: int) -> bool:
+    from sqlalchemy import and_, or_
+    return db.query(models.UserBlock.id).filter(or_(
+        and_(models.UserBlock.blocker_id == a, models.UserBlock.blocked_id == b),
+        and_(models.UserBlock.blocker_id == b, models.UserBlock.blocked_id == a),
+    )).first() is not None
 DUP_WINDOW_S = 120          # gleiches Posting innerhalb 2 min = Duplikat
 AUTOHIDE_REPORTS = 3        # ab so vielen Meldungen automatisch ausblenden
 
@@ -51,6 +77,14 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
     kind, _, rest = scope.partition(":")
     if kind == "spot":
         return rest
+    if kind == "dm":
+        parts = _dm_parts(scope)
+        if parts and viewer_id:
+            other_id = parts[1] if viewer_id == parts[0] else parts[0]
+            ou = db.get(models.User, other_id)
+            if ou:
+                return owner_label(ou.display_name, ou.id)
+        return "Direktnachricht"
     try:
         sid = int(rest)
     except ValueError:
@@ -126,6 +160,7 @@ def list_messages(
     - before=<id>: die `limit` Nachrichten direkt vor id (Hochscroll-Nachladen)."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
+    _require_access(scope, user.id)
     lim = min(max(limit, 1), 100)
     q = (
         db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url,
@@ -159,6 +194,13 @@ def post_message(
 ) -> dict:
     _check_scope(scope)
     scope = _canon_scope(db, scope)
+    _require_access(scope, user.id)
+    _dm = _dm_parts(scope)
+    _other_id = None
+    if _dm is not None:
+        _other_id = _dm[1] if user.id == _dm[0] else _dm[0]
+        if _blocked_between(db, user.id, _other_id):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Blockiert — keine Nachrichten möglich")
     if user.chat_readonly:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
     text = (body.text or "").strip()
@@ -208,6 +250,14 @@ def post_message(
     st.last_read_id = m.id
     st.left = False
     st.updated_at = datetime.now(timezone.utc)
+    # DM: der Empfänger bekommt sofort einen Raum-State (Inbox + Push standardmäßig an),
+    # damit die Direktnachricht auch ohne vorheriges Öffnen ankommt.
+    if _other_id is not None:
+        rst = db.query(models.ChatRoomState).filter_by(user_id=_other_id, scope=scope).first()
+        if rst is None:
+            db.add(models.ChatRoomState(user_id=_other_id, scope=scope, last_read_id=0, push=True))
+        elif rst.left:
+            rst.left = False
     db.commit()
     db.refresh(m)
     _notify_subscribers(db, m, user)
@@ -387,6 +437,7 @@ def mark_read(
     """Lesestand setzen (Chat-Komponente meldet die höchste gesehene id)."""
     _check_scope(body.scope)
     body.scope = _canon_scope(db, body.scope)
+    _require_access(body.scope, user.id)
     st = _state(db, user.id, body.scope)
     if st.last_read_id is None or body.up_to > st.last_read_id:
         st.last_read_id = body.up_to
@@ -403,6 +454,7 @@ def leave_room(
     """Chatraum verlassen — taucht nicht mehr in „meine Chats"/Unread auf."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
+    _require_access(scope, user.id)
     st = _state(db, user.id, scope)
     st.left = True
     st.push = False
@@ -423,6 +475,7 @@ def subscribe_room(
     """Push-Benachrichtigung für neue Nachrichten in diesem Raum an/aus."""
     _check_scope(body.scope)
     body.scope = _canon_scope(db, body.scope)
+    _require_access(body.scope, user.id)
     st = _state(db, user.id, body.scope)
     st.push = bool(body.on)
     if body.on:
@@ -439,6 +492,7 @@ def room_state(
     """Status des aktuellen Raums für den Nutzer (Abo/verlassen/Lesestand)."""
     _check_scope(scope)
     scope = _canon_scope(db, scope)
+    _require_access(scope, user.id)
     st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
     return {
         "scope": scope,
@@ -490,15 +544,23 @@ def my_rooms(
                     models.ChatMessage.id > st.last_read_id)
             .scalar()
         ) or 0
-        out.append({
+        row = {
             "scope": st.scope,
+            "kind": st.scope.split(":", 1)[0],   # spot | dm | session
             "label": _scope_label_db(db, st.scope, user.id),
             "url": _scope_url(st.scope),
             "push": st.push,
             "unread": int(unread),
             "last_text": last.text[:120],
             "last_at": last.created_at.isoformat() if last.created_at else None,
-        })
+        }
+        parts = _dm_parts(st.scope)
+        if parts is not None:
+            oid = parts[1] if user.id == parts[0] else parts[0]
+            ou = db.get(models.User, oid)
+            row["other"] = {"id": oid, "name": ou.display_name if ou else None,
+                            "avatar_url": ou.avatar_url if ou else None}
+        out.append(row)
     out.sort(key=lambda r: (r["unread"] > 0, r["last_at"] or ""), reverse=True)
     return out
 
@@ -527,7 +589,8 @@ def active_rooms(
     )
     out = []
     for scope, n in rows:
-        if scope in mine or scope.startswith("session:"):
+        # Private DMs + Session-Chats nie in der öffentlichen Entdeckung zeigen.
+        if scope in mine or scope.startswith("session:") or scope.startswith("dm:"):
             continue
         last = (
             db.query(models.ChatMessage)
@@ -564,3 +627,70 @@ def all_spot_chats(user: models.User = Depends(current_user), db: Session = Depe
         {"scope": s, "label": _scope_label_db(db, s, user.id), "url": _scope_url(s), "messages": int(n)}
         for s, n, _last in rows
     ]
+
+
+# ----------------------------- 1:1-Direktnachrichten -----------------------------
+@router.get("/dm")
+def dm_open(user_id: int = Query(...), user: models.User = Depends(current_user),
+            db: Session = Depends(get_db)) -> dict:
+    """Scope für den 1:1-Chat mit user_id (deterministisch dm:<min>-<max>) + Infos zum Gegenüber."""
+    other = db.get(models.User, user_id)
+    if other is None or other.id == user.id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger Empfänger")
+    a, b = sorted([user.id, other.id])
+    return {
+        "scope": f"dm:{a}-{b}",
+        "other": {"id": other.id, "name": other.display_name, "avatar_url": other.avatar_url},
+        "blocked": _blocked_between(db, user.id, other.id),
+    }
+
+
+@router.get("/users")
+def search_users(q: str = Query(..., min_length=1), user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> list[dict]:
+    """Nutzersuche für den DM-Start — NUR nach öffentlichem Anzeigenamen. E-Mail o. Ä.
+    werden bewusst NICHT zurückgegeben (bleiben geheim)."""
+    from sqlalchemy import func
+    like = f"%{q.lower().strip()}%"
+    rows = (db.query(models.User)
+            .filter(models.User.display_name.isnot(None),
+                    func.lower(models.User.display_name).like(like),
+                    models.User.id != user.id,
+                    models.User.hidden.isnot(True),
+                    models.User.blocked.isnot(True))
+            .order_by(models.User.display_name).limit(15).all())
+    return [{"id": u.id, "display_name": u.display_name, "avatar_url": u.avatar_url} for u in rows]
+
+
+class BlockIn(BaseModel):
+    user_id: int
+
+
+@router.post("/block")
+def block_user(body: BlockIn, user: models.User = Depends(current_user),
+               db: Session = Depends(get_db)) -> dict:
+    if body.user_id == user.id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nicht sich selbst blockieren")
+    if not db.query(models.UserBlock.id).filter_by(blocker_id=user.id, blocked_id=body.user_id).first():
+        db.add(models.UserBlock(blocker_id=user.id, blocked_id=body.user_id))
+        db.commit()
+    return {"ok": True, "blocked": True}
+
+
+@router.delete("/block")
+def unblock_user(user_id: int = Query(...), user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    db.query(models.UserBlock).filter_by(blocker_id=user.id, blocked_id=user_id).delete()
+    db.commit()
+    return {"ok": True, "blocked": False}
+
+
+@router.get("/blocks")
+def my_blocks(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Von mir blockierte Nutzer (für die UI-Anzeige/Entblocken)."""
+    out = []
+    for b in db.query(models.UserBlock).filter_by(blocker_id=user.id).all():
+        u = db.get(models.User, b.blocked_id)
+        out.append({"id": b.blocked_id, "display_name": u.display_name if u else None,
+                    "avatar_url": u.avatar_url if u else None})
+    return out
