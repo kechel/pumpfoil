@@ -50,6 +50,7 @@ export interface N2 {
     h: string; p: string; p2: string; cap: string;
     fits: Box; feats: Box; rf: Box; pkl: Box; loopNote: string;
   };
+  x5: { h: string; p: string };
   summary: { h: string; p1: string; p2: string };
   limits: { h: string; p: string };
 }
@@ -184,7 +185,7 @@ const de: N2 = {
   },
   pump: {
     h: "Pumps zählen — kadenz-geführt (v3)",
-    p: "Der naheliegende Weg — „zähle alle Peaks über einer Amplituden-Schwelle“ — **unterschätzt strukturell um ~2×**: er pickt nur die größten Ausschläge und verschluckt die kleineren, rhythmischen Pumps dazwischen. Gegen die **Wahrheit** (die Label-App liefert `run_pumps`, dazu Jans Video-Tap-Labels) traf das nur ~40 %.",
+    p: "Der naheliegende Weg — „zähle alle Peaks über einer Amplituden-Schwelle“ — **unterschätzt strukturell um ~2×**: er pickt nur die größten Ausschläge und verschluckt die kleineren, rhythmischen Pumps dazwischen. Gegen die **Wahrheit** (meine getippte Pump-Wahrheit, siehe unten) traf das nur ~40 %.",
     p2: "Der bessere Ansatz ist **kadenz-geführt**: In rhythmischen, energiereichen Abschnitten schätzt eine lokale FFT die **momentane Pump-Frequenz**, und dann wird **pro Kadenz-Periode genau ein** echtes lokales Maximum als Pump gewählt. Die Kadenz ist lokal-adaptiv, folgt also Tempowechseln. Ergebnis: **85–94 %** Treffer statt 40 % — und Zähler und Karten-Marker sind automatisch konsistent (beide aus denselben Positionen). Ein RMS-Gate verhindert, dass rhythmuslose Gleitphasen mitgezählt werden.",
     cap: "Amplituden-Schwelle (oben) sieht nur die dicken Peaks. Kadenz-geführt (unten): lokale Periode T schätzen, pro Periode das echte Maximum picken — auch die sanften Pumps.",
     top: "Amplituden-Schwelle — verschluckt kleine Pumps",
@@ -211,15 +212,19 @@ const de: N2 = {
     ],
   },
   label: {
-    h: "Woher das Modell lernt — Labeling & der Retrain-Kreislauf",
-    p: "Das Foil-Modell wird nicht geraten, sondern **gegen Wahrheit trainiert**. Quelle ist eine separate Label-App: ihre FIT-Dateien tragen einen `foil_status` (auf Foil ja/nein je Sekunde) und `run_pumps` (echte Pumpzahl je Lauf). Das ist die Ground Truth, gegen die sowohl der On-Foil-Wald als auch der kadenz-geführte Pump-Zähler kalibriert wurden.",
-    p2: "Wichtig beim Training: **GroupKFold** statt normaler Kreuzvalidierung. Benachbarte Sekunden derselben Session sind fast identisch — landeten sie zugleich in Trainings- und Testmenge, würde sich das Modell selbst abfragen (Leakage) und Traumwerte melden. GroupKFold hält deshalb **ganze Sessions** zusammen: das Modell wird immer auf Sessions getestet, die es nie gesehen hat.",
-    cap: "Der Kreislauf: gelabelte Wahrheit → Features → RandomForest → foil_rf.pkl → Auswertung jeder Session. Neue Labels fließen zurück, das Modell wird neu trainiert.",
-    fits: ["Label-App-FITs", "foil_status · run_pumps"],
+    h: "Woher die Wahrheit kommt — Pumps antippen",
+    p: "Das Modell braucht eine **Wahrheit**, gegen die der kadenz-geführte Pump-Zähler kalibriert wird — und die tippe ich mir aktuell selbst. Ich schaue das **Video** eines Laufs und **tippe bei jedem echten Pump** auf einen Knopf. Das mache ich in **mehreren Takes**; die werden per Kreuzkorrelation zu einem **Konsens** verrechnet (kleine Reaktionszeit-Versätze mitteln sich raus). Ergebnis: die echte Pump-Zahl und das echte Timing je Lauf. Das ist bewusst ein **Übergang** — genau genug, um heute zu kalibrieren, aber von Hand getippt.",
+    p2: "Wichtig beim Kalibrieren gegen solche Labels: **GroupKFold** statt normaler Kreuzvalidierung. Benachbarte Sekunden desselben Laufs sind fast identisch — landeten sie zugleich in Trainings- und Testmenge, würde sich das Modell selbst abfragen (Leakage) und Traumwerte melden. GroupKFold hält deshalb **ganze Sessions** zusammen: getestet wird immer auf Läufen, die das Modell nie gesehen hat.",
+    cap: "Der Kreislauf: **getippte** Pump-Wahrheit → Features → RandomForest → foil_rf.pkl → Auswertung jeder Session. Neue Taps fließen zurück, das Modell wird neu kalibriert.",
+    fits: ["Pumps antippen", "Video · mehrere Takes"],
     feats: ["Features", "14 × ±5 s Kontext"],
     rf: ["RandomForest", "GroupKFold-CV"],
     pkl: ["foil_rf.pkl", "→ jede Session"],
-    loopNote: "neue gelabelte Sessions → erneutes Training",
+    loopNote: "neue getippte Läufe → neu kalibrieren",
+  },
+  x5: {
+    h: "Der nächste Schritt — echte Wahrheit per Kamera (Insta360 X5)",
+    p: "Antippen ist gut genug zum Bootstrappen, hängt aber an meiner Reaktionszeit. Die **physikalisch exakte** Wahrheit kommt als Nächstes von einer **Kamera am Board**: eine Insta360 X5 filmt Mast/Foil mit, und aus dem Video liest man **frame-genau** ab, wann der Foil wirklich Druck bekommt und wann er fliegt. Damit kalibrieren wir Pump-Timing und On-Foil-Erkennung gegen echte Physik statt gegen getippte Näherung. Sobald das Rig steht, kommt hier ein eigener Abschnitt mit dem ganzen Kamera-Setup.",
   },
   summary: {
     h: "Der ganze Weg in einem Satz",
@@ -362,7 +367,7 @@ const gsw: N2 = {
   },
   pump: {
     h: "Pumps zelle — kadänz-gführt (v3)",
-    p: "De naheliegend Wäg — „zell alli Peaks über ere Amplitude-Schwelle“ — **underschätzt strukturell um ~2×**: er pickt nu di gröschte Usschläg und verschluckt di chlinere, rhythmische Pumps dezwüsched. Gäge d **Wahrheit** (d Label-App liferet `run_pumps`, dezue em Jan siini Video-Tap-Labels) hät das nu ~40 % troffe.",
+    p: "De naheliegend Wäg — „zell alli Peaks über ere Amplitude-Schwelle“ — **underschätzt strukturell um ~2×**: er pickt nu di gröschte Usschläg und verschluckt di chlinere, rhythmische Pumps dezwüsched. Gäge d **Wahrheit** (mini tippti Pump-Wahrheit, lueg unte) hät das nu ~40 % troffe.",
     p2: "De bessere Aasatz isch **kadänz-gführt**: I rhythmische, energieriiche Abschnitt schätzt e lokali FFT d **momentani Pump-Frequänz**, und dänn wird **pro Kadänz-Periode gnau ei** echts lokals Maximum als Pump gwählt. D Kadänz isch lokal-adaptiv, folgt also Tämpo-Wächsel. Resultat: **85–94 %** Träffer statt 40 % — und Zeller und Karte-Marker sind automatisch konsistänt (beidi us de gliiche Position). Es RMS-Gate verhinderet, dass rhythmuslosi Gleitphase mitzellt wärded.",
     cap: "Amplitude-Schwelle (obe) gseht nu di dicke Peaks. Kadänz-gführt (unde): lokali Periode T schätze, pro Periode s echt Maximum picke — au di sanfte Pumps.",
     top: "Amplitude-Schwelle — verschluckt chlini Pumps",
@@ -389,15 +394,19 @@ const gsw: N2 = {
     ],
   },
   label: {
-    h: "Woher s Modäll lernt — Labeling & de Retrain-Kreislauf",
-    p: "S Foil-Modäll wird nöd graate, sondern **gäge d Wahrheit trainiert**. Quelle isch e separati Label-App: ihri FIT-Dateie träged en `foil_status` (uf em Foil jo/nei pro Sekunde) und `run_pumps` (echti Pumpzahl pro Lauf). Das isch d Ground Truth, gäge wo sowohl de On-Foil-Wald als au de kadänz-gführt Pump-Zeller kalibriert worde sind.",
-    p2: "Wichtig bim Training: **GroupKFold** statt normaler Chrüzvalidierig. Nochbar-Sekunde vo dr gliiche Session sind fascht identisch — landed si zäme im Training und Test, würd sich s Modäll sälber abfroge (Leakage) und Traum-Wärt mälde. GroupKFold haltet drum **ganzi Sessions** zäme: s Modäll wird immer uf Sessions teschtet, wo's nie gseh hät.",
-    cap: "De Kreislauf: gelabelti Wahrheit → Features → RandomForest → foil_rf.pkl → Uswärtig vo jedere Session. Neui Labels flüssed zrugg, s Modäll wird neu trainiert.",
-    fits: ["Label-App-FITs", "foil_status · run_pumps"],
+    h: "Woher d Wahrheit chunt — Pumps antippe",
+    p: "S Modäll bruucht e **Wahrheit**, gäge wo de kadänz-gführt Pump-Zeller kalibriert wird — und die tipp ich mer zur Ziit sälber. Ich lueg s **Video** vo eme Lauf a und **tipp bi jedem echte Pump** uf en Chnopf. Das mach ich i **mehrere Takes**; die wärded per Kreuzkorrelation zu eme **Konsens** verrächnet (chlini Reaktionsziit-Versätz mittlet sich use). Resultat: di echti Pump-Zahl und s echte Timing pro Lauf. Das isch bewusst en **Übergang** — gnau gnueg zum hüt kalibriere, aber vo Hand tippt.",
+    p2: "Wichtig bim Kalibriere gäge sonigi Labels: **GroupKFold** statt normaler Chrüzvalidierig. Nochbar-Sekunde vom gliiche Lauf sind fascht identisch — landed si zäme im Training und Test, würd sich s Modäll sälber abfroge (Leakage) und Traum-Wärt mälde. GroupKFold haltet drum **ganzi Sessions** zäme: teschtet wird immer uf Läuf, wo s Modäll nie gseh hät.",
+    cap: "De Kreislauf: **tippti** Pump-Wahrheit → Features → RandomForest → foil_rf.pkl → Uswärtig vo jedere Session. Neui Taps flüssed zrugg, s Modäll wird neu kalibriert.",
+    fits: ["Pumps antippe", "Video · mehrere Takes"],
     feats: ["Features", "14 × ±5 s Kontext"],
     rf: ["RandomForest", "GroupKFold-CV"],
     pkl: ["foil_rf.pkl", "→ jedi Session"],
-    loopNote: "neui gelabelti Sessions → neus Training",
+    loopNote: "neui tippti Läuf → neu kalibriere",
+  },
+  x5: {
+    h: "De nächscht Schritt — echti Wahrheit per Kamera (Insta360 X5)",
+    p: "Antippe isch guet gnueg zum Bootstrappe, hanget aber a minere Reaktionsziit. Di **physikalisch exakti** Wahrheit chunt als Nächschts vo ere **Kamera am Board**: e Insta360 X5 filmt de Mast/Foil mit, und us em Video liest me **frame-gnau** ab, wänn de Foil würklich Druck überchunt und wänn er fliegt. Dedmit kalibriered mer Pump-Timing und On-Foil-Erkennig gäge echti Physik statt gäge tippti Näherig. Sobald s Rig stoot, chunt do en eigene Abschnitt mit em ganze Kamera-Setup.",
   },
   summary: {
     h: "De ganz Wäg in eim Satz",
@@ -540,7 +549,7 @@ const deAT: N2 = {
   },
   pump: {
     h: "Pumps zählen — kadenzgeführt (v3)",
-    p: "Der naheliegende Weg — „zähl alle Peaks über einer Amplituden-Schwelle“ — **unterschätzt strukturell um ~2×**: er pickt nur die größten Ausschläge und verschluckt die kleineren, rhythmischen Pumps dazwischen. Gegen die **Wahrheit** (die Label-App liefert `run_pumps`, dazu Jans Video-Tap-Labels) hat das nur ~40 % getroffen.",
+    p: "Der naheliegende Weg — „zähl alle Peaks über einer Amplituden-Schwelle“ — **unterschätzt strukturell um ~2×**: er pickt nur die größten Ausschläge und verschluckt die kleineren, rhythmischen Pumps dazwischen. Gegen die **Wahrheit** (meine getippte Pump-Wahrheit, siehe unten) hat das nur ~40 % getroffen.",
     p2: "Der bessere Ansatz ist **kadenzgeführt**: In rhythmischen, energiereichen Abschnitten schätzt eine lokale FFT die **momentane Pump-Frequenz**, und dann wird **pro Kadenz-Periode genau ein** echtes lokales Maximum als Pump gewählt. Die Kadenz ist lokal-adaptiv, folgt also Tempowechseln. Ergebnis: **85–94 %** Treffer statt 40 % — und Zähler und Karten-Marker sind automatisch konsistent (beide aus denselben Positionen). Ein RMS-Gate verhindert, dass rhythmuslose Gleitphasen mitgezählt werden.",
     cap: "Amplituden-Schwelle (oben) sieht nur die dicken Peaks. Kadenzgeführt (unten): lokale Periode T schätzen, pro Periode das echte Maximum picken — auch die sanften Pumps.",
     top: "Amplituden-Schwelle — verschluckt kleine Pumps",
@@ -567,15 +576,19 @@ const deAT: N2 = {
     ],
   },
   label: {
-    h: "Woher das Modell lernt — Labeling & der Retrain-Kreislauf",
-    p: "Das Foil-Modell wird nicht geraten, sondern **gegen die Wahrheit trainiert**. Quelle ist eine separate Label-App: ihre FIT-Dateien tragen einen `foil_status` (auf dem Foil ja/nein pro Sekunde) und `run_pumps` (echte Pumpzahl pro Lauf). Das ist die Ground Truth, gegen die sowohl der On-Foil-Wald als auch der kadenzgeführte Pump-Zähler kalibriert wurden.",
-    p2: "Wichtig beim Training: **GroupKFold** statt normaler Kreuzvalidierung. Nachbarsekunden derselben Session sind fast identisch — landeten sie gemeinsam in Trainings- und Testmenge, würde sich das Modell selber abfragen (Leakage) und Traumwerte melden. GroupKFold hält deshalb **ganze Sessions** zusammen: das Modell wird immer auf Sessions getestet, die es nie gesehen hat.",
-    cap: "Der Kreislauf: gelabelte Wahrheit → Features → RandomForest → foil_rf.pkl → Auswertung jeder Session. Neue Labels fließen zurück, das Modell wird neu trainiert.",
-    fits: ["Label-App-FITs", "foil_status · run_pumps"],
+    h: "Woher die Wahrheit kommt — Pumps antippen",
+    p: "Das Modell braucht eine **Wahrheit**, gegen die der kadenzgeführte Pump-Zähler kalibriert wird — und die tippe ich mir derzeit selber. Ich schau mir das **Video** eines Laufs an und **tippe bei jedem echten Pump** auf einen Knopf. Das mach ich in **mehreren Takes**; die werden per Kreuzkorrelation zu einem **Konsens** verrechnet (kleine Reaktionszeit-Versätze mitteln sich raus). Ergebnis: die echte Pump-Zahl und das echte Timing pro Lauf. Das ist bewusst ein **Übergang** — genau genug zum Kalibrieren heute, aber per Hand getippt.",
+    p2: "Wichtig beim Kalibrieren gegen solche Labels: **GroupKFold** statt normaler Kreuzvalidierung. Nachbarsekunden desselben Laufs sind fast identisch — landeten sie gemeinsam in Trainings- und Testmenge, würde sich das Modell selber abfragen (Leakage) und Traumwerte melden. GroupKFold hält deshalb **ganze Sessions** zusammen: getestet wird immer auf Läufen, die das Modell nie gesehen hat.",
+    cap: "Der Kreislauf: **getippte** Pump-Wahrheit → Features → RandomForest → foil_rf.pkl → Auswertung jeder Session. Neue Taps fließen zurück, das Modell wird neu kalibriert.",
+    fits: ["Pumps antippen", "Video · mehrere Takes"],
     feats: ["Features", "14 × ±5 s Kontext"],
     rf: ["RandomForest", "GroupKFold-CV"],
     pkl: ["foil_rf.pkl", "→ jede Session"],
-    loopNote: "neue gelabelte Sessions → erneutes Training",
+    loopNote: "neue getippte Läufe → neu kalibrieren",
+  },
+  x5: {
+    h: "Der nächste Schritt — echte Wahrheit per Kamera (Insta360 X5)",
+    p: "Antippen ist gut genug zum Bootstrappen, hängt aber an meiner Reaktionszeit. Die **physikalisch exakte** Wahrheit kommt als Nächstes von einer **Kamera am Board**: eine Insta360 X5 filmt Mast/Foil mit, und aus dem Video liest man **frame-genau** ab, wann der Foil wirklich Druck kriegt und wann er fliegt. Damit kalibrieren wir Pump-Timing und On-Foil-Erkennung gegen echte Physik statt gegen getippte Näherung. Sobald das Rig steht, kommt da ein eigener Abschnitt mit dem ganzen Kamera-Setup.",
   },
   summary: {
     h: "Der ganze Weg in einem Satz",
@@ -717,7 +730,7 @@ const en: N2 = {
   },
   pump: {
     h: "Counting pumps — cadence-guided (v3)",
-    p: "The obvious way — “count all peaks above an amplitude threshold” — **structurally underestimates by ~2×**: it only picks the largest swings and swallows the smaller, rhythmic pumps in between. Against the **truth** (the label app delivers `run_pumps`, plus Jan's video tap labels) that hit only ~40 %.",
+    p: "The obvious way — “count all peaks above an amplitude threshold” — **structurally underestimates by ~2×**: it only picks the largest swings and swallows the smaller, rhythmic pumps in between. Against the **truth** (my tapped pump ground truth, see below) that hit only ~40 %.",
     p2: "The better approach is **cadence-guided**: in rhythmic, energy-rich sections a local FFT estimates the **instantaneous pump frequency**, and then **exactly one** real local maximum per cadence period is chosen as a pump. The cadence is locally adaptive, so it follows tempo changes. Result: **85–94 %** hit rate instead of 40 % — and the counter and map markers are automatically consistent (both from the same positions). An RMS gate prevents rhythmless glide phases from being counted along.",
     cap: "Amplitude threshold (top) only sees the fat peaks. Cadence-guided (bottom): estimate the local period T, pick the real maximum per period — including the gentle pumps.",
     top: "amplitude threshold — swallows small pumps",
@@ -744,15 +757,19 @@ const en: N2 = {
     ],
   },
   label: {
-    h: "Where the model learns from — labeling & the retrain loop",
-    p: "The foil model is not guessed but **trained against truth**. The source is a separate label app: its FIT files carry a `foil_status` (on foil yes/no per second) and `run_pumps` (real pump count per run). That is the ground truth against which both the on-foil forest and the cadence-guided pump counter were calibrated.",
-    p2: "Important during training: **GroupKFold** instead of ordinary cross-validation. Neighboring seconds of the same session are almost identical — if they landed in the training and test set at the same time, the model would be quizzing itself (leakage) and report dream scores. GroupKFold therefore keeps **whole sessions** together: the model is always tested on sessions it has never seen.",
-    cap: "The loop: labeled truth → features → RandomForest → foil_rf.pkl → analysis of every session. New labels flow back, the model is retrained.",
-    fits: ["label-app FITs", "foil_status · run_pumps"],
+    h: "Where the truth comes from — tapping the pumps",
+    p: "The model needs a **ground truth** to calibrate the cadence-guided pump counter against — and right now I tap it in myself. I watch the **video** of a run and **tap a button on every real pump**. I do this in **several takes**; they are combined into a **consensus** via cross-correlation (small reaction-time offsets average out). The result: the true pump count and timing per run. This is deliberately a **stopgap** — accurate enough to calibrate today, but hand-tapped.",
+    p2: "Important when calibrating against such labels: **GroupKFold** instead of ordinary cross-validation. Neighboring seconds of the same run are almost identical — if they landed in the training and test set at the same time, the model would be quizzing itself (leakage) and report dream scores. GroupKFold therefore keeps **whole sessions** together: testing always happens on runs the model has never seen.",
+    cap: "The loop: **tapped** pump truth → features → RandomForest → foil_rf.pkl → analysis of every session. New taps flow back, the model is recalibrated.",
+    fits: ["tap the pumps", "video · several takes"],
     feats: ["features", "14 × ±5 s context"],
     rf: ["RandomForest", "GroupKFold CV"],
     pkl: ["foil_rf.pkl", "→ every session"],
-    loopNote: "new labeled sessions → renewed training",
+    loopNote: "new tapped runs → recalibrate",
+  },
+  x5: {
+    h: "The next step — real truth from a camera (Insta360 X5)",
+    p: "Tapping is good enough to bootstrap, but it hinges on my reaction time. The **physically exact** truth comes next from a **camera on the board**: an Insta360 X5 films the mast/foil, and from the video you can read off **frame-accurately** when the foil actually gets pressure and when it flies. With that we calibrate pump timing and on-foil detection against real physics instead of a tapped approximation. Once the rig is set up, a dedicated section with the whole camera setup will land right here.",
   },
   summary: {
     h: "The whole path in one sentence",
@@ -894,7 +911,7 @@ const fr: N2 = {
   },
   pump: {
     h: "Compter les pumps — guidé par la cadence (v3)",
-    p: "La voie évidente — « compter tous les pics au-dessus d’un seuil d’amplitude » — **sous-estime structurellement d’environ 2×** : elle ne cueille que les plus grosses oscillations et avale les pumps plus petits et rythmiques entre elles. Face à la **vérité** (l’appli de labeling livre `run_pumps`, plus les tap-labels vidéo de Jan), elle n’atteignait que ~40 %.",
+    p: "La voie évidente — « compter tous les pics au-dessus d’un seuil d’amplitude » — **sous-estime structurellement d’environ 2×** : elle ne cueille que les plus grosses oscillations et avale les pumps plus petits et rythmiques entre elles. Face à la **vérité** (ma vérité de pump tapée, voir plus bas), elle n’atteignait que ~40 %.",
     p2: "La meilleure approche est **guidée par la cadence** : dans les sections rythmiques et riches en énergie, une FFT locale estime la **fréquence de pump instantanée**, puis **un seul** vrai maximum local est choisi comme pump **par période de cadence**. La cadence est localement adaptative, elle suit donc les changements de tempo. Résultat : **85–94 %** de justes au lieu de 40 % — et le compteur et les marqueurs de carte sont automatiquement cohérents (les deux issus des mêmes positions). Un RMS-gate empêche que des phases de glisse sans rythme soient comptées.",
     cap: "Le seuil d’amplitude (en haut) ne voit que les gros pics. Guidé par la cadence (en bas) : estimer la période locale T, cueillir le vrai maximum par période — même les pumps doux.",
     top: "Seuil d’amplitude — avale les petits pumps",
@@ -921,15 +938,19 @@ const fr: N2 = {
     ],
   },
   label: {
-    h: "D’où le modèle apprend — labeling & le cycle de retrain",
-    p: "Le modèle de foil n’est pas deviné, il est **entraîné contre la vérité**. La source est une appli de labeling séparée : ses fichiers FIT portent un `foil_status` (sur le foil oui/non par seconde) et `run_pumps` (le vrai nombre de pumps par run). C’est la vérité terrain contre laquelle ont été calibrés aussi bien la forêt on-foil que le compteur de pumps guidé par la cadence.",
-    p2: "Important à l’entraînement : **GroupKFold** plutôt qu’une validation croisée classique. Des secondes voisines d’une même session sont quasi identiques — si elles atterrissaient à la fois dans l’ensemble d’entraînement et de test, le modèle s’interrogerait lui-même (fuite) et rapporterait des valeurs de rêve. GroupKFold garde donc des **sessions entières** ensemble : le modèle est toujours testé sur des sessions qu’il n’a jamais vues.",
-    cap: "Le cycle : vérité labellisée → features → RandomForest → foil_rf.pkl → analyse de chaque session. Les nouveaux labels reviennent, le modèle est réentraîné.",
-    fits: ["FITs de l’appli de labeling", "foil_status · run_pumps"],
+    h: "D’où vient la vérité — taper les pumps",
+    p: "Le modèle a besoin d’une **vérité terrain** pour calibrer le compteur de pumps guidé par la cadence — et pour l’instant, c’est moi qui la tape. Je regarde la **vidéo** d’un run et je **tape sur un bouton à chaque pump réel**. Je le fais en **plusieurs prises** ; elles sont combinées en un **consensus** par corrélation croisée (les petits décalages de temps de réaction se moyennent). Résultat : le vrai nombre de pumps et le vrai timing par run. C’est volontairement une **solution transitoire** — assez précise pour calibrer aujourd’hui, mais tapée à la main.",
+    p2: "Important pour calibrer contre de tels labels : **GroupKFold** plutôt qu’une validation croisée classique. Des secondes voisines d’un même run sont quasi identiques — si elles atterrissaient à la fois dans l’ensemble d’entraînement et de test, le modèle s’interrogerait lui-même (fuite) et rapporterait des valeurs de rêve. GroupKFold garde donc des **sessions entières** ensemble : on teste toujours sur des runs que le modèle n’a jamais vus.",
+    cap: "Le cycle : vérité de pump **tapée** → features → RandomForest → foil_rf.pkl → analyse de chaque session. Les nouveaux taps reviennent, le modèle est recalibré.",
+    fits: ["taper les pumps", "vidéo · plusieurs prises"],
     feats: ["Features", "14 × contexte ±5 s"],
     rf: ["RandomForest", "CV GroupKFold"],
     pkl: ["foil_rf.pkl", "→ chaque session"],
-    loopNote: "nouvelles sessions labellisées → réentraînement",
+    loopNote: "nouveaux runs tapés → recalibrer",
+  },
+  x5: {
+    h: "L’étape suivante — la vraie vérité par caméra (Insta360 X5)",
+    p: "Taper suffit pour amorcer, mais cela dépend de mon temps de réaction. La vérité **physiquement exacte** viendra ensuite d’une **caméra sur la board** : une Insta360 X5 filme le mât/foil, et à partir de la vidéo on lit **à la frame près** quand le foil reçoit vraiment de la pression et quand il vole. On calibre ainsi le timing des pumps et la détection on-foil contre de la vraie physique plutôt que contre une approximation tapée. Dès que le rig est en place, une section dédiée avec tout le montage caméra arrivera ici.",
   },
   summary: {
     h: "Tout le parcours en une phrase",
@@ -1071,7 +1092,7 @@ const it: N2 = {
   },
   pump: {
     h: "Contare i pump — guidato dalla cadenza (v3)",
-    p: "La via più ovvia — «conta tutti i picchi sopra una soglia di ampiezza» — **sottostima strutturalmente di ~2×**: raccoglie solo le oscillazioni più grandi e ingoia i pump più piccoli e ritmici in mezzo. Contro la **verità** (l'app di label fornisce `run_pumps`, oltre ai tap-label di Jan sul video) questo azzeccava solo ~40 %.",
+    p: "La via più ovvia — «conta tutti i picchi sopra una soglia di ampiezza» — **sottostima strutturalmente di ~2×**: raccoglie solo le oscillazioni più grandi e ingoia i pump più piccoli e ritmici in mezzo. Contro la **verità** (la mia verità di pump toccata, vedi sotto) questo azzeccava solo ~40 %.",
     p2: "L'approccio migliore è **guidato dalla cadenza**: nei tratti ritmici e ricchi di energia una FFT locale stima la **frequenza di pump istantanea**, e poi **per ogni periodo di cadenza** viene scelto **esattamente un** vero massimo locale come pump. La cadenza è localmente adattiva, quindi segue i cambi di ritmo. Risultato: **85–94 %** di successi invece di 40 % — e contatore e marker sulla mappa sono automaticamente coerenti (entrambi dalle stesse posizioni). Un gate RMS impedisce che vengano conteggiate le fasi di planata prive di ritmo.",
     cap: "La soglia di ampiezza (sopra) vede solo i picchi grossi. Guidato dalla cadenza (sotto): stimare il periodo locale T, per ogni periodo raccogliere il vero massimo — anche i pump dolci.",
     top: "Soglia di ampiezza — ingoia i pump piccoli",
@@ -1098,15 +1119,19 @@ const it: N2 = {
     ],
   },
   label: {
-    h: "Da dove impara il modello — labeling & il ciclo di retrain",
-    p: "Il modello del foil non viene indovinato, ma **allenato contro la verità**. La fonte è una app di label separata: i suoi file FIT portano un `foil_status` (sul foil sì/no al secondo) e `run_pumps` (vero numero di pump per run). Questa è la ground truth contro cui sono stati calibrati sia la foresta on-foil sia il contatore di pump guidato dalla cadenza.",
-    p2: "Importante nel training: **GroupKFold** invece della normale cross-validation. Secondi vicini della stessa sessione sono quasi identici — se finissero contemporaneamente nel set di training e di test, il modello interrogherebbe se stesso (leakage) e riporterebbe valori da sogno. GroupKFold tiene perciò **intere sessioni** insieme: il modello viene sempre testato su sessioni che non ha mai visto.",
-    cap: "Il ciclo: verità etichettata → feature → RandomForest → foil_rf.pkl → valutazione di ogni sessione. Le nuove label rifluiscono indietro, il modello viene ri-allenato.",
-    fits: ["FIT dell'app di label", "foil_status · run_pumps"],
+    h: "Da dove viene la verità — toccare i pump",
+    p: "Il modello ha bisogno di una **verità di riferimento** per calibrare il contatore di pump guidato dalla cadenza — e per ora la tocco io stesso. Guardo il **video** di una corsa e **tocco un pulsante a ogni pump reale**. Lo faccio in **più take**; vengono combinati in un **consenso** tramite correlazione incrociata (i piccoli sfasamenti del tempo di reazione si mediano). Risultato: il vero numero di pump e il vero timing per ogni corsa. È volutamente una **soluzione transitoria** — abbastanza precisa per calibrare oggi, ma toccata a mano.",
+    p2: "Importante nel calibrare contro tali label: **GroupKFold** invece della normale cross-validation. Secondi vicini della stessa corsa sono quasi identici — se finissero contemporaneamente nel set di training e di test, il modello interrogherebbe se stesso (leakage) e riporterebbe valori da sogno. GroupKFold tiene perciò **intere sessioni** insieme: si testa sempre su corse che il modello non ha mai visto.",
+    cap: "Il ciclo: verità di pump **toccata** → feature → RandomForest → foil_rf.pkl → valutazione di ogni sessione. I nuovi tap rifluiscono indietro, il modello viene ricalibrato.",
+    fits: ["toccare i pump", "video · più take"],
     feats: ["Feature", "14 × ±5 s di contesto"],
     rf: ["RandomForest", "CV GroupKFold"],
     pkl: ["foil_rf.pkl", "→ ogni sessione"],
-    loopNote: "nuove sessioni etichettate → nuovo training",
+    loopNote: "nuove corse toccate → ricalibrare",
+  },
+  x5: {
+    h: "Il prossimo passo — la vera verità dalla camera (Insta360 X5)",
+    p: "Toccare basta per il bootstrap, ma dipende dal mio tempo di reazione. La verità **fisicamente esatta** arriverà poi da una **camera sul board**: una Insta360 X5 filma il mast/foil, e dal video si legge **con precisione al frame** quando il foil riceve davvero pressione e quando vola. Così calibriamo il timing dei pump e il riconoscimento on-foil contro la vera fisica invece che contro un'approssimazione toccata. Non appena il rig è pronto, qui arriverà una sezione dedicata con tutto il setup della camera.",
   },
   summary: {
     h: "Tutto il percorso in una frase",
@@ -1248,7 +1273,7 @@ const es: N2 = {
   },
   pump: {
     h: "Contar pumps — guiado por la cadencia (v3)",
-    p: "El camino obvio — «contar todos los picos por encima de un umbral de amplitud» — **subestima estructuralmente en ~2×**: solo espiga las mayores oscilaciones y se traga los pumps más pequeños y rítmicos de en medio. Contra la **verdad** (la app de etiquetado entrega `run_pumps`, más las etiquetas de tap por vídeo de Jan) eso acertaba solo ~40 %.",
+    p: "El camino obvio — «contar todos los picos por encima de un umbral de amplitud» — **subestima estructuralmente en ~2×**: solo espiga las mayores oscilaciones y se traga los pumps más pequeños y rítmicos de en medio. Contra la **verdad** (mi verdad de pump tocada, véase abajo) eso acertaba solo ~40 %.",
     p2: "El mejor enfoque es **guiado por la cadencia**: en tramos rítmicos y ricos en energía una FFT local estima la **frecuencia de pump instantánea**, y luego se elige como pump **exactamente un** máximo local real **por periodo de cadencia**. La cadencia es local-adaptativa, así que sigue los cambios de tempo. Resultado: **85–94 %** de acierto en vez de 40 % — y el contador y los marcadores del mapa son automáticamente consistentes (ambos salen de las mismas posiciones). Un gate de RMS evita que se cuenten fases de planeo sin ritmo.",
     cap: "El umbral de amplitud (arriba) solo ve los picos gruesos. Guiado por la cadencia (abajo): estimar el periodo local T, espigar el máximo real por periodo — también los pumps suaves.",
     top: "Umbral de amplitud — se traga los pumps pequeños",
@@ -1275,15 +1300,19 @@ const es: N2 = {
     ],
   },
   label: {
-    h: "De dónde aprende el modelo — etiquetado y el ciclo de reentrenamiento",
-    p: "El modelo de foil no se adivina, sino que se **entrena contra la verdad**. La fuente es una app de etiquetado separada: sus archivos FIT llevan un `foil_status` (sobre el foil sí/no por segundo) y `run_pumps` (número real de pumps por run). Esa es la ground truth contra la que se calibraron tanto el bosque on-foil como el contador de pumps guiado por la cadencia.",
-    p2: "Importante al entrenar: **GroupKFold** en vez de validación cruzada normal. Los segundos vecinos de una misma sesión son casi idénticos — si cayeran a la vez en el conjunto de entrenamiento y de test, el modelo se estaría preguntando a sí mismo (leakage) y reportaría valores de ensueño. Por eso GroupKFold mantiene juntas **sesiones enteras**: el modelo siempre se prueba con sesiones que nunca ha visto.",
-    cap: "El ciclo: verdad etiquetada → features → RandomForest → foil_rf.pkl → evaluación de cada sesión. Las nuevas etiquetas refluyen, el modelo se reentrena.",
-    fits: ["FITs de la app de etiquetado", "foil_status · run_pumps"],
+    h: "De dónde viene la verdad — tocar los pumps",
+    p: "El modelo necesita una **verdad de referencia** para calibrar el contador de pumps guiado por la cadencia — y por ahora la toco yo mismo. Miro el **vídeo** de una carrera y **toco un botón en cada pump real**. Lo hago en **varias tomas**; se combinan en un **consenso** por correlación cruzada (los pequeños desfases de tiempo de reacción se promedian). Resultado: el número real de pumps y el timing real por carrera. Es a propósito una **solución transitoria** — lo bastante precisa para calibrar hoy, pero tecleada a mano.",
+    p2: "Importante al calibrar contra tales labels: **GroupKFold** en vez de validación cruzada normal. Los segundos vecinos de una misma carrera son casi idénticos — si cayeran a la vez en el conjunto de entrenamiento y de test, el modelo se estaría preguntando a sí mismo (leakage) y reportaría valores de ensueño. Por eso GroupKFold mantiene juntas **sesiones enteras**: siempre se prueba con carreras que el modelo nunca ha visto.",
+    cap: "El ciclo: verdad de pump **tocada** → features → RandomForest → foil_rf.pkl → evaluación de cada sesión. Los nuevos taps refluyen, el modelo se recalibra.",
+    fits: ["tocar los pumps", "vídeo · varias tomas"],
     feats: ["Features", "14 × ±5 s de contexto"],
     rf: ["RandomForest", "CV con GroupKFold"],
     pkl: ["foil_rf.pkl", "→ cada sesión"],
-    loopNote: "nuevas sesiones etiquetadas → reentrenamiento",
+    loopNote: "nuevas carreras tocadas → recalibrar",
+  },
+  x5: {
+    h: "El siguiente paso — la verdad real por cámara (Insta360 X5)",
+    p: "Tocar basta para arrancar, pero depende de mi tiempo de reacción. La verdad **físicamente exacta** vendrá después de una **cámara en el board**: una Insta360 X5 filma el mástil/foil, y del vídeo se lee **con precisión de frame** cuándo el foil recibe presión de verdad y cuándo vuela. Con eso calibramos el timing de los pumps y la detección on-foil contra física real en vez de una aproximación tecleada. En cuanto el rig esté montado, aquí llegará una sección propia con todo el montaje de la cámara.",
   },
   summary: {
     h: "Todo el camino en una frase",

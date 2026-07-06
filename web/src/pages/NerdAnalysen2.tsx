@@ -375,6 +375,10 @@ export default function NerdAnalysen2() {
         <text x={400} y={158} textAnchor="middle" fontSize={10} fill={C.faint}>{c.label.loopNote}</text>
       </Diagram>
 
+      {/* ---------------- X5-Setup (kommt) ---------------- */}
+      <H>{c.x5.h}</H>
+      <Pr>{c.x5.p}</Pr>
+
       {/* ---------------- Zusammenfassung ---------------- */}
       <H>{c.summary.h}</H>
       <Key>
