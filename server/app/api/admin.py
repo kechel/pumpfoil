@@ -268,9 +268,9 @@ def _stat_condition(stat: str):
     U = models.User
     now = datetime.now(timezone.utc)
     day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    week = day - timedelta(days=day.weekday())
-    month = day.replace(day=1)
-    week_ago = now - timedelta(days=7)
+    week = now - timedelta(days=7)                  # rollende letzte 7 Tage
+    month = now - timedelta(days=30)                # rollende letzte 30 Tage
+    week_ago = week
     return {
         "today": U.last_seen_at >= day,
         "week": U.last_seen_at >= week,
@@ -333,9 +333,9 @@ def users_activity(_a: models.User = Depends(current_admin), db: Session = Depen
     Grundlage: User.last_seen_at (gedrosselt, kein Event-Tracking)."""
     now = datetime.now(timezone.utc)
     day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    week = day - timedelta(days=day.weekday())      # Montag 00:00
-    month = day.replace(day=1)
-    week_ago = now - timedelta(days=7)
+    week = now - timedelta(days=7)                  # rollende letzte 7 Tage
+    month = now - timedelta(days=30)                # rollende letzte 30 Tage
+    week_ago = week
     U = models.User
 
     def count(*conds) -> int:
