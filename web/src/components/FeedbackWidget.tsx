@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api";
-import { ChatBubbleIcon, CloseIcon } from "./Icons";
+import { MailIcon, CloseIcon } from "./Icons";
 import { MicButton } from "./MicButton";
 import { useT } from "../i18n";
 
@@ -41,7 +41,7 @@ export function FeedbackWidget() {
         title={t("feedback.open")}
         className="fixed right-0 top-1/2 z-[1500] -translate-y-1/2 rounded-l-xl bg-brand-500 px-2 py-3 text-slate-950 shadow-lg transition-transform hover:px-3"
       >
-        <ChatBubbleIcon className="h-5 w-5" />
+        <MailIcon className="h-5 w-5" />
       </button>
 
       {open && (

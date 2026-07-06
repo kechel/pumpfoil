@@ -250,6 +250,14 @@ export const ChatBubbleIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Umschlag — Feedback-Widget (klar von der Chat-Sprechblase unterschieden).
+export const MailIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m3 7 9 6 9-6" />
+  </svg>
+);
+
 export const EditIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M4 20h4L19 9l-4-4L4 16v4Z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
