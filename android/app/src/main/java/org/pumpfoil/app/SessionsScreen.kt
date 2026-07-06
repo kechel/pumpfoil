@@ -80,7 +80,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
-    var spotInput by remember { mutableStateOf("") }     // Eingabefeld
+    var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var feed by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
@@ -95,6 +95,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
 
     LaunchedEffect(Unit) {
         homespot = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: "" } catch (_: Exception) { "" }
+        spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
     }
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
@@ -140,7 +141,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = scope == Scope.MINE, onClick = { scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
+                    FilterChip(selected = scope == Scope.MINE, onClick = { spot = ""; scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
                     if (homespot.isNotBlank()) {
                         FilterChip(
                             selected = scope == Scope.SPOT && spot == homespot,
@@ -148,21 +149,18 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
                             label = { Text("📍$homespot") }, colors = cyanChipColors(),
                         )
                     }
-                    FilterChip(selected = scope == Scope.ALL, onClick = { scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
+                    FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
                 }
                 Spacer(Modifier.width(8.dp))
                 AccelSeg(accelOnly) { accelOnly = it }
             }
-            OutlinedTextField(
-                value = spotInput, onValueChange = { spotInput = it },
-                label = { Text(I18n.t("sessions.searchSpot")) }, singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = { if (spotInput.isNotBlank()) { spot = spotInput.trim(); scope = Scope.SPOT } }) {
-                        Icon(Icons.Filled.Search, contentDescription = "Suchen")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-            )
+            // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte).
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                SpotDropdown(spots, if (scope == Scope.SPOT) spot else "") { sel ->
+                    if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
+                    else { spot = sel; scope = Scope.SPOT }
+                }
+            }
             // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
             if (scope == Scope.MINE) {
                 Row(
@@ -443,6 +441,25 @@ private fun MonthDropdown(months: List<MonthCount>, month: String, onSelect: (St
             DropdownMenuItem(text = { Text(I18n.t("sessions.allMonths")) }, onClick = { onSelect(""); open = false })
             months.forEach { mc ->
                 DropdownMenuItem(text = { Text("${monthLabel(mc.month)} (${mc.count})") }, onClick = { onSelect(mc.month); open = false })
+            }
+        }
+    }
+}
+
+// Spot-Auswahl (wie das PWA-<select>): „Alle Spots" + jeder Spot; ersetzt die Freitext-Suche.
+@Composable
+private fun SpotDropdown(spots: List<String>, selected: String, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        AssistChip(
+            onClick = { open = true },
+            label = { Text(if (selected.isBlank()) I18n.t("all.allSpots") else "📍 $selected", maxLines = 1) },
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(I18n.t("all.allSpots")) }, onClick = { onSelect(""); open = false })
+            spots.forEach { s ->
+                DropdownMenuItem(text = { Text(s) }, onClick = { onSelect(s); open = false })
             }
         }
     }

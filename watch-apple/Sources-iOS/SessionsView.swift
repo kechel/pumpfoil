@@ -10,8 +10,8 @@ struct SessionsView: View {
     @State private var feed: [CommunityItem] = []
     @State private var scope: SessionScope = .mine
     @State private var homespot = ""
+    @State private var spotNames: [String] = []
     @State private var spot = ""          // aktiver Spot (für .spot)
-    @State private var spotInput = ""
     @State private var loading = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
@@ -37,18 +37,23 @@ struct SessionsView: View {
                     }
                 }
                 Section {
+                    // Scope-Umschalter in eigener Zeile, damit Meine | 📍Homespot | Alle immer
+                    // vollständig sichtbar sind (vorher im gequetschten H-Scroll -> „Alle" abgeschnitten).
+                    ScrollView(.horizontal, showsIndicators: false) { scopeChips }
                     HStack {
-                        ScrollView(.horizontal, showsIndicators: false) { scopeChips }
-                        Spacer(minLength: 8)
                         chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
                         chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
-                    }
-                    HStack {
-                        TextField(Loc.t("sessions.searchSpot", lang), text: $spotInput)
-                            .textInputAutocapitalization(.never)
-                            .onSubmit { applySpotSearch() }
-                        Button { applySpotSearch() } label: { Image(systemName: "magnifyingglass") }
-                            .buttonStyle(.borderless)
+                        Spacer()
+                        // Spot-Auswahl als Menü (statt Freitext-Suche, die exakte Namen brauchte).
+                        Menu {
+                            Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
+                            ForEach(spotNames, id: \.self) { s in
+                                Button(s) { spot = s; scope = .spot }
+                            }
+                        } label: {
+                            Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
+                                .font(.subheadline).lineLimit(1)
+                        }
                     }
                     if scope == .mine {
                         HStack(spacing: 8) {
@@ -101,6 +106,7 @@ struct SessionsView: View {
                     homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
                 }
                 suggestions = (try? await Api.mergeSuggestions()) ?? []
+                spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
                 await load()
             }
             .onChange(of: scope) { _ in Task { await load() } }
@@ -136,11 +142,11 @@ struct SessionsView: View {
 
     @ViewBuilder private var scopeChips: some View {
         HStack(spacing: 8) {
-            chip(Loc.t("sessions.mine", lang), scope == .mine) { scope = .mine }
+            chip(Loc.t("sessions.mine", lang), scope == .mine) { spot = ""; scope = .mine }
             if !homespot.isEmpty {
                 chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
             }
-            chip(Loc.t("sessions.all", lang), scope == .all) { scope = .all }
+            chip(Loc.t("sessions.all", lang), scope == .all && spot.isEmpty) { spot = ""; scope = .all }
         }
     }
 
@@ -148,11 +154,6 @@ struct SessionsView: View {
         Button(action: action) { Text(label).font(.subheadline) }
             .buttonStyle(.bordered)
             .tint(active ? .accentColor : .secondary)
-    }
-
-    private func applySpotSearch() {
-        let s = spotInput.trimmingCharacters(in: .whitespaces)
-        if !s.isEmpty { spot = s; scope = .spot }
     }
 
     private func load() async {

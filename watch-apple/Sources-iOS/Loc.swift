@@ -156,6 +156,7 @@ enum Loc {
         "sessions.allMonths": r("Alle Monate", "Alli Mönet", "Olle Monat", "All months", "Tous les mois", "Tutti i mesi", "Todos los meses"),
         "sessions.noneMonth": r("Keine Sessions in diesem Monat.", "Kei Sessions i dem Monet.", "Kane Sessions in dem Monat.", "No sessions this month.", "Aucune session ce mois-ci.", "Nessuna sessione questo mese.", "No hay sesiones este mes."),
         "sessions.listEnd": r("— Ende —", "— Ändi —", "— aus —", "— End —", "— Fin —", "— Fine —", "— Fin —"),
+        "all.allSpots": r("Alle Spots", "Alli Spots", "Olle Spots", "All spots", "Tous les spots", "Tutti gli spot", "Todos los spots"),
         "profile.changePw": r("Passwort ändern", "Passwort ändere", "Passwort ändern", "Change password", "Changer le mot de passe", "Cambia password", "Cambiar contraseña"),
         "profile.changePwHint": r("Aktuelles Passwort zur Bestätigung, dann neues setzen.", "Aktuells Passwort zum Bestätige, denn s nöie setze.", "Aktuelles Passwort zur Bestätigung, dann s neue setzn.", "Current password to confirm, then set a new one.", "Mot de passe actuel pour confirmer, puis définir le nouveau.", "Password attuale per conferma, poi imposta quella nuova.", "Contraseña actual para confirmar, luego establece la nueva."),
         "profile.curPw": r("Aktuelles Passwort", "Aktuells Passwort", "Aktuells Passwort", "Current password", "Mot de passe actuel", "Password attuale", "Contraseña actual"),
