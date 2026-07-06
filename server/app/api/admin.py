@@ -13,7 +13,7 @@ import shutil
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from .. import models, storage
@@ -160,6 +160,54 @@ def dismiss_reports(
 
 
 # ------------------------------------------------------------------- Users ----
+# Anzeige-Namen der Uhr-Plattformen (DeviceToken.platform).
+_PLATFORM_NAME = {"garmin": "Garmin", "wear": "Wear OS", "apple": "Apple Watch"}
+
+
+def _user_watches(db: Session, uid: int) -> list[dict]:
+    """Gepaarte Uhren des Nutzers (aus DeviceToken): Plattform + Modell (Part-Number →
+    partmap) + gemeldete App-Version + zuletzt gesehen. Nur nicht-widerrufene."""
+    from .devices import _partmap
+
+    pm = _partmap()
+    rows = (
+        db.query(models.DeviceToken)
+        .filter_by(user_id=uid)
+        .filter(models.DeviceToken.revoked_at.is_(None))
+        .order_by(models.DeviceToken.last_seen_at.desc().nullslast())
+        .all()
+    )
+    out = []
+    for d in rows:
+        model = None
+        if d.part_number:
+            m = pm.get(d.part_number)
+            model = m["name"] if m else None
+        out.append({
+            "platform": d.platform,
+            "name": model or d.label or _PLATFORM_NAME.get(d.platform or "", d.platform or "?"),
+            "version": d.app_version,
+            "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
+        })
+    return out
+
+
+def _user_oauth(db: Session, uid: int) -> list[str]:
+    """Verknüpfte Login-Identitäten (google|apple|strava|garmin)."""
+    rows = db.query(models.OAuthIdentity.provider).filter_by(user_id=uid).distinct().all()
+    return sorted({r[0] for r in rows if r[0]})
+
+
+def _user_links(db: Session, uid: int) -> list[str]:
+    """Verknüpfte Import-Konten (Datenquellen), die für diesen Nutzer bestehen."""
+    out = []
+    for name, Model in (("polar", models.PolarLink), ("coros", models.CorosLink),
+                        ("suunto", models.SuuntoLink), ("strava", models.StravaLink)):
+        if db.query(Model.id).filter_by(user_id=uid).first():
+            out.append(name)
+    return out
+
+
 def _user_brief(db: Session, u: models.User) -> dict:
     nsess = int(db.query(func.count()).select_from(models.Session)
                 .filter_by(user_id=u.id).filter(models.Session.deleted.isnot(True)).scalar() or 0)
@@ -175,6 +223,10 @@ def _user_brief(db: Session, u: models.User) -> dict:
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "last_seen_at": u.last_seen_at.isoformat() if u.last_seen_at else None,
         "sessions": nsess,
+        # Welche Uhren + Konten der Nutzer verwendet (nur Admin-Ansicht).
+        "watches": _user_watches(db, u.id),
+        "oauth": _user_oauth(db, u.id),
+        "links": _user_links(db, u.id),
     }
 
 
@@ -215,11 +267,43 @@ def list_users(
     q: str | None = Query(None), limit: int = 50, offset: int = 0,
     normal: bool = Query(True), tester: bool = Query(True),
     admin: bool = Query(True), new: bool = Query(True),
+    sort: str = Query("id"),   # id | seen (zuletzt aktiv) | created (neueste) | sessions
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
     query = _filtered_users(db, q, normal, tester, admin, new)
-    rows = query.order_by(models.User.id.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 200)).all()
+    U = models.User
+    if sort == "seen":
+        order = U.last_seen_at.desc().nullslast()
+    elif sort == "created":
+        order = U.created_at.desc().nullslast()
+    elif sort == "sessions":
+        sub = (select(func.count()).select_from(models.Session)
+               .where(models.Session.user_id == U.id, models.Session.deleted.isnot(True))
+               .scalar_subquery())
+        order = sub.desc()
+    else:
+        order = U.id.desc()
+    rows = query.order_by(order).offset(max(offset, 0)).limit(min(max(limit, 1), 200)).all()
     return [_user_brief(db, u) for u in rows]
+
+
+@router.get("/users/activity")
+def users_activity(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Aktive (zuletzt gesehene) Nutzer je Zeitfenster (UTC-Kalender) + Gesamtzahl.
+    Grundlage: User.last_seen_at (gedrosselt, kein Event-Tracking)."""
+    now = datetime.now(timezone.utc)
+    day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week = day - timedelta(days=day.weekday())      # Montag 00:00
+    month = day.replace(day=1)
+    U = models.User
+
+    def active_since(since) -> int:
+        return int(db.query(func.count()).select_from(U)
+                   .filter(U.last_seen_at.isnot(None), U.last_seen_at >= since).scalar() or 0)
+
+    total = int(db.query(func.count()).select_from(U).scalar() or 0)
+    return {"today": active_since(day), "week": active_since(week),
+            "month": active_since(month), "total": total}
 
 
 @router.get("/users/count")

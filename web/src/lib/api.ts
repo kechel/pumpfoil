@@ -251,7 +251,22 @@ export interface AdminUser {
   created_at: string | null;
   last_seen_at: string | null;   // zuletzt aktiv (Admin)
   sessions: number;
+  watches?: AdminWatch[];        // gepaarte Uhren (Plattform + Modell + Version)
+  oauth?: string[];              // Login-Identitäten (google|apple|strava|garmin)
+  links?: string[];              // Import-Konten (polar|coros|suunto|strava)
 }
+
+export interface AdminWatch {
+  platform: string | null;       // garmin | wear | apple
+  name: string;                  // Modellname (partmap) oder Label
+  version: string | null;        // gemeldete App-Version
+  last_seen_at: string | null;
+}
+
+export interface AdminUserActivity { today: number; week: number; month: number; total: number; }
+
+// Sortierung der Nutzerliste.
+export type UserSort = "id" | "seen" | "created" | "sessions";
 
 // Kategorie-Filter der Nutzerverwaltung (alle default true).
 export interface UserFilter { normal: boolean; tester: boolean; admin: boolean; new: boolean; }
@@ -554,10 +569,11 @@ export const api = {
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/dismiss?kind=${kind}`, { method: "POST" }),
   adminDeleteSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/delete`, { method: "POST" }),
   adminRestoreSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/restore`, { method: "POST" }),
-  adminUsers: (q = "", limit = 30, offset = 0, f?: UserFilter) =>
-    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}${q ? "&q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
+  adminUsers: (q = "", limit = 30, offset = 0, f?: UserFilter, sort: UserSort = "id") =>
+    req<AdminUser[]>(`/api/admin/users?limit=${limit}&offset=${offset}&sort=${sort}${q ? "&q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
   adminUsersCount: (q = "", f?: UserFilter) =>
     req<{ total: number }>(`/api/admin/users/count?${q ? "q=" + encodeURIComponent(q) : ""}${userFilterQS(f)}`),
+  adminUsersActivity: () => req<AdminUserActivity>("/api/admin/users/activity"),
   adminBlockUser: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/users/${id}/block?blocked=${blocked}`, { method: "POST" }),
   adminHideUser: (id: number, hidden: boolean) =>

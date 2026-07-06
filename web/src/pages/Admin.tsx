@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
@@ -27,19 +27,17 @@ export default function Admin() {
   const setTab = (tb: Tab) => setSp(new URLSearchParams({ tab: tb }));  // frischer Tab (Suche/Filter weg)
   return (
     <div>
-      <h2 className="mb-1 text-2xl font-bold">{t("adm.title")}</h2>
-      <p className="mb-4 text-sm text-slate-300">{t("adm.subtitle")}</p>
-      <div className="mb-5 flex flex-wrap gap-1">
+      <nav className="mb-5 flex flex-wrap gap-0.5 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
         {TABS.map(([k, labelKey]) => (
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`rounded-lg px-3 py-1.5 text-xs ${tab === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+            className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${tab === k ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"}`}
           >
             {t(labelKey)}
           </button>
         ))}
-      </div>
+      </nav>
       {tab === "overview" && <OverviewTab />}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
@@ -262,25 +260,36 @@ function UsersTab() {
     setSp(n);
   };
   const [filter, setFilter] = useState<UserFilter>({ normal: true, tester: true, admin: true, new: true });
+  const [sort, setSort] = useState<UserSort>("seen");
   const [total, setTotal] = useState<number | null>(null);
+  const [act, setAct] = useState<AdminUserActivity | null>(null);
   const toggle = (k: keyof UserFilter) => setFilter((f) => ({ ...f, [k]: !f[k] }));
   const { items, setItems, loading, sentinel } = useInfinite<AdminUser>(
-    (off) => api.adminUsers(query, 30, off, filter),
-    [query, filter.normal, filter.tester, filter.admin, filter.new]);
+    (off) => api.adminUsers(query, 30, off, filter, sort),
+    [query, filter.normal, filter.tester, filter.admin, filter.new, sort]);
   useEffect(() => {
     setTotal(null);
     api.adminUsersCount(query, filter).then((r) => setTotal(r.total)).catch(() => {});
   }, [query, filter.normal, filter.tester, filter.admin, filter.new]);
+  useEffect(() => { api.adminUsersActivity().then(setAct).catch(() => {}); }, []);
   const upd = (id: number, patch: Partial<AdminUser>) =>
     setItems((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
   return (
     <div>
-      <form onSubmit={(e) => { e.preventDefault(); setQuery(q); }} className="mb-3 flex gap-2">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.searchUsers")}
-          className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-        <button className="rounded-xl bg-slate-800 px-4 text-sm text-slate-200">{t("common.search")}</button>
-      </form>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {([["today", "adm.act.today"], ["week", "adm.act.week"], ["month", "adm.act.month"], ["total", "adm.act.total"]] as const).map(([k, lbl]) => (
+          <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+            <div className="text-2xl font-bold tabular-nums text-brand-400">{act ? act[k] : "…"}</div>
+            <div className="text-[11px] text-slate-400">{t(lbl)}</div>
+          </div>
+        ))}
+      </div>
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <form onSubmit={(e) => { e.preventDefault(); setQuery(q); }} className="flex gap-2">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.searchUsers")}
+            className="w-44 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100" />
+          <button className="rounded-xl bg-slate-800 px-3 text-sm text-slate-200">{t("common.search")}</button>
+        </form>
         {FILTER_KEYS.map((k) => (
           <label key={k} className="flex cursor-pointer select-none items-center gap-1.5 text-sm text-slate-300">
             <input type="checkbox" checked={filter[k]} onChange={() => toggle(k)}
@@ -288,6 +297,16 @@ function UsersTab() {
             {t(`adm.filter.${k}`)}
           </label>
         ))}
+        <label className="flex items-center gap-1.5 text-sm text-slate-300">
+          <span className="text-xs text-slate-400">{t("adm.sortBy")}</span>
+          <select value={sort} onChange={(e) => setSort(e.target.value as UserSort)}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+            <option value="seen">{t("adm.sort.seen")}</option>
+            <option value="created">{t("adm.sort.created")}</option>
+            <option value="sessions">{t("adm.sort.sessions")}</option>
+            <option value="id">{t("adm.sort.id")}</option>
+          </select>
+        </label>
         <span className="ml-auto text-xs text-slate-400">{total === null ? "…" : t("adm.foundCount", { count: total })}</span>
       </div>
       {items.length === 0 && !loading ? <Card className="p-8 text-center text-slate-300">{t("adm.noUsers")}</Card> : (
@@ -330,6 +349,25 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
           <div className="truncate text-[11px] text-slate-500">
             {t("adm.lastSeen")}: {u.last_seen_at ? new Date(u.last_seen_at).toLocaleString() : "–"}
           </div>
+          {((u.watches?.length ?? 0) + (u.oauth?.length ?? 0) + (u.links?.length ?? 0)) > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {u.watches?.map((w, i) => (
+                <span key={"w" + i} title={t("adm.watchTip")} className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">
+                  ⌚ {w.name}{w.version ? ` ${w.version}` : ""}
+                </span>
+              ))}
+              {u.oauth?.map((p) => (
+                <span key={"o" + p} title={t("adm.loginTip")} className="rounded bg-sky-900/50 px-1.5 py-0.5 text-[10px] capitalize text-sky-200">
+                  🔑 {p}
+                </span>
+              ))}
+              {u.links?.map((p) => (
+                <span key={"l" + p} title={t("adm.importTip")} className="rounded bg-emerald-900/40 px-1.5 py-0.5 text-[10px] capitalize text-emerald-200">
+                  ↔ {p}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to={`/admin?tab=sessions&user=${u.id}`} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{t("adm.sessionsLink")}</Link>
