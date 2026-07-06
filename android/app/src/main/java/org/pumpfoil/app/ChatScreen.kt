@@ -70,10 +70,11 @@ fun ChatScreen() {
     else ChatRoomView(r, onBack = { room = null })
 }
 
-// Öffentlicher Einstieg in einen bestimmten Chatraum (Spot-Chat) von außerhalb des Chat-Tabs.
+// Öffentlicher Einstieg in einen bestimmten Chatraum per scope (Spot-/Session-Chat) von
+// außerhalb des Chat-Tabs — generisch für alle Direkt-Links (Spot-Buttons, Home „Meine Chats").
 @Composable
-fun SpotChatScreen(spot: String, onBack: () -> Unit) {
-    ChatRoomView(ChatRoom(scope = "spot:$spot", label = spot), onBack = onBack)
+fun ChatRoomByScope(scope: String, label: String, onBack: () -> Unit) {
+    ChatRoomView(ChatRoom(scope = scope, label = label), onBack = onBack)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

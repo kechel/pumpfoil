@@ -60,7 +60,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}) {
+fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
@@ -222,7 +222,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 Text(I18n.t("home.myChats"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 rooms.forEach { room ->
-                    Card(Modifier.fillMaxWidth().padding(vertical = 3.dp).clickable { onOpenChat() }) {
+                    Card(Modifier.fillMaxWidth().padding(vertical = 3.dp).clickable { onOpenChatRoom(room.scope, room.label) }) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(room.label, fontWeight = FontWeight.Medium)

@@ -117,8 +117,8 @@ fun MainScaffold(onLogout: () -> Unit) {
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }) }
-            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") }) }
+            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }) }
+            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
@@ -130,15 +130,23 @@ fun MainScaffold(onLogout: () -> Unit) {
                     spot = entry.arguments?.getString("name").orEmpty(),
                     onBack = { nav.popBackStack() },
                     onOpen = { id -> nav.navigate("session/$id") },
-                    onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") },
+                    onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
                 )
             }
             composable("chat") { ChatScreen() }
+            // Generische Chatraum-Route (nach scope) für alle Direkt-Links — Spot-Buttons & Home-Chats.
             composable(
-                "spotchat/{name}",
-                arguments = listOf(navArgument("name") { type = NavType.StringType }),
+                "chatroom/{scope}?label={label}",
+                arguments = listOf(
+                    navArgument("scope") { type = NavType.StringType },
+                    navArgument("label") { type = NavType.StringType; defaultValue = "" },
+                ),
             ) { entry ->
-                SpotChatScreen(spot = entry.arguments?.getString("name").orEmpty(), onBack = { nav.popBackStack() })
+                ChatRoomByScope(
+                    scope = entry.arguments?.getString("scope").orEmpty(),
+                    label = entry.arguments?.getString("label").orEmpty(),
+                    onBack = { nav.popBackStack() },
+                )
             }
             composable("profile") {
                 ProfileScreen(
@@ -180,7 +188,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onBack = { nav.popBackStack() },
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
-                    onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") },
+                    onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
                 )
             }
             composable(
