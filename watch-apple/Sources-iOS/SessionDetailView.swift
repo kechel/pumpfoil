@@ -49,6 +49,14 @@ struct SessionDetailView: View {
         .navigationTitle(Loc.t("sd.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // Spot-Chat der Session (scope "spot:<name>") — für jede Session mit Spot.
+            if let sp = session?.place_name, !sp.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { ChatRoomView(scope: "spot:\(sp)", title: sp) } label: {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                    }
+                }
+            }
             if session?.owned == true {
                 if session?.analysis?.track_geojson != nil {
                     ToolbarItem(placement: .topBarTrailing) {
