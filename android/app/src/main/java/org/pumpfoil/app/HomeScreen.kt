@@ -84,9 +84,42 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     }
     val showBanner = news?.let { it.enabled && it.version > newsVer } ?: false
     var showFeedback by remember { mutableStateOf(false) }
+    var showRating by remember { mutableStateOf(false) }
     val tick by WatchSync.tick.collectAsState()
 
     if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
+    if (showRating) {
+        val prefsR = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+        val snooze14 = { prefsR.edit().putLong("rating_snooze", System.currentTimeMillis() + 14L * 24 * 3600 * 1000).apply() }
+        RatingDialog(
+            onLater = { snooze14(); showRating = false },
+            onRated = { prefsR.edit().putBoolean("rating_done", true).apply(); showRating = false },   // >=4 Sterne -> nie mehr
+            // <=3 Sterne + Feedback: wieder, aber nur wenn seither neue Sessions da sind. Degressiv:
+            // 1. Mal 14 Tage, ab dem 2. Mal 3 Monate (Rhythmus beibehalten).
+            onFeedback = {
+                val fc = prefsR.getInt("rating_feedback_count", 0) + 1
+                val days = if (fc >= 2) 90L else 14L
+                prefsR.edit()
+                    .putInt("rating_feedback_count", fc)
+                    .putLong("rating_snooze", System.currentTimeMillis() + days * 24 * 3600 * 1000)
+                    .putInt("rating_min_count", stats?.count ?: 0)
+                    .apply()
+                showRating = false
+            },
+        )
+    }
+    // App-Rating: ab 5 gesyncten Sessions; nicht wenn „erledigt" (>=4 Sterne); Snooze abgelaufen;
+    // nach Feedback erst wieder, wenn seither neue Sessions dazukamen (count > rating_min_count).
+    LaunchedEffect(stats?.count) {
+        val c = stats?.count ?: 0
+        val p = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+        if (c >= 5 && !p.getBoolean("rating_done", false) &&
+            System.currentTimeMillis() >= p.getLong("rating_snooze", 0L) &&
+            c > p.getInt("rating_min_count", 0)
+        ) {
+            showRating = true
+        }
+    }
 
     LaunchedEffect(Unit) { news = runCatching { Api.newsBanner() }.getOrNull() }
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.

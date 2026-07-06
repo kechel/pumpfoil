@@ -23,6 +23,13 @@ struct HomeView: View {
     // News-Banner DB-gesteuert (wie PWA): der AppStorage-Wert = zuletzt weggeklickte VERSION.
     @AppStorage("foil_banner_v1") private var newsVerStored = 0
     @State private var news: NewsBanner?
+    // App-Rating: ab 5 gesyncten Sessions; >=4★ -> nie mehr; Später -> 14 T; Feedback (<=3★) ->
+    // 14 T (ab 2. Mal 3 Monate), erst wieder wenn seither neue Sessions da sind.
+    @AppStorage("rating_done") private var ratingDone = false
+    @AppStorage("rating_snooze") private var ratingSnooze = 0.0
+    @AppStorage("rating_min_count") private var ratingMinCount = 0
+    @AppStorage("rating_fb_count") private var ratingFbCount = 0
+    @State private var showRating = false
     private var showBanner: Bool { if let n = news { return n.enabled && n.version > newsVerStored } else { return false } }
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
@@ -128,11 +135,24 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
+            .sheet(isPresented: $showRating) {
+                RatingView(
+                    lang: lang,
+                    onLater: { ratingSnooze = Date().timeIntervalSince1970 + 14 * 24 * 3600 },
+                    onRated: { ratingDone = true },   // >=4 Sterne -> nie mehr
+                    onFeedback: {
+                        ratingFbCount += 1
+                        let days: Double = ratingFbCount >= 2 ? 90 : 14   // ab 2. Feedback 3-Monats-Rhythmus
+                        ratingSnooze = Date().timeIntervalSince1970 + days * 24 * 3600
+                        ratingMinCount = stats?.count ?? 0                // erst wieder bei neuen Sessions
+                    })
+            }
             .overlay { if loading && stats == nil { ProgressView() } }
             .refreshable { await load() }
             .task { await load() }
             .task { await checkUpdate() }
             .onChange(of: sync.tick) { _ in Task { await load() } }
+            .onChange(of: stats?.count) { _ in maybeShowRating() }
             .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
         }
     }
@@ -183,6 +203,13 @@ struct HomeView: View {
         .padding(12)
         .background(Color.accentColor.opacity(0.15))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func maybeShowRating() {
+        let c = stats?.count ?? 0
+        if c >= 5 && !ratingDone && Date().timeIntervalSince1970 >= ratingSnooze && c > ratingMinCount {
+            showRating = true
+        }
     }
 
     private func checkUpdate() async {
