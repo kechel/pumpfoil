@@ -68,21 +68,26 @@ struct HomeView: View {
                         Text(Loc.t("home.myChats", lang)).font(.headline)
                         VStack(spacing: 0) {
                             ForEach(rooms) { room in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(room.label).fontWeight(.medium)
-                                        if !room.last_text.isEmpty {
-                                            Text(room.last_text).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                NavigationLink { ChatRoomView(scope: room.scope, title: room.label) } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(room.label).fontWeight(.medium).foregroundStyle(.primary)
+                                            if !room.last_text.isEmpty {
+                                                Text(room.last_text).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                            }
                                         }
+                                        Spacer()
+                                        if room.unread > 0 {
+                                            Text("\(room.unread)").font(.caption2).foregroundStyle(.white)
+                                                .padding(.horizontal, 7).padding(.vertical, 2)
+                                                .background(Color.accentColor, in: Capsule())
+                                        }
+                                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                                     }
-                                    Spacer()
-                                    if room.unread > 0 {
-                                        Text("\(room.unread)").font(.caption2).foregroundStyle(.white)
-                                            .padding(.horizontal, 7).padding(.vertical, 2)
-                                            .background(Color.accentColor, in: Capsule())
-                                    }
+                                    .contentShape(Rectangle())
+                                    .padding(.vertical, 6)
                                 }
-                                .padding(.vertical, 6)
+                                .buttonStyle(.plain)
                                 Divider()
                             }
                         }

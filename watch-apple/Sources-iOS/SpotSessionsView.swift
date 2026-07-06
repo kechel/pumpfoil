@@ -21,6 +21,14 @@ struct SpotSessionsView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("📍 \(spot)")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Spot-Chat (scope "spot:<name>", wie Web/PWA) — fehlte bisher auf iOS.
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                }
+            }
+        }
         .overlay { if loading && items.isEmpty { ProgressView() } }
         .refreshable { await load() }
         .task { if items.isEmpty { await load() } }

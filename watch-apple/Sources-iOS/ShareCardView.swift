@@ -229,8 +229,9 @@ struct ShareCardView: View {
                 let x = (n - w) / 2 + offset.width
                 let y = (n - h) / 2 + offset.height
                 p.draw(in: CGRect(x: x, y: y, width: w, height: h))
+                // Scrim MUSS mit .normal blenden — ctx.fill nutzt sonst .copy und LÖSCHT das Foto.
                 UIColor(red: 2.0/255.0, green: 6.0/255.0, blue: 23.0/255.0, alpha: CGFloat(dim)).setFill()
-                ctx.fill(CGRect(x: 0, y: 0, width: n, height: n))
+                ctx.fill(CGRect(x: 0, y: 0, width: n, height: n), blendMode: .normal)
             }
             card.draw(in: CGRect(x: 0, y: 0, width: n, height: n))
         }
