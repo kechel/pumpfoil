@@ -676,7 +676,7 @@ const es: Record<string, string> = {
 
   "phome.hello": "Hola, {name}",
   "banner.msg": "es totalmente nuevo (desde el 23 de junio de 2026) — nuevas funciones y foils casi a diario. Dime qué te gusta (y qué no): pulsa el 💬 de la derecha →",
-  "banner.news": "🎉 ¡Nueva app de Android e iOS ya disponible en la tienda!",
+  "banner.news": "¡Nueva app de Android e iOS ya disponible en la tienda!",
   "banner.nerdLead": "🤓 Análisis para nerds:",
   "banner.nerd1": "Parte 1 — el experimento",
   "banner.nerd2": "Parte 2 — cómo funciona",

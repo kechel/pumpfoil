@@ -44,9 +44,7 @@ export function WelcomeBanner() {
         className="absolute right-2 top-2 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-slate-200">
         <CloseIcon className="h-4 w-4" />
       </button>
-      <Link to="/import" className="mb-1.5 block text-sm font-bold text-brand-300 hover:underline">
-        {t("banner.news")}
-      </Link>
+      <p className="mb-1.5 text-sm font-bold text-brand-300">{t("banner.news")}</p>
       <p className="text-sm leading-relaxed text-slate-200">
         👋 <span className="font-semibold">Pumpfoil<span className="text-brand-400">.org</span></span> {t("banner.msg")}
       </p>
