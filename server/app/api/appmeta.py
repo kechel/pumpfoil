@@ -16,9 +16,9 @@ router = APIRouter(prefix="/api/app", tags=["app"])
 # ---- MANUELL PFLEGEN nach jedem Store-Release (siehe Modul-Docstring) ----
 _APP_META: dict[str, dict[str, str]] = {
     "ios": {
-        "latest": "",          # TODO Jan: nach Review setzen, z. B. "1.1.8"
+        "latest": "1.1.8",     # FREIGEGEBEN 2026-07-06 (eligible for distribution)
         "min_supported": "",
-        "store_url": "https://apps.apple.com/app/pumpfoil/id0000000000",  # TODO Jan: echte App-ID
+        "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "android": {
         "latest": "",          # TODO Jan: nach Review setzen, z. B. "1.1.6"
