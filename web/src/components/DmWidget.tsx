@@ -50,10 +50,17 @@ export function DmWidget() {
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
+    const oid = active.otherId;
     if (active.blocked) {
-      api.chatUnblock(active.otherId).then(() => setActive((a) => a && { ...a, blocked: false })).catch(() => {});
+      api.chatUnblock(oid).then(() => {
+        setActive((a) => a && { ...a, blocked: false });
+        setBlocked((s) => { const n = new Set(s); n.delete(oid); return n; });
+      }).catch(() => {});
     } else if (confirm(t("dm.blockConfirm", { name: active.name || "?" }))) {
-      api.chatBlock(active.otherId).then(() => setActive((a) => a && { ...a, blocked: true })).catch(() => {});
+      api.chatBlock(oid).then(() => {
+        setActive((a) => a && { ...a, blocked: true });
+        setBlocked((s) => new Set(s).add(oid));
+      }).catch(() => {});
     }
   };
 
