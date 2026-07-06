@@ -352,17 +352,17 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
           {((u.watches?.length ?? 0) + (u.oauth?.length ?? 0) + (u.links?.length ?? 0)) > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {u.watches?.map((w, i) => (
-                <span key={"w" + i} title={t("adm.watchTip")} className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">
+                <span key={"w" + i} title={t("adm.watchTip")} className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] text-slate-200">
                   ⌚ {w.name}{w.version ? ` ${w.version}` : ""}
                 </span>
               ))}
               {u.oauth?.map((p) => (
-                <span key={"o" + p} title={t("adm.loginTip")} className="rounded bg-sky-900/50 px-1.5 py-0.5 text-[10px] capitalize text-sky-200">
+                <span key={"o" + p} title={t("adm.loginTip")} className="rounded bg-sky-400 px-1.5 py-0.5 text-[10px] capitalize text-sky-950">
                   🔑 {p}
                 </span>
               ))}
               {u.links?.map((p) => (
-                <span key={"l" + p} title={t("adm.importTip")} className="rounded bg-emerald-900/40 px-1.5 py-0.5 text-[10px] capitalize text-emerald-200">
+                <span key={"l" + p} title={t("adm.importTip")} className="rounded bg-emerald-400 px-1.5 py-0.5 text-[10px] capitalize text-emerald-950">
                   ↔ {p}
                 </span>
               ))}
