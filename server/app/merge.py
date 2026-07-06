@@ -75,6 +75,11 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
         return False, "unterschiedliche Geraete-Raten"
     if any(not _same_spot(a, b) for a in sessions for b in sessions):
         return False, "Sessions an verschiedenen Spots"
+    # Nur Sessions DESSELBEN Tages zusammenführen (wie Web/mergeableIds) — verhindert das
+    # versehentliche Verschmelzen unabhängiger Sessions verschiedener Tage.
+    days = {s.started_at.astimezone().date() for s in sessions if s.started_at is not None}
+    if len(days) > 1:
+        return False, "Sessions von verschiedenen Tagen"
     return True, ""
 
 
