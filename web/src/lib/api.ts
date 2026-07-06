@@ -300,6 +300,8 @@ export interface AdminOverview {
 
 export interface AdminPending { flagged: number; fake: number; total: number; }
 
+export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; }
+
 export interface AdminAuditEntry {
   id: number; action: string; target_type: string; target_id: number | null;
   detail: string | null; at: string | null; admin: string | null;
@@ -558,6 +560,9 @@ export const api = {
   appDevices: () => req<AppDevice[]>("/api/app/devices"),
   adminOverview: () => req<AdminOverview>("/api/admin/overview"),
   adminPending: () => req<AdminPending>("/api/admin/pending"),
+  newsBanner: () => req<NewsBanner>("/api/app/news"),
+  adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
+  adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
   adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
   adminRenameSpot: (id: number, name: string) => req<{ ok: boolean; name: string }>(`/api/admin/spots/${id}/rename?name=${encodeURIComponent(name)}`, { method: "POST" }),

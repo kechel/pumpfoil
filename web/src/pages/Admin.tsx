@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
-type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback";
+type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["flagged", "adm.tab.flagged"],
@@ -17,6 +17,7 @@ const TABS: [Tab, string][] = [
   ["sessions", "adm.tab.sessions"],
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
+  ["news", "adm.tab.news"],
   ["audit", "adm.tab.audit"],
 ];
 
@@ -48,6 +49,7 @@ export default function Admin() {
       {tab === "chat" && <ChatModTab />}
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
+      {tab === "news" && <NewsTab />}
       {tab === "audit" && <AuditTab />}
     </div>
   );
@@ -120,6 +122,62 @@ function OverviewTab() {
           <Card key={labelKey} className="p-3">{inner}</Card>
         );
       })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- News-Banner ----
+const NEWS_LANGS: [string, string][] = [
+  ["de", "Deutsch"], ["gsw", "Schwiizerdütsch"], ["de-AT", "Österreichisch"],
+  ["en", "English"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"],
+];
+
+function NewsTab() {
+  const t = useT();
+  const [n, setN] = useState<NewsBanner | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => { api.adminNewsGet().then(setN).catch(() => {}); }, []);
+  if (!n) return <Spinner />;
+  const setText = (l: string, v: string) => setN({ ...n, texts: { ...n.texts, [l]: v } });
+  const save = async () => {
+    setSaving(true);
+    try { const r = await api.adminNewsSet(n); setN(r); setSaved(true); setTimeout(() => setSaved(false), 2000); }
+    finally { setSaving(false); }
+  };
+  return (
+    <div className="max-w-2xl space-y-4">
+      <Card className="space-y-3 p-4">
+        <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-slate-200">
+          <input type="checkbox" checked={n.enabled} onChange={(e) => setN({ ...n, enabled: e.target.checked })}
+            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-500 focus:ring-brand-500" />
+          {t("adm.news.enabled")}
+        </label>
+        <div className="flex items-center gap-2 text-sm text-slate-200">
+          <span>{t("adm.news.version")}</span>
+          <input type="number" value={n.version} onChange={(e) => setN({ ...n, version: Number(e.target.value) })}
+            className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100" />
+          <button onClick={() => setN({ ...n, version: n.version + 1 })}
+            className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-600">{t("adm.news.bump")}</button>
+          <span className="text-xs text-slate-400">{t("adm.news.versionHint")}</span>
+        </div>
+      </Card>
+      <div className="space-y-2">
+        {NEWS_LANGS.map(([l, label]) => (
+          <div key={l}>
+            <div className="mb-0.5 text-xs text-slate-400">{label}</div>
+            <textarea value={n.texts[l] || ""} onChange={(e) => setText(l, e.target.value)} rows={2}
+              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={saving}
+          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+          {saving ? "…" : saved ? t("adm.news.saved") : t("adm.news.save")}
+        </button>
+        <span className="text-xs text-slate-400">{t("adm.news.hint")}</span>
+      </div>
     </div>
   );
 }

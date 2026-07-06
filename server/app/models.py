@@ -538,3 +538,19 @@ class StravaLink(Base):
     athlete_id: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class NewsBanner(Base):
+    """Singleton (id=1): Inhalt + Version des Willkommens-/News-Banners der PWA.
+    Wird per API abgefragt; die PWA vergleicht `version` mit ihrem localStorage-Wert
+    und zeigt den Banner, wenn `enabled` und version > weggeklickte Version. So lässt
+    sich News posten, ohne die PWA neu zu bauen — nur `version` bumpen / `text_json` ändern.
+    text_json = JSON {lang: text} (de/gsw/de-AT/en/fr/it/es), Fallback auf 'de'."""
+
+    __tablename__ = "news_banner"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    text_json: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

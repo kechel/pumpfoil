@@ -12,7 +12,9 @@ import shutil
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import json
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -587,6 +589,48 @@ def overview(_a: models.User = Depends(current_admin), db: Session = Depends(get
         "photos_blocked": c(models.SessionPhoto, models.SessionPhoto.blocked.is_(True)),
         "likes": c(models.SessionLike),
     }
+
+
+def _news_row(db: Session) -> "models.NewsBanner":
+    row = db.query(models.NewsBanner).first()
+    if row is None:
+        row = models.NewsBanner(version=1, enabled=False, text_json="{}")
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+    return row
+
+
+def _news_dict(row: "models.NewsBanner") -> dict:
+    return {"version": int(row.version or 0), "enabled": bool(row.enabled),
+            "texts": json.loads(row.text_json) if row.text_json else {}}
+
+
+@router.get("/news")
+def news_get(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    return _news_dict(_news_row(db))
+
+
+@router.put("/news")
+def news_set(payload: dict = Body(...), admin: models.User = Depends(current_admin),
+             db: Session = Depends(get_db)) -> dict:
+    """News-Banner setzen: version (Zahl), enabled (bool), texts ({lang: text}).
+    Version bumpen -> alle Nutzer sehen den Banner erneut. Kein PWA-Rebuild nötig."""
+    from datetime import datetime as _dt, timezone as _tz
+
+    row = _news_row(db)
+    if "version" in payload:
+        row.version = int(payload["version"])
+    if "enabled" in payload:
+        row.enabled = bool(payload["enabled"])
+    if "texts" in payload and isinstance(payload["texts"], dict):
+        clean = {str(k): str(v) for k, v in payload["texts"].items() if str(v).strip()}
+        row.text_json = json.dumps(clean, ensure_ascii=False)
+    row.updated_at = _dt.now(_tz.utc)
+    _log(db, admin, "news_set", "news", row.id, detail=f"v{row.version} enabled={row.enabled}")
+    db.commit()
+    db.refresh(row)
+    return _news_dict(row)
 
 
 @router.get("/audit")

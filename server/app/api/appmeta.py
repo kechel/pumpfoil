@@ -9,9 +9,30 @@ noch nicht verfuegbare Version).
 - min_supported: erzwingt ein Update (App zeigt Hard-Gate), leer = kein Zwang
 - store_url:     Ziel des "Aktualisieren"-Buttons
 """
-from fastapi import APIRouter
+import json
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from .. import models
+from ..db import get_db
 
 router = APIRouter(prefix="/api/app", tags=["app"])
+
+
+@router.get("/news")
+def news_banner(db: Session = Depends(get_db)) -> dict:
+    """Öffentlicher News-Banner-Inhalt für die PWA (kein Auth nötig). Die PWA vergleicht
+    `version` mit ihrem localStorage-Wert und zeigt/versteckt den Banner. Inhalt wird im
+    Admin gepflegt — kein PWA-Rebuild nötig."""
+    row = db.query(models.NewsBanner).first()
+    if row is None:
+        return {"version": 0, "enabled": False, "texts": {}}
+    return {
+        "version": int(row.version or 0),
+        "enabled": bool(row.enabled),
+        "texts": json.loads(row.text_json) if row.text_json else {},
+    }
 
 # ---- MANUELL PFLEGEN nach jedem Store-Release (siehe Modul-Docstring) ----
 _APP_META: dict[str, dict[str, str]] = {

@@ -37,6 +37,7 @@ def init_db() -> None:
     _migrate_add_columns()
     _migrate_add_indexes()
     _seed_foils()
+    _seed_news()
 
 
 def _migrate_add_indexes() -> None:
@@ -93,6 +94,32 @@ def _seed_foils() -> None:
             added += 1
         if added:
             db.commit()
+    finally:
+        db.close()
+
+
+def _seed_news() -> None:
+    """News-Banner-Singleton einmalig anlegen (idempotent). Danach nur noch per Admin
+    gepflegt (Version/Text) — kein PWA-Rebuild mehr nötig."""
+    import json
+
+    from . import models
+
+    db = SessionLocal()
+    try:
+        if db.query(models.NewsBanner).first():
+            return
+        texts = {
+            "de": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
+            "de-AT": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
+            "gsw": "Nöii Updates für d Android- und iOS-App im Store — jetz aktualisiere!",
+            "en": "New updates for the Android and iOS app in the store — update now!",
+            "fr": "Nouvelles mises à jour de l'app Android et iOS dans le store — mets à jour maintenant !",
+            "it": "Nuovi aggiornamenti per l'app Android e iOS nello store — aggiorna ora!",
+            "es": "Nuevas actualizaciones para la app de Android e iOS en la tienda — ¡actualiza ahora!",
+        }
+        db.add(models.NewsBanner(version=3, enabled=True, text_json=json.dumps(texts, ensure_ascii=False)))
+        db.commit()
     finally:
         db.close()
 
