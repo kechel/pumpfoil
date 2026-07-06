@@ -202,7 +202,7 @@ struct CompareView: View {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack(spacing: 4) {
                                 if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
-                                Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at)
+                                Text(dateStr(s))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             if let fl = foilLabel(s) {
@@ -219,17 +219,18 @@ struct CompareView: View {
     }
 
     // Farbverlauf-Legende für Wert-Modi (Speed/Pump/Puls).
+    private func rangeStr(_ v: Double) -> String { mapMode == .pump ? String(format: "%.1f", v) : "\(Int(v))" }
     @ViewBuilder private var gradientLegend: some View {
-        let range = mapMode == .pump ? pumpRange : mapMode == .hr ? hrRange : speedRange
-        let unit = mapMode == .pump ? "Hz" : mapMode == .hr ? "bpm" : "km/h"
+        let range: (Double, Double) = mapMode == .pump ? pumpRange : (mapMode == .hr ? hrRange : speedRange)
+        let unit: String = mapMode == .pump ? "Hz" : (mapMode == .hr ? "bpm" : "km/h")
+        let grad = LinearGradient(colors: [Color(hue: 240 / 360, saturation: 0.85, brightness: 0.95),
+                                           Color(hue: 120 / 360, saturation: 0.85, brightness: 0.95),
+                                           Color(hue: 0, saturation: 0.85, brightness: 0.95)],
+                                  startPoint: .leading, endPoint: .trailing)
         HStack(spacing: 8) {
-            Text(mapMode == .pump ? String(format: "%.1f", range.0) : "\(Int(range.0))").font(.caption2).monospacedDigit()
-            LinearGradient(colors: [Color(hue: 240/360, saturation: 0.85, brightness: 0.95),
-                                    Color(hue: 120/360, saturation: 0.85, brightness: 0.95),
-                                    Color(hue: 0, saturation: 0.85, brightness: 0.95)],
-                           startPoint: .leading, endPoint: .trailing)
-                .frame(height: 8).clipShape(Capsule())
-            Text(mapMode == .pump ? String(format: "%.1f", range.1) : "\(Int(range.1))").font(.caption2).monospacedDigit()
+            Text(rangeStr(range.0)).font(.caption2).monospacedDigit()
+            grad.frame(height: 8).clipShape(Capsule())
+            Text(rangeStr(range.1)).font(.caption2).monospacedDigit()
             Text(unit).font(.caption2).foregroundStyle(.secondary)
         }.padding(.horizontal)
     }
@@ -251,14 +252,14 @@ struct CompareView: View {
                             HStack(spacing: 5) {
                                 Circle().fill(mapMode == .rider ? riderColorC(s.owner_name) : sessColor(results.firstIndex(where: { $0.id == s.id }) ?? 0)).frame(width: 7, height: 7)
                                 if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
-                                Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at).font(.caption).foregroundStyle(.secondary)
+                                Text(dateStr(s)).font(.caption).foregroundStyle(.secondary)
                             }
                             if let p = s.place_name, !p.isEmpty { Text(p).font(.caption2).foregroundStyle(.secondary) }
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 1) {
-                            Text("\(Int(seg.distance_m ?? 0)) m · \(mmss(seg.duration_s))").font(.caption).monospacedDigit()
-                            Text("\(seg.avg_speed_mps.map { String(format: "%.1f km/h", $0 * 3.6) } ?? "–") · \(seg.pumps.map { "\($0)P" } ?? "–")")
+                            Text(runDist(seg)).font(.caption).monospacedDigit()
+                            Text(runStat(seg))
                                 .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
                         }
                     }
@@ -273,22 +274,32 @@ struct CompareView: View {
         guard let s else { return "–" }
         return String(format: "%d:%02d", Int(s) / 60, Int(s) % 60)
     }
+    // Explizit typisierte Helfer — entlasten den Swift-Type-Checker (Archive/Release kippt sonst
+    // bei verschachtelten .map{}??-Interpolationen -> „unendliches" Kompilieren).
+    private func meters(_ m: Double?) -> String { guard let m else { return "–" }; return "\(Int(m)) m" }
+    private func kmh(_ mps: Double?) -> String { guard let v = mps else { return "–" }; return String(format: "%.1f km/h", v * 3.6) }
+    private func hz(_ v: Double?) -> String { guard let v else { return "–" }; return String(format: "%.2f Hz", v) }
+    private func pumpsStr(_ p: Int?) -> String { guard let p else { return "–" }; return "\(p)P" }
+    private func intStr(_ n: Int?) -> String { guard let n else { return "–" }; return "\(n)" }
+    private func runDist(_ seg: Segment) -> String { "\(Int(seg.distance_m ?? 0)) m · \(mmss(seg.duration_s))" }
+    private func runStat(_ seg: Segment) -> String { "\(kmh(seg.avg_speed_mps)) · \(pumpsStr(seg.pumps))" }
+    private func dateStr(_ s: SessionDetail) -> String { s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at }
 
     private var compareTable: some View {
         let metrics: [(String, (SessionDetail) -> String)] = [
-            (Loc.t("compare.distance", lang), { $0.analysis?.total_distance_m.map { "\(Int($0)) m" } ?? "–" }),
-            (Loc.t("home.foiling", lang), { $0.analysis?.foiling_distance_m.map { "\(Int($0)) m" } ?? "–" }),
-            (Loc.t("home.topSpeed", lang), { $0.analysis?.max_speed_mps.map { String(format: "%.1f km/h", $0 * 3.6) } ?? "–" }),
-            (Loc.t("home.pumps", lang), { $0.analysis?.pump_count.map { "\($0)" } ?? "–" }),
-            (Loc.t("compare.foilTime", lang), { s in s.analysis?.foiling_time_s.map { String(format: "%d:%02d", Int($0) / 60, Int($0) % 60) } ?? "–" }),
-            (Loc.t("compare.cadence", lang), { $0.analysis?.avg_cadence_hz.map { String(format: "%.2f Hz", $0) } ?? "–" }),
+            (Loc.t("compare.distance", lang), { self.meters($0.analysis?.total_distance_m) }),
+            (Loc.t("home.foiling", lang), { self.meters($0.analysis?.foiling_distance_m) }),
+            (Loc.t("home.topSpeed", lang), { self.kmh($0.analysis?.max_speed_mps) }),
+            (Loc.t("home.pumps", lang), { self.intStr($0.analysis?.pump_count) }),
+            (Loc.t("compare.foilTime", lang), { self.mmss($0.analysis?.foiling_time_s) }),
+            (Loc.t("compare.cadence", lang), { self.hz($0.analysis?.avg_cadence_hz) }),
         ]
         return ScrollView([.horizontal]) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("").frame(width: 90, alignment: .leading)
                     ForEach(results) { s in
-                        Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at)
+                        Text(dateStr(s))
                             .font(.caption).bold().frame(width: 120, alignment: .leading)
                     }
                 }
