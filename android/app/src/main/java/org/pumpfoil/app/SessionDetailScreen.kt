@@ -539,7 +539,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
 }
 
 // Geparster Track: GPS-Punkte (lon,lat) + Speed je Glättungsfenster (1/3/5 s) + Puls + Pump-Hz.
-private class Track(
+class Track(
     val points: List<Pair<Double, Double>>,
     val speedsMps: List<Double>,         // 3 s (Default)
     val speeds1: List<Double>,
@@ -552,7 +552,7 @@ private class Track(
 
 private enum class ColorMode { SPEED, HR, PUMP }
 
-private fun parseTrack(tg: JsonElement): Track {
+fun parseTrack(tg: JsonElement): Track {
     return try {
         val obj = tg.jsonObject
         val coords = obj["geometry"]!!.jsonObject["coordinates"]!!.jsonArray
@@ -572,14 +572,14 @@ private fun parseTrack(tg: JsonElement): Track {
 }
 
 // Wert -> Farbe (blau niedrig -> rot hoch).
-private fun rampColor(t: Double): Color {
+fun rampColor(t: Double): Color {
     val hue = ((1 - t.coerceIn(0.0, 1.0)) * 240).toFloat()
     return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
 }
 // Speed -> Farbe (8..25 km/h), wie Wear/Web.
-private fun speedColor(kmh: Double): Color = rampColor((kmh - 8) / (25 - 8))
+fun speedColor(kmh: Double): Color = rampColor((kmh - 8) / (25 - 8))
 
-private val GRAY = Color(0xFF64748B)
+val GRAY = Color(0xFF64748B)
 
 // Track auf OSM-Karte (osmdroid, FLOSS — wie Spots/Web). Nur die Foiling-Läufe
 // (segments[].iStart..iEnd), je Punktpaar nach Modus gefärbt; Nicht-Foiling unsichtbar.
