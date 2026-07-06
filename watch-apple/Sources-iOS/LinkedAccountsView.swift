@@ -16,6 +16,7 @@ struct LinkedAccountsView: View {
     @State private var status: [String: Api.IntegrationStatus] = [:]
     @State private var busy: String?
     @State private var safariURL: URL?
+    @State private var syncMsg: String?
 
     var body: some View {
         List {
@@ -50,6 +51,9 @@ struct LinkedAccountsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
         .sheet(item: $safariURL) { url in SafariView(url: url).ignoresSafeArea() .onDisappear { Task { await refresh() } } }
+        .alert(Loc.t("accounts.import", lang), isPresented: Binding(get: { syncMsg != nil }, set: { if !$0 { syncMsg = nil } })) {
+            Button("OK", role: .cancel) { syncMsg = nil }
+        } message: { Text(syncMsg ?? "") }
     }
 
     @ViewBuilder private func row(_ title: String, sub: String, connected: Bool, @ViewBuilder actions: () -> some View) -> some View {
@@ -75,7 +79,22 @@ struct LinkedAccountsView: View {
         }
     }
     private func sync(_ id: String) {
-        busy = id; Task { try? await Api.integrationSync(id); await refresh(); busy = nil }
+        busy = id
+        Task {
+            do {
+                let r = try await Api.integrationSync(id)
+                if let m = r.message, !m.isEmpty {
+                    syncMsg = m
+                } else {
+                    syncMsg = Loc.t("accounts.importResult", lang)
+                        .replacingOccurrences(of: "{imported}", with: String(r.imported ?? 0))
+                        .replacingOccurrences(of: "{skipped}", with: String(r.skipped ?? 0))
+                }
+            } catch {
+                syncMsg = Loc.t("accounts.importError", lang)
+            }
+            await refresh(); busy = nil
+        }
     }
     private func unlink(_ id: String) {
         busy = id; Task { try? await Api.integrationUnlink(id); await refresh(); busy = nil }

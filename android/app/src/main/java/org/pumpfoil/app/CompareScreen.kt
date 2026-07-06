@@ -48,28 +48,39 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
-    var sessions by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
-    val selected by CompareStore.ids.collectAsState()   // per Long-Press in den Listen befüllt
+    // Auswahl kommt AUSSCHLIESSLICH per Long-Press aus den Session-Listen (CompareStore) —
+    // keine eigene Auswahlliste hier. Direkt die Vergleichstabelle der Markierten zeigen.
+    val selected by CompareStore.ids.collectAsState()
     var results by remember { mutableStateOf<List<SessionDetail>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
-    var comparing by remember { mutableStateOf(false) }
     var merging by remember { mutableStateOf(false) }
     var mergeError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        sessions = try { Api.sessions() } catch (_: Exception) { emptyList() }
+    LaunchedEffect(selected) {
+        loading = true
+        results = selected.toList().mapNotNull { try { Api.session(it) } catch (_: Exception) { null } }
         loading = false
     }
+
+    // Zusammenführen nur, wenn plausibel erlaubt (Client-Spiegel; Server prüft final): alle
+    // eigene Sessions, >=2, gleicher Tag UND gleicher Spot. Sonst Button GAR NICHT zeigen.
+    val mergeable = results.size == selected.size && results.size >= 2 &&
+        results.all { it.owned } &&
+        results.map { it.startedAt.take(10) }.distinct().size == 1 &&
+        results.map { (it.placeName ?: "").trim().lowercase() }.distinct().size == 1
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (comparing) I18n.t("compare.result") else I18n.t("compare.title")) },
+                title = { Text(I18n.t("compare.title")) },
                 navigationIcon = {
-                    IconButton(onClick = { if (comparing) comparing = false else onBack() }) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
                     }
+                },
+                actions = {
+                    if (selected.isNotEmpty()) TextButton(onClick = { CompareStore.clear(); onBack() }) { Text(I18n.t("compare.clear")) }
                 },
             )
         },
@@ -77,58 +88,14 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
         Box(Modifier.padding(pad).fillMaxSize()) {
             when {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                comparing -> CompareTable(results)
+                results.isEmpty() -> Text(I18n.t("compare.pick"), Modifier.align(Alignment.Center).padding(24.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> Column(Modifier.fillMaxSize()) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(I18n.t("compare.pick"), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(I18n.t("compare.hint"), style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        if (selected.isNotEmpty()) TextButton(onClick = { CompareStore.clear() }) { Text(I18n.t("compare.clear")) }
-                    }
-                    LazyColumn(Modifier.weight(1f)) {
-                        items(sessions) { s ->
-                            val on = selected.contains(s.id)
-                            ListItem(
-                                modifier = Modifier.clickable { CompareStore.toggle(s.id) },
-                                headlineContent = { Text(prettyDate(s.startedAt)) },
-                                supportingContent = { s.placeName?.takeIf { it.isNotBlank() }?.let { Text(it) } },
-                                leadingContent = {
-                                    Icon(
-                                        if (on) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank,
-                                        contentDescription = null,
-                                        tint = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                },
-                            )
-                            HorizontalDivider()
-                        }
-                    }
-                    // Merge nur für EIGENE Sessions DESSELBEN Tages (wie Server/Web). Alle
-                    // Ausgewählten müssen in der eigenen Liste vorkommen und gleiches Datum haben.
-                    val selOwn = selected.mapNotNull { id -> sessions.find { it.id == id } }
-                    val mergeable = selOwn.size == selected.size && selOwn.size >= 2 &&
-                        selOwn.map { it.startedAt.take(10) }.distinct().size == 1
+                    Box(Modifier.weight(1f)) { CompareTable(results) }
                     mergeError?.let {
                         Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
-                    if (selected.size >= 2 && !mergeable) {
-                        Text(I18n.t("merge.sameDayOnly"), Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                    }
-                    Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    results = selected.toList().mapNotNull { try { Api.session(it) } catch (_: Exception) { null } }
-                                    comparing = true
-                                }
-                            },
-                            enabled = selected.size >= 2,
-                            modifier = Modifier.weight(1f),
-                        ) { Text("${I18n.t("compare.title")} (${selected.size})") }
+                    if (mergeable) {
                         Button(
                             onClick = {
                                 val ids = selected.toList(); mergeError = null; merging = true
@@ -139,8 +106,8 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                     } catch (e: Exception) { mergeError = e.message; merging = false }
                                 }
                             },
-                            enabled = mergeable && !merging,
-                            modifier = Modifier.weight(1f),
+                            enabled = !merging,
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                         ) { Text(I18n.t("merge.action")) }
                     }
                 }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -57,6 +59,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val status = remember { mutableStateMapOf<String, Api.IntegrationStatus>() }
     var busy by remember { mutableStateOf<String?>(null) }
+    var syncMsg by remember { mutableStateOf<String?>(null) }
 
     suspend fun refresh() {
         for (p in PROVIDERS) {
@@ -120,7 +123,17 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                         enabled = busy == null,
                                         onClick = {
                                             busy = p.id
-                                            scope.launch { try { Api.integrationSync(p.id) } catch (_: Exception) {}; refresh(); busy = null }
+                                            scope.launch {
+                                                val r = try { Api.integrationSync(p.id) } catch (_: Exception) { null }
+                                                syncMsg = when {
+                                                    r == null -> I18n.t("accounts.importError")
+                                                    !r.message.isNullOrBlank() -> r.message
+                                                    else -> I18n.t("accounts.importResult")
+                                                        .replace("{imported}", r.imported.toString())
+                                                        .replace("{skipped}", r.skipped.toString())
+                                                }
+                                                refresh(); busy = null
+                                            }
                                         },
                                     ) { Text(I18n.t("accounts.import")) }
                                 }
@@ -137,6 +150,15 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                 }
             }
         }
+    }
+
+    syncMsg?.let { m ->
+        AlertDialog(
+            onDismissRequest = { syncMsg = null },
+            confirmButton = { TextButton(onClick = { syncMsg = null }) { Text("OK") } },
+            title = { Text(I18n.t("accounts.import")) },
+            text = { Text(m) },
+        )
     }
 }
 

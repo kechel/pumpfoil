@@ -370,9 +370,9 @@ enum Api {
         let r: ConnectResp = try await request("/api/integrations/\(provider)/connect", method: "GET", body: nil, auth: true)
         return r.authorize_url
     }
-    static func integrationSync(_ provider: String) async throws {
-        struct Ok: Decodable { let ok: Bool? }
-        let _: Ok = try await request("/api/integrations/\(provider)/sync", method: "POST", body: nil, auth: true)
+    struct SyncResp: Decodable { let imported: Int?; let skipped: Int?; let message: String? }
+    static func integrationSync(_ provider: String) async throws -> SyncResp {
+        try await request("/api/integrations/\(provider)/sync", method: "POST", body: nil, auth: true)
     }
     static func integrationUnlink(_ provider: String) async throws {
         guard let url = URL(string: baseURL + "/api/integrations/\(provider)") else { throw ApiError.badURL }

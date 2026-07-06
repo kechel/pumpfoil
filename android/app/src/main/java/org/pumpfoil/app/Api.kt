@@ -222,8 +222,9 @@ object Api {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("caption", caption) }.toString(), auth = true)
     }
 
-    suspend fun setSessionFoil(id: Int, foilId: Int): Unit = withContext(Dispatchers.IO) {
-        http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("foil_id", foilId) }.toString(), auth = true)
+    suspend fun setSessionFoil(id: Int, foilId: Int?): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { if (foilId == null) put("foil_id", JsonNull) else put("foil_id", foilId) }
+        http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
     }
 
     suspend fun labels(id: Int): List<Label> = withContext(Dispatchers.IO) {
@@ -258,8 +259,9 @@ object Api {
         )
     }
 
-    suspend fun spotMap(): List<SpotMapItem> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map", null, auth = true))
+    // accelOnly=false wie die PWA (Spots.tsx) — sonst fehlen GPS-only-Spots (z. B. Frankreich).
+    suspend fun spotMap(accelOnly: Boolean = false): List<SpotMapItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly", null, auth = true))
     }
 
     suspend fun chatRooms(): List<ChatRoom> = withContext(Dispatchers.IO) {
@@ -347,8 +349,9 @@ object Api {
     // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
     suspend fun shareCard(
         id: Int, color: String, stats: List<String>, track: Boolean, title: String, shade: String,
+        bg: String = "navy",
     ): ByteArray = withContext(Dispatchers.IO) {
-        val q = StringBuilder("?color=$color&bg=navy&track=${if (track) 1 else 0}&shade=$shade")
+        val q = StringBuilder("?color=$color&bg=$bg&track=${if (track) 1 else 0}&shade=$shade")
         if (stats.isNotEmpty()) q.append("&stats=").append(java.net.URLEncoder.encode(stats.joinToString(","), "UTF-8"))
         if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
         httpBytes("/api/sessions/$id/share.png$q")
@@ -361,7 +364,7 @@ object Api {
     private data class ConnectResp(val authorize_url: String = "")
 
     @kotlinx.serialization.Serializable
-    data class SyncResp(val imported: Int = 0, val ok: Boolean = true)
+    data class SyncResp(val imported: Int = 0, val skipped: Int = 0, val message: String? = null, val ok: Boolean = true)
 
     // Fremdkonten (Polar/COROS/Suunto) verknüpfen/importieren. provider = "polar"|"coros"|"suunto".
     suspend fun integrationStatus(provider: String): IntegrationStatus = withContext(Dispatchers.IO) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -126,6 +127,13 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var confirmLeave by remember { mutableStateOf(false) }
     var lastId by remember(room.scope) { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    // Beim Öffnen und bei neuen Nachrichten ans Ende scrollen (wie die Web-PWA).
+    LaunchedEffect(msgs.size) {
+        val n = msgs.size + (if (error != null) 1 else 0)
+        if (n > 0) listState.animateScrollToItem(n - 1)
+    }
 
     suspend fun load() {
         try {
@@ -285,7 +293,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             }
         },
     ) { pad ->
-        LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+        LazyColumn(state = listState, modifier = Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)

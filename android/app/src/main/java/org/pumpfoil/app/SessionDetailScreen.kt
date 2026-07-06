@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Close
@@ -61,6 +62,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -257,13 +259,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var editCaption by remember(s.id) { mutableStateOf(false) }
     var draftCaption by remember(s.id) { mutableStateOf("") }
-    var myFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
+    var allFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
+    var mineIds by remember(s.id) { mutableStateOf<Set<Int>>(emptySet()) }
     LaunchedEffect(Unit) {
         weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
         if (s.owned) {
             try {
-                val ids = Api.settings()["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
-                if (ids.isNotEmpty()) myFoils = Api.foils().filter { it.id in ids }
+                mineIds = Api.settings()["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
+                allFoils = Api.foils()
             } catch (_: Exception) {}
         }
     }
@@ -447,20 +450,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
         }
         // Foil dieser Session (Owner): beeinflusst Leistung + Community-Foil-Stats.
-        if (s.owned && myFoils.isNotEmpty()) {
+        // Dropdown wie die PWA — zeigt nur den gewählten Foil, statt alle als Chips.
+        if (s.owned && allFoils.isNotEmpty()) {
             Column {
                 Text(I18n.t("sd.foilOfSession"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(4.dp))
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    myFoils.forEach { f ->
-                        FilterChip(
-                            selected = s.foil?.id == f.id,
-                            onClick = { scope.launch { try { Api.setSessionFoil(s.id, f.id); onReload() } catch (_: Exception) {} } },
-                            label = { Text("${f.brand} ${f.model} ${f.size}", maxLines = 1) },
-                            colors = cyanChipColors(),
-                        )
-                    }
-                }
+                FoilDropdown(
+                    all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
+                    onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
+                )
             }
         }
         // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed).
@@ -660,6 +658,42 @@ private fun TrackMap(
             map.invalidate()
         },
     )
+}
+
+// Foil-Auswahl als Dropdown (wie die PWA <select>): zeigt nur den gewählten Foil,
+// aufklappbar in „Standard-Foil" + „Meine Foils" + „Alle Marken".
+@Composable
+private fun FoilDropdown(all: List<Foil>, mineIds: Set<Int>, selectedId: Int?, onSelect: (Int?) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    val sel = all.firstOrNull { it.id == selectedId }
+    val label = sel?.let { "${it.brand} ${it.model} ${it.size}" } ?: I18n.t("foil.useDefault")
+    val mine = all.filter { it.id in mineIds }
+    val others = all.filter { it.id !in mineIds }
+    Box {
+        OutlinedButton(onClick = { open = true }) {
+            Text(label, maxLines = 1)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(I18n.t("foil.useDefault")) }, onClick = { open = false; onSelect(null) })
+            if (mine.isNotEmpty()) {
+                HorizontalDivider()
+                Text(I18n.t("foils.title"), Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                mine.forEach { f ->
+                    DropdownMenuItem(text = { Text("${f.brand} ${f.model} ${f.size}") }, onClick = { open = false; onSelect(f.id) })
+                }
+            }
+            if (others.isNotEmpty()) {
+                HorizontalDivider()
+                Text(I18n.t("foils.allBrands"), Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                others.forEach { f ->
+                    DropdownMenuItem(text = { Text("${f.brand} ${f.model} ${f.size}") }, onClick = { open = false; onSelect(f.id) })
+                }
+            }
+        }
+    }
 }
 
 // Leistungs-Karte: theoretische Pump-Leistung (Watt) bei Ø- und Top-Speed.
