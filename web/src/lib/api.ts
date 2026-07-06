@@ -295,8 +295,10 @@ export interface AdminPhoto {
 export interface AdminOverview {
   users: number; users_blocked: number; admins: number;
   sessions: number; sessions_deleted: number; pumpfoil: number;
-  flagged: number; reported: number; photos: number; photos_blocked: number; likes: number;
+  flagged: number; fake: number; reported: number; photos: number; photos_blocked: number; likes: number;
 }
+
+export interface AdminPending { flagged: number; fake: number; total: number; }
 
 export interface AdminAuditEntry {
   id: number; action: string; target_type: string; target_id: number | null;
@@ -555,6 +557,7 @@ export const api = {
   mlTrain: () => req<any>("/api/ml/train", { method: "POST" }),
   appDevices: () => req<AppDevice[]>("/api/app/devices"),
   adminOverview: () => req<AdminOverview>("/api/admin/overview"),
+  adminPending: () => req<AdminPending>("/api/admin/pending"),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
   adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
   adminRenameSpot: (id: number, name: string) => req<{ ok: boolean; name: string }>(`/api/admin/spots/${id}/rename?name=${encodeURIComponent(name)}`, { method: "POST" }),

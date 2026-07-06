@@ -94,20 +94,32 @@ function OverviewTab() {
   const { data, error } = useAsync<AdminOverview>(() => api.adminOverview());
   if (error) return <ErrorBox message={error} />;
   if (!data) return <Spinner />;
-  const cells: [string, number][] = [
+  // Tab-Link (3. Feld) = anklickbare Moderations-Kachel; leuchtet, wenn > 0 offen.
+  const cells: [string, number, Tab?][] = [
+    ["adm.ov.flaggedOpen", data.flagged, "flagged"], ["adm.ov.fake", data.fake, "fake"], ["adm.ov.reported", data.reported],
     ["adm.ov.users", data.users], ["adm.ov.blocked", data.users_blocked], ["adm.ov.admins", data.admins],
     ["adm.ov.sessions", data.sessions], ["adm.ov.pumpfoil", data.pumpfoil], ["adm.ov.deleted", data.sessions_deleted],
-    ["adm.ov.flaggedOpen", data.flagged], ["adm.ov.reported", data.reported],
     ["adm.ov.photos", data.photos], ["adm.ov.photosBlocked", data.photos_blocked], ["adm.ov.likes", data.likes],
   ];
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {cells.map(([labelKey, v]) => (
-        <Card key={labelKey} className="p-3">
-          <div className="text-2xl font-bold tabular-nums text-brand-400">{v}</div>
-          <div className="text-[11px] uppercase tracking-wide text-slate-300">{t(labelKey)}</div>
-        </Card>
-      ))}
+      {cells.map(([labelKey, v, tab]) => {
+        const attn = !!tab && v > 0;
+        const inner = (
+          <>
+            <div className={`text-2xl font-bold tabular-nums ${attn ? "text-amber-400" : "text-brand-400"}`}>{v}</div>
+            <div className="text-[11px] uppercase tracking-wide text-slate-300">{t(labelKey)}</div>
+          </>
+        );
+        return tab ? (
+          <Link key={labelKey} to={`/admin?tab=${tab}`}
+            className={`block rounded-xl p-3 transition-colors ${attn ? "border border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20" : "border border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
+            {inner}
+          </Link>
+        ) : (
+          <Card key={labelKey} className="p-3">{inner}</Card>
+        );
+      })}
     </div>
   );
 }

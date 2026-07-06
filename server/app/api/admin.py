@@ -550,6 +550,24 @@ def delete_photo(photo_id: int, admin: models.User = Depends(current_admin), db:
 
 
 # -------------------------------------------------------------- Dashboard ----
+def _fake_count(db: Session) -> int:
+    """Nicht gelöschte Sessions mit mind. einer 'fake'-Stimme (= Unecht-Verdacht-Tab)."""
+    voted = db.query(models.SessionVote.session_id).filter_by(kind="fake").subquery()
+    return int(db.query(func.count()).select_from(models.Session)
+               .filter(models.Session.id.in_(select(voted.c.session_id)),
+                       models.Session.deleted.isnot(True)).scalar() or 0)
+
+
+@router.get("/pending")
+def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Leichte Zählung offener Moderationsaufgaben für das Admin-Menü-Badge
+    (nur für Admins erreichbar → keine Last für normale Nutzer)."""
+    flagged = int(db.query(func.count()).select_from(models.Session)
+                  .filter(models.Session.flagged.is_(True), models.Session.deleted.isnot(True)).scalar() or 0)
+    fake = _fake_count(db)
+    return {"flagged": flagged, "fake": fake, "total": flagged + fake}
+
+
 @router.get("/overview")
 def overview(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
     c = lambda model, *f: int(db.query(func.count()).select_from(model).filter(*f).scalar() or 0)  # noqa: E731
@@ -562,6 +580,7 @@ def overview(_a: models.User = Depends(current_admin), db: Session = Depends(get
         "sessions_deleted": c(models.Session, models.Session.deleted.is_(True)),
         "pumpfoil": c(models.Session, models.Session.is_pumpfoil.is_(True), models.Session.deleted.isnot(True)),
         "flagged": c(models.Session, models.Session.flagged.is_(True), models.Session.deleted.isnot(True)),
+        "fake": _fake_count(db),
         "reported": int(db.query(func.count(func.distinct(models.SessionVote.session_id)))
                         .filter_by(kind="inappropriate").scalar() or 0),
         "photos": c(models.SessionPhoto),

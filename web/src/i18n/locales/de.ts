@@ -29,6 +29,7 @@ const de: Record<string, string> = {
   "nav.watch": "Uhr",
   "nav.profile": "Profil",
   "nav.admin": "Admin",
+  "nav.adminPending": "Offene Moderation (gemeldet + Unecht-Verdacht)",
   "nav.logout": "Logout",
   "nav.imprint": "Impressum & Datenschutz",
 
@@ -518,6 +519,7 @@ const de: Record<string, string> = {
   "adm.ov.pumpfoil": "Pumpfoil",
   "adm.ov.deleted": "gelöscht",
   "adm.ov.flaggedOpen": "gemeldet (offen)",
+  "adm.ov.fake": "Unecht-Verdacht",
   "adm.ov.reported": "je gemeldet",
   "adm.ov.photos": "Fotos",
   "adm.ov.photosBlocked": "Fotos geblockt",

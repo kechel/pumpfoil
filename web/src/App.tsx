@@ -39,6 +39,7 @@ export default function App() {
   const { t, setLang } = useI18n();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [pending, setPending] = useState(0);   // offene Moderation (gemeldet + unecht) fürs Admin-Badge
 
   // Letzte 10 eigene Sessions für Offline vorladen (nur was nicht schon gecacht ist).
   useEffect(() => { warmMySessions(); }, []);
@@ -55,6 +56,12 @@ export default function App() {
     window.addEventListener("foil:profile", h);
     return () => window.removeEventListener("foil:profile", h);
   }, [setLang]);
+
+  // Nur für Admins: offene Moderationsaufgaben zählen (leichtes Endpoint) — Badge im Menü.
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.adminPending().then((r) => setPending(r.total)).catch(() => {});
+  }, [isAdmin]);
 
   const items = isAdmin ? [...navItems, adminItem] : navItems;
 
@@ -93,7 +100,10 @@ export default function App() {
               }`
             }
           >
-            <it.icon /> {t(it.labelKey)}
+            <it.icon /> <span className="flex-1">{t(it.labelKey)}</span>
+            {it.to === "/admin" && pending > 0 && (
+              <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-slate-950" title={t("nav.adminPending")}>{pending}</span>
+            )}
           </NavLink>
         ))}
 
