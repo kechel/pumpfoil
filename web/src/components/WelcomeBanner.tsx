@@ -9,7 +9,7 @@ import { CloseIcon } from "./Icons";
 // erhöhen -> alle, die eine ältere Version weggeklickt haben (oder noch nie), sehen ihn wieder.
 // (Der Key-Name bleibt "foil_banner_v1" — der Wert darin ist die Version, der Name egal.)
 const DISMISS_KEY = "foil_banner_v1";
-const BANNER_VERSION = 2;
+const BANNER_VERSION = 3;
 
 export function WelcomeBanner() {
   const t = useT();
@@ -44,6 +44,9 @@ export function WelcomeBanner() {
         className="absolute right-2 top-2 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-slate-200">
         <CloseIcon className="h-4 w-4" />
       </button>
+      <Link to="/import" className="mb-1.5 block text-sm font-bold text-brand-300 hover:underline">
+        {t("banner.news")}
+      </Link>
       <p className="text-sm leading-relaxed text-slate-200">
         👋 <span className="font-semibold">Pumpfoil<span className="text-brand-400">.org</span></span> {t("banner.msg")}
       </p>

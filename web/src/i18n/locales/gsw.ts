@@ -604,6 +604,7 @@ const gsw: Record<string, string> = {
 
   "phome.hello": "Hoi, {name}",
   "banner.msg": "isch ganz nöi (sit em 23. Juni 2026) — fascht jede Tag nöii Features & Foils. Säg mer, was der gfallt (und was nöd): eifach rächts ufs 💬 klicke →",
+  "banner.news": "🎉 Nöii Android- und iOS-App jetz im Store verfüegbar!",
   "banner.nerdLead": "🤓 Nerd-Analyse:",
   "banner.nerd1": "Teil 1 — s Experimänt",
   "banner.nerd2": "Teil 2 — wie's funktioniert",
