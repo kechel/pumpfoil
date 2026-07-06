@@ -816,7 +816,7 @@ const it: Record<string, string> = {
   "wx.source": "Fonte",
   "field.17": "Ultimo run: distanza",
   "compare.colorRider": "Per rider",
-  "imp.communityNote": "Le sessioni <b>non sono anonime</b> — sono associate alla persona tramite il nome visualizzato. Le sessioni <b>senza</b> foil rilevato (es. semplici import GPS) non compaiono negli elenchi della community.",
+  "imp.communityNote": "Le sessioni <b>non sono anonime</b> — sono associate alla persona tramite il nome visualizzato. Puoi eliminare ogni sessione singolarmente in qualsiasi momento; solo le sessioni che <b>nascondi</b> non compaiono negli elenchi della community (vengono mostrate anche le sessioni solo GPS).",
   "field.16": "Ultimo run: durata",
   "imp.google1": "<b>Dati consultati (Data Accessed):</b> il tuo indirizzo e-mail, il tuo nome e l'ID del tuo account Google (sub).",
   "imp.apple2": "<b>Utilizzo:</b> esclusivamente per creare e accedere al tuo account Pumpfoil.",

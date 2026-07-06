@@ -770,7 +770,7 @@ const es: Record<string, string> = {
   "imp.google1": "<b>Datos consultados (Data Accessed):</b> tu dirección de correo, tu nombre y el ID de tu cuenta de Google (sub).",
   "account.autoStart": "Iniciar la grabación automáticamente al arrancar (GPS)",
   "compare.clear": "Vaciar",
-  "imp.communityNote": "Las sesiones <b>no son anónimas</b> — están asociadas a la persona mediante su nombre visible. Las sesiones <b>sin</b> foil detectado (p. ej. importaciones GPS puras) no aparecen en las listas de la comunidad.",
+  "imp.communityNote": "Las sesiones <b>no son anónimas</b> — están asociadas a la persona mediante su nombre visible. Puedes eliminar cada sesión individualmente en cualquier momento; solo las sesiones que <b>ocultas</b> no aparecen en las listas de la comunidad (las sesiones solo GPS también se muestran).",
   "account.claimTitle": "Introducir el código del reloj",
   "imp.ytTitle": "Vídeos de YouTube incrustados",
   "field.18": "Último run: velocidad media",

@@ -833,7 +833,7 @@ const fr: Record<string, string> = {
   "imp.community3": "<b>Records &amp; classements</b> (nom, valeur, spot, nombre de sessions/runs/spots).",
   "imp.community4": "<b>Likes</b> (nombre) et le <b>nombre</b> de votes « semble faux »/« inapproprié ».",
   "imp.communityIntro": "Tout le monde peut créer un compte. Une fois connecté, on voit de <b>tous</b> les utilisateurs :",
-  "imp.communityNote": "Les sessions ne sont <b>pas anonymes</b> — elles sont associées à la personne via son nom d'affichage. Les sessions <b>sans</b> foil détecté (p. ex. simples imports GPS) n'apparaissent pas dans les listes de la communauté.",
+  "imp.communityNote": "Les sessions ne sont <b>pas anonymes</b> — elles sont associées à la personne via son nom d'affichage. Tu peux supprimer chaque session individuellement à tout moment ; seules les sessions que tu <b>masques</b> n'apparaissent pas dans les listes de la communauté (les sessions GPS seules sont aussi affichées).",
   "imp.communityTitle": "👥 Visible par toute personne inscrite (communauté)",
   "imp.conn1": "Lors de la liaison, tu es redirigé vers le fournisseur concerné et tu t'y connectes (OAuth). Nous recevons un jeton d'accès ainsi que les données d'entraînement/workout que tu partages (notamment trace GPS, temps, fréquence cardiaque).",
   "imp.conn2": "Ces données sont importées uniquement comme tes propres sessions et traitées comme tes autres sessions.",

@@ -573,7 +573,7 @@ const en: Record<string, string> = {
   "imp.community2": "<b>All sessions with detected foiling</b>: date/time, <b>spot</b> (water name from OpenStreetMap), the <b>map/GPS track</b> (i.e. <u>where</u> you foiled), number of runs, distance, speed, heart rate, pump/glide values and the uploaded <b>photos</b>.",
   "imp.community3": "<b>Records &amp; leaderboards</b> (name, value, spot, number of sessions/runs/spots).",
   "imp.community4": "<b>Likes</b> (count) and the <b>number</b> of “looks fake”/“inappropriate” votes.",
-  "imp.communityNote": "Sessions are <b>not anonymous</b> — they are linked to the person via their display name. Sessions <b>without</b> detected foiling (e.g. pure GPS imports) don't appear in the community lists.",
+  "imp.communityNote": "Sessions are <b>not anonymous</b> — they are linked to the person via their display name. You can delete any session individually at any time; only sessions you <b>hide</b> don't appear in the community lists (GPS-only sessions are shown too).",
   "imp.ownerTitle": "🔒 Only you (the session owner)",
   "imp.owner1": "<b>Raw data</b> of your sessions (individual GPS points, 25 Hz acceleration) — e.g. for labeling.",
   "imp.owner2": "Labels, trimming, re-analyzing, uploading/deleting photos.",

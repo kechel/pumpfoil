@@ -611,7 +611,7 @@ const de: Record<string, string> = {
   "imp.community2": "<b>Alle Sessions mit erkanntem Foiling</b>: Datum/Uhrzeit, <b>Spot</b> (Gewässername aus OpenStreetMap), die <b>Karte/GPS-Strecke</b> (also <u>wo</u> gefoilt wurde), Anzahl Läufe, Distanz, Geschwindigkeit, Puls, Pump-/Gleitwerte und die hochgeladenen <b>Fotos</b>.",
   "imp.community3": "<b>Rekorde &amp; Bestenlisten</b> (Name, Wert, Spot, Anzahl Sessions/Läufe/Spots).",
   "imp.community4": "<b>Likes</b> (Anzahl) und die <b>Anzahl</b> der „wirkt unecht“/„unangemessen“-Stimmen.",
-  "imp.communityNote": "Sessions sind <b>nicht anonym</b> — sie sind der Person über ihren Anzeigenamen zugeordnet. Sessions <b>ohne</b> erkanntes Foiling (z. B. reine GPS-Importe) tauchen nicht in den Community-Listen auf.",
+  "imp.communityNote": "Sessions sind <b>nicht anonym</b> — sie sind der Person über ihren Anzeigenamen zugeordnet. Du kannst jede Session jederzeit einzeln löschen; nur von dir <b>ausgeblendete</b> Sessions erscheinen nicht in den Community-Listen (auch reine GPS-Sessions werden angezeigt).",
   "imp.ownerTitle": "🔒 Nur du selbst (Besitzer der Session)",
   "imp.owner1": "<b>Rohdaten</b> deiner Sessions (einzelne GPS-Punkte, 25-Hz-Beschleunigung) — z. B. fürs Labeln.",
   "imp.owner2": "Labels, Trimmen, Neu-Analysieren, Fotos hochladen/löschen.",

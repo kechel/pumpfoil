@@ -719,7 +719,7 @@ const deAT: Record<string, string> = {
   "imp.community3": "<b>Rekorde &amp; Bestenlisten</b> (Name, Wert, Spot, Anzahl Sessions/Läufe/Spots).",
   "imp.community4": "<b>Likes</b> (Anzahl) und die <b>Anzahl</b> der „wirkt unecht“/„unangemessen“-Stimmen.",
   "imp.communityIntro": "Ein Konto kann jeder anlegen. Eingeloggt sieht man von <b>allen</b> Nutzern:",
-  "imp.communityNote": "Sessions sind <b>nicht anonym</b> — sie sind der Person über ihren Anzeigenamen zugeordnet. Sessions <b>ohne</b> erkanntes Foiling (z. B. reine GPS-Importe) tauchen nicht in den Community-Listen auf.",
+  "imp.communityNote": "Sessions sind <b>nicht anonym</b> — sie sind der Person über ihren Anzeigenamen zugeordnet. Du kannst jede Session jederzeit einzeln löschen; nur von dir <b>ausgeblendete</b> Sessions scheinen nicht in den Community-Listen auf (auch reine GPS-Sessions werden angezeigt).",
   "imp.communityTitle": "👥 Für jede registrierte Person sichtbar (Community)",
   "imp.conn1": "Beim Verknüpfen wirst du zum jeweiligen Anbieter weitergeleitet und meldest dich dort an (OAuth). Wir erhalten ein Zugriffs-Token sowie die von dir freigegebenen Trainings-/Workout-Daten (u. a. GPS-Strecke, Zeit, Herzfrequenz).",
   "imp.conn2": "Diese Daten werden ausschließlich als deine eigenen Sessions importiert und wie deine übrigen Sessions behandelt.",

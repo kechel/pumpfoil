@@ -778,7 +778,7 @@ const gsw: Record<string, string> = {
   "imp.community3": "<b>Rekord &amp; Beschtelischte</b> (Name, Wärt, Spot, Aazahl Sessions/Läuf/Spots).",
   "imp.community4": "<b>Likes</b> (Aazahl) und d <b>Aazahl</b> vo de „wirkt unecht“/„unaagmässe“-Stimme.",
   "imp.communityIntro": "Es Konto cha jede aalege. Iiglogged gseht mer vo <b>allne</b> Nutzer:",
-  "imp.communityNote": "Sessions sind <b>nöd anonym</b> — si sind de Person über ihre Aazeigename zuegordnet. Sessions <b>ohni</b> erkanntes Foiling (z. B. reini GPS-Import) tauchet nöd i de Community-Lischte uf.",
+  "imp.communityNote": "Sessions sind <b>nöd anonym</b> — si sind de Person über ihre Aazeigename zuegordnet. Du chasch jedi Session jederziit einzeln lösche; nu vo dir <b>usgblendeti</b> Sessions erschiined nöd i de Community-Lischte (au reini GPS-Sessions wärded aazeigt).",
   "imp.communityTitle": "👥 Für jedi registrierti Person sichtbar (Community)",
   "imp.conn1": "Bim Verchnüpfe wirsch zum jewilige Aabieter wytergleitet und mäldsch di det aa (OAuth). Mir überchömed es Zuegriffs-Token sowie die vo dir freiggäne Trainings-/Workout-Date (u. a. GPS-Strecki, Ziit, Härzfrequänz).",
   "imp.conn2": "Die Date werdet ussschliesslich als dini eigene Sessions importiert und wie dini übrige Sessions behandlet.",
