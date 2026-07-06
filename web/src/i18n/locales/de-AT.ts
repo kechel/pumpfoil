@@ -544,7 +544,7 @@ const deAT: Record<string, string> = {
 
   "phome.hello": "Servas, {name}",
   "banner.msg": "is gaaanz frisch (seit 23. Juni 2026) — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs 💬 klickn →",
-  "banner.news": "Neue Android- und iOS-App jetzt im Store verfügbar!",
+  "banner.news": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
   "banner.nerdLead": "🤓 Nerd-Analysen:",
   "banner.nerd1": "Teil 1 — des Experiment",
   "banner.nerd2": "Teil 2 — wia's funktioniert",
