@@ -118,6 +118,9 @@ export default function App() {
         <Link to="/nerd-analysen" className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300" title="Dual-Watch-Pumpfoil-Experiment">
           <NerdIcon className="h-4 w-4" /> Nerd-Analysen
         </Link>
+        <Link to="/nerd-analysen-2" className="mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs text-slate-400 hover:text-slate-300" title="Wie die Erkennung funktioniert (Signalverarbeitung, ML, Labeling)">
+          ↳ Teil 2: Wie es funktioniert
+        </Link>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>

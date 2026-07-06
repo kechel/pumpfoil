@@ -54,6 +54,7 @@ import PersonalHome from "./pages/PersonalHome";
 import ChatPage from "./pages/ChatPage";
 import Admin from "./pages/Admin";
 import NerdAnalysen from "./pages/NerdAnalysen";
+import NerdAnalysen2 from "./pages/NerdAnalysen2";
 import Reset from "./pages/Reset";
 import App from "./App";
 import Landing from "./pages/Landing";
@@ -93,6 +94,7 @@ const router = createBrowserRouter([
       { path: "sessions/:id/label", element: <Labeling /> },
       { path: "admin", element: <Admin /> },
       { path: "nerd-analysen", element: <NerdAnalysen /> },
+      { path: "nerd-analysen-2", element: <NerdAnalysen2 /> },
     ],
   },
 ]);
