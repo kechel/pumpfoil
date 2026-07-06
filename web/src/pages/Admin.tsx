@@ -299,9 +299,9 @@ function UsersTab() {
             const on = stat === k;
             return (
               <button key={k} onClick={() => pickStat(k as StatKey)} aria-pressed={on}
-                className={`rounded-xl border p-3 text-center transition-colors ${on ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500" : "border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
-                <div className={`text-2xl font-bold tabular-nums ${color}`}>{act ? act[k] : "…"}</div>
-                <div className="text-[11px] text-slate-400">{t(lbl)}</div>
+                className={`rounded-xl border px-3 py-[3px] text-center transition-colors ${on ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500" : "border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
+                <div className={`text-base font-bold tabular-nums ${color}`}>{act ? act[k] : "…"}</div>
+                <div className="text-[10px] text-slate-400">{t(lbl)}</div>
               </button>
             );
           })}
