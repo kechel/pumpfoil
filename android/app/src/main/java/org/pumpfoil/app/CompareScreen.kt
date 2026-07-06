@@ -106,8 +106,17 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                             HorizontalDivider()
                         }
                     }
+                    // Merge nur für EIGENE Sessions DESSELBEN Tages (wie Server/Web). Alle
+                    // Ausgewählten müssen in der eigenen Liste vorkommen und gleiches Datum haben.
+                    val selOwn = selected.mapNotNull { id -> sessions.find { it.id == id } }
+                    val mergeable = selOwn.size == selected.size && selOwn.size >= 2 &&
+                        selOwn.map { it.startedAt.take(10) }.distinct().size == 1
                     mergeError?.let {
                         Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (selected.size >= 2 && !mergeable) {
+                        Text(I18n.t("merge.sameDayOnly"), Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                     Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
@@ -130,7 +139,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                     } catch (e: Exception) { mergeError = e.message; merging = false }
                                 }
                             },
-                            enabled = selected.size >= 2 && !merging,
+                            enabled = mergeable && !merging,
                             modifier = Modifier.weight(1f),
                         ) { Text(I18n.t("merge.action")) }
                     }

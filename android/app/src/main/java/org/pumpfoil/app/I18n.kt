@@ -359,6 +359,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "profile.pwWrong" to row("Aktuelles Passwort falsch.", "Aktuells Passwort falsch.", "Aktuells Passwort foisch.", "Current password is wrong.", "Mot de passe actuel incorrect.", "Password attuale errata.", "La contraseña actual es incorrecta."),
     "profile.error" to row("Fehler.", "Fähler.", "Fehler.", "Error.", "Erreur.", "Errore.", "Error."),
     "compare.bar" to row("Vergleich ({n})", "Verglych ({n})", "Vergleich ({n})", "Compare ({n})", "Comparaison ({n})", "Confronto ({n})", "Comparación ({n})"),
+    "merge.sameDayOnly" to row("Mergen nur für eigene Sessions desselben Tages.", "Merge nur für eigeni Sessions vom gliiche Tag.", "Mergn nur für eigene Sessions vom söbn Tog.", "Merge only your own sessions from the same day.", "Fusion uniquement pour vos sessions du même jour.", "Unione solo per le tue sessioni dello stesso giorno.", "Fusionar solo tus sesiones del mismo día."),
     "compare.open" to row("Vergleich öffnen", "Verglych uufmache", "Vergleich aufmachn", "Open comparison", "Ouvrir la comparaison", "Apri confronto", "Abrir comparación"),
     "row.like" to row("Gefällt mir", "Gfallt mer", "Gfoit ma", "Like", "J'aime", "Mi piace", "Me gusta"),
     "row.unlike" to row("Gefällt mir nicht mehr", "Gfallt mer nüme", "Gfoit ma nimmer", "Unlike", "Je n'aime plus", "Non mi piace più", "Ya no me gusta"),

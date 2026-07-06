@@ -43,6 +43,9 @@ struct CompareView: View {
                             }
                         }
                         if let mergeError { Text(mergeError).font(.caption).foregroundStyle(.red).padding(.horizontal) }
+                        if selected.count >= 2 && !mergeable {
+                            Text(Loc.t("merge.sameDayOnly", lang)).font(.caption2).foregroundStyle(.secondary).padding(.horizontal)
+                        }
                         HStack {
                             Button {
                                 Task {
@@ -63,7 +66,7 @@ struct CompareView: View {
                                 }
                             } label: { Text(Loc.t("merge.action", lang)).frame(maxWidth: .infinity) }
                             .buttonStyle(.borderedProminent)
-                            .disabled(selected.count < 2 || merging)
+                            .disabled(!mergeable || merging)
                         }
                         .padding()
                     }
@@ -116,6 +119,13 @@ struct CompareView: View {
 
     private func toggle(_ id: Int) {
         if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
+    }
+
+    // Mergen nur für EIGENE Sessions DESSELBEN Tages (Client-Spiegel der Server-Regel).
+    private var mergeable: Bool {
+        let own = selected.compactMap { id in sessions.first { $0.id == id } }
+        guard own.count == selected.count, own.count >= 2 else { return false }
+        return Set(own.map { String($0.started_at.prefix(10)) }).count == 1
     }
 
     private func dateText(_ s: SessionSummary) -> String {
