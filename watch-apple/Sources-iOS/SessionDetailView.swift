@@ -692,6 +692,16 @@ private struct PhotoLightboxView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: photos.count > 1 ? .automatic : .never))
         }
+        // Sichtbares Schließen-Steuerelement (X oben rechts) — Tap aufs Bild schliesst zusätzlich.
+        .overlay(alignment: .topTrailing) {
+            Button { onClose() } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(12)
+                    .shadow(radius: 4)
+            }
+        }
         .onTapGesture { onClose() }
         .onAppear { sel = startId }
     }

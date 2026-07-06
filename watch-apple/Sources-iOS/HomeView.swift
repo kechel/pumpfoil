@@ -110,7 +110,7 @@ struct HomeView: View {
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal).padding(.bottom).padding(.top, 2)
             }
             .navigationTitle(Loc.t("nav.home", lang))
             .brandToolbar(Loc.t("nav.home", lang))
