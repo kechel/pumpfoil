@@ -1,9 +1,32 @@
 import { Link } from "react-router-dom";
 import { NerdIcon } from "../components/Icons";
+import { useI18n } from "../i18n";
+import { NERD1 } from "./nerd1.i18n";
 
-// Nerd-Analysen — Easter-Egg-Seite: das Dual-Watch-Pumpfoil-Experiment (2026-06-27)
-// mit allen relevanten Grafiken & Erkenntnissen. Bewusst nur auf Deutsch.
+// Nerd-Analysen — Teil 1: das Dual-Watch-Pumpfoil-Experiment (2026-06-27).
+// Vollständig übersetzt (alle 7 Sprachen, Inhalte in nerd1.i18n.ts).
 // Bilder: Analyse-Plots unter /nerd/, Aufbau-Fotos unter /media/photos/.
+
+function RT({ children }: { children: string }) {
+  const s = children;
+  const nodes: React.ReactNode[] = [];
+  const re = /\*\*([^*]+?)\*\*|`([^`]+?)`|\*([^*]+?)\*|\[([^\]]+?)\]\(([^)]+?)\)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(s))) {
+    if (m.index > last) nodes.push(s.slice(last, m.index));
+    if (m[1] !== undefined) nodes.push(<b key={i++}>{m[1]}</b>);
+    else if (m[2] !== undefined)
+      nodes.push(<code key={i++} className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-300">{m[2]}</code>);
+    else if (m[3] !== undefined) nodes.push(<i key={i++}>{m[3]}</i>);
+    else if (m[4] !== undefined)
+      nodes.push(<Link key={i++} to={m[5]} className="text-brand-400 hover:underline">{m[4]}</Link>);
+    last = re.lastIndex;
+  }
+  if (last < s.length) nodes.push(s.slice(last));
+  return <>{nodes}</>;
+}
 
 function Fig({ src, caption }: { src: string; caption: string }) {
   return (
@@ -27,111 +50,68 @@ function Key({ children }: { children: React.ReactNode }) {
 function H({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 mt-10 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
 }
+function Pr({ children }: { children: string }) {
+  return <p className="text-sm text-slate-300"><RT>{children}</RT></p>;
+}
 
 export default function NerdAnalysen() {
+  const { lang } = useI18n();
+  const c = NERD1[lang] ?? NERD1.de;
   const photo = (h: string) => `/media/photos/${h}.webp`;
   return (
     <div className="w-full">
-      <Link to="/" className="text-sm text-brand-400 hover:underline">← Zurück</Link>
+      <Link to="/" className="text-sm text-brand-400 hover:underline">{c.back}</Link>
       <h1 className="mb-1 mt-4 flex items-center gap-2 text-2xl font-bold">
-        <NerdIcon className="h-7 w-7 text-brand-400" /> Nerd-Analysen
+        <NerdIcon className="h-7 w-7 text-brand-400" /> {c.h1}
       </h1>
-      <p className="mb-2 text-sm text-slate-400">
-        Dual-Watch-Pumpfoil-Experiment · Illmensee, 27.06.2026 · rohe Beschleunigungs-Daten,
-        viel Signalverarbeitung und ein bisschen Foil-Physik. Für alle, die's genau wissen wollen.
-      </p>
+      <p className="mb-2 text-sm text-slate-400">{c.subtitle}</p>
 
-      <p className="text-sm text-slate-300">
-        Frage: Was kann man aus den Bewegungsdaten eines Pumpfoil-Laufs wirklich herauslesen — und
-        können wir damit die Pump-, On-Foil- und Gleit-Erkennung verbessern? Dafür haben wir einen
-        Lauf <b>gleichzeitig mit zwei Uhren</b> aufgezeichnet: einer am Handgelenk und einer
-        <b> direkt am Foil-Mast, unter Wasser</b> — die „Wahrheit" über das, was der Foil tut.
-      </p>
+      <Pr>{c.intro}</Pr>
 
-      <H>Der Aufbau</H>
-      <p className="text-sm text-slate-300">
-        <b>fenix</b> am Handgelenk (25/100 Hz, gutes GPS) — das ist die Uhr, die wir später im Produkt
-        haben. <b>Forerunner 55</b> am Foil-Mast festgezurrt, <b>unter Wasser</b>, über Kopf, mit dem
-        Start-Knopf in Fahrtrichtung. Beide liefen auf unserer eigenen Recorder-App (v1.0.37). Die
-        Mast-Uhr hat unter Wasser <b>kein GPS</b> — sie misst nur die rohe Beschleunigung des Foils.
-      </p>
+      <H>{c.aufbau.h}</H>
+      <Pr>{c.aufbau.p}</Pr>
       <div className="my-5 grid grid-cols-3 gap-3">
-        <img src={photo("54d4248e35634dd6a9a4cda1a5f71b37")} alt="Foil mit Mast-Uhr am Steg" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
-        <img src={photo("0bb596ff35864bfe8951cfa594038052")} alt="FR55 am Mast — Auto-Start" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
-        <img src={photo("979ca9ffa5f44f9cb0441f0b430bfd22")} alt="FR55 am Mast — GPS-Suche" className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
+        <img src={photo("54d4248e35634dd6a9a4cda1a5f71b37")} alt={c.aufbau.alt1} className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
+        <img src={photo("0bb596ff35864bfe8951cfa594038052")} alt={c.aufbau.alt2} className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
+        <img src={photo("979ca9ffa5f44f9cb0441f0b430bfd22")} alt={c.aufbau.alt3} className="aspect-[3/4] w-full rounded-xl border border-slate-800 object-cover" />
       </div>
-      <img src={photo("4987d350f41c4e93813eda148c85f625")} alt="Spot Illmensee bei Sonnenuntergang" className="my-3 w-full rounded-xl border border-slate-800" />
+      <img src={photo("4987d350f41c4e93813eda148c85f625")} alt={c.aufbau.altSpot} className="my-3 w-full rounded-xl border border-slate-800" />
 
-      <H>Die Daten</H>
-      <p className="text-sm text-slate-300">
-        Statt der (auf der schwachen FR55 abbrechenden) Roh-Chunks haben wir die <b>Original-FIT-Dateien</b>
-        aus Garmin Connect ausgewertet: fenix <b>100 Hz</b>, Mast <b>25 Hz</b>, jeweils über den ganzen Lauf.
-        Beide Uhren laufen über die Systemzeit synchron.
-      </p>
+      <H>{c.daten.h}</H>
+      <Pr>{c.daten.p}</Pr>
 
-      <H>Die Startsequenz</H>
-      <p className="text-sm text-slate-300">
-        Aus den Daten lässt sich der komplette Start rekonstruieren (per Video bestätigt): Das Board liegt
-        <b> auf dem Kopf</b> am Steg → wird um <b>180° gedreht</b> und der Foil eingetaucht (oben: FR55-Lage
-        kippt von −1 auf +1) → kurz konzentrieren → <b>anschieben</b> mit der Uhr-Hand → die Hand
-        <b> schnippt beim Loslassen hoch</b> (4–6 g Arm-Stoß, Sprungenergie) → <b>Sprung & Landung</b> aufs
-        Board → Pumpen → fliegen.
-      </p>
-      <Fig src="/nerd/16_flip_marked.png" caption="Der 180°-Flip des Boards (FR55-Gravitation kippt) und die Start-Zone in den 5 s danach." />
-      <Fig src="/nerd/06_start_sequence.png" caption="Start-Sequenz: Board-Flip, Vorbereiten, Push/Sprung, dann die Speed-Rampe ins Foilen." />
+      <H>{c.start.h}</H>
+      <Pr>{c.start.p}</Pr>
+      <Fig src="/nerd/16_flip_marked.png" caption={c.start.cap1} />
+      <Fig src="/nerd/06_start_sequence.png" caption={c.start.cap2} />
 
-      <H>Pumpen, Foilen, Gleiten — die Wahrheit vom Foil</H>
-      <p className="text-sm text-slate-300">
-        Der Mast sitzt am Foil und „weiß", ob wirklich gepumpt wird und ob der Foil noch fliegt. Schön
-        sichtbar am Auslaufen: zuerst hört das <b>Pumpen auf</b> (Wrist-Aktivität → 0), die Geschwindigkeit
-        hält aber noch → das ist die <b>Gleitphase</b>; danach kippt der Foil weg (Mast-Ausschlag) und es
-        ist vorbei. Genau diese Gleitphase erkennen wir bisher nicht explizit.
-      </p>
-      <Fig src="/nerd/10_pump_glide_truth.png" caption="GPS-Speed · Wrist-Pump-Aktivität · Foil-Pump (Mast) · Foil-Lage. Am Ende: Pumpen stoppt → Gleiten → Foil-Drop." />
+      <H>{c.truth.h}</H>
+      <Pr>{c.truth.p}</Pr>
+      <Fig src="/nerd/10_pump_glide_truth.png" caption={c.truth.cap} />
 
-      <H>Die Pump-Kadenz</H>
-      <p className="text-sm text-slate-300">
-        Gepumpt wird mit <b>≈ 1,29 Hz</b> (~77 Pumps/Minute). Das Handgelenk trifft diese Rate sauber
-        (Anzahl & Takt stimmen mit dem Foil-Schub überein) — die Pump-Erkennung läuft also grundsätzlich
-        richtig.
-      </p>
-      <Fig src="/nerd/12_pump_timing.png" caption="Wrist-Pump-Marker vs. Foil-Schub-Peaks — gleiche Kadenz (~1,3 Hz), Takte tracken." />
+      <H>{c.cadence.h}</H>
+      <Pr>{c.cadence.p}</Pr>
+      <Fig src="/nerd/12_pump_timing.png" caption={c.cadence.cap} />
 
-      <H>Foil-Lage: Nicken dominiert, Vortrieb fore/aft</H>
-      <p className="text-sm text-slate-300">
-        Beim Pumpen kippst du den Foil über den 85-cm-Mast-Hebel <b>vor/zurück</b> (Nicken), kaum seitlich —
-        in den Daten dominiert die Nick- die Roll-Bewegung klar. Und die Beschleunigung des Foils ist
-        überwiegend <b>fore/aft (Vortrieb)</b>, nicht vertikal: der Foil schiebt nach vorne, wenn du Druck
-        gibst.
-      </p>
-      <Fig src="/nerd/07_p3_pitch_fit.png" caption="Foil-Lage im Lauf: Nick (fore/aft) ≫ Roll. Pitch und vertikale Last sind gekoppelt." />
+      <H>{c.pitch.h}</H>
+      <Pr>{c.pitch.p}</Pr>
+      <Fig src="/nerd/07_p3_pitch_fit.png" caption={c.pitch.cap} />
 
-      <H>Coole Bilder</H>
-      <p className="text-sm text-slate-300">
-        Der Track, eingefärbt nach Foil-Lage und Geschwindigkeit (weiß = 0°, rot/blau je Richtung):
-      </p>
-      <Fig src="/nerd/19_track_colored.png" caption="Foiling-Track nach Nickwinkel, Rollwinkel und Speed. Der Foil hält durchgehend leicht Nase-hoch (Auftrieb)." />
-      <Fig src="/nerd/20_track_surge_pumps.png" caption="Track nach Vortrieb (rot=vorwärts) — man sieht jeden Pump-Schub — und die einzelnen Pump-Marker auf dem Pfad." />
-      <Fig src="/nerd/21_lage_teppich.png" caption="Lage-Teppich: Nick / Roll / Vortrieb über die Zeit auf einen Blick." />
+      <H>{c.pics.h}</H>
+      <Pr>{c.pics.p}</Pr>
+      <Fig src="/nerd/19_track_colored.png" caption={c.pics.cap1} />
+      <Fig src="/nerd/20_track_surge_pumps.png" caption={c.pics.cap2} />
+      <Fig src="/nerd/21_lage_teppich.png" caption={c.pics.cap3} />
 
-      <H>Was wir gelernt haben</H>
+      <H>{c.learned.h}</H>
       <Key>
         <ul className="list-disc space-y-1.5 pl-5">
-          <li><b>Pump-Erkennung</b> trifft Rate & Anzahl gut (~1,29 Hz) — deckt sich mit der Foil-Wahrheit am Mast (wenige % Abweichung).</li>
-          <li><b>On-Foil-Erkennung</b> liegt gut — sie zeigt den Steg/Absprung präzise (snappt auf den Aufsprung-Impuls).</li>
-          <li><b>Gleitphase / Auslaufen</b>: hier ist das größte Potenzial — „On-Foil ∧ Pump-Aktivität ≈ 0" könnte das Gleiten am Ende explizit ausweisen.</li>
-          <li>Alles davon ist <b>nur mit der Handgelenk-Uhr</b> machbar — die Mast-Uhr war nur die Wahrheits-Referenz.</li>
+          {c.learned.li.map((x, i) => <li key={i}><RT>{x}</RT></li>)}
         </ul>
       </Key>
 
-      <H>Grenzen (für die Ehrlichkeit)</H>
-      <p className="mb-10 text-sm text-slate-400">
-        Die Mast-Uhr ist unter Wasser stark gedämpft, daher sieht sie scharfe Stöße nur abgeschwächt. Die
-        „Winkel" stammen aus der Schwerkraft-Richtung (Tiefpass) — im stationären Gleiten echte Lage, bei
-        anhaltender Beschleunigung leicht verfälscht; für 100 % saubere Drehwinkel bräuchte man ein Gyroskop.
-        Und der genaue Zeit-Versatz einzelner Pumps zwischen den Uhren ließ sich nicht auf {"<"}100 ms
-        festnageln (kein sauberer gemeinsamer Fixpunkt; die FR55 hat unter Wasser kein GPS zum Uhr-Stellen).
-      </p>
+      <H>{c.limits.h}</H>
+      <p className="mb-10 text-sm text-slate-400"><RT>{c.limits.p}</RT></p>
     </div>
   );
 }
