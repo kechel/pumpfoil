@@ -18,10 +18,12 @@ export interface N1 {
   pics: { h: string; p: string; cap1: string; cap2: string; cap3: string };
   learned: { h: string; li: string[] };
   limits: { h: string; p: string };
+  next: string;
 }
 
 const de: N1 = {
   back: "← Zurück",
+  next: "→ Teil 2: Wie die Erkennung funktioniert",
   h1: "Nerd-Analysen",
   subtitle:
     "Dual-Watch-Pumpfoil-Experiment · Illmensee, 27.06.2026 · rohe Beschleunigungs-Daten, viel Signalverarbeitung und ein bisschen Foil-Physik. Für alle, die's genau wissen wollen.",
@@ -85,6 +87,7 @@ const de: N1 = {
 // --- Schwiizerdütsch (Züridütsch) ---
 const gsw: N1 = {
   back: "← Zrugg",
+  next: "→ Teil 2: Wie d Erkennig funktioniert",
   h1: "Nerd-Analyse",
   subtitle:
     "Dual-Watch-Pumpfoil-Experimänt · Illmensee, 27.06.2026 · rohi Bschlünigungs-Date, vill Signalverarbeitig und es bitzeli Foil-Physik. Für alli, wo's gnau wüsse wänd.",
@@ -148,6 +151,7 @@ const gsw: N1 = {
 // --- Österreichisch ---
 const deAT: N1 = {
   back: "← Zurück",
+  next: "→ Teil 2: Wie die Erkennung funktioniert",
   h1: "Nerd-Analysen",
   subtitle:
     "Dual-Watch-Pumpfoil-Experiment · Illmensee, 27.06.2026 · rohe Beschleunigungs-Daten, viel Signalverarbeitung und a bisserl Foil-Physik. Für alle, die's ganz genau wissen wollen.",
@@ -210,6 +214,7 @@ const deAT: N1 = {
 
 const en: N1 = {
   back: "← Back",
+  next: "→ Part 2: How the detection works",
   h1: "Nerd Analytics",
   subtitle:
     "Dual-watch pumpfoil experiment · Illmensee, June 27, 2026 · raw acceleration data, plenty of signal processing and a bit of foil physics. For everyone who wants to know exactly.",
@@ -272,6 +277,7 @@ const en: N1 = {
 
 const fr: N1 = {
   back: "← Retour",
+  next: "→ Partie 2 : comment fonctionne la détection",
   h1: "Analyses de geek",
   subtitle:
     "Expérience pumpfoil deux montres · Illmensee, 27/06/2026 · données brutes d’accélération, beaucoup de traitement du signal et un peu de physique du foil. Pour tous ceux qui veulent savoir précisément.",
@@ -334,6 +340,7 @@ const fr: N1 = {
 
 const it: N1 = {
   back: "← Indietro",
+  next: "→ Parte 2: come funziona il riconoscimento",
   h1: "Analisi da nerd",
   subtitle:
     "Esperimento pumpfoil dual-watch · Illmensee, 27/06/2026 · dati grezzi di accelerazione, molta elaborazione del segnale e un po' di fisica del foil. Per chi vuole saperne di più.",
@@ -396,6 +403,7 @@ const it: N1 = {
 
 const es: N1 = {
   back: "← Volver",
+  next: "→ Parte 2: cómo funciona la detección",
   h1: "Análisis para nerds",
   subtitle:
     "Experimento pumpfoil con dos relojes · Illmensee, 27/06/2026 · datos de aceleración en bruto, mucho procesamiento de señal y un poco de física del foil. Para quienes quieren saberlo con exactitud.",

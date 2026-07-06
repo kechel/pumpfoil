@@ -111,7 +111,14 @@ export default function NerdAnalysen() {
       </Key>
 
       <H>{c.limits.h}</H>
-      <p className="mb-10 text-sm text-slate-400"><RT>{c.limits.p}</RT></p>
+      <p className="mb-6 text-sm text-slate-400"><RT>{c.limits.p}</RT></p>
+
+      <Link
+        to="/nerd-analysen-2"
+        className="mb-10 inline-flex items-center gap-2 rounded-xl border border-brand-700/50 bg-brand-950/20 px-4 py-3 text-sm font-semibold text-brand-300 transition-colors hover:bg-brand-950/40"
+      >
+        {c.next}
+      </Link>
     </div>
   );
 }
