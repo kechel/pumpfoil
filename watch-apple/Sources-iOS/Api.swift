@@ -261,7 +261,8 @@ enum Api {
         req.httpMethod = "PUT"
         if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try JSONSerialization.data(withJSONObject: ["foil_id": foilId ?? NSNull()])
+        let foilValue: Any = foilId.map { $0 as Any } ?? NSNull()   // nil -> JSON null (Standard-Foil)
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["foil_id": foilValue])
         let (_, resp) = try await URLSession.shared.data(for: req)
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
