@@ -15,10 +15,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,11 +46,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.ClickableText
 import coil.compose.AsyncImage
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
@@ -108,13 +121,38 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var editMsg by remember { mutableStateOf<ChatMsg?>(null) }     // Bearbeiten-Dialog
     var editText by remember { mutableStateOf("") }
     var showDict by remember { mutableStateOf(false) }            // Diktat-Vollbild
+    var isAdmin by remember { mutableStateOf(false) }
+    var push by remember { mutableStateOf(false) }
+    var confirmLeave by remember { mutableStateOf(false) }
+    var lastId by remember(room.scope) { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
 
     suspend fun load() {
-        try { msgs = Api.chatLatest(room.scope, limit = 100); error = null }
-        catch (e: Exception) { error = e.message }
+        try {
+            val rows = Api.chatLatest(room.scope, limit = 100); msgs = rows; error = null
+            lastId = rows.maxOfOrNull { it.id } ?: 0
+            if (lastId > 0) runCatching { Api.chatMarkRead(room.scope, lastId) }
+        } catch (e: Exception) { error = e.message }
     }
-    LaunchedEffect(room.scope) { load() }
+    LaunchedEffect(room.scope) {
+        isAdmin = runCatching { Api.me().isAdmin }.getOrDefault(false)
+        push = runCatching { Api.chatRoomState(room.scope).push }.getOrDefault(false)
+        load()
+        // Live-Polling neuer Nachrichten (~10 s) + Lesestand, wie die Web-PWA.
+        while (isActive) {
+            kotlinx.coroutines.delay(10_000)
+            runCatching {
+                val since = Api.chatSince(room.scope, lastId)
+                val known = msgs.map { it.id }.toSet()
+                val add = since.filter { it.id !in known }
+                if (add.isNotEmpty()) {
+                    msgs = msgs + add
+                    lastId = msgs.maxOf { it.id }
+                    Api.chatMarkRead(room.scope, lastId)
+                }
+            }
+        }
+    }
 
     if (showDict) {
         DictationOverlay(
@@ -133,20 +171,51 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         )
     }
 
-    // Aktions-Auswahl (Bearbeiten/Löschen) für eigene, < 1 h alte Nachrichten.
+    // Aktions-Auswahl je Nachricht: eigene <1 h → Bearbeiten/Löschen; fremde → Melden;
+    // Admin → Aus-/Einblenden + Nutzer stummschalten.
     actionMsg?.let { m ->
+        val editable = m.mine && withinEditWindow(m.createdAt)
         AlertDialog(
             onDismissRequest = { actionMsg = null },
             title = { Text(m.text, maxLines = 2) },
+            text = {
+                Column {
+                    if (editable) {
+                        TextButton(onClick = { editText = m.text; editMsg = m; actionMsg = null }) { Text(I18n.t("chat.edit")) }
+                        TextButton(onClick = {
+                            val id = m.id; actionMsg = null
+                            scope.launch { try { Api.chatDelete(id); load() } catch (e: Exception) { error = e.message } }
+                        }) { Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error) }
+                    }
+                    if (!m.mine) {
+                        TextButton(onClick = { val id = m.id; actionMsg = null; scope.launch { runCatching { Api.chatReport(id) } } }) { Text(I18n.t("chat.report")) }
+                    }
+                    if (isAdmin) {
+                        TextButton(onClick = {
+                            val id = m.id; val h = !m.hidden; actionMsg = null
+                            scope.launch { runCatching { Api.chatHide(id, h) }; load() }
+                        }) { Text(I18n.t(if (m.hidden) "chat.unhide" else "chat.hide")) }
+                        if (!m.mine) TextButton(onClick = {
+                            val uid = m.userId; actionMsg = null; scope.launch { runCatching { Api.chatSetReadonly(uid, true) } }
+                        }) { Text(I18n.t("chat.readonly"), color = MaterialTheme.colorScheme.error) }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { actionMsg = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    if (confirmLeave) {
+        AlertDialog(
+            onDismissRequest = { confirmLeave = false },
+            title = { Text(I18n.t("chat.leave")) },
+            text = { Text(I18n.t("chat.leaveConfirm")) },
             confirmButton = {
-                TextButton(onClick = { editText = m.text; editMsg = m; actionMsg = null }) { Text(I18n.t("chat.edit")) }
+                TextButton(onClick = { confirmLeave = false; scope.launch { runCatching { Api.chatLeave(room.scope) }; onBack() } }) {
+                    Text(I18n.t("chat.leave"), color = MaterialTheme.colorScheme.error)
+                }
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    val id = m.id; actionMsg = null
-                    scope.launch { try { Api.chatDelete(id); load() } catch (e: Exception) { error = e.message } }
-                }) { Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error) }
-            },
+            dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
     editMsg?.let { m ->
@@ -173,6 +242,19 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                    }
+                },
+                actions = {
+                    // Abonnieren (Push) + Verlassen — wie Web-Chat.
+                    IconButton(onClick = { scope.launch { push = runCatching { Api.chatSubscribe(room.scope, !push) }.getOrDefault(push) } }) {
+                        Icon(
+                            if (push) Icons.Filled.Notifications else Icons.Filled.NotificationsOff,
+                            contentDescription = I18n.t("chat.subscribe"),
+                            tint = if (push) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(onClick = { confirmLeave = true }) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = I18n.t("chat.leave"))
                     }
                 },
             )
@@ -207,10 +289,12 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)
+                val hasActions = editable || !m.mine || isAdmin   // Long-Press-Menü sinnvoll?
                 Row(
                     Modifier.fillMaxWidth()
-                        .combinedClickable(enabled = editable, onClick = {}, onLongClick = { actionMsg = m })
-                        .padding(vertical = 6.dp),
+                        .combinedClickable(enabled = hasActions, onClick = {}, onLongClick = { actionMsg = m })
+                        .padding(vertical = 6.dp)
+                        .then(if (m.hidden) Modifier.alpha(0.5f) else Modifier),
                     verticalAlignment = Alignment.Top,
                 ) {
                     val av = Api.mediaUrl(m.avatarUrl)
@@ -230,7 +314,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        Text(m.text)
+                        LinkifiedText(m.text)
                     }
                 }
             }
@@ -244,6 +328,30 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             }
         }
     }
+}
+
+// Nachrichtentext mit klickbaren Links (wie Web-linkify).
+@Composable
+private fun LinkifiedText(text: String) {
+    val uriHandler = LocalUriHandler.current
+    val primary = MaterialTheme.colorScheme.primary
+    val annotated = buildAnnotatedString {
+        val regex = Regex("""https?://\S+""")
+        var last = 0
+        for (mr in regex.findAll(text)) {
+            append(text.substring(last, mr.range.first))
+            pushStringAnnotation("URL", mr.value)
+            withStyle(SpanStyle(color = primary, textDecoration = TextDecoration.Underline)) { append(mr.value) }
+            pop()
+            last = mr.range.last + 1
+        }
+        append(text.substring(last))
+    }
+    ClickableText(
+        text = annotated,
+        style = LocalTextStyle.current.copy(color = LocalContentColor.current),
+        onClick = { off -> annotated.getStringAnnotations("URL", off, off).firstOrNull()?.let { uriHandler.openUri(it.item) } },
+    )
 }
 
 // Zeitstempel wie im Web (dd.MM. HH:mm).

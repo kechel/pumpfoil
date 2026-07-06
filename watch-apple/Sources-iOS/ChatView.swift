@@ -62,6 +62,11 @@ struct ChatRoomView: View {
     @State private var editMsg: ChatMsg?
     @State private var editText = ""
     @State private var showDict = false
+    @State private var isAdmin = false
+    @State private var push = false
+    @State private var confirmLeave = false
+    @State private var lastId = 0
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
@@ -99,7 +104,45 @@ struct ChatRoomView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await load() }
+        .toolbar {
+            // Abonnieren (Push) + Verlassen — wie Web-Chat.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task { push = (try? await Api.chatSubscribe(scope: scope, on: !push)) ?? push }
+                } label: {
+                    Image(systemName: push ? "bell.fill" : "bell.slash")
+                        .foregroundStyle(push ? Color.accentColor : .secondary)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { confirmLeave = true } label: { Image(systemName: "rectangle.portrait.and.arrow.right") }
+            }
+        }
+        .confirmationDialog(Loc.t("chat.leaveConfirm", lang), isPresented: $confirmLeave, titleVisibility: .visible) {
+            Button(Loc.t("chat.leave", lang), role: .destructive) {
+                Task { try? await Api.chatLeave(scope: scope); dismiss() }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        }
+        .task {
+            if let p = try? await Api.getProfile() { isAdmin = p.is_admin ?? false }
+            push = (try? await Api.chatRoomState(scope: scope).push) ?? false
+            await load()
+            // Live-Polling neuer Nachrichten (~10 s), wie die Web-PWA.
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+                if Task.isCancelled { break }
+                if let since = try? await Api.chatSince(scope: scope, after: lastId), !since.isEmpty {
+                    let known = Set(msgs.map { $0.id })
+                    let add = since.filter { !known.contains($0.id) }
+                    if !add.isEmpty {
+                        msgs.append(contentsOf: add)
+                        lastId = msgs.map { $0.id }.max() ?? lastId
+                        try? await Api.chatMarkRead(scope: scope, upTo: lastId)
+                    }
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showDict) {
             DictationView(existing: draft, title: title, lang: lang) { text, send in
                 let t = (draft.isEmpty ? text : "\(draft) \(text)").trimmingCharacters(in: .whitespaces)
@@ -139,11 +182,12 @@ struct ChatRoomView: View {
                         Text(ts).font(.caption2).foregroundStyle(.secondary)
                     }
                 }
-                Text(m.text).fixedSize(horizontal: false, vertical: true)
+                Text(linkified(m.text)).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .opacity(m.hidden ? 0.5 : 1)
         .contextMenu {
             if editable(m) {
                 Button(Loc.t("chat.edit", lang)) { editText = m.text; editMsg = m }
@@ -151,7 +195,34 @@ struct ChatRoomView: View {
                     Task { try? await Api.chatDelete(m.id); await load() }
                 }
             }
+            if !m.mine {
+                Button(Loc.t("chat.report", lang)) { Task { try? await Api.chatReport(m.id) } }
+            }
+            if isAdmin {
+                Button(m.hidden ? Loc.t("chat.unhide", lang) : Loc.t("chat.hide", lang)) {
+                    Task { try? await Api.chatHide(m.id, hidden: !m.hidden); await load() }
+                }
+                if !m.mine {
+                    Button(Loc.t("chat.readonly", lang), role: .destructive) {
+                        Task { try? await Api.chatSetReadonly(userId: m.user_id, readonly: true) }
+                    }
+                }
+            }
         }
+    }
+
+    // Nachrichtentext mit klickbaren Links (wie Web-linkify).
+    private func linkified(_ text: String) -> AttributedString {
+        var a = AttributedString(text)
+        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+            for m in detector.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+                if let url = m.url, let r = Range(m.range, in: a) {
+                    a[r].link = url
+                    a[r].foregroundColor = .accentColor
+                }
+            }
+        }
+        return a
     }
 
     @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {
@@ -176,8 +247,11 @@ struct ChatRoomView: View {
     }
 
     private func load() async {
-        do { msgs = try await Api.chatLatest(scope: scope, limit: 100); error = nil }
-        catch { self.error = error.localizedDescription }
+        do {
+            msgs = try await Api.chatLatest(scope: scope, limit: 100); error = nil
+            lastId = msgs.map { $0.id }.max() ?? 0
+            if lastId > 0 { try? await Api.chatMarkRead(scope: scope, upTo: lastId) }
+        } catch { self.error = error.localizedDescription }
     }
 
     private func send() async {
@@ -187,6 +261,7 @@ struct ChatRoomView: View {
         do {
             let m = try await Api.chatPost(scope: scope, text: text)
             msgs.append(m)
+            lastId = max(lastId, m.id)
             draft = ""
             error = nil
         } catch { self.error = error.localizedDescription }

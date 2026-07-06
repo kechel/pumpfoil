@@ -13,6 +13,8 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.put
 import java.net.HttpURLConnection
 import java.net.URL
@@ -295,6 +297,50 @@ object Api {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
         val body = buildJsonObject { put("text", text) }.toString()
         json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
+    }
+
+    // Neue Nachrichten seit `after` (für Live-Polling).
+    suspend fun chatSince(scope: String, after: Int): List<ChatMsg> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&after=$after", null, auth = true))
+    }
+
+    // Fremde Nachricht melden.
+    suspend fun chatReport(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/chat/$id/report", null, auth = true)
+    }
+
+    // Admin: Nachricht aus-/einblenden.
+    suspend fun chatHide(id: Int, hidden: Boolean): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/chat/$id/hide", buildJsonObject { put("hidden", hidden) }.toString(), auth = true)
+    }
+
+    // Admin: Nutzer für Chats stummschalten (readonly).
+    suspend fun chatSetReadonly(userId: Int, readonly: Boolean): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/chat/moderation/readonly", buildJsonObject { put("user_id", userId); put("readonly", readonly) }.toString(), auth = true)
+    }
+
+    // Raum abonnieren/abbestellen (Push); gibt den neuen push-Zustand zurück.
+    suspend fun chatSubscribe(scope: String, on: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("scope", scope); put("on", on) }.toString()
+        val resp = http("POST", "/api/chat/subscribe", body, auth = true)
+        json.parseToJsonElement(resp).jsonObject["push"]?.jsonPrimitive?.booleanOrNull ?: on
+    }
+
+    suspend fun chatLeave(scope: String): Unit = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        http("POST", "/api/chat/leave?scope=$s", null, auth = true)
+    }
+
+    // Raum-Zustand (push abonniert? verlassen? letzte gelesene id).
+    suspend fun chatRoomState(scope: String): ChatState = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(scope, "UTF-8")
+        json.decodeFromString(ChatState.serializer(), http("GET", "/api/chat/state?scope=$s", null, auth = true))
+    }
+
+    // Lesestand setzen (für Unread auf der Startseite).
+    suspend fun chatMarkRead(scope: String, upTo: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/chat/read", buildJsonObject { put("scope", scope); put("up_to", upTo) }.toString(), auth = true)
     }
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:

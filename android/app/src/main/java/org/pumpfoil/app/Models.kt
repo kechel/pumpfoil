@@ -216,6 +216,14 @@ data class MonthCount(val month: String = "", val count: Int = 0)
 @Serializable
 data class Neighbors(val older: Int? = null, val newer: Int? = null)
 
+// Chat-Raum-Zustand (GET /api/chat/state).
+@Serializable
+data class ChatState(
+    val push: Boolean = false,
+    val left: Boolean = false,
+    @SerialName("last_read_id") val lastReadId: Int = 0,
+)
+
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
 @Serializable
 data class CommunityRecordEntry(

@@ -33,6 +33,24 @@ Tap Stat/Lauf → Lauf auswählen + Clear ✅ · Fotos+Lightbox ✅ · YouTube-L
 Neu: `GET /api/sessions/{id}/neighbors` in beide Clients; Vor/Zurück-Zeile oben (deaktiviert, wenn
 keine Nachbarn). Android navigiert via `onOpenSession`, iOS via NavigationLink. i18n sd.older/newer (7 Spr.).
 
+## Chat
+| Verhalten (Web) | Android | iOS |
+|---|---|---|
+| Edit/Delete eigener Nachricht (1 h) | ✅ | ✅ |
+| **Melden** fremder Nachrichten | ✅ (neu) | ✅ (neu) |
+| **Admin: Ein-/Ausblenden + Nutzer stumm** (nur is_admin) | ✅ (neu) | ✅ (neu) |
+| **Abonnieren/Verlassen** (Glocke + Verlassen) | ✅ (neu) | ✅ (neu) |
+| **Live-Polling ~10 s** + Lesestand (markRead) | ✅ (neu) | ✅ (neu) |
+| **URL-Linkify** (klickbare Links) | ✅ (neu, ClickableText) | ✅ (neu, AttributedString) |
+| Ausgeblendete Nachricht gedimmt | ✅ | ✅ |
+| Ältere per Hochscroll nachladen (Pagination) | ⚠️ lädt letzte 100 (= Web-CAP) | ⚠️ dito |
+| „neuer Autor"-Badge | ❌ (kosmetisch, offen) | ❌ |
+
+Neu: Api chatSince/Report/Hide/SetReadonly/Subscribe/Leave/RoomState/MarkRead (beide Clients);
+i18n chat.report/subscribe/subscribed/leave/leaveConfirm/hide/unhide/readonly (7 Spr.). Alle Chat-
+Endpunkte sind POST/GET → kein PATCH-Problem. Android im Emulator verifiziert (Glocke/Verlassen-Leiste,
+Long-Press fremd → „Melden").
+
 ## Offen / nächste Bereiche
 - Chat: Report/Hide/Mute/Admin + Abo/Verlassen (❌ nativ), URL-Linkify (❌ nativ), Edit/Delete 1 h (✅).
 - Verlauf: Chart-Klick → Session + Hover-Tooltip (❌ nativ).

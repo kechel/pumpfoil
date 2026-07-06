@@ -299,6 +299,44 @@ enum Api {
         return try await request("/api/chat?scope=\(s)", method: "POST", body: ["text": text], auth: true)
     }
 
+    // Neue Nachrichten seit `after` (Live-Polling).
+    static func chatSince(scope: String, after: Int) async throws -> [ChatMsg] {
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        return try await request("/api/chat?scope=\(s)&after=\(after)", method: "GET", body: nil, auth: true)
+    }
+
+    struct ChatState: Decodable { let push: Bool; let left: Bool?; let last_read_id: Int? }
+    static func chatRoomState(scope: String) async throws -> ChatState {
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        return try await request("/api/chat/state?scope=\(s)", method: "GET", body: nil, auth: true)
+    }
+    @discardableResult static func chatSubscribe(scope: String, on: Bool) async throws -> Bool {
+        struct R: Decodable { let push: Bool? }
+        let r: R = try await request("/api/chat/subscribe", method: "POST", body: ["scope": scope, "on": on], auth: true)
+        return r.push ?? on
+    }
+    static func chatLeave(scope: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
+        let _: Ok = try await request("/api/chat/leave?scope=\(s)", method: "POST", body: nil, auth: true)
+    }
+    static func chatReport(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/\(id)/report", method: "POST", body: nil, auth: true)
+    }
+    static func chatHide(_ id: Int, hidden: Bool) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/\(id)/hide", method: "POST", body: ["hidden": hidden], auth: true)
+    }
+    static func chatSetReadonly(userId: Int, readonly: Bool) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/moderation/readonly", method: "POST", body: ["user_id": userId, "readonly": readonly], auth: true)
+    }
+    static func chatMarkRead(scope: String, upTo: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/read", method: "POST", body: ["scope": scope, "up_to": upTo], auth: true)
+    }
+
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
     static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String) async throws -> Data {
         guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }
