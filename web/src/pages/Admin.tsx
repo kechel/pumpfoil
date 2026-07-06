@@ -260,7 +260,7 @@ function UsersTab() {
     setSp(n);
   };
   const [filter, setFilter] = useState<UserFilter>({ normal: true, tester: true, admin: true, new: true });
-  const [sort, setSort] = useState<UserSort>("seen");
+  const [sort, setSort] = useState<UserSort>("created");
   const [total, setTotal] = useState<number | null>(null);
   const [act, setAct] = useState<AdminUserActivity | null>(null);
   const toggle = (k: keyof UserFilter) => setFilter((f) => ({ ...f, [k]: !f[k] }));
