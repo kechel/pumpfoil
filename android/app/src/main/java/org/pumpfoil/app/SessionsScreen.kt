@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
@@ -80,7 +81,7 @@ private enum class Scope { MINE, SPOT, ALL }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
+fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
@@ -143,7 +144,15 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}) {
                 Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
                 Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}"
             }
-            PumpfoilTopBar(title) { SyncIndicator() }
+            PumpfoilTopBar(title) {
+                // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/iOS).
+                if (scope == Scope.SPOT && spot.isNotBlank()) {
+                    IconButton(onClick = { onSpotChat(spot) }) {
+                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                SyncIndicator()
+            }
         },
     ) { pad ->
         val scopeC = rememberCoroutineScope()

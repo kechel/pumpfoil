@@ -30,6 +30,7 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Close
@@ -105,7 +106,7 @@ private val AmberReport = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -209,6 +210,12 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                                     },
                                 )
                             }
+                        }
+                    }
+                    // Spot-Chat der Session (scope "spot:<name>") — für jede Session mit Spot.
+                    s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
+                        IconButton(onClick = { onSpotChat(sp) }) {
+                            Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     if (s?.owned == true && s.analysis?.trackGeojson != null) {

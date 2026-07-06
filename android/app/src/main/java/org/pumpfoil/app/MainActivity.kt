@@ -118,7 +118,7 @@ fun MainScaffold(onLogout: () -> Unit) {
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }) }
-            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }) }
+            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
@@ -130,9 +130,16 @@ fun MainScaffold(onLogout: () -> Unit) {
                     spot = entry.arguments?.getString("name").orEmpty(),
                     onBack = { nav.popBackStack() },
                     onOpen = { id -> nav.navigate("session/$id") },
+                    onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") },
                 )
             }
             composable("chat") { ChatScreen() }
+            composable(
+                "spotchat/{name}",
+                arguments = listOf(navArgument("name") { type = NavType.StringType }),
+            ) { entry ->
+                SpotChatScreen(spot = entry.arguments?.getString("name").orEmpty(), onBack = { nav.popBackStack() })
+            }
             composable("profile") {
                 ProfileScreen(
                     onLogout = onLogout,
@@ -173,6 +180,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onBack = { nav.popBackStack() },
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
+                    onSpotChat = { s -> nav.navigate("spotchat/${Uri.encode(s)}") },
                 )
             }
             composable(
