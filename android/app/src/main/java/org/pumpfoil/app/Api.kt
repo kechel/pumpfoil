@@ -349,6 +349,29 @@ object Api {
         http("POST", "/api/chat/read", buildJsonObject { put("scope", scope); put("up_to", upTo) }.toString(), auth = true)
     }
 
+    // --- 1:1-Direktnachrichten + Blockieren ---
+    suspend fun chatDmOpen(userId: Int): DmOpen = withContext(Dispatchers.IO) {
+        json.decodeFromString(DmOpen.serializer(), http("GET", "/api/chat/dm?user_id=$userId", null, auth = true))
+    }
+    suspend fun chatSearchUsers(q: String): List<DmUser> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(q, "UTF-8")
+        json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/chat/users?q=$s", null, auth = true))
+    }
+    suspend fun chatBlock(userId: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/chat/block", buildJsonObject { put("user_id", userId) }.toString(), auth = true)
+    }
+    suspend fun chatUnblock(userId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/chat/block?user_id=$userId", null, auth = true)
+    }
+    suspend fun chatBlocks(): List<DmUser> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/chat/blocks", null, auth = true))
+    }
+
+    // Öffentlicher News-Banner (DB-gesteuert, kein Auth nötig).
+    suspend fun newsBanner(): NewsBanner = withContext(Dispatchers.IO) {
+        json.decodeFromString(NewsBanner.serializer(), http("GET", "/api/app/news", null, auth = false))
+    }
+
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:
     // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
     suspend fun shareCard(

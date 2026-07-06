@@ -76,14 +76,19 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     var updateDismissed by remember { mutableStateOf(false) }
     var community by remember { mutableStateOf<Api.CommunityStats?>(null) }
     val ctxTop = androidx.compose.ui.platform.LocalContext.current
-    var bannerDismissed by remember {
-        mutableStateOf(ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).getString("foil_banner_v1", null) == "1")
+    // News-Banner DB-gesteuert (wie PWA): localStorage-Pendant = SharedPref speichert die
+    // zuletzt weggeklickte VERSION; angezeigt wenn enabled && version > weggeklickt.
+    var news by remember { mutableStateOf<NewsBanner?>(null) }
+    var newsVer by remember {
+        mutableStateOf(ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).getString("foil_banner_v1", "0")?.toIntOrNull() ?: 0)
     }
+    val showBanner = news?.let { it.enabled && it.version > newsVer } ?: false
     var showFeedback by remember { mutableStateOf(false) }
     val tick by WatchSync.tick.collectAsState()
 
     if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
 
+    LaunchedEffect(Unit) { news = runCatching { Api.newsBanner() }.getOrNull() }
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.
     LaunchedEffect(Unit) {
         try {
@@ -98,8 +103,8 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
         loading = true
         profile = try { Api.me() } catch (_: Exception) { profile }
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
-        rooms = try { Api.chatRooms() } catch (_: Exception) { emptyList() }
-        if (!bannerDismissed) community = try { Api.communityStats() } catch (_: Exception) { community }
+        rooms = try { Api.chatRooms().filter { it.kind != "dm" } } catch (_: Exception) { emptyList() }   // DMs laufen im Chat-Tab
+        community = try { Api.communityStats() } catch (_: Exception) { community }
         val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs).weather } catch (_: Exception) { null } else null
         loading = false
@@ -145,27 +150,21 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 )
                 Spacer(Modifier.height(12.dp))
             }
-            if (!bannerDismissed) {
+            if (showBanner) {
+                val n = news!!
                 WelcomeBanner(
+                    newsText = n.texts[I18n.lang] ?: n.texts["de"] ?: "",
                     stats = community,
                     onDismiss = {
-                        ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit().putString("foil_banner_v1", "1").apply()
-                        bannerDismissed = true
+                        ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit().putString("foil_banner_v1", n.version.toString()).apply()
+                        newsVer = n.version
                     },
                 )
                 Spacer(Modifier.height(10.dp))
             }
-            // Begrüßung + Chat-Button (wie PWA).
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                val hello = profile?.displayName?.takeIf { it.isNotBlank() }
-                    ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
-                Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-                Button(onClick = { onOpenChat() }) {
-                    Icon(Icons.Filled.Forum, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(I18n.t("chat.title"))
-                }
-            }
+            val hello = profile?.displayName?.takeIf { it.isNotBlank() }
+                ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
+            Text(hello, style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(10.dp))
 
             stats?.let { st ->
@@ -415,10 +414,14 @@ internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
 
 // Willkommens-/Community-Banner oben auf Home (schließbar). Spiegelt web WelcomeBanner.
 @Composable
-private fun WelcomeBanner(stats: Api.CommunityStats?, onDismiss: () -> Unit) {
+private fun WelcomeBanner(newsText: String, stats: Api.CommunityStats?, onDismiss: () -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f))) {
         Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 10.dp, bottom = 12.dp, end = 4.dp)) {
             Column(Modifier.weight(1f)) {
+                if (newsText.isNotBlank()) {
+                    Text(newsText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(6.dp))
+                }
                 Text("👋 Pumpfoil.org ${I18n.t("banner.msg")}", style = MaterialTheme.typography.bodyMedium)
                 stats?.let {
                     Spacer(Modifier.height(6.dp))

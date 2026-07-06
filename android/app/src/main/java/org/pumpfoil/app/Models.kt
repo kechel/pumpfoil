@@ -272,6 +272,36 @@ data class ChatRoom(
     val label: String = "",
     val unread: Int = 0,
     @SerialName("last_text") val lastText: String = "",
+    val kind: String = "",           // spot | dm | session
+    val other: DmOther? = null,      // nur bei dm
+)
+
+@Serializable
+data class DmOther(
+    val id: Int = 0,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+)
+
+@Serializable
+data class DmUser(
+    val id: Int,
+    @SerialName("display_name") val displayName: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+)
+
+@Serializable
+data class DmOpen(
+    val scope: String,
+    val other: DmOther = DmOther(),
+    val blocked: Boolean = false,
+)
+
+@Serializable
+data class NewsBanner(
+    val version: Int = 0,
+    val enabled: Boolean = false,
+    val texts: Map<String, String> = emptyMap(),
 )
 
 @Serializable

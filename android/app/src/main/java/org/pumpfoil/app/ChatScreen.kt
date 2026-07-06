@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -83,6 +84,9 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var q by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<DmUser>>(emptyList()) }
+    val scope = rememberCoroutineScope()
 
     suspend fun load() {
         loading = true
@@ -91,26 +95,56 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
         loading = false
     }
     LaunchedEffect(Unit) { load() }
+    // Nutzersuche (nur Anzeigename), leicht entprellt.
+    LaunchedEffect(q) {
+        val term = q.trim()
+        if (term.isEmpty()) { results = emptyList(); return@LaunchedEffect }
+        kotlinx.coroutines.delay(250)
+        results = runCatching { Api.chatSearchUsers(term) }.getOrDefault(emptyList())
+    }
 
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.chat")) }) { pad ->
-        androidx.compose.foundation.layout.Box(Modifier.padding(pad).fillMaxSize()) {
-            if (loading && rooms.isEmpty()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(Modifier.fillMaxSize()) {
-                    error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                    if (rooms.isEmpty() && !loading && error == null) {
-                        item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    }
-                    items(rooms) { r ->
-                        ListItem(
-                            modifier = Modifier.clickable { onOpen(r) },
-                            headlineContent = { Text(r.label.ifBlank { r.scope }) },
-                            supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
-                            leadingContent = { Icon(Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                            trailingContent = { if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary) },
-                        )
-                        HorizontalDivider()
+        Column(Modifier.padding(pad).fillMaxSize()) {
+            OutlinedTextField(
+                value = q, onValueChange = { q = it },
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                placeholder = { Text(I18n.t("dm.searchPlaceholder")) }, singleLine = true,
+            )
+            androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+                if (loading && rooms.isEmpty()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(Modifier.fillMaxSize()) {
+                        items(results) { u ->
+                            ListItem(
+                                modifier = Modifier.clickable {
+                                    scope.launch {
+                                        runCatching { Api.chatDmOpen(u.id) }.getOrNull()?.let { d ->
+                                            q = ""; results = emptyList()
+                                            onOpen(ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other))
+                                        }
+                                    }
+                                },
+                                headlineContent = { Text(u.displayName ?: "—") },
+                                leadingContent = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            )
+                            HorizontalDivider()
+                        }
+                        error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                        if (rooms.isEmpty() && results.isEmpty() && !loading && error == null) {
+                            item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        }
+                        items(rooms) { r ->
+                            val isDm = r.kind == "dm"
+                            ListItem(
+                                modifier = Modifier.clickable { onOpen(r) },
+                                headlineContent = { Text(if (isDm) (r.other?.name ?: r.label.ifBlank { r.scope }) else r.label.ifBlank { r.scope }) },
+                                supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
+                                leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                trailingContent = { if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary) },
+                            )
+                            HorizontalDivider()
+                        }
                     }
                 }
             }
@@ -133,6 +167,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var push by remember { mutableStateOf(false) }
     var confirmLeave by remember { mutableStateOf(false) }
     var lastId by remember(room.scope) { mutableStateOf(0) }
+    val isDm = room.scope.startsWith("dm:")
+    val otherId = room.other?.id ?: 0
+    var blocked by remember(room.scope) { mutableStateOf(false) }
+    var confirmBlock by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
@@ -152,6 +190,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     LaunchedEffect(room.scope) {
         isAdmin = runCatching { Api.me().isAdmin }.getOrDefault(false)
         push = runCatching { Api.chatRoomState(room.scope).push }.getOrDefault(false)
+        if (isDm && otherId > 0) blocked = runCatching { Api.chatBlocks().any { it.id == otherId } }.getOrDefault(false)
         load()
         // Live-Polling neuer Nachrichten (~10 s) + Lesestand, wie die Web-PWA.
         while (isActive) {
@@ -220,6 +259,19 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             dismissButton = { TextButton(onClick = { actionMsg = null }) { Text(I18n.t("common.cancel")) } },
         )
     }
+    if (confirmBlock) {
+        AlertDialog(
+            onDismissRequest = { confirmBlock = false },
+            title = { Text(I18n.t("dm.block")) },
+            text = { Text(I18n.t("dm.blockConfirm")) },
+            confirmButton = {
+                TextButton(onClick = { confirmBlock = false; scope.launch { runCatching { Api.chatBlock(otherId) }; blocked = true } }) {
+                    Text(I18n.t("dm.block"), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmBlock = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
     if (confirmLeave) {
         AlertDialog(
             onDismissRequest = { confirmLeave = false },
@@ -260,6 +312,16 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                     }
                 },
                 actions = {
+                    // DM: blockieren/entblocken.
+                    if (isDm && otherId > 0) {
+                        IconButton(onClick = {
+                            if (blocked) scope.launch { runCatching { Api.chatUnblock(otherId) }; blocked = false }
+                            else confirmBlock = true
+                        }) {
+                            Icon(Icons.Filled.Block, contentDescription = I18n.t(if (blocked) "dm.unblock" else "dm.block"),
+                                tint = if (blocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                     // Abonnieren (Push) + Verlassen — wie Web-Chat.
                     IconButton(onClick = { scope.launch { push = runCatching { Api.chatSubscribe(room.scope, !push) }.getOrDefault(push) } }) {
                         Icon(
@@ -301,6 +363,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         },
     ) { pad ->
         LazyColumn(state = listState, modifier = Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+            if (blocked) item { Text(I18n.t("dm.blockedNote"), Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.error) }
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)
