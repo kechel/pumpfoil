@@ -361,7 +361,7 @@ object Api {
         http("POST", "/api/chat/block", buildJsonObject { put("user_id", userId) }.toString(), auth = true)
     }
     suspend fun chatUnblock(userId: Int): Unit = withContext(Dispatchers.IO) {
-        http("DELETE", "/api/chat/block?user_id=$userId", null, auth = true)
+        http("DELETE", "/api/chat/block/$userId", null, auth = true)
     }
     suspend fun chatBlocks(): List<DmUser> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/chat/blocks", null, auth = true))

@@ -677,8 +677,8 @@ def block_user(body: BlockIn, user: models.User = Depends(current_user),
     return {"ok": True, "blocked": True}
 
 
-@router.delete("/block")
-def unblock_user(user_id: int = Query(...), user: models.User = Depends(current_user),
+@router.delete("/block/{user_id}")
+def unblock_user(user_id: int, user: models.User = Depends(current_user),
                  db: Session = Depends(get_db)) -> dict:
     db.query(models.UserBlock).filter_by(blocker_id=user.id, blocked_id=user_id).delete()
     db.commit()

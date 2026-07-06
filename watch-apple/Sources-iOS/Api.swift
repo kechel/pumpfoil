@@ -361,7 +361,7 @@ enum Api {
         let _: Ok = try await request("/api/chat/block", method: "POST", body: ["user_id": userId], auth: true)
     }
     static func chatUnblock(userId: Int) async throws {
-        guard let url = URL(string: baseURL + "/api/chat/block?user_id=\(userId)") else { throw ApiError.badURL }
+        guard let url = URL(string: baseURL + "/api/chat/block/\(userId)") else { throw ApiError.badURL }
         var req = URLRequest(url: url)
         req.httpMethod = "DELETE"
         if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }

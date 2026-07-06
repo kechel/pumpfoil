@@ -422,7 +422,7 @@ export const api = {
   chatDmOpen: (userId: number) => req<{ scope: string; other: { id: number; name: string | null; avatar_url: string | null }; blocked: boolean }>(`/api/chat/dm?user_id=${userId}`),
   chatSearchUsers: (q: string) => req<DmUser[]>(`/api/chat/users?q=${encodeURIComponent(q)}`),
   chatBlock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block`, { method: "POST", body: JSON.stringify({ user_id: userId }) }),
-  chatUnblock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block?user_id=${userId}`, { method: "DELETE" }),
+  chatUnblock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block/${userId}`, { method: "DELETE" }),
   chatBlocks: () => req<DmUser[]>(`/api/chat/blocks`),
   chatActive: (hours = 48, limit = 3) => req<ActiveRoom[]>(`/api/chat/active?hours=${hours}&limit=${limit}`),
   chatAllSpots: () => req<{ scope: string; label: string; url: string; messages: number }[]>(`/api/chat/all-spots`),
