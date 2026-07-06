@@ -8,6 +8,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,12 +111,15 @@ fun DictationOverlay(existing: String, title: String, onDismiss: () -> Unit, onR
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
-            Modifier.fillMaxSize().padding(24.dp),
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).padding(24.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.fillMaxWidth()) {
                 Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(if (listening) I18n.t("dict.listening") else " ", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                // Hinweis „jetzt sprechen" anzeigen, sobald das Mikro bereit ist (nicht nur während
+                // aktiver Erkennung) — sonst bleibt der Hinweis auf manchen Geräten unsichtbar.
+                Text(if (granted && available) I18n.t("dict.listening") else " ",
+                    style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             }
             Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
                 Column(Modifier.fillMaxWidth()) {

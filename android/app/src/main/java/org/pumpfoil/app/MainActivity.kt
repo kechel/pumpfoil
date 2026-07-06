@@ -97,10 +97,10 @@ fun MainScaffold(onLogout: () -> Unit) {
 
     val compareIds by CompareStore.ids.collectAsState()
     Scaffold(
+        // Bottom-Nav mobil IMMER sichtbar (wie die PWA: fixed bottom-0 auf allen Routen) —
+        // auch in Detail-/Unterscreens wie Session-Detail. Highlight nur auf Top-Level-Tabs.
         bottomBar = {
-            if (route in TOP_LEVEL) {
-                PumpfoilBottomBar(route) { nav.switchTab(it) }
-            }
+            PumpfoilBottomBar(route) { nav.switchTab(it) }
         },
         // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
         // Sessions markiert sind. Nicht auf dem Compare-Screen selbst.

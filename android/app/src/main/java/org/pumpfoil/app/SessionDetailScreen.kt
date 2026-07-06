@@ -215,7 +215,10 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                             Icon(Icons.Filled.Share, contentDescription = I18n.t("sd.share"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
-                    if (s?.owned == true) {
+                    // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").
+                    // Code bleibt bestehen — nur der Button ist deaktiviert.
+                    @Suppress("SimplifyBooleanWithConstants")
+                    if (false && s?.owned == true) {
                         IconButton(onClick = { onLabel(id) }) {
                             Icon(Icons.AutoMirrored.Filled.Label, contentDescription = I18n.t("lab.title"), tint = MaterialTheme.colorScheme.primary)
                         }

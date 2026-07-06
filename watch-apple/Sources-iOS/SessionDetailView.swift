@@ -54,8 +54,12 @@ struct SessionDetailView: View {
                         Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
+                // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").
+                // Code (LabelingView) bleibt bestehen — nur der Toolbar-Button ist deaktiviert.
+                if false {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
+                    }
                 }
                 if durSec > 1 {
                     ToolbarItem(placement: .topBarTrailing) {
