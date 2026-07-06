@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -267,21 +269,39 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 Spacer(Modifier.height(8.dp))
                 SessionStatsRow(a, m)
             }
-            if (s.status != "analyzed" || s.likeCount > 0) {
-                Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (s.status != "analyzed") {
-                        Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.tertiary)
-                    }
-                    Spacer(Modifier.weight(1f))
-                    if (s.likeCount > 0) {
-                        Icon(Icons.Filled.Favorite, contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                        Text(" ${s.likeCount}", style = MaterialTheme.typography.labelSmall)
-                    }
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (s.status != "analyzed") {
+                    Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary)
                 }
+                Spacer(Modifier.weight(1f))
+                LikeToggle(s.id, s.liked, s.likeCount)
             }
         }
+    }
+}
+
+// Tappbarer Like-Button in Listenkarten (optimistisch, wie Web): rosa wenn geliked.
+@Composable
+private fun LikeToggle(sessionId: Int, liked0: Boolean, count0: Int) {
+    var liked by remember(sessionId) { mutableStateOf(liked0) }
+    var count by remember(sessionId) { mutableStateOf(count0) }
+    val scope = rememberCoroutineScope()
+    val c = if (liked) Color(0xFFF43F5E) else MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable {
+            val prev = liked; liked = !liked; count += if (liked) 1 else -1
+            scope.launch {
+                try { val st = Api.toggleLike(sessionId); liked = st.liked; count = st.like_count }
+                catch (_: Exception) { liked = prev; count += if (liked) 1 else -1 }
+            }
+        }.padding(horizontal = 4.dp, vertical = 2.dp),
+    ) {
+        Icon(if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = I18n.t(if (liked) "row.unlike" else "row.like"),
+            tint = c, modifier = Modifier.size(18.dp))
+        if (count > 0) Text(" $count", style = MaterialTheme.typography.labelSmall, color = c)
     }
 }
 
@@ -302,7 +322,7 @@ private fun SessionStatsRow(a: Analysis, m: Metrics?) {
         m?.numSegments?.let { if (it > 0) add("$it " + if (it == 1) "Lauf" else "Läufe") }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
         a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · %.2f Hz".format(it) } ?: "")) }
-        m?.avgHr?.let { if (it > 0) add("♥ $it" + (m.maxHr?.let { mx -> "/$mx" } ?: "")) }
+        m?.avgHr?.let { if (it > 0) add("$it" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
     }
     if (parts.isEmpty()) return
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -401,13 +421,9 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     stats.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
                 }
             }
-            if (c.likeCount > 0) {
-                Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.weight(1f))
-                    Icon(Icons.Filled.Favorite, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                    Text(" ${c.likeCount}", style = MaterialTheme.typography.labelSmall)
-                }
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.weight(1f))
+                LikeToggle(c.id, c.liked, c.likeCount)
             }
         }
     }

@@ -31,7 +31,32 @@ struct RootView: View {
 // iOS-typische Tab-Navigation mit SF Symbols. Labels nach Profil-Sprache.
 struct MainTabView: View {
     @AppStorage("appLang") private var lang = "de"
+    @ObservedObject private var compare = CompareStore.shared
+    @State private var showCompare = false
     var body: some View {
+        tabs
+            // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
+            // Sessions markiert sind; öffnet den Vergleich mit genau diesen.
+            .overlay(alignment: .bottom) {
+                if !compare.ids.isEmpty {
+                    Button { showCompare = true } label: {
+                        Label(Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count)),
+                              systemImage: "arrow.left.arrow.right")
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 18).padding(.vertical, 12)
+                            .background(Color.accentColor, in: Capsule())
+                            .foregroundStyle(.black)
+                            .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
+                    }
+                    .padding(.bottom, 58)
+                }
+            }
+            .sheet(isPresented: $showCompare) {
+                NavigationStack { CompareView(preselect: compare.ids) }
+            }
+    }
+
+    private var tabs: some View {
         TabView {
             HomeView()
                 .tabItem { Label(Loc.t("nav.home", lang), systemImage: "house") }

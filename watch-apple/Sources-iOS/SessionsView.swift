@@ -171,8 +171,27 @@ struct SessionsView: View {
 struct SessionRow: View {
     let session: SessionSummary
     var showOwner: Bool = false
+    @ObservedObject private var compare = CompareStore.shared
+    @AppStorage("appLang") private var lang = "de"
 
     var body: some View {
+        content
+            .contextMenu {
+                Button {
+                    compare.toggle(session.id)
+                } label: {
+                    Label(compare.contains(session.id) ? Loc.t("compare.remove", lang) : Loc.t("compare.add", lang),
+                          systemImage: "arrow.left.arrow.right")
+                }
+            }
+            .overlay(alignment: .leading) {
+                if compare.contains(session.id) {
+                    RoundedRectangle(cornerRadius: 3).fill(Color.accentColor).frame(width: 3)
+                }
+            }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 12) {
                 leading
@@ -203,17 +222,12 @@ struct SessionRow: View {
             if let stats = statsText {
                 Text(stats).font(.caption).lineLimit(1)
             }
-            if showBottom {
-                HStack(spacing: 8) {
-                    if session.status != "analyzed" {
-                        Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
-                    }
-                    Spacer()
-                    if let likes = session.like_count, likes > 0 {
-                        Label("\(likes)", systemImage: "heart.fill")
-                            .font(.caption2).foregroundStyle(.pink).labelStyle(.titleAndIcon)
-                    }
+            HStack(spacing: 8) {
+                if session.status != "analyzed" {
+                    Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
                 }
+                Spacer()
+                LikeButton(sessionId: session.id, liked: session.liked ?? false, count: session.like_count ?? 0)
             }
         }
         .padding(.vertical, 4)
@@ -273,9 +287,9 @@ struct SessionRow: View {
             parts.append(s)
         }
         if let hr = m?.avg_hr, hr > 0 {
-            var s = "♥ \(Int(hr.rounded()))"
+            var s = "\(Int(hr.rounded()))"
             if let mx = m?.max_hr { s += "/\(Int(mx.rounded()))" }
-            parts.append(s)
+            parts.append(s + " bpm")
         }
         return parts.isEmpty ? nil : parts.joined(separator: "  ·  ")
     }
@@ -287,6 +301,27 @@ struct SessionRow: View {
     private var dateText: String {
         guard let d = session.startedDate else { return session.started_at }
         return d.formatted(date: .abbreviated, time: .shortened)
+    }
+}
+
+// Tappbarer Like-Button in Listenkarten (optimistisch, wie Web): rosa wenn geliked.
+struct LikeButton: View {
+    let sessionId: Int
+    @State var liked: Bool
+    @State var count: Int
+    var body: some View {
+        Button {
+            let prev = liked; liked.toggle(); count += liked ? 1 : -1
+            Task {
+                do { let st = try await Api.toggleLike(sessionId); liked = st.liked; count = st.like_count }
+                catch { liked = prev; count += liked ? 1 : -1 }
+            }
+        } label: {
+            Label(count > 0 ? "\(count)" : "", systemImage: liked ? "heart.fill" : "heart")
+                .labelStyle(.titleAndIcon).font(.caption2)
+                .foregroundStyle(liked ? .pink : .secondary)
+        }
+        .buttonStyle(.plain)
     }
 }
 

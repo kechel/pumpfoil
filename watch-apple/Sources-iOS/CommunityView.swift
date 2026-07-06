@@ -322,8 +322,27 @@ struct CommunityView: View {
 // Community-Feed-Zeile (eigene Shape: name/spot/avatar_url/like_count).
 struct CommunityRow: View {
     let item: CommunityItem
+    @ObservedObject private var compare = CompareStore.shared
+    @AppStorage("appLang") private var lang = "de"
 
     var body: some View {
+        content
+            .contextMenu {
+                Button {
+                    compare.toggle(item.id)
+                } label: {
+                    Label(compare.contains(item.id) ? Loc.t("compare.remove", lang) : Loc.t("compare.add", lang),
+                          systemImage: "arrow.left.arrow.right")
+                }
+            }
+            .overlay(alignment: .leading) {
+                if compare.contains(item.id) {
+                    RoundedRectangle(cornerRadius: 3).fill(Color.accentColor).frame(width: 3)
+                }
+            }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 12) {
                 avatar
@@ -352,12 +371,9 @@ struct CommunityRow: View {
                 }
             }
             if let stats = statsText { Text(stats).font(.caption).lineLimit(1) }
-            if let likes = item.like_count, likes > 0 {
-                HStack {
-                    Spacer()
-                    Label("\(likes)", systemImage: "heart.fill")
-                        .font(.caption2).foregroundStyle(.pink).labelStyle(.titleAndIcon)
-                }
+            HStack {
+                Spacer()
+                LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
             }
         }
         .padding(.vertical, 4)
