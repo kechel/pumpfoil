@@ -6,16 +6,40 @@ struct ChatView: View {
     @State private var rooms: [ChatRoom] = []
     @State private var loading = false
     @State private var error: String?
+    @State private var q = ""
+    @State private var results: [DmUser] = []
+    @State private var openDm: DmOpen?
 
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    TextField(Loc.t("dm.searchPlaceholder", lang), text: $q)
+                        .textFieldStyle(.roundedBorder)
+                        .autocorrectionDisabled()
+                }
+                if !results.isEmpty {
+                    Section {
+                        ForEach(results) { u in
+                            Button {
+                                Task { if let d = try? await Api.chatDmOpen(userId: u.id) { q = ""; results = []; openDm = d } }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.accentColor)
+                                    Text(u.display_name ?? "—")
+                                }
+                            }
+                        }
+                    }
+                }
                 if let error { Text(error).foregroundStyle(.secondary) }
                 ForEach(rooms) { r in
-                    NavigationLink { ChatRoomView(scope: r.scope, title: r.label) } label: {
+                    NavigationLink { ChatRoomView(scope: r.scope, title: r.kind == "dm" ? (r.other?.name ?? r.label) : r.label, otherId: r.other?.id ?? 0) } label: {
                         HStack {
+                            Image(systemName: r.kind == "dm" ? "person.crop.circle.fill" : "bubble.left.and.bubble.right.fill")
+                                .foregroundStyle(Color.accentColor)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(r.label).font(.headline)
+                                Text(r.kind == "dm" ? (r.other?.name ?? r.label) : r.label).font(.headline)
                                 if !r.last_text.isEmpty {
                                     Text(r.last_text).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                                 }
@@ -30,7 +54,7 @@ struct ChatView: View {
                         }
                     }
                 }
-                if rooms.isEmpty && !loading && error == nil {
+                if rooms.isEmpty && results.isEmpty && !loading && error == nil {
                     Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
                 }
             }
@@ -40,7 +64,19 @@ struct ChatView: View {
             .overlay { if loading && rooms.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if rooms.isEmpty { await load() } }
+            .onChange(of: q) { _ in Task { await search() } }
+            .navigationDestination(isPresented: Binding(get: { openDm != nil }, set: { if !$0 { openDm = nil } })) {
+                if let d = openDm { ChatRoomView(scope: d.scope, title: d.other.name ?? "", otherId: d.other.id) }
+            }
         }
+    }
+
+    private func search() async {
+        let t = q.trimmingCharacters(in: .whitespaces)
+        if t.isEmpty { results = []; return }
+        try? await Task.sleep(nanoseconds: 250_000_000)
+        if t != q.trimmingCharacters(in: .whitespaces) { return }   // veraltet -> verwerfen
+        results = (try? await Api.chatSearchUsers(t)) ?? []
     }
 
     private func load() async {
@@ -54,6 +90,7 @@ struct ChatView: View {
 struct ChatRoomView: View {
     let scope: String
     let title: String
+    var otherId: Int = 0                       // > 0 nur bei DMs (für Blockieren)
     @AppStorage("appLang") private var lang = "de"
     @State private var msgs: [ChatMsg] = []
     @State private var draft = ""
@@ -66,6 +103,9 @@ struct ChatRoomView: View {
     @State private var push = false
     @State private var confirmLeave = false
     @State private var lastId = 0
+    @State private var blocked = false
+    @State private var confirmBlock = false
+    private var isDm: Bool { scope.hasPrefix("dm:") }
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -86,6 +126,7 @@ struct ChatRoomView: View {
                     withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
                 }
             }
+            if blocked { Text(Loc.t("dm.blockedNote", lang)).font(.caption).foregroundStyle(.red).padding(.horizontal) }
             if let error { Text(error).font(.caption).foregroundStyle(.red).padding(.horizontal) }
             HStack(spacing: 8) {
                 TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
@@ -105,6 +146,17 @@ struct ChatRoomView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // DM: blockieren/entblocken.
+            if isDm && otherId > 0 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        if blocked { Task { try? await Api.chatUnblock(userId: otherId); blocked = false } }
+                        else { confirmBlock = true }
+                    } label: {
+                        Image(systemName: "hand.raised.fill").foregroundStyle(blocked ? Color.accentColor : .secondary)
+                    }
+                }
+            }
             // Abonnieren (Push) + Verlassen — wie Web-Chat.
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -124,9 +176,16 @@ struct ChatRoomView: View {
             }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         }
+        .confirmationDialog(Loc.t("dm.blockConfirm", lang), isPresented: $confirmBlock, titleVisibility: .visible) {
+            Button(Loc.t("dm.block", lang), role: .destructive) {
+                Task { try? await Api.chatBlock(userId: otherId); blocked = true }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        }
         .task {
             if let p = try? await Api.getProfile() { isAdmin = p.is_admin ?? false }
             push = (try? await Api.chatRoomState(scope: scope).push) ?? false
+            if isDm && otherId > 0 { blocked = ((try? await Api.chatBlocks()) ?? []).contains { $0.id == otherId } }
             await load()
             // Live-Polling neuer Nachrichten (~10 s), wie die Web-PWA.
             while !Task.isCancelled {

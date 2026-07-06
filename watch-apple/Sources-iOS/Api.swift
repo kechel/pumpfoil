@@ -348,6 +348,35 @@ enum Api {
         let _: Ok = try await request("/api/chat/read", method: "POST", body: ["scope": scope, "up_to": upTo], auth: true)
     }
 
+    // --- 1:1-Direktnachrichten + Blockieren ---
+    static func chatDmOpen(userId: Int) async throws -> DmOpen {
+        try await request("/api/chat/dm?user_id=\(userId)", method: "GET", body: nil, auth: true)
+    }
+    static func chatSearchUsers(_ q: String) async throws -> [DmUser] {
+        let s = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
+        return try await request("/api/chat/users?q=\(s)", method: "GET", body: nil, auth: true)
+    }
+    static func chatBlock(userId: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/chat/block", method: "POST", body: ["user_id": userId], auth: true)
+    }
+    static func chatUnblock(userId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/chat/block?user_id=\(userId)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+    static func chatBlocks() async throws -> [DmUser] {
+        try await request("/api/chat/blocks", method: "GET", body: nil, auth: true)
+    }
+
+    // Öffentlicher News-Banner (DB-gesteuert, kein Auth nötig).
+    static func newsBanner() async throws -> NewsBanner {
+        try await request("/api/app/news", method: "GET", body: nil, auth: false)
+    }
+
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
     static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String, bg: String = "navy") async throws -> Data {
         guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }

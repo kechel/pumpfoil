@@ -20,7 +20,10 @@ struct HomeView: View {
     @State private var updateDismissed = false
     @State private var community: Api.CommunityStats?
     @State private var showFeedback = false
-    @AppStorage("foil_banner_v1") private var bannerDismissed = false
+    // News-Banner DB-gesteuert (wie PWA): der AppStorage-Wert = zuletzt weggeklickte VERSION.
+    @AppStorage("foil_banner_v1") private var newsVerStored = 0
+    @State private var news: NewsBanner?
+    private var showBanner: Bool { if let n = news { return n.enabled && n.version > newsVerStored } else { return false } }
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
     private let cols3 = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
@@ -30,7 +33,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if let uv = updateVer, !updateDismissed { updateBanner(uv) }
-                    if !bannerDismissed { welcomeBanner() }
+                    if showBanner, let n = news { welcomeBanner(n) }
 
                     let hello = (session.profile?.display_name?.isEmpty == false)
                         ? Loc.t("phome.hello", lang).replacingOccurrences(of: "{name}", with: session.profile!.display_name!)
@@ -135,13 +138,20 @@ struct HomeView: View {
     }
 
     // Willkommens-/Community-Banner (schließbar). Spiegelt web WelcomeBanner.
-    @ViewBuilder private func welcomeBanner() -> some View {
+    @ViewBuilder private func welcomeBanner(_ n: NewsBanner) -> some View {
+        let newsText = n.texts[lang] ?? n.texts["de"] ?? ""
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top) {
-                (Text("👋 ") + Text("Pumpfoil.org").bold() + Text(" " + Loc.t("banner.msg", lang)))
-                    .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 4) {
+                    if !newsText.isEmpty {
+                        Text(newsText).font(.subheadline).bold().foregroundStyle(Color.accentColor)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    (Text("👋 ") + Text("Pumpfoil.org").bold() + Text(" " + Loc.t("banner.msg", lang)))
+                        .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                }
                 Spacer(minLength: 4)
-                Button { bannerDismissed = true } label: { Image(systemName: "xmark") }
+                Button { newsVerStored = n.version } label: { Image(systemName: "xmark") }
                     .buttonStyle(.plain).foregroundStyle(.secondary)
             }
             if let c = community {
@@ -176,7 +186,8 @@ struct HomeView: View {
     }
 
     private func checkUpdate() async {
-        if !bannerDismissed { community = try? await Api.communityStats() }
+        news = try? await Api.newsBanner()
+        community = try? await Api.communityStats()
         guard let a = try? await Api.appLatest(platform: "ios"), !a.latest.isEmpty else { return }
         let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
         if Self.versionNewer(a.latest, current) { updateVer = a.latest; updateURL = a.store_url }
@@ -257,7 +268,7 @@ struct HomeView: View {
             }
         }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
-        rooms = (try? await Api.chatRooms()) ?? []
+        rooms = ((try? await Api.chatRooms()) ?? []).filter { $0.kind != "dm" }   // DMs laufen im Chat-Tab
         let hs = (try? await Api.settings())?["homespot"] as? String
         if let hs, !hs.isEmpty { weather = (try? await Api.spotWeather(hs))?.weather } else { weather = nil }
     }

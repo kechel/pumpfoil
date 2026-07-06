@@ -177,7 +177,34 @@ struct ChatRoom: Codable, Identifiable {
     let label: String
     let unread: Int
     let last_text: String
+    var kind: String? = nil          // spot | dm | session
+    var other: DmOther? = nil        // nur bei dm
     var id: String { scope }
+}
+
+struct DmOther: Codable {
+    let id: Int
+    let name: String?
+    let avatar_url: String?
+}
+
+struct DmUser: Codable, Identifiable {
+    let id: Int
+    let display_name: String?
+    let avatar_url: String?
+}
+
+struct DmOpen: Codable, Identifiable {
+    let scope: String
+    let other: DmOther
+    let blocked: Bool
+    var id: String { scope }
+}
+
+struct NewsBanner: Codable {
+    let version: Int
+    let enabled: Bool
+    let texts: [String: String]
 }
 
 struct ChatMsg: Codable, Identifiable {
