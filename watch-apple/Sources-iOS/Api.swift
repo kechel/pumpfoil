@@ -95,6 +95,14 @@ enum Api {
         try await request("/api/sessions/\(id)/photos", method: "GET", body: nil, auth: true)
     }
 
+    static func deleteSessionPhoto(_ sessionId: Int, photoId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(sessionId)/photos/\(photoId)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url); req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
     static func uploadAvatar(data: Data, filename: String = "avatar.jpg", mime: String = "image/jpeg") async throws {
         guard let url = URL(string: baseURL + "/api/auth/me/avatar") else { throw ApiError.badURL }

@@ -220,6 +220,21 @@ struct SessionDetailView: View {
                             .frame(width: 200, height: 140)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .onTapGesture { lightbox = p }
+                            .overlay(alignment: .topTrailing) {
+                                if s.owned == true {
+                                    Button {
+                                        Task {
+                                            try? await Api.deleteSessionPhoto(id, photoId: p.id)
+                                            photos = (try? await Api.sessionPhotos(id)) ?? []
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
+                                            .padding(6)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
                         }
                     }
                 }
