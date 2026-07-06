@@ -33,26 +33,13 @@ struct ProfileView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                // Apple-Watch-Status: Updates kommen automatisch mit der iPhone-App (eingebettet);
-                // ist die Uhr gekoppelt, aber die App fehlt -> Hinweis (Installieren via Watch-App).
-                Section(Loc.t("watch.title", lang)) {
-                    if sync.watchAppInstalled {
-                        Label(Loc.t("watch.ok", lang), systemImage: "checkmark.circle.fill")
-                            .font(.caption).foregroundStyle(.secondary)
-                    } else if sync.watchPaired {
-                        Label(Loc.t("watch.notInstalled", lang), systemImage: "applewatch.slash")
-                            .font(.caption).foregroundStyle(.secondary)
-                    } else {
-                        Label(Loc.t("watch.none", lang), systemImage: "applewatch")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                }
-                .task { sync.refreshConnection() }
+                // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (Koppeln/Alarm/Datenseiten dahinter)
+                // + darunter „Verknüpfte Konten". Kein Uhr-Status/Garmin direkt in der Übersicht.
                 Section {
                     NavigationLink {
-                        GarminPairView()
+                        WatchView()
                     } label: {
-                        Label { Text(Loc.t("garmin.title", lang)) } icon: { Image(systemName: "link.circle").foregroundStyle(Color.accentColor) }
+                        Label { Text(Loc.t("nav.watch", lang)) } icon: { Image(systemName: "applewatch").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         LinkedAccountsView()
@@ -78,16 +65,6 @@ struct ProfileView: View {
                         CompareView()
                     } label: {
                         Label { Text(Loc.t("profile.compare", lang)) } icon: { Image(systemName: "arrow.left.arrow.right").foregroundStyle(Color.accentColor) }
-                    }
-                    NavigationLink {
-                        AlarmView()
-                    } label: {
-                        Label { Text(Loc.t("profile.alarm", lang)) } icon: { Image(systemName: "waveform.path").foregroundStyle(Color.accentColor) }
-                    }
-                    NavigationLink {
-                        DataFieldsView()
-                    } label: {
-                        Label { Text(Loc.t("profile.datafields", lang)) } icon: { Image(systemName: "square.grid.2x2").foregroundStyle(Color.accentColor) }
                     }
                     NavigationLink {
                         SettingsView()

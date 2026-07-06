@@ -21,7 +21,8 @@ struct SessionDetailView: View {
     @State private var win = 3
     @State private var showPumps = false   // Pump-Marker default aus
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
-    @State private var myFoils: [Foil] = []
+    @State private var allFoils: [Foil] = []
+    @State private var mineIds: Set<Int> = []
     @State private var selectedFoilId = 0
     @State private var showTrim = false
     @State private var showShare = false
@@ -99,8 +100,8 @@ struct SessionDetailView: View {
         }
         .task { await load() }
         .onChange(of: selectedFoilId) { fid in
-            if fid != 0 && fid != (session?.foil?.id ?? 0) {
-                Task { try? await Api.setSessionFoil(id, foilId: fid); await load() }
+            if fid != (session?.foil?.id ?? 0) {
+                Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }
             }
         }
         .sheet(isPresented: $showTrim) { trimSheet }
@@ -280,9 +281,17 @@ struct SessionDetailView: View {
                     Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
                 }
             }
-            if s.owned == true && !myFoils.isEmpty {
+            if s.owned == true && !allFoils.isEmpty {
+                // Dropdown wie die PWA (<select>): Standard-Foil + Meine Foils + Alle Marken;
+                // .menu zeigt nur den gewählten Foil (nicht alle auf einmal).
                 Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
-                    ForEach(myFoils) { f in Text("\(f.brand) \(f.model) \(f.size)").tag(f.id) }
+                    Text(Loc.t("foil.useDefault", lang)).tag(0)
+                    ForEach(allFoils.filter { mineIds.contains($0.id) }) { f in
+                        Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
+                    }
+                    ForEach(allFoils.filter { !mineIds.contains($0.id) }) { f in
+                        Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
+                    }
                 }
                 .pickerStyle(.menu)
             }
@@ -372,8 +381,8 @@ struct SessionDetailView: View {
             let settings = (try? await Api.settings()) ?? [:]
             weightKg = (settings["weight_kg"] as? Int).map(Double.init) ?? 0
             if s.owned == true {
-                let ids = Set((settings["my_foils"] as? [Any])?.compactMap { $0 as? Int } ?? [])
-                if !ids.isEmpty { myFoils = (try? await Api.foils())?.filter { ids.contains($0.id) } ?? [] }
+                mineIds = Set((settings["my_foils"] as? [Any])?.compactMap { $0 as? Int } ?? [])
+                allFoils = (try? await Api.foils()) ?? []
             }
             error = nil
         } catch { self.error = error.localizedDescription }

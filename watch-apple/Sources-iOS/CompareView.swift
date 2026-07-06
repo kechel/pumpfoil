@@ -1,88 +1,64 @@
 import SwiftUI
 
-// Mehrere eigene Sessions auswählen und Kennzahlen nebeneinander vergleichen.
+// Mehrere eigene Sessions nebeneinander vergleichen. Auswahl kommt AUSSCHLIESSLICH per
+// Long-Press aus den Session-Listen (CompareStore/preselect) — keine eigene Auswahlliste hier.
 struct CompareView: View {
     var preselect: Set<Int> = []
     @AppStorage("appLang") private var lang = "de"
-    @State private var sessions: [SessionSummary] = []
-    @State private var selected: Set<Int> = []
     @State private var results: [SessionDetail] = []
     @State private var loading = true
-    @State private var comparing = false
     @State private var merging = false
     @State private var mergeError: String?
     @State private var mergedId: Int?
 
     var body: some View {
-        // Kein eigener NavigationStack: View wird aus ProfileView gepusht und nutzt
-        // dessen Stack (sonst verschachtelt -> Zurück-Button verschwindet).
+        // Kein eigener NavigationStack: View wird gepusht und nutzt den vorhandenen Stack.
         Group {
-                if loading {
-                    ProgressView()
-                } else if comparing {
+            if loading {
+                ProgressView()
+            } else if results.isEmpty {
+                Text(Loc.t("compare.pick", lang)).foregroundStyle(.secondary).padding()
+            } else {
+                VStack(spacing: 0) {
                     compareTable
-                } else {
-                    VStack(spacing: 0) {
-                        List {
-                            Section(Loc.t("compare.pick", lang)) {
-                                ForEach(sessions) { s in
-                                    Button { toggle(s.id) } label: {
-                                        HStack {
-                                            Image(systemName: selected.contains(s.id) ? "checkmark.circle.fill" : "circle")
-                                                .foregroundStyle(selected.contains(s.id) ? Color.accentColor : .secondary)
-                                            VStack(alignment: .leading) {
-                                                Text(dateText(s)).foregroundStyle(.primary)
-                                                if let p = s.place_name, !p.isEmpty {
-                                                    Text(p).font(.caption).foregroundStyle(.secondary)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+                    if let mergeError { Text(mergeError).font(.caption).foregroundStyle(.red).padding(.horizontal) }
+                    if mergeable {
+                        Button {
+                            mergeError = nil; merging = true
+                            Task {
+                                do { mergedId = try await Api.mergeSessions(Array(preselect)) }
+                                catch { mergeError = error.localizedDescription }
+                                merging = false
                             }
-                        }
-                        if let mergeError { Text(mergeError).font(.caption).foregroundStyle(.red).padding(.horizontal) }
-                        if selected.count >= 2 && !mergeable {
-                            Text(Loc.t("merge.sameDayOnly", lang)).font(.caption2).foregroundStyle(.secondary).padding(.horizontal)
-                        }
-                        HStack {
-                            Button {
-                                Task {
-                                    var out: [SessionDetail] = []
-                                    for id in selected { if let d = try? await Api.session(id) { out.append(d) } }
-                                    results = out.sorted { ($0.started_at) < ($1.started_at) }
-                                    comparing = true
-                                }
-                            } label: { Text("\(Loc.t("compare.title", lang)) (\(selected.count))").frame(maxWidth: .infinity) }
-                            .buttonStyle(.bordered)
-                            .disabled(selected.count < 2)
-                            Button {
-                                let ids = Array(selected); mergeError = nil; merging = true
-                                Task {
-                                    do { mergedId = try await Api.mergeSessions(ids) }
-                                    catch { mergeError = error.localizedDescription }
-                                    merging = false
-                                }
-                            } label: { Text(Loc.t("merge.action", lang)).frame(maxWidth: .infinity) }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!mergeable || merging)
-                        }
+                        } label: { Text(Loc.t("merge.action", lang)).frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(merging)
                         .padding()
                     }
                 }
             }
-            .navigationDestination(isPresented: Binding(get: { mergedId != nil }, set: { if !$0 { mergedId = nil } })) {
-                if let id = mergedId { SessionDetailView(id: id) }
-            }
-            .task(id: preselect) { if selected.isEmpty { selected = preselect } }
-            .navigationTitle(comparing ? Loc.t("compare.result", lang) : Loc.t("compare.title", lang))
-            .toolbar {
-                if comparing {
-                    ToolbarItem(placement: .topBarLeading) { Button(Loc.t("compare.backToSelection", lang)) { comparing = false } }
-                }
-            }
-            .task { sessions = (try? await Api.sessions()) ?? []; loading = false }
+        }
+        .navigationDestination(isPresented: Binding(get: { mergedId != nil }, set: { if !$0 { mergedId = nil } })) {
+            if let id = mergedId { SessionDetailView(id: id) }
+        }
+        .navigationTitle(Loc.t("compare.title", lang))
+        .task { await load() }
+    }
+
+    private func load() async {
+        var out: [SessionDetail] = []
+        for id in preselect { if let d = try? await Api.session(id) { out.append(d) } }
+        results = out.sorted { $0.started_at < $1.started_at }
+        loading = false
+    }
+
+    // Zusammenführen nur, wenn plausibel erlaubt (Client-Spiegel; Server prüft final): alle
+    // eigene Sessions, >=2, gleicher Tag UND gleicher Spot.
+    private var mergeable: Bool {
+        guard results.count == preselect.count, results.count >= 2, results.allSatisfy({ $0.owned == true }) else { return false }
+        let days = Set(results.map { String($0.started_at.prefix(10)) })
+        let spots = Set(results.map { ($0.place_name ?? "").trimmingCharacters(in: .whitespaces).lowercased() })
+        return days.count == 1 && spots.count == 1
     }
 
     private var compareTable: some View {
@@ -115,21 +91,5 @@ struct CompareView: View {
             }
             .padding()
         }
-    }
-
-    private func toggle(_ id: Int) {
-        if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
-    }
-
-    // Mergen nur für EIGENE Sessions DESSELBEN Tages (Client-Spiegel der Server-Regel).
-    private var mergeable: Bool {
-        let own = selected.compactMap { id in sessions.first { $0.id == id } }
-        guard own.count == selected.count, own.count >= 2 else { return false }
-        return Set(own.map { String($0.started_at.prefix(10)) }).count == 1
-    }
-
-    private func dateText(_ s: SessionSummary) -> String {
-        guard let d = s.startedDate else { return s.started_at }
-        return d.formatted(date: .abbreviated, time: .shortened)
     }
 }

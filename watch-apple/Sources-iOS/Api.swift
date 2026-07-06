@@ -254,13 +254,14 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
-    static func setSessionFoil(_ id: Int, foilId: Int) async throws {
+    // foilId nil -> Standard-Foil (foil_id: null), sonst konkretes Foil.
+    static func setSessionFoil(_ id: Int, foilId: Int?) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/meta") else { throw ApiError.badURL }
         var req = URLRequest(url: url)
         req.httpMethod = "PUT"
         if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try JSONSerialization.data(withJSONObject: ["foil_id": foilId])
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["foil_id": foilId ?? NSNull()])
         let (_, resp) = try await URLSession.shared.data(for: req)
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
@@ -281,8 +282,9 @@ enum Api {
         try await request("/api/sessions/history", method: "GET", body: nil, auth: true)
     }
 
-    static func spotMap() async throws -> [SpotMapItem] {
-        try await request("/api/community/spot-map", method: "GET", body: nil, auth: true)
+    // accelOnly=false wie die PWA — sonst fehlen GPS-only-Spots (z. B. Frankreich).
+    static func spotMap(accelOnly: Bool = false) async throws -> [SpotMapItem] {
+        try await request("/api/community/spot-map?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
     static func chatRooms() async throws -> [ChatRoom] {

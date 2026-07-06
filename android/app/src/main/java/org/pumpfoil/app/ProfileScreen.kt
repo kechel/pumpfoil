@@ -65,7 +65,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onGarminPair: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -134,12 +134,12 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 }
             }
             Spacer(Modifier.height(20.dp))
-            WatchCard(ctx)
-            Spacer(Modifier.height(4.dp))
+            // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (koppeln/Alarm/Datenseiten dahinter)
+            // + darunter „Verknüpfte Konten". Kein Wear-Status/Garmin direkt in der Übersicht.
             ListItem(
-                modifier = Modifier.clickable { onGarminPair() },
-                headlineContent = { Text(I18n.t("garmin.title")) },
-                supportingContent = { Text(I18n.t("garmin.sub")) },
+                modifier = Modifier.clickable { onWatch() },
+                headlineContent = { Text(I18n.t("nav.watch")) },
+                supportingContent = { Text(I18n.t("watch.sectionSub")) },
                 leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
@@ -176,20 +176,6 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 headlineContent = { Text(I18n.t("profile.compare")) },
                 supportingContent = { Text(I18n.t("profile.compareSub")) },
                 leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onAlarm() },
-                headlineContent = { Text(I18n.t("profile.alarm")) },
-                supportingContent = { Text(I18n.t("profile.alarmSub")) },
-                leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onDataFields() },
-                headlineContent = { Text(I18n.t("profile.datafields")) },
-                supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
-                leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
@@ -246,42 +232,5 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             },
             dismissButton = { TextButton(onClick = { confirmingDelete = false }) { Text(I18n.t("common.cancel")) } },
         )
-    }
-}
-
-// Wear-OS-Status: zeigt, ob unsere App auf der gekoppelten Uhr ist. Wenn die Uhr gekoppelt
-// ist, die App aber fehlt -> Button öffnet den Play Store DIREKT auf der Uhr. Updates laufen
-// danach automatisch über den Play Store (kein eigener Updater nötig/möglich).
-@Composable
-private fun WatchCard(ctx: android.content.Context) {
-    val paired by WatchSync.watchPaired.collectAsState()
-    val installed by WatchSync.watchInstalled.collectAsState()
-    LaunchedEffect(Unit) { WatchSync.refreshConnection(ctx) }
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Watch, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
-                Text(I18n.t("watch.title"), style = MaterialTheme.typography.titleMedium)
-            }
-            Spacer(Modifier.height(6.dp))
-            when {
-                installed -> Text(I18n.t("watch.ok"),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                paired -> {
-                    Text(I18n.t("watch.notInstalled"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = { WatchSync.installOnWatch(ctx) }) {
-                        Text(I18n.t("watch.install"))
-                    }
-                }
-                else -> Text(I18n.t("watch.none"),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
     }
 }

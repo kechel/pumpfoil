@@ -139,13 +139,19 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onFoilCalc = { nav.navigate("foilcalc") },
                     onFoils = { nav.navigate("foils") },
                     onFoilStats = { nav.navigate("foilstats") },
-                    onAlarm = { nav.navigate("alarm") },
-                    onDataFields = { nav.navigate("datafields") },
+                    onWatch = { nav.navigate("watch") },
                     onSettings = { nav.navigate("settings") },
                     onCompare = { nav.navigate("compare") },
-                    onGarminPair = { nav.navigate("garminpair") },
                     onAccounts = { nav.navigate("accounts") },
                     onImprint = { nav.navigate("impressum") },
+                )
+            }
+            composable("watch") {
+                WatchScreen(
+                    onBack = { nav.popBackStack() },
+                    onGarminPair = { nav.navigate("garminpair") },
+                    onAlarm = { nav.navigate("alarm") },
+                    onDataFields = { nav.navigate("datafields") },
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
