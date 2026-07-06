@@ -72,6 +72,8 @@ struct CompareView: View {
         var out: [SessionDetail] = []
         for id in preselect { if let d = try? await Api.session(id) { out.append(d) } }
         results = out.sorted { $0.started_at < $1.started_at }
+        // Default-Färbung wie PWA: bei mehreren Fahrern „Je Fahrer", sonst „Je Track".
+        if Set(results.compactMap { $0.owner_name }).count > 1 { mapMode = .rider }
         loading = false
     }
 
@@ -94,6 +96,18 @@ struct CompareView: View {
         let h = Self.palette[i % Self.palette.count]
         return UIColor(red: CGFloat((h >> 16) & 0xff) / 255, green: CGFloat((h >> 8) & 0xff) / 255, blue: CGFloat(h & 0xff) / 255, alpha: 1)
     }
+    // Fahrer (in Reihenfolge des Auftretens) -> Farbe; gleicher Fahrer -> gleiche Farbe.
+    private var riderList: [String] {
+        var seen = Set<String>(); var out: [String] = []
+        for s in results { let n = s.owner_name ?? "—"; if !seen.contains(n) { seen.insert(n); out.append(n) } }
+        return out
+    }
+    private func riderColorC(_ name: String?) -> Color { sessColor(riderList.firstIndex(of: name ?? "—") ?? 0) }
+    private func riderUIColor(_ name: String?) -> UIColor { sessUIColor(riderList.firstIndex(of: name ?? "—") ?? 0) }
+    private func foilLabel(_ s: SessionDetail) -> String? {
+        guard let f = s.foil else { return nil }
+        return "\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces)
+    }
 
     // Verfügbare Daten über alle Sessions (für die Modus-Auswahl).
     private var hasPumpData: Bool { results.contains { ($0.analysis?.track_geojson?.properties?.pump_hz ?? []).contains { $0 != nil } } }
@@ -106,6 +120,7 @@ struct CompareView: View {
                   let segs = s.analysis?.segments, !segs.isEmpty else { return nil }
             let sp = (t.properties?.speeds?[String(mapWin)] ?? t.properties?.speeds_mps ?? []).map { $0 * 3.6 }
             return CompareMap.Track(points: t.geometry.coordinates, segments: segs, color: sessUIColor(i),
+                                    riderColor: riderUIColor(s.owner_name),
                                     speedsKmh: sp, pumpHz: t.properties?.pump_hz ?? [], hr: t.properties?.hr ?? [])
         }
     }
@@ -133,12 +148,13 @@ struct CompareView: View {
         let tracks = mapTracks
         if !tracks.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
+                sessionChips
                 mapControls
                 CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange, speedRange: speedRange)
                     .frame(height: 240)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal)
-                mapLegend
+                if mapMode != .rider && mapMode != .track { gradientLegend }
             }
             .fullScreenCover(isPresented: $mapFull) {
                 ZStack(alignment: .topTrailing) {
@@ -157,6 +173,7 @@ struct CompareView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Picker(Loc.t("sd.coloring", lang), selection: $mapMode) {
+                    if riderList.count > 1 { Text(Loc.t("compare.colorRider", lang)).tag(CompareColorMode.rider) }
                     Text(Loc.t("compare.colorTrack", lang)).tag(CompareColorMode.track)
                     Text(Loc.t("sd.colorSpeed", lang)).tag(CompareColorMode.speed)
                     if hasPumpData { Text(Loc.t("sd.colorPump", lang)).tag(CompareColorMode.pump) }
@@ -175,34 +192,46 @@ struct CompareView: View {
         .padding(.horizontal)
     }
 
-    // Legende: Track-Modus -> Session-Farben; Wert-Modi -> Farbverlauf mit Skala.
-    @ViewBuilder private var mapLegend: some View {
-        if mapMode == .track {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(Array(results.enumerated()), id: \.element.id) { i, s in
-                        HStack(spacing: 5) {
-                            Circle().fill(sessColor(i)).frame(width: 9, height: 9)
-                            Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at)
-                                .font(.caption2).foregroundStyle(.secondary)
+    // Chips oben (wie PWA): je Session Farbe · Fahrer · Datum · Foil. Farbe = aktueller Modus.
+    @ViewBuilder private var sessionChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(results.enumerated()), id: \.element.id) { i, s in
+                    HStack(spacing: 6) {
+                        Circle().fill(mapMode == .rider ? riderColorC(s.owner_name) : sessColor(i)).frame(width: 10, height: 10)
+                        VStack(alignment: .leading, spacing: 1) {
+                            HStack(spacing: 4) {
+                                if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
+                                Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at)
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            if let fl = foilLabel(s) {
+                                Label(fl, systemImage: "water.waves").font(.caption2).foregroundStyle(.secondary).labelStyle(.titleAndIcon)
+                            }
                         }
                     }
-                }.padding(.horizontal)
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(Color(.secondarySystemBackground), in: Capsule())
+                }
             }
-        } else {
-            let range = mapMode == .pump ? pumpRange : mapMode == .hr ? hrRange : speedRange
-            let unit = mapMode == .pump ? "Hz" : mapMode == .hr ? "bpm" : "km/h"
-            HStack(spacing: 8) {
-                Text(mapMode == .pump ? String(format: "%.1f", range.0) : "\(Int(range.0))").font(.caption2).monospacedDigit()
-                LinearGradient(colors: [Color(hue: 240/360, saturation: 0.85, brightness: 0.95),
-                                        Color(hue: 120/360, saturation: 0.85, brightness: 0.95),
-                                        Color(hue: 0, saturation: 0.85, brightness: 0.95)],
-                               startPoint: .leading, endPoint: .trailing)
-                    .frame(height: 8).clipShape(Capsule())
-                Text(mapMode == .pump ? String(format: "%.1f", range.1) : "\(Int(range.1))").font(.caption2).monospacedDigit()
-                Text(unit).font(.caption2).foregroundStyle(.secondary)
-            }.padding(.horizontal)
+            .padding(.horizontal)
         }
+    }
+
+    // Farbverlauf-Legende für Wert-Modi (Speed/Pump/Puls).
+    @ViewBuilder private var gradientLegend: some View {
+        let range = mapMode == .pump ? pumpRange : mapMode == .hr ? hrRange : speedRange
+        let unit = mapMode == .pump ? "Hz" : mapMode == .hr ? "bpm" : "km/h"
+        HStack(spacing: 8) {
+            Text(mapMode == .pump ? String(format: "%.1f", range.0) : "\(Int(range.0))").font(.caption2).monospacedDigit()
+            LinearGradient(colors: [Color(hue: 240/360, saturation: 0.85, brightness: 0.95),
+                                    Color(hue: 120/360, saturation: 0.85, brightness: 0.95),
+                                    Color(hue: 0, saturation: 0.85, brightness: 0.95)],
+                           startPoint: .leading, endPoint: .trailing)
+                .frame(height: 8).clipShape(Capsule())
+            Text(mapMode == .pump ? String(format: "%.1f", range.1) : "\(Int(range.1))").font(.caption2).monospacedDigit()
+            Text(unit).font(.caption2).foregroundStyle(.secondary)
+        }.padding(.horizontal)
     }
 
     // Alle Foiling-Läufe aller verglichenen Sessions als flache Liste (wie PWA AllRunsTable).
@@ -219,7 +248,11 @@ struct CompareView: View {
                         Text("\(idx + 1)").font(.caption2).bold().foregroundStyle(Color.accentColor)
                             .frame(width: 22, height: 22).background(Color.accentColor.opacity(0.12), in: Circle())
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at).font(.caption)
+                            HStack(spacing: 5) {
+                                Circle().fill(mapMode == .rider ? riderColorC(s.owner_name) : sessColor(results.firstIndex(where: { $0.id == s.id }) ?? 0)).frame(width: 7, height: 7)
+                                if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
+                                Text(s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at).font(.caption).foregroundStyle(.secondary)
+                            }
                             if let p = s.place_name, !p.isEmpty { Text(p).font(.caption2).foregroundStyle(.secondary) }
                         }
                         Spacer()
@@ -275,7 +308,7 @@ struct CompareView: View {
 }
 
 // Färbungs-Modi der Vergleichs-Karte.
-enum CompareColorMode { case track, speed, pump, hr }
+enum CompareColorMode { case rider, track, speed, pump, hr }
 
 // Wert -> Farbe (blau niedrig -> rot hoch), wie SessionDetail/Web.
 private func cmpRamp(_ t: Double) -> UIColor {
@@ -287,7 +320,7 @@ private func cmpRamp(_ t: Double) -> UIColor {
 // MKMapView (iOS-16-tauglich), analog TrackMap.
 struct CompareMap: UIViewRepresentable {
     struct Track {
-        let points: [[Double]]; let segments: [Segment]; let color: UIColor
+        let points: [[Double]]; let segments: [Segment]; let color: UIColor; let riderColor: UIColor
         let speedsKmh: [Double]; let pumpHz: [Double?]; let hr: [Int?]
     }
     let tracks: [Track]
@@ -299,6 +332,7 @@ struct CompareMap: UIViewRepresentable {
 
     private func colorFor(_ tr: Track, _ i: Int) -> UIColor {
         switch mode {
+        case .rider: return tr.riderColor
         case .track: return tr.color
         case .speed:
             let v = tr.speedsKmh.indices.contains(i) ? tr.speedsKmh[i] : 0
