@@ -295,15 +295,29 @@ def users_activity(_a: models.User = Depends(current_admin), db: Session = Depen
     day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week = day - timedelta(days=day.weekday())      # Montag 00:00
     month = day.replace(day=1)
+    week_ago = now - timedelta(days=7)
     U = models.User
 
-    def active_since(since) -> int:
-        return int(db.query(func.count()).select_from(U)
-                   .filter(U.last_seen_at.isnot(None), U.last_seen_at >= since).scalar() or 0)
+    def count(*conds) -> int:
+        return int(db.query(func.count()).select_from(U).filter(*conds).scalar() or 0)
 
-    total = int(db.query(func.count()).select_from(U).scalar() or 0)
-    return {"today": active_since(day), "week": active_since(week),
-            "month": active_since(month), "total": total}
+    # Inaktiv > 1 Woche: seit >7 Tagen nicht mehr gesehen — oder noch nie aktiv,
+    # obwohl das Konto älter als 1 Woche ist (schlummernde Registrierungen).
+    inactive_week = count(or_(U.last_seen_at < week_ago,
+                              (U.last_seen_at.is_(None)) & (U.created_at < week_ago)))
+    return {
+        # Aktive (zuletzt gesehen) je Zeitfenster + Gesamtzahl.
+        "today": count(U.last_seen_at.isnot(None), U.last_seen_at >= day),
+        "week": count(U.last_seen_at.isnot(None), U.last_seen_at >= week),
+        "month": count(U.last_seen_at.isnot(None), U.last_seen_at >= month),
+        "total": count(),
+        # Neue Registrierungen (created_at) je Zeitfenster.
+        "new_today": count(U.created_at >= day),
+        "new_week": count(U.created_at >= week),
+        "new_month": count(U.created_at >= month),
+        # Karteileichen: seit >1 Woche kein Login.
+        "inactive_week": inactive_week,
+    }
 
 
 @router.get("/users/count")

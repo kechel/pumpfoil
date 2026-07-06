@@ -276,10 +276,18 @@ function UsersTab() {
     setItems((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
   return (
     <div>
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {([["today", "adm.act.today"], ["week", "adm.act.week"], ["month", "adm.act.month"], ["total", "adm.act.total"]] as const).map(([k, lbl]) => (
           <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
             <div className="text-2xl font-bold tabular-nums text-brand-400">{act ? act[k] : "…"}</div>
+            <div className="text-[11px] text-slate-400">{t(lbl)}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {([["new_today", "adm.act.newToday"], ["new_week", "adm.act.newWeek"], ["new_month", "adm.act.newMonth"], ["inactive_week", "adm.act.inactive"]] as const).map(([k, lbl]) => (
+          <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+            <div className={`text-2xl font-bold tabular-nums ${k === "inactive_week" ? "text-slate-400" : "text-emerald-400"}`}>{act ? act[k] : "…"}</div>
             <div className="text-[11px] text-slate-400">{t(lbl)}</div>
           </div>
         ))}

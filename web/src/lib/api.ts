@@ -263,7 +263,10 @@ export interface AdminWatch {
   last_seen_at: string | null;
 }
 
-export interface AdminUserActivity { today: number; week: number; month: number; total: number; }
+export interface AdminUserActivity {
+  today: number; week: number; month: number; total: number;
+  new_today: number; new_week: number; new_month: number; inactive_week: number;
+}
 
 // Sortierung der Nutzerliste.
 export type UserSort = "id" | "seen" | "created" | "sessions";
