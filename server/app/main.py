@@ -234,9 +234,16 @@ if settings.web_dist.exists():
     if assets.exists():
         app.mount("/assets", StaticFiles(directory=assets), name="assets")
 
+    # Diese Dateien MÜSSEN immer revalidiert werden — sonst hängt die PWA auf einer alten
+    # Version fest, weil Browser/Proxy sie cachen und das Service-Worker-Update nie erkannt
+    # wird. Die gehashten /assets/* (immutable) bleiben über den StaticFiles-Mount cachebar.
+    _NO_CACHE = {"sw.js", "index.html", "version.json", "manifest.webmanifest",
+                 "registerSW.js", "push-sw.js"}
+
     @app.get("/{full_path:path}")
     def spa(full_path: str):  # noqa: ANN202
         candidate = settings.web_dist / full_path
         if full_path and candidate.is_file():
-            return FileResponse(candidate)
-        return FileResponse(settings.web_dist / "index.html")
+            nc = candidate.name in _NO_CACHE or candidate.name.startswith("workbox-")
+            return FileResponse(candidate, headers={"Cache-Control": "no-cache"} if nc else {})
+        return FileResponse(settings.web_dist / "index.html", headers={"Cache-Control": "no-cache"})
