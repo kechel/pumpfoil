@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, NewsBanner } from "../lib/api";
 import { useI18n } from "../i18n";
-import { CloseIcon } from "./Icons";
+import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
 // (API /api/app/news, im Admin gepflegt) — KEIN PWA-Rebuild nötig, um News zu posten.
@@ -43,6 +43,11 @@ export function WelcomeBanner() {
       }).split("§")
     : [];
 
+  // Das ✉️ im Banner-Text ist ein Platzhalter → hier durchs echte Umschlag-Icon ersetzen
+  // (identisch zum Feedback-Tab rechts), damit Text und Button-Icon zusammenpassen.
+  const msg = t("banner.msg");
+  const msgParts = msg.split("✉️");
+
   return (
     <div className="relative mb-5 overflow-hidden rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/15 via-brand-400/10 to-transparent p-4 pr-10">
       <button onClick={close} aria-label={t("banner.dismiss")} title={t("banner.dismiss")}
@@ -51,7 +56,10 @@ export function WelcomeBanner() {
       </button>
       {newsText && <p className="mb-1.5 text-sm font-bold text-brand-300">{newsText}</p>}
       <p className="text-sm leading-relaxed text-slate-200">
-        👋 <span className="font-semibold">Pumpfoil<span className="text-brand-400">.org</span></span> {t("banner.msg")}
+        👋 <span className="font-semibold">Pumpfoil<span className="text-brand-400">.org</span></span>{" "}
+        {msgParts.length > 1
+          ? <>{msgParts[0]}<MailIcon className="inline-block h-4 w-4 align-[-0.2em] text-brand-400" />{msgParts.slice(1).join("✉️")}</>
+          : msg}
       </p>
       {stats && (
         <p className="mt-1.5 text-sm text-slate-300">
