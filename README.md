@@ -57,11 +57,11 @@ Native apps on every platform — one account, one analysis backend.
 
 **📱 Android phone**
 
-<img src="brand/stores/google/phone/01.png" alt="Android — home" width="200"> <img src="brand/stores/google/phone/02.png" alt="Android — sessions" width="200"> <img src="brand/stores/google/phone/03.png" alt="Android — session detail" width="200"> <img src="brand/stores/google/phone/04.png" alt="Android — community" width="200">
+<img src="screenshots/mobile/android-store/01.png" alt="Android — home dashboard" width="200"> <img src="screenshots/mobile/android-store/02.png" alt="Android — session with track on map" width="200"> <img src="screenshots/mobile/android-store/03.png" alt="Android — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/android-store/06.png" alt="Android — community, spots & records" width="200">
 
 **📱 iOS phone**
 
-<img src="brand/stores/apple/iphone-6.5/01.png" alt="iOS — home" width="200"> <img src="brand/stores/apple/iphone-6.5/02.png" alt="iOS — sessions" width="200"> <img src="brand/stores/apple/iphone-6.5/03.png" alt="iOS — session detail" width="200"> <img src="brand/stores/apple/iphone-6.5/04.png" alt="iOS — community" width="200">
+<img src="screenshots/mobile/ios-store-65/01.png" alt="iOS — home dashboard" width="200"> <img src="screenshots/mobile/ios-store-65/02.png" alt="iOS — session with track on map" width="200"> <img src="screenshots/mobile/ios-store-65/03.png" alt="iOS — per-run stats: distance, speed, pumps, heart rate" width="200"> <img src="screenshots/mobile/ios-store-65/05.png" alt="iOS — community, spots & records" width="200">
 
 **⌚ Wear OS**
 
