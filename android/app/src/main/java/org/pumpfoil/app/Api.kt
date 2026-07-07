@@ -357,6 +357,9 @@ object Api {
         val s = java.net.URLEncoder.encode(q, "UTF-8")
         json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/chat/users?q=$s", null, auth = true))
     }
+    suspend fun chatAllSpots(): List<SpotChat> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SpotChat.serializer()), http("GET", "/api/chat/all-spots", null, auth = true))
+    }
     suspend fun chatBlock(userId: Int): Unit = withContext(Dispatchers.IO) {
         http("POST", "/api/chat/block", buildJsonObject { put("user_id", userId) }.toString(), auth = true)
     }

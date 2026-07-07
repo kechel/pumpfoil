@@ -1,72 +1,124 @@
 import SwiftUI
 
 // Chat: Räume (Spot/Community) -> Nachrichten + Senden (spiegelt web/Android-Chat).
+// Zwei Tabs: „Meine" (DMs + eigene Spot-Chats) und „Spot-Chats" (alle, aktivste zuerst).
+// Globale Suche über beide: tippen -> Personen (→ DM) + Spots (→ öffnen), egal welcher Tab.
 struct ChatView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var rooms: [ChatRoom] = []
+    @State private var allSpots: [SpotChat] = []
     @State private var loading = false
     @State private var error: String?
+    @State private var tab = 0        // 0 = Meine, 1 = Spot-Chats
     @State private var q = ""
     @State private var results: [DmUser] = []
     @State private var openDm: DmOpen?
 
+    private var term: String { q.trimmingCharacters(in: .whitespaces) }
+    private var joined: Set<String> { Set(rooms.map { $0.scope }) }   // Spots, in denen man drin ist
+    private var spotsShown: [SpotChat] {
+        let sorted = allSpots.sorted { $0.messages > $1.messages }    // aktivste zuerst
+        guard !term.isEmpty else { return sorted }
+        return sorted.filter { $0.label.lowercased().contains(term.lowercased()) }
+    }
+
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    TextField(Loc.t("dm.searchPlaceholder", lang), text: $q)
-                        .textFieldStyle(.roundedBorder)
-                        .autocorrectionDisabled()
+            VStack(spacing: 0) {
+                Picker("", selection: $tab) {
+                    Text(Loc.t("dm.tabMine", lang)).tag(0)
+                    Text(Loc.t("dm.tabSpots", lang)).tag(1)
                 }
-                if !results.isEmpty {
-                    Section {
-                        ForEach(results) { u in
-                            Button {
-                                Task { if let d = try? await Api.chatDmOpen(userId: u.id) { q = ""; results = []; openDm = d } }
-                            } label: {
-                                HStack {
-                                    Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.accentColor)
-                                    Text(u.display_name ?? "—")
-                                }
-                            }
-                        }
-                    }
-                }
-                if let error { Text(error).foregroundStyle(.secondary) }
-                ForEach(rooms) { r in
-                    NavigationLink { ChatRoomView(scope: r.scope, title: r.kind == "dm" ? (r.other?.name ?? r.label) : r.label, otherId: r.other?.id ?? 0) } label: {
-                        HStack {
-                            Image(systemName: r.kind == "dm" ? "person.crop.circle.fill" : "bubble.left.and.bubble.right.fill")
-                                .foregroundStyle(Color.accentColor)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(r.kind == "dm" ? (r.other?.name ?? r.label) : r.label).font(.headline)
-                                if !r.last_text.isEmpty {
-                                    Text(r.last_text).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                                }
-                            }
-                            Spacer()
-                            if r.unread > 0 {
-                                Text("\(r.unread)").font(.caption2).bold()
-                                    .padding(.horizontal, 7).padding(.vertical, 3)
-                                    .background(Color.accentColor, in: Capsule())
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                    }
-                }
-                if rooms.isEmpty && results.isEmpty && !loading && error == nil {
-                    Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
-                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal).padding(.top, 8)
+                chatList
             }
-            .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.chat", lang))
             .brandToolbar(Loc.t("nav.chat", lang))
             .overlay { if loading && rooms.isEmpty { ProgressView() } }
-            .refreshable { await load() }
-            .task { if rooms.isEmpty { await load() } }
-            .onChange(of: q) { _ in Task { await search() } }
             .navigationDestination(isPresented: Binding(get: { openDm != nil }, set: { if !$0 { openDm = nil } })) {
                 if let d = openDm { ChatRoomView(scope: d.scope, title: d.other.name ?? "", otherId: d.other.id) }
+            }
+        }
+    }
+
+    private var chatList: some View {
+        List {
+            Section {
+                TextField(Loc.t("dm.searchAll", lang), text: $q)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+            }
+            if let error { Text(error).foregroundStyle(.secondary) }
+            if !term.isEmpty {
+                // Globale Suche: Personen (→ DM) + Spots (→ öffnen), egal welcher Tab.
+                if !results.isEmpty { Section { ForEach(results) { userRow($0) } } }
+                if !spotsShown.isEmpty { Section { ForEach(spotsShown) { spotRow($0) } } }
+                if results.isEmpty && spotsShown.isEmpty {
+                    Text(Loc.t("dm.noResults", lang)).foregroundStyle(.secondary)
+                }
+            } else if tab == 0 {
+                ForEach(rooms) { roomRow($0) }
+                if rooms.isEmpty && !loading && error == nil {
+                    Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(spotsShown) { spotRow($0) }
+                if spotsShown.isEmpty {
+                    Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .refreshable { await load() }
+        .task { if rooms.isEmpty { await load() } }
+        .onChange(of: q) { _ in Task { await search() } }
+        .onChange(of: tab) { _ in q = ""; results = [] }
+    }
+
+    @ViewBuilder private func userRow(_ u: DmUser) -> some View {
+        Button {
+            Task { if let d = try? await Api.chatDmOpen(userId: u.id) { q = ""; results = []; openDm = d } }
+        } label: {
+            HStack {
+                Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.accentColor)
+                Text(u.display_name ?? "—")
+            }
+        }
+    }
+
+    @ViewBuilder private func roomRow(_ r: ChatRoom) -> some View {
+        NavigationLink { ChatRoomView(scope: r.scope, title: r.kind == "dm" ? (r.other?.name ?? r.label) : r.label, otherId: r.other?.id ?? 0) } label: {
+            HStack {
+                Image(systemName: r.kind == "dm" ? "person.crop.circle.fill" : "bubble.left.and.bubble.right.fill")
+                    .foregroundStyle(Color.accentColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(r.kind == "dm" ? (r.other?.name ?? r.label) : r.label).font(.headline)
+                    if !r.last_text.isEmpty {
+                        Text(r.last_text).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+                Spacer()
+                if r.unread > 0 {
+                    Text("\(r.unread)").font(.caption2).bold()
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(Color.accentColor, in: Capsule())
+                        .foregroundStyle(.white)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func spotRow(_ s: SpotChat) -> some View {
+        NavigationLink { ChatRoomView(scope: s.scope, title: s.label, otherId: 0) } label: {
+            HStack {
+                Image(systemName: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
+                Text(s.label).font(.headline)
+                Spacer()
+                if joined.contains(s.scope) {
+                    Image(systemName: "checkmark").font(.caption2).foregroundStyle(Color.accentColor)
+                }
+                Text("\(s.messages)").font(.caption2).foregroundStyle(.secondary)
             }
         }
     }
@@ -83,6 +135,7 @@ struct ChatView: View {
         loading = true; defer { loading = false }
         do { rooms = try await Api.chatRooms(); error = nil }
         catch { self.error = error.localizedDescription }
+        allSpots = (try? await Api.chatAllSpots()) ?? []
     }
 }
 

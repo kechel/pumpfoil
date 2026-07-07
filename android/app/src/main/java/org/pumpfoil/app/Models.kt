@@ -283,6 +283,14 @@ data class DmOther(
     @SerialName("avatar_url") val avatarUrl: String? = null,
 )
 
+// Ein Spot-Chat aus /api/chat/all-spots (zum Stöbern; jeder darf reinschauen).
+@Serializable
+data class SpotChat(
+    val scope: String,
+    val label: String = "",
+    val messages: Int = 0,
+)
+
 @Serializable
 data class DmUser(
     val id: Int,

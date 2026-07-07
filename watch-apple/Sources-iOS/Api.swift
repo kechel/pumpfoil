@@ -356,6 +356,9 @@ enum Api {
         let s = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
         return try await request("/api/chat/users?q=\(s)", method: "GET", body: nil, auth: true)
     }
+    static func chatAllSpots() async throws -> [SpotChat] {
+        try await request("/api/chat/all-spots", method: "GET", body: nil, auth: true)
+    }
     static func chatBlock(userId: Int) async throws {
         struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/chat/block", method: "POST", body: ["user_id": userId], auth: true)

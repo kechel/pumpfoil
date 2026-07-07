@@ -19,11 +19,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.AlertDialog
@@ -36,6 +38,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -82,8 +86,10 @@ fun ChatRoomByScope(scope: String, label: String, onBack: () -> Unit) {
 @Composable
 private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
+    var allSpots by remember { mutableStateOf<List<SpotChat>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var tab by remember { mutableStateOf(0) }   // 0 = Meine, 1 = Spot-Chats
     var q by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<DmUser>>(emptyList()) }
     val scope = rememberCoroutineScope()
@@ -94,8 +100,8 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
         catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(Unit) { load() }
-    // Nutzersuche (nur Anzeigename), leicht entprellt.
+    LaunchedEffect(Unit) { load(); allSpots = runCatching { Api.chatAllSpots() }.getOrDefault(emptyList()) }
+    // Globale Suche (Personen), leicht entprellt; Spots werden clientseitig gefiltert.
     LaunchedEffect(q) {
         val term = q.trim()
         if (term.isEmpty()) { results = emptyList(); return@LaunchedEffect }
@@ -103,53 +109,100 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
         results = runCatching { Api.chatSearchUsers(term) }.getOrDefault(emptyList())
     }
 
+    val term = q.trim()
+    val joined = rooms.map { it.scope }.toSet()   // Spots, in denen man schon drin ist → markieren
+    val spotsSorted = allSpots.sortedByDescending { it.messages }   // aktivste zuerst
+    val spotsShown = if (term.isEmpty()) spotsSorted
+                     else spotsSorted.filter { it.label.contains(term, ignoreCase = true) }
+
+    val openDm: (DmUser) -> Unit = { u ->
+        scope.launch {
+            runCatching { Api.chatDmOpen(u.id) }.getOrNull()?.let { d ->
+                q = ""; results = emptyList()
+                onOpen(ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other))
+            }
+        }
+    }
+
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.chat")) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            TabRow(selectedTabIndex = tab) {
+                Tab(selected = tab == 0, onClick = { tab = 0; q = "" }, text = { Text(I18n.t("dm.tabMine")) })
+                Tab(selected = tab == 1, onClick = { tab = 1; q = "" }, text = { Text(I18n.t("dm.tabSpots")) })
+            }
             OutlinedTextField(
                 value = q, onValueChange = { q = it },
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
-                placeholder = { Text(I18n.t("dm.searchPlaceholder")) }, singleLine = true,
+                placeholder = { Text(I18n.t("dm.searchAll")) }, singleLine = true,
             )
             androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
                 if (loading && rooms.isEmpty()) {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 } else {
                     LazyColumn(Modifier.fillMaxSize()) {
-                        items(results) { u ->
-                            ListItem(
-                                modifier = Modifier.clickable {
-                                    scope.launch {
-                                        runCatching { Api.chatDmOpen(u.id) }.getOrNull()?.let { d ->
-                                            q = ""; results = emptyList()
-                                            onOpen(ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other))
-                                        }
-                                    }
-                                },
-                                headlineContent = { Text(u.displayName ?: "—") },
-                                leadingContent = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                            )
-                            HorizontalDivider()
-                        }
                         error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                        if (rooms.isEmpty() && results.isEmpty() && !loading && error == null) {
-                            item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                        }
-                        items(rooms) { r ->
-                            val isDm = r.kind == "dm"
-                            ListItem(
-                                modifier = Modifier.clickable { onOpen(r) },
-                                headlineContent = { Text(if (isDm) (r.other?.name ?: r.label.ifBlank { r.scope }) else r.label.ifBlank { r.scope }) },
-                                supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
-                                leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                                trailingContent = { if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary) },
-                            )
-                            HorizontalDivider()
+                        if (term.isNotEmpty()) {
+                            // Globale Suche: Personen (→ DM) + Spots (→ öffnen), egal welcher Tab.
+                            items(results) { u -> UserRow(u, onClick = { openDm(u) }); HorizontalDivider() }
+                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
+                            if (results.isEmpty() && spotsShown.isEmpty()) {
+                                item { Text(I18n.t("dm.noResults"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
+                        } else if (tab == 0) {
+                            if (rooms.isEmpty() && error == null) {
+                                item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
+                            items(rooms) { r ->
+                                val isDm = r.kind == "dm"
+                                ListItem(
+                                    modifier = Modifier.clickable { onOpen(r) },
+                                    headlineContent = { Text(if (isDm) (r.other?.name ?: r.label.ifBlank { r.scope }) else r.label.ifBlank { r.scope }) },
+                                    supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
+                                    leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    trailingContent = { if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary) },
+                                )
+                                HorizontalDivider()
+                            }
+                        } else {
+                            if (spotsShown.isEmpty()) {
+                                item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
+                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
                         }
                     }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UserRow(u: DmUser, onClick: () -> Unit) {
+    ListItem(
+        modifier = Modifier.clickable { onClick() },
+        headlineContent = { Text(u.displayName ?: "—") },
+        leadingContent = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SpotRow(s: SpotChat, joined: Boolean, onClick: () -> Unit) {
+    ListItem(
+        modifier = Modifier.clickable { onClick() },
+        headlineContent = { Text(s.label.ifBlank { s.scope }) },
+        leadingContent = { Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        trailingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (joined) {
+                    Icon(Icons.Filled.Check, contentDescription = I18n.t("dm.tabMine"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                }
+                Text(s.messages.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)

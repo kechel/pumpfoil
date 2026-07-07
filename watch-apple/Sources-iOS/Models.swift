@@ -194,6 +194,14 @@ struct DmUser: Codable, Identifiable {
     let avatar_url: String?
 }
 
+// Ein Spot-Chat aus /api/chat/all-spots (zum Stöbern; jeder darf reinschauen).
+struct SpotChat: Codable, Identifiable {
+    let scope: String
+    let label: String
+    let messages: Int
+    var id: String { scope }
+}
+
 struct DmOpen: Codable, Identifiable {
     let scope: String
     let other: DmOther
