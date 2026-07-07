@@ -12,7 +12,7 @@ import { useI18n } from "../i18n";
 
 const SR_LANG: Record<string, string> = {
   de: "de-DE", gsw: "de-CH", "de-AT": "de-AT",
-  en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES",
+  en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES", fi: "fi-FI",
 };
 
 export function MicButton({ value, onChange, onSubmit, disabled, title }: {

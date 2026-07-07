@@ -464,6 +464,69 @@ const es: N1 = {
   },
 };
 
+const fi: N1 = {
+  back: "← Takaisin",
+  next: "→ Osa 2: Miten tunnistus toimii",
+  h1: "Nörttianalyysit",
+  subtitle:
+    "Kahden kellon pumpfoil-koe · Illmensee, 27.6.2026 · raakaa kiihtyvyysdataa, paljon signaalinkäsittelyä ja ripaus foil-fysiikkaa. Kaikille, jotka haluavat tietää tarkkaan.",
+  intro:
+    "Kysymys: mitä pumpfoil-ajon liikedatasta voi oikeasti lukea — ja voimmeko sen avulla parantaa pump-, on-foil- ja liuku-tunnistusta? Sitä varten nauhoitimme yhden ajon **samanaikaisesti kahdella kellolla**: toinen ranteessa ja toinen **suoraan foilin mastossa, veden alla** — „totuus“ siitä, mitä foil tekee.",
+  aufbau: {
+    h: "Kokoonpano",
+    p: "**fenix** ranteessa (25/100 Hz, hyvä GPS) — se on kello, joka meillä on myöhemmin tuotteessa. **Forerunner 55** sidottuna foilin mastoon, **veden alla**, ylösalaisin, start-nappi kulkusuuntaan. Molemmat pyörivät omalla recorder-apilla (v1.0.37). Mastokellolla ei ole veden alla **GPS:ää** — se mittaa vain foilin raakaa kiihtyvyyttä.",
+    alt1: "Foil ja mastokello laiturilla",
+    alt2: "FR55 mastossa — automaattinen start",
+    alt3: "FR55 mastossa — GPS-haku",
+    altSpot: "Illmensee-spotti auringonlaskussa",
+  },
+  daten: {
+    h: "Data",
+    p: "Raakojen chunkkien (jotka katkeavat heikossa FR55:ssä) sijaan analysoimme **alkuperäiset FIT-tiedostot** Garmin Connectista: fenix **100 Hz**, masto **25 Hz**, kumpikin koko ajon ajalta. Molemmat kellot pysyvät synkassa järjestelmäajan kautta.",
+  },
+  start: {
+    h: "Aloitussekvenssi",
+    p: "Datasta voi rekonstruoida koko lähdön (varmennettu videolla): board on **ylösalaisin** laiturilla → sitä käännetään **180°** ja foil upotetaan (ylhäällä: FR55:n asento kääntyy −1:stä +1:een) → hetki keskittymistä → **työntö** kellokädellä → käsi **nykäisee ylös irrotuksessa** (4–6 g käsivarren sysäys, hyppyenergia) → **hyppy & lasku** boardille → pumppaus → lento.",
+    cap1: "Boardin 180°-flippi (FR55:n gravitaatio kääntyy) ja aloitusvyöhyke seuraavien 5 s aikana.",
+    cap2: "Aloitussekvenssi: boardin flippi, valmistautuminen, työntö/hyppy, sitten nopeusramppi foilaukseen.",
+  },
+  truth: {
+    h: "Pumppaus, foilaus, liuku — totuus foililta",
+    p: "Masto istuu foilissa ja „tietää“, pumpataanko todella ja lentääkö foil vielä. Hienosti näkyvissä hidastuksessa: ensin **pumppaus loppuu** (ranneaktiivisuus → 0), mutta nopeus pysyy vielä → se on **liukuvaihe**; sitten foil kaatuu pois (maston heilahdus) ja se on ohi. Juuri tätä liukuvaihetta emme vielä tunnista eksplisiittisesti.",
+    cap: "GPS-nopeus · ranteen pump-aktiivisuus · foilin pump (masto) · foilin asento. Lopussa: pumppaus pysähtyy → liuku → foil-drop.",
+  },
+  cadence: {
+    h: "Pump-kadenssi",
+    p: "Pumpataan noin **≈ 1,29 Hz** (~77 pumppausta/minuutti). Ranne osuu tähän tahtiin puhtaasti (määrä & tahti täsmäävät foilin työntöön) — pump-tunnistus toimii siis periaatteessa oikein.",
+    cap: "Ranteen pump-merkit vs. foilin työntöpiikit — sama kadenssi (~1,3 Hz), tahdit seuraavat.",
+  },
+  pitch: {
+    h: "Foilin asento: nyökkäys hallitsee, työntö fore/aft",
+    p: "Pumpatessa kallistat foilia 85 cm:n mastovivun yli **eteen/taakse** (nyökkäys), tuskin lainkaan sivuttain — datassa nyökkäys hallitsee selvästi kallistusta. Ja foilin kiihtyvyys on pääosin **fore/aft (työntö)**, ei pystysuora: foil työntyy eteenpäin, kun annat painetta.",
+    cap: "Foilin asento ajon aikana: nyökkäys (fore/aft) ≫ kallistus. Pitch ja pystykuorma ovat kytkeytyneet.",
+  },
+  pics: {
+    h: "Siistejä kuvia",
+    p: "Track, väritettynä foilin asennon ja nopeuden mukaan (valkoinen = 0°, punainen/sininen suunnan mukaan):",
+    cap1: "Foilaus-track nyökkäyskulman, kallistuskulman ja nopeuden mukaan. Foil pitää koko ajan nokan hieman ylhäällä (nostovoima).",
+    cap2: "Track työnnön mukaan (punainen=eteenpäin) — näkee jokaisen pump-työnnön — sekä yksittäiset pump-merkit polulla.",
+    cap3: "Asento-matto: nyökkäys / kallistus / työntö ajan yli yhdellä silmäyksellä.",
+  },
+  learned: {
+    h: "Mitä opimme",
+    li: [
+      "**Pump-tunnistus** osuu tahtiin & määrään hyvin (~1,29 Hz) — täsmää maston foil-totuuteen (muutaman % poikkeama).",
+      "**On-foil-tunnistus** on kohdallaan — se osoittaa laiturin/lähdön tarkasti (napsahtaa lähtösysäykseen).",
+      "**Liukuvaihe / hidastus**: tässä on suurin potentiaali — „on-foil ∧ pump-aktiivisuus ≈ 0“ voisi merkitä liu'un lopussa eksplisiittisesti.",
+      "Kaikki tämä on tehtävissä **pelkällä rannekellolla** — mastokello oli vain totuusreferenssi.",
+    ],
+  },
+  limits: {
+    h: "Rajat (rehellisyyden vuoksi)",
+    p: "Mastokello on veden alla voimakkaasti vaimennettu, joten se näkee terävät sysäykset vain heikentyneinä. „Kulmat“ tulevat gravitaation suunnasta (alipäästö) — vakaassa liu'ussa todellinen asento, jatkuvassa kiihtyvyydessä hieman vääristynyt; 100 % puhtaisiin kiertokulmiin tarvittaisiin gyroskooppi. Eikä yksittäisten pumppausten tarkkaa aikaeroa kellojen välillä saatu naulattua alle 100 ms:iin (ei puhdasta yhteistä kiintopistettä; FR55:llä ei ole veden alla GPS:ää kellon asettamiseen).",
+  },
+};
+
 export const NERD1: Record<Lang, N1> = {
   de,
   gsw,
@@ -472,4 +535,5 @@ export const NERD1: Record<Lang, N1> = {
   fr,
   it,
   es,
+  fi,
 };
