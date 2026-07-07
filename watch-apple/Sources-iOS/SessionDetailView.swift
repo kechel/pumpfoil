@@ -151,207 +151,238 @@ struct SessionDetailView: View {
 
     private func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
 
+    // In kleine, je einzeln type-gecheckte Helfer zerlegt (früher ein ~200-Zeilen-@ViewBuilder mit
+    // >10 direkten Kindern -> Swift-Type-Checker/Archive lief exponentiell/„ewig"; vgl. CompareView).
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Vor/Zurück zu Nachbar-Sessions (wie Web).
-            if let nb = neighbors, nb.older != nil || nb.newer != nil {
-                HStack {
-                    if let o = nb.older {
-                        NavigationLink { SessionDetailView(id: o) } label: { Text(Loc.t("sd.older", lang)) }
-                    } else { Text(Loc.t("sd.older", lang)).foregroundStyle(.tertiary) }
-                    Spacer()
-                    if let n = nb.newer {
-                        NavigationLink { SessionDetailView(id: n) } label: { Text(Loc.t("sd.newer", lang)) }
-                    } else { Text(Loc.t("sd.newer", lang)).foregroundStyle(.tertiary) }
-                }
-                .font(.subheadline)
+            neighborNav
+            headerRow(s)
+            youtubeCard(s)
+            photosSection(s)
+            trackSection(s)
+            foilPicker(s)
+            if let a = s.analysis, let foil = s.foil, weightKg > 0 {
+                PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(dateText(s)).font(.title2).bold()
-                    if let p = s.place_name, !p.isEmpty {
-                        Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
-                    }
-                    if let w = s.place_water, !w.isEmpty, w != s.place_name {
-                        Text(w).font(.caption).foregroundStyle(.secondary)
-                    }
-                    if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
-                    if s.owned == true {
-                        Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {
-                            draftCaption = caption; editingCaption = true
-                        }
-                        .font(.caption).buttonStyle(.borderless)
-                    }
-                }
-                Spacer()
-                Button {
-                    let prev = liked; liked.toggle(); likeCount += liked ? 1 : -1
-                    Task {
-                        do { let st = try await Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
-                        catch { liked = prev; likeCount += liked ? 1 : -1 }
-                    }
-                } label: {
-                    Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
-                        .foregroundStyle(liked ? .pink : Color.accentColor)
-                }
-                .buttonStyle(.bordered)
-            }
+            statsSection(s)
+            unmergeRow(s)
+        }
+        .padding()
+    }
 
-            if let ytId = youtubeId(s.youtube_url),
-               let ytUrl = URL(string: s.youtube_url ?? "") {
-                Link(destination: ytUrl) {
-                    ZStack {
-                        AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
+    // Vor/Zurück zu Nachbar-Sessions (wie Web).
+    @ViewBuilder private var neighborNav: some View {
+        if let nb = neighbors, nb.older != nil || nb.newer != nil {
+            HStack {
+                if let o = nb.older {
+                    NavigationLink { SessionDetailView(id: o) } label: { Text(Loc.t("sd.older", lang)) }
+                } else { Text(Loc.t("sd.older", lang)).foregroundStyle(.tertiary) }
+                Spacer()
+                if let n = nb.newer {
+                    NavigationLink { SessionDetailView(id: n) } label: { Text(Loc.t("sd.newer", lang)) }
+                } else { Text(Loc.t("sd.newer", lang)).foregroundStyle(.tertiary) }
+            }
+            .font(.subheadline)
+        }
+    }
+
+    @ViewBuilder private func headerRow(_ s: SessionDetail) -> some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(dateText(s)).font(.title2).bold()
+                if let p = s.place_name, !p.isEmpty {
+                    Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
+                }
+                if let w = s.place_water, !w.isEmpty, w != s.place_name {
+                    Text(w).font(.caption).foregroundStyle(.secondary)
+                }
+                if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
+                if s.owned == true {
+                    Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {
+                        draftCaption = caption; editingCaption = true
+                    }
+                    .font(.caption).buttonStyle(.borderless)
+                }
+            }
+            Spacer()
+            Button {
+                let prev = liked; liked.toggle(); likeCount += liked ? 1 : -1
+                Task {
+                    do { let st = try await Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
+                    catch { liked = prev; likeCount += liked ? 1 : -1 }
+                }
+            } label: {
+                Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
+                    .foregroundStyle(liked ? .pink : Color.accentColor)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    @ViewBuilder private func youtubeCard(_ s: SessionDetail) -> some View {
+        if let ytId = youtubeId(s.youtube_url),
+           let ytUrl = URL(string: s.youtube_url ?? "") {
+            Link(destination: ytUrl) {
+                ZStack {
+                    AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
+                        switch phase {
+                        case .success(let img): img.resizable().scaledToFill()
+                        default: Color(.secondarySystemBackground)
+                        }
+                    }
+                    .frame(maxWidth: .infinity).aspectRatio(16.0 / 9.0, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 52)).foregroundStyle(.white.opacity(0.9))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func photosSection(_ s: SessionDetail) -> some View {
+        if !photos.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(photos) { p in
+                        AsyncImage(url: Api.mediaURL(p.url)) { phase in
                             switch phase {
                             case .success(let img): img.resizable().scaledToFill()
                             default: Color(.secondarySystemBackground)
                             }
                         }
-                        .frame(maxWidth: .infinity).aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .frame(width: 200, height: 140)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 52)).foregroundStyle(.white.opacity(0.9))
-                    }
-                }
-            }
-
-            if !photos.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(photos) { p in
-                            AsyncImage(url: Api.mediaURL(p.url)) { phase in
-                                switch phase {
-                                case .success(let img): img.resizable().scaledToFill()
-                                default: Color(.secondarySystemBackground)
-                                }
-                            }
-                            .frame(width: 200, height: 140)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .onTapGesture { lightbox = p }
-                            .overlay(alignment: .topTrailing) {
-                                if s.owned == true {
-                                    Button {
-                                        Task {
-                                            try? await Api.deleteSessionPhoto(id, photoId: p.id)
-                                            photos = (try? await Api.sessionPhotos(id)) ?? []
-                                        }
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
-                                            .padding(6)
+                        .onTapGesture { lightbox = p }
+                        .overlay(alignment: .topTrailing) {
+                            if s.owned == true {
+                                Button {
+                                    Task {
+                                        try? await Api.deleteSessionPhoto(id, photoId: p.id)
+                                        photos = (try? await Api.sessionPhotos(id)) ?? []
                                     }
-                                    .buttonStyle(.plain)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
+                                        .padding(6)
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
-                }
-            }
-            if s.owned == true {
-                PhotosPicker(selection: $pickerItem, matching: .images) {
-                    Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
-                }
-                .onChange(of: pickerItem) { item in
-                    Task {
-                        if let data = try? await item?.loadTransferable(type: Data.self) {
-                            try? await Api.uploadSessionPhoto(id, data: data)
-                            photos = (try? await Api.sessionPhotos(id)) ?? []
-                        }
-                    }
-                }
-            }
-
-            if let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2,
-               let segs = s.analysis?.segments, !segs.isEmpty {
-                let speeds3 = track.properties?.speeds_mps ?? []
-                let speeds = colorMode == .speed ? (track.properties?.speeds?[String(win)] ?? speeds3) : speeds3
-                let hr = track.properties?.hr ?? []
-                let pumpHz = track.properties?.pump_hz ?? []
-                let hasHr = hr.contains { ($0 ?? 0) > 0 }
-                let hasPump = pumpHz.contains { $0 != nil }
-                let hrVals = hr.compactMap { $0 }.filter { $0 > 0 }
-                let pumpVals = pumpHz.compactMap { $0 }
-                let hrRange = (hrVals.min() ?? 0, hrVals.max() ?? 1)
-                let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
-
-                if hasHr || hasPump {
-                    Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
-                        Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
-                        if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
-                        if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
-                    }
-                    .pickerStyle(.segmented)
-                }
-                if colorMode == .speed {
-                    Picker(Loc.t("sd.smoothing", lang), selection: $win) {
-                        Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
-                    }
-                    .pickerStyle(.segmented)
-                }
-                TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
-                         segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
-                         showPumps: showPumps, selectedRun: selectedRun,
-                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 })
-                    .frame(height: 300).frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                if let sel = selectedRun {
-                    HStack {
-                        Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
-                        Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
-                    }
-                }
-                if (s.analysis?.pump_count ?? 0) > 0 {
-                    Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
-                }
-            }
-            if s.owned == true && !allFoils.isEmpty {
-                // Dropdown wie die PWA (<select>): Standard-Foil + Meine Foils + Alle Marken;
-                // .menu zeigt nur den gewählten Foil (nicht alle auf einmal).
-                Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
-                    Text(Loc.t("foil.useDefault", lang)).tag(0)
-                    ForEach(allFoils.filter { mineIds.contains($0.id) }) { f in
-                        Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
-                    }
-                    ForEach(allFoils.filter { !mineIds.contains($0.id) }) { f in
-                        Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-            if let a = s.analysis, let foil = s.foil, weightKg > 0 {
-                PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
-            }
-
-            if let a = s.analysis {
-                let stats = buildStats(a)
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(stats) { st in
-                        StatTile(item: st, selected: st.runIdx != nil && st.runIdx == selectedRun) {
-                            if let r = st.runIdx { selectedRun = (selectedRun == r) ? nil : r }
-                        }
-                    }
-                }
-                if let segs = a.segments, !segs.isEmpty {
-                    RunsTable(segments: segs, selected: selectedRun, lang: lang) {
-                        selectedRun = (selectedRun == $0) ? nil : $0
-                    }
-                }
-            } else {
-                Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
-            }
-
-            // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
-            if s.owned == true, (s.merged_count ?? 0) > 0 {
-                HStack {
-                    Text(Loc.t("merge.mergedFrom", lang)).font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button(Loc.t("merge.unmerge", lang), role: .destructive) {
-                        Task { try? await Api.unmergeSession(id); await load() }
-                    }.font(.caption)
                 }
             }
         }
-        .padding()
+        if s.owned == true {
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
+            }
+            .onChange(of: pickerItem) { item in
+                Task {
+                    if let data = try? await item?.loadTransferable(type: Data.self) {
+                        try? await Api.uploadSessionPhoto(id, data: data)
+                        photos = (try? await Api.sessionPhotos(id)) ?? []
+                    }
+                }
+            }
+        }
+    }
+
+    // Schwerste Sektion: viele let-Bindungen/Tupel + Ternär. Als non-builder-Funktion mit guard +
+    // AnyView -> der Type-Checker sieht die lets als normale Statements (nicht im Result-Builder).
+    private func trackSection(_ s: SessionDetail) -> some View {
+        guard let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2,
+              let segs = s.analysis?.segments, !segs.isEmpty else { return AnyView(EmptyView()) }
+        let speeds3 = track.properties?.speeds_mps ?? []
+        let speeds = colorMode == .speed ? (track.properties?.speeds?[String(win)] ?? speeds3) : speeds3
+        let hr = track.properties?.hr ?? []
+        let pumpHz = track.properties?.pump_hz ?? []
+        let hasHr = hr.contains { ($0 ?? 0) > 0 }
+        let hasPump = pumpHz.contains { $0 != nil }
+        let hrVals = hr.compactMap { $0 }.filter { $0 > 0 }
+        let pumpVals = pumpHz.compactMap { $0 }
+        let hrRange = (hrVals.min() ?? 0, hrVals.max() ?? 1)
+        let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
+        return AnyView(VStack(alignment: .leading, spacing: 16) {
+            if hasHr || hasPump {
+                Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
+                    Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
+                    if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
+                    if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+                }
+                .pickerStyle(.segmented)
+            }
+            if colorMode == .speed {
+                Picker(Loc.t("sd.smoothing", lang), selection: $win) {
+                    Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
+                }
+                .pickerStyle(.segmented)
+            }
+            TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
+                     segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
+                     showPumps: showPumps, selectedRun: selectedRun,
+                     onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 })
+                .frame(height: 300).frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            if let sel = selectedRun {
+                HStack {
+                    Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
+                    Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
+                }
+            }
+            if (s.analysis?.pump_count ?? 0) > 0 {
+                Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
+            }
+        })
+    }
+
+    @ViewBuilder private func foilPicker(_ s: SessionDetail) -> some View {
+        if s.owned == true && !allFoils.isEmpty {
+            // Dropdown wie die PWA (<select>): Standard-Foil + Meine Foils + Alle Marken;
+            // .menu zeigt nur den gewählten Foil (nicht alle auf einmal).
+            Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
+                Text(Loc.t("foil.useDefault", lang)).tag(0)
+                ForEach(allFoils.filter { mineIds.contains($0.id) }) { f in
+                    Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
+                }
+                ForEach(allFoils.filter { !mineIds.contains($0.id) }) { f in
+                    Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
+                }
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
+    @ViewBuilder private func statsSection(_ s: SessionDetail) -> some View {
+        if let a = s.analysis {
+            let stats = buildStats(a)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ForEach(stats) { st in
+                    StatTile(item: st, selected: st.runIdx != nil && st.runIdx == selectedRun) {
+                        if let r = st.runIdx { selectedRun = (selectedRun == r) ? nil : r }
+                    }
+                }
+            }
+            if let segs = a.segments, !segs.isEmpty {
+                RunsTable(segments: segs, selected: selectedRun, lang: lang) {
+                    selectedRun = (selectedRun == $0) ? nil : $0
+                }
+            }
+        } else {
+            Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
+        }
+    }
+
+    // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
+    @ViewBuilder private func unmergeRow(_ s: SessionDetail) -> some View {
+        if s.owned == true, (s.merged_count ?? 0) > 0 {
+            HStack {
+                Text(Loc.t("merge.mergedFrom", lang)).font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                Button(Loc.t("merge.unmerge", lang), role: .destructive) {
+                    Task { try? await Api.unmergeSession(id); await load() }
+                }.font(.caption)
+            }
+        }
     }
 
     private func dateText(_ s: SessionDetail) -> String {
