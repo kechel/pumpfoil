@@ -72,8 +72,11 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   (`NewsBanner`-Singleton), öffentlicher `GET /api/app/news`. `WelcomeBanner.tsx` holt das und zeigt den
   Banner, wenn `enabled` und `version` > weggeklickter Wert (localStorage `foil_banner_v1`); Text =
   `texts[lang]||de`. **Gepflegt im Admin-Tab „News-Banner"** (`PUT /api/admin/news`): Text je Sprache +
-  Version-Bump → News posten ohne Deploy. **TODO:** dasselbe in Android/iOS (könnten `/api/app/news` auch
-  abfragen).
+  Version-Bump → News posten ohne Deploy. **HARTE REGEL: der Banner ist GLOBAL/öffentlich (alle Nutzer,
+  alle Sprachen) → NUR allgemeine Ankündigungen. NIEMALS Persönliches oder an einzelne Nutzer Gerichtetes
+  in den Banner** (Privatsphäre); persönliche Nachrichten ausschließlich per 1:1-Chat/DM. „Trag den Banner
+  nach" = nur allgemeine News; im Zweifel nachfragen. **TODO:** dasselbe in Android/iOS (könnten
+  `/api/app/news` auch abfragen).
 - Commit-Trailer wie vom Harness vorgegeben.
 
 ## Dokumentation & weitere Kontext-Quellen
