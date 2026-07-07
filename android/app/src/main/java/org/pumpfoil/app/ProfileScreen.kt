@@ -211,6 +211,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Nur Debug: App-Rating-Dialog neu triggerbar machen (Test-Flags löschen).
+            if (BuildConfig.DEBUG) {
+                TextButton(onClick = {
+                    ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit()
+                        .remove("rating_done").remove("rating_snooze").remove("rating_min_count").remove("rating_fb_count").apply()
+                }) { Text("↻ Rating-Test zurücksetzen") }
+            }
             // Platz, damit der letzte Button nicht hinter der Mobile-Bottom-Nav klebt.
             Spacer(Modifier.height(96.dp))
         }

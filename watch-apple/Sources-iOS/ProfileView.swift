@@ -82,6 +82,16 @@ struct ProfileView: View {
                 } footer: {
                     Text("Pumpfoil v\((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "")")
                 }
+                #if DEBUG
+                // Nur Debug: App-Rating-Dialog neu triggerbar machen (Test-Flags löschen).
+                Section {
+                    Button("↻ Rating-Test zurücksetzen") {
+                        ["rating_done", "rating_snooze", "rating_min_count", "rating_fb_count"].forEach {
+                            UserDefaults.standard.removeObject(forKey: $0)
+                        }
+                    }
+                }
+                #endif
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Loc.t("nav.profile", lang))
