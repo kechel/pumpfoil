@@ -73,6 +73,38 @@ export default function PersonalHome() {
       {/* App installieren (mobil, nur wenn installierbar) */}
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
 
+      {/* Letzte Sessions ganz oben (direkt nach der Begrüßung) */}
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
+        <Link to="/sessions" className="text-xs text-brand-300 hover:text-brand-200">{t("phome.allMine")} →</Link>
+      </div>
+      {!latest ? <Spinner /> : latest.length === 0 ? (
+        <Card className="p-6 text-center text-sm text-slate-300">{t("sessions.none")}</Card>
+      ) : (
+        <div className="mb-6 space-y-3">
+          {latest.map((s) => (
+            <SessionCard
+              key={s.id}
+              sessionId={s.id}
+              startedAt={s.started_at}
+              endedAt={s.ended_at}
+              spot={s.place_name}
+              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              caption={s.caption}
+              avatarName={profile?.display_name}
+              avatarUrl={profile?.avatar_url}
+              thumbUrl={s.thumb_url}
+              photoCount={s.photo_count}
+              likeCount0={s.like_count ?? 0}
+              liked0={!!s.liked}
+              trackPreview={s.track_preview}
+              stats={s.analysis && <SessionStats a={s.analysis} />}
+              statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
       <div className="mb-2 flex items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
@@ -119,39 +151,6 @@ export default function PersonalHome() {
 
       {/* Wetter & Pegel für den eigenen Homespot */}
       {homespot && <SpotWeather spot={homespot} showSpot />}
-
-
-      {/* Letzte Sessions */}
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
-        <Link to="/sessions" className="text-xs text-brand-300 hover:text-brand-200">{t("phome.allMine")} →</Link>
-      </div>
-      {!latest ? <Spinner /> : latest.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-slate-300">{t("sessions.none")}</Card>
-      ) : (
-        <div className="space-y-3">
-          {latest.map((s) => (
-            <SessionCard
-              key={s.id}
-              sessionId={s.id}
-              startedAt={s.started_at}
-              endedAt={s.ended_at}
-              spot={s.place_name}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
-              caption={s.caption}
-              avatarName={profile?.display_name}
-              avatarUrl={profile?.avatar_url}
-              thumbUrl={s.thumb_url}
-              photoCount={s.photo_count}
-              likeCount0={s.like_count ?? 0}
-              liked0={!!s.liked}
-              trackPreview={s.track_preview}
-              stats={s.analysis && <SessionStats a={s.analysis} />}
-              statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
-            />
-          ))}
-        </div>
-      )}
 
       <div className="mt-6">
         <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-300 hover:text-brand-200">
