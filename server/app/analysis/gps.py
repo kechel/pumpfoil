@@ -305,6 +305,10 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
         segments = _snap_starts_to_impulses(segments, t_ms, step, speeds, np.asarray(impulse_times_ms, dtype=float))
     # Verpassten Aufsprung/Beschleunigung am Start nachholen (Speed schon im Foil-Band).
     segments = _extend_starts_back(segments, speed_s, t_ms, step, speeds)
+    # Ruhiges Gleiten/Pumpen NACH dem Aufstehen nachholen: Ende vorwärts ziehen, solange
+    # der Speed im Foil-Band bleibt (das Modell verliert bei langsamen/leichten Fahrern das
+    # gleichmäßige On-Foil-Cruisen — Alex #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
+    segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds)
     # Dead-Reckoning-Drift am Ende verwerfen (Uhr untergetaucht) -> echtes Ende.
     segments = _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     # Ground Truth: End-/Start-Marker müssen im Wasser liegen (OSM-Wasserfläche). Fängt
@@ -561,6 +565,28 @@ def _extend_starts_back(segments, speed_s, t_ms, step, speeds) -> list[dict]:
             seg = _seg_fields(i, seg["i_end"] + 1, t_ms, step, speeds)
         out.append(seg)
         prev_end = seg["i_end"]
+    return out
+
+
+def _extend_ends_forward(segments, speed_s, t_ms, step, speeds) -> list[dict]:
+    """Zieht das Lauf-Ende VORWÄRTS, solange der geglättete Speed im Foil-Band bleibt
+    (EXIT_SPEED <= v <= MAX_FOIL_SPEED) und keine GPS-Zeitlücke (Dropout/Sturz) auftritt.
+    Spiegelbild zu _extend_starts_back: fängt das ruhige On-Foil-Gleiten/-Pumpen NACH dem
+    Aufstehen, das das ML-Modell bei langsamen/leichten Fahrern verliert. Stoppt vor dem
+    nächsten Lauf (kein Überlappen). Konstanter Speed über EXIT ist On-Foil — Verdrängung
+    hält 9+ km/h nicht gleichmäßig; ein echter Sturz/Stopp fällt unter EXIT und beendet hier."""
+    n = speed_s.size
+    gap_ms = GAP_SPLIT_S * 1000
+    out = []
+    for k, seg in enumerate(segments):
+        j = seg["i_end"]
+        next_start = segments[k + 1]["i_start"] if k + 1 < len(segments) else n
+        while (j + 1 < next_start and EXIT_SPEED <= speed_s[j + 1] <= MAX_FOIL_SPEED
+               and (t_ms[j + 1] - t_ms[j]) <= gap_ms):
+            j += 1
+        if j != seg["i_end"]:
+            seg = _seg_fields(seg["i_start"], j + 1, t_ms, step, speeds)
+        out.append(seg)
     return out
 
 
