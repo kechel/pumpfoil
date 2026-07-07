@@ -51,7 +51,6 @@ import Foils from "./pages/Foils";
 import FoilStats from "./pages/FoilStats";
 import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
-import ChatPage from "./pages/ChatPage";
 import Admin from "./pages/Admin";
 import NerdAnalysen from "./pages/NerdAnalysen";
 import NerdAnalysen2 from "./pages/NerdAnalysen2";
@@ -77,7 +76,6 @@ const router = createBrowserRouter([
       { index: true, element: <PersonalHome /> },
       { path: "home", element: <PersonalHome /> },   // Alias (Alt-Links/Bookmarks)
       { path: "community", element: <Home /> },
-      { path: "chat", element: <ChatPage /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
       { path: "import", element: <Import /> },

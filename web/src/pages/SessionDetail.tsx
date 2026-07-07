@@ -9,6 +9,7 @@ import { ShareDialog } from "../components/ShareDialog";
 import { FoilSelect } from "../components/FoilSelect";
 import { invalidateSessionListCache } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
+import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
@@ -892,14 +893,14 @@ export default function SessionDetail() {
         {/* erzwingt mobil den Zeilenumbruch vor Spot-Chat; ab sm unsichtbar (eine Reihe) */}
         <div className="w-full sm:hidden" />
         {session.place_name && (
-          <Link
-            to={`/chat?scope=${encodeURIComponent(`spot:${session.place_name}`)}`}
+          <button
+            onClick={() => openChatOverlay(`spot:${session.place_name}`, session.place_name!)}
             title={`${t("chat.spotChat")} ${session.place_name}`}
             className="flex min-w-0 flex-1 items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700 sm:ml-auto sm:flex-none"
           >
             <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />
             <span className="truncate">{t("chat.spotChat")} {session.place_name}</span>
-          </Link>
+          </button>
         )}
         {session.place_water && session.place_water !== session.place_name && (
           <span className="shrink-0 text-xs text-slate-500" title={t("sd.waterBody")}>· {session.place_water}</span>

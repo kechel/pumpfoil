@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { api, CommunitySession, SessionSummary } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
@@ -9,6 +9,7 @@ import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
+import { openChatOverlay } from "../components/DmWidget";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -173,15 +174,15 @@ export default function Sessions() {
 }
 
 // Button neben den Scope-Umschaltern: direkt in den Fullscreen-Spot-Chat
-// (/chat?scope=spot:<name>), beschriftet mit Spotnamen.
+// öffnet das Chat-Overlay direkt im Spot-Chat, beschriftet mit Spotnamen.
 function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string }) {
   return (
-    <Link
-      to={`/chat?scope=${encodeURIComponent(`spot:${spot}`)}`}
+    <button
+      onClick={() => openChatOverlay(`spot:${spot}`, spot)}
       className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
     >
       <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("chat.spotChat")} {spot}
-    </Link>
+    </button>
   );
 }
 

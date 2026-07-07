@@ -8,6 +8,7 @@ import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
+import { openChatOverlay } from "../components/DmWidget";
 import { useT } from "../i18n";
 
 function fmtDur(min: number): string {
@@ -128,8 +129,8 @@ export default function PersonalHome() {
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.myChats")}</h3>
           <div className="space-y-2">
             {rooms.map((r) => (
-              <Link key={r.scope} to={r.url}
-                className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700 hover:bg-slate-900">
+              <button key={r.scope} onClick={() => openChatOverlay(r.scope, r.label)}
+                className="flex w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-left hover:border-slate-700 hover:bg-slate-900">
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5">
                     {r.scope.startsWith("spot:")
@@ -146,7 +147,7 @@ export default function PersonalHome() {
                 {r.unread > 0 && (
                   <span className="shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{r.unread}</span>
                 )}
-              </Link>
+              </button>
             ))}
           </div>
         </div>

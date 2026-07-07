@@ -5,20 +5,30 @@ import { ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
 
-// Floating 1:1-Direktnachrichten-Widget (rechts unten, feste Position). Nur DMs —
-// keine Spot-/Session-Chats (die laufen weiter über /chat + Home „Meine Chats").
+// Zentrales Chat-Overlay (rechts unten, feste Position). Zwei Tabs:
+//   „Meine"      – eigene DMs + Spot-Chats (Personensuche startet DMs)
+//   „Spot-Chats" – alle Spot-Chats zum Stöbern, aktivste zuerst (Suche filtert Spots)
+// Von überall per openChatOverlay(scope,label) direkt in einen Scope springbar (Event unten).
 type Active = { scope: string; name: string | null; otherId: number; avatar: string | null; blocked: boolean };
+type SpotRow = { scope: string; label: string; url: string; messages: number };
+
+// Chat-Overlay von außerhalb öffnen und direkt in einen Scope springen (z. B. Spot-Chat-Button).
+export function openChatOverlay(scope: string, label: string) {
+  window.dispatchEvent(new CustomEvent("pumpfoil:open-chat", { detail: { scope, label } }));
+}
 
 export function DmWidget() {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<"mine" | "spots">("mine");
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [allSpots, setAllSpots] = useState<SpotRow[]>([]);
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
   const [blocked, setBlocked] = useState<Set<number>>(new Set());
 
-  // Alle offenen Räume: Direktnachrichten + Spot-Chats (Session-Chats sind serverseitig aus).
+  // Ungelesen-Zähler über alle Räume (DMs + Spot-Chats, in denen man drin ist).
   const unreadTotal = rooms.reduce((s, r) => s + r.unread, 0);
 
   const loadRooms = () => api.chatRooms().then(setRooms).catch(() => {});
@@ -27,9 +37,23 @@ export function DmWidget() {
     if (!open) return;
     loadRooms();
     api.chatBlocks().then((b) => setBlocked(new Set(b.map((x) => x.id)))).catch(() => {});
+    api.chatAllSpots().then(setAllSpots).catch(() => {});
   }, [open]);
 
-  // Nutzersuche (nur Anzeigename), leicht entprellt.
+  // Von außen öffnen (Spot-Chat-Buttons, „Meine Chats" auf Home): direkt in den Scope springen.
+  useEffect(() => {
+    const h = (e: Event) => {
+      const d = (e as CustomEvent<{ scope: string; label?: string }>).detail;
+      if (!d?.scope) return;
+      setOpen(true);
+      setActive({ scope: d.scope, name: d.label ?? "", otherId: 0, avatar: null, blocked: false });
+    };
+    window.addEventListener("pumpfoil:open-chat", h);
+    return () => window.removeEventListener("pumpfoil:open-chat", h);
+  }, []);
+
+  // Globale Suche (unabhängig vom Tab): findet Personen (→ DM) UND Spots. Personensuche
+  // nur Anzeigename, leicht entprellt; Spots werden clientseitig gefiltert (spotsShown).
   useEffect(() => {
     if (!q.trim()) { setResults([]); return; }
     const id = setTimeout(() => api.chatSearchUsers(q.trim()).then(setResults).catch(() => {}), 250);
@@ -46,7 +70,11 @@ export function DmWidget() {
     setActive({ scope: r.scope, name: r.other?.name ?? r.label, otherId: r.other?.id ?? 0,
                 avatar: r.other?.avatar_url ?? null, blocked: r.other ? blocked.has(r.other.id) : false });
 
+  const openScope = (scope: string, label: string) =>
+    setActive({ scope, name: label, otherId: 0, avatar: null, blocked: false });
+
   const back = () => { setActive(null); loadRooms(); };
+  const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
@@ -63,6 +91,28 @@ export function DmWidget() {
       }).catch(() => {});
     }
   };
+
+  // Spot-Chats: aktivste (meiste Nachrichten) zuerst; Suche filtert nach Spotname.
+  const spotsSorted = [...allSpots].sort((a, b) => b.messages - a.messages);
+  const spotsShown = q.trim()
+    ? spotsSorted.filter((s) => s.label.toLowerCase().includes(q.trim().toLowerCase()))
+    : spotsSorted;
+  const joined = new Set(rooms.map((r) => r.scope));   // Spots, in denen man schon drin ist → markieren
+
+  const userRow = (u: DmUser) => (
+    <button key={`u${u.id}`} onClick={() => openDm(u.id)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-800">
+      <Avatar name={u.display_name} url={u.avatar_url} size={28} />
+      <span className="truncate text-sm text-slate-100">{u.display_name}</span>
+    </button>
+  );
+  const spotRow = (s: SpotRow) => (
+    <button key={s.scope} onClick={() => openScope(s.scope, s.label)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-100">{s.label}</span>
+      {joined.has(s.scope) && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-400" title={t("dm.tabMine")} />}
+      <span className="shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300">{s.messages}</span>
+    </button>
+  );
 
   return (
     <>
@@ -89,7 +139,13 @@ export function DmWidget() {
                 )}
               </>
             ) : (
-              <span className="flex-1 text-sm font-semibold text-slate-100">{t("dm.title")}</span>
+              // Kein Titel — die Tabs beschriften den Inhalt selbst (spart Höhe im schmalen Popup).
+              <div className="flex flex-1 gap-0.5 rounded-lg bg-slate-800 p-0.5 text-xs font-medium">
+                <button onClick={() => switchTab("mine")}
+                  className={`flex-1 rounded-md px-2 py-1 ${tab === "mine" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabMine")}</button>
+                <button onClick={() => switchTab("spots")}
+                  className={`flex-1 rounded-md px-2 py-1 ${tab === "spots" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabSpots")}</button>
+              </div>
             )}
             <button onClick={() => setOpen(false)} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
           </div>
@@ -102,36 +158,52 @@ export function DmWidget() {
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="p-2">
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("dm.searchPlaceholder")}
+                <input value={q} onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("dm.searchAll")}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto">
-                {results.length > 0 && (
-                  <div className="border-b border-slate-800 pb-1">
-                    <p className="px-3 py-1 text-[10px] uppercase tracking-wide text-slate-500">{t("dm.searchResults")}</p>
-                    {results.map((u) => (
-                      <button key={u.id} onClick={() => openDm(u.id)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-800">
-                        <Avatar name={u.display_name} url={u.avatar_url} size={28} />
-                        <span className="truncate text-sm text-slate-100">{u.display_name}</span>
+                {q.trim() ? (
+                  // Globale Suche: Personen + Spots kombiniert, egal welcher Tab aktiv ist.
+                  <>
+                    {results.length > 0 && (
+                      <div className="border-b border-slate-800 pb-1">
+                        <p className="px-3 py-1 text-[10px] uppercase tracking-wide text-slate-500">{t("dm.searchResults")}</p>
+                        {results.map(userRow)}
+                      </div>
+                    )}
+                    {spotsShown.length > 0 && (
+                      <div className="pb-1">
+                        <p className="px-3 py-1 text-[10px] uppercase tracking-wide text-slate-500">{t("chat.allSpots")}</p>
+                        {spotsShown.map(spotRow)}
+                      </div>
+                    )}
+                    {results.length === 0 && spotsShown.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.noResults")}</p>}
+                  </>
+                ) : tab === "mine" ? (
+                  <>
+                    {rooms.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
+                    {rooms.map((r) => (
+                      <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
+                        {r.kind === "dm"
+                          ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
+                          : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>
+                            {r.unread > 0 && <span className="ml-auto shrink-0 rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{r.unread}</span>}
+                          </div>
+                          <div className="truncate text-xs text-slate-400">{r.last_text}</div>
+                        </div>
                       </button>
                     ))}
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    {spotsShown.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("chat.noActive")}</p>}
+                    {spotsShown.map(spotRow)}
+                  </>
                 )}
-                {rooms.length === 0 && !q && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
-                {rooms.map((r) => (
-                  <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
-                    {r.kind === "dm"
-                      ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
-                      : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>
-                        {r.unread > 0 && <span className="ml-auto shrink-0 rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{r.unread}</span>}
-                      </div>
-                      <div className="truncate text-xs text-slate-400">{r.last_text}</div>
-                    </div>
-                  </button>
-                ))}
               </div>
             </div>
           )}
