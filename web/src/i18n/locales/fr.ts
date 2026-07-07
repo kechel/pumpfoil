@@ -690,6 +690,7 @@ const fr: Record<string, string> = {
   "dm.tabSpots": "Chats spots",
   "dm.searchAll": "Rechercher personnes & spots …",
   "dm.noResults": "Rien trouvé.",
+  "dm.blockedList": "Bloqués",
   "dm.empty": "Pas encore de messages directs. Cherche un nom ci-dessus pour écrire à quelqu'un.",
   "banner.news": "Nouvelles mises à jour de l'app Android et iOS dans le store — mets à jour maintenant !",
   "banner.nerdLead": "🤓 Analyses de geek :",

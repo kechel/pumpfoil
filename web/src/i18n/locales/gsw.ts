@@ -616,6 +616,7 @@ const gsw: Record<string, string> = {
   "dm.tabSpots": "Spot-Chats",
   "dm.searchAll": "Persoone & Spots sueche …",
   "dm.noResults": "Nüt gfunde.",
+  "dm.blockedList": "Blockiert",
   "dm.empty": "No kei Direktnachrichte. Suech obe nach eme Name zum öpperem schriibe.",
   "banner.news": "Nöii Updates für d Android- und iOS-App im Store — jetz aktualisiere!",
   "banner.nerdLead": "🤓 Nerd-Analyse:",

@@ -684,6 +684,7 @@ const de: Record<string, string> = {
   "dm.tabSpots": "Spot-Chats",
   "dm.searchAll": "Personen & Spots suchen …",
   "dm.noResults": "Nichts gefunden.",
+  "dm.blockedList": "Blockiert",
   "dm.empty": "Noch keine Direktnachrichten. Such oben nach einem Namen, um jemandem zu schreiben.",
   "adm.news.enabled": "Banner aktiv (allen anzeigen)",
   "adm.news.version": "Version",

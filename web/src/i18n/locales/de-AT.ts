@@ -556,6 +556,7 @@ const deAT: Record<string, string> = {
   "dm.tabSpots": "Spot-Chats",
   "dm.searchAll": "Personen & Spots suchen …",
   "dm.noResults": "Nix gfundn.",
+  "dm.blockedList": "Blockiert",
   "dm.empty": "Noch keine Direktnachrichten. Such oben nach einem Namen, um jemandem zu schreiben.",
   "banner.news": "Neue Updates für die Android- und iOS-App im Store — jetzt aktualisieren!",
   "banner.nerdLead": "🤓 Nerd-Analysen:",

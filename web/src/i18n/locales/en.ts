@@ -853,6 +853,7 @@ const en: Record<string, string> = {
   "dm.tabSpots": "Spot chats",
   "dm.searchAll": "Search people & spots …",
   "dm.noResults": "Nothing found.",
+  "dm.blockedList": "Blocked",
   "dm.empty": "No direct messages yet. Search a name above to message someone.",
   "banner.news": "New updates for the Android and iOS app in the store — update now!",
   "banner.nerdLead": "🤓 Nerd analytics:",

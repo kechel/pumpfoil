@@ -688,6 +688,7 @@ const es: Record<string, string> = {
   "dm.tabSpots": "Chats de spot",
   "dm.searchAll": "Buscar personas y spots …",
   "dm.noResults": "Sin resultados.",
+  "dm.blockedList": "Bloqueados",
   "dm.empty": "Aún no hay mensajes directos. Busca un nombre arriba para escribir a alguien.",
   "banner.news": "Nuevas actualizaciones para la app de Android e iOS en la tienda — ¡actualiza ahora!",
   "banner.nerdLead": "🤓 Análisis para nerds:",

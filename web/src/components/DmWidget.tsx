@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
-import { ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
+import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
 
@@ -27,6 +27,8 @@ export function DmWidget() {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
   const [blocked, setBlocked] = useState<Set<number>>(new Set());
+  const [blockedUsers, setBlockedUsers] = useState<DmUser[]>([]);   // zum Entblocken (Namen/Avatare)
+  const [showBlocked, setShowBlocked] = useState(false);
 
   // Ungelesen-Zähler über alle Räume (DMs + Spot-Chats, in denen man drin ist).
   const unreadTotal = rooms.reduce((s, r) => s + r.unread, 0);
@@ -36,7 +38,7 @@ export function DmWidget() {
   useEffect(() => {
     if (!open) return;
     loadRooms();
-    api.chatBlocks().then((b) => setBlocked(new Set(b.map((x) => x.id)))).catch(() => {});
+    api.chatBlocks().then((b) => { setBlocked(new Set(b.map((x) => x.id))); setBlockedUsers(b); }).catch(() => {});
     api.chatAllSpots().then(setAllSpots).catch(() => {});
   }, [open]);
 
@@ -83,21 +85,33 @@ export function DmWidget() {
       api.chatUnblock(oid).then(() => {
         setActive((a) => a && { ...a, blocked: false });
         setBlocked((s) => { const n = new Set(s); n.delete(oid); return n; });
+        setBlockedUsers((l) => l.filter((x) => x.id !== oid));
       }).catch(() => {});
     } else if (confirm(t("dm.blockConfirm", { name: active.name || "?" }))) {
       api.chatBlock(oid).then(() => {
         setActive((a) => a && { ...a, blocked: true });
         setBlocked((s) => new Set(s).add(oid));
+        setBlockedUsers((l) => l.some((x) => x.id === oid) ? l : [...l, { id: oid, display_name: active.name, avatar_url: active.avatar }]);
       }).catch(() => {});
     }
   };
+
+  // Aus der „Blockiert"-Liste unten entblocken (ohne den Chat öffnen zu müssen).
+  const unblockUser = (u: DmUser) =>
+    api.chatUnblock(u.id).then(() => {
+      setBlocked((s) => { const n = new Set(s); n.delete(u.id); return n; });
+      setBlockedUsers((l) => l.filter((x) => x.id !== u.id));
+    }).catch(() => {});
 
   // Spot-Chats: aktivste (meiste Nachrichten) zuerst; Suche filtert nach Spotname.
   const spotsSorted = [...allSpots].sort((a, b) => b.messages - a.messages);
   const spotsShown = q.trim()
     ? spotsSorted.filter((s) => s.label.toLowerCase().includes(q.trim().toLowerCase()))
     : spotsSorted;
-  const joined = new Set(rooms.map((r) => r.scope));   // Spots, in denen man schon drin ist → markieren
+  const joined = new Set(rooms.map((r) => r.scope));               // Spots, in denen man drin ist
+  const subscribed = new Set(rooms.filter((r) => r.push).map((r) => r.scope));   // abonniert → Glocke
+  // Blockierte DM-Chats gar nicht in „Meine" listen (nur unten in der Blockiert-Liste).
+  const visibleRooms = rooms.filter((r) => !(r.kind === "dm" && r.other && blocked.has(r.other.id)));
 
   const userRow = (u: DmUser) => (
     <button key={`u${u.id}`} onClick={() => openDm(u.id)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-800">
@@ -109,7 +123,9 @@ export function DmWidget() {
     <button key={s.scope} onClick={() => openScope(s.scope, s.label)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-100">{s.label}</span>
-      {joined.has(s.scope) && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-400" title={t("dm.tabMine")} />}
+      {subscribed.has(s.scope)
+        ? <BellIcon className="h-3.5 w-3.5 shrink-0 text-brand-400" />
+        : joined.has(s.scope) && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-400" title={t("dm.tabMine")} />}
       <span className="shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300">{s.messages}</span>
     </button>
   );
@@ -182,8 +198,8 @@ export function DmWidget() {
                   </>
                 ) : tab === "mine" ? (
                   <>
-                    {rooms.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
-                    {rooms.map((r) => (
+                    {visibleRooms.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.empty")}</p>}
+                    {visibleRooms.map((r) => (
                       <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
                         {r.kind === "dm"
                           ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
@@ -191,12 +207,31 @@ export function DmWidget() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>
-                            {r.unread > 0 && <span className="ml-auto shrink-0 rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{r.unread}</span>}
+                            <span className="ml-auto flex shrink-0 items-center gap-1">
+                              {subscribed.has(r.scope) && <BellIcon className="h-3.5 w-3.5 text-brand-400" />}
+                              {r.unread > 0 && <span className="rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{r.unread}</span>}
+                            </span>
                           </div>
                           <div className="truncate text-xs text-slate-400">{r.last_text}</div>
                         </div>
                       </button>
                     ))}
+                    {/* Blockierte: aus der Liste raus, hier ausklappbar zum Entblocken. */}
+                    {blockedUsers.length > 0 && (
+                      <div className="border-t border-slate-800 mt-1">
+                        <button onClick={() => setShowBlocked((v) => !v)}
+                          className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs text-slate-500 hover:text-slate-300">
+                          <span>{showBlocked ? "▾" : "▸"}</span>{t("dm.blockedList")} ({blockedUsers.length})
+                        </button>
+                        {showBlocked && blockedUsers.map((u) => (
+                          <div key={u.id} className="flex items-center gap-2 px-3 py-1.5">
+                            <Avatar name={u.display_name} url={u.avatar_url} size={28} />
+                            <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{u.display_name}</span>
+                            <button onClick={() => unblockUser(u)} className="shrink-0 text-xs text-emerald-400 hover:text-emerald-300">{t("dm.unblock")}</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
