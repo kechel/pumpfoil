@@ -396,9 +396,13 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
     ? spots.all.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase()) && !shown.includes(s)).slice(0, 6)
     : [];
 
+  const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
     <div className="mt-8">
-      <h3 className="mb-2 text-lg font-bold">{t("home.spots")}</h3>
+      <h3 className="mb-2 text-lg font-bold">
+        {t("home.spots")}
+        {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
+      </h3>
       <div className="relative mb-4 max-w-xs">
         <input
           value={q}
