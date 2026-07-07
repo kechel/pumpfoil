@@ -17,7 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Feedback
+import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.text.AnnotatedString
@@ -171,7 +171,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     Scaffold(topBar = {
         PumpfoilTopBar(I18n.t("nav.home")) {
             IconButton(onClick = { showFeedback = true }) {
-                Icon(Icons.Filled.Feedback, contentDescription = I18n.t("feedback.title"), tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Outlined.MailOutline, contentDescription = I18n.t("feedback.title"), tint = MaterialTheme.colorScheme.primary)
             }
             SyncIndicator()
         }
