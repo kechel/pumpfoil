@@ -39,6 +39,7 @@ class ProfileOut(BaseModel):
     avatar_url: str | None = None
     is_admin: bool = False
     language: str = "de"
+    beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
 
 
 class LoginIn(BaseModel):

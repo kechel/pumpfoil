@@ -19,6 +19,7 @@ export default function LinkedAccounts() {
       <h2 className="mb-1 text-xl font-bold">{t("linked.title")}</h2>
       <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
       <div className="space-y-4">
+        <PolarRecorderBetaCard />
         <PolarCard />
         <CorosCard />
         <SuuntoCard />
@@ -30,6 +31,32 @@ export default function LinkedAccounts() {
         <PlatformSubline kind="account" />
       </div>
     </div>
+  );
+}
+
+// BETA / nur Allowlist-Konten (profile.beta): Vorschau des geplanten Polar-BLE-Recorders.
+// Bewusst nur Deutsch (dev-only, sieht aktuell nur Jan) + nicht in der App. Wird sichtbar,
+// sobald der native BLE-Recorder (Android/iOS) fertig ist. Siehe docs/polar-recorder.md.
+function PolarRecorderBetaCard() {
+  const [beta, setBeta] = useState(false);
+  useEffect(() => { api.getProfile().then((p) => setBeta(!!p.beta)).catch(() => {}); }, []);
+  if (!beta) return null;
+  return (
+    <Card className="border border-amber-500/40 bg-amber-500/5 p-5">
+      <div className="mb-1 flex items-center gap-2">
+        <h3 className="font-semibold">Polar-Recorder</h3>
+        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">Beta · nur du</span>
+      </div>
+      <p className="mb-2 text-sm text-slate-300">
+        Echter Recorder für Polar-Hardware über das <b>Polar BLE SDK</b> (in der Handy-App), zusätzlich
+        zum AccessLink-Import. Liefert <b>Roh-Accelerometer</b> → volle Pump-/On-Foil-Analyse (AccessLink allein = nur GPS).
+      </p>
+      <ul className="mb-1 list-disc pl-5 text-xs text-slate-400">
+        <li>Uhren: Vantage V3/M3, Grit X2/X2 Pro (50 Hz) · Sensoren: H10/Verity Sense (bis 200 Hz)</li>
+        <li>Live-Streaming (Handy dabei) oder Offline-Recording (nach der Fahrt per BLE ziehen)</li>
+        <li>Status: in Vorbereitung — nativer Code, noch nicht online. Details: docs/polar-recorder.md</li>
+      </ul>
+    </Card>
   );
 }
 

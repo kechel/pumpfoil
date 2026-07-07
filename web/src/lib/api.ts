@@ -241,6 +241,7 @@ export interface Profile {
   avatar_url: string | null;
   is_admin: boolean;
   language: string;
+  beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
 }
 
 export interface AdminUser {

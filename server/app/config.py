@@ -43,6 +43,11 @@ class Settings:
         self.osm_user_agent: str = os.environ.get(
             "OSM_USER_AGENT", "PumpfoilTracker/1.0 (+https://pumpfoil.org)"
         )
+        # Beta-Features nur für diese User-IDs sichtbar (kommagetrennt). Default = Jans
+        # beide Konten (2 = jan@kechel.de, 4 = jan@swop.schule). Profil liefert `beta`.
+        self.beta_user_ids: set[int] = {
+            int(x) for x in os.environ.get("BETA_USER_IDS", "2,4").split(",") if x.strip().isdigit()
+        }
 
         # Web-Push (VAPID). Leer -> Push deaktiviert.
         self.vapid_public_key: str = os.environ.get("VAPID_PUBLIC_KEY", "")
