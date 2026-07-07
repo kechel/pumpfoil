@@ -246,9 +246,13 @@ function Leaderboards({ period, accelOnly }: { period: string; accelOnly: boolea
   if (!data) return null;
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
   if (empty) return null;
+  const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
     <div className="mt-8">
-      <h3 className="mb-2 text-lg font-bold">{t("home.leaderboards")}</h3>
+      <h3 className="mb-2 text-lg font-bold">
+        {t("home.leaderboards")}
+        {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
+      </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {LEADER_KINDS.map((k) => (
           <div key={k.key}>
