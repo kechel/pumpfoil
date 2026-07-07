@@ -437,7 +437,7 @@ const fr: Record<string, string> = {
   "meta.linkVideo": "Lier une vidéo",
 
   "feedback.title": "Avis",
-  "feedback.intro": "Un avis sur cette vue ? Écris-moi.",
+  "feedback.intro": "Un avis sur pumpfoil.org ? Écris-moi.",
   "feedback.placeholder": "Ton retour…",
   "feedback.send": "Envoyer",
   "feedback.sent": "Merci ! Retour envoyé.",

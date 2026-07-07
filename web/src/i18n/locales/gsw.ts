@@ -746,7 +746,7 @@ const gsw: Record<string, string> = {
   "compare.session": "Session",
   "compare.subtitle": "{n} markiert",
   "compare.title": "Verglych",
-  "feedback.intro": "Feedback zu dere Aasicht? Schryb mer's churz.",
+  "feedback.intro": "Feedback zu pumpfoil.org? Schryb mer's churz.",
   "feedback.open": "Feedback gää",
   "feedback.placeholder": "Dis Feedback…",
   "feedback.send": "Schicke",

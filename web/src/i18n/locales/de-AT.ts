@@ -614,7 +614,7 @@ const deAT: Record<string, string> = {
   "compare.session": "Session",
   "compare.subtitle": "{n} markiert",
   "compare.title": "Vergleich",
-  "feedback.intro": "Feedback zu der Ansicht? Schreib ma's kurz.",
+  "feedback.intro": "Feedback zu pumpfoil.org? Schreib ma's kurz.",
   "feedback.open": "Feedback gebn",
   "feedback.placeholder": "Dei Feedback…",
   "feedback.send": "Senden",

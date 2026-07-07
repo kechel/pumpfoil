@@ -1,6 +1,9 @@
 import SwiftUI
 import UIKit
 
+// Prozessweiter App-Start-Zeitpunkt: Rating erst nach >2 min in der App (siehe maybeShowRating).
+enum AppSession { static let launch = Date() }
+
 // Persönliches Dashboard: Gesamt-Kennzahlen, Rekorde (klickbar zur Session), letzte Sessions.
 struct HomeView: View {
     @EnvironmentObject var session: SessionStore
@@ -131,7 +134,7 @@ struct HomeView: View {
             .brandToolbar(Loc.t("nav.home", lang))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showFeedback = true } label: { Image(systemName: "exclamationmark.bubble.fill") }
+                    Button { showFeedback = true } label: { Image(systemName: "envelope") }
                 }
             }
             .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
@@ -153,6 +156,11 @@ struct HomeView: View {
             .task { await checkUpdate() }
             .onChange(of: sync.tick) { _ in Task { await load() } }
             .onChange(of: stats?.count) { _ in maybeShowRating() }
+            .task {   // Rating frühestens 2 min nach App-Start prüfen (auch wenn stats früher da sind)
+                let wait = max(0, 120 - Date().timeIntervalSince(AppSession.launch))
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                maybeShowRating()
+            }
             .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
         }
     }
@@ -206,6 +214,7 @@ struct HomeView: View {
     }
 
     private func maybeShowRating() {
+        guard Date().timeIntervalSince(AppSession.launch) >= 120 else { return }   // erst >2 min in der App
         let c = stats?.count ?? 0
         if c >= 5 && !ratingDone && Date().timeIntervalSince1970 >= ratingSnooze && c > ratingMinCount {
             showRating = true

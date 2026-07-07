@@ -662,7 +662,7 @@ const de: Record<string, string> = {
 
   // Feedback-Widget
   "feedback.title": "Feedback",
-  "feedback.intro": "Feedback zu dieser Ansicht? Schreib's mir kurz.",
+  "feedback.intro": "Feedback zu pumpfoil.org? Schreib's mir kurz.",
   "feedback.placeholder": "Dein Feedback…",
   "feedback.send": "Senden",
   "feedback.sent": "Danke! Feedback gesendet.",

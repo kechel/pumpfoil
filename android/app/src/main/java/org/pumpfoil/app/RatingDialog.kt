@@ -1,8 +1,11 @@
 package org.pumpfoil.app
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
+import com.google.android.play.core.review.ReviewManagerFactory
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,7 +56,7 @@ fun RatingDialog(onLater: () -> Unit, onRated: () -> Unit, onFeedback: () -> Uni
                         (1..5).forEach { i ->
                             IconButton(onClick = {
                                 stars = i
-                                if (i >= 4) { openStore(ctx); onRated() } else { feedbackMode = true }
+                                if (i >= 4) { launchInAppReview(ctx); onRated() } else { feedbackMode = true }
                             }) {
                                 Icon(
                                     if (i <= stars) Icons.Filled.Star else Icons.Filled.StarBorder,
@@ -87,6 +90,26 @@ fun RatingDialog(onLater: () -> Unit, onRated: () -> Unit, onFeedback: () -> Uni
         },
         dismissButton = { TextButton(onClick = onLater) { Text(I18n.t("rating.later")) } },
     )
+}
+
+// Natives In-App-Review-Overlay (bleibt in der App, kein Store-Sprung). Google entscheidet
+// system-/kontingentgesteuert, ob es erscheint; klappt es nicht, fallback auf die Store-Seite.
+private fun launchInAppReview(ctx: Context) {
+    val manager = ReviewManagerFactory.create(ctx)
+    manager.requestReviewFlow().addOnCompleteListener { task ->
+        val act = ctx.findActivity()
+        if (task.isSuccessful && act != null) {
+            manager.launchReviewFlow(act, task.result)
+        } else {
+            openStore(ctx)
+        }
+    }
+}
+
+private fun Context.findActivity(): Activity? {
+    var c: Context? = this
+    while (c is ContextWrapper) { if (c is Activity) return c; c = c.baseContext }
+    return null
 }
 
 private fun openStore(ctx: Context) {

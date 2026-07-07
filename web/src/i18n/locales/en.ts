@@ -595,7 +595,7 @@ const en: Record<string, string> = {
   "meta.errLen": "Max. 30 characters.",
 
   "feedback.title": "Feedback",
-  "feedback.intro": "Feedback on this view? Drop me a line.",
+  "feedback.intro": "Feedback on pumpfoil.org? Drop me a line.",
   "feedback.placeholder": "Your feedback…",
   "feedback.send": "Send",
   "feedback.sent": "Thanks! Feedback sent.",

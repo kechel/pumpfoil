@@ -54,9 +54,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+
+// Prozessweiter App-Start (Uptime): Rating erst nach >2 min in der App (siehe unten).
+private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtime() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,17 +112,24 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
             },
         )
     }
-    // App-Rating: ab 5 gesyncten Sessions; nicht wenn „erledigt" (>=4 Sterne); Snooze abgelaufen;
-    // nach Feedback erst wieder, wenn seither neue Sessions dazukamen (count > rating_min_count).
-    LaunchedEffect(stats?.count) {
+    // App-Rating: erst >2 min in der App; ab 5 gesyncten Sessions; nicht wenn „erledigt" (>=4 Sterne);
+    // Snooze abgelaufen; nach Feedback erst wieder, wenn seither neue Sessions dazukamen (count > rating_min_count).
+    val maybeShowRating = {
         val c = stats?.count ?: 0
         val p = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-        if (c >= 5 && !p.getBoolean("rating_done", false) &&
+        if (android.os.SystemClock.elapsedRealtime() - RatingClock.startMs >= 120_000L &&
+            c >= 5 && !p.getBoolean("rating_done", false) &&
             System.currentTimeMillis() >= p.getLong("rating_snooze", 0L) &&
             c > p.getInt("rating_min_count", 0)
         ) {
             showRating = true
         }
+    }
+    LaunchedEffect(stats?.count) { maybeShowRating() }
+    LaunchedEffect(Unit) {   // auch prüfen, sobald die 2 min voll sind (falls stats früher da waren)
+        val waitMs = 120_000L - (android.os.SystemClock.elapsedRealtime() - RatingClock.startMs)
+        if (waitMs > 0) delay(waitMs)
+        maybeShowRating()
     }
 
     LaunchedEffect(Unit) { news = runCatching { Api.newsBanner() }.getOrNull() }

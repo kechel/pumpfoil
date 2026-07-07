@@ -1,7 +1,8 @@
 import SwiftUI
+import StoreKit
 
-// Netter App-Rating-Dialog (nur App): Sterne. >=4 -> echte App-Store-Bewertung (write-review);
-// <=3 -> Feedback (wird ganz normal als Feedback gespeichert), kein Store-Rating.
+// Netter App-Rating-Dialog (nur App): Sterne. >=4 -> natives In-App-Review-Overlay (bleibt in der
+// App, kein Store-Sprung); <=3 -> Feedback (wird ganz normal als Feedback gespeichert), kein Store-Rating.
 // Trigger/Snooze-Logik in HomeView (>=5 gesyncte Sessions; Später/Feedback/Bewertet unterschiedlich).
 struct RatingView: View {
     let lang: String
@@ -13,10 +14,8 @@ struct RatingView: View {
     @State private var feedbackMode = false
     @State private var text = ""
     @State private var decided = false
-    @Environment(\.openURL) private var openURL
+    @Environment(\.requestReview) private var requestReview
     @Environment(\.dismiss) private var dismiss
-
-    private let reviewURL = URL(string: "https://apps.apple.com/app/id6783975714?action=write-review")!
 
     var body: some View {
         NavigationStack {
@@ -56,7 +55,7 @@ struct RatingView: View {
 
     private func pick(_ i: Int) {
         stars = i
-        if i >= 4 { decided = true; openURL(reviewURL); onRated(); dismiss() }
+        if i >= 4 { decided = true; requestReview(); onRated(); dismiss() }
         else { feedbackMode = true }
     }
 }
