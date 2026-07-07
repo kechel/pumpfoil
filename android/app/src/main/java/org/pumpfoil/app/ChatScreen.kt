@@ -92,6 +92,8 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     var tab by remember { mutableStateOf(0) }   // 0 = Meine, 1 = Spot-Chats
     var q by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<DmUser>>(emptyList()) }
+    var blockedUsers by remember { mutableStateOf<List<DmUser>>(emptyList()) }   // zum Entblocken
+    var showBlocked by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     suspend fun load() {
@@ -100,7 +102,11 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
         catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(Unit) { load(); allSpots = runCatching { Api.chatAllSpots() }.getOrDefault(emptyList()) }
+    LaunchedEffect(Unit) {
+        load()
+        allSpots = runCatching { Api.chatAllSpots() }.getOrDefault(emptyList())
+        blockedUsers = runCatching { Api.chatBlocks() }.getOrDefault(emptyList())
+    }
     // Globale Suche (Personen), leicht entprellt; Spots werden clientseitig gefiltert.
     LaunchedEffect(q) {
         val term = q.trim()
@@ -110,8 +116,12 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     }
 
     val term = q.trim()
-    val joined = rooms.map { it.scope }.toSet()   // Spots, in denen man schon drin ist → markieren
-    val spotsSorted = allSpots.sortedByDescending { it.messages }   // aktivste zuerst
+    val joined = rooms.map { it.scope }.toSet()                        // Spots, in denen man drin ist
+    val subscribed = rooms.filter { it.push }.map { it.scope }.toSet()  // abonniert → Glocke
+    val blockedIds = blockedUsers.map { it.id }.toSet()
+    // Blockierte DM-Chats gar nicht in „Meine" listen (nur unten in der Blockiert-Liste).
+    val visibleRooms = rooms.filter { !(it.kind == "dm" && (it.other?.id ?: 0) in blockedIds) }
+    val spotsSorted = allSpots.sortedByDescending { it.messages }      // aktivste zuerst
     val spotsShown = if (term.isEmpty()) spotsSorted
                      else spotsSorted.filter { it.label.contains(term, ignoreCase = true) }
 
@@ -122,6 +132,9 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                 onOpen(ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other))
             }
         }
+    }
+    val unblock: (DmUser) -> Unit = { u ->
+        scope.launch { runCatching { Api.chatUnblock(u.id) }; blockedUsers = blockedUsers.filter { it.id != u.id } }
     }
 
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.chat")) }) { pad ->
@@ -144,30 +157,57 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                         if (term.isNotEmpty()) {
                             // Globale Suche: Personen (→ DM) + Spots (→ öffnen), egal welcher Tab.
                             items(results) { u -> UserRow(u, onClick = { openDm(u) }); HorizontalDivider() }
-                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
+                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, subscribed = s.scope in subscribed, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
                             if (results.isEmpty() && spotsShown.isEmpty()) {
                                 item { Text(I18n.t("dm.noResults"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                         } else if (tab == 0) {
-                            if (rooms.isEmpty() && error == null) {
+                            if (visibleRooms.isEmpty() && error == null) {
                                 item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
-                            items(rooms) { r ->
+                            items(visibleRooms) { r ->
                                 val isDm = r.kind == "dm"
                                 ListItem(
                                     modifier = Modifier.clickable { onOpen(r) },
                                     headlineContent = { Text(if (isDm) (r.other?.name ?: r.label.ifBlank { r.scope }) else r.label.ifBlank { r.scope }) },
                                     supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
                                     leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                                    trailingContent = { if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary) },
+                                    trailingContent = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (r.scope in subscribed) {
+                                                Icon(Icons.Filled.Notifications, contentDescription = I18n.t("chat.subscribe"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                            }
+                                            if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary)
+                                        }
+                                    },
                                 )
                                 HorizontalDivider()
+                            }
+                            // Blockierte: aus der Liste raus, hier ausklappbar zum Entblocken.
+                            if (blockedUsers.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        "${if (showBlocked) "▾" else "▸"} ${I18n.t("dm.blockedList")} (${blockedUsers.size})",
+                                        Modifier.fillMaxWidth().clickable { showBlocked = !showBlocked }.padding(16.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (showBlocked) items(blockedUsers) { u ->
+                                    ListItem(
+                                        headlineContent = { Text(u.displayName ?: "—") },
+                                        leadingContent = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                        trailingContent = { TextButton(onClick = { unblock(u) }) { Text(I18n.t("dm.unblock")) } },
+                                    )
+                                    HorizontalDivider()
+                                }
                             }
                         } else {
                             if (spotsShown.isEmpty()) {
                                 item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
-                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
+                            items(spotsShown) { s -> SpotRow(s, joined = s.scope in joined, subscribed = s.scope in subscribed, onClick = { onOpen(ChatRoom(scope = s.scope, label = s.label)) }); HorizontalDivider() }
                         }
                     }
                 }
@@ -188,14 +228,18 @@ private fun UserRow(u: DmUser, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SpotRow(s: SpotChat, joined: Boolean, onClick: () -> Unit) {
+private fun SpotRow(s: SpotChat, joined: Boolean, subscribed: Boolean, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable { onClick() },
         headlineContent = { Text(s.label.ifBlank { s.scope }) },
         leadingContent = { Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (joined) {
+                // Abonniert → Glocke; sonst beigetreten → Häkchen.
+                if (subscribed) {
+                    Icon(Icons.Filled.Notifications, contentDescription = I18n.t("chat.subscribe"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                } else if (joined) {
                     Icon(Icons.Filled.Check, contentDescription = I18n.t("dm.tabMine"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
                 }

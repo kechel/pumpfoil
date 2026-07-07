@@ -208,6 +208,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "dm.tabSpots" to row("Spot-Chats", "Spot-Chats", "Spot-Chats", "Spot chats", "Chats spots", "Chat spot", "Chats de spot"),
     "dm.searchAll" to row("Personen & Spots suchen …", "Persoone & Spots sueche …", "Personen & Spots suchen …", "Search people & spots …", "Rechercher personnes & spots …", "Cerca persone e spot …", "Buscar personas y spots …"),
     "dm.noResults" to row("Nichts gefunden.", "Nüt gfunde.", "Nix gfundn.", "Nothing found.", "Rien trouvé.", "Nessun risultato.", "Sin resultados."),
+    "dm.blockedList" to row("Blockiert", "Blockiert", "Blockiert", "Blocked", "Bloqués", "Bloccati", "Bloqueados"),
     "rating.title" to row("Gefällt dir Pumpfoil?", "Gfallt der Pumpfoil?", "Taugt da Pumpfoil?", "Do you like Pumpfoil?", "Tu aimes Pumpfoil ?", "Ti piace Pumpfoil?", "¿Te gusta Pumpfoil?"),
     "rating.subtitle" to row("Wie viele Sterne gibst du uns?", "Wie vill Stärn gisch is?", "Wia vü Sterndl gibst uns?", "How many stars would you give us?", "Combien d’étoiles nous donnes-tu ?", "Quante stelle ci dai?", "¿Cuántas estrellas nos das?"),
     "rating.feedbackTitle" to row("Was können wir besser machen?", "Was chönd mer besser mache?", "Wos kau ma besser mochn?", "What can we do better?", "Que pouvons-nous améliorer ?", "Cosa possiamo migliorare?", "¿Qué podemos mejorar?"),

@@ -273,6 +273,7 @@ data class ChatRoom(
     val unread: Int = 0,
     @SerialName("last_text") val lastText: String = "",
     val kind: String = "",           // spot | dm | session
+    val push: Boolean = false,       // abonniert (Push) → Glocke
     val other: DmOther? = null,      // nur bei dm
 )
 

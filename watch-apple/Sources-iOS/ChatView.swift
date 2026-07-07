@@ -13,9 +13,15 @@ struct ChatView: View {
     @State private var q = ""
     @State private var results: [DmUser] = []
     @State private var openDm: DmOpen?
+    @State private var blockedUsers: [DmUser] = []   // zum Entblocken
+    @State private var showBlocked = false
 
     private var term: String { q.trimmingCharacters(in: .whitespaces) }
     private var joined: Set<String> { Set(rooms.map { $0.scope }) }   // Spots, in denen man drin ist
+    private var subscribedScopes: Set<String> { Set(rooms.filter { $0.push == true }.map { $0.scope }) }  // abonniert → Glocke
+    private var blockedIds: Set<Int> { Set(blockedUsers.map { $0.id }) }
+    // Blockierte DM-Chats gar nicht in „Meine" listen (nur unten in der Blockiert-Liste).
+    private var visibleRooms: [ChatRoom] { rooms.filter { !($0.kind == "dm" && blockedIds.contains($0.other?.id ?? 0)) } }
     private var spotsShown: [SpotChat] {
         let sorted = allSpots.sorted { $0.messages > $1.messages }    // aktivste zuerst
         guard !term.isEmpty else { return sorted }
@@ -58,9 +64,20 @@ struct ChatView: View {
                     Text(Loc.t("dm.noResults", lang)).foregroundStyle(.secondary)
                 }
             } else if tab == 0 {
-                ForEach(rooms) { roomRow($0) }
-                if rooms.isEmpty && !loading && error == nil {
+                ForEach(visibleRooms) { roomRow($0) }
+                if visibleRooms.isEmpty && !loading && error == nil {
                     Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)
+                }
+                // Blockierte: aus der Liste raus, hier ausklappbar zum Entblocken.
+                if !blockedUsers.isEmpty {
+                    Section {
+                        DisclosureGroup(isExpanded: $showBlocked) {
+                            ForEach(blockedUsers) { u in blockedRow(u) }
+                        } label: {
+                            Text("\(Loc.t("dm.blockedList", lang)) (\(blockedUsers.count))")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
                 }
             } else {
                 ForEach(spotsShown) { spotRow($0) }
@@ -99,6 +116,9 @@ struct ChatView: View {
                     }
                 }
                 Spacer()
+                if r.push == true {
+                    Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Color.accentColor)
+                }
                 if r.unread > 0 {
                     Text("\(r.unread)").font(.caption2).bold()
                         .padding(.horizontal, 7).padding(.vertical, 3)
@@ -115,11 +135,25 @@ struct ChatView: View {
                 Image(systemName: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
                 Text(s.label).font(.headline)
                 Spacer()
-                if joined.contains(s.scope) {
+                // Abonniert → Glocke; sonst beigetreten → Häkchen.
+                if subscribedScopes.contains(s.scope) {
+                    Image(systemName: "bell.fill").font(.caption2).foregroundStyle(Color.accentColor)
+                } else if joined.contains(s.scope) {
                     Image(systemName: "checkmark").font(.caption2).foregroundStyle(Color.accentColor)
                 }
                 Text("\(s.messages)").font(.caption2).foregroundStyle(.secondary)
             }
+        }
+    }
+
+    @ViewBuilder private func blockedRow(_ u: DmUser) -> some View {
+        HStack {
+            Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.accentColor)
+            Text(u.display_name ?? "—")
+            Spacer()
+            Button(Loc.t("dm.unblock", lang)) {
+                Task { try? await Api.chatUnblock(userId: u.id); blockedUsers.removeAll { $0.id == u.id } }
+            }.buttonStyle(.borderless)
         }
     }
 
@@ -136,6 +170,7 @@ struct ChatView: View {
         do { rooms = try await Api.chatRooms(); error = nil }
         catch { self.error = error.localizedDescription }
         allSpots = (try? await Api.chatAllSpots()) ?? []
+        blockedUsers = (try? await Api.chatBlocks()) ?? []
     }
 }
 

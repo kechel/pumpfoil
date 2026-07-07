@@ -178,6 +178,7 @@ struct ChatRoom: Codable, Identifiable {
     let unread: Int
     let last_text: String
     var kind: String? = nil          // spot | dm | session
+    var push: Bool? = nil            // abonniert (Push) → Glocke
     var other: DmOther? = nil        // nur bei dm
     var id: String { scope }
 }
