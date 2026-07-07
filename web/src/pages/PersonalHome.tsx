@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, ChatRoom, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
-import { CommunityIcon, BellIcon, ChatBubbleIcon, LocationIcon } from "../components/Icons";
-import { openChatOverlay } from "../components/DmWidget";
+import { CommunityIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 function fmtDur(min: number): string {
@@ -23,7 +22,6 @@ export default function PersonalHome() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
-  const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [homespot, setHomespot] = useState("");
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
@@ -33,7 +31,6 @@ export default function PersonalHome() {
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
-    api.chatRooms().then((rs) => setRooms(rs.filter((r) => r.kind !== "dm"))).catch(() => {});   // DMs laufen im Floating-Widget
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
@@ -123,35 +120,6 @@ export default function PersonalHome() {
       {/* Wetter & Pegel für den eigenen Homespot */}
       {homespot && <SpotWeather spot={homespot} showSpot />}
 
-      {/* Meine Chats */}
-      {rooms.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.myChats")}</h3>
-          <div className="space-y-2">
-            {rooms.map((r) => (
-              <button key={r.scope} onClick={() => openChatOverlay(r.scope, r.label)}
-                className="flex w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-left hover:border-slate-700 hover:bg-slate-900">
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5">
-                    {r.scope.startsWith("spot:")
-                      ? <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
-                      : <ChatBubbleIcon className="h-4 w-4 shrink-0 text-brand-400" />}
-                    <span className="font-medium text-slate-100">{r.label}</span>
-                    <span className="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">
-                      {t(r.scope.startsWith("spot:") ? "chat.kindSpot" : "chat.kindSession")}
-                    </span>
-                    {r.push && <BellIcon className="h-3.5 w-3.5 text-brand-400" />}
-                  </span>
-                  <span className="block truncate text-xs text-slate-400">{r.last_text}</span>
-                </span>
-                {r.unread > 0 && (
-                  <span className="shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-xs font-semibold text-slate-950">{r.unread}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Letzte Sessions */}
       <div className="mb-2 flex items-center justify-between">
