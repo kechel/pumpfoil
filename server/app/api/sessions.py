@@ -48,21 +48,27 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 _VALID_LABELS = {"pump", "glide", "not_foiling"}
 
 
-def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, personal: bool = False) -> AnalysisOut | None:
-    """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg —
-    für die Listenansicht, die nur Kennzahlen braucht.
-    personal=True (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz/Segmente mit der
-    persönlichen Empfindlichkeits-Auswertung, falls vorhanden. Community liest die kanonischen
-    (Standard-)Spalten direkt und ist davon unberührt."""
+def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal") -> AnalysisOut | None:
+    """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg — für die
+    Listenansicht. sens != "normal" (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz und
+    v. a. die einzelnen LÄUFE (Segmente) mit der gecachten Preset-Auswertung aus sensitivity_json,
+    falls vorhanden. Community liest immer die kanonischen (Standard-)Spalten -> unberührt."""
     if result is None:
         return None
-    use_p = personal and result.segments_personal_json is not None
-    ft = result.foiling_time_s_personal if use_p else result.foiling_time_s
-    fd = result.foiling_distance_m_personal if use_p else result.foiling_distance_m
-    segs_json = result.segments_personal_json if use_p else result.segments_json
+    p = None
+    if sens != "normal" and result.sensitivity_json:
+        try:
+            p = (json.loads(result.sensitivity_json) or {}).get(sens)
+        except ValueError:
+            p = None
+    ft = p["foiling_time_s"] if p else result.foiling_time_s
+    fd = p["foiling_distance_m"] if p else result.foiling_distance_m
     metrics = json.loads(result.metrics_json) if result.metrics_json else None
-    if use_p and metrics is not None and result.num_runs_personal is not None:
-        metrics = {**metrics, "num_segments": result.num_runs_personal}
+    if p and metrics is not None and p.get("num_runs") is not None:
+        metrics = {**metrics, "num_segments": p["num_runs"]}
+    segments = None
+    if not slim:
+        segments = p["segments"] if p else (json.loads(result.segments_json) if result.segments_json else None)
     return AnalysisOut(
         algo_version=result.algo_version,
         total_distance_m=result.total_distance_m,
@@ -73,7 +79,7 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, pers
         avg_cadence_hz=result.avg_cadence_hz,
         metrics=metrics,
         track_geojson=None if slim else (json.loads(result.track_geojson) if result.track_geojson else None),
-        segments=None if slim else (json.loads(segs_json) if segs_json else None),
+        segments=segments,
         accel_windows=None if slim else (
             json.loads(result.accel_windows_json) if result.accel_windows_json else None
         ),
@@ -101,7 +107,12 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
         foil_id=s.foil_id,
-        analysis=_analysis_out(s.result, slim=slim, personal=owned) if with_analysis else None,
+        # Persönlicher Preset-Overlay nur in der Einzel-Detailansicht (owned, nicht slim) — dort
+        # geht es um die einzelnen Läufe auf der Karte. Slim-Listen bleiben Standard (kein N+1).
+        analysis=_analysis_out(
+            s.result, slim=slim,
+            sens=(s.user.foil_sensitivity or "normal") if (with_analysis and owned and not slim and s.user) else "normal",
+        ) if with_analysis else None,
     )
 
 

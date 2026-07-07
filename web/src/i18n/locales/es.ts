@@ -1,9 +1,9 @@
 const es: Record<string, string> = {
   "foilsens.label": "Sensibilidad de detección",
-  "foilsens.hint": "Para riders ligeros/lentos: también cuenta los intentos de arranque cortos/lentos como tramos en foil. Solo afecta a tu vista — los récords de la comunidad no cambian. Tus sesiones se reanalizan tras un cambio.",
-  "foilsens.normal": "Normal (predeterminado)",
-  "foilsens.light": "Riders ligeros (~8,5 km/h, 3 s)",
-  "foilsens.attempts": "Con intentos de arranque (~8 km/h, 2 s)",
+  "foilsens.hint": "A partir de qué velocidad y duración mínima un tramo cuenta como run en foil — afecta sobre todo a los tramos individuales en el mapa. Los niveles más sensibles también captan intentos de arranque cortos/lentos. Solo afecta a tu vista — los récords de la comunidad se mantienen en estándar. Los niveles ya calculados quedan en caché, así que cambiar es instantáneo.",
+  "foilsens.normal": "Estándar – desde ~10 km/h, mín 5 s",
+  "foilsens.light": "Más sensible – desde ~8,5 km/h, mín 3 s",
+  "foilsens.attempts": "Máxima sensibilidad – desde ~8 km/h, mín 2 s",
   "foilsens.reanalyzing": "Reanalizando tus sesiones …",
   "common.save": "Guardar",
   "common.cancel": "Cancelar",

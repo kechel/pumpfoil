@@ -2,10 +2,10 @@
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
   "foilsens.label": "Erkennungs-Empfindlichkeit",
-  "foilsens.hint": "Für leichte/langsame Fahrer: erfasst auch kurze/langsame Startversuche als Foil-Läufe. Gilt nur für deine eigene Auswertung — Community-Rekorde bleiben unberührt. Nach Änderung werden deine Sessions neu ausgewertet.",
-  "foilsens.normal": "Normal (Standard)",
-  "foilsens.light": "Leichte Fahrer (~8,5 km/h, 3 s)",
-  "foilsens.attempts": "Auch Startversuche (~8 km/h, 2 s)",
+  "foilsens.hint": "Ab welcher Geschwindigkeit und Mindestdauer eine Strecke als On-Foil-Lauf zählt — betrifft vor allem die einzelnen Läufe auf der Karte. Empfindlichere Stufen erfassen auch kurze/langsame Startversuche. Gilt nur für deine eigene Ansicht — Community-Rekorde bleiben auf Standard. Bereits berechnete Stufen sind gecacht, Umschalten geht dann ohne Neurechnung.",
+  "foilsens.normal": "Standard – ab ~10 km/h, mind. 5 s",
+  "foilsens.light": "Empfindlicher – ab ~8,5 km/h, mind. 3 s",
+  "foilsens.attempts": "Am empfindlichsten – ab ~8 km/h, mind. 2 s",
   "foilsens.reanalyzing": "Deine Sessions werden neu ausgewertet …",
   // Common
   "common.save": "Speichern",

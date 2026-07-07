@@ -292,13 +292,12 @@ class AnalysisResult(Base):
     # GeoJSON-Track + Segment-Liste als JSON-Text (Pydantic serialisiert beim Lesen).
     track_geojson: Mapped[str | None] = mapped_column(Text)
     segments_json: Mapped[str | None] = mapped_column(Text)
-    # Persönliche Auswertung mit der User-Empfindlichkeit (nur wenn != "normal"): der
-    # Besitzer sieht diese Werte, Community/Rekorde nutzen die kanonischen (Standard-)Spalten
-    # darüber. NULL = keine abweichende Empfindlichkeit -> Standard gilt auch persönlich.
-    foiling_time_s_personal: Mapped[float | None] = mapped_column(Float)
-    foiling_distance_m_personal: Mapped[float | None] = mapped_column(Float)
-    num_runs_personal: Mapped[int | None] = mapped_column(Integer)
-    segments_personal_json: Mapped[str | None] = mapped_column(Text)
+    # Cache der persönlichen Auswertung JE EMPFINDLICHKEITS-PRESET (nur die != "normal", also
+    # aktuell "light"/"attempts"): JSON {preset: {foiling_time_s, foiling_distance_m, num_runs,
+    # segments}}. Einmal berechnet -> Umschalten OHNE Neurechnung. "normal" = kanonische Spalten
+    # oben. Der Besitzer sieht sein Preset (v. a. die einzelnen LÄUFE auf der Karte), Community
+    # nutzt immer die kanonischen (Standard-)Werte.
+    sensitivity_json: Mapped[str | None] = mapped_column(Text)
     # Accel-Fenster (Pump/Glide/Idle) als JSON-Text (Phase 2).
     accel_windows_json: Mapped[str | None] = mapped_column(Text)
     # Erweiterte Kennzahlen (Puls, Ø/Max/Min-Speed, Segment-Extreme …) als JSON.

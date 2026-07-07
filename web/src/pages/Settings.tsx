@@ -333,21 +333,41 @@ export default function Settings() {
 function FoilSensitivitySelect() {
   const { t } = useI18n();
   const [val, setVal] = useState("normal");
-  const [busy, setBusy] = useState(false);
+  const [prog, setProg] = useState<{ running: boolean; done: number; total: number } | null>(null);
   useEffect(() => { api.getProfile().then((p) => setVal(p.foil_sensitivity || "normal")).catch(() => {}); }, []);
-  function change(v: string) {
-    setVal(v); setBusy(true);
-    api.updateFoilSensitivity(v).catch(() => {}).finally(() => setBusy(false));
+  async function change(v: string) {
+    setVal(v);
+    await api.updateFoilSensitivity(v).catch(() => {});
+    if (v === "normal") { setProg(null); return; }   // Standard = kanonisch, kein Rechnen
+    setProg({ running: true, done: 0, total: 0 });
+    const poll = async () => {
+      const p = await api.getFoilReanalysis().catch(() => null);
+      if (!p) { setProg(null); return; }
+      setProg(p);
+      if (p.running) setTimeout(poll, 1000);
+      else setProg(null);   // fertig (bereits gecachte Presets sind sofort durch)
+    };
+    setTimeout(poll, 500);
   }
+  const pct = prog && prog.total > 0 ? Math.round((100 * prog.done) / prog.total) : 0;
   return (
     <div>
-      <select value={val} onChange={(e) => change(e.target.value)} disabled={busy}
+      <select value={val} onChange={(e) => change(e.target.value)} disabled={!!prog?.running}
         className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
         <option value="normal">{t("foilsens.normal")}</option>
         <option value="light">{t("foilsens.light")}</option>
         <option value="attempts">{t("foilsens.attempts")}</option>
       </select>
-      {busy && <p className="mt-2 text-xs text-slate-400">{t("foilsens.reanalyzing")}</p>}
+      {prog?.running && (
+        <div className="mt-2 max-w-sm">
+          <p className="text-xs text-slate-400">{prog.done}/{prog.total || "…"} · {t("foilsens.reanalyzing")}</p>
+          {prog.total > 0 && (
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-slate-800">
+              <div className="h-full rounded bg-brand-500 transition-all" style={{ width: `${pct}%` }} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

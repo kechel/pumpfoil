@@ -318,18 +318,23 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.max_speed_mps = res["max_speed_mps"]
     result.track_geojson = json.dumps(res["track_geojson"])
     result.segments_json = json.dumps(res["segments"])
-    # Persönliche Auswertung ablegen (NULL, wenn keine abweichende Empfindlichkeit) — der
-    # Besitzer sieht diese, Community/Rekorde die kanonischen Spalten oben.
+    # Preset-Cache: kanonisch (oben) bleibt Standard = Community. Das AKTUELLE Preset des Besitzers
+    # (falls != normal) wird in sensitivity_json abgelegt; bereits gecachte andere Presets bleiben
+    # erhalten -> Umschalten ohne Neurechnung. Der Besitzer sieht daraus v. a. die einzelnen Läufe.
+    cache: dict = {}
+    if result.sensitivity_json:
+        try:
+            cache = json.loads(result.sensitivity_json) or {}
+        except ValueError:
+            cache = {}
     if res_personal is not None:
-        result.foiling_time_s_personal = res_personal["foiling_time_s"]
-        result.foiling_distance_m_personal = res_personal["foiling_distance_m"]
-        result.num_runs_personal = int(res_personal.get("metrics", {}).get("num_segments") or len(res_personal.get("segments") or []))
-        result.segments_personal_json = json.dumps(res_personal["segments"])
-    else:
-        result.foiling_time_s_personal = None
-        result.foiling_distance_m_personal = None
-        result.num_runs_personal = None
-        result.segments_personal_json = None
+        cache[_sens] = {
+            "foiling_time_s": res_personal["foiling_time_s"],
+            "foiling_distance_m": res_personal["foiling_distance_m"],
+            "num_runs": int(res_personal.get("metrics", {}).get("num_segments") or len(res_personal.get("segments") or [])),
+            "segments": res_personal["segments"],
+        }
+    result.sensitivity_json = json.dumps(cache) if cache else None
     from .preview import build_track_preview
     result.track_preview = build_track_preview(
         (res.get("track_geojson") or {}).get("geometry", {}).get("coordinates"), res["segments"]

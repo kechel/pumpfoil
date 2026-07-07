@@ -459,6 +459,9 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ foil_sensitivity }),
     }),
+  // Fortschritt der Hintergrund-Reanalyse nach Empfindlichkeits-Wechsel (für die Anzeige).
+  getFoilReanalysis: () =>
+    req<{ running: boolean; done: number; total: number }>("/api/auth/me/reanalysis"),
   uploadAvatar: (file: File) => uploadFile<Profile>("/api/auth/me/avatar", file),
   changePassword: (current_password: string, new_password: string) =>
     req<{ ok: boolean }>("/api/auth/me/password", {

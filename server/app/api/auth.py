@@ -118,24 +118,28 @@ def update_me(
         user.display_name = name
     if body.language is not None:
         user.language = _clean_lang(body.language, fallback=user.language or "de")
-    # Persönliche Erkennungs-Empfindlichkeit: bei Änderung die EIGENEN Sessions reanalysieren
-    # (Community/Rekorde bleiben Standard). Nur gültige Presets zulassen.
+    # Persönliche Erkennungs-Empfindlichkeit: bei Änderung im HINTERGRUND die EIGENEN Sessions
+    # (nur die noch nicht für dieses Preset gecachten) reanalysieren — Request kommt sofort zurück,
+    # PWA pollt /me/reanalysis für die Fortschrittsanzeige. Community/Rekorde bleiben Standard.
     if body.foil_sensitivity is not None:
         from ..analysis.gps import SENSITIVITY_PRESETS
-        from ..analysis import run_analysis
+        from ..reanalysis import start_reanalysis
         new_sens = body.foil_sensitivity if body.foil_sensitivity in SENSITIVITY_PRESETS else "normal"
         if new_sens != (user.foil_sensitivity or "normal"):
             user.foil_sensitivity = new_sens
             db.commit()
-            own = db.query(models.Session).filter(models.Session.user_id == user.id).all()
-            for s in own:
-                try:
-                    run_analysis(db, s)
-                except Exception:  # noqa: BLE001 — einzelne Session-Fehler nicht die ganze Änderung kippen
-                    db.rollback()
+            if new_sens != "normal":   # "normal" = kanonische Werte, kein Rechnen nötig
+                start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
+
+
+@router.get("/me/reanalysis")
+def reanalysis_progress(user: models.User = Depends(current_user)) -> dict:
+    """Fortschritt der Hintergrund-Reanalyse nach Empfindlichkeits-Wechsel (für die PWA-Anzeige)."""
+    from ..reanalysis import progress_for
+    return progress_for(user.id)
 
 
 @router.get("/me/export")

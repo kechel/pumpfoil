@@ -55,12 +55,14 @@ def _migrate_add_indexes() -> None:
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_duration_s ON analysis_results (best_duration_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_glide_s ON analysis_results (best_glide_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_num_runs ON analysis_results (num_runs)",
-        # Per-User-Empfindlichkeit (persönliche Auswertung) — neue Spalten idempotent ergänzen.
+        # Per-User-Empfindlichkeit — neue Spalten idempotent ergänzen. Cache je Preset in einem
+        # JSON-Feld (sensitivity_json); die früheren Einzel-*_personal-Spalten wieder entfernen.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
-        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS foiling_time_s_personal DOUBLE PRECISION",
-        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS foiling_distance_m_personal DOUBLE PRECISION",
-        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS num_runs_personal INTEGER",
-        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS segments_personal_json TEXT",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",
+        "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",
+        "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_distance_m_personal",
+        "ALTER TABLE analysis_results DROP COLUMN IF EXISTS num_runs_personal",
+        "ALTER TABLE analysis_results DROP COLUMN IF EXISTS segments_personal_json",
     ]
     with engine.begin() as conn:
         for s in stmts:
