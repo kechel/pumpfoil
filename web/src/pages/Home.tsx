@@ -272,9 +272,13 @@ function TopLiked({ period }: { period: string }) {
     api.topLiked(period).then(setItems).catch(() => {});
   }, [period]);
   if (!items || items.length === 0) return null;
+  const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
     <div className="mt-8">
-      <h3 className="mb-2 text-lg font-bold">{t("home.topRated")}</h3>
+      <h3 className="mb-2 text-lg font-bold">
+        {t("home.topRated")}
+        {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
+      </h3>
       <div className="space-y-1.5">
         {items.map((s) => (
           <SessionRow key={s.session_id} s={s} />
