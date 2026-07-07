@@ -1,4 +1,10 @@
 const en: Record<string, string> = {
+  "foilsens.label": "Detection sensitivity",
+  "foilsens.hint": "For light/slow riders: also counts short/slow start attempts as foil runs. Applies only to your own view — community records stay untouched. Your sessions are re-analyzed after a change.",
+  "foilsens.normal": "Normal (default)",
+  "foilsens.light": "Light riders (~8.5 km/h, 3 s)",
+  "foilsens.attempts": "Include start attempts (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Re-analyzing your sessions …",
   "common.save": "Save",
   "compare.barMerge": "Compare & merge ({n})",
   "merge.compareHint": "Only your own sessions from the same day – you can merge them into one.",

@@ -1,6 +1,12 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "foilsens.label": "Erkennungs-Empfindlichkeit",
+  "foilsens.hint": "Für leichte/langsame Fahrer: erfasst auch kurze/langsame Startversuche als Foil-Läufe. Gilt nur für deine eigene Auswertung — Community-Rekorde bleiben unberührt. Nach Änderung werden deine Sessions neu ausgewertet.",
+  "foilsens.normal": "Normal (Standard)",
+  "foilsens.light": "Leichte Fahrer (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "Auch Startversuche (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Deine Sessions werden neu ausgewertet …",
   // Common
   "common.save": "Speichern",
   "compare.barMerge": "Vergleichen & Mergen ({n})",

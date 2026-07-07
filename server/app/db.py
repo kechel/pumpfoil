@@ -55,6 +55,12 @@ def _migrate_add_indexes() -> None:
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_duration_s ON analysis_results (best_duration_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_glide_s ON analysis_results (best_glide_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_num_runs ON analysis_results (num_runs)",
+        # Per-User-Empfindlichkeit (persönliche Auswertung) — neue Spalten idempotent ergänzen.
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS foiling_time_s_personal DOUBLE PRECISION",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS foiling_distance_m_personal DOUBLE PRECISION",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS num_runs_personal INTEGER",
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS segments_personal_json TEXT",
     ]
     with engine.begin() as conn:
         for s in stmts:

@@ -51,6 +51,10 @@ class User(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Bevorzugte UI-Sprache (de, gsw, de-AT, en, fr, it, es). Default Deutsch.
     language: Mapped[str] = mapped_column(String(8), default="de", server_default="de")
+    # Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts) — übersteuert die
+    # Foil-Limits NUR für die eigene Auswertung (leichte/langsame Fahrer, Startversuche);
+    # Community/Rekorde nutzen immer "normal". Siehe analysis.gps.SENSITIVITY_PRESETS.
+    foil_sensitivity: Mapped[str] = mapped_column(String(16), default="normal", server_default="normal")
     # "Alle Geräte abmelden": Tokens, die VOR diesem Zeitpunkt ausgestellt wurden (iat),
     # werden abgelehnt. NULL = keine Invalidierung. Betrifft nur diesen Nutzer.
     session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -288,6 +292,13 @@ class AnalysisResult(Base):
     # GeoJSON-Track + Segment-Liste als JSON-Text (Pydantic serialisiert beim Lesen).
     track_geojson: Mapped[str | None] = mapped_column(Text)
     segments_json: Mapped[str | None] = mapped_column(Text)
+    # Persönliche Auswertung mit der User-Empfindlichkeit (nur wenn != "normal"): der
+    # Besitzer sieht diese Werte, Community/Rekorde nutzen die kanonischen (Standard-)Spalten
+    # darüber. NULL = keine abweichende Empfindlichkeit -> Standard gilt auch persönlich.
+    foiling_time_s_personal: Mapped[float | None] = mapped_column(Float)
+    foiling_distance_m_personal: Mapped[float | None] = mapped_column(Float)
+    num_runs_personal: Mapped[int | None] = mapped_column(Integer)
+    segments_personal_json: Mapped[str | None] = mapped_column(Text)
     # Accel-Fenster (Pump/Glide/Idle) als JSON-Text (Phase 2).
     accel_windows_json: Mapped[str | None] = mapped_column(Text)
     # Erweiterte Kennzahlen (Puls, Ø/Max/Min-Speed, Segment-Extreme …) als JSON.

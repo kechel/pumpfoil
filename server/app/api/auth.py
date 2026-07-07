@@ -102,7 +102,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -118,9 +118,24 @@ def update_me(
         user.display_name = name
     if body.language is not None:
         user.language = _clean_lang(body.language, fallback=user.language or "de")
+    # Persönliche Erkennungs-Empfindlichkeit: bei Änderung die EIGENEN Sessions reanalysieren
+    # (Community/Rekorde bleiben Standard). Nur gültige Presets zulassen.
+    if body.foil_sensitivity is not None:
+        from ..analysis.gps import SENSITIVITY_PRESETS
+        from ..analysis import run_analysis
+        new_sens = body.foil_sensitivity if body.foil_sensitivity in SENSITIVITY_PRESETS else "normal"
+        if new_sens != (user.foil_sensitivity or "normal"):
+            user.foil_sensitivity = new_sens
+            db.commit()
+            own = db.query(models.Session).filter(models.Session.user_id == user.id).all()
+            for s in own:
+                try:
+                    run_analysis(db, s)
+                except Exception:  # noqa: BLE001 — einzelne Session-Fehler nicht die ganze Änderung kippen
+                    db.rollback()
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
 
 
 @router.get("/me/export")
@@ -250,7 +265,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
 
 
 @router.post("/login", response_model=TokenOut)

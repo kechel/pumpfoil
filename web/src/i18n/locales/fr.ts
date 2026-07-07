@@ -1,4 +1,10 @@
 const fr: Record<string, string> = {
+  "foilsens.label": "Sensibilité de détection",
+  "foilsens.hint": "Pour les riders légers/lents : compte aussi les tentatives de départ courtes/lentes comme des runs. Uniquement pour ton propre affichage — les records de la communauté restent inchangés. Tes sessions sont réanalysées après un changement.",
+  "foilsens.normal": "Normal (par défaut)",
+  "foilsens.light": "Riders légers (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "Avec tentatives de départ (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Réanalyse de tes sessions …",
   "common.save": "Enregistrer",
   "common.cancel": "Annuler",
   "common.delete": "Supprimer",

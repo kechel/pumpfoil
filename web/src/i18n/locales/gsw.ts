@@ -1,5 +1,11 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
+  "foilsens.label": "Erkennigs-Empfindlichkeit",
+  "foilsens.hint": "Für liechti/langsami Fahrer: nimmt au churzi/langsami Startversüech as Foil-Läuf. Gilt nur für dini eigeni Uswertig — Community-Rekord blibed unberüehrt. Nachhär werded dini Sessions neu uusgwertet.",
+  "foilsens.normal": "Normal (Standard)",
+  "foilsens.light": "Liechti Fahrer (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "Au Startversüech (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Dini Sessions werded neu uusgwertet …",
   "common.save": "Spichere",
   "common.cancel": "Abbräche",
   "common.delete": "Lösche",

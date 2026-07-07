@@ -242,6 +242,7 @@ export interface Profile {
   is_admin: boolean;
   language: string;
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
+  foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
 }
 
 export interface AdminUser {
@@ -450,6 +451,13 @@ export const api = {
     req<Profile>("/api/auth/me", {
       method: "PATCH",
       body: JSON.stringify({ language }),
+    }),
+  // Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts). Server reanalysiert
+  // danach die EIGENEN Sessions (kann kurz dauern); Community/Rekorde bleiben Standard.
+  updateFoilSensitivity: (foil_sensitivity: string) =>
+    req<Profile>("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ foil_sensitivity }),
     }),
   uploadAvatar: (file: File) => uploadFile<Profile>("/api/auth/me/avatar", file),
   changePassword: (current_password: string, new_password: string) =>

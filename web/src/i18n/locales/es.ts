@@ -1,4 +1,10 @@
 const es: Record<string, string> = {
+  "foilsens.label": "Sensibilidad de detección",
+  "foilsens.hint": "Para riders ligeros/lentos: también cuenta los intentos de arranque cortos/lentos como tramos en foil. Solo afecta a tu vista — los récords de la comunidad no cambian. Tus sesiones se reanalizan tras un cambio.",
+  "foilsens.normal": "Normal (predeterminado)",
+  "foilsens.light": "Riders ligeros (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "Con intentos de arranque (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Reanalizando tus sesiones …",
   "common.save": "Guardar",
   "common.cancel": "Cancelar",
   "common.delete": "Eliminar",

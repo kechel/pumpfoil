@@ -1,5 +1,11 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "foilsens.label": "Erkennungs-Empfindlichkeit",
+  "foilsens.hint": "Für leichte/langsame Fahrer: erfasst a kurze/langsame Startversuche als Foil-Läufe. Gilt nur für deine eigene Auswertung — Community-Rekorde bleim unberührt. Nach der Änderung werdn deine Sessions neu ausgewertet.",
+  "foilsens.normal": "Normal (Standard)",
+  "foilsens.light": "Leichte Fahrer (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "A Startversuche (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Deine Sessions werdn neu ausgewertet …",
   "common.save": "Speichern",
   "common.cancel": "Obbrechen",
   "common.delete": "Löschen",

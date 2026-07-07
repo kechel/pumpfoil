@@ -1,4 +1,10 @@
 const fi: Record<string, string> = {
+  "foilsens.label": "Tunnistuksen herkkyys",
+  "foilsens.hint": "Kevyille/hitaille kuljettajille: laskee myös lyhyet/hitaat lähtöyritykset foil-vedoiksi. Koskee vain omaa näkymääsi — yhteisön ennätykset pysyvät ennallaan. Sessiosi analysoidaan uudelleen muutoksen jälkeen.",
+  "foilsens.normal": "Normaali (oletus)",
+  "foilsens.light": "Kevyet kuljettajat (~8,5 km/h, 3 s)",
+  "foilsens.attempts": "Myös lähtöyritykset (~8 km/h, 2 s)",
+  "foilsens.reanalyzing": "Analysoidaan sessioitasi uudelleen …",
   // Common
   "common.save": "Tallenna",
   "compare.barMerge": "Vertaa ja yhdistä ({n})",

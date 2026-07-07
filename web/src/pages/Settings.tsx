@@ -251,6 +251,12 @@ export default function Settings() {
       </Card>
 
       <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("foilsens.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("foilsens.hint")}</p>
+        <FoilSensitivitySelect />
+      </Card>
+
+      <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("theme.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("theme.hint")}</p>
         <ThemeSelect />
@@ -320,4 +326,28 @@ export default function Settings() {
       .then(() => { clearToken(); window.location.assign("/"); })
       .catch((e) => setErr(String(e)));
   }
+}
+
+// Persönliche Erkennungs-Empfindlichkeit (nur eigene Auswertung; Community bleibt Standard).
+// Nach Auswahl reanalysiert der Server die eigenen Sessions -> kann kurz dauern.
+function FoilSensitivitySelect() {
+  const { t } = useI18n();
+  const [val, setVal] = useState("normal");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { api.getProfile().then((p) => setVal(p.foil_sensitivity || "normal")).catch(() => {}); }, []);
+  function change(v: string) {
+    setVal(v); setBusy(true);
+    api.updateFoilSensitivity(v).catch(() => {}).finally(() => setBusy(false));
+  }
+  return (
+    <div>
+      <select value={val} onChange={(e) => change(e.target.value)} disabled={busy}
+        className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
+        <option value="normal">{t("foilsens.normal")}</option>
+        <option value="light">{t("foilsens.light")}</option>
+        <option value="attempts">{t("foilsens.attempts")}</option>
+      </select>
+      {busy && <p className="mt-2 text-xs text-slate-400">{t("foilsens.reanalyzing")}</p>}
+    </div>
+  );
 }

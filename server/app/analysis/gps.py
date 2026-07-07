@@ -41,6 +41,15 @@ OUTLIER_STEP_M = 25.0     # 1-s-Schritt darüber (~>90 km/h) = GPS-Glitch -> rep
 # Segmente mit zu niedrigem Ø-Speed sind keine echten Foil-Läufe -> verwerfen.
 MIN_SEG_AVG_SPEED = 2.8   # ~10 km/h
 GAP_FILL_S = 2            # ML-Maske: Lücken bis 2 s schließen (Gleit-Pausen)
+
+# Per-User-Empfindlichkeit: übersteuert die 4 Erkennungs-Limits NUR für die persönliche
+# Auswertung (leichte/langsame Fahrer, kurze Startversuche). Community/Rekorde nutzen IMMER
+# "normal". Werte >= MOVE_FLOOR_MPS (2.0) halten, sonst greift der Positions-Floor.
+SENSITIVITY_PRESETS: dict[str, dict[str, float]] = {
+    "normal":   {"enter_speed": ENTER_SPEED, "exit_speed": EXIT_SPEED, "min_segment_s": MIN_SEGMENT_S, "min_seg_avg_speed": MIN_SEG_AVG_SPEED},
+    "light":    {"enter_speed": 2.4, "exit_speed": 2.2, "min_segment_s": 3, "min_seg_avg_speed": 2.4},   # ~8,6 km/h, 3 s
+    "attempts": {"enter_speed": 2.2, "exit_speed": 2.0, "min_segment_s": 2, "min_seg_avg_speed": 2.2},   # ~8 km/h, 2 s (auch Startversuche)
+}
 # Prinzip: ein START setzt voraus, dass man davor langsam/stehend war. Lagen zwischen
 # zwei erkannten Läufen NIE ein echter Stopp (Speed blieb über NOSTOP_SPEED) und kein
 # GPS-Dropout, ist es in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, egal wie lang.
@@ -148,7 +157,8 @@ def _close_gaps(mask: np.ndarray, max_gap: int) -> np.ndarray:
     return out
 
 
-def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int) -> np.ndarray:
+def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
+                    enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED) -> np.ndarray:
     """GPS-State-Machine (Hysterese + Dwell) als Fallback, wenn kein ML-Modell da ist."""
     n = speed_s.size
     enter_dwell = max(int(round(ENTER_DWELL_S * gps_hz)), 1)
@@ -159,14 +169,14 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int) -> np.ndarray:
     noncand_streak = 0
     for i in range(n):
         if not foiling:
-            cand = ENTER_SPEED <= speed_s[i] <= MAX_FOIL_SPEED and cv[i] < MAX_CV and quality_ok[i]
+            cand = enter_speed <= speed_s[i] <= MAX_FOIL_SPEED and cv[i] < MAX_CV and quality_ok[i]
             cand_streak = cand_streak + 1 if cand else 0
             if cand_streak >= enter_dwell:
                 foiling = True
                 noncand_streak = 0
                 mask[i - enter_dwell + 1 : i + 1] = True
         else:
-            hold = EXIT_SPEED <= speed_s[i] <= MAX_FOIL_SPEED and quality_ok[i]
+            hold = exit_speed <= speed_s[i] <= MAX_FOIL_SPEED and quality_ok[i]
             noncand_streak = 0 if hold else noncand_streak + 1
             if noncand_streak >= exit_dwell:
                 foiling = False
@@ -177,10 +187,15 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int) -> np.ndarray:
 
 
 def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_times_ms=None,
-                water_rings=None) -> dict:
+                water_rings=None, enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED,
+                min_segment_s: float = MIN_SEGMENT_S, min_seg_avg_speed: float = MIN_SEG_AVG_SPEED) -> dict:
     """samples: Liste von [t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m].
 
     Gibt dict mit Kennzahlen, Segmenten und GeoJSON-Track zurück.
+
+    enter_speed/exit_speed/min_segment_s/min_seg_avg_speed: per-User übersteuerbare
+    Erkennungs-Limits (Default = Modul-Konstanten = Standard-Detektor). Nur für die
+    PERSÖNLICHE Auswertung leichter/langsamer Fahrer gedacht (Community nutzt Default).
     """
     if len(samples) < 2:
         return {
@@ -283,18 +298,18 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
         # Kurze Modell-Lücken schließen (Gleit-Pausen zerteilen keinen Lauf).
         mask = _close_gaps(mask, max(int(round(GAP_FILL_S * gps_hz)), 1))
     else:
-        mask = _heuristic_mask(speed_s, cv, quality_ok, gps_hz)
+        mask = _heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed)
 
     # Physischer Floor: unter EXIT_SPEED (~9 km/h) trägt kein Foil -> nie foilend,
     # auch wenn das Modell so sagt (entfernt Slow-Ränder/Near-Stops aus Läufen).
-    mask = mask & (speed_s >= EXIT_SPEED)
+    mask = mask & (speed_s >= exit_speed)
     # Echte Positionsbewegung verlangen (auch bei Accel): kein Vortrieb über Wasser =
     # nicht auf Foil. Schließt Phasen aus, in denen das Speed-Feld foilt, die GPS-Position
     # aber steht (Zurückschwimmen, Dropout, Pumpen auf der Stelle).
     mask = mask & (pos_speed_s >= MOVE_FLOOR_MPS)
 
     speeds = {"1": speed, "3": speed_s, "5": speed5}
-    segments = _segments_from_mask(mask, t_ms, gps_hz, step, speeds)
+    segments = _segments_from_mask(mask, t_ms, gps_hz, step, speeds, min_segment_s, min_seg_avg_speed)
     # Läufe ohne echten Stopp dazwischen zusammenführen (kein Fake-Start bei
     # kurzen Modell-Aussetzern mitten im Lauf).
     segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz)
@@ -304,11 +319,11 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     if impulse_times_ms is not None and len(segments):
         segments = _snap_starts_to_impulses(segments, t_ms, step, speeds, np.asarray(impulse_times_ms, dtype=float))
     # Verpassten Aufsprung/Beschleunigung am Start nachholen (Speed schon im Foil-Band).
-    segments = _extend_starts_back(segments, speed_s, t_ms, step, speeds)
+    segments = _extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
     # Ruhiges Gleiten/Pumpen NACH dem Aufstehen nachholen: Ende vorwärts ziehen, solange
     # der Speed im Foil-Band bleibt (das Modell verliert bei langsamen/leichten Fahrern das
     # gleichmäßige On-Foil-Cruisen — Alex #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
-    segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds)
+    segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
     # Dead-Reckoning-Drift am Ende verwerfen (Uhr untergetaucht) -> echtes Ende.
     segments = _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     # Ground Truth: End-/Start-Marker müssen im Wasser liegen (OSM-Wasserfläche). Fängt
@@ -549,7 +564,7 @@ def _clip_ends_to_water(segments, lat, lon, rings, t_ms, step, speeds) -> list[d
     return out
 
 
-def _extend_starts_back(segments, speed_s, t_ms, step, speeds) -> list[dict]:
+def _extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed: float = ENTER_SPEED) -> list[dict]:
     """Zieht den Lauf-Start rückwärts über die Beschleunigung bis zum letzten Quasi-
     Stopp, falls das Modell/der Jump den Aufsprung verpasst hat (Speed war schon im
     Foil-Band, blieb aber grau). Stoppt unter ENTER_SPEED und nie im Vorgänger."""
@@ -559,7 +574,7 @@ def _extend_starts_back(segments, speed_s, t_ms, step, speeds) -> list[dict]:
     for seg in segments:
         i = seg["i_start"]
         # nicht über eine GPS-Zeitlücke (Dropout/Sturz davor) zurückziehen.
-        while i - 1 > prev_end and speed_s[i - 1] >= ENTER_SPEED and (t_ms[i] - t_ms[i - 1]) <= gap_ms:
+        while i - 1 > prev_end and speed_s[i - 1] >= enter_speed and (t_ms[i] - t_ms[i - 1]) <= gap_ms:
             i -= 1
         if i != seg["i_start"]:
             seg = _seg_fields(i, seg["i_end"] + 1, t_ms, step, speeds)
@@ -568,7 +583,7 @@ def _extend_starts_back(segments, speed_s, t_ms, step, speeds) -> list[dict]:
     return out
 
 
-def _extend_ends_forward(segments, speed_s, t_ms, step, speeds) -> list[dict]:
+def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: float = EXIT_SPEED) -> list[dict]:
     """Zieht das Lauf-Ende VORWÄRTS, solange der geglättete Speed im Foil-Band bleibt
     (EXIT_SPEED <= v <= MAX_FOIL_SPEED) und keine GPS-Zeitlücke (Dropout/Sturz) auftritt.
     Spiegelbild zu _extend_starts_back: fängt das ruhige On-Foil-Gleiten/-Pumpen NACH dem
@@ -581,7 +596,7 @@ def _extend_ends_forward(segments, speed_s, t_ms, step, speeds) -> list[dict]:
     for k, seg in enumerate(segments):
         j = seg["i_end"]
         next_start = segments[k + 1]["i_start"] if k + 1 < len(segments) else n
-        while (j + 1 < next_start and EXIT_SPEED <= speed_s[j + 1] <= MAX_FOIL_SPEED
+        while (j + 1 < next_start and exit_speed <= speed_s[j + 1] <= MAX_FOIL_SPEED
                and (t_ms[j + 1] - t_ms[j]) <= gap_ms):
             j += 1
         if j != seg["i_end"]:
@@ -619,15 +634,16 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz) -> list[dict]:
 
 
 def _segments_from_mask(
-    mask: np.ndarray, t_ms: np.ndarray, gps_hz: int, step: np.ndarray, speeds: dict
+    mask: np.ndarray, t_ms: np.ndarray, gps_hz: int, step: np.ndarray, speeds: dict,
+    min_segment_s: float = MIN_SEGMENT_S, min_seg_avg_speed: float = MIN_SEG_AVG_SPEED,
 ) -> list[dict]:
     """Zusammenhängende Foiling-Läufe -> Segmente mit Ø/Max/Min-Speed je Glättung (1/3/5 s)."""
     segs: list[dict] = []
-    min_len = max(int(round(MIN_SEGMENT_S * gps_hz)), 1)
+    min_len = max(int(round(min_segment_s * gps_hz)), 1)
     gap_ms = GAP_SPLIT_S * 1000
 
     def _add(a: int, b: int) -> None:  # Sub-Lauf [a, b) prüfen + anhängen
-        if (b - a) >= min_len and float(np.nanmean(speeds["3"][a:b])) >= MIN_SEG_AVG_SPEED:
+        if (b - a) >= min_len and float(np.nanmean(speeds["3"][a:b])) >= min_seg_avg_speed:
             segs.append(_seg_fields(a, b, t_ms, step, speeds))
 
     i = 0

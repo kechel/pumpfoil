@@ -192,6 +192,19 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         mask_override=mask_override, impulse_times_ms=impulses,
         water_rings=water_rings,
     )
+    # Persönliche Auswertung (nur wenn der Besitzer eine abweichende Empfindlichkeit gewählt
+    # hat): dieselbe Modell-Maske, aber mit gelockerten Limits -> erfasst kurze/langsame
+    # Startversuche. Community/Rekorde bleiben auf der Standard-`res` oben.
+    from .gps import SENSITIVITY_PRESETS
+    _owner = db.get(models.User, session.user_id)
+    _sens = (getattr(_owner, "foil_sensitivity", None) or "normal")
+    res_personal = None
+    if _sens != "normal" and _sens in SENSITIVITY_PRESETS:
+        res_personal = analyze_gps(
+            gps_samples, gps_hz=session.gps_hz,
+            mask_override=mask_override, impulse_times_ms=impulses,
+            water_rings=water_rings, **SENSITIVITY_PRESETS[_sens],
+        )
     res.setdefault("metrics", {})["detection"] = detection
     if accel.shape[0] > 0:
         res["metrics"]["accel_hz_effective"] = round(accel_hz, 2)   # tatsächliche Rate (kann != getaggt)
@@ -305,6 +318,18 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.max_speed_mps = res["max_speed_mps"]
     result.track_geojson = json.dumps(res["track_geojson"])
     result.segments_json = json.dumps(res["segments"])
+    # Persönliche Auswertung ablegen (NULL, wenn keine abweichende Empfindlichkeit) — der
+    # Besitzer sieht diese, Community/Rekorde die kanonischen Spalten oben.
+    if res_personal is not None:
+        result.foiling_time_s_personal = res_personal["foiling_time_s"]
+        result.foiling_distance_m_personal = res_personal["foiling_distance_m"]
+        result.num_runs_personal = int(res_personal.get("metrics", {}).get("num_segments") or len(res_personal.get("segments") or []))
+        result.segments_personal_json = json.dumps(res_personal["segments"])
+    else:
+        result.foiling_time_s_personal = None
+        result.foiling_distance_m_personal = None
+        result.num_runs_personal = None
+        result.segments_personal_json = None
     from .preview import build_track_preview
     result.track_preview = build_track_preview(
         (res.get("track_geojson") or {}).get("geometry", {}).get("coordinates"), res["segments"]

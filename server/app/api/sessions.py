@@ -48,22 +48,32 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 _VALID_LABELS = {"pump", "glide", "not_foiling"}
 
 
-def _analysis_out(result: models.AnalysisResult | None, slim: bool = False) -> AnalysisOut | None:
+def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, personal: bool = False) -> AnalysisOut | None:
     """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg —
-    für die Listenansicht, die nur Kennzahlen braucht."""
+    für die Listenansicht, die nur Kennzahlen braucht.
+    personal=True (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz/Segmente mit der
+    persönlichen Empfindlichkeits-Auswertung, falls vorhanden. Community liest die kanonischen
+    (Standard-)Spalten direkt und ist davon unberührt."""
     if result is None:
         return None
+    use_p = personal and result.segments_personal_json is not None
+    ft = result.foiling_time_s_personal if use_p else result.foiling_time_s
+    fd = result.foiling_distance_m_personal if use_p else result.foiling_distance_m
+    segs_json = result.segments_personal_json if use_p else result.segments_json
+    metrics = json.loads(result.metrics_json) if result.metrics_json else None
+    if use_p and metrics is not None and result.num_runs_personal is not None:
+        metrics = {**metrics, "num_segments": result.num_runs_personal}
     return AnalysisOut(
         algo_version=result.algo_version,
         total_distance_m=result.total_distance_m,
-        foiling_distance_m=result.foiling_distance_m,
-        foiling_time_s=result.foiling_time_s,
+        foiling_distance_m=fd,
+        foiling_time_s=ft,
         max_speed_mps=result.max_speed_mps,
         pump_count=result.pump_count,
         avg_cadence_hz=result.avg_cadence_hz,
-        metrics=json.loads(result.metrics_json) if result.metrics_json else None,
+        metrics=metrics,
         track_geojson=None if slim else (json.loads(result.track_geojson) if result.track_geojson else None),
-        segments=None if slim else (json.loads(result.segments_json) if result.segments_json else None),
+        segments=None if slim else (json.loads(segs_json) if segs_json else None),
         accel_windows=None if slim else (
             json.loads(result.accel_windows_json) if result.accel_windows_json else None
         ),
@@ -91,7 +101,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
         foil_id=s.foil_id,
-        analysis=_analysis_out(s.result, slim=slim) if with_analysis else None,
+        analysis=_analysis_out(s.result, slim=slim, personal=owned) if with_analysis else None,
     )
 
 

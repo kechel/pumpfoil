@@ -17,6 +17,7 @@ class RegisterIn(BaseModel):
 class ProfileIn(BaseModel):
     display_name: str | None = None
     language: str | None = None
+    foil_sensitivity: str | None = None   # normal|light|attempts (persönliche Erkennungs-Empfindlichkeit)
 
 
 class PasswordChangeIn(BaseModel):
@@ -40,6 +41,7 @@ class ProfileOut(BaseModel):
     is_admin: bool = False
     language: str = "de"
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
+    foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
 
 
 class LoginIn(BaseModel):
