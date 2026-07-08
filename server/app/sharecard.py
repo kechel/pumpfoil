@@ -156,7 +156,9 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     date_str = session.started_at.astimezone().strftime("%d.%m.%Y")
     sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
     d.text((px(90), px(64)), head, font=_font(px(58)), fill=(*prim, 255))
-    d.text((px(90), px(128)), sub, font=_font(px(30), False), fill=(*sec, 255))
+    # Untertitel (Ort · Datum): im gewaehlten Blau (prim) + fett — die kleine Schrift war
+    # in der Sekundaerfarbe (hellgrau) auf hellem Hintergrund/Foto schlecht lesbar.
+    d.text((px(90), px(128)), sub, font=_font(px(30)), fill=(*prim, 255))
 
     # Stats (nur gewuenschte + verfuegbare, Reihenfolge des Katalogs)
     cat = {k: (lbl, v, ok) for k, lbl, v, ok in stat_catalog(ar)}
