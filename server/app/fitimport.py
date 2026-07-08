@@ -96,9 +96,10 @@ def accel_from_messages(accel_msgs: list[dict]) -> tuple[bytes, int]:
         span_s = (last - first).total_seconds()
     hz = int(round(len(xs) / span_s)) if span_s > 0 else 25
     # Plausibilität: bei unzuverlässigen FIT-Zeitstempeln (z. B. SensorLogger, span~0)
-    # käme ein absurder Wert raus (z. B. 16675 Hz). Reale Accel-Raten ~10–50 Hz ->
-    # sonst auf 25 Hz (App-Default) zurückfallen, damit die Analyse korrekt alignt.
-    if hz < 5 or hz > 60:
+    # käme ein absurder Wert raus (z. B. 16675 Hz) -> auf 25 Hz (App-Default) zurückfallen.
+    # Reale Garmin-Accel-Raten reichen bis 100 Hz (fēnix höchste Stufe), daher Obergrenze
+    # großzügig (nur echt absurde Werte verwerfen), sonst würde die Analyse falsch alignen.
+    if hz < 5 or hz > 200:
         hz = 25
     return inter.tobytes(), hz
 
