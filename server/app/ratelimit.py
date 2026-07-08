@@ -1,19 +1,24 @@
-"""Einfacher In-Memory-Rate-Limiter (Sliding Window) je Client-IP + Scope.
+"""DB-gestützter Rate-Limiter (Sliding Window) je Client-IP + Scope bzw. je User + Stufe.
 
-Reicht für einen einzelnen uvicorn-Prozess (so läuft der Server). Schützt vor
-Brute-Force auf Login/Registrierung/Pairing. Hinter dem Apache-Proxy liefert
-uvicorn (--proxy-headers --forwarded-allow-ips) die echte Client-IP.
+Über die Tabelle `rate_events` → konsistent über MEHRERE uvicorn-Worker (früher In-Memory,
+nur für einen Prozess korrekt). Schützt vor Brute-Force auf Login/Registrierung/Pairing und
+begrenzt Chat-Spam. Hinter dem Apache-Proxy liefert uvicorn (--proxy-headers
+--forwarded-allow-ips) die echte Client-IP. Geblockte Versuche verlängern das Fenster nicht.
 """
 from __future__ import annotations
 
-import threading
-import time
-from collections import defaultdict, deque
+from datetime import datetime, timedelta, timezone
 
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-_lock = threading.Lock()
-_hits: dict[str, deque[float]] = defaultdict(deque)
+from .db import get_db
+from .models import RateEvent
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 def _client_ip(request: Request) -> str:
@@ -27,53 +32,39 @@ def _too_many(retry_s: int, msg: str) -> HTTPException:
     )
 
 
-def _gc(cutoff: float) -> None:
-    """Selten globale Leichen aufräumen, damit der Speicher nicht wächst."""
-    if len(_hits) > 10000:
-        for k in [k for k, v in list(_hits.items()) if not v or v[-1] < cutoff]:
-            _hits.pop(k, None)
+def _check_and_hit(db: Session, keys_limits: list[tuple[str, int, int]], msg: str) -> None:
+    """Prüft ALLE (key, max_hits, window_s) erst; ist eine Stufe ausgelastet -> 429 (kein
+    Eintrag). Sonst pro Key genau einen Treffer eintragen. Alte Einträge je Key aufräumen."""
+    now = _now()
+    for key, max_hits, window_s in keys_limits:
+        cutoff = now - timedelta(seconds=window_s)
+        db.query(RateEvent).filter(RateEvent.key == key, RateEvent.created_at < cutoff).delete(synchronize_session=False)
+        cnt = db.query(func.count(RateEvent.id)).filter(RateEvent.key == key, RateEvent.created_at >= cutoff).scalar() or 0
+        if cnt >= max_hits:
+            earliest = db.query(func.min(RateEvent.created_at)).filter(
+                RateEvent.key == key, RateEvent.created_at >= cutoff).scalar()
+            retry = int((earliest + timedelta(seconds=window_s) - now).total_seconds()) + 1 if earliest else window_s
+            db.commit()
+            raise _too_many(retry, msg)
+    for key, _m, _w in keys_limits:
+        db.add(RateEvent(key=key, created_at=now))
+    # gelegentliche globale Aufräumung verwaister Keys, ~2 % der Aufrufe.
+    if now.microsecond < 20000:
+        db.query(RateEvent).filter(RateEvent.created_at < now - timedelta(hours=2)).delete(synchronize_session=False)
+    db.commit()
 
 
 def rate_limit(max_hits: int, window_s: int, scope: str):
-    """FastAPI-Dependency: erlaubt max_hits pro window_s je Client-IP und Scope,
-    sonst HTTP 429 mit Retry-After. Geblockte Versuche verlängern das Fenster nicht."""
+    """FastAPI-Dependency: erlaubt max_hits pro window_s je Client-IP und Scope, sonst 429."""
 
-    def dep(request: Request) -> None:
-        key = f"{scope}:{_client_ip(request)}"
-        now = time.monotonic()
-        cutoff = now - window_s
-        with _lock:
-            dq = _hits[key]
-            while dq and dq[0] < cutoff:
-                dq.popleft()
-            if len(dq) >= max_hits:
-                raise _too_many(
-                    int(dq[0] + window_s - now) + 1,
-                    "Zu viele Versuche. Bitte kurz warten und erneut versuchen.",
-                )
-            dq.append(now)
-            _gc(now - window_s)
+    def dep(request: Request, db: Session = Depends(get_db)) -> None:
+        _check_and_hit(db, [(f"{scope}:{_client_ip(request)}", max_hits, window_s)],
+                       "Zu viele Versuche. Bitte kurz warten und erneut versuchen.")
 
     return dep
 
 
-def enforce_user_tiers(user_id: int, tiers: list[tuple[int, int]], scope: str,
+def enforce_user_tiers(db: Session, user_id: int, tiers: list[tuple[int, int]], scope: str,
                        msg: str = "Zu viele Nachrichten. Bitte kurz warten.") -> None:
-    """Mehrstufiges Per-User-Limit (z. B. 5/10 s UND 30/5 min). Prüft ALLE Stufen
-    erst und zählt den Treffer nur, wenn keine Stufe ausgelastet ist — ein
-    geblockter Versuch verlängert kein Fenster. Sonst HTTP 429 mit Retry-After.
-    Pro (user, scope, Stufe) eine eigene Sliding-Window-Queue."""
-    now = time.monotonic()
-    with _lock:
-        dqs = []
-        for i, (max_hits, window_s) in enumerate(tiers):
-            dq = _hits[f"{scope}:u{user_id}:{i}"]
-            cutoff = now - window_s
-            while dq and dq[0] < cutoff:
-                dq.popleft()
-            if len(dq) >= max_hits:
-                raise _too_many(int(dq[0] + window_s - now) + 1, msg)
-            dqs.append(dq)
-        for dq in dqs:
-            dq.append(now)
-        _gc(now - max(w for _, w in tiers))
+    """Mehrstufiges Per-User-Limit (z. B. 5/10 s UND 30/5 min). Alle Stufen werden erst geprüft."""
+    _check_and_hit(db, [(f"{scope}:u{user_id}:{i}", m, w) for i, (m, w) in enumerate(tiers)], msg)

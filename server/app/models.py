@@ -577,3 +577,27 @@ class UserBlock(Base):
     blocker_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     blocked_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class RateEvent(Base):
+    """Ein Treffer für den Rate-Limiter (DB-gestützt → worker-übergreifend konsistent bei
+    mehreren uvicorn-Prozessen). `key` = "<scope>:<ip>" bzw. "<scope>:u<uid>:<stufe>".
+    Sliding-Window: pro Prüfung alte Einträge des Keys löschen + im Fenster zählen."""
+
+    __tablename__ = "rate_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(80), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+
+
+class ReanalysisProgress(Base):
+    """Fortschritt der Hintergrund-Reanalyse je Nutzer (DB → jeder Worker kann ihn lesen/schreiben)."""
+
+    __tablename__ = "reanalysis_progress"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    running: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    done: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    total: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

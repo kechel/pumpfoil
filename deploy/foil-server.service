@@ -16,7 +16,7 @@ Type=simple
 User=foil
 WorkingDirectory=/opt/foil/garmin-connect-iq/server
 EnvironmentFile=/opt/foil/garmin-connect-iq/server/.env
-ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8090 --proxy-headers --forwarded-allow-ips=127.0.0.1
+ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/uvicorn app.main:app --workers 4 --host 0.0.0.0 --port 8090 --proxy-headers --forwarded-allow-ips=127.0.0.1
 Restart=on-failure
 RestartSec=3
 

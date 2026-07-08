@@ -59,7 +59,9 @@ export default function Systemarchitektur() {
           <b> PostgreSQL</b>, Dateien (Fotos, Rohdaten) im Dateisystem. Ein separater Reverse-Proxy
           (<b>Apache</b>) terminiert TLS und leitet weiter. Das React-Frontend ist eine <b>PWA</b>, die
           <i> vom Server als statische Dateien</i> ausgeliefert wird — kein Node.js im Betrieb (Node nur
-          zum Bauen). Kein Redis/Message-Queue, keine Microservices.
+          zum Bauen). Kein Redis/Message-Queue, keine Microservices. Es laufen <b>mehrere uvicorn-Worker</b>;
+          gemeinsamer Zustand (Rate-Limits, Reanalyse-Fortschritt) liegt in <b>PostgreSQL</b> — dadurch
+          über alle Prozesse konsistent.
         </p>
         <Diagram title="Deployment-Schichten" viewBox="0 0 720 360">
           {/* Client */}
@@ -72,7 +74,7 @@ export default function Systemarchitektur() {
           {/* App VM */}
           <rect x={410} y={40} width={290} height={280} rx={12} fill="#0b1220" stroke="#334155" strokeWidth={1.5} />
           <text x={555} y={62} textAnchor="middle" fontSize="12" fontWeight="700" fill="#94a3b8">App-VM (Linux · systemd)</text>
-          <Box x={430} y={78} w={250} h={48} title="uvicorn + FastAPI" sub="1 Worker (async)" fill="#0b2530" stroke={CYAN} />
+          <Box x={430} y={78} w={250} h={48} title="uvicorn + FastAPI" sub="mehrere Worker (async)" fill="#0b2530" stroke={CYAN} />
           <Box x={430} y={140} w={120} h={48} title="PostgreSQL" sub="29 Tabellen" />
           <Box x={560} y={140} w={120} h={48} title="Dateisystem" sub="media / data" />
           <Box x={430} y={202} w={250} h={44} title="Analyse-Pipeline" sub="GPS-Automat + On-Foil-Modell + Pump-Kadenz" />
@@ -206,7 +208,8 @@ export default function Systemarchitektur() {
       {/* 6. Rate-Limits */}
       <section className={CARD}>
         <h2 className={H2}>6. Rate-Limits</h2>
-        <p className={`${P} mb-2`}>Gleitendes Zeitfenster je Client-IP + Zweck:</p>
+        <p className={`${P} mb-2`}>Gleitendes Zeitfenster je Client-IP + Zweck, in PostgreSQL gespeichert
+          (worker-übergreifend konsistent):</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-slate-400"><th className="py-1 pr-4">Aktion</th><th className="py-1">Limit</th></tr></thead>
@@ -239,10 +242,9 @@ export default function Systemarchitektur() {
         <h2 className={H2}>8. Grenzen & bewusste Trade-offs</h2>
         <p className={`${P} mb-2`}>Ehrlich, damit man das Sicherheitsniveau richtig einordnen kann:</p>
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-300">
-          <li><b>Bewusst Ein-Prozess-Betrieb</b> (ein uvicorn-Worker): einfach, gut prüfbar, und
-            Rate-Limits/Fortschritts-Zustände bleiben konsistent. Klarer Skalierungspfad: bei steigender
-            Last werden diese Zustände nach PostgreSQL verlagert und auf mehrere Worker erhöht.</li>
-          <li>App-Server auf <b>einer</b> VM (kein Auto-Scaling/Failover) — dafür einfache, gut prüfbare Struktur.</li>
+          <li>App-Server auf <b>einer</b> VM (kein Auto-Scaling/Failover über mehrere Maschinen) — dafür
+            einfache, gut prüfbare Struktur; mehrere Worker + geteilter Zustand in Postgres geben auf der
+            Maschine (26 Kerne) reichlich Luft.</li>
           <li>Rate-Limiter ist bewusst simpel (In-Memory-Sliding-Window), kein externer Dienst.</li>
           <li>Projekt ist <b>Open Source (AGPL)</b> — der komplette Code ist öffentlich einsehbar und prüfbar.</li>
         </ul>

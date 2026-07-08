@@ -215,7 +215,7 @@ def post_message(
     # Anti-Spam (Admins ausgenommen — sie moderieren).
     if not user.is_admin:
         # Layer 1+2: Per-User-Flood-Limit, frische Konten strenger.
-        enforce_user_tiers(user.id, RATE_TIERS_NEW if is_new else RATE_TIERS, scope="chat")
+        enforce_user_tiers(db, user.id, RATE_TIERS_NEW if is_new else RATE_TIERS, scope="chat")
         # Layer 3: Link-Drossel — neue Konten dürfen noch keine Links posten.
         if is_new and _URL_RE.search(text):
             raise HTTPException(

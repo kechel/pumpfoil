@@ -136,10 +136,10 @@ def update_me(
 
 
 @router.get("/me/reanalysis")
-def reanalysis_progress(user: models.User = Depends(current_user)) -> dict:
+def reanalysis_progress(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Fortschritt der Hintergrund-Reanalyse nach Empfindlichkeits-Wechsel (für die PWA-Anzeige)."""
     from ..reanalysis import progress_for
-    return progress_for(user.id)
+    return progress_for(db, user.id)
 
 
 @router.get("/me/export")
