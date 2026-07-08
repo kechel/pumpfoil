@@ -267,6 +267,12 @@ export const MailIcon = ({ className = base }: P) => (
   </svg>
 );
 
+export const SendIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4 20-7Z" />
+  </svg>
+);
+
 export const EditIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M4 20h4L19 9l-4-4L4 16v4Z" /><line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />

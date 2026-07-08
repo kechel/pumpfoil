@@ -9,7 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api, strava, suunto
+from .api import admin, appmeta, auth, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api, strava, suunto, transfers
 from .config import get_settings
 from .db import init_db
 
@@ -241,6 +241,7 @@ app.include_router(strava.router)
 app.include_router(push.router)
 app.include_router(foils.router)
 app.include_router(chat.router)
+app.include_router(transfers.router)
 app.include_router(appmeta.router)
 
 # --- Öffentliche Medien (Fotos, Profilbilder). Unraffbare UUID-Dateinamen. ---

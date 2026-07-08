@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { api, CommunitySession, SessionSummary } from "../lib/api";
+import { api, CommunitySession, SessionSummary, type Transfer } from "../lib/api";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon } from "../components/Icons";
+import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -46,6 +46,53 @@ function MergeHint() {
             className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
             {t("merge.action")}
           </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Eingehende Session-Übertragungen (jemand will mir seine Session geben, z. B. mit meiner
+// Uhr gefahren). Ansehen / Annehmen (→ gehört mir) / Ablehnen. Nur in „Meine Sessions".
+function IncomingTransfers({ onAccepted }: { onAccepted: () => void }) {
+  const t = useT();
+  const nav = useNavigate();
+  const [rows, setRows] = useState<Transfer[]>([]);
+  const [busy, setBusy] = useState<number | null>(null);
+  useEffect(() => { api.transfersIncoming().then(setRows).catch(() => {}); }, []);
+  if (!rows.length) return null;
+  const dateStr = (iso: string | null) => iso ? new Date(iso).toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+  function accept(tr: Transfer) {
+    setBusy(tr.id);
+    api.transferAccept(tr.id)
+      .then(() => { setRows((l) => l.filter((x) => x.id !== tr.id)); invalidateSessionListCache(); onAccepted(); })
+      .catch((e) => alert(String(e))).finally(() => setBusy(null));
+  }
+  function decline(tr: Transfer) {
+    setBusy(tr.id);
+    api.transferDecline(tr.id)
+      .then(() => setRows((l) => l.filter((x) => x.id !== tr.id)))
+      .catch((e) => alert(String(e))).finally(() => setBusy(null));
+  }
+  return (
+    <div className="mb-4 space-y-2">
+      {rows.map((tr) => (
+        <div key={tr.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm">
+          <SendIcon className="h-5 w-5 shrink-0 text-brand-400" />
+          <span className="text-slate-200">
+            <b>{t("transfer.incomingTitle")}</b> {t("transfer.from", { name: tr.other?.display_name || "?" })}
+            {tr.session?.place ? ` · ${tr.session.place}` : ""}{tr.session?.started_at ? ` · ${dateStr(tr.session.started_at)}` : ""}
+          </span>
+          <div className="ml-auto flex gap-2">
+            {tr.session && (
+              <button onClick={() => nav(`/sessions/${tr.session!.id}`)}
+                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700">{t("transfer.view")}</button>
+            )}
+            <button disabled={busy === tr.id} onClick={() => accept(tr)}
+              className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">{t("transfer.accept")}</button>
+            <button disabled={busy === tr.id} onClick={() => decline(tr)}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-50">{t("transfer.decline")}</button>
+          </div>
         </div>
       ))}
     </div>
@@ -103,6 +150,7 @@ export default function Sessions() {
   const spotName = spot ? (nameById[spot] ?? spot) : "";
   const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
   const [myName, setMyName] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);   // bump nach angenommener Übertragung → Liste neu laden
   // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
   const [accelOnly, setAccelOnly] = useAccelDefault();
 
@@ -164,11 +212,12 @@ export default function Sessions() {
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
 
+      {isMine && <IncomingTransfers onAccepted={() => setReloadKey((k) => k + 1)} />}
       {isMine && <MergeHint />}
       <CompareTip />
 
       {spot && <SpotWeather spot={spot} />}
-      {isMine ? <MySessionsList myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}
+      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}
     </div>
   );
 }

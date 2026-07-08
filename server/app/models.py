@@ -579,6 +579,23 @@ class UserBlock(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class SessionTransfer(Base):
+    """Übertragung einer Session an einen anderen Nutzer (z. B. Uhr verliehen, der andere ist
+    gefahren). Absender (from_user_id) initiiert → Empfänger (to_user_id) nimmt an, dann wandert
+    die Eigentümerschaft (Session.user_id = to_user_id). status: pending|accepted|declined|cancelled.
+    Höchstens eine offene (pending) Übertragung je Session."""
+
+    __tablename__ = "session_transfers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[str] = mapped_column(String(12), default="pending", server_default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class RateEvent(Base):
     """Ein Treffer für den Rate-Limiter (DB-gestützt → worker-übergreifend konsistent bei
     mehreren uvicorn-Prozessen). `key` = "<scope>:<ip>" bzw. "<scope>:u<uid>:<stufe>".

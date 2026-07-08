@@ -66,6 +66,9 @@ export interface ChatRoom {
 
 export interface DmUser { id: number; display_name: string | null; avatar_url: string | null; }
 
+export interface TransferSessionBrief { id: number; place: string | null; water: string | null; started_at: string | null; sport: string; foiling_time_s: number | null; }
+export interface Transfer { id: number; status: string; created_at: string | null; other: DmUser | null; session: TransferSessionBrief | null; role?: "sender" | "recipient"; }
+
 export interface ActiveRoom {
   scope: string; label: string; url: string;
   messages: number; last_text: string; last_at: string | null;
@@ -428,6 +431,13 @@ export const api = {
   chatBlocks: () => req<DmUser[]>(`/api/chat/blocks`),
   chatActive: (hours = 48, limit = 3) => req<ActiveRoom[]>(`/api/chat/active?hours=${hours}&limit=${limit}`),
   chatAllSpots: () => req<{ scope: string; label: string; url: string; messages: number }[]>(`/api/chat/all-spots`),
+  transferInitiate: (sessionId: number, toUserId: number) => req<Transfer>(`/api/transfers`, { method: "POST", body: JSON.stringify({ session_id: sessionId, to_user_id: toUserId }) }),
+  transfersIncoming: () => req<Transfer[]>(`/api/transfers/incoming`),
+  transferForSession: (sessionId: number) => req<Transfer | Record<string, never>>(`/api/transfers/for-session/${sessionId}`),
+  transferAccept: (id: number) => req<{ ok: boolean; session_id: number }>(`/api/transfers/${id}/accept`, { method: "POST" }),
+  transferDecline: (id: number) => req<{ ok: boolean }>(`/api/transfers/${id}/decline`, { method: "POST" }),
+  transferCancel: (id: number) => req<{ ok: boolean }>(`/api/transfers/${id}`, { method: "DELETE" }),
+  transferFriends: () => req<DmUser[]>(`/api/transfers/friends`),
   foils: (params?: { q?: string; brand?: string }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set("q", params.q);

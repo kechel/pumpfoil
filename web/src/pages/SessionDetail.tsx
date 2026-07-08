@@ -15,6 +15,7 @@ import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackC
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
+import { TransferPicker } from "../components/TransferPicker";
 
 function fmtMMSS(s: number | null | undefined) {
   if (s == null) return "–";
@@ -1319,6 +1320,8 @@ export default function SessionDetail() {
           </button>
         </div>
       )}
+
+      {owned && <TransferPicker sessionId={session.id} />}
 
       {owned && (
         <div className="mt-4 flex justify-end">

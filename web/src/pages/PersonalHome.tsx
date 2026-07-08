@@ -7,8 +7,23 @@ import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
-import { CommunityIcon } from "../components/Icons";
+import { CommunityIcon, SendIcon } from "../components/Icons";
 import { useT } from "../i18n";
+
+// Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
+function TransferHint() {
+  const t = useT();
+  const [n, setN] = useState(0);
+  useEffect(() => { api.transfersIncoming().then((r) => setN(r.length)).catch(() => {}); }, []);
+  if (n === 0) return null;
+  return (
+    <Link to="/sessions" className="mb-5 flex items-center gap-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm text-slate-200 hover:bg-brand-500/20">
+      <SendIcon className="h-5 w-5 shrink-0 text-brand-400" />
+      <span>{t("transfer.homeHint")}</span>
+      <span className="ml-auto text-xs text-brand-300">→</span>
+    </Link>
+  );
+}
 
 function fmtDur(min: number): string {
   const h = Math.floor(min / 60);
@@ -69,6 +84,8 @@ export default function PersonalHome() {
       <h2 className="mb-5 text-2xl font-bold">
         {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
       </h2>
+
+      <TransferHint />
 
       {/* App installieren (mobil, nur wenn installierbar) */}
       <InstallPwa className="mb-5 w-full sm:w-auto md:hidden" />
