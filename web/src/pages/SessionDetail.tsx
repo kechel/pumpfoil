@@ -226,7 +226,8 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
       {video && vid && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={() => setVideo(false)}>
           <button onClick={() => setVideo(false)} aria-label="Close"
-            className="absolute right-3 top-3 rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
+            style={{ top: "calc(0.75rem + env(safe-area-inset-top))", right: "calc(0.75rem + env(safe-area-inset-right))" }}
+            className="absolute rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
           <div className="aspect-video" style={{ width: "min(96vw, calc((100vh - 5rem) * 16 / 9))" }} onClick={(e) => e.stopPropagation()}>
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}`}
@@ -1064,7 +1065,13 @@ export default function SessionDetail() {
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
 
-      <div className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mt-5"}>
+      <div
+        className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mt-5"}
+        style={fullscreen ? {
+          paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)",
+        } : undefined}
+      >
         <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 p-2" : ""}`}>
           <span className="text-xs text-slate-400">{t("sd.coloring")}</span>
           <ModeButton active={colorMode === "speed"} onClick={() => setColorMode("speed")}>{t("sd.colorSpeed")}</ModeButton>

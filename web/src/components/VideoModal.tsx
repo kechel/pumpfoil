@@ -21,7 +21,8 @@ export function VideoModal({ url, onClose }: { url: string; onClose: () => void 
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
       <button onClick={onClose} aria-label="Close"
-        className="absolute right-3 top-3 rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
+        style={{ top: "calc(0.75rem + env(safe-area-inset-top))", right: "calc(0.75rem + env(safe-area-inset-right))" }}
+        className="absolute rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
       <div className="aspect-video" style={{ width: "min(96vw, calc((100vh - 5rem) * 16 / 9))" }} onClick={(e) => e.stopPropagation()}>
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${id}`}

@@ -63,6 +63,12 @@ export function Lightbox({ photos, index, onClose, onChange }: {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+      }}
     >
       {/* Kopfzeile: Schließen */}
       <div className="flex shrink-0 items-center justify-between p-3 text-slate-200">

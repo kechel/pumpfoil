@@ -148,7 +148,13 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   if (!items.some((it) => it.session.analysis?.track_geojson)) return null;
 
   return (
-    <div className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mb-4"}>
+    <div
+      className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mb-4"}
+      style={fullscreen ? {
+        paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)",
+      } : undefined}
+    >
       <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 p-2" : "mb-2"}`}>
         <span className="text-xs text-slate-400">{t("sd.coloring")}</span>
         {riders.size > 1 && <ModeBtn active={mode === "rider"} onClick={() => setMode("rider")}>{t("compare.colorRider")}</ModeBtn>}

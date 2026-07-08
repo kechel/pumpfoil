@@ -192,7 +192,14 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const seg = "flex-1 rounded-lg px-3 py-1.5 text-sm font-medium";
 
   return createPortal(
-    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60"
+      style={{
+        paddingTop: "calc(1rem + env(safe-area-inset-top))", paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+        paddingLeft: "calc(1rem + env(safe-area-inset-left))", paddingRight: "calc(1rem + env(safe-area-inset-right))",
+      }}
+      onClick={onClose}
+    >
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-semibold text-slate-100">{t("sd.share")}</h3>

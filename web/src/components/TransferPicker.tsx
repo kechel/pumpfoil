@@ -68,7 +68,11 @@ export function TransferPicker({ sessionId }: { sessionId: number }) {
 
       {open && (
         <div className="fixed inset-0 z-[3000] flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-sm rounded-t-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="w-full max-w-sm rounded-t-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl sm:rounded-2xl"
+            style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-100">{t("transfer.title")}</h3>
               <button onClick={() => setOpen(false)} aria-label="×" className="px-1 text-lg text-slate-400 hover:text-slate-200">×</button>
