@@ -196,6 +196,9 @@ export default function Systemarchitektur() {
             <code> HttpOnly</code>, <code>Secure</code>, <code>SameSite</code>.</li>
           <li><b>Transport:</b> HTTPS/TLS am Proxy, <b>HSTS</b> (1 Jahr), <code>X-Content-Type-Options: nosniff</code>,
             <code> X-Frame-Options: SAMEORIGIN</code>, GZip. Konto-Löschung (DSGVO) löscht alle Daten.</li>
+          <li><b>Content-Security-Policy:</b> streng (<code>default-src 'self'</code>) — extern nur OSM-Kacheln
+            (Bilder) und der YouTube-Klick-Embed, sonst ausschließlich eigene Quellen. Wird gerade behutsam
+            eingeführt (zunächst Report-Only, danach erzwingend).</li>
           <li><b>Rate-Limits</b> auf sensiblen Endpunkten (siehe unten) gegen Brute-Force/Missbrauch.</li>
         </ul>
       </section>
@@ -236,9 +239,9 @@ export default function Systemarchitektur() {
         <h2 className={H2}>8. Grenzen & bewusste Trade-offs</h2>
         <p className={`${P} mb-2`}>Ehrlich, damit man das Sicherheitsniveau richtig einordnen kann:</p>
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-300">
-          <li>Noch <b>keine Content-Security-Policy (CSP)</b> gesetzt (geplant).</li>
-          <li><b>Ein</b> uvicorn-Worker; Rate-Limits und einige Fortschritts-Zustände liegen <b>im
-            Arbeitsspeicher</b> (nicht über mehrere Prozesse geteilt) — passt zum aktuellen Ein-Prozess-Betrieb.</li>
+          <li><b>Bewusst Ein-Prozess-Betrieb</b> (ein uvicorn-Worker): einfach, gut prüfbar, und
+            Rate-Limits/Fortschritts-Zustände bleiben konsistent. Klarer Skalierungspfad: bei steigender
+            Last werden diese Zustände nach PostgreSQL verlagert und auf mehrere Worker erhöht.</li>
           <li>App-Server auf <b>einer</b> VM (kein Auto-Scaling/Failover) — dafür einfache, gut prüfbare Struktur.</li>
           <li>Rate-Limiter ist bewusst simpel (In-Memory-Sliding-Window), kein externer Dienst.</li>
           <li>Projekt ist <b>Open Source (AGPL)</b> — der komplette Code ist öffentlich einsehbar und prüfbar.</li>

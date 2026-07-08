@@ -47,7 +47,28 @@ async def security_headers(request: Request, call_next):
     # nötig — microphone=() (leer) sperrt es sonst komplett, auch für uns selbst.
     h.setdefault("Permissions-Policy", "microphone=(self), camera=(), payment=()")
     h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    # CSP vorerst als Report-Only (bricht nichts, meldet Verstöße nur in der Konsole) —
+    # nach Verifikation der Kern-Flows auf erzwingend (Content-Security-Policy) umstellen.
+    h.setdefault("Content-Security-Policy-Report-Only", _CSP)
     return resp
+
+
+# Extern geladen wird clientseitig nur: OSM-Kacheln (img), YouTube-Thumbnails (img) und der
+# YouTube-nocookie-Embed (frame, Klick-to-Load). Alles andere von der eigenen Origin.
+# style 'unsafe-inline' nötig (React-Inline-Styles + Leaflet) — harmlos vs. Skript.
+_CSP = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://img.youtube.com; "
+    "frame-src https://www.youtube-nocookie.com; "
+    "connect-src 'self'; "
+    "worker-src 'self' blob:; "
+    "manifest-src 'self'; "
+    "frame-ancestors 'self'; "
+    "base-uri 'self'; "
+    "object-src 'none'"
+)
 
 # Alte Domain (und www) dauerhaft auf die kanonische Domain (base_url) umleiten.
 # WICHTIG: /api ausnehmen — die Uhr postet noch auf die alte Domain (.../api/ingest),
@@ -238,7 +259,7 @@ if settings.web_dist.exists():
     # Version fest, weil Browser/Proxy sie cachen und das Service-Worker-Update nie erkannt
     # wird. Die gehashten /assets/* (immutable) bleiben über den StaticFiles-Mount cachebar.
     _NO_CACHE = {"sw.js", "index.html", "version.json", "manifest.webmanifest",
-                 "registerSW.js", "push-sw.js"}
+                 "registerSW.js", "push-sw.js", "theme-init.js"}
 
     @app.get("/{full_path:path}")
     def spa(full_path: str):  # noqa: ANN202
