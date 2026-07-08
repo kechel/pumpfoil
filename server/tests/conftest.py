@@ -33,9 +33,18 @@ def client():
 
 @pytest.fixture(autouse=True)
 def _reset_rate_limit():
-    """Rate-Limiter-Zustand pro Test zurücksetzen (gemeinsamer In-Memory-Store,
-    sonst summieren sich Registrierungen/Logins über die Tests bis 429)."""
-    from app.ratelimit import _hits
+    """Rate-Limiter-Zustand pro Test zurücksetzen (jetzt DB-gestützt, Tabelle rate_events),
+    sonst summieren sich Registrierungen/Logins über die Tests bis 429."""
+    try:
+        from app import models
+        from app.db import SessionLocal
 
-    _hits.clear()
+        db = SessionLocal()
+        try:
+            db.query(models.RateEvent).delete()
+            db.commit()
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 — Tabelle evtl. noch nicht angelegt (kein client-Fixture)
+        pass
     yield
