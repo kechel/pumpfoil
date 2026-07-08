@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, NerdIcon, FoilIcon, UploadIcon } from "./components/Icons";
+import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, NerdIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
@@ -136,7 +136,7 @@ export default function App() {
         </NavLink>
         <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <NerdIcon className="h-4 w-4" /> Systemarchitektur
+          <ServerIcon className="h-4 w-4" /> Systemarchitektur
         </NavLink>
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}

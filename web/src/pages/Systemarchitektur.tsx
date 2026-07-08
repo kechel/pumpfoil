@@ -2,6 +2,7 @@
 // Beschreibt den REALEN Aufbau des Servers — prüfbar für IT-Interessierte. KEINE Secrets:
 // nur Verfahren/Design, keine Keys/JWT-Secrets/echten Hosts/IPs. Selbstgemalte SVG-Diagramme.
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const CARD = "rounded-2xl border border-slate-800 bg-slate-900/50 p-5 mb-6";
 const H2 = "mb-2 text-lg font-bold text-slate-100";
@@ -42,7 +43,8 @@ export default function Systemarchitektur() {
   useEffect(() => { document.title = "Systemarchitektur · pumpfoil.org"; }, []);
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <h1 className="mb-1 text-2xl font-bold text-slate-100">Systemarchitektur</h1>
+      <Link to="/" className="text-sm text-brand-400 hover:underline">← Startseite</Link>
+      <h1 className="mb-1 mt-4 text-2xl font-bold text-slate-100">Systemarchitektur</h1>
       <p className="mb-5 text-sm text-slate-400">
         Wie pumpfoil.org technisch aufgebaut ist — Stack, Datenbank, Sicherheit, Datenschutz. Bewusst
         transparent, damit man nachvollziehen und prüfen kann, wie mit den Daten umgegangen wird. Es
