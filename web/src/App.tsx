@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, NerdIcon, UploadIcon } from "./components/Icons";
+import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, NerdIcon, FoilIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
@@ -128,7 +128,7 @@ export default function App() {
         </div>
         <NavLink to="/nerd-analysen" end title="On-Foil-/Pump-Erkennung: Dual-Watch-Experiment + wie es funktioniert"
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <NerdIcon className="h-4 w-4" /> On-Foil / Pump Detection
+          <FoilIcon className="h-4 w-4" /> On-Foil / Pump Detection
         </NavLink>
         <NavLink to="/nerd-analysen-2" end title="Wie die Erkennung funktioniert (Signalverarbeitung, ML, Labeling)"
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
