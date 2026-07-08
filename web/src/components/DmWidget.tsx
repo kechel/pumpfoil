@@ -141,8 +141,14 @@ export function DmWidget() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[1550] flex flex-col overflow-hidden border-slate-700 bg-slate-900 shadow-2xl md:inset-auto md:bottom-20 md:right-4 md:h-[66vh] md:w-[350px] md:rounded-2xl md:border">
-          <div className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2">
+        <div
+          className="fixed inset-0 z-[1550] flex flex-col overflow-hidden border-slate-700 bg-slate-900 shadow-2xl md:inset-auto md:bottom-20 md:right-4 md:h-[66vh] md:w-[350px] md:rounded-2xl md:border"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <div
+            className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2"
+            style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top))" }}
+          >
             {active ? (
               <>
                 <button onClick={back} aria-label={t("dm.back")} className="px-1 text-lg text-slate-400 hover:text-slate-200">←</button>
