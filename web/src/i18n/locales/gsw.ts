@@ -1,5 +1,8 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
+  "sd.roSpeed": "Tempo",
+  "sd.roDist": "Strecki",
+  "sd.roToggle": "Wärt izeige",
   "transfer.action": "Übertrage a …",
   "transfer.title": "Session übertrage",
   "transfer.desc": "A wän söll die Session gah? Z. B. wänn öpper mit dinere Uhr gfahre isch — bi Aname ghört si ihm/ihre.",

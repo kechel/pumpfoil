@@ -283,6 +283,9 @@ export default function SessionDetail() {
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
   const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
+  // Live-Werte beim Abspielen (für coole Videos): aktuelles Tempo (km/h) + Strecke (m) des Laufs.
+  const [readout, setReadout] = useState<{ v: number; d: number } | null>(null);
+  const [showReadout, setShowReadout] = useState(true);   // Overlay rechts oben ein/aus
   const playheadRef = useRef(0);                      // aktuelle (Float-)Position in der Play-Timeline
   const posMarkerRef = useRef<L.CircleMarker | null>(null);
   const tipRef = useRef<L.Polyline | null>(null);     // bewegliche Spitze (interpoliertes Teilstück)
@@ -509,7 +512,7 @@ export default function SessionDetail() {
   };
   const stopPlay = () => {
     setPlaying(false); setPlayMode(false);
-    playheadRef.current = 0; setProgress(0); posMarkerRef.current = null;
+    playheadRef.current = 0; setProgress(0); posMarkerRef.current = null; setReadout(null);
   };
 
   // coords-Index (aus der Play-Timeline) -> ms ab Session-Start, via Lauf-Segment-Interpolation.
@@ -747,6 +750,25 @@ export default function SessionDetail() {
     const MAX_GAP = 30;
     const lastIdx = playTimeline.length - 1;
 
+    // Prefix-Distanzen entlang der Timeline (m) — für die Strecken-Anzeige beim Abspielen.
+    // Lücken (nicht benachbart / >MAX_GAP) zählen nicht mit.
+    const prefix: number[] = new Array(playTimeline.length).fill(0);
+    for (let k = 1; k < playTimeline.length; k++) {
+      const a = playTimeline[k - 1], b = playTimeline[k];
+      const d = (b === a + 1 && map.distance(coords[a], coords[b]) <= MAX_GAP) ? map.distance(coords[a], coords[b]) : 0;
+      prefix[k] = prefix[k - 1] + d;
+    }
+    // Tempo (km/h, interpoliert) + zurückgelegte Strecke (m) an der Float-Kopfposition.
+    const readoutAt = (headF: number): { v: number; d: number } => {
+      const hi = Math.min(Math.floor(headF), lastIdx), frac = headF - Math.floor(headF);
+      const va = speeds[playTimeline[hi]] ?? 0;
+      const vb = speeds[playTimeline[Math.min(hi + 1, lastIdx)]] ?? va;
+      const v = Math.max(0, (va + (vb - va) * Math.min(frac, 1)) * 3.6);
+      let d = prefix[hi] ?? 0;
+      if (hi < lastIdx) d += (prefix[hi + 1] - prefix[hi]) * Math.min(frac, 1);
+      return { v, d };
+    };
+
     const colorAt = (i: number): string => {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
       if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
@@ -796,6 +818,7 @@ export default function SessionDetail() {
     let drawn = Math.floor(headF);
     for (let k = 0; k < drawn; k++) addSeg(k);
     renderTip(drawn, headF - drawn);
+    setReadout(readoutAt(headF));
 
     if (!playing) return;   // pausiert: Standbild, keine Animation
 
@@ -811,6 +834,7 @@ export default function SessionDetail() {
       renderTip(hi, headF - hi);
       playheadRef.current = headF;
       setProgress(lastIdx > 0 ? headF / lastIdx : 0);
+      setReadout(readoutAt(headF));
       if (headF >= lastIdx) { setPlaying(false); return; }
       raf = requestAnimationFrame(step);
     };
@@ -1086,11 +1110,29 @@ export default function SessionDetail() {
 
         {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
             flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}
-        <div className={fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}>
+        <div className={`relative ${fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}`}>
           <div
             ref={mapRef}
             style={{ width: "100%", height: fullscreen ? "100%" : "60vh", minHeight: fullscreen ? undefined : 320 }}
           />
+          {/* Live-Werte beim Abspielen (rechts oben, gestapelt) — für Screen-Recording-Videos */}
+          {playMode && showReadout && readout && (
+            <div className="pointer-events-none absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
+              <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
+                <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("sd.roSpeed")}</div>
+                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                  {readout.v.toFixed(1)} <span className="text-sm font-semibold text-slate-300">km/h</span>
+                </div>
+              </div>
+              <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
+                <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("sd.roDist")}</div>
+                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                  {readout.d < 1000 ? Math.round(readout.d) : (readout.d / 1000).toFixed(2)}
+                  <span className="ml-0.5 text-sm font-semibold text-slate-300">{readout.d < 1000 ? "m" : "km"}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Play: Strecke über die Zeit aufzeichnen (wie beim Fahren) — gesamt oder gewählter
@@ -1128,6 +1170,13 @@ export default function SessionDetail() {
             <span className="text-xs tabular-nums text-slate-400">
               {selectedRun != null ? t("sd.playRun") : t("sd.playWhole")}
             </span>
+            <button
+              onClick={() => setShowReadout((v) => !v)}
+              className={`rounded-lg px-2 py-1 text-xs ${showReadout ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+              title={t("sd.roToggle")}
+            >
+              {t("sd.roToggle")}
+            </button>
             <div className="flex min-w-[120px] flex-1 items-center gap-2">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
                 <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />

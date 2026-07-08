@@ -1,4 +1,7 @@
 const fi: Record<string, string> = {
+  "sd.roSpeed": "Vauhti",
+  "sd.roDist": "Matka",
+  "sd.roToggle": "Näytä arvot",
   "transfer.action": "Siirrä käyttäjälle …",
   "transfer.title": "Siirrä sessio",
   "transfer.desc": "Kenelle haluat siirtää tämän session? Esim. jos joku ajoi kellollasi — hyväksynnän jälkeen se on hänen.",

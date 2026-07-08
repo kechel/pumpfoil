@@ -1,4 +1,7 @@
 const it: Record<string, string> = {
+  "sd.roSpeed": "Velocità",
+  "sd.roDist": "Distanza",
+  "sd.roToggle": "Mostra valori",
   "transfer.action": "Trasferisci a …",
   "transfer.title": "Trasferisci sessione",
   "transfer.desc": "A chi vuoi trasferire questa sessione? Es. se qualcuno ha usato il tuo orologio — una volta accettata è sua.",

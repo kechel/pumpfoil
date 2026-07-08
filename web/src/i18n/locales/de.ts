@@ -1,6 +1,9 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "sd.roSpeed": "Tempo",
+  "sd.roDist": "Strecke",
+  "sd.roToggle": "Werte einblenden",
   "transfer.action": "Übertragen an …",
   "transfer.title": "Session übertragen",
   "transfer.desc": "An wen soll diese Session gehen? Z. B. wenn jemand mit deiner Uhr gefahren ist — bei Annahme gehört sie ihm/ihr.",

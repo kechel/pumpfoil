@@ -1,4 +1,7 @@
 const en: Record<string, string> = {
+  "sd.roSpeed": "Speed",
+  "sd.roDist": "Distance",
+  "sd.roToggle": "Show values",
   "transfer.action": "Transfer to …",
   "transfer.title": "Transfer session",
   "transfer.desc": "Who should this session go to? E.g. if someone rode with your watch — once they accept, it's theirs.",

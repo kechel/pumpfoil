@@ -1,5 +1,8 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "sd.roSpeed": "Tempo",
+  "sd.roDist": "Strecke",
+  "sd.roToggle": "Werte einblenden",
   "transfer.action": "Übertragen an …",
   "transfer.title": "Session übertragen",
   "transfer.desc": "An wen soll diese Session gehen? Z. B. wenn jemand mit deiner Uhr gefahren ist — bei Annahme gehört sie ihm/ihr.",
