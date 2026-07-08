@@ -187,24 +187,21 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # finalen Analyse (kein Netz im Live-Pfad); Fehler/kein Treffer -> None (keine Korrektur).
     water_rings = _water_rings_cached(db, gps_samples) if final else None
 
-    res = analyze_gps(
-        gps_samples, gps_hz=session.gps_hz,
-        mask_override=mask_override, impulse_times_ms=impulses,
-        water_rings=water_rings,
-    )
-    # Persönliche Auswertung (nur wenn der Besitzer eine abweichende Empfindlichkeit gewählt
-    # hat): dieselbe Modell-Maske, aber mit gelockerten Limits -> erfasst kurze/langsame
-    # Startversuche. Community/Rekorde bleiben auf der Standard-`res` oben.
+    # Die vom Besitzer gewählte Empfindlichkeit IST seine maßgebliche Analyse — überall gleich,
+    # öffentlich wie privat (Community/Rekorde/Bestenlisten/Listen inklusive). normal =
+    # Standardlimits; light/attempts = gelockert (kurze/langsame Startversuche zählen mit).
     from .gps import SENSITIVITY_PRESETS
     _owner = db.get(models.User, session.user_id)
     _sens = (getattr(_owner, "foil_sensitivity", None) or "normal")
-    res_personal = None
-    if _sens != "normal" and _sens in SENSITIVITY_PRESETS:
-        res_personal = analyze_gps(
-            gps_samples, gps_hz=session.gps_hz,
-            mask_override=mask_override, impulse_times_ms=impulses,
-            water_rings=water_rings, **SENSITIVITY_PRESETS[_sens],
-        )
+    _preset_kw = SENSITIVITY_PRESETS.get(_sens) if _sens != "normal" else None
+    res = analyze_gps(
+        gps_samples, gps_hz=session.gps_hz,
+        mask_override=mask_override, impulse_times_ms=impulses,
+        water_rings=water_rings, **(_preset_kw or {}),
+    )
+    # Cache der aktiven Preset-Auswertung unter ihrem Schlüssel (für Detail-Overlay/Settings-
+    # Vorschau); identisch zu den kanonischen Spalten oben.
+    res_personal = res if _sens != "normal" else None
     res.setdefault("metrics", {})["detection"] = detection
     if accel.shape[0] > 0:
         res["metrics"]["accel_hz_effective"] = round(accel_hz, 2)   # tatsächliche Rate (kann != getaggt)

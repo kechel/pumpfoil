@@ -8,7 +8,6 @@ beantworten). Pro User läuft max. EIN Job. Schwere Rechenarbeit (numpy/FFT) gib
 """
 from __future__ import annotations
 
-import json
 import threading
 from datetime import datetime, timezone
 
@@ -66,19 +65,14 @@ def _worker(user_id: int, preset: str) -> None:
         for sid in ids:
             s = db.get(models.Session, sid)
             if s is not None:
-                r = db.query(models.AnalysisResult).filter_by(session_id=sid).first()
-                cached = False
-                if r is not None and r.sensitivity_json:
-                    try:
-                        cached = preset in (json.loads(r.sensitivity_json) or {})
-                    except ValueError:
-                        cached = False
-                if not cached:
-                    try:
-                        run_analysis(db, s)
-                        db.commit()
-                    except Exception:  # noqa: BLE001 — einzelne Session-Fehler nicht den Job kippen
-                        db.rollback()
+                # Kanonische Spalten auf das (neue) Preset des Nutzers umschreiben — run_analysis
+                # liest die aktuelle foil_sensitivity und persistiert entsprechend. Jede Session
+                # neu rechnen (nicht per Cache überspringen), damit auch die Spalten aktuell sind.
+                try:
+                    run_analysis(db, s)
+                    db.commit()
+                except Exception:  # noqa: BLE001 — einzelne Session-Fehler nicht den Job kippen
+                    db.rollback()
             done += 1
             _set(db, user_id, done=done)   # update-by-query (robust gegen expired ORM-Objekt)
     finally:

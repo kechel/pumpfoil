@@ -128,8 +128,9 @@ def update_me(
         if new_sens != (user.foil_sensitivity or "normal"):
             user.foil_sensitivity = new_sens
             db.commit()
-            if new_sens != "normal":   # "normal" = kanonische Werte, kein Rechnen nötig
-                start_reanalysis(user.id, new_sens)
+            # Kanonische Spalten aller eigenen Sessions auf das neue Preset umschreiben (auch
+            # ->normal, um auf die Standardlimits zurückzugehen). Läuft im Hintergrund.
+            start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
