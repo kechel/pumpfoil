@@ -9,7 +9,8 @@ from datetime import timedelta, timezone
 
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy import func
+from sqlalchemy import Integer, cast, func, not_, or_
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
 from .. import media, models, storage
@@ -87,7 +88,8 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
 
 
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
-                 owner_name: str | None = None, owner_avatar_url: str | None = None) -> SessionOut:
+                 owner_name: str | None = None, owner_avatar_url: str | None = None,
+                 sens: str | None = None) -> SessionOut:
     return SessionOut(
         id=s.id,
         session_uuid=s.session_uuid,
@@ -107,11 +109,13 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
         foil_id=s.foil_id,
-        # Persönlicher Preset-Overlay nur in der Einzel-Detailansicht (owned, nicht slim) — dort
-        # geht es um die einzelnen Läufe auf der Karte. Slim-Listen bleiben Standard (kein N+1).
+        # Persönlicher Preset-Overlay in ALLEN eigenen Ansichten (Liste + Detail): Läufe/Foil-Zeit/
+        # -Distanz aus dem gecachten Preset. `sens` wird vom Aufrufer durchgereicht (Liste: direkt
+        # aus dem Nutzer -> kein N+1); sonst aus s.user (Detail-Einzelaufruf). Community = "normal".
         analysis=_analysis_out(
             s.result, slim=slim,
-            sens=(s.user.foil_sensitivity or "normal") if (with_analysis and owned and not slim and s.user) else "normal",
+            sens=((sens if sens is not None else (s.user.foil_sensitivity or "normal") if (owned and s.user) else "normal")
+                  if (with_analysis and owned) else "normal"),
         ) if with_analysis else None,
     )
 
@@ -146,6 +150,22 @@ def _resolve_foil(db: Session, s: models.Session) -> dict | None:
         "thickness_estimated": bool(f.thickness_estimated),
         "aspect_ratio": ar, "is_default": s.foil_id is None,
     }
+
+
+def _apply_pump_filter(q, user, filter: str):
+    """Filtert eine Session-Query auf Pumpfoil ('pump') bzw. Aussortierte ('other').
+    Für Nutzer mit persönlicher Empfindlichkeit entscheidet sein gecachtes Preset
+    (sensitivity_json[preset].num_runs > 0), sonst das globale is_pumpfoil. Fügt bei Bedarf
+    einen Outer-Join auf AnalysisResult hinzu (Aufrufer darf danach KEIN zweites Mal joinen)."""
+    sens = (user.foil_sensitivity or "normal")
+    if sens != "normal":
+        q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
+            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
+        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
+        return q.filter(is_pump if filter != "other" else not_(is_pump)), True
+    return q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
+                    else models.Session.is_pumpfoil.isnot(True)), False
 
 
 def _owned(db, user, session_id) -> models.Session:
@@ -330,11 +350,23 @@ def list_sessions(
         .defer(models.AnalysisResult.segments_json)
         .defer(models.AnalysisResult.accel_windows_json)
     ).filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
-    q = q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
-                 else models.Session.is_pumpfoil.isnot(True))
+    # Persönliche Empfindlichkeit: für den Besitzer entscheidet sein Preset (gecacht in
+    # sensitivity_json), ob eine Session als Pumpfoil zählt — nicht nur das globale is_pumpfoil.
+    # So taucht z. B. eine Session, die erst mit „attempts" Läufe zeigt, auch in seiner Pump-Liste
+    # auf. Global is_pumpfoil bleibt für Community/Rekorde.
+    sens = (user.foil_sensitivity or "normal")
+    if accel_only or sens != "normal":
+        q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+    if sens != "normal":
+        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
+            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
+        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
+        q = q.filter(is_pump if filter != "other" else not_(is_pump))
+    else:
+        q = q.filter(models.Session.is_pumpfoil.is_(True) if filter != "other"
+                     else models.Session.is_pumpfoil.isnot(True))
     if accel_only:
-        q = q.join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)\
-             .filter(models.AnalysisResult.detection == "model")
+        q = q.filter(models.AnalysisResult.detection == "model")
     if month:
         try:
             start, end = _month_bounds(month)
@@ -347,7 +379,7 @@ def list_sessions(
     if limit is not None:
         q = q.limit(limit)
     rows = q.all()
-    outs = [_session_out(s, with_analysis=True, slim=True) for s in rows]
+    outs = [_session_out(s, with_analysis=True, slim=True, sens=sens) for s in rows]
     # Explizit gewähltes Foil je Session (nur foil_id gesetzt) im Batch — kein N+1.
     fids = {s.foil_id for s in rows if s.foil_id}
     if fids:
@@ -383,14 +415,16 @@ def list_sessions(
     return outs
 
 
-def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True) -> dict:
-    """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats)."""
+def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:
+    """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
+    sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
+    Preset (sensitivity_json). Admin/Community rufen mit "normal" -> Standard (unberührt)."""
     # Nur benötigte Spalten — KEIN track_geojson/accel_windows_json (große TEXT-Spalten).
     rows = (
         db.query(
             models.AnalysisResult.foiling_distance_m, models.AnalysisResult.foiling_time_s,
             models.AnalysisResult.pump_count, models.AnalysisResult.metrics_json,
-            models.AnalysisResult.segments_json,
+            models.AnalysisResult.segments_json, models.AnalysisResult.sensitivity_json,
             models.Session.id, models.Session.started_at,
         )
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
@@ -405,21 +439,36 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True) ->
         if value is not None and value > rec[key]["value"]:
             rec[key] = {"session_id": sid, "value": value, "started_at": ts, "run_idx": run_idx}
 
-    for fdist, ftime, pumps, mj, sj, sid, ts in rows:
+    for fdist, ftime, pumps, mj, sj, senj, sid, ts in rows:
         metrics = {}
         if mj:
             try:
                 metrics = json.loads(mj)
             except ValueError:
                 metrics = {}
+        # Persönliches Preset (falls gesetzt + gecacht): überlagert Foiling/Läufe/Segmente.
+        preset = None
+        if sens != "normal" and senj:
+            try:
+                preset = (json.loads(senj) or {}).get(sens)
+            except ValueError:
+                preset = None
+        if preset:
+            fdist = preset.get("foiling_distance_m", fdist)
+            ftime = preset.get("foiling_time_s", ftime)
+            sj = json.dumps(preset.get("segments") or [])
+            is_pump = (preset.get("num_runs") or 0) > 0
+            n_runs = preset.get("num_runs") or 0
+        else:
+            is_pump = bool(metrics.get("is_pumpfoil"))
+            n_runs = metrics.get("num_segments") or 0
         # Nur Pumpfoilen zählt — angetriebenes/Nicht-Foil ignorieren.
-        if not metrics.get("is_pumpfoil"):
+        if not is_pump:
             continue
         n_sessions += 1
         tot_dist += fdist or 0.0
         tot_time += ftime or 0.0
         tot_pumps += pumps or 0
-        n_runs = metrics.get("num_segments") or 0
         tot_runs += n_runs
         # Rekorde optional nur aus Sessions mit Accel-Daten (präzise Erkennung).
         if accel_only and metrics.get("detection") != "model":
@@ -462,7 +511,7 @@ def overall_stats(
     db: Session = Depends(get_db),
     accel_only: bool = True,
 ) -> dict:
-    return compute_overall_stats(db, user.id, accel_only)
+    return compute_overall_stats(db, user.id, accel_only, sens=(user.foil_sensitivity or "normal"))
 
 
 @router.get("/has-accel")
@@ -546,13 +595,10 @@ def list_months(
     filter: str = "pump",
 ) -> list[dict]:
     """Verfügbare Monate (YYYY-MM) mit Anzahl, neueste zuerst — für den Filter."""
-    rows = (
-        db.query(models.Session.started_at)
-        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
-                models.Session.is_pumpfoil.is_(True) if filter != "other"
-                else models.Session.is_pumpfoil.isnot(True))
-        .all()
-    )
+    q = db.query(models.Session.started_at).filter(
+        models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+    q, _ = _apply_pump_filter(q, user, filter)
+    rows = q.all()
     counts: dict[str, int] = {}
     for (ts,) in rows:
         if ts is None:
