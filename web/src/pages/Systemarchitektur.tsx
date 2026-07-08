@@ -198,9 +198,8 @@ export default function Systemarchitektur() {
             <code> HttpOnly</code>, <code>Secure</code>, <code>SameSite</code>.</li>
           <li><b>Transport:</b> HTTPS/TLS am Proxy, <b>HSTS</b> (1 Jahr), <code>X-Content-Type-Options: nosniff</code>,
             <code> X-Frame-Options: SAMEORIGIN</code>, GZip. Konto-Löschung (DSGVO) löscht alle Daten.</li>
-          <li><b>Content-Security-Policy:</b> streng (<code>default-src 'self'</code>) — extern nur OSM-Kacheln
-            (Bilder) und der YouTube-Klick-Embed, sonst ausschließlich eigene Quellen. Wird gerade behutsam
-            eingeführt (zunächst Report-Only, danach erzwingend).</li>
+          <li><b>Content-Security-Policy:</b> aktiv & erzwingend, streng (<code>default-src 'self'</code>) —
+            extern nur OSM-Kacheln (Bilder) und der YouTube-Klick-Embed, sonst ausschließlich eigene Quellen.</li>
           <li><b>Rate-Limits</b> auf sensiblen Endpunkten (siehe unten) gegen Brute-Force/Missbrauch.</li>
         </ul>
       </section>

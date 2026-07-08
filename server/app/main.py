@@ -47,9 +47,8 @@ async def security_headers(request: Request, call_next):
     # nötig — microphone=() (leer) sperrt es sonst komplett, auch für uns selbst.
     h.setdefault("Permissions-Policy", "microphone=(self), camera=(), payment=()")
     h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-    # CSP vorerst als Report-Only (bricht nichts, meldet Verstöße nur in der Konsole) —
-    # nach Verifikation der Kern-Flows auf erzwingend (Content-Security-Policy) umstellen.
-    h.setdefault("Content-Security-Policy-Report-Only", _CSP)
+    # CSP erzwingend (nach Report-Only-Verifikation der Kern-Flows, Konsole sauber, 2026-07-08).
+    h.setdefault("Content-Security-Policy", _CSP)
     return resp
 
 
