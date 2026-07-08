@@ -192,7 +192,7 @@ function LatestMedia() {
         {media.map((p) => {
           const st = soc[p.session_id] ?? { liked: false, like_count: 0, my_inappropriate: false };
           const isVideo = p.kind === "video";
-          const thumb = isVideo ? `https://img.youtube.com/vi/${ytId(p.youtube_url)}/hqdefault.jpg` : p.url || "";
+          const thumb = isVideo ? `https://img.youtube.com/vi/${ytId(p.youtube_url)}/hqdefault.jpg` : (p.thumb_url || p.url) || "";
           const openMedia = () => isVideo ? setVid(p.youtube_url || null) : setLb(photoItems.findIndex((x) => x.session_id === p.session_id && x.url === p.url));
           return (
             <div key={`${p.kind}-${p.session_id}`} className="group">

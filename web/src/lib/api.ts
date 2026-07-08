@@ -204,13 +204,14 @@ export interface SessionSocial {
   my_fake: boolean;
   inappropriate_count: number;
   my_inappropriate: boolean;
-  photos: { id: number; url: string }[];
+  photos: { id: number; url: string; thumb_url?: string | null }[];
 }
 
 export interface CommunityPhoto {
   kind?: "photo" | "video";
   photo_id?: number;
   url: string | null;
+  thumb_url?: string | null;
   youtube_url?: string | null;
   session_id: number;
   started_at: string | null;
@@ -550,9 +551,9 @@ export const api = {
   toggleVote: (id: number, kind: "fake" | "inappropriate") =>
     req<SessionSocial>(`/api/community/sessions/${id}/vote?kind=${kind}`, { method: "POST" }),
   sessionSocial: (id: number) => req<SessionSocial>(`/api/community/sessions/${id}/social`),
-  sessionPhotos: (id: number) => req<{ id: number; url: string }[]>(`/api/sessions/${id}/photos`),
+  sessionPhotos: (id: number) => req<{ id: number; url: string; thumb_url?: string | null }[]>(`/api/sessions/${id}/photos`),
   uploadSessionPhoto: (id: number, file: File) =>
-    uploadFile<{ id: number; url: string }>(`/api/sessions/${id}/photos`, file),
+    uploadFile<{ id: number; url: string; thumb_url?: string | null }>(`/api/sessions/${id}/photos`, file),
   deleteSessionPhoto: (id: number, photoId: number) =>
     req(`/api/sessions/${id}/photos/${photoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),

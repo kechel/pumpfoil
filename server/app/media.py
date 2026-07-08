@@ -14,16 +14,28 @@ from .config import get_settings
 settings = get_settings()
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024  # 12 MB Roh-Upload-Limit
+THUMB_DIM = 480  # Kantenlänge des kleinen Vorschaubilds (deckt Cards/Strip/Feed inkl. Retina)
 
 
 class ImageError(ValueError):
     pass
 
 
-def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False) -> str:
-    """Speichert ein Bild unter media_dir/<subdir>/<uuid>.jpg und gibt die /media-URL zurück.
+def thumb_url(url: str | None) -> str | None:
+    """Leitet die Thumbnail-URL aus der Voll-URL ab (<name>.webp -> <name>.t.webp).
+    Nur für /media/*.webp; sonst wird die Original-URL zurückgegeben (kein Thumb vorhanden)."""
+    if not url or not url.endswith(".webp") or url.endswith(".t.webp"):
+        return url
+    return url[:-len(".webp")] + ".t.webp"
+
+
+def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
+               thumb_dim: int | None = None) -> str:
+    """Speichert ein Bild unter media_dir/<subdir>/<uuid>.webp und gibt die /media-URL zurück.
 
     max_dim: längste Kante (px). square=True: mittig quadratisch zuschneiden (Avatare).
+    thumb_dim: falls gesetzt, wird zusätzlich ein <uuid>.t.webp-Thumbnail (längste Kante
+    thumb_dim) abgelegt — für Listen/Feeds/Cards, spart Traffic (Voll-URL bleibt fürs Lightbox).
     """
     if not raw:
         raise ImageError("Leere Datei")
@@ -46,20 +58,27 @@ def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False) -> s
     else:
         img.thumbnail((max_dim, max_dim), Image.LANCZOS)
 
-    name = f"{uuid.uuid4().hex}.webp"
+    stem = uuid.uuid4().hex
     out_dir = settings.media_dir / subdir
     out_dir.mkdir(parents=True, exist_ok=True)
     # WebP: deutlich kleiner als JPEG bei gleicher Qualität, überall web-tauglich.
-    img.save(out_dir / name, format="WEBP", quality=82, method=6)
-    return f"/media/{subdir}/{name}"
+    img.save(out_dir / f"{stem}.webp", format="WEBP", quality=82, method=6)
+    if thumb_dim:
+        th = img.copy()
+        th.thumbnail((thumb_dim, thumb_dim), Image.LANCZOS)
+        th.save(out_dir / f"{stem}.t.webp", format="WEBP", quality=80, method=6)
+    return f"/media/{subdir}/{stem}.webp"
 
 
 def delete_media(url: str | None) -> None:
-    """Entfernt eine zuvor gespeicherte /media-Datei (best effort)."""
+    """Entfernt eine zuvor gespeicherte /media-Datei (best effort) — inkl. Thumbnail-Sibling."""
     if not url or not url.startswith("/media/"):
         return
     rel = url[len("/media/"):]
-    try:
-        (settings.media_dir / rel).unlink(missing_ok=True)
-    except OSError:
-        pass
+    for p in (rel, thumb_url(rel)):
+        if not p:
+            continue
+        try:
+            (settings.media_dir / p).unlink(missing_ok=True)
+        except OSError:
+            pass

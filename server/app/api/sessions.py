@@ -12,7 +12,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Up
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from .. import models, storage
+from .. import media, models, storage
 from ..analysis import maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
@@ -368,7 +368,7 @@ def list_sessions(
             .order_by(models.SessionPhoto.id.desc()).all()
         ):
             count[sid] = count.get(sid, 0) + 1
-            thumb.setdefault(sid, url)  # erstes = neuestes (id desc)
+            thumb.setdefault(sid, media.thumb_url(url))  # erstes = neuestes (id desc); kleines Thumb
         likes = dict(
             db.query(models.SessionLike.session_id, func.count())
             .filter(models.SessionLike.session_id.in_(ids)).group_by(models.SessionLike.session_id).all()
@@ -1168,7 +1168,8 @@ def list_photos(
         db.query(models.SessionPhoto)
         .filter_by(session_id=session_id, blocked=False).order_by(models.SessionPhoto.id).all()
     )
-    return [{"id": p.id, "url": p.url} for p in rows]
+    from ..media import thumb_url
+    return [{"id": p.id, "url": p.url, "thumb_url": thumb_url(p.url)} for p in rows]
 
 
 @router.post("/{session_id}/photos")
@@ -1186,13 +1187,14 @@ async def upload_photo(
 
     raw = await file.read()
     try:
-        url = save_image(raw, subdir="photos", max_dim=1600)
+        url = save_image(raw, subdir="photos", max_dim=1600, thumb_dim=480)
     except ImageError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     photo = models.SessionPhoto(session_id=session_id, user_id=user.id, url=url)
     db.add(photo)
     db.commit()
-    return {"id": photo.id, "url": photo.url}
+    from ..media import thumb_url
+    return {"id": photo.id, "url": photo.url, "thumb_url": thumb_url(photo.url)}
 
 
 @router.delete("/{session_id}/photos/{photo_id}")

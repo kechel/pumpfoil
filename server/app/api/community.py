@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
+from ..media import thumb_url as _thumb
 from ..naming import owner_label_sql
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user
@@ -216,7 +217,8 @@ def latest_photos(
         if sid in seenp:
             continue
         seenp.add(sid)
-        items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url, "youtube_url": None,
+        items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url,
+                      "thumb_url": _thumb(url), "youtube_url": None,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
                       "avatar_url": avatar, "spot": place or None, "caption": caption or None})
 
@@ -441,7 +443,7 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
         .order_by(models.SessionPhoto.id).all()
     ):
         pc[sid] = pc.get(sid, 0) + 1
-        thumb.setdefault(sid, url)
+        thumb.setdefault(sid, _thumb(url))
     # Explizit gewählte Foils im Batch auflösen.
     fids = {b.get("foil_id") for b in briefs if b.get("foil_id")}
     fmap = {}
@@ -529,5 +531,5 @@ def session_social(session_id: int, user: models.User = Depends(current_user), d
     return {
         **_like_state(db, session_id, user),
         **_vote_counts(db, session_id, user),
-        "photos": [{"id": pid, "url": url} for pid, url in photos],
+        "photos": [{"id": pid, "url": url, "thumb_url": _thumb(url)} for pid, url in photos],
     }

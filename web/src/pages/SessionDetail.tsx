@@ -125,7 +125,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           {s.photos.map((ph, idx) => (
             <div key={ph.id} className="relative">
               <button onClick={() => setLb(idx)} className="block">
-                <img src={ph.url} alt="" className="h-20 w-auto rounded-lg object-cover" />
+                <img src={ph.thumb_url || ph.url} alt="" className="h-20 w-auto rounded-lg object-cover" />
               </button>
               {owned && (
                 <button
