@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""YouTube-Video-Overlay VARIANTE (1080x1920, transparent) — kleineres Lockup, oben-rechts.
-Wie overlay.py, aber Lockup auf 70 % (448 px) und nach rechts versetzt statt zentriert;
+"""YouTube-Video-Overlay VARIANTE (1080x1920) — noch kleineres Lockup (60%), oben-rechts.
+Wie overlay.py, aber Lockup auf 50 % (320 px) und nach rechts versetzt statt zentriert;
 Oberkante identisch (TOP=90). Reproduzierbar aus der Brand-Basis (gen.build_fit).
 Aufruf:  ../../server/.venv/bin/python overlay-small.py   (aus brand/master/)"""
 import os, sys
@@ -9,12 +9,12 @@ from PIL import Image, ImageFilter
 import gen
 
 W, H = 1080, 1920
-TARGET_W = 448           # Lockup-Breite (= 70 % von 640)
+TARGET_W = 320           # Lockup-Breite (= 50 % von 640)
 TOP = 90                 # Abstand von oben (wie overlay.py — Oberkante gleich)
 RIGHT_MARGIN = 90        # Abstand vom rechten Rand (nach rechts versetzt statt zentriert)
 NOSHADOW = "--no-shadow" in sys.argv     # Schatten weglassen -> "-noshadow" im Dateinamen
 _SUF = "-noshadow" if NOSHADOW else ""
-OUT = os.path.join(os.path.dirname(__file__), f"../social/youtube-overlay-small{_SUF}-1080x1920.png")
+OUT = os.path.join(os.path.dirname(__file__), f"../social/youtube-overlay-xxsmall{_SUF}-1080x1920.png")
 
 def main():
     lock = gen.build_fit("stacked", "dark", tagline=True)
