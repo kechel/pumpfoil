@@ -359,7 +359,7 @@ const fi: Record<string, string> = {
   "sd.deleteSession": "Poista sessio",
   "sd.deleteFail": "Poisto epäonnistui: ",
   "sd.photoDeleteConfirm": "Poistetaanko kuva?",
-  "sd.addPhoto": "Lisää kuva",
+  "sd.addPhoto": "Kuva",
   "sd.likes": "Tykkäykset",
   "sd.share": "Jaa",
   "sd.waterBody": "Vesistö",
@@ -681,7 +681,7 @@ const fi: Record<string, string> = {
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Sessioon →",
   "meta.edit": "Kuvaus / video",
-  "meta.linkVideo": "Linkitä video",
+  "meta.linkVideo": "Video",
   "meta.errYoutube": "Vain YouTube-linkit sallittu.",
   "meta.errLen": "Enintään 30 merkkiä.",
 

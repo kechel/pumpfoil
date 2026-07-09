@@ -361,7 +361,7 @@ const de: Record<string, string> = {
   "sd.deleteSession": "Session löschen",
   "sd.deleteFail": "Löschen fehlgeschlagen: ",
   "sd.photoDeleteConfirm": "Foto löschen?",
-  "sd.addPhoto": "Foto hinzufügen",
+  "sd.addPhoto": "Foto",
   "sd.likes": "Likes",
   "sd.share": "Teilen",
   "sd.waterBody": "Gewässer",
@@ -683,7 +683,7 @@ const de: Record<string, string> = {
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Zur Session →",
   "meta.edit": "Beschriftung / Video",
-  "meta.linkVideo": "Video verlinken",
+  "meta.linkVideo": "Video",
   "meta.errYoutube": "Nur YouTube-Links erlaubt.",
   "meta.errLen": "Max. 30 Zeichen.",
 

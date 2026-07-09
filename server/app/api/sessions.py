@@ -817,7 +817,9 @@ def get_session(
     # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht — ein gezielter Lookup, kein N+1).
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
-        out.device_label = dev.label if dev and dev.label else None
+        # label kann eine lange partNumber-Gruppe sein (z. B. "fēnix® 6X Pro / 6X Sapphire / …").
+        # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
+        out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
     # Like-Zustand für die Detail-Ansicht (Web + Apps) berechnen.
     out.like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)

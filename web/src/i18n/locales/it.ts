@@ -318,7 +318,7 @@ const it: Record<string, string> = {
   "sd.deleteSession": "Elimina sessione",
   "sd.deleteFail": "Eliminazione non riuscita: ",
   "sd.photoDeleteConfirm": "Eliminare la foto?",
-  "sd.addPhoto": "Aggiungi foto",
+  "sd.addPhoto": "Foto",
   "sd.likes": "Mi piace",
   "sd.share": "Condividi",
   "sd.removeVideo": "Rimuovi video",
@@ -459,7 +459,7 @@ const it: Record<string, string> = {
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Alla sessione →",
   "meta.edit": "Didascalia / video",
-  "meta.linkVideo": "Collega video",
+  "meta.linkVideo": "Video",
 
   "feedback.title": "Feedback",
   "feedback.intro": "Un parere su pumpfoil.org? Scrivimi.",

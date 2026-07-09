@@ -337,7 +337,7 @@ const en: Record<string, string> = {
   "sd.deleteSession": "Delete session",
   "sd.deleteFail": "Delete failed: ",
   "sd.photoDeleteConfirm": "Delete photo?",
-  "sd.addPhoto": "Add photo",
+  "sd.addPhoto": "Photo",
   "sd.likes": "Likes",
   "sd.share": "Share",
   "sd.waterBody": "Water body",
@@ -617,7 +617,7 @@ const en: Record<string, string> = {
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "To the session →",
   "meta.edit": "Caption / video",
-  "meta.linkVideo": "Link video",
+  "meta.linkVideo": "Video",
   "meta.errYoutube": "Only YouTube links allowed.",
   "meta.errLen": "Max. 30 characters.",
 

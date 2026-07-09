@@ -134,6 +134,10 @@ export default function App() {
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 2: Wie es funktioniert
         </NavLink>
+        <NavLink to="/nerd-analysen-3" end title="Doppeluhr-Messung: aktuelle Ergebnisse (Pump-/Glide-Wahrheit)"
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          ↳ Teil 3: Doppeluhr-Messung
+        </NavLink>
         <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           <ServerIcon className="h-4 w-4" /> Systemarchitektur
