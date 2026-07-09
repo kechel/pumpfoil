@@ -279,8 +279,13 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             if pts.size >= 1:
                 ps = np.sort(pts)
                 gaps = list(np.diff(ps) / 1000.0)               # zwischen den Pumps
-                lead = (float(ps[0]) - seg["t_start_ms"]) / 1000.0   # Start -> 1. Pump
-                tail = (seg["t_end_ms"] - float(ps[-1])) / 1000.0    # letzter Pump -> Ende/Sturz
+                # Gleitphasen NUR über den accel-abgedeckten Bereich [a_lo, a_hi]: bricht die
+                # Accel-Spur vor dem GPS-Lauf ab (verkürzte/abgebrochene Aufzeichnung), darf der
+                # accel-lose Schwanz NICHT als riesige Gleitphase zählen (Befund Session 521).
+                acc_start_ms = a_lo / fs * 1000.0
+                acc_end_ms = a_hi / fs * 1000.0
+                lead = (float(ps[0]) - acc_start_ms) / 1000.0   # Accel-Start -> 1. Pump
+                tail = (acc_end_ms - float(ps[-1])) / 1000.0    # letzter Pump -> Accel-Ende
                 glides = [g for g in ([lead] + gaps + [tail]) if g > 0]
                 seg["num_glides"] = len(glides)
                 seg["avg_glide_s"] = round(float(np.mean(glides)), 2) if glides else 0.0
