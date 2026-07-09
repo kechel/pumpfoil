@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "../i18n";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 // Diktier-Button: Browser-Spracherkennung (Web Speech API). Während des Sprechens läuft eine
 // Vollbild-Vorschau (große Schrift, Auto-Scroll); erst beim Stoppen wandert das fertige
@@ -43,6 +44,9 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   useEffect(() => { if (!err) return; const id = setTimeout(() => setErr(""), 6000); return () => clearTimeout(id); }, [err]);
   // Vollbild-Vorschau immer ans untere Ende scrollen (aktuellen Abschnitt zeigen).
   useEffect(() => { const el = scrollRef.current; if (el) el.scrollTop = el.scrollHeight; }, [preview]);
+  // Zurück-Geste während des Diktats: nicht die Seite/den Chat verlassen, sondern wie „Bearbeiten"
+  // den bisher diktierten Text ins Feld übernehmen (kein Abbrechen, kein Auto-Senden).
+  useCloseOnBack(listening, () => endWith("edit"));
 
   if (!SR) return null;
 
