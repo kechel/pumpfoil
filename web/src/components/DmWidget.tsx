@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
 import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
@@ -77,6 +77,25 @@ export function DmWidget() {
 
   const back = () => { setActive(null); loadRooms(); };
   const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
+
+  // Mobile: Zurück-Geste schließt das Chat-Overlay wie ein Popup (erst offener Chat → Liste,
+  // dann Panel zu), statt die PWA zu verlassen. Ein History-Eintrag je offener Ebene; beim
+  // Schließen per Button wird der Eintrag zurückgenommen.
+  const backRef = useRef<() => void>(() => {});
+  backRef.current = () => {
+    if (active) { back(); window.history.pushState({ __overlay: true }, ""); }
+    else setOpen(false);
+  };
+  useEffect(() => {
+    if (!open) return;
+    window.history.pushState({ __overlay: true }, "");
+    const onPop = () => backRef.current();
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if ((window.history.state as any)?.__overlay) window.history.back();
+    };
+  }, [open]);
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
