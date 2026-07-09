@@ -191,11 +191,15 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     const cv = canvasRef.current; if (!cv) return;
     let file: File;
     try {
-      const dataUrl = cv.toDataURL("image/png");   // wirft SecurityError bei verunreinigtem Canvas
+      // JPEG statt PNG: das Canvas ist deckend (Foto/Navy-Hintergrund) -> JPEG ist um ein
+      // Vielfaches kleiner (PNG eines Fotos = mehrere MB -> Ziel-Apps wie WhatsApp scheitern
+      // an der Übergabe). Qualität 0.92 reicht für die Share-Card. toDataURL wirft SecurityError
+      // bei verunreinigtem Canvas.
+      const dataUrl = cv.toDataURL("image/jpeg", 0.92);
       const b64 = dataUrl.split(",")[1] || "";
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
       if (bytes.length === 0) { setShareErr(t("share.errImage")); return; }
-      file = new File([bytes], `pumpfoil-${sessionId}.png`, { type: "image/png" });
+      file = new File([bytes], `pumpfoil-${sessionId}.jpg`, { type: "image/jpeg" });
     } catch (e) {
       const err = e as { message?: string };
       setShareErr(`${t("share.errImage")}${err?.message ? " (" + err.message + ")" : ""}`);
@@ -204,7 +208,9 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
     if (nav.canShare && nav.canShare({ files: [file] })) {
       setBusy(true);
-      nav.share({ files: [file], title: "pumpfoil.org" } as ShareData)
+      // NUR die Datei teilen (kein title/text) — manche Ziel-Apps (WhatsApp) verhaspeln sich
+      // beim Routing, wenn Datei UND Text zusammen kommen.
+      nav.share({ files: [file] } as ShareData)
         .catch((e: { name?: string; message?: string }) => {
           if (e?.name !== "AbortError") setShareErr(`${e?.name || "Error"}: ${e?.message || String(e)}`);
         })
