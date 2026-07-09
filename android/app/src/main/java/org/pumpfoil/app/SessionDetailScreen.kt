@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -341,6 +342,27 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         }
         s.placeWater?.takeIf { it.isNotBlank() && it != s.placeName }?.let {
             Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        // Start–End-Zeit + Dauer (wie Web); End-Zeit kommt vom Server (ggf. aus letztem GPS abgeleitet).
+        run {
+            val sMs = epochMs(s.startedAt); val eMs = epochMs(s.endedAt)
+            if (sMs != null && eMs != null && eMs > sMs) {
+                val secs = ((eMs - sMs) / 1000).toInt()
+                val dur = if (secs >= 3600) "%d:%02d h".format(secs / 3600, (secs % 3600) / 60)
+                          else "%d:%02d min".format(secs / 60, secs % 60)
+                val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
+                Text("${hhmmLoc(s.startedAt)} – ${hhmmLoc(s.endedAt)}$oc · ${I18n.t("sd.duration")} $dur",
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        // Uhr-Badge: mit welcher Uhr aufgenommen.
+        s.deviceLabel?.takeIf { it.isNotBlank() }?.let {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Watch, contentDescription = null, modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(4.dp))
+                Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         if (caption.isNotBlank()) Text(caption)
         if (s.owned) {
@@ -867,3 +889,8 @@ private fun epochMs(iso: String?): Long? = iso?.let {
     try { java.time.OffsetDateTime.parse(it).toInstant().toEpochMilli() } catch (_: Exception) { null }
 }
 private fun mmss(sec: Float): String = "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())
+// HH:mm in der Zeitzone der Aufnahme (Offset aus dem ISO-String).
+private fun hhmmLoc(iso: String?): String = iso?.let {
+    try { java.time.OffsetDateTime.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) }
+    catch (_: Exception) { null }
+} ?: ""

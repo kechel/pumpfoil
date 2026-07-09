@@ -31,6 +31,7 @@ data class SessionSummary(
     @SerialName("photo_count") val photoCount: Int = 0,
     @SerialName("track_preview") val trackPreview: String? = null,
     val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
+    @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
     val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
 )
 
@@ -68,6 +69,7 @@ data class CommunityItem(
     @SerialName("thumb_url") val thumbUrl: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
+    @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
 )
 
 @Serializable
@@ -371,6 +373,7 @@ data class SessionDetail(
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt
+    @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
 )
 
 @Serializable

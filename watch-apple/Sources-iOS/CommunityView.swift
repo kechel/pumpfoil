@@ -351,8 +351,11 @@ struct CommunityRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.name ?? dateText).font(.headline)
                     if item.name != nil { Text(dateText).font(.caption).foregroundStyle(.secondary) }
-                    if let spot = item.spot, !spot.isEmpty {
-                        HStack(spacing: 6) { sessionPill(spot) }
+                    if (item.spot?.isEmpty == false) || (item.device_label?.isEmpty == false) {
+                        HStack(spacing: 6) {
+                            if let spot = item.spot, !spot.isEmpty { sessionPill(spot) }
+                            if let dl = item.device_label, !dl.isEmpty { sessionPill(dl) }
+                        }
                     }
                     if let cap = item.caption, !cap.isEmpty {
                         Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)

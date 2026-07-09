@@ -263,7 +263,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                     Text(prettyDate(s.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
-                    val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel)
+                    val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel, s.deviceLabel?.takeIf { it.isNotBlank() })
                     if (chips.isNotEmpty()) {
                         Row(Modifier.padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             chips.forEach { Pill(it) }
@@ -410,8 +410,9 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                         Text(prettyDate(c.startedAt), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    c.spot?.takeIf { it.isNotBlank() }?.let {
-                        Row(Modifier.padding(top = 3.dp)) { Pill(it) }
+                    val cchips = listOfNotNull(c.spot?.takeIf { it.isNotBlank() }, c.deviceLabel?.takeIf { it.isNotBlank() })
+                    if (cchips.isNotEmpty()) {
+                        Row(Modifier.padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { cchips.forEach { Pill(it) } }
                     }
                     c.caption?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall,

@@ -27,6 +27,7 @@ struct SessionSummary: Codable, Identifiable {
     let track_preview: String?
     let foil: FoilBrief?       // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     let analysis: Analysis?    // slim: Kennzahlen für die Listenkarte
+    let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -54,6 +55,7 @@ struct CommunityItem: Codable, Identifiable {
     let thumb_url: String?
     let like_count: Int?
     let liked: Bool?
+    let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     var id: Int { session_id }
 
     var startedDate: Date? {
@@ -363,6 +365,7 @@ struct SessionDetail: Codable, Identifiable {
     let foil: Foil?        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     let analysis: Analysis?
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
+    let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

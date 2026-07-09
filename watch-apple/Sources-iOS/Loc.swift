@@ -109,6 +109,8 @@ enum Loc {
         "sessions.all": r("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
         "sessions.searchSpot": r("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
         "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
+        "sessions.oclock": r("Uhr", "Uhr", "Uhr", "", "", "", ""),
+        "sd.duration": r("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
 
         "verlauf.empty": r("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
         "verlauf.total": r("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),

@@ -196,6 +196,12 @@ struct SessionDetailView: View {
                 if let w = s.place_water, !w.isEmpty, w != s.place_name {
                     Text(w).font(.caption).foregroundStyle(.secondary)
                 }
+                if let tr = timeRangeText(s) {
+                    Text(tr).font(.caption).foregroundStyle(.secondary)
+                }
+                if let dl = s.device_label, !dl.isEmpty {
+                    Label(dl, systemImage: "applewatch").font(.caption2).foregroundStyle(.secondary)
+                }
                 if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
                 if s.owned == true {
                     Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {
@@ -388,6 +394,22 @@ struct SessionDetailView: View {
     private func dateText(_ s: SessionDetail) -> String {
         guard let d = s.startedDate else { return s.started_at }
         return d.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    // Start–End-Zeit ("08:13 – 09:45 Uhr · Dauer 1:32"); Endzeit ggf. serverseitig aus GPS.
+    private func timeRangeText(_ s: SessionDetail) -> String? {
+        guard let a = s.startedDate else { return nil }
+        let f = DateFormatter(); f.dateFormat = "HH:mm"
+        let oc = Loc.t("sessions.oclock", lang)
+        let ocSuffix = oc.isEmpty ? "" : " \(oc)"
+        if let b = s.endedDate, b > a {
+            let dur = Int(b.timeIntervalSince(a))
+            let durS = dur >= 3600
+                ? String(format: "%d:%02d:%02d", dur / 3600, (dur % 3600) / 60, dur % 60)
+                : String(format: "%d:%02d", dur / 60, dur % 60)
+            return "\(f.string(from: a)) – \(f.string(from: b))\(ocSuffix) · \(Loc.t("sd.duration", lang)) \(durS)"
+        }
+        return "\(f.string(from: a))\(ocSuffix)"
     }
 
     private func buildStats(_ a: Analysis) -> [StatItem] {

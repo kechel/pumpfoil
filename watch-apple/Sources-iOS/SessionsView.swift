@@ -290,6 +290,7 @@ struct SessionRow: View {
             let label = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
             if !label.isEmpty { c.append(label) }
         }
+        if let dl = session.device_label, !dl.isEmpty { c.append(dl) }
         return c
     }
 
