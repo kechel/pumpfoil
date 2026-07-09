@@ -912,6 +912,7 @@ const fi: Record<string, string> = {
   "profile.homespotAuto": "Automaattinen (viimeisin sessio)",
 
   "foilStats.title": "Foil-tilastot",
+  "stats.short": "Stats",
   "foilStats.hint": "Mitä arvoja millläkin foililla ajetaan (yhteisö).",
   "foilStats.none": "Ei vielä sessioita valitulla foililla.",
   "foilStats.colFoil": "Foil",

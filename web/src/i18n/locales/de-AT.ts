@@ -530,6 +530,7 @@ const deAT: Record<string, string> = {
   "profile.homespotAuto": "Automatisch (letzte Session)",
 
   "foilStats.title": "Foil-Stats",
+  "stats.short": "Stats",
   "foilStats.hint": "Wöche Werte werdn mit wöchem Foil gfahrn (Community).",
   "foilStats.none": "No kane Sessions mit dem Foil.",
   "foilStats.colFoil": "Foil",

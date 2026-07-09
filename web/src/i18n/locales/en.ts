@@ -820,6 +820,7 @@ const en: Record<string, string> = {
   "profile.homespotAuto": "Automatic (last session)",
 
   "foilStats.title": "Foil stats",
+  "stats.short": "Stats",
   "foilStats.hint": "Which numbers people achieve on which foil (community).",
   "foilStats.none": "No sessions with a chosen foil yet.",
   "foilStats.colFoil": "Foil",

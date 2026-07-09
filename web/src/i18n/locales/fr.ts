@@ -657,6 +657,7 @@ const fr: Record<string, string> = {
   "profile.homespotAuto": "Automatique (dernière session)",
 
   "foilStats.title": "Stats foils",
+  "stats.short": "Stats",
   "foilStats.hint": "Quelles valeurs sont atteintes avec quel foil (communauté).",
   "foilStats.none": "Pas encore de sessions avec un foil choisi.",
   "foilStats.colFoil": "Foil",
