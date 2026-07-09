@@ -183,26 +183,38 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     r.x = mx + (r.x - mx) * f; r.y = my + (r.y - my) * f; r.w *= f; r.h *= f; draw();
   }
 
-  async function doShare() {
-    setBusy(true); setShareErr(null);
+  // WICHTIG: synchron bleiben. Ein `await` VOR navigator.share() verbraucht (v. a. iOS/Safari)
+  // die transiente Nutzer-Aktivierung -> share() wird mit NotAllowedError abgelehnt. Daher das
+  // Bild synchron per toDataURL erzeugen (statt async toBlob) und share() direkt in der Geste rufen.
+  function doShare() {
+    setShareErr(null);
+    const cv = canvasRef.current; if (!cv) return;
+    let file: File;
     try {
-      const blob = await new Promise<Blob | null>((res) => canvasRef.current!.toBlob((b) => res(b), "image/png"));
-      if (!blob || blob.size === 0) { setShareErr(t("share.errImage")); return; }  // Canvas leer/verunreinigt
-      const file = new File([blob], `pumpfoil-${sessionId}.png`, { type: "image/png" });
-      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
-      if (nav.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: "pumpfoil.org" } as ShareData);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = file.name;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 10000);  // nicht zu früh widerrufen (Download läuft noch)
-      }
+      const dataUrl = cv.toDataURL("image/png");   // wirft SecurityError bei verunreinigtem Canvas
+      const b64 = dataUrl.split(",")[1] || "";
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      if (bytes.length === 0) { setShareErr(t("share.errImage")); return; }
+      file = new File([bytes], `pumpfoil-${sessionId}.png`, { type: "image/png" });
     } catch (e) {
-      // AbortError = Nutzer hat das Teilen-Sheet abgebrochen (kein Fehler).
-      const err = e as { name?: string; message?: string };
-      if (err?.name !== "AbortError") setShareErr(err?.message ? String(err.message) : String(e));
-    } finally { setBusy(false); }
+      const err = e as { message?: string };
+      setShareErr(`${t("share.errImage")}${err?.message ? " (" + err.message + ")" : ""}`);
+      return;
+    }
+    const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
+    if (nav.canShare && nav.canShare({ files: [file] })) {
+      setBusy(true);
+      nav.share({ files: [file], title: "pumpfoil.org" } as ShareData)
+        .catch((e: { name?: string; message?: string }) => {
+          if (e?.name !== "AbortError") setShareErr(`${e?.name || "Error"}: ${e?.message || String(e)}`);
+        })
+        .finally(() => setBusy(false));
+    } else {
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a"); a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
   }
 
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
