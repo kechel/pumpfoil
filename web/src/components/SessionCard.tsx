@@ -142,12 +142,9 @@ export function SessionCard({
             </div>
             <div className="text-sm text-slate-300">
               {startedAt && hhmm(startedAt)}
-              {startedAt && endedAt && (
-                <>
-                  {` ${t("sessions.timeTo")} `}{hhmm(endedAt)}
-                  <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>
-                </>
-              )}
+              {startedAt && endedAt && <>{` ${t("sessions.timeTo")} `}{hhmm(endedAt)}</>}
+              {startedAt && t("sessions.oclock") && ` ${t("sessions.oclock")}`}
+              {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
               {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
               {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {deviceLabel}</span>}

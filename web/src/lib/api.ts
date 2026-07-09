@@ -181,6 +181,7 @@ export type CommunityRecords = Record<string, RecordSet>;
 export interface CommunitySession {
   session_id: number;
   started_at: string | null;
+  ended_at?: string | null;
   name: string | null;
   author_new?: boolean;   // Konto jünger als 24 h -> "neu"-Badge
   avatar_url: string | null;

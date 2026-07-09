@@ -50,7 +50,7 @@ REC_COL = {
 }
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
-              S.foil_id, U.created_at, S.device_id)
+              S.foil_id, U.created_at, S.device_id, S.ended_at)
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -88,10 +88,11 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
 
 
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
-           foil_id=None, author_created_at=None, device_id=None) -> dict:
+           foil_id=None, author_created_at=None, device_id=None, ended=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
+        "ended_at": ended.isoformat() if ended else None,
         "name": uname,
         "author_new": is_new_account(author_created_at),
         "avatar_url": avatar,

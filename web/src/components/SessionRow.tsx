@@ -10,6 +10,9 @@ export function fmtDay(iso: string | null): string {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "2-digit" });
 }
+function hhmm(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
 
 function LikeButton({ id, liked0, count0 }: { id: number; liked0: boolean; count0: number }) {
   const t = useT();
@@ -93,6 +96,11 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
           </div>
           <div className="text-[11px] text-slate-400">
             {fmtDay(s.started_at)}
+            {s.started_at && (
+              <span className="ml-1">
+                · {hhmm(s.started_at)}{s.ended_at && <>{` ${t("sessions.timeTo")} `}{hhmm(s.ended_at)}</>}{t("sessions.oclock") && ` ${t("sessions.oclock")}`}
+              </span>
+            )}
             {s.device_label && <span className="ml-1 inline-flex items-center gap-1"> · <WatchIcon className="h-3 w-3" /> {s.device_label}</span>}
           </div>
           {s.caption && <div className="truncate text-[11px] italic text-slate-300">{s.caption}</div>}
