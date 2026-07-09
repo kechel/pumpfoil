@@ -30,6 +30,16 @@ function loadImg(src: string): Promise<HTMLImageElement> {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
 }
 
+// Bild als Blob laden (fetch -> objectURL -> Image). Wichtig fürs Teilen: ein per <img src>
+// direkt geladenes (u. U. vom Service-Worker gecachtes) Bild kann das Canvas „tainten" ->
+// canvas.toBlob liefert null -> leere Datei -> WhatsApp/Fotos „kein Zugriff". Ein Blob-URL-
+// Bild ist immer same-origin -> Canvas bleibt sauber.
+async function loadImgBlob(url: string): Promise<HTMLImageElement> {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`img ${r.status}`);
+  return loadImg(URL.createObjectURL(await r.blob()));
+}
+
 export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   sessionId: number; analysis: any; defaultPhoto?: string | null; onClose: () => void;
 }) {
@@ -44,6 +54,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const [cardTitle, setCardTitle] = useState("");     // optionaler eigener Titel/Text
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [shareErr, setShareErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(true);   // Vorschau wird (neu) berechnet
 
@@ -73,7 +84,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   // Session-Foto (falls vorhanden) automatisch als Hintergrund vorbelegen.
   useEffect(() => {
     if (!defaultPhoto) return;
-    loadImg(defaultPhoto).then((img) => {
+    loadImgBlob(defaultPhoto).then((img) => {
       photoRef.current = img;
       const s = Math.max(N / img.width, N / img.height);
       xf.current = { x: (N - img.width * s) / 2, y: (N - img.height * s) / 2, w: img.width * s, h: img.height * s };
@@ -173,19 +184,25 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   }
 
   async function doShare() {
-    setBusy(true);
+    setBusy(true); setShareErr(null);
     try {
-      const blob = await new Promise<Blob>((res) => canvasRef.current!.toBlob((b) => res(b!), "image/png"));
+      const blob = await new Promise<Blob | null>((res) => canvasRef.current!.toBlob((b) => res(b), "image/png"));
+      if (!blob || blob.size === 0) { setShareErr(t("share.errImage")); return; }  // Canvas leer/verunreinigt
       const file = new File([blob], `pumpfoil-${sessionId}.png`, { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
       if (nav.canShare && nav.canShare({ files: [file] })) {
         await nav.share({ files: [file], title: "pumpfoil.org" } as ShareData);
       } else {
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = file.name; a.click(); URL.revokeObjectURL(url);
+        const a = document.createElement("a"); a.href = url; a.download = file.name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);  // nicht zu früh widerrufen (Download läuft noch)
       }
-    } catch { /* abgebrochen */ }
-    finally { setBusy(false); }
+    } catch (e) {
+      // AbortError = Nutzer hat das Teilen-Sheet abgebrochen (kein Fehler).
+      const err = e as { name?: string; message?: string };
+      if (err?.name !== "AbortError") setShareErr(err?.message ? String(err.message) : String(e));
+    } finally { setBusy(false); }
   }
 
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -285,6 +302,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         <button onClick={doShare} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           <ShareIcon className="h-5 w-5" /> {busy ? "…" : t("sd.share")}
         </button>
+        {shareErr && <p className="mt-2 break-words rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">{t("share.errShare")}: {shareErr}</p>}
       </div>
     </div>,
     document.body,

@@ -1,4 +1,6 @@
 const fi: Record<string, string> = {
+  "share.errImage": "Kuvaa ei voitu luoda",
+  "share.errShare": "Jakaminen epäonnistui",
   "sd.roSpeed": "Vauhti",
   "sd.roDist": "Matka",
   "sd.roToggle": "Näytä arvot",

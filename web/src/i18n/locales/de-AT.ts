@@ -1,5 +1,7 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "share.errImage": "Bild konnte nicht erzeugt werden",
+  "share.errShare": "Teilen fehlgeschlagen",
   "sd.roSpeed": "Tempo",
   "sd.roDist": "Strecke",
   "sd.roToggle": "Werte einblenden",

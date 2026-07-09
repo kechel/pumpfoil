@@ -1,4 +1,6 @@
 const es: Record<string, string> = {
+  "share.errImage": "No se pudo crear la imagen",
+  "share.errShare": "Error al compartir",
   "sd.roSpeed": "Velocidad",
   "sd.roDist": "Distancia",
   "sd.roToggle": "Mostrar valores",

@@ -1,6 +1,8 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "share.errImage": "Bild konnte nicht erzeugt werden",
+  "share.errShare": "Teilen fehlgeschlagen",
   "sd.roSpeed": "Tempo",
   "sd.roDist": "Strecke",
   "sd.roToggle": "Werte einblenden",
