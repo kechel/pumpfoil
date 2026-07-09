@@ -389,6 +389,15 @@ def list_sessions(
             if f:
                 o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
                           "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None}
+    # Uhr-/Geräte-Bezeichnung je Session im Batch (kein N+1); nur erster Teil vor "/".
+    dids = {s.device_id for s in rows if s.device_id}
+    if dids:
+        dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+                    .filter(models.DeviceToken.id.in_(dids)).all())
+        for o, s in zip(outs, rows):
+            lbl = dmap.get(s.device_id) if s.device_id else None
+            if lbl:
+                o.device_label = lbl.split("/")[0].strip()
     # Vorschaubilder (neuestes Foto je Session) in einem Rutsch nachladen (kein N+1).
     ids = [s.id for s in rows]
     if ids:

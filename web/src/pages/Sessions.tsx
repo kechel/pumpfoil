@@ -404,6 +404,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              deviceLabel={s.device_label}
               caption={s.caption}
               avatarName={myName}
               avatarUrl={avatar}

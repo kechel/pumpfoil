@@ -107,6 +107,7 @@ export default function PersonalHome() {
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              deviceLabel={s.device_label}
               caption={s.caption}
               avatarName={profile?.display_name}
               avatarUrl={profile?.avatar_url}

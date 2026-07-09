@@ -2,7 +2,7 @@ import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
@@ -21,7 +21,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, spot, foil, caption,
+  sessionId, startedAt, endedAt, spot, foil, deviceLabel, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
 }: {
@@ -31,6 +31,7 @@ export function SessionCard({
   endedAt?: string | null;
   spot?: string | null;
   foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
+  deviceLabel?: string | null;   // Uhr-/Geräte-Bezeichnung der Aufnahme
   caption?: string | null;
   avatarName?: string | null;
   avatarUrl?: string | null;
@@ -149,6 +150,7 @@ export function SessionCard({
               )}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
               {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
+              {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {deviceLabel}</span>}
             </div>
             {stats}
           </div>
