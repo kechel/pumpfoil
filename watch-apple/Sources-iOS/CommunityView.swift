@@ -23,6 +23,7 @@ struct CommunityView: View {
     private let periods: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
+    private var periodLabel: String { Loc.t(periods.first { $0.0 == period }?.1 ?? "period.all", lang) }
     private var lbMetrics: [(String, String)] {
         [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
          ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang))]
@@ -89,7 +90,7 @@ struct CommunityView: View {
                 }
 
                 if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
-                    Section(Loc.t("community.leaderboard", lang)) {
+                    Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)") {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
                                 ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
@@ -114,7 +115,7 @@ struct CommunityView: View {
                 }
 
                 if !topLiked.isEmpty {
-                    Section(Loc.t("community.topRated", lang)) {
+                    Section("\(Loc.t("community.topRated", lang)) · \(periodLabel)") {
                         ForEach(topLiked) { s in
                             NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
                         }

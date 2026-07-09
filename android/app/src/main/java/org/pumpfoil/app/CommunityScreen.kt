@@ -199,7 +199,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Bestenliste (Rangliste je Metrik).
                         leaders?.let { lb ->
                             item {
-                                SectionHeader(I18n.t("community.leaderboard"))
+                                SectionHeader("${I18n.t("community.leaderboard")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}")
                                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     listOf(
@@ -238,7 +238,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
 
                         // Best bewertet (meiste Likes).
                         if (topLiked.isNotEmpty()) {
-                            item { SectionHeader(I18n.t("community.topRated")) }
+                            item { SectionHeader("${I18n.t("community.topRated")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
                             items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) } }
                         }
 
