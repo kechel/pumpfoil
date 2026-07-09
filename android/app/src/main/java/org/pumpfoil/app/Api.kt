@@ -379,6 +379,32 @@ object Api {
         json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/chat/blocks", null, auth = true))
     }
 
+    // Session-Übertragung an einen anderen Nutzer.
+    suspend fun transferInitiate(sessionId: Int, toUserId: Int): Transfer = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("session_id", sessionId); put("to_user_id", toUserId) }.toString()
+        json.decodeFromString(Transfer.serializer(), http("POST", "/api/transfers", body, auth = true))
+    }
+    suspend fun transfersIncoming(): List<Transfer> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(Transfer.serializer()), http("GET", "/api/transfers/incoming", null, auth = true))
+    }
+    suspend fun transferForSession(sessionId: Int): Transfer? = withContext(Dispatchers.IO) {
+        val r = http("GET", "/api/transfers/for-session/$sessionId", null, auth = true)
+        val obj = json.parseToJsonElement(r).jsonObject
+        if (obj["id"] == null) null else json.decodeFromString(Transfer.serializer(), r)
+    }
+    suspend fun transferAccept(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/transfers/$id/accept", null, auth = true)
+    }
+    suspend fun transferDecline(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/transfers/$id/decline", null, auth = true)
+    }
+    suspend fun transferCancel(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/transfers/$id", null, auth = true)
+    }
+    suspend fun transferFriends(): List<DmUser> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(DmUser.serializer()), http("GET", "/api/transfers/friends", null, auth = true))
+    }
+
     // Öffentlicher News-Banner (DB-gesteuert, kein Auth nötig).
     suspend fun newsBanner(): NewsBanner = withContext(Dispatchers.IO) {
         json.decodeFromString(NewsBanner.serializer(), http("GET", "/api/app/news", null, auth = false))

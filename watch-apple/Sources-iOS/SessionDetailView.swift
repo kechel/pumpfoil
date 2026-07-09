@@ -157,6 +157,7 @@ struct SessionDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             neighborNav
             headerRow(s)
+            if s.owned == true { TransferPickerView(sessionId: s.id) }
             youtubeCard(s)
             photosSection(s)
             trackSection(s)

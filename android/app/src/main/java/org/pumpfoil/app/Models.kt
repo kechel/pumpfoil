@@ -310,6 +310,27 @@ data class DmUser(
 )
 
 @Serializable
+data class TransferSessionBrief(
+    val id: Int,
+    val place: String? = null,
+    val water: String? = null,
+    @SerialName("started_at") val startedAt: String? = null,
+    val sport: String = "",
+    @SerialName("foiling_time_s") val foilingTimeS: Double? = null,
+)
+
+// Session-Übertragung an einen anderen Nutzer (role: sender|recipient in for-session).
+@Serializable
+data class Transfer(
+    val id: Int,
+    val status: String = "",
+    @SerialName("created_at") val createdAt: String? = null,
+    val other: DmUser? = null,
+    val session: TransferSessionBrief? = null,
+    val role: String? = null,
+)
+
+@Serializable
 data class DmOpen(
     val scope: String,
     val other: DmOther = DmOther(),

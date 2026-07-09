@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -29,8 +31,10 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Close
@@ -42,6 +46,7 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ButtonDefaults
@@ -369,6 +374,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             TextButton(onClick = { draftCaption = caption; editCaption = true }) {
                 Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
             }
+            TransferPicker(s.id)
         }
 
         // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
@@ -894,3 +900,119 @@ private fun hhmmLoc(iso: String?): String = iso?.let {
     try { java.time.OffsetDateTime.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) }
     catch (_: Exception) { null }
 } ?: ""
+
+// Session an einen anderen Nutzer übertragen (spiegelt web/TransferPicker). Zeigt sonst
+// den Status einer ausstehenden Übertragung + Zurücknehmen.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TransferPicker(sessionId: Int) {
+    val scope = rememberCoroutineScope()
+    var pending by remember(sessionId) { mutableStateOf<Transfer?>(null) }
+    var open by remember { mutableStateOf(false) }
+    var friends by remember { mutableStateOf<List<DmUser>>(emptyList()) }
+    var q by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<DmUser>>(emptyList()) }
+    var busy by remember { mutableStateOf(false) }
+    var confirmUser by remember { mutableStateOf<DmUser?>(null) }
+
+    LaunchedEffect(sessionId) {
+        val t = try { Api.transferForSession(sessionId) } catch (_: Exception) { null }
+        if (t?.role == "sender") pending = t
+    }
+    LaunchedEffect(open) { if (open) friends = try { Api.transferFriends() } catch (_: Exception) { emptyList() } }
+    LaunchedEffect(q) {
+        val s = q.trim()
+        if (s.isEmpty()) { results = emptyList(); return@LaunchedEffect }
+        kotlinx.coroutines.delay(250)
+        results = try { Api.chatSearchUsers(s) } catch (_: Exception) { emptyList() }
+    }
+
+    val p = pending
+    if (p != null) {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(I18n.t("transfer.pending").replace("{name}", p.other?.displayName ?: "?"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(1f))
+            TextButton(onClick = {
+                scope.launch { try { Api.transferCancel(p.id); pending = null } catch (_: Exception) {} }
+            }) { Text(I18n.t("transfer.cancel")) }
+        }
+        return
+    }
+
+    OutlinedButton(onClick = { open = true }) {
+        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(6.dp))
+        Text(I18n.t("transfer.action"))
+    }
+
+    if (open) {
+        ModalBottomSheet(onDismissRequest = { open = false }) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+                Text(I18n.t("transfer.title"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(I18n.t("transfer.desc"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 10.dp))
+                OutlinedTextField(
+                    value = q, onValueChange = { q = it },
+                    singleLine = true, placeholder = { Text(I18n.t("transfer.searchAll")) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val list = if (q.isBlank()) friends else results
+                if (q.isBlank() && friends.isNotEmpty()) {
+                    Text(I18n.t("transfer.friends"), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp, bottom = 2.dp))
+                }
+                Column(Modifier.fillMaxWidth().heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
+                    if (list.isEmpty()) {
+                        Text(I18n.t("transfer.noResults"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 12.dp))
+                    } else list.forEach { u ->
+                        Row(
+                            Modifier.fillMaxWidth().clickable(enabled = !busy) { confirmUser = u }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val av = Api.mediaUrl(u.avatarUrl)
+                            if (av != null) {
+                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(32.dp).clip(CircleShape))
+                            } else {
+                                Icon(Icons.Filled.Person, contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Text(u.displayName ?: "?", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    confirmUser?.let { u ->
+        AlertDialog(
+            onDismissRequest = { confirmUser = null },
+            title = { Text(I18n.t("transfer.title")) },
+            text = { Text(I18n.t("transfer.confirmSend").replace("{name}", u.displayName ?: "?")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmUser = null
+                    busy = true
+                    scope.launch {
+                        try {
+                            pending = Api.transferInitiate(sessionId, u.id)
+                            open = false; q = ""; results = emptyList()
+                        } catch (_: Exception) {}
+                        busy = false
+                    }
+                }) { Text(I18n.t("transfer.action")) }
+            },
+            dismissButton = { TextButton(onClick = { confirmUser = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+}

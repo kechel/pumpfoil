@@ -205,6 +205,25 @@ struct DmUser: Codable, Identifiable {
     let avatar_url: String?
 }
 
+struct TransferSessionBrief: Codable {
+    let id: Int
+    let place: String?
+    let water: String?
+    let started_at: String?
+    let sport: String
+    let foiling_time_s: Double?
+}
+
+// Session-Übertragung an einen anderen Nutzer (role: sender|recipient in for-session).
+struct Transfer: Codable, Identifiable {
+    let id: Int
+    let status: String
+    let created_at: String?
+    let other: DmUser?
+    let session: TransferSessionBrief?
+    var role: String? = nil
+}
+
 // Ein Spot-Chat aus /api/chat/all-spots (zum Stöbern; jeder darf reinschauen).
 struct SpotChat: Codable, Identifiable {
     let scope: String

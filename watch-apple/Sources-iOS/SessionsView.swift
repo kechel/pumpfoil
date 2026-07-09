@@ -15,6 +15,7 @@ struct SessionsView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
+    @State private var incoming: [Transfer] = []
     @State private var accelOnly = false      // wie PWA-Umschalter (Default: alle)
     @State private var filter = "pump"         // pump | other (nur eigene)
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
@@ -25,6 +26,10 @@ struct SessionsView: View {
         NavigationStack {
             List {
                 if scope == .mine {
+                    ForEach(incoming) { tr in
+                        IncomingTransferRow(tr: tr, lang: lang) { await reloadIncoming() }
+                            .listRowBackground(Color.accentColor.opacity(0.12))
+                    }
                     ForEach(suggestions) { sug in
                         NavigationLink { CompareView(preselect: Set(sug.ids)) } label: {
                             VStack(alignment: .leading, spacing: 2) {
@@ -110,13 +115,14 @@ struct SessionsView: View {
                 ToolbarItem(placement: .topBarTrailing) { SyncButton() }
             }
             .overlay { if loading && isEmpty { ProgressView() } }
-            .refreshable { await load() }
+            .refreshable { await reloadIncoming(); await load() }
             .task {
                 if homespot.isEmpty {
                     homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
                 }
                 suggestions = (try? await Api.mergeSuggestions()) ?? []
                 spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
+                await reloadIncoming()
                 await load()
             }
             // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA) — leert
@@ -132,6 +138,7 @@ struct SessionsView: View {
         }
     }
 
+    private func reloadIncoming() async { incoming = (try? await Api.transfersIncoming()) ?? [] }
     private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter)) ?? [] }
     private func loadWeather() async {
         weather = spot.isEmpty ? nil : (try? await Api.spotWeather(spot))?.weather
@@ -382,5 +389,45 @@ private func statusLabel(_ s: String) -> String {
     case "live": return "läuft"
     case "uploaded", "processing", "analyzing": return "verarbeite…"
     default: return s
+    }
+}
+
+// Eingehende Session-Übertragung an mich: ansehen / annehmen / ablehnen (spiegelt web/IncomingTransfers).
+struct IncomingTransferRow: View {
+    let tr: Transfer
+    let lang: String
+    let onDone: () async -> Void
+    @State private var busy = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("\(Loc.t("transfer.incomingTitle", lang)) · \(Loc.t("transfer.from", lang).replacingOccurrences(of: "{name}", with: tr.other?.display_name ?? "?"))")
+                .font(.subheadline).bold()
+            if let s = tr.session {
+                let sub = [s.place, s.started_at.map(prettyDay)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                if !sub.isEmpty { Text(sub).font(.caption).foregroundStyle(.secondary) }
+            }
+            HStack {
+                if let sid = tr.session?.id {
+                    NavigationLink(Loc.t("transfer.view", lang)) { SessionDetailView(id: sid) }
+                        .buttonStyle(.bordered).font(.caption)
+                }
+                Spacer()
+                Button(Loc.t("transfer.decline", lang)) {
+                    busy = true; Task { try? await Api.transferDecline(tr.id); await onDone(); busy = false }
+                }.buttonStyle(.bordered).font(.caption).disabled(busy)
+                Button(Loc.t("transfer.accept", lang)) {
+                    busy = true; Task { try? await Api.transferAccept(tr.id); await onDone(); busy = false }
+                }.buttonStyle(.borderedProminent).font(.caption).disabled(busy)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func prettyDay(_ iso: String) -> String {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let d = f.date(from: iso) ?? { f.formatOptions = [.withInternetDateTime]; return f.date(from: iso) }()
+        guard let d else { return "" }
+        return d.formatted(date: .abbreviated, time: .shortened)
     }
 }

@@ -367,6 +367,34 @@ enum Api {
     static func chatAllSpots() async throws -> [SpotChat] {
         try await request("/api/chat/all-spots", method: "GET", body: nil, auth: true)
     }
+
+    // Session-Übertragung an einen anderen Nutzer.
+    static func transferInitiate(sessionId: Int, toUserId: Int) async throws -> Transfer {
+        try await request("/api/transfers", method: "POST",
+                          body: ["session_id": sessionId, "to_user_id": toUserId], auth: true)
+    }
+    static func transfersIncoming() async throws -> [Transfer] {
+        try await request("/api/transfers/incoming", method: "GET", body: nil, auth: true)
+    }
+    static func transferForSession(_ sessionId: Int) async throws -> Transfer? {
+        // Server liefert {} wenn keine → Decode schlägt fehl → nil.
+        try? await request("/api/transfers/for-session/\(sessionId)", method: "GET", body: nil, auth: true)
+    }
+    static func transferAccept(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/transfers/\(id)/accept", method: "POST", body: nil, auth: true)
+    }
+    static func transferDecline(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/transfers/\(id)/decline", method: "POST", body: nil, auth: true)
+    }
+    static func transferCancel(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/transfers/\(id)", method: "DELETE", body: nil, auth: true)
+    }
+    static func transferFriends() async throws -> [DmUser] {
+        try await request("/api/transfers/friends", method: "GET", body: nil, auth: true)
+    }
     static func chatBlock(userId: Int) async throws {
         struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/chat/block", method: "POST", body: ["user_id": userId], auth: true)

@@ -61,6 +61,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.clip
@@ -96,6 +98,8 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
+    var incoming by remember { mutableStateOf<List<Transfer>>(emptyList()) }
+    var xferTick by remember { mutableStateOf(0) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -104,6 +108,10 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
     }
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
+    }
+    // Eingehende Session-Übertragungen an mich (nur in „Meine" anzeigen).
+    LaunchedEffect(tick, xferTick) {
+        incoming = try { Api.transfersIncoming() } catch (_: Exception) { emptyList() }
     }
     // Monats-Facetten je Filter (für den Monats-Dropdown der eigenen Sessions).
     LaunchedEffect(filter) {
@@ -208,6 +216,16 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
                     } else {
                         LazyColumn(Modifier.fillMaxSize()) {
                             error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                            if (scope == Scope.MINE && incoming.isNotEmpty()) {
+                                items(incoming, key = { "xfer-${it.id}" }) { tr ->
+                                    IncomingTransferCard(
+                                        tr,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                                        onView = { tr.session?.id?.let(onOpen) },
+                                        onDone = { xferTick++ },
+                                    )
+                                }
+                            }
                             if (scope == Scope.MINE && suggestions.isNotEmpty()) {
                                 items(suggestions) { sug ->
                                     MergeSuggestionCard(sug) {
@@ -518,6 +536,37 @@ private fun MergeSuggestionCard(sug: MergeSuggestion, onOpen: () -> Unit) {
                 Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Button(onClick = onOpen) { Text(I18n.t("merge.open")) }
+        }
+    }
+}
+
+// Eingehende Session-Übertragung an mich: ansehen / annehmen / ablehnen (spiegelt web/IncomingTransfers).
+@Composable
+fun IncomingTransferCard(tr: Transfer, modifier: Modifier = Modifier, onView: () -> Unit, onDone: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    Card(modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+        Column(Modifier.padding(12.dp)) {
+            Text("${I18n.t("transfer.incomingTitle")} · ${I18n.t("transfer.from").replace("{name}", tr.other?.displayName ?: "?")}",
+                style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            tr.session?.let { s ->
+                val sub = listOfNotNull(s.place?.takeIf { it.isNotBlank() }, s.startedAt?.let { prettyDate(it) }).joinToString(" · ")
+                if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onView, enabled = !busy) { Text(I18n.t("transfer.view")) }
+                Spacer(Modifier.weight(1f))
+                OutlinedButton(onClick = {
+                    busy = true
+                    scope.launch { try { Api.transferDecline(tr.id) } catch (_: Exception) {}; onDone() }
+                }, enabled = !busy) { Text(I18n.t("transfer.decline")) }
+                Button(onClick = {
+                    busy = true
+                    scope.launch { try { Api.transferAccept(tr.id) } catch (_: Exception) {}; onDone() }
+                }, enabled = !busy) { Text(I18n.t("transfer.accept")) }
+            }
         }
     }
 }
