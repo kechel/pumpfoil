@@ -51,7 +51,7 @@ export function TransferPicker({ sessionId }: { sessionId: number }) {
 
   if (pending) {
     return (
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-2 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
         <span>{t("transfer.pending", { name: pending.other?.display_name || "?" })}</span>
         <button onClick={cancel} className="rounded-md bg-amber-500/20 px-2 py-1 hover:bg-amber-500/30">{t("transfer.cancel")}</button>
       </div>
@@ -60,7 +60,7 @@ export function TransferPicker({ sessionId }: { sessionId: number }) {
 
   const list = q.trim() ? results : friends;
   return (
-    <div className="mt-4 flex justify-end">
+    <div className="flex">
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"

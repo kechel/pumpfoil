@@ -1147,8 +1147,58 @@ export default function SessionDetail() {
           )}
         </div>
 
-        {/* Play: Strecke über die Zeit aufzeichnen (wie beim Fahren) — gesamt oder gewählter
-            Lauf. Sitzt zwischen Karte und Legende. */}
+        {/* 1. Lauf-Auswahl direkt unter der Karte (über den Abspiel-Steuerungen). */}
+        {segs.length > 0 && (
+          <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-2" : "mt-3"}`}>
+            <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
+            <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex" title="1–9"><KeyboardIcon className="h-3.5 w-3.5" /> 1–9</span>
+            {segs.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedRun(selectedRun === i ? null : i)}
+                className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            {selectedRun != null && (
+              <button
+                onClick={() => setSelectedRun(null)}
+                className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700"
+              >
+                {t("sd.allRuns")}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 2. Skala der Farbverteilung + Geschwindigkeitsanzeige. */}
+        <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
+          <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
+          {colorMode === "speed" && (
+            <span className="flex items-center gap-1 text-xs text-slate-300">
+              <label className="mr-1 flex items-center gap-1" title={t("sd.autoScaleTitle")}>
+                <input type="checkbox" checked={autoScaleOn} onChange={(e) => toggleAuto(e.target.checked)} className="accent-brand-500" />
+                {t("sd.auto")}
+              </label>
+              {t("sd.scale")}
+              <input
+                type="number" min={0} max={50} value={speedMin} disabled={autoScaleOn}
+                onChange={(e) => saveScale(Number(e.target.value), speedMax)}
+                className="w-14 rounded bg-slate-800 px-2 py-1 text-slate-100 disabled:opacity-50"
+              />
+              –
+              <input
+                type="number" min={0} max={50} value={speedMax} disabled={autoScaleOn}
+                onChange={(e) => saveScale(speedMin, Number(e.target.value))}
+                className="w-14 rounded bg-slate-800 px-2 py-1 text-slate-100 disabled:opacity-50"
+              />
+              km/h
+            </span>
+          )}
+        </div>
+
+        {/* 3. Abspielen: Strecke über die Zeit aufzeichnen (gesamt oder gewählter Lauf). */}
         {playTimeline.length >= 2 && (
           <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-1" : "mt-2"}`}>
             <button
@@ -1200,9 +1250,30 @@ export default function SessionDetail() {
           </div>
         )}
 
-        {/* Tap-to-Label: Steuerung — nur im Tag-Modus, linksbündig direkt unter der Karte.
-            Der Ein/Aus-Schalter „Pumps taggen" sitzt rechts neben „Labeln" (siehe unten). */}
-        {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
+        {/* 4. Labeln (Pump-Marken + Label-Interface) — nur am PC, auf dem Handy komplett ausgeblendet. */}
+        <div className="hidden md:block">
+          <div className={`flex items-center gap-2 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
+            {playTimeline.length >= 2 && (owned || isAdmin) && (
+              <button
+                onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+                className={`rounded-xl px-3 py-2 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
+                title={t("sd.tapModeTitle")}
+              >
+                {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+              </button>
+            )}
+            {!fullscreen && owned && (
+              <Link
+                to={`/sessions/${session.id}/label`}
+                className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700"
+              >
+                {t("sd.label")}
+              </Link>
+            )}
+          </div>
+
+          {/* Tap-to-Label: Steuerung — nur im Tag-Modus. */}
+          {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
           <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pb-1" : "mt-1"}`}>
                 <button
                   onClick={startTagPlay}
@@ -1288,76 +1359,8 @@ export default function SessionDetail() {
           </div>
         )}
 
-        <div className={`flex flex-wrap items-center justify-between gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : ""}`}>
-          <div className="flex flex-wrap items-center gap-4">
-            <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
-            {colorMode === "speed" && (
-              <span className="flex items-center gap-1 text-xs text-slate-300">
-                <label className="mr-1 flex items-center gap-1" title={t("sd.autoScaleTitle")}>
-                  <input type="checkbox" checked={autoScaleOn} onChange={(e) => toggleAuto(e.target.checked)} className="accent-brand-500" />
-                  {t("sd.auto")}
-                </label>
-                {t("sd.scale")}
-                <input
-                  type="number" min={0} max={50} value={speedMin} disabled={autoScaleOn}
-                  onChange={(e) => saveScale(Number(e.target.value), speedMax)}
-                  className="w-14 rounded bg-slate-800 px-2 py-1 text-slate-100 disabled:opacity-50"
-                />
-                –
-                <input
-                  type="number" min={0} max={50} value={speedMax} disabled={autoScaleOn}
-                  onChange={(e) => saveScale(speedMin, Number(e.target.value))}
-                  className="w-14 rounded bg-slate-800 px-2 py-1 text-slate-100 disabled:opacity-50"
-                />
-                km/h
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {playTimeline.length >= 2 && (owned || isAdmin) && (
-              <button
-                onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-                className={`rounded-xl px-3 py-2 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
-                title={t("sd.tapModeTitle")}
-              >
-                {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
-              </button>
-            )}
-            {!fullscreen && owned && (
-              <Link
-                to={`/sessions/${session.id}/label`}
-                className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700"
-              >
-                {t("sd.label")}
-              </Link>
-            )}
-          </div>
         </div>
       </div>
-
-      {segs.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
-          <span className="mr-1 inline-flex items-center gap-1 text-[10px] text-slate-500" title="1–9"><KeyboardIcon className="h-3.5 w-3.5" /> 1–9</span>
-          {segs.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setSelectedRun(selectedRun === i ? null : i)}
-              className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          {selectedRun != null && (
-            <button
-              onClick={() => setSelectedRun(null)}
-              className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700"
-            >
-              {t("sd.allRuns")}
-            </button>
-          )}
-        </div>
-      )}
 
       {owned && <TrimEditor session={session} onSaved={setSession} />}
 
@@ -1382,10 +1385,9 @@ export default function SessionDetail() {
         </div>
       )}
 
-      {owned && <TransferPicker sessionId={session.id} />}
-
       {owned && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <TransferPicker sessionId={session.id} />
           <button
             onClick={() => {
               if (!confirm(t("sd.deleteConfirm"))) return;
