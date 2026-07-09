@@ -1,4 +1,5 @@
 const it: Record<string, string> = {
+  "share.save": "Salva",
   "share.errImage": "Impossibile creare l’immagine",
   "share.errShare": "Condivisione non riuscita",
   "sd.roSpeed": "Velocità",

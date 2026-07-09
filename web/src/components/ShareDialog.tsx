@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api, getToken } from "../lib/api";
 import { useT } from "../i18n";
-import { CloseIcon, ShareIcon, CameraIcon } from "./Icons";
+import { CloseIcon, ShareIcon, CameraIcon, DownloadIcon } from "./Icons";
 
 // Konfig-Dialog vor dem Teilen einer Session-Card. Track-Farbmodus, Stats-Auswahl
 // (leere Stats erscheinen nicht), optionales Hintergrund-Foto mit Pinch-Zoom/Verschieben.
@@ -186,41 +186,47 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   // WICHTIG: synchron bleiben. Ein `await` VOR navigator.share() verbraucht (v. a. iOS/Safari)
   // die transiente Nutzer-Aktivierung -> share() wird mit NotAllowedError abgelehnt. Daher das
   // Bild synchron per toDataURL erzeugen (statt async toBlob) und share() direkt in der Geste rufen.
-  function doShare() {
-    setShareErr(null);
-    const cv = canvasRef.current; if (!cv) return;
-    let file: File;
+  // Card synchron als JPEG-File erzeugen (deckendes Canvas -> JPEG viel kleiner als PNG).
+  // toDataURL wirft SecurityError bei verunreinigtem Canvas -> als Fehler anzeigen. null = Fehler.
+  function buildFile(): File | null {
+    const cv = canvasRef.current; if (!cv) return null;
     try {
-      // JPEG statt PNG: das Canvas ist deckend (Foto/Navy-Hintergrund) -> JPEG ist um ein
-      // Vielfaches kleiner (PNG eines Fotos = mehrere MB -> Ziel-Apps wie WhatsApp scheitern
-      // an der Übergabe). Qualität 0.92 reicht für die Share-Card. toDataURL wirft SecurityError
-      // bei verunreinigtem Canvas.
       const dataUrl = cv.toDataURL("image/jpeg", 0.92);
-      const b64 = dataUrl.split(",")[1] || "";
-      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      if (bytes.length === 0) { setShareErr(t("share.errImage")); return; }
-      file = new File([bytes], `pumpfoil-${sessionId}.jpg`, { type: "image/jpeg" });
+      const bytes = Uint8Array.from(atob(dataUrl.split(",")[1] || ""), (c) => c.charCodeAt(0));
+      if (bytes.length === 0) { setShareErr(t("share.errImage")); return null; }
+      return new File([bytes], `pumpfoil-${sessionId}.jpg`, { type: "image/jpeg" });
     } catch (e) {
       const err = e as { message?: string };
       setShareErr(`${t("share.errImage")}${err?.message ? " (" + err.message + ")" : ""}`);
-      return;
+      return null;
     }
+  }
+
+  function doShare() {
+    setShareErr(null);
+    const file = buildFile(); if (!file) return;
     const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
     if (nav.canShare && nav.canShare({ files: [file] })) {
       setBusy(true);
-      // NUR die Datei teilen (kein title/text) — manche Ziel-Apps (WhatsApp) verhaspeln sich
-      // beim Routing, wenn Datei UND Text zusammen kommen.
-      nav.share({ files: [file] } as ShareData)
+      nav.share({ files: [file] } as ShareData)  // nur Datei (kein title) — WhatsApp-Routing
         .catch((e: { name?: string; message?: string }) => {
           if (e?.name !== "AbortError") setShareErr(`${e?.name || "Error"}: ${e?.message || String(e)}`);
         })
         .finally(() => setBusy(false));
     } else {
-      const url = URL.createObjectURL(file);
-      const a = document.createElement("a"); a.href = url; a.download = file.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      doSave();
     }
+  }
+
+  // Verlässlicher Ausweg: Bild in die Galerie/Downloads speichern -> aus WhatsApp/Fotos teilen.
+  // Umgeht den Web-Share-Bug mancher Ziel-Apps (WhatsApp „Teilen fehlgeschlagen").
+  function doSave() {
+    setShareErr(null);
+    const file = buildFile(); if (!file) return;
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a"); a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -317,9 +323,14 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
           ))}
         </div>
 
-        <button onClick={doShare} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-          <ShareIcon className="h-5 w-5" /> {busy ? "…" : t("sd.share")}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={doShare} disabled={busy} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+            <ShareIcon className="h-5 w-5" /> {busy ? "…" : t("sd.share")}
+          </button>
+          <button onClick={doSave} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 font-semibold text-slate-100 hover:bg-slate-700">
+            <DownloadIcon className="h-5 w-5" /> {t("share.save")}
+          </button>
+        </div>
         {shareErr && <p className="mt-2 break-words rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">{t("share.errShare")}: {shareErr}</p>}
       </div>
     </div>,
