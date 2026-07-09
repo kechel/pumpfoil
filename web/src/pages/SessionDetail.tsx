@@ -164,14 +164,14 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           onClick={like}
           className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.liked ? "bg-rose-500/20 text-rose-600" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
         >
-          <HeartIcon className={`h-4 w-4 ${s.liked ? "" : "text-brand-400"}`} filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
+          <HeartIcon className={`h-4 w-4 ${s.liked ? "" : "text-rose-500"}`} filled={s.liked} /> <span className="tabular-nums">{s.like_count}</span> <span className="text-xs">{t("sd.likes")}</span>
         </button>
         {owned && (
           <button
             onClick={() => setShareOpen(true)}
-            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400"
           >
-            <ShareIcon className="h-4 w-4 text-brand-400" /> {t("sd.share")}
+            <ShareIcon className="h-4 w-4" /> {t("sd.share")}
           </button>
         )}
         {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} onClose={() => setShareOpen(false)} />}
