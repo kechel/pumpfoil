@@ -1,4 +1,5 @@
 const it: Record<string, string> = {
+  "sessions.oclock": "",
   "adm.reportedBy": "Segnalato da",
   "share.save": "Salva",
   "share.errImage": "Impossibile creare l’immagine",

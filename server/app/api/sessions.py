@@ -829,6 +829,12 @@ def get_session(
         # label kann eine lange partNumber-Gruppe sein (z. B. "fēnix® 6X Pro / 6X Sapphire / …").
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
+    # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
+    # Aus dem letzten GPS-Zeitstempel ableiten (nur Anzeige, nicht persistiert).
+    if out.ended_at is None and s.started_at is not None:
+        gps = storage.load_gps(s.session_uuid)
+        if gps and gps[-1] and gps[-1][0]:
+            out.ended_at = s.started_at + timedelta(milliseconds=int(gps[-1][0]))
     # Like-Zustand für die Detail-Ansicht (Web + Apps) berechnen.
     out.like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)

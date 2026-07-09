@@ -1,4 +1,5 @@
 const fr: Record<string, string> = {
+  "sessions.oclock": "",
   "adm.reportedBy": "Signalé par",
   "share.save": "Enregistrer",
   "share.errImage": "Impossible de créer l’image",

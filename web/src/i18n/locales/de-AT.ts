@@ -1,5 +1,6 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "sessions.oclock": "Uhr",
   "adm.reportedBy": "Gemeldet von",
   "share.save": "Speichern",
   "share.errImage": "Bild konnte nicht erzeugt werden",

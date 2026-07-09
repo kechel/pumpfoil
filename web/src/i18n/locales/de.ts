@@ -1,6 +1,7 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "sessions.oclock": "Uhr",
   "adm.reportedBy": "Gemeldet von",
   "share.save": "Speichern",
   "share.errImage": "Bild konnte nicht erzeugt werden",

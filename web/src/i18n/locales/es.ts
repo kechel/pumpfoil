@@ -1,4 +1,5 @@
 const es: Record<string, string> = {
+  "sessions.oclock": "",
   "adm.reportedBy": "Reportado por",
   "share.save": "Guardar",
   "share.errImage": "No se pudo crear la imagen",

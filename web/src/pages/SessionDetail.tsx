@@ -989,6 +989,7 @@ export default function SessionDetail() {
           <>
             {` ${t("sessions.timeTo")} `}
             {new Date(session.ended_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+            {t("sessions.oclock") && ` ${t("sessions.oclock")}`}
             <span className="text-slate-400"> · {t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>
           </>
         )}
