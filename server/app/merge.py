@@ -106,9 +106,17 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     ok, why = can_merge(sessions)
     if not ok:
         raise ValueError(why)
+    from datetime import timedelta
     sessions = sorted(sessions, key=lambda s: s.started_at)
     first, last = sessions[0], sessions[-1]
     hz = first.accel_hz
+    # Wall-Clock-Ende der letzten Quell-Session (nicht die kombinierte, lückenbehaftete
+    # GPS-Spur): so zeigt die gemergte Session von=erste bis=letzte korrekt an.
+    last_end = last.ended_at
+    if last_end is None and last.started_at is not None:
+        lm = storage.gps_last_ms(last.session_uuid)
+        if lm:
+            last_end = last.started_at + timedelta(milliseconds=lm)
 
     combined_gps: list = []
     accel_parts: list[tuple[int, np.ndarray]] = []
@@ -135,7 +143,7 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
 
     ns = models.Session(
         session_uuid=new_uuid, user_id=first.user_id, device_id=first.device_id,
-        sport=first.sport, started_at=first.started_at, ended_at=last.ended_at,
+        sport=first.sport, started_at=first.started_at, ended_at=last_end,
         gps_hz=first.gps_hz, accel_hz=hz, accel_scale=first.accel_scale, status="analyzed",
         place_name=first.place_name, place_water=first.place_water,
         place_lat=first.place_lat, place_lon=first.place_lon,

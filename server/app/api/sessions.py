@@ -11,7 +11,7 @@ import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import Integer, cast, func, not_, or_
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, object_session
 
 from .. import media, models, storage
 from ..analysis import maybe_auto_trim, run_analysis
@@ -92,6 +92,21 @@ def _list_ended_at(s: models.Session):
     Aus dem letzten GPS-Zeitstempel ableiten (billig, nur letzter Chunk; nicht persistiert)."""
     if s.ended_at is not None or s.started_at is None:
         return s.ended_at
+    # Gemergte Session: Ende = Wall-Clock-Ende der LETZTEN Quell-Session — NICHT die
+    # kombinierte GPS-Spur (die künstliche Lücken zwischen den Teilen enthält).
+    if (s.session_uuid or "").startswith("merge-"):
+        db = object_session(s)
+        if db is not None:
+            ends = []
+            for src in db.query(models.Session).filter(models.Session.merged_into == s.id).all():
+                if src.ended_at is not None:
+                    ends.append(src.ended_at)
+                elif src.started_at is not None:
+                    lm = storage.gps_last_ms(src.session_uuid)
+                    if lm:
+                        ends.append(src.started_at + timedelta(milliseconds=lm))
+            if ends:
+                return max(ends)
     last_ms = storage.gps_last_ms(s.session_uuid)
     return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
 
