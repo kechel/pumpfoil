@@ -87,6 +87,15 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
     )
 
 
+def _list_ended_at(s: models.Session):
+    """Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
+    Aus dem letzten GPS-Zeitstempel ableiten (billig, nur letzter Chunk; nicht persistiert)."""
+    if s.ended_at is not None or s.started_at is None:
+        return s.ended_at
+    last_ms = storage.gps_last_ms(s.session_uuid)
+    return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
+
+
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
                  sens: str | None = None) -> SessionOut:
@@ -95,7 +104,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         session_uuid=s.session_uuid,
         sport=s.sport,
         started_at=s.started_at,
-        ended_at=s.ended_at,
+        ended_at=_list_ended_at(s),
         status=s.status,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,

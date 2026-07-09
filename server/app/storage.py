@@ -88,6 +88,27 @@ def load_gps(session_uuid: str) -> list:
     return out
 
 
+def gps_last_ms(session_uuid: str) -> int | None:
+    """Letzter GPS-Zeitstempel (ms ab Start) — billig: liest NUR den letzten Chunk.
+    Für die Endzeit-Anzeige in Listen (ohne die ganze GPS-Spur zu laden)."""
+    gps_dir = session_dir(session_uuid) / "gps"
+    if not gps_dir.exists():
+        return None
+    files = sorted(gps_dir.glob("*.json"), key=lambda p: int(p.stem))
+    if not files:
+        return None
+    try:
+        data = json.loads(files[-1].read_text())
+    except (ValueError, OSError):
+        return None
+    if not data or not isinstance(data[-1], (list, tuple)) or not data[-1]:
+        return None
+    try:
+        return int(data[-1][0])
+    except (TypeError, ValueError):
+        return None
+
+
 def load_accel(session_uuid: str) -> np.ndarray:
     """Alle Accel-Chunks zu einem (N, 3) int16-Array (raw, ungeskaliert)."""
     accel_dir = session_dir(session_uuid) / "accel"
