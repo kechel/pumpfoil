@@ -6,6 +6,7 @@ import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
 import { invalidateSessionListCache } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
@@ -71,6 +72,7 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
   const [yt, setYt] = useState(youtubeUrl ?? "");
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [video, setVideo] = useState(false);  // iframe-Popup offen?
+  useCloseOnBack(video, () => setVideo(false));
 
   useEffect(() => { setYt(youtubeUrl ?? ""); }, [youtubeUrl]);
   useEffect(() => {
@@ -274,6 +276,7 @@ export default function SessionDetail() {
   const [speedMax, setSpeedMax] = useState(25);
   const [autoScaleOn, setAutoScaleOn] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
+  useCloseOnBack(fullscreen, () => setFullscreen(false));
   const [win, setWin] = useState<"1" | "3" | "5">("3");
   const [showPumps, setShowPumps] = useState(false);
   const [weightKg, setWeightKg] = useState<number | null>(null);

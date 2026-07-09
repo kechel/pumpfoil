@@ -1,4 +1,5 @@
 import { CloseIcon } from "./Icons";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 export function ytId(url: string | null | undefined): string {
@@ -17,6 +18,7 @@ export function ytId(url: string | null | undefined): string {
 // Fullscreen-Popup mit eingebettetem YouTube-Video (nocookie). Schließt per Backdrop/X.
 export function VideoModal({ url, onClose }: { url: string; onClose: () => void }) {
   const id = ytId(url);
+  useCloseOnBack(!!id, onClose);
   if (!id) return null;
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>

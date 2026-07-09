@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { Avatar } from "./ui";
 import { HeartIcon, FlagIcon, CloseIcon, ChevronIcon } from "./Icons";
 import { useT } from "../i18n";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 export interface LightboxPhoto {
   url: string;
@@ -26,6 +27,7 @@ export function Lightbox({ photos, index, onClose, onChange }: {
   onChange?: (i: number) => void;
 }) {
   const t = useT();
+  useCloseOnBack(true, onClose);
   const [i, setI] = useState(index);
   const [state, setState] = useState<Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }>>({});
 

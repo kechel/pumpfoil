@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { api, getToken } from "../lib/api";
 import { useT } from "../i18n";
 import { CloseIcon, ShareIcon, CameraIcon, DownloadIcon } from "./Icons";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 // Konfig-Dialog vor dem Teilen einer Session-Card. Track-Farbmodus, Stats-Auswahl
 // (leere Stats erscheinen nicht), optionales Hintergrund-Foto mit Pinch-Zoom/Verschieben.
@@ -44,6 +45,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   sessionId: number; analysis: any; defaultPhoto?: string | null; onClose: () => void;
 }) {
   const t = useT();
+  useCloseOnBack(true, onClose);
   const avail = availableStats(analysis);
   const hasHr = !!((analysis?.track_geojson?.properties?.hr || []).some((v: number | null) => v != null));
   const [color, setColor] = useState<"cyan" | "speed" | "hr">("cyan");

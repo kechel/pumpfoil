@@ -3,6 +3,7 @@ import { api, type DmUser, type Transfer } from "../lib/api";
 import { useT } from "../i18n";
 import { Avatar } from "./ui";
 import { SendIcon } from "./Icons";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 // „Session übertragen an …" — Besitzer gibt eine Session an einen anderen Nutzer weiter
 // (z. B. Uhr verliehen). Zeigt sonst den Status einer ausstehenden Übertragung + Zurücknehmen.
@@ -14,6 +15,7 @@ export function TransferPicker({ sessionId }: { sessionId: number }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
   const [busy, setBusy] = useState(false);
+  useCloseOnBack(open, () => setOpen(false));
 
   useEffect(() => {
     api.transferForSession(sessionId).then((r) => {

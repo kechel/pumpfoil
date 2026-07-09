@@ -4,6 +4,7 @@ import { SessionSummary } from "../lib/api";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { useT } from "../i18n";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 export interface CompareMapItem {
   key: string;
@@ -50,6 +51,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   const mapObj = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  useCloseOnBack(fullscreen, () => setFullscreen(false));
 
   // Default: nach Fahrer einfärben, wenn mehrere Fahrer dabei sind, sonst je Track.
   const riders = useMemo(() => new Set(items.map((i) => i.rider ?? "?")), [items]);
