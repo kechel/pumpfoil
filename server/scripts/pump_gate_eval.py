@@ -146,6 +146,25 @@ def _glide_max(pts_ms, t0, t1):
     return max(g) if g else 0.0
 
 
+def _load_for_analysis(s):
+    """Spiegelt run_analysis: effektive Accel-Rate + Trim (sonst falsche Ausrichtung!)."""
+    gps = storage.load_gps(s.session_uuid)
+    accel = storage.load_accel(s.session_uuid)
+    fs = float(s.accel_hz)
+    if accel.shape[0] and gps and gps[-1][0] > 0 and s.accel_hz:
+        real = accel.shape[0] / (gps[-1][0] / 1000.0)
+        if abs(real - s.accel_hz) / s.accel_hz > 0.25:
+            fs = round(real, 2)
+    ts0, ts1 = s.trim_start_ms, s.trim_end_ms
+    if (ts0 is not None or ts1 is not None) and gps:
+        lo = ts0 if ts0 is not None else 0
+        hi = ts1 if ts1 is not None else gps[-1][0]
+        a_lo = max(int(round(lo / 1000.0 * fs)), 0)
+        a_hi = min(int(round(hi / 1000.0 * fs)), accel.shape[0])
+        accel = accel[a_lo:a_hi] if a_hi > a_lo else accel[0:0]
+    return accel, fs
+
+
 def eval_db():
     db = SessionLocal()
     S, AR = models.Session, models.AnalysisResult
@@ -156,12 +175,11 @@ def eval_db():
     n = 0
     for s in sess:
         try:
-            accel = storage.load_accel(s.session_uuid)
+            accel, fs = _load_for_analysis(s)
         except Exception:
             continue
-        if accel.shape[0] < s.accel_hz * 3 or not s.result.segments_json:
+        if accel.shape[0] < fs * 3 or not s.result.segments_json:
             continue
-        fs = s.accel_hz
         vsig = bandpass_fft(vertical_against_gravity(accel, s.accel_scale, fs), fs, *FILTER_BAND)
         segs = json.loads(s.result.segments_json)
         n += 1
@@ -171,11 +189,15 @@ def eval_db():
             if a_hi <= a_lo:
                 continue
             seg = vsig[a_lo:a_hi]
+            # Gleit-Enden auf die Accel-Abdeckung begrenzen (wie run_analysis) — accel-loser
+            # Schwanz zählt NICHT als Gleit.
+            acc_start_ms = a_lo / fs * 1000.0
+            acc_end_ms = a_hi / fs * 1000.0
             for k, strat in STRATEGIES.items():
                 idx = find_pumps(seg, fs, strat)
                 pts = (a_lo + idx) / fs * 1000.0
                 agg[k]["pumps"] += idx.size
-                gm = _glide_max(pts, sg["t_start_ms"], sg["t_end_ms"])
+                gm = _glide_max(pts, acc_start_ms, acc_end_ms)
                 if gm > 5:
                     agg[k]["g5"] += 1
                 if gm > 8:
