@@ -31,6 +31,22 @@ GPS_ONLY_SPORTS = {
 MODEL_MIN_ACCEL_HZ = 15.0
 
 
+def _accel_spans_session(accel, scale) -> bool:
+    """Deckt die Accel-Spur die ganze Session ab (bis zum GPS-Ende)? Streckt die Accel auf 20
+    Zeit-Bins und vergleicht die Aktivität (|mag−median|-RMS) im letzten Abschnitt mit der Mitte.
+    Aktiv am Ende -> spannt die Session (niedrige-aber-volle Rate). Still -> abgebrochen.
+    Trennt Raten-Fehltag (samples/GPS-Dauer = wahre Rate) von echtem Aufzeichnungs-Abbruch."""
+    if accel.shape[0] < 400:
+        return True   # zu kurz für die Statistik -> nicht als Abbruch werten
+    act = np.abs(magnitude_g(accel, scale) - 1.0)
+    nb, bs = 20, accel.shape[0] // 20
+    b = np.array([np.sqrt(np.mean(act[i * bs:(i + 1) * bs] ** 2)) for i in range(nb)])
+    mid = float(np.median(b[5:15]))
+    if mid <= 1e-9:
+        return True   # praktisch keine Aktivität -> nicht als Abbruch interpretieren
+    return float(np.median(b[-3:])) / mid > 0.4
+
+
 def _gps_only_ok(sport) -> bool:
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
@@ -133,15 +149,23 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     gps_samples = storage.load_gps(session.session_uuid)
     accel = storage.load_accel(session.session_uuid)
 
-    # Effektive Accel-Rate GENERISCH aus den Daten bestimmen (quellen-unabhängig): manche Uhren
-    # liefern eine andere Rate als getaggt (FR55: real ~2,5 statt 10 Hz). Da die Accel während der
-    # Aufnahme durchläuft, ist samples/GPS-Dauer die wahre Rate. Weicht sie deutlich vom Tag ab,
-    # diese verwenden. (Bestätigt via Korrelation Accel-Aktivität↔GPS-Speed über die ganze Session.)
+    # Effektive Accel-Rate GENERISCH aus den Daten bestimmen (quellen-unabhängig): die Accel läuft
+    # während der Aufnahme mit dem GPS mit (beide ab Start-Druck), also ist samples/GPS-Dauer die
+    # WAHRE Rate — und ihre Verwendung synchronisiert Accel↔GPS exakt (Accel-Ende = GPS-Ende), damit
+    # die Pump-Positionen an den richtigen GPS-Zeitpunkten sitzen. Wichtig: das gilt nur, wenn die
+    # Accel-Spur die ganze Session abdeckt. Ist sie deutlich zu kurz bei EIGENTLICH modellfähiger
+    # Rate (abgebrochene Aufzeichnung), NICHT strecken -> getaggte Rate behalten, Accel deckt nur
+    # den Anfang ab (Rest via Accel-Abdeckungs-Cap bei den Gleitphasen).
     accel_hz = float(session.accel_hz)
     if accel.shape[0] > 0 and gps_samples and gps_samples[-1][0] > 0 and session.accel_hz:
         real_hz = accel.shape[0] / (gps_samples[-1][0] / 1000.0)
-        if abs(real_hz - session.accel_hz) / session.accel_hz > 0.25:
-            accel_hz = round(real_hz, 2)
+        # Nur strecken, wenn die Accel-Spur die ganze Session abdeckt (Aktivität bis zum
+        # Schluss der auf GPS gestreckten Zeitachse). Bricht sie vorher ab (echte abgebrochene
+        # Aufzeichnung), NICHT strecken -> getaggte Rate behalten (Accel deckt nur den Anfang ab,
+        # Rest via Accel-Abdeckungs-Cap). Unterscheidet niedrige-aber-volle Rate (FR55 2,5 Hz)
+        # von echtem Abbruch.
+        if _accel_spans_session(accel, session.accel_scale):
+            accel_hz = round(real_hz, 3)
 
     # Optionaler Zuschnitt: nur [trim_start_ms, trim_end_ms] auswerten (ms ab Start).
     # GPS aufs Fenster filtern + auf 0 re-basen, Accel index-gleich zuschneiden
