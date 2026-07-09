@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { MailIcon, CloseIcon } from "./Icons";
 import { MicButton } from "./MicButton";
 import { useT } from "../i18n";
+import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 const MAX = 500;
 
@@ -16,6 +17,7 @@ export function FeedbackWidget() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  useCloseOnBack(open, () => setOpen(false));   // Swipe/Zurück schließt das Panel (wie Abbrechen)
 
   function send() { submitText(text); }
   function submitText(raw: string) {

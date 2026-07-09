@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { api, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
 import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
@@ -75,27 +75,32 @@ export function DmWidget() {
   const openScope = (scope: string, label: string) =>
     setActive({ scope, name: label, otherId: 0, avatar: null, blocked: false });
 
-  const back = () => { setActive(null); loadRooms(); };
+  const back = () => window.history.back();   // Chat → Liste (popstate schließt die Ebene)
   const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
 
-  // Mobile: Zurück-Geste schließt das Chat-Overlay wie ein Popup (erst offener Chat → Liste,
-  // dann Panel zu), statt die PWA zu verlassen. Ein History-Eintrag je offener Ebene; beim
-  // Schließen per Button wird der Eintrag zurückgenommen.
-  const backRef = useRef<() => void>(() => {});
-  backRef.current = () => {
-    if (active) { back(); window.history.pushState({ __overlay: true }, ""); }
-    else setOpen(false);
-  };
+  // Mobile: Zurück-/Swipe-Geste schließt das Chat-Overlay wie ein Popup — erst den offenen
+  // Chat (zurück zur Liste), dann das Panel; erst danach verlässt man die Seite. Ein
+  // History-Marker JE OFFENER EBENE, gesetzt beim Öffnen (Tiefe in state.__ov). popstate
+  // gleicht die UI-Tiefe an die History-Position an; alle Schließen-Aktionen laufen über die
+  // History (history.back/go), damit popstate die einzige Schließ-Quelle bleibt.
+  const chatOpen = open && !!active;
+  const closeOverlay = () => window.history.go(-(active ? 2 : 1));
+
   useEffect(() => {
     if (!open) return;
-    window.history.pushState({ __overlay: true }, "");
-    const onPop = () => backRef.current();
-    window.addEventListener("popstate", onPop);
-    return () => {
-      window.removeEventListener("popstate", onPop);
-      if ((window.history.state as any)?.__overlay) window.history.back();
+    window.history.pushState({ __ov: 1 }, "");
+    const onPop = () => {
+      const depth = (window.history.state as { __ov?: number } | null)?.__ov ?? 0;
+      if (depth < 2) { setActive(null); loadRooms(); }
+      if (depth < 1) setOpen(false);
     };
-  }, [open]);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!chatOpen) return;
+    window.history.pushState({ __ov: 2 }, "");
+  }, [chatOpen]);
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
@@ -151,7 +156,7 @@ export function DmWidget() {
 
   return (
     <>
-      <button onClick={() => setOpen((o) => !o)} aria-label={t("dm.title")} title={t("dm.title")}
+      <button onClick={() => (open ? closeOverlay() : setOpen(true))} aria-label={t("dm.title")} title={t("dm.title")}
         className="fixed bottom-20 right-4 z-[1490] flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-slate-950 shadow-lg transition-colors hover:bg-brand-400 md:bottom-4">
         <ChatBubbleIcon className="h-6 w-6" />
         {unreadTotal > 0 && (
@@ -188,7 +193,7 @@ export function DmWidget() {
                   className={`flex-1 rounded-md px-2 py-1 ${tab === "spots" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabSpots")}</button>
               </div>
             )}
-            <button onClick={() => setOpen(false)} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
+            <button onClick={closeOverlay} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
           </div>
 
           {active ? (
