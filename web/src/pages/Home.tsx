@@ -371,35 +371,37 @@ function CommunitySection() {
 function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean }) {
   const t = useT();
   const [spots, setSpots] = useState<{ mine: string[]; all: string[] } | null>(null);
-  const [shown, setShown] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
   const [recs, setRecs] = useState<Record<string, RecordSet>>({});
   const [q, setQ] = useState("");
 
   // Spot-Liste immer vollständig (auch GPS-only) laden, damit man ALLE Spots findet;
   // die Rekorde/Sessions je Spot respektieren weiterhin den accel|alle-Umschalter.
+  // Default: der eigene Homespot (aus den Einstellungen) — sonst nichts.
   useEffect(() => {
-    api.communitySpots(false).then((s) => { setSpots(s); setShown(s.mine); }).catch(() => {});
+    api.communitySpots(false).then(setSpots).catch(() => {});
+    api.getSettings().then((s) => {
+      const hs = typeof s.homespot === "string" ? s.homespot : "";
+      setSelected(hs || null);
+    }).catch(() => {});
   }, []);
 
-  // Rekorde je Spot für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
+  // Rekorde des gewählten Spots für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
   useEffect(() => {
-    shown.forEach((sp) => {
-      const key = `${accelOnly}:${period}:${sp}`;
-      if (!(key in recs)) {
-        api.spotRecords(sp, period, accelOnly).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
-      }
-    });
-  }, [shown, period, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!selected) return;
+    const key = `${accelOnly}:${period}:${selected}`;
+    if (!(key in recs)) {
+      api.spotRecords(selected, period, accelOnly).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
+    }
+  }, [selected, period, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!spots) return null;
 
-  const addSpot = (sp: string) => {
-    setShown((prev) => (prev.includes(sp) ? prev : [sp, ...prev]));
-    setQ("");
-  };
+  const pick = (sp: string) => { setSelected(sp); setQ(""); };   // ersetzt (immer nur EIN Spot)
   const matches = q.trim()
-    ? spots.all.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase()) && !shown.includes(s)).slice(0, 6)
+    ? spots.all.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase()) && s !== selected).slice(0, 6)
     : [];
+  const others = spots.all.filter((s) => s !== selected);
 
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
   return (
@@ -418,7 +420,7 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
         {matches.length > 0 && (
           <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
             {matches.map((m) => (
-              <button key={m} onClick={() => addSpot(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
+              <button key={m} onClick={() => pick(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
                 <LocationIcon className="h-4 w-4 text-slate-400" /> {m}
               </button>
             ))}
@@ -426,38 +428,27 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
         )}
       </div>
 
-      {/* Dropdown zum Durchsehen aller Spots (bis es zu viele werden). */}
-      {spots.all.filter((s) => !shown.includes(s)).length > 0 && (
+      {/* Dropdown zum Durchsehen aller Spots. */}
+      {others.length > 0 && (
         <div className="mb-4 max-w-xs">
           <select
             value=""
-            onChange={(e) => { if (e.target.value) addSpot(e.target.value); }}
+            onChange={(e) => { if (e.target.value) pick(e.target.value); }}
             className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
             <option value="">{t("home.spotPick")}</option>
-            {spots.all.filter((s) => !shown.includes(s)).map((s) => <option key={s} value={s}>{s}</option>)}
+            {others.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
       )}
 
-      {shown.length === 0 ? (
-        <p className="text-sm text-slate-400">{t("home.noSpots")}</p>
-      ) : (
-        <div className="space-y-5">
-          {shown.map((sp) => (
-            <div key={sp}>
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 font-semibold text-brand-300"><LocationIcon className="h-4 w-4" /> {sp}</span>
-                {!spots.mine.includes(sp) && (
-                  <button onClick={() => setShown((prev) => prev.filter((x) => x !== sp))} className="text-xs text-slate-400 hover:text-slate-200">
-                    {t("home.remove")}
-                  </button>
-                )}
-              </div>
-              <RecordGrid rec={recs[`${accelOnly}:${period}:${sp}`]} />
-              <SpotSessions spot={sp} accelOnly={accelOnly} />
-            </div>
-          ))}
+      {selected && (
+        <div>
+          <div className="mb-1.5 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 font-semibold text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
+          </div>
+          <RecordGrid rec={recs[`${accelOnly}:${period}:${selected}`]} />
+          <SpotSessions spot={selected} accelOnly={accelOnly} />
         </div>
       )}
     </div>
