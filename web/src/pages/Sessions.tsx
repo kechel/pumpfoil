@@ -492,6 +492,7 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
               key={s.session_id}
               sessionId={s.session_id}
               startedAt={s.started_at}
+              endedAt={s.ended_at}
               spot={s.spot}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
               deviceLabel={s.device_label}
