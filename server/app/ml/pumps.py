@@ -105,7 +105,11 @@ def find_pumps_local(filt_run: np.ndarray, fs: float,
 # scripts/pump_cadence_peaks.py. Physische Endkalibrierung spaeter via Insta360 X5.
 PUMP_CAD_WIN_S = 4.0            # Fenster fuer die lokale Kadenz-Schaetzung (s)
 PUMP_CAD_BAND = (0.8, 2.0)     # plausible Pump-Kadenz (Hz)
-PUMP_CAD_GATE = 0.02           # RMS-Gate: rhythmisch+energiereich (g, bandpass)
+PUMP_CAD_GATE = 0.012          # RMS-Gate: rhythmisch+energiereich (g, bandpass). 0.02 war zu
+                               # hoch für leichte/sanfte Fahrer -> ganze Pump-Abschnitte als
+                               # "Gleit" verworfen (Befund Session 521 Alex). 0.012 verifiziert:
+                               # Ground-Truth-Ratio 1.05->1.07 (~unverändert), aber Lang-Gleiter
+                               # populationsweit 93->37 (glide>5s). Siehe scripts/pump_gate_eval.py.
 
 
 def _dom_pump_freq(seg: np.ndarray, fs: float, blo: float, bhi: float) -> float:
