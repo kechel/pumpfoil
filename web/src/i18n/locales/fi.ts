@@ -1,4 +1,5 @@
 const fi: Record<string, string> = {
+  "adm.reportedBy": "Ilmoittanut",
   "share.save": "Tallenna",
   "share.errImage": "Kuvaa ei voitu luoda",
   "share.errShare": "Jakaminen epäonnistui",

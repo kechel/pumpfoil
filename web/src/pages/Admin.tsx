@@ -322,6 +322,17 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "all" | "deleted" 
                   </>
                 )}
               </div>
+              {s.reporters && s.reporters.length > 0 && (
+                <div className="basis-full border-t border-slate-800 pt-2 text-[11px] text-slate-400">
+                  {t("adm.reportedBy")}:{" "}
+                  {s.reporters.map((r, i) => (
+                    <span key={i} className="mr-3 inline-block">
+                      {r.kind === "fake" ? <FakeIcon className="inline h-3 w-3 text-amber-400" /> : <FlagIcon className="inline h-3 w-3 text-red-400" />}{" "}
+                      <span className="text-slate-300">{r.name || "—"}</span> <span className="text-slate-500">({fmtDate(r.at)})</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </Card>
           ))}
         </div>

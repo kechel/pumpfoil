@@ -39,6 +39,15 @@ def _session_brief(db: Session, s: models.Session, u: models.User | None) -> dic
                    .filter_by(session_id=s.id, kind=kind).scalar() or 0)
     likes = int(db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     nphotos = int(db.query(func.count()).select_from(models.SessionPhoto).filter_by(session_id=s.id).scalar() or 0)
+    # Wer hat gemeldet (und wann)? Aus den Moderations-Votes (inappropriate/fake).
+    reporters = [
+        {"name": ru.display_name if ru else None, "kind": v.kind,
+         "at": v.created_at.isoformat() if v.created_at else None}
+        for v, ru in (db.query(models.SessionVote, models.User)
+                      .join(models.User, models.SessionVote.user_id == models.User.id)
+                      .filter(models.SessionVote.session_id == s.id)
+                      .order_by(models.SessionVote.created_at.desc()).all())
+    ]
     return {
         "session_id": s.id,
         "started_at": s.started_at.isoformat() if s.started_at else None,
@@ -54,6 +63,7 @@ def _session_brief(db: Session, s: models.Session, u: models.User | None) -> dic
         "fake": vc("fake"),
         "likes": likes,
         "photos": nphotos,
+        "reporters": reporters,
     }
 
 

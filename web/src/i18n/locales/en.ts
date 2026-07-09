@@ -1,4 +1,5 @@
 const en: Record<string, string> = {
+  "adm.reportedBy": "Reported by",
   "share.save": "Save",
   "share.errImage": "Could not create image",
   "share.errShare": "Sharing failed",

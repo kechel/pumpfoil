@@ -339,6 +339,7 @@ export interface AdminSession {
   fake: number;
   likes: number;
   photos: number;
+  reporters?: { name: string | null; kind: string; at: string | null }[];
 }
 
 export interface RawData {

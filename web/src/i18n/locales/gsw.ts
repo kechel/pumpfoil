@@ -1,5 +1,6 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
+  "adm.reportedBy": "Gmäldet vo",
   "share.save": "Speichere",
   "share.errImage": "Bild het nöd chöne erstellt werde",
   "share.errShare": "Teile fehlgschlage",
