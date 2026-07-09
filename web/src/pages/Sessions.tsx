@@ -494,6 +494,7 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
               startedAt={s.started_at}
               spot={s.spot}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              deviceLabel={s.device_label}
               caption={s.caption}
               name={s.name}
               avatarName={s.name}

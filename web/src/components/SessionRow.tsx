@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { HeartIcon, LocationIcon, CompareIcon } from "./Icons";
+import { HeartIcon, LocationIcon, CompareIcon, WatchIcon } from "./Icons";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
@@ -91,7 +91,10 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
             {showSpot && s.spot && <span className="inline-flex items-center gap-1 text-slate-200"><LocationIcon className="h-3.5 w-3.5" /> {s.spot}</span>}
             {!(showName && s.name) && !(showSpot && s.spot) && <span className="text-slate-300">{t("row.session")}</span>}
           </div>
-          <div className="text-[11px] text-slate-400">{fmtDay(s.started_at)}</div>
+          <div className="text-[11px] text-slate-400">
+            {fmtDay(s.started_at)}
+            {s.device_label && <span className="ml-1 inline-flex items-center gap-1"> · <WatchIcon className="h-3 w-3" /> {s.device_label}</span>}
+          </div>
           {s.caption && <div className="truncate text-[11px] italic text-slate-300">{s.caption}</div>}
         </div>
         <div className="flex shrink-0 items-center gap-3 text-right text-xs tabular-nums">

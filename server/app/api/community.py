@@ -50,7 +50,7 @@ REC_COL = {
 }
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
-              S.foil_id, U.created_at)
+              S.foil_id, U.created_at, S.device_id)
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -88,7 +88,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
 
 
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
-           foil_id=None, author_created_at=None) -> dict:
+           foil_id=None, author_created_at=None, device_id=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
@@ -103,6 +103,8 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "max_speed_mps": max_speed,
         "foil_id": foil_id,
         "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
+        "device_id": device_id,
+        "device_label": None,  # in _attach_social aufgelöst (Uhr-Bezeichnung)
     }
 
 
@@ -450,6 +452,10 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     if fids:
         fmap = {f.id: {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size}
                 for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
+    # Uhr-/Geräte-Bezeichnung im Batch (nur erster Teil vor "/").
+    dids = {b.get("device_id") for b in briefs if b.get("device_id")}
+    dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+                .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
     for b in briefs:
         sid = b["session_id"]
         b["like_count"] = int(likes.get(sid, 0))
@@ -457,6 +463,8 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
         b["photo_count"] = pc.get(sid, 0)
         b["thumb_url"] = thumb.get(sid)
         b["foil"] = fmap.get(b.get("foil_id"))
+        lbl = dmap.get(b.get("device_id"))
+        b["device_label"] = lbl.split("/")[0].strip() if lbl else None
     return briefs
 
 
