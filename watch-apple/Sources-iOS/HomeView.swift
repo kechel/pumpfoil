@@ -33,6 +33,7 @@ struct HomeView: View {
     @AppStorage("rating_min_count") private var ratingMinCount = 0
     @AppStorage("rating_fb_count") private var ratingFbCount = 0
     @State private var showRating = false
+    @State private var incomingXfer = 0
     private var showBanner: Bool { if let n = news { return n.enabled && n.version > newsVerStored } else { return false } }
 
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
@@ -49,6 +50,22 @@ struct HomeView: View {
                         ? Loc.t("phome.hello", lang).replacingOccurrences(of: "{name}", with: session.profile!.display_name!)
                         : Loc.t("nav.home", lang)
                     Text(hello).font(.title2).bold()
+
+                    // Hinweis auf eingehende Session-Übertragungen (Annehmen in „Meine Sessions").
+                    if incomingXfer > 0 {
+                        NavigationLink { SessionsView() } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "paperplane.fill").foregroundStyle(Color.accentColor)
+                                Text(Loc.t("transfer.homeHint", lang)).font(.subheadline)
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.12)))
+                        }
+                        .buttonStyle(.plain)
+                    }
 
                     if let st = stats {
                         // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
@@ -307,6 +324,7 @@ struct HomeView: View {
         rooms = ((try? await Api.chatRooms()) ?? []).filter { $0.kind != "dm" }   // DMs laufen im Chat-Tab
         let hs = (try? await Api.settings())?["homespot"] as? String
         if let hs, !hs.isEmpty { weather = (try? await Api.spotWeather(hs))?.weather } else { weather = nil }
+        incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
     }
 }
 

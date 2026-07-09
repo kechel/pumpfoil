@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.filled.Forum
@@ -89,6 +90,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     val showBanner = news?.let { it.enabled && it.version > newsVer } ?: false
     var showFeedback by remember { mutableStateOf(false) }
     var showRating by remember { mutableStateOf(false) }
+    var incomingXfer by remember { mutableStateOf(0) }
     val tick by WatchSync.tick.collectAsState()
 
     if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
@@ -133,6 +135,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
     }
 
     LaunchedEffect(Unit) { news = runCatching { Api.newsBanner() }.getOrNull() }
+    LaunchedEffect(tick) { incomingXfer = try { Api.transfersIncoming().size } catch (_: Exception) { 0 } }
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.
     LaunchedEffect(Unit) {
         try {
@@ -210,6 +213,23 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
             Text(hello, style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(10.dp))
+
+            // Hinweis auf eingehende Session-Übertragungen (Details/Annehmen in „Meine Sessions").
+            if (incomingXfer > 0) {
+                Card(
+                    Modifier.fillMaxWidth().clickable { onOpenSessions() },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(I18n.t("transfer.homeHint"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        Text("→", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
 
             stats?.let { st ->
                 // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
