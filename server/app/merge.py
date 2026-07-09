@@ -70,6 +70,11 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
         r = s.result
         if not (r and (r.num_runs or 0) > 0):
             return False, "keine On-Foil-Erkennung"
+    # Nur Sessions DERSELBEN Uhr zusammenführen (gleiche device_id). Verhindert das Verschmelzen
+    # paralleler Aufnahmen verschiedener Uhren (z. B. Dual-Watch-Experiment) — auch wenn die Raten
+    # zufällig gleich wären. None (z. B. importierte Sessions) gilt als eigene Gruppe.
+    if len({s.device_id for s in sessions}) > 1:
+        return False, "verschiedene Uhren/Geraete"
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
         return False, "unterschiedliche Geraete-Raten"
@@ -217,7 +222,8 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
         if not chain:
             chain = [s]; continue
         gap = (s.started_at - _end(chain[-1])).total_seconds()
-        if 0 <= gap <= AUTO_MAX_GAP_S and s.accel_hz == chain[-1].accel_hz and _same_spot(s, chain[-1]):
+        if 0 <= gap <= AUTO_MAX_GAP_S and s.device_id == chain[-1].device_id \
+                and s.accel_hz == chain[-1].accel_hz and _same_spot(s, chain[-1]):
             chain.append(s)
         else:
             if len(chain) >= 2:
