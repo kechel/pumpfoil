@@ -110,13 +110,21 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     sessions = sorted(sessions, key=lambda s: s.started_at)
     first, last = sessions[0], sessions[-1]
     hz = first.accel_hz
-    # Wall-Clock-Ende der letzten Quell-Session (nicht die kombinierte, lückenbehaftete
-    # GPS-Spur): so zeigt die gemergte Session von=erste bis=letzte korrekt an.
-    last_end = last.ended_at
-    if last_end is None and last.started_at is not None:
-        lm = storage.gps_last_ms(last.session_uuid)
-        if lm:
-            last_end = last.started_at + timedelta(milliseconds=lm)
+
+    # Frühestes Anfangs- + spätestes Enddatum über ALLE Quellen (Wall-Clock, nicht die
+    # kombinierte lückenbehaftete GPS-Spur). Ende je Quelle mit GPS-Fallback.
+    def _src_end(src):
+        if src.ended_at is not None:
+            return src.ended_at
+        if src.started_at is not None:
+            lm = storage.gps_last_ms(src.session_uuid)
+            if lm:
+                return src.started_at + timedelta(milliseconds=lm)
+        return None
+    starts = [x.started_at for x in sessions if x.started_at is not None]
+    ends = [e for e in (_src_end(x) for x in sessions) if e is not None]
+    first_start = min(starts) if starts else first.started_at
+    last_end = max(ends) if ends else None
 
     combined_gps: list = []
     accel_parts: list[tuple[int, np.ndarray]] = []
@@ -143,7 +151,7 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
 
     ns = models.Session(
         session_uuid=new_uuid, user_id=first.user_id, device_id=first.device_id,
-        sport=first.sport, started_at=first.started_at, ended_at=last_end,
+        sport=first.sport, started_at=first_start, ended_at=last_end,
         gps_hz=first.gps_hz, accel_hz=hz, accel_scale=first.accel_scale, status="analyzed",
         place_name=first.place_name, place_water=first.place_water,
         place_lat=first.place_lat, place_lon=first.place_lon,

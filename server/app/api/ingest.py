@@ -187,6 +187,13 @@ def complete_session(
     s = _get_owned_session(db, device, session_uuid)
     if body.ended_at is not None:
         s.ended_at = body.ended_at
+    # Fehlt die Endzeit (Uhr schickt sie nicht / Aufnahme abgebrochen), aus dem letzten
+    # GPS-Zeitstempel ableiten und PERSISTIEREN — so haben alle Uploads eine Endzeit.
+    if s.ended_at is None and s.started_at is not None:
+        from datetime import timedelta
+        lm = storage.gps_last_ms(s.session_uuid)
+        if lm:
+            s.ended_at = s.started_at + timedelta(milliseconds=lm)
     s.total_chunks = body.total_chunks
     s.status = "complete"
     db.commit()
