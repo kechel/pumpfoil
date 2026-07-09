@@ -278,6 +278,7 @@ export default function SessionDetail() {
   const [fullscreen, setFullscreen] = useState(false);
   useCloseOnBack(fullscreen, () => setFullscreen(false));
   const [win, setWin] = useState<"1" | "3" | "5">("3");
+  const [trimOpen, setTrimOpen] = useState(false);
   const [showPumps, setShowPumps] = useState(false);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -1362,8 +1363,6 @@ export default function SessionDetail() {
         </div>
       </div>
 
-      {owned && <TrimEditor session={session} onSaved={setSession} />}
-
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} />
 
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
@@ -1386,17 +1385,28 @@ export default function SessionDetail() {
       )}
 
       {owned && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <TransferPicker sessionId={session.id} />
-          <button
-            onClick={() => {
-              if (!confirm(t("sd.deleteConfirm"))) return;
-              api.deleteSession(session.id).then(() => { invalidateSessionListCache(); nav("/sessions"); }).catch((e) => alert(t("sd.deleteFail") + e));
-            }}
-            className="rounded-lg border border-red-300 bg-red-500/10 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/60"
-          >
-            {t("sd.deleteSession")}
-          </button>
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setTrimOpen((o) => !o)}
+                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+              >
+                {t("sd.trim")}{(session.trim_start_ms != null || session.trim_end_ms != null) && <span className="ml-1 text-brand-400">{t("sd.trimActive")}</span>}
+              </button>
+              <TransferPicker sessionId={session.id} />
+            </div>
+            <button
+              onClick={() => {
+                if (!confirm(t("sd.deleteConfirm"))) return;
+                api.deleteSession(session.id).then(() => { invalidateSessionListCache(); nav("/sessions"); }).catch((e) => alert(t("sd.deleteFail") + e));
+              }}
+              className="rounded-lg border border-red-300 bg-red-500/10 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/60"
+            >
+              {t("sd.deleteSession")}
+            </button>
+          </div>
+          {trimOpen && <TrimPanel session={session} onSaved={setSession} onClose={() => setTrimOpen(false)} />}
         </div>
       )}
     </div>
@@ -1488,13 +1498,12 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
   );
 }
 
-function TrimEditor({ session, onSaved }: { session: SessionSummary; onSaved: (s: SessionSummary) => void }) {
+function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onSaved: (s: SessionSummary) => void; onClose: () => void }) {
   const t = useT();
   const totalSec = Math.max(
     1,
     Math.round((new Date(session.ended_at ?? session.started_at).getTime() - new Date(session.started_at).getTime()) / 1000)
   );
-  const [open, setOpen] = useState(false);
   const [a, setA] = useState(Math.round((session.trim_start_ms ?? 0) / 1000));
   const [b, setB] = useState(Math.round((session.trim_end_ms ?? totalSec * 1000) / 1000));
   const [saving, setSaving] = useState(false);
@@ -1507,52 +1516,42 @@ function TrimEditor({ session, onSaved }: { session: SessionSummary; onSaved: (s
         ? await api.trimSession(session.id, null, null)
         : await api.trimSession(session.id, a * 1000, Math.min(b, totalSec) * 1000);
       onSaved(r);
-      if (clear) setOpen(false);
+      if (clear) onClose();
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="mt-6">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700"
-      >
-        {t("sd.trim")}{trimmed && <span className="ml-1 text-brand-400">{t("sd.trimActive")}</span>}
-      </button>
-      {open && (
-        <Card className="mt-2 space-y-4 p-4">
-          <p className="text-xs text-slate-300">
-            {t("sd.trimHint", { total: fmtMMSS(totalSec) })}
-          </p>
-          <label className="block text-sm text-slate-200">
-            {t("sd.start")} <span className="tabular-nums text-slate-100">{fmtMMSS(a)}</span>
-            <input type="range" min={0} max={totalSec} value={a}
-              onChange={(e) => setA(Math.min(Number(e.target.value), b - 1))}
-              className="mt-1 w-full accent-brand-500" />
-          </label>
-          <label className="block text-sm text-slate-200">
-            {t("sd.end")} <span className="tabular-nums text-slate-100">{fmtMMSS(b)}</span>
-            <input type="range" min={0} max={totalSec} value={b}
-              onChange={(e) => setB(Math.max(Number(e.target.value), a + 1))}
-              className="mt-1 w-full accent-brand-500" />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button disabled={saving} onClick={() => apply(false)}
-              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-              {saving ? "…" : t("sd.saveReanalyze")}
-            </button>
-            {trimmed && (
-              <button disabled={saving} onClick={() => apply(true)}
-                className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
-                {t("common.reset")}
-              </button>
-            )}
-          </div>
-        </Card>
-      )}
-    </div>
+    <Card className="space-y-4 p-4">
+      <p className="text-xs text-slate-300">
+        {t("sd.trimHint", { total: fmtMMSS(totalSec) })}
+      </p>
+      <label className="block text-sm text-slate-200">
+        {t("sd.start")} <span className="tabular-nums text-slate-100">{fmtMMSS(a)}</span>
+        <input type="range" min={0} max={totalSec} value={a}
+          onChange={(e) => setA(Math.min(Number(e.target.value), b - 1))}
+          className="mt-1 w-full accent-brand-500" />
+      </label>
+      <label className="block text-sm text-slate-200">
+        {t("sd.end")} <span className="tabular-nums text-slate-100">{fmtMMSS(b)}</span>
+        <input type="range" min={0} max={totalSec} value={b}
+          onChange={(e) => setB(Math.max(Number(e.target.value), a + 1))}
+          className="mt-1 w-full accent-brand-500" />
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <button disabled={saving} onClick={() => apply(false)}
+          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+          {saving ? "…" : t("sd.saveReanalyze")}
+        </button>
+        {trimmed && (
+          <button disabled={saving} onClick={() => apply(true)}
+            className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+            {t("common.reset")}
+          </button>
+        )}
+      </div>
+    </Card>
   );
 }
 
