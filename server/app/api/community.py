@@ -405,6 +405,52 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
     return out
 
 
+@router.get("/watch-stats")
+def watch_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Community-Aggregat je Uhr-Modell (device_tokens.label). Nur Sessions mit gepaartem Gerät."""
+    DT = models.DeviceToken
+    rows = (
+        _community(db.query(
+            DT.label,
+            func.count(func.distinct(S.id)),
+            func.count(func.distinct(S.user_id)),
+            func.sum(AR.foiling_distance_m),
+            func.sum(AR.foiling_time_s),
+            func.sum(AR.pump_count),
+            func.max(AR.best_distance_m),
+            func.max(AR.best_speed_mps),
+            func.avg(AR.avg_cadence_hz),
+        ), _user.id).join(DT, S.device_id == DT.id)
+        .filter(S.device_id.isnot(None), DT.label.isnot(None))
+        .group_by(DT.label).all()
+    )
+    # Modelle über den ersten Teil vor "/" zusammenfassen (lange partNumber-Gruppen).
+    agg: dict[str, dict] = {}
+    for label, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, best_spd, avg_hz in rows:
+        key = (label or "").split("/")[0].strip() or "—"
+        a = agg.setdefault(key, {"watch": key, "sessions": 0, "users": 0, "dist": 0.0, "time": 0.0,
+                                 "pumps": 0.0, "best_dist": 0.0, "best_spd": 0.0, "hz": []})
+        a["sessions"] += int(n_sess or 0)
+        a["users"] += int(n_users or 0)   # grobe Summe je label-Variante (selten >1 Variante/Modell)
+        a["dist"] += float(sum_dist or 0.0)
+        a["time"] += float(sum_time or 0.0)
+        a["pumps"] += float(sum_pumps or 0.0)
+        a["best_dist"] = max(a["best_dist"], float(best_dist or 0.0))
+        a["best_spd"] = max(a["best_spd"], float(best_spd or 0.0))
+        if avg_hz:
+            a["hz"].append(float(avg_hz))
+    out = [{
+        "watch": a["watch"], "sessions": a["sessions"], "users": a["users"],
+        "foiling_km": round(a["dist"] / 1000.0, 1),
+        "avg_speed_kmh": round(a["dist"] / a["time"] * 3.6, 1) if a["time"] > 0 else None,
+        "best_distance_m": round(a["best_dist"]) if a["best_dist"] else None,
+        "best_speed_kmh": round(a["best_spd"] * 3.6, 1) if a["best_spd"] else None,
+        "avg_pump_hz": round(sum(a["hz"]) / len(a["hz"]), 2) if a["hz"] else None,
+    } for a in agg.values()]
+    out.sort(key=lambda x: x["sessions"], reverse=True)
+    return out
+
+
 # ------------------------------------------------------------------ Top-Liked ----
 @router.get("/top-liked")
 def top_liked(

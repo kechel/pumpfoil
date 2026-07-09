@@ -1,5 +1,16 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
+  "watchStats.title": "Uhre-Statistik",
+  "watchStats.hint": "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll.",
+  "watchStats.none": "No kei Date.",
+  "watchStats.colWatch": "Uhr",
+  "watchStats.colSessions": "Sessions",
+  "watchStats.colUsers": "Nutzer",
+  "watchStats.colKm": "Foil-km",
+  "watchStats.colAvgSpeed": "Ø-Speed",
+  "watchStats.colBestDist": "Beschte Lauf",
+  "watchStats.colBestSpeed": "Top-Speed",
+  "watchStats.colAvgPump": "Ø Pumps",
   "sessions.oclock": "Uhr",
   "adm.reportedBy": "Gmäldet vo",
   "share.save": "Speichere",

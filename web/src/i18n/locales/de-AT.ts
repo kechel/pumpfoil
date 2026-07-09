@@ -1,5 +1,16 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "watchStats.title": "Uhren-Statistik",
+  "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell.",
+  "watchStats.none": "Noch keine Daten.",
+  "watchStats.colWatch": "Uhr",
+  "watchStats.colSessions": "Sessions",
+  "watchStats.colUsers": "Nutzer",
+  "watchStats.colKm": "Foil-km",
+  "watchStats.colAvgSpeed": "Ø-Speed",
+  "watchStats.colBestDist": "Bester Lauf",
+  "watchStats.colBestSpeed": "Top-Speed",
+  "watchStats.colAvgPump": "Ø Pumps",
   "sessions.oclock": "Uhr",
   "adm.reportedBy": "Gemeldet von",
   "share.save": "Speichern",

@@ -6,7 +6,7 @@ import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon } from "../components/Icons";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon } from "../components/Icons";
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -337,9 +337,14 @@ function CommunitySection() {
       <div className="mb-2 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
-        <Link to="/foil-stats" className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-          <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
-        </Link>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Link to="/foil-stats" className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
+          </Link>
+          <Link to="/watch-stats" className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            <WatchIcon className="h-4 w-4" /> {t("watchStats.title")}
+          </Link>
+        </div>
       </div>
       <CommunityStats className="mb-3" />
       <div className="mb-3 flex flex-wrap items-center gap-1">
