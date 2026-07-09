@@ -7,6 +7,14 @@ struct Profile: Codable {
     let avatar_url: String?
     let is_admin: Bool?
     let language: String?
+    let foil_sensitivity: String?
+}
+
+// Fortschritt der Reanalyse nach Empfindlichkeits-Wechsel (GET /api/auth/me/reanalysis).
+struct ReanalysisProgress: Codable {
+    let running: Bool
+    let done: Int
+    let total: Int
 }
 
 struct SessionSummary: Codable, Identifiable {

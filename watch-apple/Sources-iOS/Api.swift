@@ -191,6 +191,14 @@ enum Api {
         try await request("/api/auth/me", method: "PUT", body: ["language": lang], auth: true)
     }
 
+    static func updateFoilSensitivity(_ v: String) async throws -> Profile {
+        try await request("/api/auth/me", method: "PUT", body: ["foil_sensitivity": v], auth: true)
+    }
+
+    static func reanalysisProgress() async throws -> ReanalysisProgress {
+        try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
+    }
+
     static func leaders(period: String = "all", accelOnly: Bool = true) async throws -> Leaders {
         try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }

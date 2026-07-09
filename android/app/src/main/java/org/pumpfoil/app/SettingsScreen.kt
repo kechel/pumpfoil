@@ -22,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -70,6 +71,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     var pwNew by remember { mutableStateOf("") }
     var pwMsg by remember { mutableStateOf<Pair<Boolean, String>?>(null) }   // (ok, text)
     var pwBusy by remember { mutableStateOf(false) }
+    var sensitivity by remember { mutableStateOf("normal") }
+    var reanalysis by remember { mutableStateOf<ReanalysisProgress?>(null) }
 
     LaunchedEffect(Unit) {
         try {
@@ -82,6 +85,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 nRecord = np["record"]?.jsonPrimitive?.booleanOrNull ?: true
             }
         } catch (_: Exception) {}
+        try { sensitivity = Api.me().foilSensitivity ?: "normal" } catch (_: Exception) {}
         spots = try { Api.spots().all } catch (_: Exception) { emptyList() }
         loaded = true
     }
@@ -149,6 +153,45 @@ fun SettingsScreen(onBack: () -> Unit) {
                 selected = lang,
                 onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
             )
+            Spacer(Modifier.height(16.dp))
+
+            // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
+            Text(I18n.t("foilsens.label"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("foilsens.hint"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            Dropdown(
+                options = listOf(
+                    "normal" to I18n.t("foilsens.normal"),
+                    "light" to I18n.t("foilsens.light"),
+                    "attempts" to I18n.t("foilsens.attempts"),
+                ),
+                selected = sensitivity,
+                onSelect = onSelect@{ v ->
+                    if (v == sensitivity) return@onSelect
+                    sensitivity = v
+                    scope.launch {
+                        try { Api.updateFoilSensitivity(v) } catch (_: Exception) {}
+                        if (v == "normal") { reanalysis = null; return@launch }
+                        reanalysis = ReanalysisProgress(running = true, done = 0, total = 0)
+                        // Fortschritt pollen bis fertig (gecachte Stufen sind sofort durch).
+                        repeat(120) {
+                            kotlinx.coroutines.delay(1000)
+                            val p = try { Api.reanalysisProgress() } catch (_: Exception) { null }
+                            reanalysis = p
+                            if (p == null || !p.running) return@launch
+                        }
+                    }
+                },
+            )
+            reanalysis?.takeIf { it.running }?.let { p ->
+                Text("${p.done}/${if (p.total > 0) p.total else "…"} · ${I18n.t("foilsens.reanalyzing")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                if (p.total > 0) {
+                    LinearProgressIndicator(progress = { p.done.toFloat() / p.total },
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                }
+            }
             Spacer(Modifier.height(16.dp))
 
             // Push-Benachrichtigungen.

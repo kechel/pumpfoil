@@ -96,6 +96,15 @@ object Api {
         http("PUT", "/api/auth/me", "{\"language\":\"$lang\"}", auth = true)
     }
 
+    // Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts); Server reanalysiert eigene Sessions.
+    suspend fun updateFoilSensitivity(v: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/auth/me", "{\"foil_sensitivity\":\"$v\"}", auth = true)
+    }
+
+    suspend fun reanalysisProgress(): ReanalysisProgress = withContext(Dispatchers.IO) {
+        json.decodeFromString(ReanalysisProgress.serializer(), http("GET", "/api/auth/me/reanalysis", null, auth = true))
+    }
+
     // Anzeigename ändern (PUT-Alias, da HttpURLConnection kein PATCH kann).
     suspend fun updateDisplayName(name: String): Profile = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("display_name", name) }.toString()

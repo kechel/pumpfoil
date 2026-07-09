@@ -12,6 +12,14 @@ data class Profile(
     @SerialName("avatar_url") val avatarUrl: String? = null,
     @SerialName("is_admin") val isAdmin: Boolean = false,
     val language: String? = null,
+    @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
+)
+
+@Serializable
+data class ReanalysisProgress(
+    val running: Boolean = false,
+    val done: Int = 0,
+    val total: Int = 0,
 )
 
 @Serializable

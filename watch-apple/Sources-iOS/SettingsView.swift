@@ -20,6 +20,9 @@ struct SettingsView: View {
     @State private var pwNew = ""
     @State private var pwMsg: (ok: Bool, text: String)?
     @State private var pwBusy = false
+    @State private var sensitivity = "normal"
+    @State private var reanalysis: ReanalysisProgress?
+    @State private var sensReady = false   // erst nach dem Laden auf Änderungen reagieren
 
     var body: some View {
         Form {
@@ -48,6 +51,22 @@ struct SettingsView: View {
                     }
                 }
             }
+            // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
+            Section {
+                Picker(Loc.t("foilsens.label", lang), selection: $sensitivity) {
+                    Text(Loc.t("foilsens.normal", lang)).tag("normal")
+                    Text(Loc.t("foilsens.light", lang)).tag("light")
+                    Text(Loc.t("foilsens.attempts", lang)).tag("attempts")
+                }
+                if let p = reanalysis, p.running {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(p.done)/\(p.total > 0 ? String(p.total) : "…") · \(Loc.t("foilsens.reanalyzing", lang))")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) }
+                    }
+                }
+            } header: { Text(Loc.t("foilsens.label", lang)) }
+            footer: { Text(Loc.t("foilsens.hint", lang)) }
             Section(Loc.t("settings.notifications", lang)) {
                 Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
                 Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
@@ -78,6 +97,22 @@ struct SettingsView: View {
         .onChange(of: nAnalyzed) { _ in saved = false }
         .onChange(of: nRecord) { _ in saved = false }
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
+        .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
+    }
+
+    private func changeSensitivity(_ v: String) {
+        Task {
+            _ = try? await Api.updateFoilSensitivity(v)
+            if v == "normal" { reanalysis = nil; return }
+            reanalysis = ReanalysisProgress(running: true, done: 0, total: 0)
+            // Fortschritt pollen bis fertig (gecachte Stufen sind sofort durch).
+            for _ in 0..<120 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                let p = try? await Api.reanalysisProgress()
+                reanalysis = p
+                if p == nil || !(p!.running) { return }
+            }
+        }
     }
 
     private func load() async {
@@ -90,6 +125,8 @@ struct SettingsView: View {
             nRecord = (np["record"] as? Bool) ?? true
         }
         spots = (try? await Api.spots())?.all ?? []
+        if let prof = try? await Api.getProfile() { sensitivity = prof.foil_sensitivity ?? "normal" }
+        sensReady = true
     }
 
     private func changePassword() {
