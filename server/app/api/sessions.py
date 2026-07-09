@@ -814,6 +814,10 @@ def get_session(
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
+    # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht — ein gezielter Lookup, kein N+1).
+    if s.device_id:
+        dev = db.get(models.DeviceToken, s.device_id)
+        out.device_label = dev.label if dev and dev.label else None
     # Like-Zustand für die Detail-Ansicht (Web + Apps) berechnen.
     out.like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)

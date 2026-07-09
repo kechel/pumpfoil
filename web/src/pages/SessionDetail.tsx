@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { FoilSelect } from "../components/FoilSelect";
@@ -997,6 +997,7 @@ export default function SessionDetail() {
       <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
         {session.place_name && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
         {session.sport && <span className="inline-flex items-center rounded bg-slate-800 px-2 py-1">{session.sport}</span>}
+        {session.device_label && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WatchIcon className="h-3.5 w-3.5" /> {session.device_label}</span>}
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>

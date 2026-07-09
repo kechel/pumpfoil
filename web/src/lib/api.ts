@@ -127,6 +127,7 @@ export interface SessionSummary {
   caption?: string | null;
   youtube_url?: string | null;
   thumb_url?: string | null;
+  device_label?: string | null;
   photo_count?: number;
   like_count?: number;
   liked?: boolean;
