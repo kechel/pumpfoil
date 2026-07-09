@@ -104,7 +104,18 @@ export default function Compare() {
   const nav = useNavigate();
   const [merging, setMerging] = useState(false);
   const [mergeErr, setMergeErr] = useState<string | null>(null);
-  const canMergeIds = mergeableIds(refs);
+  const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
+  const mergeIdsBase = mergeableIds(refs);
+  // Zusätzlich zum Client-Check (ganze Sessions, eigene, gleiches Datum): nur DERSELBEN Uhr.
+  // Die Sessions sind hier voll geladen (device_label). Bei bekannt-verschiedenen Uhren gar
+  // kein Merge-Angebot (Server lehnt sonst mit „verschiedene Uhren“ ab). null = unbekannt -> zulassen.
+  const canMergeIds = useMemo(() => {
+    if (!mergeIdsBase) return null;
+    const labels = mergeIdsBase.map((id) => sessions[id]?.device_label).filter((l): l is string => !!l);
+    if (labels.length >= 2 && new Set(labels).size > 1) return null;
+    return mergeIdsBase;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mergeIdsBase?.join(","), sessions]);
   async function doMerge() {
     if (!canMergeIds) return;
     setMerging(true); setMergeErr(null);
@@ -116,7 +127,6 @@ export default function Compare() {
       setMerging(false);
     }
   }
-  const [sessions, setSessions] = useState<Record<number, SessionSummary | null>>({});
   const [weight, setWeight] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [win, setWin] = useState<"1" | "3" | "5">("3");
