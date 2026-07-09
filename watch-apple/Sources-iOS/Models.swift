@@ -268,6 +268,19 @@ struct FoilStat: Codable, Identifiable {
     var id: Int { foil_id }
 }
 
+// Uhren-Statistik (GET /api/community/watch-stats) — Community-Aggregat je Uhr-Modell.
+struct WatchStat: Codable, Identifiable {
+    let watch: String
+    let sessions: Int
+    let users: Int
+    let foiling_km: Double?
+    let avg_speed_kmh: Double?
+    let best_distance_m: Double?
+    let best_speed_kmh: Double?
+    let avg_pump_hz: Double?
+    var id: String { watch }
+}
+
 // GeoJSON-Feature des Tracks: LineString-Koordinaten [lon,lat] + 3-s-Speed je Punkt.
 struct TrackGeo: Codable {
     struct Geometry: Codable { let coordinates: [[Double]] }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Surfing
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,7 +64,7 @@ private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}) {
+fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}) {
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
@@ -127,6 +128,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}) {
             PumpfoilTopBar(I18n.t("nav.community")) {
                 IconButton(onClick = onFoilStats) {
                     Icon(Icons.Filled.Surfing, contentDescription = I18n.t("foilStats.title"))
+                }
+                IconButton(onClick = onWatchStats) {
+                    Icon(Icons.Filled.Watch, contentDescription = I18n.t("watchStats.title"))
                 }
                 SyncIndicator()
             }

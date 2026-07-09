@@ -154,6 +154,9 @@ struct CommunityView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     NavigationLink { FoilStatsView() } label: { Image(systemName: "figure.surfing") }
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink { WatchStatsView() } label: { Image(systemName: "applewatch") }
+                }
                 ToolbarItem(placement: .topBarTrailing) { SyncButton() }
             }
             .overlay { if loading && records == nil { ProgressView() } }

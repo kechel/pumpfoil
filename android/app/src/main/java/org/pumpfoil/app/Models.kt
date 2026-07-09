@@ -355,6 +355,18 @@ data class FoilStat(
 )
 
 @Serializable
+data class WatchStat(
+    val watch: String = "",
+    val sessions: Int = 0,
+    val users: Int = 0,
+    @SerialName("foiling_km") val foilingKm: Double? = null,
+    @SerialName("avg_speed_kmh") val avgSpeedKmh: Double? = null,
+    @SerialName("best_distance_m") val bestDistanceM: Double? = null,
+    @SerialName("best_speed_kmh") val bestSpeedKmh: Double? = null,
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+)
+
+@Serializable
 data class SessionDetail(
     val id: Int,
     val sport: String = "",

@@ -119,7 +119,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }) }
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
-            composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }) }
+            composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
             composable(
@@ -172,6 +172,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
             composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }) }
             composable("foilstats") { FoilStatsScreen(onBack = { nav.popBackStack() }) }
+            composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             composable("datafields") { DataFieldsScreen(onBack = { nav.popBackStack() }) }

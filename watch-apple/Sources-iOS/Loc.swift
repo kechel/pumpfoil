@@ -333,6 +333,11 @@ enum Loc {
 
         "foilstats.intro": r("Welche Werte mit welchem Foil gefahren werden (Community).", "Weli Wärt mit welem Foil gfahre wärde (Community).", "Welche Werte mit welchem Foil gefahren werden (Community).", "Which values are ridden with which foil (community).", "Quelles valeurs avec quel foil (communauté).", "Quali valori con quale foil (community).", "Qué valores con qué foil (comunidad)."),
         "foilstats.riders": r("Fahrer", "Fahrer", "Fahrer", "Riders", "Riders", "Rider", "Riders"),
+        "watchStats.title": r("Uhren-Statistik", "Uhre-Statistik", "Uhren-Statistik", "Watch stats", "Stats par montre", "Statistiche orologi", "Estadísticas de relojes"),
+        "watchStats.intro": r("Welche Werte mit welcher Uhr — Community-Aggregat je Modell.", "Weli Wärt mit weler Uhr — Community-Aggregat je Modäll.", "Welche Werte mit welcher Uhr — Community-Aggregat je Modell.", "Which numbers with which watch — community aggregate per model.", "Quels chiffres avec quelle montre — agrégat par modèle.", "Quali valori con quale orologio — aggregato per modello.", "Qué valores con qué reloj — agregado por modelo."),
+        "watchStats.users": r("Nutzer", "Nutzer", "Nutzer", "Users", "Utilisateurs", "Utenti", "Usuarios"),
+        "watchStats.km": r("Foil-km", "Foil-km", "Foil-km", "Foil km", "Km foil", "Km foil", "Km foil"),
+        "watchStats.bestSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Vel. max", "Vel. máx"),
         "foilstats.bestKm": r("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
 
         "datafields.intro": r("Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Bis zu 3 Fälder pro Syte. Lääri Syte falle uf de Uhr wäg.", "Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Up to 3 fields per page. Empty pages are skipped on the watch.", "Jusqu'à 3 champs par page. Les pages vides sont ignorées sur la montre.", "Fino a 3 campi per pagina. Le pagine vuote vengono saltate sull'orologio.", "Hasta 3 campos por página. Las páginas vacías se omiten en el reloj."),

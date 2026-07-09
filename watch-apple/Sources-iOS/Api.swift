@@ -486,6 +486,10 @@ enum Api {
         try await request("/api/community/foil-stats", method: "GET", body: nil, auth: true)
     }
 
+    static func watchStats() async throws -> [WatchStat] {
+        try await request("/api/community/watch-stats", method: "GET", body: nil, auth: true)
+    }
+
     struct LikeState: Decodable { let like_count: Int; let liked: Bool }
 
     static func toggleLike(_ id: Int) async throws -> LikeState {
