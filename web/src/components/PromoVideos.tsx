@@ -115,23 +115,10 @@ export function PromoVideos() {
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+      <div className="mt-5 text-center">
         <a href={channel} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-400 hover:text-brand-300">
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-            <path d="M23 12s0-3.5-.4-5.1a2.6 2.6 0 0 0-1.8-1.8C19.2 4.7 12 4.7 12 4.7s-7.2 0-8.8.4A2.6 2.6 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4a2.6 2.6 0 0 0 1.8-1.8C23 15.5 23 12 23 12ZM9.8 15.3V8.7l6 3.3-6 3.3Z" />
-          </svg>
+          className="inline-block text-sm font-medium text-brand-400 hover:text-brand-300">
           {t("land.videosChannel")}
-        </a>
-        <a href="https://www.instagram.com/pumpfoil_org/" target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-400 hover:text-brand-300">
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="2" y="2" width="20" height="20" rx="5" />
-            <circle cx="12" cy="12" r="4" />
-            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-          </svg>
-          Instagram
         </a>
       </div>
     </section>
