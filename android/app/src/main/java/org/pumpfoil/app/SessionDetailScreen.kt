@@ -407,7 +407,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         LaunchedEffect(s.id) { reloadPhotos() }
         val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) scope.launch {
-                val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+                val bytes = withContext(Dispatchers.IO) {
+                    ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }?.let { downscaleJpeg(it) }
+                }
                 if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
             }
         }
@@ -1015,4 +1017,42 @@ private fun TransferPicker(sessionId: Int) {
             dismissButton = { TextButton(onClick = { confirmUser = null }) { Text(I18n.t("common.cancel")) } },
         )
     }
+}
+
+// Bild vor dem Upload auf Web-Größe verkleinern (max 1920 px lange Kante, JPEG q85) — spart
+// Upload-Zeit + Speicher. EXIF-Orientierung wird angewandt. Bei Fehler/kein-Gewinn: Original.
+private fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85): ByteArray {
+    return try {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeByteArray(src, 0, src.size, bounds)
+        val (w, h) = bounds.outWidth to bounds.outHeight
+        if (w <= 0 || h <= 0) return src
+        // Grob per inSampleSize vorskalieren (speicherschonend bei großen Fotos).
+        var sample = 1
+        while (maxOf(w, h) / sample > maxEdge * 2) sample *= 2
+        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+        var bmp = android.graphics.BitmapFactory.decodeByteArray(src, 0, src.size, opts) ?: return src
+        // EXIF-Rotation anwenden.
+        val ori = try {
+            android.media.ExifInterface(java.io.ByteArrayInputStream(src))
+                .getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL)
+        } catch (_: Exception) { android.media.ExifInterface.ORIENTATION_NORMAL }
+        val deg = when (ori) {
+            android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+            android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+            android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            else -> 0f
+        }
+        // Präzise auf maxEdge skalieren.
+        val cur = maxOf(bmp.width, bmp.height)
+        val scale = if (cur > maxEdge) maxEdge.toFloat() / cur else 1f
+        if (scale < 1f || deg != 0f) {
+            val m = android.graphics.Matrix().apply { if (scale < 1f) postScale(scale, scale); if (deg != 0f) postRotate(deg) }
+            bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, m, true)
+        }
+        val out = java.io.ByteArrayOutputStream()
+        bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, quality, out)
+        val res = out.toByteArray()
+        if (res.size < src.size) res else src   // kein Gewinn -> Original
+    } catch (_: Exception) { src }
 }

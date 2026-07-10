@@ -286,7 +286,7 @@ struct SessionDetailView: View {
             .onChange(of: pickerItem) { item in
                 Task {
                     if let data = try? await item?.loadTransferable(type: Data.self) {
-                        try? await Api.uploadSessionPhoto(id, data: data)
+                        try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
                         photos = (try? await Api.sessionPhotos(id)) ?? []
                     }
                 }
