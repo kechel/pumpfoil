@@ -10,11 +10,10 @@ import { ChevronIcon } from "./Icons";
 export function PromoVideos() {
   const t = useT();
   const [videos, setVideos] = useState<{ id: string; title: string }[]>([]);
-  const [channel, setChannel] = useState("https://www.youtube.com/@pumpfoil-org");
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
-    api.publicVideos().then((r) => { setVideos(r.videos ?? []); if (r.channel) setChannel(r.channel); }).catch(() => {});
+    api.publicVideos().then((r) => { setVideos(r.videos ?? []); }).catch(() => {});
   }, []);
 
   // Wie viele Karten gleichzeitig (responsiv): mobil 2, ab sm 3, ab lg 4.
@@ -115,12 +114,6 @@ export function PromoVideos() {
         </div>
       )}
 
-      <div className="mt-5 text-center">
-        <a href={channel} target="_blank" rel="noopener noreferrer"
-          className="inline-block text-sm font-medium text-brand-400 hover:text-brand-300">
-          {t("land.videosChannel")}
-        </a>
-      </div>
     </section>
   );
 }
