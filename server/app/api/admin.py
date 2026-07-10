@@ -197,7 +197,9 @@ def _user_watches(db: Session, uid: int) -> list[dict]:
             model = m["name"] if m else None
         out.append({
             "platform": d.platform,
-            "name": model or d.label or _PLATFORM_NAME.get(d.platform or "", d.platform or "?"),
+            # Uhr-Label wie beim Badge kürzen (erster Teil vor "/"; lange partNumber-Gruppen).
+            "name": model or (d.label.split("/")[0].strip() if d.label else None)
+                    or _PLATFORM_NAME.get(d.platform or "", d.platform or "?"),
             "version": d.app_version,
             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
         })
