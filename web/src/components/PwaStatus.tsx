@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useT } from "../i18n";
+import { uploadsActive } from "../lib/api";
 
 // Offline-Indikator + Auto-Update (vite-plugin-pwa, registerType "prompt").
 // Wartet ein neuer Service-Worker, wird er beim NÄCHSTEN Routen-Wechsel automatisch angewandt
@@ -57,7 +58,8 @@ export function PwaStatus() {
     if (!needRefresh) return;
     const onNav = () => {
       const overlayOpen = !!(window.history.state && (window.history.state as { __overlay?: unknown }).__overlay);
-      if (!updating && !overlayOpen) applyUpdate();
+      // Kein Reload während ein Overlay offen ist ODER ein Datei-Upload läuft.
+      if (!updating && !overlayOpen && !uploadsActive()) applyUpdate();
     };
     window.addEventListener("foil:navigate", onNav);
     return () => window.removeEventListener("foil:navigate", onNav);

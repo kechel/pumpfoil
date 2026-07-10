@@ -1,6 +1,12 @@
 // Schmaler API-Client. JWT im localStorage.
+import { downscaleImage } from "./downscaleImage";
 
 const TOKEN_KEY = "foil_jwt";
+
+// Aktive Datei-Uploads — der PWA-Updater wartet damit, bis kein Upload mehr läuft (kein
+// Reload mitten im Hochladen).
+let _activeUploads = 0;
+export function uploadsActive(): boolean { return _activeUploads > 0; }
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -42,13 +48,18 @@ async function uploadFile<T>(path: string, file: File): Promise<T> {
   const fd = new FormData();
   fd.append("file", file);
   const token = getToken();
-  const res = await fetch(path, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: fd,
-  });
-  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-  return (await res.json()) as T;
+  _activeUploads++;
+  try {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    return (await res.json()) as T;
+  } finally {
+    _activeUploads--;
+  }
 }
 
 export interface ChatMsg {
@@ -479,7 +490,7 @@ export const api = {
   // Fortschritt der Hintergrund-Reanalyse nach Empfindlichkeits-Wechsel (für die Anzeige).
   getFoilReanalysis: () =>
     req<{ running: boolean; done: number; total: number }>("/api/auth/me/reanalysis"),
-  uploadAvatar: (file: File) => uploadFile<Profile>("/api/auth/me/avatar", file),
+  uploadAvatar: async (file: File) => uploadFile<Profile>("/api/auth/me/avatar", await downscaleImage(file, 1024)),
   changePassword: (current_password: string, new_password: string) =>
     req<{ ok: boolean }>("/api/auth/me/password", {
       method: "PATCH",
@@ -513,13 +524,18 @@ export const api = {
     const fd = new FormData();
     fd.append("file", file);
     const token = getToken();
-    const res = await fetch("/api/sessions/upload-fit", {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: fd,
-    });
-    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-    return (await res.json()) as SessionSummary;
+    _activeUploads++;
+    try {
+      const res = await fetch("/api/sessions/upload-fit", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      return (await res.json()) as SessionSummary;
+    } finally {
+      _activeUploads--;
+    }
   },
   sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean }) => {
     const qs = new URLSearchParams();
@@ -558,8 +574,8 @@ export const api = {
     req<SessionSocial>(`/api/community/sessions/${id}/vote?kind=${kind}`, { method: "POST" }),
   sessionSocial: (id: number) => req<SessionSocial>(`/api/community/sessions/${id}/social`),
   sessionPhotos: (id: number) => req<{ id: number; url: string; thumb_url?: string | null }[]>(`/api/sessions/${id}/photos`),
-  uploadSessionPhoto: (id: number, file: File) =>
-    uploadFile<{ id: number; url: string; thumb_url?: string | null }>(`/api/sessions/${id}/photos`, file),
+  uploadSessionPhoto: async (id: number, file: File) =>
+    uploadFile<{ id: number; url: string; thumb_url?: string | null }>(`/api/sessions/${id}/photos`, await downscaleImage(file)),
   deleteSessionPhoto: (id: number, photoId: number) =>
     req(`/api/sessions/${id}/photos/${photoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
