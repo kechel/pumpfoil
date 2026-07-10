@@ -533,6 +533,9 @@ class SuuntoLink(Base):
     access_token: Mapped[str] = mapped_column(Text)                    # JWT
     refresh_token: Mapped[str] = mapped_column(String(255))
     token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Suunto-Username (aus dem Token-Response, Feld "user") — für die Webhook-Zuordnung
+    # (Notification enthält den Username, nicht unsere user_id).
+    suunto_username: Mapped[str | None] = mapped_column(String(128), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

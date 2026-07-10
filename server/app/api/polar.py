@@ -18,14 +18,14 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import get_settings
 from ..db import get_db
-from .deps import current_user
+from .deps import current_admin, current_user
 
 router = APIRouter(prefix="/api/integrations/polar", tags=["polar"])
 
@@ -181,13 +181,9 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     return _ok_redirect()
 
 
-@router.post("/sync")
-def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Neue Polar-Trainings (Exercise-Transaktion) als TCX ziehen und als Sessions importieren."""
-    _creds()
-    link = db.query(models.PolarLink).filter_by(user_id=user.id).first()
-    if link is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Polar not linked")
+def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict:
+    """Exercise-Transaktion abarbeiten: neue Trainings als TCX ziehen + importieren. Von /sync
+    (manuell) UND vom Webhook (Auto-Import) genutzt."""
     from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
     from ..tcximport import parse_track_bytes
 
@@ -237,6 +233,71 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     link.last_sync_at = datetime.now(timezone.utc)
     db.commit()
     return {"imported": imported, "skipped": skipped}
+
+
+@router.post("/sync")
+def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Neue Polar-Trainings (Exercise-Transaktion) als TCX ziehen und als Sessions importieren."""
+    _creds()
+    link = db.query(models.PolarLink).filter_by(user_id=user.id).first()
+    if link is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Polar not linked")
+    return _pull_import(db, user, link)
+
+
+def _webhook_secret() -> str:
+    import os
+    return os.environ.get("OAUTH_POLAR_WEBHOOK_SECRET", "")
+
+
+@router.post("/webhook")
+async def webhook(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Auto-Import: Polar pingt bei neuem Training (event=EXERCISE, user_id=polar_user_id).
+    Wir prüfen die Signatur (Polar-Webhook-Signature = HMAC-SHA256 des Rohbodys mit dem
+    signature_secret_key der Webhook-Registrierung) und ziehen dann die Transaktion dieses
+    Nutzers. Antwortet immer schnell 200 (Webhook-Konvention)."""
+    raw = await request.body()
+    secret = _webhook_secret()
+    if secret:
+        import hashlib
+        import hmac
+        sig = request.headers.get("Polar-Webhook-Signature", "")
+        expected = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Bad signature")
+    try:
+        import json
+        body = json.loads(raw or b"{}")
+    except Exception:  # noqa: BLE001
+        return {"ok": True}
+    if body.get("event") not in (None, "EXERCISE"):
+        return {"ok": True}   # nur Trainings interessieren uns
+    xuid = str(body.get("user_id") or "")
+    if not xuid:
+        return {"ok": True}
+    link = db.query(models.PolarLink).filter_by(polar_user_id=xuid).first()
+    if link is None:
+        return {"ok": True}
+    user = db.get(models.User, link.user_id)
+    if user is not None:
+        try:
+            _pull_import(db, user, link)
+        except Exception:  # noqa: BLE001 — Ping darf nie 500 werfen
+            pass
+    return {"ok": True}
+
+
+@router.post("/webhook/register")
+def webhook_register(user: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Einmalige Admin-Aktion: den Webhook bei Polar registrieren (nur EIN Webhook je Client
+    erlaubt). Gibt den signature_secret_key zurück -> in OAUTH_POLAR_WEBHOOK_SECRET eintragen
+    + foil-server neu starten. Erneut aufrufen listet/ersetzt (Polar: DELETE dann POST)."""
+    cid, secret = _creds()
+    basic = base64.b64encode(f"{cid}:{secret}".encode()).decode()
+    hdr = {"Authorization": f"Basic {basic}", "Content-Type": "application/json", "Accept": "application/json"}
+    url = f"{get_settings().base_url}/api/integrations/polar/webhook"
+    r = httpx.post(f"{API}/v3/webhooks", json={"events": ["EXERCISE"], "url": url}, headers=hdr, timeout=20)
+    return {"status": r.status_code, "body": (r.json() if r.headers.get("content-type", "").startswith("application/json") else r.text), "webhook_url": url}
 
 
 @router.delete("")

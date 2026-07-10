@@ -25,7 +25,7 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -87,6 +87,9 @@ def _store_token(link: models.SuuntoLink, tok: dict) -> None:
         link.refresh_token = tok["refresh_token"]
     exp = int(tok.get("expires_in") or 0)
     link.token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=exp) if exp else None
+    # Suunto liefert den Username im Token-Response (Feld "user") — für die Webhook-Zuordnung.
+    if tok.get("user"):
+        link.suunto_username = str(tok["user"])
 
 
 def _basic(cid: str, secret: str) -> str:
@@ -164,15 +167,33 @@ def callback(code: str | None = None, state: str | None = None, db: Session = De
     return RedirectResponse(f"{get_settings().base_url}/konten?suunto=connected", status_code=303)
 
 
+def _import_workout(db: Session, user: models.User, token: str, key: str) -> bool:
+    """Ein Workout per FIT-Export herunterladen + importieren (idempotent). True bei Neuimport."""
+    from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
+    from ..fitimport import parse_fit_bytes
+    try:
+        fr = httpx.get(FIT_EXPORT.format(key=key),
+                       headers={"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key()},
+                       timeout=60)
+        if fr.status_code != 200 or not fr.content:
+            return False
+        parsed = parse_fit_bytes(fr.content)
+        if not parsed.get("gps_samples") or parsed.get("started_at") is None:
+            return False
+        s = import_parsed_session(db, user, fr.content, parsed,
+                                  src_label="suunto-import", uuid_prefix="suunto-")
+        return s is not None
+    except Exception:  # noqa: BLE001 — ein kaputtes Workout darf den Rest nicht stoppen
+        return False
+
+
 @router.post("/sync")
 def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Workouts ziehen und je FIT als Session importieren (idempotent)."""
+    """Alle Workouts ziehen und je FIT als Session importieren (idempotent)."""
     _creds()
     link = db.query(models.SuuntoLink).filter_by(user_id=user.id).first()
     if link is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
-    from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
-    from ..fitimport import parse_fit_bytes
 
     token = _fresh_token(link, db)
     hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(), "Accept": "application/json"}
@@ -193,29 +214,42 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         if not key:
             skipped += 1
             continue
-        try:
-            fr = httpx.get(FIT_EXPORT.format(key=key),
-                           headers={"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key()},
-                           timeout=60)
-            if fr.status_code != 200 or not fr.content:
-                skipped += 1
-                continue
-            parsed = parse_fit_bytes(fr.content)
-            if not parsed.get("gps_samples") or parsed.get("started_at") is None:
-                skipped += 1
-                continue
-            s = import_parsed_session(db, user, fr.content, parsed,
-                                      src_label="suunto-import", uuid_prefix="suunto-")
-            if s is None:
-                skipped += 1
-            else:
-                imported += 1
-        except Exception:  # noqa: BLE001 — ein kaputtes Workout darf den Rest nicht stoppen
+        if _import_workout(db, user, token, key):
+            imported += 1
+        else:
             skipped += 1
 
     link.last_sync_at = datetime.now(timezone.utc)
     db.commit()
     return {"imported": imported, "skipped": skipped}
+
+
+@router.post("/webhook")
+async def webhook(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Auto-Import: Suunto benachrichtigt bei neuem Workout (Notification enthält Username +
+    Workout-Key). Wir lösen den Link über den Username auf, holen genau dieses Workout und
+    importieren es. Antwortet immer schnell 200 (Webhook-Konvention). Öffentlich (keine Auth) —
+    kein Schaden möglich: wir importieren nur Workouts des zum Username gehörenden Tokens."""
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        return {"ok": True}
+    # VERIFY: Feldnamen gegen die Suunto-Webhook-Doku (how-to-start) abgleichen.
+    username = str(body.get("username") or body.get("user") or "")
+    key = str(body.get("workoutid") or body.get("workoutKey") or body.get("id") or "")
+    if not username or not key:
+        return {"ok": True}
+    link = db.query(models.SuuntoLink).filter_by(suunto_username=username).first()
+    if link is None:
+        return {"ok": True}   # kein verknüpfter Nutzer -> ignorieren
+    user = db.get(models.User, link.user_id)
+    if user is None:
+        return {"ok": True}
+    token = _fresh_token(link, db)
+    if _import_workout(db, user, token, key):
+        link.last_sync_at = datetime.now(timezone.utc)
+        db.commit()
+    return {"ok": True}
 
 
 @router.delete("")
