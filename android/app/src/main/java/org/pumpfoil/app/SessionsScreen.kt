@@ -278,7 +278,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(prettyDate(s.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(dateTimeRange(s.startedAt, s.endedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
                     val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel, s.deviceLabel?.takeIf { it.isNotBlank() })
@@ -422,10 +422,10 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(c.name ?: prettyDate(c.startedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(c.name ?: dateTimeRange(c.startedAt, c.endedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     if (c.name != null) {
-                        Text(prettyDate(c.startedAt), style = MaterialTheme.typography.bodySmall,
+                        Text(dateTimeRange(c.startedAt, c.endedAt), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     val cchips = listOfNotNull(c.spot?.takeIf { it.isNotBlank() }, c.deviceLabel?.takeIf { it.isNotBlank() })
@@ -520,6 +520,19 @@ fun prettyDate(iso: String): String = try {
         java.time.LocalDateTime.parse(iso)
             .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
     } catch (_: Exception) { iso }
+}
+
+// Nur HH:mm aus einem ISO-Zeitstempel (für die Bis-Zeit).
+private fun hhmmOf(iso: String?): String? = iso?.let {
+    try { java.time.OffsetDateTime.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) }
+    catch (_: Exception) { null }
+}
+
+// Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock). Für die Listen-Zeilen.
+fun dateTimeRange(startIso: String, endIso: String?): String {
+    val oc = I18n.t("sessions.oclock")
+    val end = hhmmOf(endIso)
+    return prettyDate(startIso) + (if (end != null) " – $end" else "") + (if (oc.isNotEmpty()) " $oc" else "")
 }
 
 // Vorschlags-Karte: heutige Sessions, die zusammengehören könnten -> Vergleichen & Mergen.

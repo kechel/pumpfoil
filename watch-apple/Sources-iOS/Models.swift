@@ -53,6 +53,7 @@ struct SessionSummary: Codable, Identifiable {
 struct CommunityItem: Codable, Identifiable {
     let session_id: Int
     let started_at: String
+    let ended_at: String?
     let name: String?
     let avatar_url: String?
     let spot: String?

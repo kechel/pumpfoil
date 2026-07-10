@@ -327,8 +327,7 @@ struct SessionRow: View {
     }
 
     private var dateText: String {
-        guard let d = session.startedDate else { return session.started_at }
-        return d.formatted(date: .abbreviated, time: .shortened)
+        sessionDateTime(session.started_at, session.ended_at)
     }
 }
 
@@ -383,6 +382,24 @@ struct TrackPreviewView: View {
 }
 
 func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }
+
+// Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock) für die Listen-Zeilen.
+func sessionDateTime(_ startISO: String, _ endISO: String?) -> String {
+    func parse(_ s: String) -> Date? {
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: s) { return d }
+        f.formatOptions = [.withInternetDateTime]; return f.date(from: s)
+    }
+    guard let s = parse(startISO) else { return startISO }
+    let lang = UserDefaults.standard.string(forKey: "appLang") ?? "de"
+    let oc = Loc.t("sessions.oclock", lang)
+    let ocSuffix = oc.isEmpty ? "" : " " + oc
+    let start = s.formatted(date: .abbreviated, time: .shortened)
+    if let endISO, let e = parse(endISO) {
+        return start + " – " + e.formatted(date: .omitted, time: .shortened) + ocSuffix
+    }
+    return start + ocSuffix
+}
 
 private func statusLabel(_ s: String) -> String {
     switch s {

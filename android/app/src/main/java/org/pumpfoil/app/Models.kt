@@ -67,6 +67,7 @@ data class TrackPreview(
 data class CommunityItem(
     @SerialName("session_id") val id: Int,
     @SerialName("started_at") val startedAt: String = "",
+    @SerialName("ended_at") val endedAt: String? = null,
     val name: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val spot: String? = null,

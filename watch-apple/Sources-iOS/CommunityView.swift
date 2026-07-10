@@ -413,7 +413,6 @@ struct CommunityRow: View {
     }
 
     private var dateText: String {
-        guard let d = item.startedDate else { return item.started_at }
-        return d.formatted(date: .abbreviated, time: .shortened)
+        sessionDateTime(item.started_at, item.ended_at)
     }
 }
