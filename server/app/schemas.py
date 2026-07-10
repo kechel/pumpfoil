@@ -34,6 +34,13 @@ class ResetIn(BaseModel):
     new_password: str = Field(min_length=8)
 
 
+class AgeRangeIn(BaseModel):
+    # Von der iOS-App aus der Declared Age Range API gemeldet: social_allowed = Nutzer ist
+    # alt genug (>=13); age_bracket zur Doku (under13|13-15|16-17|18+|undisclosed).
+    social_allowed: bool
+    age_bracket: str | None = None
+
+
 class ProfileOut(BaseModel):
     email: EmailStr
     display_name: str | None = None
@@ -42,6 +49,7 @@ class ProfileOut(BaseModel):
     language: str = "de"
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
+    social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
 
 
 class LoginIn(BaseModel):

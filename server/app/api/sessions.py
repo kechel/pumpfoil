@@ -20,7 +20,7 @@ from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, TrimIn
-from .deps import current_user
+from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
 
@@ -836,6 +836,9 @@ def get_session(
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     else:
         s = _readable(db, session_id)
+    # Unter-13 (keine Social-Freigabe) dürfen nur EIGENE Sessions ansehen, keine fremden (UGC).
+    if s.user_id != user.id and user.social_allowed is False:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "social_disabled")
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
     # = noch nicht (oder zuletzt fehlgeschlagen). Der Task setzt den Namen; er erscheint beim
     # nächsten Laden. So kommt die Session sofort zurück (Overpass/is_in kann Sekunden dauern).
@@ -1267,7 +1270,7 @@ def list_photos(
 async def upload_photo(
     session_id: int,
     file: UploadFile = File(...),
-    user: models.User = Depends(current_user),
+    user: models.User = Depends(require_social),   # UGC-Erstellung — unter 13 gesperrt
     db: Session = Depends(get_db),
 ) -> dict:
     _owned(db, user, session_id)

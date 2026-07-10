@@ -58,6 +58,8 @@ def _migrate_add_indexes() -> None:
         # Per-User-Empfindlichkeit — neue Spalten idempotent ergänzen. Cache je Preset in einem
         # JSON-Feld (sensitivity_json); die früheren Einzel-*_personal-Spalten wieder entfernen.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS age_bracket VARCHAR(16)",
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_distance_m_personal",

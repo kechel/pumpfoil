@@ -4,12 +4,13 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api import admin, appmeta, auth, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api, strava, suunto, transfers
+from .api.deps import require_social
 from .config import get_settings
 from .db import init_db
 
@@ -230,7 +231,7 @@ app.include_router(ingest.router)
 app.include_router(sessions.router)
 app.include_router(ml.router)
 app.include_router(settings_api.router)
-app.include_router(community.router)
+app.include_router(community.router, dependencies=[Depends(require_social)])
 app.include_router(admin.router)
 app.include_router(feedback.router)
 app.include_router(oauth.router)
@@ -240,8 +241,8 @@ app.include_router(suunto.router)
 app.include_router(strava.router)
 app.include_router(push.router)
 app.include_router(foils.router)
-app.include_router(chat.router)
-app.include_router(transfers.router)
+app.include_router(chat.router, dependencies=[Depends(require_social)])
+app.include_router(transfers.router, dependencies=[Depends(require_social)])
 app.include_router(appmeta.router)
 
 # --- Öffentliche Medien (Fotos, Profilbilder). Unraffbare UUID-Dateinamen. ---

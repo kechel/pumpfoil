@@ -14,7 +14,7 @@ from ..db import get_db
 from ..media import delete_media
 from ..mailer import send_email
 from .admin import _purge_session
-from ..schemas import ForgotIn, LoginIn, PasswordChangeIn, ProfileIn, ProfileOut, RegisterIn, ResetIn, TokenOut
+from ..schemas import AgeRangeIn, ForgotIn, LoginIn, PasswordChangeIn, ProfileIn, ProfileOut, RegisterIn, ResetIn, TokenOut
 from ..ratelimit import rate_limit
 from ..security import create_access_token, hash_password, new_token, verify_password
 from .deps import current_user
@@ -102,7 +102,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -133,7 +133,25 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+
+
+@router.put("/me/age-range", response_model=ProfileOut)
+@router.post("/me/age-range", response_model=ProfileOut)
+def set_age_range(
+    body: AgeRangeIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)
+) -> ProfileOut:
+    """Ergebnis der iOS Declared Age Range API übernehmen: sperrt Social-Features (UGC/Feed/Chat)
+    für unter-13 (Apple-Vorgabe). Gilt plattformweit über das social_allowed-Flag."""
+    user.social_allowed = bool(body.social_allowed)
+    user.age_bracket = (body.age_bracket or None)
+    db.commit()
+    db.refresh(user)
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
+                      is_admin=user.is_admin, language=user.language or "de",
+                      beta=(user.id in get_settings().beta_user_ids),
+                      foil_sensitivity=(user.foil_sensitivity or "normal"),
+                      social_allowed=(user.social_allowed is not False))
 
 
 @router.get("/me/reanalysis")
@@ -270,7 +288,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=(user.id in get_settings().beta_user_ids), foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
 
 
 @router.post("/login", response_model=TokenOut)

@@ -59,6 +59,14 @@ def current_admin(user: models.User = Depends(current_user)) -> models.User:
     return user
 
 
+def require_social(user: models.User = Depends(current_user)) -> models.User:
+    """Wie current_user, blockt aber Nutzer ohne Social-Freigabe (unter 13, Apple-Vorgabe für
+    „soziale Medien"). Für UGC-/Feed-/Chat-Endpunkte. Default erlaubt (social_allowed None/true)."""
+    if user.social_allowed is False:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "social_disabled")
+    return user
+
+
 def current_device(
     x_device_token: str | None = Header(default=None),
     db: Session = Depends(get_db),

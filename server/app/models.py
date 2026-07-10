@@ -55,6 +55,11 @@ class User(Base):
     # Foil-Limits NUR für die eigene Auswertung (leichte/langsame Fahrer, Startversuche);
     # Community/Rekorde nutzen immer "normal". Siehe analysis.gps.SENSITIVITY_PRESETS.
     foil_sensitivity: Mapped[str] = mapped_column(String(16), default="normal", server_default="normal")
+    # Social-Freigabe (UGC/Feed/Chat): für unter-13 gesperrt (Apple-Vorgabe „soziale Medien",
+    # via iOS Declared Age Range API ermittelt). Default true; nur die iOS-Alters-Abfrage setzt es
+    # ggf. auf false. age_bracket = zuletzt gemeldete Spanne (under13|13-15|16-17|18+|undisclosed).
+    social_allowed: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    age_bracket: Mapped[str | None] = mapped_column(String(16))
     # "Alle Geräte abmelden": Tokens, die VOR diesem Zeitpunkt ausgestellt wurden (iat),
     # werden abgelehnt. NULL = keine Invalidierung. Betrifft nur diesen Nutzer.
     session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
