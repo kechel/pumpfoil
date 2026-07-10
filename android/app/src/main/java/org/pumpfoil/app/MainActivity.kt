@@ -91,8 +91,11 @@ fun MainScaffold(onLogout: () -> Unit) {
     val backEntry by nav.currentBackStackEntryAsState()
     val route = backEntry?.destination?.route
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe); Server erzwingt es.
+    var social by remember { mutableStateOf(true) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        try { Api.me().language?.let { I18n.set(ctx, it) } } catch (_: Exception) {}
+        try { val p = Api.me(); p.language?.let { I18n.set(ctx, it) }; social = p.socialAllowed != false }
+        catch (_: Exception) {}
     }
 
     val compareIds by CompareStore.ids.collectAsState()
@@ -100,7 +103,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         // Bottom-Nav mobil IMMER sichtbar (wie die PWA: fixed bottom-0 auf allen Routen) —
         // auch in Detail-/Unterscreens wie Session-Detail. Highlight nur auf Top-Level-Tabs.
         bottomBar = {
-            PumpfoilBottomBar(route) { nav.switchTab(it) }
+            PumpfoilBottomBar(route, social) { nav.switchTab(it) }
         },
         // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
         // Sessions markiert sind. Nicht auf dem Compare-Screen selbst.
@@ -213,15 +216,15 @@ private fun NavController.switchTab(route: String) {
 
 // Eigene Bottom-Nav: Markierung umschließt Icon UND Label, enger Icon<->Label-Abstand.
 @Composable
-private fun PumpfoilBottomBar(route: String?, onSelect: (String) -> Unit) {
+private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: (String) -> Unit) {
     data class Tab(val route: String, val label: String, val icon: ImageVector)
-    val tabs = listOf(
+    val tabs = listOfNotNull(
         Tab("home", I18n.t("nav.home"), Icons.Filled.Home),
-        Tab("community", "Foilers", Icons.Filled.Groups),
+        if (social) Tab("community", "Foilers", Icons.Filled.Groups) else null,   // unter 13: aus
         Tab("sessions", I18n.t("nav.sessions"), Icons.AutoMirrored.Filled.List),
         Tab("verlauf", I18n.t("nav.history"), Icons.Filled.ShowChart),
         Tab("spots", I18n.t("nav.spots"), Icons.Filled.Place),
-        Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum),
+        if (social) Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum) else null,   // unter 13: aus
         Tab("profile", I18n.t("nav.profile"), Icons.Filled.Person),
     )
     Surface(tonalElevation = 3.dp, color = MaterialTheme.colorScheme.surface) {

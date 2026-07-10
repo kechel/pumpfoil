@@ -250,6 +250,7 @@ export interface Profile {
   language: string;
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
   foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
+  social_allowed?: boolean;   // false = unter 13, UGC/Feed/Chat gesperrt (Apple-Vorgabe)
 }
 
 export interface AdminUser {

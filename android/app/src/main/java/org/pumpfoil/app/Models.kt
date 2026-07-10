@@ -13,6 +13,7 @@ data class Profile(
     @SerialName("is_admin") val isAdmin: Boolean = false,
     val language: String? = null,
     @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
+    @SerialName("social_allowed") val socialAllowed: Boolean? = null,
 )
 
 @Serializable

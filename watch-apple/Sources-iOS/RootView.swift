@@ -31,8 +31,11 @@ struct RootView: View {
 // iOS-typische Tab-Navigation mit SF Symbols. Labels nach Profil-Sprache.
 struct MainTabView: View {
     @AppStorage("appLang") private var lang = "de"
+    @EnvironmentObject private var session: SessionStore
     @ObservedObject private var compare = CompareStore.shared
     @State private var showCompare = false
+    // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe).
+    private var socialOK: Bool { session.profile?.social_allowed != false }
     var body: some View {
         tabs
             // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
@@ -62,14 +65,18 @@ struct MainTabView: View {
                 .tabItem { Label(Loc.t("nav.home", lang), systemImage: "house") }
             SessionsView()
                 .tabItem { Label(Loc.t("nav.sessions", lang), systemImage: "list.bullet") }
-            CommunityView()
-                .tabItem { Label("Foilers", systemImage: "person.2") }
+            if socialOK {
+                CommunityView()
+                    .tabItem { Label("Foilers", systemImage: "person.2") }
+            }
             VerlaufView()
                 .tabItem { Label(Loc.t("nav.history", lang), systemImage: "chart.xyaxis.line") }
             SpotsView()
                 .tabItem { Label(Loc.t("nav.spots", lang), systemImage: "mappin.and.ellipse") }
-            ChatView()
-                .tabItem { Label(Loc.t("nav.chat", lang), systemImage: "bubble.left.and.bubble.right") }
+            if socialOK {
+                ChatView()
+                    .tabItem { Label(Loc.t("nav.chat", lang), systemImage: "bubble.left.and.bubble.right") }
+            }
             ProfileView()
                 .tabItem { Label(Loc.t("nav.profile", lang), systemImage: "person.crop.circle") }
         }

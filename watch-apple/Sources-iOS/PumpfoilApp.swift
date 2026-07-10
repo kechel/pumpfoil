@@ -34,6 +34,7 @@ final class SessionStore: ObservableObject {
         if let p = try? await Api.getProfile() {
             profile = p
             SyncManager.shared.pushPairingToWatch()   // gekoppelte Uhr automatisch verknüpfen
+            await AgeGate.checkAndReport(session: self)   // Altersspanne prüfen (Apple-Vorgabe)
         } else { logout() }   // Token ungültig -> abmelden
     }
 
@@ -57,6 +58,7 @@ final class SessionStore: ObservableObject {
         token = t
         profile = try? await Api.getProfile()
         SyncManager.shared.pushPairingToWatch()       // nach Login die Uhr verknüpfen
+        await AgeGate.checkAndReport(session: self)   // Altersspanne prüfen (Apple-Vorgabe)
     }
 
     func logout() {

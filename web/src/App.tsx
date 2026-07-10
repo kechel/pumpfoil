@@ -63,7 +63,11 @@ export default function App() {
     api.adminPending().then((r) => setPending(r.total)).catch(() => {});
   }, [isAdmin]);
 
-  const items = isAdmin ? [...navItems, adminItem] : navItems;
+  // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe). Community-Nav +
+  // Chat-Widget dann ausblenden; der Server erzwingt es zusätzlich (403).
+  const social = profile?.social_allowed !== false;
+  const base = social ? navItems : navItems.filter((i) => i.to !== "/community");
+  const items = isAdmin ? [...base, adminItem] : base;
 
   function logout() {
     clearToken();
@@ -76,7 +80,7 @@ export default function App() {
     <div className="flex min-h-full flex-col bg-slate-950 md:flex-row">
       <ScrollRestoration />
       <FeedbackWidget />
-      <DmWidget />
+      {social && <DmWidget />}
       <CompareBar />
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">

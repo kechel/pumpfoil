@@ -195,6 +195,12 @@ enum Api {
         try await request("/api/auth/me", method: "PUT", body: ["foil_sensitivity": v], auth: true)
     }
 
+    // Ergebnis der Declared Age Range API ans Profil melden (sperrt Social für unter 13).
+    static func setAgeRange(socialAllowed: Bool, ageBracket: String) async throws -> Profile {
+        try await request("/api/auth/me/age-range", method: "PUT",
+                          body: ["social_allowed": socialAllowed, "age_bracket": ageBracket], auth: true)
+    }
+
     static func reanalysisProgress() async throws -> ReanalysisProgress {
         try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
     }
