@@ -103,6 +103,10 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Bei jedem Routen-Wechsel ein Event feuern — der PWA-Updater nutzt das als sicheren
+// Moment, ein wartendes Update anzuwenden (die alte Ansicht wird ohnehin verlassen).
+router.subscribe(() => window.dispatchEvent(new Event("foil:navigate")));
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <I18nProvider>
