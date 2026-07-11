@@ -819,6 +819,7 @@ const de: Record<string, string> = {
   "watches.nApple": "Roh-Beschleunigung über Core Motion.",
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export nicht (nur via separatem BLE-Sensor).",
+  "watches.nSuunto": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der FIT-Export (noch) nicht.",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
   "watches.nStrava": "Import wäre technisch machbar, liefert per API aber keinen hochfrequenten Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",
 

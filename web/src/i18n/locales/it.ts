@@ -562,6 +562,7 @@ const it: Record<string, string> = {
   "watches.nApple": "Accelerazione grezza via Core Motion.",
   "watches.nAmazfit": "Accesso ai sensori a seconda del modello.",
   "watches.nPolar": "Collega l'account → importa allenamenti (GPS + FC). L'export API non include il flusso accel grezzo ad alta frequenza per il rilevamento del pump (solo con sensore BLE separato).",
+  "watches.nSuunto": "Collega l'account → importa allenamenti (GPS + FC). L'export FIT non include (ancora) il flusso accel grezzo ad alta frequenza per il rilevamento del pump.",
   "watches.nFitbit": "Le app di terze parti sono state dismesse.",
 
   "import.title": "Importa attività",

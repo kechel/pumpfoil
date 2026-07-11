@@ -564,6 +564,7 @@ const fr: Record<string, string> = {
   "watches.nApple": "Accélération brute via Core Motion.",
   "watches.nAmazfit": "Accès aux capteurs selon le modèle.",
   "watches.nPolar": "Lier le compte → importer les entraînements (GPS + FC). L'export API ne fournit pas le flux accel brut haute fréquence requis pour la détection de pump (seulement via un capteur BLE séparé).",
+  "watches.nSuunto": "Lier le compte → importer les entraînements (GPS + FC). L'export FIT ne fournit pas (encore) le flux accel brut haute fréquence requis pour la détection de pump.",
   "watches.nFitbit": "Les apps tierces ont été abandonnées.",
 
   "import.title": "Importer une activité",

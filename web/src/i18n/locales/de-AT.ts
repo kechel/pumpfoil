@@ -435,6 +435,7 @@ const deAT: Record<string, string> = {
   "watches.nApple": "Roh-Beschleunigung über Core Motion.",
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export net (nur via separatem BLE-Sensor).",
+  "watches.nSuunto": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der FIT-Export (no) net.",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
 
   "sd.colDistPerPump": "Ø m/Pump",

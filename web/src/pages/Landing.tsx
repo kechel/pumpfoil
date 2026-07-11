@@ -155,10 +155,10 @@ export default function Landing() {
           <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.connectTitle")}</h2>
           <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.connectBody")}</p>
           <div className="flex flex-wrap items-center justify-center gap-6">
-            <span className="inline-flex h-16 w-44 items-center justify-center rounded-xl bg-white shadow-sm">
-              <img src="/suunto-logo.png" alt="Suunto" loading="lazy" className="h-6 w-auto" />
+            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
+              <img src="/suunto-logo.png" alt="Suunto" loading="lazy" className="h-7 w-auto" />
             </span>
-            <span className="inline-flex h-16 w-44 items-center justify-center rounded-xl bg-white shadow-sm">
+            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
               <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
             </span>
           </div>

@@ -485,6 +485,7 @@ const gsw: Record<string, string> = {
   "watches.nApple": "Roh-Beschlünigung über Core Motion.",
   "watches.nAmazfit": "Sensor-Zuegriff je nach Modäll.",
   "watches.nPolar": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de API-Export nöd (nur via separate BLE-Sensor).",
+  "watches.nSuunto": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de FIT-Export (nonig) nöd.",
   "watches.nFitbit": "Drittaabieter-Apps sind iigstellt worde.",
 
   "sd.colDistPerPump": "Ø m/Pump",

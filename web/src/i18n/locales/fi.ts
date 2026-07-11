@@ -817,6 +817,7 @@ const fi: Record<string, string> = {
   "watches.nApple": "Raakakiihtyvyys Core Motionin kautta.",
   "watches.nAmazfit": "Sensoripääsy mallista riippuen.",
   "watches.nPolar": "Linkitä tili → tuo harjoitukset (GPS + HR). Pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa API-vienti ei toimita (vain erillisen BLE-sensorin kautta).",
+  "watches.nSuunto": "Linkitä tili → tuo harjoitukset (GPS + HR). FIT-vienti ei (vielä) sisällä pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa.",
   "watches.nFitbit": "Kolmannen osapuolen sovellukset lopetettiin.",
   "watches.nStrava": "Tuonti olisi teknisesti mahdollista, mutta API ei anna korkeataajuista raakakiihtyvyyttä (siis ei pump-tunnistusta) ja on maksumuurin + API-ehtojen takana, jotka eivät sovi avoimeen projektiin — siksi tietoisesti integroimatta.",
 
