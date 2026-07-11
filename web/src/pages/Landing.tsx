@@ -150,6 +150,23 @@ export default function Landing() {
 
       <main className="mx-auto max-w-5xl px-5">
 
+        {/* Schon eine Sportuhr? Bestehendes Suunto-/Polar-Konto verbinden (Import ohne unsere App). */}
+        <section className="pb-12 pt-2">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.connectTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.connectBody")}</p>
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <span className="inline-flex h-16 w-44 items-center justify-center rounded-xl bg-white shadow-sm">
+              <img src="/suunto-logo.png" alt="Suunto" loading="lazy" className="h-6 w-auto" />
+            </span>
+            <span className="inline-flex h-16 w-44 items-center justify-center rounded-xl bg-white shadow-sm">
+              <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
+            </span>
+          </div>
+          <div className="mt-6 text-center">
+            <Link to="/konten" className="text-sm font-medium text-cyan-400 hover:text-cyan-300">{t("land.connectCta")} →</Link>
+          </div>
+        </section>
+
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
           <h2 className="mb-5 text-center text-xl font-bold sm:text-2xl">{t("land.appShotsTitle")}</h2>
