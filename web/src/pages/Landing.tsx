@@ -162,9 +162,6 @@ export default function Landing() {
               <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
             </span>
           </div>
-          <div className="mt-6 text-center">
-            <Link to="/konten" className="text-sm font-medium text-cyan-400 hover:text-cyan-300">{t("land.connectCta")} →</Link>
-          </div>
         </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
