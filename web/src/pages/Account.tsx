@@ -196,17 +196,15 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                 {/* Aufzeichnungsmodus getrennt je Uhr (nur aktive Geräte). */}
                 {!d.revoked_at && (
                   <div className="mt-2">
-                    <label className="mb-1 flex items-center gap-2 text-xs text-slate-400">
-                      {t("account.recordMode")}
-                      <select value={d.record_mode} onChange={(e) => setMode(d.id, e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
-                        <option value="full">{t("account.recordModeFull")}</option>
-                        <option value="lite">{t("account.recordModeLite")}</option>
-                        <option value="gps">{t("account.recordModeGps")}</option>
-                      </select>
-                    </label>
+                    <label className="mb-1 block text-xs text-slate-400">{t("account.recordMode")}</label>
+                    <select value={d.record_mode} onChange={(e) => setMode(d.id, e.target.value)}
+                      className="w-full max-w-sm truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                      <option value="full">{t("account.recordModeFull")}</option>
+                      <option value="lite">{t("account.recordModeLite")}</option>
+                      <option value="gps">{t("account.recordModeGps")}</option>
+                    </select>
                     {d.low_accel && d.record_mode === "full" && (
-                      <p className="text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
+                      <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
                     )}
                   </div>
                 )}
