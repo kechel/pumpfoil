@@ -60,8 +60,26 @@ SPEED_STOPS = [(37, 99, 235), (34, 197, 94), (234, 179, 8), (239, 68, 68)]  # bl
 HR_STOPS = [(34, 197, 94), (234, 179, 8), (249, 115, 22), (239, 68, 68)]    # gruen->gelb->orange->rot
 
 
-# Stat-Katalog: key -> (Label, Wert-Funktion, Verfuegbar-Funktion). Reihenfolge = Default.
-def stat_catalog(ar):
+# Stat-Katalog: key -> (Label, Wert, Verfuegbar). Reihenfolge = Default.
+# seg != None -> Stats EINES Laufs (Einzel-Lauf-Teilen): Werte aus dem Segment, und die
+# bei einem einzelnen Lauf sinnlosen/redundanten Stats (Läufe, Längster, Strecke=Foiling) aus.
+def stat_catalog(ar, seg=None):
+    if seg is not None:
+        dist = seg.get("distance_m") or 0
+        dur = seg.get("duration_s") or 0
+        pumps = int(seg.get("pumps") or 0)
+        spd = seg.get("max_speed_mps") or 0
+        ppm = round(seg.get("pumps_per_min") or 0) if (pumps > 0 and dur > 0) else None
+        return [
+            ("foiling", "Foiling", _km(dist), dist > 0),
+            ("runs", "Läufe", "1", False),
+            ("pumps", "Pumps", str(pumps), pumps > 0),
+            ("speed", "Top-Speed", f"{spd*3.6:.1f} km/h", spd > 0),
+            ("time", "Foil-Zeit", _mmss(dur), dur > 0),
+            ("longest", "Längster", _km(dist), False),
+            ("distance", "Strecke", _km(dist), False),
+            ("pumprate", "Ø Pumps/min", str(ppm or 0), ppm is not None),
+        ]
     ppm = None
     if (ar.foiling_time_s or 0) > 0 and (ar.pump_count or 0) > 0:
         ppm = round(ar.pump_count / (ar.foiling_time_s / 60.0))
@@ -105,6 +123,10 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     speeds = (props.get("speeds") or {}).get("3") or props.get("speeds_mps") or []
     hr = props.get("hr") or []
 
+    # Laeufe + optionaler Einzel-Lauf-Highlight (fuer Track UND Stats).
+    segs_all = json.loads(ar.segments_json) if ar and ar.segments_json else []
+    hl = highlight if (highlight is not None and 0 <= highlight < len(segs_all)) else None
+
     # Farbfunktion je Modus
     if color == "speed":
         vmax = max([s for s in speeds if s] or [1])
@@ -123,7 +145,7 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         n = len(coords)
         # Nur Foiling-Laeufe zeichnen (kein Land/Nicht-Foilen), wie die Web-Karte.
         # Segment-Indizes -> Maske; ohne Segmente (GPS-only/0 Laeufe) ganze Spur.
-        segs = json.loads(ar.segments_json) if ar and ar.segments_json else []
+        segs = segs_all
         foil = np.zeros(n, dtype=bool)
         run_of = np.full(n, -1, dtype=int)   # je Index: zugehoeriger Lauf (fuer Highlight)
         for ri, sg in enumerate(segs):
@@ -133,8 +155,6 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
             run_of[lo_:hi_] = ri
         if not foil.any():
             foil[:] = True   # Fallback: keine Laeufe -> ganze Spur
-        # Einzelnen Lauf hervorheben (falls gueltiger Index): andere gedimmt, der gewaehlte voll+dicker.
-        hl = highlight if (highlight is not None and 0 <= highlight < len(segs)) else None
         latref = float(np.median(lats[foil]))
         mx = 111320.0 * math.cos(math.radians(latref)); my = 111320.0
         xs = lons * mx; ys = lats * my
@@ -181,14 +201,18 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     head = (title or session.place_name or "Session")
     date_str = session.started_at.astimezone().strftime("%d.%m.%Y")
     sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
+    if hl is not None:                       # Einzel-Lauf: im Untertitel ausweisen
+        sub = f"Lauf {hl + 1} · {sub}"
     d.text((px(90), px(64)), head, font=_font(px(58)), fill=(*prim, 255))
     # Untertitel (Ort · Datum): im gewaehlten Blau (prim) + fett — die kleine Schrift war
     # in der Sekundaerfarbe (hellgrau) auf hellem Hintergrund/Foto schlecht lesbar.
     d.text((px(90), px(128)), sub, font=_font(px(30)), fill=(*prim, 255))
 
-    # Stats (nur gewuenschte + verfuegbare, Reihenfolge des Katalogs)
-    cat = {k: (lbl, v, ok) for k, lbl, v, ok in stat_catalog(ar)}
-    order = [k for k, *_ in stat_catalog(ar)]
+    # Stats: bei Einzel-Lauf-Highlight aus dem gewaehlten Lauf, sonst Session-Summe.
+    seg_for_stats = segs_all[hl] if hl is not None else None
+    _catalog = stat_catalog(ar, seg_for_stats)
+    cat = {k: (lbl, v, ok) for k, lbl, v, ok in _catalog}
+    order = [k for k, *_ in _catalog]
     want = stats if stats is not None else [k for k in order if cat[k][2]]
     chosen = [k for k in order if k in want and cat[k][2]][:6]
     gy, gx, cw = px(772), px(90), px(300)
