@@ -67,7 +67,7 @@ def _redirect_uri() -> str:
 def _state_for(uid: int) -> str:
     s = get_settings()
     return pyjwt.encode(
-        {"uid": uid, "scope": "suunto-link", "exp": int(time.time()) + 600},
+        {"uid": uid, "scope": "suunto-link", "exp": int(time.time()) + 3600},
         s.jwt_secret, algorithm=s.jwt_algorithm,
     )
 
@@ -135,6 +135,7 @@ def connect(user: models.User = Depends(current_user)) -> dict:
         "client_id": cid,
         "redirect_uri": _redirect_uri(),
         "scope": "workout",
+        "state": _state_for(user.id),   # signiertes JWT -> im /callback zurück -> user_id
     }
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 
