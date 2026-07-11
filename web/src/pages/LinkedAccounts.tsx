@@ -25,9 +25,11 @@ export default function LinkedAccounts() {
       window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
     }
   }, []);
-  const bannerCls = banner === "ok" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-    : banner === "error" ? "border-red-500/40 bg-red-500/10 text-red-300"
-    : "border-slate-600/50 bg-slate-800/60 text-slate-300";
+  const bannerCls = banner === "ok"
+    ? "border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-300"
+    : banner === "error"
+    ? "border-red-400 bg-red-500/15 text-red-700 font-medium dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
+    : "border-slate-300 bg-slate-500/10 text-slate-700 dark:border-slate-600/50 dark:bg-slate-800/60 dark:text-slate-300";
   return (
     <div className="w-full">
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
@@ -68,7 +70,7 @@ function PolarRecorderBetaCard() {
     <Card className="border border-amber-500/40 bg-amber-500/5 p-5">
       <div className="mb-1 flex items-center gap-2">
         <h3 className="font-semibold">Polar-Recorder</h3>
-        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">Beta · nur du</span>
+        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Beta · nur du</span>
       </div>
       <p className="mb-2 text-sm text-slate-300">
         Echter Recorder für Polar-Hardware über das <b>Polar BLE SDK</b> (in der Handy-App), zusätzlich
@@ -216,11 +218,15 @@ function SuuntoCard() {
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.suunto.connect")}</Button>
       ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-400">{t("settings.suunto.connected")}</span>
-          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
-          <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
-        </div>
+        <>
+          <div className="mb-3 flex items-center gap-3">
+            <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
+            <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
+          </div>
+        </>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
     </Card>
