@@ -8,7 +8,7 @@ import { useI18n } from "../i18n";
 // hat (gepairte Uhr / verknüpftes Konto) wird blau hervorgehoben — wie das Standard-Foil.
 const GROUPS = {
   watch: { avail: ["Garmin", "Apple Watch", "Wear OS"], pending: ["Amazfit"] },
-  account: { avail: ["Polar"], pending: ["Suunto", "COROS"] },
+  account: { avail: ["Polar", "Suunto"], pending: ["COROS"] },
 } as const;
 
 // Geräte-Plattform (vom Pairing gemeldet) -> Anzeigename in der Watch-Gruppe.
