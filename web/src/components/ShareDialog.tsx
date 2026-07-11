@@ -53,6 +53,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const [dim, setDim] = useState(0.55);   // Abdunklung des Hintergrundfotos (Scrim-Deckkraft)
   const [showTrack, setShowTrack] = useState(true);   // Track (GPS-Läufe) anzeigen?
   const [shade, setShade] = useState<"light" | "dark">("light");  // Textfarbe: helles/dunkles Blau
+  const segments: any[] = analysis?.segments ?? [];
+  const [highlight, setHighlight] = useState(-1);   // -1 = alle Läufe, sonst 0-basierter Lauf
   const [cardTitle, setCardTitle] = useState("");     // optionaler eigener Titel/Text
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -127,6 +129,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         const tok = getToken();
         const chosen = STAT_ORDER.filter((k) => sel.has(k));
         const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0", shade });
+        if (showTrack && highlight >= 0) q.set("highlight", String(highlight));
         if (chosen.length) q.set("stats", chosen.join(","));
         if (cardTitle.trim()) q.set("title", cardTitle.trim());
         const res = await fetch(`/api/sessions/${sessionId}/share.png?${q}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
@@ -139,7 +142,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle]);
+  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle, highlight]);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -283,6 +286,20 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
                 </button>
               ))}
             </div>
+            {segments.length >= 2 && (
+              <>
+                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.highlightRun")}</div>
+                <select value={highlight} onChange={(e) => setHighlight(parseInt(e.target.value))}
+                  className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
+                  <option value={-1}>{t("share.allRuns")}</option>
+                  {segments.map((sg, i) => {
+                    const m = sg?.distance_m ?? 0;
+                    const dist = m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+                    return <option key={i} value={i}>{t("share.runLabel", { n: i + 1 })}{m ? ` · ${dist}` : ""}</option>;
+                  })}
+                </select>
+              </>
+            )}
           </>
         )}
 

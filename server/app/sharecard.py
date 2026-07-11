@@ -83,8 +83,12 @@ def available_stats(ar):
     return [k for k, _lbl, _v, ok in stat_catalog(ar) if ok]
 
 
+DIM = (100, 116, 139)     # gedimmte Laeufe, wenn ein einzelner Lauf hervorgehoben wird
+
+
 def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
-                     bg="navy", size=1080, track=True, title=None, shade="light") -> bytes:
+                     bg="navy", size=1080, track=True, title=None, shade="light",
+                     highlight=None) -> bytes:
     sh = SHADES.get(shade, SHADES["light"])
     prim, sec = sh["prim"], sh["sec"]
     W = H = size
@@ -121,11 +125,16 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         # Segment-Indizes -> Maske; ohne Segmente (GPS-only/0 Laeufe) ganze Spur.
         segs = json.loads(ar.segments_json) if ar and ar.segments_json else []
         foil = np.zeros(n, dtype=bool)
-        for sg in segs:
+        run_of = np.full(n, -1, dtype=int)   # je Index: zugehoeriger Lauf (fuer Highlight)
+        for ri, sg in enumerate(segs):
             a, b = int(sg.get("i_start", 0)), int(sg.get("i_end", 0))
-            foil[max(a, 0):min(b + 1, n)] = True
+            lo_, hi_ = max(a, 0), min(b + 1, n)
+            foil[lo_:hi_] = True
+            run_of[lo_:hi_] = ri
         if not foil.any():
             foil[:] = True   # Fallback: keine Laeufe -> ganze Spur
+        # Einzelnen Lauf hervorheben (falls gueltiger Index): andere gedimmt, der gewaehlte voll+dicker.
+        hl = highlight if (highlight is not None and 0 <= highlight < len(segs)) else None
         latref = float(np.median(lats[foil]))
         mx = 111320.0 * math.cos(math.radians(latref)); my = 111320.0
         xs = lons * mx; ys = lats * my
@@ -143,13 +152,30 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
                 if len(pts) >= 3:
                     d.polygon(pts, fill=WATER)
         lw = max(px(10), 3)
+        dimw = max(px(6), 2)
+        hlw = lw + max(px(4), 2)
+
+        def _pts(i):
+            return toXY(xs[i], ys[i]), toXY(xs[i + 1], ys[i + 1])
+
         for i in range(n - 1):
             if not (foil[i] and foil[i + 1]):     # nur innerhalb der Laeufe
                 continue
-            p0 = toXY(xs[i], ys[i]); p1 = toXY(xs[i + 1], ys[i + 1])
+            if hl is not None and run_of[i] == hl and run_of[i + 1] == hl:
+                continue                          # gewaehlter Lauf: zuletzt (oben drauf)
+            p0, p1 = _pts(i)
             if math.dist(p0, p1) > px(200):
                 continue
-            d.line([p0, p1], fill=(*colfn(i + 1), 255), width=lw)
+            fill = (*DIM, 255) if hl is not None else (*colfn(i + 1), 255)
+            d.line([p0, p1], fill=fill, width=dimw if hl is not None else lw)
+        if hl is not None:                        # hervorgehobener Lauf: voll + dicker, oben
+            for i in range(n - 1):
+                if not (run_of[i] == hl and run_of[i + 1] == hl):
+                    continue
+                p0, p1 = _pts(i)
+                if math.dist(p0, p1) > px(200):
+                    continue
+                d.line([p0, p1], fill=(*colfn(i + 1), 255), width=hlw)
 
     # Header (Ueberschrift in Brand-Blau; optionaler eigener Titel, sonst Spot-Name)
     head = (title or session.place_name or "Session")

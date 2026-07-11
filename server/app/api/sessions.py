@@ -880,6 +880,7 @@ def share_card(
     track: int = 1,
     title: str = "",
     shade: str = "light",
+    highlight: int = -1,   # einzelnen Lauf hervorheben (0-basiert); <0 = alle
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -910,7 +911,8 @@ def share_card(
     ttl = (title or "").strip()[:40] or None
     sh = shade if shade in ("light", "dark") else "light"
     png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg,
-                                     track=bool(track), title=ttl, shade=sh)
+                                     track=bool(track), title=ttl, shade=sh,
+                                     highlight=highlight if highlight >= 0 else None)
     return Response(content=png, media_type="image/png",
                     headers={"Cache-Control": "private, max-age=300"})
 
