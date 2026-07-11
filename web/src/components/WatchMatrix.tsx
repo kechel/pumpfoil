@@ -8,7 +8,7 @@ import { AppStoreBadge, PlayBadge } from "./StoreBadge";
 type Cap = "yes" | "partial" | "no";
 type Status = "avail" | "planned" | "import" | "no" | "nope";
 type StoreKind = "ciq" | "appstore" | "play";                 // theme-aware Store-Badge
-type Account = { logo: string; alt: string; labelKey: string }; // Import per Konto-Verknüpfung (Hinweis, kein Link)
+type Account = { logo: string; alt: string; labelKey: string; imgClass?: string }; // Import per Konto-Verknüpfung (Hinweis, kein Link)
 
 const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: StoreKind; account?: Account }[] = [
   { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", store: "ciq" },
@@ -18,7 +18,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",
-    account: { logo: "/suunto-logo.png", alt: "Suunto", labelKey: "watches.linkAccount" } },
+    account: { logo: "/suunto-logo.png", alt: "Suunto", labelKey: "watches.linkAccount", imgClass: "h-10 w-auto" } },
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
   { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },
@@ -53,7 +53,7 @@ export function WatchMatrix() {
     ) : r.account ? (
       <div className="inline-flex flex-col items-start gap-1">
         <span className="inline-block rounded-lg bg-white px-2.5 py-1.5 shadow-sm">
-          <img src={r.account.logo} alt={r.account.alt} className="h-5 w-auto" />
+          <img src={r.account.logo} alt={r.account.alt} className={r.account.imgClass ?? "h-5 w-auto"} />
         </span>
         <span className="inline-flex items-center gap-1 text-xs text-slate-400">
           <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> {t(r.account.labelKey)}

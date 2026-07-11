@@ -218,7 +218,7 @@ function SuuntoCard() {
       <div className="mb-3 flex items-center gap-3">
         <a href="https://www.suunto.com/" target="_blank" rel="noopener noreferrer" title="Suunto"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
-          <img src="/suunto-logo.png" alt="Suunto" className="h-5 w-auto" />
+          <img src="/suunto-logo.png" alt="Suunto" className="h-10 w-auto" />
         </a>
         {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>}
       </div>
