@@ -215,18 +215,20 @@ function SuuntoCard() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.suunto.title")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.suunto.hint")}</p>
+      <div className="mb-3 flex items-center gap-3">
+        <a href="https://www.suunto.com/" target="_blank" rel="noopener noreferrer" title="Suunto"
+          className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
+          <img src="/suunto-logo.png" alt="Suunto" className="h-5 w-auto" />
+        </a>
+        {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>}
+      </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.suunto.connect")}</Button>
       ) : (
-        <>
-          <div className="mb-3 flex items-center gap-3">
-            <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
-            <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
-          </div>
-        </>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
+          <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
+        </div>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
     </Card>
