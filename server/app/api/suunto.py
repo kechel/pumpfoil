@@ -141,31 +141,40 @@ def connect(user: models.User = Depends(current_user)) -> dict:
 
 
 @router.get("/callback")
-def callback(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
-    cid, secret = _creds()
+def callback(code: str | None = None, state: str | None = None, error: str | None = None,
+             db: Session = Depends(get_db)):
+    """Führt IMMER auf /konten zurück (nie roher JSON im Browser): ?suunto=connected|cancelled|error,
+    die PWA zeigt dazu eine freundliche Meldung."""
+    def _redir(kind: str) -> RedirectResponse:
+        return RedirectResponse(f"{get_settings().base_url}/konten?suunto={kind}", status_code=303)
+
+    if error:  # Nutzer hat im Suunto-Consent „Abbrechen"/abgelehnt
+        return _redir("cancelled")
+    try:
+        cid, secret = _creds()
+    except HTTPException:
+        return _redir("error")
     uid = _uid_from_state(state or "")
     if not code or uid is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Suunto state")
+        return _redir("error")   # abgelaufener/fehlender state
     try:
         tr = httpx.post(TOKEN_URL,
                         data={"grant_type": "authorization_code", "code": code, "redirect_uri": _redirect_uri()},
                         headers={"Authorization": f"Basic {_basic(cid, secret)}",
                                  "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
                         timeout=20)
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Suunto token exchange failed") from exc
-    if tr.status_code != 200:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Suunto token exchange failed ({tr.status_code})")
-    tok = tr.json()
+        tok = tr.json() if tr.status_code == 200 else {}
+    except Exception:  # noqa: BLE001
+        return _redir("error")
     if not tok.get("access_token"):
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Suunto token incomplete")
+        return _redir("error")
     link = db.query(models.SuuntoLink).filter_by(user_id=uid).first()
     if link is None:
         link = models.SuuntoLink(user_id=uid, access_token="", refresh_token="")
         db.add(link)
     _store_token(link, tok)
     db.commit()
-    return RedirectResponse(f"{get_settings().base_url}/konten?suunto=connected", status_code=303)
+    return _redir("connected")
 
 
 def _import_workout(db: Session, user: models.User, token: str, key: str) -> bool:
