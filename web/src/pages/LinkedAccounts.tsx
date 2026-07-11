@@ -11,6 +11,23 @@ import { useI18n } from "../i18n";
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
 export default function LinkedAccounts() {
   const { t } = useI18n();
+  // Ergebnis der OAuth-Verknüpfung (Callback leitet auf /konten?suunto=connected|cancelled|error).
+  const [banner, setBanner] = useState<"ok" | "cancelled" | "error" | null>(null);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const s = p.get("suunto");
+    if (s === "connected") setBanner("ok");
+    else if (s === "cancelled") setBanner("cancelled");
+    else if (s === "error") setBanner("error");
+    if (s) {
+      p.delete("suunto");
+      const q = p.toString();
+      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
+    }
+  }, []);
+  const bannerCls = banner === "ok" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+    : banner === "error" ? "border-red-500/40 bg-red-500/10 text-red-300"
+    : "border-slate-600/50 bg-slate-800/60 text-slate-300";
   return (
     <div className="w-full">
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
@@ -18,6 +35,12 @@ export default function LinkedAccounts() {
       </Link>
       <h2 className="mb-1 text-xl font-bold">{t("linked.title")}</h2>
       <p className="mb-4 text-sm text-slate-300">{t("linked.hint")}</p>
+      {banner && (
+        <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>
+          <span>{banner === "ok" ? t("linked.connectOk") : banner === "cancelled" ? t("linked.connectCancelled") : t("linked.connectError")}</span>
+          <button onClick={() => setBanner(null)} aria-label="×" className="shrink-0 px-1 text-lg opacity-70 hover:opacity-100">×</button>
+        </div>
+      )}
       <div className="space-y-4">
         <PolarRecorderBetaCard />
         <PolarCard />
