@@ -151,6 +151,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     if (!confirm(t("account.revokeConfirm", { name: label || t("account.deviceUnnamed") }))) return;
     api.revokeDevice(id).then(load).catch(() => {});
   };
+  const setMode = (id: number, mode: string) => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, record_mode: mode } : x)) : ds));
+    api.setDeviceRecordMode(id, mode).catch(() => load());
+  };
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
 
   if (!devices) return null;
@@ -188,6 +192,23 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       {t("account.deviceUpdate", { version: d.latest_version ?? "" })}
                     </button>
                   )
+                )}
+                {/* Aufzeichnungsmodus getrennt je Uhr (nur aktive Geräte). */}
+                {!d.revoked_at && (
+                  <div className="mt-2">
+                    <label className="mb-1 flex items-center gap-2 text-xs text-slate-400">
+                      {t("account.recordMode")}
+                      <select value={d.record_mode} onChange={(e) => setMode(d.id, e.target.value)}
+                        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                        <option value="full">{t("account.recordModeFull")}</option>
+                        <option value="lite">{t("account.recordModeLite")}</option>
+                        <option value="gps">{t("account.recordModeGps")}</option>
+                      </select>
+                    </label>
+                    {d.low_accel && d.record_mode === "full" && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
+                    )}
+                  </div>
                 )}
               </div>
               {!d.revoked_at && (
@@ -307,7 +328,6 @@ function ViewsEditor() {
   const [views, setViews] = useState<number[][] | null>(null);
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
-  const [recordMode, setRecordMode] = useState("full");
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -317,7 +337,6 @@ function ViewsEditor() {
       setViews(s.views ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
-      setRecordMode(s.record_mode ?? "full");
       setOffFoil(s.off_foil_view ?? [12, 17, 16]);
     }).catch((e) => setErr(String(e)));
   }, []);
@@ -347,11 +366,10 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, record_mode: recordMode, off_foil_view: offFoil });
+      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, off_foil_view: offFoil });
       setViews(res.views);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
-      setRecordMode(res.record_mode ?? "full");
       if (res.off_foil_view) setOffFoil(res.off_foil_view);
       setSaved(true);
     } catch (e) {
@@ -374,16 +392,7 @@ function ViewsEditor() {
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
       </label>
-      <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-slate-200">{t("account.recordMode")}</label>
-        <select value={recordMode} onChange={(e) => { setRecordMode(e.target.value); setSaved(false); }}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
-          <option value="full">{t("account.recordModeFull")}</option>
-          <option value="lite">{t("account.recordModeLite")}</option>
-          <option value="gps">{t("account.recordModeGps")}</option>
-        </select>
-        <p className="mt-1 text-xs text-slate-400">{t("account.recordModeHint")}</p>
-      </div>
+      <p className="mb-4 text-xs text-slate-400">{t("account.recordModeMoved")}</p>
 
       <div className="space-y-3">
         {views.map((v, vi) => (

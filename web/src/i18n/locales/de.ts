@@ -279,6 +279,8 @@ const de: Record<string, string> = {
   "account.recordModeLite": "Sparsam — Beschleunigung 10 Hz (weniger Speicher)",
   "account.recordModeGps": "Nur GPS — keine Beschleunigung (minimaler Speicher)",
   "account.recordModeHint": "Bricht die Aufnahme auf einer speicherarmen Uhr (z. B. Forerunner 55) ab, wähle „Sparsam“ oder „Nur GPS“. Nur-GPS liefert Strecke/Speed/Foiling-Phasen, aber keine Pump-Erkennung.",
+  "account.recordModeMoved": "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
+  "account.recordModeAutoLite": "Diese Uhr wird bei „Voll“ automatisch auf „Sparsam“ begrenzt (zu wenig Speicher).",
   "account.viewN": "Ansicht {n}",
   "account.addView": "+ Ansicht hinzufügen",
   "account.saved": "gespeichert ✓",

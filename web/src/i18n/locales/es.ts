@@ -898,6 +898,8 @@ const es: Record<string, string> = {
   "compare.open": "Abrir comparación",
   "wx.gust": "R",
   "account.recordModeHint": "Si la grabación se interrumpe en un reloj con poca memoria (p. ej. Forerunner 55), elige « Ahorro » o « Solo GPS ». Solo GPS ofrece recorrido/velocidad/fases de foil, pero sin detección de pump.",
+  "account.recordModeMoved": "La tasa de grabación ahora se ajusta por reloj, en tus relojes vinculados.",
+  "account.recordModeAutoLite": "Este reloj se limita automáticamente de « Completo » a « Ahorro » (memoria limitada).",
   "imp.appleTitle": "Inicio de sesión con Apple (« Iniciar sesión con Apple »)",
   "imp.ytNote": "Proveedor: Google Ireland Ltd. Más detalles en la <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">política de privacidad de Google</a>.",
   "account.deviceUpdate": "Actualización disponible: v{version} → descargar",

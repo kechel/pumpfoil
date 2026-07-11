@@ -117,6 +117,9 @@ class DeviceToken(Base):
     # Roh gemeldete Geräte-Part-Number (Garmin worldWidePartNumber) -> später
     # serverseitige Modell-Zuordnung (sobald echte Werte vorliegen).
     part_number: Mapped[str | None] = mapped_column(String(32))
+    # Aufzeichnungsmodus PRO UHR (full|lite|gps). NULL = User-Default (settings_json).
+    # Erlaubt getrennte Raten je Gerät (z. B. fēnix voll, FR55 sparsam).
+    record_mode: Mapped[str | None] = mapped_column(String(8))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

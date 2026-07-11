@@ -515,6 +515,10 @@ export const api = {
     }),
   myDevices: () => req<PairedDevice[]>("/api/devices/list"),
   revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
+  setDeviceRecordMode: (id: number, record_mode: string) =>
+    req<{ ok: boolean; record_mode: string }>(`/api/devices/${id}/record-mode`, {
+      method: "PUT", body: JSON.stringify({ record_mode }),
+    }),
   // Reverse-Pairing: Code von der Uhr hier eingeben.
   pairClaim: (code: string) =>
     req<{ ok: boolean; label?: string; already?: boolean }>("/api/devices/pair-claim", {
@@ -720,6 +724,8 @@ export interface PairedDevice {
   update_available: boolean;
   model: string | null;       // aufgelöstes Modell (aus Part-Number), z. B. "fēnix® 7X Pro"
   model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
+  record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
+  low_accel: boolean;         // FR55 & Co.: 'full' wird automatisch auf 'lite' gekappt
 }
 
 export interface AppDevice {

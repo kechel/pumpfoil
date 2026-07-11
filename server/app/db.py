@@ -175,6 +175,7 @@ def _migrate_add_columns() -> None:
             "app_version": "VARCHAR(20)",
             "platform": "VARCHAR(16)",
             "part_number": "VARCHAR(32)",
+            "record_mode": "VARCHAR(8)",
         },
         "foils": {
             "thickness_estimated": "BOOLEAN DEFAULT false",

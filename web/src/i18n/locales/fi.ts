@@ -277,6 +277,8 @@ const fi: Record<string, string> = {
   "account.recordModeLite": "Säästö — kiihtyvyys 10 Hz (vähemmän muistia)",
   "account.recordModeGps": "Vain GPS — ei kiihtyvyyttä (minimaalinen muisti)",
   "account.recordModeHint": "Jos tallennus katkeaa vähämuistisessa kellossa (esim. Forerunner 55), valitse „Säästö“ tai „Vain GPS“. Vain GPS antaa matkan/nopeuden/foiling-vaiheet, mutta ei pump-tunnistusta.",
+  "account.recordModeMoved": "Tallennustaajuus asetetaan nyt kellokohtaisesti liitettyjen kellojesi kohdalla.",
+  "account.recordModeAutoLite": "Tämä kello rajoitetaan automaattisesti tilasta ”Täysi” tilaan ”Säästö” (vähän muistia).",
   "account.viewN": "Näkymä {n}",
   "account.addView": "+ Lisää näkymä",
   "account.saved": "tallennettu ✓",

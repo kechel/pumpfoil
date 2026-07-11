@@ -39,6 +39,16 @@ def _is_low_accel_model(part_number: str | None) -> bool:
     return any(h in name for h in _LOW_ACCEL_MODEL_HINTS)
 
 
+def _effective_record_mode(device: models.DeviceToken, settings: dict) -> str:
+    """Wirksamer Aufzeichnungsmodus einer Uhr: Geräte-Override (device.record_mode)
+    vor User-Default; danach FR55-Kappung full->lite (nur runter, 'gps' bleibt)."""
+    dev = device.record_mode if device.record_mode in ("full", "lite", "gps") else None
+    base = dev or settings.get("record_mode", "full")
+    if base == "full" and _is_low_accel_model(device.part_number):
+        return "lite"
+    return base
+
+
 @router.get("/config")
 def device_config(
     device: models.DeviceToken = Depends(current_device),
@@ -76,13 +86,11 @@ def device_config(
         "colorByValue": bool(settings.get("colorByValue", False)),
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
         "autoStart": bool(settings.get("auto_start", True)),
-        # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS). Für speicherarme
+        # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS). Quelle: Geräte-
+        # Override (device.record_mode), sonst User-Default (settings_json). Für speicherarme
         # Uhren (FR55 & Vorgänger) serverseitig PRO GERÄT auf 'lite' gekappt (nur runter;
-        # explizites 'gps' bleibt) — verhindert den Absturz, ohne die Profil-Einstellung oder
-        # andere Uhren des Nutzers zu beeinflussen. Kein Uhr-Update nötig.
-        "recordMode": ("lite" if settings.get("record_mode", "full") == "full"
-                       and _is_low_accel_model(device.part_number)
-                       else settings.get("record_mode", "full")),
+        # explizites 'gps' bleibt) — verhindert den Absturz. Kein Uhr-Update nötig.
+        "recordMode": _effective_record_mode(device, settings),
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
         "language": (user.language if user and user.language else "de"),
         # Vibrationsalarm (per Website konfiguriert).
@@ -141,6 +149,12 @@ def list_devices(
     )
     latest_garmin = _latest_garmin_version()
     pm = _partmap()
+    udefault = "full"
+    if user and user.settings_json:
+        try:
+            udefault = json.loads(user.settings_json).get("record_mode", "full")
+        except Exception:  # noqa: BLE001
+            pass
     out = []
     for d in rows:
         # Update-Hinweis nur für Garmin (Sideload). Wear/Apple aktualisieren über ihre Stores.
@@ -160,8 +174,32 @@ def list_devices(
             "update_available": update,
             "model": model["name"] if model else None,
             "model_id": model["id"] if model else None,   # für /api/app/download/<id>
+            # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
+            "record_mode": d.record_mode or udefault,
+            # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
+            "low_accel": _is_low_accel_model(d.part_number),
         })
     return out
+
+
+@router.put("/{device_id}/record-mode")
+def set_device_record_mode(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Aufzeichnungsmodus (full|lite|gps) für EINE Uhr getrennt setzen. Greift beim
+    nächsten App-Start der Uhr (holt /config). Kein Uhr-Update nötig."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    mode = (body or {}).get("record_mode")
+    if mode not in ("full", "lite", "gps"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger Modus")
+    d.record_mode = mode
+    db.commit()
+    return {"ok": True, "record_mode": mode}
 
 
 def _partmap() -> dict:

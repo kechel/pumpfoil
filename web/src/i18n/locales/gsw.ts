@@ -764,6 +764,8 @@ const gsw: Record<string, string> = {
   "account.recordModeFull": "Voll — Beschlünigung 25 Hz (bescht Pump-Analyse)",
   "account.recordModeGps": "Nur GPS — kei Beschlünigung (minimale Spycher)",
   "account.recordModeHint": "Bricht d Ufnahm uf ere spycherarme Uhr (z. B. Forerunner 55) ab, wähl „Sparsam“ oder „Nur GPS“. Nur-GPS liferet Strecki/Speed/Foiling-Phase, aber kei Pump-Erkennig.",
+  "account.recordModeMoved": "D Ufzeichnigsrate stellsch jetz pro Uhr bi dine verbundene Uhre ii.",
+  "account.recordModeAutoLite": "Die Uhr wird bi „Voll“ automatisch uf „Sparsam“ begränzt (z wenig Spycher).",
   "account.recordModeLite": "Sparsam — Beschlünigung 10 Hz (weniger Spycher)",
   "account.sideStep1": "Uhr per USB an de Rechner aaschliesse.",
   "account.sideStep2post": " kopiere.",

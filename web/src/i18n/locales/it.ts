@@ -931,6 +931,8 @@ const it: Record<string, string> = {
   "imp.operatorTitle": "🛠 Solo il gestore (Jan)",
   "imp.ytNote": "Fornitore: Google Ireland Ltd. Maggiori dettagli nell'<a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">informativa sulla privacy di Google</a>.",
   "account.recordModeHint": "Se la registrazione si interrompe su un orologio con poca memoria (es. Forerunner 55), scegli « Ridotta » o « Solo GPS ». Solo GPS fornisce percorso/velocità/fasi di foil, ma nessun rilevamento del pump.",
+  "account.recordModeMoved": "La frequenza di registrazione ora si imposta per orologio, tra i tuoi orologi collegati.",
+  "account.recordModeAutoLite": "Questo orologio viene limitato automaticamente da « Completa » a « Ridotta » (memoria limitata).",
   "account.autoStart": "Avvia la registrazione automaticamente quando parto (GPS)",
   "imp.google4": "Questi dati <b>non vengono condivisi con terzi</b>, non sono usati per pubblicità e non sono usati per addestrare modelli di IA/ML.",
   "imp.ownerTitle": "🔒 Solo tu (proprietario della sessione)",
