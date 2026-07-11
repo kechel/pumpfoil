@@ -29,7 +29,7 @@ export default function LinkedAccounts() {
     ? "border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-500/40 dark:text-emerald-300"
     : banner === "error"
     ? "border-red-400 bg-red-500/15 text-red-700 font-medium dark:border-red-500/50 dark:bg-red-500/10 dark:text-red-300"
-    : "border-slate-400 bg-slate-500/15 text-slate-800 font-medium dark:border-slate-600/50 dark:bg-slate-800/60 dark:text-slate-200";
+    : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
     <div className="w-full">
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
