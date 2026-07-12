@@ -30,6 +30,7 @@ export default function Settings() {
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
   const [activityType, setActivityType] = useState("surfing");
+  const [savedToast, setSavedToast] = useState(false);
   const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
 
   useEffect(() => {
@@ -60,16 +61,23 @@ export default function Settings() {
     const generic = ["garmin", "wear", "apple", "watch", ""].includes(l.toLowerCase()) || l.toLowerCase() === platform.toLowerCase();
     return generic ? "" : `&dl=${encodeURIComponent(l)}`;
   }
+  // Kurze, server-bestätigte „Gespeichert"-Rückmeldung (Profil speichert alles sofort ohne Button).
+  const savedTimer = useRef<number | undefined>(undefined);
+  function flashSaved() {
+    setSavedToast(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = window.setTimeout(() => setSavedToast(false), 1600);
+  }
   function saveHomespot(v: string) {
     setHomespot(v);
-    api.saveSettings({ homespot: v }).catch(() => {});
+    api.saveSettings({ homespot: v }).then(flashSaved).catch(() => {});
   }
   function saveWeight() {
-    api.saveSettings({ weight_kg: Number(weight) || 0 }).catch(() => {});
+    api.saveSettings({ weight_kg: Number(weight) || 0 }).then(flashSaved).catch(() => {});
   }
   function saveActivityType(v: string) {
     setActivityType(v);
-    api.saveSettings({ activity_type: v }).catch(() => {});
+    api.saveSettings({ activity_type: v }).then(flashSaved).catch(() => {});
   }
 
   function changePw() {
@@ -114,6 +122,11 @@ export default function Settings() {
 
   return (
     <div className="w-full">
+      {savedToast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[2000] flex justify-center md:bottom-8">
+          <span className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">✓ {t("profile.saved")}</span>
+        </div>
+      )}
       <div className="mb-5 flex items-center gap-2">
         <SettingsIcon className="h-6 w-6 text-brand-400" />
         <h2 className="text-xl font-bold">{t("profile.title")}</h2>
@@ -272,7 +285,7 @@ export default function Settings() {
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("foilsens.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("foilsens.hint")}</p>
-        <FoilSensitivitySelect />
+        <FoilSensitivitySelect onSaved={flashSaved} />
       </Card>
 
       <Card className="mt-4 p-5">
@@ -349,7 +362,7 @@ export default function Settings() {
 
 // Persönliche Erkennungs-Empfindlichkeit (nur eigene Auswertung; Community bleibt Standard).
 // Nach Auswahl reanalysiert der Server die eigenen Sessions -> kann kurz dauern.
-function FoilSensitivitySelect() {
+function FoilSensitivitySelect({ onSaved }: { onSaved?: () => void }) {
   const { t } = useI18n();
   const [val, setVal] = useState("normal");
   const [prog, setProg] = useState<{ running: boolean; done: number; total: number } | null>(null);
@@ -357,6 +370,7 @@ function FoilSensitivitySelect() {
   async function change(v: string) {
     setVal(v);
     await api.updateFoilSensitivity(v).catch(() => {});
+    onSaved?.();
     if (v === "normal") { setProg(null); return; }   // Standard = kanonisch, kein Rechnen
     setProg({ running: true, done: 0, total: 0 });
     const poll = async () => {
