@@ -489,6 +489,7 @@ const fi: Record<string, string> = {
   "chat.kindSession": "Sessio-chat",
   "chat.noMine": "Et ole vielä missään chatissa.",
   "chat.noActive": "Ei aktiivisia chatteja viimeisen 48 h aikana.",
+  "chat.globalName": "Yhteisöchat",
   "power.tip": "{foil}: teoreettinen teho Ø {speed} km/h, {weight} kg kokonaispaino. Vastus {drag} W + pump-hitaus {inertia} W{note}.",
   "power.estPump": "ilman kiihtyvyysdataa karkeasti arvioitu",
   "sd.avgPump": "Ø pump",

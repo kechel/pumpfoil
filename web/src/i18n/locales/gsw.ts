@@ -364,6 +364,7 @@ const gsw: Record<string, string> = {
   "chat.allSpotsPick": "Spot-Chat aaluege …",
   "chat.noMine": "Du bisch no i keim Chat.",
   "chat.noActive": "Kei aktivi Chats i de letschte 48 h.",
+  "chat.globalName": "Community-Chat",
   "power.tip": "{foil}: theoretischi Leischtig bi Ø {speed} km/h, {weight} kg Gsamtgwicht. Vortrib {drag} W + Pump-Trägheit {inertia} W{note}.",
   "power.estPump": "ohni Accel-Date pauschal gschätzt",
   "sd.avgPump": "Ø Pump",

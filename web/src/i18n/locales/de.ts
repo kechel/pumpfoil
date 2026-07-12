@@ -491,6 +491,7 @@ const de: Record<string, string> = {
   "chat.kindSession": "Session-Chat",
   "chat.noMine": "Du bist noch in keinem Chat.",
   "chat.noActive": "Keine aktiven Chats in den letzten 48 h.",
+  "chat.globalName": "Community-Chat",
   "power.tip": "{foil}: theoretische Leistung bei Ø {speed} km/h, {weight} kg Gesamtgewicht. Vortrieb {drag} W + Pump-Trägheit {inertia} W{note}.",
   "power.estPump": "ohne Accel-Daten pauschal geschätzt",
   "sd.avgPump": "Ø Pump",

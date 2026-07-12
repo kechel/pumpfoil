@@ -325,6 +325,7 @@ const deAT: Record<string, string> = {
   "chat.allSpotsPick": "Spot-Chat ansehen …",
   "chat.noMine": "Du bist no in kam Chat.",
   "chat.noActive": "Kane aktiven Chats in de letzten 48 h.",
+  "chat.globalName": "Community-Chat",
   "power.tip": "{foil}: theoretische Leistung bei Ø {speed} km/h, {weight} kg Gesamtgewicht. Vortrieb {drag} W + Pump-Trägheit {inertia} W{note}.",
   "power.estPump": "ohne Accel-Daten pauschal geschätzt",
   "sd.avgPump": "Ø Pump",

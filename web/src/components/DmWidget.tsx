@@ -12,6 +12,8 @@ import { useT } from "../i18n";
 type Active = { scope: string; name: string | null; otherId: number; avatar: string | null; blocked: boolean };
 type SpotRow = { scope: string; label: string; url: string; messages: number };
 
+const GLOBAL_SCOPE = "global:main";   // fester globaler Community-Chat (alle sind drin)
+
 // Chat-Overlay von außerhalb öffnen und direkt in einen Scope springen (z. B. Spot-Chat-Button).
 export function openChatOverlay(scope: string, label: string) {
   window.dispatchEvent(new CustomEvent("pumpfoil:open-chat", { detail: { scope, label } }));
@@ -233,6 +235,8 @@ export function DmWidget() {
                       <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
                         {r.kind === "dm"
                           ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
+                          : r.kind === "global"
+                          ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>
                           : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -265,6 +269,15 @@ export function DmWidget() {
                   </>
                 ) : (
                   <>
+                    {/* Globaler Community-Chat: fester Eintrag ganz oben — Einstieg & Wieder-Beitritt. */}
+                    <button onClick={() => openScope(GLOBAL_SCOPE, t("chat.globalName"))}
+                      className="flex w-full items-center gap-2 border-b border-slate-800 px-3 py-2 text-left hover:bg-slate-800">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-100">{t("chat.globalName")}</span>
+                      {subscribed.has(GLOBAL_SCOPE)
+                        ? <BellIcon className="h-3.5 w-3.5 shrink-0 text-brand-400" />
+                        : joined.has(GLOBAL_SCOPE) && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-400" title={t("dm.tabMine")} />}
+                    </button>
                     {spotsShown.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("chat.noActive")}</p>}
                     {spotsShown.map(spotRow)}
                   </>

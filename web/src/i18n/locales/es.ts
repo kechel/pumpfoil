@@ -415,6 +415,7 @@ const es: Record<string, string> = {
   "chat.allSpotsPick": "Ver un chat de spot …",
   "chat.noMine": "Aún no estás en ningún chat.",
   "chat.noActive": "No hay chats activos en las últimas 48 h.",
+  "chat.globalName": "Chat de la comunidad",
   "power.tip": "{foil}: potencia teórica a {speed} km/h de media, {weight} kg en total. Resistencia {drag} W + inercia de pump {inertia} W{note}.",
   "power.estPump": "estimación fija, sin datos accel",
   "sd.avgPump": "Pump medio",

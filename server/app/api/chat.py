@@ -19,7 +19,11 @@ from .deps import current_user
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120}|dm:\d+-\d+)$")
+# Globaler Community-Chat: EIN fester Raum, in dem alle Nutzer standardmäßig drin sind
+# (auch neue). Kein Push per Default; verlassen/wieder beitreten möglich (ChatRoomState.left).
+GLOBAL_SCOPE = "global:main"
+
+_SCOPE_RE = re.compile(r"^(session:\d+|spot:.{1,120}|dm:\d+-\d+|global:[a-z0-9_-]{1,40})$")
 
 
 def _dm_parts(scope: str) -> tuple[int, int] | None:
@@ -75,6 +79,8 @@ def _scope_label_db(db: Session, scope: str, viewer_id: int | None = None) -> st
                          bei der eigenen Session); fehlt der Spot -> Datum; sonst „Session #id".
     Braucht die DB, um die Session-Diskussion nach Fahrer/Spot statt nur „#4" zu zeigen."""
     kind, _, rest = scope.partition(":")
+    if kind == "global":
+        return "Community-Chat"
     if kind == "spot":
         return rest
     if kind == "dm":
@@ -521,8 +527,8 @@ def my_rooms(
     )
     out = []
     for st in states:
-        # Session-Chats vorerst ausgeblendet — nur Spot-Chats anzeigen.
-        if st.scope.startswith("session:"):
+        # Session-Chats vorerst ausgeblendet; globalen Raum unten separat (immer oben) behandeln.
+        if st.scope.startswith("session:") or st.scope.startswith("global:"):
             continue
         last = (
             db.query(models.ChatMessage)
@@ -562,6 +568,38 @@ def my_rooms(
                             "avatar_url": ou.avatar_url if ou else None}
         out.append(row)
     out.sort(key=lambda r: (r["unread"] > 0, r["last_at"] or ""), reverse=True)
+
+    # Globaler Community-Chat: IMMER ganz oben — außer der Nutzer hat ihn verlassen.
+    # Neue Nutzer haben keinen State-Eintrag -> gelten als „drin" (unread 0, kein Push).
+    gst = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=GLOBAL_SCOPE).first()
+    if not (gst and gst.left):
+        glast = (
+            db.query(models.ChatMessage)
+            .join(models.User, models.ChatMessage.user_id == models.User.id)
+            .filter(models.ChatMessage.scope == GLOBAL_SCOPE,
+                    models.ChatMessage.hidden.isnot(True), _visible_author)
+            .order_by(models.ChatMessage.id.desc()).first()
+        )
+        gunread = 0
+        if gst:
+            gunread = (
+                db.query(func.count(models.ChatMessage.id))
+                .join(models.User, models.ChatMessage.user_id == models.User.id)
+                .filter(models.ChatMessage.scope == GLOBAL_SCOPE,
+                        models.ChatMessage.hidden.isnot(True),
+                        models.ChatMessage.user_id != user.id, _visible_author,
+                        models.ChatMessage.id > gst.last_read_id)
+                .scalar()
+            ) or 0
+        out.insert(0, {
+            "scope": GLOBAL_SCOPE, "kind": "global",
+            "label": _scope_label_db(db, GLOBAL_SCOPE, user.id),
+            "url": _scope_url(GLOBAL_SCOPE),
+            "push": bool(gst and gst.push),
+            "unread": int(gunread),
+            "last_text": glast.text[:120] if glast else "",
+            "last_at": glast.created_at.isoformat() if glast and glast.created_at else None,
+        })
     return out
 
 
@@ -589,8 +627,9 @@ def active_rooms(
     )
     out = []
     for scope, n in rows:
-        # Private DMs + Session-Chats nie in der öffentlichen Entdeckung zeigen.
-        if scope in mine or scope.startswith("session:") or scope.startswith("dm:"):
+        # Private DMs + Session- + globaler Chat nie in der Spot-Entdeckung zeigen.
+        if (scope in mine or scope.startswith("session:") or scope.startswith("dm:")
+                or scope.startswith("global:")):
             continue
         last = (
             db.query(models.ChatMessage)
