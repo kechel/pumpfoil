@@ -77,7 +77,7 @@ export function DmWidget() {
   const openScope = (scope: string, label: string) =>
     setActive({ scope, name: label, otherId: 0, avatar: null, blocked: false });
 
-  const back = () => window.history.back();   // Chat → Liste (popstate schließt die Ebene)
+  const back = () => setActive(null);   // Chat → Liste: reine UI (KEIN history.back → keine Seiten-Navigation)
   const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
 
   // Mobile: Zurück-/Swipe-Geste schließt das Chat-Overlay wie ein Popup — erst den offenen
@@ -85,24 +85,32 @@ export function DmWidget() {
   // History-Marker JE OFFENER EBENE, gesetzt beim Öffnen (Tiefe in state.__ov). popstate
   // gleicht die UI-Tiefe an die History-Position an; alle Schließen-Aktionen laufen über die
   // History (history.back/go), damit popstate die einzige Schließ-Quelle bleibt.
-  const chatOpen = open && !!active;
-  const closeOverlay = () => window.history.go(-(active ? 2 : 1));
+  const closeOverlay = () => { setActive(null); setOpen(false); };
 
+  // Hardware-/Swipe-Zurueck (popstate) schliesst zuerst den offenen Chat, dann das Panel.
+  // EIN Marker fuer "Overlay offen"; bei Chat→Liste wird er erneuert (zweistufig). Die Buttons
+  // (←, X) rufen KEIN history.back()/go() mehr -> wenn man zwischendrin in der PWA navigiert
+  // hat (Router pusht eigene Eintraege), poppt der Button nicht mehr versehentlich eine
+  // Seiten-Navigation. Beim Button-Schliessen wird unser Marker nur konsumiert, wenn er noch
+  // obenauf liegt (sonst dangling, aber harmlos — nie eine fremde Navigation zurueckgenommen).
   useEffect(() => {
     if (!open) return;
-    window.history.pushState({ __ov: 1 }, "");
+    let marker = true;
+    window.history.pushState({ __chat: true }, "");
     const onPop = () => {
-      const depth = (window.history.state as { __ov?: number } | null)?.__ov ?? 0;
-      if (depth < 2) { setActive(null); loadRooms(); }
-      if (depth < 1) setOpen(false);
+      setActive((a) => {
+        if (a) { window.history.pushState({ __chat: true }, ""); loadRooms(); return null; }  // Chat→Liste
+        marker = false; setOpen(false); return null;                                          // Liste→zu
+      });
     };
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (marker && (window.history.state as { __chat?: boolean } | null)?.__chat) {
+        window.history.back();
+      }
+    };
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!chatOpen) return;
-    window.history.pushState({ __ov: 2 }, "");
-  }, [chatOpen]);
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
