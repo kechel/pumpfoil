@@ -26,6 +26,7 @@ const fi: Record<string, string> = {
   "transfer.noResults": "Käyttäjiä ei löytynyt",
   "transfer.pending": "Siirto käyttäjälle {name} odottaa",
   "transfer.cancel": "Peru",
+  "transfer.badge": "Siirto",
   "transfer.incomingTitle": "Saapuvat siirrot",
   "transfer.from": "käyttäjältä {name}",
   "transfer.view": "Näytä",

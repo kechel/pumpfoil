@@ -27,6 +27,7 @@ const gsw: Record<string, string> = {
   "transfer.noResults": "Kei Benutzer gfunde",
   "transfer.pending": "Übertragig a {name} pendänt",
   "transfer.cancel": "Zrugghole",
+  "transfer.badge": "Übertragig",
   "transfer.incomingTitle": "Iichoomendi Übertragige",
   "transfer.from": "vo {name}",
   "transfer.view": "Aaluege",

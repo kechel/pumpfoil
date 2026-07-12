@@ -26,6 +26,7 @@ const es: Record<string, string> = {
   "transfer.noResults": "No se encontraron usuarios",
   "transfer.pending": "Transferencia a {name} pendiente",
   "transfer.cancel": "Retirar",
+  "transfer.badge": "Transferencia",
   "transfer.incomingTitle": "Transferencias entrantes",
   "transfer.from": "de {name}",
   "transfer.view": "Ver",

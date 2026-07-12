@@ -28,6 +28,7 @@ const de: Record<string, string> = {
   "transfer.noResults": "Keine Nutzer gefunden",
   "transfer.pending": "Übertragung an {name} ausstehend",
   "transfer.cancel": "Zurücknehmen",
+  "transfer.badge": "Übertragung",
   "transfer.incomingTitle": "Eingehende Übertragungen",
   "transfer.from": "von {name}",
   "transfer.view": "Ansehen",

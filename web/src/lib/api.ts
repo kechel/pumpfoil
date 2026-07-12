@@ -145,6 +145,7 @@ export interface SessionSummary {
   track_preview?: string | null;
   foil_id?: number | null;
   foil?: { id: number; brand: string; model: string; size: string; span_cm?: number; area_cm2?: number; thickness_mm?: number; thickness_estimated?: boolean; aspect_ratio: number | null; is_default?: boolean } | null;
+  transfer_to?: string | null;   // offene Übertragung an diesen Empfänger (eigene Liste)
   analysis: Analysis | null;
 }
 

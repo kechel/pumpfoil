@@ -440,11 +440,22 @@ def list_sessions(
         )
         mine = {sid for (sid,) in db.query(models.SessionLike.session_id)
                 .filter(models.SessionLike.session_id.in_(ids), models.SessionLike.user_id == user.id).all()}
+        # Offene (ausgehende) Übertragungen dieser Sessions -> Empfängername fürs „Übertragung"-Badge.
+        xfer: dict[int, str] = {}
+        for sid, name in (
+            db.query(models.SessionTransfer.session_id, models.User.display_name)
+            .join(models.User, models.User.id == models.SessionTransfer.to_user_id)
+            .filter(models.SessionTransfer.session_id.in_(ids),
+                    models.SessionTransfer.from_user_id == user.id,
+                    models.SessionTransfer.status == "pending").all()
+        ):
+            xfer[sid] = name or "?"
         for o in outs:
             o.thumb_url = thumb.get(o.id)
             o.photo_count = count.get(o.id, 0)
             o.like_count = int(likes.get(o.id, 0))
             o.liked = o.id in mine
+            o.transfer_to = xfer.get(o.id)
     return outs
 
 

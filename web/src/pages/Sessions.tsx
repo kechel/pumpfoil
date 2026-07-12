@@ -416,7 +416,17 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               trackPreview={s.track_preview}
               highlight={s.id === lastViewed}
               stats={s.analysis && <SessionStats a={s.analysis} />}
-              statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
+              statusBadge={(s.transfer_to || s.status !== "analyzed") ? (
+                <div className="flex items-center gap-1.5">
+                  {s.transfer_to && (
+                    <span title={t("transfer.pending", { name: s.transfer_to })}
+                      className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-700 dark:text-amber-300">
+                      {t("transfer.badge")}
+                    </span>
+                  )}
+                  {s.status !== "analyzed" && <StatusBadge status={s.status} />}
+                </div>
+              ) : undefined}
             />
           ))}
         </div>

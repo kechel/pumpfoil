@@ -171,6 +171,7 @@ class SessionOut(BaseModel):
     track_preview: str | None = None  # Mini-Track (normalisierte Polylinien als JSON)
     foil_id: int | None = None  # explizit gesetztes Foil dieser Session
     foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige
+    transfer_to: str | None = None  # offene Übertragung: Anzeigename des Empfängers (nur eigene Liste)
     analysis: AnalysisOut | None = None
 
 
