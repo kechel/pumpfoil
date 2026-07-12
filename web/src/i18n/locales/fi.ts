@@ -207,6 +207,7 @@ const fi: Record<string, string> = {
 
   // Session-Zeile
   "row.like": "Tykkää",
+  "row.playVideo": "Toista video",
   "row.unlike": "Poista tykkäys",
   "row.session": "Sessio",
   "badge.new": "uusi",

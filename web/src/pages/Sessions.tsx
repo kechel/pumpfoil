@@ -410,6 +410,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               avatarUrl={avatar}
               thumbUrl={s.thumb_url}
               photoCount={s.photo_count}
+              youtubeUrl={s.youtube_url}
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}
@@ -502,6 +503,7 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
               avatarUrl={s.avatar_url}
               thumbUrl={s.thumb_url}
               photoCount={s.photo_count}
+              youtubeUrl={s.youtube_url}
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}

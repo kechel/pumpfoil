@@ -193,6 +193,7 @@ const en: Record<string, string> = {
   "status.recording": "recording",
 
   "row.like": "Like",
+  "row.playVideo": "Play video",
   "row.unlike": "Unlike",
   "row.session": "Session",
   "badge.new": "new",

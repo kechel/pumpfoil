@@ -2,8 +2,9 @@ import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
+import { VideoModal, ytId } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 
@@ -22,7 +23,7 @@ function fmtSpan(start: string, end: string) {
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
   sessionId, startedAt, endedAt, spot, foil, deviceLabel, caption,
-  avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0,
+  avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
 }: {
   sessionId: number;
@@ -39,6 +40,7 @@ export function SessionCard({
   stats?: ReactNode;
   thumbUrl?: string | null;
   photoCount?: number;
+  youtubeUrl?: string | null;   // verlinktes YouTube-Video -> Vorschau-Thumbnail mit Play
   likeCount0?: number;
   liked0?: boolean;
   statusBadge?: ReactNode;
@@ -48,6 +50,7 @@ export function SessionCard({
   const t = useT();
   const [liked, setLiked] = useState(liked0);
   const [count, setCount] = useState(likeCount0);
+  const [vid, setVid] = useState<string | null>(null);   // offenes Video-Popup
   const compareRefs = useCompare();
   const inCompare = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: null }));
   const toggleLike = (e: React.MouseEvent) => {
@@ -92,8 +95,28 @@ export function SessionCard({
     </div>
   ) : null;
   const trackEl = trackPreview ? <TrackPreview data={trackPreview} className="h-12 w-16 text-brand-400" /> : null;
+  // Verlinktes Video: Vorschau-Thumbnail (CSP-sicherer Proxy) + Play-Badge; Klick oeffnet das
+  // Video-Popup (statt zur Session zu navigieren). Long-Press-Compare wird unterbunden.
+  const vidId = youtubeUrl ? ytId(youtubeUrl) : "";
+  const videoEl = vidId ? (
+    <button
+      type="button"
+      title={t("row.playVideo")}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVid(youtubeUrl!); }}
+      className="relative block h-12 w-16 overflow-hidden rounded-lg"
+    >
+      <img src={`/api/public/video-thumb/${vidId}`} alt="" className="h-12 w-16 object-cover" />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60">
+          <PlayIcon className="h-3.5 w-3.5 text-white" />
+        </span>
+      </span>
+    </button>
+  ) : null;
 
   return (
+    <>
     <Link
       to={`/sessions/${sessionId}`}
       id={highlight ? "session-highlight" : undefined}
@@ -126,10 +149,11 @@ export function SessionCard({
             >
               <CompareIcon className="h-4 w-4" />
             </button>
-            {/* Mobil: Thumbnail + Track linksbündig unter dem Profilbild */}
-            {(thumbEl || trackEl) && (
+            {/* Mobil: Thumbnail + Video + Track linksbündig unter dem Profilbild */}
+            {(thumbEl || videoEl || trackEl) && (
               <div className="mt-1 flex flex-col items-center gap-1.5 sm:hidden">
                 {thumbEl}
+                {videoEl}
                 {trackEl}
               </div>
             )}
@@ -153,9 +177,10 @@ export function SessionCard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          {/* Desktop: Thumbnail + Track rechts */}
+          {/* Desktop: Thumbnail + Video + Track rechts */}
           <div className="hidden items-center gap-3 sm:flex">
             {thumbEl}
+            {videoEl}
             {trackEl}
           </div>
           {statusBadge}
@@ -163,5 +188,7 @@ export function SessionCard({
         </div>
       </Card>
     </Link>
+    {vid && <VideoModal url={vid} onClose={() => setVid(null)} />}
+    </>
   );
 }

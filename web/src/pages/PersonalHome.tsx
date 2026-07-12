@@ -113,6 +113,7 @@ export default function PersonalHome() {
               avatarUrl={profile?.avatar_url}
               thumbUrl={s.thumb_url}
               photoCount={s.photo_count}
+              youtubeUrl={s.youtube_url}
               likeCount0={s.like_count ?? 0}
               liked0={!!s.liked}
               trackPreview={s.track_preview}

@@ -209,6 +209,7 @@ const de: Record<string, string> = {
 
   // Session-Zeile
   "row.like": "Gefällt mir",
+  "row.playVideo": "Video abspielen",
   "row.unlike": "Gefällt mir nicht mehr",
   "row.session": "Session",
   "badge.new": "neu",
