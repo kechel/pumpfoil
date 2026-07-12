@@ -326,7 +326,6 @@ function ViewsEditor() {
   const [views, setViews] = useState<number[][] | null>(null);
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
-  const [activityType, setActivityType] = useState("surfing");
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -336,7 +335,6 @@ function ViewsEditor() {
       setViews(s.views ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
-      setActivityType(s.activity_type ?? "surfing");
       setOffFoil(s.off_foil_view ?? [12, 17, 16]);
     }).catch((e) => setErr(String(e)));
   }, []);
@@ -366,11 +364,10 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, activity_type: activityType, off_foil_view: offFoil });
+      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, off_foil_view: offFoil });
       setViews(res.views);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
-      setActivityType(res.activity_type ?? "surfing");
       if (res.off_foil_view) setOffFoil(res.off_foil_view);
       setSaved(true);
     } catch (e) {
@@ -394,16 +391,6 @@ function ViewsEditor() {
         {t("account.autoStart")}
       </label>
       <p className="mb-4 text-xs text-slate-400">{t("account.recordModeMoved")}</p>
-
-      <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-slate-200">{t("account.activityType")}</label>
-        <select value={activityType} onChange={(e) => { setActivityType(e.target.value); setSaved(false); }}
-          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
-          <option value="surfing">{t("account.activitySurfing")}</option>
-          <option value="openwater">{t("account.activityOpenWater")}</option>
-        </select>
-        <p className="mt-1 text-xs text-slate-400">{t("account.activityTypeHint")}</p>
-      </div>
 
       <div className="space-y-3">
         {views.map((v, vi) => (
