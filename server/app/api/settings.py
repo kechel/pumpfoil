@@ -22,6 +22,8 @@ DEFAULTS = {
     "auto_start": True,
     # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
     "record_mode": "full",
+    # Aktivitätstyp der Garmin-FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
+    "activity_type": "surfing",
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
@@ -99,6 +101,8 @@ def update_settings(
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
         current["record_mode"] = patch["record_mode"]
+    if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater"):
+        current["activity_type"] = patch["activity_type"]
     if "homespot" in patch:
         v = patch["homespot"]
         # id ODER Name akzeptieren -> kanonisch als Name speichern (mit Apps geteilt).

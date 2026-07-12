@@ -62,6 +62,9 @@ class SessionRecorder {
     // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = Accel 10 Hz (sparsam) |
     // "gps" = nur GPS (kein Roh-Accel) — für speicherarme Uhren (z. B. Forerunner 55).
     var recordMode = "full";
+    // Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): "surfing" = Surfen |
+    // "openwater" = Freiwasserschwimmen. Von der Website konfigurierbar (via /config).
+    var activityType = "surfing";
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
@@ -170,6 +173,8 @@ class SessionRecorder {
         autoStart = (asv == null) ? true : asv;
         var rm = Storage.getValue("record_mode");
         recordMode = (rm != null) ? rm : "full";
+        var at = Storage.getValue("activity_type");
+        activityType = (at != null) ? at : "surfing";
         alarmEnabled = Config.getBool("alarmEnabled", false);
         speedHighKmh = Config.getNumber("speedHigh", 0);
         speedLowKmh = Config.getNumber("speedLow", 0);
@@ -355,6 +360,10 @@ class SessionRecorder {
                 recordMode = data["recordMode"];
                 _store("record_mode", recordMode);
             }
+            if (data.hasKey("activityType") && data["activityType"] != null) {
+                activityType = data["activityType"];
+                _store("activity_type", activityType);
+            }
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
             if (data.hasKey("alarmEnabled")) {
                 alarmEnabled = data["alarmEnabled"];
@@ -501,7 +510,14 @@ class SessionRecorder {
         // SensorLogger nur mitgeben, wenn vorhanden (sonst normale FIT-Session).
         // FIT-Session ist für Garmin Connect + Live-Stats; schlägt sie fehl, zeichnen
         // wir trotzdem unsere Rohdaten-Chunks (GPS/Accel) auf — Priorität: nichts verlieren.
-        var sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SURFING };
+        // Aktivitätstyp wählbar: Open Water = Schwimmen/Freiwasser, sonst Surfen.
+        var sessOpts;
+        if (activityType.equals("openwater")) {
+            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SWIMMING,
+                         :subSport => Activity.SUB_SPORT_OPEN_WATER };
+        } else {
+            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SURFING };
+        }
         if (logger != null) { sessOpts[:sensorLogger] = logger; }
         _fitSession = null;
         try {

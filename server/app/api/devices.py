@@ -91,6 +91,8 @@ def device_config(
         # Uhren (FR55 & Vorgänger) serverseitig PRO GERÄT auf 'lite' gekappt (nur runter;
         # explizites 'gps' bleibt) — verhindert den Absturz. Kein Uhr-Update nötig.
         "recordMode": _effective_record_mode(device, settings),
+        # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
+        "activityType": settings.get("activity_type", "surfing"),
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
         "language": (user.language if user and user.language else "de"),
         # Vibrationsalarm (per Website konfiguriert).
