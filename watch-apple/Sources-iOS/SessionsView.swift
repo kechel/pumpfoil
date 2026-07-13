@@ -218,7 +218,7 @@ struct SessionRow: View {
             HStack(alignment: .top, spacing: 12) {
                 leading
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(headline).font(.headline)
+                    Text(headline).font(.subheadline).fontWeight(.semibold)
                     let chips = chipLabels
                     if !chips.isEmpty {
                         HStack(spacing: 6) { ForEach(chips, id: \.self) { pill($0) } }
@@ -228,8 +228,13 @@ struct SessionRow: View {
                     }
                 }
                 Spacer(minLength: 8)
+                // Track-Vorschau bleibt rechts im Kopf.
+                if let tp = session.track_preview {
+                    TrackPreviewView(data: tp).frame(width: 74, height: 42)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
             }
-            media   // Track/Foto/Video als eigene Zeile DARUNTER
+            media   // Foto/Video als eigene Zeile DARUNTER
             if let stats = statsText {
                 Text(stats).font(.caption).lineLimit(1)
             }
@@ -256,16 +261,12 @@ struct SessionRow: View {
         AvatarView(name: session.owner_name, url: Api.mediaURL(session.owner_avatar_url), size: 40)
     }
 
-    // Medien-Zeile (Track-Vorschau + Foto + Video) unter dem Titel — gleich große 16:9-Kacheln.
+    // Foto/Video als eigene Zeile unter dem Titel — gleich große Kacheln (Track bleibt im Kopf).
     @ViewBuilder private var media: some View {
         let thumb = Api.mediaURL(session.thumb_url)
         let vid = youtubeId(session.youtube_url)
-        if session.track_preview != nil || thumb != nil || vid != nil {
+        if thumb != nil || vid != nil {
             HStack(spacing: 8) {
-                if let tp = session.track_preview {
-                    TrackPreviewView(data: tp).frame(width: 74, height: 42)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
                 if let url = thumb {
                     AsyncImage(url: url) { phase in
                         switch phase {

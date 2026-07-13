@@ -309,7 +309,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(dateTimeRange(s.startedAt, s.endedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(dateTimeRange(s.startedAt, s.endedAt), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
                     val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel, s.deviceLabel?.takeIf { it.isNotBlank() })
@@ -324,23 +324,31 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
-                Spacer(Modifier.width(8.dp))
+                // Track-Vorschau bleibt rechts im Kopf.
                 s.trackPreview?.let { tp ->
-                    TrackPreviewCanvas(tp, Modifier.size(width = 58.dp, height = 42.dp))
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.width(8.dp))
+                    TrackPreviewCanvas(tp, Modifier.size(width = 74.dp, height = 42.dp).clip(RoundedCornerShape(8.dp)))
                 }
-                Api.mediaUrl(s.thumbUrl)?.let { thumb ->
-                    AsyncImage(model = thumb, contentDescription = null, contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
-                }
-                // Verlinktes Video: Vorschau-Thumb (CSP-sicherer Proxy) + Play-Overlay.
-                ytVideoId(s.youtubeUrl)?.let { vid ->
-                    Spacer(Modifier.width(6.dp))
-                    Box(Modifier.size(width = 58.dp, height = 44.dp).clip(RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
-                        AsyncImage(model = "${Api.BASE}/api/public/video-thumb/$vid", contentDescription = null,
-                            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color.White,
-                            modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape))
+            }
+            // Foto + Video als eigene Zeile DARUNTER (gleich große 74x42-Kacheln).
+            run {
+                val thumb = Api.mediaUrl(s.thumbUrl)
+                val vid = ytVideoId(s.youtubeUrl)
+                if (thumb != null || vid != null) {
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        thumb?.let {
+                            AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(width = 74.dp, height = 42.dp).clip(RoundedCornerShape(8.dp)))
+                        }
+                        // Verlinktes Video: Vorschau-Thumb (CSP-sicherer Proxy) + Play-Overlay.
+                        vid?.let { v ->
+                            Box(Modifier.size(width = 74.dp, height = 42.dp).clip(RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                                AsyncImage(model = "${Api.BASE}/api/public/video-thumb/$v", contentDescription = null,
+                                    contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color.White,
+                                    modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape))
+                            }
+                        }
                     }
                 }
             }
