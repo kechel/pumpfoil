@@ -242,7 +242,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             )
         },
     ) { pad ->
-        Box(Modifier.padding(pad).fillMaxSize().padding(16.dp)) {
+        Box(Modifier.padding(pad).fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
             val s = session
             when {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -384,27 +384,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
 
         // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
         val ytId = remember(s.youtubeUrl) { youtubeId(s.youtubeUrl) }
-        if (ytId != null) {
-            val ctxYt = LocalContext.current
-            Box(
-                Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))
-                    .clickable { ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(s.youtubeUrl))) },
-                contentAlignment = Alignment.Center,
-            ) {
-                AsyncImage(
-                    model = "https://img.youtube.com/vi/$ytId/hqdefault.jpg",
-                    contentDescription = "YouTube-Video",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                )
-                Icon(
-                    Icons.Filled.PlayCircle, contentDescription = null,
-                    modifier = Modifier.size(56.dp), tint = androidx.compose.ui.graphics.Color.White,
-                )
-            }
-        }
-
-        // Fotos der Session: read-only Strip; Besitzer kann hinzufügen. Tippen -> Vollbild.
+        // Medien (Video + Fotos): Besitzer kann Fotos hinzufügen. Tippen -> Vollbild/Video.
         var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
         var lightboxIdx by remember(s.id) { mutableStateOf<Int?>(null) }
         val ctx = LocalContext.current
@@ -418,31 +398,47 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
             }
         }
-        if (photos.isNotEmpty()) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(photos.size, key = { photos[it].id }) { i ->
-                    Box {
-                        AsyncImage(
-                            model = Api.mediaUrl(photos[i].url),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(width = 200.dp, height = 140.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { lightboxIdx = i },
-                        )
-                        // Eigene Session: kleines X oben rechts zum Löschen (wie PWA/iOS).
-                        if (s.owned) {
-                            val pid = photos[i].id
-                            Icon(
-                                Icons.Filled.Close, contentDescription = I18n.t("common.delete"),
-                                tint = Color.White,
-                                modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp)
-                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                                    .clickable { scope.launch { try { Api.deleteSessionPhoto(s.id, pid); reloadPhotos() } catch (_: Exception) {} } }
-                                    .padding(3.dp),
-                            )
+        // Festes 2-spaltiges Grid: Video (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
+        val hasVideo = ytId != null
+        val total = (if (hasVideo) 1 else 0) + photos.size
+        if (total > 0) {
+            val ctxYt = LocalContext.current
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                var row = 0
+                while (row * 2 < total) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        for (col in 0 until 2) {
+                            val idx = row * 2 + col
+                            if (idx >= total) { Spacer(Modifier.weight(1f)); continue }
+                            Box(Modifier.weight(1f).aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))) {
+                                if (hasVideo && idx == 0) {
+                                    AsyncImage(
+                                        model = "https://img.youtube.com/vi/$ytId/hqdefault.jpg",
+                                        contentDescription = "YouTube", contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize().clickable {
+                                            ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(s.youtubeUrl)))
+                                        },
+                                    )
+                                    Icon(Icons.Filled.PlayCircle, contentDescription = null,
+                                        modifier = Modifier.align(Alignment.Center).size(48.dp), tint = Color.White)
+                                } else {
+                                    val p = photos[idx - if (hasVideo) 1 else 0]
+                                    AsyncImage(
+                                        model = Api.mediaUrl(p.url), contentDescription = null, contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize().clickable { lightboxIdx = photos.indexOf(p) },
+                                    )
+                                    if (s.owned) {
+                                        Icon(Icons.Filled.Close, contentDescription = I18n.t("common.delete"), tint = Color.White,
+                                            modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                                .clickable { scope.launch { try { Api.deleteSessionPhoto(s.id, p.id); reloadPhotos() } catch (_: Exception) {} } }
+                                                .padding(3.dp))
+                                    }
+                                }
+                            }
                         }
                     }
+                    row++
                 }
             }
         }
