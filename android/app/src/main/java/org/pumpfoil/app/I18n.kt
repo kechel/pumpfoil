@@ -553,4 +553,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "sd.hDist" to row("Dist", "Dist", "Dist", "Dist", "Dist", "Dist", "Dist"),
     "sd.coloring" to row("Färbung:", "Iifärbig:", "Einfärbung:", "Coloring:", "Couleur :", "Colorazione:", "Coloración:"),
     "sd.smoothing" to row("Glättung:", "Glättig:", "Glättung:", "Smoothing:", "Lissage :", "Smussatura:", "Suavizado:"),
+    "account.activityType" to row("Aktivitätstyp in Garmin Connect", "Aktivitätstyp i Garmin Connect", "Aktivitätstyp in Garmin Connect", "Activity type in Garmin Connect", "Type d'activité dans Garmin Connect", "Tipo di attività in Garmin Connect", "Tipo de actividad en Garmin Connect"),
+    "account.activitySurfing" to row("Surfen", "Surfe", "Surfen", "Surfing", "Surf", "Surf", "Surf"),
+    "account.activityOpenWater" to row("Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open water", "Eau libre", "Acque libere", "Aguas abiertas"),
+    "account.activityTypeHint" to row("Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Legt fescht, als weli Aktivität d Garmin-Ufnahm i Garmin Connect erschiint.", "Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Sets which activity the Garmin recording appears as in Garmin Connect.", "Définit sous quelle activité l'enregistrement Garmin apparaît dans Garmin Connect.", "Imposta come quale attività appare la registrazione Garmin in Garmin Connect.", "Define como qué actividad aparece la grabación de Garmin en Garmin Connect."),
 )

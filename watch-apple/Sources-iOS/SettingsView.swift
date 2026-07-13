@@ -11,6 +11,8 @@ struct SettingsView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var weight = 0
     @State private var homespot = ""
+    @State private var activityType = "surfing"
+    @State private var activityReady = false   // erst nach dem Laden auf Änderungen reagieren
     @State private var spots: [String] = []
     @State private var nLike = true
     @State private var nAnalyzed = true
@@ -35,6 +37,14 @@ struct SettingsView: View {
                     ForEach(spots, id: \.self) { Text($0).tag($0) }
                 }
             }
+            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Auto-Save.
+            Section {
+                Picker(Loc.t("account.activityType", lang), selection: $activityType) {
+                    Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
+                    Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
+                }
+            } header: { Text(Loc.t("account.activityType", lang)) }
+            footer: { Text(Loc.t("account.activityTypeHint", lang)) }
             Section(Loc.t("settings.design", lang)) {
                 Picker(Loc.t("settings.design", lang), selection: $themeMode) {
                     Text(Loc.t("settings.auto", lang)).tag("auto")
@@ -98,6 +108,9 @@ struct SettingsView: View {
         .onChange(of: nRecord) { _ in saved = false }
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
+        .onChange(of: activityType) { v in
+            if activityReady { Task { try? await Api.saveSettings(["activity_type": v]); saved = true } }
+        }
     }
 
     private func changeSensitivity(_ v: String) {
@@ -119,6 +132,8 @@ struct SettingsView: View {
         let s = (try? await Api.settings()) ?? [:]
         weight = min(max((s["weight_kg"] as? Int) ?? 0, 0), 300)
         homespot = (s["homespot"] as? String) ?? ""
+        activityType = (s["activity_type"] as? String) ?? "surfing"
+        activityReady = true
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
             nAnalyzed = (np["analyzed"] as? Bool) ?? true

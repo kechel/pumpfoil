@@ -27,6 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -61,7 +63,10 @@ fun SettingsScreen(onBack: () -> Unit) {
 
     var weight by remember { mutableStateOf("0") }
     var homespot by remember { mutableStateOf("") }
+    var activityType by remember { mutableStateOf("surfing") }
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }
+    val snackHost = remember { SnackbarHostState() }
+    fun flashSaved() { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } }
     var nLike by remember { mutableStateOf(true) }
     var nAnalyzed by remember { mutableStateOf(true) }
     var nRecord by remember { mutableStateOf(true) }
@@ -79,6 +84,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             val s = Api.settings()
             weight = (s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0).toString()
             homespot = s["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
+            activityType = s["activity_type"]?.jsonPrimitive?.contentOrNull ?: "surfing"
             (s["notify_prefs"] as? kotlinx.serialization.json.JsonObject)?.let { np ->
                 nLike = np["like"]?.jsonPrimitive?.booleanOrNull ?: true
                 nAnalyzed = np["analyzed"]?.jsonPrimitive?.booleanOrNull ?: true
@@ -101,6 +107,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     })
                 })
                 saved = true
+                flashSaved()
             } catch (_: Exception) {}
         }
     }
@@ -112,6 +119,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
             )
         },
+        snackbarHost = { SnackbarHost(snackHost) },
     ) { pad ->
         if (!loaded) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
@@ -133,6 +141,26 @@ fun SettingsScreen(onBack: () -> Unit) {
             Dropdown(
                 options = listOf("" to I18n.t("settings.auto")) + spots.map { it to it },
                 selected = homespot, onSelect = { homespot = it; saved = false },
+            )
+            Spacer(Modifier.height(16.dp))
+
+            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Auto-Save + Bestätigung.
+            Text(I18n.t("account.activityType"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            Dropdown(
+                options = listOf(
+                    "surfing" to I18n.t("account.activitySurfing"),
+                    "openwater" to I18n.t("account.activityOpenWater"),
+                ),
+                selected = activityType,
+                onSelect = onSelect@{ v ->
+                    if (v == activityType) return@onSelect
+                    activityType = v
+                    scope.launch {
+                        try { Api.saveSettings(buildJsonObject { put("activity_type", v) }); flashSaved() } catch (_: Exception) {}
+                    }
+                },
             )
             Spacer(Modifier.height(16.dp))
 
