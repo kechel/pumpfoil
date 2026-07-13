@@ -281,6 +281,13 @@ export default function Landing() {
             </svg>
             Instagram
           </a>
+          <a href="https://www.tiktok.com/@pumpfoil.org" target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-400 hover:text-brand-300">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
+              <path d="M16.5 3c.3 2.2 1.5 3.7 3.6 4v2.5c-1.3.1-2.5-.2-3.6-.9v5.9c0 3.3-2.4 5.5-5.4 5.5A5.2 5.2 0 0 1 6 14.9c0-3.2 3-5.6 6.3-4.8v2.7a2.3 2.3 0 0 0-1-.2 2.5 2.5 0 0 0 .1 5c1.4 0 2.5-1.1 2.5-2.7V3h2.6Z" />
+            </svg>
+            TikTok
+          </a>
         </section>
 
         {/* Was ist Pumpfoil? */}
