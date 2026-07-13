@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -1390,8 +1390,9 @@ export default function SessionDetail() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setTrimOpen((o) => !o)}
-                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
               >
+                <ScissorsIcon className="h-3.5 w-3.5" />
                 {t("sd.trim")}{(session.trim_start_ms != null || session.trim_end_ms != null) && <span className="ml-1 text-brand-400">{t("sd.trimActive")}</span>}
               </button>
               <TransferPicker sessionId={session.id} />

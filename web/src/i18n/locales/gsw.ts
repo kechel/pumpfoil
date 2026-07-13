@@ -292,7 +292,7 @@ const gsw: Record<string, string> = {
   "sd.removeVideoConfirm": "Verlinkts Video würkli entferne?",
   "sd.fake": "wirkt unecht",
   "sd.inappropriate": "unaagmässe",
-  "sd.trim": "✂ Trimme",
+  "sd.trim": "Trimme",
   "sd.start": "Start:",
   "sd.end": "Ändi:",
   "sd.saveReanalyze": "Spichere & nöi uswerte",

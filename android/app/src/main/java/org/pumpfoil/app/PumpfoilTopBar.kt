@@ -9,12 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -27,14 +26,15 @@ fun PumpfoilTopBar(
     title: String,
     actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 ) {
-    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
+    // Marken-Cyan über die ganze Kopfleiste (inkl. Statusleisten-Bereich) — wie iOS/PWA.
+    // Dunkles Wortmark + dunkler Inhalt (Navy) für Kontrast auf Cyan.
+    Surface(color = BRAND_CYAN, contentColor = BRAND_NAVY, tonalElevation = 0.dp) {
         Row(
             Modifier.fillMaxWidth().statusBarsPadding().padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
-                painter = painterResource(if (dark) R.drawable.wordmark_h_dark else R.drawable.wordmark_h_light),
+                painter = painterResource(R.drawable.wordmark_h_dark),
                 contentDescription = "Pumpfoil.org — $title",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.height(26.dp),
@@ -44,3 +44,6 @@ fun PumpfoilTopBar(
         }
     }
 }
+
+private val BRAND_CYAN = Color(0xFF22D3EE)
+private val BRAND_NAVY = Color(0xFF020617)

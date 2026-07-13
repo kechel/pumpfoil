@@ -341,7 +341,7 @@ const fr: Record<string, string> = {
   "sd.reported": "signalé",
   "vote.reportConfirm": "Signaler cette session comme inappropriée ?",
   "sd.inappropriate": "inapproprié",
-  "sd.trim": "✂ Rogner",
+  "sd.trim": "Rogner",
   "sd.trimActive": "· actif",
   "sd.trimHint": "N'analyser que la plage de temps choisie (p. ex. couper un enregistrement oublié / le retour en voiture). Par rapport à tout l'enregistrement ({total} min:s).",
   "sd.start": "Début :",

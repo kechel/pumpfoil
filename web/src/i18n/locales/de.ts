@@ -414,7 +414,7 @@ const de: Record<string, string> = {
   "sd.reported": "gemeldet",
   "vote.reportConfirm": "Diese Session als unangemessen melden?",
   "sd.inappropriate": "unangemessen",
-  "sd.trim": "✂ Trimmen",
+  "sd.trim": "Trimmen",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Nur den gewählten Zeitbereich auswerten (z. B. vergessene Aufnahme / Auto-Heimfahrt abschneiden). Bezogen auf die gesamte Aufnahme ({total} min:s).",
   "sd.start": "Start:",

@@ -341,7 +341,7 @@ const it: Record<string, string> = {
   "sd.reported": "segnalato",
   "vote.reportConfirm": "Segnalare questa sessione come inappropriata?",
   "sd.inappropriate": "inappropriato",
-  "sd.trim": "✂ Taglia",
+  "sd.trim": "Taglia",
   "sd.trimActive": "· attivo",
   "sd.trimHint": "Analizza solo l'intervallo scelto (es. tagliare una registrazione dimenticata / il rientro in auto). Rispetto a tutta la registrazione ({total} min:s).",
   "sd.start": "Inizio:",

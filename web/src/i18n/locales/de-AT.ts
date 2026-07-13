@@ -253,7 +253,7 @@ const deAT: Record<string, string> = {
   "sd.removeVideoConfirm": "Verlinktes Video wirklich entfernen?",
   "sd.fake": "wirkt unecht",
   "sd.inappropriate": "unangemessen",
-  "sd.trim": "✂ Trimmen",
+  "sd.trim": "Trimmen",
   "sd.start": "Start:",
   "sd.end": "Ende:",
   "sd.saveReanalyze": "Speichern & neu auswerten",
