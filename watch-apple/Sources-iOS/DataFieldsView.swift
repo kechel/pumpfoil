@@ -2,7 +2,10 @@ import SwiftUI
 
 // Uhr-Datenseiten konfigurieren (settings.views): bis zu 3 Felder pro Seite.
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin. Labels via Loc "field.<id>".
-private let FIELD_IDS = [0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 10, 13, 11, 12, 14, 15, 16, 17, 18, 19, 20]
+// Höhe (10) / Anstieg (13) / Temperatur (11) ausgelassen: Wear/Apple Watch haben keinen Baro-/
+// Temp-Sensor und für einen Wassersport sind sie ~konstant/0 -> würden nur „–" zeigen. (Web
+// behält sie für Garmin-Nutzer mit Barometer.)
+private let FIELD_IDS = [0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20]
 
 struct DataFieldsView: View {
     @AppStorage("appLang") private var lang = "de"

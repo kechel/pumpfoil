@@ -52,7 +52,10 @@ import kotlinx.serialization.json.put
 
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc. Anzeigereihenfolge;
 // Labels lokalisiert über i18n-Key "field.<id>".
-private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 10, 13, 11, 12, 14, 15, 16, 17, 18, 19, 20)
+// Höhe (10) / Anstieg (13) / Temperatur (11) ausgelassen: Wear/Apple Watch haben keinen Baro-/
+// Temp-Sensor und für einen Wassersport sind sie ~konstant/0 -> würden nur „–" zeigen. (Web
+// behält sie für Garmin-Nutzer mit Barometer.)
+private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20)
 private fun fieldLabel(id: Int) = I18n.t("field.$id")
 
 @OptIn(ExperimentalMaterial3Api::class)
