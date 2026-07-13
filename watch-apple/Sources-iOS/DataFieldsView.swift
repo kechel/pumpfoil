@@ -7,6 +7,7 @@ private let FIELD_IDS = [0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 10, 13, 11, 12, 14, 15, 1
 struct DataFieldsView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var views: [[Int]] = [[1, 2, 0]]
+    @State private var offFoil: [Int] = [12, 17, 16]   // Off-Foil-Screen: Default Uhrzeit + letzter Lauf
     @State private var loaded = false
     @State private var saved = false
 
@@ -25,10 +26,22 @@ struct DataFieldsView: View {
                     }
                 }
             }
+            if views.count < 8 {
+                Section { Button(Loc.t("datafields.addPage", lang)) { views.append([0, 0, 0]); saved = false } }
+            }
+            // Off-Foil-Screen: 3 Felder, die die Uhr automatisch zeigt, solange man nicht foilt.
             Section {
-                if views.count < 8 {
-                    Button(Loc.t("datafields.addPage", lang)) { views.append([0, 0, 0]); saved = false }
+                ForEach(0..<3, id: \.self) { slot in
+                    Picker("\(Loc.t("datafields.field", lang)) \(slot + 1)", selection: offFoilBinding(slot)) {
+                        ForEach(FIELD_IDS, id: \.self) { id in Text(Loc.t("field.\(id)", lang)).tag(id) }
+                    }
                 }
+            } header: {
+                Text(Loc.t("account.offFoilTitle", lang))
+            } footer: {
+                Text(Loc.t("account.offFoilDesc", lang))
+            }
+            Section {
                 Button(Loc.t("common.save", lang)) { save() }
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
             }
@@ -53,17 +66,30 @@ struct DataFieldsView: View {
         )
     }
 
+    private func offFoilBinding(_ slot: Int) -> Binding<Int> {
+        Binding(
+            get: { offFoil.indices.contains(slot) ? offFoil[slot] : 0 },
+            set: { newVal in
+                while offFoil.count < 3 { offFoil.append(0) }
+                offFoil[slot] = newVal; saved = false
+            }
+        )
+    }
+
     private func load() async {
         let s = (try? await Api.settings()) ?? [:]
         if let raw = s["views"] as? [[Any]], !raw.isEmpty {
             views = raw.map { row in (0..<3).map { i in (i < row.count ? (row[i] as? Int) : nil) ?? 0 } }
+        }
+        if let of = s["off_foil_view"] as? [Any], of.count >= 3 {
+            offFoil = (0..<3).map { (of[$0] as? Int) ?? 0 }
         }
         loaded = true
     }
 
     private func save() {
         Task {
-            try? await Api.saveSettings(["views": views])
+            try? await Api.saveSettings(["views": views, "off_foil_view": offFoil])
             saved = true
         }
     }

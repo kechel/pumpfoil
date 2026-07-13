@@ -291,6 +291,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "foilstats.bestKm" to row("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
 
     "datafields.intro" to row("Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Bis zu 3 Fälder pro Syte. Lääri Syte falle uf de Uhr wäg.", "Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Up to 3 fields per page. Empty pages are skipped on the watch.", "Jusqu'à 3 champs par page. Les pages vides sont ignorées sur la montre.", "Fino a 3 campi per pagina. Le pagine vuote vengono saltate sull'orologio.", "Hasta 3 campos por página. Las páginas vacías se omiten en el reloj."),
+    "account.offFoilTitle" to row("Off-Foil-Screen", "Off-Foil-Screen", "Off-Foil-Screen", "Off-foil screen", "Écran hors-foil", "Schermata off-foil", "Pantalla off-foil"),
+    "account.offFoilDesc" to row("Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück auf deine zuletzt gewählte Ansicht.", "Wird uf de Uhr automatisch zeigt, solang du grad nöd foilsch (Standard: Ziit + letschte Lauf). Bim Foile schaltet d Uhr zrugg uf dini zletscht gwählti Aasicht.", "Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück auf deine zuletzt gewählte Ansicht.", "Shown automatically on the watch while you're not foiling (default: clock + last run). When foiling, the watch switches back to your last selected view.", "S'affiche automatiquement sur la montre tant que tu ne foils pas (par défaut : heure + dernier run). Pendant le foil, la montre revient à ta dernière vue choisie.", "Viene mostrato automaticamente sull'orologio finché non sei in foil (predefinito: ora + ultimo run). Durante il foil l'orologio torna alla tua ultima vista scelta.", "Se muestra automáticamente en el reloj mientras no estás en foil (por defecto: hora + último run). Durante el foil, el reloj vuelve a tu última vista elegida."),
     "datafields.page" to row("Seite", "Syte", "Seite", "Page", "Page", "Pagina", "Página"),
     "datafields.field" to row("Feld", "Fäld", "Feld", "Field", "Champ", "Campo", "Campo"),
     "datafields.removePage" to row("Seite entfernen", "Syte entferne", "Seite entfernen", "Remove page", "Supprimer la page", "Rimuovi pagina", "Quitar página"),
@@ -697,6 +699,8 @@ private val FI: Map<String, String> = mapOf(
     "foilstats.riders" to "Ajajat",
     "foilstats.bestKm" to "paras km",
     "datafields.intro" to "Enintään 3 kenttää per sivu. Tyhjät sivut jätetään kellossa pois.",
+    "account.offFoilTitle" to "Off-Foil-näyttö",
+    "account.offFoilDesc" to "Näytetään kellossa automaattisesti, kun et juuri foilaa (oletus: kellonaika + viimeisin lenkki). Foilatessa kello vaihtaa takaisin viimeksi valitsemaasi näkymään.",
     "datafields.page" to "Sivu",
     "datafields.field" to "Kenttä",
     "datafields.removePage" to "Poista sivu",
