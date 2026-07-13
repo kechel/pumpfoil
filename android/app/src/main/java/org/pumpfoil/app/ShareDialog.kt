@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -225,10 +226,11 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 12.dp)   // nur schmaler Rand zum Bildschirm (kein großer Default-Dialog-Rand)
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
