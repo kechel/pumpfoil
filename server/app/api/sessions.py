@@ -123,6 +123,8 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         status=s.status,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
+        data_version=int((getattr(s, "updated_at", None) or s.created_at).timestamp())
+                     if (getattr(s, "updated_at", None) or s.created_at) else None,
         owned=owned,
         owner_name=owner_name,
         owner_avatar_url=owner_avatar_url,
@@ -1304,6 +1306,8 @@ async def upload_photo(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     photo = models.SessionPhoto(session_id=session_id, user_id=user.id, url=url)
     db.add(photo)
+    # Session „zuletzt geändert" bumpen -> App-Cache lädt das Detail (mit neuem Foto) nach.
+    db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
     db.commit()
     from ..media import thumb_url
     return {"id": photo.id, "url": photo.url, "thumb_url": thumb_url(photo.url)}
@@ -1324,5 +1328,6 @@ def delete_photo(
 
     delete_media(photo.url)
     db.delete(photo)
+    db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
     db.commit()
     return {"ok": True}

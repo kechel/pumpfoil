@@ -154,6 +154,7 @@ class SessionOut(BaseModel):
     status: str
     trim_start_ms: int | None = None
     trim_end_ms: int | None = None
+    data_version: int | None = None   # epoch(s) „zuletzt geändert" — App-Caching (additiv)
     owned: bool = True   # gehört die Session dem aktuellen Nutzer? (Community = read-only)
     owner_name: str | None = None  # Anzeigename des Besitzers (für Community-Ansicht)
     owner_avatar_url: str | None = None  # Profilbild des Besitzers

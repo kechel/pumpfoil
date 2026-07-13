@@ -256,6 +256,10 @@ class Session(Base):
     flagged: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     mod_ok: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # „Zuletzt geändert" — bumpt automatisch bei jedem UPDATE (Caption/Foil/Trim/Analyse-Rückschrieb)
+    # und explizit bei Foto-Add/Delete. Basis fürs App-Caching (data_version): Apps laden nur nach,
+    # was neuer ist als ihr Cache.
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
     user: Mapped["User"] = relationship(back_populates="sessions")
     chunks: Mapped[list["IngestChunk"]] = relationship(back_populates="session")

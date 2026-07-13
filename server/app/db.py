@@ -60,6 +60,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS age_bracket VARCHAR(16)",
+        # App-Caching: „zuletzt geändert" je Session (Backfill = created_at für Altbestand).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ",
+        "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
         "ALTER TABLE suunto_links ADD COLUMN IF NOT EXISTS suunto_username VARCHAR(128)",
         "ALTER TABLE suunto_links ALTER COLUMN refresh_token TYPE TEXT",
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",

@@ -50,6 +50,10 @@ async def security_headers(request: Request, call_next):
     h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     # CSP erzwingend (nach Report-Only-Verifikation der Kern-Flows, Konsole sauber, 2026-07-08).
     h.setdefault("Content-Security-Policy", _CSP)
+    # Medien (Fotos/Avatare) sind inhalts-eindeutig (neuer Upload = neue Datei) -> lange cachebar.
+    # Apps/Browser laden ein Bild dann nur einmal (Client-Disk-Cache), nicht bei jedem Anzeigen.
+    if request.url.path.startswith("/media/"):
+        h["Cache-Control"] = "public, max-age=7776000, immutable"   # 90 Tage
     return resp
 
 
