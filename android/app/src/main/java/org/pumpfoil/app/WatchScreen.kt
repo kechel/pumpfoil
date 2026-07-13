@@ -188,6 +188,10 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Text(I18n.t("account.recordModeAutoLite"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
                 }
+                if (d.platform == "garmin") {
+                    Text(I18n.t("account.recordModeGarminHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
             }
         }
     }

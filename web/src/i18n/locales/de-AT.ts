@@ -636,6 +636,7 @@ const deAT: Record<string, string> = {
   "account.recordModeHint": "Bricht die Aufnahme auf einer speicherarmen Uhr (z. B. Forerunner 55) ab, wähle „Sparsam“ oder „Nur GPS“. Nur-GPS liefert Strecke/Speed/Foiling-Phasen, aber keine Pump-Erkennung.",
   "account.recordModeMoved": "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
   "account.recordModeAutoLite": "Diese Uhr wird bei „Voll“ automatisch auf „Sparsam“ begrenzt (zu wenig Speicher).",
+  "account.recordModeGarminHint": "Unter welchem Aktivitätstyp die Aufnahme in Garmin Connect erscheint, stellst du im Profil unter „Aktivitätstyp in Garmin Connect“ ein.",
   "account.activityType": "Aktivitätstyp in Garmin Connect",
   "account.activitySurfing": "Surfen",
   "account.activityOpenWater": "Open Water (Freiwasser)",

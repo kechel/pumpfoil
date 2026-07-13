@@ -206,6 +206,9 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     {d.low_accel && d.record_mode === "full" && (
                       <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
                     )}
+                    {d.platform === "garmin" && (
+                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{t("account.recordModeGarminHint")}</p>
+                    )}
                   </div>
                 )}
               </div>

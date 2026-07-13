@@ -768,6 +768,7 @@ const gsw: Record<string, string> = {
   "account.recordModeHint": "Bricht d Ufnahm uf ere spycherarme Uhr (z. B. Forerunner 55) ab, wähl „Sparsam“ oder „Nur GPS“. Nur-GPS liferet Strecki/Speed/Foiling-Phase, aber kei Pump-Erkennig.",
   "account.recordModeMoved": "D Ufzeichnigsrate stellsch jetz pro Uhr bi dine verbundene Uhre ii.",
   "account.recordModeAutoLite": "Die Uhr wird bi „Voll“ automatisch uf „Sparsam“ begränzt (z wenig Spycher).",
+  "account.recordModeGarminHint": "Under welem Aktivitätstyp d Ufnahm in Garmin Connect erschynt, stellsch im Profil under „Aktivitätstyp i Garmin Connect“ y.",
   "account.activityType": "Aktivitätstyp i Garmin Connect",
   "account.activitySurfing": "Surfe",
   "account.activityOpenWater": "Open Water (Freiwasser)",

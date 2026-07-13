@@ -281,6 +281,7 @@ const fi: Record<string, string> = {
   "account.recordModeHint": "Jos tallennus katkeaa vähämuistisessa kellossa (esim. Forerunner 55), valitse „Säästö“ tai „Vain GPS“. Vain GPS antaa matkan/nopeuden/foiling-vaiheet, mutta ei pump-tunnistusta.",
   "account.recordModeMoved": "Tallennustaajuus asetetaan nyt kellokohtaisesti liitettyjen kellojesi kohdalla.",
   "account.recordModeAutoLite": "Tämä kello rajoitetaan automaattisesti tilasta ”Täysi” tilaan ”Säästö” (vähän muistia).",
+  "account.recordModeGarminHint": "Millä aktiviteettityypillä tallenne näkyy Garmin Connectissa, määritetään profiilissa kohdassa ”Aktiviteettityyppi Garmin Connectissa”.",
   "account.activityType": "Aktiviteettityyppi Garmin Connectissa",
   "account.activitySurfing": "Surffaus",
   "account.activityOpenWater": "Avovesi",

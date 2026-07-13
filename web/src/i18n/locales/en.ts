@@ -261,6 +261,7 @@ const en: Record<string, string> = {
   "account.recordModeHint": "If recording aborts on a low-memory watch (e.g. Forerunner 55), pick “Lite” or “GPS only”. GPS-only gives distance/speed/foiling phases but no pump detection.",
   "account.recordModeMoved": "Recording rate is now set per watch, with your linked watches.",
   "account.recordModeAutoLite": "This watch is auto-capped from “Full” to “Lite” (limited memory).",
+  "account.recordModeGarminHint": "Which activity type your recording appears as in Garmin Connect is set in your profile under “Activity type in Garmin Connect”.",
   "account.activityType": "Activity type in Garmin Connect",
   "account.activitySurfing": "Surfing",
   "account.activityOpenWater": "Open water",

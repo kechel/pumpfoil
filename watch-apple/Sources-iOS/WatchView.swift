@@ -55,6 +55,9 @@ struct WatchView: View {
                             if (d.low_accel ?? false) && (modes[d.id] ?? "full") == "full" {
                                 Text(Loc.t("account.recordModeAutoLite", lang)).font(.caption).foregroundStyle(.orange)
                             }
+                            if d.platform == "garmin" {
+                                Text(Loc.t("account.recordModeGarminHint", lang)).font(.caption).foregroundStyle(.secondary)
+                            }
                         }
                     }
                 } header: { Text(Loc.t("account.devicesTitle", lang)) }

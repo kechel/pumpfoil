@@ -902,6 +902,7 @@ const es: Record<string, string> = {
   "account.recordModeHint": "Si la grabación se interrumpe en un reloj con poca memoria (p. ej. Forerunner 55), elige « Ahorro » o « Solo GPS ». Solo GPS ofrece recorrido/velocidad/fases de foil, pero sin detección de pump.",
   "account.recordModeMoved": "La tasa de grabación ahora se ajusta por reloj, en tus relojes vinculados.",
   "account.recordModeAutoLite": "Este reloj se limita automáticamente de « Completo » a « Ahorro » (memoria limitada).",
+  "account.recordModeGarminHint": "El tipo de actividad con el que la grabación aparece en Garmin Connect se ajusta en el perfil, en « Tipo de actividad en Garmin Connect ».",
   "account.activityType": "Tipo de actividad en Garmin Connect",
   "account.activitySurfing": "Surf",
   "account.activityOpenWater": "Aguas abiertas",
