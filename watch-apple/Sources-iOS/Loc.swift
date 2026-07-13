@@ -980,6 +980,7 @@ enum Loc {
         "sd.colorPuls": r("Puls", "Puls", "Puls", "Pulse", "Pouls", "Battito", "Pulso"),
         "sd.colorPump": r("Pump", "Pump", "Pump", "Pump", "Pump", "Pump", "Pump"),
         "sd.pumpMarker": r("Pump-Marker", "Pump-Marker", "Pump-Marker", "Pump markers", "Marqueurs de pump", "Marcatori pump", "Marcadores de pump"),
+        "sd.markerShort": r("Marker", "Marker", "Marker", "Markers", "Repères", "Marker", "Marcas"),
         "sd.foilOfSession": r("Foil dieser Session", "Foil vo dere Session", "Foil dieser Session", "Foil for this session", "Foil de cette session", "Foil di questa sessione", "Foil de esta sesión"),
         "sd.share": r("Teilen", "Teile", "Teilen", "Share", "Partager", "Condividi", "Compartir"),
         "share.cardTitle": r("Titel / Text", "Titel (optional)", "Titel (optional)", "Title / text", "Titre (optionnel)", "Titolo (facoltativo)", "Título (opcional)"),

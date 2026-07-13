@@ -150,10 +150,10 @@ struct SessionDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             neighborNav
             headerRow(s)
+            foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
             youtubeCard(s)
             photosSection(s)
             trackSection(s)
-            foilPicker(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
@@ -332,11 +332,18 @@ struct SessionDetailView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            if colorMode == .speed {
-                Picker(Loc.t("sd.smoothing", lang), selection: $win) {
-                    Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
+            // Steuerzeile über der Karte: Glättung (nur Speed) links, Marker-Umschalter rechts.
+            HStack {
+                if colorMode == .speed {
+                    Picker("", selection: $win) {
+                        Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
+                    }
+                    .pickerStyle(.segmented).frame(maxWidth: 200)
                 }
-                .pickerStyle(.segmented)
+                Spacer()
+                if (s.analysis?.pump_count ?? 0) > 0 {
+                    Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+                }
             }
             TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
                      segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
@@ -344,16 +351,29 @@ struct SessionDetailView: View {
                      onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 })
                 .frame(height: 300).frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+            colorLegend(mode: colorMode, hrRange: hrRange, pumpRange: pumpRange)
             if let sel = selectedRun {
                 HStack {
                     Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
                     Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
                 }
             }
-            if (s.analysis?.pump_count ?? 0) > 0 {
-                Toggle(Loc.t("sd.pumpMarker", lang), isOn: $showPumps).font(.subheadline)
-            }
         })
+    }
+
+    // Farb-Legende (min→max Verlauf) für den gewählten Modus — wie PWA/Android.
+    @ViewBuilder private func colorLegend(mode: TrackColorMode, hrRange: (Int, Int), pumpRange: (Double, Double)) -> some View {
+        let lo: String; let hi: String
+        switch mode {
+        case .speed: lo = "8 km/h"; hi = "25 km/h"
+        case .hr: lo = "\(hrRange.0)"; hi = "\(hrRange.1) bpm"
+        case .pump: lo = String(format: "%.1f", pumpRange.0); hi = String(format: "%.1f Hz", pumpRange.1)
+        }
+        VStack(spacing: 2) {
+            LinearGradient(colors: [.blue, .cyan, .green, .yellow, .orange, .red], startPoint: .leading, endPoint: .trailing)
+                .frame(height: 10).clipShape(Capsule())
+            HStack { Text(lo); Spacer(); Text(hi) }.font(.caption2).foregroundStyle(.secondary)
+        }
     }
 
     @ViewBuilder private func foilPicker(_ s: SessionDetail) -> some View {
