@@ -458,7 +458,8 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
   };
   return (
     <Card className="p-3">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
         <Avatar name={u.display_name} url={u.avatar_url} size={36} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-slate-100">
@@ -493,6 +494,7 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
               ))}
             </div>
           )}
+        </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to={`/admin?tab=sessions&user=${u.id}`} className="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600">{t("adm.sessionsLink")}</Link>
