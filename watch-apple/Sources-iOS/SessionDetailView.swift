@@ -151,8 +151,7 @@ struct SessionDetailView: View {
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
-            youtubeCard(s)
-            photosSection(s)
+            mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
@@ -244,54 +243,50 @@ struct SessionDetailView: View {
         }
     }
 
-    @ViewBuilder private func youtubeCard(_ s: SessionDetail) -> some View {
-        if let ytId = youtubeId(s.youtube_url),
-           let ytUrl = URL(string: s.youtube_url ?? "") {
-            Link(destination: ytUrl) {
-                ZStack {
-                    AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color(.secondarySystemBackground)
+    // Medien als EIN 2-Spalten-Grid (Video zuerst, dann Fotos) — gleich große 16:9-Kacheln, wie PWA/Android.
+    @ViewBuilder private func mediaSection(_ s: SessionDetail) -> some View {
+        let ytId = youtubeId(s.youtube_url)
+        if ytId != nil || !photos.isEmpty {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                if let ytId, let ytUrl = URL(string: s.youtube_url ?? "") {
+                    Link(destination: ytUrl) {
+                        mediaTile {
+                            AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
+                                switch phase {
+                                case .success(let img): img.resizable().scaledToFill()
+                                default: Color(.secondarySystemBackground)
+                                }
+                            }
+                        }
+                        .overlay {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 40)).foregroundStyle(.white.opacity(0.9))
                         }
                     }
-                    .frame(maxWidth: .infinity).aspectRatio(16.0 / 9.0, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 52)).foregroundStyle(.white.opacity(0.9))
                 }
-            }
-        }
-    }
-
-    @ViewBuilder private func photosSection(_ s: SessionDetail) -> some View {
-        if !photos.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(photos) { p in
+                ForEach(photos) { p in
+                    mediaTile {
                         AsyncImage(url: Api.mediaURL(p.url)) { phase in
                             switch phase {
                             case .success(let img): img.resizable().scaledToFill()
                             default: Color(.secondarySystemBackground)
                             }
                         }
-                        .frame(width: 200, height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .onTapGesture { lightbox = p }
-                        .overlay(alignment: .topTrailing) {
-                            if s.owned == true {
-                                Button {
-                                    Task {
-                                        try? await Api.deleteSessionPhoto(id, photoId: p.id)
-                                        photos = (try? await Api.sessionPhotos(id)) ?? []
-                                    }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
-                                        .padding(6)
+                    }
+                    .onTapGesture { lightbox = p }
+                    .overlay(alignment: .topTrailing) {
+                        if s.owned == true {
+                            Button {
+                                Task {
+                                    try? await Api.deleteSessionPhoto(id, photoId: p.id)
+                                    photos = (try? await Api.sessionPhotos(id)) ?? []
                                 }
-                                .buttonStyle(.plain)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
+                                    .padding(6)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -310,6 +305,14 @@ struct SessionDetailView: View {
                 }
             }
         }
+    }
+
+    // 16:9-Kachel fester Größe (Breite = Grid-Spalte); Inhalt füllt + wird beschnitten.
+    private func mediaTile<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        Color(.secondarySystemBackground)
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .overlay { content() }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // Schwerste Sektion: viele let-Bindungen/Tupel + Ternär. Als non-builder-Funktion mit guard +

@@ -100,7 +100,7 @@ struct SessionsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             .navigationTitle(title)
             .brandToolbar(title)
             .toolbar {

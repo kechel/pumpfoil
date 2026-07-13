@@ -97,7 +97,7 @@ struct ChatView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
         .refreshable { await load() }
         .task { if rooms.isEmpty { await load() } }
         .onChange(of: q) { _ in Task { await search() } }
