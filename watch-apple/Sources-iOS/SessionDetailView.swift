@@ -362,14 +362,17 @@ struct SessionDetailView: View {
     }
 
     // Farb-Legende (min→max Verlauf) für den gewählten Modus — wie PWA/Android.
-    @ViewBuilder private func colorLegend(mode: TrackColorMode, hrRange: (Int, Int), pumpRange: (Double, Double)) -> some View {
-        let lo: String; let hi: String
+    private func legendLabels(mode: TrackColorMode, hrRange: (Int, Int), pumpRange: (Double, Double)) -> (String, String) {
         switch mode {
-        case .speed: lo = "8 km/h"; hi = "25 km/h"
-        case .hr: lo = "\(hrRange.0)"; hi = "\(hrRange.1) bpm"
-        case .pump: lo = String(format: "%.1f", pumpRange.0); hi = String(format: "%.1f Hz", pumpRange.1)
+        case .speed: return ("8 km/h", "25 km/h")
+        case .hr: return ("\(hrRange.0)", "\(hrRange.1) bpm")
+        case .pump: return (String(format: "%.1f", pumpRange.0), String(format: "%.1f Hz", pumpRange.1))
         }
-        VStack(spacing: 2) {
+    }
+
+    private func colorLegend(mode: TrackColorMode, hrRange: (Int, Int), pumpRange: (Double, Double)) -> some View {
+        let (lo, hi) = legendLabels(mode: mode, hrRange: hrRange, pumpRange: pumpRange)
+        return VStack(spacing: 2) {
             LinearGradient(colors: [.blue, .cyan, .green, .yellow, .orange, .red], startPoint: .leading, endPoint: .trailing)
                 .frame(height: 10).clipShape(Capsule())
             HStack { Text(lo); Spacer(); Text(hi) }.font(.caption2).foregroundStyle(.secondary)
