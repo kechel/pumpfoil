@@ -80,6 +80,17 @@ struct ChatView: View {
                     }
                 }
             } else {
+                // Globaler Community-Chat: fester Eintrag oben (Einstieg & Wieder-Beitritt).
+                NavigationLink { ChatRoomView(scope: "global:main", title: Loc.t("chat.globalName", lang), otherId: 0) } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill").foregroundStyle(Color.accentColor)
+                        Text(Loc.t("chat.globalName", lang)).font(.headline)
+                        Spacer()
+                        if joined.contains("global:main") {
+                            Image(systemName: "checkmark").font(.caption).foregroundStyle(Color.accentColor)
+                        }
+                    }
+                }
                 ForEach(spotsShown) { spotRow($0) }
                 if spotsShown.isEmpty {
                     Text(Loc.t("chat.empty", lang)).foregroundStyle(.secondary)

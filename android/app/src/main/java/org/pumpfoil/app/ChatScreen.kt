@@ -204,6 +204,16 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                                 }
                             }
                         } else {
+                            // Globaler Community-Chat: fester Eintrag ganz oben (Einstieg & Wieder-Beitritt).
+                            item {
+                                ListItem(
+                                    modifier = Modifier.clickable { onOpen(ChatRoom(scope = "global:main", label = I18n.t("chat.globalName"), kind = "global")) },
+                                    headlineContent = { Text(I18n.t("chat.globalName")) },
+                                    leadingContent = { Icon(Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    trailingContent = { if ("global:main" in joined) Icon(Icons.Filled.Check, contentDescription = I18n.t("dm.tabMine"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp)) },
+                                )
+                                HorizontalDivider()
+                            }
                             if (spotsShown.isEmpty()) {
                                 item { Text(I18n.t("chat.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }

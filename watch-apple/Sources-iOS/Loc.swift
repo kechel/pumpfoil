@@ -219,6 +219,7 @@ enum Loc {
 
         "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
         "chat.empty": r("Noch keine Nachrichten. Schreib die erste!", "No kei Nachrichte. Schrib di erscht!", "No kane Nachrichten. Schreib die erste, geh!", "No messages yet. Be the first!", "Aucun message pour l’instant. Sois le premier !", "Ancora nessun messaggio. Scrivi il primo!", "Aún no hay mensajes. ¡Sé el primero!"),
+        "chat.globalName": r("Community-Chat", "Community-Chat", "Community-Chat", "Community chat", "Chat communautaire", "Chat della community", "Chat de la comunidad"),
         "chat.placeholder": r("Nachricht schreiben …", "Nachricht schribe …", "Schreib wos …", "Write a message …", "Écrire un message …", "Scrivi un messaggio …", "Escribe un mensaje …"),
         "chat.send": r("Senden", "Schicke", "Schickn", "Send", "Envoyer", "Invia", "Enviar"),
         "banner.msg": r(
