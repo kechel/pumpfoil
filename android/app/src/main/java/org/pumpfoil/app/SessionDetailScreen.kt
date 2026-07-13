@@ -370,6 +370,17 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
             }
         }
+        // Foil dieser Session (Metadaten, wie PWA): beeinflusst Leistung + Community-Foil-Stats.
+        if (s.owned && allFoils.isNotEmpty()) {
+            Column {
+                Text(I18n.t("sd.foilOfSession"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(4.dp))
+                FoilDropdown(
+                    all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
+                    onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
+                )
+            }
+        }
 
         // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
         val ytId = remember(s.youtubeUrl) { youtubeId(s.youtubeUrl) }
@@ -469,11 +480,20 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                     }
                 }
-                if (colorMode == ColorMode.SPEED) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Steuerzeile über der Karte: Glättung (nur Speed) links, Marker-Umschalter rechts.
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    if (colorMode == ColorMode.SPEED) {
                         listOf(1, 3, 5).forEach { w ->
-                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") }, colors = cyanChipColors())
+                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
+                                colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
                         }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (a.pumpCount != null && a.pumpCount > 0) {
+                        Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(4.dp))
+                        Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                     }
                 }
                 Card(Modifier.fillMaxWidth()) {
@@ -481,6 +501,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         selectedRun, { selectedRun = if (selectedRun == it) null else it },
                         Modifier.fillMaxWidth().height(300.dp))
                 }
+                // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
+                ColorLegend(colorMode, hrRange, pumpRange)
                 selectedRun?.let { sel ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("${I18n.t("home.runs")} #${sel + 1}", style = MaterialTheme.typography.bodyMedium,
@@ -489,25 +511,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         TextButton(onClick = { selectedRun = null }) { Text(I18n.t("sd.clearSelection")) }
                     }
                 }
-                if (a.pumpCount != null && a.pumpCount > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Switch(checked = showPumps, onCheckedChange = { showPumps = it })
-                        Spacer(Modifier.width(8.dp))
-                        Text(I18n.t("sd.pumpMarker"), style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        }
-        // Foil dieser Session (Owner): beeinflusst Leistung + Community-Foil-Stats.
-        // Dropdown wie die PWA — zeigt nur den gewählten Foil, statt alle als Chips.
-        if (s.owned && allFoils.isNotEmpty()) {
-            Column {
-                Text(I18n.t("sd.foilOfSession"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(4.dp))
-                FoilDropdown(
-                    all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
-                    onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
-                )
             }
         }
         // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed).
@@ -597,6 +600,25 @@ class Track(
 }
 
 private enum class ColorMode { SPEED, HR, PUMP }
+
+// Farb-Legende (horizontaler Verlauf min→max) für den gewählten Farbmodus — wie die PWA.
+@Composable
+private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>) {
+    val (lo, hi) = when (mode) {
+        ColorMode.SPEED -> "8 km/h" to "25 km/h"     // feste Speed-Skala (wie speedColor)
+        ColorMode.HR -> "${hrRange.first}" to "${hrRange.second} bpm"
+        ColorMode.PUMP -> "%.1f".format(pumpRange.first) to "%.1f Hz".format(pumpRange.second)
+    }
+    val ramp = remember { (0..12).map { rampColor(it / 12.0) } }
+    Column(Modifier.fillMaxWidth().padding(top = 2.dp)) {
+        Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))
+            .background(androidx.compose.ui.graphics.Brush.horizontalGradient(ramp)))
+        Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(lo, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(hi, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
 fun parseTrack(tg: JsonElement): Track {
     return try {

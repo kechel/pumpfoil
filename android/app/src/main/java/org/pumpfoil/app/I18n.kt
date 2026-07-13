@@ -556,6 +556,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "verlauf.pumpsPerSession" to row("Pumps/Session", "Pumps/Session", "Pumps/Session", "Pumps/session", "Pumps/session", "Pump/sessione", "Pumps/sesión"),
     "verlauf.foilingPerSession" to row("Foiling/Session", "Foiling/Session", "Foiling/Session", "Foiling/session", "Foiling/session", "Foiling/sessione", "Foiling/sesión"),
     "verlauf.aggTitle" to row("Summen", "Summe", "Summen", "Totals", "Totaux", "Totali", "Totales"),
+    "sd.markerShort" to row("Marker", "Marker", "Marker", "Markers", "Repères", "Marker", "Marcas"),
     "sd.hDist" to row("Dist", "Dist", "Dist", "Dist", "Dist", "Dist", "Dist"),
     "sd.coloring" to row("Färbung:", "Iifärbig:", "Einfärbung:", "Coloring:", "Couleur :", "Colorazione:", "Coloración:"),
     "sd.smoothing" to row("Glättung:", "Glättig:", "Glättung:", "Smoothing:", "Lissage :", "Smussatura:", "Suavizado:"),
