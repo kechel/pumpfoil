@@ -92,20 +92,24 @@ FIT-Import und die „Optimal"-Färbung.
 
 ## B) Recorder-Apps vs. Garmin (`android/wear/` = Wear OS, `watch-apple/Sources/` = watchOS)
 
-_Seit dem letzten Audit unverändert — der jüngste Fokus lag auf Phone/Web._
+**2026-07-13 gegen den Code geprüft: Wear + watchOS sind funktional auf vollem Garmin-Niveau.**
+(Die früheren „⚠️/❌"-Einträge hier waren veraltet.)
 
 | Feature | Garmin | Wear OS | watchOS |
 |---|---|---|---|
 | GPS 1 Hz + Accel 25 Hz | ✅ | ✅ | ✅ |
 | Local-first + resumebarer Sync | ✅ | ✅ | ✅ |
-| Pairing | ✅ Reverse + Forward | ⚠️ nur Reverse | ⚠️ nur Reverse |
-| Auto-Start (10 s Vorlauf) | ✅ | ✅ | ✅ |
+| Pairing (Reverse + Forward-Code) | ✅ | ✅ (`Api.pairInit`) | ✅ (`Api.pairInit`) |
+| Auto-Start (10 s Vorlauf + GPS-Scharf) | ✅ | ✅ | ✅ |
 | Foil/Alarm-Auswahl + Min/Max on-watch | ✅ | ✅ | ✅ |
 | Vibrationsmuster | ✅ Waveforms | ✅ Waveforms | ⚠️ System-Haptics (Plattformlimit) |
-| Konfigurierbare Datenseiten + Color-by-value + Off-Foil | ✅ | ✅ | ✅ |
-| Feld-Typen | ✅ 20 (inkl. 8 Lauf-Felder) | ⚠️ 10 (keine Lauf-Felder) | ⚠️ 10 |
-| Stop = 3-s-Halten mit Ring | ✅ | ⚠️ einfacher Tap | ⚠️ einfacher Tap |
-| Start-Screen (Version/GPS/Alarm-Label) | ✅ | ⚠️ ärmer | ⚠️ ärmer |
+| Konfigurierbare Datenseiten (Pager) + Color-by-value + Off-Foil | ✅ | ✅ | ✅ |
+| Feld-Typen | ✅ 20 (inkl. 8 Lauf-Felder) | ✅ 20 | ✅ 20 |
+| Stop = 3-s-Halten mit Ring | ✅ | ✅ `HoldStopButton` | ✅ `onLongPressGesture(3s)` |
+| Start-Screen (Version + GPS-Status + Foil/Alarm) | ✅ | ✅ | ✅ |
+| Upload/Sync-Screen | ✅ | ✅ | ✅ |
 
-**Recorder-Restlücken (Wear + watchOS):** Forward-Pairing, Lauf-Datenfelder (10 statt 20 Typen),
-3-s-Stop-Halten mit Ring, reichhaltigerer Start-Screen. watchOS-Vibrationsmuster bewusst angenähert.
+**Einzige Abweichung — bewusst/hardwarebedingt:** Felder **Höhe (10) / Anstieg (13) / Temperatur (11)**
+zeigen „–". Temperatur: kein Sensor auf Wear/Apple Watch. Höhe/Anstieg: aus GPS ableitbar, aber für
+einen **Wassersport** ~konstant (Wasserlinie) / ~0 → nicht sinnvoll. watchOS-Vibrationsmuster auf
+System-Haptics gemappt (kein Plattform-Weg für freie Waveforms). Sonst **keine offenen Recorder-Lücken**.
