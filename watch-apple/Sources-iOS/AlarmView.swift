@@ -64,7 +64,7 @@ struct AlarmView: View {
                 }
             }
         }
-        .navigationTitle(Loc.t("alarm.title", lang))
+        .brandToolbar(Loc.t("alarm.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: enabled) { _ in saved = false }

@@ -43,7 +43,7 @@ struct FoilsView: View {
                 Section(mineList.isEmpty ? Loc.t("foils.all", lang) : Loc.t("foils.more", lang)) { ForEach(restList) { row($0) } }
             }
         }
-        .navigationTitle(Loc.t("profile.foils", lang))
+        .brandToolbar(Loc.t("profile.foils", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

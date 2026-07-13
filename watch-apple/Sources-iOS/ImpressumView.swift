@@ -45,7 +45,7 @@ struct ImpressumView: View {
             }
             .padding()
         }
-        .navigationTitle(Loc.t("imp.title", lang))
+        .brandToolbar(Loc.t("imp.title", lang))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

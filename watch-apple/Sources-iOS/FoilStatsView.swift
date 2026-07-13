@@ -33,7 +33,7 @@ struct FoilStatsView: View {
             }
         }
         .overlay { if loading { ProgressView() } }
-        .navigationTitle(Loc.t("profile.stats", lang))
+        .brandToolbar(Loc.t("profile.stats", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

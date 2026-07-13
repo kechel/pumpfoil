@@ -242,8 +242,7 @@ struct ChatRoomView: View {
             .padding(8)
             .background(.bar)
         }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
+        .brandToolbar(title)
         .toolbar {
             // DM: blockieren/entblocken.
             if isDm && otherId > 0 {

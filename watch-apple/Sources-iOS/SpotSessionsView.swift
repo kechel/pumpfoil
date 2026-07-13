@@ -19,8 +19,7 @@ struct SpotSessionsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("📍 \(spot)")
-        .navigationBarTitleDisplayMode(.inline)
+        .brandToolbar("📍 \(spot)")
         .toolbar {
             // Spot-Chat (scope "spot:<name>", wie Web/PWA) — fehlte bisher auf iOS.
             ToolbarItem(placement: .topBarTrailing) {

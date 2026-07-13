@@ -96,7 +96,7 @@ struct FoilCalculatorView: View {
                 }
             }
         }
-        .navigationTitle(Loc.t("profile.calc", lang))
+        .brandToolbar(Loc.t("profile.calc", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

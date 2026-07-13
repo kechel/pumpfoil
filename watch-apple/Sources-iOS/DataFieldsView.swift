@@ -33,7 +33,7 @@ struct DataFieldsView: View {
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
             }
         }
-        .navigationTitle(Loc.t("profile.datafields", lang))
+        .brandToolbar(Loc.t("profile.datafields", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

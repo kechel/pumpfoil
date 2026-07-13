@@ -47,7 +47,7 @@ struct LinkedAccountsView: View {
                 }
             }
         }
-        .navigationTitle(Loc.t("accounts.title", lang))
+        .brandToolbar(Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
         .sheet(item: $safariURL) { url in SafariView(url: url).ignoresSafeArea() .onDisappear { Task { await refresh() } } }

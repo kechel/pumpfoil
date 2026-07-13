@@ -101,7 +101,7 @@ struct SettingsView: View {
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
             }
         }
-        .navigationTitle(Loc.t("settings.title", lang))
+        .brandToolbar(Loc.t("settings.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: weight) { _ in saved = false }

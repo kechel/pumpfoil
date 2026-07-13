@@ -79,7 +79,7 @@ struct WatchView: View {
                 }
             }
         }
-        .navigationTitle(Loc.t("nav.watch", lang))
+        .brandToolbar(Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if let ds = try? await Api.myDevices() {

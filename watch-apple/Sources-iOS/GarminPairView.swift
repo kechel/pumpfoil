@@ -61,7 +61,7 @@ struct GarminPairView: View {
                 Text(Loc.t("garmin.genHelp", lang))
             }
         }
-        .navigationTitle(Loc.t("garmin.title", lang))
+        .brandToolbar(Loc.t("garmin.title", lang))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
