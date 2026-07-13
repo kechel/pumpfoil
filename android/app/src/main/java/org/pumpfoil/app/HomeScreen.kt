@@ -65,7 +65,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, social: Boolean = true) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
@@ -248,7 +248,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 }
             } else {
                 latest.forEach { s ->
-                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id) }
+                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id, s.dataVersion) }
                 }
             }
 
@@ -293,7 +293,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                     RecTile(I18n.t("side.foilingTime"), fmtMin(st.foilingMin), null, null),
                     RecTile(I18n.t("side.pumps"), "%,d".format(st.pumps), null, null),
                 )
-                TileGrid(tiles, onOpen, columns = 3)
+                TileGrid(tiles, { id -> onOpen(id, null) }, columns = 3)
             }
 
             weather?.let { wb ->

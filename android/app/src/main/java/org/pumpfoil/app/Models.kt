@@ -58,6 +58,7 @@ data class SessionSummary(
     val sport: String = "",
     @SerialName("started_at") val startedAt: String = "",
     @SerialName("ended_at") val endedAt: String? = null,
+    @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel fürs Detail
     val status: String = "",
     @SerialName("place_name") val placeName: String? = null,
     val caption: String? = null,
@@ -435,6 +436,7 @@ data class SessionDetail(
     val sport: String = "",
     @SerialName("started_at") val startedAt: String = "",
     @SerialName("ended_at") val endedAt: String? = null,
+    @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel
     val status: String = "",
     @SerialName("place_name") val placeName: String? = null,
     val caption: String? = null,

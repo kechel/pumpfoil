@@ -112,7 +112,7 @@ private val AmberReport = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, dataVersion: Long? = null) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -132,9 +132,15 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 
     LaunchedEffect(id, reloadTick) {
         loading = true
-        try { session = Api.session(id); error = null }
-        catch (e: Exception) { error = e.message }
-        loading = false
+        // Cache-Treffer (data_version passt) -> Detail aus dem Disk-Cache, kein Netz-Fetch.
+        val cached = if (session == null && reloadTick == 0) SessionCache.load(id, dataVersion) else null
+        if (cached != null) {
+            session = cached; error = null; loading = false
+        } else {
+            try { val s = Api.session(id); session = s; SessionCache.store(s); error = null }
+            catch (e: Exception) { error = e.message }
+            loading = false
+        }
     }
     LaunchedEffect(id) { neighbors = try { Api.sessionNeighbors(id) } catch (_: Exception) { null } }
 

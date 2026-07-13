@@ -8,6 +8,7 @@ import UIKit
 // Kennzahlen. Spiegelt web/src/pages/SessionDetail.tsx.
 struct SessionDetailView: View {
     let id: Int
+    var dataVersion: Int? = nil   // aus der Liste: erlaubt Cache-Treffer ohne Netz (nil -> immer laden)
     @AppStorage("appLang") private var lang = "de"
     @State private var session: SessionDetail?
     @State private var loading = true
@@ -493,8 +494,16 @@ struct SessionDetailView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
+        // Cache-Treffer (data_version stimmt) -> Detail aus dem Disk-Cache, kein Netz-Fetch.
+        let cached = session == nil ? SessionCache.load(id: id, expectedVersion: dataVersion) : nil
         do {
-            let s = try await Api.session(id)
+            let s: SessionDetail
+            if let cached {
+                s = cached
+            } else {
+                s = try await Api.session(id)
+                SessionCache.store(s)
+            }
             session = s
             neighbors = try? await Api.sessionNeighbors(id)
             liked = s.liked ?? false

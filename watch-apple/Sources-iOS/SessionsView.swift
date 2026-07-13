@@ -136,7 +136,7 @@ struct SessionsView: View {
     @ViewBuilder private var sessionRows: some View {
         if scope == .mine {
             ForEach(own) { s in
-                NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                NavigationLink { SessionDetailView(id: s.id, dataVersion: s.data_version) } label: { SessionRow(session: s) }
             }
             if !own.isEmpty {
                 Text(Loc.t("sessions.listEnd", lang)).font(.caption2).foregroundStyle(.secondary)

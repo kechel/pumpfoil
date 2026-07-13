@@ -87,7 +87,7 @@ private enum class Scope { MINE, SPOT, ALL }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
+fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
@@ -225,7 +225,7 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
                                     IncomingTransferCard(
                                         tr,
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-                                        onView = { tr.session?.id?.let(onOpen) },
+                                        onView = { tr.session?.id?.let { onOpen(it, null) } },
                                         onDone = { xferTick++ },
                                     )
                                 }
@@ -242,14 +242,14 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
                                 item { Text(msg, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             if (scope == Scope.MINE) {
-                                items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id) } }
+                                items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id, s.dataVersion) } }
                                 if (own.isNotEmpty()) item {
                                     Text(I18n.t("sessions.listEnd"), Modifier.fillMaxWidth().padding(vertical = 12.dp),
                                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                                 }
                             } else {
-                                items(feed) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) } }
+                                items(feed) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id, null) } }
                             }
                         }
                     }

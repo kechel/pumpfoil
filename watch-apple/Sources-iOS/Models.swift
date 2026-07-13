@@ -40,6 +40,7 @@ struct SessionSummary: Codable, Identifiable {
     let started_at: String
     let ended_at: String?
     let status: String
+    let data_version: Int?   // „zuletzt geändert" (epoch) — Cache-Schlüssel fürs Detail
     let place_name: String?
     let caption: String?
     let owner_name: String?
@@ -425,6 +426,7 @@ struct SessionDetail: Codable, Identifiable {
     let started_at: String
     let ended_at: String?
     let status: String
+    let data_version: Int?   // „zuletzt geändert" (epoch) — Cache-Schlüssel
     let place_name: String?
     let caption: String?
     let owner_name: String?

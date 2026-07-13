@@ -127,7 +127,7 @@ struct HomeView: View {
         } else {
             VStack(spacing: 0) {
                 ForEach(latest) { s in
-                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                    NavigationLink { SessionDetailView(id: s.id, dataVersion: s.data_version) } label: { SessionRow(session: s) }
                         .buttonStyle(.plain)
                     Divider()
                 }

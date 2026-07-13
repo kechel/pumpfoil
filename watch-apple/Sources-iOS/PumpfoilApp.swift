@@ -24,6 +24,11 @@ struct PumpfoilApp: App {
         UINavigationBar.appearance().compactAppearance = a
         UINavigationBar.appearance().scrollEdgeAppearance = a
         UINavigationBar.appearance().tintColor = navy
+
+        // Bild-Cache großzügig: Fotos/Avatare kommen mit Cache-Control (90 T) vom Server ->
+        // AsyncImage/URLSession legt sie auf Platte, statt bei jedem Anzeigen neu zu laden.
+        URLCache.shared = URLCache(memoryCapacity: 50 * 1024 * 1024, diskCapacity: 300 * 1024 * 1024)
+        SessionCache.evictOld()   // alten Session-Detail-Cache (>90 T ungenutzt) räumen
     }
 
     var body: some Scene {

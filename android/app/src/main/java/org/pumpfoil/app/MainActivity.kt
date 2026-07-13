@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         Api.load(applicationContext)
+        SessionCache.init(applicationContext)   // Detail-Disk-Cache + Eviction (>90 T)
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
@@ -133,8 +134,8 @@ fun MainScaffold(onLogout: () -> Unit) {
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, social = social) }
-            composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
+            composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, social = social) }
+            composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
@@ -197,11 +198,15 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("accounts") { LinkedAccountsScreen(onBack = { nav.popBackStack() }) }
             composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable(
-                "session/{id}",
-                arguments = listOf(navArgument("id") { type = NavType.IntType }),
+                "session/{id}?v={v}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.IntType },
+                    navArgument("v") { type = NavType.StringType; nullable = true; defaultValue = null },
+                ),
             ) { entry ->
                 SessionDetailScreen(
                     id = entry.arguments?.getInt("id") ?: 0,
+                    dataVersion = entry.arguments?.getString("v")?.toLongOrNull(),
                     onBack = { nav.popBackStack() },
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
