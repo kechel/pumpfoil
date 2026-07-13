@@ -2,7 +2,7 @@ import SwiftUI
 
 // Sprachnamen in der jeweiligen Sprache (Reihenfolge = Loc.langs).
 private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
-                         "en": "English", "fr": "Français", "it": "Italiano", "es": "Español"]
+                         "en": "English", "fr": "Français", "it": "Italiano", "es": "Español", "fi": "Suomi"]
 
 // Allgemeine Einstellungen: Gewicht, Homespot, Design (Theme), Push-Benachrichtigungen.
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.
