@@ -25,76 +25,13 @@ struct SessionsView: View {
     var body: some View {
         NavigationStack {
             List {
-                if scope == .mine {
-                    ForEach(incoming) { tr in
-                        IncomingTransferRow(tr: tr, lang: lang) { await reloadIncoming() }
-                            .listRowBackground(Color.accentColor.opacity(0.12))
-                    }
-                    ForEach(suggestions) { sug in
-                        NavigationLink { CompareView(preselect: Set(sug.ids)) } label: {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(Loc.t("merge.suggestTitle", lang)).font(.subheadline).bold()
-                                Text([sug.place, sug.date, "\(sug.count)×"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                        .listRowBackground(Color.accentColor.opacity(0.12))
-                    }
-                }
-                Section {
-                    // Scope-Umschalter in eigener Zeile, damit Meine | 📍Homespot | Alle immer
-                    // vollständig sichtbar sind (vorher im gequetschten H-Scroll -> „Alle" abgeschnitten).
-                    ScrollView(.horizontal, showsIndicators: false) { scopeChips }
-                    HStack {
-                        chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
-                        chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
-                        Spacer()
-                        // Spot-Auswahl als Menü (statt Freitext-Suche, die exakte Namen brauchte).
-                        Menu {
-                            Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
-                            ForEach(spotNames, id: \.self) { s in
-                                Button(s) { spot = s; scope = .spot }
-                            }
-                        } label: {
-                            Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
-                                .font(.subheadline).lineLimit(1)
-                        }
-                    }
-                    if scope == .mine {
-                        HStack(spacing: 8) {
-                            chip(Loc.t("sessions.filterPump", lang), filter == "pump") { filter = "pump"; month = "" }
-                            chip(Loc.t("sessions.filterOther", lang), filter == "other") { filter = "other"; month = "" }
-                            Menu {
-                                Button(Loc.t("sessions.allMonths", lang)) { month = "" }
-                                ForEach(months) { mc in
-                                    Button("\(monthLabel(mc.month)) (\(mc.count))") { month = mc.month }
-                                }
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Text(month.isEmpty ? Loc.t("sessions.allMonths", lang) : monthLabel(month)).font(.subheadline)
-                                    Image(systemName: "chevron.down").font(.caption2)
-                                }
-                            }
-                        }
-                    }
-                }
+                if scope == .mine { transfersAndSuggestions }
+                filterSection
                 if scope == .spot, let wb = weather {
                     Section { HomeWeatherCard(wb: wb, lang: lang) }
                 }
                 if let error { Text(error).foregroundStyle(.secondary) }
-                if scope == .mine {
-                    ForEach(own) { s in
-                        NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
-                    }
-                    if !own.isEmpty {
-                        Text(Loc.t("sessions.listEnd", lang)).font(.caption2).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                } else {
-                    ForEach(feed) { c in
-                        NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
-                    }
-                }
+                sessionRows
                 if isEmpty && !loading && error == nil {
                     Text(scope == .mine && !month.isEmpty ? Loc.t("sessions.noneMonth", lang) : Loc.t("sessions.empty", lang))
                         .foregroundStyle(.secondary)
@@ -135,6 +72,80 @@ struct SessionsView: View {
             .onChange(of: month) { _ in Task { await load() } }
             .onChange(of: sync.tick) { _ in Task { await load() } }
             .task { await loadMonths() }
+        }
+    }
+
+    // In typisierte Teil-Views zerlegt, damit der Swift-Type-Checker den body nicht als einen
+    // Riesen-Ausdruck lösen muss (Archive-Hänger) — [[ios-swift-typecheck-hang]].
+    @ViewBuilder private var transfersAndSuggestions: some View {
+        ForEach(incoming) { tr in
+            IncomingTransferRow(tr: tr, lang: lang) { await reloadIncoming() }
+                .listRowBackground(Color.accentColor.opacity(0.12))
+        }
+        ForEach(suggestions) { sug in
+            NavigationLink { CompareView(preselect: Set(sug.ids)) } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Loc.t("merge.suggestTitle", lang)).font(.subheadline).bold()
+                    Text([sug.place, sug.date, "\(sug.count)×"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .listRowBackground(Color.accentColor.opacity(0.12))
+        }
+    }
+
+    @ViewBuilder private var filterSection: some View {
+        Section {
+            ScrollView(.horizontal, showsIndicators: false) { scopeChips }
+            HStack {
+                chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                Spacer()
+                Menu {
+                    Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
+                    ForEach(spotNames, id: \.self) { s in
+                        Button(s) { spot = s; scope = .spot }
+                    }
+                } label: {
+                    Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
+                        .font(.subheadline).lineLimit(1)
+                }
+            }
+            if scope == .mine { monthFilterRow }
+        }
+    }
+
+    @ViewBuilder private var monthFilterRow: some View {
+        HStack(spacing: 8) {
+            chip(Loc.t("sessions.filterPump", lang), filter == "pump") { filter = "pump"; month = "" }
+            chip(Loc.t("sessions.filterOther", lang), filter == "other") { filter = "other"; month = "" }
+            Menu {
+                Button(Loc.t("sessions.allMonths", lang)) { month = "" }
+                ForEach(months) { mc in
+                    Button("\(monthLabel(mc.month)) (\(mc.count))") { month = mc.month }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(month.isEmpty ? Loc.t("sessions.allMonths", lang) : monthLabel(month)).font(.subheadline)
+                    Image(systemName: "chevron.down").font(.caption2)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var sessionRows: some View {
+        if scope == .mine {
+            ForEach(own) { s in
+                NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+            }
+            if !own.isEmpty {
+                Text(Loc.t("sessions.listEnd", lang)).font(.caption2).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+        } else {
+            ForEach(feed) { c in
+                NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+            }
         }
     }
 

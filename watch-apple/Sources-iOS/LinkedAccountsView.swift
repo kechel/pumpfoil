@@ -15,7 +15,7 @@ struct LinkedAccountsView: View {
 
     @State private var status: [String: Api.IntegrationStatus] = [:]
     @State private var busy: String?
-    @State private var safariURL: URL?
+    @State private var safariURL: IdentifiedURL?
     @State private var syncMsg: String?
 
     var body: some View {
@@ -50,7 +50,7 @@ struct LinkedAccountsView: View {
         .brandToolbar(Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await refresh() }
-        .sheet(item: $safariURL) { url in SafariView(url: url).ignoresSafeArea() .onDisappear { Task { await refresh() } } }
+        .sheet(item: $safariURL) { item in SafariView(url: item.url).ignoresSafeArea() .onDisappear { Task { await refresh() } } }
         .alert(Loc.t("accounts.import", lang), isPresented: Binding(get: { syncMsg != nil }, set: { if !$0 { syncMsg = nil } })) {
             Button("OK", role: .cancel) { syncMsg = nil }
         } message: { Text(syncMsg ?? "") }
@@ -75,7 +75,7 @@ struct LinkedAccountsView: View {
     private func connect(_ id: String) {
         busy = id
         Task {
-            if let s = try? await Api.integrationAuthorizeURL(id), let u = URL(string: s) { safariURL = u }
+            if let s = try? await Api.integrationAuthorizeURL(id), let u = URL(string: s) { safariURL = IdentifiedURL(url: u) }
             busy = nil
         }
     }
@@ -102,7 +102,8 @@ struct LinkedAccountsView: View {
     }
 }
 
-extension URL: Identifiable { public var id: String { absoluteString } }
+// Kein retroaktives URL: Identifiable (Warnung/Fehler bei importiertem Typ) — eigener Wrapper.
+struct IdentifiedURL: Identifiable { let url: URL; var id: String { url.absoluteString } }
 
 // SFSafariViewController-Brücke für den OAuth-Flow.
 struct SafariView: UIViewControllerRepresentable {

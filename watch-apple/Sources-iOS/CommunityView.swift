@@ -57,96 +57,14 @@ struct CommunityView: View {
                         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
                 }
 
-                // Zeitraum-Filter + Accel/alle-Umschalter.
-                Section {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
-                        }
-                    }
-                    HStack {
-                        Spacer()
-                        chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
-                        chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
-                    }
-                }
-
-                // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
+                periodSection
                 if records != nil {
                     Section { recordGrid(records?[period], showSpot: true) }
                 }
-
-                if !media.isEmpty {
-                    Section(Loc.t("community.latestMedia", lang)) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(media) { m in
-                                    NavigationLink { SessionDetailView(id: m.session_id) } label: { mediaThumb(m) }
-                                        .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
-                    Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)") {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
-                            }
-                        }
-                        let list = Array(lbList(lb).prefix(5))
-                        if list.isEmpty {
-                            Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
-                        } else {
-                            ForEach(Array(list.enumerated()), id: \.offset) { i, e in
-                                HStack(spacing: 8) {
-                                    Text("\(i + 1)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 20)
-                                    leaderAvatar(e)
-                                    Text(e.name ?? "—").lineLimit(1)
-                                    Spacer()
-                                    Text("\(lbValue(e))").fontWeight(.semibold)
-                                    Text(lbUnit).font(.caption2).foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if !topLiked.isEmpty {
-                    Section("\(Loc.t("community.topRated", lang)) · \(periodLabel)") {
-                        ForEach(topLiked) { s in
-                            NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
-                        }
-                    }
-                }
-
-                // Spots: eigene Spots + Suche, je Spot ein Rekord-Grid.
-                Section(Loc.t("home.spots", lang)) {
-                    TextField(Loc.t("home.spotSearch", lang), text: $spotQuery).textInputAutocapitalization(.never)
-                    ForEach(spotMatches, id: \.self) { m in
-                        Button {
-                            if !spotShown.contains(m) { spotShown.insert(m, at: 0) }
-                            spotQuery = ""
-                        } label: {
-                            Label(m, systemImage: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
-                        }
-                    }
-                    if spotShown.isEmpty {
-                        Text(Loc.t("home.noSpots", lang)).font(.caption).foregroundStyle(.secondary)
-                    }
-                    ForEach(spotShown, id: \.self) { sp in
-                        HStack {
-                            Text("📍 \(sp)").font(.subheadline).bold().foregroundStyle(Color.accentColor)
-                            if spots?.mine?.contains(sp) != true {
-                                Button(Loc.t("home.remove", lang)) { spotShown.removeAll { $0 == sp } }
-                                    .font(.caption).foregroundStyle(.secondary).buttonStyle(.plain)
-                            }
-                        }
-                        recordGrid(spotRecs["\(accelOnly):\(period):\(sp)"], showSpot: false)
-                    }
-                }
+                mediaFeedSection
+                leaderboardSection
+                topLikedSection
+                spotsSection
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             .navigationTitle(Loc.t("nav.community", lang))
@@ -263,6 +181,105 @@ struct CommunityView: View {
                 }
             }
             .frame(width: 28, height: 28).clipShape(Circle())
+        }
+    }
+
+    // In typisierte Teil-Views zerlegt (Type-Checker-Hänger beim Archivieren) — [[ios-swift-typecheck-hang]].
+    @ViewBuilder private var periodSection: some View {
+        Section {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(periods, id: \.0) { id, key in chip(Loc.t(key, lang), period == id) { period = id } }
+                }
+            }
+            HStack {
+                Spacer()
+                chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+            }
+        }
+    }
+
+    @ViewBuilder private var mediaFeedSection: some View {
+        if !media.isEmpty {
+            Section(Loc.t("community.latestMedia", lang)) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(media) { m in
+                            NavigationLink { SessionDetailView(id: m.session_id) } label: { mediaThumb(m) }
+                                .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var leaderboardSection: some View {
+        if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
+            Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
+                    }
+                }
+                let list = Array(lbList(lb).prefix(5))
+                if list.isEmpty {
+                    Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(list.enumerated()), id: \.offset) { i, e in
+                        leaderRow(i, e)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func leaderRow(_ i: Int, _ e: LeaderEntry) -> some View {
+        HStack(spacing: 8) {
+            Text("\(i + 1)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 20)
+            leaderAvatar(e)
+            Text(e.name ?? "—").lineLimit(1)
+            Spacer()
+            Text("\(lbValue(e))").fontWeight(.semibold)
+            Text(lbUnit).font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var topLikedSection: some View {
+        if !topLiked.isEmpty {
+            Section("\(Loc.t("community.topRated", lang)) · \(periodLabel)") {
+                ForEach(topLiked) { s in
+                    NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var spotsSection: some View {
+        Section(Loc.t("home.spots", lang)) {
+            TextField(Loc.t("home.spotSearch", lang), text: $spotQuery).textInputAutocapitalization(.never)
+            ForEach(spotMatches, id: \.self) { m in
+                Button {
+                    if !spotShown.contains(m) { spotShown.insert(m, at: 0) }
+                    spotQuery = ""
+                } label: {
+                    Label(m, systemImage: "mappin.and.ellipse").foregroundStyle(Color.accentColor)
+                }
+            }
+            if spotShown.isEmpty {
+                Text(Loc.t("home.noSpots", lang)).font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(spotShown, id: \.self) { sp in
+                HStack {
+                    Text("📍 \(sp)").font(.subheadline).bold().foregroundStyle(Color.accentColor)
+                    if spots?.mine?.contains(sp) != true {
+                        Button(Loc.t("home.remove", lang)) { spotShown.removeAll { $0 == sp } }
+                            .font(.caption).foregroundStyle(.secondary).buttonStyle(.plain)
+                    }
+                }
+                recordGrid(spotRecs["\(accelOnly):\(period):\(sp)"], showSpot: false)
+            }
         }
     }
 

@@ -45,108 +45,12 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     if let uv = updateVer, !updateDismissed { updateBanner(uv) }
                     if showBanner, let n = news { welcomeBanner(n) }
-
-                    let hello = (session.profile?.display_name?.isEmpty == false)
-                        ? Loc.t("phome.hello", lang).replacingOccurrences(of: "{name}", with: session.profile!.display_name!)
-                        : Loc.t("nav.home", lang)
-                    Text(hello).font(.title2).bold()
-
-                    // Hinweis auf eingehende Session-Übertragungen (Annehmen in „Meine Sessions").
-                    if incomingXfer > 0 {
-                        NavigationLink { SessionsView() } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "paperplane.fill").foregroundStyle(Color.accentColor)
-                                Text(Loc.t("transfer.homeHint", lang)).font(.subheadline)
-                                Spacer()
-                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
-                            }
-                            .padding(12)
-                            .frame(maxWidth: .infinity)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.12)))
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Letzte Sessions zuerst (wie PWA): direkt unter der Begrüßung, vor Rekorden.
-                    HStack {
-                        Text(Loc.t("phome.latest", lang)).font(.headline)
-                        Spacer()
-                        NavigationLink { SessionsView() } label: {
-                            Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
-                        }
-                    }
-                    if latest.isEmpty {
-                        Text(Loc.t("sessions.empty", lang))
-                            .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
-                            .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        VStack(spacing: 0) {
-                            ForEach(latest) { s in
-                                NavigationLink { SessionDetailView(id: s.id) } label: {
-                                    SessionRow(session: s)
-                                }
-                                .buttonStyle(.plain)
-                                Divider()
-                            }
-                        }
-                    }
-
-                    if let st = stats {
-                        // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
-                        HStack(spacing: 8) {
-                            Text(Loc.t("side.records", lang)).font(.headline)
-                            HStack(spacing: 4) {
-                                segButton(Loc.t("side.onlyAccel", lang), active: accelOnly) { accelOnly = true }
-                                segButton(Loc.t("side.all", lang), active: !accelOnly) { accelOnly = false }
-                            }
-                        }
-                        // EIN 3-Spalten-Grid: 5 Rekorde + 5 Gesamtwerte (Reihenfolge/Format wie PWA).
-                        let r = st.records
-                        LazyVGrid(columns: cols3, spacing: 10) {
-                            recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { "\(Int($0)) m" }
-                            recTile(r?.duration, Loc.t("rec.longestRun", lang)) { fmtDur($0) }
-                            recTile(r?.speed, Loc.t("rec.topSpeed", lang)) { String(format: "%.1f km/h", $0 * 3.6) }
-                            recTile(r?.glide, Loc.t("rec.longestGlide", lang)) { String(format: "%.1f s", $0) }
-                            recTile(r?.runs, Loc.t("rec.mostRuns", lang)) { "\(Int($0))" }
-                            tile("\(st.count ?? 0)", Loc.t("side.sessions", lang))
-                            tile("\(st.runs_total ?? 0)", Loc.t("stat.runs", lang))
-                            tile(String(format: "%.1f km", st.foiling_km ?? 0), Loc.t("side.foiling", lang))
-                            tile(fmtMin(st.foiling_min ?? 0), Loc.t("side.foilingTime", lang))
-                            tile("\(st.pumps ?? 0)", Loc.t("side.pumps", lang))
-                        }
-                    }
-
+                    Text(helloText).font(.title2).bold()
+                    if incomingXfer > 0 { transferHint }
+                    latestSection
+                    if let st = stats { recordsSection(st) }
                     if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
-
-                    if !rooms.isEmpty {
-                        Text(Loc.t("home.myChats", lang)).font(.headline)
-                        VStack(spacing: 0) {
-                            ForEach(rooms) { room in
-                                NavigationLink { ChatRoomView(scope: room.scope, title: room.label) } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(room.label).fontWeight(.medium).foregroundStyle(.primary)
-                                            if !room.last_text.isEmpty {
-                                                Text(room.last_text).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                                            }
-                                        }
-                                        Spacer()
-                                        if room.unread > 0 {
-                                            Text("\(room.unread)").font(.caption2).foregroundStyle(.white)
-                                                .padding(.horizontal, 7).padding(.vertical, 2)
-                                                .background(Color.accentColor, in: Capsule())
-                                        }
-                                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-                                    }
-                                    .contentShape(Rectangle())
-                                    .padding(.vertical, 6)
-                                }
-                                .buttonStyle(.plain)
-                                Divider()
-                            }
-                        }
-                    }
-
+                    if !rooms.isEmpty { chatsSection }
                 }
                 .padding(.horizontal).padding(.bottom).padding(.top, 2)
             }
@@ -186,6 +90,103 @@ struct HomeView: View {
     }
 
     // Willkommens-/Community-Banner (schließbar). Spiegelt web WelcomeBanner.
+    // In typisierte Teil-Views zerlegt (Type-Checker-Hänger beim Archivieren) — [[ios-swift-typecheck-hang]].
+    private var helloText: String {
+        (session.profile?.display_name?.isEmpty == false)
+            ? Loc.t("phome.hello", lang).replacingOccurrences(of: "{name}", with: session.profile!.display_name!)
+            : Loc.t("nav.home", lang)
+    }
+
+    private var transferHint: some View {
+        NavigationLink { SessionsView() } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "paperplane.fill").foregroundStyle(Color.accentColor)
+                Text(Loc.t("transfer.homeHint", lang)).font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder private var latestSection: some View {
+        HStack {
+            Text(Loc.t("phome.latest", lang)).font(.headline)
+            Spacer()
+            NavigationLink { SessionsView() } label: {
+                Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
+            }
+        }
+        if latest.isEmpty {
+            Text(Loc.t("sessions.empty", lang))
+                .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
+                .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        } else {
+            VStack(spacing: 0) {
+                ForEach(latest) { s in
+                    NavigationLink { SessionDetailView(id: s.id) } label: { SessionRow(session: s) }
+                        .buttonStyle(.plain)
+                    Divider()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func recordsSection(_ st: OverallStats) -> some View {
+        HStack(spacing: 8) {
+            Text(Loc.t("side.records", lang)).font(.headline)
+            HStack(spacing: 4) {
+                segButton(Loc.t("side.onlyAccel", lang), active: accelOnly) { accelOnly = true }
+                segButton(Loc.t("side.all", lang), active: !accelOnly) { accelOnly = false }
+            }
+        }
+        let r = st.records
+        LazyVGrid(columns: cols3, spacing: 10) {
+            recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { "\(Int($0)) m" }
+            recTile(r?.duration, Loc.t("rec.longestRun", lang)) { fmtDur($0) }
+            recTile(r?.speed, Loc.t("rec.topSpeed", lang)) { String(format: "%.1f km/h", $0 * 3.6) }
+            recTile(r?.glide, Loc.t("rec.longestGlide", lang)) { String(format: "%.1f s", $0) }
+            recTile(r?.runs, Loc.t("rec.mostRuns", lang)) { "\(Int($0))" }
+            tile("\(st.count ?? 0)", Loc.t("side.sessions", lang))
+            tile("\(st.runs_total ?? 0)", Loc.t("stat.runs", lang))
+            tile(String(format: "%.1f km", st.foiling_km ?? 0), Loc.t("side.foiling", lang))
+            tile(fmtMin(st.foiling_min ?? 0), Loc.t("side.foilingTime", lang))
+            tile("\(st.pumps ?? 0)", Loc.t("side.pumps", lang))
+        }
+    }
+
+    @ViewBuilder private var chatsSection: some View {
+        Text(Loc.t("home.myChats", lang)).font(.headline)
+        VStack(spacing: 0) {
+            ForEach(rooms) { room in
+                NavigationLink { ChatRoomView(scope: room.scope, title: room.label) } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(room.label).fontWeight(.medium).foregroundStyle(.primary)
+                            if !room.last_text.isEmpty {
+                                Text(room.last_text).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                        }
+                        Spacer()
+                        if room.unread > 0 {
+                            Text("\(room.unread)").font(.caption2).foregroundStyle(.white)
+                                .padding(.horizontal, 7).padding(.vertical, 2)
+                                .background(Color.accentColor, in: Capsule())
+                        }
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+                Divider()
+            }
+        }
+    }
+
     @ViewBuilder private func welcomeBanner(_ n: NewsBanner) -> some View {
         let newsText = n.texts[lang] ?? n.texts["de"] ?? ""
         VStack(alignment: .leading, spacing: 6) {
