@@ -88,7 +88,8 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 **Produkt & Planung**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.
 - [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
-- [`docs/IDEAS.md`](docs/IDEAS.md) — Ideen-Backlog (noch nichts umgesetzt; nur sammeln).
+- [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
+  git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
 - [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛).
 
 **Komponenten-READMEs**
