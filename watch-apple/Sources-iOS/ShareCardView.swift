@@ -200,6 +200,14 @@ struct ShareCardView: View {
             if let s = sh["shade"] as? String, s == "light" || s == "dark" { shade = s }
             if let d = sh["dim"] as? Double { dim = d }
         }
+        // Default-Hintergrund: erstes Foto der Session (wie PWA). /media ist öffentlich.
+        if photo == nil,
+           let first = (try? await Api.sessionPhotos(session.id))?.first?.url,
+           let url = Api.mediaURL(first),
+           let (data, _) = try? await URLSession.shared.data(from: url),
+           let img = UIImage(data: data) {
+            photo = img; photoVersion += 1; updatePreview()
+        }
         loaded = true
     }
 

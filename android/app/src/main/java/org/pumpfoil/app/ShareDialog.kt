@@ -168,6 +168,20 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
             sh?.get("shade")?.jsonPrimitive?.contentOrNull?.let { if (it == "light" || it == "dark") shade = it }
             sh?.get("dim")?.jsonPrimitive?.doubleOrNull?.let { dim = it.toFloat() }
         } catch (_: Exception) {}
+        // Default-Hintergrund: erstes Foto der Session (wie PWA). /media ist öffentlich.
+        try {
+            val url = Api.mediaUrl(Api.sessionPhotos(session.id).firstOrNull()?.url)
+            if (url != null) {
+                val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    try { java.net.URL(url).openStream().use { BitmapFactory.decodeStream(it) } } catch (_: Exception) { null }
+                }
+                if (bmp != null) {
+                    photo = bmp
+                    val sc = maxOf(N / bmp.width, N / bmp.height)
+                    xf = Xf((N - bmp.width * sc) / 2f, (N - bmp.height * sc) / 2f, bmp.width * sc, bmp.height * sc)
+                }
+            }
+        } catch (_: Exception) {}
         loaded = true
     }
 
