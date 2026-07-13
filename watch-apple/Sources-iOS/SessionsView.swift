@@ -218,7 +218,8 @@ struct SessionRow: View {
             HStack(alignment: .top, spacing: 12) {
                 leading
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(headline).font(.subheadline).fontWeight(.semibold)
+                    Text(headline).font(.footnote).fontWeight(.semibold)
+                        .lineLimit(1).minimumScaleFactor(0.75)
                     let chips = chipLabels
                     if !chips.isEmpty {
                         HStack(spacing: 6) { ForEach(chips, id: \.self) { pill($0) } }
