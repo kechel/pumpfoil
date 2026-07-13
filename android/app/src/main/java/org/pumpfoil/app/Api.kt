@@ -21,7 +21,7 @@ import java.net.URL
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
-    const val BASE = "https://pumpfoil.org"
+    const val BASE = "http://10.0.2.2:8090"
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile var token: String? = null

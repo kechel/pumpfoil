@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { Card } from "../components/ui";
 import { UploadFitButton } from "../components/UploadFitButton";
+import { ChevronIcon, UploadIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 // Erklärt den Garmin-Export und bietet den eigentlichen FIT/ZIP-Upload.
@@ -7,9 +9,12 @@ export default function Import() {
   const t = useT();
   return (
     <div className="w-full">
+      <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+        <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
+      </Link>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold">{t("import.title")}</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold"><UploadIcon className="h-5 w-5 text-brand-400" /> {t("import.title")}</h2>
           <p className="mt-1 text-sm text-slate-300">{t("import.intro")}</p>
         </div>
         <div className="shrink-0 sm:max-w-[16rem] sm:text-right">
