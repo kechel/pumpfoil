@@ -281,8 +281,8 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                 Text(I18n.t("share.showTrack"))
             }
 
+            // Track-Farbe (Labels weggelassen — selbsterklärend).
             if (track) {
-                Text(I18n.t("share.trackColor"), style = MaterialTheme.typography.labelMedium)
                 val colors = if (hasHr) listOf("cyan", "speed", "hr") else listOf("cyan", "speed")
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     colors.forEachIndexed { i, c ->
@@ -292,12 +292,20 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                         ) { Text(I18n.t("share.color.$c")) }
                     }
                 }
-                // Einzelnen Lauf hervorheben (bei >= 2 Läufen).
-                if (segments.size >= 2) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(I18n.t("share.highlightRun"), style = MaterialTheme.typography.labelMedium)
+            }
+
+            // Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile.
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.OutlinedButton(onClick = { picker.launch("image/*") }) {
+                    Text(if (photo != null) I18n.t("share.changePhoto") else I18n.t("share.addPhoto"))
+                }
+                if (photo != null) {
+                    androidx.compose.material3.TextButton(onClick = { photo = null }) { Text(I18n.t("share.noPhoto")) }
+                }
+                Spacer(Modifier.weight(1f))
+                if (track && segments.size >= 2) {
                     Box {
-                        androidx.compose.material3.OutlinedButton(onClick = { hlOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                        androidx.compose.material3.OutlinedButton(onClick = { hlOpen = true }) {
                             Text(if (highlight < 0) I18n.t("share.allRuns")
                                  else I18n.t("share.runLabel").replace("{n}", "${highlight + 1}"))
                         }
@@ -314,17 +322,6 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                     }
                 }
             }
-
-            // Hintergrund-Foto (optional).
-            Text(I18n.t("share.background"), style = MaterialTheme.typography.labelMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.OutlinedButton(onClick = { picker.launch("image/*") }) {
-                    Text(if (photo != null) I18n.t("share.changePhoto") else I18n.t("share.addPhoto"))
-                }
-                if (photo != null) {
-                    androidx.compose.material3.TextButton(onClick = { photo = null }) { Text(I18n.t("share.noPhoto")) }
-                }
-            }
             if (photo != null) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(I18n.t("share.darken"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
@@ -333,7 +330,6 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                 Slider(value = dim, onValueChange = { dim = it }, valueRange = 0f..0.85f, steps = 16)
             }
 
-            Text(I18n.t("share.textColor"), style = MaterialTheme.typography.labelMedium)
             val shades = listOf("light", "dark")
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 shades.forEachIndexed { i, sh ->
@@ -345,7 +341,6 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
             }
 
             if (avail.isNotEmpty()) {
-                Text(I18n.t("share.stats"), style = MaterialTheme.typography.labelMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     avail.forEach { k ->
                         FilterChip(

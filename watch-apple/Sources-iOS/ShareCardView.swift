@@ -106,29 +106,16 @@ struct ShareCardView: View {
 
                     Toggle(Loc.t("share.showTrack", lang), isOn: $track)
 
+                    // Track-Farbe (Labels weggelassen — selbsterklärend).
                     if track {
-                        Text(Loc.t("share.trackColor", lang)).font(.caption).foregroundStyle(.secondary)
                         Picker("", selection: $color) {
                             Text(Loc.t("share.color.cyan", lang)).tag("cyan")
                             Text(Loc.t("share.color.speed", lang)).tag("speed")
                             if hasHr { Text(Loc.t("share.color.hr", lang)).tag("hr") }
                         }.pickerStyle(.segmented)
-                        // Einzelnen Lauf hervorheben (bei >= 2 Läufen).
-                        let segs = session.analysis?.segments ?? []
-                        if segs.count >= 2 {
-                            Picker(Loc.t("share.highlightRun", lang), selection: $highlight) {
-                                Text(Loc.t("share.allRuns", lang)).tag(-1)
-                                ForEach(Array(segs.enumerated()), id: \.offset) { i, seg in
-                                    let m = seg.distance_m ?? 0
-                                    let km = m >= 1000 ? String(format: "%.1f km", m / 1000) : "\(Int(m)) m"
-                                    Text("\(Loc.t("share.runLabel", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")) · \(km)").tag(i)
-                                }
-                            }
-                        }
                     }
 
-                    // Hintergrund-Foto (optional).
-                    Text(Loc.t("share.background", lang)).font(.caption).foregroundStyle(.secondary)
+                    // Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile.
                     HStack {
                         PhotosPicker(selection: $photoItem, matching: .images) {
                             Label(photo == nil ? Loc.t("share.addPhoto", lang) : Loc.t("share.changePhoto", lang), systemImage: "photo")
@@ -137,6 +124,18 @@ struct ShareCardView: View {
                             Button(Loc.t("share.noPhoto", lang), role: .destructive) {
                                 photo = nil; photoVersion += 1; updatePreview()
                             }.buttonStyle(.bordered)
+                        }
+                        Spacer()
+                        let segs = session.analysis?.segments ?? []
+                        if track && segs.count >= 2 {
+                            Picker("", selection: $highlight) {
+                                Text(Loc.t("share.allRuns", lang)).tag(-1)
+                                ForEach(Array(segs.enumerated()), id: \.offset) { i, seg in
+                                    let m = seg.distance_m ?? 0
+                                    let km = m >= 1000 ? String(format: "%.1f km", m / 1000) : "\(Int(m)) m"
+                                    Text("\(Loc.t("share.runLabel", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")) · \(km)").tag(i)
+                                }
+                            }.pickerStyle(.menu)
                         }
                     }
                     if photo != nil {
@@ -148,14 +147,12 @@ struct ShareCardView: View {
                         Slider(value: $dim, in: 0...0.85) { _ in } .onChange(of: dim) { _ in updatePreview() }
                     }
 
-                    Text(Loc.t("share.textColor", lang)).font(.caption).foregroundStyle(.secondary)
                     Picker("", selection: $shade) {
                         Text(Loc.t("share.shade.light", lang)).tag("light")
                         Text(Loc.t("share.shade.dark", lang)).tag("dark")
                     }.pickerStyle(.segmented)
 
                     if !avail.isEmpty {
-                        Text(Loc.t("share.stats", lang)).font(.caption).foregroundStyle(.secondary)
                         FlowChips(items: avail, selected: sel) { k in
                             if sel.contains(k) { sel.remove(k) } else { sel.insert(k) }
                         } label: { Loc.t("share.stat.\($0)", lang) }
