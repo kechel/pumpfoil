@@ -64,6 +64,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     var weight by remember { mutableStateOf("0") }
     var homespot by remember { mutableStateOf("") }
     var activityType by remember { mutableStateOf("surfing") }
+    var hasGarmin by remember { mutableStateOf(false) }   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }
     val snackHost = remember { SnackbarHostState() }
     fun flashSaved() { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } }
@@ -92,6 +93,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         } catch (_: Exception) {}
         try { sensitivity = Api.me().foilSensitivity ?: "normal" } catch (_: Exception) {}
+        hasGarmin = try { Api.myDevices().any { it.platform == "garmin" && it.revokedAt == null } } catch (_: Exception) { false }
         spots = try { Api.spots().all } catch (_: Exception) { emptyList() }
         loaded = true
     }
@@ -144,25 +146,27 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
 
-            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Auto-Save + Bestätigung.
-            Text(I18n.t("account.activityType"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-            Dropdown(
-                options = listOf(
-                    "surfing" to I18n.t("account.activitySurfing"),
-                    "openwater" to I18n.t("account.activityOpenWater"),
-                ),
-                selected = activityType,
-                onSelect = onSelect@{ v ->
-                    if (v == activityType) return@onSelect
-                    activityType = v
-                    scope.launch {
-                        try { Api.saveSettings(buildJsonObject { put("activity_type", v) }); flashSaved() } catch (_: Exception) {}
-                    }
-                },
-            )
-            Spacer(Modifier.height(16.dp))
+            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
+            if (hasGarmin) {
+                Text(I18n.t("account.activityType"), style = MaterialTheme.typography.labelLarge)
+                Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+                Dropdown(
+                    options = listOf(
+                        "surfing" to I18n.t("account.activitySurfing"),
+                        "openwater" to I18n.t("account.activityOpenWater"),
+                    ),
+                    selected = activityType,
+                    onSelect = onSelect@{ v ->
+                        if (v == activityType) return@onSelect
+                        activityType = v
+                        scope.launch {
+                            try { Api.saveSettings(buildJsonObject { put("activity_type", v) }); flashSaved() } catch (_: Exception) {}
+                        }
+                    },
+                )
+                Spacer(Modifier.height(16.dp))
+            }
 
             // Theme (lokal, sofort wirksam).
             Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)

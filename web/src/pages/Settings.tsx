@@ -30,6 +30,7 @@ export default function Settings() {
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
   const [activityType, setActivityType] = useState("surfing");
+  const [hasGarmin, setHasGarmin] = useState(false);   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
   const [savedToast, setSavedToast] = useState(false);
   const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
 
@@ -46,6 +47,7 @@ export default function Settings() {
     // (alte Test-/Re-Pairing-Tokens sollen nicht mehr nerven). Wear/Apple: eigene Stores.
     api.myDevices().then((ds) => {
       const garmins = ds.filter((x) => x.platform === "garmin" && !x.revoked_at);
+      setHasGarmin(garmins.length > 0);
       const anyCurrent = garmins.some((x) => x.app_version && !x.update_available);
       const outdated = garmins.find((x) => x.update_available);
       if (!anyCurrent && outdated) {
@@ -263,6 +265,7 @@ export default function Settings() {
         </select>
       </Card>
 
+      {hasGarmin && (
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("account.activityType")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("account.activityTypeHint")}</p>
@@ -275,6 +278,7 @@ export default function Settings() {
           <option value="openwater">{t("account.activityOpenWater")}</option>
         </select>
       </Card>
+      )}
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>

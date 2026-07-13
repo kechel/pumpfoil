@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var homespot = ""
     @State private var activityType = "surfing"
     @State private var activityReady = false   // erst nach dem Laden auf Änderungen reagieren
+    @State private var hasGarmin = false        // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
     @State private var spots: [String] = []
     @State private var nLike = true
     @State private var nAnalyzed = true
@@ -37,14 +38,16 @@ struct SettingsView: View {
                     ForEach(spots, id: \.self) { Text($0).tag($0) }
                 }
             }
-            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Auto-Save.
-            Section {
-                Picker(Loc.t("account.activityType", lang), selection: $activityType) {
-                    Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
-                    Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
-                }
-            } header: { Text(Loc.t("account.activityType", lang)) }
-            footer: { Text(Loc.t("account.activityTypeHint", lang)) }
+            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
+            if hasGarmin {
+                Section {
+                    Picker(Loc.t("account.activityType", lang), selection: $activityType) {
+                        Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
+                        Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
+                    }
+                } header: { Text(Loc.t("account.activityType", lang)) }
+                footer: { Text(Loc.t("account.activityTypeHint", lang)) }
+            }
             Section(Loc.t("settings.design", lang)) {
                 Picker(Loc.t("settings.design", lang), selection: $themeMode) {
                     Text(Loc.t("settings.auto", lang)).tag("auto")
@@ -134,6 +137,7 @@ struct SettingsView: View {
         homespot = (s["homespot"] as? String) ?? ""
         activityType = (s["activity_type"] as? String) ?? "surfing"
         activityReady = true
+        if let ds = try? await Api.myDevices() { hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil } }
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
             nAnalyzed = (np["analyzed"] as? Bool) ?? true
