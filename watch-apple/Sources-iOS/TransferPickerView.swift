@@ -111,7 +111,7 @@ struct TransferPickerView: View {
     }
 
     private func loadPending() async {
-        if let t = try? await Api.transferForSession(sessionId), t?.role == "sender" { pending = t }
+        if let t = try? await Api.transferForSession(sessionId), t.role == "sender" { pending = t }
     }
 
     private func send(_ u: DmUser) {

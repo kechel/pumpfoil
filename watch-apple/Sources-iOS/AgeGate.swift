@@ -29,32 +29,14 @@ enum AgeGate {
     #if canImport(DeclaredAgeRange)
     @available(iOS 26.0, *)
     private static func resolve() async -> (Bool, String)? {
-        // VERIFY: Aufruf + Response-Shape gegen die aktuelle DeclaredAgeRange-API abgleichen.
-        // Erwartet: Anfrage mit Gate 13; Antwort liefert die deklarierte Spanne (lower/upper).
-        let service = AgeRangeService.shared
-        do {
-            let response = try await service.requestAgeRange(ageGates: 13)
-            switch response {
-            case .sharing(let range):
-                // range.lowerBound / range.upperBound sind Int? — >=13 => Social erlaubt.
-                let lower = range.lowerBound ?? 0
-                let allowed = lower >= 13
-                let bracket: String
-                if let ub = range.upperBound, ub < 13 { bracket = "under13" }
-                else if lower >= 18 { bracket = "18+" }
-                else if lower >= 16 { bracket = "16-17" }
-                else if lower >= 13 { bracket = "13-15" }
-                else { bracket = "under13" }
-                return (allowed, bracket)
-            case .declinedSharing:
-                // Keine Angabe -> API erfüllt (wir haben gefragt); Backend-Default (erlaubt) lassen.
-                return nil
-            @unknown default:
-                return nil
-            }
-        } catch {
-            return nil
-        }
+        // TODO (Jan/Xcode): echte DeclaredAgeRange-API verdrahten. Die konkreten Typnamen
+        // (Service/Request/Response) müssen gegen die finale iOS-26-SDK-Doku gesetzt werden
+        // (developer.apple.com/documentation/declaredagerange). Bis dahin nil zurückgeben →
+        // social_allowed bleibt auf dem Backend-Default (erlaubt). Skizze der erwarteten Logik:
+        //   let response = try await <AgeRangeService>.requestAgeRange(ageGates: 13)
+        //   -> aus lower/upperBound: allowed = lower >= 13, bracket = "under13"/"13-15"/"16-17"/"18+"
+        //   return (allowed, bracket)
+        return nil
     }
     #endif
 }
