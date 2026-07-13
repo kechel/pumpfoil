@@ -526,6 +526,16 @@ object Api {
         http("PUT", "/api/settings", patch.toString(), auth = true)
     }
 
+    // Gepairte Uhren/Geräte des Kontos (mit record_mode je Uhr).
+    suspend fun myDevices(): List<PairedDevice> = withContext(Dispatchers.IO) {
+        json.decodeFromString(http("GET", "/api/devices/list", null, auth = true))
+    }
+
+    // Aufzeichnungsmodus einer einzelnen Uhr setzen (full|lite|gps).
+    suspend fun setDeviceRecordMode(id: Int, mode: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/devices/$id/record-mode", buildJsonObject { put("record_mode", mode) }.toString(), auth = true)
+    }
+
     // Companion-Pairing: eingeloggte Phone-App mintet ein Device-Token für die Wear-Uhr.
     suspend fun mintDeviceToken(label: String = "Wear OS"): String = withContext(Dispatchers.IO) {
         val l = java.net.URLEncoder.encode(label, "UTF-8")

@@ -18,6 +18,22 @@ struct ReanalysisProgress: Codable {
     let total: Int
 }
 
+// Gepairte Uhr/Gerät (GET /api/devices/list). record_mode je Uhr getrennt.
+struct PairedDevice: Codable, Identifiable {
+    let id: Int
+    let label: String?
+    let last_seen_at: String?
+    let revoked_at: String?
+    let app_version: String?
+    let platform: String?
+    let model: String?
+    let model_id: String?
+    let update_available: Bool?
+    let latest_version: String?
+    let record_mode: String?   // full | lite | gps
+    let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
+}
+
 struct SessionSummary: Codable, Identifiable {
     let id: Int
     let sport: String

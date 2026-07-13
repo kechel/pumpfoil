@@ -576,6 +576,15 @@ enum Api {
         return d
     }()
 
+    // Gepairte Uhren/Geräte (mit record_mode je Uhr).
+    static func myDevices() async throws -> [PairedDevice] {
+        try await request("/api/devices/list", method: "GET", body: nil, auth: true)
+    }
+    struct RecordModeResp: Decodable { let record_mode: String? }
+    static func setDeviceRecordMode(_ id: Int, mode: String) async throws {
+        let _: RecordModeResp = try await request("/api/devices/\(id)/record-mode", method: "PUT", body: ["record_mode": mode], auth: true)
+    }
+
     private static func request<T: Decodable>(
         _ path: String, method: String, body: [String: Any]?, auth: Bool
     ) async throws -> T {

@@ -4,6 +4,23 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
+// Gepairte Uhr/Gerät (GET /api/devices/list). record_mode je Uhr getrennt.
+@Serializable
+data class PairedDevice(
+    val id: Int,
+    val label: String? = null,
+    @SerialName("last_seen_at") val lastSeenAt: String? = null,
+    @SerialName("revoked_at") val revokedAt: String? = null,
+    @SerialName("app_version") val appVersion: String? = null,
+    val platform: String? = null,
+    val model: String? = null,
+    @SerialName("model_id") val modelId: String? = null,
+    @SerialName("update_available") val updateAvailable: Boolean = false,
+    @SerialName("latest_version") val latestVersion: String? = null,
+    @SerialName("record_mode") val recordMode: String = "full",   // full | lite | gps
+    @SerialName("low_accel") val lowAccel: Boolean = false,        // FR55 & Co. -> Voll autom. Sparsam
+)
+
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).
 @Serializable
 data class Profile(
