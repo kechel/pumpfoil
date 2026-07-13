@@ -1,42 +1,69 @@
 import SwiftUI
+#if canImport(DeclaredAgeRange)
+import DeclaredAgeRange
+#endif
 
 // Apple-Vorgabe „soziale Medien": vor Freigabe von UGC/Feed/Chat die Altersspanne prüfen
 // (ohne Geburtsdatum) via Declared Age Range API (iOS 26+). Ergebnis ans Backend melden
-// (social_allowed), das die Social-Features plattformweit sperrt.
+// (social_allowed + age_bracket) — der Server sperrt Feed/Community/Chat plattformweit, wenn
+// social_allowed=false; iOS blendet die Tabs zusätzlich aus (RootView.socialOK).
 //
-// XCODE-SEITIG (Jan):
-//   1. Capability/Entitlement `com.apple.developer.declared-age-range` zum iOS-Target hinzufügen.
-//   2. Die API gibt es erst ab iOS 26 (#available unten). Für ältere iOS bleibt social_allowed
-//      unangetastet (Default true) — ggf. später einen manuellen Alters-Fallback ergänzen.
-//   3. Die exakten Typnamen der Antwort unten gegen die aktuelle SDK-Doku prüfen
-//      (developer.apple.com/documentation/declaredagerange) — Struktur ist best-effort.
+// ===== XCODE-SEITIG ZU ERLEDIGEN (Jan) =====================================================
+//  1. Capability/Entitlement `com.apple.developer.declared-age-range` zum iOS-Target hinzufügen
+//     (Signing & Capabilities). Ohne das schlägt requestAgeRange fehl -> wir fangen es ab
+//     (ändert nichts, Social bleibt an).
+//  2. Gegen das iOS-26-SDK bauen. Auf iOS < 26 ist der Block per #available inaktiv -> Social
+//     bleibt an (kleine Minderheit).
+//  3. EXAKTE TYPNAMEN gegen die SDK-Doku prüfen (developer.apple.com/documentation/declaredagerange):
+//     Environment-Action `\.requestAgeRange`, Aufruf `requestAgeRange(ageGates: 13)`, Response-Fälle
+//     (`.sharing(let range)` / `.declinedSharing`) + Range-Properties (`lowerBound`/`upperBound`).
+//     Falls Namen abweichen: unten anpassen; die Logik (lower >= 13 -> erlaubt) bleibt gleich.
+// ===========================================================================================
 
-enum AgeGate {
-    // Fragt die Altersspanne (Gate 13) ab und meldet das Ergebnis ans Backend. Einmal je
-    // Login/Start aufrufen. Fehler/Ablehnung -> nichts ändern (Backend-Default bleibt).
-    @MainActor
-    static func checkAndReport(session: SessionStore) async {
+extension View {
+    // In RootView auf den eingeloggten Inhalt anwenden. No-op auf iOS < 26 / ohne Framework.
+    @ViewBuilder func ageGate(session: SessionStore) -> some View {
         #if canImport(DeclaredAgeRange)
         if #available(iOS 26.0, *) {
-            guard let (allowed, bracket) = await resolve() else { return }
-            if let p = try? await Api.setAgeRange(socialAllowed: allowed, ageBracket: bracket) {
-                session.profile = p
-            }
+            modifier(AgeGateModifier(session: session))
+        } else {
+            self
         }
+        #else
+        self
         #endif
     }
-
-    #if canImport(DeclaredAgeRange)
-    @available(iOS 26.0, *)
-    private static func resolve() async -> (Bool, String)? {
-        // TODO (Jan/Xcode): echte DeclaredAgeRange-API verdrahten. Die konkreten Typnamen
-        // (Service/Request/Response) müssen gegen die finale iOS-26-SDK-Doku gesetzt werden
-        // (developer.apple.com/documentation/declaredagerange). Bis dahin nil zurückgeben →
-        // social_allowed bleibt auf dem Backend-Default (erlaubt). Skizze der erwarteten Logik:
-        //   let response = try await <AgeRangeService>.requestAgeRange(ageGates: 13)
-        //   -> aus lower/upperBound: allowed = lower >= 13, bracket = "under13"/"13-15"/"16-17"/"18+"
-        //   return (allowed, bracket)
-        return nil
-    }
-    #endif
 }
+
+#if canImport(DeclaredAgeRange)
+@available(iOS 26.0, *)
+private struct AgeGateModifier: ViewModifier {
+    let session: SessionStore
+    @Environment(\.requestAgeRange) private var requestAgeRange
+    @State private var checked = false
+
+    func body(content: Content) -> some View {
+        content.task(id: session.isLoggedIn) {
+            guard session.isLoggedIn, !checked else { return }
+            checked = true
+            do {
+                // Gate 13: „unter/über 13" (ohne Geburtsdatum).
+                let response = try await requestAgeRange(ageGates: 13)
+                switch response {
+                case .sharing(let range):
+                    let lower = range.lowerBound ?? 0     // nil = unbekannt
+                    let allowed = lower >= 13
+                    let bracket = lower >= 18 ? "18+" : (lower >= 16 ? "16-17" : (lower >= 13 ? "13-15" : "under13"))
+                    if let p = try? await Api.setAgeRange(socialAllowed: allowed, ageBracket: bracket) {
+                        await MainActor.run { session.profile = p }
+                    }
+                default:
+                    break   // .declinedSharing o. ä. -> nichts ändern (Backend-Default bleibt)
+                }
+            } catch {
+                // Kein Entitlement / Abbruch / Fehler -> nichts ändern.
+            }
+        }
+    }
+}
+#endif

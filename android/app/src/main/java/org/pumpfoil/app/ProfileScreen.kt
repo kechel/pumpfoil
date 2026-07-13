@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -193,6 +195,23 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
+            // DEBUG: Age-Gate erzwingen (nur Debug-Build) — verifiziert Feed/Chat-Sperre.
+            if (BuildConfig.DEBUG) {
+                Spacer(Modifier.height(20.dp))
+                Text("DEBUG · Age-Gate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Text("social_allowed = ${profile?.socialAllowed}", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(false, "under13") } catch (_: Exception) { profile } } }) {
+                        Text("Gate AN (<13)")
+                    }
+                    OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(true, "18+") } catch (_: Exception) { profile } } }) {
+                        Text("AUS (18+)")
+                    }
+                }
+                Text("App neu starten, damit Foilers/Chat-Tabs (aus)geblendet werden.",
+                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = { Api.logout(ctx); onLogout() },

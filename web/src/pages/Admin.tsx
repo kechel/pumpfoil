@@ -466,6 +466,8 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
             {u.is_admin && <span className="ml-1"><Badge tone="green">{t("adm.adminBadge")}</Badge></span>}
             {u.blocked && <span className="ml-1"><Badge tone="red">{t("adm.blockedBadge")}</Badge></span>}
             {u.hidden && <span className="ml-1"><Badge tone="amber">{t("adm.testerBadge")}</Badge></span>}
+            {u.social_allowed === false && <span className="ml-1"><Badge tone="red">🔞 Age-Gate{u.age_bracket ? ` ${u.age_bracket}` : ""}</Badge></span>}
+            {u.social_allowed !== false && u.age_bracket != null && <span className="ml-1"><Badge tone="slate">{u.age_bracket}</Badge></span>}
             {u.new && <span className="ml-1"><NewBadge /></span>}
           </div>
           <div className="truncate text-[11px] text-slate-400">{u.email} · {t("adm.sessionsSince", { sessions: u.sessions, date: fmtDate(u.created_at) })}</div>

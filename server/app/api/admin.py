@@ -234,6 +234,9 @@ def _user_brief(db: Session, u: models.User) -> dict:
         "blocked": bool(u.blocked),
         "hidden": bool(u.hidden),
         "new": is_new_account(u.created_at),
+        # Age-Gate (Apple Declared Age Range): social_allowed=False -> Feed/Chat gesperrt.
+        "social_allowed": bool(u.social_allowed is not False),
+        "age_bracket": u.age_bracket,
         "created_at": u.created_at.isoformat() if u.created_at else None,
         "last_seen_at": u.last_seen_at.isoformat() if u.last_seen_at else None,
         "sessions": nsess,

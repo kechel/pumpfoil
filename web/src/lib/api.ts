@@ -275,6 +275,8 @@ export interface AdminUser {
   blocked: boolean;
   hidden: boolean;
   new?: boolean;            // Konto jünger als 24 h
+  social_allowed?: boolean; // false = age-gated (<13) -> Feed/Chat gesperrt
+  age_bracket?: string | null;   // zuletzt gemeldete Altersspanne (under13|13-15|16-17|18+)
   created_at: string | null;
   last_seen_at: string | null;   // zuletzt aktiv (Admin)
   sessions: number;

@@ -91,6 +91,17 @@ struct ProfileView: View {
                         }
                     }
                 }
+                // Nur Debug: Age-Gate erzwingen -> verifiziert Feed/Chat-Sperre (Tabs blenden aus).
+                Section {
+                    Button("Age-Gate AN (<13)") {
+                        Task { if let p = try? await Api.setAgeRange(socialAllowed: false, ageBracket: "under13") { session.profile = p } }
+                    }
+                    Button("Age-Gate AUS (18+)") {
+                        Task { if let p = try? await Api.setAgeRange(socialAllowed: true, ageBracket: "18+") { session.profile = p } }
+                    }
+                } header: {
+                    Text("DEBUG · Age-Gate (social_allowed = \(String(describing: session.profile?.social_allowed)))")
+                }
                 #endif
             }
             .listStyle(.insetGrouped)

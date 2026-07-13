@@ -14,6 +14,7 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(themeMode == "light" ? .light : themeMode == "dark" ? .dark : nil)
+        .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
         .task { await session.bootstrap() }
         .overlay {
             if showSplash {

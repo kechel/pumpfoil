@@ -56,7 +56,8 @@ final class SessionStore: ObservableObject {
         if let p = try? await Api.getProfile() {
             profile = p
             SyncManager.shared.pushPairingToWatch()   // gekoppelte Uhr automatisch verknüpfen
-            await AgeGate.checkAndReport(session: self)   // Altersspanne prüfen (Apple-Vorgabe)
+            // Age-Gate läuft jetzt als View-Modifier in RootView (.ageGate) — braucht die
+            // SwiftUI-Environment-Action requestAgeRange, daher nicht mehr hier im Store.
         } else { logout() }   // Token ungültig -> abmelden
     }
 
@@ -80,7 +81,7 @@ final class SessionStore: ObservableObject {
         token = t
         profile = try? await Api.getProfile()
         SyncManager.shared.pushPairingToWatch()       // nach Login die Uhr verknüpfen
-        await AgeGate.checkAndReport(session: self)   // Altersspanne prüfen (Apple-Vorgabe)
+        // Age-Gate: siehe RootView .ageGate (View-Modifier).
     }
 
     func logout() {

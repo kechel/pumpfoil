@@ -101,6 +101,13 @@ object Api {
         http("PUT", "/api/auth/me", "{\"foil_sensitivity\":\"$v\"}", auth = true)
     }
 
+    // Age-Gate (Apple Declared Age Range): social_allowed + age_bracket setzen. Auf Android v. a.
+    // für den Debug-Toggle (Verifikation der Feed/Chat-Sperre).
+    suspend fun setAgeRange(socialAllowed: Boolean, ageBracket: String): Profile = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("social_allowed", socialAllowed); put("age_bracket", ageBracket) }.toString()
+        json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me/age-range", body, auth = true))
+    }
+
     suspend fun reanalysisProgress(): ReanalysisProgress = withContext(Dispatchers.IO) {
         json.decodeFromString(ReanalysisProgress.serializer(), http("GET", "/api/auth/me/reanalysis", null, auth = true))
     }
