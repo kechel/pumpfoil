@@ -404,6 +404,11 @@ def list_sessions(
         q = q.limit(limit)
     rows = q.all()
     outs = [_session_out(s, with_analysis=True, slim=True, sens=sens) for s in rows]
+    # Eigene Sessions: Besitzer = der anfragende Nutzer -> owner_name/-avatar mitgeben, damit
+    # die Apps in Liste + Detail das Profilbild (bzw. Initialen-Kreis) zeigen (wie PWA).
+    for o in outs:
+        o.owner_name = owner_label(user.display_name, user.id)
+        o.owner_avatar_url = user.avatar_url
     # Explizit gewähltes Foil je Session (nur foil_id gesetzt) im Batch — kein N+1.
     fids = {s.foil_id for s in rows if s.foil_id}
     if fids:

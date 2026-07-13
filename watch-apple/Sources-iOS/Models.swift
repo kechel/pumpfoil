@@ -428,6 +428,7 @@ struct SessionDetail: Codable, Identifiable {
     let place_name: String?
     let caption: String?
     let owner_name: String?
+    let owner_avatar_url: String?
     let like_count: Int?
     let liked: Bool?
     let owned: Bool?

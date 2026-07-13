@@ -316,7 +316,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 44.dp)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall)
+                if (!s.owned && !s.ownerName.isNullOrBlank()) {
+                    Text(s.ownerName, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                }
+            }
             FilledTonalButton(
                 onClick = {
                     val prev = liked; liked = !liked; likeCount += if (liked) 1 else -1

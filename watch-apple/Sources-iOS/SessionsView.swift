@@ -272,29 +272,10 @@ struct SessionRow: View {
         .padding(.vertical, 4)
     }
 
-    @ViewBuilder private var leading: some View {
-        let avatar = showOwner ? Api.mediaURL(session.owner_avatar_url) : nil
-        if let url = avatar {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
-                }
-            }
-            .frame(width: 40, height: 40).clipShape(Circle())
-        } else if showOwner {
-            Image(systemName: "person.crop.circle.fill")
-                .font(.title3)
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 40, height: 40)
-                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-        } else {
-            // Marken-Wellen (versetzt, helles Brand-Cyan #22d3ee) statt SF-Symbol „water.waves".
-            WavesLogo(tint: Color(red: 0x22 / 255, green: 0xD3 / 255, blue: 0xEE / 255), lineWidth: 1.8)
-                .frame(width: 24, height: 24)
-                .frame(width: 40, height: 40)
-                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-        }
+    // Profilbild des Besitzers, sonst farbiger Kreis mit Initiale (wie PWA). owner_* liefert der
+    // Server jetzt für alle Sessions (auch eigene).
+    private var leading: some View {
+        AvatarView(name: session.owner_name, url: Api.mediaURL(session.owner_avatar_url), size: 40)
     }
 
     private func pill(_ text: String) -> some View {

@@ -67,6 +67,52 @@ struct FoilIcon: View {
     }
 }
 
+// Avatar: Profilbild ODER farbiger Kreis mit Initiale — identische Palette/Hash wie PWA (ui.tsx),
+// damit ein Nutzer überall (Web/iOS/Android) dieselbe Farbe bekommt.
+private let AVATAR_COLORS: [Color] = [
+    Color(red: 0x02/255, green: 0x84/255, blue: 0xc7/255), Color(red: 0x4f/255, green: 0x46/255, blue: 0xe5/255),
+    Color(red: 0x7c/255, green: 0x3a/255, blue: 0xed/255), Color(red: 0xc0/255, green: 0x26/255, blue: 0xd3/255),
+    Color(red: 0xdb/255, green: 0x27/255, blue: 0x77/255), Color(red: 0xe1/255, green: 0x1d/255, blue: 0x48/255),
+    Color(red: 0xdc/255, green: 0x26/255, blue: 0x26/255), Color(red: 0xea/255, green: 0x58/255, blue: 0x0c/255),
+    Color(red: 0xca/255, green: 0x8a/255, blue: 0x04/255), Color(red: 0x16/255, green: 0xa3/255, blue: 0x4a/255),
+    Color(red: 0x05/255, green: 0x96/255, blue: 0x69/255), Color(red: 0x0d/255, green: 0x94/255, blue: 0x88/255),
+    Color(red: 0x0e/255, green: 0x74/255, blue: 0x90/255),
+]
+
+func avatarColor(_ seed: String) -> Color {
+    var h: Int32 = 0
+    for u in seed.utf16 { h = h &* 31 &+ Int32(u) }   // wie JS charCodeAt + |0 (32-bit-Overflow)
+    return AVATAR_COLORS[Int(h.magnitude) % AVATAR_COLORS.count]
+}
+
+struct AvatarView: View {
+    let name: String?
+    let url: URL?
+    var size: CGFloat = 40
+
+    private var initialCircle: some View {
+        let n = (name ?? "?").trimmingCharacters(in: .whitespaces)
+        let initial = n.isEmpty ? "?" : String(n.first!).uppercased()
+        return Circle().fill(avatarColor(name ?? "?"))
+            .overlay(Text(initial).font(.system(size: size * 0.45, weight: .semibold)).foregroundStyle(.white))
+            .frame(width: size, height: size)
+    }
+
+    var body: some View {
+        if let url {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: initialCircle
+                }
+            }
+            .frame(width: size, height: size).clipShape(Circle())
+        } else {
+            initialCircle
+        }
+    }
+}
+
 extension View {
     // Horizontales Marken-Wortmarken-Logo in der Navigationsleiste (theme-adaptiv, wie PWA/Android).
     func brandToolbar(_ title: String) -> some View {

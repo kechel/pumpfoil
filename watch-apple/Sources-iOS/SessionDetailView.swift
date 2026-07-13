@@ -202,9 +202,13 @@ struct SessionDetailView: View {
     }
 
     @ViewBuilder private func headerRow(_ s: SessionDetail) -> some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .top, spacing: 10) {
+            AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44)
             VStack(alignment: .leading, spacing: 4) {
                 Text(dateText(s)).font(.title2).bold()
+                if s.owned != true, let on = s.owner_name, !on.isEmpty {
+                    Text(on).font(.subheadline).foregroundStyle(Color.accentColor)
+                }
                 if let p = s.place_name, !p.isEmpty {
                     Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
                 }

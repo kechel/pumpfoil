@@ -53,7 +53,9 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
@@ -263,6 +265,34 @@ fun ytVideoId(url: String?): String? {
     return Regex("(?:v=|youtu\\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{6,16})").find(url)?.groupValues?.get(1)
 }
 
+// Avatar-Palette + Hash identisch zur PWA (ui.tsx) und iOS -> gleiche Nutzerfarbe überall.
+private val AVATAR_COLORS = listOf(
+    0x0284c7, 0x4f46e5, 0x7c3aed, 0xc026d3, 0xdb2777, 0xe11d48,
+    0xdc2626, 0xea580c, 0xca8a04, 0x16a34a, 0x059669, 0x0d9488, 0x0e7490,
+).map { Color(0xFF000000L or it.toLong()) }
+
+fun avatarColorFor(seed: String): Color {
+    var h = 0
+    for (ch in seed) h = h * 31 + ch.code   // Int-Overflow wickelt wie JS „| 0"
+    return AVATAR_COLORS[(Math.abs(h.toLong()) % AVATAR_COLORS.size).toInt()]
+}
+
+// Profilbild ODER farbiger Kreis mit Initiale (wie PWA/iOS). avatarUrl = Roh-Pfad.
+@Composable
+fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp) {
+    val url = Api.mediaUrl(avatarUrl)
+    if (url != null) {
+        AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = Modifier.size(size).clip(CircleShape))
+    } else {
+        val n = (name ?: "?").trim()
+        val initial = (if (n.isEmpty()) "?" else n.substring(0, 1)).uppercase()
+        Box(Modifier.size(size).clip(CircleShape).background(avatarColorFor(name ?: "?")), contentAlignment = Alignment.Center) {
+            Text(initial, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = (size.value * 0.42f).sp)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -276,14 +306,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                val av = Api.mediaUrl(s.ownerAvatarUrl)
-                if (av != null) {
-                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(40.dp).clip(CircleShape))
-                } else {
-                    Icon(Icons.Filled.LocationOn, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-                }
+                AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(dateTimeRange(s.startedAt, s.endedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -437,14 +460,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                val av = Api.mediaUrl(c.avatarUrl)
-                if (av != null) {
-                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(40.dp).clip(CircleShape))
-                } else {
-                    Icon(Icons.Filled.Person, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-                }
+                AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(c.name ?: dateTimeRange(c.startedAt, c.endedAt), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
