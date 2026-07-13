@@ -384,9 +384,15 @@ struct SpotProgressionView: View {
         }
     }
     private func spotDateStr(_ iso: String?) -> String {
-        guard let iso, let t = epochS(iso) else { return "" }
+        guard let iso else { return "" }
+        let iso8601 = ISO8601DateFormatter()
+        iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = iso8601.date(from: iso) ?? {
+            iso8601.formatOptions = [.withInternetDateTime]; return iso8601.date(from: iso)
+        }()
+        guard let date else { return "" }
         let f = DateFormatter(); f.dateFormat = "dd.MM.yyyy"
-        return f.string(from: Date(timeIntervalSince1970: t))
+        return f.string(from: date)
     }
 }
 
