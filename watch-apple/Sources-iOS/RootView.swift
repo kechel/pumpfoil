@@ -28,57 +28,104 @@ struct RootView: View {
     }
 }
 
-// iOS-typische Tab-Navigation mit SF Symbols. Labels nach Profil-Sprache.
+// Eigener 7-Button-Tab-Bar (statt System-TabView, das ab >5 Tabs ein „…"-Mehr-Menü zeigt).
+// Alle Ziele direkt erreichbar; erneutes Tippen auf den aktiven Tab setzt ihn auf die Wurzel
+// zurück (Remount via .id). Views bleiben pro Tab am Leben (ZStack + opacity) → Zustand erhalten.
 struct MainTabView: View {
     @AppStorage("appLang") private var lang = "de"
     @EnvironmentObject private var session: SessionStore
     @ObservedObject private var compare = CompareStore.shared
     @State private var showCompare = false
-    // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe).
+    @State private var tab = 0
+    @State private var resetTokens = Array(repeating: 0, count: 7)
     private var socialOK: Bool { session.profile?.social_allowed != false }
+    // Sichtbare Tab-IDs (Community=2 + Chat=5 nur bei Social-Freigabe).
+    private var visibleTabs: [Int] { socialOK ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 3, 4, 6] }
+
     var body: some View {
-        tabs
-            // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
-            // Sessions markiert sind; öffnet den Vergleich mit genau diesen.
-            .overlay(alignment: .bottom) {
-                if !compare.ids.isEmpty {
-                    Button { showCompare = true } label: {
-                        Label(Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count)),
-                              systemImage: "arrow.left.arrow.right")
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 18).padding(.vertical, 12)
-                            .background(Color.accentColor, in: Capsule())
-                            .foregroundStyle(.black)
-                            .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
-                    }
-                    .padding(.bottom, 58)
+        VStack(spacing: 0) {
+            ZStack {
+                ForEach(visibleTabs, id: \.self) { i in
+                    tabContent(i)
+                        .id("tab\(i)-\(resetTokens[i])")
+                        .opacity(tab == i ? 1 : 0)
+                        .allowsHitTesting(tab == i)
+                        .zIndex(tab == i ? 1 : 0)
                 }
             }
-            .sheet(isPresented: $showCompare) {
-                NavigationStack { CompareView(preselect: compare.ids) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Divider()
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(visibleTabs, id: \.self) { i in
+                    Button {
+                        if tab == i { resetTokens[i] += 1 } else { tab = i }
+                    } label: {
+                        VStack(spacing: 2) {
+                            Image(systemName: tabIcon(i)).font(.system(size: 17))
+                            Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(tab == i ? Color.accentColor : Color.secondary)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
+            .padding(.top, 6)
+            .background(.bar)
+        }
+        .overlay(alignment: .bottom) {
+            if !compare.ids.isEmpty {
+                Button { showCompare = true } label: {
+                    Label(Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count)),
+                          systemImage: "arrow.left.arrow.right")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 18).padding(.vertical, 12)
+                        .background(Color.accentColor, in: Capsule())
+                        .foregroundStyle(.black)
+                        .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
+                }
+                .padding(.bottom, 72)
+            }
+        }
+        .sheet(isPresented: $showCompare) {
+            NavigationStack { CompareView(preselect: compare.ids) }
+        }
     }
 
-    private var tabs: some View {
-        TabView {
-            HomeView()
-                .tabItem { Label(Loc.t("nav.home", lang), systemImage: "house") }
-            SessionsView()
-                .tabItem { Label(Loc.t("nav.sessions", lang), systemImage: "list.bullet") }
-            if socialOK {
-                CommunityView()
-                    .tabItem { Label("Foilers", systemImage: "person.2") }
-            }
-            VerlaufView()
-                .tabItem { Label(Loc.t("nav.history", lang), systemImage: "chart.xyaxis.line") }
-            SpotsView()
-                .tabItem { Label(Loc.t("nav.spots", lang), systemImage: "mappin.and.ellipse") }
-            if socialOK {
-                ChatView()
-                    .tabItem { Label(Loc.t("nav.chat", lang), systemImage: "bubble.left.and.bubble.right") }
-            }
-            ProfileView()
-                .tabItem { Label(Loc.t("nav.profile", lang), systemImage: "person.crop.circle") }
+    @ViewBuilder private func tabContent(_ i: Int) -> some View {
+        switch i {
+        case 0: HomeView()
+        case 1: SessionsView()
+        case 2: CommunityView()
+        case 3: VerlaufView()
+        case 4: SpotsView()
+        case 5: ChatView()
+        default: ProfileView()
+        }
+    }
+
+    private func tabIcon(_ i: Int) -> String {
+        switch i {
+        case 0: return "house"
+        case 1: return "list.bullet"
+        case 2: return "person.2"
+        case 3: return "chart.xyaxis.line"
+        case 4: return "mappin.and.ellipse"
+        case 5: return "bubble.left.and.bubble.right"
+        default: return "person.crop.circle"
+        }
+    }
+
+    private func tabLabel(_ i: Int) -> String {
+        switch i {
+        case 0: return Loc.t("nav.home", lang)
+        case 1: return Loc.t("nav.sessions", lang)
+        case 2: return "Foilers"
+        case 3: return Loc.t("nav.history", lang)
+        case 4: return Loc.t("nav.spots", lang)
+        case 5: return Loc.t("nav.chat", lang)
+        default: return Loc.t("nav.profile", lang)
         }
     }
 }
