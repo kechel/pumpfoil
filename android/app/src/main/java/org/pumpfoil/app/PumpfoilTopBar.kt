@@ -37,6 +37,8 @@ fun PumpfoilTopBar(
                 painter = painterResource(R.drawable.wordmark_h_dark),
                 contentDescription = "Pumpfoil.org — $title",
                 contentScale = ContentScale.Fit,
+                // Einfarbig navy tönen — sonst verschwinden die cyanen Wellen + „.org" auf dem cyanen Balken.
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(BRAND_NAVY),
                 modifier = Modifier.height(26.dp),
             )
             Spacer(Modifier.weight(1f).width(8.dp))

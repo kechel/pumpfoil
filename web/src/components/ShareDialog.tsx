@@ -276,9 +276,9 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
           {t("share.showTrack")}
         </label>
 
+        {/* Labels weggelassen — selbsterklärend (wie iOS/Android). */}
         {showTrack && (
           <>
-            <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.trackColor")}</div>
             <div className="mb-3 flex gap-2">
               {((hasHr ? ["cyan", "speed", "hr"] : ["cyan", "speed"]) as ("cyan" | "speed" | "hr")[]).map((c) => (
                 <button key={c} onClick={() => setColor(c)} className={`${seg} ${color === c ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
@@ -286,25 +286,11 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
                 </button>
               ))}
             </div>
-            {segments.length >= 2 && (
-              <>
-                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.highlightRun")}</div>
-                <select value={highlight} onChange={(e) => setHighlight(parseInt(e.target.value))}
-                  className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100">
-                  <option value={-1}>{t("share.allRuns")}</option>
-                  {segments.map((sg, i) => {
-                    const m = sg?.distance_m ?? 0;
-                    const dist = m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
-                    return <option key={i} value={i}>{t("share.runLabel", { n: i + 1 })}{m ? ` · ${dist}` : ""}</option>;
-                  })}
-                </select>
-              </>
-            )}
           </>
         )}
 
-        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.background")}</div>
-        <div className="mb-3 flex gap-2">
+        {/* Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile. */}
+        <div className="mb-3 flex items-center gap-2">
           <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
             <CameraIcon className="h-4 w-4" /> {hasPhoto ? t("share.changePhoto") : t("share.addPhoto")}
           </button>
@@ -312,19 +298,24 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
             <button onClick={() => { photoRef.current = null; setHasPhoto(false); }} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700">{t("share.noPhoto")}</button>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
+          {showTrack && segments.length >= 2 && (
+            <select value={highlight} onChange={(e) => setHighlight(parseInt(e.target.value))}
+              className="ml-auto rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+              <option value={-1}>{t("share.allRuns")}</option>
+              {segments.map((sg, i) => {
+                const m = sg?.distance_m ?? 0;
+                const dist = m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+                return <option key={i} value={i}>{t("share.runLabel", { n: i + 1 })}{m ? ` · ${dist}` : ""}</option>;
+              })}
+            </select>
+          )}
         </div>
 
         {hasPhoto && (
-          <div className="mb-3">
-            <div className="mb-1 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-slate-400">
-              <span>{t("share.darken")}</span><span className="tabular-nums">{Math.round(dim * 100)}%</span>
-            </div>
-            <input type="range" min={0} max={0.85} step={0.05} value={dim}
-              onChange={(e) => setDim(parseFloat(e.target.value))} className="w-full accent-brand-500" />
-          </div>
+          <input type="range" min={0} max={0.85} step={0.05} value={dim}
+            onChange={(e) => setDim(parseFloat(e.target.value))} className="mb-3 w-full accent-brand-500" />
         )}
 
-        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.textColor")}</div>
         <div className="mb-3 flex gap-2">
           {(["light", "dark"] as const).map((s) => (
             <button key={s} onClick={() => setShade(s)} className={`${seg} ${shade === s ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
@@ -333,7 +324,6 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
           ))}
         </div>
 
-        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.stats")}</div>
         <div className="mb-4 flex flex-wrap gap-2">
           {avail.map((k) => (
             <button key={k} onClick={() => toggle(k)} className={`rounded-lg px-2.5 py-1 text-sm ${sel.has(k) ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>

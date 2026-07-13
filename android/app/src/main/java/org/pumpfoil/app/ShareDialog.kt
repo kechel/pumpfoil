@@ -339,10 +339,6 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                 }
             }
             if (photo != null) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(I18n.t("share.darken"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
-                    Text("${(dim * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
-                }
                 Slider(value = dim, onValueChange = { dim = it }, valueRange = 0f..0.85f, steps = 16)
             }
 

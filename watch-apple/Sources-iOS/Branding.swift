@@ -121,7 +121,9 @@ extension View {
         self.navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Image("WordmarkH").resizable().scaledToFit().frame(height: 24)
+                    // Einfarbig navy — sonst verschwinden die cyanen Wellen + „.org" auf dem cyanen Balken.
+                    Image("WordmarkH").renderingMode(.template).resizable().scaledToFit().frame(height: 24)
+                        .foregroundStyle(Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255))
                         .accessibilityLabel("Pumpfoil.org — \(title)")
                 }
             }

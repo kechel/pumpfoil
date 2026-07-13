@@ -139,11 +139,6 @@ struct ShareCardView: View {
                         }
                     }
                     if photo != nil {
-                        HStack {
-                            Text(Loc.t("share.darken", lang)).font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            Text("\(Int(dim * 100))%").font(.caption).monospacedDigit()
-                        }
                         Slider(value: $dim, in: 0...0.85) { _ in } .onChange(of: dim) { _ in updatePreview() }
                     }
 
