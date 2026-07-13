@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
@@ -34,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -255,6 +257,12 @@ fun SessionsScreen(onOpen: (Int) -> Unit, onCompare: () -> Unit = {}, onSpotChat
     }
 }
 
+// YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/). Null wenn keine.
+fun ytVideoId(url: String?): String? {
+    if (url.isNullOrBlank()) return null
+    return Regex("(?:v=|youtu\\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{6,16})").find(url)?.groupValues?.get(1)
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -302,12 +310,29 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                     AsyncImage(model = thumb, contentDescription = null, contentScale = ContentScale.Crop,
                         modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
                 }
+                // Verlinktes Video: Vorschau-Thumb (CSP-sicherer Proxy) + Play-Overlay.
+                ytVideoId(s.youtubeUrl)?.let { vid ->
+                    Spacer(Modifier.width(6.dp))
+                    Box(Modifier.size(width = 58.dp, height = 44.dp).clip(RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                        AsyncImage(model = "${Api.BASE}/api/public/video-thumb/$vid", contentDescription = null,
+                            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color.White,
+                            modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape))
+                    }
+                }
             }
             if (a != null) {
                 Spacer(Modifier.height(8.dp))
                 SessionStatsRow(a, m)
             }
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (s.transferTo != null) {
+                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(4.dp)) {
+                        Text(I18n.t("transfer.badge"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                }
                 if (s.status != "analyzed") {
                     Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary)
@@ -446,6 +471,15 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 Api.mediaUrl(c.thumbUrl)?.let { thumb ->
                     AsyncImage(model = thumb, contentDescription = null, contentScale = ContentScale.Crop,
                         modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
+                }
+                ytVideoId(c.youtubeUrl)?.let { vid ->
+                    Spacer(Modifier.width(6.dp))
+                    Box(Modifier.size(width = 58.dp, height = 44.dp).clip(RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                        AsyncImage(model = "${Api.BASE}/api/public/video-thumb/$vid", contentDescription = null,
+                            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color.White,
+                            modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape))
+                    }
                 }
             }
             val stats = buildList {

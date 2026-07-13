@@ -378,6 +378,18 @@ struct CommunityRow: View {
                     }
                     .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                if let vid = youtubeId(item.youtube_url) {
+                    ZStack {
+                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().scaledToFill()
+                            default: Color.secondary.opacity(0.15)
+                            }
+                        }
+                        .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
+                    }
+                }
             }
             if let stats = statsText { Text(stats).font(.caption).lineLimit(1) }
             HStack {

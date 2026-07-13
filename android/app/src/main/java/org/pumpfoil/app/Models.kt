@@ -38,9 +38,11 @@ data class SessionSummary(
     val liked: Boolean = false,
     @SerialName("thumb_url") val thumbUrl: String? = null,
     @SerialName("photo_count") val photoCount: Int = 0,
+    @SerialName("youtube_url") val youtubeUrl: String? = null,      // verlinktes Video → Vorschau-Thumb
     @SerialName("track_preview") val trackPreview: String? = null,
     val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    @SerialName("transfer_to") val transferTo: String? = null,      // offene Übertragung → Badge
     val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
 )
 
@@ -77,6 +79,7 @@ data class CommunityItem(
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
     @SerialName("track_preview") val trackPreview: String? = null,
     @SerialName("thumb_url") val thumbUrl: String? = null,
+    @SerialName("youtube_url") val youtubeUrl: String? = null,      // verlinktes Video → Vorschau-Thumb
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme

@@ -37,6 +37,8 @@ struct SessionSummary: Codable, Identifiable {
     let foil: FoilBrief?       // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     let analysis: Analysis?    // slim: Kennzahlen für die Listenkarte
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
+    let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
+    let transfer_to: String?   // offene Übertragung → Badge
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -63,6 +65,7 @@ struct CommunityItem: Codable, Identifiable {
     let max_speed_mps: Double?
     let track_preview: String?
     let thumb_url: String?
+    let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let like_count: Int?
     let liked: Bool?
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge

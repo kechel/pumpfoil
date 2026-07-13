@@ -239,11 +239,29 @@ struct SessionRow: View {
                     }
                     .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                if let vid = youtubeId(session.youtube_url) {
+                    ZStack {
+                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().scaledToFill()
+                            default: Color.secondary.opacity(0.15)
+                            }
+                        }
+                        .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
+                    }
+                }
             }
             if let stats = statsText {
                 Text(stats).font(.caption).lineLimit(1)
             }
             HStack(spacing: 8) {
+                if session.transfer_to != nil {
+                    Text(Loc.t("transfer.badge", lang)).font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
                 if session.status != "analyzed" {
                     Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
                 }

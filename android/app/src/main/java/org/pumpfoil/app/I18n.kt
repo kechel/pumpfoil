@@ -504,6 +504,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "transfer.noResults" to row("Keine Nutzer gefunden", "Kei Benutzer gfunde", "Keine Nutzer gefunden", "No users found", "Aucun utilisateur trouvé", "Nessun utente trovato", "No se encontraron usuarios"),
     "transfer.pending" to row("Übertragung an {name} ausstehend", "Übertragig a {name} pendänt", "Übertragung an {name} ausstehend", "Transfer to {name} pending", "Transfert à {name} en attente", "Trasferimento a {name} in sospeso", "Transferencia a {name} pendiente"),
     "transfer.cancel" to row("Zurücknehmen", "Zrugghole", "Zurücknehmen", "Withdraw", "Annuler", "Ritira", "Retirar"),
+    "transfer.badge" to row("Übertragung", "Übertragig", "Übertragung", "Transfer", "Transfert", "Trasferimento", "Transferencia"),
     "transfer.incomingTitle" to row("Eingehende Übertragungen", "Iichoomendi Übertragige", "Eingehende Übertragungen", "Incoming transfers", "Transferts entrants", "Trasferimenti in arrivo", "Transferencias entrantes"),
     "transfer.from" to row("von {name}", "vo {name}", "von {name}", "from {name}", "de {name}", "da {name}", "de {name}"),
     "transfer.view" to row("Ansehen", "Aaluege", "Ansehen", "View", "Voir", "Vedi", "Ver"),
