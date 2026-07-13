@@ -3,7 +3,9 @@ package org.pumpfoil.app
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -33,6 +35,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,11 +58,13 @@ import androidx.navigation.navArgument
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()   // Marken-Splash (Logo auf Navy) vor dem ersten Frame
+        // Edge-to-edge: Inhalt zeichnet HINTER die Statusleiste -> die cyan Kopfleiste (PumpfoilTopBar)
+        // füllt auch den Statusleisten-Bereich (wie iOS). Transparente Bar, dunkle Icons (helles Cyan).
+        // window.statusBarColor wird ab Android 15/API 35 ignoriert -> deshalb edge-to-edge statt Farbe.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
-        // Statusleiste in Marken-Cyan (dunkle Icons wg. hellem Cyan) — wie PWA/iOS.
-        window.statusBarColor = 0xFF22D3EE.toInt()
-        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-            .isAppearanceLightStatusBars = true
         Api.load(applicationContext)
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)
@@ -104,6 +109,10 @@ fun MainScaffold(onLogout: () -> Unit) {
 
     val compareIds by CompareStore.ids.collectAsState()
     Scaffold(
+        // Kein Status-Bar-Inset auf den Content legen — die inneren Screen-Topbars (PumpfoilTopBar)
+        // zeichnen selbst hinter die Statusleiste (edge-to-edge, cyan bis ganz oben). Bottom-Bar
+        // handhabt ihren Nav-Bar-Inset selbst (navigationBarsPadding).
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         // Bottom-Nav mobil IMMER sichtbar (wie die PWA: fixed bottom-0 auf allen Routen) —
         // auch in Detail-/Unterscreens wie Session-Detail. Highlight nur auf Top-Level-Tabs.
         bottomBar = {
