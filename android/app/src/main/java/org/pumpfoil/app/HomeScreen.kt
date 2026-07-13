@@ -231,6 +231,27 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 Spacer(Modifier.height(10.dp))
             }
 
+            // Letzte Sessions zuerst (wie PWA): direkt unter der Begrüßung, vor Rekorden.
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TextButton(onClick = onOpenSessions) {
+                    Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            if (latest.isEmpty()) {
+                Card(Modifier.fillMaxWidth()) {
+                    Text(I18n.t("sessions.empty"), Modifier.padding(20.dp).fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                latest.forEach { s ->
+                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id) }
+                }
+            }
+
             stats?.let { st ->
                 // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -307,27 +328,6 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                             }
                         }
                     }
-                }
-            }
-
-            // Letzte Sessions: immer Kopf + "Alle meine →" (wie PWA), Liste oder leer-Hinweis.
-            Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                TextButton(onClick = onOpenSessions) {
-                    Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-            if (latest.isEmpty()) {
-                Card(Modifier.fillMaxWidth()) {
-                    Text(I18n.t("sessions.empty"), Modifier.padding(20.dp).fillMaxWidth(),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                latest.forEach { s ->
-                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id) }
                 }
             }
 

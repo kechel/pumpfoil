@@ -67,6 +67,30 @@ struct HomeView: View {
                         .buttonStyle(.plain)
                     }
 
+                    // Letzte Sessions zuerst (wie PWA): direkt unter der Begrüßung, vor Rekorden.
+                    HStack {
+                        Text(Loc.t("phome.latest", lang)).font(.headline)
+                        Spacer()
+                        NavigationLink { SessionsView() } label: {
+                            Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
+                        }
+                    }
+                    if latest.isEmpty {
+                        Text(Loc.t("sessions.empty", lang))
+                            .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
+                            .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(latest) { s in
+                                NavigationLink { SessionDetailView(id: s.id) } label: {
+                                    SessionRow(session: s)
+                                }
+                                .buttonStyle(.plain)
+                                Divider()
+                            }
+                        }
+                    }
+
                     if let st = stats {
                         // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
                         HStack(spacing: 8) {
@@ -123,27 +147,6 @@ struct HomeView: View {
                         }
                     }
 
-                    // Letzte Sessions: immer Kopf + "Alle meine →" (wie PWA), Liste oder Leer-Hinweis.
-                    HStack {
-                        Text(Loc.t("phome.latest", lang)).font(.headline)
-                        Spacer()
-                        Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
-                    }
-                    if latest.isEmpty {
-                        Text(Loc.t("sessions.empty", lang))
-                            .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
-                            .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        VStack(spacing: 0) {
-                            ForEach(latest) { s in
-                                NavigationLink { SessionDetailView(id: s.id) } label: {
-                                    SessionRow(session: s)
-                                }
-                                .buttonStyle(.plain)
-                                Divider()
-                            }
-                        }
-                    }
                 }
                 .padding(.horizontal).padding(.bottom).padding(.top, 2)
             }
