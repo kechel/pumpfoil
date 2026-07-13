@@ -1,4 +1,6 @@
 import SwiftUI
+import MapKit
+import CoreLocation
 
 // Verlauf: Trend-Charts je Kennzahl (kumuliert / 7-Tage- / 30-Tage-Fenster) — spiegelt web + Android.
 struct VerlaufView: View {
@@ -44,6 +46,7 @@ struct VerlaufView: View {
                             ForEach(VerlaufView.metricsSum) { m in
                                 MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
                             }
+                            SpotProgressionView(lang: lang)
                         }
                         .padding(.horizontal, 12)
                         .padding(.bottom, 16)
@@ -266,6 +269,184 @@ struct LineChartView: View {
                 var base = Path(); base.move(to: CGPoint(x: 0, y: h - padB)); base.addLine(to: CGPoint(x: w, y: h - padB))
                 ctx.stroke(base, with: .color(Color(red: 0.2, green: 0.255, blue: 0.333)), lineWidth: 1)
             }
+        }
+    }
+}
+
+private func spotRamp(_ t: Double) -> UIColor {
+    let tt = min(max(t, 0), 1)
+    return UIColor(hue: (1 - tt) * 240 / 360, saturation: 0.85, brightness: 0.95, alpha: 1)
+}
+
+// „Entwicklung am Spot": eigene Sessions eines Spots chronologisch durchschalten, FIXER
+// Ausschnitt (Union aller Spuren), Farbe = Speed. Spiegelt PWA/SpotProgression.tsx + Android.
+struct SpotProgressionView: View {
+    let lang: String
+    @State private var spots: [SpotCount] = []
+    @State private var spot = ""
+    @State private var tracks: [SpotTrack]? = nil
+    @State private var idx = 0
+    @State private var playing = false
+    @State private var mul = 1
+
+    // Globale Speed-Skala (km/h) über ALLE Spuren -> eine Skala für alle.
+    private var speedRange: (Double, Double) {
+        var mn = Double.infinity, mx = -Double.infinity
+        for tr in tracks ?? [] {
+            for p in tr.track { if p.count > 2, let s = p[2] { let k = s * 3.6; mn = min(mn, k); mx = max(mx, k) } }
+        }
+        guard mn.isFinite && mx.isFinite else { return (8, 25) }
+        return (mn.rounded(.down), max(mx.rounded(.up), mn.rounded(.down) + 1))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("hist.spotAnim", lang)).font(.title3).fontWeight(.semibold)
+            if !spots.isEmpty {
+                Picker(Loc.t("hist.spotAnim", lang), selection: $spot) {
+                    ForEach(spots) { s in Text("\(s.spot) (\(s.count))").tag(s.spot) }
+                }
+                .pickerStyle(.menu)
+            }
+            content
+        }
+        .padding(12)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .task { await loadSpots() }
+        .onChange(of: spot) { _ in Task { await loadTracks() } }
+        .task(id: "\(playing)-\(mul)") { await autoplay() }
+    }
+
+    @ViewBuilder private var content: some View {
+        if spot.isEmpty {
+            Text(Loc.t("hist.spotAnimHint", lang)).font(.caption).foregroundStyle(.secondary)
+        } else if tracks == nil {
+            ProgressView().frame(maxWidth: .infinity).padding()
+        } else if (tracks?.isEmpty ?? true) {
+            Text(Loc.t("sessions.none", lang)).font(.caption).foregroundStyle(.secondary)
+        } else {
+            let trs = tracks!
+            let safe = min(max(idx, 0), trs.count - 1)
+            SpotProgressMap(all: trs, current: trs[safe], speedRange: speedRange, regionKey: spot)
+                .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 12))
+            legend
+            HStack(spacing: 8) {
+                Button {
+                    if idx >= trs.count - 1 { idx = 0 }
+                    playing.toggle()
+                } label: { Image(systemName: playing ? "pause.fill" : "play.fill").font(.title3) }
+                .buttonStyle(.plain)
+                ForEach([1, 2, 4], id: \.self) { m in
+                    Button { mul = m } label: {
+                        Text("\(m)×").font(.caption).fontWeight(.semibold)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(mul == m ? Color.accentColor : Color(.tertiarySystemBackground))
+                            .foregroundStyle(mul == m ? Color.white : Color.primary)
+                            .clipShape(Capsule())
+                    }.buttonStyle(.plain)
+                }
+                Slider(value: Binding(get: { Double(safe) }, set: { playing = false; idx = Int($0.rounded()) }),
+                       in: 0...Double(max(trs.count - 1, 1)), step: 1)
+            }
+            Text("\(spotDateStr(trs[safe].started_at)) · \(String(format: "%.1f", trs[safe].foiling_km)) km · \(safe + 1)/\(trs.count)")
+                .font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    private var legend: some View {
+        HStack(spacing: 8) {
+            Text("\(Int(speedRange.0))").font(.caption2)
+            LinearGradient(colors: [Color(spotRamp(0)), Color(spotRamp(0.5)), Color(spotRamp(1))],
+                           startPoint: .leading, endPoint: .trailing)
+                .frame(height: 8).clipShape(Capsule())
+            Text("\(Int(speedRange.1))").font(.caption2)
+            Text("km/h").font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    private func loadSpots() async {
+        guard spots.isEmpty else { return }
+        if let s = try? await Api.mySpots() { spots = s; if spot.isEmpty, let first = s.first { spot = first.spot } }
+    }
+    private func loadTracks() async {
+        guard !spot.isEmpty else { return }
+        tracks = nil; idx = 0; playing = false
+        tracks = (try? await Api.spotTracks(spot)) ?? []
+    }
+    private func autoplay() async {
+        guard playing, let trs = tracks, !trs.isEmpty else { return }
+        while playing {
+            try? await Task.sleep(nanoseconds: UInt64(max(120, 1100 / mul)) * 1_000_000)
+            if Task.isCancelled { return }
+            if idx >= trs.count - 1 { playing = false; return }
+            idx += 1
+        }
+    }
+    private func spotDateStr(_ iso: String?) -> String {
+        guard let iso, let t = epochS(iso) else { return "" }
+        let f = DateFormatter(); f.dateFormat = "dd.MM.yyyy"
+        return f.string(from: Date(timeIntervalSince1970: t))
+    }
+}
+
+// Karte für die Verlaufs-Animation: nur aktuelle Session farbig (Speed), FIXER Ausschnitt
+// (Union aller Spuren, nur einmal je Spot gesetzt).
+struct SpotProgressMap: UIViewRepresentable {
+    let all: [SpotTrack]
+    let current: SpotTrack
+    let speedRange: (Double, Double)
+    let regionKey: String
+
+    func makeUIView(context: Context) -> MKMapView {
+        let map = MKMapView(); map.delegate = context.coordinator
+        map.isRotateEnabled = false; map.isPitchEnabled = false
+        return map
+    }
+
+    func updateUIView(_ map: MKMapView, context: Context) {
+        let co = context.coordinator
+        // Fixer Ausschnitt: nur beim Spot-Wechsel neu setzen.
+        if co.lastKey != regionKey {
+            co.lastKey = regionKey
+            var lats: [Double] = [], lons: [Double] = []
+            for tr in all { for p in tr.track where p.count >= 2 { if let la = p[0], let lo = p[1] { lats.append(la); lons.append(lo) } } }
+            if let laMin = lats.min(), let laMax = lats.max(), let loMin = lons.min(), let loMax = lons.max() {
+                let center = CLLocationCoordinate2D(latitude: (laMin + laMax) / 2, longitude: (loMin + loMax) / 2)
+                let span = MKCoordinateSpan(latitudeDelta: max((laMax - laMin) * 1.3, 0.002),
+                                            longitudeDelta: max((loMax - loMin) * 1.3, 0.002))
+                map.setRegion(MKCoordinateRegion(center: center, span: span), animated: false)
+            }
+        }
+        map.removeOverlays(map.overlays)
+        co.colors.removeAll()
+        let pts = current.track
+        var i = 0
+        while i < pts.count - 1 {
+            let a = pts[i], b = pts[i + 1]
+            if a.count >= 2, b.count >= 2, let la = a[0], let lo = a[1], let lb = b[0], let lob = b[1] {
+                let ca = CLLocationCoordinate2D(latitude: la, longitude: lo)
+                let cb = CLLocationCoordinate2D(latitude: lb, longitude: lob)
+                let pl = MKPolyline(coordinates: [ca, cb], count: 2)
+                let col: UIColor = (b.count > 2 ? b[2] : nil).map { spotRamp((($0 * 3.6) - speedRange.0) / max(speedRange.1 - speedRange.0, 1e-6)) } ?? .systemGray
+                co.colors[ObjectIdentifier(pl)] = col
+                map.addOverlay(pl)
+            }
+            i += 1
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator: NSObject, MKMapViewDelegate {
+        var colors: [ObjectIdentifier: UIColor] = [:]
+        var lastKey: String = ""
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            guard let pl = overlay as? MKPolyline else { return MKOverlayRenderer(overlay: overlay) }
+            let r = MKPolylineRenderer(polyline: pl)
+            r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue
+            r.lineWidth = 4
+            return r
         }
     }
 }

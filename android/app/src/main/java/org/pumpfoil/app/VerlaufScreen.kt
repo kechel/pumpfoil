@@ -1,22 +1,37 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,13 +43,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Polyline
 
 private enum class Mode { CUMULATIVE, W7, W30 }
 private enum class Kind { MAX, SUM, COUNT, AVG, RATIO }
@@ -173,6 +199,7 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                                 modifier = Modifier.padding(top = 6.dp))
                         }
                         items(METRICS_SUM) { m -> MetricChartCard(data, m, mode, domain) }
+                        item { SpotProgression() }
                         item { Box(Modifier.height(8.dp)) }
                     }
                 }
@@ -239,3 +266,127 @@ private fun epochMsIso(iso: String): Long? = try {
 private fun histDate(ms: Long, shortSpan: Boolean): String =
     java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneId.systemDefault())
         .format(java.time.format.DateTimeFormatter.ofPattern(if (shortSpan) "dd. MMM" else "MMM yy"))
+
+private fun spotDate(iso: String?): String = iso?.let { epochMsIso(it) }?.let {
+    java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault())
+        .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+} ?: ""
+
+// „Entwicklung am Spot": alle eigenen Sessions eines Spots chronologisch durchschalten,
+// auf FIXEM Ausschnitt (Union aller Spuren). Farbe = Speed. Wie PWA/SpotProgression.tsx.
+@Composable
+fun SpotProgression() {
+    var spots by remember { mutableStateOf<List<SpotCount>>(emptyList()) }
+    var spot by remember { mutableStateOf("") }
+    var open by remember { mutableStateOf(false) }
+    var tracks by remember { mutableStateOf<List<SpotTrack>?>(null) }
+    var idx by remember { mutableStateOf(0) }
+    var playing by remember { mutableStateOf(false) }
+    var mul by remember { mutableStateOf(1) }
+
+    LaunchedEffect(Unit) {
+        try { spots = Api.mySpots(); if (spot.isEmpty()) spots.firstOrNull()?.let { spot = it.spot } } catch (_: Exception) {}
+    }
+    LaunchedEffect(spot) {
+        if (spot.isEmpty()) return@LaunchedEffect
+        tracks = null; idx = 0; playing = false
+        tracks = try { Api.spotTracks(spot) } catch (_: Exception) { emptyList() }
+    }
+    // Autoplay: eine Session pro Tick.
+    LaunchedEffect(playing, tracks, mul) {
+        val tr = tracks ?: return@LaunchedEffect
+        while (playing && tr.isNotEmpty()) {
+            delay((1100L / mul).coerceAtLeast(120L))
+            if (idx >= tr.size - 1) { playing = false; break }
+            idx += 1
+        }
+    }
+
+    // Globale Speed-Skala (km/h) über ALLE Spuren des Spots -> eine Skala für alle.
+    val (lo, hi) = remember(tracks) {
+        var mn = Double.POSITIVE_INFINITY; var mx = Double.NEGATIVE_INFINITY
+        tracks?.forEach { tr -> tr.track.forEach { p -> p.getOrNull(2)?.let { val k = it * 3.6; if (k < mn) mn = k; if (k > mx) mx = k } } }
+        if (!mn.isFinite() || !mx.isFinite()) 8.0 to 25.0
+        else Math.floor(mn) to Math.max(Math.ceil(mx), Math.floor(mn) + 1)
+    }
+
+    Card(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("hist.spotAnim"), style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            Box {
+                OutlinedButton(onClick = { open = true }, enabled = spots.isNotEmpty()) {
+                    val c = spots.firstOrNull { it.spot == spot }
+                    Text(if (c != null) "${c.spot} (${c.count})" else if (spots.isEmpty()) "–" else spot)
+                }
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    spots.forEach { s ->
+                        DropdownMenuItem(text = { Text("${s.spot} (${s.count})") }, onClick = { open = false; if (s.spot != spot) spot = s.spot })
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            val trs = tracks
+            when {
+                spot.isEmpty() -> Text(I18n.t("hist.spotAnimHint"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                trs == null -> Box(Modifier.fillMaxWidth().height(60.dp), Alignment.Center) { CircularProgressIndicator() }
+                trs.isEmpty() -> Text(I18n.t("sessions.none"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else -> {
+                    val safeIdx = idx.coerceIn(0, trs.size - 1)
+                    var fitted by remember(spot) { mutableStateOf(false) }
+                    AndroidView(
+                        modifier = Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(12.dp)),
+                        factory = { c ->
+                            Configuration.getInstance().userAgentValue = c.packageName
+                            MapView(c).apply { setTileSource(TileSourceFactory.MAPNIK); setMultiTouchControls(true) }
+                        },
+                        update = { map ->
+                            val dens = map.context.resources.displayMetrics.density
+                            if (!fitted) {
+                                val all = ArrayList<GeoPoint>()
+                                trs.forEach { tr -> tr.track.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) } }
+                                if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) } }
+                                fitted = true
+                            }
+                            map.overlays.clear()
+                            val pts = trs[safeIdx].track
+                            for (i in 0 until pts.size - 1) {
+                                val a = pts[i]; val b = pts[i + 1]
+                                val la = a.getOrNull(0); val lo2 = a.getOrNull(1); val lb = b.getOrNull(0); val lob = b.getOrNull(1)
+                                if (la == null || lo2 == null || lb == null || lob == null) continue
+                                val col = b.getOrNull(2)?.let { rampColor(((it * 3.6) - lo) / (hi - lo).coerceAtLeast(1e-6)) } ?: GRAY
+                                map.overlays.add(Polyline(map).apply {
+                                    setPoints(listOf(GeoPoint(la, lo2), GeoPoint(lb, lob)))
+                                    outlinePaint.color = col.toArgb(); outlinePaint.strokeWidth = 4f * dens
+                                })
+                            }
+                            map.invalidate()
+                        },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // Legende (Speed lo..hi km/h).
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("${lo.toInt()}", style = MaterialTheme.typography.labelSmall)
+                        Box(Modifier.weight(1f).height(8.dp).background(Brush.horizontalGradient(listOf(rampColor(0.0), rampColor(0.5), rampColor(1.0))), CircleShape))
+                        Text("${hi.toInt()}", style = MaterialTheme.typography.labelSmall)
+                        Text("km/h", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        IconButton(onClick = { if (idx >= trs.size - 1) idx = 0; playing = !playing }) {
+                            Icon(if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = if (playing) I18n.t("sd.pause") else I18n.t("sd.play"))
+                        }
+                        listOf(1, 2, 4).forEach { m ->
+                            FilterChip(selected = mul == m, onClick = { mul = m }, label = { Text("${m}×") }, colors = cyanChipColors())
+                        }
+                        Slider(value = safeIdx.toFloat(), onValueChange = { playing = false; idx = it.toInt() },
+                            valueRange = 0f..(trs.size - 1).coerceAtLeast(1).toFloat(),
+                            steps = (trs.size - 2).coerceAtLeast(0), modifier = Modifier.weight(1f))
+                    }
+                    Text("${spotDate(trs[safeIdx].startedAt)} · %.1f km · ${safeIdx + 1}/${trs.size}".format(trs[safeIdx].foilingKm),
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+}

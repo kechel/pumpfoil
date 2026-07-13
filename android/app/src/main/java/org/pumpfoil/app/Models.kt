@@ -40,6 +40,18 @@ data class ReanalysisProgress(
     val total: Int = 0,
 )
 
+// Verlauf: „Entwicklung am Spot" — Spots des Nutzers + Bulk-Tracks je Spot.
+@Serializable
+data class SpotCount(val spot: String, val count: Int)
+
+@Serializable
+data class SpotTrack(
+    @SerialName("session_id") val sessionId: Int,
+    @SerialName("started_at") val startedAt: String? = null,
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    val track: List<List<Double?>> = emptyList(),   // [[lat, lon, speed_mps?]]
+)
+
 @Serializable
 data class SessionSummary(
     val id: Int,

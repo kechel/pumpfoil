@@ -166,6 +166,17 @@ struct HistoryPoint: Codable, Identifiable {
     var id: Int { session_id }
 }
 
+// Verlauf: „Entwicklung am Spot" — Spots des Nutzers + Bulk-Tracks je Spot.
+struct SpotCount: Codable, Identifiable { let spot: String; let count: Int; var id: String { spot } }
+
+struct SpotTrack: Codable, Identifiable {
+    let session_id: Int
+    let started_at: String?
+    let foiling_km: Double
+    let track: [[Double?]]        // [[lat, lon, speed_mps?]]
+    var id: Int { session_id }
+}
+
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
 struct MonthCount: Codable, Identifiable { let month: String; let count: Int; var id: String { month } }
 

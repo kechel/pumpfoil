@@ -21,7 +21,7 @@ import java.net.URL
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
-    const val BASE = "http://10.0.2.2:8090"
+    const val BASE = "https://pumpfoil.org"
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile var token: String? = null
@@ -217,6 +217,15 @@ object Api {
 
     suspend fun history(): List<HistoryPoint> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(HistoryPoint.serializer()), http("GET", "/api/sessions/history", null, auth = true))
+    }
+
+    suspend fun mySpots(): List<SpotCount> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SpotCount.serializer()), http("GET", "/api/sessions/my-spots", null, auth = true))
+    }
+
+    suspend fun spotTracks(spot: String): List<SpotTrack> = withContext(Dispatchers.IO) {
+        val s = java.net.URLEncoder.encode(spot, "UTF-8")
+        json.decodeFromString(ListSerializer(SpotTrack.serializer()), http("GET", "/api/sessions/spot-tracks?spot=$s", null, auth = true))
     }
 
     suspend fun stats(accelOnly: Boolean = true): OverallStats = withContext(Dispatchers.IO) {

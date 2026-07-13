@@ -305,6 +305,15 @@ enum Api {
         try await request("/api/sessions/history", method: "GET", body: nil, auth: true)
     }
 
+    static func mySpots() async throws -> [SpotCount] {
+        try await request("/api/sessions/my-spots", method: "GET", body: nil, auth: true)
+    }
+
+    static func spotTracks(_ spot: String) async throws -> [SpotTrack] {
+        let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
+        return try await request("/api/sessions/spot-tracks?spot=\(s)", method: "GET", body: nil, auth: true)
+    }
+
     // accelOnly=false wie die PWA — sonst fehlen GPS-only-Spots (z. B. Frankreich).
     static func spotMap(accelOnly: Bool = false) async throws -> [SpotMapItem] {
         try await request("/api/community/spot-map?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
