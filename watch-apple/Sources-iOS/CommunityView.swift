@@ -148,7 +148,7 @@ struct CommunityView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             .navigationTitle(Loc.t("nav.community", lang))
             .brandToolbar(Loc.t("nav.community", lang))
             .toolbar {

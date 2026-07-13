@@ -2,13 +2,17 @@ package org.pumpfoil.app
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,12 +48,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.launch
 
-private data class Provider(val id: String, val label: String, val canSync: Boolean)
+private data class Provider(val id: String, val label: String, val canSync: Boolean, val logo: Int? = null)
 
 private val PROVIDERS = listOf(
-    Provider("polar", "Polar", canSync = true),
+    Provider("polar", "Polar", canSync = true, logo = R.drawable.polar_logo),
     Provider("coros", "COROS", canSync = false),   // Push-basiert: kein manueller Import
-    Provider("suunto", "Suunto", canSync = true),
+    Provider("suunto", "Suunto", canSync = true, logo = R.drawable.suunto_logo),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,10 +95,11 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                 val st = status[p.id]
                 if (st != null && !st.available && !st.linked) {
                     // Nicht konfiguriert -> als "bald verfügbar" grau anzeigen.
-                    ProviderCard(p.label, sub = I18n.t("accounts.notAvailable")) {}
+                    ProviderCard(p.label, sub = I18n.t("accounts.notAvailable"), logo = p.logo) {}
                 } else if (st != null) {
                     ProviderCard(
                         title = p.label,
+                        logo = p.logo,
                         sub = when {
                             st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
                             st.linked -> I18n.t("accounts.connected")
@@ -163,10 +168,14 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ProviderCard(title: String, sub: String, connected: Boolean = false, actions: @Composable () -> Unit) {
+private fun ProviderCard(title: String, sub: String, connected: Boolean = false, logo: Int? = null, actions: @Composable () -> Unit) {
     Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (logo != null) {
+                    Image(painter = painterResource(logo), contentDescription = title, contentScale = ContentScale.Fit,
+                        modifier = Modifier.height(22.dp).padding(end = 8.dp))
+                }
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 if (connected) Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }

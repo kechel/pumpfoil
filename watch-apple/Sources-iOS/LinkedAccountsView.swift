@@ -6,11 +6,11 @@ import SafariServices
 struct LinkedAccountsView: View {
     @AppStorage("appLang") private var lang = "de"
 
-    private struct Provider { let id: String; let label: String; let canSync: Bool }
+    private struct Provider { let id: String; let label: String; let canSync: Bool; var logo: String? = nil }
     private let providers = [
-        Provider(id: "polar", label: "Polar", canSync: true),
+        Provider(id: "polar", label: "Polar", canSync: true, logo: "PolarLogo"),
         Provider(id: "coros", label: "COROS", canSync: false),
-        Provider(id: "suunto", label: "Suunto", canSync: true),
+        Provider(id: "suunto", label: "Suunto", canSync: true, logo: "SuuntoLogo"),
     ]
 
     @State private var status: [String: Api.IntegrationStatus] = [:]
@@ -24,11 +24,11 @@ struct LinkedAccountsView: View {
             ForEach(providers, id: \.id) { p in
                 if let st = status[p.id] {
                     if !st.available && !st.linked {
-                        row(p.label, sub: Loc.t("accounts.notAvailable", lang), connected: false) { EmptyView() }
+                        row(p.label, sub: Loc.t("accounts.notAvailable", lang), connected: false, logo: p.logo) { EmptyView() }
                     } else {
                         row(p.label,
                             sub: st.linked ? (p.id == "coros" ? Loc.t("accounts.corosNote", lang) : Loc.t("accounts.connected", lang)) : Loc.t("accounts.sub", lang),
-                            connected: st.linked) {
+                            connected: st.linked, logo: p.logo) {
                             HStack {
                                 if !st.linked {
                                     Button(Loc.t("accounts.connect", lang)) { connect(p.id) }
@@ -56,9 +56,10 @@ struct LinkedAccountsView: View {
         } message: { Text(syncMsg ?? "") }
     }
 
-    @ViewBuilder private func row(_ title: String, sub: String, connected: Bool, @ViewBuilder actions: () -> some View) -> some View {
+    @ViewBuilder private func row(_ title: String, sub: String, connected: Bool, logo: String? = nil, @ViewBuilder actions: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
+                if let logo { Image(logo).resizable().scaledToFit().frame(height: 20) }
                 Text(title).font(.headline)
                 if connected { Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.accentColor) }
             }
