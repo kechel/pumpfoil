@@ -8,7 +8,7 @@ import zipfile
 from datetime import timedelta, timezone
 
 import numpy as np
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
 from sqlalchemy import Integer, cast, func, not_, or_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload, object_session
@@ -844,6 +844,8 @@ def merge_suggestions_endpoint(
 def get_session(
     session_id: int,
     background_tasks: BackgroundTasks,
+    request: Request,
+    response: Response,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
@@ -857,6 +859,16 @@ def get_session(
     # Unter-13 (keine Social-Freigabe) dürfen nur EIGENE Sessions ansehen, keine fremden (UGC).
     if s.user_id != user.id and user.social_allowed is False:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "social_disabled")
+    # ETag/304 (PWA-Caching): Stempel aus updated_at + Like-Zustand (Likes bumpen updated_at
+    # nicht, sonst wäre der Like-Count aus dem Cache veraltet). Passt If-None-Match -> 304 ohne
+    # das schwere Detail (Track/Segmente/Accel/GPS) zu bauen. Browser liefert dann seine Kopie.
+    like_count = int(
+        db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
+    liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
+    dv = int((s.updated_at or s.created_at).timestamp()) if (s.updated_at or s.created_at) else 0
+    etag = f'W/"{dv}-{like_count}-{int(liked)}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
     # = noch nicht (oder zuletzt fehlgeschlagen). Der Task setzt den Namen; er erscheint beim
     # nächsten Laden. So kommt die Session sofort zurück (Overpass/is_in kann Sekunden dauern).
@@ -880,12 +892,13 @@ def get_session(
         gps = storage.load_gps(s.session_uuid)
         if gps and gps[-1] and gps[-1][0]:
             out.ended_at = s.started_at + timedelta(milliseconds=int(gps[-1][0]))
-    # Like-Zustand für die Detail-Ansicht (Web + Apps) berechnen.
-    out.like_count = int(
-        db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
-    out.liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
+    # Like-Zustand (oben schon berechnet, in den ETag eingeflossen).
+    out.like_count = like_count
+    out.liked = liked
     out.merged_count = int(db.query(func.count()).select_from(models.Session)
                            .filter(models.Session.merged_into == s.id).scalar() or 0)
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "private, no-cache"
     return out
 
 
