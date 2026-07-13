@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, WaveIcon, CalculatorIcon, DownloadIcon, UploadIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
@@ -172,7 +172,7 @@ export default function Settings() {
         className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
       >
         <span className="flex items-center gap-3">
-          <WaveIcon className="h-6 w-6 text-brand-400" />
+          <FoilIcon className="h-6 w-6 text-brand-400" />
           <span className="min-w-0">
             <span className="block font-medium text-slate-100">{t("foils.title")}</span>
             <MyFoilsSubline />

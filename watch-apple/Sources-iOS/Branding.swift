@@ -48,6 +48,25 @@ struct SplashView: View {
     }
 }
 
+// Unser Foil-Icon (Flügel + Mast + Basis) — portiert aus dem Web (Icons.tsx FoilIcon).
+struct FoilIcon: View {
+    var tint: Color = .accentColor
+    var body: some View {
+        GeometryReader { geo in
+            let u = min(geo.size.width, geo.size.height) / 24
+            Path { p in
+                p.move(to: CGPoint(x: 2 * u, y: 7 * u))
+                p.addCurve(to: CGPoint(x: 22 * u, y: 7 * u), control1: CGPoint(x: 8 * u, y: 4 * u), control2: CGPoint(x: 16 * u, y: 4 * u))
+                p.addCurve(to: CGPoint(x: 2 * u, y: 7 * u), control1: CGPoint(x: 16 * u, y: 9.5 * u), control2: CGPoint(x: 8 * u, y: 9.5 * u))
+                p.closeSubpath()
+                p.move(to: CGPoint(x: 12 * u, y: 7 * u)); p.addLine(to: CGPoint(x: 12 * u, y: 18 * u))
+                p.move(to: CGPoint(x: 8.5 * u, y: 18 * u)); p.addLine(to: CGPoint(x: 15.5 * u, y: 18 * u))
+            }
+            .stroke(tint, style: StrokeStyle(lineWidth: 2 * u, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
+
 extension View {
     // Horizontales Marken-Wortmarken-Logo in der Navigationsleiste (theme-adaptiv, wie PWA/Android).
     func brandToolbar(_ title: String) -> some View {

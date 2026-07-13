@@ -49,7 +49,7 @@ struct ProfileView: View {
                     NavigationLink {
                         FoilsView()
                     } label: {
-                        Label { Text(Loc.t("profile.foils", lang)) } icon: { Image(systemName: "water.waves").foregroundStyle(Color.accentColor) }
+                        Label { Text(Loc.t("profile.foils", lang)) } icon: { FoilIcon(tint: .accentColor).frame(width: 22, height: 22) }
                     }
                     NavigationLink {
                         FoilCalculatorView()

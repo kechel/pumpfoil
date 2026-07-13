@@ -154,7 +154,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 modifier = Modifier.clickable { onFoils() },
                 headlineContent = { Text(I18n.t("profile.foils")) },
                 supportingContent = { Text(I18n.t("profile.foilsSub")) },
-                leadingContent = { Icon(Icons.Filled.Surfing, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                leadingContent = { FoilIcon(tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             ListItem(
@@ -239,5 +239,26 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             },
             dismissButton = { TextButton(onClick = { confirmingDelete = false }) { Text(I18n.t("common.cancel")) } },
         )
+    }
+}
+
+// Unser Foil-Icon (Flügel + Mast + Basis) — portiert aus dem Web (Icons.tsx FoilIcon).
+@Composable
+fun FoilIcon(modifier: Modifier = Modifier, tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary) {
+    androidx.compose.foundation.Canvas(modifier.size(24.dp)) {
+        val u = size.minDimension / 24f
+        val sw = 2f * u
+        val wing = androidx.compose.ui.graphics.Path().apply {
+            moveTo(2 * u, 7 * u)
+            cubicTo(8 * u, 4 * u, 16 * u, 4 * u, 22 * u, 7 * u)
+            cubicTo(16 * u, 9.5f * u, 8 * u, 9.5f * u, 2 * u, 7 * u)
+            close()
+        }
+        drawPath(wing, tint, style = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawLine(tint, androidx.compose.ui.geometry.Offset(12 * u, 7 * u), androidx.compose.ui.geometry.Offset(12 * u, 18 * u),
+            strokeWidth = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        drawLine(tint, androidx.compose.ui.geometry.Offset(8.5f * u, 18 * u), androidx.compose.ui.geometry.Offset(15.5f * u, 18 * u),
+            strokeWidth = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round)
     }
 }
