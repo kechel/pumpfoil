@@ -237,16 +237,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                             Icon(Icons.AutoMirrored.Filled.Label, contentDescription = I18n.t("lab.title"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
-                    if (s?.owned == true && durSec > 1f) {
-                        IconButton(onClick = { trimStart = 0f; trimEnd = durSec; showTrim = true }) {
-                            Icon(Icons.Filled.ContentCut, contentDescription = I18n.t("sd.trim"), tint = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    if (s?.owned == true) {
-                        IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.delete"), tint = MaterialTheme.colorScheme.error)
-                        }
-                    }
+                    // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
                 },
             )
         },
@@ -256,7 +247,10 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             when {
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
-                s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ })
+                s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ },
+                    canTrim = (s.owned && durSec > 1f),
+                    onTrim = { trimStart = 0f; trimEnd = durSec; showTrim = true },
+                    onDelete = { confirmDelete = true })
             }
         }
     }
@@ -264,7 +258,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {}) {
+private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
+                          canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -374,7 +369,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             TextButton(onClick = { draftCaption = caption; editCaption = true }) {
                 Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
             }
-            TransferPicker(s.id)
         }
 
         // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
@@ -563,6 +557,28 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 TextButton(onClick = {
                     scope.launch { try { Api.unmergeSession(s.id); WatchSync.tick.value++; onReload() } catch (_: Exception) {} }
                 }) { Text(I18n.t("merge.unmerge")) }
+            }
+        }
+
+        // Selten gebrauchte Aktionen ganz unten (wie PWA): Übertragen · Trimmen · Löschen.
+        if (s.owned) {
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+            TransferPicker(s.id)
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (canTrim) {
+                    OutlinedButton(onClick = onTrim, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.ContentCut, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp)); Text(I18n.t("sd.trim"))
+                    }
+                }
+                OutlinedButton(onClick = onDelete, modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                    Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp)); Text(I18n.t("common.delete"))
+                }
             }
         }
     }

@@ -70,14 +70,7 @@ struct SessionDetailView: View {
                         NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
                     }
                 }
-                if durSec > 1 {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { trimStart = 0; trimEnd = durSec; showTrim = true } label: { Image(systemName: "scissors") }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(role: .destructive) { confirmDelete = true } label: { Image(systemName: "trash") }
-                }
+                // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
             } else if session != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
@@ -157,7 +150,6 @@ struct SessionDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             neighborNav
             headerRow(s)
-            if s.owned == true { TransferPickerView(sessionId: s.id) }
             youtubeCard(s)
             photosSection(s)
             trackSection(s)
@@ -167,8 +159,30 @@ struct SessionDetailView: View {
             }
             statsSection(s)
             unmergeRow(s)
+            bottomActions(s)
         }
         .padding()
+    }
+
+    // Selten gebrauchte Aktionen ganz unten (wie PWA): Übertragen · Trimmen · Löschen.
+    @ViewBuilder private func bottomActions(_ s: SessionDetail) -> some View {
+        if s.owned == true {
+            VStack(alignment: .leading, spacing: 10) {
+                Divider()
+                TransferPickerView(sessionId: s.id)
+                HStack(spacing: 10) {
+                    if durSec > 1 {
+                        Button { trimStart = 0; trimEnd = durSec; showTrim = true } label: {
+                            Label(Loc.t("sd.trim", lang), systemImage: "scissors")
+                        }.buttonStyle(.bordered)
+                    }
+                    Spacer()
+                    Button(role: .destructive) { confirmDelete = true } label: {
+                        Label(Loc.t("common.delete", lang), systemImage: "trash")
+                    }.buttonStyle(.bordered).tint(.red)
+                }
+            }
+        }
     }
 
     // Vor/Zurück zu Nachbar-Sessions (wie Web).
