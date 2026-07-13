@@ -21,7 +21,7 @@ import java.net.URL
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
-    const val BASE = "https://pumpfoil.org"
+    const val BASE = "http://10.0.2.2:8090"
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile var token: String? = null
@@ -414,11 +414,12 @@ object Api {
     // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
     suspend fun shareCard(
         id: Int, color: String, stats: List<String>, track: Boolean, title: String, shade: String,
-        bg: String = "navy",
+        bg: String = "navy", highlight: Int = -1,
     ): ByteArray = withContext(Dispatchers.IO) {
         val q = StringBuilder("?color=$color&bg=$bg&track=${if (track) 1 else 0}&shade=$shade")
         if (stats.isNotEmpty()) q.append("&stats=").append(java.net.URLEncoder.encode(stats.joinToString(","), "UTF-8"))
         if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
+        if (track && highlight >= 0) q.append("&highlight=$highlight")
         httpBytes("/api/sessions/$id/share.png$q")
     }
 

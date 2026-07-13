@@ -131,6 +131,9 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var dim by remember { mutableStateOf(0.55f) }
     var loaded by remember { mutableStateOf(false) }
+    val segments = session.analysis?.segments ?: emptyList()
+    var highlight by remember { mutableStateOf(-1) }   // -1 = alle Läufe, sonst 0-basiert
+    var hlOpen by remember { mutableStateOf(false) }
 
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.
     var photo by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -168,14 +171,14 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
     }
 
     // Card (server) neu holen bei Aenderung — entprellt. Mit Foto: transparenter Hintergrund.
-    LaunchedEffect(color, sel, track, shade, title, photo != null, loaded) {
+    LaunchedEffect(color, sel, track, shade, title, photo != null, highlight, loaded) {
         if (!loaded) return@LaunchedEffect
         loading = true
         delay(220)
         try {
             val chosen = STAT_ORDER.filter { sel.contains(it) }
             val bg = if (photo != null) "transparent" else "navy"
-            val b = Api.shareCard(session.id, color, chosen, track, title, shade, bg)
+            val b = Api.shareCard(session.id, color, chosen, track, title, shade, bg, highlight)
             card = BitmapFactory.decodeByteArray(b, 0, b.size)
         } catch (_: Exception) {} finally { loading = false }
     }
@@ -287,6 +290,27 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
                             selected = color == c, onClick = { color = c },
                             shape = SegmentedButtonDefaults.itemShape(i, colors.size),
                         ) { Text(I18n.t("share.color.$c")) }
+                    }
+                }
+                // Einzelnen Lauf hervorheben (bei >= 2 Läufen).
+                if (segments.size >= 2) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("share.highlightRun"), style = MaterialTheme.typography.labelMedium)
+                    Box {
+                        androidx.compose.material3.OutlinedButton(onClick = { hlOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text(if (highlight < 0) I18n.t("share.allRuns")
+                                 else I18n.t("share.runLabel").replace("{n}", "${highlight + 1}"))
+                        }
+                        androidx.compose.material3.DropdownMenu(expanded = hlOpen, onDismissRequest = { hlOpen = false }) {
+                            androidx.compose.material3.DropdownMenuItem(text = { Text(I18n.t("share.allRuns")) },
+                                onClick = { highlight = -1; hlOpen = false })
+                            segments.forEachIndexed { i, seg ->
+                                val km = if (seg.distanceM >= 1000) "%.1f km".format(seg.distanceM / 1000) else "${seg.distanceM.toInt()} m"
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { Text("${I18n.t("share.runLabel").replace("{n}", "${i + 1}")} · $km") },
+                                    onClick = { highlight = i; hlOpen = false })
+                            }
+                        }
                     }
                 }
             }

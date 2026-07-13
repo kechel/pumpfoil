@@ -19,6 +19,7 @@ struct ShareCardView: View {
     @State private var shade = "light"
     @State private var title = ""
     @State private var dim = 0.55
+    @State private var highlight = -1   // -1 = alle Läufe, sonst 0-basiert
     @State private var loaded = false
 
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.
@@ -56,7 +57,7 @@ struct ShareCardView: View {
         guard let m = session.analysis?.metrics else { return false }
         return m.avg_hr != nil || m.max_hr != nil
     }
-    private var configKey: String { "\(color)|\(sel.sorted().joined(separator: ","))|\(track)|\(shade)|\(title)|\(photoVersion > 0 && photo != nil)|\(loaded)" }
+    private var configKey: String { "\(color)|\(sel.sorted().joined(separator: ","))|\(track)|\(shade)|\(title)|\(photoVersion > 0 && photo != nil)|\(highlight)|\(loaded)" }
     private var saveKey: String { "\(color)|\(sel.sorted().joined(separator: ","))|\(track)|\(shade)|\(dim)|\(loaded)" }
 
     var body: some View {
@@ -112,6 +113,18 @@ struct ShareCardView: View {
                             Text(Loc.t("share.color.speed", lang)).tag("speed")
                             if hasHr { Text(Loc.t("share.color.hr", lang)).tag("hr") }
                         }.pickerStyle(.segmented)
+                        // Einzelnen Lauf hervorheben (bei >= 2 Läufen).
+                        let segs = session.analysis?.segments ?? []
+                        if segs.count >= 2 {
+                            Picker(Loc.t("share.highlightRun", lang), selection: $highlight) {
+                                Text(Loc.t("share.allRuns", lang)).tag(-1)
+                                ForEach(Array(segs.enumerated()), id: \.offset) { i, seg in
+                                    let m = seg.distance_m ?? 0
+                                    let km = m >= 1000 ? String(format: "%.1f km", m / 1000) : "\(Int(m)) m"
+                                    Text("\(Loc.t("share.runLabel", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")) · \(km)").tag(i)
+                                }
+                            }
+                        }
                     }
 
                     // Hintergrund-Foto (optional).
@@ -200,7 +213,7 @@ struct ShareCardView: View {
         if Task.isCancelled { return }
         let chosen = Self.statOrder.filter { sel.contains($0) }
         let bg = photo != nil ? "transparent" : "navy"
-        if let data = try? await Api.shareCard(session.id, color: color, stats: chosen, track: track, title: title, shade: shade, bg: bg) {
+        if let data = try? await Api.shareCard(session.id, color: color, stats: chosen, track: track, title: title, shade: shade, bg: bg, highlight: highlight) {
             cardImage = UIImage(data: data)
             updatePreview()
         }
