@@ -1,9 +1,31 @@
 import SwiftUI
+import UIKit
 
 @main
 struct PumpfoilApp: App {
     @StateObject private var session = SessionStore()
     @StateObject private var sync = SyncManager.shared
+
+    init() {
+        // Nav-Bar + Statusleisten-Bereich global in Marken-Cyan (dunkle Titel/Inhalte), einmalig
+        // über die UIKit-Appearance — stabil, kein per-View toolbarBackground (das löste in
+        // NavigationStacks einen SwiftUI-Update-Zyklus/Hang aus, z. B. beim Zurück aus dem Chat).
+        let cyan = UIColor(red: 0x22 / 255, green: 0xD3 / 255, blue: 0xEE / 255, alpha: 1)
+        let a = UINavigationBarAppearance()
+        a.configureWithOpaqueBackground()
+        a.backgroundColor = cyan
+        a.shadowColor = .clear
+        // Feste dunkle Bar-Inhalte (Brand-Navy) — auf Cyan in Light UND Dark gut lesbar.
+        let navy = UIColor(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255, alpha: 1)
+        let dark: [NSAttributedString.Key: Any] = [.foregroundColor: navy]
+        a.titleTextAttributes = dark
+        a.largeTitleTextAttributes = dark
+        UINavigationBar.appearance().standardAppearance = a
+        UINavigationBar.appearance().compactAppearance = a
+        UINavigationBar.appearance().scrollEdgeAppearance = a
+        UINavigationBar.appearance().tintColor = navy
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
