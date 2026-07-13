@@ -61,7 +61,10 @@ struct MainTabView: View {
                         if tab == i { resetTokens[i] += 1 } else { tab = i }
                     } label: {
                         VStack(spacing: 2) {
+                            // Feste Icon-Höhe -> alle Labels auf identischer Höhe (SF-Symbole sind
+                            // unterschiedlich hoch, z. B. mappin höher als house).
                             Image(systemName: tabIcon(i)).font(.system(size: 17))
+                                .frame(height: 20)
                             Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
                         }
                         .frame(maxWidth: .infinity)

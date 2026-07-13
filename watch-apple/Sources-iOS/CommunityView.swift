@@ -267,8 +267,10 @@ struct CommunityView: View {
     }
 
     @ViewBuilder private func mediaThumb(_ m: MediaItem) -> some View {
+        // Video-Thumb über den servereigenen Proxy (zuverlässig, wie Sessions/Detail) statt
+        // img.youtube.com direkt — letzteres lieferte im Feed leere Kacheln.
         let thumb: URL? = m.kind == "video"
-            ? youtubeId(m.youtube_url).flatMap { URL(string: "https://img.youtube.com/vi/\($0)/hqdefault.jpg") }
+            ? youtubeId(m.youtube_url).flatMap { URL(string: "\(Api.baseURL)/api/public/video-thumb/\($0)") }
             : Api.mediaURL(m.url)
         ZStack {
             AsyncImage(url: thumb) { phase in
