@@ -214,6 +214,7 @@ struct SessionRow: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // Kopf: Avatar + Titel/Chips (Titel OBEN, volle Breite — nicht neben die Medien quetschen).
             HStack(alignment: .top, spacing: 12) {
                 leading
                 VStack(alignment: .leading, spacing: 3) {
@@ -227,31 +228,8 @@ struct SessionRow: View {
                     }
                 }
                 Spacer(minLength: 8)
-                if let tp = session.track_preview {
-                    TrackPreviewView(data: tp).frame(width: 58, height: 42)
-                }
-                if let url = Api.mediaURL(session.thumb_url) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color.secondary.opacity(0.15)
-                        }
-                    }
-                    .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                if let vid = youtubeId(session.youtube_url) {
-                    ZStack {
-                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
-                            switch phase {
-                            case .success(let img): img.resizable().scaledToFill()
-                            default: Color.secondary.opacity(0.15)
-                            }
-                        }
-                        .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
-                    }
-                }
             }
+            media   // Track/Foto/Video als eigene Zeile DARUNTER
             if let stats = statsText {
                 Text(stats).font(.caption).lineLimit(1)
             }
@@ -276,6 +254,42 @@ struct SessionRow: View {
     // Server jetzt für alle Sessions (auch eigene).
     private var leading: some View {
         AvatarView(name: session.owner_name, url: Api.mediaURL(session.owner_avatar_url), size: 40)
+    }
+
+    // Medien-Zeile (Track-Vorschau + Foto + Video) unter dem Titel — gleich große 16:9-Kacheln.
+    @ViewBuilder private var media: some View {
+        let thumb = Api.mediaURL(session.thumb_url)
+        let vid = youtubeId(session.youtube_url)
+        if session.track_preview != nil || thumb != nil || vid != nil {
+            HStack(spacing: 8) {
+                if let tp = session.track_preview {
+                    TrackPreviewView(data: tp).frame(width: 74, height: 42)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                if let url = thumb {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let img): img.resizable().scaledToFill()
+                        default: Color.secondary.opacity(0.15)
+                        }
+                    }
+                    .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                if let vid {
+                    ZStack {
+                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
+                            switch phase {
+                            case .success(let img): img.resizable().scaledToFill()
+                            default: Color.secondary.opacity(0.15)
+                            }
+                        }
+                        .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
+                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
     }
 
     private func pill(_ text: String) -> some View {
