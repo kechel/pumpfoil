@@ -1,190 +1,111 @@
-# Parität-Audit: Native Apps vs. Vorgaben
+# Parität-Audit: Native Apps vs. Web
 
-**Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`).
-**Vorgabe Uhren:** Garmin (`watch/`).
+**Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-Stand: 2026-06-28. Legende: ✅ vorhanden · ⚠️ teilweise/abweichend · ❌ fehlt · 🐛 Bug.
+**Stand: 2026-07-13** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
-> Diese Datei ist die Soll-Ist-Liste. Erst abweichen/fehlen erfassen, dann priorisiert umsetzen.
+Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
+Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo/Blockieren,
+Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
+Off-Foil, Einstellungen, i18n 8 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
+FIT-Import und die „Optimal"-Färbung.
 
-**Release-Stand 2026-06-28:** Alles hochgeladen und **im Store-Review** — Google (Phone **+** Wear)
-und iOS (App **+** eingebettete Apple Watch, v1.1.0). Store-Anzeigename „Pumpfoil".
-
-**Update 2026-06-28 (Teil 2):** Weitere iOS-/Wear-Parität gebaut:
-- **iOS Verlauf**: Mehrfach-Linien-Charts (kumuliert/7T/30T) wie Web/Android (statt Einzel-Chart).
-- **iOS Session-Detail**: Lauf-Auswahl (Rekord-Kacheln + Tabelle + Karten-Tap; gewählter Lauf farbig,
-  Rest gedimmt) **inkl. Highlight**; erweiterte Stats; Pump-Marker default **aus** + kleiner.
-- **iOS Community**: Bestenliste/Leaderboards, neueste Medien, best bewertet, Spot-Rekorde + Suche.
-- **iOS**: Marken-Logo in der Nav-Leiste aller Tabs + Branded Splash.
-- **Apple Watch + Wear OS**: automatisches **Companion-Pairing** (Phone mintet Token, schiebt es per
-  WatchConnectivity/Data-Layer; self-healing bei 401 → „neu verbinden"); **Watch-Status-/Install-Karte**
-  im Phone-Profil; Apple-Foil-Vorwahl + Stop-Halte-Ring; Wear-Concurrency-Warnungen aufgeräumt.
-- **Web/Server**: App-Store-Link (+ „inkl. Apple Watch", Wear-Hinweis) auf der Landing-Seite;
-  **„Weiter mit Apple"** im Web-Login (client_secret aus .p8 signiert, auto-erneuert); Anzeigenamen
-  bei Kollision automatisch durchnummeriert (Register + OAuth); Hilfeseite mit Pairing-Abschnitt.
-
-**Update 2026-06-28 (Teil 1):** Session-Liste, Community-Feed und Verlauf auf Android+iOS auf Web-Niveau
-nachgezogen (reiche Karten: Avatar/Stats/Track-Vorschau/Thumbnail). Garmin auf **v1.0.40** (Foil-Override
-+ Phantom-Lauf-Fix). Offen bleibt die Detektor-Wurzel GPS-Fallback bei FR55/Lite.
-
-## Stand 2026-06-26 (autonome Serie) — Phone-Parität weitgehend hergestellt
-
-Beide Phone-Apps (Android verifiziert kompiliert, iOS in TestFlight gebaut/getestet) haben jetzt:
-Home-Dashboard · Sessions mit Scope (Meine/Homespot/Alle) + Spot-Suche · Community-Feed
-**+ Records/Leaderboards** · Spots · Chat · Profil (**Avatar-Upload**, Name) · **Einstellungen**
-(Gewicht/Homespot/Theme/Push) · Foils/Rechner/Stats · **Datenfelder-Editor** · **On-Foil-Alarm**.
-Session-Detail: Karte (nur Foiling, Farb-Modi Speed/Puls/Pump **+ Glättung 1/3/5 s**), Pump-Marker,
-Läufe-Tabelle, Power-Karte, **Per-Session-Foil**, Fotos+Upload, YouTube, Like, **löschen**,
-**Beschriftung**, **melden** (Fake/unangemessen).
-Auth: E-Mail Login/**Register** · **Sign in with Apple** (iOS) · **Mit Google** (Android) · Auto-Uhr-Verknüpfung.
-
-**Gefixte Bugs:** iOS Community-Decode; iOS Session-Detail (Kachel-Karte/on-foil/Speed-Chart raus);
-Android Login-Light-Mode; iOS Release-Crash in Einstellungen+Alarm (selbstgebautes `Binding.onChange`
-entfernt); Social-Login-Displayname-Fallback; diverse Web-Light-Mode-Kontraste.
-
-**Noch offen (niedriger Nutzen / Web-zentriert):** Farb-Modus „Optimal", Labeling-Editor,
-Trim-Editor, Vergleichsansicht (auf den Phone-Apps). **Braucht dich/Geräte:** Detektor GPS-Fallback
-bei FR55/Lite, Watch-Face-Screenshots (Store), Garmin-FIT-Import (Programm-Freigabe).
-fr/it/es: best-effort, „gut genug" (kein Muttersprachler-Review nötig).
-
----
-
-## A) Phone-Apps vs. Web (`android/` = Compose, `Sources-iOS/` = SwiftUI)
+## A) Phone-Apps vs. Web
 
 ### Navigation / Tabs
 | Bereich | Web | Android | iOS |
 |---|---|---|---|
-| Home/Dashboard | ✅ | ❌ | ❌ |
-| Community-Feed | ✅ | ✅ | ✅ *(Decode gefixt)* |
-| Sessions | ✅ (Scope Meine/Spot/Alle + Spot-Suche + Sport-Filter + Monat) | ⚠️ nur eigene | ⚠️ nur eigene |
-| Verlauf/History | ✅ | ✅ | ✅ |
-| Spots-Karte | ✅ (Leaflet/OSM) | ✅ (osmdroid) | ✅ (MapKit) |
-| Chat | ✅ (+ Moderation, Push-Abo, ungelesen) | ⚠️ Text, ohne Moderation/Push | ⚠️ Text, ohne Moderation/Push |
-| Einstellungen-Hub | ✅ | ⚠️ via Profil | ⚠️ via Profil |
-| Profil | ✅ | ✅ (Name) | ✅ (Name) |
-| Admin | ✅ (admin-only) | ❌ | ❌ |
-| Landing/Impressum | ✅ | ❌ | ❌ |
+| Home/Dashboard | ✅ | ✅ | ✅ |
+| Community (Foilers) | ✅ | ✅ | ✅ |
+| Sessions (Scope Meine/Spot/Alle + Filter + Monat) | ✅ | ✅ | ✅ |
+| Verlauf (+ „Entwicklung am Spot") | ✅ | ✅ | ✅ |
+| Spots-Karte | ✅ Leaflet | ✅ osmdroid | ✅ MapKit |
+| Chat (DM, Spot, Push-Abo, Blockieren) | ✅ (+ Moderation 🌐) | ✅ | ✅ |
+| Einstellungen-Hub | ✅ | ✅ | ✅ |
+| Profil | ✅ | ✅ | ✅ |
+| Admin | ✅ | 🌐 | 🌐 |
+| Landing | ✅ | 🌐 (App startet im Login) | 🌐 |
+| Impressum/Datenschutz | ✅ | ✅ | ✅ |
 
 ### Session-Detail
 | Feature | Web | Android | iOS |
 |---|---|---|---|
-| Karte mit Kacheln | ✅ Leaflet/OSM | ✅ osmdroid *(gefixt)* | ✅ MapKit *(gefixt)* |
-| Nur Foiling-Segmente | ✅ | ✅ *(gefixt)* | ✅ *(gefixt)* |
-| Speed-Verlauf-Chart (gibt's im Web NICHT) | — | ✅ entfernt *(gefixt)* | ✅ entfernt *(gefixt)* |
-| Farb-Modi (Speed/HR/Pump/Optimal) | ✅ | ❌ nur Speed | ❌ nur Speed |
-| Glättungsfenster 1/3/5 s | ✅ | ❌ | ❌ |
-| Pump-Marker auf Track | ✅ | ❌ | ❌ |
-| Lauf-Auswahl (Klick/Tasten) | ✅ | ❌ | ❌ |
-| Vollbild-Karte | ✅ | ❌ | ❌ |
-| Läufe-Tabelle + Vergleich | ✅ | ❌ | ❌ |
-| Power-Karte (Watt) | ✅ | ❌ | ❌ |
+| Karte (nur Foiling-Segmente) | ✅ | ✅ | ✅ |
+| Farb-Modi Speed/HR/Pump | ✅ (+ „Optimal" 🌐) | ✅ | ✅ |
+| Glättung 1/3/5 s | ✅ | ✅ | ✅ |
+| Pump-Marker | ✅ | ✅ | ✅ |
+| Lauf-Auswahl (Tap/Highlight) | ✅ | ✅ | ✅ |
+| Läufe-Tabelle | ✅ | ✅ | ✅ |
+| Power-Karte (Watt) | ✅ | ✅ | ✅ |
+| Farb-Legende (min→max) | ✅ | ✅ | ✅ |
 | Stats-Grid | ✅ | ✅ | ✅ |
-| Fotos ansehen/hochladen | ✅ | ✅ | ✅ (kein Löschen) |
+| Medien (Foto+Video, 2-Spalten-Grid) | ✅ | ✅ | ✅ |
+| Foto hochladen/löschen | ✅ | ✅ | ✅ |
 | YouTube-Embed | ✅ | ✅ | ✅ |
 | Like | ✅ | ✅ | ✅ |
-| Fake/Inappropriate-Vote | ✅ | ❌ | ❌ |
-| Caption/YouTube/Foil bearbeiten | ✅ | ❌ | ❌ |
-| Trim-Editor (Re-Analyse) | ✅ | ❌ | ❌ |
-| Session löschen | ✅ | ❌ | ❌ |
-| Per-Session-Chat-Thread | ✅ | ❌ | ❌ |
+| Melden (Fake/unangemessen) | ✅ | ✅ | ✅ |
+| Caption + Foil bearbeiten | ✅ | ✅ | ✅ |
+| Trim-Editor (Re-Analyse) | ✅ | ✅ | ✅ |
+| Übertragen / Löschen | ✅ | ✅ | ✅ |
+| Teilen (Karte-Bild + Foto-Hintergrund) | ✅ | ✅ | ✅ |
+| Vollbild-Karte | ✅ | ❌ | ❌ |
+| Per-Session-Diskussion (session-Chat) | ✅ | ⚠️ Spot-Chat-Button | ⚠️ Spot-Chat-Button |
 
 ### Weitere Seiten
 | Feature | Web | Android | iOS |
 |---|---|---|---|
-| Foils-Katalog (meine + Standard) | ✅ | ✅ | ✅ |
-| Foil-Rechner | ✅ | ✅ | ✅ |
-| Foil-Stats (Community) | ✅ | ✅ | ✅ |
-| Vergleichsansicht (`/vergleich`) | ✅ | ❌ | ❌ |
-| Labeling-Editor | ✅ | ❌ | ❌ |
-| FIT-Import (Garmin) | ✅ | ❌ | ❌ |
-| Community-Records/Leaderboards | ✅ | ❌ | ❌ |
-| Letzte Medien (Galerie) | ✅ | ❌ | ❌ |
+| Foils-Katalog / Rechner / Foil-Stats | ✅ | ✅ | ✅ |
+| Vergleichsansicht | ✅ | ✅ | ✅ |
+| Community-Records/Leaderboards | ✅ | ✅ | ✅ |
+| Letzte Medien (Galerie) | ✅ | ✅ | ✅ |
+| Verknüpfte Konten (Polar/Suunto/COROS) | ✅ | ✅ | ✅ |
+| Labeling-Editor | ✅ | 🌐 | 🌐 |
+| FIT-Import (Garmin) | ✅ | 🌐 | 🌐 |
 
 ### Einstellungen (editierbar in-App)
 | Feld | Web | Android | iOS |
 |---|---|---|---|
-| Vibrationsalarm (inkl. Default-Quelle) | ✅ | ✅ *(diese Session)* | ✅ *(diese Session, neue Datei → `xcodegen generate`)* |
 | Eigene Foils + Standard | ✅ | ✅ | ✅ |
-| Gewicht | ✅ | ⚠️ nur gelesen (Rechner) | ⚠️ nur gelesen |
-| Datenseiten (Uhr-Felder) | ✅ | ❌ | ❌ |
-| Farb-Modus an/aus (Uhr) | ✅ | ❌ | ❌ |
-| Homespot | ✅ | ❌ | ❌ |
-| Sprache (7 Sprachen) | ✅ | ❌ (System) | ❌ (System) |
-| Theme Light/Dark/Auto | ✅ | ⚠️ folgt System, kein Schalter | ❌ |
-| Push-Benachrichtigungen + Prefs | ✅ | ❌ | ❌ |
-| Anzeigename | ✅ | ✅ | ✅ |
-| Avatar-Upload | ✅ | ❌ | ❌ ("später") |
-| Passwort ändern | ✅ | ❌ | ❌ |
-| Geräte-Pairing/Verwaltung | ✅ (Code + Liste + Revoke) | ⚠️ Wear-Auto-Mint (Data Layer) | ⚠️ Watch-Companion |
-| OAuth/Registrieren/Passwort-Reset | ✅ | ❌ (nur Login) | ❌ (nur Login) |
+| Gewicht | ✅ | ✅ | ✅ |
+| Homespot | ✅ | ✅ | ✅ |
+| Datenseiten (Uhr-Felder) + Off-Foil-Screen | ✅ | ✅ | ✅ |
+| Farb-Modus an/aus (Uhr) | ✅ | ⚠️ | ⚠️ |
+| Sprache (8 Sprachen) | ✅ | ✅ | ✅ |
+| Theme Light/Dark/Auto | ✅ | ✅ | ✅ |
+| Push-Prefs | ✅ | ✅ | ✅ |
+| Anzeigename / Avatar-Upload | ✅ | ✅ | ✅ |
+| Passwort ändern | ✅ | ✅ | ✅ |
+| Konto löschen (DSGVO) | ✅ | ✅ | ✅ |
+| Aktivitätstyp Garmin Connect (nur mit Garmin-Uhr) | ✅ | ✅ | ✅ |
+| Geräte-Pairing (Reverse + Forward-Code) | ✅ | ✅ | ✅ |
+| Aufzeichnungsmodus je Uhr (Voll/Sparsam/GPS) | ✅ | ✅ | ✅ |
+| Login/Register/OAuth (Google/Apple)/Passwort-Reset | ✅ | ✅ | ✅ |
 
 ### Plattform-Querschnitt
 | Feature | Web | Android | iOS |
 |---|---|---|---|
-| Offline-Cache | ✅ (PWA/Workbox) | ❌ (jeder Screen frisch) | ❌ |
-| Push | ✅ (Web-Push) | ❌ | ❌ |
-| i18n | ✅ 7 Sprachen | ❌ (DE hardcodiert) | ❌ (DE hardcodiert) |
-
-### 🐛 Bugs (Phone) — alle in dieser Session gefixt
-- ✅ **iOS Community-Feed Decode**: eigenes `CommunityItem`-Model (`session_id/name/avatar_url/spot/like_count`) + `CommunityRow`; `Api.communitySessions` umgestellt.
-- ✅ **iOS Session-Detail**: MapKit-Karte (`UIViewRepresentable`/`MKMapView`, iOS-16-tauglich) zeigt nur Foiling-Segmente speed-gefärbt; Speed-Chart entfernt; `Analysis.segments` ergänzt.
-- ✅ **Android Session-Detail**: osmdroid-Karte, nur Foiling-Segmente, Speed-Chart raus.
-- ✅ **Android Community-Feed Decode**: `CommunityItem`-Model.
-- ✅ **Android Login-Screen** unlesbar (dunkel auf dunkel) → `Surface` mit Theme-Hintergrund.
-
-> Swift (iOS) ist hier nicht kompilierbar — die iOS-Fixes sind code-vollständig + konsistenz-geprüft, aber in Xcode zu verifizieren. Kotlin (Android) ist grün kompiliert.
-
----
+| Caching (Bilder + Session-Detail) | ✅ Browser+304 | ✅ Disk-Cache (data_version) + Coil | ✅ SessionCache + URLCache |
+| i18n | ✅ 8 Sprachen | ✅ 8 (inkl. fi-Overlay) | ✅ 8 |
+| Social-Age-Gate (<13) | ✅ Flag | ✅ (Debug-Toggle; echte API iOS) | ⚠️ Declared-Age-Range-API-Entitlement offen |
+| Push (Zustellung) | ✅ Web-Push | ⚠️ Abo ja, Zustellung offen | ⚠️ |
 
 ## B) Recorder-Apps vs. Garmin (`android/wear/` = Wear OS, `watch-apple/Sources/` = watchOS)
+
+_Seit dem letzten Audit unverändert — der jüngste Fokus lag auf Phone/Web._
 
 | Feature | Garmin | Wear OS | watchOS |
 |---|---|---|---|
 | GPS 1 Hz + Accel 25 Hz | ✅ | ✅ | ✅ |
 | Local-first + resumebarer Sync | ✅ | ✅ | ✅ |
-| Pairing | ✅ Reverse **+ Forward** (Settings-Code) | ⚠️ nur Reverse | ⚠️ nur Reverse |
-| Start-Screen: Version | ✅ | ❌ | ❌ |
-| Start-Screen: GPS-Status | ✅ | ❌ | ❌ |
-| Start-Screen: Alarm-Label/Hinweise | ✅ | ❌ | ❌ |
-| Alarm-Auswahl (Foil/Feste Werte/Ohne) | ✅ | ✅ | ✅ |
-| Alarm-Default-Quelle (foil/fixed) | ✅ | ✅ *(diese Session)* | ✅ *(diese Session)* |
-| Vibrationsmuster (short1/short2/long2/lsl) | ✅ Waveforms | ✅ Waveforms *(diese Session)* | ⚠️ auf System-Haptics gemappt (Plattformlimit) |
-| Repeat-Modus once/continuous + Toggle | ✅ | ✅ *(diese Session)* | ✅ *(diese Session, Sheet)* |
-| Min-Fenster [min-2, min) | ✅ | ✅ *(diese Session)* | ✅ *(diese Session)* |
-| Konfigurierbare Datenseiten | ✅ | ✅ | ✅ |
-| Color-by-value | ✅ | ✅ | ✅ |
-| Off-Foil-Auto-Screen | ✅ | ✅ | ✅ |
-| Live-Lauferkennung | ✅ | ✅ | ✅ |
-| Feld-Typen | ✅ 20 (inkl. 8 Lauf-Felder) | ⚠️ 10 (keine Lauf-Felder) | ⚠️ 10 (keine Lauf-Felder) |
+| Pairing | ✅ Reverse + Forward | ⚠️ nur Reverse | ⚠️ nur Reverse |
+| Auto-Start (10 s Vorlauf) | ✅ | ✅ | ✅ |
+| Foil/Alarm-Auswahl + Min/Max on-watch | ✅ | ✅ | ✅ |
+| Vibrationsmuster | ✅ Waveforms | ✅ Waveforms | ⚠️ System-Haptics (Plattformlimit) |
+| Konfigurierbare Datenseiten + Color-by-value + Off-Foil | ✅ | ✅ | ✅ |
+| Feld-Typen | ✅ 20 (inkl. 8 Lauf-Felder) | ⚠️ 10 (keine Lauf-Felder) | ⚠️ 10 |
 | Stop = 3-s-Halten mit Ring | ✅ | ⚠️ einfacher Tap | ⚠️ einfacher Tap |
-| Erfolgs-/Upload-Screen | ✅ | ✅ | ✅ |
+| Start-Screen (Version/GPS/Alarm-Label) | ✅ | ⚠️ ärmer | ⚠️ ärmer |
 
-### Recorder-Lücken (Wear + watchOS vs. Garmin)
-1. Start-Screen ärmer: kein Version-/GPS-Status/Alarm-Label/Hinweise.
-2. Keine Lauf-zentrischen Datenfelder (8 Felder), nur 10 statt 20 Feld-Typen.
-3. Stop ohne 3-s-Halten + Ring-Feedback (versehentliches Beenden möglich).
-4. Pairing nur Reverse (kein Forward/Settings-Code).
-5. watchOS: Vibrationsmuster nur angenähert (kein Plattform-Weg für freie Waveforms) — akzeptiert.
-
----
-
-## C) Vorschlag Priorisierung
-
-**P0 – Bugs (sofort):**
-- iOS Community-Decode (`CommunityItem`).
-- iOS Session-Detail: MapKit-Karte, nur Foiling-Segmente, Speed-Chart raus (Android-Parität).
-
-**P1 – Sichtbare Phone-Lücken beider Apps — ✅ umgesetzt (Android kompiliert, iOS in Xcode zu verifizieren):**
-- ✅ Session-Detail-Tiefe: Farb-Modi (Speed/Puls/Pump), Pump-Marker, Läufe-Tabelle, Power-Karte.
-- ✅ Sessions-Scope (Meine/Homespot/Alle) + Spot-Suche.
-- ✅ Home-Dashboard (Gesamt-Kennzahlen + Rekorde klickbar + letzte Sessions) als 1. Tab.
-- ✅ Einstellungen-Screen: Gewicht, Homespot, Theme-Schalter (Light/Dark/Auto), Push-Prefs.
-- Offen aus P1: Community-Records/Leaderboards-Seite, Datenseiten-Editor (Uhr-Felder), Sprache-Schalter (hängt an i18n), Lauf-Auswahl/Glättung im Detail.
-
-**P2 – Recorder-Angleichung (Wear + watchOS):**
-- Start-Screen (Version/GPS/Alarm-Label/Hinweise), Lauf-Felder + restliche Feld-Typen, 3-s-Stop-Halten mit Ring.
-
-**P3 – Größere Bausteine:**
-- Session bearbeiten/trimmen/löschen, Labeling, Vergleichsansicht, FIT-Import, Fake/Inappropriate-Votes, Chat-Moderation/Push, Avatar-Upload, Passwort/OAuth/Register, i18n, Offline-Cache, Admin.
-
-> Hinweis: einige reichste Web-Features (Trim/Labeling/Admin/Compare) sind bewusst Web-zentriert — beim Durchgehen entscheiden, was auf Phone wirklich gebraucht wird.
+**Recorder-Restlücken (Wear + watchOS):** Forward-Pairing, Lauf-Datenfelder (10 statt 20 Typen),
+3-s-Stop-Halten mit Ring, reichhaltigerer Start-Screen. watchOS-Vibrationsmuster bewusst angenähert.
