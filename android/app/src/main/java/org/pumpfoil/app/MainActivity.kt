@@ -56,6 +56,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()   // Marken-Splash (Logo auf Navy) vor dem ersten Frame
         super.onCreate(savedInstanceState)
+        // Statusleiste in Marken-Cyan (dunkle Icons wg. hellem Cyan) — wie PWA/iOS.
+        window.statusBarColor = 0xFF22D3EE.toInt()
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            .isAppearanceLightStatusBars = true
         Api.load(applicationContext)
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)

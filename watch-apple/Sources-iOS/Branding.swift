@@ -117,6 +117,10 @@ extension View {
     // Horizontales Marken-Wortmarken-Logo in der Navigationsleiste (theme-adaptiv, wie PWA/Android).
     func brandToolbar(_ title: String) -> some View {
         self.navigationBarTitleDisplayMode(.inline)
+            // Marken-Cyan hinter Nav-Bar + Statusleiste (wie PWA/Android); dunkle Bar-Inhalte.
+            .toolbarBackground(Color(red: 0x22 / 255, green: 0xD3 / 255, blue: 0xEE / 255), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Image("WordmarkH").resizable().scaledToFit().frame(height: 24)
