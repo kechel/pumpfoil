@@ -42,7 +42,7 @@ _APP_META: dict[str, dict[str, str]] = {
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "android": {
-        "latest": "1.1.9",     # LIVE im Play Store 2026-07-07 (Produktion, 177 Länder)
+        "latest": "1.1.10",    # LIVE im Play Store 2026-07-13 (Produktion)
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
