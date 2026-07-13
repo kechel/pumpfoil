@@ -476,27 +476,29 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     val vs = track.pumpHz.filterNotNull()
                     (vs.minOrNull() ?: 0.0) to (vs.maxOrNull() ?: 1.0)
                 }
+                // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
                 if (hasHr || hasPump) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
                         if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
+                        Spacer(Modifier.weight(1f))
+                        if (a.pumpCount != null && a.pumpCount > 0) {
+                            Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.width(4.dp))
+                            Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                        }
                     }
                 }
-                // Steuerzeile über der Karte: Glättung (nur Speed) links, Marker-Umschalter rechts.
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    if (colorMode == ColorMode.SPEED) {
+                // Glättung (nur Speed) in eigener Zeile darunter.
+                if (colorMode == ColorMode.SPEED) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         listOf(1, 3, 5).forEach { w ->
                             FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
                                 colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
                         }
-                    }
-                    Spacer(Modifier.weight(1f))
-                    if (a.pumpCount != null && a.pumpCount > 0) {
-                        Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.width(4.dp))
-                        Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                     }
                 }
                 Card(Modifier.fillMaxWidth()) {

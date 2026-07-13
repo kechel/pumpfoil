@@ -331,25 +331,28 @@ struct SessionDetailView: View {
         let hrRange = (hrVals.min() ?? 0, hrVals.max() ?? 1)
         let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
         return AnyView(VStack(alignment: .leading, spacing: 16) {
+            // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile.
             if hasHr || hasPump {
-                Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
-                    Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
-                    if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
-                    if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+                HStack(spacing: 12) {
+                    Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
+                        Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
+                        if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
+                        if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+                    }
+                    .pickerStyle(.segmented)
+                    if (s.analysis?.pump_count ?? 0) > 0 {
+                        Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+                    }
                 }
-                .pickerStyle(.segmented)
             }
-            // Steuerzeile über der Karte: Glättung (nur Speed) links, Marker-Umschalter rechts.
-            HStack {
-                if colorMode == .speed {
+            // Glättung (nur Speed) in eigener Zeile darunter.
+            if colorMode == .speed {
+                HStack {
                     Picker("", selection: $win) {
                         Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
                     }
                     .pickerStyle(.segmented).frame(maxWidth: 200)
-                }
-                Spacer()
-                if (s.analysis?.pump_count ?? 0) > 0 {
-                    Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+                    Spacer()
                 }
             }
             TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
