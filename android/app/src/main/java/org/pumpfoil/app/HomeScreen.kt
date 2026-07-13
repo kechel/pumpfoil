@@ -65,7 +65,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }) {
+fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
@@ -280,7 +280,7 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 WeatherCard(wb)
             }
 
-            if (rooms.isNotEmpty()) {
+            if (social && rooms.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
                 Text(I18n.t("home.myChats"), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
@@ -331,12 +331,14 @@ fun HomeScreen(onOpen: (Int) -> Unit, onOpenChat: () -> Unit = {}, onOpenSession
                 }
             }
 
-            // Community-Link (wie PWA).
-            Spacer(Modifier.height(10.dp))
-            TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("${I18n.t("home.community")} →", style = MaterialTheme.typography.bodyMedium)
+            // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
+            if (social) {
+                Spacer(Modifier.height(10.dp))
+                TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                    Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("${I18n.t("home.community")} →", style = MaterialTheme.typography.bodyMedium)
+                }
             }
             Spacer(Modifier.height(8.dp))
         }

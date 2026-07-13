@@ -120,7 +120,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }) }
+            composable("home") { HomeScreen(onOpen = { id -> nav.navigate("session/$id") }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, social = social) }
             composable("sessions") { SessionsScreen(onOpen = { id -> nav.navigate("session/$id") }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
