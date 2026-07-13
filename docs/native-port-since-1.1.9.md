@@ -1,5 +1,12 @@
 # Native-Portierung — PWA-Änderungen seit dem letzten Release
 
+> ✅ **ERLEDIGT (2026-07-13):** Alle „echt portieren"-Punkte sind in Android + iOS umgesetzt
+> und committet (18896f4 · 4a7297e · 66efd1b · 44cf1a7 · 99bacbb · 3f94e3d), plus Finnisch als
+> 8. App-Sprache (cf80ac4, fi-Overlay aus web/fi.ts; App-eigene Keys fallen für fi auf Englisch)
+> und iOS-Build-Fixes (dbc9dad). Android kompiliert + im Emulator verifiziert; iOS nur
+> code-gespiegelt → Jan baut in Xcode. **Für den nächsten Release-Zyklus ein neues Doc anlegen**
+> (Baseline dann die dann gebumpte Version). Details/Entscheidungen unten bleiben als Historie.
+
 **Baseline:** `aea5493` (2026-07-07, Phone 1.1.8 / Wear 1.2.8 / iOS 1.1.9).
 Alles darunter ist seither in der PWA/Server passiert. Ziel: sinnvoll in Android (`:app`) +
 iOS (`Sources-iOS/`) übernehmen. Native-Präsenz unten aus grep ermittelt → **bei Umsetzung kurz
