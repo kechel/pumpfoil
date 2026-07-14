@@ -99,12 +99,18 @@ Page(
             return true;
           }
           if (s.screen === "idle") {
-            s.idlePage = (s.idlePage + dir + 4) % 4;
+            // Zurück-Wisch (rechts/runter): auf dem Start-Screen die App beenden — return false,
+            // dann behandelt das System den Rechts-Wisch als App-Exit (Root-Seite). Sonst eine
+            // Seite zurück. Vorwärts (links/hoch): eine Seite weiter. Kein Wrap.
+            if (dir < 0) {
+              if (s.idlePage === 0) return false;
+              s.idlePage -= 1;
+            } else {
+              s.idlePage = Math.min(3, s.idlePage + 1);
+            }
             this.applyButton(); this.renderIdle();
-            // Auf der Verbindungs-Seite NUR bei noch nie gepairter Uhr (kein Token):
-            // Code erzeugen, falls keiner da (Discoverability) — sonst den Poll wieder
-            // aufnehmen (z. B. nach Weg- und Zurückwischen), sonst verpasst die Uhr das Token.
-            // Bereits gepairt -> neuer Code nur per Button.
+            // Verbindungs-Seite, NUR bei noch nie gepairter Uhr (kein Token): Code erzeugen (falls
+            // keiner da) bzw. Poll wieder aufnehmen (nach Zurückwischen). Bereits gepairt -> Button.
             if (s.idlePage === 1 && !getTok() && bleOk()) {
               if (!s.code) this.beginPairing();
               else if (!s.pollTimer) this.startPoll();
