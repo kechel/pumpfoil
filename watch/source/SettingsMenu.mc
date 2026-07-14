@@ -145,10 +145,12 @@ class UploadView extends WatchUi.View {
 class UploadDelegate extends WatchUi.BehaviorDelegate {
     hidden var _timer;
     hidden var _rec;
+    hidden var _doneTicks;
 
     function initialize(rec) {
         BehaviorDelegate.initialize();
         _rec = rec;
+        _doneTicks = 0;
         _timer = new Timer.Timer();
         _timer.start(method(:onTick), 1000, true);
     }
@@ -156,8 +158,23 @@ class UploadDelegate extends WatchUi.BehaviorDelegate {
     // 1×/s: Verbindung zurück + noch offen + nicht beschäftigt -> Upload fortsetzen.
     // So nimmt der Sync nach einem Verbindungsabbruch von selbst wieder auf.
     function onTick() as Void {
-        if (!Uploader.isBusy() && Uploader.pendingCount() > 0 && Uploader.phoneConnected()) {
+        var busy = Uploader.isBusy();
+        var pending = Uploader.pendingCount();
+        if (!busy && pending > 0 && Uploader.phoneConnected()) {
             Uploader.syncAll();
+        }
+        // Upload fertig (nichts mehr offen): nach kurzem „fertig"-Anblick automatisch zurück zum
+        // Start-Screen. Der Auto-Start läuft NUR dort (nicht auf diesem Screen) — sonst bleibt man
+        // auf „Upload fertig" hängen und Losfahren startet keine neue Session.
+        if (!busy && pending == 0) {
+            _doneTicks += 1;
+            if (_doneTicks >= 3) {
+                if (_timer != null) { _timer.stop(); }
+                WatchUi.popView(WatchUi.SLIDE_RIGHT);
+                return;
+            }
+        } else {
+            _doneTicks = 0;
         }
         WatchUi.requestUpdate();
     }
