@@ -2,7 +2,7 @@ import * as hmUI from "@zos/ui";
 import { px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
-import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN } from "@zos/interaction";
+import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN, GESTURE_LEFT, GESTURE_RIGHT } from "@zos/interaction";
 import { getConnectStatus } from "@zos/ble";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
@@ -14,7 +14,7 @@ const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048;
 const GPS_CHUNK = 10;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.0.2";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
@@ -83,19 +83,32 @@ Page(
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
       w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: TITLE.y + TITLE.h, w: DW, h: px(16), color: 0x64748b, text_size: px(14), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "v" + APP_VERSION });
 
+      // Alle Wisch-Gesten konsumieren (return true) → kein versehentliches Verlassen der App
+      // (Zepp deutet den Horizontal-Wisch sonst als Zurück/Exit). Richtung egal: hoch=links (vor),
+      // runter=rechts (zurück). Verlassen der App nur über die Hardware-Taste.
       onGesture({
         callback: (e) => {
-          if (e !== GESTURE_UP && e !== GESTURE_DOWN) return false;
-          const dir = e === GESTURE_UP ? 1 : -1;
-          if (s.recording) { const n = s.views.length + 1; s.page = (s.page + dir + n) % n; this.applyButton(); this.renderRecording(); return true; }
+          const dir = (e === GESTURE_LEFT || e === GESTURE_UP) ? 1
+                    : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
+          if (dir === 0) return false;
+          if (s.recording) {
+            // Seiten: [STOPP] + Ansichten + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
+            const last = s.views.length + 1;
+            s.page = Math.max(0, Math.min(last, s.page + dir));
+            this.applyButton(); this.renderRecording();
+            return true;
+          }
           if (s.screen === "idle") {
             s.idlePage = (s.idlePage + dir + 4) % 4;
             this.applyButton(); this.renderIdle();
-            // Beim Verlassen der Verbindungs-Seite den Poll stoppen. Start passiert NUR per "Neuer Code".
+            // Auf der Verbindungs-Seite NUR bei noch nie gepairter Uhr (kein Token) automatisch
+            // einen Code erzeugen (Discoverability). Bereits gepairt -> neuer Code nur per Button.
+            if (s.idlePage === 1 && !getTok() && !s.code && bleOk()) this.beginPairing();
+            // Beim Verlassen der Verbindungs-Seite den Poll stoppen.
             if (s.idlePage !== 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
             return true;
           }
-          return false;
+          return true;
         },
       });
 
@@ -107,6 +120,9 @@ Page(
       s.hbTimer = setInterval(() => this.heartbeat(), 20000);
 
       if (getTok()) s.paired = true;
+      // Local-first: App startet ganz normal auf dem START-Screen (auch ungepaart aufnehmbar).
+      // Ungepaart weist der Screen nur auf ›Verbinden‹ hin; der Code erzeugt sich automatisch,
+      // sobald man tatsächlich zur Verbindungs-Seite wischt (siehe Gesten-Handler).
       this.applyButton();
       this.renderIdle();
       this.connect();
@@ -193,7 +209,7 @@ Page(
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === s.views.length) this.setButton("STOPP", RED, RED_P, WHITE, () => this.stop());
+        if (s.page === 0 || s.page === s.views.length + 1) this.setButton("STOPP", RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
         this.setButton("Fertig", CYAN, CYAN_P, INK, () => this.done());
@@ -241,7 +257,10 @@ Page(
       const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
       if (s.idlePage === 0) {
         this.renderFields(s.offFoil);
-        w.status.setProperty(hmUI.prop.TEXT, (s.upStatus || gps) + (s.almOn ? " · 🔔" : "") + " · " + conn);
+        const hint = (bleOk() && !getTok())
+          ? "nicht gepaart · wische weiter → ›Verbinden‹"
+          : (s.upStatus || gps) + (s.almOn ? " · 🔔" : "") + " · " + conn;
+        w.status.setProperty(hmUI.prop.TEXT, hint);
       } else if (s.idlePage === 3) {
         this.hideBig();
         this.setSlots(["", ""], ["", ""], ["", ""]);
@@ -308,14 +327,14 @@ Page(
     renderRecording() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();
-      if (s.page === s.views.length) {
+      if (s.page === 0 || s.page === s.views.length + 1) {
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
         this.setSlots([mmss(el), "Zeit"], [fmtDist(s.dist), "Distanz"], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, "STOPP unten · ▲ zurück");
+        w.status.setProperty(hmUI.prop.TEXT, "STOPP unten · wischen: Ansichten");
         return;
       }
-      const pg = s.page;
+      const pg = s.page - 1;
       w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
       this.renderFields(s.views[pg]);
       w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · wischen: Stopp");
@@ -403,7 +422,7 @@ Page(
     start() {
       const s = this.state, now = Date.now();
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
-      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 0; s.autoTicks = 0; s.upStatus = "";
+      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
       this.persistActive();
       this.hideBar();
