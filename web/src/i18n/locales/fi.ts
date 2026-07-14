@@ -320,6 +320,7 @@ const fi: Record<string, string> = {
   "sd.duration": "Kesto",
   "sd.communityView": "Yhteisö · vain katselu",
   "sd.gpsWarning": "⚠️ Tässä tiedostossa ei ole kiihtyvyysdataa — foil-tunnistus toimii vain karkeasti GPS:n (nopeuden) perusteella. Pumppaukset/liukuvaiheet puuttuvat, lenkkien rajat ja tunnistus voivat olla epätarkkoja (yli- tai alitunnistus).",
+  "sd.lowRateWarning": "⚠️ Kiihtyvyys tallennettu vain ~{hz} Hz (\"Säästö\"-tila) — pump-/liukutunnistus vaatii vähintään 15 Hz. Raakadata on olemassa (näkyy labeloinnissa) mutta sitä ei analysoida; foil-tunnistus perustuu vain GPS:ään.",
   "sd.avgSpeed": "Ø nopeus",
   "sd.maxSpeed": "Maks. nopeus ({win}s)",
   "sd.minSpeed": "Min. nopeus ({win}s)",

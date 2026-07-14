@@ -880,6 +880,7 @@ const deAT: Record<string, string> = {
   "sd.deleteFail": "Löschen fehlgeschlagen: ",
   "sd.farthestRunTitle": "weitester Lauf",
   "sd.gpsWarning": "⚠️ Keine Beschleunigungsdaten in dieser Datei — die Foil-Erkennung läuft nur grob über GPS (Geschwindigkeit). Pumpen/Gleitphasen fehlen, Lauf-Grenzen und Erkennung können ungenau sein (Über- oder Untererkennung).",
+  "sd.lowRateWarning": "⚠️ Beschleunigung nur mit ~{hz} Hz aufgezeichnet („Sparsam“-Modus) — für die Pump-/Gleit-Erkennung sind mindestens 15 Hz nötig. Die Rohwerte sind vorhanden (sichtbar im Labeln), werden aber nicht ausgewertet; die Foil-Erkennung läuft nur über GPS.",
   "sd.maxHr": "Max Puls",
   "sd.maxPump": "Max Pump (5s)",
   "sd.maxSpeed": "Max Speed ({win}s)",

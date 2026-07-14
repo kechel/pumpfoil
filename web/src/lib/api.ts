@@ -118,6 +118,7 @@ export interface Metrics {
   max_pump_hz?: number | null;
   min_pump_hz?: number | null;
   detection?: string;   // "model" | "gps_only" | "none"
+  accel_hz_effective?: number | null;   // tatsächliche Accel-Rate aus den Daten (kann < getaggt)
 }
 
 export interface SessionSummary {

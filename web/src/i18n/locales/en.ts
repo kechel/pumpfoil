@@ -298,6 +298,7 @@ const en: Record<string, string> = {
   "sd.duration": "Duration",
   "sd.communityView": "Community · view only",
   "sd.gpsWarning": "⚠️ No acceleration data in this file — foil detection runs only roughly via GPS (speed). Pump/glide phases are missing; run boundaries and detection may be inaccurate (over- or under-detection).",
+  "sd.lowRateWarning": "⚠️ Acceleration recorded at only ~{hz} Hz (\"Sparse\" mode) — pump/glide detection needs at least 15 Hz. The raw values exist (visible in labeling) but aren't analysed; foil detection runs on GPS only.",
   "sd.avgSpeed": "Ø speed",
   "sd.maxSpeed": "Max speed ({win}s)",
   "sd.minSpeed": "Min speed ({win}s)",

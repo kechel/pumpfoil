@@ -273,6 +273,7 @@ const it: Record<string, string> = {
   "sd.duration": "Durata",
   "sd.communityView": "Community · solo visione",
   "sd.gpsWarning": "⚠️ Nessun dato di accelerazione in questo file — il riconoscimento foil si basa solo grossolanamente sul GPS (velocità). Mancano le fasi di pump/planata; i limiti dei run e il riconoscimento possono essere imprecisi (sovra- o sotto-riconoscimento).",
+  "sd.lowRateWarning": "⚠️ Accelerazione registrata solo a ~{hz} Hz (modalità \"Risparmio\") — il rilevamento di pump/planata richiede almeno 15 Hz. I valori grezzi ci sono (visibili nel labeling) ma non vengono analizzati; il rilevamento del foil usa solo il GPS.",
   "sd.avgSpeed": "Ø velocità",
   "sd.maxSpeed": "Velocità max ({win}s)",
   "sd.minSpeed": "Velocità min ({win}s)",

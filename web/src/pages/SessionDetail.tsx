@@ -1024,7 +1024,9 @@ export default function SessionDetail() {
 
       {m?.detection === "gps_only" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          {t("sd.gpsWarning")}
+          {m.accel_hz_effective != null && m.accel_hz_effective > 0
+            ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })
+            : t("sd.gpsWarning")}
         </div>
       )}
 

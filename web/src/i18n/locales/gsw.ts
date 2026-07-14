@@ -933,6 +933,7 @@ const gsw: Record<string, string> = {
   "sd.deleteFail": "Lösche fehlgschlage: ",
   "sd.farthestRunTitle": "wytischte Lauf",
   "sd.gpsWarning": "⚠️ Kei Beschlünigungs-Date i dere Datei — d Foil-Erkennig lauft nur grob über GPS (Gschwindigkeit). Pumpe/Gleitphase fähle, Lauf-Gränze und Erkennig chönd ungnau si (Über- oder Untererkennig).",
+  "sd.lowRateWarning": "⚠️ Beschlünigung nur mit ~{hz} Hz ufgnoh („Sparsam“) — für d Pump-/Gleit-Erkennig bruucht’s mindeschtens 15 Hz. D Rohwärt sind da (im Labeln sichtbar), wärded aber nöd uusgwärtet; d Foil-Erkennig lauft nur über GPS.",
   "sd.maxHr": "Max Puls",
   "sd.maxPump": "Max Pump (5s)",
   "sd.maxSpeed": "Max Speed ({win}s)",
