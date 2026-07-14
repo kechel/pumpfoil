@@ -101,9 +101,14 @@ Page(
           if (s.screen === "idle") {
             s.idlePage = (s.idlePage + dir + 4) % 4;
             this.applyButton(); this.renderIdle();
-            // Auf der Verbindungs-Seite NUR bei noch nie gepairter Uhr (kein Token) automatisch
-            // einen Code erzeugen (Discoverability). Bereits gepairt -> neuer Code nur per Button.
-            if (s.idlePage === 1 && !getTok() && !s.code && bleOk()) this.beginPairing();
+            // Auf der Verbindungs-Seite NUR bei noch nie gepairter Uhr (kein Token):
+            // Code erzeugen, falls keiner da (Discoverability) — sonst den Poll wieder
+            // aufnehmen (z. B. nach Weg- und Zurückwischen), sonst verpasst die Uhr das Token.
+            // Bereits gepairt -> neuer Code nur per Button.
+            if (s.idlePage === 1 && !getTok() && bleOk()) {
+              if (!s.code) this.beginPairing();
+              else if (!s.pollTimer) this.startPoll();
+            }
             // Beim Verlassen der Verbindungs-Seite den Poll stoppen.
             if (s.idlePage !== 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
             return true;
