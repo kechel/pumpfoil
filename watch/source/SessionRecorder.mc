@@ -69,6 +69,10 @@ class SessionRecorder {
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
+    // Web-Presets (Alarm An/Aus, Schwellen, Auto-Start) nur beim ERSTEN Config des App-Laufs in
+    // die Live-Werte übernehmen; danach behält die Uhr die on-watch gemachten Änderungen (bis
+    // App-Neustart). Der Cache wird immer mit dem Web-Wert aktualisiert -> Neustart = Preset.
+    hidden var _presetsApplied = false;
     var alarmEnabled = false;
     var speedHighKmh = 0;
     var speedLowKmh = 0;
@@ -353,8 +357,8 @@ class SessionRecorder {
                 _store("colorByValue", colorByValue);  // cachen -> ueberlebt reloadConfig/Neustart
             }
             if (data.hasKey("autoStart") && data["autoStart"] != null) {
-                autoStart = data["autoStart"];
-                _store("auto_start", autoStart);
+                if (!_presetsApplied) { autoStart = data["autoStart"]; }   // live nur beim 1. Config
+                _store("auto_start", data["autoStart"]);                    // Cache = Web-Preset (Neustart)
             }
             if (data.hasKey("recordMode") && data["recordMode"] != null) {
                 recordMode = data["recordMode"];
@@ -365,17 +369,23 @@ class SessionRecorder {
                 _store("activity_type", activityType);
             }
             // Vibrationsalarm von der Website übernehmen + cachen (offline verfügbar).
+            // Live-Werte (Alarm An/Aus, Schwellen) nur beim ERSTEN Config übernehmen — danach behält
+            // die Uhr die on-watch gemachten Änderungen (bis App-Neustart). Cache immer = Web-Wert.
             if (data.hasKey("alarmEnabled")) {
-                alarmEnabled = data["alarmEnabled"];
-                manualAlarm = data["alarmEnabled"];   // Website-Alarm hat Vorrang vor Foil-Auto
-                if (data.hasKey("speedHigh") && data["speedHigh"] != null) { speedHighKmh = data["speedHigh"]; }
-                if (data.hasKey("speedLow") && data["speedLow"] != null) { speedLowKmh = data["speedLow"]; }
-                if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
-                if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
-                if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
+                manualAlarm = data["alarmEnabled"];   // Web-Master (steuert nur den initAlarmSelection-Default)
+                var webHigh = (data.hasKey("speedHigh") && data["speedHigh"] != null) ? data["speedHigh"] : speedHighKmh;
+                var webLow = (data.hasKey("speedLow") && data["speedLow"] != null) ? data["speedLow"] : speedLowKmh;
+                if (!_presetsApplied) {
+                    alarmEnabled = data["alarmEnabled"];
+                    speedHighKmh = webHigh;
+                    speedLowKmh = webLow;
+                    if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
+                    if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
+                    if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
+                }
                 if (data.hasKey("alarmDefault") && data["alarmDefault"] != null) { alarmDefault = data["alarmDefault"]; }
                 _store("alarm_config", {
-                    "enabled" => alarmEnabled, "high" => speedHighKmh, "low" => speedLowKmh,
+                    "enabled" => data["alarmEnabled"], "high" => webHigh, "low" => webLow,
                     "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat,
                     "def" => alarmDefault });
             }
@@ -391,6 +401,7 @@ class SessionRecorder {
                 _store("offfoil_config", offFoilView);
             }
             initAlarmSelection();   // Default-Foil/Website vorauswählen (Start-Screen)
+            _presetsApplied = true; // ab jetzt behalten on-watch-Änderungen Vorrang (bis App-Neustart)
             WatchUi.requestUpdate();
           } catch (e) {
             // Teil-Config evtl. übernommen; Rest ignorieren — kein Crash.
@@ -545,9 +556,9 @@ class SessionRecorder {
         }
 
         _persistMeta();
-        // Foil-Auswahl gilt nur für diese (gerade gestartete) Session; im Storage-Meta steht
-        // sie schon -> live zurücksetzen, damit die nächste Session wieder den Default nutzt.
-        sessionFoilId = null;
+        // Die auf der Uhr gewählte Foil BLEIBT über Sessions hinweg erhalten (Meta ist schon
+        // persistiert). Erst ein kompletter App-Neustart setzt via initAlarmSelection wieder den
+        // Default — kein Reset pro Session (sonst fiele die nächste Session ungewollt auf Default).
         if (_fitSession != null) {
             try { _fitSession.start(); } catch (e) { _fitSession = null; }
         }
@@ -682,7 +693,8 @@ class SessionRecorder {
     // Verbleibende Vorlauf-Sekunden für die Countdown-Anzeige (0 = scharf).
     function autoLead() { var r = AUTO_START_LEAD - _idleTicks; return (r < 0) ? 0 : r; }
     // Auto-Start auf der Uhr umschalten (Einstellungs-Menü) + persistieren.
-    function toggleAutoStart() { autoStart = !autoStart; _idleTicks = 0; _store("auto_start", autoStart); }
+    // On-Watch-Toggle nur live (kein _store) -> bleibt bis App-Neustart, dann wieder Web-Preset (Cache).
+    function toggleAutoStart() { autoStart = !autoStart; _idleTicks = 0; }
     // Vorlauf-Countdown zurücksetzen — beim (Wieder-)Betreten des Start-Screens aufrufen
     // (z.B. Rückkehr aus dem Menü), damit die 10 s neu laufen.
     function resetAutoLead() { _idleTicks = 0; }
