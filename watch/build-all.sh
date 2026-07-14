@@ -19,16 +19,32 @@ mkdir -p "$HERE/bin"
 # Geräte-IDs aus dem Manifest ziehen.
 DEVICES=$(grep -oP '(?<=iq:product id=")[^"]+' "$HERE/manifest.xml")
 
-PASS=0; FAIL=0; FAILED=""
-for d in $DEVICES; do
-  if "$SDK_HOME/bin/monkeyc" -f "$HERE/monkey.jungle" -d "$d" \
-        -o "$HERE/bin/foil-$d.prg" -y "$KEY" -w >/dev/null 2>&1; then
-    PASS=$((PASS+1))
-  else
-    FAIL=$((FAIL+1)); FAILED="$FAILED $d"
-  fi
-done
-echo "Builds: $PASS ok, $FAIL fehlgeschlagen.${FAILED:+ Fehlgeschlagen:$FAILED}"
+# Parallel bauen — monkeyc ist single-threaded, aber jede JVM braucht viel RAM (~1,5 GB).
+# Der Flaschenhals ist der SPEICHER, nicht die Kerne: JOBS aus dem freien RAM ableiten
+# (~2 GB je Job), gedeckelt auf Kerne-4. Überschreibbar via JOBS.
+if [ -z "${JOBS:-}" ]; then
+  AVAIL_MB=$(free -m | awk '/Mem:/{print $7}')
+  JOBS=$(( AVAIL_MB / 2000 )); CAP=$(( $(nproc) - 4 ))
+  [ "$JOBS" -gt "$CAP" ] && JOBS=$CAP; [ "$JOBS" -lt 2 ] && JOBS=2
+fi
+FAILFILE="$(mktemp)"
+export SDK_HOME HERE KEY FAILFILE
+build_one() {
+  if "$SDK_HOME/bin/monkeyc" -f "$HERE/monkey.jungle" -d "$1" \
+        -o "$HERE/bin/foil-$1.prg" -y "$KEY" -w >/dev/null 2>&1; then :; else echo "$1" >> "$FAILFILE"; fi
+}
+export -f build_one
+printf '%s\n' $DEVICES | xargs -P "$JOBS" -I{} bash -c 'build_one "$1"' _ {}
+# Retry der Fehlschläge SEQUENZIELL (fängt transiente OOM/Contention ab) -> Vollständigkeit.
+RETRY=$(sort -u "$FAILFILE"); : > "$FAILFILE"
+if [ -n "$RETRY" ]; then
+  echo "Retry (seriell): $(printf '%s\n' $RETRY | grep -c .) Geräte…"
+  for d in $RETRY; do build_one "$d"; done
+fi
+TOTAL=$(printf '%s\n' $DEVICES | grep -c .)
+FAIL=$(grep -c . "$FAILFILE" || true); PASS=$((TOTAL - FAIL))
+FAILED=$(tr '\n' ' ' < "$FAILFILE"); rm -f "$FAILFILE"
+echo "Builds: $PASS ok, $FAIL fehlgeschlagen (parallel: $JOBS).${FAILED:+ Fehlgeschlagen: $FAILED}"
 
 # App-Version aus Config.mc ziehen (eine Version pro build-all-Lauf -> pro Plattform).
 VERSION=$(grep -oP 'VERSION = "\K[^"]+' "$HERE/source/Config.mc" | head -1)
