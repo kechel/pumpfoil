@@ -146,6 +146,8 @@ class RecordView extends WatchUi.View {
 
     hidden function _drawStartPage(dc, w, h) {
         var titleY = h * 0.20;
+        // Kleines Telefon-Icon oben, wenn eine aktive Verbindung zum Handy besteht.
+        if (Uploader.phoneConnected()) { _drawPhone(dc, w / 2, h * 0.115); }
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pumpfoil", Graphics.TEXT_JUSTIFY_CENTER);
         // Version anhand der echten Titel-Font-Höhe darunter -> kein Überlappen (geräteunabhängig).
@@ -153,6 +155,8 @@ class RecordView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, titleY + titleH + 2, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
+        // Aufzeichnungsrate hinten dran (Config-Check: 25 Hz / 10 Hz / GPS).
+        var rl = _rec.recordRateLabel();
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
             var gtxt = Strings.s("gps.ready");
@@ -161,10 +165,11 @@ class RecordView extends WatchUi.View {
                 gtxt += " · " + Strings.s("auto.short");
                 if (!_rec.autoArmed()) { gtxt += " " + _rec.autoLead() + "s"; }
             }
+            gtxt += " · " + rl;
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, gtxt, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching"), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching") + " · " + rl, Graphics.TEXT_JUSTIFY_CENTER);
         }
         // Object-Store voll (Aufnahme konnte nicht starten/sichern) -> klarer Hinweis statt Crash.
         if (_rec.storageFull) {
@@ -320,6 +325,17 @@ class RecordView extends WatchUi.View {
         dc.fillPolygon([[cx - 5, cy + 3], [cx + 5, cy + 3], [cx + 3, cy - 2], [cx - 3, cy - 2]]); // Körper
         dc.fillRectangle(cx - 6, cy + 3, 12, 1);                                  // Rand unten
         dc.fillCircle(cx, cy + 6, 1);                                             // Klöppel
+    }
+
+    // Kleines Telefon-Icon (grün = aktive Handy-Verbindung).
+    hidden function _drawPhone(dc, cx, cy) {
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.fillRoundedRectangle(cx - 6, cy - 9, 12, 18, 2);                       // Gehäuse
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(cx - 4, cy - 5, 8, 10);                                  // Display
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(cx - 2, cy - 7, 4, 1);                                   // Hörer oben
+        dc.fillCircle(cx, cy + 7, 1);                                             // Home-Button
     }
 
     // Wert-abhängige Farben (Buckets, gut ablesbar auf der Uhr).

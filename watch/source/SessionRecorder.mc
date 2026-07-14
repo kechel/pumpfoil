@@ -667,6 +667,14 @@ class SessionRecorder {
         }
     }
 
+    // Kurzlabel des Aufzeichnungsmodus für den Start-Screen (zeigt, ob die Config geladen wurde):
+    // "25 Hz" (full) | "10 Hz" (lite/sparsam) | "GPS" (nur GPS, ohne Hz-Zahl).
+    function recordRateLabel() {
+        if (recordMode.equals("gps")) { return "GPS"; }
+        var hz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
+        return hz.format("%d") + " Hz";
+    }
+
     // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
     function autoStartOn() { return autoStart; }
     // Auto-Start scharf (Vorlauf-Countdown durch)?
