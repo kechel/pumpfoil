@@ -160,13 +160,16 @@ class UploadDelegate extends WatchUi.BehaviorDelegate {
     function onTick() as Void {
         var busy = Uploader.isBusy();
         var pending = Uploader.pendingCount();
-        if (!busy && pending > 0 && Uploader.phoneConnected()) {
+        var err = Uploader.lastError();
+        // Aktiv weiter-syncen nur, wenn's Sinn hat: verbunden, offen, kein Auth-/Offline-Stopper.
+        if (!busy && pending > 0 && Uploader.phoneConnected() && err != :auth && err != :offline) {
             Uploader.syncAll();
+            busy = true;   // gerade angestoßen -> dieser Tick zählt nicht als "steht still"
         }
-        // Upload fertig (nichts mehr offen): nach kurzem „fertig"-Anblick automatisch zurück zum
-        // Start-Screen. Der Auto-Start läuft NUR dort (nicht auf diesem Screen) — sonst bleibt man
-        // auf „Upload fertig" hängen und Losfahren startet keine neue Session.
-        if (!busy && pending == 0) {
+        // ~3 s nachdem nichts mehr aktiv passiert automatisch zurück zum Start-Screen — egal ob
+        // „Upload fertig", „Nicht verbunden" oder offline. Der Auto-Start läuft NUR dort; sonst
+        // bleibt man auf dem Screen hängen und Losfahren startet keine neue Session.
+        if (!busy) {
             _doneTicks += 1;
             if (_doneTicks >= 3) {
                 if (_timer != null) { _timer.stop(); }

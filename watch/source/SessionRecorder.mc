@@ -73,6 +73,7 @@ class SessionRecorder {
     // die Live-Werte übernehmen; danach behält die Uhr die on-watch gemachten Änderungen (bis
     // App-Neustart). Der Cache wird immer mit dem Web-Wert aktualisiert -> Neustart = Preset.
     hidden var _presetsApplied = false;
+    hidden var _foilChosen = false;   // Nutzer hat on-watch selbst eine Foil gewählt -> Default nie mehr setzen
     var alarmEnabled = false;
     var speedHighKmh = 0;
     var speedLowKmh = 0;
@@ -436,7 +437,10 @@ class SessionRecorder {
     //   an + "foil"    -> Standard-Foil (erstes der Liste) als Auto-Alarm
     //   an + "fixed"   -> feste Website-Werte
     function initAlarmSelection() {
-        if (!activeAlarmLabel.equals("")) { return; }     // schon initialisiert -> Uhr-Auswahl behalten (bis App-Ende)
+        // Default (Foil/Alarm) nur bis zum ersten erfolgreichen CONFIG setzen — so wird nach dem
+        // Pairing der Default-Foil noch gesetzt (auch wenn beim ungepairten Start mangels Foils "-"
+        // stand), aber eine eigene on-watch-Auswahl (_foilChosen) NIE überschrieben.
+        if (_presetsApplied || _foilChosen) { return; }
         alarmEnabled = manualAlarm;                        // Web-Master = Alarm-Default an/aus
         if (alarmDefault.equals("foil") && foils.size() >= 1) {
             sessionFoilId = foils[0]["id"];                // Standard-Foil vorwählen (Metadaten)
@@ -448,6 +452,9 @@ class SessionRecorder {
             alarmSource = "manual";                        // feste Web-Werte (speedLow/HighKmh)
         }
     }
+
+    // Nutzer hat on-watch selbst eine Foil (oder „keine") gewählt -> Default nie mehr überschreiben.
+    function markFoilChosen() { _foilChosen = true; }
 
     // Von der Website geladene Ansichten übernehmen + cachen.
     function setScreensFromConfig(views) {

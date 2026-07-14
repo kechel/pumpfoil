@@ -97,6 +97,13 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     function onNextPage() as Lang.Boolean {
         if (_rec.isRecording()) { _view.nextScreen(); WatchUi.requestUpdate(); return true; }
         if (_rec.manualAlarm || _rec.foils.size() >= 1) { _openFoilMenu(); return true; }
+        // Noch nicht verknüpft + nichts zu konfigurieren (keine Foils/Alarm ohne CONFIG):
+        // DOWN öffnet stattdessen das Pairing, statt ins Leere zu laufen.
+        if (!_rec.isPaired()) {
+            _rec.startPairing();
+            WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
+            return true;
+        }
         return false;
     }
     function onPreviousPage() as Lang.Boolean {
@@ -201,9 +208,11 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
             var f = _rec.foils[id];
             _rec.sessionFoilId = f["id"];                // Foil = Metadaten (+ Auto-Schwellen)
             _rec.activeAlarmLabel = f["label"];
+            _rec.markFoilChosen();                       // eigene Wahl -> Default nie mehr überschreiben
         } else if (id == :none) {
             _rec.sessionFoilId = null;                   // keine Foil
             _rec.activeAlarmLabel = "-";
+            _rec.markFoilChosen();
         }
         // Foil-Auswahl gesetzt -> zurück zum Start-Screen (Alarm-Zustand bleibt).
         WatchUi.popView(WatchUi.SLIDE_DOWN);
