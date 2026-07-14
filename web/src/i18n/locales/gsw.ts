@@ -349,6 +349,8 @@ const gsw: Record<string, string> = {
   "power.estimated": "Dicki gschätzt (Rächnerwärt mit Vorbhalt)",
   "theme.label": "Design",
   "theme.hint": "Häll, dunkel oder automatisch (nach Syschtem-Istellig).",
+  "fontscale.label": "Schriftgrössi",
+  "fontscale.hint": "Für besseri Läsbarkeit alles grösser darstelle.",
   "theme.dark": "Dunkel",
   "theme.light": "Häll",
   "theme.auto": "Automatisch",

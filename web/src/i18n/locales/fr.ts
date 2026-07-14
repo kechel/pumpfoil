@@ -400,6 +400,8 @@ const fr: Record<string, string> = {
   "power.estimated": "épaisseur estimée (valeurs approximatives)",
   "theme.label": "Apparence",
   "theme.hint": "Clair, sombre ou automatique (selon votre système).",
+  "fontscale.label": "Taille du texte",
+  "fontscale.hint": "Tout agrandir pour une meilleure lisibilité.",
   "theme.dark": "Sombre",
   "theme.light": "Clair",
   "theme.auto": "Auto",

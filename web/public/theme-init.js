@@ -11,4 +11,10 @@
       document.documentElement.classList.add("theme-light");
     }
   } catch (e) {}
+  // Schriftgröße (Barrierefreiheit) früh anwenden — kein Flash von kleiner -> großer Schrift.
+  try {
+    var fs = localStorage.getItem("foil_fontscale");
+    if (fs === "120") { document.documentElement.style.fontSize = "19.2px"; }
+    else if (fs === "150") { document.documentElement.style.fontSize = "24px"; }
+  } catch (e) {}
 })();

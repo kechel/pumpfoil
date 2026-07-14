@@ -7,6 +7,7 @@ import "./index.css";
 import { getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
+import { applyFontScale, getFontScale } from "./lib/fontscale";
 import { I18nProvider } from "./i18n";
 
 // Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; auch in den Einstellungen sichtbar).
@@ -15,6 +16,8 @@ console.info(`pumpfoil build ${APP_BUILD}`);
 // Theme anwenden + bei "auto" auf System-Wechsel reagieren.
 applyTheme(getTheme());
 watchSystemTheme();
+// Schriftgröße (Barrierefreiheit) anwenden (theme-init.js macht es schon früh gegen Flash).
+applyFontScale(getFontScale());
 
 // OAuth-Rücksprung: Token kommt als #token=… zurück -> speichern + Hash entfernen.
 (() => {

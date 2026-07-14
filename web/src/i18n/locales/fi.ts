@@ -477,6 +477,8 @@ const fi: Record<string, string> = {
   "power.estimated": "Paksuus arvioitu (laskurin arvot varauksella)",
   "theme.label": "Ulkoasu",
   "theme.hint": "Vaalea, tumma tai automaattinen (järjestelmäasetuksen mukaan).",
+  "fontscale.label": "Tekstin koko",
+  "fontscale.hint": "Suurenna kaikki paremman luettavuuden vuoksi.",
   "theme.dark": "Tumma",
   "theme.light": "Vaalea",
   "theme.auto": "Automaattinen",

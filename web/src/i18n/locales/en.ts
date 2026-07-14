@@ -455,6 +455,8 @@ const en: Record<string, string> = {
   "power.estimated": "thickness estimated (values approximate)",
   "theme.label": "Appearance",
   "theme.hint": "Light, dark or automatic (follows your system setting).",
+  "fontscale.label": "Font size",
+  "fontscale.hint": "Make everything larger for better readability.",
   "theme.dark": "Dark",
   "theme.light": "Light",
   "theme.auto": "Auto",

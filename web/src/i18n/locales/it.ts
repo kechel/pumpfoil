@@ -400,6 +400,8 @@ const it: Record<string, string> = {
   "power.estimated": "spessore stimato (valori indicativi)",
   "theme.label": "Aspetto",
   "theme.hint": "Chiaro, scuro o automatico (in base al sistema).",
+  "fontscale.label": "Dimensione del testo",
+  "fontscale.hint": "Ingrandisci tutto per una migliore leggibilità.",
   "theme.dark": "Scuro",
   "theme.light": "Chiaro",
   "theme.auto": "Auto",

@@ -479,6 +479,8 @@ const de: Record<string, string> = {
   "power.estimated": "Dicke geschätzt (Rechnerwerte mit Vorbehalt)",
   "theme.label": "Design",
   "theme.hint": "Hell, dunkel oder automatisch (nach Systemeinstellung).",
+  "fontscale.label": "Schriftgröße",
+  "fontscale.hint": "Für bessere Lesbarkeit alles größer darstellen.",
   "theme.dark": "Dunkel",
   "theme.light": "Hell",
   "theme.auto": "Automatisch",

@@ -400,6 +400,8 @@ const es: Record<string, string> = {
   "power.estimated": "grosor estimado (valores aproximados)",
   "theme.label": "Apariencia",
   "theme.hint": "Claro, oscuro o automático (según tu sistema).",
+  "fontscale.label": "Tamaño del texto",
+  "fontscale.hint": "Agranda todo para una mejor legibilidad.",
   "theme.dark": "Oscuro",
   "theme.light": "Claro",
   "theme.auto": "Auto",
