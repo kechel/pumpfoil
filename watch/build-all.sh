@@ -19,14 +19,10 @@ mkdir -p "$HERE/bin"
 # Geräte-IDs aus dem Manifest ziehen.
 DEVICES=$(grep -oP '(?<=iq:product id=")[^"]+' "$HERE/manifest.xml")
 
-# Parallel bauen — monkeyc ist single-threaded, aber jede JVM braucht viel RAM (~1,5 GB).
-# Der Flaschenhals ist der SPEICHER, nicht die Kerne: JOBS aus dem freien RAM ableiten
-# (~2 GB je Job), gedeckelt auf Kerne-4. Überschreibbar via JOBS.
-if [ -z "${JOBS:-}" ]; then
-  AVAIL_MB=$(free -m | awk '/Mem:/{print $7}')
-  JOBS=$(( AVAIL_MB / 2000 )); CAP=$(( $(nproc) - 4 ))
-  [ "$JOBS" -gt "$CAP" ] && JOBS=$CAP; [ "$JOBS" -lt 2 ] && JOBS=2
-fi
+# Parallel bauen — monkeyc ist single-threaded, aber jede JVM braucht viel RAM (~1,5–2 GB).
+# Flaschenhals ist der SPEICHER, nicht die Kerne. Fix 4 parallel (genug + schont RAM/Emulator);
+# per JOBS=… überschreibbar.
+JOBS="${JOBS:-4}"; [ "$JOBS" -lt 1 ] && JOBS=1
 FAILFILE="$(mktemp)"
 export SDK_HOME HERE KEY FAILFILE
 build_one() {
