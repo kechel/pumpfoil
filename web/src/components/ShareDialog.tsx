@@ -14,7 +14,7 @@ const N = 1080;
 const STAT_ORDER = ["foiling", "runs", "pumps", "speed", "time", "longest", "distance", "pumprate"] as const;
 const STAT_LABEL: Record<string, string> = {
   foiling: "Foiling", runs: "Läufe", pumps: "Pumps", speed: "Top-Speed",
-  time: "Foil-Zeit", longest: "Längster", distance: "Strecke", pumprate: "Ø Pumps/min",
+  time: "Foil-Zeit", longest: "Längster", distance: "Strecke/Pump", pumprate: "Ø Pumps/min",
 };
 
 function availableStats(a: any): string[] {
@@ -22,7 +22,7 @@ function availableStats(a: any): string[] {
   const ok: Record<string, boolean> = {
     foiling: a.foiling_distance_m > 0, runs: a.num_runs > 0, pumps: a.pump_count > 0,
     speed: a.max_speed_mps > 0, time: a.foiling_time_s > 0, longest: a.best_distance_m > 0,
-    distance: a.total_distance_m > 0, pumprate: a.foiling_time_s > 0 && a.pump_count > 0,
+    distance: a.foiling_distance_m > 0 && a.pump_count > 0, pumprate: a.foiling_time_s > 0 && a.pump_count > 0,
   };
   return STAT_ORDER.filter((k) => ok[k]);
 }

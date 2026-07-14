@@ -32,8 +32,9 @@ export default function Landing() {
     { icon: LocationIcon, title: t("land.f12Title"), body: t("land.f12Body") },
     { icon: TagIcon, title: t("land.f6Title"), body: t("land.f6Body") },
   ];
-  // Mobile-App-Screenshots (Hochformat). Reihenfolge = mobile-1..N.webp.
-  const SHOTS = Array.from({ length: 8 }, (_, i) => `/mobile-${i + 1}.webp`);
+  // Mobile-App-Screenshots (Hochformat, Android). Je Slot ein Paar dark/light
+  // (mobile-dark-N.webp / mobile-light-N.webp) — CSS zeigt via html.theme-light das passende.
+  const SHOTS = Array.from({ length: 8 }, (_, i) => i + 1);
   // Desktop 2 nebeneinander pro Slide, Mobile 1.
   const [perView, setPerView] = useState(1);
   useEffect(() => {
@@ -144,6 +145,45 @@ export default function Landing() {
                 <PlayBadge className="mt-1" />
               </figure>
             </div>
+
+            {/* Uhr-App Key-Features — gehört zum Uhr-Abschnitt. */}
+            <div className="mx-auto mt-10 max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-brand-500/10 to-slate-900/40 p-6 sm:p-8">
+              <h3 className="mb-7 text-center text-base font-bold sm:text-lg">
+                {t("land.watchFeatIntro")}
+              </h3>
+              <ul className="flex flex-col gap-6">
+                <li className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
+                    <BellIcon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h4 className="font-semibold">{t("land.watchFeat1Title")}</h4>
+                    <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat1Body")}</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
+                    <FoilIcon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h4 className="font-semibold">{t("land.watchFeat2Title")}</h4>
+                    <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat2Body")}</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
+                    <WatchIcon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h4 className="font-semibold">{t("land.watchFeat3Title")}</h4>
+                    <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat3Body")}</p>
+                  </div>
+                </li>
+              </ul>
+              <p className="mt-6 text-center text-sm font-medium text-brand-400">
+                {t("land.watchFeatMore")}
+              </p>
+            </div>
           </section>
         </div>
       </div>
@@ -176,7 +216,7 @@ export default function Landing() {
             {/* Viewport + horizontal verschiebbarer Track: gleitet animiert (translateX),
                 statt die Bilder hart auszutauschen. Eine „Seite" = perView Screenshots. */}
             <div
-              className="w-[230px] touch-pan-y overflow-hidden sm:w-[560px]"
+              className="w-[230px] touch-pan-y overflow-hidden rounded-[30px] sm:w-[560px]"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
@@ -187,14 +227,24 @@ export default function Landing() {
               >
                 {Array.from({ length: pages }, (_, p) => (
                   <div key={p} className="flex w-full shrink-0 items-center justify-center gap-4 sm:gap-8">
-                    {SHOTS.slice(p * perView, p * perView + perView).map((src) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt="Pumpfoil App"
-                        loading="lazy"
-                        className="w-[230px] shrink-0 rounded-[2rem] border border-slate-800 shadow-2xl sm:w-[256px]"
-                      />
+                    {SHOTS.slice(p * perView, p * perView + perView).map((n) => (
+                      <div
+                        key={n}
+                        className="w-[230px] shrink-0 sm:w-[256px]"
+                      >
+                        <img
+                          src={`/mobile-dark-${n}.webp`}
+                          alt="Pumpfoil App"
+                          loading="lazy"
+                          className="shot-dark block w-full"
+                        />
+                        <img
+                          src={`/mobile-light-${n}.webp`}
+                          alt="Pumpfoil App"
+                          loading="lazy"
+                          className="shot-light block w-full"
+                        />
+                      </div>
                     ))}
                   </div>
                 ))}

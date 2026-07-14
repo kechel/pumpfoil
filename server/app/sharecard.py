@@ -46,6 +46,15 @@ def _mmss(sec):
     return f"{sec//60}:{sec%60:02d}"
 
 
+def _perpump(m, pumps):
+    """On-Foil-Meter pro Pump (Gleit-Effizienz). Kleine Werte mit 1 Dezimale."""
+    pumps = int(pumps or 0)
+    if not m or pumps <= 0:
+        return "0 m"
+    v = m / pumps
+    return f"{v:.1f} m" if v < 10 else f"{round(v)} m"
+
+
 def _ramp(stops, t):
     t = max(0.0, min(1.0, t))
     n = len(stops) - 1
@@ -77,7 +86,7 @@ def stat_catalog(ar, seg=None):
             ("speed", "Top-Speed", f"{spd*3.6:.1f} km/h", spd > 0),
             ("time", "Foil-Zeit", _mmss(dur), dur > 0),
             ("longest", "Längster", _km(dist), False),
-            ("distance", "Strecke", _km(dist), False),
+            ("distance", "Strecke/Pump", _perpump(dist, pumps), dist > 0 and pumps > 0),
             ("pumprate", "Ø Pumps/min", str(ppm or 0), ppm is not None),
         ]
     ppm = None
@@ -90,7 +99,8 @@ def stat_catalog(ar, seg=None):
         ("speed", "Top-Speed", f"{(ar.max_speed_mps or 0)*3.6:.1f} km/h", (ar.max_speed_mps or 0) > 0),
         ("time", "Foil-Zeit", _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
         ("longest", "Längster", _km(ar.best_distance_m), (ar.best_distance_m or 0) > 0),
-        ("distance", "Strecke", _km(ar.total_distance_m), (ar.total_distance_m or 0) > 0),
+        ("distance", "Strecke/Pump", _perpump(ar.foiling_distance_m, ar.pump_count),
+         (ar.foiling_distance_m or 0) > 0 and (ar.pump_count or 0) > 0),
         ("pumprate", "Ø Pumps/min", str(ppm or 0), ppm is not None),
     ]
     return items
