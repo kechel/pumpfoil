@@ -78,6 +78,10 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
         return False, "unterschiedliche Geraete-Raten"
+    # Nur Sessions mit DEMSELBEN Foil zusammenführen (foil_id). None==None gilt als gleich;
+    # verschiedene (oder gesetzt vs. unbekannt) -> kein Merge, da andere Ausrüstung.
+    if len({s.foil_id for s in sessions}) > 1:
+        return False, "verschiedene Foils"
     if any(not _same_spot(a, b) for a in sessions for b in sessions):
         return False, "Sessions an verschiedenen Spots"
     # Nur Sessions DESSELBEN Tages zusammenführen (wie Web/mergeableIds) — verhindert das
@@ -239,7 +243,8 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
             chain = [s]; continue
         gap = (s.started_at - _end(chain[-1])).total_seconds()
         if 0 <= gap <= AUTO_MAX_GAP_S and s.device_id == chain[-1].device_id \
-                and s.accel_hz == chain[-1].accel_hz and _same_spot(s, chain[-1]):
+                and s.accel_hz == chain[-1].accel_hz and s.foil_id == chain[-1].foil_id \
+                and _same_spot(s, chain[-1]):
             chain.append(s)
         else:
             if len(chain) >= 2:
