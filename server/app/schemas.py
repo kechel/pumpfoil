@@ -79,6 +79,12 @@ class DeviceTokenOut(BaseModel):
 
 
 # --- Reverse-Pairing (Uhr zeigt Code, Web löst ihn ein) ---
+class PairInitIn(BaseModel):
+    # Optional: die Uhr meldet ihre Plattform/Label -> beim Claim übernommen (sonst „Garmin").
+    label: str | None = None
+    platform: str | None = None
+
+
 class PairInitOut(BaseModel):
     code: str            # auf der Uhr anzeigen
     claim_token: str     # Uhr pollt damit

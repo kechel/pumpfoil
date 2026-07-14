@@ -97,6 +97,10 @@ class DevicePairing(Base):
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))           # gesetzt nach Claim
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Von der Uhr bei pair-init gemeldet (die Uhr kennt ihre Plattform) -> beim Claim aufs
+    # DeviceToken übernommen, damit z. B. eine Amazfit nicht als „Garmin" gelabelt wird.
+    label: Mapped[str | None] = mapped_column(String(120))
+    platform: Mapped[str | None] = mapped_column(String(16))
 
 
 class DeviceToken(Base):

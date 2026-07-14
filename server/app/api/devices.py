@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -302,12 +302,23 @@ def pair(
 # --- Reverse-Pairing: Uhr zeigt Code, Web löst ihn ein, Uhr pollt auf den Token ---
 
 @router.post("/pair-init", response_model=PairInitOut)
-def pair_init(
+async def pair_init(
+    request: Request,
     db: Session = Depends(get_db),
     _rl: None = Depends(rate_limit(20, 300, "pair_init")),
 ) -> PairInitOut:
     """Uhr (noch ohne Token) erzeugt einen Code zum Eintippen auf der Website +
-    ein claim_token zum Pollen."""
+    ein claim_token zum Pollen. Optionaler Body {label, platform}: die Uhr meldet ihre
+    Plattform, damit sie beim Claim korrekt gelabelt wird (sonst Default „Garmin")."""
+    # Body tolerant lesen — ältere Uhren (Garmin) schicken einen leeren/nicht-JSON-Body.
+    label = platform = None
+    try:
+        data = await request.json()
+        if isinstance(data, dict):
+            label = (str(data["label"])[:120] if data.get("label") else None)
+            platform = (str(data["platform"])[:16] if data.get("platform") else None)
+    except Exception:  # noqa: BLE001
+        pass
     for _ in range(10):
         code = new_pairing_code()
         if not db.query(models.DevicePairing).filter_by(code=code).first():
@@ -315,7 +326,8 @@ def pair_init(
     else:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Could not allocate code")
     expires = datetime.now(timezone.utc) + timedelta(minutes=PAIRING_TTL_MIN)
-    p = models.DevicePairing(code=code, claim_token=new_token(), expires_at=expires)
+    p = models.DevicePairing(code=code, claim_token=new_token(), expires_at=expires,
+                             label=label, platform=platform)
     db.add(p)
     db.commit()
     db.refresh(p)
@@ -335,7 +347,13 @@ def pair_claim(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
     if p.device_token is not None:
         return {"ok": True, "already": True}
-    device = models.DeviceToken(token=new_token(), user_id=user.id, label=body.label or "Garmin")
+    # Label/Plattform bevorzugt von der Uhr (pair-init), sonst vom Web-Body, sonst Default „Garmin"
+    # (historisch: einzige Reverse-Pairing-Uhr war Garmin).
+    device = models.DeviceToken(
+        token=new_token(), user_id=user.id,
+        label=p.label or body.label or "Garmin",
+        platform=p.platform,
+    )
     db.add(device)
     db.flush()
     p.device_token = device.token
