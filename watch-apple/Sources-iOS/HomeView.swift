@@ -12,7 +12,6 @@ struct HomeView: View {
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
     @State private var weather: WeatherBlock?
-    @State private var rooms: [ChatRoom] = []
     @State private var loading = true
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -62,7 +61,6 @@ struct HomeView: View {
                     latestSection
                     if let st = stats { recordsSection(st) }
                     if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
-                    if !rooms.isEmpty { chatsSection }
                 }
                 .padding(.horizontal).padding(.bottom).padding(.top, 2)
             }
@@ -168,35 +166,6 @@ struct HomeView: View {
             tile(String(format: "%.1f km", st.foiling_km ?? 0), Loc.t("side.foiling", lang))
             tile(fmtMin(st.foiling_min ?? 0), Loc.t("side.foilingTime", lang))
             tile("\(st.pumps ?? 0)", Loc.t("side.pumps", lang))
-        }
-    }
-
-    @ViewBuilder private var chatsSection: some View {
-        Text(Loc.t("home.myChats", lang)).font(.headline)
-        VStack(spacing: 0) {
-            ForEach(rooms) { room in
-                NavigationLink { ChatRoomView(scope: room.scope, title: room.label) } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(room.label).fontWeight(.medium).foregroundStyle(.primary)
-                            if !room.last_text.isEmpty {
-                                Text(room.last_text).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                            }
-                        }
-                        Spacer()
-                        if room.unread > 0 {
-                            Text("\(room.unread)").font(.caption2).foregroundStyle(.white)
-                                .padding(.horizontal, 7).padding(.vertical, 2)
-                                .background(Color.accentColor, in: Capsule())
-                        }
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-                    }
-                    .contentShape(Rectangle())
-                    .padding(.vertical, 6)
-                }
-                .buttonStyle(.plain)
-                Divider()
-            }
         }
     }
 
@@ -338,7 +307,6 @@ struct HomeView: View {
             }
         }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
-        rooms = ((try? await Api.chatRooms()) ?? []).filter { $0.kind != "dm" }   // DMs laufen im Chat-Tab
         let hs = (try? await Api.settings())?["homespot"] as? String
         if let hs, !hs.isEmpty { weather = (try? await Api.spotWeather(hs))?.weather } else { weather = nil }
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
