@@ -1,0 +1,10 @@
+[Unit]
+Description=pumpfoil.org täglicher Rekord-Snapshot (Community-Rekorde loggen + pushen)
+After=postgresql.service network.target
+
+[Service]
+Type=oneshot
+User=foil
+EnvironmentFile=-/opt/foil/garmin-connect-iq/server/.env
+WorkingDirectory=/opt/foil/garmin-connect-iq/server
+ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/python record_snapshot.py

@@ -646,3 +646,37 @@ class ReanalysisProgress(Base):
     done: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     total: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class RecordSnapshot(Base):
+    """Aktuelle Bestmarke je (Metrik, Scope, Fenster). Wird vom täglichen Snapshot-Job gepflegt.
+    key = "<metric>|<scope>|<window>" (scope = "global" oder "spot:<spot_id>"; window = 10d|30d|365d|all)."""
+
+    __tablename__ = "record_snapshots"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    value: Mapped[float] = mapped_column(Float, default=0.0)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class RecordEvent(Base):
+    """Log: jede echte Verbesserung einer Bestmarke (vom täglichen Snapshot erkannt). Basis für Badges
+    (1/5/10/100× Rekord je Fenster/Spot/global). Nur Verbesserungen — kein Eintrag, wenn die Marke durch
+    Alterung (rollierendes Fenster) sinkt."""
+
+    __tablename__ = "record_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"))
+    metric: Mapped[str] = mapped_column(String(12))      # distance|duration|speed|glide|runs
+    scope: Mapped[str] = mapped_column(String(32))       # "global" | "spot:<spot_id>"
+    window: Mapped[str] = mapped_column(String(8))       # 10d|30d|365d|all
+    value: Mapped[float] = mapped_column(Float)
+    prev_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    prev_session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"))
+    prev_value: Mapped[float | None] = mapped_column(Float)
+    pushed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
