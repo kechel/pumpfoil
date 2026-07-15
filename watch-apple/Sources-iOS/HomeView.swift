@@ -53,10 +53,11 @@ struct HomeView: View {
                         if session.profile?.beta == true && phoneRecEnabled {
                             Button { showRecord = true } label: {
                                 Label(Loc.t("home.recordBtn", lang), systemImage: "record.circle")
-                                    .font(.subheadline)
-                            }.buttonStyle(.borderedProminent).controlSize(.small)
+                                    .font(.headline)
+                            }.buttonStyle(.borderedProminent).controlSize(.large)
                         }
                     }
+                    .padding(.top, 12)
                     if incomingXfer > 0 { transferHint }
                     latestSection
                     if let st = stats { recordsSection(st) }

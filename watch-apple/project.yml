@@ -42,7 +42,8 @@ targets:
         # Nur Diagnose (kein Build-Fehler); Schwelle bei Bedarf senken (z. B. 80).
         OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=150 -Xfrontend -warn-long-function-bodies=150"
         TARGETED_DEVICE_FAMILY: "1"   # nur iPhone (Portrait-Port; iPad-Multitasking-Orientierungen entfallen)
-        # DEVELOPMENT_TEAM: MEKT477FXE  # <- in Xcode unter Signing & Capabilities (SmartKomm GmbH)
+        DEVELOPMENT_TEAM: MEKT477FXE       # SmartKomm GmbH (Team-ID, = exportOptions.plist) -> Team nach xcodegen automatisch gesetzt
+        CODE_SIGN_STYLE: Automatic
     info:
       path: Sources-iOS/Info.plist
       properties:
@@ -89,6 +90,8 @@ targets:
         SWIFT_COMPILATION_MODE: singlefile
         OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=150 -Xfrontend -warn-long-function-bodies=150"
         TARGETED_DEVICE_FAMILY: "4"   # 4 = Apple Watch
+        DEVELOPMENT_TEAM: MEKT477FXE       # SmartKomm GmbH — Team nach xcodegen automatisch gesetzt
+        CODE_SIGN_STYLE: Automatic
     info:
       path: Sources/Info.plist
       properties:
