@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Partial WakeLock: CPU wach halten, damit Accel bei Screen-off nicht aussetzt (Tasche). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Sprach-Diktat (SpeechRecognizer) — Sichtbarkeit der Erkenner-App unter Android 11+. -->
     <queries>

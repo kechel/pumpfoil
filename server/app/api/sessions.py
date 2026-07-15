@@ -856,9 +856,8 @@ def get_session(
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     else:
         s = _readable(db, session_id)
-    # Unter-13 (keine Social-Freigabe) dürfen nur EIGENE Sessions ansehen, keine fremden (UGC).
-    if s.user_id != user.id and user.social_allowed is False:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "social_disabled")
+    # Age-Gate (unter 13): fremde Sessions NUR ansehen ist erlaubt (read-only, wie Spots) — gesperrt
+    # sind Feed-Navigation (community.router), Likes/Votes (Schreiben) und Chaträume (chat.router).
     # ETag/304 (PWA-Caching): Stempel aus updated_at + Like-Zustand (Likes bumpen updated_at
     # nicht, sonst wäre der Like-Count aus dem Cache veraltet). Passt If-None-Match -> 304 ohne
     # das schwere Detail (Track/Segmente/Accel/GPS) zu bauen. Browser liefert dann seine Kopie.

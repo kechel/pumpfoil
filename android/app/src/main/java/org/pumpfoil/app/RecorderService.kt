@@ -18,6 +18,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.content.ContextCompat
 
 // Foreground-Service: hält die Handy-Aufnahme im Hintergrund am Leben (Screen aus, in der Tasche),
@@ -25,6 +26,7 @@ import androidx.core.content.ContextCompat
 class RecorderService : Service(), SensorEventListener {
     private lateinit var sensors: SensorManager
     private lateinit var locMgr: LocationManager
+    private var wakeLock: PowerManager.WakeLock? = null
 
     private val locListener = LocationListener { loc: Location ->
         Recorder.addGps(
@@ -43,6 +45,7 @@ class RecorderService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) { stopEverything(); return START_NOT_STICKY }
         startFg()
+        acquireWakeLock()
         Recorder.start(applicationContext)
         registerSensors()
         startLocation()
@@ -54,6 +57,18 @@ class RecorderService : Service(), SensorEventListener {
             startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
         } else {
             startForeground(1, notification())
+        }
+    }
+
+    // CPU wach halten, solange die Aufnahme läuft — sonst suspendiert das SoC bei Screen-off und
+    // der Accelerometer (Non-Wakeup-Sensor) liefert keine Events mehr. Der Foreground-Service allein
+    // garantiert das NICHT. Release in stopEverything(). Kein Timeout: Aufnahme kann lange laufen.
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pumpfoil:recording").apply {
+            setReferenceCounted(false)
+            acquire()
         }
     }
 
@@ -80,6 +95,8 @@ class RecorderService : Service(), SensorEventListener {
     private fun stopEverything() {
         sensors.unregisterListener(this)
         try { locMgr.removeUpdates(locListener) } catch (_: Exception) {}
+        try { if (wakeLock?.isHeld == true) wakeLock?.release() } catch (_: Exception) {}
+        wakeLock = null
         Recorder.stop()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
