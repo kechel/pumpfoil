@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -97,6 +98,7 @@ fun RecordScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) {
         Recorder.refreshPending(ctx)
+        Recorder.drain(ctx)   // offen gebliebene Uploads gleich versuchen (falls jetzt Inet da)
         foils = try { Api.foils() } catch (_: Exception) { emptyList() }
         try {
             val s = Api.settings()
@@ -252,9 +254,20 @@ fun RecordScreen(onBack: () -> Unit) {
                     ) { Text(I18n.t("rec.start"), fontWeight = FontWeight.Bold) }
                     if (st.pendingCount > 0) {
                         Spacer(Modifier.height(16.dp))
-                        Text(I18n.t("rec.pending").replace("{n}", st.pendingCount.toString()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(if (st.uploading) I18n.t("rec.upRunning")
+                                 else I18n.t("rec.pending").replace("{n}", st.pendingCount.toString()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (!st.uploading) {
+                                Spacer(Modifier.width(8.dp))
+                                Text(I18n.t("rec.uploadNow"),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable { Recorder.drain(ctx) })
+                            }
+                        }
                     }
                     Spacer(Modifier.weight(1f))
                     // Halten-zum-Stoppen ist nur während der Aufnahme; hier Platzhalter-Ende.

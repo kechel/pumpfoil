@@ -54,6 +54,7 @@ struct RecordView: View {
             }
             .task {
                 rec.refreshPending()
+                await rec.drain()   // offen gebliebene Uploads gleich versuchen (falls jetzt Netz da)
                 foils = (try? await Api.foils()) ?? []
                 let s = (try? await Api.settings()) ?? [:]
                 let favIds = (s["my_foils"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue ?? ($0 as? Int) } ?? []
@@ -120,11 +121,21 @@ struct RecordView: View {
                 Text(Loc.t("rec.start", lang)).bold().frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
-            if rec.pendingCount > 0 {
-                Text(Loc.t("rec.pending", lang).replacingOccurrences(of: "{n}", with: "\(rec.pendingCount)"))
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
+            if rec.pendingCount > 0 { pendingRow }
             Spacer()
+        }
+    }
+
+    // Offene Uploads + manueller „Jetzt hochladen"-Trigger (falls beim Beenden kein Netz da war).
+    @ViewBuilder private var pendingRow: some View {
+        HStack(spacing: 10) {
+            Text(rec.uploading ? Loc.t("rec.upRunning", lang)
+                 : Loc.t("rec.pending", lang).replacingOccurrences(of: "{n}", with: "\(rec.pendingCount)"))
+                .font(.footnote).foregroundStyle(.secondary)
+            if !rec.uploading {
+                Button(Loc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
+                    .font(.footnote.bold())
+            }
         }
     }
 
@@ -162,6 +173,10 @@ struct RecordView: View {
                 : rec.uploadError == "offline" ? Loc.t("rec.upLater", lang)
                 : (rec.pendingCount == 0 && rec.status == "gespeichert") ? Loc.t("rec.upDone", lang) : ""
             if !info.isEmpty { Text(info).foregroundStyle(.secondary) }
+            if rec.pendingCount > 0 && !rec.uploading {
+                Button(Loc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
+                    .font(.footnote.bold())
+            }
             Spacer()
             Button { dismiss() } label: { Text(Loc.t("common.done", lang)).frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large)
