@@ -383,6 +383,20 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
           <option value="">{t("sessions.allMonths")}</option>
           {months.map((m) => <option key={m.month} value={m.month}>{monthLabel(m.month)} ({m.count})</option>)}
         </select>
+        {/* Alle Aussortierten löschen — Server erzwingt owner+other; hier nur Komfort + Confirm. */}
+        {filter === "other" && items.length > 0 && (
+          <button
+            onClick={() => {
+              if (!confirm(t("sessions.deleteAllOtherConfirm", { n: items.length }))) return;
+              api.deleteAllOtherSessions()
+                .then((r) => { invalidateSessionListCache(); setItems([]); alert(t("sessions.deleteAllOtherDone", { n: r.deleted })); })
+                .catch((e) => alert(String(e)));
+            }}
+            className="ml-auto rounded-lg border border-red-500/50 px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-500/10 dark:text-red-400"
+          >
+            {t("sessions.deleteAllOther")}
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}

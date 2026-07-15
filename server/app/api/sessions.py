@@ -1042,6 +1042,39 @@ def session_neighbors(
     return {"older": older[0] if older else None, "newer": newer[0] if newer else None}
 
 
+@router.delete("/other/all")
+def delete_all_other_sessions(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Soft-Delete ALLER eigenen AUSSORTIERTEN Sessions (filter='other') auf einmal.
+
+    Sicherheit (bewusst mehrfach abgesichert, das läuft direkt live):
+    - NUR eigene Sessions (user_id == aktueller Nutzer), NUR nicht-gelöschte.
+    - „Aussortiert" = exakt dieselbe Definition wie die Liste (list_sessions filter='other'):
+      mit persönlichem Empfindlichkeits-Preset zählt eine Session mit preset-Läufen als Pumpfoil
+      und wird hier NICHT gelöscht; sonst global is_pumpfoil IS NOT TRUE.
+    - Soft-Delete wie beim Einzel-Löschen (Tombstone bleibt, FIT-Reimport legt sie nicht neu an).
+    """
+    q = db.query(models.Session).filter(
+        models.Session.user_id == user.id,          # NUR eigene
+        models.Session.deleted.isnot(True),
+    )
+    sens = (user.foil_sensitivity or "normal")
+    if sens != "normal":
+        q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
+            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
+        q = q.filter(not_(or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)))
+    else:
+        q = q.filter(models.Session.is_pumpfoil.isnot(True))   # NUR aussortierte
+    rows = q.all()
+    for s in rows:
+        s.deleted = True
+    db.commit()
+    return {"ok": True, "deleted": len(rows)}
+
+
 @router.delete("/{session_id}")
 def delete_session(
     session_id: int,
