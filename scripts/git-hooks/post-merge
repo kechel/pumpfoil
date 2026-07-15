@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Nach `git pull`/merge: watch-apple/Pumpfoil.xcodeproj aus project.yml neu erzeugen.
+# WICHTIG: Läuft NUR, wenn `xcodegen` installiert ist — auf der VM/CI (ohne xcodegen)
+# beendet sich der Hook sofort und still, damit git-Operationen dort nicht stören.
+# Aktivieren (einmalig pro Klon):  git config core.hooksPath scripts/git-hooks
+command -v xcodegen >/dev/null 2>&1 || exit 0
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+[ -f "$root/watch-apple/project.yml" ] || exit 0
+# Nur regenerieren, wenn sich im watch-apple/-Verzeichnis wirklich etwas geändert hat (spart Läufe;
+# fällt still zurück auf „immer", falls ORIG_HEAD fehlt).
+changed="$(git -C "$root" diff --name-only ORIG_HEAD HEAD 2>/dev/null || true)"
+if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -q '^watch-apple/'; then exit 0; fi
+( cd "$root/watch-apple" && xcodegen generate >/dev/null 2>&1 \
+  && echo "[git-hook] xcodegen: watch-apple/Pumpfoil.xcodeproj aus project.yml neu erzeugt" )
+exit 0

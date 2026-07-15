@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Nach `git pull --rebase` / rebase: dieselbe xcodegen-Regeneration wie post-merge.
+exec "$(dirname "$0")/post-merge"
