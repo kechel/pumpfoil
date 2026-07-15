@@ -290,7 +290,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
               </button>
             </div>
             <div className="mt-4 flex items-center justify-between">
-              <button onClick={revoke} disabled={!shareUrl} className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50">{t("share.revoke")}</button>
+              <button onClick={revoke} disabled={!shareUrl} className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">{t("share.revoke")}</button>
               <button onClick={() => setLinkOpen(false)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">{t("common.close")}</button>
             </div>
           </div>
