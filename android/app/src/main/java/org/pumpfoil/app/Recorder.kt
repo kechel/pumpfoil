@@ -214,10 +214,8 @@ object Recorder {
                 val pend = RecStore.pendingCount(ctx)
                 _state.value = _state.value.copy(pendingCount = pend)
                 if (pend == 0) return@launch
-                if (!Ingest.isOnline(ctx)) {
-                    _state.value = _state.value.copy(uploadError = "offline", uploading = false)
-                    return@launch
-                }
+                // Kein Vorab-isOnline-Gate mehr: der ConnectivityManager meldet (v. a. im Emulator)
+                // gern false, obwohl der Server erreichbar ist. Der Mint/Upload ist der echte Test.
                 if (Ingest.ensureToken(ctx) == null) {   // Mint fehlgeschlagen (offline/Login weg)
                     _state.value = _state.value.copy(uploadError = "offline", uploading = false)
                     return@launch
