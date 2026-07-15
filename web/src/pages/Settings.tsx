@@ -313,7 +313,7 @@ export default function Settings() {
             <span className="ml-2 rounded bg-brand-500/20 px-1.5 py-0.5 align-middle text-xs font-medium text-brand-300">Beta</span>
           </h3>
           <p className="mb-2 text-sm text-slate-300">{t("phonerec.sub")}</p>
-          <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-300">{t("phonerec.pwaNote")}</p>
+          <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">{t("phonerec.pwaNote")}</p>
         </Card>
       )}
 
