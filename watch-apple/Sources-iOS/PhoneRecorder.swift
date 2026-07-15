@@ -29,8 +29,15 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var uploading = false
     @Published var uploadError = ""
     @Published var pendingCount = 0
+    // Start-Screen (idle): Live-GPS-Status + Autostart (wie die Uhr).
+    @Published var gpsReady = false
+    @Published var autoStart = (UserDefaults.standard.object(forKey: "phone_autostart") as? Bool ?? true) {
+        didSet { UserDefaults.standard.set(autoStart, forKey: "phone_autostart"); idleLead = 0; idleStreak = 0 }
+    }
 
     var sessionFoilId: Int?
+    private var idleMonitoring = false
+    private var idleLead = 0, idleStreak = 0   // Autostart: Vorlauf-Ticks + Speed-Streak
 
     private let ACCEL_HZ = 50.0
     private let ACCEL_SCALE = 2048.0
@@ -79,6 +86,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     func start() {
         guard !recording else { return }
+        idleMonitoring = false   // Idle-Monitor übergibt an die Aufnahme
         uuid = UUID().uuidString
         startMs = Date().timeIntervalSince1970 * 1000
         chunkIndex = 0
@@ -127,6 +135,18 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     func refreshPending() { pendingCount = Store.pendingCount() }
 
+    // MARK: Idle-Monitor (Start-Screen) — GPS beziehen für „GPS bereit" + Autostart, ohne Aufnahme.
+    func startIdleMonitor() {
+        guard !recording else { return }
+        idleMonitoring = true; idleLead = 0; idleStreak = 0
+        loc.requestWhenInUseAuthorization()
+        loc.startUpdatingLocation()
+    }
+    func stopIdleMonitor() {
+        idleMonitoring = false
+        if !recording { loc.stopUpdatingLocation(); gpsReady = false }
+    }
+
     private func elapsedMs() -> Int { Int(Date().timeIntervalSince1970 * 1000 - startMs) }
     private static func nowIso() -> String {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX")
@@ -163,7 +183,19 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     }
 
     func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) {
-        guard recording, let l = locs.last else { return }
+        // Idle (Start-Screen): nur GPS-Status + Autostart-Logik, keine Aufnahme.
+        if !recording {
+            guard idleMonitoring, let l = locs.last else { return }
+            gpsReady = l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 25
+            let sp = max(0, l.speed)   // m/s
+            if autoStart && gpsReady {
+                if idleLead < 10 { idleLead += 1; idleStreak = 0 }        // 10 s Vorlauf
+                else if sp >= 2.8 { idleStreak += 1; if idleStreak >= 4 { start() } }  // 2,8 m/s, 4 s
+                else { idleStreak = 0 }
+            } else { idleStreak = 0 }
+            return
+        }
+        guard let l = locs.last else { return }
         let tMs = elapsedMs()
         let sp = max(0, l.speed)   // m/s (-1 = ungültig -> 0)
         lock.lock()

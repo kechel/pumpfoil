@@ -64,14 +64,30 @@ struct RecordView: View {
                     defaultLoaded = true
                 }
             }
+            // Idle-GPS für „GPS bereit" + Autostart, solange die Ansicht offen und nicht aufgenommen wird.
+            .onAppear { rec.startIdleMonitor() }
+            .onDisappear { rec.stopIdleMonitor() }
         }
     }
 
     private var idleBody: some View {
         VStack(spacing: 16) {
             Spacer().frame(height: 4)
+            // Live-GPS-Status (wie Uhr).
+            Text(rec.gpsReady ? Loc.t("rec.gpsReady", lang) : Loc.t("rec.gpsSearch", lang))
+                .font(.subheadline).bold()
+                .foregroundStyle(rec.gpsReady ? Color.accentColor : Color.secondary)
             Text(Loc.t("rec.gpsHint", lang))
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            // Autostart (wie Uhr): losfahren startet die Aufnahme automatisch.
+            Toggle(isOn: $rec.autoStart) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Loc.t("rec.autostart", lang)).font(.subheadline)
+                    if rec.autoStart {
+                        Text(Loc.t("rec.autostartHint", lang)).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
             VStack(alignment: .leading, spacing: 8) {
                 Text(Loc.t("rec.foilLabel", lang).uppercased())
                     .font(.caption).foregroundStyle(.secondary)
