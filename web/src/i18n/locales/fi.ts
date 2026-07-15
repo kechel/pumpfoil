@@ -839,6 +839,7 @@ const fi: Record<string, string> = {
   "watches.foot": "Pumps ja liukuvaiheet tarvitsevat raa'an kiihtyvyyden (≥25 Hz) suoraan kellosta. GPS-tilastoja voi monella merkillä analysoida myös FIT-/datantuonnilla.",
   "watches.nGarmin": "Vanhemmat mallit ilman raakakiihtyvyyttä: GPS-tilastot analysoidaan silti.",
   "watches.nApple": "Raakakiihtyvyys Core Motionin kautta.",
+  "watches.nWear": "Toimii kaikissa Wear OS 3+ -kelloissa — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensoripääsy mallista riippuen.",
   "watches.nPolar": "Linkitä tili → tuo harjoitukset (GPS + HR). Pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa API-vienti ei toimita (vain erillisen BLE-sensorin kautta).",
   "watches.nSuunto": "Linkitä tili → tuo harjoitukset (GPS + HR). FIT-vienti ei (vielä) sisällä pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa.",

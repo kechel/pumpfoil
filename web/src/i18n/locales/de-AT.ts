@@ -445,6 +445,7 @@ const deAT: Record<string, string> = {
   "watches.foot": "Pumps & Gleitphasen brauchn Roh-Beschleunigung (≥25 Hz) direkt vo da Uhr. GPS-Stats lassn si bei vüle Marken aa per FIT-/Datenimport auswertn.",
   "watches.nGarmin": "Ältere Modelle ohne Roh-Accel: GPS-Stats werden trotzdem ausgewertet.",
   "watches.nApple": "Roh-Beschleunigung über Core Motion.",
+  "watches.nWear": "Läuft auf jeder Wear-OS-3+-Uhr — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export net (nur via separatem BLE-Sensor).",
   "watches.nSuunto": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der FIT-Export (no) net.",

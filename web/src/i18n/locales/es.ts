@@ -573,6 +573,7 @@ const es: Record<string, string> = {
   "watches.foot": "Bombeos & fases de planeo necesitan aceleración bruta (≥25 Hz) directa del reloj. Las estadísticas GPS se pueden analizar vía import FIT/datos en muchas marcas.",
   "watches.nGarmin": "Modelos antiguos sin accel bruto: las estadísticas GPS se analizan igualmente.",
   "watches.nApple": "Aceleración bruta vía Core Motion.",
+  "watches.nWear": "Funciona en cualquier reloj Wear OS 3+ — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Acceso a sensores según el modelo.",
   "watches.nPolar": "Vincula tu cuenta → importa entrenamientos (GPS + FC). La API no expone el flujo de accel bruto de alta frecuencia para detectar pump (solo con un sensor BLE aparte).",
   "watches.nSuunto": "Vincula tu cuenta → importa entrenamientos (GPS + FC). La exportación FIT no incluye (todavía) el flujo de accel bruto de alta frecuencia para detectar pump.",

@@ -142,6 +142,7 @@ export default function Landing() {
                     className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
                 </div>
                 <figcaption className="text-xs text-slate-300">Wear OS</figcaption>
+                <span className="text-[11px] text-slate-400">Samsung · Pixel · TicWatch …</span>
                 <PlayBadge className="mt-1" />
               </figure>
             </div>

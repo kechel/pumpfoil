@@ -748,6 +748,7 @@ const en: Record<string, string> = {
   "watches.foot": "Pumps & glide phases need raw acceleration (≥25 Hz) straight from the watch. GPS stats can be analyzed via FIT/data import for many brands.",
   "watches.nGarmin": "Older models without raw accel: GPS stats are still analyzed.",
   "watches.nApple": "Raw acceleration via Core Motion.",
+  "watches.nWear": "Runs on any Wear OS 3+ watch — Samsung Galaxy Watch, Google Pixel Watch, TicWatch/Mobvoi, Fossil, OnePlus.",
   "watches.nAmazfit": "Sensor access depends on the model.",
   "watches.nPolar": "Link your account → import workouts (GPS + HR). The API export doesn't include the high-rate raw accel stream needed for pump detection (only via a separate BLE sensor).",
   "watches.nSuunto": "Link your account → import workouts (GPS + HR). The FIT export doesn't (yet) include the high-rate raw accel stream needed for pump detection.",
