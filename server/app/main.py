@@ -236,6 +236,8 @@ app.include_router(sessions.router)
 app.include_router(ml.router)
 app.include_router(settings_api.router)
 app.include_router(community.router, dependencies=[Depends(require_social)])
+# Spot-Lese-Endpunkte ohne Social-Gate: Spots/Karte/Sessions dürfen auch Kinder sehen (nur Chat gesperrt).
+app.include_router(community.spot_router)
 app.include_router(admin.router)
 app.include_router(feedback.router)
 app.include_router(oauth.router)

@@ -64,10 +64,15 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun startLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) return   // UI fordert die Permission an
+        val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        val coarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!fine && !coarse) return   // UI fordert die Permission an
+        // GPS für präzise Geschwindigkeit; nur wenn ausschließlich COARSE erteilt, auf NETWORK ausweichen.
+        val provider = if (fine) LocationManager.GPS_PROVIDER else LocationManager.NETWORK_PROVIDER
         try {
-            locMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, locListener)
+            locMgr.requestLocationUpdates(provider, 1000L, 0f, locListener)
         } catch (_: SecurityException) { /* Permission fehlt */ }
         catch (_: IllegalArgumentException) { /* Provider nicht verfügbar */ }
     }

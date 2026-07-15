@@ -4,10 +4,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Handy-Recorder (Beta „Record on Phone"): GPS + Accel im Hintergrund aufnehmen. -->
+    <!-- FINE braucht ab Android 12 zwingend auch COARSE, sonst wird die Runtime-Anfrage abgelehnt. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Sprach-Diktat (SpeechRecognizer) — Sichtbarkeit der Erkenner-App unter Android 11+. -->
@@ -27,7 +28,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Pumpfoil"
             android:theme="@style/Theme.Pumpfoil.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

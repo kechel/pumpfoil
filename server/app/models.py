@@ -224,6 +224,9 @@ class Session(Base):
     # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
     # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
     placement: Mapped[str | None] = mapped_column(String(16))
+    # Aufnahme-Gerät (Modell + OS), von der App gemeldet — z. B. "Pixel 7 · Android 14" oder
+    # "iPhone15,2 · iOS 17.5". Rein zur gezielten Fehlersuche (welches Telefon/OS).
+    device_model: Mapped[str | None] = mapped_column(String(80))
 
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")

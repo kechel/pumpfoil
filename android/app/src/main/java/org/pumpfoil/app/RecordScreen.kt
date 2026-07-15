@@ -93,13 +93,17 @@ fun RecordScreen(onBack: () -> Unit) {
 
     // Permissions (Standort fürs GPS, Benachrichtigung für den Foreground-Service ab Android 13).
     val perms = buildList {
+        // FINE + COARSE zusammen anfragen — ab Android 12 wird eine FINE-only-Anfrage sonst abgelehnt.
         add(Manifest.permission.ACCESS_FINE_LOCATION)
+        add(Manifest.permission.ACCESS_COARSE_LOCATION)
         if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
     }.toTypedArray()
     val permLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
-        if (result[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+        // Genügt, wenn irgendeine Standort-Genauigkeit gewährt wurde (FINE ODER COARSE).
+        if (result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
             Recorder.sessionFoilId = foilId
             RecorderService.start(ctx)
         }

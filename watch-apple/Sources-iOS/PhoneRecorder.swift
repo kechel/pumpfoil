@@ -91,6 +91,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             "session_uuid": uuid, "started_at": Self.nowIso(), "sport": "pumpfoil",
             "gps_hz": 1, "accel_hz": Int(ACCEL_HZ), "accel_scale": Int(ACCEL_SCALE),
             "placement": "phone",
+            "device_model": Self.deviceModel(),
         ]
         if let f = sessionFoilId { meta["foil_id"] = f }
         Store.writeMeta(uuid, meta)
@@ -131,6 +132,18 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"; f.timeZone = TimeZone(identifier: "UTC")
         return f.string(from: Date())
+    }
+    // Aufnahme-Gerät: "iPhone15,2 · iOS 17.5" (Fehlersuche). Modell-Identifier via uname,
+    // OS-Version über ProcessInfo (kein UIKit nötig).
+    private static func deviceModel() -> String {
+        var sys = utsname(); uname(&sys)
+        let machine = withUnsafeBytes(of: &sys.machine) { raw -> String in
+            let ptr = raw.bindMemory(to: CChar.self).baseAddress!
+            return String(cString: ptr)
+        }
+        let v = ProcessInfo.processInfo.operatingSystemVersion
+        let model = machine.isEmpty ? "iPhone" : machine
+        return String("\(model) · iOS \(v.majorVersion).\(v.minorVersion)".prefix(80))
     }
     private func toI16(_ v: Double) -> Int16 { Int16(max(-32768, min(32767, (v).rounded()))) }
 

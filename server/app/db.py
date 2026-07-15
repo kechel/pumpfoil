@@ -65,6 +65,8 @@ def _migrate_add_indexes() -> None:
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
         # Aufnahme-Platzierung (Handy-Recorder „Record on Phone" = 'phone', sonst Uhr).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
+        # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Reverse-Pairing: Uhr meldet ihre Plattform/Label bei pair-init -> beim Claim übernommen.
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS label VARCHAR(120)",
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS platform VARCHAR(16)",

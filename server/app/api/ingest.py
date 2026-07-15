@@ -64,6 +64,7 @@ def start_session(
             status="recording",
             foil_id=_foil,
             placement=(body.placement or None),
+            device_model=(body.device_model or None),
         )
         db.add(s)
         db.commit()

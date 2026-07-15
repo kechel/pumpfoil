@@ -24,6 +24,10 @@ from ..weather import spot_water_temp, spot_weather
 from .deps import current_user
 
 router = APIRouter(prefix="/api/community", tags=["community"])
+# Spot-Lese-Endpunkte (Karte/Liste/Sessions/Rekorde/Wetter eines Spots) sind KEIN UGC — die dürfen
+# auch Kinder (social_allowed=False) sehen. Nur die Chaträume dazu sind gesperrt (eigener chat.router).
+# Deshalb hängt dieser Router NICHT an require_social (im Gegensatz zu router mit Feed/Likes).
+spot_router = APIRouter(prefix="/api/community", tags=["community"])
 
 PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
 METRICS = ("distance", "duration", "speed", "runs", "glide")
@@ -128,7 +132,7 @@ def community_sessions(
     return _attach_social(db, user, [_brief(*r) for r in rows])
 
 
-@router.get("/spot-sessions")
+@spot_router.get("/spot-sessions")
 def spot_sessions(
     spot: str, limit: int = 50, offset: int = 0, accel_only: bool = True,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -167,7 +171,7 @@ def community_records(accel_only: bool = True, _user: models.User = Depends(curr
     return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only) for m in METRICS} for p in PERIODS}
 
 
-@router.get("/spot-records")
+@spot_router.get("/spot-records")
 def spot_records(
     spot: str, period: str = "all", accel_only: bool = True,
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -262,7 +266,7 @@ def latest_photos(
     return out
 
 
-@router.get("/spots")
+@spot_router.get("/spots")
 def spots(accel_only: bool = True, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     has_place = (S.place_name.isnot(None), S.place_name != "")
     qual = sorted({p for (p,) in _community(db.query(S.place_name), user.id, accel_only).filter(*has_place).distinct().all()})
@@ -280,7 +284,7 @@ def spots(accel_only: bool = True, user: models.User = Depends(current_user), db
     return {"mine": mine, "all": qual}
 
 
-@router.get("/spot-map")
+@spot_router.get("/spot-map")
 def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte."""
     rows = (
@@ -302,7 +306,7 @@ _wx_lock = threading.Lock()
 _wx_cache: dict[str, tuple[float, dict]] = {}
 
 
-@router.get("/spot/weather")
+@spot_router.get("/spot/weather")
 def spot_weather_endpoint(
     spot: str, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:

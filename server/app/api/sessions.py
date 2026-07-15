@@ -886,6 +886,7 @@ def get_session(
         # label kann eine lange partNumber-Gruppe sein (z. B. "fēnix® 6X Pro / 6X Sapphire / …").
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
+    out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
     # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
     # Aus dem letzten GPS-Zeitstempel ableiten (nur Anzeige, nicht persistiert).
     if out.ended_at is None and s.started_at is not None:

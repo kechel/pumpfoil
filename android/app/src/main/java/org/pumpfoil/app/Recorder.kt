@@ -131,6 +131,13 @@ object Recorder {
         return f.format(java.util.Date())
     }
     private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
+    // Aufnahme-Gerät: "Google Pixel 7 · Android 14" (Fehlersuche). Herstellernamen groß führen.
+    private fun deviceModel(): String {
+        val mfr = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        val model = android.os.Build.MODEL
+        val name = if (model.startsWith(mfr, ignoreCase = true)) model else "$mfr $model"
+        return "$name · Android ${android.os.Build.VERSION.RELEASE}".take(80)
+    }
 
     fun isRecording() = running
 
@@ -153,6 +160,7 @@ object Recorder {
             .put("accel_hz", accelHzActual)
             .put("accel_scale", ACCEL_SCALE.toInt())
             .put("placement", "phone")          // für spätere Handy-spezifische Analyse (Hüfte/Tasche)
+            .put("device_model", deviceModel())  // Modell + OS — nur zur Fehlersuche
         sessionFoilId?.let { meta.put("foil_id", it) }
         RecStore.writeMeta(ctx, uuid, meta)
         running = true
