@@ -172,6 +172,7 @@ class SessionOut(BaseModel):
     spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)
     device_label: str | None = None  # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht)
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv
+    share_token: str | None = None    # öffentlicher Teilen-Token (nur dem Besitzer geliefert)
     caption: str | None = None  # eigene Beschriftung des Besitzers
     youtube_url: str | None = None  # optionale YouTube-URL
     thumb_url: str | None = None  # Vorschaubild (neuestes Foto der Session)

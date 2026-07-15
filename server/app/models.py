@@ -227,6 +227,9 @@ class Session(Base):
     # Aufnahme-Gerät (Modell + OS), von der App gemeldet — z. B. "Pixel 7 · Android 14" oder
     # "iPhone15,2 · iOS 17.5". Rein zur gezielten Fehlersuche (welches Telefon/OS).
     device_model: Mapped[str | None] = mapped_column(String(80))
+    # Öffentlicher Teilen-Token (unguessbar): gesetzt = jeder mit dem Link sieht die Session read-only
+    # (ohne Login). Nur vom Besitzer erzeugbar/widerrufbar. None = nicht öffentlich geteilt.
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
 
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")

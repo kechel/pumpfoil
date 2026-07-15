@@ -233,6 +233,8 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(ingest.router)
 app.include_router(sessions.router)
+# Öffentlicher Teilen-Link (read-only Session ohne Login) — bewusst KEIN Auth-Dependency.
+app.include_router(sessions.public_router)
 app.include_router(ml.router)
 app.include_router(settings_api.router)
 # Age-Gate (unter 13) sperrt nur Chat/Übertragungen + das Schreiben (Like/Vote, per require_social an

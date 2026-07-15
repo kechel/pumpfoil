@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import json
+import secrets
 import uuid
 import zipfile
 from datetime import timedelta, timezone
@@ -45,6 +46,8 @@ def _fit_bytes_from_upload(data: bytes, filename: str | None) -> bytes:
     return zf.read(fits[0])
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+# Öffentlicher (auth-freier) Router — nur der Token-Share-Endpoint. In main.py OHNE Auth eingebunden.
+public_router = APIRouter(prefix="/api/public", tags=["public"])
 
 _VALID_LABELS = {"pump", "glide", "not_foiling"}
 
@@ -886,6 +889,8 @@ def get_session(
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
+    if s.user_id == user.id:
+        out.share_token = s.share_token  # nur der Besitzer sieht den (ggf. gesetzten) Teilen-Token
     # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
     # Aus dem letzten GPS-Zeitstempel ableiten (nur Anzeige, nicht persistiert).
     if out.ended_at is None and s.started_at is not None:
@@ -900,6 +905,70 @@ def get_session(
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "private, no-cache"
     return out
+
+
+@router.post("/{session_id}/share")
+def create_share_link(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Öffentlichen Teilen-Link für die EIGENE Session erzeugen (idempotent — bestehenden wiederverwenden).
+    Jeder mit dem Link sieht die Session read-only ohne Login."""
+    s = _owned(db, user, session_id)   # nur eigene Sessions (wirft 404 sonst)
+    if not s.share_token:
+        s.share_token = secrets.token_urlsafe(12)
+        db.commit()
+    return {"token": s.share_token, "path": f"/s/{s.share_token}"}
+
+
+@router.delete("/{session_id}/share")
+def revoke_share_link(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Teilen-Link widerrufen — der Link funktioniert danach nicht mehr."""
+    s = _owned(db, user, session_id)
+    s.share_token = None
+    db.commit()
+    return {"ok": True}
+
+
+@public_router.get("/session/{token}")
+def public_shared_session(token: str, db: Session = Depends(get_db)) -> dict:
+    """Öffentliche, read-only Session-Ansicht über den Teilen-Token — KEIN Login.
+    Liefert dieselben reichen Daten wie die Detailansicht (Track/Karte/Segmente/Puls/Pumps/Foto-URLs/
+    Bezeichnung/Foil/Uhr) plus die Fotoliste. Nur die EINE Session; keine owner-only Aktionen."""
+    s = (db.query(models.Session)
+         .filter(models.Session.share_token == token, models.Session.deleted.isnot(True))
+         .first())
+    if s is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
+    out = _session_out(
+        s, with_analysis=True, owned=False,
+        owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,
+        owner_avatar_url=s.user.avatar_url if s.user else None,
+    )
+    out.foil = _resolve_foil(db, s)
+    if s.device_id:
+        dev = db.get(models.DeviceToken, s.device_id)
+        out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
+    out.device_model = s.device_model
+    if out.ended_at is None and s.started_at is not None:
+        gps = storage.load_gps(s.session_uuid)
+        if gps and gps[-1] and gps[-1][0]:
+            out.ended_at = s.started_at + timedelta(milliseconds=int(gps[-1][0]))
+    out.like_count = int(db.query(func.count()).select_from(models.SessionLike)
+                         .filter_by(session_id=s.id).scalar() or 0)
+    out.liked = False
+    out.share_token = None   # den Token NICHT im öffentlichen Payload zurückspiegeln
+    photos = [{"id": p.id, "url": p.url, "thumb_url": media.thumb_url(p.url)}
+              for p in db.query(models.SessionPhoto)
+              .filter_by(session_id=s.id, blocked=False).order_by(models.SessionPhoto.id).all()]
+    data = out.model_dump(mode="json")
+    data["photos"] = photos
+    return data
 
 
 @router.get("/{session_id}/share.png")

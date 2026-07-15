@@ -67,6 +67,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
         # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
+        # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ix_sessions_share_token ON sessions (share_token)",
         # Reverse-Pairing: Uhr meldet ihre Plattform/Label bei pair-init -> beim Claim übernommen.
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS label VARCHAR(120)",
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS platform VARCHAR(16)",
