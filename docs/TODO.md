@@ -64,4 +64,9 @@ Alles gebaut; offen ist nur Jans Xcode-/Store-Teil:
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
-_leer_
+- **Öffentliche Session-Teilen-Links** (Community-Wunsch Dominik/Pixelfoil, 2026-07-15): unguessbarer
+  Token-Link → vollständige Session-Detailseite ohne Login/Registrierung ansehbar (mehr als das Share-Bild).
+  Design: `share_token` je Session (nullable, vom Besitzer erzeugbar/widerrufbar), öffentliche read-only
+  Route `/s/<token>` (Web) + Server-Endpoint ohne Auth, der NUR diese eine Session liefert. Datenschutz:
+  nichts tracken, kein fremder Zugriff auf andere Sessions/Konten, Besitzer kann Link zurückziehen,
+  Age-Gate-/`social`-Regeln beachten. Jan erwägt es (noch nicht entschieden).
