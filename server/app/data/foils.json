@@ -213,7 +213,8 @@
     "span_cm": 104,
     "area_cm2": 2445,
     "thickness_mm": 46.3,
-    "is_baseline": false
+    "is_baseline": false,
+    "thickness_estimated": true
   },
   {
     "brand": "Sabfoil",
@@ -222,7 +223,8 @@
     "span_cm": 124,
     "area_cm2": 2742,
     "thickness_mm": 44.7,
-    "is_baseline": false
+    "is_baseline": false,
+    "thickness_estimated": true
   },
   {
     "brand": "Duotone",
@@ -3232,6 +3234,16 @@
     "span_cm": 99.9,
     "area_cm2": 1747,
     "thickness_mm": 25.9,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "SEA DEVIL",
+    "size": "840",
+    "span_cm": 84,
+    "area_cm2": 2122,
+    "thickness_mm": 48,
+    "thickness_estimated": true,
     "is_baseline": false
   }
 ]
