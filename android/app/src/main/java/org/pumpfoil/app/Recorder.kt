@@ -46,6 +46,7 @@ object Recorder {
         val pendingCount: Int = 0,
         val isFoiling: Boolean = false,
         val runCount: Int = 0,
+        val track: List<DoubleArray> = emptyList(),   // [lat, lon] fürs Live-Track-Canvas
         val runDurationMs: Long = 0,
         val runDistanceM: Double = 0.0,
         val runMaxSpeedKmh: Double = 0.0,
@@ -111,6 +112,8 @@ object Recorder {
         SupervisorJob() + Dispatchers.Default +
         CoroutineExceptionHandler { _, e -> android.util.Log.e("Recorder", "coroutine", e) })
     private val lock = Any()
+    // Track-Punkte fürs Live-Canvas (nicht beim Flush geleert, anders als gps-Puffer). Downsample bei Bedarf.
+    private val trackPts = ArrayList<DoubleArray>()
     private val accel = ArrayList<Short>(16384)
     private var accelT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
@@ -169,6 +172,7 @@ object Recorder {
         sessionFoilId?.let { meta.put("foil_id", it) }
         RecStore.writeMeta(ctx, uuid, meta)
         running = true
+        synchronized(lock) { trackPts.clear() }
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
@@ -305,7 +309,11 @@ object Recorder {
             if (sp > maxMps) maxMps = sp
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))
             while (spWin.isNotEmpty() && tMs - spWin[0][0] > 3000) spWin.removeAt(0)
+            // Track fürs Canvas; bei >3000 Punkten jeden zweiten verwerfen (Form bleibt erhalten).
+            trackPts.add(doubleArrayOf(lat, lon))
+            if (trackPts.size > 3000) { var i = trackPts.size - 2; while (i >= 0) { trackPts.removeAt(i); i -= 2 } }
         }
+        val trackSnap = synchronized(lock) { ArrayList(trackPts) }
         val sec = (tMs / 1000.0).coerceAtLeast(1.0)
         val sp3 = if (spWin.isEmpty()) sp else spWin.sumOf { it[1] } / spWin.size
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
@@ -322,6 +330,7 @@ object Recorder {
             gpsFix = true,
             isFoiling = nowFoiling,
             runCount = runCount,
+            track = trackSnap,
             runDurationMs = runDur,
             runDistanceM = runDist,
             runMaxSpeedKmh = runMax * 3.6,

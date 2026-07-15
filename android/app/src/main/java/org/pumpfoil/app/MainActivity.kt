@@ -127,6 +127,7 @@ fun MainScaffold(onLogout: () -> Unit) {
     }
 
     val compareIds by CompareStore.ids.collectAsState()
+    val recSt by Recorder.state.collectAsState()
     Scaffold(
         // Kein Status-Bar-Inset auf den Content legen — die inneren Screen-Topbars (PumpfoilTopBar)
         // zeichnen selbst hinter die Statusleiste (edge-to-edge, cyan bis ganz oben). Bottom-Bar
@@ -135,7 +136,8 @@ fun MainScaffold(onLogout: () -> Unit) {
         // Bottom-Nav mobil IMMER sichtbar (wie die PWA: fixed bottom-0 auf allen Routen) —
         // auch in Detail-/Unterscreens wie Session-Detail. Highlight nur auf Top-Level-Tabs.
         bottomBar = {
-            PumpfoilBottomBar(route, social) { nav.switchTab(it) }
+            // Während der Aufnahme Nav-Bar ausblenden (fokussierter Recording-Modus).
+            if (!recSt.recording) PumpfoilBottomBar(route, social) { nav.switchTab(it) }
         },
         // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
         // Sessions markiert sind. Nicht auf dem Compare-Screen selbst.
