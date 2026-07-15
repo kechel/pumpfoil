@@ -113,37 +113,40 @@ export default function Landing() {
           <section className="pb-12">
             <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
             <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
+            {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
-              <figure className="flex flex-col items-center gap-2">
-                <div className="flex gap-3">
+              <figure className="flex flex-col items-center">
+                <div className="flex h-28 items-center gap-3 sm:h-32">
                   <img src="/watch-garmin-1.webp" alt="Garmin" loading="lazy"
-                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
                   <img src="/watch-garmin-2.webp" alt="Garmin" loading="lazy"
-                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
                 </div>
-                <figcaption className="text-xs text-slate-300">Garmin</figcaption>
-                <ConnectIqButton className="mt-1" />
+                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Garmin</figcaption>
+                <span className="text-[11px] leading-tight text-slate-400">&nbsp;</span>
+                <ConnectIqButton className="mt-2" />
               </figure>
-              <figure className="flex flex-col items-center gap-2">
-                <div className="flex gap-3">
+              <figure className="flex flex-col items-center">
+                <div className="flex h-28 items-center gap-3 sm:h-32">
                   <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"
-                    className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-[1.5rem] border border-slate-800 shadow-xl" />
                   <img src="/watch-apple-2.webp" alt="Apple Watch" loading="lazy"
-                    className="w-28 rounded-[1.75rem] border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-[1.5rem] border border-slate-800 shadow-xl" />
                 </div>
-                <figcaption className="text-xs text-slate-300">Apple Watch</figcaption>
-                <AppStoreBadge className="mt-1" />
+                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Apple Watch</figcaption>
+                <span className="text-[11px] leading-tight text-slate-400">&nbsp;</span>
+                <AppStoreBadge className="mt-2" />
               </figure>
-              <figure className="flex flex-col items-center gap-2">
-                <div className="flex gap-3">
+              <figure className="flex flex-col items-center">
+                <div className="flex h-28 items-center gap-3 sm:h-32">
                   <img src="/watch-wear-1.webp" alt="Wear OS" loading="lazy"
-                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
                   <img src="/watch-wear-2.webp" alt="Wear OS" loading="lazy"
-                    className="w-28 rounded-full border border-slate-800 shadow-xl sm:w-32" />
+                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
                 </div>
-                <figcaption className="text-xs text-slate-300">Wear OS</figcaption>
-                <span className="text-[11px] text-slate-400">Samsung · Pixel · TicWatch …</span>
-                <PlayBadge className="mt-1" />
+                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Wear OS</figcaption>
+                <span className="whitespace-nowrap text-[11px] leading-tight text-slate-400">Samsung · Pixel · TicWatch …</span>
+                <PlayBadge className="mt-2" />
               </figure>
             </div>
 
