@@ -3,6 +3,12 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Handy-Recorder (Beta „Record on Phone"): GPS + Accel im Hintergrund aufnehmen. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Sprach-Diktat (SpeechRecognizer) — Sichtbarkeit der Erkenner-App unter Android 11+. -->
     <queries>
@@ -49,5 +55,11 @@
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/pumpfoil/need-token" />
             </intent-filter>
         </service>
+
+        <!-- Handy-Recorder: Foreground-Service (GPS im Hintergrund während der Aufnahme). -->
+        <service
+            android:name=".RecorderService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
     </application>
 </manifest>

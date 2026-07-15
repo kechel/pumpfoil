@@ -42,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -145,6 +146,26 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
+            // Beta-Feature „Record on Phone" — nur für Beta-Konten. Toggle steuert den
+            // Aufnahme-Button auf der Startseite (lokale Einstellung pro Gerät).
+            if (profile?.beta == true) {
+                val pctx = LocalContext.current
+                var phoneRec by remember {
+                    mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                        .getBoolean("phone_rec_enabled", false))
+                }
+                ListItem(
+                    headlineContent = { Text(I18n.t("profile.phoneRec") + "  (Beta)") },
+                    supportingContent = { Text(I18n.t("profile.phoneRecSub")) },
+                    trailingContent = {
+                        Switch(checked = phoneRec, onCheckedChange = {
+                            phoneRec = it
+                            pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                                .edit().putBoolean("phone_rec_enabled", it).apply()
+                        })
+                    },
+                )
+            }
             ListItem(
                 modifier = Modifier.clickable { onAccounts() },
                 headlineContent = { Text(I18n.t("accounts.title")) },

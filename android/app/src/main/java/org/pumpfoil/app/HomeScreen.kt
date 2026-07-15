@@ -65,7 +65,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, social: Boolean = true) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
@@ -211,7 +211,15 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }
             val hello = profile?.displayName?.takeIf { it.isNotBlank() }
                 ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
-            Text(hello, style = MaterialTheme.typography.headlineSmall)
+            // „Record on Phone"-Button rechts neben dem Gruß — nur wenn Beta-Feature aktiviert.
+            val recEnabled = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                .getBoolean("phone_rec_enabled", false)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+                if (profile?.beta == true && recEnabled) {
+                    FilledTonalButton(onClick = onRecord) { Text(I18n.t("home.recordBtn")) }
+                }
+            }
             Spacer(Modifier.height(10.dp))
 
             // Hinweis auf eingehende Session-Übertragungen (Details/Annehmen in „Meine Sessions").
