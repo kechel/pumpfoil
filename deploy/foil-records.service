@@ -2,9 +2,11 @@
 Description=pumpfoil.org täglicher Rekord-Snapshot (Community-Rekorde loggen + pushen)
 After=postgresql.service network.target
 
+# Pfade wie die live laufenden Units auf dieser VM (User=jan, /home/jan/garmin-connect-iq).
+# Bei Server-Umzug hier + in allen foil-*.service Pfade/User anpassen — siehe deploy/README.md.
 [Service]
 Type=oneshot
-User=foil
-EnvironmentFile=-/opt/foil/garmin-connect-iq/server/.env
-WorkingDirectory=/opt/foil/garmin-connect-iq/server
-ExecStart=/opt/foil/garmin-connect-iq/server/.venv/bin/python record_snapshot.py
+User=jan
+EnvironmentFile=-/home/jan/garmin-connect-iq/server/.env
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python record_snapshot.py
