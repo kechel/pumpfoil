@@ -65,11 +65,13 @@ class RecorderService : Service(), SensorEventListener {
     // garantiert das NICHT. Release in stopEverything(). Kein Timeout: Aufnahme kann lange laufen.
     private fun acquireWakeLock() {
         if (wakeLock?.isHeld == true) return
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pumpfoil:recording").apply {
-            setReferenceCounted(false)
-            acquire()
-        }
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pumpfoil:recording").apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+        } catch (e: Exception) { android.util.Log.e("RecorderService", "wakelock", e) }
     }
 
     private fun registerSensors() {
@@ -93,12 +95,12 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun stopEverything() {
-        sensors.unregisterListener(this)
+        try { sensors.unregisterListener(this) } catch (_: Exception) {}
         try { locMgr.removeUpdates(locListener) } catch (_: Exception) {}
         try { if (wakeLock?.isHeld == true) wakeLock?.release() } catch (_: Exception) {}
         wakeLock = null
-        Recorder.stop()
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        try { Recorder.stop() } catch (e: Exception) { android.util.Log.e("RecorderService", "stop", e) }
+        try { stopForeground(STOP_FOREGROUND_REMOVE) } catch (_: Exception) {}
         stopSelf()
     }
 

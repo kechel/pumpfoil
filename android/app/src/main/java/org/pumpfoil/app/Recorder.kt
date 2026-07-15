@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import android.content.Context
 import android.util.Base64
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -104,7 +105,11 @@ object Recorder {
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // ExceptionHandler: ein Fehler beim Flushen/Hochladen darf NIE die App killen (Recorder läuft
+    // im Hintergrund; unbehandelte Coroutine-Exceptions würden sonst den Prozess crashen).
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default +
+        CoroutineExceptionHandler { _, e -> android.util.Log.e("Recorder", "coroutine", e) })
     private val lock = Any()
     private val accel = ArrayList<Short>(16384)
     private var accelT0 = 0
@@ -178,9 +183,11 @@ object Recorder {
         val ctx = appCtx ?: return
         scope.launch {
             _state.value = _state.value.copy(recording = false, status = "speichere…")
-            flushAll()
-            RecStore.writeComplete(ctx, uuid, JSONObject()
-                .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
+            try {
+                flushAll()
+                RecStore.writeComplete(ctx, uuid, JSONObject()
+                    .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
+            } catch (e: Exception) { android.util.Log.e("Recorder", "stop/flush", e) }
             _state.value = _state.value.copy(
                 status = "gespeichert", pendingCount = RecStore.pendingCount(ctx))
             drain(ctx)
