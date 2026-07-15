@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.MailOutline
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.text.AnnotatedString
@@ -217,7 +218,13 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
                 if (profile?.beta == true && recEnabled) {
-                    FilledTonalButton(onClick = onRecord) { Text(I18n.t("home.recordBtn")) }
+                    // Brand-Cyan (Button = primary) statt des fahlen Tonal-Lila.
+                    Button(onClick = onRecord) {
+                        Icon(Icons.Filled.FiberManualRecord, contentDescription = null,
+                            modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(I18n.t("home.recordBtn"))
+                    }
                 }
             }
             Spacer(Modifier.height(10.dp))

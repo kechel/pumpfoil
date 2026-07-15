@@ -3,6 +3,7 @@ import SwiftUI
 // Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
 struct SpotSessionsView: View {
     let spot: String
+    @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
     @State private var loading = false
@@ -21,10 +22,12 @@ struct SpotSessionsView: View {
         .listStyle(.insetGrouped)
         .brandToolbar("📍 \(spot)")
         .toolbar {
-            // Spot-Chat (scope "spot:<name>", wie Web/PWA) — fehlte bisher auf iOS.
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
-                    Image(systemName: "bubble.left.and.bubble.right")
+            // Spot-Chat (scope "spot:<name>", wie Web/PWA) — bei Age-Gate (social_allowed=false) aus.
+            if store.profile?.social_allowed != false {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                    }
                 }
             }
         }

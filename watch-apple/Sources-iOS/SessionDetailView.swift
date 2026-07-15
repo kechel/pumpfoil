@@ -9,6 +9,7 @@ import UIKit
 struct SessionDetailView: View {
     let id: Int
     var dataVersion: Int? = nil   // aus der Liste: erlaubt Cache-Treffer ohne Netz (nil -> immer laden)
+    @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var session: SessionDetail?
     @State private var loading = true
@@ -50,8 +51,8 @@ struct SessionDetailView: View {
         .navigationTitle(Loc.t("sd.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Spot-Chat der Session (scope "spot:<name>") — für jede Session mit Spot.
-            if let sp = session?.place_name, !sp.isEmpty {
+            // Spot-Chat der Session (scope "spot:<name>") — bei Age-Gate (social_allowed=false) aus.
+            if let sp = session?.place_name, !sp.isEmpty, store.profile?.social_allowed != false {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { ChatRoomView(scope: "spot:\(sp)", title: sp) } label: {
                         Image(systemName: "bubble.left.and.bubble.right")

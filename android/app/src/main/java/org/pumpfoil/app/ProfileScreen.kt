@@ -137,17 +137,8 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 }
             }
             Spacer(Modifier.height(20.dp))
-            // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (koppeln/Alarm/Datenseiten dahinter)
-            // + darunter „Verknüpfte Konten". Kein Wear-Status/Garmin direkt in der Übersicht.
-            ListItem(
-                modifier = Modifier.clickable { onWatch() },
-                headlineContent = { Text(I18n.t("nav.watch")) },
-                supportingContent = { Text(I18n.t("watch.sectionSub")) },
-                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Beta-Feature „Record on Phone" — nur für Beta-Konten. Toggle steuert den
-            // Aufnahme-Button auf der Startseite (lokale Einstellung pro Gerät).
+            // Beta-Feature „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser).
+            // Nur für Beta-Konten. Toggle steuert den Aufnahme-Button auf der Startseite (lokal pro Gerät).
             if (profile?.beta == true) {
                 val pctx = LocalContext.current
                 var phoneRec by remember {
@@ -166,6 +157,15 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     },
                 )
             }
+            // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (koppeln/Alarm/Datenseiten dahinter)
+            // + darunter „Verknüpfte Konten". Kein Wear-Status/Garmin direkt in der Übersicht.
+            ListItem(
+                modifier = Modifier.clickable { onWatch() },
+                headlineContent = { Text(I18n.t("nav.watch")) },
+                supportingContent = { Text(I18n.t("watch.sectionSub")) },
+                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
             ListItem(
                 modifier = Modifier.clickable { onAccounts() },
                 headlineContent = { Text(I18n.t("accounts.title")) },

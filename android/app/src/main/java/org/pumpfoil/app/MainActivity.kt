@@ -8,6 +8,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.automirrored.filled.List
@@ -103,9 +109,21 @@ fun MainScaffold(onLogout: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe); Server erzwingt es.
     var social by remember { mutableStateOf(true) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        try { val p = Api.me(); p.language?.let { I18n.set(ctx, it) }; social = p.socialAllowed != false }
-        catch (_: Exception) {}
+    // Profil (Sprache + Social-Freigabe) bei jedem App-Resume frisch holen — so wirkt eine
+    // Age-Gate-Änderung sofort (Chat/Community-Tab + Home-Social-Bereiche aus), nicht erst nach Neustart.
+    val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    try { val p = Api.me(); p.language?.let { I18n.set(ctx, it) }; social = p.socialAllowed != false }
+                    catch (_: Exception) {}
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
 
     val compareIds by CompareStore.ids.collectAsState()
