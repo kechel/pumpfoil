@@ -65,6 +65,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
         "Pack the phone waterproof and take it along — GPS and motion are recorded."),
     "rec.foilLabel" to row("Foil dieser Session", "Foil dere Session", "Foil dieser Session", "Foil for this session", "Foil de cette session", "Foil di questa sessione", "Foil de esta sesión"),
     "rec.foilNone" to row("Ohne Foil", "Ohni Foil", "Ohne Foil", "No foil", "Sans foil", "Senza foil", "Sin foil"),
+    "rec.foilOther" to row("Anderes Foil …", "Anders Foil …", "Anderes Foil …", "Other foil …", "Autre foil …", "Altro foil …", "Otro foil …"),
     "rec.start" to row("START", "START", "START", "START", "START", "START", "START"),
     "rec.stop" to row("STOPP", "STOPP", "STOPP", "STOP", "STOP", "STOP", "STOP"),
     "rec.holdStop" to row("Zum Stoppen gedrückt halten", "Zum Stoppe drucke haa", "Zum Stoppen gedrückt halten", "Press and hold to stop", "Maintenir pour arrêter", "Tieni premuto per fermare", "Mantén pulsado para parar"),

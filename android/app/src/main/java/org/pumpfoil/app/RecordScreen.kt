@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -34,6 +35,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -53,6 +55,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.intOrNull
 
 // „Record on Phone" (Beta): das Handy selbst als Recorder. Aufnahme läuft im Foreground-Service
 // (RecorderService) weiter, auch mit Screen aus / in der Tasche. Gleiche Live-Werte wie die
@@ -64,14 +69,26 @@ fun RecordScreen(onBack: () -> Unit) {
     val ctx = LocalContext.current
     val st by Recorder.state.collectAsState()
     val scope = rememberCoroutineScope()
-    var foils by remember { mutableStateOf<List<Foil>>(emptyList()) }
+    var foils by remember { mutableStateOf<List<Foil>>(emptyList()) }       // ganzer Katalog
+    var favFoils by remember { mutableStateOf<List<Foil>>(emptyList()) }    // Favoriten (my_foils) als Chips
     var foilId by remember { mutableStateOf<Int?>(Recorder.sessionFoilId) }
     var foilMenu by remember { mutableStateOf(false) }
+    var defaultLoaded by remember { mutableStateOf(false) }
     var holdProgress by remember { mutableStateOf(0f) }
 
     LaunchedEffect(Unit) {
         Recorder.refreshPending(ctx)
         foils = try { Api.foils() } catch (_: Exception) { emptyList() }
+        try {
+            val s = Api.settings()
+            val favIds = s["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
+            favFoils = foils.filter { it.id in favIds }
+            if (!defaultLoaded) {   // Default-Foil vorwählen (nur beim ersten Laden)
+                val defId = s["foil_id"]?.jsonPrimitive?.intOrNull
+                foilId = Recorder.sessionFoilId ?: defId
+                defaultLoaded = true
+            }
+        } catch (_: Exception) {}
     }
 
     // Permissions (Standort fürs GPS, Benachrichtigung für den Foreground-Service ab Android 13).
@@ -124,9 +141,26 @@ fun RecordScreen(onBack: () -> Unit) {
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(6.dp))
-                    Box {
+                    // Favoriten (my_foils) direkt als Chips; Standard-Foil vorausgewählt.
+                    val chips: List<Pair<Int?, String>> = listOf(null to I18n.t("rec.foilNone")) +
+                        favFoils.map { (it.id as Int?) to "${it.brand} ${it.model} ${it.size}".trim() }
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        chips.chunked(2).forEach { rowItems ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                rowItems.forEach { (id, label) ->
+                                    FoilChip(label, foilId == id, Modifier.weight(1f)) { foilId = id }
+                                }
+                                if (rowItems.size == 1) Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    // Zusätzlich: ganzer Katalog, falls ein Foil außerhalb der Favoriten gebraucht wird.
+                    Box(Modifier.fillMaxWidth()) {
                         OutlinedButton(onClick = { foilMenu = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text(foilLabel(foilId), Modifier.weight(1f), maxLines = 1)
+                            val other = foilId != null && favFoils.none { it.id == foilId }
+                            Text(if (other) foilLabel(foilId) else I18n.t("rec.foilOther"),
+                                Modifier.weight(1f), maxLines = 1)
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(expanded = foilMenu, onDismissRequest = { foilMenu = false }) {
@@ -251,5 +285,19 @@ private fun StatCell(label: String, value: String, modifier: Modifier = Modifier
             Text(label, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+// Direkt antippbarer Foil-Chip (Favoriten + „Ohne Foil"); hervorgehoben, wenn ausgewählt.
+@Composable
+private fun FoilChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Surface(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Text(label, Modifier.padding(vertical = 10.dp, horizontal = 8.dp), maxLines = 1,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
     }
 }
