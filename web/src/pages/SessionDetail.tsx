@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -58,8 +58,10 @@ function ytId(url: string | null | undefined): string {
   }
 }
 
-function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMeta, analysis }: {
-  sessionId: number; owned: boolean; ownerName: string | null; ownerAvatar: string | null;
+function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], ownerName, ownerAvatar, youtubeUrl, onMeta, analysis }: {
+  sessionId: number; owned: boolean; isPublic?: boolean;
+  publicPhotos?: { id: number; url: string; thumb_url?: string | null }[];
+  ownerName: string | null; ownerAvatar: string | null;
   youtubeUrl: string | null; onMeta: (s: SessionSummary) => void; analysis: any;
 }) {
   const t = useT();
@@ -73,11 +75,39 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
   const [metaErr, setMetaErr] = useState<string | null>(null);
   const [video, setVideo] = useState(false);  // iframe-Popup offen?
   useCloseOnBack(video, () => setVideo(false));
+  // Öffentlicher Teilen-Link (nur Besitzer): Popup mit Erklärung + Link + Kopieren/Deaktivieren.
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  useCloseOnBack(linkOpen, () => setLinkOpen(false));
+  const openShareLink = async () => {
+    setLinkOpen(true); setCopied(false);
+    if (!shareUrl) {
+      try { const r = await api.createShareLink(sessionId); setShareUrl(window.location.origin + r.path); }
+      catch { setMetaErr(t("profile.error")); }
+    }
+  };
+  const revoke = async () => {
+    if (!confirm(t("share.revokeConfirm"))) return;
+    try { await api.revokeShareLink(sessionId); } catch {}
+    setShareUrl(null); setLinkOpen(false);
+  };
+  const copyLink = async () => {
+    if (!shareUrl) return;
+    try { await navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    catch {}
+  };
 
   useEffect(() => { setYt(youtubeUrl ?? ""); }, [youtubeUrl]);
   useEffect(() => {
+    // Öffentlicher Link: keine authentifizierte sessionSocial-Abfrage — nur die Medien read-only.
+    if (isPublic) {
+      setS({ photos: publicPhotos, liked: false, like_count: 0, fake_count: 0,
+             my_fake: false, inappropriate_count: 0, my_inappropriate: false });
+      return;
+    }
     api.sessionSocial(sessionId).then(setS).catch(() => {});
-  }, [sessionId]);
+  }, [sessionId, isPublic]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!s) return null;
 
   const saveVideo = () => {
@@ -160,7 +190,8 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           )}
         </div>
       )}
-      {/* Aktionszeile: Likes · Foto · Video … (rechtsbündig) wirkt unecht · unangemessen */}
+      {/* Aktionszeile — im öffentlichen Link komplett aus (nur Medien read-only oben bleiben). */}
+      {!isPublic && (<>
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={like}
@@ -174,6 +205,16 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
             className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400"
           >
             <ShareIcon className="h-4 w-4" /> {t("sd.share")}
+          </button>
+        )}
+        {owned && (
+          <button
+            onClick={openShareLink}
+            aria-label={t("share.linkBtn")}
+            title={t("share.linkBtn")}
+            className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+          >
+            <LinkIcon className="h-4 w-4 text-brand-400" />
           </button>
         )}
         {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} onClose={() => setShareOpen(false)} />}
@@ -225,6 +266,36 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
           {metaErr && <span className="text-xs text-red-400">{metaErr}</span>}
         </div>
       )}
+      </>)}
+      {/* Teilen-Link-Popup (nur Besitzer): kurze Erklärung + Link + Kopieren + Deaktivieren. */}
+      {linkOpen && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/70 p-4" onClick={() => setLinkOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 flex items-center gap-2 text-slate-100">
+              <LinkIcon className="h-5 w-5 text-brand-400" /> <h3 className="font-semibold">{t("share.linkTitle")}</h3>
+            </div>
+            <p className="mb-3 text-sm text-slate-300">{t("share.linkExplain")}</p>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly value={shareUrl ?? t("common.loading")}
+                onFocus={(e) => e.currentTarget.select()}
+                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              />
+              <button
+                onClick={copyLink} disabled={!shareUrl}
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50"
+              >
+                {copied ? <CheckIcon className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
+                {copied ? t("share.copied") : t("share.copy")}
+              </button>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <button onClick={revoke} disabled={!shareUrl} className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50">{t("share.revoke")}</button>
+              <button onClick={() => setLinkOpen(false)} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">{t("common.close")}</button>
+            </div>
+          </div>
+        </div>
+      )}
       {video && vid && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={() => setVideo(false)}>
           <button onClick={() => setVideo(false)} aria-label="Close"
@@ -254,7 +325,8 @@ function SocialBar({ sessionId, owned, ownerName, ownerAvatar, youtubeUrl, onMet
 
 export default function SessionDetail() {
   const t = useT();
-  const { id } = useParams();
+  const { id, token } = useParams();
+  const isPublic = !!token;   // Route /s/:token → öffentliche read-only Ansicht ohne Login
   const nav = useNavigate();
   const [unmerging, setUnmerging] = useState(false);
   const [searchParams] = useSearchParams();
@@ -265,11 +337,12 @@ export default function SessionDetail() {
   const [neighbors, setNeighbors] = useState<{ older?: number; newer?: number }>({});
 
   useEffect(() => {
+    if (isPublic) return;   // öffentlicher Link: keine authentifizierten Nachbar-/Verlauf-Abfragen
     setLastSession(Number(id));  // Liste hebt die zuletzt geöffnete Session hervor
     api.sessionNeighbors(Number(id))
       .then((n) => setNeighbors({ older: n.older ?? undefined, newer: n.newer ?? undefined }))
       .catch(() => {});
-  }, [id]);
+  }, [id, isPublic]);
   const [colorMode, setColorMode] = useState<ColorMode>("speed");
   const [selectedRun, setSelectedRun] = useState<number | null>(null);
   const [speedMin, setSpeedMin] = useState(8);
@@ -303,14 +376,15 @@ export default function SessionDetail() {
   const [tapSaved, setTapSaved] = useState<string>(""); // kurze Speicher-Rückmeldung
   const [takeCount, setTakeCount] = useState(0);       // bereits gespeicherte Durchläufe
   const [cmp, setCmp] = useState<Awaited<ReturnType<typeof api.comparePumpTruth>> | null>(null);
-  useEffect(() => { api.getProfile().then((p) => setIsAdmin(p.is_admin)).catch(() => {}); }, []);
+  useEffect(() => { if (isPublic) return; api.getProfile().then((p) => setIsAdmin(p.is_admin)).catch(() => {}); }, [isPublic]);
 
   useEffect(() => {
+    if (isPublic) { setWeightKg(DEFAULT_RIDER.riderWeight); return; }
     api.getSettings().then((s) => {
       const w = Number(s.weight_kg);
       setWeightKg(Number.isFinite(w) && w > 0 ? w : DEFAULT_RIDER.riderWeight);
     }).catch(() => setWeightKg(DEFAULT_RIDER.riderWeight));
-  }, []);
+  }, [isPublic]);
 
   // Hotkeys: Ziffern 1–9 wählen den Lauf direkt, 0 zeigt alle; ←/→ (bzw. ↑/↓) blättern
   // durch die Einzelläufe (Reihenfolge: alle → Lauf 1 → … → Lauf n → alle).
@@ -425,14 +499,15 @@ export default function SessionDetail() {
   const trackLayer = useRef<L.LayerGroup | null>(null);
 
   useEffect(() => {
-    api.session(Number(id)).then(setSession).catch((e) => setError(String(e)));
-  }, [id]);
+    const p = isPublic ? api.publicSession(token!) : api.session(Number(id));
+    p.then(setSession).catch((e) => setError(String(e)));
+  }, [id, token, isPublic]);
 
   // Spot-Name wird serverseitig im HINTERGRUND aufgelöst (OSM/Overpass kann dauern) -> die
   // Session kommt sofort ohne Namen. Solange place_name noch null ist (nicht "" = definitiv
   // kein Gewässer), degressiv nachpollen und übernehmen, sobald da.
   useEffect(() => {
-    if (!session || session.place_name != null) return;
+    if (isPublic || !session || session.place_name != null) return;
     const delays = [1000, 3000, 5000, 10000, 20000, 30000];
     let cancelled = false;
     let acc = 0;
@@ -1004,7 +1079,7 @@ export default function SessionDetail() {
         {session.sport && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WaveIcon className="h-3.5 w-3.5" /> {session.sport}</span>}
         {session.device_label && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WatchIcon className="h-3.5 w-3.5" /> {session.device_label}</span>}
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
-        {!owned && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
+        {!owned && !isPublic && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>
         </div>
       </div>
@@ -1014,6 +1089,8 @@ export default function SessionDetail() {
         <SocialBar
           sessionId={session.id}
           owned={owned}
+          isPublic={isPublic}
+          publicPhotos={session.photos ?? []}
           ownerName={session.owner_name ?? null}
           ownerAvatar={session.owner_avatar_url ?? null}
           youtubeUrl={session.youtube_url ?? null}

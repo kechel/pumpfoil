@@ -140,6 +140,9 @@ export interface SessionSummary {
   youtube_url?: string | null;
   thumb_url?: string | null;
   device_label?: string | null;
+  device_model?: string | null;
+  share_token?: string | null;   // nur dem Besitzer geliefert (öffentlicher Teilen-Link gesetzt?)
+  photos?: { id: number; url: string; thumb_url?: string | null }[];  // im öffentlichen Payload (/s/<token>)
   photo_count?: number;
   like_count?: number;
   liked?: boolean;
@@ -599,6 +602,10 @@ export const api = {
       body: JSON.stringify({ trim_start_ms, trim_end_ms }),
     }),
   session: (id: number) => req<SessionSummary>(`/api/sessions/${id}`),
+  // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.
+  createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
+  revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),
+  publicSession: (token: string) => req<SessionSummary>(`/api/public/session/${encodeURIComponent(token)}`),
   sessionNeighbors: (id: number) => req<{ older: number | null; newer: number | null }>(`/api/sessions/${id}/neighbors`),
   deleteSession: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}`, { method: "DELETE" }),
   raw: (id: number) => req<RawData>(`/api/sessions/${id}/raw`),

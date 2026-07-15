@@ -57,7 +57,15 @@ const de: Record<string, string> = {
   "common.delete": "Löschen",
   "common.search": "Suchen",
   "common.loading": "lädt…",
+  "common.close": "Schließen",
   "common.reset": "Zurücksetzen",
+  "share.linkBtn": "Teilen-Link",
+  "share.linkTitle": "Öffentlicher Teilen-Link",
+  "share.linkExplain": "Jeder mit diesem Link sieht diese Session (nur ansehen) — ganz ohne Konto. Zum Abschalten den Link deaktivieren.",
+  "share.copy": "Kopieren",
+  "share.copied": "Kopiert ✓",
+  "share.revoke": "Link deaktivieren",
+  "share.revokeConfirm": "Diesen Teilen-Link deaktivieren? Er funktioniert danach nicht mehr.",
   "common.back": "← zurück",
 
   // Navigation (App.tsx)

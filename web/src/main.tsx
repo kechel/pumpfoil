@@ -75,6 +75,7 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
+  { path: "/s/:token", element: <SessionDetail /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
     path: "/",
     element: <RootRoute />,
