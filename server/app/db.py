@@ -63,6 +63,8 @@ def _migrate_add_indexes() -> None:
         # App-Caching: „zuletzt geändert" je Session (Backfill = created_at für Altbestand).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ",
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
+        # Aufnahme-Platzierung (Handy-Recorder „Record on Phone" = 'phone', sonst Uhr).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
         # Reverse-Pairing: Uhr meldet ihre Plattform/Label bei pair-init -> beim Claim übernommen.
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS label VARCHAR(120)",
         "ALTER TABLE device_pairings ADD COLUMN IF NOT EXISTS platform VARCHAR(16)",

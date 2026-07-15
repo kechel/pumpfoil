@@ -221,6 +221,9 @@ class Session(Base):
     gps_hz: Mapped[int] = mapped_column(Integer, default=1)
     accel_hz: Mapped[int] = mapped_column(Integer, default=25)
     accel_scale: Mapped[int] = mapped_column(Integer, default=2048)
+    # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
+    # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
+    placement: Mapped[str | None] = mapped_column(String(16))
 
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")

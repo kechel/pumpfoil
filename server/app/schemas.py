@@ -110,6 +110,7 @@ class SessionStartIn(BaseModel):
     accel_hz: int = 25
     accel_scale: int = 2048
     foil_id: int | None = None   # auf der Uhr für diese Session gewähltes Foil (Override)
+    placement: str | None = None  # "phone" = Handy-Recorder (Tasche/Hüfte); sonst Uhr am Handgelenk
 
 
 class SessionStartOut(BaseModel):

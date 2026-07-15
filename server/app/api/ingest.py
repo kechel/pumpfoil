@@ -63,6 +63,7 @@ def start_session(
             accel_scale=body.accel_scale,
             status="recording",
             foil_id=_foil,
+            placement=(body.placement or None),
         )
         db.add(s)
         db.commit()
