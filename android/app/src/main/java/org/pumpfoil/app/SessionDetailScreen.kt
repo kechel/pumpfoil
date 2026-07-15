@@ -27,7 +27,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
@@ -121,6 +124,9 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var showReport by remember { mutableStateOf(false) }
     var showTrim by remember { mutableStateOf(false) }
     var showShare by remember { mutableStateOf(false) }
+    var showLink by remember { mutableStateOf(false) }        // Teilen-Link-Popup (Besitzer)
+    var shareUrl by remember { mutableStateOf<String?>(null) }
+    var linkCopied by remember { mutableStateOf(false) }
     var trimStart by remember { mutableStateOf(0f) }
     var trimEnd by remember { mutableStateOf(0f) }
     var reloadTick by remember { mutableStateOf(0) }
@@ -188,6 +194,38 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 
     if (showShare) session?.let { ShareDialog(it) { showShare = false } }
 
+    if (showLink) {
+        val clipboard = LocalClipboardManager.current
+        AlertDialog(
+            onDismissRequest = { showLink = false },
+            title = { Text(I18n.t("share.linkTitle")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(I18n.t("share.linkExplain"), style = MaterialTheme.typography.bodyMedium)
+                    Text(shareUrl ?: I18n.t("common.loading"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(10.dp))
+                    TextButton(
+                        onClick = {
+                            scope.launch { try { Api.revokeShareLink(id) } catch (_: Exception) {} }
+                            shareUrl = null; showLink = false
+                        },
+                    ) { Text(I18n.t("share.revoke")) }
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = shareUrl != null, onClick = {
+                    shareUrl?.let { clipboard.setText(AnnotatedString(it)); linkCopied = true }
+                }) { Text(if (linkCopied) I18n.t("share.copied") else I18n.t("share.copy")) }
+            },
+            dismissButton = { TextButton(onClick = { showLink = false }) { Text(I18n.t("common.close")) } },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -234,6 +272,17 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                     if (s?.owned == true && s.analysis?.trackGeojson != null) {
                         IconButton(onClick = { showShare = true }) {
                             Icon(Icons.Filled.Share, contentDescription = I18n.t("sd.share"), tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    // Öffentlicher Teilen-Link (Besitzer): Link-Icon -> Popup mit Erklärung + Kopieren.
+                    if (s?.owned == true) {
+                        IconButton(onClick = {
+                            showLink = true; linkCopied = false
+                            if (shareUrl == null) scope.launch {
+                                shareUrl = try { Api.createShareLink(id) } catch (_: Exception) { null }
+                            }
+                        }) {
+                            Icon(Icons.Filled.Link, contentDescription = I18n.t("share.linkBtn"), tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").

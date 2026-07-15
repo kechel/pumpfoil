@@ -91,6 +91,16 @@ enum Api {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    struct ShareLinkResp: Decodable { let token: String; let path: String }
+    // Öffentlichen Teilen-Link erzeugen (idempotent) -> volle öffentliche URL (pumpfoil.org/s/<token>).
+    static func createShareLink(_ id: Int) async throws -> String {
+        let r: ShareLinkResp = try await request("/api/sessions/\(id)/share", method: "POST", body: nil, auth: true)
+        return "https://pumpfoil.org" + r.path
+    }
+    static func revokeShareLink(_ id: Int) async throws {
+        let _: Ok = try await request("/api/sessions/\(id)/share", method: "DELETE", body: nil, auth: true)
+    }
+
     static func sessionPhotos(_ id: Int) async throws -> [SessionPhoto] {
         try await request("/api/sessions/\(id)/photos", method: "GET", body: nil, auth: true)
     }

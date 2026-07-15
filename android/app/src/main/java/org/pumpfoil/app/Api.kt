@@ -21,7 +21,7 @@ import java.net.URL
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
-    const val BASE = "https://pumpfoil.org"
+    const val BASE = "http://10.0.2.2:8090"
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile var token: String? = null
@@ -121,6 +121,16 @@ object Api {
     // DSGVO: Konto + ALLE Daten unwiderruflich löschen (Google-Play-Pflicht).
     suspend fun deleteAccount(): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/auth/me", null, auth = true)
+    }
+
+    // Öffentlichen Teilen-Link erzeugen (idempotent) -> volle öffentliche URL (pumpfoil.org/s/<token>).
+    suspend fun createShareLink(id: Int): String = withContext(Dispatchers.IO) {
+        val resp = http("POST", "/api/sessions/$id/share", null, auth = true)
+        val path = json.parseToJsonElement(resp).jsonObject["path"]?.jsonPrimitive?.content ?: ""
+        "https://pumpfoil.org$path"
+    }
+    suspend fun revokeShareLink(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/sessions/$id/share", null, auth = true); Unit
     }
 
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {

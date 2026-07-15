@@ -28,6 +28,9 @@ struct SessionDetailView: View {
     @State private var selectedFoilId = 0
     @State private var showTrim = false
     @State private var showShare = false
+    @State private var showLink = false        // Teilen-Link-Sheet (Besitzer)
+    @State private var shareUrl: String?
+    @State private var linkCopied = false
     @State private var trimStart = 0.0
     @State private var trimEnd = 0.0
     @State private var weightKg = 0.0
@@ -64,6 +67,13 @@ struct SessionDetailView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
                     }
+                }
+                // Öffentlicher Teilen-Link (Besitzer): Link-Icon -> Sheet mit Erklärung + Kopieren.
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showLink = true; linkCopied = false
+                        if shareUrl == nil { Task { shareUrl = try? await Api.createShareLink(id) } }
+                    } label: { Image(systemName: "link") }
                 }
                 // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").
                 // Code (LabelingView) bleibt bestehen — nur der Toolbar-Button ist deaktiviert.
@@ -107,6 +117,7 @@ struct SessionDetailView: View {
                 Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }
             }
         }
+        .sheet(isPresented: $showLink) { linkSheet }
         .sheet(isPresented: $showTrim) { trimSheet }
         .sheet(isPresented: $showShare) {
             if let s = session { ShareCardView(session: s, lang: lang) }
@@ -119,6 +130,38 @@ struct SessionDetailView: View {
     private var durSec: Double {
         guard let a = session?.startedDate, let b = session?.endedDate, b > a else { return 0 }
         return b.timeIntervalSince(a)
+    }
+
+    // Teilen-Link-Sheet (Besitzer): Erklärung + Link + Kopieren + Deaktivieren.
+    private var linkSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(Loc.t("share.linkExplain", lang)).font(.callout).foregroundStyle(.secondary)
+                Text(shareUrl ?? Loc.t("common.loading", lang))
+                    .font(.footnote).foregroundStyle(Color.accentColor)
+                    .textSelection(.enabled)
+                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.12)))
+                Button {
+                    if let u = shareUrl { UIPasteboard.general.string = u; linkCopied = true }
+                } label: {
+                    Label(linkCopied ? Loc.t("share.copied", lang) : Loc.t("share.copy", lang), systemImage: "doc.on.doc")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).controlSize(.large).disabled(shareUrl == nil)
+                Button(role: .destructive) {
+                    Task { try? await Api.revokeShareLink(id) }
+                    shareUrl = nil; showLink = false
+                } label: { Text(Loc.t("share.revoke", lang)) }
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle(Loc.t("share.linkTitle", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                Button(Loc.t("common.close", lang)) { showLink = false }
+            } }
+        }
     }
 
     private var trimSheet: some View {

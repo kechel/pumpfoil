@@ -7,14 +7,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
-## 🔜 Nächstes App-Release (auf `main`, noch nicht gebumpt)
-Alles gebaut; offen ist nur Jans Xcode-/Store-Teil:
-- **iOS Age-Gate finalisieren:** Entitlement `com.apple.developer.declared-age-range` im Target +
-  SDK-Typnamen in `AgeGate.swift` gegen die iOS-26-Doku verifizieren. Danach im App-Store-Formular
-  „Soziale Medien für <13 deaktiviert = Ja" → niedrigere Altersfreigabe.
-- **`xcodegen generate`** vor dem iOS-Build (neue Datei `SessionCache.swift`).
-- **`appmeta ios` → 1.1.12** setzen, sobald Apple die iOS-1.1.12 freigibt (Server `api/appmeta.py`).
-- **Wear 1.2.10/1022** hochladen — optional (funktional unverändert seit 1.2.9).
+## 🚀 Nächstes App-Release — seit Release 2026-07-15 (Android 1.1.12 live / iOS 1.1.13 in Prüfung)
+Was seit dem letzten Release in PWA/Server dazukam und in die Apps gehört (Repo: Android 1.1.12/28,
+iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
+- [x] **Öffentliche Session-Teilen-Links** — Server (`share_token`, `POST/DELETE /api/sessions/{id}/share`,
+  `GET /api/public/session/{token}`) + PWA (`/s/:token` read-only mit eigener Hülle, Owner-Link-Popup
+  mit Kopieren/Deaktivieren, freundliche 404+Redirect). **App-Port erledigt** (2026-07-15): Teilen-Link-
+  Button (🔗) + Popup in iOS `SessionDetailView` + Android `SessionDetailScreen` (Kopieren via
+  Clipboard/UIPasteboard, Deaktivieren). Die geteilten Links selbst öffnen im Browser auf pumpfoil.org
+  (keine native Read-only-Anzeige nötig).
+- **`appmeta ios` → 1.1.13** setzen, sobald Apple 1.1.13 freigibt (Server `api/appmeta.py`, aktuell 1.1.12).
 
 ## 🩹 Polish / kleine Baustellen
 - **Verlauf-Karte abhärten:** osmdroid-Spot-Animation in der Scroll-Liste → am Emulator ANR bei
