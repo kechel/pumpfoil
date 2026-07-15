@@ -65,8 +65,17 @@ Alles gebaut; offen ist nur Jans Xcode-/Store-Teil:
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 - **Öffentliche Session-Teilen-Links** (Community-Wunsch Dominik/Pixelfoil, 2026-07-15): unguessbarer
-  Token-Link → vollständige Session-Detailseite ohne Login/Registrierung ansehbar (mehr als das Share-Bild).
-  Design: `share_token` je Session (nullable, vom Besitzer erzeugbar/widerrufbar), öffentliche read-only
-  Route `/s/<token>` (Web) + Server-Endpoint ohne Auth, der NUR diese eine Session liefert. Datenschutz:
-  nichts tracken, kein fremder Zugriff auf andere Sessions/Konten, Besitzer kann Link zurückziehen,
-  Age-Gate-/`social`-Regeln beachten. Jan erwägt es (noch nicht entschieden).
+  Token-Link → vollständige Session-Detailseite ohne Login/Registrierung. Spec (Jan, festgelegt):
+  - **Nur für EIGENE Sessions** erzeugbar; `share_token` je Session (nullable), vom Besitzer erzeugbar +
+    **widerrufbar**. Öffentliche read-only Route `/s/<token>` (Web) + Server-Endpoint ohne Auth, der NUR
+    diese eine Session über den Token liefert (kein Zugriff auf Liste/Community/andere Konten).
+  - **Alles sichtbar, KEINE Optionen/Teil-Verbergen:** Puls, Pumps, Position, Track/Karte, Segmente,
+    Bilder (Preview **und** Fullscreen — `/media` ist eh öffentlich, Zufalls-UUID), YouTube (click-to-load),
+    Bezeichnung/Caption, Besitzer-Name + Profilbild, Spot, Datum, Stats.
+  - **Owner-only Aktionen im öffentlichen View AUSBLENDEN:** Editieren (Caption/YouTube), Foil setzen,
+    Trimmen, Labeln/Pump-Tap, Löschen, Zusammenführen/Auflösen, Übertragen, Melden/Vote, Like-Button,
+    Vergleich-Hinzufügen, Foto-Upload/-Löschen, Spot-Chat-Button, Rohdaten/Labeling-Zugriff.
+  - **Prüfen:** `device_model`/`device_label` (interne Fehlersuche-Felder) im öffentlichen Payload
+    besser WEGLASSEN — sind keine „Ride-Daten". Sonst nichts tracken, kein Dritt-Skript.
+  - Server additiv (neue Spalte + 1 Endpoint), Web = bestehende Detailansicht read-only rendern; Teilen-
+    Button in Apps später nachziehen. Jan erwägt es (noch nicht „bau's").
