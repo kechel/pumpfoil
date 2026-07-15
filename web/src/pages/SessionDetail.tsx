@@ -971,8 +971,8 @@ export default function SessionDetail() {
   const hasPumpStats = m?.avg_pump_hz != null && (a?.pump_count ?? 0) > 0;
   return (
     <div>
-      {/* Kopfzeile: mobil zwei Reihen (Sessions+Nav / Spot-Chat+Vergleich), ab sm eine Reihe.
-          Der w-full-Umbruch greift nur mobil; ab sm sitzt alles nebeneinander (Spot-Chat inhaltsbreit). */}
+      {/* Kopfzeile (Zurück/Nachbarn/Spot-Chat/Vergleich) — nur in der App, im öffentlichen Link ganz aus. */}
+      {!isPublic && (
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
@@ -1023,6 +1023,7 @@ export default function SessionDetail() {
           );
         })()}
       </div>
+      )}
       <div className="mb-4 flex items-start gap-3">
         {/* Profilbild zuerst, daneben Überschrift + Meta + Medien/Aktionen */}
         <div className="flex shrink-0 flex-col items-center gap-1">

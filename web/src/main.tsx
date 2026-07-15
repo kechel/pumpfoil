@@ -45,6 +45,7 @@ import LinkedAccounts from "./pages/LinkedAccounts";
 import Sessions from "./pages/Sessions";
 import AllSessionsRedirect from "./pages/AllSessionsRedirect";
 import SessionDetail from "./pages/SessionDetail";
+import PublicSession from "./pages/PublicSession";
 import Compare from "./pages/Compare";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
@@ -75,7 +76,7 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
-  { path: "/s/:token", element: <SessionDetail /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
+  { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
     path: "/",
     element: <RootRoute />,

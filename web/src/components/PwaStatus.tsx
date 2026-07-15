@@ -76,6 +76,10 @@ export function PwaStatus() {
     };
   }, []);
 
+  // Öffentliche Teilen-Seite (/s/…): keine PWA-UI (Update-Banner/Offline-Indikator) für anonyme
+  // Besucher — das ist keine App-Ansicht. Der Service Worker läuft normal weiter.
+  if (window.location.pathname.startsWith("/s/")) return null;
+
   // Banner nur als FALLBACK: wenn ein Update wartet, aber (a) gerade angewandt wird, oder
   // (b) nach der Karenz noch kein sicherer Moment (Routen-Wechsel) kam. Sonst läuft das Update
   // still beim nächsten Navigieren.

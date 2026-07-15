@@ -63,6 +63,7 @@ const en: Record<string, string> = {
   "share.copied": "Copied ✓",
   "share.revoke": "Disable link",
   "share.revokeConfirm": "Disable this share link? It will stop working afterwards.",
+  "share.cta": "Track your own",
   "common.back": "← back",
 
   "nav.home": "Home",
