@@ -6,6 +6,7 @@ struct ProfileView: View {
     @EnvironmentObject var session: SessionStore
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
+    @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
     @State private var editing = false
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
@@ -72,6 +73,18 @@ struct ProfileView: View {
                         Label { Text(Loc.t("settings.title", lang)) } icon: { Image(systemName: "gearshape").foregroundStyle(Color.accentColor) }
                     }
                     Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
+                }
+                // Beta-Feature „Record on Phone" — nur für Beta-Konten; steuert den Aufnahme-Button
+                // auf der Startseite (lokale Einstellung auf diesem Gerät).
+                if session.profile?.beta == true {
+                    Section {
+                        Toggle(isOn: $phoneRecEnabled) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(Loc.t("profile.phoneRec", lang) + "  (Beta)")
+                                Text(Loc.t("profile.phoneRecSub", lang)).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
                 Section {
                     Button(Loc.t("profile.logout", lang), role: .destructive) { session.logout() }

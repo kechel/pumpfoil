@@ -9,6 +9,7 @@ struct Profile: Codable {
     let language: String?
     let foil_sensitivity: String?
     let social_allowed: Bool?   // false = unter 13, Social-Features (UGC/Feed/Chat) gesperrt
+    let beta: Bool?             // Beta-Konto (BETA_USER_IDS) -> experimentelle Features sichtbar
 }
 
 // Fortschritt der Reanalyse nach Empfindlichkeits-Wechsel (GET /api/auth/me/reanalysis).

@@ -59,6 +59,11 @@ targets:
         NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
         NSMicrophoneUsageDescription: "Zum Diktieren von Chat-Nachrichten per Sprache."
         NSSpeechRecognitionUsageDescription: "Wandelt deine gesprochenen Chat-Nachrichten in Text um."
+        # „Record on Phone" (Beta): Hintergrund-Aufnahme GPS + Bewegung.
+        NSLocationAlwaysAndWhenInUseUsageDescription: "Zeichnet den GPS-Track deiner Session auf — auch im Hintergrund, wenn das Handy in der Tasche ist."
+        NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung während der Aufnahme."
+        UIBackgroundModes:
+          - location
     entitlements:
       path: Sources-iOS/Pumpfoil.entitlements
       properties:

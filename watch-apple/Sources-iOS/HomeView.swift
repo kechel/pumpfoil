@@ -33,6 +33,8 @@ struct HomeView: View {
     @AppStorage("rating_min_count") private var ratingMinCount = 0
     @AppStorage("rating_fb_count") private var ratingFbCount = 0
     @State private var showRating = false
+    @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
+    @State private var showRecord = false
     @State private var incomingXfer = 0
     private var showBanner: Bool { if let n = news { return n.enabled && n.version > newsVerStored } else { return false } }
 
@@ -45,7 +47,16 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     if let uv = updateVer, !updateDismissed { updateBanner(uv) }
                     if showBanner, let n = news { welcomeBanner(n) }
-                    Text(helloText).font(.title2).bold()
+                    HStack {
+                        Text(helloText).font(.title2).bold()
+                        Spacer()
+                        if session.profile?.beta == true && phoneRecEnabled {
+                            Button { showRecord = true } label: {
+                                Label(Loc.t("home.recordBtn", lang), systemImage: "record.circle")
+                                    .font(.subheadline)
+                            }.buttonStyle(.borderedProminent).controlSize(.small)
+                        }
+                    }
                     if incomingXfer > 0 { transferHint }
                     latestSection
                     if let st = stats { recordsSection(st) }
@@ -62,6 +73,7 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
+            .fullScreenCover(isPresented: $showRecord) { RecordView() }
             .sheet(isPresented: $showRating) {
                 RatingView(
                     lang: lang,
