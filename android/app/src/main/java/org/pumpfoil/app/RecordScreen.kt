@@ -1,7 +1,12 @@
 package org.pumpfoil.app
 
 import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Build
+import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -36,9 +41,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,6 +71,10 @@ import kotlinx.serialization.json.intOrNull
 // (RecorderService) weiter, auch mit Screen aus / in der Tasche. Gleiche Live-Werte wie die
 // Uhr-Apps, aber ohne Einstellungs-Optionen (die stehen in der App an anderer Stelle) — dafür
 // die Session-Foil direkt wählbar. Halten zum Stoppen (gegen versehentliches Beenden).
+private fun hasLocationPerm(ctx: Context): Boolean =
+    ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+    ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordScreen(onBack: () -> Unit) {
@@ -75,6 +87,13 @@ fun RecordScreen(onBack: () -> Unit) {
     var foilMenu by remember { mutableStateOf(false) }
     var defaultLoaded by remember { mutableStateOf(false) }
     var holdProgress by remember { mutableStateOf(0f) }
+    val prefs = remember { ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE) }
+    var autoStart by remember { mutableStateOf(prefs.getBoolean("phone_autostart", true)) }
+    var permGranted by remember { mutableStateOf(hasLocationPerm(ctx)) }
+    var pendingStart by remember { mutableStateOf(false) }
+    var gpsReady by remember { mutableStateOf(false) }
+
+    fun startRecording() { Recorder.sessionFoilId = foilId; RecorderService.start(ctx) }
 
     LaunchedEffect(Unit) {
         Recorder.refreshPending(ctx)
@@ -102,10 +121,37 @@ fun RecordScreen(onBack: () -> Unit) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
         // Genügt, wenn irgendeine Standort-Genauigkeit gewährt wurde (FINE ODER COARSE).
-        if (result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
-            Recorder.sessionFoilId = foilId
-            RecorderService.start(ctx)
+        permGranted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (permGranted && pendingStart) { pendingStart = false; startRecording() }
+    }
+    // Beim Öffnen die Permission holen, damit GPS-Status + Autostart schon auf dem Start-Screen laufen.
+    LaunchedEffect(permGranted) { if (!permGranted) permLauncher.launch(perms) }
+
+    // Idle-GPS wie auf der Uhr: solange nicht aufgenommen wird, Position beziehen -> „GPS bereit" +
+    // Autostart. Schwellen exakt wie Garmin/Wear: 10 s Vorlauf, dann ab 2,8 m/s für 4 s losfahren.
+    val arm = remember { intArrayOf(0, 0) }   // [Vorlauf-Ticks, Speed-Streak]
+    DisposableEffect(permGranted, st.recording) {
+        arm[0] = 0; arm[1] = 0
+        if (!permGranted || st.recording) { onDispose { } }
+        else {
+            val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val listener = LocationListener { loc ->
+                val acc = if (loc.hasAccuracy()) loc.accuracy else 999f
+                gpsReady = acc <= 25f
+                val spd = if (loc.hasSpeed()) loc.speed else 0f
+                if (autoStart && gpsReady) {
+                    if (arm[0] < 10) { arm[0]++; arm[1] = 0 }          // Vorlauf abwarten
+                    else if (spd >= 2.8f) { arm[1]++; if (arm[1] >= 4) startRecording() }
+                    else arm[1] = 0
+                } else arm[1] = 0
+            }
+            val fine = ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+            val prov = if (fine) LocationManager.GPS_PROVIDER else LocationManager.NETWORK_PROVIDER
+            try { lm.requestLocationUpdates(prov, 1000L, 0f, listener, Looper.getMainLooper()) }
+            catch (_: SecurityException) {} catch (_: IllegalArgumentException) {}
+            onDispose { try { lm.removeUpdates(listener) } catch (_: Exception) {}; gpsReady = false }
         }
     }
 
@@ -135,11 +181,30 @@ fun RecordScreen(onBack: () -> Unit) {
                 st.recording -> RecordingBody(st)
                 st.status == "gespeichert" || st.status == "speichere…" -> SavedBody(st, onBack)
                 else -> {
-                    // Idle: Hinweis, Foil-Auswahl, START.
+                    // Idle: Live-GPS-Status (wie Uhr), Autostart, Foil-Auswahl, START.
                     Spacer(Modifier.height(8.dp))
+                    Text(if (gpsReady) I18n.t("rec.gpsReady") else I18n.t("rec.gpsSearch"),
+                        style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                        color = if (gpsReady) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(6.dp))
                     Text(I18n.t("rec.gpsHint"),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(16.dp))
+                    // Autostart-Schalter (wie Uhr): losfahren startet die Aufnahme automatisch.
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("rec.autostart"), style = MaterialTheme.typography.titleSmall)
+                            if (autoStart) Text(I18n.t("rec.autostartHint"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = autoStart, onCheckedChange = {
+                            autoStart = it; arm[0] = 0; arm[1] = 0
+                            prefs.edit().putBoolean("phone_autostart", it).apply()
+                        })
+                    }
                     Spacer(Modifier.height(20.dp))
                     Text(I18n.t("rec.foilLabel").uppercase(),
                         style = MaterialTheme.typography.labelMedium,
@@ -179,7 +244,10 @@ fun RecordScreen(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.height(28.dp))
                     Button(
-                        onClick = { permLauncher.launch(perms) },
+                        onClick = {
+                            if (permGranted) startRecording()
+                            else { pendingStart = true; permLauncher.launch(perms) }
+                        },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                     ) { Text(I18n.t("rec.start"), fontWeight = FontWeight.Bold) }
                     if (st.pendingCount > 0) {
