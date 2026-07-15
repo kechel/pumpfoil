@@ -8,16 +8,32 @@ struct RecordView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("appLang") private var lang = "de"
     @ObservedObject private var rec = PhoneRecorder.shared
-    @State private var foils: [Foil] = []
+    @State private var foils: [Foil] = []       // ganzer Katalog (für „anderes Foil")
+    @State private var favFoils: [Foil] = []     // Favoriten (my_foils) — als Chips direkt wählbar
     @State private var foilId: Int?
+    @State private var defaultLoaded = false
     @State private var holdProgress: CGFloat = 0
 
     private func foilLabel(_ id: Int?) -> String {
         guard let id, let f = foils.first(where: { $0.id == id }) else { return Loc.t("rec.foilNone", lang) }
         return "\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces)
     }
+    private func shortLabel(_ f: Foil) -> String { "\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces) }
     private func mmss(_ s: Int) -> String { String(format: "%d:%02d", s / 60, s % 60) }
     private func km(_ m: Double) -> String { m >= 1000 ? String(format: "%.2f km", m / 1000) : "\(Int(m)) m" }
+
+    // Direkt antippbarer Foil-Chip (Favoriten + „Ohne Foil"); hervorgehoben, wenn ausgewählt.
+    private func foilChip(_ id: Int?, _ label: String) -> some View {
+        let sel = foilId == id
+        return Button { foilId = id } label: {
+            Text(label).font(.subheadline).lineLimit(1).minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10).padding(.horizontal, 8)
+                .background(RoundedRectangle(cornerRadius: 10)
+                    .fill(sel ? Color.accentColor : Color.secondary.opacity(0.15)))
+                .foregroundStyle(sel ? Color.white : Color.primary)
+        }.buttonStyle(.plain)
+    }
 
     var body: some View {
         NavigationStack {
@@ -39,7 +55,14 @@ struct RecordView: View {
             .task {
                 rec.refreshPending()
                 foils = (try? await Api.foils()) ?? []
-                foilId = rec.sessionFoilId
+                let s = (try? await Api.settings()) ?? [:]
+                let favIds = (s["my_foils"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue ?? ($0 as? Int) } ?? []
+                favFoils = foils.filter { favIds.contains($0.id) }
+                if !defaultLoaded {   // Default-Foil vorwählen (nur beim ersten Öffnen der Ansicht)
+                    let def = (s["foil_id"] as? NSNumber)?.intValue ?? (s["foil_id"] as? Int)
+                    foilId = rec.sessionFoilId ?? def
+                    defaultLoaded = true
+                }
             }
         }
     }
@@ -49,23 +72,29 @@ struct RecordView: View {
             Spacer().frame(height: 4)
             Text(Loc.t("rec.gpsHint", lang))
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(Loc.t("rec.foilLabel", lang).uppercased())
                     .font(.caption).foregroundStyle(.secondary)
+                // Favoriten (my_foils) direkt als Chips wählbar; Standard-Foil vorausgewählt.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 8)], alignment: .leading, spacing: 8) {
+                    foilChip(nil, Loc.t("rec.foilNone", lang))
+                    ForEach(favFoils) { f in foilChip(f.id, shortLabel(f)) }
+                }
+                // Zusätzlich: ganzer Katalog, falls ein Foil außerhalb der Favoriten gebraucht wird.
                 Menu {
                     Button(Loc.t("rec.foilNone", lang)) { foilId = nil }
-                    ForEach(foils) { f in
-                        Button("\(f.brand) \(f.model) \(f.size)".trimmingCharacters(in: .whitespaces)) { foilId = f.id }
-                    }
+                    ForEach(foils) { f in Button(shortLabel(f)) { foilId = f.id } }
                 } label: {
                     HStack {
-                        Text(foilLabel(foilId)).lineLimit(1)
+                        Text(foilId != nil && !favFoils.contains(where: { $0.id == foilId })
+                             ? foilLabel(foilId) : Loc.t("rec.foilOther", lang))
+                            .foregroundStyle(.secondary).lineLimit(1)
                         Spacer()
-                        Image(systemName: "chevron.up.chevron.down").font(.caption)
+                        Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(.secondary)
                     }
-                    .padding(12)
+                    .padding(10)
                     .frame(maxWidth: .infinity)
-                    .background(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.4)))
+                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.3)))
                 }
             }
             Button {
