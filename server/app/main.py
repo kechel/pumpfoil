@@ -235,8 +235,10 @@ app.include_router(ingest.router)
 app.include_router(sessions.router)
 app.include_router(ml.router)
 app.include_router(settings_api.router)
-app.include_router(community.router, dependencies=[Depends(require_social)])
-# Spot-Lese-Endpunkte ohne Social-Gate: Spots/Karte/Sessions dürfen auch Kinder sehen (nur Chat gesperrt).
+# Age-Gate (unter 13) sperrt nur Chat/Übertragungen + das Schreiben (Like/Vote, per require_social an
+# den einzelnen POST-Endpunkten). Community-INHALTE ansehen (Feed/Rekorde/Bestenlisten/Spots/Fotos)
+# ist erlaubt -> Router ohne router-weites require_social.
+app.include_router(community.router)
 app.include_router(community.spot_router)
 app.include_router(admin.router)
 app.include_router(feedback.router)

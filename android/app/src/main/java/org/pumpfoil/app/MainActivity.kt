@@ -259,11 +259,11 @@ private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: 
     data class Tab(val route: String, val label: String, val icon: ImageVector)
     val tabs = listOfNotNull(
         Tab("home", I18n.t("nav.home"), Icons.Filled.Home),
-        if (social) Tab("community", "Foilers", Icons.Filled.Groups) else null,   // unter 13: aus
+        Tab("community", "Foilers", Icons.Filled.Groups),   // Ansehen ok auch <13 (nur Chat/Schreiben aus)
         Tab("sessions", I18n.t("nav.sessions"), Icons.AutoMirrored.Filled.List),
         Tab("verlauf", I18n.t("nav.history"), Icons.Filled.ShowChart),
         Tab("spots", I18n.t("nav.spots"), Icons.Filled.Place),
-        if (social) Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum) else null,   // unter 13: aus
+        if (social) Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum) else null,   // unter 13: nur Chat aus
         Tab("profile", I18n.t("nav.profile"), Icons.Filled.Person),
     )
     Surface(tonalElevation = 3.dp, color = MaterialTheme.colorScheme.surface) {

@@ -21,12 +21,11 @@ from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import owner_label_sql
 from ..weather import spot_water_temp, spot_weather
-from .deps import current_user
+from .deps import current_user, require_social
 
 router = APIRouter(prefix="/api/community", tags=["community"])
-# Spot-Lese-Endpunkte (Karte/Liste/Sessions/Rekorde/Wetter eines Spots) sind KEIN UGC — die dürfen
-# auch Kinder (social_allowed=False) sehen. Nur die Chaträume dazu sind gesperrt (eigener chat.router).
-# Deshalb hängt dieser Router NICHT an require_social (im Gegensatz zu router mit Feed/Likes).
+# Historisch getrennt (Spot-Lese-Endpunkte). Inzwischen sind BEIDE Router ungegatet — Age-Gate sperrt
+# nur Chat + Schreiben (Like/Vote via require_social an den POSTs). Bleibt als eigener Router bestehen.
 spot_router = APIRouter(prefix="/api/community", tags=["community"])
 
 PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
@@ -536,7 +535,7 @@ def _vote_counts(db: Session, sid: int, user: models.User) -> dict:
 
 
 @router.post("/sessions/{session_id}/like")
-def toggle_like(session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def toggle_like(session_id: int, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
     if db.get(models.Session, session_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     sess = db.get(models.Session, session_id)
@@ -559,7 +558,7 @@ def toggle_like(session_id: int, user: models.User = Depends(current_user), db: 
 @router.post("/sessions/{session_id}/vote")
 def toggle_vote(
     session_id: int, kind: str = Query(...),
-    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    user: models.User = Depends(require_social), db: Session = Depends(get_db),
 ) -> dict:
     if kind not in VOTE_KINDS:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "kind must be fake|inappropriate")
