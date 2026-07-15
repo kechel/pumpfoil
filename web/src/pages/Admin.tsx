@@ -144,14 +144,26 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["likes", "adm.stats.likes", "#fb7185"],
 ];
 
+const DAY_MS = 86400000;
+
 function StatsSection() {
   const t = useT();
   const [period, setPeriod] = useState("30d");
   const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(period), [period]);
   const times = (data?.buckets ?? []).map((b) => new Date(b.date + "T00:00:00").getTime());
-  const domain: [number, number] = times.length
-    ? [times[0], Math.max(times[times.length - 1], times[0] + 86400000)]
-    : [0, 1];
+  // Einheitlicher Zeitraum für ALLE Metriken = das gewählte Fenster (cut → jetzt), nicht nur wo Daten sind.
+  const now = Date.now();
+  const cut: Record<string, number> = {
+    today: new Date().setHours(0, 0, 0, 0),
+    "10d": now - 10 * DAY_MS, "30d": now - 30 * DAY_MS, "365d": now - 365 * DAY_MS,
+  };
+  const start = period === "all" ? (times.length ? Math.min(...times) : now - 30 * DAY_MS) : cut[period];
+  const domain: [number, number] = [start, Math.max(now, start + DAY_MS)];
+  // ~4 Datums-Ticks gleichmäßig über den Zeitraum (wie /verlauf).
+  const spanDays = (domain[1] - domain[0]) / DAY_MS;
+  const ticks = Array.from({ length: 5 }, (_, i) => domain[0] + ((domain[1] - domain[0]) * i) / 4);
+  const fmtTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
+    spanDays <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -171,6 +183,9 @@ function StatsSection() {
                 <span className="text-lg font-bold tabular-nums" style={{ color }}>{data.totals[key]}</span>
               </div>
               <TimeChart t={times} values={data.buckets.map((b) => b[key])} color={color} domainMs={domain} height={100} />
+              <div className="mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+              </div>
             </Card>
           ))}
         </div>
