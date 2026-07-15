@@ -96,22 +96,27 @@ struct SessionsView: View {
 
     @ViewBuilder private var filterSection: some View {
         Section {
-            ScrollView(.horizontal, showsIndicators: false) { scopeChips }
-            HStack {
-                chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
-                chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
-                Spacer()
-                Menu {
-                    Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
-                    ForEach(spotNames, id: \.self) { s in
-                        Button(s) { spot = s; scope = .spot }
+            // Alle Filter in EINER List-Row (VStack) — sonst erzeugt jede Zeile den großen
+            // Default-Zeilenabstand der List zwischen sich.
+            VStack(alignment: .leading, spacing: 8) {
+                ScrollView(.horizontal, showsIndicators: false) { scopeChips }
+                HStack {
+                    chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
+                    chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                    Spacer()
+                    Menu {
+                        Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
+                        ForEach(spotNames, id: \.self) { s in
+                            Button(s) { spot = s; scope = .spot }
+                        }
+                    } label: {
+                        Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
+                            .font(.subheadline).lineLimit(1)
                     }
-                } label: {
-                    Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
-                        .font(.subheadline).lineLimit(1)
                 }
+                if scope == .mine { monthFilterRow }
             }
-            if scope == .mine { monthFilterRow }
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
         }
     }
 
