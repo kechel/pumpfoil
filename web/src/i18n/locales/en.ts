@@ -64,6 +64,8 @@ const en: Record<string, string> = {
   "share.revoke": "Disable link",
   "share.revokeConfirm": "Disable this share link? It will stop working afterwards.",
   "share.cta": "Track your own",
+  "share.notFound": "No valid session found",
+  "share.notFoundBody": "This link is invalid or has been disabled. Redirecting you to the home page …",
   "common.back": "← back",
 
   "nav.home": "Home",

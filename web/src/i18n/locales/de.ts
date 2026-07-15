@@ -67,6 +67,8 @@ const de: Record<string, string> = {
   "share.revoke": "Link deaktivieren",
   "share.revokeConfirm": "Diesen Teilen-Link deaktivieren? Er funktioniert danach nicht mehr.",
   "share.cta": "Jetzt selbst tracken",
+  "share.notFound": "Keine gültige Session gefunden",
+  "share.notFoundBody": "Der Link ist ungültig oder wurde deaktiviert. Du wirst gleich zur Startseite weitergeleitet …",
   "common.back": "← zurück",
 
   // Navigation (App.tsx)

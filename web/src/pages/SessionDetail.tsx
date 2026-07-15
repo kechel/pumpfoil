@@ -503,6 +503,13 @@ export default function SessionDetail() {
     p.then(setSession).catch((e) => setError(String(e)));
   }, [id, token, isPublic]);
 
+  // Öffentlicher Link ungültig/widerrufen -> nach 5 s zur Startseite.
+  useEffect(() => {
+    if (!isPublic || !error) return;
+    const id2 = window.setTimeout(() => { window.location.href = "/"; }, 5000);
+    return () => clearTimeout(id2);
+  }, [isPublic, error]);
+
   // Spot-Name wird serverseitig im HINTERGRUND aufgelöst (OSM/Overpass kann dauern) -> die
   // Session kommt sofort ohne Namen. Solange place_name noch null ist (nicht "" = definitiv
   // kein Gewässer), degressiv nachpollen und übernehmen, sobald da.
@@ -923,6 +930,13 @@ export default function SessionDetail() {
   }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen]);
 
   if (error) {
+    // Öffentlicher Link ungültig/widerrufen -> freundliche Meldung + Auto-Redirect (siehe Effekt oben).
+    if (isPublic) return (
+      <Card className="mx-auto mt-10 max-w-md p-8 text-center text-slate-300">
+        <p className="text-lg font-semibold text-slate-100">{t("share.notFound")}</p>
+        <p className="mt-2 text-sm">{t("share.notFoundBody")}</p>
+      </Card>
+    );
     // Offline + nicht im Cache -> klare Meldung statt technischem Fehler.
     if (!navigator.onLine) return (
       <Card className="mx-auto mt-10 max-w-md p-8 text-center text-slate-300">
