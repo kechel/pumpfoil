@@ -40,8 +40,9 @@ struct MainTabView: View {
     @State private var tab = 0
     @State private var resetTokens = Array(repeating: 0, count: 7)
     private var socialOK: Bool { session.profile?.social_allowed != false }
-    // Sichtbare Tab-IDs (Community=2 + Chat=5 nur bei Social-Freigabe).
-    private var visibleTabs: [Int] { socialOK ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 3, 4, 6] }
+    // Sichtbare Tab-IDs. Age-Gate blendet NUR den Chat (5) aus; Foilers (2) darf man ansehen
+    // (Server erlaubt Lesen, sperrt nur Chat/Schreiben).
+    private var visibleTabs: [Int] { socialOK ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3, 4, 6] }
 
     var body: some View {
         VStack(spacing: 0) {

@@ -63,11 +63,10 @@ export default function App() {
     api.adminPending().then((r) => setPending(r.total)).catch(() => {});
   }, [isAdmin]);
 
-  // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe). Community-Nav +
-  // Chat-Widget dann ausblenden; der Server erzwingt es zusätzlich (403).
+  // Social-Freigabe — für unter 13 gesperrt (Apple-Vorgabe). Age-Gate blendet NUR Chat/DM aus;
+  // Foilers/Community ANSEHEN ist erlaubt (Server erlaubt Lesen, sperrt Chat/Schreiben per 403).
   const social = profile?.social_allowed !== false;
-  const base = social ? navItems : navItems.filter((i) => i.to !== "/community");
-  const items = isAdmin ? [...base, adminItem] : base;
+  const items = isAdmin ? [...navItems, adminItem] : navItems;
 
   function logout() {
     clearToken();
