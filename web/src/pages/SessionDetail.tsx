@@ -214,7 +214,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
             title={t("share.linkBtn")}
             className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
           >
-            <LinkIcon className="h-4 w-4 text-brand-400" />
+            <LinkIcon className="h-4 w-4 text-brand-400" /> Link
           </button>
         )}
         {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} onClose={() => setShareOpen(false)} />}
