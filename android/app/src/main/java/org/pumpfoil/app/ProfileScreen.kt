@@ -147,7 +147,14 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 }
                 ListItem(
                     headlineContent = { Text(I18n.t("profile.phoneRec") + "  (Beta)") },
-                    supportingContent = { Text(I18n.t("profile.phoneRecSub")) },
+                    supportingContent = {
+                        Column {
+                            Text(I18n.t("profile.phoneRecSub"))
+                            if (phoneRec) Text(I18n.t("rec.waterproof"),
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error)
+                        }
+                    },
                     trailingContent = {
                         Switch(checked = phoneRec, onCheckedChange = {
                             phoneRec = it

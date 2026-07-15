@@ -194,8 +194,15 @@ fun RecordScreen(onBack: () -> Unit) {
                 st.recording -> RecordingBody(st)
                 st.status == "gespeichert" || st.status == "speichere…" -> SavedBody(st, onBack)
                 else -> {
-                    // Idle: Live-GPS-Status (wie Uhr), Autostart, Foil-Auswahl, START.
+                    // Idle: Titel + Hinweis, Live-GPS-Status (wie Uhr), Autostart, Foil-Auswahl, START.
                     Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("rec.pageTitle"),
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(I18n.t("rec.waterproof"),
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(16.dp))
                     Text(if (gpsReady) I18n.t("rec.gpsReady") else I18n.t("rec.gpsSearch"),
                         style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                         color = if (gpsReady) MaterialTheme.colorScheme.primary

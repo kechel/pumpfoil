@@ -55,6 +55,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
         "Use this phone as a recorder (beta) — shows a record button on the home screen.",
         "Use this phone as a recorder (beta) — shows a record button on the home screen."),
     "rec.title" to row("Aufnahme", "Ufnahm", "Aufnahme", "Record on Phone", "Record on Phone", "Record on Phone", "Record on Phone"),
+    "rec.pageTitle" to row("Session mit Handy aufnehmen", "Session mitem Handy ufnäh", "Session mit Handy aufnehmen", "Record a session with your phone", "Enregistrer une session avec le téléphone", "Registra una sessione col telefono", "Graba una sesión con el móvil"),
+    "rec.waterproof" to row("Handy wasserdicht verpacken!", "Handy wasserdicht iipacke!", "Handy wasserdicht verpacken!", "Pack the phone waterproof!", "Emballe le téléphone de façon étanche !", "Imballa il telefono a tenuta stagna!", "¡Empaqueta el móvil de forma estanca!"),
     "rec.gpsHint" to row(
         "Handy wasserdicht einpacken und mitnehmen — GPS und Bewegung werden aufgezeichnet.",
         "Handy wasserdicht einpacken und mitnehmen — GPS und Bewegung werden aufgezeichnet.",

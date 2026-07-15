@@ -82,6 +82,9 @@ struct ProfileView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(Loc.t("profile.phoneRec", lang) + "  (Beta)")
                                 Text(Loc.t("profile.phoneRecSub", lang)).font(.caption).foregroundStyle(.secondary)
+                                if phoneRecEnabled {
+                                    Text(Loc.t("rec.waterproof", lang)).font(.caption).bold().foregroundStyle(.red)
+                                }
                             }
                         }
                     }

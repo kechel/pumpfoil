@@ -75,6 +75,12 @@ struct RecordView: View {
     private var idleBody: some View {
         VStack(spacing: 16) {
             Spacer().frame(height: 4)
+            // Seiten-Titel + fetter Hinweis ganz oben.
+            VStack(spacing: 4) {
+                Text(Loc.t("rec.pageTitle", lang)).font(.title2).bold()
+                    .multilineTextAlignment(.center)
+                Text(Loc.t("rec.waterproof", lang)).font(.callout).bold().foregroundStyle(.red)
+            }
             // Live-GPS-Status (wie Uhr).
             Text(rec.gpsReady ? Loc.t("rec.gpsReady", lang) : Loc.t("rec.gpsSearch", lang))
                 .font(.subheadline).bold()
