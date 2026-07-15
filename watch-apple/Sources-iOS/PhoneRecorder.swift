@@ -21,6 +21,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var distanceM = 0.0
     @Published var gpsFix = false
     @Published var isFoiling = false
+    @Published var track: [[Double]] = []   // [lat, lon] fürs Live-Track-Canvas
     @Published var runCount = 0
     @Published var runDurationMs = 0
     @Published var lastRunDurationMs = 0
@@ -104,7 +105,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         if let f = sessionFoilId { meta["foil_id"] = f }
         Store.writeMeta(uuid, meta)
         recording = true; status = "Aufnahme läuft"; pendingCount = Store.pendingCount()
-        elapsedSec = 0; speedKmh = 0; distanceM = 0; runCount = 0; isFoiling = false
+        elapsedSec = 0; speedKmh = 0; distanceM = 0; runCount = 0; isFoiling = false; track = []
 
         loc.requestWhenInUseAuthorization()   // + Background-Mode „location" => Hintergrund-Track (blauer Balken)
         loc.startUpdatingLocation()
@@ -215,6 +216,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         isFoiling = nowFoiling; runCount = runCnt
         runDurationMs = Int(nowFoiling ? max(0, Double(tMs) - runStartMs) : lastRunDurMs)
         lastRunDurationMs = Int(lastRunDurMs); lastRunDistanceM = lastRunDistM
+        // Track fürs Canvas; bei >3000 Punkten jeden zweiten verwerfen (Form bleibt).
+        track.append([l.coordinate.latitude, l.coordinate.longitude])
+        if track.count > 3000 { track = track.enumerated().filter { $0.offset % 2 == 0 }.map { $0.element } }
     }
 
     private func updateFoilingRun(_ sp3Kmh: Double, _ tMs: Double, _ dist: Double, _ spMps: Double) -> Bool {

@@ -147,7 +147,8 @@ struct RecordView: View {
             statRow(Loc.t("rec.speed", lang), String(format: "%.1f", rec.speedKmh), Loc.t("rec.speedMax", lang), String(format: "%.1f", rec.maxSpeedKmh))
             statRow(Loc.t("rec.runs", lang), "\(rec.runCount)", Loc.t("rec.runDur", lang), mmss(rec.runDurationMs / 1000))
             if rec.uploading { Text(Loc.t("rec.upRunning", lang)).font(.footnote).foregroundStyle(.secondary) }
-            Spacer()
+            // Live-Track des aktuellen Laufs füllt den Platz bis zum fixen STOPP-Button.
+            trackCanvas.frame(maxWidth: .infinity, maxHeight: .infinity)
             Text(Loc.t("rec.holdStop", lang)).font(.footnote).foregroundStyle(.secondary)
             ZStack {
                 RoundedRectangle(cornerRadius: 28).fill(Color.red)
@@ -181,6 +182,49 @@ struct RecordView: View {
             Button { dismiss() } label: { Text(Loc.t("common.done", lang)).frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large)
         }
+    }
+
+    // Live-Track, selbst gezeichnet (keine externen Karten-Tiles) — Norden oben, Längengrad um
+    // cos(lat) gestaucht. Aktuelle Position als roter Punkt.
+    private var trackCanvas: some View {
+        RoundedRectangle(cornerRadius: 16).fill(Color.secondary.opacity(0.12))
+            .overlay {
+                if rec.track.count < 2 {
+                    Text(Loc.t("rec.gpsSearch", lang)).font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    Canvas { ctx, size in
+                        let pts = rec.track
+                        var minLat = Double.greatestFiniteMagnitude, maxLat = -Double.greatestFiniteMagnitude
+                        var minLon = Double.greatestFiniteMagnitude, maxLon = -Double.greatestFiniteMagnitude
+                        for p in pts {
+                            minLat = min(minLat, p[0]); maxLat = max(maxLat, p[0])
+                            minLon = min(minLon, p[1]); maxLon = max(maxLon, p[1])
+                        }
+                        let midLat = (minLat + maxLat) / 2
+                        let lonScale = max(0.01, cos(midLat * .pi / 180))
+                        let w = max(1e-9, (maxLon - minLon) * lonScale)
+                        let h = max(1e-9, maxLat - minLat)
+                        let scale = min(size.width / w, size.height / h)
+                        let offX = (size.width - w * scale) / 2
+                        let offY = (size.height - h * scale) / 2
+                        func px(_ lon: Double) -> CGFloat { offX + (lon - minLon) * lonScale * scale }
+                        func py(_ lat: Double) -> CGFloat { offY + (maxLat - lat) * scale }   // Norden oben
+                        var path = Path()
+                        for (i, p) in pts.enumerated() {
+                            let pt = CGPoint(x: px(p[1]), y: py(p[0]))
+                            if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+                        }
+                        ctx.stroke(path, with: .color(rec.isFoiling ? .accentColor : .secondary),
+                                   style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                        if let last = pts.last {
+                            let c = CGPoint(x: px(last[1]), y: py(last[0]))
+                            ctx.fill(Path(ellipseIn: CGRect(x: c.x - 5, y: c.y - 5, width: 10, height: 10)),
+                                     with: .color(.red))
+                        }
+                    }
+                    .padding(14)
+                }
+            }
     }
 
     private func statRow(_ l1: String, _ v1: String, _ l2: String, _ v2: String) -> some View {
