@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,15 +57,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Polyline
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -386,44 +387,41 @@ private fun StatCell(label: String, value: String, modifier: Modifier = Modifier
     }
 }
 
-// Live-Track des aktuellen Laufs, selbst gezeichnet (keine externen Karten-Tiles / kein play-services).
-// Normalisiert lat/lon auf die Fläche (Norden oben), Längengrad um cos(lat) gestaucht -> korrekte Form.
+// Live-Track auf der echten OSM-Karte (osmdroid, FLOSS — wie Spots/Session-Detail). Polyline des
+// bisherigen Laufs, Karte folgt der aktuellen Position. Tiles cachen; offline bleibt die Linie sichtbar.
 @Composable
 private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Modifier = Modifier) {
-    val lineColor = if (onFoil) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    val dotColor = MaterialTheme.colorScheme.error
-    val bg = MaterialTheme.colorScheme.surfaceVariant
-    Box(modifier.clip(RoundedCornerShape(16.dp)).background(bg), contentAlignment = Alignment.Center) {
+    val lineColor = (if (onFoil) MaterialTheme.colorScheme.primary
+                     else MaterialTheme.colorScheme.onSurfaceVariant).toArgb()
+    val density = LocalContext.current.resources.displayMetrics.density
+    Box(modifier.clip(RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { c ->
+                Configuration.getInstance().userAgentValue = c.packageName
+                MapView(c).apply {
+                    setTileSource(TileSourceFactory.MAPNIK)
+                    setMultiTouchControls(true)
+                    controller.setZoom(16.5)
+                }
+            },
+            update = { map ->
+                map.overlays.clear()
+                if (track.size >= 2) {
+                    val gpts = track.map { GeoPoint(it[0], it[1]) }
+                    map.overlays.add(Polyline(map).apply {
+                        setPoints(gpts)
+                        outlinePaint.color = lineColor
+                        outlinePaint.strokeWidth = 6f * density
+                    })
+                    map.controller.setCenter(gpts.last())   // der aktuellen Position folgen
+                }
+                map.invalidate()
+            },
+        )
         if (track.size < 2) {
             Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            Canvas(Modifier.fillMaxSize().padding(14.dp)) {
-                var minLat = Double.MAX_VALUE; var maxLat = -Double.MAX_VALUE
-                var minLon = Double.MAX_VALUE; var maxLon = -Double.MAX_VALUE
-                for (p in track) {
-                    if (p[0] < minLat) minLat = p[0]; if (p[0] > maxLat) maxLat = p[0]
-                    if (p[1] < minLon) minLon = p[1]; if (p[1] > maxLon) maxLon = p[1]
-                }
-                val midLat = (minLat + maxLat) / 2.0
-                val lonScale = kotlin.math.cos(midLat * kotlin.math.PI / 180.0).coerceAtLeast(0.01)
-                val w = ((maxLon - minLon) * lonScale).coerceAtLeast(1e-9)
-                val h = (maxLat - minLat).coerceAtLeast(1e-9)
-                val scale = kotlin.math.min(size.width / w, size.height / h)
-                val offX = (size.width - (w * scale).toFloat()) / 2f
-                val offY = (size.height - (h * scale).toFloat()) / 2f
-                fun px(lon: Double) = offX + ((lon - minLon) * lonScale * scale).toFloat()
-                fun py(lat: Double) = offY + ((maxLat - lat) * scale).toFloat()   // Norden oben
-                val path = Path()
-                track.forEachIndexed { i, p ->
-                    val x = px(p[1]); val y = py(p[0])
-                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                drawPath(path, color = lineColor,
-                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-                val last = track.last()
-                drawCircle(dotColor, radius = 6.dp.toPx(), center = Offset(px(last[1]), py(last[0])))
-            }
         }
     }
 }
