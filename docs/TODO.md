@@ -32,6 +32,10 @@ Alles gebaut; offen ist nur Jans Xcode-/Store-Teil:
 ## 🔌 Integrationen (credential-gated / extern)
 - **COROS** — Workout-Push-Import gebaut + live, aber credential-gated; aktiv erst nach Freigabe.
 - **Amazfit/Zepp** — Recorder v0 (`watch-zepp/`) ungetestet; Build/Verify nur auf Jans Mac.
+- **Polar nativer BLE-Recorder — ZURÜCKGESTELLT (2026-07-15).** Kein On-Watch-App-Store bei Polar →
+  Roh-Accel nur via Handy-BLE-SDK (Offline-Recording: Handy startet + holt ab → viel Reibung). Nutzen
+  ggü. dem live AccessLink-Import = nur Pumps, bei hohem Aufwand/Hardware-Unsicherheit. Erst wieder,
+  wenn Polar-Nutzer konkret nach Pumps fragen. Beta-Gerüst bleibt versteckt. Details: Memory `polar-recorder-plan`.
 - (Suunto ✅ live, Polar ✅ AccessLink live, Garmin-FIT-Import wartet auf Garmins Formular.)
 
 ## 💡 Backlog (Produktideen — bewusst später)
