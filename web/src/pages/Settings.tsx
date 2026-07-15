@@ -314,6 +314,17 @@ export default function Settings() {
           </h3>
           <p className="mb-2 text-sm text-slate-300">{t("phonerec.sub")}</p>
           <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">{t("phonerec.pwaNote")}</p>
+          {/* Links zu den nativen Apps (Icons wie auf der öffentlichen Startseite) — nur in der PWA sichtbar. */}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <a href="https://play.google.com/store/apps/details?id=org.pumpfoil.app" target="_blank" rel="noreferrer"
+              aria-label="Jetzt bei Google Play">
+              <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-11 w-auto" />
+            </a>
+            <a href="https://apps.apple.com/app/id6783975714" target="_blank" rel="noreferrer"
+              aria-label="Laden im App Store">
+              <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-11 w-auto" />
+            </a>
+          </div>
         </Card>
       )}
 
