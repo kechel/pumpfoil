@@ -265,11 +265,18 @@ fun RecordScreen(onBack: () -> Unit) {
                     ) { Text(I18n.t("rec.start"), fontWeight = FontWeight.Bold) }
                     if (st.pendingCount > 0) {
                         Spacer(Modifier.height(16.dp))
+                        val statusText = when {
+                            st.uploading -> I18n.t("rec.upRunning")
+                            st.uploadError == "offline" -> I18n.t("rec.upOffline")
+                            st.uploadError == "server" || st.uploadError == "auth" -> I18n.t("rec.upFailed")
+                            else -> I18n.t("rec.pending").replace("{n}", st.pendingCount.toString())
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (st.uploading) I18n.t("rec.upRunning")
-                                 else I18n.t("rec.pending").replace("{n}", st.pendingCount.toString()),
+                            Text(statusText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                color = if (st.uploadError.isNotEmpty() && !st.uploading)
+                                            MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurfaceVariant)
                             if (!st.uploading) {
                                 Spacer(Modifier.width(8.dp))
                                 Text(I18n.t("rec.uploadNow"),

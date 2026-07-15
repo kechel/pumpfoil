@@ -90,6 +90,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.runDur" to row("Lauf-Dauer", "Lauf-Duur", "Lauf-Dauer", "Run time", "Durée run", "Durata run", "Tiempo run"),
     "rec.pending" to row("{n} wartet auf Upload", "{n} wartet uf Upload", "{n} wartet auf Upload", "{n} waiting to upload", "{n} en attente d'envoi", "{n} in attesa di upload", "{n} pendiente de subida"),
     "rec.uploadNow" to row("Jetzt hochladen", "Jetz ufelade", "Jetzt hochladen", "Upload now", "Envoyer", "Carica ora", "Subir ahora"),
+    "rec.upFailed" to row("Upload fehlgeschlagen", "Upload fehlgschlage", "Upload fehlgeschlagen", "Upload failed", "Échec de l'envoi", "Upload fallito", "Error al subir"),
     "rec.upRunning" to row("lädt hoch…", "ladt ufe…", "lädt hoch…", "uploading…", "envoi…", "caricamento…", "subiendo…"),
     "rec.upOffline" to row("offline — Upload später", "offline — Upload spöter", "offline — Upload später", "offline — upload later", "hors ligne — envoi plus tard", "offline — upload dopo", "sin conexión — subida después"),
     "rec.upLater" to row("wird später hochgeladen", "wird spöter ufeglade", "wird später hochgeladen", "will upload later", "sera envoyé plus tard", "verrà caricato dopo", "se subirá después"),

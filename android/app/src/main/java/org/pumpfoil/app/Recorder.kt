@@ -222,7 +222,8 @@ object Recorder {
                     _state.value = _state.value.copy(uploadError = "offline", uploading = false)
                     return@launch
                 }
-                _state.value = _state.value.copy(uploadError = "")
+                // Sichtbares Feedback: „lädt hoch…" während der Uploads (wird im finally zurückgesetzt).
+                _state.value = _state.value.copy(uploadError = "", uploading = true)
                 for (dir in RecStore.completedSessions(ctx)) {
                     try { uploadSession(ctx, dir) }
                     catch (e: IngestException) {
