@@ -3089,5 +3089,149 @@
     "area_cm2": 1695,
     "thickness_mm": 15,
     "thickness_estimated": true
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD THE 1350",
+    "size": "1350",
+    "span_cm": 135,
+    "area_cm2": 1864,
+    "thickness_mm": 21,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD 1400",
+    "size": "1400",
+    "span_cm": 138,
+    "area_cm2": 1549,
+    "thickness_mm": 18,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD 1300",
+    "size": "1300",
+    "span_cm": 128,
+    "area_cm2": 1330,
+    "thickness_mm": 16.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR 1077",
+    "size": "1077",
+    "span_cm": 107.7,
+    "area_cm2": 1069,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR 977",
+    "size": "977",
+    "span_cm": 97.7,
+    "area_cm2": 953,
+    "thickness_mm": 16.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR 847",
+    "size": "847",
+    "span_cm": 84.7,
+    "area_cm2": 784,
+    "thickness_mm": 16,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR 737",
+    "size": "737",
+    "span_cm": 73.7,
+    "area_cm2": 648,
+    "thickness_mm": 14.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "SEA DEVIL 780 BLACKBIRD",
+    "size": "780",
+    "span_cm": 78,
+    "area_cm2": 950,
+    "thickness_mm": 18.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BLADE 700",
+    "size": "700",
+    "span_cm": 70,
+    "area_cm2": 557,
+    "thickness_mm": 13.15,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER 965",
+    "size": "965",
+    "span_cm": 96.5,
+    "area_cm2": 1210,
+    "thickness_mm": 19,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER 905",
+    "size": "905",
+    "span_cm": 90.5,
+    "area_cm2": 998,
+    "thickness_mm": 17,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER 805",
+    "size": "805",
+    "span_cm": 80.5,
+    "area_cm2": 792,
+    "thickness_mm": 15.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA 699",
+    "size": "699",
+    "span_cm": 69.9,
+    "area_cm2": 880,
+    "thickness_mm": 19.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA 799",
+    "size": "799",
+    "span_cm": 79.9,
+    "area_cm2": 1100,
+    "thickness_mm": 21.6,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA 899",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 1383,
+    "thickness_mm": 24,
+    "is_baseline": false
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA 999",
+    "size": "999",
+    "span_cm": 99.9,
+    "area_cm2": 1747,
+    "thickness_mm": 25.9,
+    "is_baseline": false
   }
 ]
