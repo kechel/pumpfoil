@@ -20,11 +20,12 @@ export interface LightboxPhoto {
 
 // Fullscreen-Galerie: durchschalten (Pfeile/Tastatur/Swipe), liken/melden, Link zur Session.
 // Schließt per Backdrop-Klick, das X oder Esc. Etwas Rand → man sieht, dass man nicht weg ist.
-export function Lightbox({ photos, index, onClose, onChange }: {
+export function Lightbox({ photos, index, onClose, onChange, readOnly = false }: {
   photos: LightboxPhoto[];
   index: number;
   onClose: () => void;
   onChange?: (i: number) => void;
+  readOnly?: boolean;   // öffentlicher Link: Like/Melden/Session-Link ausblenden (kein Login)
 }) {
   const t = useT();
   useCloseOnBack(true, onClose);
@@ -105,6 +106,7 @@ export function Lightbox({ photos, index, onClose, onChange }: {
             {p.name && <div className="truncate text-sm text-slate-100">{p.name}</div>}
             {p.caption && <div className="truncate text-xs italic text-slate-300">{p.caption}</div>}
           </div>
+          {!readOnly && (<>
           <button onClick={like}
             className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${st.liked ? "bg-rose-500/20 text-rose-500" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
             <HeartIcon className="h-4 w-4" filled={st.liked} /> {st.like_count > 0 && <span className="tabular-nums text-xs">{st.like_count}</span>}
@@ -117,6 +119,7 @@ export function Lightbox({ photos, index, onClose, onChange }: {
             className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
             {t("lb.toSession")}
           </Link>
+          </>)}
         </div>
       </div>
     </div>

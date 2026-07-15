@@ -317,6 +317,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
           photos={s.photos.map((ph) => ({ url: ph.url, session_id: sessionId, name: ownerName, avatar_url: ownerAvatar }))}
           index={lb}
           onClose={() => setLb(null)}
+          readOnly={isPublic}
         />
       )}
     </div>
