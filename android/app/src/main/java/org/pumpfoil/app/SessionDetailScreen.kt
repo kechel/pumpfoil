@@ -112,7 +112,7 @@ private val AmberReport = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, dataVersion: Long? = null) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -225,7 +225,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                         }
                     }
                     // Spot-Chat der Session (scope "spot:<name>") — für jede Session mit Spot.
-                    s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
+                    // Bei Age-Gate (social=false) ausgeblendet; Spot/Session bleiben sichtbar, nur Chat aus.
+                    if (social) s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
                         IconButton(onClick = { onSpotChat(sp) }) {
                             Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
                         }

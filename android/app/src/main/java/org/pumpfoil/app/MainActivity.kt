@@ -166,6 +166,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onBack = { nav.popBackStack() },
                     onOpen = { id -> nav.navigate("session/$id") },
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
+                    social = social,
                 )
             }
             composable("chat") { ChatScreen() }
@@ -230,6 +231,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
+                    social = social,
                 )
             }
             composable(

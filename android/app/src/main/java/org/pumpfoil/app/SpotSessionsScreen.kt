@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 // Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}) {
+fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}, social: Boolean = true) {
     var items by remember(spot) { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -54,8 +54,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                     }
                 },
                 actions = {
-                    // Spot-Chat (scope "spot:<name>", wie PWA/iOS).
-                    IconButton(onClick = { onSpotChat(spot) }) {
+                    // Spot-Chat (scope "spot:<name>", wie PWA/iOS) — bei Age-Gate (social=false) aus.
+                    if (social) IconButton(onClick = { onSpotChat(spot) }) {
                         Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
                     }
                 },
