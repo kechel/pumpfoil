@@ -333,6 +333,15 @@ export interface AdminOverview {
 
 export interface AdminPending { flagged: number; fake: number; total: number; }
 
+export interface AdminStatsBucket {
+  date: string; new_users: number; active_users: number; sessions: number; photos: number; likes: number;
+}
+export interface AdminStatsSeries {
+  period: string;
+  buckets: AdminStatsBucket[];
+  totals: { new_users: number; active_users: number; sessions: number; photos: number; likes: number };
+}
+
 export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; }
 
 export interface AdminBlock {
@@ -635,6 +644,7 @@ export const api = {
   mlTrain: () => req<any>("/api/ml/train", { method: "POST" }),
   appDevices: () => req<AppDevice[]>("/api/app/devices"),
   adminOverview: () => req<AdminOverview>("/api/admin/overview"),
+  adminStatsSeries: (period: string) => req<AdminStatsSeries>(`/api/admin/stats-series?period=${period}`),
   adminPending: () => req<AdminPending>("/api/admin/pending"),
   adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),

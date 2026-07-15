@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
+import { TimeChart } from "../components/TimeChart";
 import { useT } from "../i18n";
 
 type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
@@ -106,24 +107,74 @@ function OverviewTab() {
     ["adm.ov.photos", data.photos], ["adm.ov.photosBlocked", data.photos_blocked], ["adm.ov.likes", data.likes],
   ];
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {cells.map(([labelKey, v, tab]) => {
-        const attn = !!tab && v > 0;
-        const inner = (
-          <>
-            <div className={`text-2xl font-bold tabular-nums ${attn ? "text-amber-400" : "text-brand-400"}`}>{v}</div>
-            <div className="text-[11px] uppercase tracking-wide text-slate-300">{t(labelKey)}</div>
-          </>
-        );
-        return tab ? (
-          <Link key={labelKey} to={`/admin?tab=${tab}`}
-            className={`block rounded-xl p-3 transition-colors ${attn ? "border border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20" : "border border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
-            {inner}
-          </Link>
-        ) : (
-          <Card key={labelKey} className="p-3">{inner}</Card>
-        );
-      })}
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {cells.map(([labelKey, v, tab]) => {
+          const attn = !!tab && v > 0;
+          const inner = (
+            <>
+              <div className={`text-2xl font-bold tabular-nums ${attn ? "text-amber-400" : "text-brand-400"}`}>{v}</div>
+              <div className="text-[11px] uppercase tracking-wide text-slate-300">{t(labelKey)}</div>
+            </>
+          );
+          return tab ? (
+            <Link key={labelKey} to={`/admin?tab=${tab}`}
+              className={`block rounded-xl p-3 transition-colors ${attn ? "border border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20" : "border border-slate-800 bg-slate-900/60 hover:border-slate-600"}`}>
+              {inner}
+            </Link>
+          ) : (
+            <Card key={labelKey} className="p-3">{inner}</Card>
+          );
+        })}
+      </div>
+      <StatsSection />
+    </div>
+  );
+}
+
+// Verlaufsgrafik (Fenster wie Community): neue/aktive Nutzer, neue Sessions, Fotos, Likes.
+const STATS_PERIODS: [string, string][] = [
+  ["today", "period.today"], ["10d", "period.10d"], ["30d", "period.30d"], ["365d", "period.365d"], ["all", "period.all"],
+];
+const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
+  ["new_users", "adm.stats.newUsers", "#22d3ee"],
+  ["active_users", "adm.stats.activeUsers", "#a3e635"],
+  ["sessions", "adm.stats.sessions", "#f59e0b"],
+  ["photos", "adm.stats.photos", "#c084fc"],
+  ["likes", "adm.stats.likes", "#fb7185"],
+];
+
+function StatsSection() {
+  const t = useT();
+  const [period, setPeriod] = useState("30d");
+  const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(period), [period]);
+  const times = (data?.buckets ?? []).map((b) => new Date(b.date + "T00:00:00").getTime());
+  const domain: [number, number] = times.length
+    ? [times[0], Math.max(times[times.length - 1], times[0] + 86400000)]
+    : [0, 1];
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {STATS_PERIODS.map(([k, lk]) => (
+          <button key={k} onClick={() => setPeriod(k)}
+            className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {t(lk)}
+          </button>
+        ))}
+      </div>
+      {!data ? <Spinner /> : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {STATS_METRICS.map(([key, labelKey, color]) => (
+            <Card key={key} className="p-3">
+              <div className="mb-1 flex items-baseline justify-between px-1">
+                <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
+                <span className="text-lg font-bold tabular-nums" style={{ color }}>{data.totals[key]}</span>
+              </div>
+              <TimeChart t={times} values={data.buckets.map((b) => b[key])} color={color} domainMs={domain} height={100} />
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

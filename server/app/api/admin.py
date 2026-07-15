@@ -606,6 +606,67 @@ def overview(_a: models.User = Depends(current_admin), db: Session = Depends(get
     }
 
 
+_STATS_PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
+
+
+def _stats_cut(period: str) -> datetime | None:
+    days = _STATS_PERIODS.get(period, 30)
+    if days is None:
+        return None
+    now = datetime.now(timezone.utc)
+    if period == "today":
+        return now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return now - timedelta(days=days)
+
+
+@router.get("/stats-series")
+def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
+                 db: Session = Depends(get_db)) -> dict:
+    """Tages-Verlauf (+ Fenster-Summen) für 5 Kennzahlen: neue Nutzer, aktive Nutzer (=Nutzer mit
+    Session am Tag), neue Sessions, Fotos, Likes. Fenster wie die Community (heute/10d/30d/365d/all)."""
+    cut = _stats_cut(period)
+
+    def series(col, model, *, distinct=None, extra=None) -> dict[str, int]:
+        d = func.date(col)
+        agg = func.count(func.distinct(distinct)) if distinct is not None else func.count()
+        q = db.query(d.label("d"), agg.label("n")).select_from(model)
+        if extra is not None:
+            q = q.filter(extra)
+        if cut is not None:
+            q = q.filter(col >= cut)
+        return {str(r.d): int(r.n) for r in q.group_by(d).all()}
+
+    def total(model, *, distinct=None, col=None, extra=None) -> int:
+        agg = func.count(func.distinct(distinct)) if distinct is not None else func.count()
+        q = db.query(agg).select_from(model)
+        if extra is not None:
+            q = q.filter(extra)
+        if cut is not None and col is not None:
+            q = q.filter(col >= cut)
+        return int(q.scalar() or 0)
+
+    S, U, P, L = models.Session, models.User, models.SessionPhoto, models.SessionLike
+    live = S.deleted.isnot(True)
+    nu = series(U.created_at, U)
+    au = series(S.created_at, S, distinct=S.user_id, extra=live)
+    se = series(S.created_at, S, extra=live)
+    ph = series(P.created_at, P)
+    li = series(L.created_at, L)
+    dates = sorted(set(nu) | set(au) | set(se) | set(ph) | set(li))
+    buckets = [{
+        "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
+        "sessions": se.get(d, 0), "photos": ph.get(d, 0), "likes": li.get(d, 0),
+    } for d in dates]
+    totals = {
+        "new_users": total(U, col=U.created_at),
+        "active_users": total(S, distinct=S.user_id, col=S.created_at, extra=live),  # distinct über Fenster
+        "sessions": total(S, col=S.created_at, extra=live),
+        "photos": total(P, col=P.created_at),
+        "likes": total(L, col=L.created_at),
+    }
+    return {"period": period, "buckets": buckets, "totals": totals}
+
+
 def _news_row(db: Session) -> "models.NewsBanner":
     row = db.query(models.NewsBanner).first()
     if row is None:
