@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, WatchIcon } from "../components/Icons";
+import { useSort, SortHead } from "../components/SortableTable";
 import { useT } from "../i18n";
 
 type Row = Awaited<ReturnType<typeof api.watchStats>>[number];
@@ -11,6 +12,7 @@ type Row = Awaited<ReturnType<typeof api.watchStats>>[number];
 export default function WatchStats() {
   const t = useT();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const sort = useSort<Row>(rows, "sessions", "desc");
 
   useEffect(() => { api.watchStats().then(setRows).catch(() => setRows([])); }, []);
 
@@ -31,27 +33,27 @@ export default function WatchStats() {
           <table className="w-full min-w-[680px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-900/70 text-left text-slate-300">
-                <th className="px-4 py-3 font-semibold">{t("watchStats.colWatch")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colSessions")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colUsers")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colKm")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colAvgSpeed")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colBestDist")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colBestSpeed")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("watchStats.colAvgPump")}</th>
+                <SortHead label={t("watchStats.colWatch")} sortKey="watch" sort={sort} align="left" defaultDir="asc" />
+                <SortHead label={t("watchStats.colSessions")} sortKey="sessions" sort={sort} />
+                <SortHead label={t("watchStats.colUsers")} sortKey="users" sort={sort} />
+                <SortHead label={t("watchStats.colKm")} sortKey="foiling_km" sort={sort} />
+                <SortHead label={t("watchStats.colAvgSpeed")} sortKey="avg_speed_kmh" sort={sort} />
+                <SortHead label={t("watchStats.colBestDist")} sortKey="best_distance_m" sort={sort} />
+                <SortHead label={t("watchStats.colBestSpeed")} sortKey="best_speed_kmh" sort={sort} />
+                <SortHead label={t("watchStats.colAvgPump")} sortKey="avg_pump_hz" sort={sort} />
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {sort.sorted!.map((r) => (
                 <tr key={r.watch} className="border-t border-slate-800">
                   <td className="px-4 py-3 font-semibold">{r.watch}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.foiling_km} km</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh} km/h` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.best_speed_kmh != null ? `${r.best_speed_kmh} km/h` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz} Hz` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.best_speed_kmh != null ? `${r.best_speed_kmh.toFixed(1)} km/h` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz.toFixed(2)} Hz` : "–"}</td>
                 </tr>
               ))}
             </tbody>

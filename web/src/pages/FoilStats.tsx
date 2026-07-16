@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon } from "../components/Icons";
+import { useSort, SortHead } from "../components/SortableTable";
 import { useT } from "../i18n";
 
 type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
@@ -11,6 +12,9 @@ type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
 export default function FoilStats() {
   const t = useT();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const sort = useSort<Row>(rows, "sessions", "desc", {
+    foil: (r) => `${r.brand} ${r.model} ${r.size}`,
+  });
 
   useEffect(() => { api.foilStats().then(setRows).catch(() => setRows([])); }, []);
 
@@ -31,17 +35,17 @@ export default function FoilStats() {
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-900/70 text-left text-slate-300">
-                <th className="px-4 py-3 font-semibold">{t("foilStats.colFoil")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colSessions")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colUsers")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colAvgSpeed")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colMetersPerPump")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colBestDist")}</th>
-                <th className="px-4 py-3 text-right font-semibold">{t("foilStats.colAvgPump")}</th>
+                <SortHead label={t("foilStats.colFoil")} sortKey="foil" sort={sort} align="left" defaultDir="asc" />
+                <SortHead label={t("foilStats.colSessions")} sortKey="sessions" sort={sort} />
+                <SortHead label={t("foilStats.colUsers")} sortKey="users" sort={sort} />
+                <SortHead label={t("foilStats.colAvgSpeed")} sortKey="avg_speed_kmh" sort={sort} />
+                <SortHead label={t("foilStats.colMetersPerPump")} sortKey="meters_per_pump" sort={sort} />
+                <SortHead label={t("foilStats.colBestDist")} sortKey="best_distance_m" sort={sort} />
+                <SortHead label={t("foilStats.colAvgPump")} sortKey="avg_pump_hz" sort={sort} />
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {sort.sorted!.map((r) => (
                 <tr key={r.foil_id} className="border-t border-slate-800">
                   <td className="px-4 py-3">
                     <div className="font-semibold">{r.brand} {r.model} <span className="text-slate-400">{r.size}</span></div>
@@ -49,10 +53,10 @@ export default function FoilStats() {
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh} km/h` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump} m` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump.toFixed(1)} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz} Hz` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz.toFixed(2)} Hz` : "–"}</td>
                 </tr>
               ))}
             </tbody>
