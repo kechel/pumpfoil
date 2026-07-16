@@ -14,8 +14,8 @@ android {
         targetSdk = 35
         // Versionsschema (siehe wear/build.gradle.kts): PHONE = versionName 1.1.x + kleiner
         // versionCode; WEAR = 1.2.x + 1xxx. Das „x" ist bei beiden gleich (gemeinsam hochzählen).
-        versionCode = 28
-        versionName = "1.1.12"
+        versionCode = 29
+        versionName = "1.1.13"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
