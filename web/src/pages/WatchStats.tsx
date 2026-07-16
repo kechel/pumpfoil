@@ -24,7 +24,7 @@ export default function WatchStats() {
       <div className="mb-1 flex items-center gap-2">
         <h2 className="flex items-center gap-2 text-xl font-bold"><WatchIcon className="h-6 w-6 text-brand-400" /> {t("watchStats.title")}</h2>
         <Link to="/foil-stats" title={t("foilStats.title")} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-          <FoilIcon className="h-4 w-4" /> {t("foilStats.title")}
+          <FoilIcon className="h-4 w-4" /> {t("stats.short")}
         </Link>
       </div>
       <p className="mb-4 text-sm text-slate-300">{t("watchStats.hint")}</p>

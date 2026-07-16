@@ -26,7 +26,7 @@ export default function FoilStats() {
       <div className="mb-1 flex items-center gap-2">
         <h2 className="text-xl font-bold">{t("foilStats.title")}</h2>
         <Link to="/watch-stats" title={t("watchStats.title")} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-          <WatchIcon className="h-4 w-4" /> {t("watchStats.title")}
+          <WatchIcon className="h-4 w-4" /> {t("stats.short")}
         </Link>
       </div>
       <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")}</p>
