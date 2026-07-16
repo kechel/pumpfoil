@@ -685,13 +685,13 @@ function FeedbackTab() {
   return (
     <div className="space-y-2">
       <div className="flex justify-end">
-        <Act tone="red" confirm={t("adm.feedbackDelAllConfirm", { n: data.length })}
-          onClick={() => api.adminDeleteAllFeedback().then(() => setData([]))}>
+        <Act tone="red" confirm={t("adm.feedbackDelAllConfirm", { n: data.filter((x) => !x.starred).length })}
+          onClick={() => api.adminDeleteAllFeedback().then(() => setData((data ?? []).filter((x) => x.starred)))}>
           {t("adm.feedbackDelAll")}
         </Act>
       </div>
       {data.map((f) => (
-        <Card key={f.id} className="flex items-start gap-3 p-3">
+        <Card key={f.id} className={`flex items-start gap-3 p-3 ${f.starred ? "border-amber-500/50" : ""}`}>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-baseline gap-2 text-xs text-slate-400">
               <span className="font-medium text-brand-300">{f.name}</span>
@@ -700,6 +700,15 @@ function FeedbackTab() {
             </div>
             <div className="whitespace-pre-wrap text-sm text-slate-100">{f.text}</div>
           </div>
+          {/* ⭐ Testimonial-Archiv: überlebt „Alle löschen"; vor öffentlicher Nutzung Autor fragen. */}
+          <button
+            onClick={() => api.adminStarFeedback(f.id, !f.starred)
+              .then((r) => setData((data ?? []).map((x) => (x.id === f.id ? { ...x, starred: r.starred } : x))))}
+            title={t("adm.feedbackStarTitle")}
+            className={`rounded-lg px-2 py-1.5 text-base leading-none ${f.starred ? "bg-amber-500/20" : "bg-slate-800 opacity-50 hover:opacity-100"}`}
+          >
+            {f.starred ? "⭐" : "☆"}
+          </button>
           <Act tone="red" confirm={t("adm.feedbackDelConfirm")}
             onClick={() => api.adminDeleteFeedback(f.id).then(() => setData((data ?? []).filter((x) => x.id !== f.id)))}>
             {t("adm.delete")}

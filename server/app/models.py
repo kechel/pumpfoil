@@ -489,6 +489,9 @@ class Feedback(Base):
     text: Mapped[str] = mapped_column(String(500))
     url: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # ⭐ = fürs Testimonial-Archiv markiert (Werbe-Zitate): überlebt „Alle löschen".
+    # Vor ÖFFENTLICHER Nutzung eines Zitats den Autor fragen (Privacy) — Namen nie ungefragt publizieren.
+    starred: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
 class PolarLink(Base):

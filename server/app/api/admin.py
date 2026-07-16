@@ -752,13 +752,30 @@ def feedback_list(
         "id": f.id, "text": f.text, "url": f.url,
         "at": f.created_at.isoformat() if f.created_at else None,
         "name": name or email, "email": email,
+        "starred": bool(f.starred),
     } for f, name, email in rows]
+
+
+@router.post("/feedback/{feedback_id}/star")
+def star_feedback(
+    feedback_id: int, starred: bool = Query(True),
+    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """⭐ Testimonial-Markierung: gesternte Zitate überleben 'Alle löschen' (Werbe-Archiv).
+    Vor ÖFFENTLICHER Verwendung den Autor um Erlaubnis fragen (Privacy)."""
+    fb = db.get(models.Feedback, feedback_id)
+    if fb is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Feedback not found")
+    fb.starred = bool(starred)
+    db.commit()
+    return {"ok": True, "starred": fb.starred}
 
 
 @router.delete("/feedback/all")
 def delete_all_feedback(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
-    """Alle Feedback-Einträge löschen (Admin, nach Abarbeitung). Route VOR /{feedback_id} registriert."""
-    n = db.query(models.Feedback).delete()
+    """Alle NICHT gesternten Feedback-Einträge löschen (Admin, nach Abarbeitung).
+    ⭐-Testimonials bleiben. Route VOR /{feedback_id} registriert."""
+    n = db.query(models.Feedback).filter(models.Feedback.starred.isnot(True)).delete()
     db.commit()
     return {"ok": True, "deleted": int(n)}
 

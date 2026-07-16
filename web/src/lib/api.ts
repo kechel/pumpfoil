@@ -699,6 +699,8 @@ export const api = {
   adminFeedback: (limit = 200) => req<AdminFeedback[]>(`/api/admin/feedback?limit=${limit}`),
   adminDeleteFeedback: (id: number) => req<{ ok: boolean }>(`/api/admin/feedback/${id}`, { method: "DELETE" }),
   adminDeleteAllFeedback: () => req<{ ok: boolean; deleted: number }>(`/api/admin/feedback/all`, { method: "DELETE" }),
+  adminStarFeedback: (id: number, starred: boolean) =>
+    req<{ ok: boolean; starred: boolean }>(`/api/admin/feedback/${id}/star?starred=${starred}`, { method: "POST" }),
   submitFeedback: (text: string, url: string) =>
     req<{ ok: boolean }>("/api/feedback", { method: "POST", body: JSON.stringify({ text, url }) }),
 };
@@ -710,6 +712,7 @@ export interface AdminFeedback {
   at: string | null;
   name: string | null;
   email: string | null;
+  starred?: boolean;   // ⭐ Testimonial-Archiv — überlebt „Alle löschen"
 }
 
 export interface StatRecord {
