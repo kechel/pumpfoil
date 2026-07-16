@@ -7,7 +7,7 @@ import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
-import { CommunityIcon, SendIcon } from "../components/Icons";
+import { CommunityIcon, SendIcon, HomeIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
 // Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
@@ -81,7 +81,8 @@ export default function PersonalHome() {
   return (
     <div className="w-full">
       <WelcomeBanner />
-      <h2 className="mb-5 text-2xl font-bold">
+      <h2 className="mb-5 flex items-center gap-2 text-2xl font-bold">
+        <HomeIcon className="h-7 w-7 text-brand-400" />
         {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
       </h2>
 
