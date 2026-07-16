@@ -698,6 +698,7 @@ export const api = {
   adminAudit: (limit = 100) => req<AdminAuditEntry[]>(`/api/admin/audit?limit=${limit}`),
   adminFeedback: (limit = 200) => req<AdminFeedback[]>(`/api/admin/feedback?limit=${limit}`),
   adminDeleteFeedback: (id: number) => req<{ ok: boolean }>(`/api/admin/feedback/${id}`, { method: "DELETE" }),
+  adminDeleteAllFeedback: () => req<{ ok: boolean; deleted: number }>(`/api/admin/feedback/all`, { method: "DELETE" }),
   submitFeedback: (text: string, url: string) =>
     req<{ ok: boolean }>("/api/feedback", { method: "POST", body: JSON.stringify({ text, url }) }),
 };

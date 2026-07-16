@@ -684,6 +684,12 @@ function FeedbackTab() {
   if (data.length === 0) return <Card className="p-8 text-center text-slate-300">{t("adm.noFeedback")}</Card>;
   return (
     <div className="space-y-2">
+      <div className="flex justify-end">
+        <Act tone="red" confirm={t("adm.feedbackDelAllConfirm", { n: data.length })}
+          onClick={() => api.adminDeleteAllFeedback().then(() => setData([]))}>
+          {t("adm.feedbackDelAll")}
+        </Act>
+      </div>
       {data.map((f) => (
         <Card key={f.id} className="flex items-start gap-3 p-3">
           <div className="min-w-0 flex-1">

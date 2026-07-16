@@ -774,6 +774,8 @@ const de: Record<string, string> = {
   "adm.news.hint": "Text je Sprache (leer = Deutsch als Fallback). Zum News-Posten Text ändern und Version erhöhen — kein App-Update nötig.",
   "adm.noFeedback": "Noch kein Feedback.",
   "adm.feedbackDelConfirm": "Feedback löschen?",
+  "adm.feedbackDelAll": "Alle löschen",
+  "adm.feedbackDelAllConfirm": "Wirklich ALLE {n} Feedback-Einträge löschen? Das kann nicht rückgängig gemacht werden.",
   "login.or": "oder",
   "login.continueWith": "Weiter mit {provider}",
   "land.login": "Anmelden",

@@ -755,6 +755,14 @@ def feedback_list(
     } for f, name, email in rows]
 
 
+@router.delete("/feedback/all")
+def delete_all_feedback(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Alle Feedback-Einträge löschen (Admin, nach Abarbeitung). Route VOR /{feedback_id} registriert."""
+    n = db.query(models.Feedback).delete()
+    db.commit()
+    return {"ok": True, "deleted": int(n)}
+
+
 @router.delete("/feedback/{feedback_id}")
 def delete_feedback(feedback_id: int, _a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
     fb = db.get(models.Feedback, feedback_id)

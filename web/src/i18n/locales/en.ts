@@ -682,6 +682,8 @@ const en: Record<string, string> = {
   "adm.tab.feedback": "Feedback",
   "adm.noFeedback": "No feedback yet.",
   "adm.feedbackDelConfirm": "Delete feedback?",
+  "adm.feedbackDelAll": "Delete all",
+  "adm.feedbackDelAllConfirm": "Really delete ALL {n} feedback entries? This cannot be undone.",
   "login.or": "or",
   "login.continueWith": "Continue with {provider}",
   "land.login": "Sign in",
