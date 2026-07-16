@@ -200,6 +200,7 @@ const de: Record<string, string> = {
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
   "sessions.filterOther": "Aussortiert",
+  "sd.hotkeysTitle": "Tastatur: 1–9 Lauf wählen · 0 alle · ←/→ blättern · F Vollbild · Leertaste Play/Pause",
   "sessions.deleteAllOther": "Alle löschen",
   "sessions.deleteAllOtherConfirm": "Wirklich ALLE aussortierten Sessions löschen? Das betrifft nur deine eigenen aussortierten (Nicht-Pumpfoil) Sessions — deine Pumpfoil-Sessions bleiben unberührt. Das kann nicht rückgängig gemacht werden.",
   "sessions.deleteAllOtherDone": "{n} aussortierte Sessions gelöscht.",

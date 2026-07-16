@@ -41,8 +41,10 @@ async function loadImgBlob(url: string): Promise<HTMLImageElement> {
   return loadImg(URL.createObjectURL(await r.blob()));
 }
 
-export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
-  sessionId: number; analysis: any; defaultPhoto?: string | null; onClose: () => void;
+export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighlight, onClose }: {
+  sessionId: number; analysis: any; defaultPhoto?: string | null;
+  initialHighlight?: number | null;   // in der Detailansicht ausgewählter Lauf -> vorauswählen
+  onClose: () => void;
 }) {
   const t = useT();
   useCloseOnBack(true, onClose);
@@ -54,7 +56,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
   const [showTrack, setShowTrack] = useState(true);   // Track (GPS-Läufe) anzeigen?
   const [shade, setShade] = useState<"light" | "dark">("light");  // Textfarbe: helles/dunkles Blau
   const segments: any[] = analysis?.segments ?? [];
-  const [highlight, setHighlight] = useState(-1);   // -1 = alle Läufe, sonst 0-basierter Lauf
+  const [highlight, setHighlight] = useState(initialHighlight ?? -1);   // -1 = alle Läufe, sonst 0-basierter Lauf
   const [cardTitle, setCardTitle] = useState("");     // optionaler eigener Titel/Text
   const [hasPhoto, setHasPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -130,7 +132,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
         const chosen = STAT_ORDER.filter((k) => sel.has(k));
         const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0", shade });
         if (showTrack && highlight >= 0) q.set("highlight", String(highlight));
-        if (chosen.length) q.set("stats", chosen.join(","));
+        // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle).
+        q.set("stats", chosen.length ? chosen.join(",") : "none");
         if (cardTitle.trim()) q.set("title", cardTitle.trim());
         const res = await fetch(`/api/sessions/${sessionId}/share.png?${q}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
         if (!res.ok || !alive) return;
@@ -153,6 +156,16 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, onClose }: {
     xf.current = { x: (N - img.width * s) / 2, y: (N - img.height * s) / 2, w: img.width * s, h: img.height * s };
     setHasPhoto(true); requestAnimationFrame(draw);
   }
+
+  // Mausrad-Zoom über dem Canvas darf NICHT gleichzeitig die Seite scrollen. React-onWheel ist
+  // (am Root) passiv -> preventDefault wirkt dort nicht zuverlässig; daher nativer non-passiver Listener.
+  useEffect(() => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const h = (e: WheelEvent) => { if (hasPhoto) e.preventDefault(); };
+    cv.addEventListener("wheel", h, { passive: false });
+    return () => cv.removeEventListener("wheel", h);
+  }, [hasPhoto]);
 
   // --- Gesten (nur mit Foto): 1 Finger schieben, 2 Finger zoomen ---
   function toCanvas(e: React.PointerEvent) {

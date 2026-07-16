@@ -3245,5 +3245,32 @@
     "thickness_mm": 48,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP ONE",
+    "size": "1600",
+    "span_cm": 121,
+    "area_cm2": 1600,
+    "thickness_mm": 24,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP ONE",
+    "size": "1800",
+    "span_cm": 129,
+    "area_cm2": 1800,
+    "thickness_mm": 25,
+    "is_baseline": false
+  },
+  {
+    "brand": "TAKOON",
+    "model": "PUMP ONE",
+    "size": "2000",
+    "span_cm": 136,
+    "area_cm2": 2000,
+    "thickness_mm": 26,
+    "is_baseline": false
   }
 ]

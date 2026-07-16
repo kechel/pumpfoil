@@ -66,6 +66,14 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Gleitphasen-Rekord „mit Weiterfahrt"** (Philipp-Feedback #29, 2026-07-16 gemerkt): Glides mitten
+  im Lauf getrennt von End-Glides werten (der End-Glide vor dem Absteigen ist eh immer der längste).
+  R&D/Detektor → Jans OK nötig. Nicht jetzt.
+- **Partielle Accel-Daten** (Philipp #34, FR55): Session hat Accel bis ~Sek. 650, danach nichts —
+  Analyse behandelt alles als accel-los. Abschnittsweise Behandlung = Detektor-Änderung, Jans OK.
+  Verwandt: fr55-accel-truncation Ebene 2. Für später gemerkt (2026-07-16).
+- ~~Läufe zusammenführen (Philipp #14/18/20)~~ — laut Jan durch die mehrfachen Detektor-Verbesserungen
+  (Re-Arm-Cooldown, End-Verlängerung, NOSTOP) vermutlich obsolet.
 - **Öffentliche Session-Teilen-Links** (Community-Wunsch Dominik/Pixelfoil, 2026-07-15): unguessbarer
   Token-Link → vollständige Session-Detailseite ohne Login/Registrierung. Spec (Jan, festgelegt):
   - **Nur für EIGENE Sessions** erzeugbar; `share_token` je Session (nullable), vom Besitzer erzeugbar +

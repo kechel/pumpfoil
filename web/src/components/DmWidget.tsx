@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
 import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
@@ -28,6 +28,30 @@ export function DmWidget() {
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
+  // Verschiebbares Popup (nur Desktop; Philipp: verdeckt sonst Statistiken). Position = Abstand
+  // von rechts/unten, lokal im Browser gemerkt (localStorage dm_pos) — bewusst nicht am Server.
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
+    try { return JSON.parse(localStorage.getItem("dm_pos") || "null"); } catch { return null; }
+  });
+  const dragRef = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const startDrag = (e: React.PointerEvent) => {
+    if (window.innerWidth < 768) return;   // mobil = Vollbild, kein Drag
+    if ((e.target as HTMLElement).closest("button,input")) return;
+    const cur = pos ?? { x: 16, y: 80 };   // Default = right-4 / bottom-20
+    dragRef.current = { sx: e.clientX, sy: e.clientY, ox: cur.x, oy: cur.y };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onDrag = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const x = Math.max(0, Math.min(window.innerWidth - 360, d.ox + (d.sx - e.clientX)));
+    const y = Math.max(0, Math.min(window.innerHeight - 160, d.oy + (d.sy - e.clientY)));
+    setPos({ x, y });
+  };
+  const endDrag = () => {
+    if (dragRef.current) setPos((p) => { try { if (p) localStorage.setItem("dm_pos", JSON.stringify(p)); } catch {} return p; });
+    dragRef.current = null;
+  };
   const [blocked, setBlocked] = useState<Set<number>>(new Set());
   const [blockedUsers, setBlockedUsers] = useState<DmUser[]>([]);   // zum Entblocken (Namen/Avatare)
   const [showBlocked, setShowBlocked] = useState(false);
@@ -177,22 +201,23 @@ export function DmWidget() {
       {open && (
         <div
           className="fixed inset-0 z-[1550] flex flex-col overflow-hidden border-slate-700 bg-slate-900 shadow-2xl md:inset-auto md:bottom-20 md:right-4 md:h-[66vh] md:w-[350px] md:rounded-2xl md:border"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          style={{
+            paddingBottom: "env(safe-area-inset-bottom)",
+            ...(pos && window.innerWidth >= 768 ? { right: pos.x, bottom: pos.y, left: "auto", top: "auto" } : {}),
+          }}
         >
           <div
-            className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2"
+            className="flex touch-none items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2 md:cursor-move"
             style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top))" }}
+            onPointerDown={startDrag} onPointerMove={onDrag} onPointerUp={endDrag} onPointerCancel={endDrag}
           >
             {active ? (
               <>
                 <button onClick={back} aria-label={t("dm.back")} className="px-1 text-lg text-slate-400 hover:text-slate-200">←</button>
                 <Avatar name={active.name} url={active.avatar} size={28} />
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-100">{active.name || "—"}</span>
-                {active.otherId > 0 && (
-                  <button onClick={toggleBlock} className={`text-xs ${active.blocked ? "text-emerald-400 hover:text-emerald-300" : "text-slate-400 hover:text-red-400"}`}>
-                    {active.blocked ? t("dm.unblock") : t("dm.block")}
-                  </button>
-                )}
+                {/* „Blockieren" bewusst NICHT hier oben neben dem X (zu leicht versehentlich
+                    getroffen, Philipp-Feedback) — steht jetzt unten bei der Tipp-Zeile. */}
               </>
             ) : (
               // Kein Titel — die Tabs beschriften den Inhalt selbst (spart Höhe im schmalen Popup).
@@ -210,6 +235,13 @@ export function DmWidget() {
             <div className="flex min-h-0 flex-1 flex-col p-3">
               {active.blocked && <p className="mb-2 rounded-lg bg-red-500/10 px-2 py-1 text-xs text-red-300">{t("dm.blockedNote")}</p>}
               <div className="min-h-0 flex-1"><Chat scope={active.scope} fill /></div>
+              {active.otherId > 0 && (
+                <div className="mt-1 flex justify-end">
+                  <button onClick={toggleBlock} className={`text-[11px] ${active.blocked ? "text-emerald-400 hover:text-emerald-300" : "text-slate-500 hover:text-red-400"}`}>
+                    {active.blocked ? t("dm.unblock") : t("dm.block")}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">

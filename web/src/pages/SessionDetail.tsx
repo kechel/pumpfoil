@@ -58,11 +58,12 @@ function ytId(url: string | null | undefined): string {
   }
 }
 
-function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], ownerName, ownerAvatar, youtubeUrl, onMeta, analysis }: {
+function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], ownerName, ownerAvatar, youtubeUrl, onMeta, analysis, selectedRun = null }: {
   sessionId: number; owned: boolean; isPublic?: boolean;
   publicPhotos?: { id: number; url: string; thumb_url?: string | null }[];
   ownerName: string | null; ownerAvatar: string | null;
   youtubeUrl: string | null; onMeta: (s: SessionSummary) => void; analysis: any;
+  selectedRun?: number | null;   // gerade ausgewählter Lauf -> im Teilen-Dialog vorausgewählt
 }) {
   const t = useT();
   const [s, setS] = useState<SocialData | null>(null);
@@ -217,7 +218,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
             <LinkIcon className="h-4 w-4 text-brand-400" /> Link
           </button>
         )}
-        {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} onClose={() => setShareOpen(false)} />}
+        {owned && shareOpen && <ShareDialog sessionId={sessionId} analysis={analysis} defaultPhoto={s.photos[0]?.url ?? null} initialHighlight={selectedRun} onClose={() => setShareOpen(false)} />}
         {owned && (
           <>
             <button
@@ -407,11 +408,19 @@ export default function SessionDetail() {
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedRun((p) => (p === null ? n - 1 : p - 1 < 0 ? null : p - 1));
+      } else if (e.key === "f" || e.key === "F") {
+        // F = Karten-Vollbild (wie YouTube). Bewusst NUR hier (Inputs/Modifier oben ausgefiltert).
+        setFullscreen((v) => !v);
+      } else if (e.code === "Space" && playMode && !tagMode) {
+        // Space = Play/Pause — NUR im Wiedergabe-Modus und NICHT im Tap-Label-Modus
+        // (dort ist Space der Pump-Tap, eigener Handler); sonst bleibt Space = Seiten-Scroll.
+        e.preventDefault();
+        setPlaying((p) => !p);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [session]);
+  }, [session, playMode, tagMode]);
 
   useEffect(() => {
     // Nach Größenwechsel mehrfach invalidateSize, damit OSM-Kacheln neu laden.
@@ -498,6 +507,7 @@ export default function SessionDetail() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
   const trackLayer = useRef<L.LayerGroup | null>(null);
+  const lastFitRun = useRef<number | null | undefined>(undefined);  // letzter Lauf, auf den gezoomt wurde
 
   useEffect(() => {
     const p = isPublic ? api.publicSession(token!) : api.session(Number(id));
@@ -587,6 +597,16 @@ export default function SessionDetail() {
   useEffect(() => {
     playheadRef.current = 0; setProgress(0); setPlaying(false); setPlayMode(false);
   }, [playTimeline]);
+
+  // Beim Abspielen der GANZEN Session: welcher Lauf läuft gerade? (fürs Ring-Highlight unten).
+  const playRunIdx = useMemo(() => {
+    if (!playMode || selectedRun != null) return null;
+    const segs = session?.analysis?.segments ?? [];
+    if (!segs.length || playTimeline.length < 2) return null;
+    const ci = playTimeline[Math.min(Math.floor(progress * (playTimeline.length - 1)), playTimeline.length - 1)];
+    const idx = segs.findIndex((sg: any) => ci >= sg.i_start && ci <= sg.i_end);
+    return idx >= 0 ? idx : null;
+  }, [playMode, selectedRun, progress, playTimeline, session]);
 
   const togglePlay = () => {
     if (playTimeline.length < 2) return;
@@ -706,6 +726,8 @@ export default function SessionDetail() {
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22 });
       L.control.zoom({ position: "bottomright" }).addTo(mapObj.current);
+      // Dezente Maßstabsleiste (Philipp-Wunsch: bei fremden Spots fehlt das Größengefühl).
+      L.control.scale({ imperial: false, maxWidth: 100 }).addTo(mapObj.current);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
         maxZoom: 22,        // erlaubt weiteres Reinzoomen ...
@@ -728,6 +750,12 @@ export default function SessionDetail() {
     const lg = trackLayer.current;
     if (!map || !lg || !session?.analysis?.track_geojson) return;
     if (playMode) return;   // im Wiedergabe-Modus übernimmt der Play-Effekt das Zeichnen
+    // Autoskala hinkt beim Laufwechsel einen Render hinterher (State) → diesen Stale-Pass
+    // überspringen; der Folge-Render zeichnet direkt mit der korrekten Skala (kein Farb-Blitzer).
+    if (autoScaleOn && colorMode === "speed") {
+      const r = computeAutoRange();
+      if (r && (r[0] !== speedMin || r[1] !== speedMax)) return;
+    }
     lg.clearLayers();
     const gj = session.analysis.track_geojson;
     const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
@@ -812,11 +840,14 @@ export default function SessionDetail() {
           }).addTo(lg);
       }
     });
-    if (selectedRun != null && segs[selectedRun]) {
+    // Zoom NUR bei echtem Laufwechsel — nicht bei jedem Redraw (Farben/Skala), sonst wird die
+    // laufende fitBounds-Animation neu gestartet und ruckelt am Ende.
+    if (selectedRun != null && segs[selectedRun] && lastFitRun.current !== selectedRun) {
       const seg = segs[selectedRun];
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode]);
+    lastFitRun.current = selectedRun;
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode, autoScaleOn]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -1112,6 +1143,7 @@ export default function SessionDetail() {
           youtubeUrl={session.youtube_url ?? null}
           onMeta={setSession}
           analysis={session.analysis}
+          selectedRun={selectedRun}
         />
       </div>
 
@@ -1247,12 +1279,13 @@ export default function SessionDetail() {
         {segs.length > 0 && (
           <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-2" : "mt-3"}`}>
             <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
-            <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex" title="1–9"><KeyboardIcon className="h-3.5 w-3.5" /> 1–9</span>
+            <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex"
+              title={t("sd.hotkeysTitle")}><KeyboardIcon className="h-3.5 w-3.5" /> 1–9 · ←→ · F{playMode ? " · ␣" : ""}</span>
             {segs.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setSelectedRun(selectedRun === i ? null : i)}
-                className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+                className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
               >
                 {i + 1}
               </button>

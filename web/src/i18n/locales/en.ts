@@ -186,6 +186,7 @@ const en: Record<string, string> = {
   "sessions.title": "Sessions",
   "sessions.filterPump": "Pumpfoil",
   "sessions.filterOther": "Filtered out",
+  "sd.hotkeysTitle": "Keyboard: 1–9 select run · 0 all · ←/→ browse · F fullscreen · Space play/pause",
   "sessions.deleteAllOther": "Delete all",
   "sessions.deleteAllOtherConfirm": "Really delete ALL filtered-out sessions? This only affects your own filtered-out (non-pumpfoil) sessions — your pumpfoil sessions are untouched. This cannot be undone.",
   "sessions.deleteAllOtherDone": "{n} filtered-out sessions deleted.",

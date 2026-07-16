@@ -996,7 +996,8 @@ def share_card(
     ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
     if ar is None or not ar.track_geojson:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Track-Daten")
-    stat_keys = [k for k in (stats.split(",") if stats else []) if k] or None
+    # "none" = bewusst KEINE Stat-Boxen (leer/None hieße Default=alle) — Fix „alle abgewählt → alle sichtbar".
+    stat_keys = [] if stats == "none" else ([k for k in (stats.split(",") if stats else []) if k] or None)
     # Wasser-Silhouette aus dem Cache (kein Netz): grid_key aus Track-Median
     rings = None
     try:
@@ -1030,13 +1031,33 @@ def session_neighbors(
     s = db.get(models.Session, session_id)
     if s is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
-    same_kind = (models.Session.is_pumpfoil.is_(True) if s.is_pumpfoil
-                 else models.Session.is_pumpfoil.isnot(True))
-    base = db.query(models.Session.id).filter(
-        models.Session.user_id == user.id,
-        models.Session.deleted.isnot(True),
-        same_kind,
-    )
+    # „Gleiche Art" mit der IDENTISCHEN Definition wie die Liste (inkl. persönlichem
+    # Empfindlichkeits-Preset) — sonst springt man im Aussortiert-Filter zu Pump-Sessions.
+    sens = (user.foil_sensitivity or "normal")
+    if sens != "normal":
+        s_pump = bool(s.is_pumpfoil)
+        if not s_pump:
+            ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+            if ar and ar.sensitivity_json:
+                try:
+                    s_pump = int((json.loads(ar.sensitivity_json).get(sens) or {}).get("num_runs") or 0) > 0
+                except (ValueError, AttributeError, TypeError):
+                    pass
+        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
+            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
+        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
+        base = (db.query(models.Session.id)
+                .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+                .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                        is_pump if s_pump else not_(is_pump)))
+    else:
+        same_kind = (models.Session.is_pumpfoil.is_(True) if s.is_pumpfoil
+                     else models.Session.is_pumpfoil.isnot(True))
+        base = db.query(models.Session.id).filter(
+            models.Session.user_id == user.id,
+            models.Session.deleted.isnot(True),
+            same_kind,
+        )
     older = base.filter(models.Session.started_at < s.started_at).order_by(models.Session.started_at.desc()).first()
     newer = base.filter(models.Session.started_at > s.started_at).order_by(models.Session.started_at.asc()).first()
     return {"older": older[0] if older else None, "newer": newer[0] if newer else None}
