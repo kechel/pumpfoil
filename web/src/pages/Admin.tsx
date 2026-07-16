@@ -149,15 +149,20 @@ const DAY_MS = 86400000;
 function StatsSection() {
   const t = useT();
   const [period, setPeriod] = useState("30d");
-  const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(period), [period]);
+  // „heute" = Tageszacken-Ansicht: volle Historie laden, tägliche Werte plotten (nicht kumuliert);
+  // die Zahl daneben zeigt den heutigen Tageswert. Alle anderen Fenster: kumulierte Kurve.
+  const daily = period === "today";
+  const fetchPeriod = daily ? "all" : period;
+  const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(fetchPeriod), [fetchPeriod]);
   const times = (data?.buckets ?? []).map((b) => new Date(b.date + "T00:00:00").getTime());
   // Einheitlicher Zeitraum für ALLE Metriken = das gewählte Fenster (cut → jetzt), nicht nur wo Daten sind.
   const now = Date.now();
   const cut: Record<string, number> = {
-    today: new Date().setHours(0, 0, 0, 0),
     "10d": now - 10 * DAY_MS, "30d": now - 30 * DAY_MS, "365d": now - 365 * DAY_MS,
   };
-  const start = period === "all" ? (times.length ? Math.min(...times) : now - 30 * DAY_MS) : cut[period];
+  const start = (period === "all" || daily)
+    ? (times.length ? Math.min(...times) : now - 30 * DAY_MS)
+    : cut[period];
   const domain: [number, number] = [start, Math.max(now, start + DAY_MS)];
   // ~4 Datums-Ticks gleichmäßig über den Zeitraum (wie /verlauf).
   const spanDays = (domain[1] - domain[0]) / DAY_MS;
@@ -177,16 +182,25 @@ function StatsSection() {
       {!data ? <Spinner /> : (
         <div className="grid gap-4 sm:grid-cols-2">
           {STATS_METRICS.map(([key, labelKey, color]) => {
-            // Kumulierte Kurve übers Fenster (laufende Summe der Tageswerte), bis "jetzt" verlängert.
-            let acc = 0;
-            const cum = data.buckets.map((b) => (acc += b[key]));
-            const tPlot = [...times, domain[1]];
-            const vPlot = [...cum, acc];
+            // „heute": tägliche Werte (24h-Zacken); sonst kumulierte Kurve, bis "jetzt" verlängert.
+            let tPlot: number[]; let vPlot: number[]; let headline: number;
+            if (daily) {
+              tPlot = times;
+              vPlot = data.buckets.map((b) => b[key]);
+              const todayKey = new Date().toISOString().slice(0, 10);
+              headline = data.buckets.find((b) => b.date === todayKey)?.[key] ?? 0;
+            } else {
+              let acc = 0;
+              const cum = data.buckets.map((b) => (acc += b[key]));
+              tPlot = [...times, domain[1]];
+              vPlot = [...cum, acc];
+              headline = data.totals[key];
+            }
             return (
               <Card key={key} className="p-3">
                 <div className="mb-1 flex items-baseline justify-between px-1">
                   <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{data.totals[key]}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{headline}</span>
                 </div>
                 <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain} height={100} />
                 <div className="mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
