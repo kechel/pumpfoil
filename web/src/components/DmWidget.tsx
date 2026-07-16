@@ -28,11 +28,11 @@ export function DmWidget() {
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
-  // Verschiebbares Popup (nur Desktop; Philipp: verdeckt sonst Statistiken). Position = Abstand
-  // von rechts/unten, lokal im Browser gemerkt (localStorage dm_pos) — bewusst nicht am Server.
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(() => {
-    try { return JSON.parse(localStorage.getItem("dm_pos") || "null"); } catch { return null; }
-  });
+  // Verschiebbares Popup (nur Desktop; Philipp: verdeckt sonst Statistiken). Position NUR im
+  // Speicher (kein localStorage) — Reload = zurück auf die Ausgangsposition (Rettungsanker,
+  // falls man sich verschoben hat). Clamp hält die Titelzeile IMMER im Viewport (Fenster ist
+  // 66vh hoch; y so begrenzen, dass die Oberkante nie über den oberen Rand rutscht).
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
   const startDrag = (e: React.PointerEvent) => {
     if (window.innerWidth < 768) return;   // mobil = Vollbild, kein Drag
@@ -44,14 +44,11 @@ export function DmWidget() {
   const onDrag = (e: React.PointerEvent) => {
     const d = dragRef.current;
     if (!d) return;
-    const x = Math.max(0, Math.min(window.innerWidth - 360, d.ox + (d.sx - e.clientX)));
-    const y = Math.max(0, Math.min(window.innerHeight - 160, d.oy + (d.sy - e.clientY)));
+    const x = Math.max(0, Math.min(window.innerWidth - 358, d.ox + (d.sx - e.clientX)));
+    const y = Math.max(0, Math.min(Math.round(window.innerHeight * 0.34) - 16, d.oy + (d.sy - e.clientY)));
     setPos({ x, y });
   };
-  const endDrag = () => {
-    if (dragRef.current) setPos((p) => { try { if (p) localStorage.setItem("dm_pos", JSON.stringify(p)); } catch {} return p; });
-    dragRef.current = null;
-  };
+  const endDrag = () => { dragRef.current = null; };
   const [blocked, setBlocked] = useState<Set<number>>(new Set());
   const [blockedUsers, setBlockedUsers] = useState<DmUser[]>([]);   // zum Entblocken (Namen/Avatare)
   const [showBlocked, setShowBlocked] = useState(false);

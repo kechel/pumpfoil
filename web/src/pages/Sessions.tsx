@@ -4,7 +4,8 @@ import { api, CommunitySession, SessionSummary, type Transfer } from "../lib/api
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon } from "../components/Icons";
+import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon } from "../components/Icons";
+import { useCompare } from "../lib/compare";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -138,6 +139,36 @@ function monthLabel(m: string) {
 
 // Vereinheitlichte Sessions-Seite: Umschalter Meine / <Homespot> / Alle + Spotsuche.
 // scope=mine -> eigene Sessions; sonst Community-Sessions (optional je Spot gefiltert).
+// Scroll-to-top-FAB: erscheint nach längerem Scrollen rechts unten NEBEN dem Chat-FAB (right-4);
+// ist der Vergleichs-Button (compare-bar, right-20) sichtbar, rückt er links davor.
+function ScrollTopFab() {
+  const cmp = useCompare();
+  const [show, setShow] = useState(false);
+  const [right, setRight] = useState(80);
+  useEffect(() => {
+    const h = () => setShow(window.scrollY > 1000);
+    window.addEventListener("scroll", h, { passive: true });
+    h();
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+  useEffect(() => {
+    if (!show) return;
+    const el = document.getElementById("compare-bar");
+    setRight(el ? 96 + el.offsetWidth : 80);   // 80 = right-20; +Breite+16 wenn Vergleich sichtbar
+  }, [show, cmp.length]);
+  if (!show) return null;
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      aria-label="Scroll to top"
+      style={{ right }}
+      className="fixed bottom-20 z-[1100] flex h-12 w-12 items-center justify-center rounded-full border border-slate-700 bg-slate-900/90 text-slate-200 shadow-lg backdrop-blur transition-colors hover:bg-slate-800 md:bottom-4"
+    >
+      <ChevronIcon className="h-5 w-5 -rotate-90" />
+    </button>
+  );
+}
+
 export default function Sessions() {
   const t = useT();
   const [sp, setSp] = useSearchParams();
@@ -185,6 +216,7 @@ export default function Sessions() {
 
   return (
     <div>
+      <ScrollTopFab />
       {/* Überschrift ganz oben (wie auf allen Seiten) */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <SessionsIcon className="h-7 w-7 text-brand-400" />
