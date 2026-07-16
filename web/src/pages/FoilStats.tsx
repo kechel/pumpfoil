@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
-import { ChevronIcon } from "../components/Icons";
+import { ChevronIcon, WatchIcon } from "../components/Icons";
 import { useSort, SortHead } from "../components/SortableTable";
 import { useT } from "../i18n";
 
@@ -23,7 +23,12 @@ export default function FoilStats() {
       <Link to="/community" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("home.community")}
       </Link>
-      <h2 className="mb-1 text-xl font-bold">{t("foilStats.title")}</h2>
+      <div className="mb-1 flex items-center gap-2">
+        <h2 className="text-xl font-bold">{t("foilStats.title")}</h2>
+        <Link to="/watch-stats" title={t("watchStats.title")} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+          <WatchIcon className="h-4 w-4" /> {t("watchStats.title")}
+        </Link>
+      </div>
       <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")}</p>
 
       {!rows ? (
