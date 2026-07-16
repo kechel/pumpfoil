@@ -38,8 +38,14 @@ object Api {
 
     // Reverse-Pairing: die Uhr erzeugt einen Code, der Nutzer trägt ihn auf der
     // Web-App ein (Code an der Uhr tippen wäre umständlich). Rückgabe: code + claim_token.
+    // label mitschicken (Gerätemodell), sonst setzt der Server das Label beim Claim auf den
+    // historischen Default „Garmin" — der Admin zeigt das Label bevorzugt an. platform="wear"
+    // ist redundant (GET /config meldet es ohnehin), schadet aber nicht und ist ab Claim korrekt.
     suspend fun pairInit(): Pair<String, String> = withContext(Dispatchers.IO) {
-        val res = post("/api/devices/pair-init", JSONObject(), auth = false)
+        val body = JSONObject()
+            .put("platform", "wear")
+            .put("label", android.os.Build.MODEL?.takeIf { it.isNotBlank() } ?: "Wear OS")
+        val res = post("/api/devices/pair-init", body, auth = false)
         res.getString("code") to res.getString("claim_token")
     }
 
