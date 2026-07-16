@@ -176,18 +176,25 @@ function StatsSection() {
       </div>
       {!data ? <Spinner /> : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {STATS_METRICS.map(([key, labelKey, color]) => (
-            <Card key={key} className="p-3">
-              <div className="mb-1 flex items-baseline justify-between px-1">
-                <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
-                <span className="text-lg font-bold tabular-nums" style={{ color }}>{data.totals[key]}</span>
-              </div>
-              <TimeChart t={times} values={data.buckets.map((b) => b[key])} color={color} domainMs={domain} height={100} />
-              <div className="mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
-              </div>
-            </Card>
-          ))}
+          {STATS_METRICS.map(([key, labelKey, color]) => {
+            // Kumulierte Kurve übers Fenster (laufende Summe der Tageswerte), bis "jetzt" verlängert.
+            let acc = 0;
+            const cum = data.buckets.map((b) => (acc += b[key]));
+            const tPlot = [...times, domain[1]];
+            const vPlot = [...cum, acc];
+            return (
+              <Card key={key} className="p-3">
+                <div className="mb-1 flex items-baseline justify-between px-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{data.totals[key]}</span>
+                </div>
+                <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain} height={100} />
+                <div className="mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                  {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
