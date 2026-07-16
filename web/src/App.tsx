@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
-import { ListIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
+import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
 import { FeedbackWidget } from "./components/FeedbackWidget";
@@ -15,7 +15,7 @@ type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { cl
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.home", icon: HomeIcon, end: true },
   { to: "/community", labelKey: "home.community", icon: CommunityIcon, end: false },
-  { to: "/sessions?scope=all", labelKey: "nav.sessions", icon: ListIcon, end: false },
+  { to: "/sessions?scope=all", labelKey: "nav.sessions", icon: SessionsIcon, end: false },
   { to: "/verlauf", labelKey: "nav.history", icon: ChartIcon, end: false },
   { to: "/spots", labelKey: "nav.spots", icon: SpotsIcon, end: false },
   { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },

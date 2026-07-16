@@ -80,6 +80,15 @@ export const CommunityIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Sessions-Icon: der echte (geglättete) GPS-Track von Session #35 (Illmensee), 180° gedreht —
+// sieht aus wie ein Herz mit Knoten. Der GPS-Kritzel am Start/Ende ist durch eine saubere
+// Mini-Schlaufe ersetzt, damit es auch bei 16 px lesbar bleibt.
+export const SessionsIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.4 18.6 L11.2 6.3 L13.2 3.6 L16.1 2.5 L18.2 3.1 L19.7 4.8 L20.1 9.1 L16.8 13.8 L9.7 17.3 L10.2 18.4 L10.9 19.6 L10.2 21.3 L8.9 20.9 L8.9 19.2 L10.1 18.0 L10.1 18.1 L9.6 16.1 L4.6 7.9 L3.8 4.7 L5.2 3.9 L7.0 4.6 L9.9 7.9 L11.0 13.5 L10.1 18.6" />
+  </svg>
+);
+
 export const ListIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />

@@ -4,7 +4,7 @@ import { api, CommunitySession, SessionSummary, type Transfer } from "../lib/api
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, ListIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon } from "../components/Icons";
+import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon } from "../components/Icons";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -187,7 +187,7 @@ export default function Sessions() {
     <div>
       {/* Überschrift ganz oben (wie auf allen Seiten) */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        {isMine ? <ListIcon className="h-7 w-7 text-brand-400" /> : <WaveIcon className="h-7 w-7 text-brand-400" />}
+        <SessionsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{title}</h2>
       </div>
 

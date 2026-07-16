@@ -61,7 +61,10 @@ export default function Spots() {
     <div>
       <div className="mb-4 flex items-center gap-2">
         <SpotsIcon className="h-7 w-7 text-brand-400" />
-        <h2 className="text-2xl font-bold">{t("nav.spots")}</h2>
+        <h2 className="text-2xl font-bold">
+          {t("nav.spots")}
+          {(spots?.length ?? 0) > 0 && <span className="ml-2 text-lg font-normal text-slate-400">({spots!.length})</span>}
+        </h2>
       </div>
       {!spots ? (
         <Spinner />
