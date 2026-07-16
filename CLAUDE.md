@@ -91,6 +91,7 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
   git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
 - [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛).
+- [`docs/PAGES.md`](docs/PAGES.md) — Seiten-Index der Web-PWA (alle Routen + Kurzbeschreibung, inkl. Impressum/Support/Feedback).
 
 **Komponenten-READMEs**
 - [`watch/README.md`](watch/README.md) · [`watch-apple/README.md`](watch-apple/README.md)
