@@ -43,8 +43,10 @@ class Settings:
         self.osm_user_agent: str = os.environ.get(
             "OSM_USER_AGENT", "PumpfoilTracker/1.0 (+https://pumpfoil.org)"
         )
-        # Beta-Features nur für diese User-IDs sichtbar (kommagetrennt). Default = Jans
-        # beide Konten (2 = jan@kechel.de, 4 = jan@swop.schule). Profil liefert `beta`.
+        # HINWEIS: Beta-Features sind inzwischen ÖFFENTLICH — das Profil liefert `beta=True`
+        # für alle (siehe api/auth.py). Alles, was NUR für Jan sein soll, gehört in die
+        # Debug-Build-Version, nicht hinter dieses Flag. beta_user_ids bleibt als
+        # optionaler Mechanismus für künftige gezielte Gates erhalten, wird aktuell nicht genutzt.
         self.beta_user_ids: set[int] = {
             int(x) for x in os.environ.get("BETA_USER_IDS", "2,4").split(",") if x.strip().isdigit()
         }

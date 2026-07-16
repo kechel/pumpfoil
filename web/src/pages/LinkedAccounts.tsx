@@ -70,7 +70,7 @@ function PolarRecorderBetaCard() {
     <Card className="border border-amber-500/40 bg-amber-500/5 p-5">
       <div className="mb-1 flex items-center gap-2">
         <h3 className="font-semibold">Polar-Recorder</h3>
-        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Beta · nur du</span>
+        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Beta</span>
       </div>
       <p className="mb-2 text-sm text-slate-300">
         Echter Recorder für Polar-Hardware über das <b>Polar BLE SDK</b> (in der Handy-App), zusätzlich
