@@ -196,14 +196,27 @@ function StatsSection() {
               vPlot = [...cum, acc];
               headline = data.totals[key];
             }
+            // Y-Skala: gleiche min/max-Ableitung wie TimeChart (min..max der geplotteten Werte).
+            const vmax = vPlot.length ? Math.max(...vPlot) : 1;
+            const vmin = vPlot.length ? Math.min(...vPlot) : 0;
+            const fmtY = (v: number) => Math.round(v).toLocaleString("de");
             return (
               <Card key={key} className="p-3">
                 <div className="mb-1 flex items-baseline justify-between px-1">
                   <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
                   <span className="text-lg font-bold tabular-nums" style={{ color }}>{headline}</span>
                 </div>
-                <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain} height={100} />
-                <div className="mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                <div className="flex gap-1">
+                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+                    <span>{fmtY(vmax)}</span>
+                    <span>{fmtY((vmax + vmin) / 2)}</span>
+                    <span>{fmtY(vmin)}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain} height={100} />
+                  </div>
+                </div>
+                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
                   {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
                 </div>
               </Card>
