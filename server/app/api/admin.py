@@ -173,7 +173,7 @@ def dismiss_reports(
 
 # ------------------------------------------------------------------- Users ----
 # Anzeige-Namen der Uhr-Plattformen (DeviceToken.platform).
-_PLATFORM_NAME = {"garmin": "Garmin", "wear": "Wear OS", "apple": "Apple Watch"}
+_PLATFORM_NAME = {"garmin": "Garmin", "wear": "Wear OS", "apple": "Apple Watch", "zepp": "Amazfit"}
 
 
 def _user_watches(db: Session, uid: int) -> list[dict]:

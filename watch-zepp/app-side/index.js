@@ -31,7 +31,7 @@ async function handle(req) {
   // --- Pairing (reverse) ---
   if (req.method === "PAIR_INIT") {
     console.log("[pumpfoil] PAIR_INIT -> fetch " + BASE + "/api/devices/pair-init");
-    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: "Amazfit", platform: "amazfit" }) });
+    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: "Amazfit", platform: "zepp" }) });
     console.log("[pumpfoil] PAIR_INIT fetch status=" + (r && r.status));
     const b = parse(r);
     if (!b || !b.code) throw new Error("init failed");
