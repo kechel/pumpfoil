@@ -143,6 +143,7 @@ export interface SessionSummary {
   device_model?: string | null;
   share_token?: string | null;   // nur dem Besitzer geliefert (öffentlicher Teilen-Link gesetzt?)
   photos?: { id: number; url: string; thumb_url?: string | null }[];  // im öffentlichen Payload (/s/<token>)
+  videos?: SessionVideo[];  // im öffentlichen Payload (/s/<token>)
   photo_count?: number;
   like_count?: number;
   liked?: boolean;
@@ -225,6 +226,12 @@ export interface SessionSocial {
   inappropriate_count: number;
   my_inappropriate: boolean;
   photos: { id: number; url: string; thumb_url?: string | null }[];
+  videos: SessionVideo[];
+}
+
+export interface SessionVideo {
+  id: number;
+  youtube_url: string;
 }
 
 export interface CommunityPhoto {
@@ -599,6 +606,13 @@ export const api = {
     uploadFile<{ id: number; url: string; thumb_url?: string | null }>(`/api/sessions/${id}/photos`, await downscaleImage(file)),
   deleteSessionPhoto: (id: number, photoId: number) =>
     req(`/api/sessions/${id}/photos/${photoId}`, { method: "DELETE" }),
+  addSessionVideo: (id: number, youtubeUrl: string) =>
+    req<SessionVideo>(`/api/sessions/${id}/videos`, {
+      method: "POST",
+      body: JSON.stringify({ youtube_url: youtubeUrl }),
+    }),
+  deleteSessionVideo: (id: number, videoId: number) =>
+    req(`/api/sessions/${id}/videos/${videoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {

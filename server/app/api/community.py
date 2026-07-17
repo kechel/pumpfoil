@@ -229,15 +229,20 @@ def latest_photos(
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
                       "avatar_url": avatar, "spot": place or None, "caption": caption or None})
 
-    # Videos: Sessions mit verlinktem YouTube-Video, nach Verlink-Zeit.
+    # Videos: je Session das neueste verlinkte YouTube-Video, nach Verlink-Zeit.
+    V = models.SessionVideo
     vrows = (
-        db.query(S.id, S.youtube_url, S.youtube_added_at, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
-        .select_from(S).join(U, S.user_id == U.id)
-        .filter(S.youtube_url.isnot(None), S.youtube_url != "", *_vis)
-        .order_by(func.coalesce(S.youtube_added_at, S.started_at).desc()).limit(80).all()
+        db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
+        .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
+        .filter(V.blocked.isnot(True), *_vis)
+        .order_by(V.id.desc()).limit(80).all()
     )
-    for sid, yturl, yadd, sts, name, avatar, place, caption in vrows:
-        items.append({"kind": "video", "_ts": yadd or sts, "url": None, "youtube_url": yturl,
+    seenv: set[int] = set()
+    for yturl, cts, sid, sts, name, avatar, place, caption in vrows:
+        if sid in seenv:
+            continue
+        seenv.add(sid)
+        items.append({"kind": "video", "_ts": cts or sts, "url": None, "youtube_url": yturl,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
                       "avatar_url": avatar, "spot": place or None, "caption": caption or None})
 
@@ -587,8 +592,13 @@ def session_social(session_id: int, user: models.User = Depends(current_user), d
         db.query(models.SessionPhoto.id, models.SessionPhoto.url)
         .filter_by(session_id=session_id, blocked=False).order_by(models.SessionPhoto.id).all()
     )
+    videos = (
+        db.query(models.SessionVideo.id, models.SessionVideo.youtube_url)
+        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
+    )
     return {
         **_like_state(db, session_id, user),
         **_vote_counts(db, session_id, user),
         "photos": [{"id": pid, "url": url, "thumb_url": _thumb(url)} for pid, url in photos],
+        "videos": [{"id": vid, "youtube_url": vurl} for vid, vurl in videos],
     }

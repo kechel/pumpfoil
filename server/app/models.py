@@ -251,6 +251,9 @@ class Session(Base):
     foil_id: Mapped[int | None] = mapped_column(ForeignKey("foils.id"))
     # Eigene Beschriftung des Besitzers (frei, max 30 Zeichen) + optionale YouTube-URL.
     caption: Mapped[str | None] = mapped_column(String(40))
+    # LEGACY-SPIEGEL: erstes (ältestes, nicht geblocktes) SessionVideo — Quelle der Wahrheit
+    # ist die session_videos-Tabelle (mehrere Videos pro Session). Bleibt für alte Clients
+    # (Apps lesen/schreiben youtube_url via /meta) und die Session-Card-Vorschau gepflegt.
     youtube_url: Mapped[str | None] = mapped_column(String(255))
     # Zeitpunkt der Video-Verknüpfung (für „neueste Medien"-Sortierung im Community-Feed).
     youtube_added_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -363,6 +366,25 @@ class Label(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     session: Mapped["Session"] = relationship(back_populates="labels")
+
+
+class SessionVideo(Base):
+    """Vom Besitzer verlinktes YouTube-Video zu einer eigenen Session (mehrere möglich).
+    Das erste (älteste, nicht geblockte) Video wird zusätzlich nach Session.youtube_url
+    gespiegelt (Legacy-Clients + Listen-Vorschau)."""
+
+    __tablename__ = "session_videos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    youtube_url: Mapped[str] = mapped_column(String(255))
+    # Ursprungs-Session, falls dieses Video beim Zusammenfuehren uebernommen wurde
+    # (fuer sauberes Auflösen -> Video wandert zurueck). NULL = original hier.
+    merged_from_session_id: Mapped[int | None] = mapped_column(Integer)
+    # Vom Admin geblockt -> aus Anzeige/Feed raus (Eintrag bleibt, kann freigegeben werden).
+    blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class SessionLike(Base):

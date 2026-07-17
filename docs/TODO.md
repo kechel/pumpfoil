@@ -66,6 +66,10 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Mehrere Videos pro Session: App-Parität** (2026-07-18): Server + PWA fertig (`session_videos`,
+  `GET/POST/DELETE /api/sessions/{id}/videos`, Videos in `…/social` + öffentlichem Share-Payload;
+  `sessions.youtube_url` bleibt Legacy-Spiegel = erstes Video). Android/iOS zeigen/ändern über
+  `/meta` nur das erste Video → auf die neuen Endpoints umstellen (Detail: Video-Liste wie Fotos).
 - **Feature-Flags systematisch statt Sammel-`beta`** (2026-07-16): aktuell liefert der Server
   `profile.beta=true` hart für alle → jeder ist Betatester (öffnete Phone-Recorder ohne Release).
   `beta` ist damit vorerst **nicht** für echte, nicht-öffentliche Beta-Features nutzbar. Reihenfolge

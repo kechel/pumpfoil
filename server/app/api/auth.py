@@ -189,6 +189,7 @@ def export_me(user: models.User = Depends(current_user), db: Session = Depends(g
                 for l in db.query(models.Label).filter_by(session_id=s.id).all()
             ],
             "photos": [p.url for p in db.query(models.SessionPhoto).filter_by(session_id=s.id).all()],
+            "videos": [v.youtube_url for v in db.query(models.SessionVideo).filter_by(session_id=s.id).all()],
         })
     return {
         "exported_at": datetime.now(timezone.utc).isoformat(),

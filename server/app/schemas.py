@@ -199,6 +199,10 @@ class SessionMetaIn(BaseModel):
     foil_id: int | None = None
 
 
+class SessionVideoIn(BaseModel):
+    youtube_url: str
+
+
 # --- Labels ---
 class LabelIn(BaseModel):
     t_start_ms: int

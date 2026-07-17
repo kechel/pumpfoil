@@ -492,6 +492,7 @@ def _purge_session(db: Session, s: models.Session) -> None:
     db.query(models.Label).filter_by(session_id=sid).delete()
     db.query(models.SessionLike).filter_by(session_id=sid).delete()
     db.query(models.SessionVote).filter_by(session_id=sid).delete()
+    db.query(models.SessionVideo).filter_by(session_id=sid).delete()
     for p in db.query(models.SessionPhoto).filter_by(session_id=sid).all():
         delete_media(p.url)
         db.delete(p)

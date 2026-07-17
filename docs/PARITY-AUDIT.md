@@ -43,6 +43,7 @@ FIT-Import und die „Optimal"-Färbung.
 | Medien (Foto+Video, 2-Spalten-Grid) | ✅ | ✅ | ✅ |
 | Foto hochladen/löschen | ✅ | ✅ | ✅ |
 | YouTube-Embed | ✅ | ✅ | ✅ |
+| Mehrere Videos pro Session | ✅ | ⚠️ nur 1. Video (via `/meta`) | ⚠️ nur 1. Video (via `/meta`) |
 | Like | ✅ | ✅ | ✅ |
 | Melden (Fake/unangemessen) | ✅ | ✅ | ✅ |
 | Caption + Foil bearbeiten | ✅ | ✅ | ✅ |

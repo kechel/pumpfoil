@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
-import { api, SessionSummary, SessionSocial as SocialData } from "../lib/api";
+import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
@@ -58,11 +58,12 @@ function ytId(url: string | null | undefined): string {
   }
 }
 
-function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], ownerName, ownerAvatar, youtubeUrl, onMeta, analysis, selectedRun = null }: {
+function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publicVideos = [], ownerName, ownerAvatar, analysis, selectedRun = null }: {
   sessionId: number; owned: boolean; isPublic?: boolean;
   publicPhotos?: { id: number; url: string; thumb_url?: string | null }[];
+  publicVideos?: SessionVideo[];
   ownerName: string | null; ownerAvatar: string | null;
-  youtubeUrl: string | null; onMeta: (s: SessionSummary) => void; analysis: any;
+  analysis: any;
   selectedRun?: number | null;   // gerade ausgewählter Lauf -> im Teilen-Dialog vorausgewählt
 }) {
   const t = useT();
@@ -72,10 +73,10 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
   const [lb, setLb] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [ytOpen, setYtOpen] = useState(false);
-  const [yt, setYt] = useState(youtubeUrl ?? "");
+  const [yt, setYt] = useState("");
   const [metaErr, setMetaErr] = useState<string | null>(null);
-  const [video, setVideo] = useState(false);  // iframe-Popup offen?
-  useCloseOnBack(video, () => setVideo(false));
+  const [video, setVideo] = useState<string | null>(null);  // YouTube-ID im iframe-Popup (null = zu)
+  useCloseOnBack(video != null, () => setVideo(null));
   // Öffentlicher Teilen-Link (nur Besitzer): Popup mit Erklärung + Link + Kopieren/Deaktivieren.
   const [linkOpen, setLinkOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -99,11 +100,10 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
     catch {}
   };
 
-  useEffect(() => { setYt(youtubeUrl ?? ""); }, [youtubeUrl]);
   useEffect(() => {
     // Öffentlicher Link: keine authentifizierte sessionSocial-Abfrage — nur die Medien read-only.
     if (isPublic) {
-      setS({ photos: publicPhotos, liked: false, like_count: 0, fake_count: 0,
+      setS({ photos: publicPhotos, videos: publicVideos, liked: false, like_count: 0, fake_count: 0,
              my_fake: false, inappropriate_count: 0, my_inappropriate: false });
       return;
     }
@@ -111,19 +111,24 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
   }, [sessionId, isPublic]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!s) return null;
 
+  const videos = s.videos ?? [];
   const saveVideo = () => {
+    if (!yt.trim()) return;
     setMetaErr(null);
-    api.updateSessionMeta(sessionId, { youtube_url: yt.trim() })
-      .then((r) => { onMeta(r); setYtOpen(false); })
+    api.addSessionVideo(sessionId, yt.trim())
+      .then((v) => {
+        setS((p) => (p && !(p.videos ?? []).some((x) => x.id === v.id)
+          ? { ...p, videos: [...(p.videos ?? []), v] } : p));
+        setYt(""); setYtOpen(false);
+      })
       .catch((e) => setMetaErr(String(e).includes("YouTube") ? t("meta.errYoutube") : t("profile.error")));
   };
-  const removeVideo = () => {
+  const removeVideo = (videoId: number) => {
     if (!confirm(t("sd.removeVideoConfirm"))) return;
-    api.updateSessionMeta(sessionId, { youtube_url: "" })
-      .then((r) => { onMeta(r); setYt(""); setYtOpen(false); })
+    api.deleteSessionVideo(sessionId, videoId)
+      .then(() => setS((p) => (p ? { ...p, videos: (p.videos ?? []).filter((x) => x.id !== videoId) } : p)))
       .catch(() => setMetaErr(t("profile.error")));
   };
-  const vid = ytId(youtubeUrl);
 
   const like = () =>
     api.toggleLike(sessionId).then((r) => setS((p) => (p ? { ...p, liked: r.liked, like_count: r.like_count } : p))).catch(() => {});
@@ -152,8 +157,8 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
 
   return (
     <div className="space-y-2">
-      {/* Angehängte Medien (Fotos + ggf. Video) */}
-      {(s.photos.length > 0 || vid) && (
+      {/* Angehängte Medien (Fotos + ggf. Videos) */}
+      {(s.photos.length > 0 || videos.length > 0) && (
         <div className="flex flex-wrap items-center gap-2">
           {s.photos.map((ph, idx) => (
             <div key={ph.id} className="relative">
@@ -170,25 +175,29 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
               )}
             </div>
           ))}
-          {vid && (
-            <div className="relative">
-              <button onClick={() => setVideo(true)} className="block">
-                <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
-                </span>
-              </button>
-              {owned && (
-                <button
-                  onClick={removeVideo}
-                  aria-label={t("sd.removeVideo")}
-                  className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 text-xs leading-5 text-white hover:bg-black/80"
-                >
-                  ×
+          {videos.map((v) => {
+            const vid = ytId(v.youtube_url);
+            if (!vid) return null;
+            return (
+              <div key={v.id} className="relative">
+                <button onClick={() => setVideo(vid)} className="block">
+                  <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
+                  </span>
                 </button>
-              )}
-            </div>
-          )}
+                {owned && (
+                  <button
+                    onClick={() => removeVideo(v.id)}
+                    aria-label={t("sd.removeVideo")}
+                    className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 text-xs leading-5 text-white hover:bg-black/80"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       {/* Aktionszeile — im öffentlichen Link komplett aus (nur Medien read-only oben bleiben). */}
@@ -230,7 +239,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
             <button
-              onClick={() => { setYt(youtubeUrl ?? ""); setMetaErr(null); setYtOpen((o) => !o); }}
+              onClick={() => { setYt(""); setMetaErr(null); setYtOpen((o) => !o); }}
               className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
             >
               <VideoIcon className="h-4 w-4 text-brand-400" /> {t("meta.linkVideo")}
@@ -297,14 +306,14 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], owne
           </div>
         </div>
       )}
-      {video && vid && (
-        <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={() => setVideo(false)}>
-          <button onClick={() => setVideo(false)} aria-label="Close"
+      {video != null && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-4" onClick={() => setVideo(null)}>
+          <button onClick={() => setVideo(null)} aria-label="Close"
             style={{ top: "calc(0.75rem + env(safe-area-inset-top))", right: "calc(0.75rem + env(safe-area-inset-right))" }}
             className="absolute rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><CloseIcon className="h-5 w-5" /></button>
           <div className="aspect-video" style={{ width: "min(96vw, calc((100vh - 5rem) * 16 / 9))" }} onClick={(e) => e.stopPropagation()}>
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${vid}`}
+              src={`https://www.youtube-nocookie.com/embed/${video}`}
               title="YouTube"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -1138,10 +1147,9 @@ export default function SessionDetail() {
           owned={owned}
           isPublic={isPublic}
           publicPhotos={session.photos ?? []}
+          publicVideos={session.videos ?? []}
           ownerName={session.owner_name ?? null}
           ownerAvatar={session.owner_avatar_url ?? null}
-          youtubeUrl={session.youtube_url ?? null}
-          onMeta={setSession}
           analysis={session.analysis}
           selectedRun={selectedRun}
         />

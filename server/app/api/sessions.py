@@ -6,7 +6,7 @@ import json
 import secrets
 import uuid
 import zipfile
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -20,7 +20,7 @@ from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
-from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, TrimIn
+from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -968,6 +968,9 @@ def public_shared_session(token: str, db: Session = Depends(get_db)) -> dict:
               .filter_by(session_id=s.id, blocked=False).order_by(models.SessionPhoto.id).all()]
     data = out.model_dump(mode="json")
     data["photos"] = photos
+    data["videos"] = [{"id": v.id, "youtube_url": v.youtube_url}
+                      for v in db.query(models.SessionVideo)
+                      .filter_by(session_id=s.id, blocked=False).order_by(models.SessionVideo.id).all()]
     return data
 
 
@@ -1148,7 +1151,12 @@ def set_trim(
 
 
 CAPTION_MAX = 30
+MAX_VIDEOS_PER_SESSION = 12
 _YT_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
+
+# Legacy-Spiegel (Session.youtube_url = erstes Video) — lebt in merge.py, weil auch
+# Merge/Unmerge ihn pflegen muss (sessions.py importiert merge, nicht umgekehrt).
+from ..merge import sync_video_mirror as _sync_video_mirror  # noqa: E402
 
 
 def _clean_youtube(raw: str | None) -> str | None:
@@ -1183,11 +1191,24 @@ def set_meta(
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Beschriftung max. {CAPTION_MAX} Zeichen")
         s.caption = cap or None
     if body.youtube_url is not None:
-        from datetime import datetime
+        # Legacy-Feld (Apps): operiert auf dem ERSTEN Video — Wert ersetzt es (bzw. legt es an),
+        # "" entfernt es. Weitere Videos (session_videos) bleiben unangetastet.
         newyt = _clean_youtube(body.youtube_url)
-        if newyt and newyt != s.youtube_url:
-            s.youtube_added_at = datetime.now(timezone.utc)
-        s.youtube_url = newyt
+        first = (
+            db.query(models.SessionVideo)
+            .filter_by(session_id=s.id, blocked=False)
+            .order_by(models.SessionVideo.id).first()
+        )
+        if newyt is None:
+            if first is not None:
+                db.delete(first)
+        elif first is None:
+            db.add(models.SessionVideo(session_id=s.id, user_id=user.id, youtube_url=newyt))
+        elif first.youtube_url != newyt:
+            first.youtube_url = newyt
+            first.created_at = datetime.now(timezone.utc)
+        db.flush()
+        _sync_video_mirror(db, s)
     if "foil_id" in body.model_fields_set:  # explizit gesetzt (auch null = zurücksetzen)
         fid = body.foil_id or None
         if fid is not None and db.get(models.Foil, fid) is None:
@@ -1464,6 +1485,67 @@ def delete_photo(
 
     delete_media(photo.url)
     db.delete(photo)
+    db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
+    db.commit()
+    return {"ok": True}
+
+
+# --- Videos (mehrere YouTube-Links pro Session, analog zu Fotos) ---
+@router.get("/{session_id}/videos")
+def list_videos(
+    session_id: int,
+    _user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    _readable(db, session_id)
+    rows = (
+        db.query(models.SessionVideo)
+        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
+    )
+    return [{"id": v.id, "youtube_url": v.youtube_url} for v in rows]
+
+
+@router.post("/{session_id}/videos")
+def add_video(
+    session_id: int,
+    body: SessionVideoIn,
+    user: models.User = Depends(require_social),   # UGC-Erstellung — unter 13 gesperrt
+    db: Session = Depends(get_db),
+) -> dict:
+    s = _owned(db, user, session_id)
+    url = _clean_youtube(body.youtube_url)
+    if url is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Keine YouTube-URL")
+    n = db.query(models.SessionVideo).filter_by(session_id=session_id).count()
+    if n >= MAX_VIDEOS_PER_SESSION:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Max. {MAX_VIDEOS_PER_SESSION} Videos")
+    dup = db.query(models.SessionVideo).filter_by(session_id=session_id, youtube_url=url).first()
+    if dup is not None:
+        return {"id": dup.id, "youtube_url": dup.youtube_url}
+    video = models.SessionVideo(session_id=session_id, user_id=user.id, youtube_url=url)
+    db.add(video)
+    db.flush()
+    _sync_video_mirror(db, s)
+    # Session „zuletzt geändert" bumpen -> App-Cache lädt das Detail (mit neuem Video) nach.
+    db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
+    db.commit()
+    return {"id": video.id, "youtube_url": video.youtube_url}
+
+
+@router.delete("/{session_id}/videos/{video_id}")
+def delete_video(
+    session_id: int,
+    video_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    s = _owned(db, user, session_id)
+    video = db.get(models.SessionVideo, video_id)
+    if video is None or video.session_id != session_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found")
+    db.delete(video)
+    db.flush()
+    _sync_video_mirror(db, s)
     db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
     db.commit()
     return {"ok": True}

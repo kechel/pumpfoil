@@ -14,6 +14,18 @@ from sqlalchemy.orm import Session as DbSession
 from . import models, storage
 from .analysis import run_analysis
 
+
+def sync_video_mirror(db: DbSession, s: models.Session) -> None:
+    """Legacy-Spiegel pflegen: Session.youtube_url = erstes (ältestes, nicht geblocktes)
+    SessionVideo. Alte Clients + Listen-Vorschau lesen weiterhin dieses Feld."""
+    first = (
+        db.query(models.SessionVideo)
+        .filter_by(session_id=s.id, blocked=False)
+        .order_by(models.SessionVideo.id).first()
+    )
+    s.youtube_url = first.youtube_url if first else None
+    s.youtube_added_at = first.created_at if first else None
+
 GAP_MS = 20_000          # Luecke zwischen Teilen (ms) -> Dropout -> Lauf-Trennung
 AUTO_MAX_GAP_S = 3600    # Auto-Merge: max. Abstand Ende->Start zweier Teile (1 h)
 MAX_GROUP_DIST_KM = 25.0  # Teile muessen am selben Ort sein (sonst kein sinnvoller Merge)
@@ -161,18 +173,22 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
         place_lat=first.place_lat, place_lon=first.place_lon,
         foil_id=first.foil_id, is_pumpfoil=first.is_pumpfoil,
         mod_ok=any(x.mod_ok for x in sessions),
-        youtube_url=next((x.youtube_url for x in sessions if x.youtube_url), None),
+        # youtube_url (Legacy-Spiegel) setzt sync_video_mirror nach dem Übernehmen der Video-Rows.
     )
     db.add(ns)
     db.flush()
-    # Fotos uebernehmen (mit Herkunft fuers Auflösen); Quellen archivieren.
+    # Fotos + Videos uebernehmen (mit Herkunft fuers Auflösen); Quellen archivieren.
     for s in sessions:
         db.query(models.SessionPhoto).filter_by(session_id=s.id).update(
             {models.SessionPhoto.session_id: ns.id,
              models.SessionPhoto.merged_from_session_id: s.id})
+        db.query(models.SessionVideo).filter_by(session_id=s.id).update(
+            {models.SessionVideo.session_id: ns.id,
+             models.SessionVideo.merged_from_session_id: s.id})
         s.deleted = True
         s.merged_into = ns.id
     db.flush()
+    sync_video_mirror(db, ns)
     run_analysis(db, ns)
     db.commit()
     return ns
@@ -208,6 +224,12 @@ def unmerge_session(db: DbSession, merged: models.Session) -> list[models.Sessio
     for p in db.query(models.SessionPhoto).filter_by(session_id=merged.id).all():
         p.session_id = p.merged_from_session_id or sources[0].id
         p.merged_from_session_id = None
+    for v in db.query(models.SessionVideo).filter_by(session_id=merged.id).all():
+        v.session_id = v.merged_from_session_id or sources[0].id
+        v.merged_from_session_id = None
+    db.flush()
+    for s in sources:
+        sync_video_mirror(db, s)
     db.query(models.AnalysisResult).filter_by(session_id=merged.id).delete()
     db.query(models.Label).filter_by(session_id=merged.id).delete()
     db.query(models.SessionLike).filter_by(session_id=merged.id).delete()
