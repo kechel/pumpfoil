@@ -28,13 +28,15 @@ final class WatchLink: NSObject, WCSessionDelegate {
         NotificationCenter.default.post(name: .pumpfoilTokenUpdated, object: nil)
     }
 
-    // Frisches Token beim iPhone anfordern (debounced, damit ein 401-Loop kein Mint-Spam auslöst).
-    func requestToken() {
+    // Token beim iPhone anfordern (debounced, damit ein 401-Loop kein Mint-Spam auslöst).
+    // reason: "missing" = lokal kein Token (iPhone darf sein gecachtes liefern),
+    //         "invalid" = echtes 401 (iPhone mintet neu).
+    func requestToken(reason: String = "missing") {
         let s = WCSession.default
         guard s.activationState == .activated, s.isReachable else { return }
         guard Date().timeIntervalSince(lastRequest) > 30 else { return }
         lastRequest = Date()
-        s.sendMessage(["action": "needToken"],
+        s.sendMessage(["action": "needToken", "reason": reason],
                       replyHandler: { [weak self] reply in self?.store(reply) },
                       errorHandler: { _ in })
     }

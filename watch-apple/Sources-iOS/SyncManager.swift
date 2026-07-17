@@ -51,13 +51,28 @@ final class SyncManager: NSObject, ObservableObject {
     // Liefert das Companion-Token; mit force=true wird neu gemintet (Recovery, wenn das
     // bisherige Token serverseitig ungültig ist). Der Cache wird bei jedem Mint aktualisiert,
     // damit spätere proaktive Pushes immer das GÜLTIGE Token tragen.
+    //
+    // Single-Flight: refreshConnection() feuert aus mehreren WCSession-Callbacks fast
+    // gleichzeitig -> ohne Serialisierung minteten parallele Tasks je ein eigenes Token
+    // (Karteileichen pro Nutzer in der DB). Läuft schon ein Mint, fahren weitere Aufrufer
+    // mit (auch force: der laufende Mint liefert ja bereits ein frisches Token).
+    // SyncManager ist @MainActor -> Zugriff auf mintTask ist serialisiert.
+    private var mintTask: Task<String?, Never>?
+
     private func mintedToken(force: Bool) async -> String? {
         if !force, let cached = UserDefaults.standard.string(forKey: "mintedWatchToken") { return cached }
-        if let minted = try? await Api.mintDeviceToken() {
-            UserDefaults.standard.set(minted, forKey: "mintedWatchToken")
-            return minted
+        if let running = mintTask { return await running.value }
+        let task = Task<String?, Never> {
+            if let minted = try? await Api.mintDeviceToken() {
+                UserDefaults.standard.set(minted, forKey: "mintedWatchToken")
+                return minted
+            }
+            return UserDefaults.standard.string(forKey: "mintedWatchToken")   // Fallback: alter Wert
         }
-        return UserDefaults.standard.string(forKey: "mintedWatchToken")   // Fallback: alter Wert
+        mintTask = task
+        let result = await task.value
+        mintTask = nil
+        return result
     }
 
     func sync() {
@@ -91,13 +106,16 @@ extension SyncManager: WCSessionDelegate {
         Task { @MainActor in self.refreshConnection() }
     }
 
-    // Die Uhr bittet um ein (frisches) Token — z. B. nach 401 (Token serverseitig ungültig).
-    // Wir minten neu (force) und antworten direkt; zusätzlich via applicationContext absichern.
+    // Die Uhr bittet um ein Token. reason unterscheidet:
+    // - "missing": Uhr hat lokal keins (frische Installation) -> gecachtes Token reicht,
+    //   NICHT force-minten (sonst entsteht pro Anfrage ein neues DB-Token).
+    // - "invalid" oder fehlend (ältere Uhr-App): echtes 401 -> neu minten (force).
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any],
                              replyHandler: @escaping ([String: Any]) -> Void) {
         guard message["action"] as? String == "needToken" else { replyHandler([:]); return }
+        let force = (message["reason"] as? String) != "missing"
         Task { @MainActor in
-            guard Api.token != nil, let token = await self.mintedToken(force: true) else { replyHandler([:]); return }
+            guard Api.token != nil, let token = await self.mintedToken(force: force) else { replyHandler([:]); return }
             try? WCSession.default.updateApplicationContext(["deviceToken": token])
             replyHandler(["deviceToken": token])
         }

@@ -374,6 +374,31 @@ def mint_device(
     So entfällt das Code-Tippen ganz (plattform-gerechtes Pairing)."""
     device = models.DeviceToken(token=new_token(), user_id=user.id, label=label[:40])
     db.add(device)
+    db.flush()
+    # Entdoppeln: Companion-Apps minten teils mehrfach (Race beim App-Start / spontane
+    # 401-Recovery) -> pro Nutzer sammelten sich gleichnamige Karteileichen. Das frisch
+    # geminte Token gewinnt (es wird gleich auf die Uhr gepusht); ältere gleichnamige,
+    # nie benutzte (0 Sessions) und nicht widerrufene Tokens werden soft-widerrufen.
+    # Tokens mit echten Sessions bleiben unangetastet (Historie/Zuordnung).
+    has_sessions = (
+        db.query(models.Session.id)
+        .filter(models.Session.device_id == models.DeviceToken.id)
+        .exists()
+    )
+    stale = (
+        db.query(models.DeviceToken)
+        .filter(
+            models.DeviceToken.user_id == user.id,
+            models.DeviceToken.label == device.label,
+            models.DeviceToken.id != device.id,
+            models.DeviceToken.revoked_at.is_(None),
+            ~has_sessions,
+        )
+        .all()
+    )
+    now = datetime.now(timezone.utc)
+    for t in stale:
+        t.revoked_at = now
     db.commit()
     return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
 

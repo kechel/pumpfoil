@@ -325,7 +325,7 @@ struct RecordView: View {
         .onReceive(autoTimer) { _ in tickAutoStart() }         // Auto-Start-Vorlauf + Arming
         // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
         // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
-        .onChange(of: rec.uploadError) { e in if e == "auth" { WatchLink.shared.requestToken() } }
+        .onChange(of: rec.uploadError) { e in if e == "auth" { WatchLink.shared.requestToken(reason: "invalid") } }
         // Frisches Token eingetroffen -> sofort erneut hochladen (statt 5 s zu warten).
         .onReceive(NotificationCenter.default.publisher(for: .pumpfoilTokenUpdated)) { _ in
             Task { await rec.drain() }
