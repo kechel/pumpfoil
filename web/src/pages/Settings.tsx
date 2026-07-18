@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, clearToken } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
@@ -226,14 +226,18 @@ export default function Settings() {
         <h3 className="mb-1 font-semibold">{t("profile.displayName")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.displayNameHint")}</p>
         <div className="flex gap-2">
+          {/* min-w-0: sonst drückt die intrinsische Input-Mindestbreite den Button mobil
+              aus dem Bildschirm. Button mobil nur Häkchen, Label ab sm:. */}
           <input
             value={name}
             onChange={(e) => { setName(e.target.value); setSaved(false); }}
             maxLength={40}
             placeholder={t("profile.namePlaceholder")}
-            className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+            className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
           />
-          <Button onClick={save} disabled={busy}>{busy ? "…" : t("common.save")}</Button>
+          <Button onClick={save} disabled={busy} className="shrink-0">
+            {busy ? "…" : <><CheckIcon className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">{t("common.save")}</span></>}
+          </Button>
         </div>
         {saved && <p className="mt-2 text-xs text-emerald-400">{t("profile.saved")}</p>}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
