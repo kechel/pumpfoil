@@ -53,6 +53,8 @@ private fun localeTag(lang: String): String = when (lang) {
     "fr" -> "fr-FR"
     "it" -> "it-IT"
     "es" -> "es-ES"
+    "fi" -> "fi-FI"
+    "nl" -> "nl-NL"
     else -> "de-DE"
 }
 
