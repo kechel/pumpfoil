@@ -73,9 +73,9 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
-- **Niederländisch (nl) in die Apps portieren** (2026-07-18): Web live (964fdb4, 9. Sprache,
-  Anlass NL-Spots Nijmegen/Brouwersdam). Wie bei fi: Overlay aus web/nl.ts in Android I18n.kt +
-  iOS Loc.swift, „Nederlands" im Sprach-Picker. + Muttersprachler-Review (Erstübersetzung maschinell).
+- [x] **Niederländisch (nl) in die Apps portieren** — ERLEDIGT 2026-07-18 (6e8cfea): Overlays
+  Android (545 Keys) + iOS (526 Keys), Picker „Nederlands", Diktat nl-NL (+ fi-FI-Diktat-Fix).
+  Wear bleibt bei 7 Sprachen (nl→de), wie fi. OFFEN nur: Muttersprachler-Review nl (+ fr/it/es/fi).
 - [x] **Mehrere Videos pro Session: App-Parität** — ERLEDIGT 2026-07-18 (Android + iOS: Video-Liste
   im Medien-Grid, Verlinken/Löschen über die neuen `/videos`-Endpoints, Fallback alter Server).
 - **Feature-Flags systematisch statt Sammel-`beta`** (2026-07-16): aktuell liefert der Server
