@@ -353,7 +353,7 @@ private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Un
                                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
-                                val date = shortDateC(ri.e.startedAt)
+                                val date = shortDate(ri.e.startedAt, ri.e.tz)
                                 val sub = listOfNotNull(date, if (showSpot) ri.e.spot else null).joinToString(" · ")
                                 if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -375,15 +375,4 @@ private fun ytId(url: String?): String? {
     return Regex("""(?:v=|youtu\.be/|shorts/|embed/)([\w-]{11})""").find(url)?.groupValues?.get(1)
 }
 private fun fmtDurC(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
-private fun shortDateC(iso: String?): String? {
-    if (iso.isNullOrBlank()) return null
-    return try {
-        val d = java.time.OffsetDateTime.parse(iso).toLocalDate()
-        "%02d.%02d.%02d".format(d.dayOfMonth, d.monthValue, d.year % 100)
-    } catch (_: Exception) {
-        try {
-            val d = java.time.LocalDate.parse(iso.take(10))
-            "%02d.%02d.%02d".format(d.dayOfMonth, d.monthValue, d.year % 100)
-        } catch (_: Exception) { null }
-    }
-}
+// Kurzdatum dd.MM.yy jetzt zentral in TimeFmt.shortDate (Spot-Ortszeit via tz).

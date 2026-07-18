@@ -154,7 +154,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                                 Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                                                 Spacer(Modifier.width(4.dp))
                                             }
-                                            Text(prettyDate(s.startedAt), style = MaterialTheme.typography.labelMedium,
+                                            Text(prettyDate(s.startedAt, s.tz), style = MaterialTheme.typography.labelMedium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                         foilLabel(s)?.let {
@@ -313,7 +313,7 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode, dotColor: (Sessio
                 Column(Modifier.weight(1f)) {
                     Row {
                         s.ownerName?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold); Spacer(Modifier.width(4.dp)) }
-                        Text("#${idx + 1} · ${prettyDate(s.startedAt)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("#${idx + 1} · ${prettyDate(s.startedAt, s.tz)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     s.placeName?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
@@ -344,7 +344,7 @@ private fun CompareTable(sessions: List<SessionDetail>) {
         Row {
             Box(Modifier.width(96.dp)) {}
             sessions.forEach { s ->
-                Text(prettyDate(s.startedAt).take(10), Modifier.width(cell).padding(4.dp),
+                Text(prettyDate(s.startedAt, s.tz).take(10), Modifier.width(cell).padding(4.dp),
                     style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             }
         }

@@ -381,7 +381,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 44.dp)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(prettyDate(s.startedAt), style = MaterialTheme.typography.headlineSmall)
+                Text(prettyDate(s.startedAt, s.tz), style = MaterialTheme.typography.headlineSmall)
                 if (!s.owned && !s.ownerName.isNullOrBlank()) {
                     Text(s.ownerName, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                 }
@@ -420,7 +420,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 val dur = if (secs >= 3600) "%d:%02d h".format(secs / 3600, (secs % 3600) / 60)
                           else "%d:%02d min".format(secs / 60, secs % 60)
                 val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
-                Text("${hhmmLoc(s.startedAt)} – ${hhmmLoc(s.endedAt)}$oc · ${I18n.t("sd.duration")} $dur",
+                Text("${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -1059,11 +1059,8 @@ private fun epochMs(iso: String?): Long? = iso?.let {
     try { java.time.OffsetDateTime.parse(it).toInstant().toEpochMilli() } catch (_: Exception) { null }
 }
 private fun mmss(sec: Float): String = "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())
-// HH:mm in der Zeitzone der Aufnahme (Offset aus dem ISO-String).
-private fun hhmmLoc(iso: String?): String = iso?.let {
-    try { java.time.OffsetDateTime.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) }
-    catch (_: Exception) { null }
-} ?: ""
+// HH:mm in der Ortszeit des Spots (tz), Fallback Offset aus dem ISO-String — via TimeFmt.
+private fun hhmmLoc(iso: String?, tz: String?): String = hhmm(iso, tz) ?: ""
 
 // Session an einen anderen Nutzer übertragen (spiegelt web/TransferPicker). Zeigt sonst
 // den Status einer ausstehenden Übertragung + Zurücknehmen.

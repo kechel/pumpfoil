@@ -57,6 +57,7 @@ struct SessionSummary: Codable, Identifiable {
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let transfer_to: String?   // offene Übertragung → Badge
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -87,6 +88,7 @@ struct CommunityItem: Codable, Identifiable {
     let like_count: Int?
     let liked: Bool?
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     var id: Int { session_id }
 
     var startedDate: Date? {
@@ -104,6 +106,7 @@ struct RecordEntry: Codable {
     let value: Double?
     let started_at: String?
     let run_idx: Int?
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
 }
 
 struct OverallRecords: Codable {
@@ -134,6 +137,7 @@ struct CommunityRecordEntry: Codable {
     let spot: String?
     let started_at: String?
     let run_idx: Int?
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
 }
 
 struct PeriodRecords: Codable {
@@ -213,6 +217,7 @@ struct MediaItem: Codable, Identifiable {
     let avatar_url: String?
     let spot: String?
     let caption: String?
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     var id: String { (kind ?? "") + "\(session_id)" + (url ?? youtube_url ?? "") }
 }
 
@@ -424,6 +429,7 @@ struct MergeSuggestion: Codable, Identifiable {
     let count: Int
     let place: String?
     let date: String
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     var id: String { ids.map(String.init).joined(separator: "-") }
 }
 
@@ -448,6 +454,7 @@ struct SessionDetail: Codable, Identifiable {
     let analysis: Analysis?
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
+    let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

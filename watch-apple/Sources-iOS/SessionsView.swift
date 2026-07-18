@@ -376,7 +376,7 @@ struct SessionRow: View {
     }
 
     private var dateText: String {
-        sessionDateTime(session.started_at, session.ended_at)
+        sessionDateTime(session.started_at, session.ended_at, session.tz)
     }
 }
 
@@ -433,19 +433,14 @@ struct TrackPreviewView: View {
 func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }
 
 // Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock) für die Listen-Zeilen.
-func sessionDateTime(_ startISO: String, _ endISO: String?) -> String {
-    func parse(_ s: String) -> Date? {
-        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: s) { return d }
-        f.formatOptions = [.withInternetDateTime]; return f.date(from: s)
-    }
-    guard let s = parse(startISO) else { return startISO }
+// tz = IANA-Zeitzone des Spots (Server) — Anzeige in Ortszeit, Fallback Geräte-Zeit.
+func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil) -> String {
+    guard let start = TimeFmt.dateTime(startISO, tz) else { return startISO }
     let lang = UserDefaults.standard.string(forKey: "appLang") ?? "de"
     let oc = Loc.t("sessions.oclock", lang)
     let ocSuffix = oc.isEmpty ? "" : " " + oc
-    let start = s.formatted(date: .abbreviated, time: .shortened)
-    if let endISO, let e = parse(endISO) {
-        return start + " – " + e.formatted(date: .omitted, time: .shortened) + ocSuffix
+    if let endISO, let end = TimeFmt.timeOnly(endISO, tz) {
+        return start + " – " + end + ocSuffix
     }
     return start + ocSuffix
 }

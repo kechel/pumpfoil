@@ -293,7 +293,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 val r = st.records
                 fun rt(label: String, rec: RecordEntry?, fmt: (Double) -> String): RecTile {
                     val v = rec?.value ?: 0.0
-                    return if (v > 0) RecTile(label, fmt(v), rec?.sessionId, shortDate(rec?.startedAt))
+                    return if (v > 0) RecTile(label, fmt(v), rec?.sessionId, shortDateFull(rec?.startedAt, rec?.tz))
                            else RecTile(label, "–", null, null)
                 }
                 val tiles = listOf(
@@ -462,19 +462,7 @@ private fun fmtMin(min: Double): String {
     return if (h > 0) "$h h $m min" else "$m min"
 }
 
-// Kurzes Datum (dd.MM.yyyy) aus ISO-Startzeit fuer die Rekord-Kacheln.
-private fun shortDate(iso: String?): String? {
-    if (iso.isNullOrBlank()) return null
-    return try {
-        val d = java.time.OffsetDateTime.parse(iso).toLocalDate()
-        "%02d.%02d.%d".format(d.dayOfMonth, d.monthValue, d.year)
-    } catch (_: Exception) {
-        try {
-            val d = java.time.LocalDate.parse(iso.take(10))
-            "%02d.%02d.%d".format(d.dayOfMonth, d.monthValue, d.year)
-        } catch (_: Exception) { null }
-    }
-}
+// Kurzdatum dd.MM.yyyy jetzt zentral in TimeFmt.shortDateFull (Spot-Ortszeit via tz).
 
 // Community-Stats-Satz mit fett/cyan hervorgehobenen Zahlen (§-markiert, wie im Web).
 @Composable

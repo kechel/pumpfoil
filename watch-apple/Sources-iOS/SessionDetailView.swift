@@ -545,14 +545,14 @@ struct SessionDetailView: View {
     }
 
     private func dateText(_ s: SessionDetail) -> String {
-        guard let d = s.startedDate else { return s.started_at }
-        return d.formatted(date: .abbreviated, time: .shortened)
+        TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
 
     // Start–End-Zeit ("08:13 – 09:45 Uhr · Dauer 1:32"); Endzeit ggf. serverseitig aus GPS.
+    // Uhrzeiten in Spot-Ortszeit (s.tz); die Dauer ist eine Differenz und bleibt tz-frei.
     private func timeRangeText(_ s: SessionDetail) -> String? {
         guard let a = s.startedDate else { return nil }
-        let f = DateFormatter(); f.dateFormat = "HH:mm"
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; f.timeZone = TimeFmt.zone(s.tz)
         let oc = Loc.t("sessions.oclock", lang)
         let ocSuffix = oc.isEmpty ? "" : " \(oc)"
         if let b = s.endedDate, b > a {

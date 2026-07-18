@@ -255,8 +255,8 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?, _ startedAt: String? = nil) -> some View {
-        let date = startedAt.flatMap(SessionDetail.parseDate).map { $0.formatted(date: .numeric, time: .omitted) }
+    @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?, _ startedAt: String? = nil, _ tz: String? = nil) -> some View {
+        let date = startedAt.flatMap { TimeFmt.dateNumeric($0, tz) }
         if let sessionId {
             NavigationLink { SessionDetailView(id: sessionId) } label: { tile(value, label, date) }
                 .buttonStyle(.plain)
@@ -266,8 +266,7 @@ struct HomeView: View {
     }
 
     private func dateText(_ s: SessionSummary) -> String {
-        guard let d = s.startedDate else { return s.started_at }
-        return d.formatted(date: .abbreviated, time: .shortened)
+        TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
     private func fmtDist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
     private func fmtDur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
@@ -280,7 +279,7 @@ struct HomeView: View {
     // Rekord-Kachel: klickbar zur Session wenn Wert > 0, sonst "–".
     @ViewBuilder private func recTile(_ rec: RecordEntry?, _ label: String, _ fmt: (Double) -> String) -> some View {
         let v = rec?.value ?? 0
-        if v > 0 { recordTile(fmt(v), label, rec?.session_id, rec?.started_at) }
+        if v > 0 { recordTile(fmt(v), label, rec?.session_id, rec?.started_at, rec?.tz) }
         else { tile("–", label) }
     }
 

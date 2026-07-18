@@ -138,7 +138,7 @@ struct CommunityView: View {
                         Text(n).font(.caption).foregroundStyle(Color.accentColor).lineLimit(1)
                     }
                 }
-                let sub = [shortDate(e.started_at), showSpot ? e.spot : nil].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                let sub = [shortDate(e.started_at, e.tz), showSpot ? e.spot : nil].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
                 if !sub.isEmpty { Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
             }
         }
@@ -304,13 +304,8 @@ struct CommunityView: View {
         .frame(width: 150, height: 100).clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private func shortDate(_ iso: String?) -> String? {
-        guard let iso, !iso.isEmpty else { return nil }
-        let iso1 = ISO8601DateFormatter(); iso1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let iso2 = ISO8601DateFormatter(); iso2.formatOptions = [.withInternetDateTime]
-        guard let d = iso1.date(from: iso) ?? iso2.date(from: iso) else { return nil }
-        let out = DateFormatter(); out.dateFormat = "dd.MM.yy"
-        return out.string(from: d)
+    private func shortDate(_ iso: String?, _ tz: String?) -> String? {
+        TimeFmt.shortDate(iso, tz)   // "dd.MM.yy" in Spot-Ortszeit
     }
 
     // MARK: - Laden
@@ -444,6 +439,6 @@ struct CommunityRow: View {
     }
 
     private var dateText: String {
-        sessionDateTime(item.started_at, item.ended_at)
+        sessionDateTime(item.started_at, item.ended_at, item.tz)
     }
 }

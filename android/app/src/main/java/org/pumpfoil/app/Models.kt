@@ -62,6 +62,7 @@ data class SessionSummary(
     @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel fürs Detail
     val status: String = "",
     @SerialName("place_name") val placeName: String? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
     val caption: String? = null,
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
@@ -105,6 +106,7 @@ data class CommunityItem(
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val spot: String? = null,
     val caption: String? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
     @SerialName("foiling_km") val foilingKm: Double = 0.0,
     val runs: Int = 0,
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
@@ -200,6 +202,7 @@ data class MediaItem(
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val spot: String? = null,
     val caption: String? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
 )
 
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
@@ -230,6 +233,7 @@ data class RecordEntry(
     val value: Double = 0.0,
     @SerialName("started_at") val startedAt: String? = null,
     @SerialName("run_idx") val runIdx: Int? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
 )
 
 @Serializable
@@ -280,6 +284,7 @@ data class CommunityRecordEntry(
     val spot: String? = null,
     @SerialName("started_at") val startedAt: String? = null,
     @SerialName("run_idx") val runIdx: Int? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
 )
 
 @Serializable
@@ -443,6 +448,7 @@ data class SessionDetail(
     @SerialName("data_version") val dataVersion: Long? = null,   // Cache-Schlüssel
     val status: String = "",
     @SerialName("place_name") val placeName: String? = null,
+    val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
     val caption: String? = null,
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
@@ -464,4 +470,5 @@ data class MergeSuggestion(
     val count: Int = 0,
     val place: String? = null,
     val date: String = "",
+    val tz: String? = null,               // IANA-Zeitzone des Spots (Gruppen-Ebene)
 )

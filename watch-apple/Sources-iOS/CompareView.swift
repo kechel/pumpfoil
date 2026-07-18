@@ -283,7 +283,7 @@ struct CompareView: View {
     private func intStr(_ n: Int?) -> String { guard let n else { return "–" }; return "\(n)" }
     private func runDist(_ seg: Segment) -> String { "\(Int(seg.distance_m ?? 0)) m · \(mmss(seg.duration_s))" }
     private func runStat(_ seg: Segment) -> String { "\(kmh(seg.avg_speed_mps)) · \(pumpsStr(seg.pumps))" }
-    private func dateStr(_ s: SessionDetail) -> String { s.startedDate?.formatted(date: .abbreviated, time: .shortened) ?? s.started_at }
+    private func dateStr(_ s: SessionDetail) -> String { TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at }
 
     private var compareTable: some View {
         let metrics: [(String, (SessionDetail) -> String)] = [
