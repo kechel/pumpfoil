@@ -3,6 +3,17 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { useT } from "../i18n";
 import { uploadsActive } from "../lib/api";
 
+// GENAU EIN Reload pro Update. Ohne Guard feuerten Plugin ('controlling' -> reload) UND unser
+// eigener controllerchange-Listener + Fallback-Timer fast gleichzeitig -> die zweite Navigation
+// bricht die erste ab -> weiße Seite auf Mobile (iOS-PWA/Android). Modul-global, damit auch ein
+// Remount nicht doppelt lädt.
+let reloaded = false;
+function reloadOnce() {
+  if (reloaded) return;
+  reloaded = true;
+  window.location.reload();
+}
+
 // Offline-Indikator + Auto-Update (vite-plugin-pwa, registerType "prompt").
 // Wartet ein neuer Service-Worker, wird er beim NÄCHSTEN Routen-Wechsel automatisch angewandt
 // (sicherer Moment: die aktuelle Ansicht wird ohnehin verlassen → keine Eingabe/kein Diktat geht
@@ -16,6 +27,9 @@ export function PwaStatus() {
   const [graceOver, setGraceOver] = useState(false);           // Banner erst nach Karenz (Fallback)
 
   const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
+    // Der Plugin-interne Reload beim 'controlling'-Event wird hierüber ersetzt -> wir
+    // kontrollieren den (einzigen) Reload selbst, siehe reloadOnce().
+    onNeedReload: reloadOnce,
     // Aktiv nach Updates suchen, damit das Banner ohne manuelles Neuladen auftaucht:
     // stündlich + bei Tab-Fokus (gedrosselt).
     onRegisteredSW(_swUrl, r) {
@@ -32,13 +46,13 @@ export function PwaStatus() {
     },
   });
 
-  // Update anwenden: neue SW übernehmen + neu laden. Fallback nach 3.5 s, falls kein
-  // controllerchange kommt (sonst hinge der Spinner ewig).
+  // Update anwenden: skipWaiting anstoßen; den Reload macht reloadOnce() — regulär über
+  // onNeedReload ('controlling'-Event), sonst der Fallback-Timer (falls das Event nie kommt,
+  // hinge der Spinner ewig). Der Guard in reloadOnce verhindert Doppel-Reloads.
   function applyUpdate() {
     setUpdating(true);
-    navigator.serviceWorker?.addEventListener("controllerchange", () => window.location.reload(), { once: true });
     updateServiceWorker(true);
-    setTimeout(() => window.location.reload(), 3500);
+    setTimeout(reloadOnce, 4000);
   }
 
   // Sobald ein Update wartet: Build der NEUEN Version holen (frisch, ohne Cache) für den Hinweis,
