@@ -97,7 +97,7 @@ export default function Landing() {
 
         <div className="relative z-10 mx-auto max-w-5xl px-5">
           {/* Hero */}
-          <section className="pb-10 pt-0 text-center sm:pb-16 sm:pt-2">
+          <section className="pb-6 pt-0 text-center sm:pb-10 sm:pt-0">
             {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
                 identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
             <h1>
@@ -106,11 +106,11 @@ export default function Landing() {
               <img src="/wordmark-stacked-light.png" alt="Pumpfoil.org — Track every pump"
                 className="logo-light mx-auto h-auto w-full max-w-sm sm:max-w-md" />
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
           </section>
 
           {/* „Auf der Uhr" liegt noch im Hero-Band -> vom Video hinterlegt (Apple rechteckig, Wear rund). */}
-          <section className="pb-12">
+          <section className="pb-8">
             <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.watchTitle")}</h2>
             <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
             {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
