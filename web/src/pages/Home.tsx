@@ -338,11 +338,13 @@ function CommunitySection() {
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Link to="/foil-stats" title={t("foilStats.title")} className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-            <FoilIcon className="h-4 w-4" /> {t("stats.short")}
+          <Link to="/foil-stats" title={t("foilStats.title")} aria-label={t("foilStats.title")}
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            <FoilIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
           </Link>
-          <Link to="/watch-stats" title={t("watchStats.title")} className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-            <WatchIcon className="h-4 w-4" /> {t("stats.short")}
+          <Link to="/watch-stats" title={t("watchStats.title")} aria-label={t("watchStats.title")}
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
           </Link>
         </div>
       </div>
