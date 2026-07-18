@@ -73,10 +73,7 @@ export default function Landing() {
           playsInline
           preload="metadata"
           poster="/login-bg-landscape-poster.jpg"
-          // Oberen Teil des Videos ausblenden (Test per CSS statt Re-Encode): Element höher als
-          // das Band + unten verankert -> der Überstand liegt oberhalb des sichtbaren Bereichs.
-          // Mobile (Portrait-Video) braucht deutlich mehr Beschnitt als Desktop.
-          className="pointer-events-none absolute bottom-0 left-0 h-[150%] w-full object-cover motion-reduce:hidden sm:h-[125%]"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
         >
           <source src="/login-bg-portrait.mp4" media="(max-aspect-ratio: 1/1)" type="video/mp4" />
           <source src="/login-bg-landscape.mp4" type="video/mp4" />
@@ -152,9 +149,14 @@ export default function Landing() {
                 <PlayBadge className="mt-2" />
               </figure>
             </div>
+          </section>
+        </div>
+      </div>
 
-            {/* Uhr-App Key-Features — gehört zum Uhr-Abschnitt. */}
-            <div className="mx-auto mt-10 max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-brand-500/10 to-slate-900/40 p-6 sm:p-8">
+      {/* Uhr-App Key-Features — unterhalb des Video-Bands (Band endet an den Store-Buttons). */}
+      <div className="mx-auto max-w-5xl px-5">
+        <section className="pb-8">
+            <div className="mx-auto mt-2 max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-brand-500/10 to-slate-900/40 p-6 sm:p-8">
               <h3 className="mb-7 text-center text-base font-bold sm:text-lg">
                 {t("land.watchFeatIntro")}
               </h3>
@@ -191,8 +193,7 @@ export default function Landing() {
                 {t("land.watchFeatMore")}
               </p>
             </div>
-          </section>
-        </div>
+        </section>
       </div>
 
       <main className="mx-auto max-w-5xl px-5">
