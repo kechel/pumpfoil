@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
 import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
@@ -124,7 +125,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
                 {r!.started_at && (
                   <span className="text-slate-400">
                     {r!.name ? " · " : ""}
-                    {new Date(r!.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" })}
+                    {fmtDate(r!.started_at, r!.tz, { day: "2-digit", month: "short", year: "2-digit" })}
                   </span>
                 )}
                 {showSpot && r!.spot && <span className="flex items-center gap-1 text-slate-400"><LocationIcon className="h-3.5 w-3.5" /> {r!.spot}</span>}
@@ -219,7 +220,7 @@ function LatestMedia() {
                 <div className="min-w-0 text-[11px] leading-tight">
                   <div className="truncate text-slate-200">{p.name || "—"}</div>
                   <div className="truncate text-slate-400">
-                    {p.started_at && new Date(p.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })}
+                    {p.started_at && fmtDate(p.started_at, p.tz, { day: "2-digit", month: "short" })}
                     {p.spot ? ` · ${p.spot}` : ""}
                   </div>
                 </div>

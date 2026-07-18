@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { fmtDate } from "../lib/time";
 import { Link, useNavigate } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
@@ -183,7 +184,7 @@ export default function Compare() {
 
   function itemLabel(it: Item): string {
     const date = it.session?.started_at
-      ? new Date(it.session.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" })
+      ? fmtDate(it.session.started_at, it.session.tz, { day: "2-digit", month: "short", year: "2-digit" })
       : `#${it.ref.sessionId}`;
     if (it.ref.runIdx != null) return `${t("compare.run", { n: it.ref.runIdx + 1 })} · ${date}`;
     return date;
@@ -330,7 +331,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
     for (const it of items) {
       const session = it.session;
       if (!session?.analysis?.segments?.length) continue;
-      const date = session.started_at ? new Date(session.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" }) : `#${it.ref.sessionId}`;
+      const date = session.started_at ? fmtDate(session.started_at, session.tz, { day: "2-digit", month: "short", year: "2-digit" }) : `#${it.ref.sessionId}`;
       const idxs = it.ref.runIdx != null ? [it.ref.runIdx] : session.analysis.segments.map((_, i) => i);
       for (const ri of idxs) {
         const seg = session.analysis.segments[ri];

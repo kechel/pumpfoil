@@ -73,6 +73,10 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Spot-Ortszeit in die Apps** (2026-07-18): Web zeigt alle Session-Uhrzeiten in der Ortszeit des
+  Spots (Server liefert `tz` = IANA-Name in SessionOut/Briefs/Records/Medien-Feed, timezonefinder).
+  Android/iOS formatieren noch in Geräte-Zeit → auf `tz` umstellen (Kotlin: ZoneId.of, Swift:
+  TimeZone(identifier:)).
 - **Neue Rekord-Kacheln in die Apps** (2026-07-18): Web zeigt jetzt 11 Rekorde (+Session-Distanz/
   -Zeit/-Pumps, Max-Puls, Early Bird, Night Owl — 8d0c208); Android/iOS-Community zeigt noch die
   alten 5. Server liefert alle bereits (additiv, Apps ignorieren Unbekanntes).

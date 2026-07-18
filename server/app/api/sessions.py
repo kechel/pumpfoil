@@ -21,6 +21,7 @@ from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
+from ..tzlookup import tz_name
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -134,6 +135,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         place_name=s.place_name or None,
         place_water=s.place_water or None,
         spot_id=s.spot_id,
+        tz=tz_name(s.place_lat, s.place_lon),   # Ortszeit des Spots — Clients formatieren damit
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         track_preview=(s.result.track_preview if s.result else None),
@@ -480,6 +482,7 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
             models.AnalysisResult.pump_count, models.AnalysisResult.metrics_json,
             models.AnalysisResult.segments_json, models.AnalysisResult.sensitivity_json,
             models.Session.id, models.Session.started_at,
+            models.Session.place_lat, models.Session.place_lon,
         )
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True))
@@ -487,13 +490,13 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     )
     tot_dist = tot_time = tot_pumps = tot_runs = 0.0
     n_sessions = 0  # nur Pumpfoil-Sessions zählen
-    rec = {k: {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None} for k in ("distance", "duration", "speed", "runs", "glide")}
+    rec = {k: {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None, "tz": None} for k in ("distance", "duration", "speed", "runs", "glide")}
 
-    def upd(key, value, sid, ts, run_idx=None):
+    def upd(key, value, sid, ts, run_idx=None, tz=None):
         if value is not None and value > rec[key]["value"]:
-            rec[key] = {"session_id": sid, "value": value, "started_at": ts, "run_idx": run_idx}
+            rec[key] = {"session_id": sid, "value": value, "started_at": ts, "run_idx": run_idx, "tz": tz}
 
-    for fdist, ftime, pumps, mj, sj, senj, sid, ts in rows:
+    for fdist, ftime, pumps, mj, sj, senj, sid, ts, lat, lon in rows:
         metrics = {}
         if mj:
             try:
@@ -543,11 +546,12 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
                     if gl > bg[0]: bg = (gl, j)
             except ValueError:
                 pass
-        upd("distance", bd[0], sid, ts, bd[1])
-        upd("duration", bdu[0], sid, ts, bdu[1])
-        upd("speed", bs[0], sid, ts, bs[1])
-        upd("runs", float(n_runs), sid, ts)
-        upd("glide", bg[0], sid, ts, bg[1])
+        tzn = tz_name(lat, lon)
+        upd("distance", bd[0], sid, ts, bd[1], tzn)
+        upd("duration", bdu[0], sid, ts, bdu[1], tzn)
+        upd("speed", bs[0], sid, ts, bs[1], tzn)
+        upd("runs", float(n_runs), sid, ts, None, tzn)
+        upd("glide", bg[0], sid, ts, bg[1], tzn)
 
     return {
         "count": n_sessions,
@@ -833,6 +837,7 @@ def merge_suggestions_endpoint(
             "count": len(g),
             "place": next((s.place_name for s in g if s.place_name), None),
             "date": g[0].started_at.astimezone().date().isoformat(),
+            "tz": tz_name(g[0].place_lat, g[0].place_lon),   # Uhrzeiten in Spot-Ortszeit
             "sessions": [
                 {"id": s.id,
                  "start": s.started_at.astimezone().isoformat(),

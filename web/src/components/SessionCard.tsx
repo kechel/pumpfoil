@@ -7,10 +7,7 @@ import { TrackPreview } from "./TrackPreview";
 import { VideoModal, ytId } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
-
-function hhmm(s: string) {
-  return new Date(s).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-}
+import { fmtDate, fmtTime } from "../lib/time";
 function fmtSpan(start: string, end: string) {
   const s = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
   const h = Math.floor(s / 3600);
@@ -22,7 +19,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, spot, foil, deviceLabel, caption,
+  sessionId, startedAt, endedAt, tz, spot, foil, deviceLabel, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
 }: {
@@ -30,6 +27,7 @@ export function SessionCard({
   owned?: boolean;   // eigene Session? -> Merge-Angebot in Vergleichen
   startedAt: string | null;
   endedAt?: string | null;
+  tz?: string | null;   // Spot-Zeitzone -> Uhrzeiten in Ortszeit
   spot?: string | null;
   foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
   deviceLabel?: string | null;   // Uhr-/Geräte-Bezeichnung der Aufnahme
@@ -83,7 +81,7 @@ export function SessionCard({
     if (longPressed.current) { e.preventDefault(); e.stopPropagation(); longPressed.current = false; }
   };
   const dateStr = startedAt
-    ? new Date(startedAt).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
+    ? fmtDate(startedAt, tz, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
     : "";
 
   const thumbEl = thumbUrl ? (
@@ -165,8 +163,8 @@ export function SessionCard({
               {caption && <span className="text-slate-100"> · {caption}</span>}
             </div>
             <div className="text-sm text-slate-300">
-              {startedAt && hhmm(startedAt)}
-              {startedAt && endedAt && <>{` ${t("sessions.timeTo")} `}{hhmm(endedAt)}</>}
+              {startedAt && fmtTime(startedAt, tz)}
+              {startedAt && endedAt && <>{` ${t("sessions.timeTo")} `}{fmtTime(endedAt, tz)}</>}
               {startedAt && t("sessions.oclock") && ` ${t("sessions.oclock")}`}
               {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}

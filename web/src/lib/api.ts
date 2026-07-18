@@ -122,6 +122,7 @@ export interface Metrics {
 }
 
 export interface SessionSummary {
+  tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   id: number;
   session_uuid: string;
   sport: string;
@@ -203,6 +204,7 @@ export interface RecordSet {
 export type CommunityRecords = Record<string, RecordSet>;
 
 export interface CommunitySession {
+  tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   session_id: number;
   started_at: string | null;
   ended_at?: string | null;
@@ -242,6 +244,7 @@ export interface SessionVideo {
 }
 
 export interface CommunityPhoto {
+  tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   kind?: "photo" | "video";
   photo_id?: number;
   url: string | null;
@@ -737,6 +740,7 @@ export interface AdminFeedback {
 }
 
 export interface StatRecord {
+  tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   session_id: number | null;
   value: number;
   started_at: string | null;

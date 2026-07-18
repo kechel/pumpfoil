@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
 import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
@@ -105,6 +106,7 @@ export default function PersonalHome() {
               key={s.id}
               sessionId={s.id}
               startedAt={s.started_at}
+              tz={s.tz}
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
@@ -151,7 +153,7 @@ export default function PersonalHome() {
                 <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
                 {v > 0 && r.rec?.started_at && (
                   <div className="text-[10px] leading-tight tabular-nums text-slate-500">
-                    {new Date(r.rec.started_at).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                    {fmtDate(r.rec.started_at, (r.rec as any).tz, { day: "2-digit", month: "2-digit", year: "2-digit" })}
                   </div>
                 )}
               </Card>

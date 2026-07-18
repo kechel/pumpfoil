@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { fmtDate } from "../lib/time";
 import L from "leaflet";
 import { api } from "../lib/api";
 import { speedColor } from "../lib/trackColors";
@@ -81,7 +82,7 @@ export function SpotProgression() {
   }, [playing, tracks, mul]);
 
   const cur = tracks?.[idx];
-  const dateStr = cur?.started_at ? new Date(cur.started_at).toLocaleDateString() : "";
+  const dateStr = cur?.started_at ? fmtDate(cur.started_at, (cur as any).tz) : "";
 
   return (
     <Card className="p-4">

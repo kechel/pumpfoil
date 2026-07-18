@@ -6,6 +6,7 @@ import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon } from "../components/Icons";
 import { useCompare } from "../lib/compare";
+import { fmtTime } from "../lib/time";
 import { SessionCard } from "../components/SessionCard";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -17,7 +18,7 @@ const PAGE = 20;
 
 // Hinweis oben in „Meine Sessions": heutige, aufeinanderfolgende Sessions (<=1 h)
 // koennten zusammengehoeren -> Vorschlag zum Zusammenfuehren (mit Bestaetigung).
-type MergeSug = { ids: number[]; count: number; place: string | null; date: string; sessions: { id: number; start: string; end: string }[] };
+type MergeSug = { ids: number[]; count: number; place: string | null; date: string; tz?: string | null; sessions: { id: number; start: string; end: string }[] };
 
 function MergeHint() {
   const t = useT();
@@ -25,7 +26,6 @@ function MergeHint() {
   const [sugs, setSugs] = useState<MergeSug[]>([]);
   useEffect(() => { api.mergeSuggestions().then(setSugs).catch(() => {}); }, []);
   if (!sugs.length) return null;
-  const hhmm = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const dateStr = (d: string) => new Date(d + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
   // Klick -> genau diese Sessions in den Vergleichskorb (bestehende Auswahl ersetzen) und
   // die Vergleichen-&-Mergen-Ansicht oeffnen (dort Vorschau + Zusammenfuehren).
@@ -41,7 +41,7 @@ function MergeHint() {
             {t("merge.hint", { n: s.count })}{s.place ? ` · ${s.place}` : ""}
           </span>
           <span className="w-full text-xs text-slate-400 sm:w-auto">
-            {dateStr(s.date)} · {s.sessions.map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(" · ")}
+            {dateStr(s.date)} · {s.sessions.map((x) => `${fmtTime(x.start, s.tz)}–${fmtTime(x.end, s.tz)}`).join(" · ")}
           </span>
           <button onClick={() => review(s)}
             className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
@@ -447,6 +447,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               sessionId={s.id}
               owned={s.owned ?? true}
               startedAt={s.started_at}
+              tz={s.tz}
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
@@ -549,6 +550,7 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
               key={s.session_id}
               sessionId={s.session_id}
               startedAt={s.started_at}
+              tz={s.tz}
               endedAt={s.ended_at}
               spot={s.spot}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}

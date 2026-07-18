@@ -170,6 +170,7 @@ class SessionOut(BaseModel):
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)
     spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)
+    tz: str | None = None           # IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
     device_label: str | None = None  # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht)
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv
     share_token: str | None = None    # öffentlicher Teilen-Token (nur dem Besitzer geliefert)

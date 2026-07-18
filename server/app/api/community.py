@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import Float, Time, cast, func, literal, or_
+from sqlalchemy import Float, cast, func, literal, or_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
@@ -21,6 +21,7 @@ from ..accounts import is_new_account
 from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import owner_label_sql
+from ..tzlookup import tz_name, tz_of
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user, require_social
 
@@ -48,23 +49,6 @@ def _spot_cond(spot: str):
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
 # Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
 _MAX_HR = cast(func.nullif(func.jsonb_extract_path_text(cast(AR.metrics_json, JSONB), "max_hr"), ""), Float)
-# Tageszeit in SONNENZEIT (Längengrad-Offset lon/15 h statt fester Zeitzone — fair über alle
-# Spots von Finnland bis Kalifornien). Wert = Sekunden seit Mitternacht.
-def _time_of_day(col):
-    return func.date_part(
-        "epoch",
-        cast(func.timezone("UTC", col)
-             + func.make_interval(0, 0, 0, 0, 0, 0, func.coalesce(S.place_lon, 10.0) * 240.0), Time),
-    )
-
-
-_TIME_OF_DAY = _time_of_day(S.started_at)
-# Night Owl zählt das Session-ENDE als Start-Tageszeit + Dauer — läuft eine Session über
-# Mitternacht, ergibt das >24 h (z. B. 27:04 = 03:04 am Folgetag) und gewinnt damit korrekt
-# gegen jedes 23:xx-Ende; sie zählt über started_at weiter zum Vortag. Anzeige rechnet mod 24 h.
-# Kaputte ended_at (vor Start / >24 h danach, vgl. merge._end) werden auf [0, 24 h] geklemmt.
-_TIME_OF_DAY_END = _time_of_day(S.started_at) + func.greatest(
-    0.0, func.least(86400.0, func.coalesce(func.extract("epoch", S.ended_at - S.started_at), 0.0)))
 
 REC_COL = {
     "distance": (AR.best_distance_m, AR.best_distance_idx),
@@ -76,14 +60,14 @@ REC_COL = {
     "session_time": (AR.foiling_time_s, None),           # meiste On-Foil-Zeit einer Session
     "session_pumps": (AR.pump_count, None),              # meiste Pumps einer Session
     "max_hr": (_MAX_HR, None),                           # höchster Puls
-    "early_bird": (_TIME_OF_DAY, None),                  # früheste Session (Sonnenzeit, MIN)
-    "night_owl": (_TIME_OF_DAY_END, None),               # spätestes Session-ENDE (Sonnenzeit, MAX)
 }
-# Rekorde, bei denen der KLEINSTE Wert gewinnt.
-REC_ASC = {"early_bird"}
+# Zeit-Rekorde (Early Bird / Night Owl) laufen NICHT über REC_COL, sondern Python-seitig
+# über die echte Spot-Zeitzone (inkl. Sommerzeit) — siehe _time_record().
+TIME_METRICS = ("early_bird", "night_owl")
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
-              S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url)
+              S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url,
+              S.place_lat, S.place_lon)
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -121,11 +105,13 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
 
 
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
-           foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None) -> dict:
+           foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
+           lat=None, lon=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
         "ended_at": ended.isoformat() if ended else None,
+        "tz": tz_name(lat, lon),   # Uhrzeiten in Spot-Ortszeit anzeigen
         "youtube_url": youtube or None,
         "name": uname,
         "author_new": is_new_account(author_created_at),
@@ -175,23 +161,66 @@ def spot_sessions(
 
 
 # --------------------------------------------------------------------- Records ----
+_EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None,
+              "name": None, "avatar_url": None, "spot": None, "track_preview": None, "tz": None}
+
+
 def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True) -> dict:
+    if metric in TIME_METRICS:
+        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
-    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only)
+    q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
+                            S.place_lat, S.place_lon), viewer_id, accel_only)
     q = q.filter(valcol > 0)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
-    row = q.order_by(valcol.asc() if metric in REC_ASC else valcol.desc()).first()
+    row = q.order_by(valcol.desc()).first()
     if row is None:
-        return {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None, "name": None, "avatar_url": None, "spot": None, "track_preview": None}
-    val, idx, sid, ts, name, place, avatar, preview = row
+        return dict(_EMPTY_REC)
+    val, idx, sid, ts, name, place, avatar, preview, lat, lon = row
     return {
         "session_id": sid, "value": round(float(val), 2),
         "started_at": ts.isoformat() if ts else None, "run_idx": idx,
         "name": name, "avatar_url": avatar, "spot": place or None, "track_preview": preview or None,
+        "tz": tz_name(lat, lon),
+    }
+
+
+def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True) -> dict:
+    """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
+
+    Wert = Sekunden seit lokaler Mitternacht des Starts. Night Owl zählt das Session-ENDE
+    als Start-Tageszeit + Dauer: eine Über-Mitternacht-Session ergibt >24 h (27:04 schlägt
+    23:30), zählt via started_at zum Vortag; Anzeige rechnet mod 24 h. Kaputte ended_at
+    werden auf [0, 24 h] geklemmt."""
+    q = _community(db.query(S.id, S.started_at, S.ended_at, S.place_lat, S.place_lon,
+                            NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only)
+    if cut is not None:
+        q = q.filter(S.started_at >= cut)
+    if spot is not None:
+        q = q.filter(_spot_cond(spot))
+    best: tuple | None = None
+    for sid, st, en, lat, lon, name, place, avatar, preview in q.all():
+        if st is None:
+            continue
+        loc = st.astimezone(tz_of(lat, lon))
+        val = float(loc.hour * 3600 + loc.minute * 60 + loc.second)
+        if metric == "night_owl" and en is not None:
+            val += min(max((en - st).total_seconds(), 0.0), 86400.0)
+        better = best is None or (val < best[0] if metric == "early_bird" else val > best[0])
+        if better:
+            best = (val, sid, st, name, place, avatar, preview, tz_name(lat, lon))
+    if best is None:
+        return dict(_EMPTY_REC)
+    val, sid, ts, name, place, avatar, preview, tzn = best
+    return {
+        "session_id": sid, "value": round(val, 2),
+        "started_at": ts.isoformat() if ts else None, "run_idx": None,
+        "name": name, "avatar_url": avatar, "spot": place or None, "track_preview": preview or None,
+        "tz": tzn,
     }
 
 
@@ -244,37 +273,41 @@ def latest_photos(
 
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
-        db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
+        db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
+                 S.place_lat, S.place_lon)
         .select_from(P).join(S, P.session_id == S.id).join(U, S.user_id == U.id)
         .filter(P.blocked.isnot(True), *_vis)
         .order_by(P.id.desc()).limit(80).all()
     )
     seenp: set[int] = set()
-    for pid, url, cts, sid, sts, name, avatar, place, caption in prows:
+    for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon in prows:
         if sid in seenp:
             continue
         seenp.add(sid)
         items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url,
                       "thumb_url": _thumb(url), "youtube_url": None,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "spot": place or None, "caption": caption or None})
+                      "avatar_url": avatar, "spot": place or None, "caption": caption or None,
+                      "tz": tz_name(lat, lon)})
 
     # Videos: je Session das neueste verlinkte YouTube-Video, nach Verlink-Zeit.
     V = models.SessionVideo
     vrows = (
-        db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption)
+        db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
+                 S.place_lat, S.place_lon)
         .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
         .filter(V.blocked.isnot(True), *_vis)
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
-    for yturl, cts, sid, sts, name, avatar, place, caption in vrows:
+    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon in vrows:
         if sid in seenv:
             continue
         seenv.add(sid)
         items.append({"kind": "video", "_ts": cts or sts, "url": None, "youtube_url": yturl,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "spot": place or None, "caption": caption or None})
+                      "avatar_url": avatar, "spot": place or None, "caption": caption or None,
+                      "tz": tz_name(lat, lon)})
 
     _floor = datetime.min.replace(tzinfo=timezone.utc)
     items.sort(key=lambda x: x["_ts"] or _floor, reverse=True)

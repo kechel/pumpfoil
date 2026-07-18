@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
+import { fmtDate, fmtTime } from "../lib/time";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
@@ -1087,7 +1088,7 @@ export default function SessionDetail() {
         </div>
         <div className="min-w-0 flex-1">
       <h2 className="mb-1 text-xl font-bold">
-        {new Date(session.started_at).toLocaleDateString(undefined, {
+        {fmtDate(session.started_at, session.tz, {
           weekday: "long",
           day: "2-digit",
           month: "long",
@@ -1119,11 +1120,11 @@ export default function SessionDetail() {
         )}
       </h2>
       <p className="mb-2 text-sm text-slate-300">
-        {new Date(session.started_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+        {fmtTime(session.started_at, session.tz)}
         {session.ended_at && (
           <>
             {` ${t("sessions.timeTo")} `}
-            {new Date(session.ended_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+            {fmtTime(session.ended_at, session.tz)}
             {t("sessions.oclock") && ` ${t("sessions.oclock")}`}
             <span className="text-slate-400"> · {t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>
           </>
@@ -1499,7 +1500,7 @@ export default function SessionDetail() {
         </div>
       </div>
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} />
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} />
 
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 
@@ -1701,6 +1702,7 @@ function RunsTable({
   sessionId,
   compareRefs,
   startedAt,
+  tz,
 }: {
   segments: any[];
   selected: number | null;
@@ -1710,15 +1712,16 @@ function RunsTable({
   sessionId: number;
   compareRefs: { sessionId: number; runIdx: number | null }[];
   startedAt: string;
+  tz?: string | null;
 }) {
   const t = useT();
   if (!segments.length) return null;
-  // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start).
+  // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start), in Spot-Ortszeit.
   const sessionStartMs = new Date(startedAt).getTime();
   const runClock = (s: any): string =>
     s?.t_start_ms == null
       ? "–"
-      : new Date(sessionStartMs + s.t_start_ms).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      : fmtTime(new Date(sessionStartMs + s.t_start_ms).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
