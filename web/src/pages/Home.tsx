@@ -81,18 +81,27 @@ const PERIODS: [string, string][] = [
   ["all", "period.all"],
 ];
 
+// Sekunden-seit-Mitternacht -> "HH:MM" (Early Bird / Night Owl, Sonnenzeit).
+const hhmm = (v: number) => `${String(Math.floor(v / 3600)).padStart(2, "0")}:${String(Math.floor((v % 3600) / 60)).padStart(2, "0")}`;
+
 const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: number) => string }[] = [
   { key: "distance", labelKey: "rec.farthestRun", fmt: (v) => `${Math.round(v)} m` },
   { key: "duration", labelKey: "rec.longestRun", fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
   { key: "speed", labelKey: "rec.topSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
   { key: "glide", labelKey: "rec.longestGlide", fmt: (v) => `${v.toFixed(1)} s` },
   { key: "runs", labelKey: "rec.mostRuns", fmt: (v) => `${Math.round(v)}` },
+  { key: "session_distance", labelKey: "rec.sessionDistance", fmt: (v) => `${(v / 1000).toFixed(1)} km` },
+  { key: "session_time", labelKey: "rec.sessionTime", fmt: (v) => `${Math.round(v / 60)} min` },
+  { key: "session_pumps", labelKey: "rec.sessionPumps", fmt: (v) => `${Math.round(v)}` },
+  { key: "max_hr", labelKey: "rec.maxHr", fmt: (v) => `${Math.round(v)} bpm` },
+  { key: "early_bird", labelKey: "rec.earlyBird", fmt: hhmm },
+  { key: "night_owl", labelKey: "rec.nightOwl", fmt: hhmm },
 ];
 
 function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
   const t = useT();
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {REC_ITEMS.map((it) => {
         const r = rec?.[it.key];
         const has = !!(r && r.session_id && r.value);

@@ -87,6 +87,12 @@ const fi: Record<string, string> = {
   "rec.topSpeed": "Huippunopeus",
   "rec.longestGlide": "Pisin liukuvaihe",
   "rec.mostRuns": "Eniten lenkkejä",
+  "rec.sessionDistance": "Pisin sessio",
+  "rec.sessionTime": "Eniten foil-aikaa",
+  "rec.sessionPumps": "Eniten pumppeja",
+  "rec.maxHr": "Max. syke",
+  "rec.earlyBird": "Aamuvirkku",
+  "rec.nightOwl": "Yökyöpeli",
 
   // Login / Registrierung
   "login.createAccount": "Luo tili",

@@ -12,7 +12,8 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, literal, or_
+from sqlalchemy import Float, Time, cast, func, literal, or_
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -29,7 +30,8 @@ router = APIRouter(prefix="/api/community", tags=["community"])
 spot_router = APIRouter(prefix="/api/community", tags=["community"])
 
 PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
-METRICS = ("distance", "duration", "speed", "runs", "glide")
+METRICS = ("distance", "duration", "speed", "runs", "glide",
+           "session_distance", "session_time", "session_pumps", "max_hr", "early_bird", "night_owl")
 VOTE_KINDS = ("fake", "inappropriate")
 
 AR = models.AnalysisResult
@@ -44,13 +46,31 @@ def _spot_cond(spot: str):
     return S.spot_id == int(spot) if str(spot).isdigit() else S.place_name == spot
 
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
+# Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
+_MAX_HR = cast(func.nullif(func.jsonb_extract_path_text(cast(AR.metrics_json, JSONB), "max_hr"), ""), Float)
+# Tageszeit des Session-Starts in SONNENZEIT (Längengrad-Offset lon/15 h statt fester Zeitzone —
+# fair über alle Spots von Finnland bis Kalifornien). Wert = Sekunden seit Mitternacht.
+_TIME_OF_DAY = func.date_part(
+    "epoch",
+    cast(func.timezone("UTC", S.started_at)
+         + func.make_interval(0, 0, 0, 0, 0, 0, func.coalesce(S.place_lon, 10.0) * 240.0), Time),
+)
+
 REC_COL = {
     "distance": (AR.best_distance_m, AR.best_distance_idx),
     "duration": (AR.best_duration_s, AR.best_duration_idx),
     "speed": (AR.best_speed_mps, AR.best_speed_idx),
     "glide": (AR.best_glide_s, AR.best_glide_idx),
     "runs": (AR.num_runs, None),
+    "session_distance": (AR.foiling_distance_m, None),   # weiteste On-Foil-Distanz einer Session
+    "session_time": (AR.foiling_time_s, None),           # meiste On-Foil-Zeit einer Session
+    "session_pumps": (AR.pump_count, None),              # meiste Pumps einer Session
+    "max_hr": (_MAX_HR, None),                           # höchster Puls
+    "early_bird": (_TIME_OF_DAY, None),                  # früheste Session (Sonnenzeit, MIN)
+    "night_owl": (_TIME_OF_DAY, None),                   # späteste Session (Sonnenzeit, MAX)
 }
+# Rekorde, bei denen der KLEINSTE Wert gewinnt.
+REC_ASC = {"early_bird"}
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
               S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url)
@@ -154,7 +174,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
         q = q.filter(S.started_at >= cut)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
-    row = q.order_by(valcol.desc()).first()
+    row = q.order_by(valcol.asc() if metric in REC_ASC else valcol.desc()).first()
     if row is None:
         return {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None, "name": None, "avatar_url": None, "spot": None, "track_preview": None}
     val, idx, sid, ts, name, place, avatar, preview = row

@@ -100,6 +100,12 @@ const de: Record<string, string> = {
   "rec.topSpeed": "Top-Speed",
   "rec.longestGlide": "Längste Gleitphase",
   "rec.mostRuns": "Meiste Läufe",
+  "rec.sessionDistance": "Weiteste Session",
+  "rec.sessionTime": "Meiste On-Foil-Zeit",
+  "rec.sessionPumps": "Meiste Pumps",
+  "rec.maxHr": "Max. Puls",
+  "rec.earlyBird": "Early Bird",
+  "rec.nightOwl": "Nachteule",
 
   // Login / Registrierung
   "login.createAccount": "Account erstellen",

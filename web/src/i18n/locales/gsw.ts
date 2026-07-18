@@ -75,6 +75,12 @@ const gsw: Record<string, string> = {
   "rec.topSpeed": "Top-Speed",
   "rec.longestGlide": "Längschti Gleitphase",
   "rec.mostRuns": "Meischti Läuf",
+  "rec.sessionDistance": "Wiitesti Session",
+  "rec.sessionTime": "Meischti On-Foil-Ziit",
+  "rec.sessionPumps": "Meischti Pumps",
+  "rec.maxHr": "Max. Puls",
+  "rec.earlyBird": "Early Bird",
+  "rec.nightOwl": "Nachtüüle",
 
   "login.createAccount": "Account erstelle",
   "login.welcomeBack": "Willkomme zrugg",

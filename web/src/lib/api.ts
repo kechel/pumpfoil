@@ -191,6 +191,13 @@ export interface RecordSet {
   speed: StatRecord;
   glide: StatRecord;
   runs: StatRecord;
+  // Fun-Rekorde (Session-bezogen); optional für ältere Server-Antworten.
+  session_distance?: StatRecord;
+  session_time?: StatRecord;
+  session_pumps?: StatRecord;
+  max_hr?: StatRecord;
+  early_bird?: StatRecord;   // Wert = Sekunden seit Mitternacht (Sonnenzeit)
+  night_owl?: StatRecord;
 }
 
 export type CommunityRecords = Record<string, RecordSet>;

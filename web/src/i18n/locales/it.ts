@@ -74,6 +74,12 @@ const it: Record<string, string> = {
   "rec.topSpeed": "Velocità max",
   "rec.longestGlide": "Planata più lunga",
   "rec.mostRuns": "Più run",
+  "rec.sessionDistance": "Distanza max (sessione)",
+  "rec.sessionTime": "Tempo on-foil max",
+  "rec.sessionPumps": "Più pump",
+  "rec.maxHr": "FC max",
+  "rec.earlyBird": "Mattiniero",
+  "rec.nightOwl": "Nottambulo",
 
   "login.createAccount": "Crea account",
   "login.welcomeBack": "Bentornato",
