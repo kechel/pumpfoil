@@ -527,6 +527,69 @@ const fi: N1 = {
   },
 };
 
+const nl: N1 = {
+  back: "← Terug",
+  next: "→ Deel 2: Hoe de detectie werkt",
+  h1: "Nerd-analyses",
+  subtitle:
+    "Dual-watch-pumpfoil-experiment · Illmensee, 27-06-2026 · ruwe versnellingsdata, veel signaalverwerking en een beetje foil-fysica. Voor iedereen die het precies wil weten.",
+  intro:
+    "Vraag: wat kun je echt aflezen uit de bewegingsdata van een pumpfoil-run — en kunnen we daarmee de pump-, on-foil- en glijdetectie verbeteren? Daarvoor hebben we een run **tegelijkertijd met twee horloges** opgenomen: één om de pols en één **direct op de foil-mast, onder water** — de ‘waarheid’ over wat de foil doet.",
+  aufbau: {
+    h: "De opstelling",
+    p: "**fenix** om de pols (25/100 Hz, goede GPS) — dat is het horloge dat we later in het product hebben. **Forerunner 55** vastgesjord op de foil-mast, **onder water**, ondersteboven, met de startknop in de vaarrichting. Beide draaiden op onze eigen recorder-app (v1.0.37). Het mast-horloge heeft onder water **geen GPS** — het meet alleen de ruwe versnelling van de foil.",
+    alt1: "Foil met mast-horloge op de steiger",
+    alt2: "FR55 op de mast — auto-start",
+    alt3: "FR55 op de mast — GPS-zoeken",
+    altSpot: "Spot Illmensee bij zonsondergang",
+  },
+  daten: {
+    h: "De data",
+    p: "In plaats van de ruwe chunks (die op de zwakke FR55 afbreken) hebben we de **originele FIT-bestanden** uit Garmin Connect geanalyseerd: fenix **100 Hz**, mast **25 Hz**, telkens over de hele run. Beide horloges lopen via de systeemtijd synchroon.",
+  },
+  start: {
+    h: "De startsequentie",
+    p: "Uit de data laat zich de complete start reconstrueren (per video bevestigd): het board ligt **ondersteboven** op de steiger → wordt **180° gedraaid** en de foil te water gelaten (boven: FR55-oriëntatie kantelt van −1 naar +1) → even concentreren → **aanduwen** met de horloge-hand → de hand **schiet bij het loslaten omhoog** (4–6 g arm-impuls, sprongenergie) → **sprong & landing** op het board → pompen → vliegen.",
+    cap1: "De 180°-flip van het board (FR55-zwaartekracht kantelt) en de startzone in de 5 s erna.",
+    cap2: "Startsequentie: board-flip, voorbereiden, push/sprong, dan de speed-ramp het foilen in.",
+  },
+  truth: {
+    h: "Pompen, foilen, glijden — de waarheid van de foil",
+    p: "De mast zit op de foil en ‘weet’ of er echt gepompt wordt en of de foil nog vliegt. Mooi zichtbaar bij het uitlopen: eerst stopt het **pompen** (pols-activiteit → 0), maar de snelheid houdt nog aan → dat is de **glijfase**; daarna kiept de foil weg (mast-uitslag) en is het voorbij. Precies deze glijfase detecteren we tot nu toe niet expliciet.",
+    cap: "GPS-snelheid · pols-pump-activiteit · foil-pump (mast) · foil-oriëntatie. Aan het einde: pompen stopt → glijden → foil-drop.",
+  },
+  cadence: {
+    h: "De pump-cadans",
+    p: "Er wordt gepompt met **≈ 1,29 Hz** (~77 pumps/minuut). De pols treft deze rate netjes (aantal & ritme komen overeen met de foil-stuwing) — de pump-detectie werkt dus in de basis correct.",
+    cap: "Pols-pump-markers vs. foil-stuwingspieken — dezelfde cadans (~1,3 Hz), de ritmes volgen elkaar.",
+  },
+  pitch: {
+    h: "Foil-oriëntatie: stampen domineert, voortstuwing fore/aft",
+    p: "Bij het pompen kantel je de foil via de 85-cm-masthefboom **voor/achter** (stampen), nauwelijks zijwaarts — in de data domineert de stampbeweging duidelijk over het rollen. En de versnelling van de foil is overwegend **fore/aft (voortstuwing)**, niet verticaal: de foil duwt naar voren als je druk geeft.",
+    cap: "Foil-oriëntatie in de run: stampen (fore/aft) ≫ rollen. Pitch en verticale belasting zijn gekoppeld.",
+  },
+  pics: {
+    h: "Coole beelden",
+    p: "De track, ingekleurd naar foil-oriëntatie en snelheid (wit = 0°, rood/blauw per richting):",
+    cap1: "Foiling-track naar stamphoek, rolhoek en snelheid. De foil houdt continu de neus licht omhoog (lift).",
+    cap2: "Track naar voortstuwing (rood=voorwaarts) — je ziet elke pump-stuwing — en de afzonderlijke pump-markers op het pad.",
+    cap3: "Oriëntatie-tapijt: stampen / rollen / voortstuwing over de tijd in één oogopslag.",
+  },
+  learned: {
+    h: "Wat we hebben geleerd",
+    li: [
+      "**Pump-detectie** treft rate & aantal goed (~1,29 Hz) — komt overeen met de foil-waarheid op de mast (enkele % afwijking).",
+      "**On-foil-detectie** zit goed — ze toont de steiger/afsprong precies (snapt op de opsprong-impuls).",
+      "**Glijfase / uitlopen**: hier zit het grootste potentieel — ‘on-foil ∧ pump-activiteit ≈ 0’ zou het glijden aan het einde expliciet kunnen markeren.",
+      "Dit alles kan **alleen met het pols-horloge** — het mast-horloge was slechts de waarheidsreferentie.",
+    ],
+  },
+  limits: {
+    h: "Grenzen (voor de eerlijkheid)",
+    p: "Het mast-horloge wordt onder water sterk gedempt, daardoor ziet het scherpe stoten alleen afgezwakt. De ‘hoeken’ komen uit de zwaartekrachtrichting (laagdoorlaat) — in stationair glijden echte oriëntatie, bij aanhoudende versnelling licht vertekend; voor 100 % zuivere draaihoeken zou je een gyroscoop nodig hebben. En de exacte tijdverschuiving van afzonderlijke pumps tussen de horloges was niet op < 100 ms vast te pinnen (geen zuiver gemeenschappelijk fixpunt; de FR55 heeft onder water geen GPS om de klok gelijk te zetten).",
+  },
+};
+
 export const NERD1: Record<Lang, N1> = {
   de,
   gsw,
@@ -536,4 +599,5 @@ export const NERD1: Record<Lang, N1> = {
   it,
   es,
   fi,
+  nl,
 };

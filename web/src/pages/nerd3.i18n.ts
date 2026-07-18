@@ -353,4 +353,46 @@ const fi: N3 = {
   },
 };
 
-export const NERD3: Record<Lang, N3> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi };
+const nl: N3 = {
+  back: "← Deel 2: Hoe het werkt",
+  h1: "Deel 3: De dubbel-horloge-meting — waar we vandaag staan",
+  subtitle: "Tweede twee-horloges-experiment: pols tegen board-nabije waarheid",
+  intro:
+    "Na deel 1 hebben we opnieuw **tegelijkertijd met twee horloges** gemeten — dit keer om de **pump-detectie** en het **einde van een run** (glijden dan wel wegzakken) tegen een board-gekoppelde waarheid te toetsen. Een **Forerunner 55** om de pols (GPS + 25 Hz accel) en een **fēnix 7X Pro** de ene keer op de foil-fuselage onder water, de andere keer om de enkel (100 Hz accel) — telkens over de hele run, beide via de systeemtijd synchroon en fijn uitgelijnd op de afsprong-impuls.",
+  setup: {
+    h: "De opstelling",
+    p: "Beide horloges draaien op onze recorder-app — alleen zo krijgen we de ruwe versnellings-datastroom. De fēnix aan de **voet** gedraagt zich bij benadering als het board; op de **fuselage** meet hij de foil-oriëntatie direct (daar is de GPS onder water dood, maar de accel loopt door).",
+    capRumpf: "fēnix op de foil-fuselage, onder water",
+    capFuss: "fēnix om de enkel, Forerunner 55 om de pols",
+  },
+  pump: {
+    h: "Pump-detectie — klopt tegen de waarheid",
+    p: "De board-gekoppelde sensor ziet elke pump als één schone cyclus. Daarmee vergeleken treft onze pure **pols**-detector verrassend nauwkeurig:",
+    li: [
+      "**Aantal:** 56 vs 59 · 38 vs 40 · 32 vs 31 pumps — binnen ±~5 %, geen systematisch ondertellen.",
+      "**Cadans** praktisch identiek (~1,36–1,45 Hz).",
+      "**Per-pump-timing:** 88–95 % precision, 90 % recall (±0,35 s).",
+    ],
+    cap: "Pump-aantal & -cadans: board-waarheid vs. pols-detector",
+  },
+  glide: {
+    h: "Het run-einde — glijden vs. wegzakken",
+    p: "Interessant wordt het aan het run-einde. De **GPS valt precies daar uit** — op beide horloges — omdat de sensor onderduikt zodra je langzamer wordt. De accel loopt echter door, en de board-nabije sensor scheidt het netjes: **op de foil** ligt het board rustig (foil-gedempt), **weggezakt** dobbert het vrij (groot, langzaam op-en-neer).",
+    li: [
+      "De overgang ‘nog op de foil / aan het oppervlak in beweging’ → ‘weggezakt’ is in de board-accel duidelijk herkenbaar.",
+      "Onze detector beëindigt de run **op ±2 s nauwkeurig** bij het echte wegzak-punt — de uitloop wordt dus **niet** afgesneden.",
+      "De ~9-km/h-grens komt vrij precies overeen met de **stall-snelheid** van de foil.",
+    ],
+    cap: "Board-gedobber (laag = op de foil, hoog = dobbert vrij); groen = detector-einde, paars = echt wegzak-punt",
+  },
+  limits: {
+    h: "Eerlijke grenzen",
+    p: "Het zijn maar een paar runs, allemaal op één spot en pump-dicht. De **pols alleen** *ziet* het wegzak-moment niet zuiver (de arm schudt bij het pompen net als bij het dobberen). En de echt lange genot-glides (glassy, downwind) zitten nog niet in deze dataset.",
+  },
+  outlook: {
+    h: "Hoe het verdergaat",
+    p: "We veranderen nu **bewust niets** aan de detector, maar verbeteren **datagedreven** — met meer runs (ook lange glides), een board-camera (**Insta360 X5**) als visuele waarheid en de data van de gebruikers op pumpfoil.org. Precies zo hebben we de detectie al meermaals aangescherpt.",
+  },
+};
+
+export const NERD3: Record<Lang, N3> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl };
