@@ -48,13 +48,23 @@ def _spot_cond(spot: str):
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
 # Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
 _MAX_HR = cast(func.nullif(func.jsonb_extract_path_text(cast(AR.metrics_json, JSONB), "max_hr"), ""), Float)
-# Tageszeit des Session-Starts in SONNENZEIT (Längengrad-Offset lon/15 h statt fester Zeitzone —
-# fair über alle Spots von Finnland bis Kalifornien). Wert = Sekunden seit Mitternacht.
-_TIME_OF_DAY = func.date_part(
-    "epoch",
-    cast(func.timezone("UTC", S.started_at)
-         + func.make_interval(0, 0, 0, 0, 0, 0, func.coalesce(S.place_lon, 10.0) * 240.0), Time),
-)
+# Tageszeit in SONNENZEIT (Längengrad-Offset lon/15 h statt fester Zeitzone — fair über alle
+# Spots von Finnland bis Kalifornien). Wert = Sekunden seit Mitternacht.
+def _time_of_day(col):
+    return func.date_part(
+        "epoch",
+        cast(func.timezone("UTC", col)
+             + func.make_interval(0, 0, 0, 0, 0, 0, func.coalesce(S.place_lon, 10.0) * 240.0), Time),
+    )
+
+
+_TIME_OF_DAY = _time_of_day(S.started_at)
+# Night Owl zählt das Session-ENDE als Start-Tageszeit + Dauer — läuft eine Session über
+# Mitternacht, ergibt das >24 h (z. B. 27:04 = 03:04 am Folgetag) und gewinnt damit korrekt
+# gegen jedes 23:xx-Ende; sie zählt über started_at weiter zum Vortag. Anzeige rechnet mod 24 h.
+# Kaputte ended_at (vor Start / >24 h danach, vgl. merge._end) werden auf [0, 24 h] geklemmt.
+_TIME_OF_DAY_END = _time_of_day(S.started_at) + func.greatest(
+    0.0, func.least(86400.0, func.coalesce(func.extract("epoch", S.ended_at - S.started_at), 0.0)))
 
 REC_COL = {
     "distance": (AR.best_distance_m, AR.best_distance_idx),
@@ -67,7 +77,7 @@ REC_COL = {
     "session_pumps": (AR.pump_count, None),              # meiste Pumps einer Session
     "max_hr": (_MAX_HR, None),                           # höchster Puls
     "early_bird": (_TIME_OF_DAY, None),                  # früheste Session (Sonnenzeit, MIN)
-    "night_owl": (_TIME_OF_DAY, None),                   # späteste Session (Sonnenzeit, MAX)
+    "night_owl": (_TIME_OF_DAY_END, None),               # spätestes Session-ENDE (Sonnenzeit, MAX)
 }
 # Rekorde, bei denen der KLEINSTE Wert gewinnt.
 REC_ASC = {"early_bird"}

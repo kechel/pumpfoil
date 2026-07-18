@@ -95,7 +95,8 @@ const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: number) => s
   { key: "session_pumps", labelKey: "rec.sessionPumps", fmt: (v) => `${Math.round(v)}` },
   { key: "max_hr", labelKey: "rec.maxHr", fmt: (v) => `${Math.round(v)} bpm` },
   { key: "early_bird", labelKey: "rec.earlyBird", fmt: hhmm },
-  { key: "night_owl", labelKey: "rec.nightOwl", fmt: hhmm },
+  // Ende nach Mitternacht kommt als >24 h (z. B. 27:04) -> mod 24 h anzeigen (03:04).
+  { key: "night_owl", labelKey: "rec.nightOwl", fmt: (v) => hhmm(v % 86400) },
 ];
 
 function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
