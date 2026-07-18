@@ -88,12 +88,12 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
   `profile.beta=true` hart für alle → jeder ist Betatester (öffnete Phone-Recorder ohne Release).
   `beta` ist damit vorerst **nicht** für echte, nicht-öffentliche Beta-Features nutzbar. Reihenfolge
   zum Wieder-Freibekommen (WICHTIG, sonst verschwindet der Recorder bei allen):
-  1. Native Release (Android+iOS), in dem der **Phone-Recorder NICHT mehr an `beta`** hängt (eigenes
-     Kriterium / nur lokaler Toggle).
-  2. Warten, bis praktisch alle dieses Update haben.
+  1. [x] **ERLEDIGT 2026-07-18:** Phone-Recorder hängt in Android+iOS NICHT mehr an `beta` (nur noch
+     lokaler Toggle `phone_rec_enabled`; „(Beta)"-Label entfernt). Kommt mit Android 1.1.13/iOS 1.1.15.
+  2. Warten, bis praktisch alle dieses Update haben (~4 Wochen nach Golive).
   3. Erst dann `beta=false` für alle setzen und `beta` (bzw. je Feature ein eigenes Flag) für echte
      private Beta-Features + gezielte Tester (`BETA_USER_IDS`) wiederverwenden.
-  Kein Zeitdruck. Siehe Memory `beta-flag-public`.
+  Siehe Memory `beta-flag-public`.
 - **Gleitphasen-Rekord „mit Weiterfahrt"** (Philipp-Feedback #29, 2026-07-16 gemerkt): Glides mitten
   im Lauf getrennt von End-Glides werten (der End-Glide vor dem Absteigen ist eh immer der längste).
   R&D/Detektor → Jans OK nötig. Nicht jetzt.

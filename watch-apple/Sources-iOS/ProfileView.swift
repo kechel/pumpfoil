@@ -86,17 +86,16 @@ struct ProfileView: View {
                         Label { Text("TikTok") } icon: { Image(systemName: "music.note").foregroundStyle(Color.accentColor) }
                     }
                 }
-                // Beta-Feature „Record on Phone" — nur für Beta-Konten; steuert den Aufnahme-Button
-                // auf der Startseite (lokale Einstellung auf diesem Gerät).
-                if session.profile?.beta == true {
-                    Section {
-                        Toggle(isOn: $phoneRecEnabled) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(Loc.t("profile.phoneRec", lang) + "  (Beta)")
-                                Text(Loc.t("profile.phoneRecSub", lang)).font(.caption).foregroundStyle(.secondary)
-                                if phoneRecEnabled {
-                                    Text(Loc.t("rec.waterproof", lang)).font(.caption).bold().foregroundStyle(.red)
-                                }
+                // „Record on Phone" — hängt NUR am lokalen Toggle, NICHT mehr an profile.beta
+                // (Server-Flag wird für echte private Betas frei, siehe docs/TODO); steuert den
+                // Aufnahme-Button auf der Startseite (lokale Einstellung auf diesem Gerät).
+                Section {
+                    Toggle(isOn: $phoneRecEnabled) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(Loc.t("profile.phoneRec", lang))
+                            Text(Loc.t("profile.phoneRecSub", lang)).font(.caption).foregroundStyle(.secondary)
+                            if phoneRecEnabled {
+                                Text(Loc.t("rec.waterproof", lang)).font(.caption).bold().foregroundStyle(.red)
                             }
                         }
                     }

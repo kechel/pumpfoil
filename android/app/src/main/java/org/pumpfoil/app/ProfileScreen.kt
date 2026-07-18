@@ -139,16 +139,17 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 }
             }
             Spacer(Modifier.height(20.dp))
-            // Beta-Feature „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser).
-            // Nur für Beta-Konten. Toggle steuert den Aufnahme-Button auf der Startseite (lokal pro Gerät).
-            if (profile?.beta == true) {
+            // „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser). Hängt NUR
+            // am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird für echte private
+            // Betas frei, siehe docs/TODO). Toggle steuert den Aufnahme-Button auf der Startseite.
+            run {
                 val pctx = LocalContext.current
                 var phoneRec by remember {
                     mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
                         .getBoolean("phone_rec_enabled", false))
                 }
                 ListItem(
-                    headlineContent = { Text(I18n.t("profile.phoneRec") + "  (Beta)") },
+                    headlineContent = { Text(I18n.t("profile.phoneRec")) },
                     supportingContent = {
                         Column {
                             Text(I18n.t("profile.phoneRecSub"))

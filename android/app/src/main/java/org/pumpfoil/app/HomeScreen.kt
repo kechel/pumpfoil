@@ -212,12 +212,14 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }
             val hello = profile?.displayName?.takeIf { it.isNotBlank() }
                 ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
-            // „Record on Phone"-Button rechts neben dem Gruß — nur wenn Beta-Feature aktiviert.
+            // „Record on Phone"-Button rechts neben dem Gruß — hängt NUR am lokalen Toggle
+            // (Profil), NICHT mehr an profile.beta: das Server-Flag wird für echte private
+            // Betas frei (siehe docs/TODO „Feature-Flags systematisch").
             val recEnabled = ctxTop.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
                 .getBoolean("phone_rec_enabled", false)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(hello, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-                if (profile?.beta == true && recEnabled) {
+                if (recEnabled) {
                     // Brand-Cyan (Button = primary) statt des fahlen Tonal-Lila.
                     Button(onClick = onRecord) {
                         Icon(Icons.Filled.FiberManualRecord, contentDescription = null,

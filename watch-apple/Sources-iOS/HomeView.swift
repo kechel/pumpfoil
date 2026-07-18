@@ -49,7 +49,9 @@ struct HomeView: View {
                     HStack {
                         Text(helloText).font(.title2).bold()
                         Spacer()
-                        if session.profile?.beta == true && phoneRecEnabled {
+                        // Hängt NUR am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag
+                        // wird für echte private Betas frei, siehe docs/TODO).
+                        if phoneRecEnabled {
                             Button { showRecord = true } label: {
                                 Label(Loc.t("home.recordBtn", lang), systemImage: "record.circle")
                                     .font(.headline)
