@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, ScrollRestoration } from "react-router-dom";
+import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
@@ -37,6 +37,9 @@ function BrandLogo({ className = "h-9" }: { className?: string }) {
 
 export default function App() {
   const { t, setLang } = useI18n();
+  // Import-Button (Sidebar + Mobile-Topbar) nur auf der Sessions-Seite zeigen —
+  // dort gehört der FIT-Upload hin; im Profil gibt es einen eigenen Einstieg.
+  const onSessions = useLocation().pathname.startsWith("/sessions");
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pending, setPending] = useState(0);   // offene Moderation (gemeldet + unecht) fürs Admin-Badge
@@ -111,12 +114,14 @@ export default function App() {
           </NavLink>
         ))}
 
-        <Link
-          to="/import"
-          className="mt-3 w-full rounded-xl bg-brand-500 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-400"
-        >
-          {t("import.title")}
-        </Link>
+        {onSessions && (
+          <Link
+            to="/import"
+            className="mt-3 w-full rounded-xl bg-brand-500 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 transition-colors hover:bg-brand-400"
+          >
+            {t("import.title")}
+          </Link>
+        )}
 
         <InstallPwa className="mt-3" />
 
@@ -184,15 +189,17 @@ export default function App() {
           <BrandLogo className="h-7" />
         </Link>
         <div className="flex items-center gap-2">
-          {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort) — nur Icon, Platz sparen. */}
-          <Link
-            to="/import"
-            aria-label={t("import.short")}
-            title={t("import.short")}
-            className="inline-flex items-center rounded-lg bg-brand-500 p-1.5 font-semibold text-slate-950 hover:bg-brand-400"
-          >
-            <UploadIcon className="h-4 w-4" />
-          </Link>
+          {/* Import/Upload nur auf der Sessions-Seite (nur Icon); im Profil gibt es einen eigenen Einstieg. */}
+          {onSessions && (
+            <Link
+              to="/import"
+              aria-label={t("import.short")}
+              title={t("import.short")}
+              className="inline-flex items-center rounded-lg bg-brand-500 p-1.5 font-semibold text-slate-950 hover:bg-brand-400"
+            >
+              <UploadIcon className="h-4 w-4" />
+            </Link>
+          )}
           <ThemeToggle />
           <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
             <LogoutIcon />
