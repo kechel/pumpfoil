@@ -73,7 +73,9 @@ export default function Landing() {
           playsInline
           preload="metadata"
           poster="/login-bg-landscape-poster.jpg"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+          // Oberes Fünftel des Videos ausblenden (Test per CSS statt Re-Encode): Element 125 %
+          // hoch + unten verankert -> die oberen 20 % liegen oberhalb des sichtbaren Bands.
+          className="pointer-events-none absolute bottom-0 left-0 h-[125%] w-full object-cover motion-reduce:hidden"
         >
           <source src="/login-bg-portrait.mp4" media="(max-aspect-ratio: 1/1)" type="video/mp4" />
           <source src="/login-bg-landscape.mp4" type="video/mp4" />
