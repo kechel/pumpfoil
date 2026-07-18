@@ -119,7 +119,7 @@ private fun availableStats(s: SessionDetail): List<String> {
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
+fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val avail = remember(session.id) { availableStats(session) }
@@ -133,7 +133,7 @@ fun ShareDialog(session: SessionDetail, onDismiss: () -> Unit) {
     var dim by remember { mutableStateOf(0.55f) }
     var loaded by remember { mutableStateOf(false) }
     val segments = session.analysis?.segments ?: emptyList()
-    var highlight by remember { mutableStateOf(-1) }   // -1 = alle Läufe, sonst 0-basiert
+    var highlight by remember { mutableStateOf(initialHighlight) }   // -1 = alle Läufe, sonst 0-basiert (#37: Vorauswahl aus Detailansicht)
     var hlOpen by remember { mutableStateOf(false) }
 
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.

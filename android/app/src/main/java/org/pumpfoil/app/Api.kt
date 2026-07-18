@@ -15,6 +15,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import java.net.HttpURLConnection
 import java.net.URL
@@ -169,6 +170,19 @@ object Api {
         http("DELETE", "/api/sessions/$id/photos/$photoId", null, auth = true)
     }
 
+    // Mehrere YouTube-Videos pro Session (wie Fotos); sessions.youtube_url = nur noch erstes Video.
+    suspend fun sessionVideos(id: Int): List<SessionVideo> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SessionVideo.serializer()), http("GET", "/api/sessions/$id/videos", null, auth = true))
+    }
+
+    suspend fun addSessionVideo(id: Int, url: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/sessions/$id/videos", buildJsonObject { put("youtube_url", url) }.toString(), auth = true)
+    }
+
+    suspend fun deleteSessionVideo(id: Int, videoId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/sessions/$id/videos/$videoId", null, auth = true)
+    }
+
     // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
     suspend fun uploadSessionPhoto(id: Int, bytes: ByteArray, filename: String = "photo.jpg", mime: String = "image/jpeg"): Unit =
         withContext(Dispatchers.IO) {
@@ -247,6 +261,12 @@ object Api {
 
     suspend fun stats(accelOnly: Boolean = true): OverallStats = withContext(Dispatchers.IO) {
         json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=$accelOnly", null, auth = true))
+    }
+
+    // Alle eigenen AUSSORTIERTEN Sessions löschen (Server erzwingt owner+other). -> Anzahl.
+    suspend fun deleteAllOtherSessions(): Int = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("DELETE", "/api/sessions/other/all", null, auth = true))
+        r.jsonObject["deleted"]?.jsonPrimitive?.intOrNull ?: 0
     }
 
     suspend fun deleteSession(id: Int): Unit = withContext(Dispatchers.IO) {
@@ -443,7 +463,8 @@ object Api {
         bg: String = "navy", highlight: Int = -1,
     ): ByteArray = withContext(Dispatchers.IO) {
         val q = StringBuilder("?color=$color&bg=$bg&track=${if (track) 1 else 0}&shade=$shade")
-        if (stats.isNotEmpty()) q.append("&stats=").append(java.net.URLEncoder.encode(stats.joinToString(","), "UTF-8"))
+        // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle) — #36.
+        q.append("&stats=").append(java.net.URLEncoder.encode(if (stats.isEmpty()) "none" else stats.joinToString(","), "UTF-8"))
         if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
         if (track && highlight >= 0) q.append("&highlight=$highlight")
         httpBytes("/api/sessions/$id/share.png$q")

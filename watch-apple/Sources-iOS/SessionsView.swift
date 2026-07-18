@@ -7,6 +7,7 @@ struct SessionsView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
     @State private var own: [SessionSummary] = []
+    @State private var confirmDeleteAll = false
     @State private var feed: [CommunityItem] = []
     @State private var scope: SessionScope = .mine
     @State private var homespot = ""
@@ -135,6 +136,23 @@ struct SessionsView: View {
                     Image(systemName: "chevron.down").font(.caption2)
                 }
             }
+            // Alle Aussortierten löschen — Server erzwingt owner+other; hier nur Komfort + Confirm.
+            if filter == "other" && !own.isEmpty {
+                Spacer()
+                Button(Loc.t("sessions.deleteAllOther", lang), role: .destructive) { confirmDeleteAll = true }
+                    .font(.caption)
+            }
+        }
+        .alert(Loc.t("sessions.deleteAllOther", lang), isPresented: $confirmDeleteAll) {
+            Button(Loc.t("common.delete", lang), role: .destructive) {
+                Task {
+                    _ = try? await Api.deleteAllOtherSessions()
+                    await load()
+                }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        } message: {
+            Text(Loc.t("sessions.deleteAllOtherConfirm", lang))
         }
     }
 

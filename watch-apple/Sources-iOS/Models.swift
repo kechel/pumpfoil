@@ -307,6 +307,12 @@ struct SessionPhoto: Codable, Identifiable {
     let url: String
 }
 
+// Mehrere YouTube-Videos pro Session (wie Fotos); sessions.youtube_url = nur noch erstes Video.
+struct SessionVideo: Codable, Identifiable {
+    let id: Int
+    let youtube_url: String
+}
+
 struct SessionLabel: Codable, Identifiable {
     let id: Int
     let t_start_ms: Int

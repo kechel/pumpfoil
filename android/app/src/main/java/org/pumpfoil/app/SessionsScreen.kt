@@ -66,6 +66,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -207,6 +208,31 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     FilterChip(selected = filter == "other", onClick = { filter = "other"; month = "" },
                         label = { Text(I18n.t("sessions.filterOther")) }, colors = cyanChipColors())
                     MonthDropdown(months, month) { month = it }
+                    // Alle Aussortierten löschen — Server erzwingt owner+other; hier nur Komfort + Confirm.
+                    if (filter == "other" && own.isNotEmpty()) {
+                        var confirmAll by remember { mutableStateOf(false) }
+                        TextButton(onClick = { confirmAll = true }) {
+                            Text(I18n.t("sessions.deleteAllOther"), color = MaterialTheme.colorScheme.error)
+                        }
+                        if (confirmAll) {
+                            AlertDialog(
+                                onDismissRequest = { confirmAll = false },
+                                title = { Text(I18n.t("sessions.deleteAllOther")) },
+                                text = { Text(I18n.t("sessions.deleteAllOtherConfirm")) },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        confirmAll = false
+                                        scopeC.launch {
+                                            try { Api.deleteAllOtherSessions(); load() } catch (_: Exception) {}
+                                        }
+                                    }) { Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error) }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { confirmAll = false }) { Text(I18n.t("common.cancel")) }
+                                },
+                            )
+                        }
+                    }
                 }
             }
             if (scope == Scope.SPOT) {

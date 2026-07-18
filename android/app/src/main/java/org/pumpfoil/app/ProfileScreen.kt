@@ -1,5 +1,7 @@
 package org.pumpfoil.app
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -223,6 +225,18 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
+            // Social-Kanäle (wie im Web-Menü): öffnen im Browser/der jeweiligen App.
+            run {
+                val ctxSocial = LocalContext.current
+                fun open(url: String) {
+                    try { ctxSocial.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
+                }
+                Row(Modifier.padding(start = 16.dp, top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TextButton(onClick = { open("https://www.youtube.com/@pumpfoil-org") }) { Text("YouTube") }
+                    TextButton(onClick = { open("https://www.instagram.com/pumpfoil_org/") }) { Text("Instagram") }
+                    TextButton(onClick = { open("https://www.tiktok.com/@pumpfoil.org") }) { Text("TikTok") }
+                }
+            }
             // DEBUG: Age-Gate erzwingen (nur Debug-Build) — verifiziert Feed/Chat-Sperre.
             if (BuildConfig.DEBUG) {
                 Spacer(Modifier.height(20.dp))

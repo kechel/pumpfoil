@@ -9,6 +9,7 @@ import PhotosUI
 struct ShareCardView: View {
     let session: SessionDetail
     let lang: String
+    var initialHighlight: Int = -1   // in der Detailansicht gewählter Lauf als Vorauswahl (#37)
     @Environment(\.dismiss) private var dismiss
 
     private static let statOrder = ["foiling", "runs", "pumps", "speed", "time", "longest", "distance", "pumprate"]
@@ -19,7 +20,7 @@ struct ShareCardView: View {
     @State private var shade = "light"
     @State private var title = ""
     @State private var dim = 0.55
-    @State private var highlight = -1   // -1 = alle Läufe, sonst 0-basiert
+    @State private var highlight = -1   // -1 = alle Läufe, sonst 0-basiert (Vorauswahl via .onAppear)
     @State private var loaded = false
 
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.
@@ -195,6 +196,7 @@ struct ShareCardView: View {
             if let s = sh["shade"] as? String, s == "light" || s == "dark" { shade = s }
             if let d = sh["dim"] as? Double { dim = d }
         }
+        highlight = initialHighlight   // #37: gewählter Lauf aus der Detailansicht
         // Default-Hintergrund: erstes Foto der Session (wie PWA). /media ist öffentlich.
         if photo == nil,
            let first = (try? await Api.sessionPhotos(session.id))?.first?.url,

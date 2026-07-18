@@ -397,6 +397,9 @@ data class Foil(
 data class SessionPhoto(val id: Int, val url: String = "")
 
 @Serializable
+data class SessionVideo(val id: Int, @SerialName("youtube_url") val youtubeUrl: String = "")
+
+@Serializable
 data class Label(
     val id: Int,
     @SerialName("t_start_ms") val tStartMs: Long = 0,

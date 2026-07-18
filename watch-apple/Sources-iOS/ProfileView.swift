@@ -74,6 +74,18 @@ struct ProfileView: View {
                     }
                     Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
                 }
+                // Social-Kanäle (wie im Web-Menü): öffnen in Safari/der jeweiligen App.
+                Section {
+                    Link(destination: URL(string: "https://www.youtube.com/@pumpfoil-org")!) {
+                        Label { Text("YouTube") } icon: { Image(systemName: "play.rectangle").foregroundStyle(Color.accentColor) }
+                    }
+                    Link(destination: URL(string: "https://www.instagram.com/pumpfoil_org/")!) {
+                        Label { Text("Instagram") } icon: { Image(systemName: "camera").foregroundStyle(Color.accentColor) }
+                    }
+                    Link(destination: URL(string: "https://www.tiktok.com/@pumpfoil.org")!) {
+                        Label { Text("TikTok") } icon: { Image(systemName: "music.note").foregroundStyle(Color.accentColor) }
+                    }
+                }
                 // Beta-Feature „Record on Phone" — nur für Beta-Konten; steuert den Aufnahme-Button
                 // auf der Startseite (lokale Einstellung auf diesem Gerät).
                 if session.profile?.beta == true {

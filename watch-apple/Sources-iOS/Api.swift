@@ -113,6 +113,31 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
+    // Mehrere YouTube-Videos pro Session (wie Fotos).
+    static func sessionVideos(_ id: Int) async throws -> [SessionVideo] {
+        try await request("/api/sessions/\(id)/videos", method: "GET", body: nil, auth: true)
+    }
+
+    static func addSessionVideo(_ id: Int, youtubeUrl: String) async throws {
+        let _: SessionVideo = try await request("/api/sessions/\(id)/videos", method: "POST",
+                                                body: ["youtube_url": youtubeUrl], auth: true)
+    }
+
+    // Alle eigenen AUSSORTIERTEN Sessions löschen (Server erzwingt owner+other). -> Anzahl.
+    static func deleteAllOtherSessions() async throws -> Int {
+        struct Resp: Decodable { let deleted: Int }
+        let r: Resp = try await request("/api/sessions/other/all", method: "DELETE", body: nil, auth: true)
+        return r.deleted
+    }
+
+    static func deleteSessionVideo(_ sessionId: Int, videoId: Int) async throws {
+        guard let url = URL(string: baseURL + "/api/sessions/\(sessionId)/videos/\(videoId)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url); req.httpMethod = "DELETE"
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    }
+
     // Foto-Upload (multipart/form-data, Feldname "file") an den Besitzer-Endpoint.
     static func uploadAvatar(data: Data, filename: String = "avatar.jpg", mime: String = "image/jpeg") async throws {
         guard let url = URL(string: baseURL + "/api/auth/me/avatar") else { throw ApiError.badURL }
@@ -450,7 +475,8 @@ enum Api {
             URLQueryItem(name: "track", value: track ? "1" : "0"),
             URLQueryItem(name: "shade", value: shade),
         ]
-        if !stats.isEmpty { q.append(URLQueryItem(name: "stats", value: stats.joined(separator: ","))) }
+        // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle) — #36.
+        q.append(URLQueryItem(name: "stats", value: stats.isEmpty ? "none" : stats.joined(separator: ",")))
         let tt = title.trimmingCharacters(in: .whitespaces)
         if !tt.isEmpty { q.append(URLQueryItem(name: "title", value: tt)) }
         if track && highlight >= 0 { q.append(URLQueryItem(name: "highlight", value: String(highlight))) }

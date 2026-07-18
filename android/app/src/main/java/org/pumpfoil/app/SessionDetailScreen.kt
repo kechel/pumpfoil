@@ -103,6 +103,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.ScaleBarOverlay
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
@@ -130,6 +131,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var trimStart by remember { mutableStateOf(0f) }
     var trimEnd by remember { mutableStateOf(0f) }
     var reloadTick by remember { mutableStateOf(0) }
+    // In der Detailansicht ausgewählter Lauf -> Teilen-Dialog übernimmt ihn als Vorauswahl (#37).
+    var shareRun by remember(id) { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
     val durSec = remember(session) {
         val a = epochMs(session?.startedAt); val b = epochMs(session?.endedAt)
@@ -192,7 +195,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         )
     }
 
-    if (showShare) session?.let { ShareDialog(it) { showShare = false } }
+    if (showShare) session?.let { ShareDialog(it, initialHighlight = shareRun ?: -1) { showShare = false } }
 
     if (showLink) {
         val clipboard = LocalClipboardManager.current
@@ -306,7 +309,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ },
                     canTrim = (s.owned && durSec > 1f),
                     onTrim = { trimStart = 0f; trimEnd = durSec; showTrim = true },
-                    onDelete = { confirmDelete = true })
+                    onDelete = { confirmDelete = true },
+                    onRunSelected = { shareRun = it })
             }
         }
     }
@@ -315,7 +319,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
-                          canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {}) {
+                          canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {},
+                          onRunSelected: (Int?) -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -323,6 +328,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var win by remember(s.id) { mutableStateOf(3) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
+    LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var editCaption by remember(s.id) { mutableStateOf(false) }
@@ -445,14 +451,20 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
         }
 
-        // YouTube-Video (falls verlinkt): Thumbnail -> öffnet die URL.
-        val ytId = remember(s.youtubeUrl) { youtubeId(s.youtubeUrl) }
-        // Medien (Video + Fotos): Besitzer kann Fotos hinzufügen. Tippen -> Vollbild/Video.
+        // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
+        // (mehrere, wie PWA). Tippen -> Vollbild/Video.
         var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
+        var videos by remember(s.id) { mutableStateOf<List<SessionVideo>>(emptyList()) }
         var lightboxIdx by remember(s.id) { mutableStateOf<Int?>(null) }
         val ctx = LocalContext.current
         suspend fun reloadPhotos() { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
-        LaunchedEffect(s.id) { reloadPhotos() }
+        suspend fun reloadVideos() {
+            videos = try { Api.sessionVideos(s.id) } catch (_: Exception) {
+                // Fallback (alter Server): Legacy-Feld als Einzelvideo zeigen.
+                s.youtubeUrl?.let { listOf(SessionVideo(0, it)) } ?: emptyList()
+            }
+        }
+        LaunchedEffect(s.id) { reloadPhotos(); reloadVideos() }
         val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) scope.launch {
                 val bytes = withContext(Dispatchers.IO) {
@@ -461,9 +473,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
             }
         }
-        // Festes 2-spaltiges Grid: Video (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
-        val hasVideo = ytId != null
-        val total = (if (hasVideo) 1 else 0) + photos.size
+        // Festes 2-spaltiges Grid: Videos (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
+        val shownVideos = videos.filter { youtubeId(it.youtubeUrl) != null }
+        val total = shownVideos.size + photos.size
         if (total > 0) {
             val ctxYt = LocalContext.current
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -474,18 +486,26 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                             val idx = row * 2 + col
                             if (idx >= total) { Spacer(Modifier.weight(1f)); continue }
                             Box(Modifier.weight(1f).aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))) {
-                                if (hasVideo && idx == 0) {
+                                if (idx < shownVideos.size) {
+                                    val v = shownVideos[idx]
                                     AsyncImage(
-                                        model = "https://img.youtube.com/vi/$ytId/hqdefault.jpg",
+                                        model = "https://img.youtube.com/vi/${youtubeId(v.youtubeUrl)}/hqdefault.jpg",
                                         contentDescription = "YouTube", contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize().clickable {
-                                            ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(s.youtubeUrl)))
+                                            ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(v.youtubeUrl)))
                                         },
                                     )
                                     Icon(Icons.Filled.PlayCircle, contentDescription = null,
                                         modifier = Modifier.align(Alignment.Center).size(48.dp), tint = Color.White)
+                                    if (s.owned && v.id > 0) {
+                                        Icon(Icons.Filled.Close, contentDescription = I18n.t("common.delete"), tint = Color.White,
+                                            modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                                .clickable { scope.launch { try { Api.deleteSessionVideo(s.id, v.id); reloadVideos() } catch (_: Exception) {} } }
+                                                .padding(3.dp))
+                                    }
                                 } else {
-                                    val p = photos[idx - if (hasVideo) 1 else 0]
+                                    val p = photos[idx - shownVideos.size]
                                     AsyncImage(
                                         model = Api.mediaUrl(p.url), contentDescription = null, contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize().clickable { lightboxIdx = photos.indexOf(p) },
@@ -510,9 +530,47 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             PhotoLightbox(photos, startIdx, onClose = { lightboxIdx = null })
         }
         if (s.owned) {
-            OutlinedButton(onClick = {
-                picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) { Text(I18n.t("sd.addPhoto")) }
+            var videoDialog by remember { mutableStateOf(false) }
+            var videoUrl by remember { mutableStateOf("") }
+            var videoErr by remember { mutableStateOf<String?>(null) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = {
+                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }) { Text(I18n.t("sd.addPhoto")) }
+                OutlinedButton(onClick = { videoUrl = ""; videoErr = null; videoDialog = true }) {
+                    Text(I18n.t("meta.linkVideo"))
+                }
+            }
+            if (videoDialog) {
+                AlertDialog(
+                    onDismissRequest = { videoDialog = false },
+                    title = { Text(I18n.t("meta.linkVideo")) },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = videoUrl, onValueChange = { videoUrl = it },
+                                placeholder = { Text(I18n.t("meta.youtubePlaceholder")) },
+                                singleLine = true, modifier = Modifier.fillMaxWidth(),
+                            )
+                            videoErr?.let {
+                                Spacer(Modifier.height(6.dp))
+                                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val u = videoUrl.trim()
+                            if (u.isBlank()) { videoDialog = false; return@TextButton }
+                            scope.launch {
+                                try { Api.addSessionVideo(s.id, u); reloadVideos(); videoDialog = false }
+                                catch (_: Exception) { videoErr = I18n.t("meta.errYoutube") }
+                            }
+                        }) { Text(I18n.t("common.save")) }
+                    },
+                    dismissButton = { TextButton(onClick = { videoDialog = false }) { Text(I18n.t("common.cancel")) } },
+                )
+            }
         }
 
         val a = s.analysis
@@ -768,6 +826,11 @@ private fun TrackMap(
         update = { map ->
             map.overlays.clear()
             val dens = map.context.resources.displayMetrics.density   // px<->dp, sonst zu dünn auf HiDPI
+            // Dezente metrische Maßstabsleiste unten links (wie Web-Karte, #15).
+            map.overlays.add(ScaleBarOverlay(map).apply {
+                setAlignBottom(true)
+                setScaleBarOffset((10 * dens).toInt(), (10 * dens).toInt())
+            })
             val allPts = ArrayList<GeoPoint>()
             val selPts = ArrayList<GeoPoint>()
             segments.forEachIndexed { runIdx, seg ->

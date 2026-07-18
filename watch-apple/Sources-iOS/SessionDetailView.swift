@@ -17,6 +17,10 @@ struct SessionDetailView: View {
     @State private var liked = false
     @State private var likeCount = 0
     @State private var photos: [SessionPhoto] = []
+    @State private var videos: [SessionVideo] = []
+    @State private var videoDialog = false
+    @State private var videoUrl = ""
+    @State private var videoErr = false
     @State private var lightbox: SessionPhoto?     // angetipptes Foto -> Vollbild
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
@@ -120,7 +124,7 @@ struct SessionDetailView: View {
         .sheet(isPresented: $showLink) { linkSheet }
         .sheet(isPresented: $showTrim) { trimSheet }
         .sheet(isPresented: $showShare) {
-            if let s = session { ShareCardView(session: s, lang: lang) }
+            if let s = session { ShareCardView(session: s, lang: lang, initialHighlight: selectedRun ?? -1) }
         }
         .fullScreenCover(item: $lightbox) { start in
             PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
@@ -288,26 +292,19 @@ struct SessionDetailView: View {
         }
     }
 
-    // Medien als EIN 2-Spalten-Grid (Video zuerst, dann Fotos) — gleich große 16:9-Kacheln, wie PWA/Android.
+    // Videos laden; Fallback (alter Server ohne /videos): Legacy-Feld als Einzelvideo.
+    private func loadVideos(_ s: SessionDetail) async -> [SessionVideo] {
+        if let v = try? await Api.sessionVideos(id) { return v }
+        if let url = s.youtube_url, !url.isEmpty { return [SessionVideo(id: 0, youtube_url: url)] }
+        return []
+    }
+
+    // Medien als EIN 2-Spalten-Grid (Videos zuerst, dann Fotos) — gleich große 16:9-Kacheln, wie PWA/Android.
     @ViewBuilder private func mediaSection(_ s: SessionDetail) -> some View {
-        let ytId = youtubeId(s.youtube_url)
-        if ytId != nil || !photos.isEmpty {
+        if !videos.isEmpty || !photos.isEmpty {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                if let ytId, let ytUrl = URL(string: s.youtube_url ?? "") {
-                    Link(destination: ytUrl) {
-                        mediaTile {
-                            AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
-                                switch phase {
-                                case .success(let img): img.resizable().scaledToFill()
-                                default: Color(.secondarySystemBackground)
-                                }
-                            }
-                        }
-                        .overlay {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 40)).foregroundStyle(.white.opacity(0.9))
-                        }
-                    }
+                ForEach(videos) { v in
+                    videoTile(v, owned: s.owned == true)
                 }
                 ForEach(photos) { p in
                     mediaTile {
@@ -338,17 +335,80 @@ struct SessionDetailView: View {
             }
         }
         if s.owned == true {
-            PhotosPicker(selection: $pickerItem, matching: .images) {
-                Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
-            }
-            .onChange(of: pickerItem) { item in
-                Task {
-                    if let data = try? await item?.loadTransferable(type: Data.self) {
-                        try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
-                        photos = (try? await Api.sessionPhotos(id)) ?? []
+            HStack(spacing: 16) {
+                PhotosPicker(selection: $pickerItem, matching: .images) {
+                    Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
+                }
+                .onChange(of: pickerItem) { item in
+                    Task {
+                        if let data = try? await item?.loadTransferable(type: Data.self) {
+                            try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
+                            photos = (try? await Api.sessionPhotos(id)) ?? []
+                        }
                     }
                 }
+                Button {
+                    videoUrl = ""; videoErr = false; videoDialog = true
+                } label: {
+                    Label(Loc.t("meta.linkVideo", lang), systemImage: "video.badge.plus")
+                }
             }
+            .alert(Loc.t("meta.linkVideo", lang), isPresented: $videoDialog) {
+                TextField(Loc.t("meta.youtubePlaceholder", lang), text: $videoUrl)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Button(Loc.t("common.save", lang)) { addVideo(s) }
+                Button(Loc.t("common.cancel", lang), role: .cancel) {}
+            }
+            .alert(Loc.t("meta.errYoutube", lang), isPresented: $videoErr) {
+                Button("OK", role: .cancel) {}
+            }
+        }
+    }
+
+    // 16:9-Video-Kachel: YouTube-Thumb + Play; Besitzer bekommt ein X zum Entfernen.
+    @ViewBuilder private func videoTile(_ v: SessionVideo, owned: Bool) -> some View {
+        if let ytId = youtubeId(v.youtube_url), let ytUrl = URL(string: v.youtube_url) {
+            Link(destination: ytUrl) {
+                mediaTile {
+                    AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
+                        switch phase {
+                        case .success(let img): img.resizable().scaledToFill()
+                        default: Color(.secondarySystemBackground)
+                        }
+                    }
+                }
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 40)).foregroundStyle(.white.opacity(0.9))
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if owned && v.id > 0 {
+                    Button {
+                        Task {
+                            try? await Api.deleteSessionVideo(id, videoId: v.id)
+                            videos = (try? await Api.sessionVideos(id)) ?? []
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
+                            .padding(6)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func addVideo(_ s: SessionDetail) {
+        let u = videoUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !u.isEmpty else { return }
+        Task {
+            do {
+                try await Api.addSessionVideo(id, youtubeUrl: u)
+                videos = await loadVideos(s)
+            } catch { videoErr = true }
         }
     }
 
@@ -555,6 +615,7 @@ struct SessionDetailView: View {
             caption = s.caption ?? ""
             selectedFoilId = s.foil?.id ?? 0
             photos = (try? await Api.sessionPhotos(id)) ?? []
+            videos = await loadVideos(s)
             let settings = (try? await Api.settings()) ?? [:]
             weightKg = (settings["weight_kg"] as? Int).map(Double.init) ?? 0
             if s.owned == true {
@@ -601,6 +662,7 @@ struct TrackMap: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
+        map.showsScale = true   // dezente Maßstabsleiste (erscheint beim Zoomen), wie Web-Karte (#15)
         map.delegate = context.coordinator
         map.isRotateEnabled = false
         map.isPitchEnabled = false
