@@ -25,8 +25,9 @@ export default function FoilStats() {
       </Link>
       <div className="mb-1 flex items-center gap-2">
         <h2 className="flex items-center gap-2 text-xl font-bold"><FoilIcon className="h-6 w-6 text-brand-400" /> {t("foilStats.title")}</h2>
-        <Link to="/watch-stats" title={t("watchStats.title")} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
-          <WatchIcon className="h-4 w-4" /> {t("stats.short")}
+        <Link to="/watch-stats" title={t("watchStats.title")} aria-label={t("watchStats.title")}
+          className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+          <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
         </Link>
       </div>
       <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")}</p>
