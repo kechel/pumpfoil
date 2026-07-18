@@ -101,7 +101,7 @@ const nl: Record<string, string> = {
   "rec.longestGlide": "Langste glijfase",
   "rec.mostRuns": "Meeste runs",
   "rec.sessionDistance": "Verste sessie",
-  "rec.sessionTime": "Meeste on-foil-tijd",
+  "rec.sessionTime": "On-foil-tijd",
   "rec.sessionPumps": "Meeste pumps",
   "rec.maxHr": "Max. hartslag",
   "rec.earlyBird": "Vroege vogel",

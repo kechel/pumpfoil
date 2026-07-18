@@ -75,7 +75,7 @@ const fr: Record<string, string> = {
   "rec.longestGlide": "Plus longue glisse",
   "rec.mostRuns": "Plus de runs",
   "rec.sessionDistance": "Distance max (session)",
-  "rec.sessionTime": "Temps on-foil max",
+  "rec.sessionTime": "Temps on-foil",
   "rec.sessionPumps": "Pumps max",
   "rec.maxHr": "FC max",
   "rec.earlyBird": "Lève-tôt",

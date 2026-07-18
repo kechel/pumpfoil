@@ -101,7 +101,7 @@ const de: Record<string, string> = {
   "rec.longestGlide": "Längste Gleitphase",
   "rec.mostRuns": "Meiste Läufe",
   "rec.sessionDistance": "Weiteste Session",
-  "rec.sessionTime": "Meiste On-Foil-Zeit",
+  "rec.sessionTime": "On-Foil-Zeit",
   "rec.sessionPumps": "Meiste Pumps",
   "rec.maxHr": "Max. Puls",
   "rec.earlyBird": "Early Bird",
