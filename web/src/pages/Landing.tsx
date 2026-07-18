@@ -73,9 +73,10 @@ export default function Landing() {
           playsInline
           preload="metadata"
           poster="/login-bg-landscape-poster.jpg"
-          // Oberes Fünftel des Videos ausblenden (Test per CSS statt Re-Encode): Element 125 %
-          // hoch + unten verankert -> die oberen 20 % liegen oberhalb des sichtbaren Bands.
-          className="pointer-events-none absolute bottom-0 left-0 h-[125%] w-full object-cover motion-reduce:hidden"
+          // Oberen Teil des Videos ausblenden (Test per CSS statt Re-Encode): Element höher als
+          // das Band + unten verankert -> der Überstand liegt oberhalb des sichtbaren Bereichs.
+          // Mobile (Portrait-Video) braucht deutlich mehr Beschnitt als Desktop.
+          className="pointer-events-none absolute bottom-0 left-0 h-[150%] w-full object-cover motion-reduce:hidden sm:h-[125%]"
         >
           <source src="/login-bg-portrait.mp4" media="(max-aspect-ratio: 1/1)" type="video/mp4" />
           <source src="/login-bg-landscape.mp4" type="video/mp4" />
