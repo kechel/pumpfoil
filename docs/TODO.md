@@ -73,6 +73,9 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Neue Rekord-Kacheln in die Apps** (2026-07-18): Web zeigt jetzt 11 Rekorde (+Session-Distanz/
+  -Zeit/-Pumps, Max-Puls, Early Bird, Night Owl — 8d0c208); Android/iOS-Community zeigt noch die
+  alten 5. Server liefert alle bereits (additiv, Apps ignorieren Unbekanntes).
 - [x] **Niederländisch (nl) in die Apps portieren** — ERLEDIGT 2026-07-18 (6e8cfea): Overlays
   Android (545 Keys) + iOS (526 Keys), Picker „Nederlands", Diktat nl-NL (+ fi-FI-Diktat-Fix).
   Wear bleibt bei 7 Sprachen (nl→de), wie fi. OFFEN nur: Muttersprachler-Review nl (+ fr/it/es/fi).
