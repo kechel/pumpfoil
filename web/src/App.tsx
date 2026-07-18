@@ -184,12 +184,14 @@ export default function App() {
           <BrandLogo className="h-7" />
         </Link>
         <div className="flex items-center gap-2">
-          {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort). */}
+          {/* Import/Upload auch mobil erreichbar (Konten-Verknüpfung + FIT-Upload liegen dort) — nur Icon, Platz sparen. */}
           <Link
             to="/import"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-2.5 py-1.5 text-xs font-semibold text-slate-950 hover:bg-brand-400"
+            aria-label={t("import.short")}
+            title={t("import.short")}
+            className="inline-flex items-center rounded-lg bg-brand-500 p-1.5 font-semibold text-slate-950 hover:bg-brand-400"
           >
-            <UploadIcon className="h-4 w-4" /> {t("import.short")}
+            <UploadIcon className="h-4 w-4" />
           </Link>
           <ThemeToggle />
           <button onClick={logout} className="text-slate-300" aria-label={t("nav.logout")}>
