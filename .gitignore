@@ -74,4 +74,9 @@ youtube/
 videos-raw/
 non-public-sdks/
 server/scripts/delete_test_accounts.py
-social-media/
+# social-media: Medien/Musik bleiben privat, nur das Shorts-Tool ist versioniert
+social-media/*
+!social-media/scripts/
+!social-media/musik/
+social-media/musik/*
+!social-media/musik/README.md
