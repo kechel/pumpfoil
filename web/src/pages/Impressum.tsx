@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useT } from "../i18n";
+import { ScrollToTop } from "../components/ScrollToTop";
 
 export default function Impressum() {
   const t = useT();
@@ -7,6 +8,7 @@ export default function Impressum() {
   const li = (key: string) => <li dangerouslySetInnerHTML={{ __html: t(key) }} />;
   return (
     <div className="mx-auto max-w-2xl p-6">
+      <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
       <h1 className="mb-4 mt-4 text-xl font-bold">{t("imp.title")}</h1>
       <div className="space-y-1 text-slate-200">

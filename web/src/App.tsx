@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
@@ -80,7 +81,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-full flex-col bg-slate-950 md:flex-row">
-      <ScrollRestoration />
+      <ScrollToTop />
       <FeedbackWidget />
       {social && <DmWidget />}
       <CompareBar />

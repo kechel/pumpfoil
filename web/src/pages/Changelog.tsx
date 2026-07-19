@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useT } from "../i18n";
+import { ScrollToTop } from "../components/ScrollToTop";
 
 // Nutzer-sichtbares Changelog. Bewusst NICHT technisch und (bis auf den Menüpunkt) auf
 // Englisch — eine kuratierte Liste dessen, was Nutzer wirklich merken. Neueste zuerst.
@@ -11,7 +12,6 @@ const ENTRIES: Entry[] = [
     date: "July 20, 2026",
     items: [
       "New Garmin activity type “Pumpfoil”: your recording can now show up as “Pumpfoil” in Garmin Connect instead of Surfing or Open Water — pick it in your profile under Watch.",
-      "The homepage now points out that you can record a session with your phone, too.",
     ],
   },
   {
@@ -19,8 +19,7 @@ const ENTRIES: Entry[] = [
     items: [
       "More reliable uploads on Garmin watches: if the connection drops mid-upload (a brief server or phone-signal hiccup), the watch now retries on its own — after 3, 10 and 30 seconds, and again the moment your phone reconnects. The upload screen shows a clear “Server unreachable — retrying in N s” countdown, nothing gets stuck, and no data is lost.",
       "Link Instagram and TikTok videos to a session — not just YouTube. The session list shows a small icon when a session has a video linked.",
-      "iOS app 1.1.15 and Android app 1.1.13 are now live in the stores.",
-      "Czech is now fully supported (website and apps) — our 10th language.",
+      "Czech is now available — our 10th language.",
       "Added the full Indiana foil range to the foil catalog.",
     ],
   },
@@ -28,24 +27,81 @@ const ENTRIES: Entry[] = [
     date: "July 18, 2026",
     items: [
       "Add several videos to a single session, just like photos.",
-      "Dutch is now available as a language (website and apps).",
-      "Session times are shown in the spot’s local time, and records use the real local timezone.",
+      "Dutch is now available as a language.",
+      "Session times now show in the spot’s local time, and records use the real local timezone.",
       "New community records: session distance, session time, session pumps, max heart rate, plus “Early Bird” and “Night Owl”.",
-      "New intro video on the homepage.",
     ],
   },
   {
     date: "July 16, 2026",
     items: [
-      "Record a session directly with your phone (Android & iOS) — no longer a beta feature. Strap the phone to your board or keep it in a pocket; no watch needed.",
-      "Share a session via a public link straight from the Android app.",
+      "Record a session directly with your phone (Android & iOS) — no watch needed. Strap the phone to your board or keep it in a pocket.",
       "Sortable columns in Foil Stats and Watch Stats.",
     ],
   },
   {
     date: "July 15, 2026",
     items: [
+      "Share a session via a public link — anyone with the link can view it, no account needed, and you can revoke the link anytime.",
       "Delete all of your sorted-out (non-foiling) sessions at once.",
+    ],
+  },
+  {
+    date: "July 14, 2026",
+    items: [
+      "Adjustable text size (100 / 120 / 150 %) for better readability.",
+    ],
+  },
+  {
+    date: "July 13, 2026",
+    items: [
+      "“Spot progression”: replay all your sessions at a spot on one map, animated over time.",
+      "Profile pictures (or initials) now appear throughout the session lists.",
+    ],
+  },
+  {
+    date: "July 12, 2026",
+    items: [
+      "Global community chat — everyone’s in by default; leave or rejoin anytime.",
+      "Choose your Garmin recording’s activity type (Surfing or Open Water).",
+      "Video preview thumbnails in the session lists.",
+    ],
+  },
+  {
+    date: "July 11, 2026",
+    items: [
+      "Suunto support: connect your account to import your sessions automatically.",
+      "Choose the recording mode per watch (Full 25 Hz / Light 10 Hz / GPS only) — helps older or lower-memory watches record reliably.",
+      "Highlight a single run when sharing a session.",
+    ],
+  },
+  {
+    date: "July 10, 2026",
+    items: [
+      "Automatic import for Suunto and Polar — new activities show up on their own once your account is connected.",
+      "The web app now updates itself quietly at the next safe moment, instead of asking you to reload.",
+    ],
+  },
+  {
+    date: "July 8, 2026",
+    items: [
+      "Transfer a session to another user — handy when you lent out your watch.",
+      "Live speed and distance overlay while replaying a session on the map.",
+      "New “System architecture” page explaining the stack, security and privacy.",
+    ],
+  },
+  {
+    date: "July 7, 2026",
+    items: [
+      "Personal detection sensitivity (Normal / Light / Attempts) — tune how strictly your own sessions are analyzed, without changing community records.",
+      "Finnish is now available as a language.",
+    ],
+  },
+  {
+    date: "July 6, 2026",
+    items: [
+      "Direct 1:1 messages, with the option to block.",
+      "New “Nerd” pages explaining how foiling and pump detection actually work.",
     ],
   },
 ];
@@ -54,6 +110,7 @@ export default function Changelog() {
   const t = useT();
   return (
     <div className="mx-auto max-w-2xl p-6">
+      <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
       <h1 className="mb-1 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
       <p className="mb-6 text-sm text-slate-400">What’s new — the changes you can actually see.</p>
