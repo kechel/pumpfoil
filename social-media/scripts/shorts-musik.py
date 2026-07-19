@@ -621,19 +621,14 @@ PAGE = r"""<!doctype html>
   <div id="vlist"></div></div>
 <div id="center">
   <div id="stage">
-    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt="">
-    <div class="txov" id="txov0"></div><div class="txov" id="txov1"></div><div class="txov" id="txov2"></div></div>
+    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt=""></div>
     <div id="actions">
       <button class="abtn" id="aStar"></button>
       <button class="abtn" id="aPrivat"></button>
       <button class="abtn" id="aNgu"></button>
       <button class="abtn" id="aTrash"></button>
       <button class="abtn" id="aUndo"></button>
-      <div id="texts">
-        <div class="txrow" data-i="0"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
-        <div class="txrow" data-i="1"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
-        <div class="txrow" data-i="2"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
-      </div>
+      <div id="texts"></div>
       <div id="aMsg"></div>
     </div>
   </div>
@@ -817,8 +812,17 @@ $('#aTrash').innerHTML=icon('trash')+'<span>aussortieren</span>';
 $('#aUndo').innerHTML=icon('undo')+'<span>rückgängig</span>';
 $('#dirToggle').innerHTML=icon('folder');
 // --- Text-Overlays: Zeiten/Texte je Video, Vorschau mit Render-Fadekurve ---
-const TXF=0.5, TXH=2.0, TXS=60;  // fade / hold / fontsize, muss zu TEXT_* passen
-const texts=[{start:null,text:''},{start:null,text:''},{start:null,text:''}];
+const TXF=0.5, TXH=2.0, TXS=60, TXN=6;  // fade / hold / fontsize / Slots
+const texts=Array.from({length:TXN},()=>({start:null,text:''}));
+for(let i=0;i<TXN;i++){
+  const row=document.createElement('div');row.className='txrow';row.dataset.i=i;
+  row.innerHTML='<button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button>'+
+    '<textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea>'+
+    '<button class="mini tclr" title="löschen">✕</button>';
+  $('#texts').appendChild(row);
+  const ov=document.createElement('div');ov.className='txov';ov.id='txov'+i;
+  $('#vwrap').appendChild(ov);
+}
 function renderTextRows(){
   document.querySelectorAll('.txrow').forEach(row=>{
     const i=+row.dataset.i;
@@ -835,7 +839,7 @@ document.querySelectorAll('.txrow').forEach(row=>{
 function updateTextPreview(){
   const scale=vid.videoWidth?vid.clientWidth/vid.videoWidth:1;
   const t=vid.currentTime;
-  for(let i=0;i<3;i++){
+  for(let i=0;i<TXN;i++){
     const el=$('#txov'+i), tx=texts[i];
     if(tx.start==null||!tx.text.trim()){el.style.opacity=0;continue}
     const e=tx.start+2*TXF+TXH;
@@ -885,7 +889,7 @@ function pickVideo(v){
   $('#vname').textContent=v; stopMusic(); renderVideoList();
   trimStart=trimEnd=null; updateTrim();
   $('#outName').value='';
-  for(let i=0;i<3;i++)texts[i]={start:null,text:''};
+  for(let i=0;i<TXN;i++)texts[i]={start:null,text:''};
   renderTextRows();
   updatePvBar();
 }
