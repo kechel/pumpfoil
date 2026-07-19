@@ -13,7 +13,7 @@ import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 const SR_LANG: Record<string, string> = {
   de: "de-DE", gsw: "de-CH", "de-AT": "de-AT",
-  en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES", fi: "fi-FI", nl: "nl-NL",
+  en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES", fi: "fi-FI", nl: "nl-NL", cs: "cs-CZ",
 };
 
 export function MicButton({ value, onChange, onSubmit, disabled, title }: {

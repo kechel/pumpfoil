@@ -395,4 +395,46 @@ const nl: N3 = {
   },
 };
 
-export const NERD3: Record<Lang, N3> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl };
+const cs: N3 = {
+  back: "← Část 2: Jak to funguje",
+  h1: "Část 3: Měření se dvěma hodinkami — kde dnes stojíme",
+  subtitle: "Druhý experiment se dvěma hodinkami: zápěstí proti pravdě u prkna",
+  intro:
+    "Po části 1 jsme znovu měřili **současně dvěma hodinkami** — tentokrát, abychom prověřili **detekci pumpnutí** a **konec jízdy** (klouzání, resp. potopení) proti pravdě navázané na prkno. Jedny **Forerunner 55** na zápěstí (GPS + 25 Hz zrychlení) a jedny **fēnix 7X Pro** jednou na trupu foilu pod vodou, jednou na kotníku (100 Hz zrychlení) — vždy přes celou jízdu, obojí synchronizované přes systémový čas a jemně doladěné podle impulsu odrazu.",
+  setup: {
+    h: "Sestava",
+    p: "Obě hodinky běží na naší záznamové aplikaci — jen tak dostaneme surový datový tok zrychlení. Hodinky fēnix na **noze** se chovají přibližně jako prkno; na **trupu** měří polohu foilu přímo (tam je GPS pod vodou mrtvé, ale zrychlení běží dál).",
+    capRumpf: "fēnix na trupu foilu, pod vodou",
+    capFuss: "fēnix na kotníku, Forerunner 55 na zápěstí",
+  },
+  pump: {
+    h: "Detekce pumpnutí — souhlasí s pravdou",
+    p: "Senzor navázaný na prkno vidí každé pumpnutí jako jeden čistý cyklus. V porovnání s ním trefuje náš čistě **zápěstní** detektor překvapivě přesně:",
+    li: [
+      "**Počet:** 56 vs 59 · 38 vs 40 · 32 vs 31 pumpnutí — na ±~5 %, žádné systematické podpočítávání.",
+      "**Kadence** prakticky identická (~1,36–1,45 Hz).",
+      "**Časování jednotlivých pumpnutí:** 88–95 % precision, 90 % recall (±0,35 s).",
+    ],
+    cap: "Počet a kadence pumpnutí: pravda z prkna vs. zápěstní detektor",
+  },
+  glide: {
+    h: "Konec jízdy — klouzání vs. potopení",
+    p: "Zajímavé to začne být na konci jízdy. **GPS vypadne přesně tam** — na obou hodinkách — protože senzor se potopí, jakmile zpomalíš. Zrychlení ale běží dál a senzor u prkna to čistě rozliší: **na foilu** leží prkno klidně (tlumené foilem), **potopené** se volně kolébá (velké, pomalé nahoru a dolů).",
+    li: [
+      "Přechod „ještě na foilu / v pohybu na hladině“ → „potopeno“ je ve zrychlení prkna jasně rozpoznatelný.",
+      "Náš detektor ukončí jízdu **s přesností ±2 s** ve skutečném bodě potopení — dojezd se tedy **neusekne**.",
+      "Hranice ~9 km/h odpovídá docela přesně **pádové rychlosti** foilu.",
+    ],
+    cap: "Kolébání prkna (nízko = na foilu, vysoko = volně se kolébá); zelená = konec detektoru, fialová = skutečný bod potopení",
+  },
+  limits: {
+    h: "Poctivé meze",
+    p: "Je to jen pár jízd, všechny na jednom spotu a s hustým pumpováním. **Samotné zápěstí** okamžik potopení *nevidí* čistě (paže se při pumpování třese stejně jako při kolébání). A opravdu dlouhá požitkářská klouzání (glassy, downwind) v tomto datasetu ještě nejsou.",
+  },
+  outlook: {
+    h: "Jak to půjde dál",
+    p: "Na detektoru teď **záměrně nic neměníme**, ale zlepšujeme ho **na základě dat** — s více jízdami (i dlouhými klouzáními), s kamerou na prkně (**Insta360 X5**) jako vizuální pravdou a s daty uživatelů na pumpfoil.org. Přesně takhle jsme detekci už několikrát doostřili.",
+  },
+};
+
+export const NERD3: Record<Lang, N3> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };

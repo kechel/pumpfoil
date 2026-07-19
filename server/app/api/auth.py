@@ -22,7 +22,7 @@ from .deps import current_user
 RESET_TTL_MIN = 60
 
 # Unterstützte UI-Sprachen (inkl. Dialekte). Quelle der Wahrheit auch im Frontend (i18n).
-SUPPORTED_LANGS = {"de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl"}
+SUPPORTED_LANGS = {"de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs"}
 
 
 def _clean_lang(raw: str | None, fallback: str = "de") -> str:

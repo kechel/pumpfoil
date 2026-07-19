@@ -590,6 +590,69 @@ const nl: N1 = {
   },
 };
 
+const cs: N1 = {
+  back: "← Zpět",
+  next: "→ Část 2: Jak funguje detekce",
+  h1: "Nerd analýzy",
+  subtitle:
+    "Experiment s pumpfoilem a dvěma hodinkami · Illmensee, 27.06.2026 · surová data zrychlení, spousta zpracování signálu a trocha fyziky foilu. Pro všechny, kdo to chtějí vědět přesně.",
+  intro:
+    "Otázka: Co se dá z pohybových dat jedné pumpfoilové jízdy skutečně vyčíst — a můžeme tím zlepšit detekci pumpnutí, jízdy na foilu a klouzání? Proto jsme jednu jízdu zaznamenali **současně dvěma hodinkami**: jedny na zápěstí a druhé **přímo na stěžni foilu, pod vodou** — „pravda“ o tom, co foil dělá.",
+  aufbau: {
+    h: "Sestava",
+    p: "**fenix** na zápěstí (25/100 Hz, dobré GPS) — to jsou hodinky, které budeme mít později v produktu. **Forerunner 55** pevně přivázané ke stěžni foilu, **pod vodou**, hlavou dolů, se startovacím tlačítkem ve směru jízdy. Obě běžely na naší vlastní záznamové aplikaci (v1.0.37). Hodinky na stěžni nemají pod vodou **žádné GPS** — měří jen surové zrychlení foilu.",
+    alt1: "Foil s hodinkami na stěžni u mola",
+    alt2: "FR55 na stěžni — automatický start",
+    alt3: "FR55 na stěžni — hledání GPS",
+    altSpot: "Spot Illmensee při západu slunce",
+  },
+  daten: {
+    h: "Data",
+    p: "Místo surových chunků (které se na slabé FR55 přerušují) jsme vyhodnotili **původní FIT soubory** z Garmin Connect: fenix **100 Hz**, stěžeň **25 Hz**, vždy přes celou jízdu. Obě hodinky jsou synchronizované přes systémový čas.",
+  },
+  start: {
+    h: "Startovací sekvence",
+    p: "Z dat se dá zrekonstruovat celý start (potvrzeno videem): Prkno leží **hlavou dolů** u mola → otočí se o **180°** a foil se ponoří (nahoře: poloha FR55 se překlopí z −1 na +1) → krátké soustředění → **odstrčení** rukou s hodinkami → ruka se **při puštění vymrští nahoru** (4–6 g impuls paže, energie skoku) → **skok a dopad** na prkno → pumpování → let.",
+    cap1: "Překlopení prkna o 180° (gravitace na FR55 se překlápí) a startovní zóna v následujících 5 s.",
+    cap2: "Startovací sekvence: překlopení prkna, příprava, odstrčení/skok, pak rychlostní rampa do foilování.",
+  },
+  truth: {
+    h: "Pumpování, foilování, klouzání — pravda z foilu",
+    p: "Stěžeň sedí na foilu a „ví“, jestli se opravdu pumpuje a jestli foil ještě letí. Krásně je to vidět při dojíždění: nejdřív **přestane pumpování** (aktivita zápěstí → 0), rychlost se ale ještě drží → to je **fáze klouzání**; poté foil odpadne (výkyv stěžně) a je konec. Právě tuto fázi klouzání zatím explicitně nedetekujeme.",
+    cap: "Rychlost GPS · aktivita pumpování na zápěstí · pumpnutí foilu (stěžeň) · poloha foilu. Na konci: pumpování se zastaví → klouzání → pád foilu.",
+  },
+  cadence: {
+    h: "Kadence pumpování",
+    p: "Pumpuje se s frekvencí **≈ 1,29 Hz** (~77 pumpnutí za minutu). Zápěstí tuto frekvenci trefuje čistě (počet i takt souhlasí s tahem foilu) — detekce pumpnutí tedy v zásadě funguje správně.",
+    cap: "Značky pumpnutí ze zápěstí vs. špičky tahu foilu — stejná kadence (~1,3 Hz), takty se shodují.",
+  },
+  pitch: {
+    h: "Poloha foilu: dominuje klopení, tah fore/aft",
+    p: "Při pumpování překlápíš foil přes 85cm páku stěžně **dopředu/dozadu** (klopení), sotva do stran — v datech klopení jasně dominuje nad klonivým pohybem. A zrychlení foilu je převážně **fore/aft (tah dopředu)**, ne vertikální: foil se posouvá dopředu, když zatlačíš.",
+    cap: "Poloha foilu během jízdy: klopení (fore/aft) ≫ klonění. Klopení a vertikální zatížení jsou provázané.",
+  },
+  pics: {
+    h: "Zajímavé obrázky",
+    p: "Trasa obarvená podle polohy foilu a rychlosti (bílá = 0°, červená/modrá podle směru):",
+    cap1: "Foilová trasa podle úhlu klopení, úhlu klonění a rychlosti. Foil drží po celou dobu lehce nos nahoru (vztlak).",
+    cap2: "Trasa podle tahu (červená=dopředu) — je vidět každý tah pumpnutí — a jednotlivé značky pumpnutí na dráze.",
+    cap3: "Koberec polohy: klopení / klonění / tah v čase na jeden pohled.",
+  },
+  learned: {
+    h: "Co jsme se naučili",
+    li: [
+      "**Detekce pumpnutí** trefuje frekvenci i počet dobře (~1,29 Hz) — kryje se s pravdou foilu na stěžni (odchylka pár %).",
+      "**Detekce jízdy na foilu** sedí dobře — ukazuje molo/odraz přesně (přichytne se k impulsu naskočení).",
+      "**Fáze klouzání / dojíždění**: tady je největší potenciál — „na foilu ∧ aktivita pumpování ≈ 0“ by mohlo klouzání na konci explicitně vykázat.",
+      "Všechno tohle je proveditelné **jen s hodinkami na zápěstí** — hodinky na stěžni byly jen referencí pravdy.",
+    ],
+  },
+  limits: {
+    h: "Meze (pro poctivost)",
+    p: "Hodinky na stěžni jsou pod vodou silně tlumené, proto vidí ostré rázy jen zeslabené. „Úhly“ pocházejí ze směru gravitace (dolní propust) — při ustáleném klouzání skutečná poloha, při trvalém zrychlení lehce zkreslená; pro 100% čisté úhly natočení by byl potřeba gyroskop. A přesný časový posun jednotlivých pumpnutí mezi hodinkami se nepodařilo přibít na < 100 ms (žádný čistý společný pevný bod; FR55 nemá pod vodou GPS k nastavení času).",
+  },
+};
+
 export const NERD1: Record<Lang, N1> = {
   de,
   gsw,
@@ -600,4 +663,5 @@ export const NERD1: Record<Lang, N1> = {
   es,
   fi,
   nl,
+  cs,
 };

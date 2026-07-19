@@ -12,8 +12,9 @@ import it from "./locales/it";
 import es from "./locales/es";
 import fi from "./locales/fi";
 import nl from "./locales/nl";
+import cs from "./locales/cs";
 
-export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl";
+export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs";
 
 export type Dict = Record<string, string>;
 
@@ -28,9 +29,10 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "es", flag: "🇪🇸", native: "Español" },
   { code: "fi", flag: "🇫🇮", native: "Suomi" },
   { code: "nl", flag: "🇳🇱", native: "Nederlands" },
+  { code: "cs", flag: "🇨🇿", native: "Čeština" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl };
+const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };
 
 const LS_KEY = "foil_lang";
 
@@ -56,6 +58,7 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("es")) return "es";
   if (nav.startsWith("fi")) return "fi";
   if (nav.startsWith("nl")) return "nl";
+  if (nav.startsWith("cs")) return "cs";
   if (nav.startsWith("en")) return "en";
   return "de";
 }
