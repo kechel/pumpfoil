@@ -519,6 +519,8 @@ const es: Record<string, string> = {
   "land.connectTitle": "Importación automática con cuenta vinculada",
   "land.connectBody": "Conecta tu cuenta e importa tus salidas automáticamente como sesiones — sin ninguna app adicional.",
   "land.connectCta": "Conectar cuenta",
+  "land.phoneRecTitle": "¿Sin reloj? Graba con el móvil",
+  "land.phoneRecBody": "En la app de Android e iOS también puedes grabar una sesión directamente con el móvil — sujeto a la tabla o en el bolsillo. El mismo análisis, sin reloj.",
   "land.appShotsTitle": "La app de un vistazo",
   "land.f1Title": "Apps nativas para reloj",
   "land.f1Body": "Apps para Garmin, Apple Watch y Wear OS registran GPS, pulso y aceleración bruta — con pantallas de datos configurables. La grabación funciona también sin conexión y se sincroniza automáticamente después.",

@@ -784,6 +784,8 @@ const fi: Record<string, string> = {
   "land.connectTitle": "Automaattinen tuonti tilin yhdistämisellä",
   "land.connectBody": "Yhdistä tilisi ja tuo treenisi automaattisesti sessioina — ilman erillistä sovellusta.",
   "land.connectCta": "Yhdistä tili",
+  "land.phoneRecTitle": "Ei kelloa? Tallenna puhelimella",
+  "land.phoneRecBody": "Android- ja iOS-sovelluksessa voit tallentaa session myös suoraan puhelimella — kiinnitettynä lautaan tai taskussa. Sama analyysi, ilman kelloa.",
   "land.appShotsTitle": "Sovellus yhdellä silmäyksellä",
   "land.f1Title": "Natiivit kello-sovellukset",
   "land.f1Body": "Sovellukset Garminille, Apple Watchille ja Wear OS:lle tallentavat GPS:n, sykkeen ja raa'an kiihtyvyyden — säädettävin datasivuin. Tallennus toimii myös offline ja synkronoituu myöhemmin automaattisesti.",

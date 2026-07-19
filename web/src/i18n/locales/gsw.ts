@@ -441,6 +441,8 @@ const gsw: Record<string, string> = {
   "land.connectTitle": "Automatische Import via Konto-Verchnüpfig",
   "land.connectBody": "Verbind dis Konto und importier dini Läuf automatisch als Sessions — ganz ohni zuesätzlichi App.",
   "land.connectCta": "Konto verbinde",
+  "land.phoneRecTitle": "Kei Uhr? Nimm mitem Händy uf",
+  "land.phoneRecBody": "I de Android- und iOS-App chasch e Session au direkt mitem Händy ufzeichne — ufs Board gschnallt oder i de Täsche. Gliichi Analyse, kei Uhr nötig.",
   "land.appShotsTitle": "D App im Überblick",
   "land.f1Title": "Native Uhre-Apps",
   "land.f1Body": "Apps für Garmin, Apple Watch und Wear OS nämed GPS, Puls und rohi Beschlünigung uf — mit iistellbare Datesiite. D Ufnahm lauft au offline und synchronisiert spöter automatisch.",

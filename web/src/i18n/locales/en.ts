@@ -724,6 +724,8 @@ const en: Record<string, string> = {
   "land.connectTitle": "Automatic import via account link",
   "land.connectBody": "Connect your account and import your rides automatically as sessions — no extra app needed.",
   "land.connectCta": "Connect account",
+  "land.phoneRecTitle": "No watch? Record with your phone",
+  "land.phoneRecBody": "In the Android and iOS app you can record a session straight from your phone too — strapped to the board or in your pocket. Same analysis, no watch needed.",
   "land.appShotsTitle": "The app at a glance",
   "land.f1Title": "Native watch apps",
   "land.f1Body": "Apps for Garmin, Apple Watch and Wear OS record GPS, heart rate and raw acceleration — with configurable data screens. Recording works offline too and syncs automatically later.",

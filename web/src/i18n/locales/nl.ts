@@ -816,6 +816,8 @@ const nl: Record<string, string> = {
   "land.connectTitle": "Automatische import via accountkoppeling",
   "land.connectBody": "Koppel je account en importeer je runs automatisch als sessies — helemaal zonder extra app.",
   "land.connectCta": "Account koppelen",
+  "land.phoneRecTitle": "Geen horloge? Neem op met je telefoon",
+  "land.phoneRecBody": "In de Android- en iOS-app kun je een sessie ook direct met je telefoon opnemen — op je board vastgemaakt of in je zak. Dezelfde analyse, zonder horloge.",
   "land.appShotsTitle": "De app in vogelvlucht",
   "land.f1Title": "Native horloge-apps",
   "land.f1Body": "Apps voor Garmin, Apple Watch en Wear OS nemen GPS, hartslag en ruwe versnelling op — met configureerbare gegevensvelden. De opname werkt ook offline en synchroniseert later automatisch.",

@@ -398,6 +398,8 @@ const deAT: Record<string, string> = {
   "land.connectTitle": "Automatischer Import via Kontoverknüpfung",
   "land.connectBody": "Verbind dei Konto und importier deine Läuf automatisch als Sessions — ganz ohne zusätzliche App.",
   "land.connectCta": "Konto verbinden",
+  "land.phoneRecTitle": "Keine Uhr? Nimm mit dem Handy auf",
+  "land.phoneRecBody": "In der Android- und iOS-App kannst du eine Session auch direkt mit dem Handy aufzeichnen — aufs Board geschnallt oder in der Tasche. Gleiche Analyse, keine Uhr nötig.",
   "land.appShotsTitle": "D App im Überblick",
   "land.f1Title": "Native Uhren-Apps",
   "land.f1Body": "Apps für Garmin, Apple Watch und Wear OS nehmen GPS, Puls und rohe Beschleunigung auf — mit konfigurierbare Datenseitn. D Aufnahm lauft aa offline und synchronisiert später vo sölber.",

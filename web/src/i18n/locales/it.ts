@@ -519,6 +519,8 @@ const it: Record<string, string> = {
   "land.connectTitle": "Import automatico tramite collegamento account",
   "land.connectBody": "Collega il tuo account e importa automaticamente le tue uscite come sessioni — senza app aggiuntiva.",
   "land.connectCta": "Collega account",
+  "land.phoneRecTitle": "Niente orologio? Registra con il telefono",
+  "land.phoneRecBody": "Nell'app Android e iOS puoi registrare una sessione anche direttamente dal telefono — fissato alla tavola o in tasca. Stessa analisi, senza orologio.",
   "land.appShotsTitle": "L'app in sintesi",
   "land.f1Title": "App native per orologio",
   "land.f1Body": "App per Garmin, Apple Watch e Wear OS registrano GPS, frequenza cardiaca e accelerazione grezza — con schermate dati configurabili. La registrazione funziona anche offline e si sincronizza automaticamente in seguito.",

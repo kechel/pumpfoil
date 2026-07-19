@@ -213,6 +213,12 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Keine Uhr? Session direkt mit dem Handy aufnehmen (native Android-/iOS-App). */}
+        <section className="pb-12">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.phoneRecTitle")}</h2>
+          <p className="mx-auto max-w-2xl text-center text-slate-300">{t("land.phoneRecBody")}</p>
+        </section>
+
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
           <h2 className="mb-5 text-center text-xl font-bold sm:text-2xl">{t("land.appShotsTitle")}</h2>

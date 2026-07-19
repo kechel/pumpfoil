@@ -816,6 +816,8 @@ const cs: Record<string, string> = {
   "land.connectTitle": "Automatický import přes propojení účtu",
   "land.connectBody": "Propoj svůj účet a importuj jízdy automaticky jako relace — úplně bez další aplikace.",
   "land.connectCta": "Propojit účet",
+  "land.phoneRecTitle": "Nemáš hodinky? Nahrávej telefonem",
+  "land.phoneRecBody": "V aplikaci pro Android a iOS můžeš session nahrát i přímo telefonem — připevněným na prkně nebo v kapse. Stejná analýza, bez hodinek.",
   "land.appShotsTitle": "Aplikace v přehledu",
   "land.f1Title": "Nativní aplikace pro hodinky",
   "land.f1Body": "Aplikace pro Garmin, Apple Watch a Wear OS zaznamenávají GPS, tep a surové zrychlení — s konfigurovatelnými datovými poli. Nahrávání běží i offline a synchronizuje se později automaticky.",
