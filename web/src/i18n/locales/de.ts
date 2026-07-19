@@ -744,12 +744,12 @@ const de: Record<string, string> = {
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "meine 2–3 Worte als Beschreibung",
-  "meta.youtubePlaceholder": "YouTube-Link (optional)",
+  "meta.youtubePlaceholder": "YouTube-, Instagram- oder TikTok-Link",
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Zur Session →",
   "meta.edit": "Beschriftung / Video",
   "meta.linkVideo": "Video",
-  "meta.errYoutube": "Nur YouTube-Links erlaubt.",
+  "meta.errYoutube": "Nur YouTube-, Instagram- oder TikTok-Links erlaubt.",
   "meta.errLen": "Max. 30 Zeichen.",
 
   // Feedback-Widget

@@ -1157,7 +1157,13 @@ def set_trim(
 
 CAPTION_MAX = 30
 MAX_VIDEOS_PER_SESSION = 12
-_YT_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
+# Erlaubte Video-Plattformen (Host-Suffixe). YouTube wird eingebettet (youtube-nocookie),
+# Instagram/TikTok als Link-Kachel geöffnet (kein Dritt-Skript, CSP/Datenschutz).
+_VIDEO_HOST_SUFFIXES = (
+    "youtube.com", "youtu.be",           # YouTube (inkl. m./www.)
+    "instagram.com",                      # Instagram (Reels/Posts)
+    "tiktok.com",                         # TikTok (inkl. vm./www.)
+)
 
 # Legacy-Spiegel (Session.youtube_url = erstes Video) — lebt in merge.py, weil auch
 # Merge/Unmerge ihn pflegen muss (sessions.py importiert merge, nicht umgekehrt).
@@ -1165,7 +1171,8 @@ from ..merge import sync_video_mirror as _sync_video_mirror  # noqa: E402
 
 
 def _clean_youtube(raw: str | None) -> str | None:
-    """Leer -> None. Sonst muss es eine YouTube-URL sein (https erzwungen)."""
+    """Leer -> None. Sonst muss es ein Video-Link einer erlaubten Plattform sein
+    (YouTube/Instagram/TikTok), https erzwungen. Name historisch (Feld heißt youtube_url)."""
     from urllib.parse import urlparse
 
     url = (raw or "").strip()
@@ -1174,8 +1181,8 @@ def _clean_youtube(raw: str | None) -> str | None:
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
     host = (urlparse(url).hostname or "").lower()
-    if host not in _YT_HOSTS:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nur YouTube-Links erlaubt")
+    if not any(host == h or host.endswith("." + h) for h in _VIDEO_HOST_SUFFIXES):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Nur YouTube-, Instagram- oder TikTok-Links erlaubt")
     return "https://" + url.split("://", 1)[1]
 
 

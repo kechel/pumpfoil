@@ -482,7 +482,7 @@ const es: Record<string, string> = {
   "sd.tableFooter": "Velocidades en km/h. Suavizado ajustable arriba (1/3/5 s). Haz clic en una fila = mostrar solo ese run en el mapa. ★ = run más largo.",
 
   "meta.captionPlaceholder": "mi descripción en 2–3 palabras",
-  "meta.youtubePlaceholder": "Enlace de YouTube (opcional)",
+  "meta.youtubePlaceholder": "Enlace de YouTube, Instagram o TikTok",
   "meta.watchVideo": "📺 Vídeo",
   "lb.toSession": "A la sesión →",
   "meta.edit": "Título / vídeo",
@@ -952,7 +952,7 @@ const es: Record<string, string> = {
   "field.1": "Velocidad (3 s)",
   "imp.community2": "<b>Todas las sesiones con foil detectado</b>: fecha/hora, <b>spot</b> (nombre de la masa de agua de OpenStreetMap), el <b>mapa/traza GPS</b> (es decir, <u>dónde</u> has foileado), número de runs, distancia, velocidad, pulso, valores de pump/planeo y las <b>fotos</b> subidas.",
   "wx.level": "Nivel",
-  "meta.errYoutube": "Solo se permiten enlaces de YouTube.",
+  "meta.errYoutube": "Solo se permiten enlaces de YouTube, Instagram o TikTok.",
   "account.genTitle": "Generar un código para el reloj",
   "compare.gone": "(ya no disponible)",
   "account.claimHelp": "Abre Pumpfoil en el reloj (no iniciar) → mantén MENU (botón central-izquierda) → « Ajustes » → « Conectar ». Introduce aquí el código mostrado (6 caracteres, letras y cifras). Se necesita el teléfono cerca o Wi-Fi para que el reloj genere el código.",

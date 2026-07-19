@@ -678,12 +678,12 @@ const en: Record<string, string> = {
   "imp.privacyText": "All uploaded data is stored permanently. To delete it, use the “Delete account” button in your profile (web app or iOS/Android app) — it permanently removes your account with all sessions, raw data and photos. Transmission is encrypted (HTTPS).",
 
   "meta.captionPlaceholder": "my 2–3 word description",
-  "meta.youtubePlaceholder": "YouTube link (optional)",
+  "meta.youtubePlaceholder": "YouTube, Instagram or TikTok link",
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "To the session →",
   "meta.edit": "Caption / video",
   "meta.linkVideo": "Video",
-  "meta.errYoutube": "Only YouTube links allowed.",
+  "meta.errYoutube": "Only YouTube, Instagram or TikTok links allowed.",
   "meta.errLen": "Max. 30 characters.",
 
   "feedback.title": "Feedback",

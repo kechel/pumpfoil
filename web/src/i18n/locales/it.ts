@@ -482,7 +482,7 @@ const it: Record<string, string> = {
   "sd.tableFooter": "Velocità in km/h. Smussatura regolabile sopra (1/3/5 s). Clicca una riga = mostra solo quel run sulla mappa. ★ = run più lungo.",
 
   "meta.captionPlaceholder": "la mia descrizione in 2–3 parole",
-  "meta.youtubePlaceholder": "Link YouTube (opzionale)",
+  "meta.youtubePlaceholder": "Link YouTube, Instagram o TikTok",
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Alla sessione →",
   "meta.edit": "Didascalia / video",
@@ -942,7 +942,7 @@ const it: Record<string, string> = {
   "compare.session": "Sessione",
   "account.recordModeLite": "Ridotta · 10 Hz",
   "compare.title": "Confronto",
-  "meta.errYoutube": "Sono consentiti solo link YouTube.",
+  "meta.errYoutube": "Sono consentiti solo link YouTube, Instagram o TikTok.",
   "imp.community3": "<b>Record &amp; classifiche</b> (nome, valore, spot, numero di sessioni/run/spot).",
   "imp.connTitle": "Account collegati (Polar, COROS, Suunto)",
   "sd.optimalLegend": "Ottimale {v} km/h",

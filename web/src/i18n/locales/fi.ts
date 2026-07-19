@@ -715,12 +715,12 @@ const fi: Record<string, string> = {
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "omat 2–3 sanaa kuvaukseksi",
-  "meta.youtubePlaceholder": "YouTube-linkki (valinnainen)",
+  "meta.youtubePlaceholder": "YouTube-, Instagram- tai TikTok-linkki",
   "meta.watchVideo": "📺 Video",
   "lb.toSession": "Sessioon →",
   "meta.edit": "Kuvaus / video",
   "meta.linkVideo": "Video",
-  "meta.errYoutube": "Vain YouTube-linkit sallittu.",
+  "meta.errYoutube": "Vain YouTube-, Instagram- tai TikTok-linkit sallittu.",
   "meta.errLen": "Enintään 30 merkkiä.",
 
   // Feedback-Widget

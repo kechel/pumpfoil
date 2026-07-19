@@ -4,7 +4,7 @@ import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -57,6 +57,20 @@ function ytId(url: string | null | undefined): string {
   } catch {
     return "";
   }
+}
+
+// Plattform eines Video-Links. YouTube wird eingebettet (youtube-nocookie, CSP-konform);
+// Instagram/TikTok NICHT (bräuchten Dritt-Skripte) -> Link-Kachel, öffnet in neuem Tab.
+type VideoPlatform = "youtube" | "instagram" | "tiktok" | null;
+function videoPlatform(url: string | null | undefined): VideoPlatform {
+  if (!url) return null;
+  try {
+    const h = new URL(url).hostname.toLowerCase();
+    if (h.includes("youtube") || h.includes("youtu.be")) return "youtube";
+    if (h.includes("instagram")) return "instagram";
+    if (h.includes("tiktok")) return "tiktok";
+  } catch { /* ignore */ }
+  return null;
 }
 
 function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publicVideos = [], ownerName, ownerAvatar, analysis, selectedRun = null }: {
@@ -177,16 +191,27 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
             </div>
           ))}
           {videos.map((v) => {
-            const vid = ytId(v.youtube_url);
-            if (!vid) return null;
+            const plat = videoPlatform(v.youtube_url);
+            const vid = plat === "youtube" ? ytId(v.youtube_url) : "";
+            if (plat === "youtube" && !vid) return null;
+            // YouTube: Thumbnail + Inline-Player. Instagram/TikTok: branded Kachel, öffnet extern.
+            const inner = plat === "youtube" ? (
+              <button onClick={() => setVideo(vid)} className="block">
+                <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
+                </span>
+              </button>
+            ) : (
+              <a href={v.youtube_url} target="_blank" rel="noopener noreferrer"
+                 className={`flex h-20 w-28 flex-col items-center justify-center gap-1 rounded-lg text-white ${plat === "instagram" ? "bg-gradient-to-br from-[#833ab4] via-[#e1306c] to-[#f77737]" : "bg-black"}`}>
+                {plat === "instagram" ? <InstagramIcon className="h-6 w-6" /> : <TikTokIcon className="h-6 w-6" />}
+                <span className="text-[10px] font-medium">{plat === "instagram" ? "Instagram" : "TikTok"}</span>
+              </a>
+            );
             return (
               <div key={v.id} className="relative">
-                <button onClick={() => setVideo(vid)} className="block">
-                  <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
-                  </span>
-                </button>
+                {inner}
                 {owned && (
                   <button
                     onClick={() => removeVideo(v.id)}

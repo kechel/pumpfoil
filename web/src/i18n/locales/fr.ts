@@ -484,7 +484,7 @@ const fr: Record<string, string> = {
   "sd.tableFooter": "Vitesses en km/h. Lissage réglable ci-dessus (1/3/5 s). Clique une ligne = afficher seulement ce run sur la carte. ★ = run le plus long.",
 
   "meta.captionPlaceholder": "ma description en 2–3 mots",
-  "meta.youtubePlaceholder": "Lien YouTube (optionnel)",
+  "meta.youtubePlaceholder": "Lien YouTube, Instagram ou TikTok",
   "meta.watchVideo": "📺 Vidéo",
   "lb.toSession": "Vers la session →",
   "meta.edit": "Légende / vidéo",
@@ -958,7 +958,7 @@ const fr: Record<string, string> = {
   "imp.ytNote": "Fournisseur : Google Ireland Ltd. Plus d'infos dans la <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">politique de confidentialité de Google</a>.",
   "imp.ytTitle": "Vidéos YouTube intégrées",
   "meta.errLen": "Max. 30 caractères.",
-  "meta.errYoutube": "Seuls les liens YouTube sont autorisés.",
+  "meta.errYoutube": "Seuls les liens YouTube, Instagram ou TikTok sont autorisés.",
   "metric.metersPerPump": "mètres / pump",
   "sd.colorOptimal": "vs. optimal",
   "sd.optimalLegend": "Optimal {v} km/h",

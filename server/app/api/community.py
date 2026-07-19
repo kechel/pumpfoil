@@ -296,7 +296,10 @@ def latest_photos(
         db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
                  S.place_lat, S.place_lon)
         .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
-        .filter(V.blocked.isnot(True), *_vis)
+        # Nur YouTube im „Neueste Medien"-Feed: nur die haben ein einbettbares Vorschaubild
+        # (img.youtube.com). Instagram/TikTok werden auf der Session verlinkt, aber nicht als
+        # Feed-Kachel gezeigt (kein Thumbnail ohne Dritt-Skript). *_vis + blocked wie gehabt.
+        .filter(V.blocked.isnot(True), V.youtube_url.op("~*")("youtube|youtu\\.be"), *_vis)
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
