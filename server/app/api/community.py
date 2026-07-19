@@ -11,7 +11,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import Float, cast, func, literal, or_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
@@ -22,6 +22,7 @@ from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import owner_label_sql
 from ..tzlookup import tz_name, tz_of
+from ..videos import filter_videos
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user, require_social
 
@@ -651,7 +652,7 @@ def toggle_vote(
 
 
 @router.get("/sessions/{session_id}/social")
-def session_social(session_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def session_social(session_id: int, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     if db.get(models.Session, session_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     photos = (
@@ -666,5 +667,6 @@ def session_social(session_id: int, user: models.User = Depends(current_user), d
         **_like_state(db, session_id, user),
         **_vote_counts(db, session_id, user),
         "photos": [{"id": pid, "url": url, "thumb_url": _thumb(url)} for pid, url in photos],
-        "videos": [{"id": vid, "youtube_url": vurl} for vid, vurl in videos],
+        # IG/TikTok nur an anzeige-fähige Clients (Web/App>=Min) — sonst nur YouTube.
+        "videos": filter_videos([{"id": vid, "youtube_url": vurl} for vid, vurl in videos], request),
     }

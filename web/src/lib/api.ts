@@ -21,6 +21,8 @@ export function clearToken() {
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    // Client-Kennung: Web kann alle Video-Plattformen (IG/TikTok) anzeigen -> Server liefert sie.
+    "X-Pumpfoil-Client": "web",
     ...(opts.headers as Record<string, string>),
   };
   const token = getToken();

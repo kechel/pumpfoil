@@ -631,6 +631,10 @@ enum Api {
         let _: RecordModeResp = try await request("/api/devices/\(id)/record-mode", method: "PUT", body: ["record_mode": mode], auth: true)
     }
 
+    // Client-Kennung: Plattform/Version -> Server gated Video-Plattformen (IG/TikTok erst ab
+    // App-Version mit Anzeige; bis dahin nur YouTube). Siehe server/app/videos.py.
+    static let clientId: String = "ios/" + ((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "0")
+
     private static func request<T: Decodable>(
         _ path: String, method: String, body: [String: Any]?, auth: Bool
     ) async throws -> T {
@@ -638,6 +642,7 @@ enum Api {
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.timeoutInterval = 20
+        req.setValue(clientId, forHTTPHeaderField: "X-Pumpfoil-Client")
         if auth, let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
         if let body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")

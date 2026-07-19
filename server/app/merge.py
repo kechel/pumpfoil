@@ -17,14 +17,18 @@ from .analysis import run_analysis
 
 def sync_video_mirror(db: DbSession, s: models.Session) -> None:
     """Legacy-Spiegel pflegen: Session.youtube_url = erstes (ältestes, nicht geblocktes)
-    SessionVideo. Alte Clients + Listen-Vorschau lesen weiterhin dieses Feld."""
-    first = (
-        db.query(models.SessionVideo)
-        .filter_by(session_id=s.id, blocked=False)
-        .order_by(models.SessionVideo.id).first()
+    YOUTUBE-SessionVideo. Nur YouTube, weil dieses Feld von ALLEN (auch alten) Clients
+    gelesen wird (SessionOut/Community-Briefs/Listen-Vorschau) — Instagram/TikTok gehören
+    nur in die session_videos-Tabelle (dort gated). Kein YT-Video -> null."""
+    from .videos import is_youtube
+    first_yt = next(
+        (v for v in db.query(models.SessionVideo)
+         .filter_by(session_id=s.id, blocked=False)
+         .order_by(models.SessionVideo.id).all() if is_youtube(v.youtube_url)),
+        None,
     )
-    s.youtube_url = first.youtube_url if first else None
-    s.youtube_added_at = first.created_at if first else None
+    s.youtube_url = first_yt.youtube_url if first_yt else None
+    s.youtube_added_at = first_yt.created_at if first_yt else None
 
 GAP_MS = 20_000          # Luecke zwischen Teilen (ms) -> Dropout -> Lauf-Trennung
 AUTO_MAX_GAP_S = 3600    # Auto-Merge: max. Abstand Ende->Start zweier Teile (1 h)

@@ -628,11 +628,16 @@ object Api {
         return conn.inputStream.use { it.readBytes() }
     }
 
+    // Client-Kennung: Plattform/Version -> Server gated video-Plattformen (IG/TikTok erst ab
+    // App-Version mit Anzeige; bis dahin bekommt die App nur YouTube). Siehe server/app/videos.py.
+    private val CLIENT_ID = "android/" + BuildConfig.VERSION_NAME
+
     private fun http(method: String, path: String, body: String?, auth: Boolean): String {
         val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 15000
             readTimeout = 30000
+            setRequestProperty("X-Pumpfoil-Client", CLIENT_ID)
             if (auth) token?.let { setRequestProperty("Authorization", "Bearer $it") }
             if (body != null) {
                 doOutput = true

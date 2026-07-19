@@ -22,6 +22,7 @@ from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
 from ..tzlookup import tz_name
+from ..videos import filter_videos
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -941,7 +942,7 @@ def revoke_share_link(
 
 
 @public_router.get("/session/{token}")
-def public_shared_session(token: str, db: Session = Depends(get_db)) -> dict:
+def public_shared_session(token: str, request: Request, db: Session = Depends(get_db)) -> dict:
     """Öffentliche, read-only Session-Ansicht über den Teilen-Token — KEIN Login.
     Liefert dieselben reichen Daten wie die Detailansicht (Track/Karte/Segmente/Puls/Pumps/Foto-URLs/
     Bezeichnung/Foil/Uhr) plus die Fotoliste. Nur die EINE Session; keine owner-only Aktionen."""
@@ -973,9 +974,11 @@ def public_shared_session(token: str, db: Session = Depends(get_db)) -> dict:
               .filter_by(session_id=s.id, blocked=False).order_by(models.SessionPhoto.id).all()]
     data = out.model_dump(mode="json")
     data["photos"] = photos
-    data["videos"] = [{"id": v.id, "youtube_url": v.youtube_url}
-                      for v in db.query(models.SessionVideo)
-                      .filter_by(session_id=s.id, blocked=False).order_by(models.SessionVideo.id).all()]
+    data["videos"] = filter_videos(
+        [{"id": v.id, "youtube_url": v.youtube_url}
+         for v in db.query(models.SessionVideo)
+         .filter_by(session_id=s.id, blocked=False).order_by(models.SessionVideo.id).all()],
+        request)
     return data
 
 
@@ -1506,6 +1509,7 @@ def delete_photo(
 @router.get("/{session_id}/videos")
 def list_videos(
     session_id: int,
+    request: Request,
     _user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[dict]:
@@ -1514,7 +1518,8 @@ def list_videos(
         db.query(models.SessionVideo)
         .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
     )
-    return [{"id": v.id, "youtube_url": v.youtube_url} for v in rows]
+    # IG/TikTok nur an Clients, die sie anzeigen können (Web/App>=Min) — sonst nur YouTube.
+    return filter_videos([{"id": v.id, "youtube_url": v.youtube_url} for v in rows], request)
 
 
 @router.post("/{session_id}/videos")
