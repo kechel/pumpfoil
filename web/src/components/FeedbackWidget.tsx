@@ -71,7 +71,7 @@ export function FeedbackWidget() {
               <div className="flex items-center gap-2">
                 <MicButton value={text} onChange={(v) => setText(v.slice(0, MAX))} onSubmit={(v) => submitText(v)} disabled={busy} title={t("feedback.title")} />
                 {sent ? (
-                  <span className="text-sm text-emerald-400">{t("feedback.sent")}</span>
+                  <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("feedback.sent")}</span>
                 ) : (
                   <button
                     onClick={send}

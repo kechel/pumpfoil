@@ -95,7 +95,7 @@ function ClaimFromWatch() {
           {busy ? "…" : t("account.claimBtn")}
         </Button>
       </div>
-      {msg && <div className="mt-3 text-sm text-emerald-400">{msg}</div>}
+      {msg && <div className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">{msg}</div>}
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
   );
@@ -452,7 +452,7 @@ function ViewsEditor() {
       <div className="mt-4 flex items-center gap-3">
         <button onClick={addView} className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700">{t("account.addView")}</button>
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>
-        {saved && <span className="text-sm text-emerald-400">{t("account.saved")}</span>}
+        {saved && <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</span>}
       </div>
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
@@ -612,7 +612,7 @@ function AlarmEditor() {
 
       <div className="mt-4 flex items-center gap-3">
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>
-        {saved && <span className="text-sm text-emerald-400">{t("account.saved")}</span>}
+        {saved && <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</span>}
       </div>
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>

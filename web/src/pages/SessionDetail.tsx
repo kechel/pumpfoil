@@ -1451,7 +1451,7 @@ export default function SessionDetail() {
                   className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-rose-300 hover:bg-slate-700 disabled:opacity-40">
                   {t("sd.tapDeleteAll")}
                 </button>
-                {tapSaved && <span className="text-xs text-emerald-400">{tapSaved}</span>}
+                {tapSaved && <span className="text-xs text-emerald-700 dark:text-emerald-400">{tapSaved}</span>}
                 <p className="w-full rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-sm leading-relaxed text-slate-300"
                   dangerouslySetInnerHTML={{ __html: t("sd.tapHelp") }} />
                 {cmp && (() => {

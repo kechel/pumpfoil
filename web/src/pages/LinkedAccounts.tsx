@@ -84,7 +84,7 @@ function CorosCard() {
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-400">{t("settings.coros.connected")}</span>
+          <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("settings.coros.connected")}</span>
           <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
         </div>
       )}
@@ -242,7 +242,7 @@ function StravaCard() {
         <Button onClick={connect}>{t("settings.strava.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-400">{t("settings.strava.connected")}</span>
+          <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("settings.strava.connected")}</span>
           <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.strava.sync")}</Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.strava.unlink")}</Button>
         </div>

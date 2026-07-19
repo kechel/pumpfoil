@@ -238,7 +238,7 @@ export default function Settings() {
             {busy ? "…" : <><CheckIcon className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">{t("common.save")}</span></>}
           </Button>
         </div>
-        {saved && <p className="mt-2 text-xs text-emerald-400">{t("profile.saved")}</p>}
+        {saved && <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">{t("profile.saved")}</p>}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
       </Card>
@@ -348,7 +348,7 @@ export default function Settings() {
           />
           <Button onClick={changePw} disabled={pwBusy || !pwCur || !pwNew}>{pwBusy ? "…" : t("profile.changePw")}</Button>
         </div>
-        {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>}
+        {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>{pwMsg.text}</p>}
       </Card>
 
       <Card className="mt-4 p-5">
