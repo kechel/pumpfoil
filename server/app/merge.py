@@ -101,6 +101,13 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
     days = {s.started_at.astimezone().date() for s in sessions if s.started_at is not None}
     if len(days) > 1:
         return False, "Sessions von verschiedenen Tagen"
+    # Keine ZEITLICH ÜBERLAPPENDEN Sessions — die können keine aufeinanderfolgenden Teile
+    # sein, sondern sind parallele Aufnahmen (mehrere Geräte gleichzeitig, Dual-Watch-Experiment).
+    # Backstop zusätzlich zum device_id-Check (greift auch bei unbekanntem Gerät, None==None).
+    ordered = sorted((s for s in sessions if s.started_at is not None), key=lambda s: s.started_at)
+    for a, b in zip(ordered, ordered[1:]):
+        if b.started_at < _end(a):
+            return False, "Sessions überschneiden sich zeitlich (parallele Aufnahme)"
     return True, ""
 
 
@@ -263,10 +270,18 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
     for s in ss:
         if not chain:
             chain = [s]; continue
-        gap = (s.started_at - _end(chain[-1])).total_seconds()
-        if 0 <= gap <= AUTO_MAX_GAP_S and s.device_id == chain[-1].device_id \
-                and s.accel_hz == chain[-1].accel_hz and s.foil_id == chain[-1].foil_id \
-                and _same_spot(s, chain[-1]):
+        prev = chain[-1]
+        gap = (s.started_at - _end(prev)).total_seconds()
+        # Zusammenführen NUR wenn:
+        #  - selbes MESSGERÄT (device_id gesetzt UND gleich) — nie Daten verschiedener Uhren/Handys
+        #    mischen; None==None gilt NICHT als "gleich" (unbekanntes Gerät -> kein Vorschlag).
+        #  - zeitlich AUFEINANDERFOLGEND, keine Überlappung: 0 <= Lücke <= AUTO_MAX_GAP_S.
+        #    Überlappung (gap < 0) = parallele Aufzeichnung (z. B. mehrere Geräte gleichzeitig)
+        #    -> klar keine Fortsetzung.
+        same_device = s.device_id is not None and s.device_id == prev.device_id
+        if same_device and 0 <= gap <= AUTO_MAX_GAP_S \
+                and s.accel_hz == prev.accel_hz and s.foil_id == prev.foil_id \
+                and _same_spot(s, prev):
             chain.append(s)
         else:
             if len(chain) >= 2:
