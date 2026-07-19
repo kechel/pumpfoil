@@ -570,6 +570,7 @@ class SessionRecorder {
             try { _fitSession.start(); } catch (e) { _fitSession = null; }
         }
         _recording = true;
+        Uploader.setRecording(true);   // Auto-Retry pausieren: kein Sync während der Aufnahme
     }
 
     function stop() {
@@ -583,6 +584,7 @@ class SessionRecorder {
         }
         _flushGps(true);
         _recording = false;
+        Uploader.setRecording(false);   // Aufnahme vorbei -> Auto-Retry wieder erlaubt
         stopped = true;   // -> Erfolgs-/Upload-Screen
         // Session als abgeschlossen markieren und SICHER in Storage persistieren.
         // Bleibt im sessions-Index, bis vollständig hochgeladen+bestätigt.

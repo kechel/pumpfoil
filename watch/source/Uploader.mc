@@ -4,6 +4,7 @@ using Toybox.StringUtil;
 using Toybox.System;
 using Toybox.Lang;
 using Toybox.PersistedContent;
+using Toybox.Timer;
 
 // Robuster Multi-Session-Sync der gepufferten Roh-Sessions an den Server.
 //
@@ -31,6 +32,31 @@ module Uploader {
     var _curTotal = 0;          // Gesamt-Chunks der aktuellen Session
     var _lastError = :none;     // :none | :offline | :auth | :server
     var _sentAny = false;       // mind. ein Chunk in diesem Lauf bestätigt (Aktivitätsnachweis)
+
+    // --- Auto-Retry-Watchdog (nur solange die App offen ist) --------------------
+    // Nach einem abgebrochenen/fehlgeschlagenen Upload NICHT bis zum nächsten App-Start
+    // warten (bei Garmin oft Tage), sondern zeitnah erneut versuchen: erst nach 3/10/30 s,
+    // danach nur noch beim (Wieder-)Aufbau der Telefonverbindung. Beim App-Beenden stirbt
+    // der Timer -> Fortsetzung dann beim nächsten App-Start (bestehendes Verhalten).
+    var BACKOFF = [3, 10, 30];   // Sekunden zwischen den ersten Wiederholungen
+    var WATCH_SECS = 30;         // danach: nur noch alle 30 s auf Reconnect prüfen
+    var _recordingActive = false;
+    var _watch = null;
+
+    function isRecordingActive() as Lang.Boolean { return _recordingActive; }
+
+    // Von SessionRecorder gesetzt: während der Aufnahme darf NIE gesynct werden
+    // (syncAll würde die laufende Session vorzeitig /complete-n -> Datenverlust-Risiko).
+    function setRecording(active as Lang.Boolean) as Void {
+        _recordingActive = active;
+        if (active && _watch != null) { _watch.stop(); }   // laufenden Retry-Timer stoppen
+    }
+
+    // Watchdog-Singleton (lazy).
+    function watch() as RetryWatch {
+        if (_watch == null) { _watch = new RetryWatch(); }
+        return _watch;
+    }
 
     // Anzahl noch nicht vollständig hochgeladener Sessions (für UI-Feedback).
     function pendingCount() as Lang.Number {
@@ -75,7 +101,7 @@ module Uploader {
 
     // Alle ausstehenden Sessions hochladen (manuell, periodisch, App-Start, Background).
     function syncAll() as Void {
-        if (_busy) { return; }
+        if (_busy || _recordingActive) { return; }
         var sessions = Storage.getValue("sessions");
         if (!(sessions instanceof Lang.Array) || sessions.size() == 0) { return; }
         _queue = [];
@@ -91,6 +117,7 @@ module Uploader {
     function _next() as Void {
         if (_queue == null || _queue.size() == 0) {
             _busy = false; _queue = null; _job = null;
+            watch().arm();   // Lauf beendet -> bei Rest-Offenem den nächsten Auto-Retry planen
             return;
         }
         var uuid = _queue[0];
@@ -354,6 +381,62 @@ class SessionSyncJob {
             arr.remove(_uuid);
             Storage.setValue("sessions", arr);
         }
+    }
+}
+
+// Auto-Retry-Watchdog: hält abgebrochene Uploads am Leben, solange die App offen ist.
+// Ein einziger Timer, der sich selbst neu plant. Nach einem Fehlversuch: erneute
+// syncAll-Läufe nach 3/10/30 s; danach nur noch Reconnect-Beobachtung (alle 30 s), bis das
+// Telefon neu verbindet oder die App beendet wird. NIE während einer laufenden Aufnahme.
+class RetryWatch {
+    hidden var _timer as Timer.Timer or Null = null;
+    hidden var _idx as Lang.Number = 0;               // Position in Uploader.BACKOFF
+    hidden var _wasConnected as Lang.Boolean = false; // für Reconnect-Erkennung
+
+    function initialize() {}
+
+    // Nach jedem syncAll-Lauf aufgerufen: ist noch etwas offen -> nächsten Versuch planen,
+    // sonst ruhen. Wartezeit aus dem Backoff (3/10/30 s), danach Reconnect-Poll (30 s).
+    function arm() as Void {
+        _cancel();
+        if (Uploader.pendingCount() == 0) { _idx = 0; return; }
+        _wasConnected = Uploader.phoneConnected();
+        var secs = (_idx < Uploader.BACKOFF.size()) ? Uploader.BACKOFF[_idx] : Uploader.WATCH_SECS;
+        _timer = new Timer.Timer();
+        _timer.start(method(:onTick), secs * 1000, false);
+    }
+
+    // Frische Auslösung (z. B. manuell geöffneter Upload-Screen): Backoff von vorn.
+    function reset() as Void { _idx = 0; }
+
+    function stop() as Void { _cancel(); _idx = 0; }
+
+    hidden function _cancel() as Void {
+        if (_timer != null) { _timer.stop(); _timer = null; }
+    }
+
+    function onTick() as Void {
+        _timer = null;
+        if (Uploader.pendingCount() == 0) { _idx = 0; return; }   // alles hochgeladen -> Ruhe
+        if (Uploader.isRecordingActive()) { arm(); return; }      // NIE während Aufnahme
+        if (Uploader.isBusy()) { arm(); return; }                 // Lauf aktiv -> später erneut
+
+        var conn = Uploader.phoneConnected();
+        var reconnected = conn && !_wasConnected;
+        _wasConnected = conn;
+
+        if (reconnected) {          // Telefon wieder da -> sofort frischer Versuch (Backoff neu)
+            _idx = 0;
+            Uploader.syncAll();     // Lauf-Ende plant via arm() den nächsten Schritt
+            return;
+        }
+        if (_idx < Uploader.BACKOFF.size()) {   // nächster Backoff-Versuch (3 -> 10 -> 30 s)
+            _idx += 1;
+            Uploader.syncAll();     // offline: schlägt schnell fehl -> danach nächster Schritt
+            return;
+        }
+        // Backoff erschöpft: aktive Versuche pausieren, nur noch auf Reconnect lauschen.
+        arm();
     }
 }
 

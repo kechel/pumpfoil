@@ -49,6 +49,7 @@ class UploadView extends WatchUi.View {
         View.initialize();
         _rec = rec;
         _startCount = Uploader.pendingCount();
+        Uploader.watch().reset();   // manuell geöffnet -> Auto-Retry-Backoff von vorn
         if (_startCount > 0 && Uploader.phoneConnected()) { Uploader.syncAll(); }
     }
 
