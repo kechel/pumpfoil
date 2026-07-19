@@ -206,7 +206,17 @@ export interface RecordSet {
 
 export type CommunityRecords = Record<string, RecordSet>;
 
-// Aggregat-Kennzahlen je Spot (Spot-Vergleich unter der Karte).
+// Einzel-Rekord je Spot (von einer Session/einem Lauf gewonnen -> mit Rekordhalter).
+export interface SpotRecHolder {
+  value: number;
+  session_id: number | null;
+  run_idx?: number | null;
+  name?: string | null;
+  started_at?: string | null;
+  tz?: string | null;
+}
+
+// Kennzahlen je Spot (Spot-Vergleich unter der Karte).
 export interface SpotAgg {
   spot: string;
   spot_id: number | null;
@@ -215,9 +225,9 @@ export interface SpotAgg {
   pumps: number;
   foilers: number;
   foiling_km: number;
-  longest_run_m: number;
-  top_speed_kmh: number;
   onfoil_s: number;
+  longest_run: SpotRecHolder | null;   // weitester Einzel-Lauf (m) + Halter
+  top_speed: SpotRecHolder | null;     // Topspeed (km/h) + Halter
 }
 
 export interface CommunitySession {

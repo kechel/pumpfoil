@@ -393,38 +393,62 @@ def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user)
 @spot_router.get("/spot-compare")
 def spot_compare(period: str = "all", accel_only: bool = False,
                  _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Aggregat-Kennzahlen JE SPOT (für den Spot-Vergleich unter der Karte): Sessions, Läufe,
-    Pumps, unterschiedliche Foiler, Foil-Distanz, längster Einzel-Lauf, Topspeed, On-Foil-Zeit.
-    Zeitfenster wie die Community-Rekorde. accel_only=False (Default) = inkl. GPS-only-Läufe,
-    passend zur Spot-Karte. Der Client bildet daraus die Bestenlisten + den Vergleichsspot."""
+    """Kennzahlen JE SPOT (für den Spot-Vergleich unter der Karte). Aggregate: Sessions, Läufe,
+    Pumps, unterschiedliche Foiler, Foil-Distanz, On-Foil-Zeit. Einzel-Rekorde (von EINER Session/
+    einem Lauf gewonnen -> inkl. Rekordhalter): weitester Lauf + Topspeed. Zeitfenster wie die
+    Community-Rekorde. accel_only=False (Default) = inkl. GPS-only, passend zur Spot-Karte."""
     cut = _cutoff(period)
-    q = _community(db.query(
+    # Aggregate je Spot.
+    aq = _community(db.query(
         S.place_name, func.max(S.spot_id),
         func.count(S.id),
         func.coalesce(func.sum(AR.num_runs), 0),
         func.coalesce(func.sum(AR.pump_count), 0),
         func.count(func.distinct(S.user_id)),
         func.coalesce(func.sum(AR.foiling_distance_m), 0.0),
-        func.max(AR.best_distance_m),
-        func.max(AR.max_speed_mps),
         func.coalesce(func.sum(AR.foiling_time_s), 0.0),
     ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "")
     if cut is not None:
-        q = q.filter(S.started_at >= cut)
-    rows = q.group_by(S.place_name).all()
-    spots = [
-        {
+        aq = aq.filter(S.started_at >= cut)
+    agg = {
+        name: {
             "spot": name, "spot_id": sid,
             "sessions": int(nses or 0), "runs": int(nruns or 0), "pumps": int(npumps or 0),
             "foilers": int(nfoilers or 0),
             "foiling_km": round((fdist or 0.0) / 1000.0, 1),
-            "longest_run_m": round(longest or 0.0),
-            "top_speed_kmh": round((speed or 0.0) * 3.6, 1),
             "onfoil_s": int(onfoil or 0),
         }
-        for (name, sid, nses, nruns, npumps, nfoilers, fdist, longest, speed, onfoil) in rows
-    ]
-    return {"spots": spots}
+        for (name, sid, nses, nruns, npumps, nfoilers, fdist, onfoil) in aq.group_by(S.place_name).all()
+    }
+
+    # Rekordhalter je Spot (DISTINCT ON place_name -> die Session/der Lauf mit dem Höchstwert).
+    def _holders(valcol, idxcol):
+        hq = _community(db.query(
+            S.place_name, valcol, idxcol, S.id, S.started_at, NAME, S.place_lat, S.place_lon,
+        ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "", valcol > 0)
+        if cut is not None:
+            hq = hq.filter(S.started_at >= cut)
+        hq = hq.distinct(S.place_name).order_by(S.place_name, valcol.desc())
+        return {r[0]: r for r in hq.all()}
+
+    lr = _holders(AR.best_distance_m, AR.best_distance_idx)
+    ts = _holders(AR.best_speed_mps, AR.best_speed_idx)
+
+    def _rec(store, name, to_val):
+        r = store.get(name)
+        if not r:
+            return None
+        _n, val, idx, sid, started, uname, lat, lon = r
+        return {
+            "value": to_val(val), "session_id": sid, "run_idx": idx,
+            "name": uname, "started_at": started.isoformat() if started else None,
+            "tz": tz_name(lat, lon),
+        }
+
+    for name, a in agg.items():
+        a["longest_run"] = _rec(lr, name, lambda v: round(v))
+        a["top_speed"] = _rec(ts, name, lambda v: round(v * 3.6, 1))
+    return {"spots": list(agg.values())}
 
 
 # Spot-Wetter/Pegel: je Spot 1 h gemeinsam für ALLE Nutzer gecacht (schont die freien
