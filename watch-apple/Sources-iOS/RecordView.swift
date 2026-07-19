@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 
-// „Record on Phone" (Beta): das iPhone als Recorder. Gleiche Live-Werte wie die Uhr-Apps, aber
+// „Record on Phone": das iPhone als Recorder. Gleiche Live-Werte wie die Uhr-Apps, aber
 // ohne Einstellungs-Optionen (die stehen anderswo) — dafür die Session-Foil direkt wählbar.
 // 3 Sekunden halten zum Stoppen (gegen versehentliches Beenden). Aufnahme läuft im Hintergrund
 // (PhoneRecorder / Background-Location) weiter, auch mit Screen aus / in der Tasche.

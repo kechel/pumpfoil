@@ -34,7 +34,6 @@ export default function Settings() {
   const [hasGarmin, setHasGarmin] = useState(false);   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
   const [savedToast, setSavedToast] = useState(false);
   const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
-  const [beta, setBeta] = useState(false);
 
   useEffect(() => {
     api.getSettings().then((s) => {
@@ -95,7 +94,7 @@ export default function Settings() {
   }
 
   useEffect(() => {
-    api.getProfile().then((p) => { setName(p.display_name || ""); setEmail(p.email); setAvatar(p.avatar_url); setBeta(!!p.beta); }).catch(() => {});
+    api.getProfile().then((p) => { setName(p.display_name || ""); setEmail(p.email); setAvatar(p.avatar_url); }).catch(() => {});
   }, []);
 
   function pickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
@@ -310,11 +309,11 @@ export default function Settings() {
         <FontScaleSelect />
       </Card>
 
-      {beta && (
-        <Card className="mt-4 p-5">
+      {/* Handy-Recorder: kein Beta mehr (funktioniert, erste echte Sessions laufen) — Karte
+          für alle sichtbar; sie erklärt nur den Weg über die nativen Apps. */}
+      <Card className="mt-4 p-5">
           <h3 className="mb-1 font-semibold">
             {t("phonerec.label")}
-            <span className="ml-2 rounded bg-brand-500/20 px-1.5 py-0.5 align-middle text-xs font-medium text-brand-300">Beta</span>
           </h3>
           <p className="mb-2 text-sm text-slate-300">{t("phonerec.sub")}</p>
           <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">{t("phonerec.pwaNote")}</p>
@@ -329,8 +328,7 @@ export default function Settings() {
               <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-11 w-auto" />
             </a>
           </div>
-        </Card>
-      )}
+      </Card>
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.changePw")}</h3>

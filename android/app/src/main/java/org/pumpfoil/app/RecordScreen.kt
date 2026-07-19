@@ -76,7 +76,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.intOrNull
 
-// „Record on Phone" (Beta): das Handy selbst als Recorder. Aufnahme läuft im Foreground-Service
+// „Record on Phone": das Handy selbst als Recorder. Aufnahme läuft im Foreground-Service
 // (RecorderService) weiter, auch mit Screen aus / in der Tasche. Gleiche Live-Werte wie die
 // Uhr-Apps, aber ohne Einstellungs-Optionen (die stehen in der App an anderer Stelle) — dafür
 // die Session-Foil direkt wählbar. Halten zum Stoppen (gegen versehentliches Beenden).
