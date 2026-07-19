@@ -3272,5 +3272,176 @@
     "area_cm2": 2000,
     "thickness_mm": 26,
     "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Barracuda",
+    "size": "L+",
+    "span_cm": 116.6,
+    "area_cm2": 1252,
+    "thickness_mm": 15.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Barracuda",
+    "size": "S",
+    "span_cm": 75.0,
+    "area_cm2": 535,
+    "thickness_mm": 10.1,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Barracuda",
+    "size": "M",
+    "span_cm": 95.0,
+    "area_cm2": 850,
+    "thickness_mm": 12.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Barracuda",
+    "size": "L",
+    "span_cm": 105.0,
+    "area_cm2": 1050,
+    "thickness_mm": 14.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Barracuda",
+    "size": "XL",
+    "span_cm": 132.0,
+    "area_cm2": 1600,
+    "thickness_mm": 17.2,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Manta",
+    "size": "XL",
+    "span_cm": 139.6,
+    "area_cm2": 2047,
+    "thickness_mm": 24.3,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Condor",
+    "size": "S",
+    "span_cm": 110.0,
+    "area_cm2": 1362,
+    "thickness_mm": 19.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Condor",
+    "size": "M",
+    "span_cm": 126.0,
+    "area_cm2": 1737,
+    "thickness_mm": 22.4,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Condor",
+    "size": "XL",
+    "span_cm": 169.6,
+    "area_cm2": 2274,
+    "thickness_mm": 22.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Dolphin",
+    "size": "S",
+    "span_cm": 82.7,
+    "area_cm2": 720,
+    "thickness_mm": 12.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Dolphin",
+    "size": "M",
+    "span_cm": 92.5,
+    "area_cm2": 900,
+    "thickness_mm": 12.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Dolphin",
+    "size": "L",
+    "span_cm": 101.3,
+    "area_cm2": 1080,
+    "thickness_mm": 13.7,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Dolphin",
+    "size": "XL",
+    "span_cm": 109.4,
+    "area_cm2": 1260,
+    "thickness_mm": 14.8,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "X-AR",
+    "size": "750",
+    "span_cm": 75.0,
+    "area_cm2": 595,
+    "thickness_mm": 17.0,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "X-AR",
+    "size": "900",
+    "span_cm": 90.0,
+    "area_cm2": 844,
+    "thickness_mm": 16.0,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "X-AR",
+    "size": "1050",
+    "span_cm": 105.0,
+    "area_cm2": 1123,
+    "thickness_mm": 17.0,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "X-AR",
+    "size": "1320",
+    "span_cm": 132.0,
+    "area_cm2": 1427,
+    "thickness_mm": 17.0,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "H-AR",
+    "size": "920",
+    "span_cm": 92.0,
+    "area_cm2": 1270,
+    "thickness_mm": 26.5,
+    "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "H-AR",
+    "size": "1200",
+    "span_cm": 120.0,
+    "area_cm2": 1658,
+    "thickness_mm": 28.5,
+    "is_baseline": false
   }
 ]
