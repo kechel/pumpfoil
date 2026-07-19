@@ -79,6 +79,10 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **GPS-Positions-Ausreißer filtern** (Befund 2026-07-19 an #367): einzelne korrupte GPS-Punkte
+  mit 5.000-km-Sprüngen (Doppler-Speed dabei normal) verfälschen total_distance_m + Distanz-Stats;
+  die Karte filtert sie nur beim Zeichnen. Fix wäre ein Ausreißer-Filter beim Laden/Analysieren
+  (Punkt verwerfen, wenn Positionssprung >> Doppler×dt). Detektor-Pipeline → Jans OK + Regression.
 - [x] **Spot-Ortszeit in die Apps** — ERLEDIGT 2026-07-18: Android (TimeFmt.kt, 7 Modelle + alle
   Session-Screens inkl. Compare) + iOS (TimeFmt.swift, 7 Structs + Listen/Detail/Rekorde/Compare).
   Bewusst Betrachter-Zeit geblieben: Chat, Wetter, Verlauf-Chartachsen; Transfers ohne Server-tz.
