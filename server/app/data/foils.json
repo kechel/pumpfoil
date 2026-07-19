@@ -3443,5 +3443,15 @@
     "area_cm2": 1658,
     "thickness_mm": 28.5,
     "is_baseline": false
+  },
+  {
+    "brand": "Indiana",
+    "model": "Wake Thief",
+    "size": "132",
+    "span_cm": 132.0,
+    "area_cm2": 1935,
+    "thickness_mm": 22.5,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
