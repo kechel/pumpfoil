@@ -178,7 +178,11 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         os.write(fd, str(tx.get("text", "")).encode())
         os.close(fd)
         tmpfiles.append(pth)
-        e = s + 2 * TEXT_FADE + TEXT_HOLD
+        try:
+            hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
+        except (TypeError, ValueError):
+            hold = TEXT_HOLD
+        e = s + 2 * TEXT_FADE + hold
         draw.append(
             f"drawtext=textfile='{pth}':fontfile='{TEXT_FONT}'"
             f":fontsize={TEXT_SIZE}:fontcolor=white:text_align=C"
@@ -578,6 +582,7 @@ PAGE = r"""<!doctype html>
   #texts{display:flex;flex-direction:column;gap:6px;margin-top:6px;border-top:1px solid #8884;padding-top:10px}
   .txrow{display:flex;align-items:center;gap:5px}
   .txrow textarea{width:110px;font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit;resize:vertical;font-family:inherit}
+  .txrow .thold{width:42px;font-size:12px;padding:4px 4px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit}
   .txrow .tset{min-width:52px}
   .txov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;
     font-family:Arial,Helvetica,sans-serif;color:#fff;text-align:center;white-space:pre-line;line-height:1.15;
@@ -813,11 +818,12 @@ $('#aUndo').innerHTML=icon('undo')+'<span>rückgängig</span>';
 $('#dirToggle').innerHTML=icon('folder');
 // --- Text-Overlays: Zeiten/Texte je Video, Vorschau mit Render-Fadekurve ---
 const TXF=0.5, TXH=2.0, TXS=60, TXN=6;  // fade / hold / fontsize / Slots
-const texts=Array.from({length:TXN},()=>({start:null,text:''}));
+const texts=Array.from({length:TXN},()=>({start:null,text:'',hold:TXH}));
 for(let i=0;i<TXN;i++){
   const row=document.createElement('div');row.className='txrow';row.dataset.i=i;
   row.innerHTML='<button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button>'+
     '<textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea>'+
+    '<input type="number" class="thold" min="0" max="60" step="1" value="'+TXH+'" title="Anzeigedauer in Sekunden (ohne Ein-/Ausblenden)">'+
     '<button class="mini tclr" title="löschen">✕</button>';
   $('#texts').appendChild(row);
   const ov=document.createElement('div');ov.className='txov';ov.id='txov'+i;
@@ -828,13 +834,15 @@ function renderTextRows(){
     const i=+row.dataset.i;
     row.querySelector('.tset').textContent='@ '+(texts[i].start==null?'–':texts[i].start.toFixed(1)+'s');
     if(row.querySelector('.txt').value!==texts[i].text)row.querySelector('.txt').value=texts[i].text;
+    if(+row.querySelector('.thold').value!==texts[i].hold)row.querySelector('.thold').value=texts[i].hold;
   });
 }
 document.querySelectorAll('.txrow').forEach(row=>{
   const i=+row.dataset.i;
   row.querySelector('.tset').onclick=()=>{texts[i].start=vid.currentTime;renderTextRows()};
   row.querySelector('.txt').addEventListener('input',e=>{texts[i].text=e.target.value});
-  row.querySelector('.tclr').onclick=()=>{texts[i]={start:null,text:''};renderTextRows()};
+  row.querySelector('.thold').addEventListener('input',e=>{texts[i].hold=Math.max(0,+e.target.value||0)});
+  row.querySelector('.tclr').onclick=()=>{texts[i]={start:null,text:'',hold:TXH};renderTextRows()};
 });
 function updateTextPreview(){
   const scale=vid.videoWidth?vid.clientWidth/vid.videoWidth:1;
@@ -842,7 +850,7 @@ function updateTextPreview(){
   for(let i=0;i<TXN;i++){
     const el=$('#txov'+i), tx=texts[i];
     if(tx.start==null||!tx.text.trim()){el.style.opacity=0;continue}
-    const e=tx.start+2*TXF+TXH;
+    const e=tx.start+2*TXF+(tx.hold??TXH);
     const a=Math.max(0,Math.min(Math.min((t-tx.start)/TXF,(e-t)/TXF),1));
     el.textContent=tx.text;
     el.style.fontSize=(TXS*scale)+'px';
@@ -889,7 +897,7 @@ function pickVideo(v){
   $('#vname').textContent=v; stopMusic(); renderVideoList();
   trimStart=trimEnd=null; updateTrim();
   $('#outName').value='';
-  for(let i=0;i<TXN;i++)texts[i]={start:null,text:''};
+  for(let i=0;i<TXN;i++)texts[i]={start:null,text:'',hold:TXH};
   renderTextRows();
   updatePvBar();
 }
