@@ -83,6 +83,7 @@ const nl: Record<string, string> = {
   "nav.admin": "Admin",
   "nav.adminPending": "Openstaande moderatie (gemeld + vermoedelijk nep)",
   "nav.logout": "Uitloggen",
+  "nav.changelog": "Nieuw",
   "nav.imprint": "Colofon & privacy",
 
   // Sidebar-Stats

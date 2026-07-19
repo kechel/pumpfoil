@@ -58,6 +58,7 @@ const fr: Record<string, string> = {
   "nav.profile": "Profil",
   "nav.admin": "Admin",
   "nav.logout": "Déconnexion",
+  "nav.changelog": "Nouveautés",
   "nav.imprint": "Mentions légales & confidentialité",
 
   "side.total": "Total",

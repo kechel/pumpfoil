@@ -175,7 +175,10 @@ export default function App() {
           </svg>
           TikTok
         </a>
-        <Link to="/impressum" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300">
+        <Link to="/changelog" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300">
+          {t("nav.changelog")}
+        </Link>
+        <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>
       </aside>

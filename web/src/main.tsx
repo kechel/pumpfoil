@@ -49,6 +49,7 @@ import PublicSession from "./pages/PublicSession";
 import Compare from "./pages/Compare";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
+import Changelog from "./pages/Changelog";
 import Import from "./pages/Import";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
+  { path: "/changelog", element: <Changelog /> },
   { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
     path: "/",

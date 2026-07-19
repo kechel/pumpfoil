@@ -70,6 +70,7 @@ const fi: Record<string, string> = {
   "nav.admin": "Admin",
   "nav.adminPending": "Avoin moderointi (ilmoitetut + epäaidon epäily)",
   "nav.logout": "Kirjaudu ulos",
+  "nav.changelog": "Uutuudet",
   "nav.imprint": "Julkaisutiedot ja tietosuoja",
 
   // Sidebar-Stats

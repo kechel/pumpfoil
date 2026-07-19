@@ -59,6 +59,7 @@ const gsw: Record<string, string> = {
   "nav.profile": "Profil",
   "nav.admin": "Admin",
   "nav.logout": "Uselogge",
+  "nav.changelog": "Neuigkeite",
   "nav.imprint": "Impressum & Dateschutz",
 
   "side.total": "Total",

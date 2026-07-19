@@ -58,6 +58,7 @@ const it: Record<string, string> = {
   "nav.profile": "Profilo",
   "nav.admin": "Admin",
   "nav.logout": "Esci",
+  "nav.changelog": "Novità",
   "nav.imprint": "Note legali & privacy",
 
   "side.total": "Totale",

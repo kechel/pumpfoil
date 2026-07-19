@@ -78,6 +78,7 @@ const en: Record<string, string> = {
   "nav.profile": "Profile",
   "nav.admin": "Admin",
   "nav.logout": "Logout",
+  "nav.changelog": "Changelog",
   "nav.imprint": "Imprint & Privacy",
 
   "side.total": "Total",

@@ -83,6 +83,7 @@ const de: Record<string, string> = {
   "nav.admin": "Admin",
   "nav.adminPending": "Offene Moderation (gemeldet + Unecht-Verdacht)",
   "nav.logout": "Logout",
+  "nav.changelog": "Neuerungen",
   "nav.imprint": "Impressum & Datenschutz",
 
   // Sidebar-Stats

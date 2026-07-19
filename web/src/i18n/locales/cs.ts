@@ -83,6 +83,7 @@ const cs: Record<string, string> = {
   "nav.admin": "Admin",
   "nav.adminPending": "Otevřená moderace (nahlášené + podezření na podvrh)",
   "nav.logout": "Odhlásit",
+  "nav.changelog": "Novinky",
   "nav.imprint": "Tiráž a ochrana údajů",
 
   // Sidebar-Stats

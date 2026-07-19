@@ -58,6 +58,7 @@ const deAT: Record<string, string> = {
   "nav.profile": "Profil",
   "nav.admin": "Admin",
   "nav.logout": "Obmelden",
+  "nav.changelog": "Neuerungen",
   "nav.imprint": "Impressum & Datenschutz",
 
   "side.total": "Gsamt",
