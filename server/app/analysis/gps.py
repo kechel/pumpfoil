@@ -375,7 +375,8 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
 
     metrics = {
         "num_segments": len(segments),
-        # Vom Physik-Gate verworfene Läufe (>40 km/h) — >0 landet in der Admin-Verdachtsliste.
+        # Vom Physik-Gate verworfene Läufe (Doppler-max > 40 km/h) — >0 landet in der
+        # Admin-Verdachtsliste.
         "gated_runs": n_gated,
         "avg_hr": int(round(float(hr_valid.mean()))) if hr_valid.size else None,
         "max_hr": int(np.nanmax(hr)) if hr_valid.size else None,
@@ -448,16 +449,13 @@ RUN_MAX_PLAUSIBLE_KMH = 40.0
 
 
 def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:
-    """Verwirft physikalisch unmögliche Läufe: max ODER Ø über RUN_MAX_PLAUSIBLE_KMH.
-    Das Ø-Kriterium fängt GPS-Sprung-Läufe (aufgeblähte Distanz bei normalem max).
-    Segmente unter 5 s werden nicht bewertet (kein verlässlicher Speed)."""
+    """Verwirft Läufe, die als ECHTE On-Foil-Läufe physikalisch unmöglich sind:
+    Doppler-max-Speed über RUN_MAX_PLAUSIBLE_KMH (Motor/Auto/Kite). NUR der
+    Doppler-Speed zählt — er ist robust gegen korrupte GPS-Positionen; Distanz-/
+    Ø-Kriterien sind es nicht (#367: 5.000-km-Positions-Sprung blähte die Distanz
+    eines ECHTEN Laufs auf -> so etwas darf das Gate nie treffen)."""
     def plausible(seg: dict) -> bool:
-        du = seg.get("duration_s") or 0.0
-        if du < 5:
-            return True
-        avg_kmh = (seg.get("distance_m") or 0.0) / du * 3.6
-        max_kmh = (seg.get("max_speed_mps") or 0.0) * 3.6
-        return max_kmh <= RUN_MAX_PLAUSIBLE_KMH and avg_kmh <= RUN_MAX_PLAUSIBLE_KMH
+        return (seg.get("max_speed_mps") or 0.0) * 3.6 <= RUN_MAX_PLAUSIBLE_KMH
 
     kept = [s for s in segments if plausible(s)]
     return kept, len(segments) - len(kept)
