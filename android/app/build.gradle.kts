@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+
+// API-Basis-URL. Committet ist IMMER Produktion (auch für Debug-Builds) -> `git pull` +
+// bauen ergibt nie versehentlich eine Dev-URL. Wer lokal gegen einen eigenen Server testet
+// (z. B. Emulator -> 10.0.2.2), setzt `apiBase=http://10.0.2.2:8090` in local.properties
+// (gitignored, kann nicht committet/gepullt werden). Greift NUR im Debug-Build.
+val PROD_API = "https://pumpfoil.org"
+val localApiBase: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("apiBase") ?: PROD_API
 
 android {
     namespace = "org.pumpfoil.app"
@@ -25,7 +37,13 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildTypes {
-        release { isMinifyEnabled = false }
+        release {
+            isMinifyEnabled = false
+            buildConfigField("String", "API_BASE", "\"$PROD_API\"")   // Release: IMMER Produktion
+        }
+        debug {
+            buildConfigField("String", "API_BASE", "\"$localApiBase\"")  // Default Prod; lokal per local.properties überschreibbar
+        }
     }
 }
 
