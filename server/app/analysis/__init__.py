@@ -242,6 +242,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         is_pumpfoil = n_runs > 0 and max_sp <= PUMPFOIL_GPS_MAX_MPS
     else:
         is_pumpfoil = False
+    # Admin-Override (z. B. „Aussortieren" aus der Verdachtsliste) schlägt den Detektor —
+    # und überlebt so auch jede Reanalyse. NULL = automatisch.
+    if session.pumpfoil_override is not None:
+        is_pumpfoil = bool(session.pumpfoil_override)
     res["metrics"]["is_pumpfoil"] = bool(is_pumpfoil)
     session.is_pumpfoil = bool(is_pumpfoil)  # als Spalte persistieren (Listen-Filter)
 

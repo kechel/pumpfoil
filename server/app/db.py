@@ -69,6 +69,7 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS pumpfoil_override BOOLEAN",
         # Feedback: ⭐-Markierung fürs Testimonial-Archiv (überlebt 'Alle löschen').
         "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS starred BOOLEAN DEFAULT false",
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_sessions_share_token ON sessions (share_token)",

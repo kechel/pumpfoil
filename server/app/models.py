@@ -267,6 +267,11 @@ class Session(Base):
     spot_id: Mapped[int | None] = mapped_column(Integer, index=True)
     # Pumpfoil-Klassifikation (bei der Analyse gesetzt). NULL = noch nicht analysiert.
     is_pumpfoil: Mapped[bool | None] = mapped_column(Boolean)
+    # Admin-Override der Klassifikation: NULL = automatisch (Detektor), False = zwangsweise
+    # aussortiert („als hätte der Detektor es aussortiert" — kein Shadow-Ban, Besitzer sieht sie
+    # im Aussortiert-Tab), True = zwangsweise Pumpfoil (für späteren Nutzer-Einspruch reserviert).
+    # Überlebt Reanalysen (run_analysis wendet ihn nach der Klassifikation an).
+    pumpfoil_override: Mapped[bool | None] = mapped_column(Boolean)
     # Moderation: flagged = als unangemessen gemeldet -> in Community ausgeblendet,
     # bis ein Admin entscheidet. mod_ok = vom Admin freigegeben (nicht erneut flaggen).
     flagged: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")

@@ -56,6 +56,7 @@ def _session_brief(db: Session, s: models.Session, u: models.User | None) -> dic
         "spot": s.place_name or None,
         "sport": s.sport,
         "is_pumpfoil": bool(s.is_pumpfoil),
+        "pumpfoil_override": s.pumpfoil_override,   # False = admin-aussortiert; NULL = automatisch
         "deleted": bool(s.deleted),
         "flagged": bool(s.flagged),
         "mod_ok": bool(s.mod_ok),
@@ -119,8 +120,11 @@ def all_sessions(
         query = query.filter(models.Session.id.in_(voted), models.Session.deleted.isnot(True))
     elif scope == "suspect":
         # Physik-Gate hat Läufe verworfen (>40 km/h) -> Kandidat für Moderation (NICHT auto-versteckt).
-        # mod_ok = vom Admin bereits geprüft/freigegeben -> raus aus der Liste.
+        # Nur was NOCH öffentlich als Pumpfoil zählt: bereits Aussortierte (is_pumpfoil=False),
+        # Shadow-gebannte (flagged) und Geprüfte (mod_ok) sind erledigt -> raus aus der Liste.
         query = query.filter(_suspect_cond(), models.Session.deleted.isnot(True),
+                             models.Session.is_pumpfoil.is_(True),
+                             models.Session.flagged.isnot(True),
                              models.Session.mod_ok.isnot(True))
     elif scope == "deleted":
         query = query.filter(models.Session.deleted.is_(True))
@@ -170,6 +174,40 @@ def restore(session_id: int, admin: models.User = Depends(current_admin), db: Se
     _log(db, admin, "session_restore", "session", session_id)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/sessions/{session_id}/sortout")
+def sortout(session_id: int, undo: bool = False, admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Aussortieren „als hätte der Detektor es aussortiert": is_pumpfoil=False per Override
+    (überlebt Reanalysen). KEIN Shadow-Ban — der Besitzer sieht die Session in seinem
+    Aussortiert-Tab; sie zählt nicht mehr für Community/Rekorde/Stats. mod_ok=True nimmt sie
+    aus der Verdachtsliste. undo=True: Override löschen + neu analysieren (Detektor entscheidet).
+    Shadow-Ban (hide/flagged) bleibt die Eskalation für penetrante Wiederholungsfälle."""
+    s = _get_session(db, session_id)
+    if undo:
+        s.pumpfoil_override = None
+        s.mod_ok = False
+        db.commit()
+        from ..analysis import run_analysis
+        run_analysis(db, s)   # setzt is_pumpfoil + metrics wieder auf Detektor-Stand
+        _log(db, admin, "session_sortout_undo", "session", session_id)
+        db.commit()
+        return {"ok": True, "is_pumpfoil": bool(s.is_pumpfoil)}
+    s.pumpfoil_override = False
+    s.is_pumpfoil = False
+    s.mod_ok = True
+    # metrics_json konsistent halten (Stats/Verlauf lesen is_pumpfoil daraus).
+    ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
+    if ar and ar.metrics_json:
+        try:
+            m = json.loads(ar.metrics_json)
+            m["is_pumpfoil"] = False
+            ar.metrics_json = json.dumps(m)
+        except ValueError:
+            pass
+    _log(db, admin, "session_sortout", "session", session_id)
+    db.commit()
+    return {"ok": True, "is_pumpfoil": False}
 
 
 @router.post("/sessions/{session_id}/hide")
@@ -612,6 +650,8 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     fake = _fake_count(db)
     suspect = int(db.query(func.count()).select_from(models.Session)
                   .filter(_suspect_cond(), models.Session.deleted.isnot(True),
+                          models.Session.is_pumpfoil.is_(True),
+                          models.Session.flagged.isnot(True),
                           models.Session.mod_ok.isnot(True)).scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "total": flagged + fake + suspect}
 

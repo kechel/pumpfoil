@@ -410,6 +410,7 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" 
                 {s.likes > 0 && <Badge tone="slate"><HeartIcon className="inline h-3.5 w-3.5" filled /> {s.likes}</Badge>}
                 {s.photos > 0 && <Badge tone="slate"><CameraIcon className="inline h-3.5 w-3.5" /> {s.photos}</Badge>}
                 {s.flagged && <Badge tone="red">{t("adm.hidden")}</Badge>}
+                {s.pumpfoil_override === false && <Badge tone="amber">{t("adm.sortedOutBadge")}</Badge>}
                 {s.mod_ok && s.inappropriate > 0 && <Badge tone="green">{t("adm.approved")}</Badge>}
                 {s.deleted && <Badge tone="slate">{t("adm.deletedBadge")}</Badge>}
               </div>
@@ -422,6 +423,10 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" 
                       ? <Act tone="green" onClick={() => api.adminApprove(s.session_id).then(() => upd(s.session_id, { flagged: false, mod_ok: true }))}>{t("adm.approve")}</Act>
                       : <Act tone="amber" confirm={t("adm.hideConfirm")} onClick={() => api.adminHideSession(s.session_id).then(() => upd(s.session_id, { flagged: true, mod_ok: false }))}>{t("adm.hide")}</Act>}
                     {s.fake > 0 && <Act tone="slate" onClick={() => api.adminDismiss(s.session_id, "fake").then(() => upd(s.session_id, { fake: 0 }))}>{t("adm.dismissFake")}</Act>}
+                    {/* Aussortieren „wie vom Detektor" (sanft, kein Shadow-Ban) bzw. rückgängig. */}
+                    {s.pumpfoil_override === false
+                      ? <Act tone="green" onClick={() => api.adminSortOut(s.session_id, true).then((r) => upd(s.session_id, { pumpfoil_override: null, is_pumpfoil: r.is_pumpfoil }))}>{t("adm.unsortOut")}</Act>
+                      : s.is_pumpfoil && <Act tone="amber" confirm={t("adm.sortOutConfirm")} onClick={() => api.adminSortOut(s.session_id).then(() => upd(s.session_id, { pumpfoil_override: false, is_pumpfoil: false, mod_ok: true }))}>{t("adm.sortOut")}</Act>}
                     <Act tone="red" confirm={t("adm.deleteSessionConfirm")} onClick={() => api.adminDeleteSession(s.session_id).then(() => upd(s.session_id, { deleted: true }))}>{t("adm.delete")}</Act>
                   </>
                 )}

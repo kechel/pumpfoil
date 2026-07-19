@@ -380,6 +380,7 @@ export interface AdminSession {
   spot: string | null;
   sport: string;
   is_pumpfoil: boolean;
+  pumpfoil_override?: boolean | null;   // false = admin-aussortiert
   deleted: boolean;
   flagged: boolean;
   mod_ok: boolean;
@@ -693,6 +694,9 @@ export const api = {
   adminUserStats: (id: number) => req<{ user: AdminUser; stats: OverallStats }>(`/api/admin/users/${id}/stats`),
   adminApprove: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/ok`, { method: "POST" }),
   adminHideSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/hide`, { method: "POST" }),
+  // Aussortieren „wie vom Detektor" (kein Shadow-Ban); undo=true -> Override weg + Neuanalyse.
+  adminSortOut: (id: number, undo = false) =>
+    req<{ ok: boolean; is_pumpfoil: boolean }>(`/api/admin/sessions/${id}/sortout${undo ? "?undo=true" : ""}`, { method: "POST" }),
   adminDismiss: (id: number, kind: "fake" | "inappropriate") =>
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/dismiss?kind=${kind}`, { method: "POST" }),
   adminDeleteSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/delete`, { method: "POST" }),
