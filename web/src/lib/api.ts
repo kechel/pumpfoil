@@ -348,7 +348,7 @@ export interface AdminOverview {
   flagged: number; fake: number; reported: number; photos: number; photos_blocked: number; likes: number;
 }
 
-export interface AdminPending { flagged: number; fake: number; total: number; }
+export interface AdminPending { flagged: number; fake: number; suspect?: number; total: number; }
 
 export interface AdminStatsBucket {
   date: string; new_users: number; active_users: number; sessions: number; photos: number; likes: number;
@@ -385,6 +385,7 @@ export interface AdminSession {
   mod_ok: boolean;
   inappropriate: number;
   fake: number;
+  gated_runs?: number;   // vom Physik-Gate verworfene Läufe (>40 km/h)
   likes: number;
   photos: number;
   reporters?: { name: string | null; kind: string; at: string | null }[];
@@ -680,7 +681,7 @@ export const api = {
   adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
   adminRenameSpot: (id: number, name: string) => req<{ ok: boolean; name: string }>(`/api/admin/spots/${id}/rename?name=${encodeURIComponent(name)}`, { method: "POST" }),
   adminFlagged: () => req<AdminSession[]>("/api/admin/flagged"),
-  adminSessions: (scope: "all" | "flagged" | "fake" | "deleted" = "all",
+  adminSessions: (scope: "all" | "flagged" | "fake" | "suspect" | "deleted" = "all",
                   opts: { limit?: number; offset?: number; q?: string; userId?: number } = {}) => {
     const p = new URLSearchParams({ scope });
     p.set("limit", String(opts.limit ?? 30));

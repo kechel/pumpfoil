@@ -61,16 +61,38 @@ def _session_brief(db: Session, s: models.Session, u: models.User | None) -> dic
         "mod_ok": bool(s.mod_ok),
         "inappropriate": vc("inappropriate"),
         "fake": vc("fake"),
+        "gated_runs": _gated_runs(db, s.id),   # vom Physik-Gate verworfene Läufe (>40 km/h)
         "likes": likes,
         "photos": nphotos,
         "reporters": reporters,
     }
 
 
+def _gated_runs(db: Session, session_id: int) -> int:
+    r = db.query(models.AnalysisResult.metrics_json).filter_by(session_id=session_id).first()
+    if not r or not r[0]:
+        return 0
+    try:
+        import json as _json
+        return int(_json.loads(r[0]).get("gated_runs") or 0)
+    except (ValueError, TypeError):
+        return 0
+
+
 def _sessions_query(db: Session):
     return (db.query(models.Session, models.User)
             .join(models.User, models.Session.user_id == models.User.id)
             .order_by(models.Session.id.desc()))
+
+
+def _suspect_cond():
+    """Sessions, bei denen das Physik-Gate Läufe verworfen hat (metrics_json.gated_runs > 0)."""
+    from sqlalchemy import Integer, cast, exists
+    from sqlalchemy.dialects.postgresql import JSONB
+    gated = func.coalesce(cast(func.jsonb_extract_path_text(
+        cast(models.AnalysisResult.metrics_json, JSONB), "gated_runs"), Integer), 0)
+    return exists().where(
+        (models.AnalysisResult.session_id == models.Session.id) & (gated > 0))
 
 
 @router.get("/flagged")
@@ -85,7 +107,7 @@ def all_sessions(
     user_id: int | None = Query(None),
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """scope: all | flagged (versteckt) | fake (unecht gemeldet) | deleted.
+    """scope: all | flagged (versteckt) | fake (unecht gemeldet) | suspect (Physik-Gate) | deleted.
     q: Name/E-Mail/Spot. user_id: nur Sessions dieses Nutzers."""
     query = _sessions_query(db)
     if user_id is not None:
@@ -95,6 +117,11 @@ def all_sessions(
     elif scope == "fake":
         voted = db.query(models.SessionVote.session_id).filter_by(kind="fake").subquery()
         query = query.filter(models.Session.id.in_(voted), models.Session.deleted.isnot(True))
+    elif scope == "suspect":
+        # Physik-Gate hat Läufe verworfen (>40 km/h) -> Kandidat für Moderation (NICHT auto-versteckt).
+        # mod_ok = vom Admin bereits geprüft/freigegeben -> raus aus der Liste.
+        query = query.filter(_suspect_cond(), models.Session.deleted.isnot(True),
+                             models.Session.mod_ok.isnot(True))
     elif scope == "deleted":
         query = query.filter(models.Session.deleted.is_(True))
     else:
@@ -583,7 +610,10 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     flagged = int(db.query(func.count()).select_from(models.Session)
                   .filter(models.Session.flagged.is_(True), models.Session.deleted.isnot(True)).scalar() or 0)
     fake = _fake_count(db)
-    return {"flagged": flagged, "fake": fake, "total": flagged + fake}
+    suspect = int(db.query(func.count()).select_from(models.Session)
+                  .filter(_suspect_cond(), models.Session.deleted.isnot(True),
+                          models.Session.mod_ok.isnot(True)).scalar() or 0)
+    return {"flagged": flagged, "fake": fake, "suspect": suspect, "total": flagged + fake + suspect}
 
 
 @router.get("/overview")

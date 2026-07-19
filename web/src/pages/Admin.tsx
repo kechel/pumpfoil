@@ -6,11 +6,12 @@ import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../comp
 import { TimeChart } from "../components/TimeChart";
 import { useT } from "../i18n";
 
-type Tab = "overview" | "flagged" | "fake" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
+type Tab = "overview" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["flagged", "adm.tab.flagged"],
   ["fake", "adm.tab.fake"],
+  ["suspect", "adm.tab.suspect"],
   ["users", "adm.tab.users"],
   ["photos", "adm.tab.photos"],
   ["chat", "adm.tab.chat"],
@@ -44,6 +45,7 @@ export default function Admin() {
       {tab === "overview" && <OverviewTab />}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
+      {tab === "suspect" && <SessionsTab scope="suspect" />}
       {tab === "sessions" && <SessionsTab scope="all" />}
       {tab === "deleted" && <SessionsTab scope="deleted" />}
       {tab === "users" && <UsersTab />}
@@ -323,6 +325,7 @@ function Badge({ tone, children }: { tone: "red" | "amber" | "green" | "slate"; 
 
 const SCOPE_HINT: Record<string, string> = {
   flagged: "adm.hint.flagged",
+  suspect: "adm.hint.suspect",
   fake: "adm.hint.fake",
   all: "adm.hint.all",
   deleted: "adm.hint.deleted",
@@ -330,7 +333,7 @@ const SCOPE_HINT: Record<string, string> = {
 
 const PAGE = 30;
 
-function SessionsTab({ scope }: { scope: "flagged" | "fake" | "all" | "deleted" }) {
+function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" | "deleted" }) {
   const t = useT();
   const [sp, setSp] = useSearchParams();
   const urlQ = sp.get("q") || "";
@@ -403,6 +406,7 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "all" | "deleted" 
               <div className="flex shrink-0 flex-wrap items-center gap-2 tabular-nums">
                 {s.inappropriate > 0 && <Badge tone="red"><FlagIcon className="inline h-3.5 w-3.5" /> {s.inappropriate}</Badge>}
                 {s.fake > 0 && <Badge tone="amber"><FakeIcon className="inline h-3.5 w-3.5" /> {t("adm.unecht")} {s.fake}</Badge>}
+                {(s.gated_runs ?? 0) > 0 && <Badge tone="amber">{t("adm.gated", { n: s.gated_runs! })}</Badge>}
                 {s.likes > 0 && <Badge tone="slate"><HeartIcon className="inline h-3.5 w-3.5" filled /> {s.likes}</Badge>}
                 {s.photos > 0 && <Badge tone="slate"><CameraIcon className="inline h-3.5 w-3.5" /> {s.photos}</Badge>}
                 {s.flagged && <Badge tone="red">{t("adm.hidden")}</Badge>}

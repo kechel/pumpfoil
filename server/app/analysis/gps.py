@@ -17,7 +17,7 @@ import numpy as np
 
 from .geo import haversine_m, step_distances_m
 
-ALGO_VERSION = "gps-mvp-2"
+ALGO_VERSION = "gps-mvp-3"   # 3: Physik-Gate (Läufe >40 km/h verworfen, gated_runs in metrics)
 
 # --- Tuning-Konstanten (m/s, s, Meter) ---
 # Foilen passiert in einem charakteristischen Speed-Band (~8-25 km/h), meist mit
@@ -331,6 +331,14 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     if water_rings:
         segments = _clip_ends_to_water(segments, lat, lon, water_rings, t_ms, step, speeds)
 
+    # Physik-Gate: Läufe schneller als Pumpfoilen physikalisch hergibt, sind keine
+    # (Motor/Auto/Kite/GPS-Sprung) — schnellster je gemessener echter Lauf: 28,6 km/h,
+    # Grenze 40 mit Sicherheitsabstand (schnelle Mini-Foil-Experimente bleiben drin).
+    # Bewusst NUR je Lauf, nie je Session (vergessene Stopp-Taste: echtes Foilen +
+    # Auto-Heimfahrt -> nur die Heimfahrt-Läufe fallen weg). Verlieren ALLE Läufe das
+    # Gate, kippt n_runs auf 0 und die Session sortiert sich regulär aus.
+    segments, n_gated = _gate_implausible_runs(segments)
+
     # Maske aus den FINALEN Segmenten neu aufbauen -> Distanz/Metriken nur echte Läufe.
     mask = np.zeros(len(samples), dtype=bool)
     for seg in segments:
@@ -367,6 +375,8 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
 
     metrics = {
         "num_segments": len(segments),
+        # Vom Physik-Gate verworfene Läufe (>40 km/h) — >0 landet in der Admin-Verdachtsliste.
+        "gated_runs": n_gated,
         "avg_hr": int(round(float(hr_valid.mean()))) if hr_valid.size else None,
         "max_hr": int(np.nanmax(hr)) if hr_valid.size else None,
         "avg_speed_mps": _stat(speed_s, np.mean),
@@ -431,6 +441,26 @@ def _classify_end(i_end: int, speed_s: np.ndarray, step: np.ndarray, gps_hz: int
     if v_end >= FALL_ONFOIL_MPS and v_after <= FALL_WATER_MPS:
         return "fall", round(decel, 2)
     return "stop", round(decel, 2)
+
+
+# Physik-Gate-Grenze: kein echter Pumpfoil-Lauf erreicht 40 km/h (DB-Maximum: 28,6).
+RUN_MAX_PLAUSIBLE_KMH = 40.0
+
+
+def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:
+    """Verwirft physikalisch unmögliche Läufe: max ODER Ø über RUN_MAX_PLAUSIBLE_KMH.
+    Das Ø-Kriterium fängt GPS-Sprung-Läufe (aufgeblähte Distanz bei normalem max).
+    Segmente unter 5 s werden nicht bewertet (kein verlässlicher Speed)."""
+    def plausible(seg: dict) -> bool:
+        du = seg.get("duration_s") or 0.0
+        if du < 5:
+            return True
+        avg_kmh = (seg.get("distance_m") or 0.0) / du * 3.6
+        max_kmh = (seg.get("max_speed_mps") or 0.0) * 3.6
+        return max_kmh <= RUN_MAX_PLAUSIBLE_KMH and avg_kmh <= RUN_MAX_PLAUSIBLE_KMH
+
+    kept = [s for s in segments if plausible(s)]
+    return kept, len(segments) - len(kept)
 
 
 def _seg_fields(i: int, j: int, t_ms: np.ndarray, step: np.ndarray, speeds: dict) -> dict:
