@@ -193,6 +193,11 @@ const de: Record<string, string> = {
   "period.all": "Allzeit",
 
   // Bestenlisten
+  "spotcmp.title": "Spot-Rekorde",
+  "spotcmp.foilers": "Meiste Foiler",
+  "spotcmp.distance": "Meiste Foil-Distanz",
+  "spotcmp.yourSpot": "Dein Spot",
+  "spotcmp.pick": "Spot zum Vergleichen …",
   "leader.mostSessions": "Meiste Sessions",
   "leader.mostRuns": "Meiste Läufe",
   "leader.mostPumps": "Meiste Pumps",

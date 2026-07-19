@@ -180,6 +180,11 @@ const en: Record<string, string> = {
   "period.365d": "1 year",
   "period.all": "All time",
 
+  "spotcmp.title": "Spot records",
+  "spotcmp.foilers": "Most foilers",
+  "spotcmp.distance": "Most foiled distance",
+  "spotcmp.yourSpot": "Your spot",
+  "spotcmp.pick": "Compare a spot …",
   "leader.mostSessions": "Most sessions",
   "leader.mostRuns": "Most runs",
   "leader.mostPumps": "Most pumps",

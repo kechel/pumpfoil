@@ -4,6 +4,7 @@ import L from "leaflet";
 import { api } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
+import { SpotCompare } from "../components/SpotCompare";
 import { useT } from "../i18n";
 
 type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number };
@@ -99,6 +100,7 @@ export default function Spots() {
             </select>
           </div>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
+          <SpotCompare />
         </>
       )}
     </div>

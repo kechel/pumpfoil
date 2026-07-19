@@ -390,6 +390,43 @@ def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user)
     ]
 
 
+@spot_router.get("/spot-compare")
+def spot_compare(period: str = "all", accel_only: bool = False,
+                 _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Aggregat-Kennzahlen JE SPOT (für den Spot-Vergleich unter der Karte): Sessions, Läufe,
+    Pumps, unterschiedliche Foiler, Foil-Distanz, längster Einzel-Lauf, Topspeed, On-Foil-Zeit.
+    Zeitfenster wie die Community-Rekorde. accel_only=False (Default) = inkl. GPS-only-Läufe,
+    passend zur Spot-Karte. Der Client bildet daraus die Bestenlisten + den Vergleichsspot."""
+    cut = _cutoff(period)
+    q = _community(db.query(
+        S.place_name, func.max(S.spot_id),
+        func.count(S.id),
+        func.coalesce(func.sum(AR.num_runs), 0),
+        func.coalesce(func.sum(AR.pump_count), 0),
+        func.count(func.distinct(S.user_id)),
+        func.coalesce(func.sum(AR.foiling_distance_m), 0.0),
+        func.max(AR.best_distance_m),
+        func.max(AR.max_speed_mps),
+        func.coalesce(func.sum(AR.foiling_time_s), 0.0),
+    ), _user.id, accel_only).filter(S.place_name.isnot(None), S.place_name != "")
+    if cut is not None:
+        q = q.filter(S.started_at >= cut)
+    rows = q.group_by(S.place_name).all()
+    spots = [
+        {
+            "spot": name, "spot_id": sid,
+            "sessions": int(nses or 0), "runs": int(nruns or 0), "pumps": int(npumps or 0),
+            "foilers": int(nfoilers or 0),
+            "foiling_km": round((fdist or 0.0) / 1000.0, 1),
+            "longest_run_m": round(longest or 0.0),
+            "top_speed_kmh": round((speed or 0.0) * 3.6, 1),
+            "onfoil_s": int(onfoil or 0),
+        }
+        for (name, sid, nses, nruns, npumps, nfoilers, fdist, longest, speed, onfoil) in rows
+    ]
+    return {"spots": spots}
+
+
 # Spot-Wetter/Pegel: je Spot 1 h gemeinsam für ALLE Nutzer gecacht (schont die freien
 # APIs + schnelle Anzeige). In-Memory reicht für den Einzelprozess (wie ratelimit.py).
 _WX_TTL = 3600.0

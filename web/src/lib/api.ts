@@ -206,6 +206,20 @@ export interface RecordSet {
 
 export type CommunityRecords = Record<string, RecordSet>;
 
+// Aggregat-Kennzahlen je Spot (Spot-Vergleich unter der Karte).
+export interface SpotAgg {
+  spot: string;
+  spot_id: number | null;
+  sessions: number;
+  runs: number;
+  pumps: number;
+  foilers: number;
+  foiling_km: number;
+  longest_run_m: number;
+  top_speed_kmh: number;
+  onfoil_s: number;
+}
+
 export interface CommunitySession {
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   session_id: number;
@@ -600,6 +614,8 @@ export const api = {
   communityStats: () => req<{ foilers: number; spots: number; sessions: number; pumps: number }>(`/api/community/stats`),
   spotRecords: (spot: string, period = "all", accelOnly = true) =>
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}`),
+  spotCompare: (period = "all", accelOnly = false) =>
+    req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);

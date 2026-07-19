@@ -193,6 +193,11 @@ const nl: Record<string, string> = {
   "period.all": "Altijd",
 
   // Bestenlisten
+  "spotcmp.title": "Spot-records",
+  "spotcmp.foilers": "Meeste foilers",
+  "spotcmp.distance": "Meeste gefoilde afstand",
+  "spotcmp.yourSpot": "Jouw spot",
+  "spotcmp.pick": "Vergelijk een spot …",
   "leader.mostSessions": "Meeste sessies",
   "leader.mostRuns": "Meeste runs",
   "leader.mostPumps": "Meeste pumps",

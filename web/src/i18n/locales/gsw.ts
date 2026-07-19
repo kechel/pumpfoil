@@ -160,6 +160,11 @@ const gsw: Record<string, string> = {
   "period.365d": "1 Jahr",
   "period.all": "Allzit",
 
+  "spotcmp.title": "Spot-Rekord",
+  "spotcmp.foilers": "Meischti Foiler",
+  "spotcmp.distance": "Meischti Foil-Distanz",
+  "spotcmp.yourSpot": "Dyn Spot",
+  "spotcmp.pick": "Spot zum Verglyche …",
   "leader.mostSessions": "Meischti Sessions",
   "leader.mostRuns": "Meischti Läuf",
   "leader.mostPumps": "Meischti Pumps",

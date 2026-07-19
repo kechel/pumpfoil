@@ -180,6 +180,11 @@ const fi: Record<string, string> = {
   "period.all": "Kaikki aika",
 
   // Bestenlisten
+  "spotcmp.title": "Spotti-ennätykset",
+  "spotcmp.foilers": "Eniten foilaajia",
+  "spotcmp.distance": "Eniten foilattua matkaa",
+  "spotcmp.yourSpot": "Oma spotti",
+  "spotcmp.pick": "Vertaa spottia …",
   "leader.mostSessions": "Eniten sessioita",
   "leader.mostRuns": "Eniten lenkkejä",
   "leader.mostPumps": "Eniten pumppauksia",

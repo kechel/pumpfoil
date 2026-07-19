@@ -193,6 +193,11 @@ const cs: Record<string, string> = {
   "period.all": "Za celou dobu",
 
   // Bestenlisten
+  "spotcmp.title": "Rekordy spotů",
+  "spotcmp.foilers": "Nejvíce foilerů",
+  "spotcmp.distance": "Nejvíce nafoilováno",
+  "spotcmp.yourSpot": "Tvůj spot",
+  "spotcmp.pick": "Porovnat spot …",
   "leader.mostSessions": "Nejvíce relací",
   "leader.mostRuns": "Nejvíce jízd",
   "leader.mostPumps": "Nejvíce pumpnutí",
