@@ -308,6 +308,7 @@ const nl: Record<string, string> = {
   "account.activityType": "Activiteitstype in Garmin Connect",
   "account.activitySurfing": "Surfen",
   "account.activityOpenWater": "Open water",
+  "account.activityPumpfoil": "Pumpfoil (generiek)",
   "account.activityTypeHint": "Bepaalt als welke activiteit de Garmin-opname in Garmin Connect verschijnt.",
   "account.viewN": "Weergave {n}",
   "account.addView": "+ weergave toevoegen",

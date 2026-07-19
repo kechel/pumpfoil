@@ -660,6 +660,7 @@ const deAT: Record<string, string> = {
   "account.activityType": "Aktivitätstyp in Garmin Connect",
   "account.activitySurfing": "Surfen",
   "account.activityOpenWater": "Open Water (Freiwasser)",
+  "account.activityPumpfoil": "Pumpfoil (generisch)",
   "account.activityTypeHint": "Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.",
   "account.recordModeLite": "Sparsam · 10 Hz",
   "account.sideStep1": "Uhr per USB an den Rechner anschließen.",

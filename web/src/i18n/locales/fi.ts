@@ -291,6 +291,7 @@ const fi: Record<string, string> = {
   "account.activityType": "Aktiviteettityyppi Garmin Connectissa",
   "account.activitySurfing": "Surffaus",
   "account.activityOpenWater": "Avovesi",
+  "account.activityPumpfoil": "Pumpfoil (yleinen)",
   "account.activityTypeHint": "Määrittää, minä aktiviteettina Garmin-tallennus näkyy Garmin Connectissa.",
   "account.viewN": "Näkymä {n}",
   "account.addView": "+ Lisää näkymä",

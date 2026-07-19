@@ -865,6 +865,7 @@ const fr: Record<string, string> = {
   "account.activityType": "Type d'activité dans Garmin Connect",
   "account.activitySurfing": "Surf",
   "account.activityOpenWater": "Eau libre",
+  "account.activityPumpfoil": "Pumpfoil (générique)",
   "account.activityTypeHint": "Définit sous quelle activité l'enregistrement Garmin apparaît dans Garmin Connect.",
   "account.recordModeLite": "Économe · 10 Hz",
   "account.tabGuide": "Guide",

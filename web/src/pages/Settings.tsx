@@ -281,6 +281,7 @@ export default function Settings() {
         >
           <option value="surfing">{t("account.activitySurfing")}</option>
           <option value="openwater">{t("account.activityOpenWater")}</option>
+          <option value="pumpfoil">{t("account.activityPumpfoil")}</option>
         </select>
       </Card>
       )}

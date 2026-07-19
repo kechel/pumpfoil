@@ -960,6 +960,7 @@ const it: Record<string, string> = {
   "account.activityType": "Tipo di attività in Garmin Connect",
   "account.activitySurfing": "Surf",
   "account.activityOpenWater": "Acque libere",
+  "account.activityPumpfoil": "Pumpfoil (generico)",
   "account.activityTypeHint": "Imposta come quale attività appare la registrazione Garmin in Garmin Connect.",
   "account.autoStart": "Avvia la registrazione automaticamente quando parto (GPS)",
   "imp.google4": "Questi dati <b>non vengono condivisi con terzi</b>, non sono usati per pubblicità e non sono usati per addestrare modelli di IA/ML.",

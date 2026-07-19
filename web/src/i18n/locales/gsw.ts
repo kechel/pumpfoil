@@ -792,6 +792,7 @@ const gsw: Record<string, string> = {
   "account.activityType": "Aktivitätstyp i Garmin Connect",
   "account.activitySurfing": "Surfe",
   "account.activityOpenWater": "Open Water (Freiwasser)",
+  "account.activityPumpfoil": "Pumpfoil (generisch)",
   "account.activityTypeHint": "Legt fescht, als weli Aktivität d Garmin-Ufnahm i Garmin Connect erschiint.",
   "account.recordModeLite": "Sparsam · 10 Hz",
   "account.sideStep1": "Uhr per USB an de Rechner aaschliesse.",

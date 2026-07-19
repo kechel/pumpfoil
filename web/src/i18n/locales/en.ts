@@ -286,6 +286,7 @@ const en: Record<string, string> = {
   "account.activityType": "Activity type in Garmin Connect",
   "account.activitySurfing": "Surfing",
   "account.activityOpenWater": "Open water",
+  "account.activityPumpfoil": "Pumpfoil (generic)",
   "account.activityTypeHint": "Sets which activity the Garmin recording appears as in Garmin Connect.",
   "account.viewN": "View {n}",
   "account.addView": "+ Add view",

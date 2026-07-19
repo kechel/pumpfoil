@@ -528,9 +528,16 @@ class SessionRecorder {
         // SensorLogger nur mitgeben, wenn vorhanden (sonst normale FIT-Session).
         // FIT-Session ist für Garmin Connect + Live-Stats; schlägt sie fehl, zeichnen
         // wir trotzdem unsere Rohdaten-Chunks (GPS/Accel) auf — Priorität: nichts verlieren.
-        // Aktivitätstyp wählbar: Open Water = Schwimmen/Freiwasser, sonst Surfen.
+        // Aktivitätstyp wählbar:
+        //  - "pumpfoil": generic + Freiwasser-SubSport + Name "Pumpfoil" -> Garmin Connect zeigt
+        //    "Pumpfoil" als Aktivitätstyp (wie FoilMotion), behält aber die Wasser-Kategorie.
+        //  - "openwater": Freiwasserschwimmen.
+        //  - sonst: Surfen.
         var sessOpts;
-        if (activityType.equals("openwater")) {
+        if (activityType.equals("pumpfoil")) {
+            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_GENERIC,
+                         :subSport => Activity.SUB_SPORT_OPEN_WATER };
+        } else if (activityType.equals("openwater")) {
             sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SWIMMING,
                          :subSport => Activity.SUB_SPORT_OPEN_WATER };
         } else {

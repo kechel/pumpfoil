@@ -308,6 +308,7 @@ const cs: Record<string, string> = {
   "account.activityType": "Typ aktivity v Garmin Connect",
   "account.activitySurfing": "Surfing",
   "account.activityOpenWater": "Open Water (volná voda)",
+  "account.activityPumpfoil": "Pumpfoil (obecné)",
   "account.activityTypeHint": "Určuje, jako jaká aktivita se garminovská nahrávka objeví v Garmin Connect.",
   "account.viewN": "Zobrazení {n}",
   "account.addView": "+ Přidat zobrazení",

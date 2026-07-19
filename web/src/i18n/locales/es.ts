@@ -927,6 +927,7 @@ const es: Record<string, string> = {
   "account.activityType": "Tipo de actividad en Garmin Connect",
   "account.activitySurfing": "Surf",
   "account.activityOpenWater": "Aguas abiertas",
+  "account.activityPumpfoil": "Pumpfoil (genérico)",
   "account.activityTypeHint": "Define como qué actividad aparece la grabación de Garmin en Garmin Connect.",
   "imp.appleTitle": "Inicio de sesión con Apple (« Iniciar sesión con Apple »)",
   "imp.ytNote": "Proveedor: Google Ireland Ltd. Más detalles en la <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">política de privacidad de Google</a>.",

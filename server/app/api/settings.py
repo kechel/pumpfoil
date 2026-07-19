@@ -101,7 +101,7 @@ def update_settings(
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
         current["record_mode"] = patch["record_mode"]
-    if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater"):
+    if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater", "pumpfoil"):
         current["activity_type"] = patch["activity_type"]
     if "homespot" in patch:
         v = patch["homespot"]
