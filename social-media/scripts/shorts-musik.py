@@ -23,10 +23,12 @@ Musik wird bei Bedarf geloopt und auf Videolänge geschnitten.
 import datetime
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -42,6 +44,11 @@ PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
 FADE_IN = 1.0
 FADE_OUT = 2.0
+# Text-Overlays: fix Arial 30, zentriert, 0,5s ein / 2s halten / 0,5s aus
+TEXT_FONT = "/System/Library/Fonts/Supplemental/Arial.ttf"
+TEXT_SIZE = 30
+TEXT_FADE = 0.5
+TEXT_HOLD = 2.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
@@ -138,7 +145,8 @@ def video_dims(path):
 
 def render(video: Path, track: Path, out: Path, gain_db: float,
            fade_out: float = FADE_OUT, overlay: Path = None,
-           trim_start: float = 0.0, trim_end: float = None):
+           trim_start: float = 0.0, trim_end: float = None,
+           texts: list = None):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -160,19 +168,40 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     if trimmed:
         inputs += ["-ss", f"{start:.3f}", "-to", f"{end:.3f}"]
     inputs += ["-i", str(video), "-stream_loop", "-1", "-i", str(track)]
+    # Text-Overlays → drawtext-Kette (Zeiten beziehen sich aufs Original,
+    # nach Trim verschiebt sich die Output-Zeitachse um -start)
+    tmpfiles = []
+    draw = []
+    for tx in (texts or []):
+        s = float(tx.get("start", 0)) - start
+        fd, pth = tempfile.mkstemp(suffix=".txt")
+        os.write(fd, str(tx.get("text", "")).encode())
+        os.close(fd)
+        tmpfiles.append(pth)
+        e = s + 2 * TEXT_FADE + TEXT_HOLD
+        draw.append(
+            f"drawtext=textfile='{pth}':fontfile='{TEXT_FONT}'"
+            f":fontsize={TEXT_SIZE}:fontcolor=white"
+            ":borderw=2:bordercolor=black@0.6"
+            ":x=(w-text_w)/2:y=(h-text_h)/2"
+            f":alpha='clip(min((t-{s:.3f})/{TEXT_FADE},({e:.3f}-t)/{TEXT_FADE}),0,1)'"
+        )
+    vsrc = "[0:v]"
     if overlay:
-        # Overlay einbrennen → Video muss neu kodiert werden
         w, h = video_dims(video)
         inputs += ["-i", str(overlay)]
-        fc += f";[2:v]scale={w}:{h}[ov];[0:v][ov]overlay=0:0:format=auto[v]"
-        vmap = "[v]"
-        vcodec = ["-c:v", "libx264", "-crf", "20", "-preset", "medium",
-                  "-pix_fmt", "yuv420p"]
+        fc += f";[2:v]scale={w}:{h}[ov];[0:v][ov]overlay=0:0:format=auto[vo]"
+        vsrc = "[vo]"
+    if draw:
+        fc += ";" + vsrc + ",".join(draw) + "[v]"
+        vmap, reencode = "[v]", True
+    elif overlay:
+        fc = fc.replace("[vo]", "[v]")
+        vmap, reencode = "[v]", True
     else:
-        vmap = "0:v"
-        # framegenauer Schnitt braucht Re-Encode; Copy schneidet nur an Keyframes
-        vcodec = ["-c:v", "libx264", "-crf", "20", "-preset", "medium",
-                  "-pix_fmt", "yuv420p"] if trimmed else ["-c:v", "copy"]
+        vmap, reencode = "0:v", trimmed  # Schnitt braucht Re-Encode (Copy = nur Keyframes)
+    vcodec = (["-c:v", "libx264", "-crf", "20", "-preset", "medium",
+               "-pix_fmt", "yuv420p"] if reencode else ["-c:v", "copy"])
     out.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg", "-y", "-nostats", "-progress", "pipe:1", *inputs,
@@ -180,25 +209,32 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         *vcodec, "-c:a", "aac", "-b:a", "192k",
         "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out),
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, text=True)
-    tail = []
-    for line in proc.stdout:
-        line = line.strip()
-        if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        tail = []
+        for line in proc.stdout:
+            line = line.strip()
+            if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
+                try:
+                    # beide Keys tragen Mikrosekunden (ffmpeg-Eigenheit)
+                    PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / dur * 100)
+                except ValueError:
+                    pass
+            elif not re.match(r"^[a-z_0-9.]+=", line):
+                tail.append(line)
+                if len(tail) > 50:
+                    del tail[0]
+        if proc.wait() != 0:
+            raise subprocess.CalledProcessError(proc.returncode, cmd,
+                                                stderr="\n".join(tail))
+        PROGRESS["pct"] = 100.0
+    finally:
+        for p in tmpfiles:
             try:
-                # beide Keys tragen Mikrosekunden (ffmpeg-Eigenheit)
-                PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / dur * 100)
-            except ValueError:
+                os.unlink(p)
+            except OSError:
                 pass
-        elif not re.match(r"^[a-z_0-9.]+=", line):
-            tail.append(line)
-            if len(tail) > 50:
-                del tail[0]
-    if proc.wait() != 0:
-        raise subprocess.CalledProcessError(proc.returncode, cmd,
-                                            stderr="\n".join(tail))
-    PROGRESS["pct"] = 100.0
 
 
 # ------------------------------------------------------------- Dateilisten --
@@ -428,6 +464,9 @@ class Handler(BaseHTTPRequestHandler):
         fade_out = float(req.get("fade_out", FADE_OUT))
         trim_start = float(req.get("trim_start") or 0)
         trim_end = float(req["trim_end"]) if req.get("trim_end") else None
+        texts = [t for t in (req.get("texts") or [])
+                 if isinstance(t, dict) and str(t.get("text", "")).strip()
+                 and t.get("start") is not None]
         out_name = re.sub(r"[/\\:\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
         out_name = re.sub(r"\.mp4$", "", out_name, flags=re.I)
         # Nummer + "Pumpfoil-<Jahr>-" automatisch; manuell Getipptes gewinnt
@@ -458,7 +497,7 @@ class Handler(BaseHTTPRequestHandler):
                                      "erlaubten Ordner")
                 out = OUT_DIR / pf / out_name
                 render(video, track, out, gain, fade_out, overlay,
-                       trim_start, trim_end)
+                       trim_start, trim_end, texts)
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
@@ -536,6 +575,13 @@ PAGE = r"""<!doctype html>
   #dirRow button svg{width:14px;height:14px;vertical-align:-2px}
   #dirBrowser .item svg{width:13px;height:13px;margin-right:5px;vertical-align:-2px}
   #aMsg{font-size:11px;opacity:.6;max-width:170px;white-space:pre-wrap}
+  #texts{display:flex;flex-direction:column;gap:6px;margin-top:6px;border-top:1px solid #8884;padding-top:10px}
+  .txrow{display:flex;align-items:center;gap:5px}
+  .txrow input{width:110px;font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit}
+  .txrow .tset{min-width:52px}
+  .txov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;
+    font-family:Arial,Helvetica,sans-serif;color:#fff;text-align:center;
+    text-shadow:0 0 3px rgba(0,0,0,.7),1px 1px 2px rgba(0,0,0,.6);padding:0 8px}
   #vwrap{position:relative;max-width:100%}
   video{max-height:calc(100vh - 40px);max-width:100%;border-radius:12px;background:#000;display:block}
   #pvBar{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.9;max-width:100%}
@@ -575,13 +621,19 @@ PAGE = r"""<!doctype html>
   <div id="vlist"></div></div>
 <div id="center">
   <div id="stage">
-    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt=""></div>
+    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt="">
+    <div class="txov" id="txov0"></div><div class="txov" id="txov1"></div><div class="txov" id="txov2"></div></div>
     <div id="actions">
       <button class="abtn" id="aStar"></button>
       <button class="abtn" id="aPrivat"></button>
       <button class="abtn" id="aNgu"></button>
       <button class="abtn" id="aTrash"></button>
       <button class="abtn" id="aUndo"></button>
+      <div id="texts">
+        <div class="txrow" data-i="0"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
+        <div class="txrow" data-i="1"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
+        <div class="txrow" data-i="2"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
+      </div>
       <div id="aMsg"></div>
     </div>
   </div>
@@ -764,6 +816,36 @@ $('#aNgu').innerHTML=icon('dumbbell')+'<span>never-give-up</span>';
 $('#aTrash').innerHTML=icon('trash')+'<span>aussortieren</span>';
 $('#aUndo').innerHTML=icon('undo')+'<span>rückgängig</span>';
 $('#dirToggle').innerHTML=icon('folder');
+// --- Text-Overlays: Zeiten/Texte je Video, Vorschau mit Render-Fadekurve ---
+const TXF=0.5, TXH=2.0;  // fade / hold, muss zu TEXT_FADE/TEXT_HOLD passen
+const texts=[{start:null,text:''},{start:null,text:''},{start:null,text:''}];
+function renderTextRows(){
+  document.querySelectorAll('.txrow').forEach(row=>{
+    const i=+row.dataset.i;
+    row.querySelector('.tset').textContent='@ '+(texts[i].start==null?'–':texts[i].start.toFixed(1)+'s');
+    if(row.querySelector('.txt').value!==texts[i].text)row.querySelector('.txt').value=texts[i].text;
+  });
+}
+document.querySelectorAll('.txrow').forEach(row=>{
+  const i=+row.dataset.i;
+  row.querySelector('.tset').onclick=()=>{texts[i].start=vid.currentTime;renderTextRows()};
+  row.querySelector('.txt').addEventListener('input',e=>{texts[i].text=e.target.value});
+  row.querySelector('.tclr').onclick=()=>{texts[i]={start:null,text:''};renderTextRows()};
+});
+function updateTextPreview(){
+  const scale=vid.videoWidth?vid.clientWidth/vid.videoWidth:1;
+  const t=vid.currentTime;
+  for(let i=0;i<3;i++){
+    const el=$('#txov'+i), tx=texts[i];
+    if(tx.start==null||!tx.text.trim()){el.style.opacity=0;continue}
+    const e=tx.start+2*TXF+TXH;
+    const a=Math.max(0,Math.min(Math.min((t-tx.start)/TXF,(e-t)/TXF),1));
+    el.textContent=tx.text;
+    el.style.fontSize=(30*scale)+'px';
+    el.style.opacity=a;
+  }
+}
+(function txLoop(){updateTextPreview();requestAnimationFrame(txLoop)})();
 $('#aStar').onclick=()=>{if(curVideo)toggleStar(curVideo,!(state.stars||[]).includes(curVideo))};
 $('#aPrivat').onclick=()=>{if(curVideo)discard(curVideo,'privat')};
 $('#aNgu').onclick=()=>{if(curVideo)discard(curVideo,'never-give-up')};
@@ -803,6 +885,8 @@ function pickVideo(v){
   $('#vname').textContent=v; stopMusic(); renderVideoList();
   trimStart=trimEnd=null; updateTrim();
   $('#outName').value='';
+  for(let i=0;i<3;i++)texts[i]={start:null,text:''};
+  renderTextRows();
   updatePvBar();
 }
 function stopMusic(){music.pause();curPlay=null;renderTrackList()}
@@ -909,7 +993,8 @@ $('#renderBtn').onclick=async()=>{
     const r=await(await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({video:curVideo,tracks:sel,gain_db:+$('#gain').value,fade_out:+$('#fade').value,
         overlay:($('#ovOn').checked&&$('#ovSel').value)||null,
-        trim_start:trimStart,trim_end:trimEnd,out_name:$('#outName').value})})).json();
+        trim_start:trimStart,trim_end:trimEnd,out_name:$('#outName').value,
+        texts:texts.filter(t=>t.text.trim()&&t.start!=null)})})).json();
     const errs=Object.entries(r.results).filter(([,res])=>!res.ok);
     $('#log').textContent=errs.map(([pf,res])=>'✗ '+pf+': '+res.error).join('\n');
   }catch(e){$('#log').textContent='Fehler: '+e}
