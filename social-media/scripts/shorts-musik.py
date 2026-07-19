@@ -46,7 +46,7 @@ FADE_IN = 1.0
 FADE_OUT = 2.0
 # Text-Overlays: fix Arial 30, zentriert, 0,5s ein / 2s halten / 0,5s aus
 TEXT_FONT = "/System/Library/Fonts/Supplemental/Arial.ttf"
-TEXT_SIZE = 30
+TEXT_SIZE = 60
 TEXT_FADE = 0.5
 TEXT_HOLD = 2.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
@@ -181,7 +181,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         e = s + 2 * TEXT_FADE + TEXT_HOLD
         draw.append(
             f"drawtext=textfile='{pth}':fontfile='{TEXT_FONT}'"
-            f":fontsize={TEXT_SIZE}:fontcolor=white"
+            f":fontsize={TEXT_SIZE}:fontcolor=white:text_align=C"
             ":borderw=2:bordercolor=black@0.6"
             ":x=(w-text_w)/2:y=(h-text_h)/2"
             f":alpha='clip(min((t-{s:.3f})/{TEXT_FADE},({e:.3f}-t)/{TEXT_FADE}),0,1)'"
@@ -577,10 +577,10 @@ PAGE = r"""<!doctype html>
   #aMsg{font-size:11px;opacity:.6;max-width:170px;white-space:pre-wrap}
   #texts{display:flex;flex-direction:column;gap:6px;margin-top:6px;border-top:1px solid #8884;padding-top:10px}
   .txrow{display:flex;align-items:center;gap:5px}
-  .txrow input{width:110px;font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit}
+  .txrow textarea{width:110px;font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit;resize:vertical;font-family:inherit}
   .txrow .tset{min-width:52px}
   .txov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;
-    font-family:Arial,Helvetica,sans-serif;color:#fff;text-align:center;
+    font-family:Arial,Helvetica,sans-serif;color:#fff;text-align:center;white-space:pre-line;line-height:1.15;
     text-shadow:0 0 3px rgba(0,0,0,.7),1px 1px 2px rgba(0,0,0,.6);padding:0 8px}
   #vwrap{position:relative;max-width:100%}
   video{max-height:calc(100vh - 40px);max-width:100%;border-radius:12px;background:#000;display:block}
@@ -630,9 +630,9 @@ PAGE = r"""<!doctype html>
       <button class="abtn" id="aTrash"></button>
       <button class="abtn" id="aUndo"></button>
       <div id="texts">
-        <div class="txrow" data-i="0"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
-        <div class="txrow" data-i="1"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
-        <div class="txrow" data-i="2"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><input class="txt" placeholder="Text …" spellcheck="false"><button class="mini tclr" title="löschen">✕</button></div>
+        <div class="txrow" data-i="0"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
+        <div class="txrow" data-i="1"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
+        <div class="txrow" data-i="2"><button class="mini tset" title="Startzeit = aktuelle Videoposition">@ –</button><textarea class="txt" rows="2" placeholder="Text …" spellcheck="false"></textarea><button class="mini tclr" title="löschen">✕</button></div>
       </div>
       <div id="aMsg"></div>
     </div>
@@ -817,7 +817,7 @@ $('#aTrash').innerHTML=icon('trash')+'<span>aussortieren</span>';
 $('#aUndo').innerHTML=icon('undo')+'<span>rückgängig</span>';
 $('#dirToggle').innerHTML=icon('folder');
 // --- Text-Overlays: Zeiten/Texte je Video, Vorschau mit Render-Fadekurve ---
-const TXF=0.5, TXH=2.0;  // fade / hold, muss zu TEXT_FADE/TEXT_HOLD passen
+const TXF=0.5, TXH=2.0, TXS=60;  // fade / hold / fontsize, muss zu TEXT_* passen
 const texts=[{start:null,text:''},{start:null,text:''},{start:null,text:''}];
 function renderTextRows(){
   document.querySelectorAll('.txrow').forEach(row=>{
@@ -841,7 +841,7 @@ function updateTextPreview(){
     const e=tx.start+2*TXF+TXH;
     const a=Math.max(0,Math.min(Math.min((t-tx.start)/TXF,(e-t)/TXF),1));
     el.textContent=tx.text;
-    el.style.fontSize=(30*scale)+'px';
+    el.style.fontSize=(TXS*scale)+'px';
     el.style.opacity=a;
   }
 }
