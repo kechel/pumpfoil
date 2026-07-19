@@ -30,10 +30,18 @@ PAIRING_TTL_MIN = 15
 # -> serverseitig auf 'lite' kappen. FR55 belegt (Philipp); Vorgänger der Reihe vermutlich auch.
 _LOW_ACCEL_MODEL_HINTS = ("Forerunner® 55", "Forerunner® 45", "Forerunner® 35", "Forerunner® 30", "Forerunner® 25")
 
+# Gezielt per PART-NUMMER (nicht Namens-Substring, der würde Plus/5S/5X mitfangen): die
+# Basis-fēnix 5 / quatix 5 (128-KB-Klasse wie FR55) — B2697 + B2796. Absturz belegt: Oerni
+# (fēnix 5, IQ!-Logo bei 25 Hz, 2026-07-19). Die fēnix 5 PLUS (B3089/B3110) ist leistungsfähiger
+# und läuft mit 25 Hz sauber (Session #385 Peter) -> bewusst NICHT gekappt. 5S/5X: bis Beleg offen.
+_LOW_ACCEL_PARTS = frozenset({"006-B2697-00", "006-B2796-00"})
+
 
 def _is_low_accel_model(part_number: str | None) -> bool:
     if not part_number:
         return False
+    if part_number in _LOW_ACCEL_PARTS:
+        return True
     m = _partmap().get(part_number)
     name = (m or {}).get("name", "")
     return any(h in name for h in _LOW_ACCEL_MODEL_HINTS)
