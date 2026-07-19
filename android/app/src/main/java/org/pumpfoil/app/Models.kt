@@ -294,6 +294,13 @@ data class PeriodRecords(
     val speed: CommunityRecordEntry? = null,
     val glide: CommunityRecordEntry? = null,
     val runs: CommunityRecordEntry? = null,
+    // Fun-Rekorde (Session-bezogen), additiv seit 2026-07-18.
+    @SerialName("session_distance") val sessionDistance: CommunityRecordEntry? = null,
+    @SerialName("session_time") val sessionTime: CommunityRecordEntry? = null,
+    @SerialName("session_pumps") val sessionPumps: CommunityRecordEntry? = null,
+    @SerialName("max_hr") val maxHr: CommunityRecordEntry? = null,
+    @SerialName("early_bird") val earlyBird: CommunityRecordEntry? = null,   // Wert = s seit Mitternacht (Spot-Ortszeit)
+    @SerialName("night_owl") val nightOwl: CommunityRecordEntry? = null,     // >24h möglich -> mod 24h anzeigen
 )
 
 @Serializable

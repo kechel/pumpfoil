@@ -146,6 +146,13 @@ struct PeriodRecords: Codable {
     let speed: CommunityRecordEntry?
     let glide: CommunityRecordEntry?
     let runs: CommunityRecordEntry?
+    // Fun-Rekorde (Session-bezogen), additiv seit 2026-07-18.
+    let session_distance: CommunityRecordEntry?
+    let session_time: CommunityRecordEntry?
+    let session_pumps: CommunityRecordEntry?
+    let max_hr: CommunityRecordEntry?
+    let early_bird: CommunityRecordEntry?   // Wert = s seit Mitternacht (Spot-Ortszeit)
+    let night_owl: CommunityRecordEntry?    // >24h möglich -> mod 24h anzeigen
 }
 
 struct SpotMapItem: Codable, Identifiable {

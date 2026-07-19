@@ -99,12 +99,23 @@ struct CommunityView: View {
             RecRow(label: Loc.t(key, lang), value: ok(e) ? fmt(e!.value ?? 0) : "–", entry: ok(e) ? e : nil)
         }
         func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+        // Tageszeit-Rekorde: Sekunden seit Mitternacht (Spot-Ortszeit); Night Owl kann >24 h sein.
+        func hhmm(_ v: Double) -> String {
+            let s = ((Int(v) % 86400) + 86400) % 86400
+            return String(format: "%02d:%02d", s / 3600, (s % 3600) / 60)
+        }
         return [
             row("rec.farthestRun", r?.distance) { "\(Int($0.rounded())) m" },
             row("rec.longestRun", r?.duration) { dur($0) },
             row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
             row("rec.longestGlide", r?.glide) { String(format: "%.1f s", $0) },
             row("rec.mostRuns", r?.runs) { "\(Int($0))" },
+            row("rec.sessionDistance", r?.session_distance) { String(format: "%.1f km", $0 / 1000.0) },
+            row("rec.sessionTime", r?.session_time) { "\(Int(($0 / 60).rounded())) min" },
+            row("rec.sessionPumps", r?.session_pumps) { "\(Int($0.rounded()))" },
+            row("rec.maxHr", r?.max_hr) { "\(Int($0.rounded())) bpm" },
+            row("rec.earlyBird", r?.early_bird) { hhmm($0) },
+            row("rec.nightOwl", r?.night_owl) { hhmm($0) },
         ]
     }
 

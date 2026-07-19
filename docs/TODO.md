@@ -86,9 +86,8 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 - [x] **Spot-Ortszeit in die Apps** — ERLEDIGT 2026-07-18: Android (TimeFmt.kt, 7 Modelle + alle
   Session-Screens inkl. Compare) + iOS (TimeFmt.swift, 7 Structs + Listen/Detail/Rekorde/Compare).
   Bewusst Betrachter-Zeit geblieben: Chat, Wetter, Verlauf-Chartachsen; Transfers ohne Server-tz.
-- **Neue Rekord-Kacheln in die Apps** (2026-07-18): Web zeigt jetzt 11 Rekorde (+Session-Distanz/
-  -Zeit/-Pumps, Max-Puls, Early Bird, Night Owl — 8d0c208); Android/iOS-Community zeigt noch die
-  alten 5. Server liefert alle bereits (additiv, Apps ignorieren Unbekanntes).
+- [x] **Neue Rekord-Kacheln in die Apps** — ERLEDIGT 2026-07-19: Android + iOS zeigen alle 11
+  (inkl. Early Bird/Night Owl in Spot-Ortszeit, mod-24h); i18n row+fi+nl beidseitig.
 - [x] **Niederländisch (nl) in die Apps portieren** — ERLEDIGT 2026-07-18 (6e8cfea): Overlays
   Android (545 Keys) + iOS (526 Keys), Picker „Nederlands", Diktat nl-NL (+ fi-FI-Diktat-Fix).
   Wear bleibt bei 7 Sprachen (nl→de), wie fi. OFFEN nur: Muttersprachler-Review nl (+ fr/it/es/fi).

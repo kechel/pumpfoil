@@ -319,6 +319,13 @@ private fun SectionHeader(title: String) {
 // Community-Rekorde-Grid (2 Spalten): Wert (cyan) + Label + Nutzer(Avatar+Name) + Datum · Spot.
 private data class RecItem(val label: String, val value: String, val e: CommunityRecordEntry)
 
+// Sekunden-seit-Mitternacht (Spot-Ortszeit) -> "HH:MM"; Night Owl kann >24 h liefern (über
+// Mitternacht) -> mod 24 h.
+private fun hhmmOfDay(v: Double): String {
+    val s = (v.toLong() % 86400 + 86400) % 86400
+    return "%02d:%02d".format(s / 3600, (s % 3600) / 60)
+}
+
 @Composable
 private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     val items = buildList {
@@ -327,6 +334,12 @@ private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Un
         r?.speed?.let { add(RecItem(I18n.t("rec.topSpeed"), "%.1f km/h".format(it.value * 3.6), it)) }
         r?.glide?.let { add(RecItem(I18n.t("rec.longestGlide"), "%.1f s".format(it.value), it)) }
         r?.runs?.let { add(RecItem(I18n.t("rec.mostRuns"), it.value.roundToInt().toString(), it)) }
+        r?.sessionDistance?.let { add(RecItem(I18n.t("rec.sessionDistance"), "%.1f km".format(it.value / 1000.0), it)) }
+        r?.sessionTime?.let { add(RecItem(I18n.t("rec.sessionTime"), "${(it.value / 60).roundToInt()} min", it)) }
+        r?.sessionPumps?.let { add(RecItem(I18n.t("rec.sessionPumps"), it.value.roundToInt().toString(), it)) }
+        r?.maxHr?.let { add(RecItem(I18n.t("rec.maxHr"), "${it.value.roundToInt()} bpm", it)) }
+        r?.earlyBird?.let { add(RecItem(I18n.t("rec.earlyBird"), hhmmOfDay(it.value), it)) }
+        r?.nightOwl?.let { add(RecItem(I18n.t("rec.nightOwl"), hhmmOfDay(it.value), it)) }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
