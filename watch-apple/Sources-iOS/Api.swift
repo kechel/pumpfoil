@@ -98,6 +98,7 @@ enum Api {
         return "https://pumpfoil.org" + r.path
     }
     static func revokeShareLink(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/sessions/\(id)/share", method: "DELETE", body: nil, auth: true)
     }
 
