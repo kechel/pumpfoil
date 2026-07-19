@@ -58,6 +58,12 @@ module Uploader {
         return _watch;
     }
 
+    // Sekunden bis zum nächsten geplanten Backoff-Versuch (für den Countdown im Upload-Screen);
+    // -1 = kein aktiver Versuch geplant (fertig, oder nur noch Reconnect-Beobachtung).
+    function retryEtaSecs() as Lang.Number {
+        return (_watch == null) ? -1 : _watch.etaSecs();
+    }
+
     // Anzahl noch nicht vollständig hochgeladener Sessions (für UI-Feedback).
     function pendingCount() as Lang.Number {
         var s = Storage.getValue("sessions");
@@ -392,6 +398,7 @@ class RetryWatch {
     hidden var _timer as Timer.Timer or Null = null;
     hidden var _idx as Lang.Number = 0;               // Position in Uploader.BACKOFF
     hidden var _wasConnected as Lang.Boolean = false; // für Reconnect-Erkennung
+    hidden var _etaMs as Lang.Number = -1;            // System.getTimer()-Ziel des nächsten Backoff-Versuchs (-1 = keiner)
 
     function initialize() {}
 
@@ -399,9 +406,16 @@ class RetryWatch {
     // sonst ruhen. Wartezeit aus dem Backoff (3/10/30 s), danach Reconnect-Poll (30 s).
     function arm() as Void {
         _cancel();
-        if (Uploader.pendingCount() == 0) { _idx = 0; return; }
+        if (Uploader.pendingCount() == 0) { _idx = 0; _etaMs = -1; return; }
         _wasConnected = Uploader.phoneConnected();
-        var secs = (_idx < Uploader.BACKOFF.size()) ? Uploader.BACKOFF[_idx] : Uploader.WATCH_SECS;
+        var secs;
+        if (_idx < Uploader.BACKOFF.size()) {
+            secs = Uploader.BACKOFF[_idx];
+            _etaMs = System.getTimer() + secs * 1000;   // aktive Wiederholung -> Countdown sichtbar
+        } else {
+            secs = Uploader.WATCH_SECS;
+            _etaMs = -1;                                  // nur Reconnect-Beobachtung, kein Countdown
+        }
         _timer = new Timer.Timer();
         _timer.start(method(:onTick), secs * 1000, false);
     }
@@ -409,7 +423,15 @@ class RetryWatch {
     // Frische Auslösung (z. B. manuell geöffneter Upload-Screen): Backoff von vorn.
     function reset() as Void { _idx = 0; }
 
-    function stop() as Void { _cancel(); _idx = 0; }
+    function stop() as Void { _cancel(); _idx = 0; _etaMs = -1; }
+
+    // Sekunden bis zum nächsten Backoff-Versuch (aufgerundet); -1 wenn keiner geplant.
+    function etaSecs() as Lang.Number {
+        if (_etaMs < 0) { return -1; }
+        var rem = _etaMs - System.getTimer();
+        if (rem < 0) { rem = 0; }
+        return (rem + 999) / 1000;
+    }
 
     hidden function _cancel() as Void {
         if (_timer != null) { _timer.stop(); _timer = null; }

@@ -94,6 +94,8 @@ module Strings {
         "up.waitConn"   => ["Wartet auf Verbindung", "Wartet uf Verbindig", "Wartet auf Verbindung", "Waiting for connection", "Attente de connexion", "Attesa connessione", "Esperando conexión"],
         "up.willResume" => ["wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"],
         "up.serverErr"  => ["Server-Fehler", "Server-Fähler", "Server-Fehler", "Server error", "Erreur serveur", "Errore server", "Error de servidor"],
+        "up.serverUnreach" => ["Server nicht erreichbar", "Server nöd erreichbar", "Server nicht erreichbar", "Server unreachable", "Serveur injoignable", "Server irraggiungibile", "Servidor no disponible"],
+        "up.retryIn"    => ["Neuer Versuch in", "Neue Versuech i", "Neuer Versuch in", "Retry in", "Nouvel essai dans", "Nuovo tentativo tra", "Reintento en"],
         "up.later"      => ["später erneut", "spöter nomal", "später erneut", "retry later", "réessai plus tard", "riprova più tardi", "reintento más tarde"],
         "up.notLinked"  => ["Nicht verbunden", "Nöd verbunde", "Nicht verbunden", "Not linked", "Non lié", "Non collegato", "No vinculado"],
         "up.pairAction" => ["START: Code erzeugen", "START: Code erzüge", "START: Code erzeugen", "START: get code", "START : générer le code", "START: genera codice", "START: generar código"],

@@ -50,7 +50,10 @@ class UploadView extends WatchUi.View {
         _rec = rec;
         _startCount = Uploader.pendingCount();
         Uploader.watch().reset();   // manuell geöffnet -> Auto-Retry-Backoff von vorn
-        if (_startCount > 0 && Uploader.phoneConnected()) { Uploader.syncAll(); }
+        if (_startCount > 0) {
+            if (Uploader.phoneConnected()) { Uploader.syncAll(); }   // sofort versuchen -> Watchdog plant den Rest
+            else { Uploader.watch().arm(); }                         // offline: Watchdog scharf (Reconnect/Backoff)
+        }
     }
 
     function onUpdate(dc) {
@@ -95,16 +98,20 @@ class UploadView extends WatchUi.View {
                 dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("up.pairAction"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.58 + 20, Graphics.FONT_XTINY, Strings.s("up.linkHint"), Graphics.TEXT_JUSTIFY_CENTER);
-            } else if (!connected || err == :offline) {
+            } else if (!connected) {
+                // Wirklich kein Telefon -> auf Verbindung warten (Retry bringt ohne Telefon nichts).
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waitConn"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open") + " — " + Strings.s("up.willResume"), Graphics.TEXT_JUSTIFY_CENTER);
-            } else if (err == :server) {
+            } else if (err == :offline || err == :server) {
+                // Telefon verbunden, aber Server/Netz nicht erreichbar -> Countdown zum nächsten Versuch.
+                var eta = Uploader.retryEtaSecs();
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.serverErr"), Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.serverUnreach"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.later"), Graphics.TEXT_JUSTIFY_CENTER);
+                var sub = (eta >= 0) ? (Strings.s("up.retryIn") + " " + eta + " s") : Strings.s("up.later");
+                dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, sub, Graphics.TEXT_JUSTIFY_CENTER);
             } else {
                 dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waiting"), Graphics.TEXT_JUSTIFY_CENTER);
@@ -156,21 +163,22 @@ class UploadDelegate extends WatchUi.BehaviorDelegate {
         _timer.start(method(:onTick), 1000, true);
     }
 
-    // 1×/s: Verbindung zurück + noch offen + nicht beschäftigt -> Upload fortsetzen.
-    // So nimmt der Sync nach einem Verbindungsabbruch von selbst wieder auf.
+    // 1×/s nur noch für die Anzeige: die Wiederholungen steuert jetzt der Uploader-Watchdog
+    // (Backoff 3/10/30 s + Reconnect), damit der Screen einen sauberen Countdown zeigen kann,
+    // statt jede Sekunde blind neu zu syncen.
     function onTick() as Void {
         var busy = Uploader.isBusy();
         var pending = Uploader.pendingCount();
         var err = Uploader.lastError();
-        // Aktiv weiter-syncen nur, wenn's Sinn hat: verbunden, offen, kein Auth-/Offline-Stopper.
-        if (!busy && pending > 0 && Uploader.phoneConnected() && err != :auth && err != :offline) {
-            Uploader.syncAll();
-            busy = true;   // gerade angestoßen -> dieser Tick zählt nicht als "steht still"
-        }
+        // Läuft ein sichtbarer Countdown (Telefon da, Server/Netz nicht erreichbar, Versuch geplant)?
+        // Dann Screen halten, damit der Nutzer „Neuer Versuch in N s" mitläuft.
+        var counting = Uploader.phoneConnected() && (err == :offline || err == :server)
+                       && pending > 0 && Uploader.retryEtaSecs() >= 0;
         // ~3 s nachdem nichts mehr aktiv passiert automatisch zurück zum Start-Screen — egal ob
         // „Upload fertig", „Nicht verbunden" oder offline. Der Auto-Start läuft NUR dort; sonst
         // bleibt man auf dem Screen hängen und Losfahren startet keine neue Session.
-        if (!busy) {
+        // Der Watchdog synct im Hintergrund weiter, auch nachdem dieser Screen zu ist.
+        if (!busy && !counting) {
             _doneTicks += 1;
             if (_doneTicks >= 3) {
                 if (_timer != null) { _timer.stop(); }

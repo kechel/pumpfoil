@@ -79,11 +79,16 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // robuste Pfad wie der manuelle Upload). Ohne Verbindung bleibt der Erfolgs-Screen
     // (Daten liegen sicher in Storage, Upload später).
     hidden function _showUploadIfConnected() as Void {
-        if (Uploader.phoneConnected() && Uploader.pendingCount() > 0) {
+        if (Uploader.pendingCount() <= 0) { return; }
+        if (Uploader.phoneConnected()) {
             // Verbindungs-Fall -> nur der Upload-Screen ("Upload fertig"). Kein „Gespeichert"
             // darunter (stopped=false), sonst kämen beide. BACK vom Upload-Screen -> Start.
             _rec.stopped = false;
             WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
+        } else {
+            // Ohne Verbindung bleibt der Erfolgs-Screen, aber der Watchdog läuft im Hintergrund
+            // weiter -> verbindet sich das Telefon, solange die App offen ist, geht es von selbst raus.
+            Uploader.watch().arm();
         }
     }
 
