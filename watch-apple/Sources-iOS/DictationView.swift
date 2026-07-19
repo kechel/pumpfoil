@@ -14,6 +14,7 @@ private func speechLocale(_ lang: String) -> Locale {
     case "es": return Locale(identifier: "es-ES")
     case "fi": return Locale(identifier: "fi-FI")
     case "nl": return Locale(identifier: "nl-NL")
+    case "cs": return Locale(identifier: "cs-CZ")
     default: return Locale(identifier: "de-DE")
     }
 }
