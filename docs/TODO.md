@@ -79,6 +79,12 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **fenix 5 → Sparsam-Default beim Pairing** (2026-07-19, WARTET auf Nutzer-Bestätigung): Oerni
+  (fenix 5, FW 25.00, Part 006-B2697-00) crasht beim Session-Start mit IQ!-Logo — 128-KB-Klasse
+  wie FR55; Session #719 war 25-Hz-getaggt aber gps_only (Accel kam nie an). Nutzer testet gerade
+  `lite`. Bestätigt sich das: fenix-5-Familie in `_LOW_ACCEL_MODEL_HINTS` (server/app/api/devices.py)
+  aufnehmen → record_mode wird beim Pairing automatisch auf lite gekappt (wie FR55). Dabei prüfen,
+  welche 5er-Varianten (5/5S/5X, Plus?) betroffen sind — Speicherlimits je Device-File checken.
 - **GPS-Positions-Ausreißer filtern** (Befund 2026-07-19 an #367): einzelne korrupte GPS-Punkte
   mit 5.000-km-Sprüngen (Doppler-Speed dabei normal) verfälschen total_distance_m + Distanz-Stats;
   die Karte filtert sie nur beim Zeichnen. Fix wäre ein Ausreißer-Filter beim Laden/Analysieren
