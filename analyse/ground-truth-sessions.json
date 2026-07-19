@@ -3,8 +3,8 @@
     "NEGATIV-GROUND-TRUTH: Sessions, die KEIN echtes Pumpfoilen sind — als Trainings-/Testdaten",
     "für künftige Modelle (Wing/Kite-Abgrenzung, Phone-Placement, Detektor-Härtung).",
     "Rohdaten (GPS+Accel) liegen unter server/data/sessions/<uuid>/ und bleiben bei Soft-Delete",
-    "erhalten; ACHTUNG: DSGVO-Konto-Löschung/Purge entfernt sie endgültig — bei Bedarf vorher",
-    "anonymisiert exportieren. Keine Klarnamen hier (Repo ist öffentlich); Zuordnung über DB.",
+    "erhalten. DSGVO-Konto-Löschung/Purge entfernt sie endgültig — das ist so gewollt und richtig;",
+    "dann ist der Eintrag hier hinfällig. Keine Klarnamen hier (Repo ist öffentlich); Zuordnung über DB.",
     "confirmed=false: Aktivität ist begründete Vermutung aus den Daten, nicht vom Fahrer bestätigt."
   ],
   "updated": "2026-07-19",

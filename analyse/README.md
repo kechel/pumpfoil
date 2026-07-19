@@ -49,7 +49,8 @@ Siehe `FINDINGS.md` (wird beim Durchlauf gefüllt).
 ## Negativ-Ground-Truth (Nicht-Pumpfoil-Sessions)
 `ground-truth-sessions.json` — kuratierte Liste von Sessions, die sicher/vermutlich KEIN
 Pumpfoilen sind (Auto, Wing/Kite, Land/Winter), mit Begründung. Rohdaten liegen unter
-`server/data/sessions/<uuid>/` (bleiben bei Soft-Delete erhalten; DSGVO-Purge entfernt sie).
+`server/data/sessions/<uuid>/` (bleiben bei Soft-Delete erhalten; DSGVO-Purge löscht endgültig —
+gewollt, dann ist der Eintrag hinfällig).
 Zweck: Negativ-Klasse für künftige Modelle (Wing↔Pump-Abgrenzung, Detektor-Härtung).
 Wichtigster Fall: #665 — Wing-Pumpen ist am Handgelenk vom Pumpfoil-Pumpen mit einfachen
 Features NICHT unterscheidbar (RF-Fehltreffer); Details in der JSON.
