@@ -2,9 +2,9 @@ import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon, InstagramIcon, TikTokIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
-import { VideoModal, ytId } from "./VideoModal";
+import { VideoModal, ytId, videoPlatform } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 import { fmtDate, fmtTime } from "../lib/time";
@@ -20,7 +20,7 @@ function fmtSpan(start: string, end: string) {
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, deviceLabel, caption,
-  avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl,
+  avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
 }: {
   sessionId: number;
@@ -39,6 +39,7 @@ export function SessionCard({
   thumbUrl?: string | null;
   photoCount?: number;
   youtubeUrl?: string | null;   // verlinktes YouTube-Video -> Vorschau-Thumbnail mit Play
+  videoUrl?: string | null;     // erstes Video jeder Plattform (IG/TikTok -> Marken-Kachel, extern)
   likeCount0?: number;
   liked0?: boolean;
   statusBadge?: ReactNode;
@@ -93,25 +94,49 @@ export function SessionCard({
     </div>
   ) : null;
   const trackEl = trackPreview ? <TrackPreview data={trackPreview} className="h-12 w-16 text-brand-400" /> : null;
-  // Verlinktes Video: Vorschau-Thumbnail (CSP-sicherer Proxy) + Play-Badge; Klick oeffnet das
-  // Video-Popup (statt zur Session zu navigieren). Long-Press-Compare wird unterbunden.
-  const vidId = youtubeUrl ? ytId(youtubeUrl) : "";
-  const videoEl = vidId ? (
-    <button
-      type="button"
-      title={t("row.playVideo")}
-      onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVid(youtubeUrl!); }}
-      className="relative block h-12 w-16 overflow-hidden rounded-lg"
-    >
-      <img src={`/api/public/video-thumb/${vidId}`} alt="" className="h-12 w-16 object-cover" />
-      <span className="absolute inset-0 flex items-center justify-center">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60">
-          <PlayIcon className="h-3.5 w-3.5 text-white" />
+  // Verlinktes Video: erstes Video jeder Plattform (video_url), sonst Legacy-YouTube-Spiegel.
+  // YouTube -> Vorschau-Thumbnail (CSP-sicherer Proxy) + Play-Badge, Klick oeffnet das Popup.
+  // Instagram/TikTok (kein Embed erlaubt) -> Marken-Kachel, Klick oeffnet extern.
+  // Long-Press-Compare wird jeweils unterbunden.
+  const videoLink = videoUrl ?? youtubeUrl ?? null;
+  const plat = videoPlatform(videoLink);
+  const vidId = plat === "youtube" ? ytId(videoLink) : "";
+  let videoEl: ReactNode = null;
+  if (vidId) {
+    videoEl = (
+      <button
+        type="button"
+        title={t("row.playVideo")}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVid(videoLink!); }}
+        className="relative block h-12 w-16 overflow-hidden rounded-lg"
+      >
+        <img src={`/api/public/video-thumb/${vidId}`} alt="" className="h-12 w-16 object-cover" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60">
+            <PlayIcon className="h-3.5 w-3.5 text-white" />
+          </span>
         </span>
-      </span>
-    </button>
-  ) : null;
+      </button>
+    );
+  } else if (plat === "instagram" || plat === "tiktok") {
+    const isIg = plat === "instagram";
+    videoEl = (
+      <a
+        href={videoLink!}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={t("row.playVideo")}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        className={`relative flex h-12 w-16 items-center justify-center rounded-lg text-white ${
+          isIg ? "bg-gradient-to-br from-[#feda75] via-[#d62976] to-[#4f5bd5]" : "bg-black"
+        }`}
+      >
+        {isIg ? <InstagramIcon className="h-6 w-6" /> : <TikTokIcon className="h-6 w-6" />}
+      </a>
+    );
+  }
 
   return (
     <>

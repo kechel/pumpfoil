@@ -175,7 +175,8 @@ class SessionOut(BaseModel):
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv
     share_token: str | None = None    # öffentlicher Teilen-Token (nur dem Besitzer geliefert)
     caption: str | None = None  # eigene Beschriftung des Besitzers
-    youtube_url: str | None = None  # optionale YouTube-URL
+    youtube_url: str | None = None  # Legacy-Spiegel: erstes YOUTUBE-Video (alle Clients)
+    video_url: str | None = None    # erstes Video jeder Plattform (nur anzeige-fähige Clients)
     thumb_url: str | None = None  # Vorschaubild (neuestes Foto der Session)
     photo_count: int = 0
     like_count: int = 0

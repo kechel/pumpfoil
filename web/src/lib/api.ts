@@ -141,6 +141,7 @@ export interface SessionSummary {
   place_water?: string | null;
   caption?: string | null;
   youtube_url?: string | null;
+  video_url?: string | null;   // erstes Video jeder Plattform (nur anzeige-fähige Clients)
   thumb_url?: string | null;
   device_label?: string | null;
   device_model?: string | null;
@@ -225,6 +226,7 @@ export interface CommunitySession {
   photo_count?: number;
   thumb_url?: string | null;
   youtube_url?: string | null;
+  video_url?: string | null;   // erstes Video jeder Plattform (nur anzeige-fähige Clients)
   foil?: { id: number; brand: string; model: string; size: string } | null;
   device_label?: string | null;
 }

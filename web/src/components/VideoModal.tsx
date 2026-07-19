@@ -15,6 +15,20 @@ export function ytId(url: string | null | undefined): string {
   }
 }
 
+// Plattform eines Video-Links (gemeinsam für Detail + Liste). YouTube = einbettbar (nocookie);
+// Instagram/TikTok = kein Embed (CSP/Datenschutz) -> Kachel öffnet extern.
+export type VideoPlatform = "youtube" | "instagram" | "tiktok" | null;
+export function videoPlatform(url: string | null | undefined): VideoPlatform {
+  if (!url) return null;
+  try {
+    const h = new URL(url).hostname.toLowerCase();
+    if (h.includes("youtube") || h.includes("youtu.be")) return "youtube";
+    if (h.includes("instagram")) return "instagram";
+    if (h.includes("tiktok")) return "tiktok";
+  } catch { /* ignore */ }
+  return null;
+}
+
 // Fullscreen-Popup mit eingebettetem YouTube-Video (nocookie). Schließt per Backdrop/X.
 export function VideoModal({ url, onClose }: { url: string; onClose: () => void }) {
   const id = ytId(url);

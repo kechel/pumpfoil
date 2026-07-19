@@ -22,7 +22,7 @@ from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
 from ..tzlookup import tz_name
-from ..videos import filter_videos
+from ..videos import client_wants_all_videos, filter_videos
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -118,7 +118,7 @@ def _list_ended_at(s: models.Session):
 
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
-                 sens: str | None = None) -> SessionOut:
+                 sens: str | None = None, video_url: str | None = None) -> SessionOut:
     return SessionOut(
         id=s.id,
         session_uuid=s.session_uuid,
@@ -139,6 +139,9 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         tz=tz_name(s.place_lat, s.place_lon),   # Ortszeit des Spots — Clients formatieren damit
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
+        # Erstes Video EGAL welcher Plattform (IG/TikTok/YouTube) — nur für anzeige-fähige
+        # Clients gesetzt (Aufrufer gated); Listen-Karte zeigt damit den passenden Indikator.
+        video_url=video_url,
         track_preview=(s.result.track_preview if s.result else None),
         foil_id=s.foil_id,
         # Persönlicher Preset-Overlay in ALLEN eigenen Ansichten (Liste + Detail): Läufe/Foil-Zeit/
@@ -363,6 +366,7 @@ def _month_bounds(month: str):
 
 @router.get("", response_model=list[SessionOut])
 def list_sessions(
+    request: Request,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
     limit: int | None = None,
@@ -447,6 +451,18 @@ def list_sessions(
         ):
             count[sid] = count.get(sid, 0) + 1
             thumb.setdefault(sid, media.thumb_url(url))  # erstes = neuestes (id desc); kleines Thumb
+        # Erstes Video (JEDE Plattform) je Session für den Listen-Indikator — nur an anzeige-
+        # fähige Clients (Web/App>=Min). Batch, kein N+1. YouTube liegt eh im youtube_url-Spiegel.
+        if client_wants_all_videos(request):
+            vfirst: dict[int, str] = {}
+            for sid, vurl in (
+                db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
+                .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True))
+                .order_by(models.SessionVideo.id).all()
+            ):
+                vfirst.setdefault(sid, vurl)
+            for o in outs:
+                o.video_url = vfirst.get(o.id)
         likes = dict(
             db.query(models.SessionLike.session_id, func.count())
             .filter(models.SessionLike.session_id.in_(ids)).group_by(models.SessionLike.session_id).all()

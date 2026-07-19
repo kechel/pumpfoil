@@ -22,7 +22,7 @@ from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import owner_label_sql
 from ..tzlookup import tz_name, tz_of
-from ..videos import filter_videos
+from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user, require_social
 
@@ -127,12 +127,31 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
         "device_id": device_id,
         "device_label": None,  # in _attach_social aufgelöst (Uhr-Bezeichnung)
+        "video_url": None,     # erstes Video jeder Plattform (nur anzeige-fähige Clients, _attach_first_video)
     }
+
+
+def _attach_first_video(db: Session, items: list[dict], request: Request) -> list[dict]:
+    """Setzt item['video_url'] = erstes Video (JEDE Plattform) der Session — nur für anzeige-
+    fähige Clients (Web/App>=Min). YouTube liegt ohnehin im youtube_url-Spiegel; das hier
+    liefert dem Listen-Indikator auch IG/TikTok. Batch, kein N+1."""
+    if not items or not client_wants_all_videos(request):
+        return items
+    ids = [it["session_id"] for it in items]
+    first: dict[int, str] = {}
+    for sid, vurl in (db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
+                      .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True))
+                      .order_by(models.SessionVideo.id).all()):
+        first.setdefault(sid, vurl)
+    for it in items:
+        it["video_url"] = first.get(it["session_id"])
+    return items
 
 
 # ----------------------------------------------------------------- Feed/Spots ----
 @router.get("/sessions")
 def community_sessions(
+    request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -145,11 +164,12 @@ def community_sessions(
     if spot:
         q = q.filter(_spot_cond(spot))
     rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
-    return _attach_social(db, user, [_brief(*r) for r in rows])
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
 
 
 @spot_router.get("/spot-sessions")
 def spot_sessions(
+    request: Request,
     spot: str, limit: int = 50, offset: int = 0, accel_only: bool = True,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
@@ -158,7 +178,7 @@ def spot_sessions(
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
-    return _attach_social(db, user, [_brief(*r) for r in rows])
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
 
 
 # --------------------------------------------------------------------- Records ----
