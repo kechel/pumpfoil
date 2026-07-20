@@ -48,6 +48,18 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 - (Suunto ✅ live, Polar ✅ AccessLink live, Garmin-FIT-Import wartet auf Garmins Formular.)
 
 ## 💡 Backlog (Produktideen — bewusst später)
+- **Komplettes Setup statt nur Front-Foil** (Feedback Tom Petr 2026-07-20): zusätzlich zur Foil-Liste
+  auch Stabilizer/Rear-Wing, Fuselage/Tail-Größe, Shim erfassen — oder Freitext-Setup-Beschreibung je
+  Session. „Macht großen Unterschied, inspiriert andere Foiler." (Erweiterung Foil-/Session-Modell.)
+- **Garmin-Datenseiten-UX aufräumen** (Feedback Tom 2026-07-20): Screen-Konfiguration verwirrend
+  („weiß nicht wo ich bin"; Hinzufügen ersetzte den On-Foil-Screen durch 1/2/3), Feldbezeichnungen
+  unklar (was heißt welcher Wert) — FoilMotion sei übersichtlicher. On-Watch/Web-Konfig-UX überdenken.
+- **Session pausieren (Garmin)** (Feedback Tom 2026-07-20) — Aufnahme pausieren/fortsetzen können.
+- **Chat: Like/👍 für Beiträge** (Feedback Tom 2026-07-20) — Daumen-hoch auf Chat-Nachrichten.
+- **Pumps/min über die Web-Detail hinaus** (Feedback Tom + Laurent) — Toggle Hz↔Pumps/min gibt's jetzt
+  in der Web-Session-Detail; ggf. auch in Apps/Listen/Community anbieten. (Web-Detail erledigt 2026-07-20.)
+- **Upload-Speed Garmin→pumpfoil.org** (Feedback Tom 2026-07-20): dauert „ewig" vs. Garmin-Sync —
+  Chunk-Upload-Durchsatz/Parallelität prüfen. (R&D; BLE-Limit beachten.)
 - **Pump-Kadenz auch in Pumps/Minute** (Feedback Laurent 2026-07-20) — zusätzlich zur Hz-Anzeige
   (×60). Kleine Anzeige-Ergänzung (Web/Apps/Nerd-Seiten); `avg_cadence_hz` liegt vor.
 - **Start-Erfolgsquote** (Feedback Laurent, FoilMotion-inspiriert) — % erfolgreiche Starts vs.
@@ -108,6 +120,15 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Max-Speed: GPS-Ausreißer killen, 3-s-Max zeigen** (Feedback Tom Petr 2026-07-20, DECKT SICH mit
+  #367-Befund + Laurent): rohe GPS-Max-Speed zeigt Fantasiewerte (Tom: 102 km/h; Community-Rekord
+  „31,8 km/h auf Gong Sirius XXL" unrealistisch). Statt Roh-Max den **geglätteten 3-s-Max** als
+  Speed-Rekord nehmen (Uhr zeigt schon 3-s; Auswertung/Community-Records nach) + Positions-Ausreißer-
+  Filter beim Analysieren. Detektor/Analyse → Jans OK + Regression. **Wichtig, mehrfach gemeldet.**
+- **Android: Stats pro Lauf + Foil in Community** (Feedback Tom 2026-07-20): (a) in der Session-Detail
+  der App zeigt „einen Lauf auswählen" weiter die Gesamt-Stats (kein Puls/Kadenz je Lauf) — Web kann's,
+  App nicht → Parität. (b) In der Community-Liste der App fehlt das benutzte Foil (Web zeigt es). Beides
+  Android(/iOS)-Port.
 - **Uhr-Sprache: Geräte-Systemsprache als Default** (Feedback Laurent, 2026-07-20): Uhr-UI teils
   DE trotz englischer Erwartung. Befund: `watch/source/Strings.mc` ist vollständig EN (alle 60 Keys
   haben echten EN-Slot, keine hartcodierten DE-Texte) → Ursache ist die **Profil-Sprache**: ist sie
