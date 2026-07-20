@@ -11,6 +11,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 20, 2026",
     items: [
+      "Spot records on the Spots page: see which spot leads for sessions, runs, pumps, foilers, foiled distance, longest run, top speed and on-foil time — with your own spot compared alongside, over any time window.",
       "New Garmin activity type “Pumpfoil”: your recording can now show up as “Pumpfoil” in Garmin Connect instead of Surfing or Open Water — pick it in your profile under Watch.",
     ],
   },
