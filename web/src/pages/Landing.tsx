@@ -115,7 +115,7 @@ export default function Landing() {
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
                 rechts daneben der Titel (größer) + Social-Links darunter. */}
             <div className="mt-5 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
-              <div className="w-44 shrink-0 sm:w-52">
+              <div className="w-32 shrink-0 sm:w-36">
                 <div className="relative aspect-[7/8] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-lg">
                   {/* Schöner Standbild-Screenshot aus dem Video als Preview; öffnet den Short in
                       einem großen Overlay (Click-to-Load). YouTube-Logo mittig -> vor dem Klick
