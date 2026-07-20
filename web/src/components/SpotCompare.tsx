@@ -35,9 +35,13 @@ export function SpotCompare() {
   const [data, setData] = useState<SpotAgg[] | null>(null);
   const [sel, setSel] = useState("");   // Vergleichsspot (place_name)
 
+  // Beim Zeitfenster-Wechsel die alten Daten NICHT leeren (sonst klappt das Grid kurz auf „…"
+  // zusammen -> Layout-Sprung/Flackern). Nur ersetzen, sobald die neuen da sind; späte Antworten
+  // eines überholten Requests verwerfen.
   useEffect(() => {
-    setData(null);
-    api.spotCompare(period).then((r) => setData(r.spots)).catch(() => setData([]));
+    let alive = true;
+    api.spotCompare(period).then((r) => { if (alive) setData(r.spots); }).catch(() => { if (alive) setData([]); });
+    return () => { alive = false; };
   }, [period]);
 
   // Default-Vergleichsspot = Homespot (einmalig, sobald bekannt).
