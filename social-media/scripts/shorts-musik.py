@@ -11,9 +11,10 @@ Ordner (relativ zu social-media/):
                           musik/youtube/    nur YouTube (YT Audio Library Standard-Lizenz)
                           musik/instagram/  nur Instagram (Meta Sound Collection)
                           musik/alle/ oder musik/ direkt → beide (Pixabay, CC-BY, …)
-  shorts-mit-musik/     Ausgabe: <plattform>/<originalname>.mp4
-                        TikTok bekommt keine Variante — dort Musik beim Upload
-                        in der App hinzufügen (Lizenz gilt nur in-app).
+  shorts-mit-musik/     Ausgabe: youtube/ + instagram/ (mit Musik) und
+                        tiktok/ (ohne Musik, O-Ton pur — Musik wird dort
+                        beim Upload in der App hinzugefügt, Lizenz nur in-app);
+                        Overlay/Texte/Trim sind in allen drei identisch.
 
 Render: Video-Stream wird kopiert (kein Re-Encode), nur Audio wird neu gemischt:
 O-Ton unverändert + Musik mit wählbarem Pegel, 1 s Fade-in, 2 s Fade-out,
@@ -155,19 +156,33 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     dur = end - start
     trimmed = start > 0.01 or end < full - 0.01
     fade_out = max(0.001, min(fade_out, dur / 2))
-    music = (
-        f"volume={gain_db}dB,"
-        f"afade=t=in:d={min(FADE_IN, dur / 4):.3f},"
-        f"afade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
-    )
-    if has_audio(video):
-        fc = f"[1:a]{music}[m];[0:a][m]amix=inputs=2:duration=first:normalize=0[a]"
-    else:
-        fc = f"[1:a]{music}[a]"
     inputs = []
     if trimmed:
         inputs += ["-ss", f"{start:.3f}", "-to", f"{end:.3f}"]
-    inputs += ["-i", str(video), "-stream_loop", "-1", "-i", str(track)]
+    inputs += ["-i", str(video)]
+    n_inputs = 1
+    fc_parts = []
+    # Audio: mit Track → Musik über O-Ton mischen; ohne Track (TikTok) → O-Ton pur
+    if track is not None:
+        inputs += ["-stream_loop", "-1", "-i", str(track)]
+        n_inputs += 1
+        music = (
+            f"volume={gain_db}dB,"
+            f"afade=t=in:d={min(FADE_IN, dur / 4):.3f},"
+            f"afade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
+        )
+        if has_audio(video):
+            fc_parts.append(f"[1:a]{music}[m];"
+                            "[0:a][m]amix=inputs=2:duration=first:normalize=0[a]")
+        else:
+            fc_parts.append(f"[1:a]{music}[a]")
+        amap = ["-map", "[a]"]
+        acodec = ["-c:a", "aac", "-b:a", "192k"]
+    elif has_audio(video):
+        amap = ["-map", "0:a"]
+        acodec = ["-c:a", "copy"] if not trimmed else ["-c:a", "aac", "-b:a", "192k"]
+    else:
+        amap, acodec = [], []
     # Text-Overlays → drawtext-Kette (Zeiten beziehen sich aufs Original,
     # nach Trim verschiebt sich die Output-Zeitachse um -start)
     tmpfiles = []
@@ -194,23 +209,26 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     if overlay:
         w, h = video_dims(video)
         inputs += ["-i", str(overlay)]
-        fc += f";[2:v]scale={w}:{h}[ov];[0:v][ov]overlay=0:0:format=auto[vo]"
+        ov_idx = n_inputs
+        n_inputs += 1
+        fc_parts.append(f"[{ov_idx}:v]scale={w}:{h}[ov];"
+                        "[0:v][ov]overlay=0:0:format=auto[vo]")
         vsrc = "[vo]"
     if draw:
-        fc += ";" + vsrc + ",".join(draw) + "[v]"
+        fc_parts.append(vsrc + ",".join(draw) + "[v]")
         vmap, reencode = "[v]", True
     elif overlay:
-        fc = fc.replace("[vo]", "[v]")
+        fc_parts[-1] = fc_parts[-1].replace("[vo]", "[v]")
         vmap, reencode = "[v]", True
     else:
         vmap, reencode = "0:v", trimmed  # Schnitt braucht Re-Encode (Copy = nur Keyframes)
     vcodec = (["-c:v", "libx264", "-crf", "20", "-preset", "medium",
                "-pix_fmt", "yuv420p"] if reencode else ["-c:v", "copy"])
     out.parent.mkdir(parents=True, exist_ok=True)
+    fc = [] if not fc_parts else ["-filter_complex", ";".join(fc_parts)]
     cmd = [
         "ffmpeg", "-y", "-nostats", "-progress", "pipe:1", *inputs,
-        "-filter_complex", fc, "-map", vmap, "-map", "[a]",
-        *vcodec, "-c:a", "aac", "-b:a", "192k",
+        *fc, "-map", vmap, *amap, *vcodec, *acodec,
         "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out),
     ]
     try:
@@ -254,7 +272,8 @@ def name_prefix():
 def next_number():
     """Höchste Short-Nummer über alle relevanten Ordner + 1 (fortlaufend)."""
     n = 0
-    for d in (BASE / "shorts-fertig", OUT_DIR / "youtube", OUT_DIR / "instagram"):
+    for d in (BASE / "shorts-fertig", OUT_DIR / "youtube",
+              OUT_DIR / "instagram", OUT_DIR / "tiktok"):
         if d.is_dir():
             for p in d.iterdir():
                 m = NUM_RE.match(p.name)
@@ -302,7 +321,8 @@ def list_state():
                 "dur": track_duration(p),
             })
     rendered = {
-        v: [pf for pf in PLATFORMS if (OUT_DIR / pf / v).exists()] for v in videos
+        v: [pf for pf in (*PLATFORMS, "tiktok") if (OUT_DIR / pf / v).exists()]
+        for v in videos
     }
     overlays = sorted(
         p.name for p in OVERLAY_DIR.glob("*.png") if not p.name.startswith(".")
@@ -489,16 +509,18 @@ class Handler(BaseHTTPRequestHandler):
             except FileNotFoundError:
                 return self._json({"error": "Overlay nicht gefunden"}, 400)
         results = {}
-        for pf in PLATFORMS:
+        for pf in (*PLATFORMS, "tiktok"):
             rel = (req.get("tracks") or {}).get(pf)
-            if not rel:
+            if not rel and pf != "tiktok":
                 continue
             PROGRESS.update(active=True, label=pf, pct=0.0)
             try:
-                track = safe_child(MUSIC_DIR, rel)
-                if pf not in track_platforms(Path(rel)):
-                    raise ValueError(f"Track liegt nicht in einem für {pf} "
-                                     "erlaubten Ordner")
+                track = None  # tiktok: ohne Musik, O-Ton pur
+                if rel:
+                    track = safe_child(MUSIC_DIR, rel)
+                    if pf not in track_platforms(Path(rel)):
+                        raise ValueError(f"Track liegt nicht in einem für {pf} "
+                                         "erlaubten Ordner")
                 out = OUT_DIR / pf / out_name
                 render(video, track, out, gain, fade_out, overlay,
                        trim_start, trim_end, texts)
@@ -789,7 +811,7 @@ function renderVideoList(){
     n.appendChild(document.createTextNode(v.replace(/\.mp4$/,'')));
     for(const pf of state.rendered[v]||[]){
       const b=document.createElement('span');b.className='badge done';
-      b.textContent=pf==='youtube'?'YT':'IG';n.appendChild(b);
+      b.textContent={youtube:'YT',instagram:'IG',tiktok:'TT'}[pf]||pf;n.appendChild(b);
     }
     hdr.appendChild(n);
     d.appendChild(hdr);
@@ -997,7 +1019,7 @@ $('#renderBtn').onclick=async()=>{
       const p=await(await fetch('/api/progress')).json();
       if(p.active){
         $('#progFill').style.width=p.pct.toFixed(0)+'%';
-        $('#progTxt').textContent=(p.label==='youtube'?'YouTube':'Instagram')+' '+p.pct.toFixed(0)+' %';
+        $('#progTxt').textContent=({youtube:'YouTube',instagram:'Instagram',tiktok:'TikTok'}[p.label]||p.label)+' '+p.pct.toFixed(0)+' %';
       }
     }catch(e){}
   },400);
