@@ -160,6 +160,11 @@ export default function Landing() {
                     </svg>
                   </a>
                 </div>
+                {/* Verweis auf die Illmensee-Homepage (unser Haus-Spot). */}
+                <a href="https://www.illmensee.de/" target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-brand-300">
+                  <LocationIcon className="h-3.5 w-3.5" /> illmensee.de
+                </a>
               </div>
             </div>
 
