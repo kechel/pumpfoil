@@ -15,6 +15,7 @@ export interface N3 {
   glide: { h: string; p: string; li: string[]; cap: string };
   limits: { h: string; p: string };
   outlook: { h: string; p: string };
+  videorun: { h: string; p: string; cap: string };
 }
 
 const de: N3 = {
@@ -56,6 +57,12 @@ const de: N3 = {
   outlook: {
     h: "Wie es weitergeht",
     p: "Wir ändern jetzt **bewusst nichts** am Detektor, sondern verbessern **datengetrieben** — mit mehr Läufen (auch langen Glides), einer Board-Kamera (**Insta360 X5**) als visueller Wahrheit und den Daten der Nutzer auf pumpfoil.org. Genau so haben wir die Erkennung schon mehrfach nachgeschärft.",
+  },
+  videorun: {
+    h: "Weiterer Testlauf (Video)",
+    p:
+      "So sieht die Messung in echt aus: **an jeder Hand eine Uhr** und das **Handy am Board** als board-nahe Referenz. Der reine Handgelenk-Detektor deckt sich dabei gut mit der board-nahen Wahrheit (Pump-Zahl auf wenige Prozent genau). Wichtige Lehre: für eine **sekundengenaue** Ausrichtung mehrerer Geräte braucht es am Anfang einen bewussten **Sync-Impuls** (z. B. 3× kräftig aufs Board tippen) — die Systemzeit allein reicht nicht.",
+    cap: "Zwei Uhren am Handgelenk + Handy am Board — der Testlauf im Video",
   },
 };
 
@@ -99,6 +106,12 @@ const gsw: N3 = {
     h: "Wie's wiiter gaat",
     p: "Mer änderd jetz **bewusst nüt** am Detektor, sondern verbesseret **dategetriebe** — mit meh Läuf (au lange Glides), ere Board-Kamera (**Insta360 X5**) als visuelli Wahrheit und de Date vo de Nutzer uf pumpfoil.org. Genau so hend mer d Erkennig scho mehrmals nachgschärft.",
   },
+  videorun: {
+    h: "Wytere Teschtlauf (Video)",
+    p:
+      "So gseht d Mässig würklich us: **a jedere Hand e Uhr** und s **Händy am Board** as board-nahi Referänz. De reini Handglänk-Detektor deckt sich guet mit dere board-nahe Wahrheit (Pump-Zahl uf paar Prozänt gnau). Wichtigi Lehr: für e **sekundegnaui** Uusrichtig vo mehrere Geräte bruucht s am Aafang en bewusste **Sync-Impuls** (z. B. 3× chräftig ufs Board tippe) — d Systemziit ellei längt nöd.",
+    cap: "Zwei Uhre am Handglänk + Händy am Board — de Teschtlauf im Video",
+  },
 };
 
 const deAT: N3 = {
@@ -140,6 +153,12 @@ const deAT: N3 = {
   outlook: {
     h: "Wie es weitergeht",
     p: "Wir ändern jetzt **bewusst nichts** am Detektor, sondern verbessern **datengetrieben** — mit mehr Läufen (auch langen Glides), einer Board-Kamera (**Insta360 X5**) als visueller Wahrheit und den Daten der Nutzer auf pumpfoil.org. Genau so haben wir die Erkennung schon mehrfach nachgeschärft.",
+  },
+  videorun: {
+    h: "Weiterer Testlauf (Video)",
+    p:
+      "So schaut die Messung in echt aus: **an jeder Hand eine Uhr** und das **Handy am Board** als board-nahe Referenz. Der reine Handgelenk-Detektor deckt sich dabei gut mit der board-nahen Wahrheit (Pump-Zahl auf wenige Prozent genau). Wichtige Lehre: für eine **sekundengenaue** Ausrichtung mehrerer Geräte braucht es am Anfang einen bewussten **Sync-Impuls** (z. B. 3× kräftig aufs Board tippen) — die Systemzeit allein reicht nicht.",
+    cap: "Zwei Uhren am Handgelenk + Handy am Board — der Testlauf im Video",
   },
 };
 
@@ -183,6 +202,12 @@ const en: N3 = {
     h: "Where it goes from here",
     p: "We are **deliberately changing nothing** in the detector for now, but improving it **data-driven** — with more runs (including long glides), a board camera (**Insta360 X5**) as visual ground truth, and the data of the users on pumpfoil.org. That is exactly how we have sharpened the detection several times already.",
   },
+  videorun: {
+    h: "Another test run (video)",
+    p:
+      "Here's what the measurement looks like in practice: **a watch on each wrist** plus the **phone on the board** as a board-near reference. The pure wrist detector lines up well with the board-near truth (pump count within a few percent). Key lesson: aligning several devices to **within a second** needs a deliberate **sync tap** at the start (e.g. 3 firm taps on the board) — system time alone isn't enough.",
+    cap: "Two wrist watches + phone on the board — the test run on video",
+  },
 };
 
 const fr: N3 = {
@@ -224,6 +249,12 @@ const fr: N3 = {
   outlook: {
     h: "La suite",
     p: "Pour l'instant nous **ne changeons volontairement rien** au détecteur, mais l'améliorons **guidés par les données** — avec plus de runs (y compris de longues glisses), une caméra sur la planche (**Insta360 X5**) comme vérité visuelle, et les données des utilisateurs de pumpfoil.org. C'est exactement ainsi que nous avons déjà affiné la détection plusieurs fois.",
+  },
+  videorun: {
+    h: "Autre run de test (vidéo)",
+    p:
+      "Voici à quoi ressemble la mesure en vrai : **une montre à chaque poignet** et le **téléphone sur la planche** comme référence proche de la planche. Le détecteur au poignet seul colle bien à cette référence (nombre de pumps à quelques pour cent près). Leçon importante : aligner plusieurs appareils **à la seconde** demande un **top de synchro** délibéré au début (p. ex. 3 tapes fermes sur la planche) — l'heure système seule ne suffit pas.",
+    cap: "Deux montres au poignet + téléphone sur la planche — le run en vidéo",
   },
 };
 
@@ -267,6 +298,12 @@ const it: N3 = {
     h: "Come si prosegue",
     p: "Per ora **non cambiamo volutamente nulla** nel rilevatore, ma lo miglioriamo **guidati dai dati** — con più run (anche planate lunghe), una camera sulla tavola (**Insta360 X5**) come verità visiva, e i dati degli utenti su pumpfoil.org. È esattamente così che abbiamo già affinato il rilevamento più volte.",
   },
+  videorun: {
+    h: "Un altro test (video)",
+    p:
+      "Ecco com'è la misurazione dal vivo: **un orologio per polso** più il **telefono sulla tavola** come riferimento vicino alla tavola. Il rilevatore da polso combacia bene con questa verità (numero di pump entro pochi punti percentuali). Lezione chiave: allineare più dispositivi **al secondo** richiede un **impulso di sync** deliberato all'inizio (es. 3 colpi decisi sulla tavola) — l'ora di sistema da sola non basta.",
+    cap: "Due orologi ai polsi + telefono sulla tavola — il test in video",
+  },
 };
 
 const es: N3 = {
@@ -308,6 +345,12 @@ const es: N3 = {
   outlook: {
     h: "Cómo sigue",
     p: "Por ahora **no cambiamos nada a propósito** en el detector, sino que lo mejoramos **guiados por los datos** — con más runs (también planeos largos), una cámara en la tabla (**Insta360 X5**) como verdad visual, y los datos de los usuarios en pumpfoil.org. Así es exactamente como ya hemos afinado la detección varias veces.",
+  },
+  videorun: {
+    h: "Otra prueba (vídeo)",
+    p:
+      "Así se ve la medición en la práctica: **un reloj en cada muñeca** y el **móvil en la tabla** como referencia cercana a la tabla. El detector solo de muñeca coincide bien con esa referencia (número de pumps con pocos por ciento de diferencia). Lección clave: alinear varios dispositivos **al segundo** requiere un **impulso de sincronización** deliberado al inicio (p. ej. 3 golpes firmes en la tabla) — la hora del sistema por sí sola no basta.",
+    cap: "Dos relojes en las muñecas + móvil en la tabla — la prueba en vídeo",
   },
 };
 
@@ -351,6 +394,12 @@ const fi: N3 = {
     h: "Miten tästä eteenpäin",
     p: "Emme **tarkoituksella muuta mitään** tunnistimessa nyt, vaan parannamme sitä **datavetoisesti** — useammilla vedoilla (myös pitkillä liu'uilla), laudalla olevalla kameralla (**Insta360 X5**) visuaalisena totuutena ja pumpfoil.org-käyttäjien datalla. Juuri näin olemme jo useaan kertaan terävöittäneet tunnistusta.",
   },
+  videorun: {
+    h: "Toinen testiajo (video)",
+    p:
+      "Näin mittaus näyttää käytännössä: **kello molemmissa ranteissa** ja **puhelin laudalla** lauta­läheisenä referenssinä. Pelkkä rannedetektori vastaa hyvin tätä referenssiä (pumppausmäärä muutaman prosentin tarkkuudella). Tärkeä oppi: usean laitteen kohdistus **sekunnin tarkkuudella** vaatii alussa tietoisen **synkkaus­napautuksen** (esim. 3 napautusta lautaan) — pelkkä järjestelmäaika ei riitä.",
+    cap: "Kaksi ranne­kelloa + puhelin laudalla — testiajo videolla",
+  },
 };
 
 const nl: N3 = {
@@ -393,6 +442,12 @@ const nl: N3 = {
     h: "Hoe het verdergaat",
     p: "We veranderen nu **bewust niets** aan de detector, maar verbeteren **datagedreven** — met meer runs (ook lange glides), een board-camera (**Insta360 X5**) als visuele waarheid en de data van de gebruikers op pumpfoil.org. Precies zo hebben we de detectie al meermaals aangescherpt.",
   },
+  videorun: {
+    h: "Nog een testrun (video)",
+    p:
+      "Zo ziet de meting er in het echt uit: **een horloge om elke pols** en de **telefoon op de board** als board-nabije referentie. De pure pols-detector komt hier goed mee overeen (aantal pumps op een paar procent na). Belangrijke les: meerdere apparaten **op de seconde** uitlijnen vereist een bewuste **sync-tik** aan het begin (bijv. 3× stevig op de board tikken) — systeemtijd alleen is niet genoeg.",
+    cap: "Twee horloges om de pols + telefoon op de board — de testrun op video",
+  },
 };
 
 const cs: N3 = {
@@ -434,6 +489,12 @@ const cs: N3 = {
   outlook: {
     h: "Jak to půjde dál",
     p: "Na detektoru teď **záměrně nic neměníme**, ale zlepšujeme ho **na základě dat** — s více jízdami (i dlouhými klouzáními), s kamerou na prkně (**Insta360 X5**) jako vizuální pravdou a s daty uživatelů na pumpfoil.org. Přesně takhle jsme detekci už několikrát doostřili.",
+  },
+  videorun: {
+    h: "Další testovací jízda (video)",
+    p:
+      "Takto vypadá měření v praxi: **hodinky na každém zápěstí** a **telefon na prkně** jako referenci blízko prkna. Samotný zápěstní detektor s touto referencí dobře souhlasí (počet pumpů s odchylkou několika procent). Důležité ponaučení: zarovnat více zařízení **na sekundu** vyžaduje na začátku vědomý **synchronizační ťuk** (např. 3× pevně ťuknout do prkna) — samotný systémový čas nestačí.",
+    cap: "Dvoje hodinky na zápěstích + telefon na prkně — testovací jízda ve videu",
   },
 };
 

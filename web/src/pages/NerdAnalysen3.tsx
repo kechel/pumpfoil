@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FoilIcon } from "../components/Icons";
+import { ShortModal } from "../components/ShortModal";
 import { useI18n } from "../i18n";
 import { NERD3 } from "./nerd3.i18n";
 
@@ -46,9 +48,12 @@ function Fig({ src, caption }: { src: string; caption: string }) {
   );
 }
 
+const VIDEO_ID = "S85hOgmajb4";   // Doppeluhr + Board-Handy (YouTube-Short)
+
 export default function NerdAnalysen3() {
   const { lang } = useI18n();
   const c = NERD3[lang] ?? NERD3.de;
+  const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">
       <Link to="/nerd-analysen-2" className="text-sm text-brand-400 hover:underline">{c.back}</Link>
@@ -80,6 +85,25 @@ export default function NerdAnalysen3() {
       <Pr>{c.glide.p}</Pr>
       <List items={c.glide.li} />
       <Fig src="/nerd3/glide-sink.png" caption={c.glide.cap} />
+
+      <H>{c.videorun.h}</H>
+      <Pr>{c.videorun.p}</Pr>
+      <figure className="mx-auto my-5 max-w-xs overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+        {/* Click-to-Load: Thumbnail (same-origin Proxy) öffnet den Short im großen Overlay. */}
+        <button onClick={() => setVidOpen(true)} className="group relative block aspect-[9/16] w-full" aria-label={c.videorun.h}>
+          <img src={`/api/public/video-thumb/${VIDEO_ID}`} alt={c.videorun.cap} loading="lazy"
+            className="h-full w-full object-cover transition group-hover:scale-105" />
+          <span className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg">
+            <svg viewBox="0 0 68 48" className="h-11 w-auto" aria-hidden="true">
+              <path fill="#FF0000" d="M66.5 7.7c-.8-2.9-3-5.1-5.9-5.9C55.3.5 34 .5 34 .5S12.7.5 7.4 1.8C4.5 2.6 2.3 4.8 1.5 7.7.2 13 .2 24 .2 24s0 11 1.3 16.3c.8 2.9 3 5.1 5.9 5.9C12.7 47.5 34 47.5 34 47.5s21.3 0 26.6-1.3c2.9-.8 5.1-3 5.9-5.9C67.8 35 67.8 24 67.8 24s0-11-1.3-16.3z" />
+              <path fill="#fff" d="M27 34l18-10-18-10z" />
+            </svg>
+          </span>
+        </button>
+        <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.videorun.cap}</figcaption>
+      </figure>
+      {vidOpen && <ShortModal id={VIDEO_ID} title={c.videorun.h} onClose={() => setVidOpen(false)} />}
 
       <H>{c.limits.h}</H>
       <Pr>{c.limits.p}</Pr>
