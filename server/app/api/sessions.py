@@ -1302,6 +1302,78 @@ def get_raw(
     )
 
 
+def _bearing_sum(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int) -> float:
+    """Summe der (vorzeichenbehafteten) Kursänderung zwischen Koord i0..i1 in Grad (R=+/L=−)."""
+    if i1 - i0 < 2:
+        return 0.0
+    la = np.radians(lat[i0:i1 + 1]); lo = np.radians(lon[i0:i1 + 1])
+    dlon = lo[1:] - lo[:-1]
+    y = np.sin(dlon) * np.cos(la[1:])
+    x = np.cos(la[:-1]) * np.sin(la[1:]) - np.sin(la[:-1]) * np.cos(la[1:]) * np.cos(dlon)
+    brg = np.degrees(np.arctan2(y, x))
+    d = np.diff(brg)
+    d = (d + 180.0) % 360.0 - 180.0   # auf [-180,180]
+    return float(np.nansum(d))
+
+
+@router.get("/{session_id}/carves")
+def get_carves(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Carve-Erkennung aus dem 25-Hz-Accel (getrenntes Modell, read-only — KEINE Pipeline-/DB-
+    Änderung, NICHT in Rekorde/Stats). Carve = Zentripetal-g ≥0,5 g über ≥0,5 s. Rückgabe:
+    Zentripetal-g je Track-Punkt (fürs Einfärben, Kurvenlage), Carve-Liste + Grad-Buckets
+    (Carve-Fenster × GPS-Richtungsänderung)."""
+    s = _readable(db, session_id)
+    empty = {"g": [], "carves": [], "counts": {"s": 0, "m": 0, "l": 0}}
+    gps = storage.load_gps(s.session_uuid)
+    accel = storage.load_accel(s.session_uuid)
+    hz = float(s.accel_hz or 25)
+    if accel.shape[0] < hz or not gps:
+        return empty
+    a = accel.astype(np.float64) / float(s.accel_scale or 2048)   # (N,3) in g
+    w = max(1, int(round(0.6 * hz)))                              # 0,6-s-Lowpass des Vektors
+    ker = np.ones(w) / w
+    sv = np.stack([np.convolve(a[:, i], ker, mode="same") for i in range(3)], axis=1)
+    cg = np.sqrt(np.clip((sv ** 2).sum(axis=1) - 1.0, 0.0, None))  # Zentripetal-g (Gravitation raus)
+
+    t_ms = np.array([int(r[0]) for r in gps], dtype=np.float64)
+    lat = np.array([float(r[1]) if len(r) > 1 and r[1] is not None else np.nan for r in gps])
+    lon = np.array([float(r[2]) if len(r) > 2 and r[2] is not None else np.nan for r in gps])
+    ai = np.clip((t_ms / 1000.0 * hz).astype(int), 0, cg.size - 1)
+    g_coord = cg[ai]                                              # Zentripetal-g je Track-Punkt
+
+    THR, need = 0.5, int(round(0.5 * hz))
+    carves: list[dict] = []
+    mask = cg >= THR
+    i = 0
+    while i < mask.size:
+        if mask[i]:
+            j = i
+            while j < mask.size and mask[j]:
+                j += 1
+            if j - i >= need:
+                c0 = int(np.searchsorted(t_ms, i / hz * 1000.0))
+                c1 = int(np.searchsorted(t_ms, j / hz * 1000.0))
+                c0 = max(0, min(c0, len(t_ms) - 1)); c1 = max(c0, min(c1, len(t_ms) - 1))
+                # Kurze Carves = 1–2 GPS-Punkte -> Drehung über ein etwas breiteres Fenster
+                # (±2 Punkte) messen, sonst ist die GPS-Rotation ~0.
+                rot = _bearing_sum(lat, lon, max(0, c0 - 2), min(len(t_ms) - 1, c1 + 2))
+                mag = abs(rot)
+                bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
+                carves.append({"i0": c0, "i1": c1, "peak_g": round(float(cg[i:j].max()), 2),
+                               "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
+            i = j
+        else:
+            i += 1
+    counts = {"s": 0, "m": 0, "l": 0}
+    for cv in carves:
+        counts[cv["bucket"]] += 1
+    return {"g": [round(float(x), 2) for x in g_coord], "carves": carves, "counts": counts}
+
+
 @router.get("/{session_id}/labels", response_model=list[LabelOut])
 def list_labels(
     session_id: int,

@@ -206,6 +206,14 @@ export interface RecordSet {
 
 export type CommunityRecords = Record<string, RecordSet>;
 
+// Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
+// carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
+export interface CarveData {
+  g: number[];   // Zentripetal-g je Track-Punkt (0 = keine Kurvenlage)
+  carves: { i0: number; i1: number; peak_g: number; rot: number; dir: "L" | "R"; bucket: "s" | "m" | "l" }[];
+  counts: { s: number; m: number; l: number };
+}
+
 // Einzel-Rekord je Spot (von einer Session/einem Lauf gewonnen -> mit Rekordhalter).
 export interface SpotRecHolder {
   value: number;
@@ -626,6 +634,8 @@ export const api = {
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}`),
   spotCompare: (period = "all", accelOnly = false) =>
     req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
+  sessionCarves: (id: number) =>
+    req<CarveData>(`/api/sessions/${id}/carves`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);
