@@ -1374,7 +1374,20 @@ def get_carves(
                     bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
                     carves.append({"i0": a0, "i1": a1, "peak_g": peak,
                                    "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
-                    g_out[a0:a1 + 1] = peak                        # ganzen Bogen nach Spitzen-g einfärben
+                    # Verlauf statt Einheitsfarbe: jedes GPS-Segment [k-1,k] bekommt sein eigenes g
+                    # (lokales Max über die ~25 Accel-Samples dazwischen). Die Karte färbt Segment
+                    # k-1→k nach g_out[k], deshalb das Fenster t_ms[k-1]..t_ms[k].
+                    ks = np.arange(a0, a1 + 1)
+                    seg = np.array([
+                        cg[max(0, min(int((t_ms[k - 1] if k > 0 else t_ms[k]) / 1000.0 * hz), cg.size - 1)):
+                           max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1)) + 1].max()
+                        for k in ks])
+                    # Ränder des Bogens haben echtes g≈0 -> Null-Segmente aus den Nachbarn
+                    # interpolieren (durchgängiger Bogen) + Mindestwert 0,3 (dunkelblau, sichtbar).
+                    nz = seg > 0.05
+                    if nz.any():
+                        seg = np.interp(np.arange(seg.size), np.flatnonzero(nz), seg[nz])
+                    g_out[a0:a1 + 1] = np.maximum(seg, 0.3)
             i = j
         else:
             i += 1
