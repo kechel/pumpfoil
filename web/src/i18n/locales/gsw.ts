@@ -429,6 +429,7 @@ const gsw: Record<string, string> = {
   "land.ctaSecondary": "Ich ha es Konto",
   "land.heroTitle": "Pump-Foiling ufzeichne und uswerte",
   "land.heroSub": "Pumpfoil verbindet dini Uhr mit ere detaillierte Analyse: GPS-Track, Foiling-Distanz, Pump-Frequänz und Gleitphase — automatisch us jedere Session.",
+  "land.illmenseeTitle": "Üse schöne Illmensee",
   "land.videosTitle": "Pumpfoil in Aktion",
   "land.videosBody": "Clips vo eusem YouTube-Kanal — echts Pumpe, echte Glide.",
   "land.videosChannel": "Zum YouTube-Kanal →",

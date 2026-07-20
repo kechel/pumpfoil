@@ -389,6 +389,7 @@ const deAT: Record<string, string> = {
   "land.ctaSecondary": "I hob scho a Konto",
   "land.heroTitle": "Pump-Foiling aufzeichnen und auswertn",
   "land.heroSub": "Pumpfoil verbindt dei Uhr mit detaillierter Analyse: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen — automatisch aus jeder Session.",
+  "land.illmenseeTitle": "Unser schöner Illmensee",
   "land.whatTitle": "Wos is Pumpfoil?",
   "land.whatBody": "Pump-Foiling heißt: aufm Hydrofoil ohne Wind, Welln oder Motor unterwegs — du hoitest di allan durch rhythmisches Pumpen obn. Pumpfoil zeichnet die Sessions mit da Uhr auf und macht sichtbar, wia laung'st foilst, wia effizient'st pumpst und wo'st fahrst.",
   "land.watchTitle": "Direkt auf da Uhr",

@@ -509,6 +509,7 @@ const fr: Record<string, string> = {
   "land.ctaSecondary": "J'ai un compte",
   "land.heroTitle": "Enregistrez et analysez votre pump foil",
   "land.heroSub": "Pumpfoil relie votre montre à une analyse détaillée : tracé GPS, distance en foil, cadence de pompage et phases de glisse — automatiquement à chaque session.",
+  "land.illmenseeTitle": "Notre bel Illmensee",
   "land.videosTitle": "Pumpfoil en action",
   "land.videosBody": "Clips de notre chaîne YouTube — du vrai pumping, du vrai glide.",
   "land.videosChannel": "Voir la chaîne YouTube →",

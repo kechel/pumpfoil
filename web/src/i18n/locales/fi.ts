@@ -772,6 +772,7 @@ const fi: Record<string, string> = {
   "land.ctaSecondary": "Minulla on tili",
   "land.heroTitle": "Tallenna ja analysoi pump-foilaus",
   "land.heroSub": "Pumpfoil yhdistää kellosi yksityiskohtaiseen analyysiin: GPS-track, foiling-matka, pumppaustaajuus ja liukuvaiheet — automaattisesti jokaisesta sessiosta.",
+  "land.illmenseeTitle": "Kaunis Illmensee-järvemme",
   "land.videosTitle": "Pumpfoil toiminnassa",
   "land.videosBody": "Klippejä YouTube-kanavaltamme — aitoa pumppausta, aitoa glidea.",
   "land.videosChannel": "YouTube-kanavalle →",

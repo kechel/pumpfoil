@@ -507,6 +507,7 @@ const es: Record<string, string> = {
   "land.ctaSecondary": "Ya tengo cuenta",
   "land.heroTitle": "Registra y analiza tu pump foil",
   "land.heroSub": "Pumpfoil conecta tu reloj con un análisis detallado: ruta GPS, distancia en foil, cadencia de bombeo y fases de planeo — automáticamente en cada sesión.",
+  "land.illmenseeTitle": "Nuestro bonito Illmensee",
   "land.videosTitle": "Pumpfoil en acción",
   "land.videosBody": "Clips de nuestro canal de YouTube — pumping de verdad, glide de verdad.",
   "land.videosChannel": "Ir al canal de YouTube →",

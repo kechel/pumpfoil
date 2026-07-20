@@ -804,6 +804,7 @@ const de: Record<string, string> = {
   "land.ctaSecondary": "Ich habe ein Konto",
   "land.heroTitle": "Pump-Foiling aufzeichnen und auswerten",
   "land.heroSub": "Pumpfoil verbindet deine Uhr mit detaillierter Analyse: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen — automatisch aus jeder Session.",
+  "land.illmenseeTitle": "Unser schöner Illmensee",
   "land.videosTitle": "Pumpfoil in Aktion",
   "land.videosBody": "Clips von unserem YouTube-Kanal — echtes Pumpen, echter Glide.",
   "land.videosChannel": "Zum YouTube-Kanal →",

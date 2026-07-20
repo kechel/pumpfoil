@@ -804,6 +804,7 @@ const nl: Record<string, string> = {
   "land.ctaSecondary": "Ik heb een account",
   "land.heroTitle": "Pumpfoilen opnemen en analyseren",
   "land.heroSub": "Pumpfoil verbindt je horloge met gedetailleerde analyse: GPS-track, foiling-afstand, pompfrequentie en glijfases — automatisch uit elke sessie.",
+  "land.illmenseeTitle": "Ons mooie Illmensee",
   "land.videosTitle": "Pumpfoil in actie",
   "land.videosBody": "Clips van ons YouTube-kanaal — echt pompen, echte glide.",
   "land.videosChannel": "Naar het YouTube-kanaal →",

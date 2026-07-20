@@ -804,6 +804,7 @@ const cs: Record<string, string> = {
   "land.ctaSecondary": "Mám účet",
   "land.heroTitle": "Zaznamenej a vyhodnoť pump-foiling",
   "land.heroSub": "Pumpfoil spojuje tvé hodinky s detailní analýzou: GPS trasa, vzdálenost foilingu, frekvence pumpování a fáze klouzání — automaticky z každé relace.",
+  "land.illmenseeTitle": "Naše krásné jezero Illmensee",
   "land.videosTitle": "Pumpfoil v akci",
   "land.videosBody": "Klipy z našeho YouTube kanálu — skutečné pumpování, skutečný glide.",
   "land.videosChannel": "Na YouTube kanál →",
