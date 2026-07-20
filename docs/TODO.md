@@ -48,6 +48,13 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 - (Suunto ✅ live, Polar ✅ AccessLink live, Garmin-FIT-Import wartet auf Garmins Formular.)
 
 ## 💡 Backlog (Produktideen — bewusst später)
+- **Pump-Kadenz auch in Pumps/Minute** (Feedback Laurent 2026-07-20) — zusätzlich zur Hz-Anzeige
+  (×60). Kleine Anzeige-Ergänzung (Web/Apps/Nerd-Seiten); `avg_cadence_hz` liegt vor.
+- **Start-Erfolgsquote** (Feedback Laurent, FoilMotion-inspiriert) — % erfolgreiche Starts vs.
+  Gesamt-Startversuche. Braucht Startversuch-Erkennung (verwandt mit Paddle-Up-/Attempts-Erkennung).
+  R&D/Detektor → Jans OK.
+- **Rechts-/Links-Turns zählen** (Feedback Laurent, FoilMotion-inspiriert) — aus GPS-Kurs (evtl.
+  Gyro, sofern via FIT verfügbar). R&D/Detektor → Jans OK.
 - **„Wer foilt jetzt gerade?"** — laufende Sessions live (braucht Live-Upload während der Session +
   Privacy-Opt-in). Groß.
 - **Kommentar-Auto-Übersetzung** in die Sprache des Lesers (auf Knopfdruck, Übersetzungen cachen).
@@ -101,6 +108,14 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Uhr-Sprache: Geräte-Systemsprache als Default** (Feedback Laurent, 2026-07-20): Uhr-UI teils
+  DE trotz englischer Erwartung. Befund: `watch/source/Strings.mc` ist vollständig EN (alle 60 Keys
+  haben echten EN-Slot, keine hartcodierten DE-Texte) → Ursache ist die **Profil-Sprache**: ist sie
+  nicht explizit gesetzt, liefert `/api/devices/config` `language="de"` (Default) → Uhr fällt auf DE.
+  Verbesserung: wenn keine explizite Profil-Sprache, die **Geräte-Systemsprache**
+  (`System.getDeviceSettings().systemLanguage`) auf unsere 7 Uhr-Codes (de/gsw/de-AT/en/fr/it/es)
+  mappen statt hart „de". Sofort-Workaround für Nutzer: Profil-Sprache auf pumpfoil.org auf Englisch
+  stellen. (Watch unterstützt nur 7 Sprachen; fi/nl/cs fallen ohnehin auf EN/DE.)
 - **FIT-Import: record-Level-IMU (accel_xyz/gyro_xyz/mag_xyz) lesen** (Befund 2026-07-19, FoilMotion-FIT
   von Markus). Aktuell liest `fitimport.parse_fit_bytes` Accel nur aus `accelerometer_data`-Messages
   (SensorLogging). FoilMotion & Co. schreiben die IMU aber als **Developer-Felder pro `record`** →
