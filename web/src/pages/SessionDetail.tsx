@@ -850,9 +850,8 @@ export default function SessionDetail() {
           const [lo, hi] = pumpRange;
           color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6));
         } else if (colorMode === "turns") {
-          // Kurvenlage: Zentripetal-g je Punkt (blau 0,5 → weiß 1 → rot 2), <0,5 g gedämpft.
-          const gg = carveData?.g[i + 1];
-          color = gg != null ? carveColor(gg) : "#334155";
+          // Basis-Track dezent grau — die Carves kommen als feine 25-Hz-Bögen darüber (unten).
+          color = "#334155";
         } else {
           const v = hr[i + 1];
           const [lo, hi] = hrRange;
@@ -893,6 +892,16 @@ export default function SessionDetail() {
           }).addTo(lg);
       }
     });
+    // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
+    // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
+    if (colorMode === "turns" && carveData?.arcs) {
+      for (const arc of carveData.arcs) {
+        for (let k = 0; k < arc.length - 1; k++) {
+          L.polyline([[arc[k][0], arc[k][1]], [arc[k + 1][0], arc[k + 1][1]]],
+            { color: carveColor(arc[k + 1][2]), weight: 6, opacity: 0.98 }).addTo(lg);
+        }
+      }
+    }
     // Zoom NUR bei echtem Laufwechsel — nicht bei jedem Redraw (Farben/Skala), sonst wird die
     // laufende fitBounds-Animation neu gestartet und ruckelt am Ende.
     if (selectedRun != null && segs[selectedRun] && lastFitRun.current !== selectedRun) {

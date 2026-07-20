@@ -1316,6 +1316,15 @@ def _bearing_sum(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int) -> float:
     return float(np.nansum(d))
 
 
+def _catmull(p0: float, p1: float, p2: float, p3: float, t: float) -> float:
+    """Catmull-Rom-Spline zwischen p1 und p2 (Nachbarn p0/p3), t∈[0,1]. Interpoliert
+    exakt durch p1/p2 (läuft durch die GPS-Punkte), C¹-glatt — glättet die Bahn ohne
+    sie von den Messpunkten wegzuziehen."""
+    t2 = t * t; t3 = t2 * t
+    return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+                  + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+
+
 @router.get("/{session_id}/carves")
 def get_carves(
     session_id: int,
@@ -1350,6 +1359,7 @@ def get_carves(
 
     THR, need, MIN_ROT = 0.3, int(round(0.5 * hz)), 90.0
     carves: list[dict] = []
+    arcs: list[list] = []                                        # feine 25-Hz-Polylinien je Carve
     mask = cg >= THR
     i = 0
     while i < mask.size:
@@ -1388,13 +1398,35 @@ def get_carves(
                     if nz.any():
                         seg = np.interp(np.arange(seg.size), np.flatnonzero(nz), seg[nz])
                     g_out[a0:a1 + 1] = np.maximum(seg, 0.3)
+                    # Feine Polylinie: jedes GPS-Segment auf die ~25 Accel-Samples unterteilen
+                    # (lat/lon linear interpoliert, g aus dem 25-Hz-Zentripetal). Ergebnis =
+                    # Verlauf FEINER als der GPS-Punkt-Abstand. Mindest-g 0,3 (durchgängig sichtbar).
+                    arc: list = []
+                    nlast = len(t_ms) - 1
+                    for k in range(a0, a1):
+                        s0 = max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
+                        s1 = max(s0, min(int(t_ms[k + 1] / 1000.0 * hz), cg.size - 1))
+                        m = max(1, s1 - s0)
+                        # Catmull-Rom-Nachbarn (an den Rändern geklemmt).
+                        la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
+                        lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
+                        for p in range(m):
+                            f = p / m
+                            arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
+                                        round(_catmull(lo0, lo1, lo2, lo3, f), 6),
+                                        round(max(float(cg[s0 + p]), 0.3), 2)])
+                    sN = max(0, min(int(t_ms[a1] / 1000.0 * hz), cg.size - 1))
+                    arc.append([round(float(lat[a1]), 6), round(float(lon[a1]), 6),
+                                round(max(float(cg[sN]), 0.3), 2)])
+                    arcs.append(arc)
             i = j
         else:
             i += 1
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
         counts[cv["bucket"]] += 1
-    return {"g": [round(float(x), 2) for x in g_out], "carves": carves, "counts": counts}
+    return {"g": [round(float(x), 2) for x in g_out], "carves": carves,
+            "arcs": arcs, "counts": counts}
 
 
 @router.get("/{session_id}/labels", response_model=list[LabelOut])

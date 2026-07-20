@@ -209,8 +209,9 @@ export type CommunityRecords = Record<string, RecordSet>;
 // Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
 // carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
 export interface CarveData {
-  g: number[];   // Zentripetal-g je Track-Punkt (0 = keine Kurvenlage)
+  g: number[];   // Zentripetal-g je Track-Punkt (0 = keine Kurvenlage) — grobe Fallback-Färbung
   carves: { i0: number; i1: number; peak_g: number; rot: number; dir: "L" | "R"; bucket: "s" | "m" | "l" }[];
+  arcs: [number, number, number][][];  // feine 25-Hz-Polylinie je Carve: [lat, lon, g] auf Catmull-Rom
   counts: { s: number; m: number; l: number };
 }
 
