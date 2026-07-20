@@ -11,7 +11,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 20, 2026",
     items: [
-      "Bugfix for older Garmin watches (e.g. fēnix 5): recording could crash on start. If you ran into this, update the watch app to 1.0.57 or later.",
+      "Garmin watch stability fixes: recording could crash on start on older watches (e.g. fēnix 5), and the upload screen could crash when the phone connection dropped in and out. Update the watch app to 1.0.59 or later.",
       "Spot records on the Spots page: see which spot leads for sessions, runs, pumps, foilers, foiled distance, longest run, top speed and on-foil time — with your own spot compared alongside, over any time window.",
       "New Garmin activity type “Pumpfoil”: your Garmin recordings now show up in Garmin Connect as “Pumpfoil” instead of Surfing or Open Water — set as the default for everyone. Prefer Surfing or Open Water? Change it anytime under Profile → Watch → Activity type.",
     ],
