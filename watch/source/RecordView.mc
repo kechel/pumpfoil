@@ -154,6 +154,12 @@ class RecordView extends WatchUi.View {
         var titleH = dc.getFontHeight(Graphics.FONT_MEDIUM);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, titleY + titleH + 2, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        // Update-Hinweis: kurz nach App-Start einblenden, wenn der Server eine neuere IQ-Store-
+        // Version meldet (Config-Abruf setzt updateHintUntilMs). Ganz oben, brand-cyan.
+        if (_rec.updateAvailable && System.getTimer() < _rec.updateHintUntilMs) {
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("upd.store"), Graphics.TEXT_JUSTIFY_CENTER);
+        }
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
         // Aufzeichnungsrate hinten dran (Config-Check: 25 Hz / 10 Hz / GPS).
         var rl = _rec.recordRateLabel();

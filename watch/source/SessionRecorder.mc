@@ -65,6 +65,9 @@ class SessionRecorder {
     // Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): "surfing" = Surfen |
     // "openwater" = Freiwasserschwimmen. Von der Website konfigurierbar (via /config).
     var activityType = "surfing";
+    // Update-Hinweis: Server meldet die neueste im IQ-Store freigegebene Version.
+    var updateAvailable = false;     // neuere App-Version im Store verfügbar (aus /config)
+    var updateHintUntilMs = 0;       // System.getTimer()-Zeit, bis der Hinweis eingeblendet wird
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
@@ -401,6 +404,13 @@ class SessionRecorder {
                 offFoilView = _normView(data["offFoilView"]);
                 _store("offfoil_config", offFoilView);
             }
+            // Update-Hinweis: neuere im IQ-Store freigegebene Version als unsere? -> kurz einblenden.
+            if (data.hasKey("latestVersion") && data["latestVersion"] != null) {
+                if (_versionNewer(data["latestVersion"], Config.VERSION)) {
+                    updateAvailable = true;
+                    updateHintUntilMs = System.getTimer() + 5000;   // ~5 s einblenden
+                }
+            }
             initAlarmSelection();   // Default-Foil/Website vorauswählen (Start-Screen)
             _presetsApplied = true; // ab jetzt behalten on-watch-Änderungen Vorrang (bis App-Neustart)
             WatchUi.requestUpdate();
@@ -408,6 +418,34 @@ class SessionRecorder {
             // Teil-Config evtl. übernommen; Rest ignorieren — kein Crash.
           }
         }
+    }
+
+    // Versionsvergleich "x.y.z": true, wenn a NEUER als b ist. Null-/Format-sicher.
+    hidden function _versionNewer(a, b) as Lang.Boolean {
+        if (!(a instanceof Lang.String) || !(b instanceof Lang.String)) { return false; }
+        var pa = _parseVer(a);
+        var pb = _parseVer(b);
+        for (var i = 0; i < 3; i++) {
+            if (pa[i] != pb[i]) { return pa[i] > pb[i]; }
+        }
+        return false;
+    }
+
+    hidden function _parseVer(s as Lang.String) as Lang.Array {
+        var parts = [0, 0, 0];
+        var seg = 0;
+        var cur = 0;
+        for (var i = 0; i < s.length(); i++) {
+            var ch = s.substring(i, i + 1);
+            if (ch.equals(".")) {
+                if (seg < 2) { parts[seg] = cur; seg++; cur = 0; }
+            } else {
+                var d = ch.toNumber();
+                if (d != null) { cur = cur * 10 + d; }
+            }
+        }
+        parts[seg] = cur;
+        return parts;
     }
 
     // Auto-Alarm eines gewählten Foils für die Session setzen (min/max in km/h).

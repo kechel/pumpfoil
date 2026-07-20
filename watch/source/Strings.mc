@@ -38,6 +38,7 @@ module Strings {
         _T = {
         // Start-/GPS-/Stop-Screen
         "gps.ready"      => ["GPS bereit", "GPS bereit", "GPS bereit", "GPS ready", "GPS prêt", "GPS pronto", "GPS listo"],
+        "upd.store"      => ["Update im Store", "Update im Store", "Update im Store", "Update in store", "Màj dispo", "Aggiornamento", "Actualización"],
         "auto.short"     => ["Auto-Start", "Auto-Start", "Auto-Start", "auto-start", "auto-départ", "avvio auto", "inicio auto"],
         "gps.searching"  => ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…"],
         "gps.searchBig"  => ["GPS wird gesucht", "GPS wird gsuecht", "GPS wird gesucht", "Searching GPS", "Recherche GPS", "Ricerca GPS", "Buscando GPS"],

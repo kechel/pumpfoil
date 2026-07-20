@@ -46,6 +46,13 @@ _APP_META: dict[str, dict[str, str]] = {
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
+    "garmin": {
+        # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Prüfung durch)!
+        # Leer = kein Update-Hinweis auf der Uhr. Die Garmin-App vergleicht das mit Config.VERSION.
+        "latest": "",
+        "min_supported": "",
+        "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
+    },
 }
 
 

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from .. import models
+from .appmeta import _APP_META
 from ..config import get_settings
 from ..db import get_db
 from ..ratelimit import rate_limit
@@ -116,6 +117,10 @@ def device_config(
         # Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird):
         # Default Uhrzeit + letzter-Lauf-Distanz + letzter-Lauf-Dauer (Feld-IDs).
         "offFoilView": settings.get("off_foil_view") or [12, 17, 16],
+        # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
+        # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
+        # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
+        "latestVersion": (_APP_META["garmin"]["latest"] if (p or device.platform) == "garmin" else ""),
     }
 
 
