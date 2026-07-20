@@ -193,6 +193,20 @@ class SessionSyncJob {
         };
     }
 
+    // makeWebRequest defensiv: bei kaputtem BT-/Netz-Zustand (z. B. schnelles An/Aus im
+    // Upload-Screen) kann makeWebRequest SYNCHRON eine Exception werfen. Aus einem Timer-/
+    // Callback-Pfad (Watchdog/Reconnect) heraus wäre das ein ungefangener Fehler -> App-Crash
+    // (IQ!). Abfangen, als offline werten, den Lauf sauber beenden (Daten bleiben gepuffert,
+    // nächster Sync macht weiter).
+    hidden function _web(url, params, opts, cb) as Void {
+        try {
+            Communications.makeWebRequest(url, params, opts, cb);
+        } catch (e) {
+            Uploader.noteResult(-1);
+            Uploader.sessionDone();
+        }
+    }
+
     function begin() as Void {
         if (!(_meta instanceof Lang.Dictionary)) {
             _removeFromIndex();           // kein Meta -> nichts hochzuladen
@@ -212,7 +226,7 @@ class SessionSyncJob {
                 Uploader.sessionDone(); return;
             }
             _phase = :pair;
-            Communications.makeWebRequest(
+            _web(
                 Config.baseUrl() + "/api/devices/pair",
                 { "code" => code },
                 {
@@ -243,7 +257,7 @@ class SessionSyncJob {
     // erneut hochzuladen. Sonst regulär hochladen.
     hidden function _checkStatus() as Void {
         _phase = :status;
-        Communications.makeWebRequest(
+        _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/status",
             {},
             _optsGet(),
@@ -269,7 +283,7 @@ class SessionSyncJob {
 
     hidden function _startSession() as Void {
         _phase = :start;
-        Communications.makeWebRequest(
+        _web(
             Config.baseUrl() + "/api/ingest/session",
             _meta,
             _opts(),
@@ -331,7 +345,7 @@ class SessionSyncJob {
             :fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY,
             :toRepresentation => StringUtil.REPRESENTATION_STRING_BASE64
         });
-        Communications.makeWebRequest(
+        _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
             { "index" => i, "kind" => "accel", "encoding" => "int16-b64", "data" => b64 },
             _opts(),
@@ -341,7 +355,7 @@ class SessionSyncJob {
 
     hidden function _sendGps(i as Lang.Number, gdata) as Void {
         _pendingKind = "gps"; _pendingIdx = i; _idx = i + 1;
-        Communications.makeWebRequest(
+        _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
             { "index" => i, "kind" => "gps", "encoding" => "json", "data" => gdata },
             _opts(),
@@ -354,7 +368,7 @@ class SessionSyncJob {
     // verwaiste Sessions ohne sauberen Stopp), sonst hingen die in einer /analyze-Endlosschleife.
     hidden function _finalize() as Void {
         _phase = :complete;
-        Communications.makeWebRequest(
+        _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
             { "total_chunks" => _gpsTotal },
             _opts(),
@@ -447,14 +461,15 @@ class RetryWatch {
         var reconnected = conn && !_wasConnected;
         _wasConnected = conn;
 
+        // syncAll defensiv: im Timer-Callback darf NICHTS ungefangen werfen (sonst IQ!-Crash).
         if (reconnected) {          // Telefon wieder da -> sofort frischer Versuch (Backoff neu)
             _idx = 0;
-            Uploader.syncAll();     // Lauf-Ende plant via arm() den nächsten Schritt
+            try { Uploader.syncAll(); } catch (e) {}   // Lauf-Ende plant via arm() den nächsten Schritt
             return;
         }
         if (_idx < Uploader.BACKOFF.size()) {   // nächster Backoff-Versuch (3 -> 10 -> 30 s)
             _idx += 1;
-            Uploader.syncAll();     // offline: schlägt schnell fehl -> danach nächster Schritt
+            try { Uploader.syncAll(); } catch (e) {}   // offline: schlägt schnell fehl -> danach nächster
             return;
         }
         // Backoff erschöpft: aktive Versuche pausieren, nur noch auf Reconnect lauschen.
