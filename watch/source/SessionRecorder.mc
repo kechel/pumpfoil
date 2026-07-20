@@ -533,15 +533,22 @@ class SessionRecorder {
         //    "Pumpfoil" als Aktivitätstyp (wie FoilMotion), behält aber die Wasser-Kategorie.
         //  - "openwater": Freiwasserschwimmen.
         //  - sonst: Surfen.
-        var sessOpts;
+        // WICHTIG: Sport-/SubSport-Konstanten per `has` PRÜFEN, bevor wir sie referenzieren —
+        // alte Geräte (z. B. fēnix 5) kennen SPORT_GENERIC/SUB_SPORT_OPEN_WATER u. U. nicht;
+        // ein direkter Zugriff wirft "Symbol Not Found" schon BEIM AUFBAU des Literals (nicht per
+        // try/catch fangbar). Fehlt ein Symbol -> Feld weglassen (createSession nimmt Default).
+        // So generisch für ALLE Geräte, ohne Pro-Gerät-Sportartenliste.
+        var sessOpts = { :name => "Pumpfoil" };
+        var owSub = (Activity has :SUB_SPORT_OPEN_WATER) ? Activity.SUB_SPORT_OPEN_WATER : null;
         if (activityType.equals("pumpfoil")) {
-            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_GENERIC,
-                         :subSport => Activity.SUB_SPORT_OPEN_WATER };
+            // SPORT_GENERIC == 0 (FIT-Standard); fehlt das Symbol, den Zahlenwert nehmen.
+            sessOpts[:sport] = (Activity has :SPORT_GENERIC) ? Activity.SPORT_GENERIC : 0;
+            if (owSub != null) { sessOpts[:subSport] = owSub; }
         } else if (activityType.equals("openwater")) {
-            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SWIMMING,
-                         :subSport => Activity.SUB_SPORT_OPEN_WATER };
+            if (Activity has :SPORT_SWIMMING) { sessOpts[:sport] = Activity.SPORT_SWIMMING; }
+            if (owSub != null) { sessOpts[:subSport] = owSub; }
         } else {
-            sessOpts = { :name => "Pumpfoil", :sport => Activity.SPORT_SURFING };
+            if (Activity has :SPORT_SURFING) { sessOpts[:sport] = Activity.SPORT_SURFING; }
         }
         if (logger != null) { sessOpts[:sensorLogger] = logger; }
         _fitSession = null;
