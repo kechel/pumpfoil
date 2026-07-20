@@ -1,4 +1,5 @@
 using Toybox.Lang;
+using Toybox.System;
 
 // On-Device-Lokalisierung des Garmin-Recorders nach Profil-Sprache (vom Server
 // via /api/devices/config geliefert, in Storage "lang" gecacht). Fallback: de.
@@ -9,15 +10,36 @@ module Strings {
     // 0 de | 1 gsw | 2 de-AT | 3 en | 4 fr | 5 it | 6 es
     var _idx = 0;
 
+    // Profil-Sprache setzen. Kann die Uhr die Sprache direkt (7 Spalten) -> nehmen. Sonst
+    // (fi/nl/cs oder leer/unbekannt) NICHT hart auf Deutsch, sondern auf die GERÄTE-SYSTEMSPRACHE
+    // ausweichen (Wunsch: englische Uhr = englische App). Letzter Fallback: Englisch.
     function setLang(code as Lang.String or Null) as Void {
-        if (code == null) { _idx = 0; return; }
-        if (code.equals("gsw")) { _idx = 1; }
-        else if (code.equals("de-AT")) { _idx = 2; }
-        else if (code.equals("en")) { _idx = 3; }
-        else if (code.equals("fr")) { _idx = 4; }
-        else if (code.equals("it")) { _idx = 5; }
-        else if (code.equals("es")) { _idx = 6; }
-        else { _idx = 0; }
+        var i = _idxForCode(code);
+        _idx = (i >= 0) ? i : _systemIdx();
+    }
+
+    // Index unserer 7 Uhr-Spalten für einen Sprachcode, -1 wenn nicht direkt unterstützt.
+    function _idxForCode(code as Lang.String or Null) as Lang.Number {
+        if (code == null) { return -1; }
+        if (code.equals("de")) { return 0; }
+        if (code.equals("gsw")) { return 1; }
+        if (code.equals("de-AT")) { return 2; }
+        if (code.equals("en")) { return 3; }
+        if (code.equals("fr")) { return 4; }
+        if (code.equals("it")) { return 5; }
+        if (code.equals("es")) { return 6; }
+        return -1;
+    }
+
+    // Geräte-Systemsprache -> unsere Spalte (nur die, die wir haben; sonst Englisch).
+    function _systemIdx() as Lang.Number {
+        var sl = System.getDeviceSettings().systemLanguage;
+        if (sl == System.LANGUAGE_DEU) { return 0; }   // Deutsch
+        if (sl == System.LANGUAGE_ENG) { return 3; }   // Englisch
+        if (sl == System.LANGUAGE_FRE) { return 4; }   // Französisch
+        if (sl == System.LANGUAGE_ITA) { return 5; }   // Italienisch
+        if (sl == System.LANGUAGE_SPA) { return 6; }   // Spanisch
+        return 3;   // alles andere (fi/nl/cs/…): neutraler Fallback Englisch
     }
 
     // Lokalisierten String holen (Fallback: de-Spalte, dann der Key selbst).
