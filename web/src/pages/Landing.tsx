@@ -138,7 +138,7 @@ export default function Landing() {
               <div className="flex flex-col items-center gap-3 sm:items-start">
                 <p className="text-xl font-semibold text-slate-100 sm:text-2xl">{t("land.illmenseeTitle")}</p>
                 <div className="flex items-center gap-5">
-                  <a href="https://www.youtube.com/@pumpfoil-org" target="_blank" rel="noopener noreferrer"
+                  <a href="https://www.youtube.com/@pumpfoil-org/shorts" target="_blank" rel="noopener noreferrer"
                     aria-label="YouTube" className="text-slate-300 hover:text-brand-300">
                     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M23 12s0-3.5-.4-5.1a2.6 2.6 0 0 0-1.8-1.8C19.2 4.7 12 4.7 12 4.7s-7.2 0-8.8.4A2.6 2.6 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4a2.6 2.6 0 0 0 1.8-1.8C23 15.5 23 12 23 12ZM9.8 15.3V8.7l6 3.3-6 3.3Z" />
