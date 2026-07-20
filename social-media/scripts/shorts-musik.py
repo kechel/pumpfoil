@@ -50,6 +50,7 @@ FADE_OUT = 2.0
 # PNG in Videogröße; ffmpeg blendet es mit fade alpha ein/aus.
 TEXT_FADE = 0.5
 TEXT_HOLD = 2.0
+OUTRO_SECS = 2.5  # Like/Follow-Icons: sichtbar in den letzten x Sekunden
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
@@ -147,7 +148,7 @@ def video_dims(path):
 def render(video: Path, track: Path, out: Path, gain_db: float,
            fade_out: float = FADE_OUT, overlay: Path = None,
            trim_start: float = 0.0, trim_end: float = None,
-           texts: list = None):
+           texts: list = None, outro: Path = None):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -210,6 +211,17 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
             f",fade=t=out:st={e - TEXT_FADE:.3f}:d={TEXT_FADE}:alpha=1[t{i}];"
             f"{vsrc}[t{i}]overlay=0:0:format=auto[v{i}]")
         vsrc = f"[v{i}]"
+    if outro:
+        # Plattform-Icons (Like/Follow/…) in den letzten Sekunden einblenden
+        inputs += ["-loop", "1", "-i", str(outro)]
+        idx = n_inputs
+        n_inputs += 1
+        st = max(0.0, dur - OUTRO_SECS)
+        fc_parts.append(
+            f"[{idx}:v]format=rgba"
+            f",fade=t=in:st={st:.3f}:d={TEXT_FADE}:alpha=1[outro];"
+            f"{vsrc}[outro]overlay=0:0:format=auto[vout]")
+        vsrc = "[vout]"
     if vsrc != "[0:v]":
         vmap, reencode = vsrc, True
     else:
@@ -486,6 +498,15 @@ class Handler(BaseHTTPRequestHandler):
             tmp_pngs.append(pth)
             texts.append({"start": t["start"], "hold": t.get("hold", TEXT_HOLD),
                           "png": pth})
+        outros = {}
+        for pf, dataurl in (req.get("outros") or {}).items():
+            if not dataurl:
+                continue
+            fd, pth = tempfile.mkstemp(suffix=".png")
+            os.write(fd, base64.b64decode(dataurl.split(",", 1)[-1]))
+            os.close(fd)
+            tmp_pngs.append(pth)
+            outros[pf] = Path(pth)
         out_name = re.sub(r"[/\\:\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
         out_name = re.sub(r"\.mp4$", "", out_name, flags=re.I)
         # Nummer + "Pumpfoil-<Jahr>-" automatisch; manuell Getipptes gewinnt
@@ -518,7 +539,7 @@ class Handler(BaseHTTPRequestHandler):
                                          "erlaubten Ordner")
                 out = OUT_DIR / pf / out_name
                 render(video, track, out, gain, fade_out, overlay,
-                       trim_start, trim_end, texts)
+                       trim_start, trim_end, texts, outros.get(pf))
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
@@ -615,9 +636,11 @@ PAGE = r"""<!doctype html>
   #pvBar #vname,#pvBar #pvTrack{opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mini.sel{background:#3b82f6;color:#fff;border-color:#3b82f6}
   #ovImg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none}
+  #outroImg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
   #panel select{max-width:180px;font-size:12px;padding:3px 4px;border-radius:6px;border:1px solid #8886;background:transparent;color:inherit}
   .mini{font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid #8886;background:transparent;cursor:pointer}
   .mini:hover{background:#8883}
+  #selTracks{position:sticky;top:0;z-index:2;background:Canvas;border-bottom:2px solid #3b82f688;box-shadow:0 3px 8px #0003}
   .trk.playing{background:#22c55e2e;font-weight:600}
   .trk.playing button.play{background:#22c55e;color:#fff;border-color:#22c55e}
   #prog{display:none;margin:8px 0}
@@ -648,7 +671,7 @@ PAGE = r"""<!doctype html>
   <div id="vlist"></div></div>
 <div id="center">
   <div id="stage">
-    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt=""></div>
+    <div id="vwrap"><video id="vid" controls playsinline loop></video><img id="ovImg" alt=""><img id="outroImg" alt=""></div>
     <div id="actions">
       <button class="abtn" id="aStar"></button>
       <button class="abtn" id="aPrivat"></button>
@@ -670,6 +693,7 @@ PAGE = r"""<!doctype html>
       <span id="gainVal">-12 dB</span></div>
     <div class="row">Fade-out <input type="number" id="fade" min="0" max="15" step="0.5" value="2"> s</div>
     <div class="row"><label><input type="checkbox" id="ovOn" checked> Overlay</label> <select id="ovSel"></select></div>
+    <div class="row"><label><input type="checkbox" id="outroOn" checked> Outro-Icons (Like/Follow, letzte 2,5 s)</label></div>
     <div class="row">Trim <button class="mini" id="trimStartBtn">[ Start</button><button class="mini" id="trimEndBtn">Ende ]</button><button class="mini" id="trimClrBtn">✕</button> <span id="trimVal" style="opacity:.7">–</span></div>
     <div class="row">Name <span id="nextNum" style="opacity:.6"></span><input type="text" id="outName" placeholder="z.B. sunset-carving" spellcheck="false"></div>
     <button id="renderBtn">Rendern → shorts-mit-musik/</button>
@@ -866,9 +890,16 @@ document.querySelectorAll('.txrow').forEach(row=>{
   row.querySelector('.thold').addEventListener('input',e=>{texts[i].hold=Math.max(0,+e.target.value||0)});
   row.querySelector('.tclr').onclick=()=>{texts[i]={start:null,text:'',hold:TXH};renderTextRows()};
 });
+let lastT=0;
 function updateTextPreview(){
   const scale=vid.videoWidth?vid.clientWidth/vid.videoWidth:1;
   const t=vid.currentTime;
+  // Trim-Loop: am Trim-Ende (bzw. nach nativem Loop auf 0) zurück zum Trim-Start
+  if(!vid.paused){
+    if(trimEnd!=null&&t>=trimEnd)vid.currentTime=trimStart||0;
+    else if(trimStart&&t<trimStart&&lastT>t+1)vid.currentTime=trimStart;
+  }
+  lastT=t;
   for(let i=0;i<TXN;i++){
     const el=$('#txov'+i), tx=texts[i];
     if(tx.start==null||!tx.text.trim()){el.style.opacity=0;continue}
@@ -878,8 +909,52 @@ function updateTextPreview(){
     el.style.fontSize=(TXS*scale)+'px';
     el.style.opacity=a;
   }
+  // Outro-Icon-Vorschau (Plattform gemäß YT/IG-Umschalter, trim-bewusst)
+  const oi=$('#outroImg'), dur=vid.duration;
+  if($('#outroOn').checked&&isFinite(dur)&&dur>0){
+    const end=trimEnd!=null?trimEnd:dur;
+    const st=Math.max(trimStart||0,end-2.5);
+    const a=Math.max(0,Math.min((t-st)/TXF,1));
+    const key=pvPlatform+'|'+vid.videoWidth;
+    if(a>0&&oi.dataset.key!==key){oi.src=outroPng(pvPlatform);oi.dataset.key=key}
+    oi.style.opacity=a;
+  }else oi.style.opacity=0;
 }
 (function txLoop(){updateTextPreview();requestAnimationFrame(txLoop)})();
+// --- Outro-Icons je Plattform (Canvas, Lucide-Pfade) ---
+const OPATHS={
+  thumbsup:'M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z',
+  bell:'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0',
+  heart:'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z',
+  comment:'M7.9 20A9 9 0 1 0 4 16.1L2 22Z',
+  send:'m22 2-7 20-4-9-9-4ZM22 2 11 13',
+  bookmark:'m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z',
+  repost:'m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3'
+};
+const OUTROS={
+  youtube:[['thumbsup','Like'],['bell','Abonnieren']],
+  instagram:[['heart','Like'],['comment','Kommentar'],['send','Teilen'],['bookmark','Speichern']],
+  tiktok:[['heart','Like'],['comment','Kommentar'],['repost','Repost'],['send','Teilen']]
+};
+function outroPng(pf){
+  const w=vid.videoWidth||1080, h=vid.videoHeight||1920;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const g=c.getContext('2d');
+  const items=OUTROS[pf], size=110, gap=54;
+  const total=items.length*size+(items.length-1)*gap;
+  let x=(w-total)/2; const y=h*0.68;
+  g.strokeStyle='#fff';g.fillStyle='#fff';
+  g.shadowColor='rgba(0,0,0,0.7)';g.shadowBlur=8;g.shadowOffsetX=2;g.shadowOffsetY=2;
+  g.lineCap='round';g.lineJoin='round';
+  for(const [ic,label] of items){
+    g.save();g.translate(x,y);g.scale(size/24,size/24);g.lineWidth=2;
+    g.stroke(new Path2D(OPATHS[ic]));g.restore();
+    g.font='32px Arial';g.textAlign='center';g.textBaseline='top';
+    g.fillText(label,x+size/2,y+size+16);
+    x+=size+gap;
+  }
+  return c.toDataURL('image/png');
+}
 function textPng(tx){
   // Text (inkl. Emojis) auf transparentes Canvas in Videogröße rendern —
   // Look muss zur .txov-Vorschau passen (Arial, weiß, Schatten, zentriert)
@@ -941,6 +1016,33 @@ function effLen(){
   if(end==null)return null;
   return end-(trimStart!=null?trimStart:0);
 }
+function buildTrackRow(t,tooShort){
+  const row=document.createElement('div');
+  row.className='item trk'+(curPlay===t.rel?' playing':'');
+  const play=document.createElement('button');play.className='play';
+  play.innerHTML=icon(curPlay===t.rel?'pause':'play',true);
+  play.onclick=()=>togglePlay(t);
+  const name=document.createElement('div');name.className='name';
+  name.innerHTML=t.rel.split('/').pop().replace(/\.[^.]+$/,'')+
+    ' <span class="folder">'+t.folder+(t.dur?' · '+Math.round(t.dur)+'s':'')+'</span>'+
+    (tooShort?' <span title="kürzer als das Video — wird beim Rendern geloopt">⚠️</span>':'');
+  row.append(play,name);
+  for(const pf of t.platforms){
+    const b=document.createElement('button');
+    b.textContent=pf==='youtube'?'YT':'IG';
+    if(sel[pf]===t.rel)b.classList.add('sel');
+    b.onclick=()=>{
+      const selecting=sel[pf]!==t.rel;
+      sel[pf]=selecting?t.rel:null;
+      if(selecting){
+        (pf==='youtube'?$('#fltYT'):$('#fltIG')).checked=false;
+        if(!$('#fltYT').checked&&!$('#fltIG').checked){$('#fltYT').checked=true;$('#fltIG').checked=true}
+      }
+      renderTrackList();updatePvBar()};
+    row.appendChild(b);
+  }
+  return row;
+}
 function renderTrackList(){
   $('#tlist').innerHTML='';
   const q=$('#search').value.trim().toLowerCase();
@@ -948,44 +1050,26 @@ function renderTrackList(){
   if($('#fltYT').checked)want.push('youtube');
   if($('#fltIG').checked)want.push('instagram');
   const len=effLen();
+  const isSel=t=>sel.youtube===t.rel||sel.instagram===t.rel;
+  const tooShort=t=>!!(t.dur&&len&&t.dur<len-0.5);
+  // zugeordnete Tracks: immer ganz oben und sticky beim Scrollen
+  const selWrap=document.createElement('div');selWrap.id='selTracks';
+  for(const t of state.tracks)
+    if(isSel(t))selWrap.appendChild(buildTrackRow(t,tooShort(t)));
+  if(selWrap.children.length)$('#tlist').appendChild(selWrap);
   for(const t of state.tracks){
+    if(isSel(t)) continue;
     if(q && !t.rel.toLowerCase().includes(q)) continue;
     if(!t.platforms.some(p=>want.includes(p))) continue;
-    const tooShort=t.dur&&len&&t.dur<len-0.5;
-    const isSel=sel.youtube===t.rel||sel.instagram===t.rel;
-    if(tooShort&&!isSel) continue;
-    const row=document.createElement('div');
-    row.className='item trk'+(curPlay===t.rel?' playing':'');
-    const play=document.createElement('button');play.className='play';
-    play.innerHTML=icon(curPlay===t.rel?'pause':'play',true);
-    play.onclick=()=>togglePlay(t);
-    const name=document.createElement('div');name.className='name';
-    name.innerHTML=t.rel.split('/').pop().replace(/\.[^.]+$/,'')+
-      ' <span class="folder">'+t.folder+(t.dur?' · '+Math.round(t.dur)+'s':'')+'</span>'+
-      (tooShort?' <span title="kürzer als das Video — wird beim Rendern geloopt">⚠️</span>':'');
-    row.append(play,name);
-    for(const pf of t.platforms){
-      const b=document.createElement('button');
-      b.textContent=pf==='youtube'?'YT':'IG';
-      if(sel[pf]===t.rel)b.classList.add('sel');
-      b.onclick=()=>{
-        const selecting=sel[pf]!==t.rel;
-        sel[pf]=selecting?t.rel:null;
-        if(selecting){
-          (pf==='youtube'?$('#fltYT'):$('#fltIG')).checked=false;
-          if(!$('#fltYT').checked&&!$('#fltIG').checked){$('#fltYT').checked=true;$('#fltIG').checked=true}
-        }
-        renderTrackList();updatePvBar()};
-      row.appendChild(b);
-    }
-    $('#tlist').appendChild(row);
+    if(tooShort(t)) continue;
+    $('#tlist').appendChild(buildTrackRow(t,false));
   }
 }
 function togglePlay(t){
   if(curPlay===t.rel){stopMusic();return}
   curPlay=t.rel; music.src='/media/musik/'+t.rel.split('/').map(encodeURIComponent).join('/');
   applyGain(); music.play();
-  if(vid.src){allowPlay=0;vid.currentTime=0;vid.muted=false;vid.play()}
+  if(vid.src){allowPlay=0;vid.currentTime=trimStart||0;vid.muted=false;vid.play()}
   renderTrackList();
 }
 let pvPlatform='youtube';
@@ -1009,7 +1093,7 @@ function playSelected(pf){
   curPlay=rel;
   music.src='/media/musik/'+rel.split('/').map(encodeURIComponent).join('/');
   applyGain(); music.play();
-  if(vid.src){allowPlay=0;vid.currentTime=0;vid.muted=false;vid.play()}
+  if(vid.src){allowPlay=0;vid.currentTime=trimStart||0;vid.muted=false;vid.play()}
   renderTrackList(); updatePvBar();
 }
 $('#pvYT').onclick=()=>playSelected('youtube');
@@ -1019,7 +1103,7 @@ vid.addEventListener('play',()=>{
   if(curPlay&&music.paused)music.play()
 });
 vid.addEventListener('pause',()=>music.pause());
-vid.addEventListener('seeked',()=>{if(curPlay&&music.duration)music.currentTime=vid.currentTime%music.duration});
+vid.addEventListener('seeked',()=>{if(curPlay&&music.duration)music.currentTime=Math.max(0,vid.currentTime-(trimStart||0))%music.duration});
 $('#renderBtn').onclick=async()=>{
   if(!curVideo||!sel.youtube||!sel.instagram){$('#log').textContent='Erst Video + je einen Track für YouTube und Instagram wählen.';return}
   $('#renderBtn').disabled=true;$('#log').textContent='Rendere …';
@@ -1041,7 +1125,10 @@ $('#renderBtn').onclick=async()=>{
         overlay:($('#ovOn').checked&&$('#ovSel').value)||null,
         trim_start:trimStart,trim_end:trimEnd,out_name:$('#outName').value,
         texts:texts.filter(t=>t.text.trim()&&t.start!=null)
-          .map(t=>({start:t.start,hold:t.hold,png:textPng(t)}))})})).json();
+          .map(t=>({start:t.start,hold:t.hold,png:textPng(t)})),
+        outros:$('#outroOn').checked
+          ?{youtube:outroPng('youtube'),instagram:outroPng('instagram'),tiktok:outroPng('tiktok')}
+          :null})})).json();
     const errs=Object.entries(r.results).filter(([,res])=>!res.ok);
     $('#log').textContent=errs.map(([pf,res])=>'✗ '+pf+': '+res.error).join('\n');
     // verwendeten Namen (inkl. Nummer) behalten → erneutes Rendern
