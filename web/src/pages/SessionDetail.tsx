@@ -14,6 +14,7 @@ import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
+import { detectTurns, TURN_BUCKET_COLOR } from "../lib/turns";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
@@ -43,7 +44,7 @@ function kmh(mps: number | null | undefined) {
   return mps == null ? "–" : `${(mps * 3.6).toFixed(1)}`;
 }
 
-type ColorMode = "speed" | "hr" | "pump" | "optimal";
+type ColorMode = "speed" | "hr" | "pump" | "optimal" | "turns";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -596,6 +597,16 @@ export default function SessionDetail() {
     if (colorMode === "pump" && !hasPump) setColorMode("speed");
   }, [colorMode, hasPump]);
 
+  // Turn-/Carve-Erkennung aus dem Track (nur Anzeige/Verifikation, client-seitig).
+  const turns = useMemo(() => detectTurns(
+    (session?.analysis?.track_geojson?.geometry?.coordinates as [number, number][]) ?? [],
+    session?.analysis?.segments ?? [],
+  ), [session]);
+  const hasTurns = turns.events.length > 0;
+  useEffect(() => {
+    if (colorMode === "turns" && !hasTurns) setColorMode("speed");
+  }, [colorMode, hasTurns]);
+
   // Optimale Geschwindigkeit (km/h) für das Foil dieser Session beim Gewicht des Nutzers.
   const optimalKmh = useMemo(() => {
     const fo = session?.foil;
@@ -835,6 +846,10 @@ export default function SessionDetail() {
           const v = phz[i + 1];
           const [lo, hi] = pumpRange;
           color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6));
+        } else if (colorMode === "turns") {
+          // Nur erkannte Carves/Turns farbig (nach Grad-Bucket), Rest gedämpft.
+          const b = turns.pointBucket[i + 1];
+          color = b ? TURN_BUCKET_COLOR[b] : "#334155";
         } else {
           const v = hr[i + 1];
           const [lo, hi] = hrRange;
@@ -882,7 +897,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode, autoScaleOn]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode, autoScaleOn, turns]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -926,6 +941,7 @@ export default function SessionDetail() {
     const colorAt = (i: number): string => {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
       if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
+      if (colorMode === "turns") { const b = turns.pointBucket[i]; return b ? TURN_BUCKET_COLOR[b] : "#334155"; }
       if (colorMode === "hr") { const v = hr[i]; const [lo, hi] = hrRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
       return speedColor((speeds[i] ?? 0) * 3.6, speedMin, speedMax);
     };
@@ -994,7 +1010,7 @@ export default function SessionDetail() {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen]);
+  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen, turns]);
 
   if (error) {
     // Öffentlicher Link ungültig/widerrufen -> freundliche Meldung + Auto-Redirect (siehe Effekt oben).
@@ -1249,6 +1265,9 @@ export default function SessionDetail() {
           {optimalKmh != null && (
             <ModeButton active={colorMode === "optimal"} onClick={() => setColorMode("optimal")}>{t("sd.colorOptimal")}</ModeButton>
           )}
+          {hasTurns && (
+            <ModeButton active={colorMode === "turns"} onClick={() => setColorMode("turns")}>Carves</ModeButton>
+          )}
           {(colorMode === "speed" || colorMode === "optimal") && (
             <>
               <span className="ml-2 text-xs text-slate-400">{t("sd.smoothing")}</span>
@@ -1337,7 +1356,17 @@ export default function SessionDetail() {
 
         {/* 2. Skala der Farbverteilung + Geschwindigkeitsanzeige. */}
         <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
-          <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
+          {colorMode === "turns" ? (
+            // Carve-/Turn-Zähler (nur Anzeige/Verifikation — NICHT in Rekorde/Stats).
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
+              <span className="text-slate-400">Carves:</span>
+              <span className="inline-flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: TURN_BUCKET_COLOR.s }} /> 90–180° · {turns.counts.s}</span>
+              <span className="inline-flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: TURN_BUCKET_COLOR.m }} /> 180–360° · {turns.counts.m}</span>
+              <span className="inline-flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: TURN_BUCKET_COLOR.l }} /> &gt;360° · {turns.counts.l}</span>
+            </span>
+          ) : (
+            <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
+          )}
           {colorMode === "speed" && (
             <span className="flex items-center gap-1 text-xs text-slate-300">
               <label className="mr-1 flex items-center gap-1" title={t("sd.autoScaleTitle")}>
