@@ -1363,14 +1363,18 @@ def get_carves(
                 c0 = max(0, min(c0, len(t_ms) - 1)); c1 = max(c0, min(c1, len(t_ms) - 1))
                 # Kurze Carves = 1–2 GPS-Punkte -> Drehung über ein etwas breiteres Fenster
                 # (±2 Punkte) messen, sonst ist die GPS-Rotation ~0.
-                rot = _bearing_sum(lat, lon, max(0, c0 - 2), min(len(t_ms) - 1, c1 + 2))
+                # Turn-Bogen = GPS-Fenster ±2 Punkte (das Accel-g-Peak ist nur 1–2 Punkte kurz,
+                # der sichtbare Carve-Bogen zieht sich über mehr GPS-Punkte).
+                a0 = max(0, c0 - 2); a1 = min(len(t_ms) - 1, c1 + 2)
+                rot = _bearing_sum(lat, lon, a0, a1)
                 mag = abs(rot)
                 # GPS-Gate: nur echte Turns ≥90° sind Carves (filtert reine g-Bumps ohne Drehung).
                 if mag >= MIN_ROT:
+                    peak = round(float(cg[i:j].max()), 2)
                     bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
-                    carves.append({"i0": c0, "i1": c1, "peak_g": round(float(cg[i:j].max()), 2),
+                    carves.append({"i0": a0, "i1": a1, "peak_g": peak,
                                    "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
-                    g_out[c0:c1 + 1] = g_coord[c0:c1 + 1]         # Carve-Punkte nach g einfärben
+                    g_out[a0:a1 + 1] = peak                        # ganzen Bogen nach Spitzen-g einfärben
             i = j
         else:
             i += 1
