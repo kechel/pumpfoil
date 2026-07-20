@@ -1218,7 +1218,7 @@ export default function SessionDetail() {
           sub={hasPumpStats ? undefined : t("sd.phase2")} />
         {hasPumpStats && (
           <>
-            <Stat label={t("sd.avgPump")} value={m!.avg_pump_hz!.toFixed(2)} sub="Hz" />
+            <PumpRateStat hz={m!.avg_pump_hz!} />
             <Stat label={t("sd.avgDistPerPump")}
               value={a?.pump_count && a.foiling_distance_m != null ? (a.foiling_distance_m / a.pump_count).toFixed(1) : "–"} sub="m/Pump" />
           </>
@@ -1598,6 +1598,37 @@ function ClickStat({
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">
         {label}{clickable && <span className="ml-1 text-brand-400">{t("sd.runN", { n: runIdx + 1 })}</span>}
       </div>
+    </button>
+  );
+}
+
+// Pump-Kadenz-Kachel: per Tap zwischen Hz und Pumps/Minute (Hz×60) umschalten. Merk-Badge
+// oben rechts zeigt die ALTERNATIVE Einheit -> signalisiert, dass man tippen kann. Die Wahl
+// steckt gerätelokal im localStorage (nicht serverseitig), gilt für alle Sessions.
+function PumpRateStat({ hz }: { hz: number }) {
+  const t = useT();
+  const [unit, setUnit] = useState<"hz" | "min">(() => (localStorage.getItem("pumpRateUnit") === "min" ? "min" : "hz"));
+  const toggle = () => {
+    const n = unit === "hz" ? "min" : "hz";
+    setUnit(n);
+    try { localStorage.setItem("pumpRateUnit", n); } catch { /* ignore */ }
+  };
+  const value = unit === "hz" ? hz.toFixed(2) : String(Math.round(hz * 60));
+  const sub = unit === "hz" ? "Hz" : "/min";
+  const alt = unit === "hz" ? "/min" : "Hz";
+  return (
+    <button
+      onClick={toggle}
+      title={t("sd.avgPump")}
+      className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-1.5 text-left hover:border-slate-600"
+    >
+      {/* Merk-Badge oben rechts: die andere Einheit -> hier kann man tippen. */}
+      <span className="absolute right-1 top-1 rounded bg-slate-800 px-1 text-[9px] font-medium leading-none text-slate-400">{alt}</span>
+      <div className="flex items-baseline gap-1 leading-none">
+        <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{value}</span>
+        <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>
+      </div>
+      <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t("sd.avgPump")}</div>
     </button>
   );
 }
