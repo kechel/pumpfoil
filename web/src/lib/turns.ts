@@ -5,7 +5,7 @@
 // Kurze Carves sind bei 1-Hz-GPS unterabgetastet — bewusst grob, zum Durchklickern/Verifizieren.
 
 export type TurnBucket = "s" | "m" | "l";   // 90–180 | 180–360 | >360
-export interface TurnEvent { i0: number; i1: number; rot: number; dir: "L" | "R"; bucket: TurnBucket; }
+export interface TurnEvent { i0: number; i1: number; rot: number; radius: number; dir: "L" | "R"; bucket: TurnBucket; }
 export interface TurnResult {
   events: TurnEvent[];
   pointBucket: Record<number, TurnBucket>;   // Koordinaten-Index -> Bucket (fürs Einfärben)
@@ -27,9 +27,11 @@ function brg(a: [number, number], b: [number, number]): number {
 }
 function norm(d: number): number { while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
 
-const STEP = 4;    // m — kleinere Schritte = GPS-Jitter, ignorieren
-const TOL = 20;    // ° — kleine Gegen-Blips tolerieren (Hysterese)
-const MIN = 90;    // ° — darunter kein Carve/Turn
+const STEP = 4;      // m — kleinere Schritte = GPS-Jitter, ignorieren
+const TOL = 20;      // ° — kleine Gegen-Blips tolerieren (Hysterese)
+const MIN = 90;      // ° — darunter kein Carve
+const RMAX = 12;     // m — MAX Radius eines Carves. Enger Radius ist der Kern: große Kurven/
+                     // Loops (Radius >> 10 m) sind KEINE Carves. Radius = Bogenlänge / Winkel(rad).
 
 export function detectTurns(
   coords: [number, number][],
@@ -50,6 +52,9 @@ export function detectTurns(
       if (hav(pts[pts.length - 1], raw[k]) >= STEP) { pts.push(raw[k]); abs.push(s.i_start + k); }
     }
     if (pts.length < 3) continue;
+    // Segment-Länge zwischen den gefilterten Punkten (für Bogenlänge/Radius).
+    const step: number[] = [];
+    for (let i = 0; i < pts.length - 1; i++) step.push(hav(pts[i], pts[i + 1]));
     const brgs: number[] = [];
     for (let i = 0; i < pts.length - 1; i++) brgs.push(brg(pts[i], pts[i + 1]));
     const deltas: number[] = [];
@@ -59,11 +64,16 @@ export function detectTurns(
     const close = (rot: number, a: number, b: number) => {
       const mag = Math.abs(rot);
       if (mag < MIN) return;
+      // Bogenlänge des Events + Radius = Bogen / Winkel(rad). Nur enge Carves behalten.
+      let arc = 0;
+      for (let k = a; k <= b && k + 1 < step.length; k++) arc += step[k + 1];
+      const radius = arc / (mag * Math.PI / 180);
+      if (radius > RMAX) return;   // große Kurve/Loop -> kein Carve
       const bucket: TurnBucket = mag < 180 ? "s" : mag < 360 ? "m" : "l";
       counts[bucket]++;
       const o0 = abs[Math.min(a + 1, abs.length - 1)];
       const o1 = abs[Math.min(b + 1, abs.length - 1)];
-      events.push({ i0: o0, i1: o1, rot, dir: rot > 0 ? "R" : "L", bucket });
+      events.push({ i0: o0, i1: o1, rot, radius, dir: rot > 0 ? "R" : "L", bucket });
       for (let o = o0; o <= o1; o++) pointBucket[o] = bucket;
     };
     for (let i = 0; i < deltas.length; i++) {
