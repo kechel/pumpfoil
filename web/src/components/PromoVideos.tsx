@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { ChevronIcon } from "./Icons";
+import { ShortModal } from "./ShortModal";
 
 // Promo-Videos vom YouTube-Kanal (@pumpfoil-org), live vom Kanal-RSS (gecacht serverseitig).
 // Echter Slider (Pfeile + Punkte + Wisch), gleiche Mechanik wie der App-Screenshots-Slider.
@@ -66,29 +67,19 @@ export function PromoVideos() {
                 {videos.slice(p * perView, p * perView + perView).map((v) => (
                   <div key={v.id}>
                     <div className="relative aspect-[9/16] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
-                      {active === v.id ? (
-                        <iframe
-                          className="absolute inset-0 h-full w-full"
-                          src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&playsinline=1`}
-                          title={v.title}
-                          allow="autoplay; encrypted-media; picture-in-picture"
-                          allowFullScreen
+                      {/* Klick öffnet den Short im großen Overlay (statt winzig inline). */}
+                      <button onClick={() => setActive(v.id)} className="group absolute inset-0 h-full w-full" aria-label={v.title}>
+                        <img
+                          src={`/api/public/video-thumb/${v.id}`}
+                          alt={v.title}
                           loading="lazy"
+                          className="h-full w-full object-cover transition group-hover:scale-105"
                         />
-                      ) : (
-                        <button onClick={() => setActive(v.id)} className="group absolute inset-0 h-full w-full" aria-label={v.title}>
-                          <img
-                            src={`/api/public/video-thumb/${v.id}`}
-                            alt={v.title}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition group-hover:scale-105"
-                          />
-                          <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
-                          <span className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400 sm:h-14 sm:w-14">
-                            <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6 sm:h-7 sm:w-7" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-                          </span>
-                        </button>
-                      )}
+                        <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
+                        <span className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400 sm:h-14 sm:w-14">
+                          <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6 sm:h-7 sm:w-7" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                        </span>
+                      </button>
                     </div>
                     <p className="mt-2 line-clamp-2 px-0.5 text-xs text-slate-400">{v.title}</p>
                   </div>
@@ -114,6 +105,9 @@ export function PromoVideos() {
         </div>
       )}
 
+      {active && (
+        <ShortModal id={active} title={videos.find((v) => v.id === active)?.title} onClose={() => setActive(null)} />
+      )}
     </section>
   );
 }

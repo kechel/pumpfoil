@@ -12,6 +12,7 @@ import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { AppStoreBadge, PlayBadge } from "../components/StoreBadge";
 import { PromoVideos } from "../components/PromoVideos";
+import { ShortModal } from "../components/ShortModal";
 import { ThemeToggle } from "../components/ThemeToggle";
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
@@ -114,16 +115,20 @@ export default function Landing() {
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
                 rechts daneben der Titel (größer) + Social-Links darunter. */}
             <div className="mt-5 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
-              <div className="w-24 shrink-0 sm:w-28">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-lg">
-                  {/* Thumbnail öffnet ein großes Hochformat-Overlay (Click-to-Load) — der Mini-
-                      Preview wäre zum Anschauen zu klein. */}
+              <div className="w-44 shrink-0 sm:w-52">
+                <div className="relative aspect-[7/8] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-lg">
+                  {/* Schöner Standbild-Screenshot aus dem Video als Preview; öffnet den Short in
+                      einem großen Overlay (Click-to-Load). YouTube-Logo mittig -> vor dem Klick
+                      klar erkennbar, dass es ein YouTube-Video ist. */}
                   <button onClick={() => setHeroVideoOn(true)} className="group absolute inset-0 h-full w-full" aria-label={t("land.illmenseeTitle")}>
-                    <img src="/api/public/video-thumb/5ooOkm8QgAI" alt={t("land.illmenseeTitle")} loading="lazy"
+                    <img src="/illmensee-preview.webp" alt={t("land.illmenseeTitle")} loading="lazy"
                       className="h-full w-full object-cover transition group-hover:scale-105" />
-                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
-                    <span className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400">
-                      <svg viewBox="0 0 24 24" className="ml-0.5 h-5 w-5" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/35 to-transparent" />
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg transition group-hover:scale-110">
+                      <svg viewBox="0 0 68 48" className="h-11 w-auto" aria-hidden="true">
+                        <path fill="#FF0000" d="M66.5 7.7c-.8-2.9-3-5.1-5.9-5.9C55.3.5 34 .5 34 .5S12.7.5 7.4 1.8C4.5 2.6 2.3 4.8 1.5 7.7.2 13 .2 24 .2 24s0 11 1.3 16.3c.8 2.9 3 5.1 5.9 5.9C12.7 47.5 34 47.5 34 47.5s21.3 0 26.6-1.3c2.9-.8 5.1-3 5.9-5.9C67.8 35 67.8 24 67.8 24s0-11-1.3-16.3z" />
+                        <path fill="#fff" d="M27 34l18-10-18-10z" />
+                      </svg>
                     </span>
                   </button>
                 </div>
@@ -158,25 +163,8 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Großes Hochformat-Overlay für den Short (Click-to-Load, youtube-nocookie). */}
             {heroVideoOn && (
-              <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 p-4"
-                onClick={() => setHeroVideoOn(false)}>
-                <button onClick={() => setHeroVideoOn(false)} aria-label="Close"
-                  className="absolute right-3 top-3 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-                  style={{ top: "calc(0.75rem + env(safe-area-inset-top))" }}>
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                </button>
-                <div className="aspect-[9/16] h-[85vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
-                  <iframe
-                    className="h-full w-full rounded-xl"
-                    src="https://www.youtube-nocookie.com/embed/5ooOkm8QgAI?autoplay=1&rel=0&playsinline=1"
-                    title={t("land.illmenseeTitle")}
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
+              <ShortModal id="5ooOkm8QgAI" title={t("land.illmenseeTitle")} onClose={() => setHeroVideoOn(false)} />
             )}
           </section>
 
