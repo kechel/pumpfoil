@@ -14,14 +14,21 @@ object I18n {
         private set
 
     fun load(ctx: Context) {
-        lang = prefs(ctx).getString("lang", "de") ?: "de"
+        lang = prefs(ctx).getString("lang", null) ?: systemLang()
     }
 
-    // Aus der (gecachten) Config gesetzt; persistiert für Offline-Start.
+    // Aus der (gecachten) Config gesetzt; persistiert für Offline-Start. Kann die Uhr die
+    // Profil-Sprache nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die GERÄTE-SYSTEMSPRACHE.
     fun set(ctx: Context, code: String?) {
-        val v = if (code != null && LANGS.contains(code)) code else "de"
+        val v = if (code != null && LANGS.contains(code)) code else systemLang()
         lang = v
         prefs(ctx).edit().putString("lang", v).apply()
+    }
+
+    // Geräte-Systemsprache auf unsere Spalten (de/en/fr/it/es); alles andere -> Englisch.
+    private fun systemLang(): String {
+        val sys = java.util.Locale.getDefault().language   // "de","en","fr","it","es","fi",…
+        return if (LANGS.contains(sys)) sys else "en"
     }
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)

@@ -6,7 +6,16 @@ import Foundation
 enum WLoc {
     static func t(_ key: String, _ lang: String) -> String {
         guard let row = table[key] else { return key }
-        return row[lang] ?? row["de"] ?? key
+        if let v = row[lang] { return v }
+        // Profil-Sprache kann die Uhr nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die
+        // GERÄTE-SYSTEMSPRACHE; sonst Englisch.
+        return row[sysLang()] ?? row["en"] ?? row["de"] ?? key
+    }
+
+    // Geräte-Systemsprache auf unsere Spalten (de/en/fr/it/es); alles andere -> Englisch.
+    static func sysLang() -> String {
+        let code = String((Locale.preferredLanguages.first ?? "en").prefix(2))
+        return ["de", "en", "fr", "it", "es"].contains(code) ? code : "en"
     }
 
     private static func r(_ de: String, _ gsw: String, _ deAT: String, _ en: String, _ fr: String, _ it: String, _ es: String) -> [String: String] {
