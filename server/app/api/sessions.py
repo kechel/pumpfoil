@@ -1322,10 +1322,12 @@ def get_carves(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Carve-Erkennung aus dem 25-Hz-Accel (getrenntes Modell, read-only — KEINE Pipeline-/DB-
-    Änderung, NICHT in Rekorde/Stats). Carve = Zentripetal-g ≥0,5 g über ≥0,5 s. Rückgabe:
-    Zentripetal-g je Track-Punkt (fürs Einfärben, Kurvenlage), Carve-Liste + Grad-Buckets
-    (Carve-Fenster × GPS-Richtungsänderung)."""
+    """Carve-Erkennung — kombiniert Accel + GPS (getrenntes Modell, read-only — KEINE Pipeline-/DB-
+    Änderung, NICHT in Rekorde/Stats). Zwei Bedingungen zusammen: (1) Accel liefert das Zeitfenster —
+    Zentripetal-g ≥0,3 g über ≥0,5 s (Timing kann 1-Hz-GPS nicht auflösen); (2) GPS bestätigt den
+    echten Turn — ≥90° Richtungsänderung über dasselbe Fenster. Nur dann ist es ein Carve; die g-Kraft
+    setzt NUR die Farbe (Kurvenlage). Rückgabe: Zentripetal-g je Track-Punkt (0 außerhalb von Carves) +
+    Carve-Liste + Grad-Buckets (90–180 / 180–360 / >360°)."""
     s = _readable(db, session_id)
     empty = {"g": [], "carves": [], "counts": {"s": 0, "m": 0, "l": 0}}
     gps = storage.load_gps(s.session_uuid)
@@ -1344,8 +1346,9 @@ def get_carves(
     lon = np.array([float(r[2]) if len(r) > 2 and r[2] is not None else np.nan for r in gps])
     ai = np.clip((t_ms / 1000.0 * hz).astype(int), 0, cg.size - 1)
     g_coord = cg[ai]                                              # Zentripetal-g je Track-Punkt
+    g_out = np.zeros_like(g_coord)                                # nur Carve-Punkte werden eingefärbt
 
-    THR, need = 0.5, int(round(0.5 * hz))
+    THR, need, MIN_ROT = 0.3, int(round(0.5 * hz)), 90.0
     carves: list[dict] = []
     mask = cg >= THR
     i = 0
@@ -1362,16 +1365,19 @@ def get_carves(
                 # (±2 Punkte) messen, sonst ist die GPS-Rotation ~0.
                 rot = _bearing_sum(lat, lon, max(0, c0 - 2), min(len(t_ms) - 1, c1 + 2))
                 mag = abs(rot)
-                bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
-                carves.append({"i0": c0, "i1": c1, "peak_g": round(float(cg[i:j].max()), 2),
-                               "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
+                # GPS-Gate: nur echte Turns ≥90° sind Carves (filtert reine g-Bumps ohne Drehung).
+                if mag >= MIN_ROT:
+                    bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
+                    carves.append({"i0": c0, "i1": c1, "peak_g": round(float(cg[i:j].max()), 2),
+                                   "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
+                    g_out[c0:c1 + 1] = g_coord[c0:c1 + 1]         # Carve-Punkte nach g einfärben
             i = j
         else:
             i += 1
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
         counts[cv["bucket"]] += 1
-    return {"g": [round(float(x), 2) for x in g_coord], "carves": carves, "counts": counts}
+    return {"g": [round(float(x), 2) for x in g_out], "carves": carves, "counts": counts}
 
 
 @router.get("/{session_id}/labels", response_model=list[LabelOut])
