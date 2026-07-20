@@ -111,59 +111,73 @@ export default function Landing() {
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
 
-            {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam) +
-                Social-Links. Bewusst klein — soll oben nicht viel Platz einnehmen. */}
-            <div className="mt-5 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-7">
-              <figure className="w-24 shrink-0 sm:w-28">
+            {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
+                rechts daneben der Titel (größer) + Social-Links darunter. */}
+            <div className="mt-5 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+              <div className="w-24 shrink-0 sm:w-28">
                 <div className="relative aspect-[9/16] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-lg">
-                  {heroVideoOn ? (
-                    <iframe
-                      className="absolute inset-0 h-full w-full"
-                      src="https://www.youtube-nocookie.com/embed/5ooOkm8QgAI?autoplay=1&rel=0&playsinline=1"
-                      title={t("land.illmenseeTitle")}
-                      allow="autoplay; encrypted-media; picture-in-picture"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : (
-                    <button onClick={() => setHeroVideoOn(true)} className="group absolute inset-0 h-full w-full" aria-label={t("land.illmenseeTitle")}>
-                      <img src="/api/public/video-thumb/5ooOkm8QgAI" alt={t("land.illmenseeTitle")} loading="lazy"
-                        className="h-full w-full object-cover transition group-hover:scale-105" />
-                      <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
-                      <span className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400">
-                        <svg viewBox="0 0 24 24" className="ml-0.5 h-5 w-5" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-                      </span>
-                    </button>
-                  )}
+                  {/* Thumbnail öffnet ein großes Hochformat-Overlay (Click-to-Load) — der Mini-
+                      Preview wäre zum Anschauen zu klein. */}
+                  <button onClick={() => setHeroVideoOn(true)} className="group absolute inset-0 h-full w-full" aria-label={t("land.illmenseeTitle")}>
+                    <img src="/api/public/video-thumb/5ooOkm8QgAI" alt={t("land.illmenseeTitle")} loading="lazy"
+                      className="h-full w-full object-cover transition group-hover:scale-105" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
+                    <span className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400">
+                      <svg viewBox="0 0 24 24" className="ml-0.5 h-5 w-5" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  </button>
                 </div>
-                <figcaption className="mt-1 text-center text-[11px] text-slate-300">{t("land.illmenseeTitle")}</figcaption>
-              </figure>
+              </div>
 
-              {/* Social-Links (icon-only, kompakt) */}
-              <div className="flex items-center gap-5">
-                <a href="https://www.youtube.com/@pumpfoil-org" target="_blank" rel="noopener noreferrer"
-                  aria-label="YouTube" className="text-slate-300 hover:text-brand-300">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
-                    <path d="M23 12s0-3.5-.4-5.1a2.6 2.6 0 0 0-1.8-1.8C19.2 4.7 12 4.7 12 4.7s-7.2 0-8.8.4A2.6 2.6 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4a2.6 2.6 0 0 0 1.8-1.8C23 15.5 23 12 23 12ZM9.8 15.3V8.7l6 3.3-6 3.3Z" />
-                  </svg>
-                </a>
-                <a href="https://www.instagram.com/pumpfoil_org/" target="_blank" rel="noopener noreferrer"
-                  aria-label="Instagram" className="text-slate-300 hover:text-brand-300">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2"
-                    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="2" y="2" width="20" height="20" rx="5" />
-                    <circle cx="12" cy="12" r="4" />
-                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                </a>
-                <a href="https://www.tiktok.com/@pumpfoil.org" target="_blank" rel="noopener noreferrer"
-                  aria-label="TikTok" className="text-slate-300 hover:text-brand-300">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
-                    <path d="M16.5 3c.3 2.2 1.5 3.7 3.6 4v2.5c-1.3.1-2.5-.2-3.6-.9v5.9c0 3.3-2.4 5.5-5.4 5.5A5.2 5.2 0 0 1 6 14.9c0-3.2 3-5.6 6.3-4.8v2.7a2.3 2.3 0 0 0-1-.2 2.5 2.5 0 0 0 .1 5c1.4 0 2.5-1.1 2.5-2.7V3h2.6Z" />
-                  </svg>
-                </a>
+              {/* Titel (größer) rechts + Social-Links darunter */}
+              <div className="flex flex-col items-center gap-3 sm:items-start">
+                <p className="text-xl font-semibold text-slate-100 sm:text-2xl">{t("land.illmenseeTitle")}</p>
+                <div className="flex items-center gap-5">
+                  <a href="https://www.youtube.com/@pumpfoil-org" target="_blank" rel="noopener noreferrer"
+                    aria-label="YouTube" className="text-slate-300 hover:text-brand-300">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
+                      <path d="M23 12s0-3.5-.4-5.1a2.6 2.6 0 0 0-1.8-1.8C19.2 4.7 12 4.7 12 4.7s-7.2 0-8.8.4A2.6 2.6 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4a2.6 2.6 0 0 0 1.8-1.8C23 15.5 23 12 23 12ZM9.8 15.3V8.7l6 3.3-6 3.3Z" />
+                    </svg>
+                  </a>
+                  <a href="https://www.instagram.com/pumpfoil_org/" target="_blank" rel="noopener noreferrer"
+                    aria-label="Instagram" className="text-slate-300 hover:text-brand-300">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="2" y="2" width="20" height="20" rx="5" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                    </svg>
+                  </a>
+                  <a href="https://www.tiktok.com/@pumpfoil.org" target="_blank" rel="noopener noreferrer"
+                    aria-label="TikTok" className="text-slate-300 hover:text-brand-300">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
+                      <path d="M16.5 3c.3 2.2 1.5 3.7 3.6 4v2.5c-1.3.1-2.5-.2-3.6-.9v5.9c0 3.3-2.4 5.5-5.4 5.5A5.2 5.2 0 0 1 6 14.9c0-3.2 3-5.6 6.3-4.8v2.7a2.3 2.3 0 0 0-1-.2 2.5 2.5 0 0 0 .1 5c1.4 0 2.5-1.1 2.5-2.7V3h2.6Z" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
+
+            {/* Großes Hochformat-Overlay für den Short (Click-to-Load, youtube-nocookie). */}
+            {heroVideoOn && (
+              <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 p-4"
+                onClick={() => setHeroVideoOn(false)}>
+                <button onClick={() => setHeroVideoOn(false)} aria-label="Close"
+                  className="absolute right-3 top-3 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+                  style={{ top: "calc(0.75rem + env(safe-area-inset-top))" }}>
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+                <div className="aspect-[9/16] h-[85vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
+                  <iframe
+                    className="h-full w-full rounded-xl"
+                    src="https://www.youtube-nocookie.com/embed/5ooOkm8QgAI?autoplay=1&rel=0&playsinline=1"
+                    title={t("land.illmenseeTitle")}
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           {/* „Auf der Uhr" liegt noch im Hero-Band -> vom Video hinterlegt (Apple rechteckig, Wear rund). */}
