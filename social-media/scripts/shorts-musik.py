@@ -21,6 +21,7 @@ O-Ton unverändert + Musik mit wählbarem Pegel, 1 s Fade-in, 2 s Fade-out,
 Musik wird bei Bedarf geloopt und auf Videolänge geschnitten.
 """
 
+import base64
 import datetime
 import hashlib
 import json
@@ -45,9 +46,8 @@ PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
 FADE_IN = 1.0
 FADE_OUT = 2.0
-# Text-Overlays: fix Arial 30, zentriert, 0,5s ein / 2s halten / 0,5s aus
-TEXT_FONT = "/System/Library/Fonts/Supplemental/Arial.ttf"
-TEXT_SIZE = 60
+# Text-Overlays: der Browser rendert den Text (inkl. Emojis) als transparentes
+# PNG in Videogröße; ffmpeg blendet es mit fade alpha ein/aus.
 TEXT_FADE = 0.5
 TEXT_HOLD = 2.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
@@ -183,28 +183,6 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         acodec = ["-c:a", "copy"] if not trimmed else ["-c:a", "aac", "-b:a", "192k"]
     else:
         amap, acodec = [], []
-    # Text-Overlays → drawtext-Kette (Zeiten beziehen sich aufs Original,
-    # nach Trim verschiebt sich die Output-Zeitachse um -start)
-    tmpfiles = []
-    draw = []
-    for tx in (texts or []):
-        s = float(tx.get("start", 0)) - start
-        fd, pth = tempfile.mkstemp(suffix=".txt")
-        os.write(fd, str(tx.get("text", "")).encode())
-        os.close(fd)
-        tmpfiles.append(pth)
-        try:
-            hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
-        except (TypeError, ValueError):
-            hold = TEXT_HOLD
-        e = s + 2 * TEXT_FADE + hold
-        draw.append(
-            f"drawtext=textfile='{pth}':fontfile='{TEXT_FONT}'"
-            f":fontsize={TEXT_SIZE}:fontcolor=white:text_align=C"
-            ":borderw=2:bordercolor=black@0.6"
-            ":x=(w-text_w)/2:y=(h-text_h)/2"
-            f":alpha='clip(min((t-{s:.3f})/{TEXT_FADE},({e:.3f}-t)/{TEXT_FADE}),0,1)'"
-        )
     vsrc = "[0:v]"
     if overlay:
         w, h = video_dims(video)
@@ -214,12 +192,26 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         fc_parts.append(f"[{ov_idx}:v]scale={w}:{h}[ov];"
                         "[0:v][ov]overlay=0:0:format=auto[vo]")
         vsrc = "[vo]"
-    if draw:
-        fc_parts.append(vsrc + ",".join(draw) + "[v]")
-        vmap, reencode = "[v]", True
-    elif overlay:
-        fc_parts[-1] = fc_parts[-1].replace("[vo]", "[v]")
-        vmap, reencode = "[v]", True
+    # Text-PNGs: Zeiten beziehen sich aufs Original, nach Trim verschiebt
+    # sich die Output-Zeitachse um -start
+    for i, tx in enumerate(texts or []):
+        s = float(tx.get("start", 0)) - start
+        try:
+            hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
+        except (TypeError, ValueError):
+            hold = TEXT_HOLD
+        e = s + 2 * TEXT_FADE + hold
+        inputs += ["-loop", "1", "-i", str(tx["png"])]
+        idx = n_inputs
+        n_inputs += 1
+        fc_parts.append(
+            f"[{idx}:v]format=rgba"
+            f",fade=t=in:st={s:.3f}:d={TEXT_FADE}:alpha=1"
+            f",fade=t=out:st={e - TEXT_FADE:.3f}:d={TEXT_FADE}:alpha=1[t{i}];"
+            f"{vsrc}[t{i}]overlay=0:0:format=auto[v{i}]")
+        vsrc = f"[v{i}]"
+    if vsrc != "[0:v]":
+        vmap, reencode = vsrc, True
     else:
         vmap, reencode = "0:v", trimmed  # Schnitt braucht Re-Encode (Copy = nur Keyframes)
     vcodec = (["-c:v", "libx264", "-crf", "20", "-preset", "medium",
@@ -231,32 +223,25 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         *fc, "-map", vmap, *amap, *vcodec, *acodec,
         "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out),
     ]
-    try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True)
-        tail = []
-        for line in proc.stdout:
-            line = line.strip()
-            if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
-                try:
-                    # beide Keys tragen Mikrosekunden (ffmpeg-Eigenheit)
-                    PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / dur * 100)
-                except ValueError:
-                    pass
-            elif not re.match(r"^[a-z_0-9.]+=", line):
-                tail.append(line)
-                if len(tail) > 50:
-                    del tail[0]
-        if proc.wait() != 0:
-            raise subprocess.CalledProcessError(proc.returncode, cmd,
-                                                stderr="\n".join(tail))
-        PROGRESS["pct"] = 100.0
-    finally:
-        for p in tmpfiles:
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True)
+    tail = []
+    for line in proc.stdout:
+        line = line.strip()
+        if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
             try:
-                os.unlink(p)
-            except OSError:
+                # beide Keys tragen Mikrosekunden (ffmpeg-Eigenheit)
+                PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / dur * 100)
+            except ValueError:
                 pass
+        elif not re.match(r"^[a-z_0-9.]+=", line):
+            tail.append(line)
+            if len(tail) > 50:
+                del tail[0]
+    if proc.wait() != 0:
+        raise subprocess.CalledProcessError(proc.returncode, cmd,
+                                            stderr="\n".join(tail))
+    PROGRESS["pct"] = 100.0
 
 
 # ------------------------------------------------------------- Dateilisten --
@@ -488,9 +473,19 @@ class Handler(BaseHTTPRequestHandler):
         fade_out = float(req.get("fade_out", FADE_OUT))
         trim_start = float(req.get("trim_start") or 0)
         trim_end = float(req["trim_end"]) if req.get("trim_end") else None
-        texts = [t for t in (req.get("texts") or [])
-                 if isinstance(t, dict) and str(t.get("text", "")).strip()
-                 and t.get("start") is not None]
+        # Text-PNGs (Base64 vom Browser-Canvas) in Temp-Dateien auspacken
+        texts = []
+        tmp_pngs = []
+        for t in (req.get("texts") or []):
+            if not (isinstance(t, dict) and t.get("png")
+                    and t.get("start") is not None):
+                continue
+            fd, pth = tempfile.mkstemp(suffix=".png")
+            os.write(fd, base64.b64decode(t["png"].split(",", 1)[-1]))
+            os.close(fd)
+            tmp_pngs.append(pth)
+            texts.append({"start": t["start"], "hold": t.get("hold", TEXT_HOLD),
+                          "png": pth})
         out_name = re.sub(r"[/\\:\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
         out_name = re.sub(r"\.mp4$", "", out_name, flags=re.I)
         # Nummer + "Pumpfoil-<Jahr>-" automatisch; manuell Getipptes gewinnt
@@ -529,6 +524,11 @@ class Handler(BaseHTTPRequestHandler):
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
             except (ValueError, FileNotFoundError) as e:
                 results[pf] = {"ok": False, "error": str(e)}
+        for p in tmp_pngs:
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
         PROGRESS.update(active=False, label="", pct=0.0)
         # Quellvideo wegräumen, wenn alle angeforderten Renders geklappt haben
         moved = None
@@ -880,6 +880,20 @@ function updateTextPreview(){
   }
 }
 (function txLoop(){updateTextPreview();requestAnimationFrame(txLoop)})();
+function textPng(tx){
+  // Text (inkl. Emojis) auf transparentes Canvas in Videogröße rendern —
+  // Look muss zur .txov-Vorschau passen (Arial, weiß, Schatten, zentriert)
+  const w=vid.videoWidth||1080, h=vid.videoHeight||1920;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  const g=c.getContext('2d');
+  g.font=TXS+'px Arial';g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle='#fff';
+  g.shadowColor='rgba(0,0,0,0.7)';g.shadowBlur=6;g.shadowOffsetX=2;g.shadowOffsetY=2;
+  const lines=tx.text.split('\n'), lh=TXS*1.15;
+  const y0=h/2-(lines.length-1)/2*lh;
+  lines.forEach((ln,i)=>g.fillText(ln,w/2,y0+i*lh));
+  return c.toDataURL('image/png');
+}
 $('#aStar').onclick=()=>{if(curVideo)toggleStar(curVideo,!(state.stars||[]).includes(curVideo))};
 $('#aPrivat').onclick=()=>{if(curVideo)discard(curVideo,'privat')};
 $('#aNgu').onclick=()=>{if(curVideo)discard(curVideo,'never-give-up')};
@@ -1026,7 +1040,8 @@ $('#renderBtn').onclick=async()=>{
       body:JSON.stringify({video:curVideo,tracks:sel,gain_db:+$('#gain').value,fade_out:+$('#fade').value,
         overlay:($('#ovOn').checked&&$('#ovSel').value)||null,
         trim_start:trimStart,trim_end:trimEnd,out_name:$('#outName').value,
-        texts:texts.filter(t=>t.text.trim()&&t.start!=null)})})).json();
+        texts:texts.filter(t=>t.text.trim()&&t.start!=null)
+          .map(t=>({start:t.start,hold:t.hold,png:textPng(t)}))})})).json();
     const errs=Object.entries(r.results).filter(([,res])=>!res.ok);
     $('#log').textContent=errs.map(([pf,res])=>'✗ '+pf+': '+res.error).join('\n');
     // verwendeten Namen (inkl. Nummer) behalten → erneutes Rendern
