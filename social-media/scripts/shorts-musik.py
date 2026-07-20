@@ -917,10 +917,8 @@ function pickVideo(v){
   allowPlay=performance.now()+950;
   playTimer=setTimeout(()=>{if(curVideo===v){allowPlay=0;vid.play().catch(()=>{})}},1000);
   $('#vname').textContent=v; stopMusic(); renderVideoList();
-  trimStart=trimEnd=null; updateTrim();
-  $('#outName').value='';
-  for(let i=0;i<TXN;i++)texts[i]={start:null,text:'',hold:TXH};
-  renderTextRows();
+  // Trim/Texte/Name/Musikwahl bleiben absichtlich stehen (Korrektur-Workflow);
+  // Reset = Seite neu laden
   updatePvBar();
 }
 function stopMusic(){music.pause();curPlay=null;renderTrackList()}
@@ -1031,6 +1029,10 @@ $('#renderBtn').onclick=async()=>{
         texts:texts.filter(t=>t.text.trim()&&t.start!=null)})})).json();
     const errs=Object.entries(r.results).filter(([,res])=>!res.ok);
     $('#log').textContent=errs.map(([pf,res])=>'✗ '+pf+': '+res.error).join('\n');
+    // verwendeten Namen (inkl. Nummer) behalten → erneutes Rendern
+    // überschreibt gezielt dieselben Dateien statt neu zu nummerieren
+    const first=Object.values(r.results).find(res=>res.ok&&res.out);
+    if(first)$('#outName').value=first.out.split('/').pop().replace(/\.mp4$/,'');
   }catch(e){$('#log').textContent='Fehler: '+e}
   clearInterval(iv);$('#prog').style.display='none';
   renderingVideo=null;
