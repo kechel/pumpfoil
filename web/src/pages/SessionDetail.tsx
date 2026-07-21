@@ -893,7 +893,7 @@ export default function SessionDetail() {
         }
         for (let k = 0; k < arc.length - 1; k++) {
           L.polyline([[arc[k][0], arc[k][1]], [arc[k + 1][0], arc[k + 1][1]]],
-            { color: carveColor(arc[k + 1][2]), weight: 6, opacity: 0.98 }).addTo(lg);
+            { color: carveColor(arc[k + 1][2]), weight: 6, opacity: 0.98, interactive: false }).addTo(lg);
         }
       });
     }
