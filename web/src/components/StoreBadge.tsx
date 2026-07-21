@@ -38,9 +38,9 @@ export function ZeppAppBadges({ row = false }: { row?: boolean }) {
     <div className="inline-flex flex-col items-center gap-1.5">
       <span className={`flex ${row ? "flex-row flex-wrap" : "flex-col"} items-center justify-center gap-2`}>
         <StoreBadge href={ZEPP_IOS_URL} darkSrc="/badges/app-store-de.svg" lightSrc="/badges/app-store-de-light.svg"
-          alt="Zepp App im App Store" widthClass="w-36" />
+          alt="Zepp App im App Store" height="h-11" />
         <StoreBadge href={ZEPP_ANDROID_URL} darkSrc="/badges/google-play-de.png" lightSrc="/badges/google-play-de-light.png"
-          alt="Zepp App bei Google Play" widthClass="w-36" />
+          alt="Zepp App bei Google Play" height="h-11" />
       </span>
       <span className="text-xs text-slate-400">Zepp App → „Pumpfoil"</span>
     </div>
