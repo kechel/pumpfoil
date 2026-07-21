@@ -65,8 +65,14 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 - **Start-Erfolgsquote** (Feedback Laurent, FoilMotion-inspiriert) — % erfolgreiche Starts vs.
   Gesamt-Startversuche. Braucht Startversuch-Erkennung (verwandt mit Paddle-Up-/Attempts-Erkennung).
   R&D/Detektor → Jans OK.
-- **Rechts-/Links-Turns zählen** (Feedback Laurent, FoilMotion-inspiriert) — aus GPS-Kurs (evtl.
-  Gyro, sofern via FIT verfügbar). R&D/Detektor → Jans OK.
+- **Carves in der Karte** — ✅ LIVE 2026-07-21 (read-only, nur Anzeige): „Carves"-Modus in der Web-
+  Session-Karte. Enge Turns (GPS-Kurs, ≥90°, Radius <12 m) grün→gelb→rot nach Kurvenlage (v²/r aus GPS),
+  feine Catmull-Rom-Bögen, Zähler nach Grad-Bucket. Rein GPS (kein Accel). NICHT in Rekorde/Stats.
+  Memory `turn-carve-detection-rnd`. **Offen:** Community-Feedback zu Miss/Over-Detection abwarten
+  (Jan postet Ankündigung); Params (`step_m/rate_deg/min_rot/max_radius_m`) ggf. nachtunen; App-Port.
+- **Turns/große Runden als EIGENES Feature** (Feedback Laurent, FoilMotion-inspiriert) — weite Turns
+  getrennt von Carves: eigene Statistik + Rekorde (L/R-Zähler, Netto-Rotation, Vorzugsrichtung, Loops)
+  aus GPS-Kurs (evtl. Gyro via FIT). Carves sind bewusst nur die engen (<12 m). R&D/Detektor → Jans OK.
 - **„Wer foilt jetzt gerade?"** — laufende Sessions live (braucht Live-Upload während der Session +
   Privacy-Opt-in). Groß.
 - **Kommentar-Auto-Übersetzung** in die Sprache des Lesers (auf Knopfdruck, Übersetzungen cachen).
@@ -120,11 +126,19 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
-- **Max-Speed: GPS-Ausreißer killen, 3-s-Max zeigen** (Feedback Tom Petr 2026-07-20, DECKT SICH mit
-  #367-Befund + Laurent): rohe GPS-Max-Speed zeigt Fantasiewerte (Tom: 102 km/h; Community-Rekord
-  „31,8 km/h auf Gong Sirius XXL" unrealistisch). Statt Roh-Max den **geglätteten 3-s-Max** als
-  Speed-Rekord nehmen (Uhr zeigt schon 3-s; Auswertung/Community-Records nach) + Positions-Ausreißer-
-  Filter beim Analysieren. Detektor/Analyse → Jans OK + Regression. **Wichtig, mehrfach gemeldet.**
+- **Aufnahme nicht automatisch hochladen / Save-Discard** (Feedback 2026-07-19): „session started auto,
+  stopped → auto-uploaded. Every other activity has save/discard." Wunsch: (a) optional NICHT automatisch
+  hochladen bzw. Save/Discard-Abfrage nach dem Stopp, ODER (b) nur Sessions mit ≥1 erkanntem Lauf hoch-
+  laden. Betrifft Garmin-Watch-UX (Monkey C) + evtl. Phone-Recorder. Abwägen: Auto-Upload ist bewusst
+  reibungsarm; ggf. Opt-in-Setting „vor Upload fragen". Claude kann Watch bauen.
+- **Sabfoil-Foils ergänzen** (Feedback Eric 2026-07-13): Blackbird 1400 (WL1400-BB), 1350, 1077 fehlen
+  im Foil-Katalog. Quick-Win (Seed-Daten, Infrastruktur da). Verwandt: „Foil-DB erweitern" oben.
+- [x] **Max-Speed: Rand-GPS-Spike killen** — ERLEDIGT 2026-07-21: Speed-Rekord war schon 3-s-Max, aber
+  ein Doppler-Spike auf dem ERSTEN/LETZTEN GPS-Punkt setzte den Rekord (Median-Filter am Rand blind,
+  `mode="edge"`). Fix: Endpunkte gegen Innen-Median clampen (nur runter). Regression: 7/647 Sessions,
+  alle Reduktionen (S555 31,8→18,9 etc.), alle 7 reanalysiert + persistiert. Changelog-Eintrag live.
+  OFFEN bleibt der separate **Positions-Ausreißer-Filter** (5000-km-Sprünge, verfälscht Distanz) →
+  eigener Inbox-Punkt unten.
 - **Android: Stats pro Lauf + Foil in Community** (Feedback Tom 2026-07-20): (a) in der Session-Detail
   der App zeigt „einen Lauf auswählen" weiter die Gesamt-Stats (kein Puls/Kadenz je Lauf) — Web kann's,
   App nicht → Parität. (b) In der Community-Liste der App fehlt das benutzte Foil (Web zeigt es). Beides
