@@ -24,15 +24,19 @@ function ItemText({ text }: { text: string }): ReactNode {
 // Nutzer-sichtbares Changelog. Bewusst NICHT technisch und (bis auf den Menüpunkt) auf
 // Englisch — eine kuratierte Liste dessen, was Nutzer wirklich merken. Neueste zuerst.
 // Einträge einfach oben ergänzen; jeweils Datum + kurze, verständliche Punkte.
-type Entry = { date: string; items: string[]; img?: string; imgAlt?: string };
+// Ein Punkt ist entweder reiner Text oder Text + zugehöriges Bild (unter DEM Punkt gerendert).
+type Item = string | { text: string; img: string; imgAlt?: string };
+type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
     date: "July 21, 2026",
-    img: "/changelog/carve-example.webp",
-    imgAlt: "A carve on the session map, coloured green to orange by lean angle",
     items: [
-      "Carve view on the session map: switch the map to “Carves” to see your carves highlighted — a tight turn of 90° or more (detected from your GPS track; wide, lazy turns don’t count), coloured by how hard you leaned into it (green → yellow → red, from your speed and turn radius). Includes a count of your carves by angle (90–180°, 180–360°, over 360°). Great for scrubbing through a session and spotting your carves. Works from GPS alone — no special watch needed; shown as an extra view only, not (yet) in records or stats. [See an example](/sessions/766?run=3).",
+      {
+        text: "Carve view on the session map: switch the map to “Carves” to see your carves highlighted — a tight turn of 90° or more (detected from your GPS track; wide, lazy turns don’t count), coloured by how hard you leaned into it (green → yellow → red, from your speed and turn radius). Includes a count of your carves by angle (90–180°, 180–360°, over 360°). Great for scrubbing through a session and spotting your carves. Works from GPS alone — no special watch needed; shown as an extra view only, not (yet) in records or stats. [See an example](/sessions/766?run=3).",
+        img: "/changelog/carve-example.webp",
+        imgAlt: "A carve on the session map, coloured green to orange by lean angle",
+      },
       "More accurate top speed: a GPS glitch on the very first or last point of a run could report an impossible top speed (e.g. 30+ km/h on a slow board) and skew the community speed records. These edge glitches are now filtered out, so top-speed records reflect real riding.",
     ],
   },
@@ -151,12 +155,21 @@ export default function Changelog() {
           <section key={e.date}>
             <h2 className="mb-2 text-sm font-semibold text-brand-300">{e.date}</h2>
             <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-200">
-              {e.items.map((it, i) => <li key={i}><ItemText text={it} /></li>)}
+              {e.items.map((it, i) => {
+                const text = typeof it === "string" ? it : it.text;
+                const img = typeof it === "string" ? undefined : it.img;
+                const alt = typeof it === "string" ? "" : (it.imgAlt ?? "");
+                return (
+                  <li key={i}>
+                    <ItemText text={text} />
+                    {img && (
+                      <img src={img} alt={alt} loading="lazy"
+                        className="mt-2 w-full max-w-[260px] rounded-lg border border-slate-800" />
+                    )}
+                  </li>
+                );
+              })}
             </ul>
-            {e.img && (
-              <img src={e.img} alt={e.imgAlt ?? ""} loading="lazy"
-                className="mt-3 w-full max-w-[260px] rounded-lg border border-slate-800" />
-            )}
           </section>
         ))}
       </div>
