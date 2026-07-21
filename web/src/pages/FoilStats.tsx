@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, WatchIcon, FoilIcon } from "../components/Icons";
 import { useSort, SortHead } from "../components/SortableTable";
+import { fmtPumpRate } from "../lib/pumpRate";
 import { useT } from "../i18n";
 
 type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
@@ -62,7 +63,7 @@ export default function FoilStats() {
                   <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump.toFixed(1)} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz.toFixed(2)} Hz` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{fmtPumpRate(r.avg_pump_hz)}</td>
                 </tr>
               ))}
             </tbody>

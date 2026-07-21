@@ -15,6 +15,7 @@ import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { carveColor } from "../lib/turns";
+import { pumpUnit, setPumpUnit, pumpValue, pumpSuffix, type PumpUnit } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
@@ -1661,14 +1662,14 @@ function ClickStat({
 // steckt gerätelokal im localStorage (nicht serverseitig), gilt für alle Sessions.
 function PumpRateStat({ hz }: { hz: number }) {
   const t = useT();
-  const [unit, setUnit] = useState<"hz" | "min">(() => (localStorage.getItem("pumpRateUnit") === "min" ? "min" : "hz"));
+  const [unit, setUnitState] = useState<PumpUnit>(pumpUnit);
   const toggle = () => {
-    const n = unit === "hz" ? "min" : "hz";
-    setUnit(n);
-    try { localStorage.setItem("pumpRateUnit", n); } catch { /* ignore */ }
+    const n: PumpUnit = unit === "hz" ? "min" : "hz";
+    setUnitState(n);
+    setPumpUnit(n);
   };
-  const value = unit === "hz" ? hz.toFixed(2) : String(Math.round(hz * 60));
-  const sub = unit === "hz" ? "Hz" : "/min";
+  const value = pumpValue(hz, unit);
+  const sub = pumpSuffix(unit);
   const alt = unit === "hz" ? "/min" : "Hz";
   return (
     <button

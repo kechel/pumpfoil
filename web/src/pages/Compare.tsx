@@ -9,6 +9,7 @@ import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refK
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { invalidateSessionListCache } from "./Sessions";
 import { setLastSession } from "../lib/lastSession";
+import { fmtPumpRate, pumpSuffix, pumpValue } from "../lib/pumpRate";
 import { useT } from "../i18n";
 
 // Farben zur Zuordnung Wert -> markiertes Element (Legende oben + Punkt je Wert).
@@ -206,7 +207,7 @@ export default function Compare() {
     { key: "minKmh", label: t("sd.minSpeed", { win }), unit: "km/h", fmt: (v) => v.toFixed(1) },
     { key: "maxGlide", label: t("sd.maxGlide"), unit: "s", dir: "max", fmt: (v) => v.toFixed(1) },
     { key: "pumps", label: t("stat.pumps"), fmt: (v) => String(v) },
-    { key: "avgPump", label: t("sd.avgPump"), unit: "Hz", fmt: (v) => v.toFixed(2) },
+    { key: "avgPump", label: t("sd.avgPump"), unit: pumpSuffix(), fmt: (v) => pumpValue(v) },
     { key: "distPerPump", label: t("sd.avgDistPerPump"), unit: "m/Pump", dir: "max", fmt: (v) => v.toFixed(1) },
     { key: "avgHr", label: t("sd.avgHr"), unit: "bpm", fmt: (v) => String(Math.round(v)) },
     { key: "maxHr", label: t("sd.maxHr"), unit: "bpm", fmt: (v) => String(Math.round(v)) },
@@ -344,7 +345,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
   if (!rows.length) return null;
   const hasPump = rows.some((r) => r.seg.avg_pump_hz != null && (r.seg.pumps ?? 0) > 0);
   const showPower = rows.some((r) => powerOf(r.session, r.seg.avg_speed_mps, r.seg.avg_pump_hz, weight) != null);
-  const hz = (v: number | null | undefined) => (v != null ? v.toFixed(2) : "–");
+  const hz = (v: number | null | undefined) => fmtPumpRate(v);
   const spd = (s: any, kind: "avg" | "max" | "min") => {
     const v = s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps);
     return v != null ? (v * 3.6).toFixed(1) : "–";
