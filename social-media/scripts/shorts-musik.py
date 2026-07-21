@@ -50,7 +50,9 @@ FADE_OUT = 2.0
 # PNG in Videogröße; ffmpeg blendet es mit fade alpha ein/aus.
 TEXT_FADE = 0.5
 TEXT_HOLD = 2.0
-OUTRO_SECS = 2.5  # Like/Follow-Icons: sichtbar in den letzten x Sekunden
+OUTRO_SECS = 2.5       # Like/Follow-Icons: sichtbar in den letzten x Sekunden …
+OUTRO_SECS_LONG = 4.0  # … bzw. bei Videos über 20 s
+OUTRO_LONG_AB = 20.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
@@ -216,7 +218,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-loop", "1", "-i", str(outro)]
         idx = n_inputs
         n_inputs += 1
-        st = max(0.0, dur - OUTRO_SECS)
+        st = max(0.0, dur - (OUTRO_SECS_LONG if dur > OUTRO_LONG_AB else OUTRO_SECS))
         fc_parts.append(
             f"[{idx}:v]format=rgba"
             f",fade=t=in:st={st:.3f}:d={TEXT_FADE}:alpha=1[outro];"
@@ -693,7 +695,7 @@ PAGE = r"""<!doctype html>
       <span id="gainVal">-12 dB</span></div>
     <div class="row">Fade-out <input type="number" id="fade" min="0" max="15" step="0.5" value="2"> s</div>
     <div class="row"><label><input type="checkbox" id="ovOn" checked> Overlay</label> <select id="ovSel"></select></div>
-    <div class="row"><label><input type="checkbox" id="outroOn" checked> Outro-Icons (Like/Follow, letzte 2,5 s)</label></div>
+    <div class="row"><label><input type="checkbox" id="outroOn" checked> Outro-Icons (Like/Follow, letzte 2,5–4 s)</label></div>
     <div class="row">Trim <button class="mini" id="trimStartBtn">[ Start</button><button class="mini" id="trimEndBtn">Ende ]</button><button class="mini" id="trimClrBtn">✕</button> <span id="trimVal" style="opacity:.7">–</span></div>
     <div class="row">Name <span id="nextNum" style="opacity:.6"></span><input type="text" id="outName" placeholder="z.B. sunset-carving" spellcheck="false"></div>
     <button id="renderBtn">Rendern → shorts-mit-musik/</button>
@@ -913,7 +915,8 @@ function updateTextPreview(){
   const oi=$('#outroImg'), dur=vid.duration;
   if($('#outroOn').checked&&isFinite(dur)&&dur>0){
     const end=trimEnd!=null?trimEnd:dur;
-    const st=Math.max(trimStart||0,end-2.5);
+    const secs=(end-(trimStart||0))>20?4:2.5;
+    const st=Math.max(trimStart||0,end-secs);
     const a=Math.max(0,Math.min((t-st)/TXF,1));
     const key=pvPlatform+'|'+vid.videoWidth;
     if(a>0&&oi.dataset.key!==key){oi.src=outroPng(pvPlatform);oi.dataset.key=key}
@@ -943,14 +946,12 @@ function outroPng(pf){
   const items=OUTROS[pf], size=110, gap=54;
   const total=items.length*size+(items.length-1)*gap;
   let x=(w-total)/2; const y=h*0.68;
-  g.strokeStyle='#fff';g.fillStyle='#fff';
+  g.strokeStyle='#fff';
   g.shadowColor='rgba(0,0,0,0.7)';g.shadowBlur=8;g.shadowOffsetX=2;g.shadowOffsetY=2;
   g.lineCap='round';g.lineJoin='round';
-  for(const [ic,label] of items){
+  for(const [ic] of items){
     g.save();g.translate(x,y);g.scale(size/24,size/24);g.lineWidth=2;
     g.stroke(new Path2D(OPATHS[ic]));g.restore();
-    g.font='32px Arial';g.textAlign='center';g.textBaseline='top';
-    g.fillText(label,x+size/2,y+size+16);
     x+=size+gap;
   }
   return c.toDataURL('image/png');
