@@ -103,7 +103,9 @@ def device_config(
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "surfing"),
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
-        "language": (user.language if user and user.language else "de"),
+        # Ist KEINE Profil-Sprache gesetzt, "" senden (nicht hart "de") → die Uhr weicht auf ihre
+        # GERÄTE-Systemsprache aus (Strings.setLang("")→_systemIdx, Fallback EN). Wunsch: engl. Uhr = engl. App.
+        "language": (user.language if user and user.language else ""),
         # Vibrationsalarm (per Website konfiguriert).
         "alarmEnabled": bool(settings.get("alarm_enabled", False)),
         "speedHigh": int(settings.get("speed_high", 0) or 0),

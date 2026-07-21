@@ -50,7 +50,7 @@ class User(Base):
     # (Feed/Rekorde/Spots/Chat), Konto selbst sieht alles normal. Login bleibt erlaubt.
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Bevorzugte UI-Sprache (de, gsw, de-AT, en, fr, it, es). Default Deutsch.
-    language: Mapped[str] = mapped_column(String(8), default="de", server_default="de")
+    language: Mapped[str] = mapped_column(String(8), default="en", server_default="en")
     # Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts) — übersteuert die
     # Foil-Limits NUR für die eigene Auswertung (leichte/langsame Fahrer, Startversuche);
     # Community/Rekorde nutzen immer "normal". Siehe analysis.gps.SENSITIVITY_PRESETS.

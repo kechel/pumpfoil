@@ -25,7 +25,7 @@ RESET_TTL_MIN = 60
 SUPPORTED_LANGS = {"de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs"}
 
 
-def _clean_lang(raw: str | None, fallback: str = "de") -> str:
+def _clean_lang(raw: str | None, fallback: str = "en") -> str:
     """Normalisiert einen Sprachcode auf eine unterstützte Sprache, sonst Fallback."""
     code = (raw or "").strip()
     return code if code in SUPPORTED_LANGS else fallback
@@ -102,7 +102,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -117,7 +117,7 @@ def update_me(
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Anzeigename darf nicht leer sein")
         user.display_name = name
     if body.language is not None:
-        user.language = _clean_lang(body.language, fallback=user.language or "de")
+        user.language = _clean_lang(body.language, fallback=user.language or "en")
     # Persönliche Erkennungs-Empfindlichkeit: bei Änderung im HINTERGRUND die EIGENEN Sessions
     # (nur die noch nicht für dieses Preset gecachten) reanalysieren — Request kommt sofort zurück,
     # PWA pollt /me/reanalysis für die Fortschrittsanzeige. Community/Rekorde bleiben Standard.
@@ -133,7 +133,7 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
 
 
 @router.put("/me/age-range", response_model=ProfileOut)
@@ -148,7 +148,7 @@ def set_age_range(
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
-                      is_admin=user.is_admin, language=user.language or "de",
+                      is_admin=user.is_admin, language=user.language or "en",
                       beta=True,
                       foil_sensitivity=(user.foil_sensitivity or "normal"),
                       social_allowed=(user.social_allowed is not False))
@@ -289,7 +289,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "de", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
 
 
 @router.post("/login", response_model=TokenOut)

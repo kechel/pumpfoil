@@ -60,7 +60,7 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("nl")) return "nl";
   if (nav.startsWith("cs")) return "cs";
   if (nav.startsWith("en")) return "en";
-  return "de";
+  return "en";   // unbekannte Browsersprache -> Englisch (nicht Deutsch)
 }
 
 export type TFunc = (key: string, vars?: Record<string, string | number>) => string;

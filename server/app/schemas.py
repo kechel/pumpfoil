@@ -46,7 +46,7 @@ class ProfileOut(BaseModel):
     display_name: str | None = None
     avatar_url: str | None = None
     is_admin: bool = False
-    language: str = "de"
+    language: str = "en"
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
     social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
