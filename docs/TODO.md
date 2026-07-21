@@ -131,8 +131,8 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
   hochladen bzw. Save/Discard-Abfrage nach dem Stopp, ODER (b) nur Sessions mit ≥1 erkanntem Lauf hoch-
   laden. Betrifft Garmin-Watch-UX (Monkey C) + evtl. Phone-Recorder. Abwägen: Auto-Upload ist bewusst
   reibungsarm; ggf. Opt-in-Setting „vor Upload fragen". Claude kann Watch bauen.
-- **Sabfoil-Foils ergänzen** (Feedback Eric 2026-07-13): Blackbird 1400 (WL1400-BB), 1350, 1077 fehlen
-  im Foil-Katalog. Quick-Win (Seed-Daten, Infrastruktur da). Verwandt: „Foil-DB erweitern" oben.
+- ~~Sabfoil-Foils ergänzen (Eric 2026-07-13)~~ — schon drin (`foils.json`: LEVIATHAN BLACKBIRD 1400/
+  „THE 1350", BLACKBIRD RAZOR 1077). Kein TODO.
 - [x] **Max-Speed: Rand-GPS-Spike killen** — ERLEDIGT 2026-07-21: Speed-Rekord war schon 3-s-Max, aber
   ein Doppler-Spike auf dem ERSTEN/LETZTEN GPS-Punkt setzte den Rekord (Median-Filter am Rand blind,
   `mode="edge"`). Fix: Endpunkte gegen Innen-Median clampen (nur runter). Regression: 7/647 Sessions,
