@@ -32,6 +32,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -301,6 +302,10 @@ def list_state():
         p.name for p in VIDEO_DIR.glob("*.mp4") if not p.name.startswith(".")
     )
     video_dir = str(VIDEO_DIR)
+    # Videolängen parallel proben (gecacht über _DUR_CACHE)
+    with ThreadPoolExecutor(8) as ex:
+        vdurs = dict(zip(videos, ex.map(
+            lambda n, d=VIDEO_DIR: track_duration(d / n), videos)))
     subdirs = []
     try:
         for p in sorted(VIDEO_DIR.iterdir()):
@@ -332,7 +337,8 @@ def list_state():
             "overlays": overlays, "next_number": next_number(),
             "name_prefix": name_prefix(), "stars": sorted(load_stars()),
             "quick_dirs": [{"label": lbl, "dir": str(Path(d).resolve())}
-                           for lbl, d in QUICK_DIRS if Path(d).is_dir()]}
+                           for lbl, d in QUICK_DIRS if Path(d).is_dir()],
+            "vdurs": vdurs}
 
 
 def safe_child(base: Path, rel: str) -> Path:
@@ -603,7 +609,8 @@ PAGE = r"""<!doctype html>
   .item.active{background:#3b82f633}
   .item.rendering{opacity:.35;pointer-events:none}
   .item.vid .hdr{display:flex;align-items:center;gap:4px}
-  .item.vid .vn{flex:1;min-width:0}
+  .item.vid .vn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item.vid .vdur{font-size:11px;opacity:.55;white-space:nowrap}
   .item.vid .thumbs{display:flex;gap:4px;margin-top:5px}
   .item.vid .thumbs img{width:calc(50% - 2px);aspect-ratio:9/16;object-fit:cover;border-radius:6px;background:#0003}
   .vx{border:0;background:transparent;cursor:pointer;opacity:.35;font-size:12px;padding:0 2px}
@@ -685,7 +692,7 @@ PAGE = r"""<!doctype html>
     </div>
   </div>
   <div id="pvBar"><span id="vname"></span>
-    <button class="mini" id="pvYT">YT</button><button class="mini" id="pvIG">IG</button>
+    <button class="mini" id="pvYT">YT</button><button class="mini" id="pvIG">IG</button><button class="mini" id="pvTT">TT</button>
     <span id="pvTrack">–</span></div>
 </div>
 <div id="tracks">
@@ -840,6 +847,13 @@ function renderVideoList(){
       b.textContent={youtube:'YT',instagram:'IG',tiktok:'TT'}[pf]||pf;n.appendChild(b);
     }
     hdr.appendChild(n);
+    const du=state.vdurs&&state.vdurs[v];
+    if(du!=null){
+      const dd=document.createElement('span');dd.className='vdur';
+      const s=Math.round(du);
+      dd.textContent=s<60?s+'s':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+      hdr.appendChild(dd);
+    }
     d.appendChild(hdr);
     const th=document.createElement('div');th.className='thumbs';
     for(const t of [1,5]){
@@ -1077,8 +1091,10 @@ let pvPlatform='youtube';
 function updatePvBar(){
   $('#pvYT').classList.toggle('sel',pvPlatform==='youtube');
   $('#pvIG').classList.toggle('sel',pvPlatform==='instagram');
+  $('#pvTT').classList.toggle('sel',pvPlatform==='tiktok');
   const t=sel[pvPlatform];
-  $('#pvTrack').textContent=t?t.split('/').pop().replace(/\.[^.]+$/,''):'–';
+  $('#pvTrack').textContent=pvPlatform==='tiktok'?'O-Ton, ohne Musik'
+    :(t?t.split('/').pop().replace(/\.[^.]+$/,''):'–');
   const isSt=curVideo&&(state.stars||[]).includes(curVideo);
   $('#aStar').innerHTML=icon('star',!!isSt)+'<span>'+(isSt?'gemerkt':'merken')+'</span>';
   $('#aStar').classList.toggle('starred',!!isSt);
@@ -1090,7 +1106,11 @@ $('#outName').addEventListener('input',updatePvBar);
 function playSelected(pf){
   pvPlatform=pf;
   const rel=sel[pf];
-  if(!rel){stopMusic();updatePvBar();return}
+  if(pf==='tiktok'||!rel){
+    stopMusic();
+    if(pf==='tiktok'&&vid.src){allowPlay=0;vid.currentTime=trimStart||0;vid.muted=false;vid.play()}
+    updatePvBar();return
+  }
   curPlay=rel;
   music.src='/media/musik/'+rel.split('/').map(encodeURIComponent).join('/');
   applyGain(); music.play();
@@ -1099,6 +1119,7 @@ function playSelected(pf){
 }
 $('#pvYT').onclick=()=>playSelected('youtube');
 $('#pvIG').onclick=()=>playSelected('instagram');
+$('#pvTT').onclick=()=>playSelected('tiktok');
 vid.addEventListener('play',()=>{
   if(performance.now()<allowPlay){vid.pause();return}
   if(curPlay&&music.paused)music.play()
