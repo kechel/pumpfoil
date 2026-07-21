@@ -1,7 +1,7 @@
 import { CheckIcon } from "./Icons";
 import { useT } from "../i18n";
 import { ConnectIqButton } from "./ConnectIqButton";
-import { AppStoreBadge, PlayBadge } from "./StoreBadge";
+import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "./StoreBadge";
 
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
 // /uhren-Seite + Login-Bereich /account).
@@ -10,11 +10,11 @@ type Status = "avail" | "planned" | "import" | "no" | "nope";
 type StoreKind = "ciq" | "appstore" | "play";                 // theme-aware Store-Badge
 type Account = { logo: string; alt: string; labelKey: string; imgClass?: string }; // Import per Konto-Verknüpfung (Hinweis, kein Link)
 
-const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: StoreKind; account?: Account }[] = [
+const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: StoreKind; account?: Account; zepp?: boolean }[] = [
   { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", store: "ciq" },
   { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple", store: "appstore" },
   { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel, TicWatch …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nWear", store: "play" },
-  { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "avail", noteKey: "watches.nAmazfit" },
+  { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "avail", noteKey: "watches.nAmazfit", zepp: true },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",
@@ -46,7 +46,9 @@ export function WatchMatrix() {
   );
   // Status/Store-Zelle (Tabelle + Karten teilen sich das): App-Store-Badge, Konto-Hinweis oder Status-Badge.
   const statusCell = (r: (typeof ROWS)[number]) =>
-    r.store ? (
+    r.zepp ? (
+      <ZeppAppBadges />
+    ) : r.store ? (
       r.store === "ciq" ? <ConnectIqButton height="h-10" />
         : r.store === "appstore" ? <AppStoreBadge height="h-10" />
         : <PlayBadge height="h-10" />
