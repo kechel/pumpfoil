@@ -32,14 +32,14 @@ export const ZEPP_ANDROID_URL = "https://play.google.com/store/apps/details?id=c
 
 export function ZeppAppBadges({ height = "h-9" }: { height?: string }) {
   return (
-    <div className="inline-flex flex-col items-start gap-1">
-      <span className="text-xs text-slate-400">Zepp App → „Pumpfoil"</span>
-      <span className="flex flex-wrap items-center gap-2">
+    <div className="inline-flex flex-col items-center gap-1">
+      <span className="flex flex-wrap items-center justify-center gap-2">
         <StoreBadge href={ZEPP_IOS_URL} darkSrc="/badges/app-store-de.svg" lightSrc="/badges/app-store-de-light.svg"
           alt="Zepp App im App Store" height={height} />
         <StoreBadge href={ZEPP_ANDROID_URL} darkSrc="/badges/google-play-de.png" lightSrc="/badges/google-play-de-light.png"
           alt="Zepp App bei Google Play" height={height} />
       </span>
+      <span className="text-xs text-slate-400">Zepp App → „Pumpfoil"</span>
     </div>
   );
 }
