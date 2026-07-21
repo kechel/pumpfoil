@@ -1336,14 +1336,16 @@ def _hav_m(lat: np.ndarray, lon: np.ndarray, i: int, j: int) -> float:
 
 def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
                  step_m: float = 4.0, rate_deg: float = 18.0, max_gap: int = 1,
-                 min_rot: float = 90.0) -> list:
-    """Turns aus dem GPS-Kurs erkennen — NICHT aus Accel (Accel liefert nur die Farbe).
+                 min_rot: float = 90.0, max_radius_m: float = 12.0) -> list:
+    """Carves aus dem GPS-Kurs erkennen — NICHT aus Accel (Accel liefert nur die Farbe).
     Der Accel-primäre Ansatz färbte Geraden (Pump-g-Bumps) und verpasste weite Turns
     (kleiner Zentripetal-g bei großem Radius). GPS-Kurs ist der richtige Turn-Indikator.
     Vorgehen: Punkte erst auf ~step_m entrauschen (1-Hz-GPS wackelt), dann pro Schritt die
     Kursänderung; zusammenhängende, gleichsinnige Dreh-Phasen (|Rate|≥rate_deg, bis zu max_gap
-    gerade Schritte überbrückt) zu einem Event bündeln. Rückgabe: Liste (c0, c1, rot°) mit
-    |rot|≥min_rot — c0/c1 sind Original-Koord-Indizes."""
+    gerade Schritte überbrückt) zu einem Event bündeln. Nur ENGE Turns = Carves: Bogenradius
+    (Bogenlänge/Winkel) < max_radius_m — weite Runden sind KEINE Carves (kommen später als
+    eigenes „Turns"-Feature). Rückgabe: Liste (c0, c1, rot°) mit |rot|≥min_rot & Radius<max —
+    c0/c1 sind Original-Koord-Indizes."""
     idx = [i0]; last = i0
     for k in range(i0 + 1, i1 + 1):
         if _hav_m(lat, lon, last, k) >= step_m:
@@ -1369,7 +1371,10 @@ def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
         nonlocal cur
         if cur and abs(cur[2]) >= min_rot:
             c0 = idx[max(0, cur[0])]; c1 = idx[min(cur[4] + 2, len(idx) - 1)]
-            ev.append((c0, c1, cur[2]))
+            arclen = sum(_hav_m(lat, lon, k, k + 1) for k in range(c0, c1))
+            radius = arclen / math.radians(abs(cur[2])) if cur[2] else 1e9
+            if radius < max_radius_m:                 # nur enge Turns = Carves
+                ev.append((c0, c1, cur[2]))
         cur = None
 
     for k in range(len(d)):
