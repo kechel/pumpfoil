@@ -96,6 +96,23 @@ FALL_WATER_MPS = 1.7      # ~6 km/h: kurz danach praktisch im Wasser
 FALL_LOOKAHEAD_S = 3      # Fenster nach dem Lauf-Ende für den Speed-Abfall
 
 
+def _fill_invalid_coords(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Ungültige GPS-Koordinaten (|lat|>90 oder |lon|>180 — z. B. der (180,180)-Sentinel
+    korrupter Fixes) durch die nächstgelegene GÜLTIGE Nachbar-Koordinate ersetzen. Robust
+    auch am ERSTEN/LETZTEN Punkt und bei mehreren aufeinanderfolgenden — was die Einzelpunkt-
+    Logik von _repair_spikes nicht abdeckt. Ersetzung = gleiche Position wie Nachbar → Schritt 0
+    (keine Falsch-Distanz) + sauberer Track/Karten-Bounds. Timestamps/Indizes bleiben erhalten."""
+    lat = lat.copy(); lon = lon.copy()
+    invalid = (np.abs(lat) > 90.0) | (np.abs(lon) > 180.0)
+    valid_idx = np.where(~invalid)[0]
+    if not invalid.any() or valid_idx.size == 0:
+        return lat, lon
+    for i in np.where(invalid)[0]:
+        j = int(valid_idx[np.argmin(np.abs(valid_idx - i))])   # nächster gültiger Punkt
+        lat[i] = lat[j]; lon[i] = lon[j]
+    return lat, lon
+
+
 def _repair_spikes(lat: np.ndarray, lon: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Einzelpunkt-GPS-Glitches glätten: springt ein Punkt weit von beiden Nachbarn weg,
     während die Nachbarn selbst nah beieinander liegen (raus-und-zurück), wird er durch
@@ -228,6 +245,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # GPS-Glitches reparieren (Spike raus-und-zurück), dann Schrittdistanzen + Clamp.
     # Einzelschritte über OUTLIER_STEP_M (~>90 km/h in 1 s) sind unmöglich (GPS-Catch-up
     # z. B. beim Reinfallen) -> zählen nicht zur Distanz.
+    lat, lon = _fill_invalid_coords(lat, lon)   # (180,180)-Sentinels & Rand/Folge-Glitches
     lat, lon = _repair_spikes(lat, lon)
     step = step_distances_m(lat, lon)
     step = np.where(step > OUTLIER_STEP_M, 0.0, step)
