@@ -861,17 +861,6 @@ export default function SessionDetail() {
           .on("click", () => setSelectedRun((p) => (p === idx ? null : idx)))
           .addTo(lg);
       }
-      // Pump-Marker auf der Linie (ein-/ausblendbar), bleiben weiß. Bei gedimmten Läufen weglassen.
-      if (showPumps && !dim) {
-        for (const idx of seg.pump_idx ?? []) {
-          if (coords[idx]) {
-            L.circleMarker(coords[idx], {
-              radius: 2.5, color: "#0f172a", weight: 1,
-              fillColor: "#f8fafc", fillOpacity: 0.9,
-            }).addTo(lg);
-          }
-        }
-      }
       // Start (grün) & Ende (rot) nur für den aktiven Lauf. start_pt/end_pt = [lon, lat].
       if (!dim) {
         const startLL = seg.start_pt ? [seg.start_pt[1], seg.start_pt[0]] : coords[seg.i_start];
@@ -895,12 +884,33 @@ export default function SessionDetail() {
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
     // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
     if (colorMode === "turns" && carveData?.arcs) {
-      for (const arc of carveData.arcs) {
+      carveData.arcs.forEach((arc, ci) => {
+        // Bei Einzel-Lauf-Auswahl nur die Carves DIESES Laufs zeigen (Arc ci ↔ carve ci, via i0).
+        if (selectedRun != null) {
+          const seg = segs[selectedRun];
+          const cv = carveData.carves[ci];
+          if (!seg || !cv || cv.i0 < seg.i_start || cv.i0 > seg.i_end) return;
+        }
         for (let k = 0; k < arc.length - 1; k++) {
           L.polyline([[arc[k][0], arc[k][1]], [arc[k + 1][0], arc[k + 1][1]]],
             { color: carveColor(arc[k + 1][2]), weight: 6, opacity: 0.98 }).addTo(lg);
         }
-      }
+      });
+    }
+    // Pump-Marker GANZ OBEN (nach den Carve-Bögen, sonst verdecken die Bögen sie). Bei
+    // gedimmten Läufen weglassen. Bleiben weiß.
+    if (showPumps) {
+      segs.forEach((seg: any, idx: number) => {
+        if (selectedRun != null && idx !== selectedRun) return;
+        for (const pidx of seg.pump_idx ?? []) {
+          if (coords[pidx]) {
+            L.circleMarker(coords[pidx], {
+              radius: 2.5, color: "#0f172a", weight: 1,
+              fillColor: "#f8fafc", fillOpacity: 0.9,
+            }).addTo(lg);
+          }
+        }
+      });
     }
     // Zoom NUR bei echtem Laufwechsel — nicht bei jedem Redraw (Farben/Skala), sonst wird die
     // laufende fitBounds-Animation neu gestartet und ruckelt am Ende.
