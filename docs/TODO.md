@@ -129,6 +129,12 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Amazfit-Rollout Restarbeit** (2026-07-21, nach Store-Approval): erledigt sind /uhr-Tabelle (Zepp-
+  App-Badges), Plattform-Subline, Changelog, YouTube-Banner (SUBLINE), Meta/OG/noscript. OFFEN:
+  (a) **Landing-Texte** `land.watchBody` + Badge `land.inclWear` nennen nur Garmin/Apple/Wear →
+  Amazfit ergänzen (10 Sprachen); (b) **Pairing-Guide** `WatchGuide.tsx` hat keine Amazfit/Zepp-
+  Sektion (Reverse-Pairing: Code auf der Uhr eingeben); (c) Verifikation auf echter Amazfit; (d)
+  25-Hz-Accel (Zepp-API unklar → aktuell gps_only). Memory `zepp-recorder`, `banner-platform-list-after-approval`.
 - **Aufnahme nicht automatisch hochladen / Save-Discard** (Feedback 2026-07-19): „session started auto,
   stopped → auto-uploaded. Every other activity has save/discard." Wunsch: (a) optional NICHT automatisch
   hochladen bzw. Save/Discard-Abfrage nach dem Stopp, ODER (b) nur Sessions mit ≥1 erkanntem Lauf hoch-
