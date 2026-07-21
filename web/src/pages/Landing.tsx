@@ -10,10 +10,46 @@ import { LanguageFlags } from "../components/LanguageSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
-import { AppStoreBadge, PlayBadge } from "../components/StoreBadge";
+import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
 import { PromoVideos } from "../components/PromoVideos";
 import { ShortModal } from "../components/ShortModal";
 import { ThemeToggle } from "../components/ThemeToggle";
+
+// Uhr-Karussell je Plattform: EIN Screenshot breit, auto-rotierend + antippbar (statt
+// mehrere Uhren × je 2 Screenshots nebeneinander → zu breit). Punkte zeigen die Anzahl.
+function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800 }: {
+  images: string[]; rounded: string; caption: string; sub?: string; badge: React.ReactNode; delay?: number;
+}) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (images.length < 2) return;
+    const id = setInterval(() => setI((v) => (v + 1) % images.length), delay);
+    return () => clearInterval(id);
+  }, [images.length, delay]);
+  const cur = i % images.length;
+  return (
+    <figure className="flex flex-col items-center">
+      <div className="relative h-28 w-28 sm:h-32 sm:w-32">
+        {images.map((src, idx) => (
+          <img key={src} src={src} alt={caption} loading="lazy"
+            onClick={() => setI((cur + 1) % images.length)}
+            className={`absolute inset-0 h-full w-full cursor-pointer object-contain ${rounded} border border-slate-800 shadow-xl transition-opacity duration-500 ${idx === cur ? "opacity-100" : "opacity-0"}`} />
+        ))}
+      </div>
+      {images.length > 1 && (
+        <div className="mt-2 flex gap-1.5">
+          {images.map((_, idx) => (
+            <button key={idx} onClick={() => setI(idx)} aria-label={`${caption} ${idx + 1}`}
+              className={`h-1.5 w-1.5 rounded-full transition-colors ${idx === cur ? "bg-brand-400" : "bg-slate-600"}`} />
+          ))}
+        </div>
+      )}
+      <figcaption className="mt-2 text-xs leading-tight text-slate-300">{caption}</figcaption>
+      <span className="whitespace-nowrap text-[11px] leading-tight text-slate-400">{sub ?? " "}</span>
+      <div className="mt-2">{badge}</div>
+    </figure>
+  );
+}
 
 // Öffentliche Startseite (ohne Login erreichbar) — erklärt, wofür Pumpfoil da ist.
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
@@ -179,39 +215,18 @@ export default function Landing() {
             <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.watchBody")}</p>
             {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
-              <figure className="flex flex-col items-center">
-                <div className="flex h-28 items-center gap-3 sm:h-32">
-                  <img src="/watch-garmin-1.webp" alt="Garmin" loading="lazy"
-                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
-                  <img src="/watch-garmin-2.webp" alt="Garmin" loading="lazy"
-                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
-                </div>
-                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Garmin</figcaption>
-                <span className="text-[11px] leading-tight text-slate-400">&nbsp;</span>
-                <ConnectIqButton className="mt-2" />
-              </figure>
-              <figure className="flex flex-col items-center">
-                <div className="flex h-28 items-center gap-3 sm:h-32">
-                  <img src="/watch-apple-1.webp" alt="Apple Watch" loading="lazy"
-                    className="h-full w-auto rounded-[1.5rem] border border-slate-800 shadow-xl" />
-                  <img src="/watch-apple-2.webp" alt="Apple Watch" loading="lazy"
-                    className="h-full w-auto rounded-[1.5rem] border border-slate-800 shadow-xl" />
-                </div>
-                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Apple Watch</figcaption>
-                <span className="text-[11px] leading-tight text-slate-400">&nbsp;</span>
-                <AppStoreBadge className="mt-2" />
-              </figure>
-              <figure className="flex flex-col items-center">
-                <div className="flex h-28 items-center gap-3 sm:h-32">
-                  <img src="/watch-wear-1.webp" alt="Wear OS" loading="lazy"
-                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
-                  <img src="/watch-wear-2.webp" alt="Wear OS" loading="lazy"
-                    className="h-full w-auto rounded-full border border-slate-800 shadow-xl" />
-                </div>
-                <figcaption className="mt-2 text-xs leading-tight text-slate-300">Wear OS</figcaption>
-                <span className="whitespace-nowrap text-[11px] leading-tight text-slate-400">Samsung · Pixel · TicWatch …</span>
-                <PlayBadge className="mt-2" />
-              </figure>
+              <WatchCarousel rounded="rounded-full" caption="Garmin"
+                images={["/watch-garmin-1.webp", "/watch-garmin-2.webp"]}
+                badge={<ConnectIqButton className="mt-2" />} />
+              <WatchCarousel rounded="rounded-[1.5rem]" caption="Apple Watch"
+                images={["/watch-apple-1.webp", "/watch-apple-2.webp"]}
+                badge={<AppStoreBadge className="mt-2" />} />
+              <WatchCarousel rounded="rounded-full" caption="Wear OS" sub="Samsung · Pixel · TicWatch …"
+                images={["/watch-wear-1.webp", "/watch-wear-2.webp"]}
+                badge={<PlayBadge className="mt-2" />} />
+              <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
+                images={["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"]}
+                badge={<ZeppAppBadges />} />
             </div>
           </section>
         </div>
