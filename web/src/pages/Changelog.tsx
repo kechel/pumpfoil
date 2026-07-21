@@ -11,6 +11,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 21, 2026",
     items: [
+      "Carve view on the session map: switch the map to “Carves” to see your turns highlighted — detected from your GPS track (a turn of 90° or more), coloured by how hard you leaned into it (green → yellow → red, from the watch’s accelerometer). Includes a count of your turns by angle (90–180°, 180–360°, over 360°). Great for scrubbing through a session and spotting your carves. Needs a watch that records high-rate motion data (≥15 Hz); shown as an extra view only, not (yet) in records or stats.",
       "More accurate top speed: a GPS glitch on the very first or last point of a run could report an impossible top speed (e.g. 30+ km/h on a slow board) and skew the community speed records. These edge glitches are now filtered out, so top-speed records reflect real riding.",
     ],
   },
