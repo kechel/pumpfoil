@@ -9,6 +9,12 @@ type Entry = { date: string; items: string[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 21, 2026",
+    items: [
+      "More accurate top speed: a GPS glitch on the very first or last point of a run could report an impossible top speed (e.g. 30+ km/h on a slow board) and skew the community speed records. These edge glitches are now filtered out, so top-speed records reflect real riding.",
+    ],
+  },
+  {
     date: "July 20, 2026",
     items: [
       "Garmin watch stability fixes: recording could crash on start on older watches (e.g. fēnix 5), and the upload screen could crash when the phone connection dropped in and out. Update the watch app to 1.0.59 or later.",
