@@ -1445,40 +1445,47 @@ def get_carves(
     g_out = np.zeros(len(t_ms), dtype=np.float64)                # nur Carve-Punkte werden eingefärbt
     FLOOR = 0.1                                                  # sichtbarer Mindestwert im Carve (grün)
 
-    # Läufe (Segmente) — Turns nur innerhalb echter Läufe suchen (kein Kurs-Rauschen beim Treiben).
-    try:
-        segments = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
-    except Exception:
-        segments = []
-    runs = [(sg["i_start"], sg["i_end"]) for sg in segments] or [(0, len(t_ms) - 1)]
     nlast = len(t_ms) - 1
     SUB = 10                                                     # Sub-Punkte je GPS-Segment (Glätte)
+    # Carves über den GANZEN Track suchen — NICHT nur in erkannten Läufen: die Lauf-Erkennung
+    # verfehlt manchmal genau den Foiling-Abschnitt (z. B. S796 — Carves lagen außerhalb des einen
+    # kurzen erkannten Laufs). Stattdessen per SPEED gaten: ein Carve passiert bei Foiling-Tempo
+    # (≥ ~8 km/h) — das trennt echte Carves vom langsamen Kreiseln/Driften, unabhängig von der
+    # Lauf-Segmentierung.
+    MIN_CARVE_MPS = 2.2
+
+    def _mean_mps(a: int, b: int) -> float:
+        dt = (t_ms[b] - t_ms[a]) / 1000.0
+        if dt <= 0:
+            return 0.0
+        return sum(_hav_m(lat, lon, x, x + 1) for x in range(a, b)) / dt
 
     carves: list[dict] = []
     arcs: list[list] = []
-    for r0, r1 in runs:
-        for c0, c1, rot in _turn_events(lat, lon, r0, min(r1, nlast)):
-            mag = abs(rot)
-            bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
-            peak = round(float(latg[c0:c1 + 1].max()), 2)
-            carves.append({"i0": c0, "i1": c1, "peak_g": peak,
-                           "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
-            # grobe Färbung je Koord (Fallback) + feine Catmull-Rom-Polylinie fürs Rendering.
-            for k in range(c0, c1 + 1):
-                g_out[k] = max(float(latg[k]), FLOOR)
-            arc: list = []
-            for k in range(c0, c1):
-                la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
-                lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
-                for p in range(SUB):
-                    f = p / SUB
-                    gval = float(latg[k]) + (float(latg[k + 1]) - float(latg[k])) * f
-                    arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
-                                round(_catmull(lo0, lo1, lo2, lo3, f), 6),
-                                round(max(gval, FLOOR), 2)])
-            arc.append([round(float(lat[c1]), 6), round(float(lon[c1]), 6),
-                        round(max(float(latg[c1]), FLOOR), 2)])
-            arcs.append(arc)
+    for c0, c1, rot in _turn_events(lat, lon, 0, nlast):
+        if _mean_mps(c0, c1) < MIN_CARVE_MPS:                # nur bei Foiling-Tempo = echter Carve
+            continue
+        mag = abs(rot)
+        bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
+        peak = round(float(latg[c0:c1 + 1].max()), 2)
+        carves.append({"i0": c0, "i1": c1, "peak_g": peak,
+                       "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
+        # grobe Färbung je Koord (Fallback) + feine Catmull-Rom-Polylinie fürs Rendering.
+        for k in range(c0, c1 + 1):
+            g_out[k] = max(float(latg[k]), FLOOR)
+        arc: list = []
+        for k in range(c0, c1):
+            la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
+            lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
+            for p in range(SUB):
+                f = p / SUB
+                gval = float(latg[k]) + (float(latg[k + 1]) - float(latg[k])) * f
+                arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
+                            round(_catmull(lo0, lo1, lo2, lo3, f), 6),
+                            round(max(gval, FLOOR), 2)])
+        arc.append([round(float(lat[c1]), 6), round(float(lon[c1]), 6),
+                    round(max(float(latg[c1]), FLOOR), 2)])
+        arcs.append(arc)
 
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
