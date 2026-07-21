@@ -53,9 +53,11 @@ function ChangelogLink() {
   const unseen = seen !== LATEST_CHANGELOG_DATE;
   // Label bleibt neutral (wie die anderen Menü-Links); nur das Badge wird hervorgehoben.
   // Beide Modi setzen (light-mode-contrast-pattern): Base = dunkler Text, dark: = hell.
+  // Halbtransparenter BG (Alpha) statt dark:-BG-Swap -> in keinem Modus ein dunkler Kasten,
+  // nur dezentes Grau/Amber. Text: Light-Base + dark:-Variante (light-mode-contrast-pattern).
   const badge = unseen
-    ? "bg-amber-200 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300"
-    : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400";
+    ? "bg-amber-400/25 text-amber-700 dark:text-amber-300"
+    : "bg-slate-400/20 text-slate-600 dark:text-slate-400";
   return (
     <Link to="/changelog"
       className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-500 hover:text-slate-400 dark:text-slate-400 dark:hover:text-slate-300">
