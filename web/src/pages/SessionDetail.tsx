@@ -1383,7 +1383,7 @@ export default function SessionDetail() {
             <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
               <span className="inline-flex items-center gap-1 text-slate-400">
                 <span className="inline-block h-2.5 w-16 rounded" style={{ background: "linear-gradient(90deg,#22c55e,#eab308,#dc2626)" }} />
-                0,3–2 g Lage
+                0,1–0,6 g Lage
               </span>
               <span>90–180° · {carveData?.counts.s ?? 0}</span>
               <span>180–360° · {carveData?.counts.m ?? 0}</span>

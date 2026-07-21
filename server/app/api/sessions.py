@@ -1334,6 +1334,32 @@ def _hav_m(lat: np.ndarray, lon: np.ndarray, i: int, j: int) -> float:
     return 2 * 6371000.0 * math.asin(math.sqrt(aa))
 
 
+def _lateral_g(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray) -> np.ndarray:
+    """Kurvenlage je GPS-Punkt aus der GEOMETRIE (nicht Accel): Querbeschleunigung
+    a = v·ω (Speed × Kurs-Drehrate) = v²/r, in g. Das Handgelenk-Accel misst die Lage
+    nicht zuverlässig (~flach), die Trajektorie schon: enger/schneller Scheitel → höheres a.
+    Leicht 3-Punkt-geglättet gegen 1-Hz-Zappeln. tan(Lage) = a/g."""
+    n = len(t_ms)
+    g = np.zeros(n)
+    for k in range(1, n - 1):
+        dt = (t_ms[k + 1] - t_ms[k - 1]) / 2000.0
+        if dt <= 0:
+            continue
+        v = _hav_m(lat, lon, k - 1, k) / max((t_ms[k] - t_ms[k - 1]) / 1000.0, 1e-3)
+
+        def _brg(i, j):
+            la1 = math.radians(lat[i]); la2 = math.radians(lat[j]); dl = math.radians(lon[j] - lon[i])
+            y = math.sin(dl) * math.cos(la2)
+            x = math.cos(la1) * math.sin(la2) - math.sin(la1) * math.cos(la2) * math.cos(dl)
+            return math.degrees(math.atan2(y, x))
+        dth = abs((_brg(k, k + 1) - _brg(k - 1, k) + 180.0) % 360.0 - 180.0)
+        omega = math.radians(dth) / dt
+        g[k] = (v * omega) / 9.81
+    if n >= 3:                                   # leichte 3-Punkt-Glättung
+        g = np.convolve(g, np.ones(3) / 3.0, mode="same")
+    return g
+
+
 def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
                  step_m: float = 4.0, rate_deg: float = 18.0, max_gap: int = 1,
                  min_rot: float = 90.0, max_radius_m: float = 12.0) -> list:
@@ -1400,36 +1426,24 @@ def get_carves(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Carve-Erkennung — GPS-primär (getrenntes Modell, read-only — KEINE Pipeline-/DB-Änderung,
-    NICHT in Rekorde/Stats). Der Turn wird aus dem GPS-KURS erkannt (zusammenhängende Dreh-Phase
-    ≥90°, pro Lauf, entrauscht) — NICHT aus Accel: der Accel-primäre Ansatz färbte Geraden
-    (Pump-g-Bumps) und verpasste weite Turns (kleiner Zentripetal-g bei großem Radius). Die Accel-
-    Zentripetal-g setzt NUR die Farbe (Kurvenlage). Nur bei brauchbarer Accel-Rate (≥15 Hz), sonst
-    ist die Lage nicht messbar. Rückgabe: g je Track-Punkt (0 außerhalb Carves) + feine Catmull-Rom-
-    Bögen je Carve + Grad-Buckets (90–180 / 180–360 / >360°)."""
+    """Carve-Erkennung — rein GPS (getrenntes Modell, read-only — KEINE Pipeline-/DB-Änderung,
+    NICHT in Rekorde/Stats). Erkennung: enge Turns aus dem GPS-KURS (zusammenhängende Dreh-Phase
+    ≥90°, Radius <12 m, pro Lauf, entrauscht). Farbe: Kurvenlage aus der GPS-GEOMETRIE (Quer-a =
+    v·ω = v²/r, in g) — das Handgelenk-Accel misst die Lage nicht zuverlässig, die Trajektorie schon
+    (enger/schneller Scheitel → höheres a). Kein Accel nötig → funktioniert auf jeder GPS-Session.
+    Rückgabe: g je Track-Punkt (0 außerhalb Carves) + feine Catmull-Rom-Bögen je Carve + Grad-Buckets
+    (90–180 / 180–360 / >360°)."""
     s = _readable(db, session_id)
     empty = {"g": [], "carves": [], "arcs": [], "counts": {"s": 0, "m": 0, "l": 0}}
     gps = storage.load_gps(s.session_uuid)
-    accel = storage.load_accel(s.session_uuid)
-    hz = float(s.accel_hz or 25)
-    if not gps or accel.shape[0] < hz:
+    if not gps or len(gps) < 4:
         return empty
     t_ms = np.array([int(r[0]) for r in gps], dtype=np.float64)
     lat = np.array([float(r[1]) if len(r) > 1 and r[1] is not None else np.nan for r in gps])
     lon = np.array([float(r[2]) if len(r) > 2 and r[2] is not None else np.nan for r in gps])
-    # Carving braucht die Kurvenlage aus dem Accel -> nur bei brauchbarer Rate versuchen
-    # (Jans Vorgabe). Unter ~15 Hz ist das Signal zu grob (gps_only-Schwelle) -> gar nicht.
-    dur_s = float(t_ms[-1]) / 1000.0 if t_ms.size and t_ms[-1] > 0 else 0.0
-    real_hz = accel.shape[0] / dur_s if dur_s > 0 else hz
-    if real_hz < 15.0:
-        return empty
-
-    a = accel.astype(np.float64) / float(s.accel_scale or 2048)   # (N,3) in g
-    w = max(1, int(round(0.6 * hz)))                              # 0,6-s-Lowpass des Vektors
-    ker = np.ones(w) / w
-    sv = np.stack([np.convolve(a[:, i], ker, mode="same") for i in range(3)], axis=1)
-    cg = np.sqrt(np.clip((sv ** 2).sum(axis=1) - 1.0, 0.0, None))  # Zentripetal-g (Gravitation raus)
-    g_out = np.zeros(len(t_ms), dtype=np.float64)                 # nur Carve-Punkte werden eingefärbt
+    latg = _lateral_g(lat, lon, t_ms)                            # Kurvenlage-g je Punkt (GPS-Geometrie)
+    g_out = np.zeros(len(t_ms), dtype=np.float64)                # nur Carve-Punkte werden eingefärbt
+    FLOOR = 0.1                                                  # sichtbarer Mindestwert im Carve (grün)
 
     # Läufe (Segmente) — Turns nur innerhalb echter Läufe suchen (kein Kurs-Rauschen beim Treiben).
     try:
@@ -1438,12 +1452,7 @@ def get_carves(
         segments = []
     runs = [(sg["i_start"], sg["i_end"]) for sg in segments] or [(0, len(t_ms) - 1)]
     nlast = len(t_ms) - 1
-
-    def gseg(k):
-        """Zentripetal-g für das GPS-Segment, das an Koord k endet (Max über die Accel-Samples)."""
-        s0 = max(0, min(int((t_ms[k - 1] if k > 0 else t_ms[k]) / 1000.0 * hz), cg.size - 1))
-        s1 = max(s0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
-        return float(cg[s0:s1 + 1].max())
+    SUB = 10                                                     # Sub-Punkte je GPS-Segment (Glätte)
 
     carves: list[dict] = []
     arcs: list[list] = []
@@ -1451,27 +1460,24 @@ def get_carves(
         for c0, c1, rot in _turn_events(lat, lon, r0, min(r1, nlast)):
             mag = abs(rot)
             bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
-            peak = round(max((gseg(k) for k in range(c0 + 1, c1 + 1)), default=0.0), 2)
+            peak = round(float(latg[c0:c1 + 1].max()), 2)
             carves.append({"i0": c0, "i1": c1, "peak_g": peak,
                            "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
             # grobe Färbung je Koord (Fallback) + feine Catmull-Rom-Polylinie fürs Rendering.
             for k in range(c0, c1 + 1):
-                g_out[k] = max(gseg(k), 0.3)
+                g_out[k] = max(float(latg[k]), FLOOR)
             arc: list = []
             for k in range(c0, c1):
-                s0 = max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
-                s1 = max(s0, min(int(t_ms[k + 1] / 1000.0 * hz), cg.size - 1))
-                m = max(1, s1 - s0)
                 la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
                 lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
-                for p in range(m):
-                    f = p / m
+                for p in range(SUB):
+                    f = p / SUB
+                    gval = float(latg[k]) + (float(latg[k + 1]) - float(latg[k])) * f
                     arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
                                 round(_catmull(lo0, lo1, lo2, lo3, f), 6),
-                                round(max(float(cg[s0 + p]), 0.3), 2)])
-            sN = max(0, min(int(t_ms[c1] / 1000.0 * hz), cg.size - 1))
+                                round(max(gval, FLOOR), 2)])
             arc.append([round(float(lat[c1]), 6), round(float(lon[c1]), 6),
-                        round(max(float(cg[sN]), 0.3), 2)])
+                        round(max(float(latg[c1]), FLOOR), 2)])
             arcs.append(arc)
 
     counts = {"s": 0, "m": 0, "l": 0}
