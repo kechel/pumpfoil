@@ -5,7 +5,8 @@ import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { useI18n } from "./i18n";
+import { useI18n, useT } from "./i18n";
+import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./pages/Changelog";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
@@ -22,6 +23,38 @@ const navItems: NavItem[] = [
   { to: "/einstellungen", labelKey: "nav.profile", icon: SettingsIcon, end: false },
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
+
+// "July 21, 2026" -> "Jul 21" fürs kompakte Menü-Badge.
+function shortDate(d: string): string {
+  const [mon, day] = d.split(" ");
+  return `${(mon ?? "").slice(0, 3)} ${(day ?? "").replace(",", "")}`;
+}
+
+// Menü-Link "Neuerungen" mit Datums-Badge des neuesten Eintrags. Gelb hervorgehoben,
+// solange der neueste Eintrag ungesehen ist (localStorage); klärt sich beim Öffnen.
+function ChangelogLink() {
+  const t = useT();
+  const loc = useLocation();
+  const [seen, setSeen] = useState<string | null>(() => {
+    try { return localStorage.getItem(CHANGELOG_SEEN_KEY); } catch { return null; }
+  });
+  useEffect(() => {
+    if (loc.pathname === "/changelog") {
+      try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ }
+      setSeen(LATEST_CHANGELOG_DATE);
+    }
+  }, [loc.pathname]);
+  const unseen = seen !== LATEST_CHANGELOG_DATE;
+  return (
+    <Link to="/changelog"
+      className={`mt-2 flex items-center gap-1.5 px-3 text-xs ${unseen ? "font-medium text-amber-300 hover:text-amber-200" : "text-slate-400 hover:text-slate-300"}`}>
+      {t("nav.changelog")}
+      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${unseen ? "bg-amber-400/20 text-amber-300" : "bg-slate-800 text-slate-400"}`}>
+        {shortDate(LATEST_CHANGELOG_DATE)}
+      </span>
+    </Link>
+  );
+}
 
 // Brand-Logo = horizontales Lockup (assets-master, 3 versetzte Wellen). dark-Bild
 // (weisser Text) auf dunklem UI, light-Bild (navy Text) im Light-Mode — CSS-Swap
@@ -176,9 +209,7 @@ export default function App() {
           </svg>
           TikTok
         </a>
-        <Link to="/changelog" className="mt-2 px-3 text-xs text-slate-400 hover:text-slate-300">
-          {t("nav.changelog")}
-        </Link>
+        <ChangelogLink />
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>

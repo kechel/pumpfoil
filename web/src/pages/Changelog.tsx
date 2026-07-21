@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useT } from "../i18n";
 import { ScrollToTop } from "../components/ScrollToTop";
@@ -141,14 +141,20 @@ const ENTRIES: Entry[] = [
   },
 ];
 
+// Datum des neuesten Eintrags — fürs Menü-Badge/Highlight (App.tsx) + „gesehen"-Merker.
+export const LATEST_CHANGELOG_DATE = ENTRIES[0].date;
+export const CHANGELOG_SEEN_KEY = "foil_changelog_seen";
+
 export default function Changelog() {
   const t = useT();
+  useEffect(() => {   // beim Öffnen als gesehen merken -> Menü-Highlight verschwindet
+    try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ }
+  }, []);
   return (
     <div className="mx-auto max-w-2xl p-6">
       <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
-      <h1 className="mb-1 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
-      <p className="mb-6 text-sm text-slate-400">What’s new — the changes you can actually see.</p>
+      <h1 className="mb-4 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
 
       <div className="space-y-8">
         {ENTRIES.map((e) => (
