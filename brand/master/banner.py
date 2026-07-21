@@ -69,15 +69,17 @@ def main():
     x_text = waves.width + gapw
     row.alpha_composite(text, (x_text, (row_h - th) // 2))
 
-    sub = subline_image(px=max(20, int(th * 0.16)), tracking=max(4, int(th * 0.032)))
-    if sub.width > tw:                                   # nie breiter als der Wordmark
-        s = tw / sub.width; sub = sub.resize((tw, int(sub.height * s)), Image.LANCZOS)
+    # Plattform-Subline über die GESAMTE Lockup-Breite (linksbündig mit dem Wellen-Icon,
+    # bündig bis zum rechten Wordmark-Rand) -> deutlich größer/lesbarer als zuvor (war nur
+    # unter dem Wortmark zentriert). Hoch rendern, dann exakt auf row_w skalieren.
+    sub = subline_image(px=max(20, int(th * 0.24)), tracking=max(2, int(th * 0.022)))
+    s = row_w / sub.width; sub = sub.resize((row_w, max(1, int(sub.height * s))), Image.LANCZOS)
     gap_sub = int(th * 0.12)
 
     block_w = row_w; block_h = row_h + gap_sub + sub.height
     block = Image.new("RGBA", (block_w, block_h), (0, 0, 0, 0))
     block.alpha_composite(row, (0, 0))
-    block.alpha_composite(sub, (x_text + (tw - sub.width) // 2, row_h + gap_sub))
+    block.alpha_composite(sub, (0, row_h + gap_sub))     # linksbündig mit dem Icon
 
     scale = min((SAFE_W - 2 * MARGIN) / block_w, (SAFE_H - 2 * MARGIN) / block_h)
     block = block.resize((round(block_w * scale), round(block_h * scale)), Image.LANCZOS)
