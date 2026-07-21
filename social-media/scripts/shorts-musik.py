@@ -950,7 +950,7 @@ const OPATHS={
 };
 const OUTROS={
   youtube:[['thumbsup','Like'],['bell','Abonnieren']],
-  instagram:[['heart','Like'],['comment','Kommentar'],['send','Teilen'],['bookmark','Speichern']],
+  instagram:[['heart','Like'],['comment','Kommentar'],['send','Teilen']],
   tiktok:[['heart','Like'],['comment','Kommentar'],['repost','Repost'],['send','Teilen']]
 };
 function outroPng(pf){
