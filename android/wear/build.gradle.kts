@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "org.pumpfoil.watch"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         // Gleiche applicationId wie die Phone-App: Voraussetzung für den Wearable
         // Data Layer (Token-Push Phone->Watch). namespace bleibt org.pumpfoil.watch.
         applicationId = "org.pumpfoil.app"
         minSdk = 30          // Wear OS 3
-        targetSdk = 34
+        targetSdk = 35       // Google-Play-Vorgabe (ab 31.08.2026: Wear OS ≥ API 35)
         // Versionsschema zur klaren Trennung im Play-Console (Phone + Wear teilen die
         // applicationId): WEAR = versionName 1.2.x + versionCode 1xxx; PHONE = 1.1.x + kleiner Code.
         // Das „x" (letzte Ziffer) ist bei Phone und Wear IMMER gleich -> beide je Release-Runde
