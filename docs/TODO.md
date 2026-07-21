@@ -143,14 +143,12 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
   der App zeigt „einen Lauf auswählen" weiter die Gesamt-Stats (kein Puls/Kadenz je Lauf) — Web kann's,
   App nicht → Parität. (b) In der Community-Liste der App fehlt das benutzte Foil (Web zeigt es). Beides
   Android(/iOS)-Port.
-- **Uhr-Sprache: Geräte-Systemsprache als Default** (Feedback Laurent, 2026-07-20): Uhr-UI teils
-  DE trotz englischer Erwartung. Befund: `watch/source/Strings.mc` ist vollständig EN (alle 60 Keys
-  haben echten EN-Slot, keine hartcodierten DE-Texte) → Ursache ist die **Profil-Sprache**: ist sie
-  nicht explizit gesetzt, liefert `/api/devices/config` `language="de"` (Default) → Uhr fällt auf DE.
-  Verbesserung: wenn keine explizite Profil-Sprache, die **Geräte-Systemsprache**
-  (`System.getDeviceSettings().systemLanguage`) auf unsere 7 Uhr-Codes (de/gsw/de-AT/en/fr/it/es)
-  mappen statt hart „de". Sofort-Workaround für Nutzer: Profil-Sprache auf pumpfoil.org auf Englisch
-  stellen. (Watch unterstützt nur 7 Sprachen; fi/nl/cs fallen ohnehin auf EN/DE.)
+- [x] **Uhr-Sprache + Default Englisch** — ERLEDIGT 2026-07-21 (Feedback Laurent): Ursache war der
+  harte `de`-Default in der ganzen Kette (`User.language` default, `_clean_lang`, Web-i18n-Fallback,
+  `/config`). Umgestellt auf **Englisch als Default** (deutsche Browser/Geräte bleiben per Detection
+  Deutsch). `/api/devices/config` sendet bei ungesetzter Sprache jetzt `""` → Uhr weicht auf
+  `System.getDeviceSettings().systemLanguage` aus (Mapping+EN-Fallback in `Strings.mc` existierte
+  schon; kein Uhr-Rebuild). Bestehende Nutzer mit explizitem „de" unberührt.
 - **FIT-Import: record-Level-IMU (accel_xyz/gyro_xyz/mag_xyz) lesen** (Befund 2026-07-19, FoilMotion-FIT
   von Markus). Aktuell liest `fitimport.parse_fit_bytes` Accel nur aus `accelerometer_data`-Messages
   (SensorLogging). FoilMotion & Co. schreiben die IMU aber als **Developer-Felder pro `record`** →
@@ -167,10 +165,11 @@ iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
   `lite`. Bestätigt sich das: fenix-5-Familie in `_LOW_ACCEL_MODEL_HINTS` (server/app/api/devices.py)
   aufnehmen → record_mode wird beim Pairing automatisch auf lite gekappt (wie FR55). Dabei prüfen,
   welche 5er-Varianten (5/5S/5X, Plus?) betroffen sind — Speicherlimits je Device-File checken.
-- **GPS-Positions-Ausreißer filtern** (Befund 2026-07-19 an #367): einzelne korrupte GPS-Punkte
-  mit 5.000-km-Sprüngen (Doppler-Speed dabei normal) verfälschen total_distance_m + Distanz-Stats;
-  die Karte filtert sie nur beim Zeichnen. Fix wäre ein Ausreißer-Filter beim Laden/Analysieren
-  (Punkt verwerfen, wenn Positionssprung >> Doppler×dt). Detektor-Pipeline → Jans OK + Regression.
+- [x] **GPS-Positions-Ausreißer filtern** — ERLEDIGT 2026-07-21: `_repair_spikes` fing schon innere
+  Einzelpunkt-Spikes (kam nach der Notiz) → keine Session hatte verfälschte Distanz. Restlücke
+  geschlossen: neuer `_fill_invalid_coords`-Vorfilter ersetzt ungültige Koords (|lat|>90/|lon|>180,
+  z.B. (180,180)-Sentinel) durch den nächsten gültigen Nachbarn — auch am ERSTEN/LETZTEN Punkt +
+  aufeinanderfolgend (S591-Randpunkt). Regression: 0 Distanz-Änderungen; S591 reanalysiert.
 - [x] **Spot-Ortszeit in die Apps** — ERLEDIGT 2026-07-18: Android (TimeFmt.kt, 7 Modelle + alle
   Session-Screens inkl. Compare) + iOS (TimeFmt.swift, 7 Structs + Listen/Detail/Rekorde/Compare).
   Bewusst Betrachter-Zeit geblieben: Chat, Wetter, Verlauf-Chartachsen; Transfers ohne Server-tz.
