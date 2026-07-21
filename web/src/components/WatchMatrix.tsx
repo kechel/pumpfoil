@@ -14,7 +14,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", store: "ciq" },
   { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple", store: "appstore" },
   { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel, TicWatch …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nWear", store: "play" },
-  { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nAmazfit" },
+  { name: "Amazfit", sub: "Zepp OS", gps: "yes", hr: "yes", pump: "partial", status: "avail", noteKey: "watches.nAmazfit" },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",

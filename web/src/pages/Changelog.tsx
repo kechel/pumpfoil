@@ -32,6 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 21, 2026",
     items: [
+      "Amazfit watches are now supported! Our recorder app is live in the Zepp App Store — records GPS + heart rate on ~40 Amazfit models (Balance, T-Rex 3, Cheetah, GTR 4, Active 2/3, and more). To install: open the Zepp phone app → Profile → your Amazfit → App Store → search “Pumpfoil”. (Pump detection from raw acceleration is still watch-dependent; GPS-based analysis works everywhere.)",
       {
         text: "Carve view on the session map: switch the map to “Carves” to see your carves highlighted — a tight turn of 90° or more (detected from your GPS track; wide, lazy turns don’t count), coloured by how hard you leaned into it (green → yellow → red, from your speed and turn radius). Includes a count of your carves by angle (90–180°, 180–360°, over 360°). Great for scrubbing through a session and spotting your carves. Works from GPS alone — no special watch needed; shown as an extra view only, not (yet) in records or stats. [See an example](/sessions/766?run=3).",
         img: "/changelog/carve-example.webp",

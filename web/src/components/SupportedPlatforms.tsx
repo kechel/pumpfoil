@@ -7,7 +7,7 @@ import { useI18n } from "../i18n";
 // gesammelt in EINER Klammer „(Wartet auf Freigabe: a, b, …)". Was der Nutzer bereits
 // hat (gepairte Uhr / verknüpftes Konto) wird blau hervorgehoben — wie das Standard-Foil.
 const GROUPS = {
-  watch: { avail: ["Garmin", "Apple Watch", "Wear OS"], pending: ["Amazfit"] },
+  watch: { avail: ["Garmin", "Apple Watch", "Wear OS", "Amazfit"], pending: [] },
   account: { avail: ["Polar", "Suunto"], pending: ["COROS"] },
 } as const;
 
