@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import json
+import math
 import secrets
 import uuid
 import zipfile
@@ -1325,103 +1326,149 @@ def _catmull(p0: float, p1: float, p2: float, p3: float, t: float) -> float:
                   + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
 
 
+def _hav_m(lat: np.ndarray, lon: np.ndarray, i: int, j: int) -> float:
+    """Haversine-Distanz zwischen Koord i und j in Metern."""
+    p1 = math.radians(lat[i]); p2 = math.radians(lat[j])
+    dp = p2 - p1; dl = math.radians(lon[j] - lon[i])
+    aa = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * 6371000.0 * math.asin(math.sqrt(aa))
+
+
+def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
+                 step_m: float = 4.0, rate_deg: float = 18.0, max_gap: int = 1,
+                 min_rot: float = 90.0) -> list:
+    """Turns aus dem GPS-Kurs erkennen — NICHT aus Accel (Accel liefert nur die Farbe).
+    Der Accel-primäre Ansatz färbte Geraden (Pump-g-Bumps) und verpasste weite Turns
+    (kleiner Zentripetal-g bei großem Radius). GPS-Kurs ist der richtige Turn-Indikator.
+    Vorgehen: Punkte erst auf ~step_m entrauschen (1-Hz-GPS wackelt), dann pro Schritt die
+    Kursänderung; zusammenhängende, gleichsinnige Dreh-Phasen (|Rate|≥rate_deg, bis zu max_gap
+    gerade Schritte überbrückt) zu einem Event bündeln. Rückgabe: Liste (c0, c1, rot°) mit
+    |rot|≥min_rot — c0/c1 sind Original-Koord-Indizes."""
+    idx = [i0]; last = i0
+    for k in range(i0 + 1, i1 + 1):
+        if _hav_m(lat, lon, last, k) >= step_m:
+            idx.append(k); last = k
+    if idx[-1] != i1:
+        idx.append(i1)
+    if len(idx) < 3:
+        return []
+
+    def brg(i, j):
+        la1 = math.radians(lat[i]); la2 = math.radians(lat[j]); dl = math.radians(lon[j] - lon[i])
+        y = math.sin(dl) * math.cos(la2)
+        x = math.cos(la1) * math.sin(la2) - math.sin(la1) * math.cos(la2) * math.cos(dl)
+        return math.degrees(math.atan2(y, x))
+
+    b = [brg(idx[k], idx[k + 1]) for k in range(len(idx) - 1)]
+    d = [((b[k + 1] - b[k] + 180.0) % 360.0 - 180.0) for k in range(len(b) - 1)]  # Δ am idx[k+1]
+
+    ev: list = []
+    cur = None   # [start_step, sign, acc, gap, last_step]
+
+    def close():
+        nonlocal cur
+        if cur and abs(cur[2]) >= min_rot:
+            c0 = idx[max(0, cur[0])]; c1 = idx[min(cur[4] + 2, len(idx) - 1)]
+            ev.append((c0, c1, cur[2]))
+        cur = None
+
+    for k in range(len(d)):
+        if abs(d[k]) >= rate_deg:
+            sg = d[k] > 0
+            if cur is None:
+                cur = [k, sg, d[k], 0, k]
+            elif cur[1] == sg:
+                cur[2] += d[k]; cur[3] = 0; cur[4] = k
+            else:
+                close(); cur = [k, sg, d[k], 0, k]
+        elif cur is not None:
+            cur[3] += 1
+            if cur[3] > max_gap:
+                close()
+    close()
+    return ev
+
+
 @router.get("/{session_id}/carves")
 def get_carves(
     session_id: int,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Carve-Erkennung — kombiniert Accel + GPS (getrenntes Modell, read-only — KEINE Pipeline-/DB-
-    Änderung, NICHT in Rekorde/Stats). Zwei Bedingungen zusammen: (1) Accel liefert das Zeitfenster —
-    Zentripetal-g ≥0,3 g über ≥0,5 s (Timing kann 1-Hz-GPS nicht auflösen); (2) GPS bestätigt den
-    echten Turn — ≥90° Richtungsänderung über dasselbe Fenster. Nur dann ist es ein Carve; die g-Kraft
-    setzt NUR die Farbe (Kurvenlage). Rückgabe: Zentripetal-g je Track-Punkt (0 außerhalb von Carves) +
-    Carve-Liste + Grad-Buckets (90–180 / 180–360 / >360°)."""
+    """Carve-Erkennung — GPS-primär (getrenntes Modell, read-only — KEINE Pipeline-/DB-Änderung,
+    NICHT in Rekorde/Stats). Der Turn wird aus dem GPS-KURS erkannt (zusammenhängende Dreh-Phase
+    ≥90°, pro Lauf, entrauscht) — NICHT aus Accel: der Accel-primäre Ansatz färbte Geraden
+    (Pump-g-Bumps) und verpasste weite Turns (kleiner Zentripetal-g bei großem Radius). Die Accel-
+    Zentripetal-g setzt NUR die Farbe (Kurvenlage). Nur bei brauchbarer Accel-Rate (≥15 Hz), sonst
+    ist die Lage nicht messbar. Rückgabe: g je Track-Punkt (0 außerhalb Carves) + feine Catmull-Rom-
+    Bögen je Carve + Grad-Buckets (90–180 / 180–360 / >360°)."""
     s = _readable(db, session_id)
-    empty = {"g": [], "carves": [], "counts": {"s": 0, "m": 0, "l": 0}}
+    empty = {"g": [], "carves": [], "arcs": [], "counts": {"s": 0, "m": 0, "l": 0}}
     gps = storage.load_gps(s.session_uuid)
     accel = storage.load_accel(s.session_uuid)
     hz = float(s.accel_hz or 25)
-    if accel.shape[0] < hz or not gps:
+    if not gps or accel.shape[0] < hz:
         return empty
+    t_ms = np.array([int(r[0]) for r in gps], dtype=np.float64)
+    lat = np.array([float(r[1]) if len(r) > 1 and r[1] is not None else np.nan for r in gps])
+    lon = np.array([float(r[2]) if len(r) > 2 and r[2] is not None else np.nan for r in gps])
+    # Carving braucht die Kurvenlage aus dem Accel -> nur bei brauchbarer Rate versuchen
+    # (Jans Vorgabe). Unter ~15 Hz ist das Signal zu grob (gps_only-Schwelle) -> gar nicht.
+    dur_s = float(t_ms[-1]) / 1000.0 if t_ms.size and t_ms[-1] > 0 else 0.0
+    real_hz = accel.shape[0] / dur_s if dur_s > 0 else hz
+    if real_hz < 15.0:
+        return empty
+
     a = accel.astype(np.float64) / float(s.accel_scale or 2048)   # (N,3) in g
     w = max(1, int(round(0.6 * hz)))                              # 0,6-s-Lowpass des Vektors
     ker = np.ones(w) / w
     sv = np.stack([np.convolve(a[:, i], ker, mode="same") for i in range(3)], axis=1)
     cg = np.sqrt(np.clip((sv ** 2).sum(axis=1) - 1.0, 0.0, None))  # Zentripetal-g (Gravitation raus)
+    g_out = np.zeros(len(t_ms), dtype=np.float64)                 # nur Carve-Punkte werden eingefärbt
 
-    t_ms = np.array([int(r[0]) for r in gps], dtype=np.float64)
-    lat = np.array([float(r[1]) if len(r) > 1 and r[1] is not None else np.nan for r in gps])
-    lon = np.array([float(r[2]) if len(r) > 2 and r[2] is not None else np.nan for r in gps])
-    ai = np.clip((t_ms / 1000.0 * hz).astype(int), 0, cg.size - 1)
-    g_coord = cg[ai]                                              # Zentripetal-g je Track-Punkt
-    g_out = np.zeros_like(g_coord)                                # nur Carve-Punkte werden eingefärbt
+    # Läufe (Segmente) — Turns nur innerhalb echter Läufe suchen (kein Kurs-Rauschen beim Treiben).
+    try:
+        segments = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+    except Exception:
+        segments = []
+    runs = [(sg["i_start"], sg["i_end"]) for sg in segments] or [(0, len(t_ms) - 1)]
+    nlast = len(t_ms) - 1
 
-    THR, need, MIN_ROT = 0.3, int(round(0.5 * hz)), 90.0
+    def gseg(k):
+        """Zentripetal-g für das GPS-Segment, das an Koord k endet (Max über die Accel-Samples)."""
+        s0 = max(0, min(int((t_ms[k - 1] if k > 0 else t_ms[k]) / 1000.0 * hz), cg.size - 1))
+        s1 = max(s0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
+        return float(cg[s0:s1 + 1].max())
+
     carves: list[dict] = []
-    arcs: list[list] = []                                        # feine 25-Hz-Polylinien je Carve
-    mask = cg >= THR
-    i = 0
-    while i < mask.size:
-        if mask[i]:
-            j = i
-            while j < mask.size and mask[j]:
-                j += 1
-            if j - i >= need:
-                c0 = int(np.searchsorted(t_ms, i / hz * 1000.0))
-                c1 = int(np.searchsorted(t_ms, j / hz * 1000.0))
-                c0 = max(0, min(c0, len(t_ms) - 1)); c1 = max(c0, min(c1, len(t_ms) - 1))
-                # Kurze Carves = 1–2 GPS-Punkte -> Drehung über ein etwas breiteres Fenster
-                # (±2 Punkte) messen, sonst ist die GPS-Rotation ~0.
-                # Turn-Bogen = GPS-Fenster ±2 Punkte (das Accel-g-Peak ist nur 1–2 Punkte kurz,
-                # der sichtbare Carve-Bogen zieht sich über mehr GPS-Punkte).
-                a0 = max(0, c0 - 2); a1 = min(len(t_ms) - 1, c1 + 2)
-                rot = _bearing_sum(lat, lon, a0, a1)
-                mag = abs(rot)
-                # GPS-Gate: nur echte Turns ≥90° sind Carves (filtert reine g-Bumps ohne Drehung).
-                if mag >= MIN_ROT:
-                    peak = round(float(cg[i:j].max()), 2)
-                    bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
-                    carves.append({"i0": a0, "i1": a1, "peak_g": peak,
-                                   "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
-                    # Verlauf statt Einheitsfarbe: jedes GPS-Segment [k-1,k] bekommt sein eigenes g
-                    # (lokales Max über die ~25 Accel-Samples dazwischen). Die Karte färbt Segment
-                    # k-1→k nach g_out[k], deshalb das Fenster t_ms[k-1]..t_ms[k].
-                    ks = np.arange(a0, a1 + 1)
-                    seg = np.array([
-                        cg[max(0, min(int((t_ms[k - 1] if k > 0 else t_ms[k]) / 1000.0 * hz), cg.size - 1)):
-                           max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1)) + 1].max()
-                        for k in ks])
-                    # Ränder des Bogens haben echtes g≈0 -> Null-Segmente aus den Nachbarn
-                    # interpolieren (durchgängiger Bogen) + Mindestwert 0,3 (dunkelblau, sichtbar).
-                    nz = seg > 0.05
-                    if nz.any():
-                        seg = np.interp(np.arange(seg.size), np.flatnonzero(nz), seg[nz])
-                    g_out[a0:a1 + 1] = np.maximum(seg, 0.3)
-                    # Feine Polylinie: jedes GPS-Segment auf die ~25 Accel-Samples unterteilen
-                    # (lat/lon linear interpoliert, g aus dem 25-Hz-Zentripetal). Ergebnis =
-                    # Verlauf FEINER als der GPS-Punkt-Abstand. Mindest-g 0,3 (durchgängig sichtbar).
-                    arc: list = []
-                    nlast = len(t_ms) - 1
-                    for k in range(a0, a1):
-                        s0 = max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
-                        s1 = max(s0, min(int(t_ms[k + 1] / 1000.0 * hz), cg.size - 1))
-                        m = max(1, s1 - s0)
-                        # Catmull-Rom-Nachbarn (an den Rändern geklemmt).
-                        la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
-                        lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
-                        for p in range(m):
-                            f = p / m
-                            arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
-                                        round(_catmull(lo0, lo1, lo2, lo3, f), 6),
-                                        round(max(float(cg[s0 + p]), 0.3), 2)])
-                    sN = max(0, min(int(t_ms[a1] / 1000.0 * hz), cg.size - 1))
-                    arc.append([round(float(lat[a1]), 6), round(float(lon[a1]), 6),
-                                round(max(float(cg[sN]), 0.3), 2)])
-                    arcs.append(arc)
-            i = j
-        else:
-            i += 1
+    arcs: list[list] = []
+    for r0, r1 in runs:
+        for c0, c1, rot in _turn_events(lat, lon, r0, min(r1, nlast)):
+            mag = abs(rot)
+            bucket = "s" if mag < 180 else "m" if mag < 360 else "l"
+            peak = round(max((gseg(k) for k in range(c0 + 1, c1 + 1)), default=0.0), 2)
+            carves.append({"i0": c0, "i1": c1, "peak_g": peak,
+                           "rot": round(rot), "dir": "R" if rot > 0 else "L", "bucket": bucket})
+            # grobe Färbung je Koord (Fallback) + feine Catmull-Rom-Polylinie fürs Rendering.
+            for k in range(c0, c1 + 1):
+                g_out[k] = max(gseg(k), 0.3)
+            arc: list = []
+            for k in range(c0, c1):
+                s0 = max(0, min(int(t_ms[k] / 1000.0 * hz), cg.size - 1))
+                s1 = max(s0, min(int(t_ms[k + 1] / 1000.0 * hz), cg.size - 1))
+                m = max(1, s1 - s0)
+                la0, la1_, la2, la3 = lat[max(0, k - 1)], lat[k], lat[k + 1], lat[min(nlast, k + 2)]
+                lo0, lo1, lo2, lo3 = lon[max(0, k - 1)], lon[k], lon[k + 1], lon[min(nlast, k + 2)]
+                for p in range(m):
+                    f = p / m
+                    arc.append([round(_catmull(la0, la1_, la2, la3, f), 6),
+                                round(_catmull(lo0, lo1, lo2, lo3, f), 6),
+                                round(max(float(cg[s0 + p]), 0.3), 2)])
+            sN = max(0, min(int(t_ms[c1] / 1000.0 * hz), cg.size - 1))
+            arc.append([round(float(lat[c1]), 6), round(float(lon[c1]), 6),
+                        round(max(float(cg[sN]), 0.3), 2)])
+            arcs.append(arc)
+
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
         counts[cv["bucket"]] += 1
