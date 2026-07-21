@@ -1436,6 +1436,12 @@ def get_carves(
     s = _readable(db, session_id)
     empty = {"g": [], "carves": [], "arcs": [], "counts": {"s": 0, "m": 0, "l": 0}}
     gps = storage.load_gps(s.session_uuid)
+    # TRIM wie die Analyse-Pipeline (__init__): nur [trim_start, trim_end]. Sonst scannt der
+    # Detektor die weggeschnittenen Ränder mit (z. B. der GPS-Sprung beim Untertauchen am Ende
+    # = Fantasie-Carve) UND die Indizes passen nicht zu track_geojson/Segmenten (Karte getrimmt).
+    lo = s.trim_start_ms if s.trim_start_ms is not None else (gps[0][0] if gps else 0)
+    hi = s.trim_end_ms if s.trim_end_ms is not None else (gps[-1][0] if gps else 0)
+    gps = [r for r in gps if lo <= r[0] <= hi]
     if not gps or len(gps) < 4:
         return empty
     t_ms = np.array([int(r[0]) for r in gps], dtype=np.float64)
@@ -1444,14 +1450,11 @@ def get_carves(
     latg = _lateral_g(lat, lon, t_ms)                            # Kurvenlage-g je Punkt (GPS-Geometrie)
     g_out = np.zeros(len(t_ms), dtype=np.float64)                # nur Carve-Punkte werden eingefärbt
     FLOOR = 0.1                                                  # sichtbarer Mindestwert im Carve (grün)
-
     nlast = len(t_ms) - 1
     SUB = 10                                                     # Sub-Punkte je GPS-Segment (Glätte)
-    # Carves über den GANZEN Track suchen — NICHT nur in erkannten Läufen: die Lauf-Erkennung
-    # verfehlt manchmal genau den Foiling-Abschnitt (z. B. S796 — Carves lagen außerhalb des einen
-    # kurzen erkannten Laufs). Stattdessen per SPEED gaten: ein Carve passiert bei Foiling-Tempo
-    # (≥ ~8 km/h) — das trennt echte Carves vom langsamen Kreiseln/Driften, unabhängig von der
-    # Lauf-Segmentierung.
+
+    # Carves NUR während on-foil (Jans Vorgabe): an die Lauf-/On-Foil-Segmente binden — die liegen
+    # jetzt im selben getrimmten Index-Raum. Zusätzlich per Speed gaten (echter Carve = Foiling-Tempo).
     MIN_CARVE_MPS = 2.2
 
     def _mean_mps(a: int, b: int) -> float:
@@ -1460,9 +1463,16 @@ def get_carves(
             return 0.0
         return sum(_hav_m(lat, lon, x, x + 1) for x in range(a, b)) / dt
 
+    try:
+        segments = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+    except Exception:
+        segments = []
+    runs = [(max(0, sg["i_start"]), min(sg["i_end"], nlast)) for sg in segments]
+
     carves: list[dict] = []
     arcs: list[list] = []
-    for c0, c1, rot in _turn_events(lat, lon, 0, nlast):
+    events = [e for r0, r1 in runs if r1 - r0 >= 2 for e in _turn_events(lat, lon, r0, r1)]
+    for c0, c1, rot in events:
         if _mean_mps(c0, c1) < MIN_CARVE_MPS:                # nur bei Foiling-Tempo = echter Carve
             continue
         mag = abs(rot)
