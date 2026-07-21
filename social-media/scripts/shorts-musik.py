@@ -951,7 +951,7 @@ const OPATHS={
 const OUTROS={
   youtube:[['thumbsup','Like'],['bell','Abonnieren']],
   instagram:[['heart','Like'],['comment','Kommentar'],['send','Teilen']],
-  tiktok:[['heart','Like'],['comment','Kommentar'],['repost','Repost'],['send','Teilen']]
+  tiktok:[['heart','Like'],['comment','Kommentar'],['repost','Repost']]
 };
 function outroPng(pf){
   const w=vid.videoWidth||1080, h=vid.videoHeight||1920;
