@@ -5,7 +5,7 @@ import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { useI18n, useT } from "./i18n";
+import { useI18n } from "./i18n";
 import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./pages/Changelog";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
@@ -24,16 +24,22 @@ const navItems: NavItem[] = [
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
 
-// "July 21, 2026" -> "Jul 21" fürs kompakte Menü-Badge.
-function shortDate(d: string): string {
-  const [mon, day] = d.split(" ");
-  return `${(mon ?? "").slice(0, 3)} ${(day ?? "").replace(",", "")}`;
+// Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
+// fürs Menü-Badge (die Changelog-Seite selbst bleibt englisch). Fällt bei Fehler auf EN zurück.
+function shortDate(d: string, lang: string): string {
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  try {
+    return new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(dt);
+  } catch {
+    return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(dt);
+  }
 }
 
 // Menü-Link "Neuerungen" mit Datums-Badge des neuesten Eintrags. Gelb hervorgehoben,
 // solange der neueste Eintrag ungesehen ist (localStorage); klärt sich beim Öffnen.
 function ChangelogLink() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const loc = useLocation();
   const [seen, setSeen] = useState<string | null>(() => {
     try { return localStorage.getItem(CHANGELOG_SEEN_KEY); } catch { return null; }
@@ -45,12 +51,17 @@ function ChangelogLink() {
     }
   }, [loc.pathname]);
   const unseen = seen !== LATEST_CHANGELOG_DATE;
+  // Label bleibt neutral (wie die anderen Menü-Links); nur das Badge wird hervorgehoben.
+  // Beide Modi setzen (light-mode-contrast-pattern): Base = dunkler Text, dark: = hell.
+  const badge = unseen
+    ? "bg-amber-200 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300"
+    : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400";
   return (
     <Link to="/changelog"
-      className={`mt-2 flex items-center gap-1.5 px-3 text-xs ${unseen ? "font-medium text-amber-300 hover:text-amber-200" : "text-slate-400 hover:text-slate-300"}`}>
+      className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-500 hover:text-slate-400 dark:text-slate-400 dark:hover:text-slate-300">
       {t("nav.changelog")}
-      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${unseen ? "bg-amber-400/20 text-amber-300" : "bg-slate-800 text-slate-400"}`}>
-        {shortDate(LATEST_CHANGELOG_DATE)}
+      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>
+        {shortDate(LATEST_CHANGELOG_DATE, lang)}
       </span>
     </Link>
   );
