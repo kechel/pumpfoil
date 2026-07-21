@@ -216,13 +216,13 @@ export default function Landing() {
             {/* Feste Bildhöhe -> Captions gleich; Subline-Zeile in ALLEN Spalten (ggf. leer) -> Badges exakt gleich hoch. */}
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
               <WatchCarousel rounded="rounded-full" caption="Garmin"
-                images={["/watch-garmin-1.webp", "/watch-garmin-2.webp"]}
+                images={["/watch-garmin-1.webp", "/watch-garmin-2.webp", "/watch-garmin-3.webp", "/watch-garmin-4.webp"]}
                 badge={<ConnectIqButton className="mt-2" />} />
               <WatchCarousel rounded="rounded-[1.5rem]" caption="Apple Watch"
-                images={["/watch-apple-1.webp", "/watch-apple-2.webp"]}
+                images={["/watch-apple-1.webp", "/watch-apple-2.webp", "/watch-apple-3.webp"]}
                 badge={<AppStoreBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Wear OS" sub="Samsung · Pixel · TicWatch …"
-                images={["/watch-wear-1.webp", "/watch-wear-2.webp"]}
+                images={["/watch-wear-1.webp", "/watch-wear-2.webp", "/watch-wear-3.webp"]}
                 badge={<PlayBadge className="mt-2" />} />
               <WatchCarousel rounded="rounded-full" caption="Amazfit" sub="Zepp OS"
                 images={["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"]}
