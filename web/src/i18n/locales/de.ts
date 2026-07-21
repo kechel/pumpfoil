@@ -1132,6 +1132,12 @@ const de: Record<string, string> = {
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "So richtest du deine Uhr ein",
+  "guide.amazfitSub": "Unser Recorder läuft auf Amazfit-Uhren mit Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 u. a.).",
+  "guide.z.store": "Hol die Zepp-App und finde Pumpfoil in deren integriertem App Store:",
+  "guide.z.s1": "Installiere die Zepp-App (oben) und verbinde deine Amazfit dort wie gewohnt.",
+  "guide.z.s2": "In der Zepp-App: Profil → deine Amazfit → App Store → „Pumpfoil“ suchen → Installieren.",
+  "guide.z.s3": "Öffne Pumpfoil auf der Uhr, wische zu ›Verbinden‹ für einen Code und gib ihn ein unter ",
+  "guide.z.s4": "Drücke START zum Aufzeichnen. GPS und Puls werden automatisch über WLAN/Telefon hochgeladen.",
   "guide.pair.title": "Uhr mit deinem Konto verbinden",
   "guide.pair.intro": "Ohne Verbinden kannst du trotzdem aufnehmen – die Sessions werden lokal gespeichert und später automatisch hochgeladen. Zum Zuordnen zu deinem Konto gibt es zwei Wege:",
   "guide.pair.autoTitle": "Automatisch (Apple Watch & Wear OS):",

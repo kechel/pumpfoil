@@ -3,7 +3,7 @@ import { Card } from "./ui";
 import { useT } from "../i18n";
 import { WatchDemoVideo } from "./WatchDemoVideo";
 import { ConnectIqButton } from "./ConnectIqButton";
-import { AppStoreBadge, PlayBadge } from "./StoreBadge";
+import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "./StoreBadge";
 
 // Einrichtungs-Anleitung im Uhren-Bereich. Plattform oben wählen -> nur deren Abschnitt
 // wird eingeblendet (anfangs alle ausgeblendet). Texte über i18n (guide.*).
@@ -11,6 +11,7 @@ const platforms = [
   { id: "garmin", label: "Garmin" },
   { id: "apple", label: "Apple Watch" },
   { id: "wear", label: "Wear OS" },
+  { id: "amazfit", label: "Amazfit" },
 ];
 
 // Garmin-Anleitungs-Screenshots (v1.0.24, rund) — Captions über i18n (guide.cap.*).
@@ -171,6 +172,30 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
               </figure>
             ))}
           </div>
+        </div>
+      </Card>
+      )}
+
+      {/* Amazfit / Zepp OS */}
+      {sel === "amazfit" && (
+      <Card id="guide-amazfit" className="scroll-mt-20 p-5">
+        <h3 className="text-lg font-bold text-brand-400">Amazfit</h3>
+        <p className="mt-1 text-sm text-slate-300">{t("guide.amazfitSub")}</p>
+        <div className="mt-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3">
+          <p className="mb-2 text-sm text-slate-200">{t("guide.z.store")}</p>
+          <ZeppAppBadges />
+        </div>
+        <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-200">
+          <li>{t("guide.z.s1")}</li>
+          <li>{t("guide.z.s2")}</li>
+          <li>{t("guide.z.s3")}{connectLink}</li>
+          <li>{t("guide.z.s4")}</li>
+        </ol>
+        <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+          {["/watch-amazfit-1.webp", "/watch-amazfit-2.webp", "/watch-amazfit-3.webp"].map((s) => (
+            <img key={s} src={s} alt="Amazfit" loading="lazy"
+              className="w-full rounded-full border border-slate-800 shadow" />
+          ))}
         </div>
       </Card>
       )}

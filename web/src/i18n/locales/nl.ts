@@ -1132,6 +1132,12 @@ const nl: Record<string, string> = {
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "Zo stel je je horloge in",
+  "guide.amazfitSub": "Onze recorder draait op Amazfit-horloges met Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 e.a.).",
+  "guide.z.store": "Installeer de Zepp-app en zoek Pumpfoil in de ingebouwde App Store:",
+  "guide.z.s1": "Installeer de Zepp-app (hierboven) en koppel je Amazfit daarin zoals gebruikelijk.",
+  "guide.z.s2": "In de Zepp-app: Profiel → je Amazfit → App Store → zoek „Pumpfoil“ → Installeren.",
+  "guide.z.s3": "Open Pumpfoil op het horloge, veeg naar ›Verbinden‹ voor een code en voer die in onder ",
+  "guide.z.s4": "Druk op START om op te nemen. Gps en hartslag worden automatisch via wifi/telefoon geüpload.",
   "guide.pair.title": "Horloge met je account verbinden",
   "guide.pair.intro": "Zonder verbinden kun je toch opnemen – de sessies worden lokaal opgeslagen en later automatisch geüpload. Om ze aan je account te koppelen zijn er twee manieren:",
   "guide.pair.autoTitle": "Automatisch (Apple Watch & Wear OS):",

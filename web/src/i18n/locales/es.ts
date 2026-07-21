@@ -779,6 +779,12 @@ const es: Record<string, string> = {
 
   // Guía de configuración del reloj (WatchGuide)
   "guide.howto": "Configura tu reloj",
+  "guide.amazfitSub": "Nuestro grabador funciona en relojes Amazfit con Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 y más).",
+  "guide.z.store": "Instala la app Zepp y luego busca Pumpfoil en su App Store integrada:",
+  "guide.z.s1": "Instala la app Zepp (arriba) y vincula tu Amazfit como de costumbre.",
+  "guide.z.s2": "En la app Zepp: Perfil → tu Amazfit → App Store → busca «Pumpfoil» → Instalar.",
+  "guide.z.s3": "Abre Pumpfoil en el reloj, desliza hasta ›Conectar‹ para un código y escríbelo en ",
+  "guide.z.s4": "Pulsa START para grabar. El GPS y el pulso se suben automáticamente por Wi-Fi/teléfono.",
   "guide.pair.title": "Conecta tu reloj con tu cuenta",
   "guide.pair.intro": "Puedes grabar sin conectarte — las sesiones se guardan localmente y se suben automáticamente más tarde. Para asignarlas a tu cuenta hay dos formas:",
   "guide.pair.autoTitle": "Automático (Apple Watch y Wear OS):",

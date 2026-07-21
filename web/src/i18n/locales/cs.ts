@@ -1132,6 +1132,12 @@ const cs: Record<string, string> = {
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "Jak si nastavit hodinky",
+  "guide.amazfitSub": "Náš rekordér běží na hodinkách Amazfit se Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 a další).",
+  "guide.z.store": "Nainstaluj aplikaci Zepp a najdi Pumpfoil v jejím App Store:",
+  "guide.z.s1": "Nainstaluj aplikaci Zepp (výše) a spáruj své Amazfit jako obvykle.",
+  "guide.z.s2": "V aplikaci Zepp: Profil → tvé Amazfit → App Store → vyhledej „Pumpfoil“ → Instalovat.",
+  "guide.z.s3": "Otevři Pumpfoil na hodinkách, přejeď na ›Připojit‹ pro kód a zadej jej v ",
+  "guide.z.s4": "Stiskni START pro záznam. GPS a tep se nahrají automaticky přes Wi-Fi/telefon.",
   "guide.pair.title": "Propoj hodinky se svým účtem",
   "guide.pair.intro": "I bez propojení můžeš nahrávat – relace se uloží lokálně a později se automaticky nahrají. K přiřazení ke svému účtu vedou dvě cesty:",
   "guide.pair.autoTitle": "Automaticky (Apple Watch a Wear OS):",

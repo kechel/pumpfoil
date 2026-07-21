@@ -1097,6 +1097,12 @@ const fi: Record<string, string> = {
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "Näin asennat kellosi",
+  "guide.amazfitSub": "Tallennin toimii Amazfit-kelloissa, joissa on Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 ym.).",
+  "guide.z.store": "Asenna Zepp-sovellus ja etsi Pumpfoil sen App Storesta:",
+  "guide.z.s1": "Asenna Zepp-sovellus (yllä) ja yhdistä Amazfit siihen tavalliseen tapaan.",
+  "guide.z.s2": "Zepp-sovelluksessa: Profiili → Amazfit → App Store → hae „Pumpfoil“ → Asenna.",
+  "guide.z.s3": "Avaa Pumpfoil kellossa, pyyhkäise kohtaan ›Yhdistä‹ saadaksesi koodin ja syötä se kohtaan ",
+  "guide.z.s4": "Aloita tallennus painamalla START. GPS ja syke lähetetään automaattisesti Wi-Fin/puhelimen kautta.",
   "guide.pair.title": "Yhdistä kello tiliisi",
   "guide.pair.intro": "Voit silti tallentaa ilman yhdistämistä – sessiot tallentuvat paikallisesti ja ladataan myöhemmin automaattisesti. Tiliisi liittämiseen on kaksi tapaa:",
   "guide.pair.autoTitle": "Automaattinen (Apple Watch ja Wear OS):",

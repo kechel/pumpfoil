@@ -1052,6 +1052,12 @@ const en: Record<string, string> = {
 
   // Watch setup guide (WatchGuide)
   "guide.howto": "How to set up your watch",
+  "guide.amazfitSub": "Our recorder runs on Amazfit watches with Zepp OS (Balance, T-Rex 3, Cheetah, Active 2/3 and more).",
+  "guide.z.store": "Get the Zepp app, then find Pumpfoil in its built-in App Store:",
+  "guide.z.s1": "Install the Zepp app (above) and pair your Amazfit in it as usual.",
+  "guide.z.s2": "In the Zepp app: Profile → your Amazfit → App Store → search “Pumpfoil” → Install.",
+  "guide.z.s3": "Open Pumpfoil on the watch, swipe to ›Connect‹ for a code, then enter it under ",
+  "guide.z.s4": "Press START to record. GPS and heart rate upload automatically over Wi-Fi or your phone.",
   "guide.pair.title": "Connect your watch to your account",
   "guide.pair.intro": "You can record without connecting — sessions are saved locally and uploaded automatically later. To assign them to your account, there are two ways:",
   "guide.pair.autoTitle": "Automatic (Apple Watch & Wear OS):",
