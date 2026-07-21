@@ -276,6 +276,21 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     spike = np.abs(speed - med5) > SPEED_SPIKE_MPS
     speed = np.where(spike, med5, speed)
 
+    # Endpunkt-Spikes: der ERSTE/LETZTE Sample entgeht den Median-Filtern, weil das
+    # Rand-Padding (mode="edge") den Wert in sein eigenes Fenster repliziert -> der
+    # Median ist der Spike selbst, nichts wird geclamped. Ein Doppler-Spike am Track-
+    # Rand setzt so fälschlich den Speed-Rekord (z.B. S555: 31,8 km/h auf dem letzten
+    # Punkt, echter Lauf-Max ~20). Beide Enden explizit gegen den Median der Innen-
+    # Nachbarn clampen (nur nach unten — echte gehaltene Rand-Speeds haben hohe Nachbarn).
+    if speed.size >= 4:
+        kk = min(max(int(round(4 * gps_hz)), 3), speed.size - 1)
+        m0 = float(np.median(speed[1:1 + kk]))
+        if speed[0] > m0 + SPEED_SPIKE_MPS:
+            speed[0] = m0
+        mN = float(np.median(speed[-1 - kk:-1]))
+        if speed[-1] > mN + SPEED_SPIKE_MPS:
+            speed[-1] = mN
+
     win = max(int(round(SMOOTH_WINDOW_S * gps_hz)), 1)
     speed_s = _running_median(speed, win)
     speed5 = _running_median(speed, max(int(round(5 * gps_hz)), 1))
