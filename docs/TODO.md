@@ -7,23 +7,10 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
-## 🚀 Nächstes App-Release — seit Release 2026-07-15 (Android 1.1.12 live / iOS 1.1.13 in Prüfung)
-Was seit dem letzten Release in PWA/Server dazukam und in die Apps gehört (Repo: Android 1.1.12/28,
-iOS 1.1.14/18 — vor Golive bumpen: Phone → 1.1.13/29, iOS → 1.1.15/19):
-- [x] **Öffentliche Session-Teilen-Links** — Server (`share_token`, `POST/DELETE /api/sessions/{id}/share`,
-  `GET /api/public/session/{token}`) + PWA (`/s/:token` read-only mit eigener Hülle, Owner-Link-Popup
-  mit Kopieren/Deaktivieren, freundliche 404+Redirect). **App-Port erledigt** (2026-07-15): Teilen-Link-
-  Button (🔗) + Popup in iOS `SessionDetailView` + Android `SessionDetailScreen` (Kopieren via
-  Clipboard/UIPasteboard, Deaktivieren). Die geteilten Links selbst öffnen im Browser auf pumpfoil.org
-  (keine native Read-only-Anzeige nötig).
-- [x] **Feature-Port-Runde 2026-07-18** (Android + iOS, kompiliert bzw. parse-geprüft): mehrere
-  Videos pro Session (Anzeige+Verlinken+Löschen, NEU auch als Feature: Apps konnten bisher gar keine
-  Videos verlinken); „Alle löschen" für Aussortierte (Confirm, `DELETE /api/sessions/other/all`);
-  Teilen-Dialog #36 stats=none + #37 Lauf-Vorauswahl; Foil-/Uhren-Stats sortierbar (Chips) +
-  Cross-Link zur jeweils anderen Statistik; Karten-Maßstabsleiste (#15); Social-Links
-  (YouTube/Instagram/TikTok) im Profil. Web-only übersprungen: Hotkeys, Chat-Drag, Scroll-FAB,
-  Admin-Verlaufsgrafik, Testimonial-Archiv, Store-Badges.
-- **`appmeta ios` → 1.1.13** setzen, sobald Apple 1.1.13 freigibt (Server `api/appmeta.py`, aktuell 1.1.12).
+## 🚀 App-Release-Stand (2026-07-22) — alle live & konform
+- **iOS 1.1.15 LIVE** (App Store, freigegeben 19.7.), **Android Phone 1.1.13 LIVE**, **Wear 1.2.14/1024 LIVE**
+  (22.7., targetSdk 35 → Play-konform), **Garmin 1.0.60 LIVE** (CIQ). `appmeta` gesetzt: ios=1.1.15,
+  android=1.1.13, garmin.latest=1.0.60. Nichts offen im App-Release. Details: Memory `watch-apps-release-state`.
 
 ## 🩹 Polish / kleine Baustellen
 - **Verlauf-Karte abhärten:** osmdroid-Spot-Animation in der Scroll-Liste → am Emulator ANR bei
