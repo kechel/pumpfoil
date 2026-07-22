@@ -119,18 +119,36 @@ class RecordView extends WatchUi.View {
         dc.drawText(w / 2 - 12, h * 0.085, Graphics.FONT_XTINY, "REC",
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        // Stop-Halten: roter Ring füllt sich von oben im Uhrzeigersinn (3 s).
+        // Stop-Halten, zwei Stufen:
+        //  Phase 1 (0..3 s): roter Ring füllt sich von oben im Uhrzeigersinn = „Stoppen…".
+        //  Phase 2 (3..6 s, Ring 1 voll): Ring startet CYAN neu = Verwerfen-Zone.
+        //    Loslassen -> Speichern; bis Ring 2 voll durchhalten -> Verwerfen.
         var sp = _rec.stopHoldProgress();
         if (sp > 0.0) {
-            dc.setPenWidth(12);
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
             var r = (w < h ? w : h) / 2 - 8;
-            var endDeg = 90.0 - 360.0 * sp;  // 90°=oben; im Uhrzeigersinn fallend
-            dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, endDeg);
-            dc.setPenWidth(1);
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.30, Graphics.FONT_TINY, Strings.s("rec.stopping"),
-                Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setPenWidth(12);
+            if (sp < 1.0) {
+                dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+                dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, 90.0 - 360.0 * sp);
+                dc.setPenWidth(1);
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(w / 2, h * 0.30, Graphics.FONT_TINY, Strings.s("rec.stopping"),
+                    Graphics.TEXT_JUSTIFY_CENTER);
+            } else {
+                // Phase 2: voller roter Ring als Hintergrund + cyan Verwerfen-Fortschritt darüber.
+                dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+                dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, -270);   // voller Kreis
+                var dp = _rec.discardHoldProgress();
+                dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+                if (dp > 0.0) { dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, 90.0 - 360.0 * dp); }
+                dc.setPenWidth(1);
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(w / 2, h * 0.36, Graphics.FONT_TINY, Strings.s("rec.saveRelease"),
+                    Graphics.TEXT_JUSTIFY_CENTER);
+                dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(w / 2, h * 0.54, Graphics.FONT_TINY, Strings.s("rec.discardHold"),
+                    Graphics.TEXT_JUSTIFY_CENTER);
+            }
         }
     }
 

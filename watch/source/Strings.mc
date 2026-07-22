@@ -76,6 +76,8 @@ module Strings {
         "saved.upload"   => ["Upload bei WLAN/Telefon", "Upload bi WLAN/Telefon", "Upload bei WLAN/Telefon", "Upload via Wi-Fi/phone", "Envoi via Wi-Fi/tél.", "Upload via Wi-Fi/telefono", "Subida por Wi-Fi/teléfono"],
         "saved.newRec"   => ["START = neue Aufnahme", "START = nöji Ufnahm", "START = neue Aufnahme", "START = new recording", "START = nouvel enreg.", "START = nuova registr.", "START = nueva grabación"],
         "rec.stopping"   => ["Stoppen…", "Stoppe…", "Stoppen…", "Stopping…", "Arrêt…", "Arresto…", "Parando…"],
+        "rec.saveRelease" => ["Loslassen: Speichern", "Loslah: Speichere", "Loslassen: Speichern", "Release: Save", "Relâcher : Enreg.", "Rilascia: Salva", "Soltar: Guardar"],
+        "rec.discardHold" => ["Halten: Verwerfen", "Halte: Verwerfe", "Halten: Verwerfen", "Hold: Discard", "Maintenir : Suppr.", "Tieni: Scarta", "Mantener: Descartar"],
 
         // Datenfeld-Labels (Wörter lokalisiert, Einheiten universell)
         "f.kmh3s"   => ["km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)"],

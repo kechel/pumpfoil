@@ -138,14 +138,24 @@ class SessionRecorder {
     hidden var _lastRunAvgSpeed = 0.0;
 
     // Stop erfordert 3 s Halten (gegen versehentliches Beenden beim Foilen).
-    const STOP_HOLD_MS = 3000;
+    const STOP_HOLD_MS = 3000;      // Phase 1: halten bis hier -> Stop scharf (loslassen = Speichern)
+    const DISCARD_HOLD_MS = 6000;   // Phase 2: weiter halten bis hier -> Verwerfen
     var stopHoldStartMs as Lang.Number or Null = null;
 
-    // Fortschritt 0..1 des Stop-Haltens (für den Ring-Indikator in der View).
+    // Fortschritt 0..1 des Stop-Haltens Phase 1 (Ring 1, 0..3 s). >=1.0 = „Speichern scharf".
     function stopHoldProgress() as Lang.Float {
         if (stopHoldStartMs == null) { return 0.0; }
         var e = System.getTimer() - stopHoldStartMs;
         var p = e.toFloat() / STOP_HOLD_MS;
+        return p > 1.0 ? 1.0 : p;
+    }
+
+    // Fortschritt 0..1 des Verwerfen-Haltens Phase 2 (Ring 2, 3..6 s). 0 solange < 3 s.
+    function discardHoldProgress() as Lang.Float {
+        if (stopHoldStartMs == null) { return 0.0; }
+        var e = System.getTimer() - stopHoldStartMs;
+        if (e <= STOP_HOLD_MS) { return 0.0; }
+        var p = (e - STOP_HOLD_MS).toFloat() / (DISCARD_HOLD_MS - STOP_HOLD_MS);
         return p > 1.0 ? 1.0 : p;
     }
 
@@ -650,6 +660,41 @@ class SessionRecorder {
         // könnte fehlschlagen/abstürzen -> Risiko für die gerade aufgenommene Session.
         // Daten liegen sicher in Storage; hochgeladen wird erst beim nächsten App-Start
         // bzw. manuell über Einstellungen -> Upload/Sync.
+    }
+
+    // Aufnahme VERWERFEN (Phase-2-Halten, 6 s): stoppen OHNE zu speichern/hochladen und
+    // alle bereits geschriebenen Rohdaten der laufenden Session löschen. Kein Erfolgs-Screen.
+    function discard() {
+        if (!_recording) { return; }
+        try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
+        if (_accelOn) { try { Sensor.unregisterSensorDataListener(); } catch (e) {} }
+        _recording = false;
+        Uploader.setRecording(false);
+        _purgeCurrent();
+        // FIT verwerfen statt speichern (fällt bei fehlendem discard auf save+ignorieren zurück).
+        if (_fitSession != null) {
+            try {
+                if (_fitSession has :discard) { _fitSession.discard(); } else { _fitSession.stop(); _fitSession.save(); }
+            } catch (e) {}
+            _fitSession = null;
+        }
+        stopped = false;   // kein „Gespeichert"-Screen -> zurück zum Start-Screen
+    }
+
+    // Alle Storage-Keys der LAUFENDEN Session löschen + aus dem sessions-Index nehmen.
+    hidden function _purgeCurrent() as Void {
+        if (_sessionUuid == null) { return; }
+        for (var i = 0; i <= _accelChunkIndex; i++) { Storage.deleteValue("ca_" + _sessionUuid + "_" + i); }
+        for (var i = 0; i <= _gpsChunkIndex; i++) { Storage.deleteValue("cg_" + _sessionUuid + "_" + i); }
+        Storage.deleteValue("state_" + _sessionUuid);
+        Storage.deleteValue("meta_" + _sessionUuid);
+        Storage.deleteValue("sa_" + _sessionUuid);
+        Storage.deleteValue("sg_" + _sessionUuid);
+        var arr = Storage.getValue("sessions");
+        if (arr instanceof Lang.Array) {
+            var j = arr.indexOf(_sessionUuid);
+            if (j >= 0) { arr.remove(_sessionUuid); _store("sessions", arr); }
+        }
     }
 
     // --- Persistenter Multi-Session-Zustand (für robusten Sync) ---
