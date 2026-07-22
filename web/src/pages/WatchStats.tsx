@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
+import { fmtPumpRate } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, WatchIcon, FoilIcon } from "../components/Icons";
 import { useSort, SortHead } from "../components/SortableTable";
@@ -59,7 +60,7 @@ export default function WatchStats() {
                   <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_speed_kmh != null ? `${r.best_speed_kmh.toFixed(1)} km/h` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_pump_hz != null ? `${r.avg_pump_hz.toFixed(2)} Hz` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{fmtPumpRate(r.avg_pump_hz)}</td>
                 </tr>
               ))}
             </tbody>

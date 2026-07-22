@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, HistoryPoint } from "../lib/api";
+import { pumpValue, pumpSuffix } from "../lib/pumpRate";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { ChartIcon } from "../components/Icons";
 import { SpotProgression } from "../components/SpotProgression";
@@ -27,7 +28,7 @@ type Agg = {
 const AGG_TOP: Agg[] = [
   // Bestwert-Sektion: bester Session-Ø im Fenster (kumuliert = laufender Bestwert).
   { key: "avg_speed", field: "avg_speed", kind: "max", labelKey: "sd.avgSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, color: "#f59e0b" },
-  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v) => `${v.toFixed(2)} Hz`, color: "#f472b6" },
+  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v) => `${pumpValue(v)} ${pumpSuffix()}`, color: "#f472b6" },
   { key: "pumps_per_session", kind: "ratio", num: "pumps", den: "count", labelKey: "metric.pumpsPerSession", fmt: (v) => v.toFixed(0), color: "#fb7185" },
   // Meter pro Pump im Zeitverlauf: Σ Foiling-km / Σ Pumps (×1000 = m), als Verhältnis
   // (kein Summen-Wert -> bewusst nicht in der Kumuliert-/Summen-Sektion).
