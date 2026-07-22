@@ -2,13 +2,13 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-07-13** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-07-22** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
 Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo/Blockieren,
 Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
-Off-Foil, Einstellungen, i18n 8 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
+Off-Foil, Einstellungen, i18n 10 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
 FIT-Import und die „Optimal"-Färbung.
 
 ## A) Phone-Apps vs. Web
@@ -40,6 +40,8 @@ FIT-Import und die „Optimal"-Färbung.
 | Power-Karte (Watt) | ✅ | ✅ | ✅ |
 | Farb-Legende (min→max) | ✅ | ✅ | ✅ |
 | Stats-Grid | ✅ | ✅ | ✅ |
+| Carve-Ansicht (GPS-Turns, farbig nach Lage) | ✅ 🌐 | ❌ | ❌ |
+| Öffentlicher Teilen-Link (`/s/<token>`) | ✅ | ✅ (Link→Browser) | ✅ (Link→Browser) |
 | Medien (Foto+Video, 2-Spalten-Grid) | ✅ | ✅ | ✅ |
 | Foto hochladen/löschen | ✅ | ✅ | ✅ |
 | YouTube-Embed | ✅ | ✅ | ✅ |
@@ -72,7 +74,7 @@ FIT-Import und die „Optimal"-Färbung.
 | Homespot | ✅ | ✅ | ✅ |
 | Datenseiten (Uhr-Felder) + Off-Foil-Screen | ✅ | ✅ | ✅ |
 | Farb-Modus an/aus (Uhr) | ✅ | ⚠️ | ⚠️ |
-| Sprache (8 Sprachen) | ✅ | ✅ | ✅ |
+| Sprache (10 Sprachen) | ✅ | ✅ | ✅ |
 | Theme Light/Dark/Auto | ✅ | ✅ | ✅ |
 | Push-Prefs | ✅ | ✅ | ✅ |
 | Anzeigename / Avatar-Upload | ✅ | ✅ | ✅ |
@@ -87,7 +89,7 @@ FIT-Import und die „Optimal"-Färbung.
 | Feature | Web | Android | iOS |
 |---|---|---|---|
 | Caching (Bilder + Session-Detail) | ✅ Browser+304 | ✅ Disk-Cache (data_version) + Coil | ✅ SessionCache + URLCache |
-| i18n | ✅ 8 Sprachen | ✅ 8 (inkl. fi-Overlay) | ✅ 8 |
+| i18n | ✅ 10 Sprachen | ✅ 10 (fi/nl/cs via Overlay) | ✅ 10 |
 | Social-Age-Gate (<13) | ✅ Flag | ✅ (Debug-Toggle; echte API iOS) | ⚠️ Declared-Age-Range-API-Entitlement offen |
 | Push (Zustellung) | ✅ Web-Push | ⚠️ Abo ja, Zustellung offen | ⚠️ |
 
@@ -114,3 +116,15 @@ FIT-Import und die „Optimal"-Färbung.
 zeigen „–". Temperatur: kein Sensor auf Wear/Apple Watch. Höhe/Anstieg: aus GPS ableitbar, aber für
 einen **Wassersport** ~konstant (Wasserlinie) / ~0 → nicht sinnvoll. watchOS-Vibrationsmuster auf
 System-Haptics gemappt (kein Plattform-Weg für freie Waveforms). Sonst **keine offenen Recorder-Lücken**.
+
+### Amazfit / Zepp OS (`watch-zepp/`) — LIVE seit 2026-07-21, aber Feature-Rückstand
+Vierte Recorder-Plattform, seit 2026-07-21 im Zepp/Amazfit Store (v1.0.2, ~40 Geräte). Schon da:
+GPS + Puls, Foil/Alarm-Auswahl + Vibration, konfigurierbare Datenseiten + Off-Foil, Auto-Start,
+Reverse-Pairing, Offline-Queue mit Absturz-Recovery. **Offen (Parität nachziehen):**
+| Feature | Garmin | Amazfit/Zepp |
+|---|---|---|
+| Accel 25 Hz → Pump-Erkennung | ✅ | ❌ (nur GPS+Puls → gps_only; Zepp-Accel-API vorhanden, noch nicht verdrahtet) |
+| On-Device-Lokalisierung + Systemsprache/EN-Default | ✅ | ❌ (UI hartkodiert Deutsch, kein i18n) |
+| Update-Hinweis (`latestVersion` aus `/config`) | ✅ | ❌ |
+| Aktivitätstyp Garmin/FIT (nur Garmin relevant) | ✅ | – |
+Build/Verify nur auf Jans Mac (Zeus CLI + Balance 2). Details: Memory `zepp-recorder`.

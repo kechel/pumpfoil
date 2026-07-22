@@ -109,9 +109,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   erst via X5-Rig. (Memory `pump-groundtruth`.)
 
 ## 🗒️ Doku-Hygiene
-- **`docs/PARITY-AUDIT.md` ist veraltet** (Stand 2026-06-28): listet viele ❌ für Android/iOS (Home,
-  Farb-Modi, Datenseiten, Community, Chat, Compare …), die inzwischen alle gebaut sind. Neu aufnehmen
-  oder entfernen.
+- [x] **`docs/PARITY-AUDIT.md` aktualisiert** (2026-07-22): war schon auf 07-13 gepflegt (fast volle
+  Web-Parität); jetzt 10 Sprachen, Carve-Ansicht (Web-only) + öffentl. Teilen-Link ergänzt, **Amazfit/Zepp
+  als 4. Recorder** mit Feature-Rückstand (kein Accel/Pumps, keine Lokalisierung) aufgenommen.
 
 ---
 
