@@ -175,6 +175,8 @@ const en: Record<string, string> = {
   "home.noSessionsShort": "No sessions.",
 
   "period.today": "Today",
+  "home.startSuccess": "Start success rate",
+  "home.startThreshold": "Attempt < ",
   "period.10d": "10 days",
   "period.30d": "30 days",
   "period.365d": "1 year",

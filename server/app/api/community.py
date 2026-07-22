@@ -250,6 +250,47 @@ def community_records(accel_only: bool = True, _user: models.User = Depends(curr
     return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only) for m in METRICS} for p in PERIODS}
 
 
+@router.get("/start-success")
+def start_success(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """PERSÖNLICH: Start-Erfolgsquote je Zeitfenster. Ein erkannter Lauf < Schwelle zählt als
+    (misslungener) Startversuch, >= Schwelle als erfolgreich. Nur aus vorhandenen Lauf-Distanzen
+    (segments_json) — keine neue Erkennung, keine DB-Writes. Schwelle aus den Nutzer-Settings."""
+    import json as _json
+    stored = _json.loads(user.settings_json) if user.settings_json else {}
+    thr = float(stored.get("start_threshold_m", 20))
+    cuts = {p: _cutoff(p) for p in PERIODS}
+    agg = {p: [0, 0] for p in PERIODS}   # [total, success]
+    rows = (db.query(S.started_at, AR.segments_json)
+            .join(AR, AR.session_id == S.id)
+            .filter(S.user_id == user.id, S.deleted.isnot(True)).all())
+    for started_at, segs_json in rows:
+        if not segs_json:
+            continue
+        try:
+            segs = _json.loads(segs_json)
+        except Exception:
+            continue
+        sa = started_at
+        if sa is not None and sa.tzinfo is None:
+            sa = sa.replace(tzinfo=timezone.utc)
+        for sg in segs:
+            d = sg.get("distance_m")
+            if d is None:
+                continue
+            ok = float(d) >= thr
+            for p, cut in cuts.items():
+                if cut is None or (sa is not None and sa >= cut):
+                    agg[p][0] += 1
+                    if ok:
+                        agg[p][1] += 1
+    windows = {}
+    for p in PERIODS:
+        tot, succ = agg[p]
+        windows[p] = {"total": tot, "success": succ, "failed": tot - succ,
+                      "rate": round(100 * succ / tot) if tot else None}
+    return {"threshold_m": thr, "windows": windows}
+
+
 @spot_router.get("/spot-records")
 def spot_records(
     spot: str, period: str = "all", accel_only: bool = True,

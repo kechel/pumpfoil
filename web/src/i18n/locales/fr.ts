@@ -155,6 +155,8 @@ const fr: Record<string, string> = {
   "home.noSessionsShort": "Aucune session.",
 
   "period.today": "Aujourd'hui",
+  "home.startSuccess": "Taux de départs réussis",
+  "home.startThreshold": "Essai < ",
   "period.10d": "10 jours",
   "period.30d": "30 jours",
   "period.365d": "1 an",

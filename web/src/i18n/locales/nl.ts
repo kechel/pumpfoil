@@ -187,6 +187,8 @@ const nl: Record<string, string> = {
 
   // Zeiträume
   "period.today": "Vandaag",
+  "home.startSuccess": "Slaagpercentage starts",
+  "home.startThreshold": "Poging < ",
   "period.10d": "10 dagen",
   "period.30d": "30 dagen",
   "period.365d": "1 jaar",

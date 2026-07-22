@@ -155,6 +155,8 @@ const gsw: Record<string, string> = {
   "home.noSessionsShort": "Kei Sessions.",
 
   "period.today": "Hütt",
+  "home.startSuccess": "Start-Erfolgsquote",
+  "home.startThreshold": "Versuech < ",
   "period.10d": "10 Täg",
   "period.30d": "30 Täg",
   "period.365d": "1 Jahr",

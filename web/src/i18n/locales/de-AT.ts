@@ -150,6 +150,8 @@ const deAT: Record<string, string> = {
   "home.showSpotSessions": "▸ Sessions an dem Spot",
   "home.noSessionsShort": "Kane Sessions.",
   "period.today": "Heit",
+  "home.startSuccess": "Start-Erfolgsquote",
+  "home.startThreshold": "Versuch < ",
   "period.10d": "10 Tog",
   "period.30d": "30 Tog",
   "period.365d": "1 Joar",

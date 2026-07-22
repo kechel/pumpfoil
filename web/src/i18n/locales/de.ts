@@ -187,6 +187,8 @@ const de: Record<string, string> = {
 
   // Zeiträume
   "period.today": "Heute",
+  "home.startSuccess": "Start-Erfolgsquote",
+  "home.startThreshold": "Versuch < ",
   "period.10d": "10 Tage",
   "period.30d": "30 Tage",
   "period.365d": "1 Jahr",

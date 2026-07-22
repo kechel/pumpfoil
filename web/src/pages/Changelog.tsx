@@ -32,6 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 22, 2026",
     items: [
+      "Start success rate on your home page (at the bottom): the share of your starts that became real runs — over today / 10 days / 30 days / 1 year / all time. Set your own threshold: a detected run shorter than it counts as an aborted attempt, longer as a success.",
       "Like chat messages — tap the thumbs-up under a message’s avatar to react; likes show a count and you can toggle yours off again.",
     ],
   },

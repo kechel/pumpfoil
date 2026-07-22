@@ -631,6 +631,7 @@ export const api = {
   hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
   stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
   communityRecords: (accelOnly = true) => req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}`),
+  startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   communitySpots: (accelOnly = true) => req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}`),
   communityStats: () => req<{ foilers: number; spots: number; sessions: number; pumps: number }>(`/api/community/stats`),
   spotRecords: (spot: string, period = "all", accelOnly = true) =>

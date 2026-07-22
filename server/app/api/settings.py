@@ -32,6 +32,9 @@ DEFAULTS = {
     "alarm_default": "foil",  # Uhr-Vorwahl bei aktivem Alarm: "foil" = Standard-Foil | "fixed" = feste Werte
     # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
     "notify_prefs": {"like": True, "analyzed": True, "record": True},
+    # Start-Erfolgsquote: ein erkannter Lauf UNTER dieser Distanz zählt als (misslungener)
+    # Startversuch, darüber als erfolgreich. Subjektiv -> pro Nutzer einstellbar.
+    "start_threshold_m": 20,
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
@@ -167,6 +170,11 @@ def update_settings(
         if p.get("shade") in ("light", "dark"):
             sh["shade"] = p["shade"]
         current["share"] = sh
+    if "start_threshold_m" in patch:
+        try:
+            current["start_threshold_m"] = max(5, min(200, round(float(patch["start_threshold_m"]))))
+        except (TypeError, ValueError):
+            pass
     if isinstance(patch.get("notify_prefs"), dict):
         prefs = dict(current.get("notify_prefs") or {})
         for k, v in patch["notify_prefs"].items():

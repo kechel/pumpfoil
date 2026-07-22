@@ -174,6 +174,8 @@ const fi: Record<string, string> = {
 
   // Zeiträume
   "period.today": "Tänään",
+  "home.startSuccess": "Onnistuneet lähdöt",
+  "home.startThreshold": "Yritys < ",
   "period.10d": "10 päivää",
   "period.30d": "30 päivää",
   "period.365d": "1 vuosi",

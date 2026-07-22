@@ -187,6 +187,8 @@ const cs: Record<string, string> = {
 
   // Zeiträume
   "period.today": "Dnes",
+  "home.startSuccess": "Úspěšnost startů",
+  "home.startThreshold": "Pokus < ",
   "period.10d": "10 dní",
   "period.30d": "30 dní",
   "period.365d": "1 rok",
