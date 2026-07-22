@@ -32,6 +32,8 @@
   <body>
     <!-- Theme früh anwenden (kein Flash) — ausgelagert, damit die CSP ohne Inline-Skript auskommt. -->
     <script src="/theme-init.js"></script>
+    <!-- Blank-Screen-Selbstheiler nach PWA-Updates (unabhängig vom App-Bundle, s. app-watchdog.js). -->
+    <script src="/app-watchdog.js"></script>
     <!-- 1px-Streifen ganz oben in Brand-Cyan: Safari (macOS) faerbt die Fenster-
          Titelleiste nach der background-color des obersten fixed/sticky-Elements. -->
     <div id="titlebar-tint"></div>

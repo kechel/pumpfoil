@@ -10,6 +10,16 @@ import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
 import { I18nProvider } from "./i18n";
 
+// Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> einmal pro
+// Session frisch neu laden statt Blank-Screen. Ergänzt den Watchdog (public/app-watchdog.js).
+window.addEventListener("vite:preloadError", () => {
+  try {
+    if (sessionStorage.getItem("pf_blank_recover")) return;
+    sessionStorage.setItem("pf_blank_recover", "1");
+  } catch { /* ignore */ }
+  window.location.reload();
+});
+
 // Build-Stempel (ändert den Bundle-Hash -> löst SW-Update/Banner aus; auch in den Einstellungen sichtbar).
 console.info(`pumpfoil build ${APP_BUILD}`);
 
