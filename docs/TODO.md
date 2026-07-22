@@ -52,9 +52,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Chunk-Upload-Durchsatz/Parallelität prüfen. (R&D; BLE-Limit beachten.)
 - **Pump-Kadenz auch in Pumps/Minute** (Feedback Laurent 2026-07-20) — zusätzlich zur Hz-Anzeige
   (×60). Kleine Anzeige-Ergänzung (Web/Apps/Nerd-Seiten); `avg_cadence_hz` liegt vor.
-- **Start-Erfolgsquote** (Feedback Laurent, FoilMotion-inspiriert) — % erfolgreiche Starts vs.
-  Gesamt-Startversuche. Braucht Startversuch-Erkennung (verwandt mit Paddle-Up-/Attempts-Erkennung).
-  R&D/Detektor → Jans OK.
+- [x] **Start-Erfolgsquote** — ERLEDIGT 2026-07-22 (Laurent): statt Fehlstart-Erkennung aus dem
+  Rohsignal (unzuverlässig — Analyse zeigte das) pragmatisch per **Lauf-Distanz-Schwelle** (Jans
+  Idee): erkannter Lauf < Schwelle = Startversuch, darüber = Erfolg. Home-Sektion unten, 5 Zeitfenster,
+  Schwelle einstellbar (Default 20 m). Rein aus vorhandenen Distanzen, kein Reanalyze, persönlich
+  (nicht Community-Rekorde). Endpoint `/api/community/start-success`.
 - **Carves in der Karte** — ✅ LIVE 2026-07-21 (read-only, nur Anzeige): „Carves"-Modus in der Web-
   Session-Karte. Enge Turns (GPS-Kurs, ≥90°, Radius <12 m) grün→gelb→rot nach Kurvenlage (v²/r aus GPS),
   feine Catmull-Rom-Bögen, Zähler nach Grad-Bucket. Rein GPS (kein Accel). NICHT in Rekorde/Stats.
