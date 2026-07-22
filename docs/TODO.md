@@ -21,8 +21,8 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 - **Update-Hinweis für ungepairte Alt-Uhr-Apps** (Henne-Ei): der Web-Update-Banner hängt am
   gepairten Gerät; eine noch nie gepairte Alt-App sieht keinen Hinweis. Generischen Store-Update-
   Hinweis erwägen. (war `todo-update-hint-unpaired`)
-- **Garmin CIQ-Store-Listing** von „Pump Foil" auf „Pumpfoil" umbenennen (Portal; App-Code ist
-  längst „Pumpfoil"). Sport bleibt generisch „Pump-Foiling".
+- ~~Garmin CIQ-Store-Listing „Pump Foil" → „Pumpfoil"~~ — ERLEDIGT: Store zeigt „Pumpfoil – Track
+  Every Pump" (Titel + App-Name), kein „Pump Foil" mehr (bestätigt 2026-07-22).
 - **Muttersprachler-Review** der Übersetzungen fr/it/es/fi (best-effort erzeugt).
 
 ## 🔌 Integrationen (credential-gated / extern)
