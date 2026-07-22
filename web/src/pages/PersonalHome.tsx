@@ -44,20 +44,20 @@ function StartSuccessSection() {
   useEffect(() => { load(); }, []);
   if (!data || (data.windows.all?.total ?? 0) === 0) return null;   // ohne Läufe: nichts zeigen
   function commit(v: number) {
-    const nn = Math.max(5, Math.min(200, Math.round(v || 20)));
-    setThr(nn);
-    api.saveSettings({ start_threshold_m: nn }).then(load).catch(() => {});
+    setThr(v);
+    api.saveSettings({ start_threshold_m: v }).then(load).catch(() => {});
   }
+  const opts = Array.from(new Set([20, 30, 40, 50, 75, 100, thr])).sort((a, b) => a - b);
   return (
     <div className="mt-8">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <h2 className="text-xl font-bold">{t("home.startSuccess")}</h2>
-        <span className="ml-auto flex items-center gap-1 text-xs text-slate-400">
+        <span className="ml-auto flex items-center gap-1.5 text-sm text-slate-400">
           {t("home.startThreshold")}
-          <input type="number" value={thr} min={5} max={200} step={5}
-            onChange={(e) => setThr(Number(e.target.value))}
-            onBlur={(e) => commit(Number(e.target.value))}
-            className="w-14 rounded bg-slate-800 px-1.5 py-0.5 text-right tabular-nums text-slate-100" /> m
+          <select value={thr} onChange={(e) => commit(Number(e.target.value))}
+            className="rounded bg-slate-800 px-2 py-1 text-slate-100">
+            {opts.map((o) => <option key={o} value={o}>{o} m</option>)}
+          </select>
         </span>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -65,9 +65,9 @@ function StartSuccessSection() {
           const w = data.windows[k];
           return (
             <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
-              <div className="text-lg font-bold tabular-nums text-brand-400">{w?.rate == null ? "–" : `${w.rate}%`}</div>
-              <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-300">{t(lbl)}</div>
-              {w && w.total > 0 && <div className="mt-0.5 text-[10px] tabular-nums text-slate-500">{w.success}/{w.total}</div>}
+              <div className="text-2xl font-bold tabular-nums text-brand-400">{w?.rate == null ? "–" : `${w.rate}%`}</div>
+              <div className="mt-1 text-sm text-slate-300">{t(lbl)}</div>
+              {w && w.total > 0 && <div className="mt-0.5 text-sm tabular-nums text-slate-500">{w.success}/{w.total}</div>}
             </div>
           );
         })}
