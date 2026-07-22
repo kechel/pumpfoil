@@ -3453,5 +3453,115 @@
     "thickness_mm": 22.5,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "650",
+    "span_cm": 69,
+    "area_cm2": 650,
+    "thickness_mm": 13,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "800",
+    "span_cm": 78,
+    "area_cm2": 800,
+    "thickness_mm": 14,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "950",
+    "span_cm": 87,
+    "area_cm2": 950,
+    "thickness_mm": 15,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "1100",
+    "span_cm": 94,
+    "area_cm2": 1100,
+    "thickness_mm": 16,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "1250",
+    "span_cm": 102,
+    "area_cm2": 1250,
+    "thickness_mm": 17,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira II",
+    "size": "1400",
+    "span_cm": 110,
+    "area_cm2": 1400,
+    "thickness_mm": 18,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira",
+    "size": "750",
+    "span_cm": 72,
+    "area_cm2": 750,
+    "thickness_mm": 14,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira",
+    "size": "980",
+    "span_cm": 85,
+    "area_cm2": 980,
+    "thickness_mm": 15,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira",
+    "size": "1095",
+    "span_cm": 92,
+    "area_cm2": 1095,
+    "thickness_mm": 16,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira",
+    "size": "1210",
+    "span_cm": 98,
+    "area_cm2": 1210,
+    "thickness_mm": 17,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira",
+    "size": "1440",
+    "span_cm": 108,
+    "area_cm2": 1440,
+    "thickness_mm": 19,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
