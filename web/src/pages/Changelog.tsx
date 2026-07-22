@@ -32,7 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 22, 2026",
     items: [
-      "Like chat messages with a 👍 — tap the thumbs-up under any message to react; likes show a count and you can toggle yours off again.",
+      "Like chat messages — tap the thumbs-up under a message’s avatar to react; likes show a count and you can toggle yours off again.",
     ],
   },
   {

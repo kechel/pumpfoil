@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon } from "./Icons";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
 
@@ -241,7 +241,16 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 <EditIcon className="h-5 w-5" />
               </button>
             )}
-            <Avatar name={m.name} url={m.avatar_url} size={32} className="mt-0.5 shrink-0" />
+            <div className="flex shrink-0 flex-col items-center gap-1">
+              <Avatar name={m.name} url={m.avatar_url} size={32} className="mt-0.5" />
+              {!m.hidden && (
+                <button onClick={() => like(m.id)} aria-label="Like"
+                  className={`flex items-center gap-0.5 text-[10px] leading-none transition ${m.liked ? "text-brand-400" : "text-slate-500 hover:text-slate-300"}`}>
+                  <ThumbUpIcon className="h-4 w-4" filled={m.liked} />
+                  {(m.like_count ?? 0) > 0 && <span className="tabular-nums">{m.like_count}</span>}
+                </button>
+              )}
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-semibold text-slate-200">{m.name || "—"}</span>
@@ -273,12 +282,6 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 </span>
               </div>
               <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>
-              {!m.hidden && (
-                <button onClick={() => like(m.id)} aria-label="Like"
-                  className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] transition ${m.liked ? "bg-brand-500/15 text-brand-300" : "text-slate-500 hover:text-slate-300"}`}>
-                  <span>👍</span>{(m.like_count ?? 0) > 0 && <span className="tabular-nums">{m.like_count}</span>}
-                </button>
-              )}
             </div>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
               <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}

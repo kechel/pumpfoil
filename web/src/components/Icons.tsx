@@ -176,6 +176,14 @@ export const HeartIcon = ({ className = base, filled = false }: P & { filled?: b
   </svg>
 );
 
+// Daumen hoch (Like) — eigenes Material-/Lucide-Stil-SVG, KEIN Emoji. filled = ausgefüllt (aktiv).
+export const ThumbUpIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
+    <path d="M7 22V11" />
+    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+  </svg>
+);
+
 // Herzfrequenz/Puls — Herz mit EKG-Linie (nicht rot, Likes sind rot).
 export const HeartPulseIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
