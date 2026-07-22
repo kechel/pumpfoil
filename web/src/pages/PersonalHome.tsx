@@ -8,9 +8,10 @@ import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
-import { CommunityIcon, SendIcon, HomeIcon } from "../components/Icons";
+import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon } from "../components/Icons";
 import { PERIODS } from "./Home";
-import { useT } from "../i18n";
+import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
+import { useT, useI18n } from "../i18n";
 
 // Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
 function TransferHint() {
@@ -76,6 +77,24 @@ function StartSuccessSection() {
   );
 }
 
+// „Neuerungen"-Badge (Funkeln + Datum) — oben rechts auf der Home, auch mobil sichtbar
+// (die Sidebar mit dem Menü-Badge ist mobil ausgeblendet). Cyan wenn ungesehen, sonst grau.
+function ChangelogBadge() {
+  const { t, lang } = useI18n();
+  const [seen, setSeen] = useState<string | null>(() => {
+    try { return localStorage.getItem(CHANGELOG_SEEN_KEY); } catch { return null; }
+  });
+  const unseen = seen !== LATEST_CHANGELOG_DATE;
+  let dateStr = LATEST_CHANGELOG_DATE;
+  try { dateStr = new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(LATEST_CHANGELOG_DATE)); } catch { /* ignore */ }
+  return (
+    <Link to="/changelog" title={t("nav.changelog")} onClick={() => { try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ } setSeen(LATEST_CHANGELOG_DATE); }}
+      className={`ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium transition ${unseen ? "bg-brand-500/15 text-brand-600 dark:text-brand-300" : "text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"}`}>
+      <SparklesIcon className="h-4 w-4" filled={unseen} /> {dateStr}
+    </Link>
+  );
+}
+
 export default function PersonalHome() {
   const t = useT();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -125,10 +144,13 @@ export default function PersonalHome() {
   return (
     <div className="w-full">
       <WelcomeBanner />
-      <h2 className="mb-5 flex items-center gap-2 text-2xl font-bold">
-        <HomeIcon className="h-7 w-7 text-brand-400" />
-        {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
-      </h2>
+      <div className="mb-5 flex items-center gap-2">
+        <HomeIcon className="h-7 w-7 shrink-0 text-brand-400" />
+        <h2 className="min-w-0 truncate text-2xl font-bold">
+          {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
+        </h2>
+        <ChangelogBadge />
+      </div>
 
       <TransferHint />
 

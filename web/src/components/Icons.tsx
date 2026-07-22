@@ -176,6 +176,14 @@ export const HeartIcon = ({ className = base, filled = false }: P & { filled?: b
   </svg>
 );
 
+// „Neu / What's new" — Funkeln (Sparkles), eigenes SVG (kein Emoji). filled = ausgefüllt.
+export const SparklesIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
+    <path d="M11.9 2.4a.5.5 0 0 1 .96 0l1.58 6.14A2 2 0 0 0 15.9 9.9l6.14 1.58a.5.5 0 0 1 0 .96L15.9 14a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0L10.34 15.5A2 2 0 0 0 8.9 14.06L2.76 12.5a.5.5 0 0 1 0-.96L8.9 9.9a2 2 0 0 0 1.44-1.44z" />
+    <path d="M20 3v4M22 5h-4M4 17v2M5 18H3" />
+  </svg>
+);
+
 // Daumen hoch (Like) — eigenes Material-/Lucide-Stil-SVG, KEIN Emoji. filled = ausgefüllt (aktiv).
 export const ThumbUpIcon = ({ className = base, filled = false }: P & { filled?: boolean }) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke} fill={filled ? "currentColor" : "none"}>
