@@ -203,6 +203,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       })
       .finally(() => setBusy(false));
   }
+  function like(id: number) {
+    api.chatLike(id).then((r) => setMsgs((prev) => prev.map((m) => m.id === id ? { ...m, liked: r.liked, like_count: r.like_count } : m))).catch(() => {});
+  }
   function report(id: number) {
     if (!confirm(t("chat.reportConfirm"))) return;
     api.chatReport(id).then(() => setMsgs((prev) => prev.map((m) => m.id === id ? { ...m, report_count: m.report_count + 1 } : m))).catch(() => {});
@@ -270,6 +273,12 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 </span>
               </div>
               <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>
+              {!m.hidden && (
+                <button onClick={() => like(m.id)} aria-label="Like"
+                  className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] transition ${m.liked ? "bg-brand-500/15 text-brand-300" : "text-slate-500 hover:text-slate-300"}`}>
+                  <span>👍</span>{(m.like_count ?? 0) > 0 && <span className="tabular-nums">{m.like_count}</span>}
+                </button>
+              )}
             </div>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
               <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}

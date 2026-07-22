@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 22, 2026",
+    items: [
+      "Like chat messages with a 👍 — tap the thumbs-up under any message to react; likes show a count and you can toggle yours off again.",
+    ],
+  },
+  {
     date: "July 21, 2026",
     items: [
       "Amazfit watches are now supported! Our recorder app is live in the Zepp App Store — records GPS + heart rate on ~40 Amazfit models (Balance, T-Rex 3, Cheetah, GTR 4, Active 2/3, and more). To install: open the Zepp phone app → Profile → your Amazfit → App Store → search “Pumpfoil”. (Pump detection from raw acceleration is still watch-dependent; GPS-based analysis works everywhere.)",

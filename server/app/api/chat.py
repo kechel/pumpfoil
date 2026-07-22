@@ -146,13 +146,26 @@ class PostIn(BaseModel):
 
 
 def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int,
-             author_new: bool = False) -> dict:
+             author_new: bool = False, like_count: int = 0, liked: bool = False) -> dict:
     return {
         "id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
         "text": m.text, "created_at": m.created_at.isoformat() if m.created_at else None,
         "mine": m.user_id == uid, "hidden": m.hidden, "report_count": m.report_count,
-        "author_new": author_new,
+        "author_new": author_new, "like_count": like_count, "liked": liked,
     }
+
+
+def _likes_for(db: Session, msg_ids: list[int], uid: int) -> tuple[dict, set]:
+    """Batch: {message_id: Anzahl 👍} + Menge der vom Nutzer selbst gelikten IDs."""
+    if not msg_ids:
+        return {}, set()
+    from sqlalchemy import func
+    counts = dict(db.query(models.ChatLike.message_id, func.count())
+                  .filter(models.ChatLike.message_id.in_(msg_ids))
+                  .group_by(models.ChatLike.message_id).all())
+    mine = {mid for (mid,) in db.query(models.ChatLike.message_id)
+            .filter(models.ChatLike.message_id.in_(msg_ids), models.ChatLike.user_id == uid).all()}
+    return counts, mine
 
 
 @router.get("")
@@ -189,7 +202,9 @@ def list_messages(
             q = q.filter(models.ChatMessage.id < before)
         rows = q.order_by(models.ChatMessage.id.desc()).limit(lim).all()
         rows = list(reversed(rows))
-    return [_msg_out(m, name, avatar, user.id, is_new_account(created))
+    counts, mine = _likes_for(db, [m.id for m, _n, _a, _c in rows], user.id)
+    return [_msg_out(m, name, avatar, user.id, is_new_account(created),
+                     counts.get(m.id, 0), m.id in mine)
             for m, name, avatar, created in rows]
 
 
@@ -304,6 +319,25 @@ def report_message(
             m.hidden = True
         db.commit()
     return {"ok": True, "report_count": m.report_count, "hidden": m.hidden}
+
+
+@router.post("/{message_id}/like")
+def like_message(
+    message_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """👍 auf eine Chat-Nachricht umschalten (an/aus). Rückgabe: neuer Zustand + Anzahl."""
+    from sqlalchemy import func
+    m = db.get(models.ChatMessage, message_id)
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    existing = db.query(models.ChatLike).filter_by(message_id=message_id, user_id=user.id).first()
+    if existing is not None:
+        db.delete(existing); liked = False
+    else:
+        db.add(models.ChatLike(message_id=message_id, user_id=user.id)); liked = True
+    db.commit()
+    count = db.query(func.count()).select_from(models.ChatLike).filter_by(message_id=message_id).scalar() or 0
+    return {"liked": liked, "like_count": int(count)}
 
 
 # Eigene Nachrichten dürfen innerhalb dieses Fensters bearbeitet/gelöscht werden.

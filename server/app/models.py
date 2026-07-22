@@ -174,6 +174,18 @@ class ChatReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class ChatLike(Base):
+    """👍 auf eine Chat-Nachricht (1× je Nutzer). Zählung on-the-fly."""
+
+    __tablename__ = "chat_likes"
+    __table_args__ = (UniqueConstraint("message_id", "user_id", name="uq_chatlike"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("chat_messages.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class ChatRoomState(Base):
     """Pro Nutzer & Chatraum: zuletzt gelesen, verlassen, Push-Abo (Unread/Leave/Subscribe)."""
 
