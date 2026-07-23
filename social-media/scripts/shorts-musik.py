@@ -71,6 +71,7 @@ OUTRO_SECS_LONG = 4.0  # … bzw. bei Videos über 20 s
 OUTRO_LONG_AB = 20.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
+LAST_RENDER_FILE = BASE / ".shorts-last-render.json"  # für „letzten Render zurückholen"
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
 QUICK_DIRS = [  # Schnellzugriff-Chips in der Sidebar: (Label, Pfad)
     ("janhandy", "/Users/jan/bilder/20260606-janhandy/2026/mp4"),
@@ -707,6 +708,30 @@ class Handler(BaseHTTPRequestHandler):
                     str(req.get("description", ""))))
             except (RuntimeError, ValueError, OSError) as e:
                 return self._json({"error": str(e)}, 500)
+        if self.path == "/api/redo_last":
+            try:
+                info = json.loads(LAST_RENDER_FILE.read_text())
+            except (OSError, ValueError):
+                return self._json({"error": "Kein letzter Render bekannt"}, 404)
+            moved, src = Path(info["moved"]), Path(info["src"])
+            if not moved.is_file():
+                return self._json({"error": "Quellvideo nicht mehr in "
+                                   f"videos-verarbeitet ({moved.name})"}, 404)
+            for pf in (*PLATFORMS, "tiktok"):
+                p = OUT_DIR / pf / info["out_name"]
+                if p.is_file():
+                    p.unlink()
+            target = src
+            n = 1
+            while target.exists():
+                target = src.with_name(f"{src.stem}-{n}{src.suffix}")
+                n += 1
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(moved), str(target))
+            LAST_RENDER_FILE.unlink(missing_ok=True)
+            # in den Ursprungs-Ordner wechseln, damit das Video wieder in der Liste ist
+            VIDEO_DIR = target.parent.resolve()
+            return self._json({**list_state(), "restored": target.name})
         if self.path == "/api/discard_export":
             name = Path(str(req.get("name", ""))).name
             if not name.endswith(".mp4"):
@@ -878,6 +903,8 @@ class Handler(BaseHTTPRequestHandler):
             shutil.move(str(video), str(target))
             unstar(video.name)
             moved = str(target.relative_to(BASE))
+            LAST_RENDER_FILE.write_text(json.dumps(
+                {"out_name": out_name, "src": str(video), "moved": str(target)}))
         self._json({"results": results, "moved": moved})
 
 

@@ -837,6 +837,23 @@ function Studio() {
           >
             {rendering ? "Rendere …" : "Rendern → shorts-mit-musik/"}
           </button>
+          <button
+            className="btn"
+            style={{ width: "100%", marginTop: 6 }}
+            title="Gerenderte Dateien des letzten Renders löschen und das Quellvideo zurückholen (Original bleibt erhalten)"
+            onClick={async () => {
+              if (!window.confirm("Letzten Render zurückholen?\nDie 3 gerenderten Dateien werden gelöscht, das Quellvideo kommt zurück in die Auswahl.")) return;
+              const d = await api.post<AppState & { restored?: string; error?: string }>("/api/redo_last", {});
+              if (d.error) {
+                setLog(d.error);
+                return;
+              }
+              setState(d);
+              if (d.restored) pickVideo(d.restored);
+            }}
+          >
+            ↩ Letzten Render zurückholen
+          </button>
           {prog && (
             <div className="prog" style={{ display: "block" }}>
               <div className="track">
