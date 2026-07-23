@@ -40,7 +40,8 @@ export interface ExportItem {
 
 export interface Captions {
   titles: Record<string, string>;
-  yt_description: string;
+  descriptions: Record<string, string>;
+  hashtags: string;
   instagram: string;
   tiktok: string;
 }

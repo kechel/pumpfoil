@@ -372,6 +372,8 @@ YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
 YT_ID_RE = re.compile(
     r"(?:youtu\.be/|watch\?v=|/shorts/|studio\.youtube\.com/video/|^)"
     r"([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])")
+# Standard-Block, der an jede Video-Beschreibung angehängt wird (13 Sprachen)
+YT_BOILERPLATE_FILE = Path(__file__).resolve().parent / "yt-boilerplate.json"
 
 
 def _http_json(url, data=None, method=None, headers=None, form=False):
@@ -447,11 +449,23 @@ def yt_access_token():
     return tok["access_token"]
 
 
-def yt_localize(video_url: str, titles: dict, description: str):
+def yt_localize(video_url: str, titles: dict, descriptions: dict,
+                hashtags: str = "", fallback_description: str = ""):
     m = YT_ID_RE.search(video_url.strip())
     if not m:
         raise RuntimeError("Keine Video-ID im Link gefunden")
     vid = m.group(1)
+    try:
+        boiler = json.loads(YT_BOILERPLATE_FILE.read_text())
+    except (OSError, ValueError):
+        boiler = {}
+
+    def compose(lang: str) -> str:
+        parts = [p.strip() for p in (
+            (descriptions or {}).get(lang) or fallback_description,
+            hashtags, boiler.get(lang, "")) if p and p.strip()]
+        return "\n\n".join(parts)
+
     auth = {"Authorization": f"Bearer {yt_access_token()}"}
     data = _http_json(
         "https://www.googleapis.com/youtube/v3/videos"
@@ -463,12 +477,16 @@ def yt_localize(video_url: str, titles: dict, description: str):
     loc = items[0].get("localizations", {})
     default_lang = (snippet.get("defaultLanguage") or "de").split("-")[0]
     snippet["defaultLanguage"] = snippet.get("defaultLanguage") or "de"
+    # Haupt-Beschreibung (Default-Sprache, i.d.R. de) ebenfalls setzen
+    main = compose(default_lang)
+    if main:
+        snippet["description"] = main
     written = []
     for lang, title in titles.items():
         code = YT_LANG.get(lang)
         if not code or code == default_lang or not str(title).strip():
             continue
-        loc[code] = {"title": str(title)[:100], "description": description}
+        loc[code] = {"title": str(title)[:100], "description": compose(lang)}
         written.append(code)
     _http_json("https://www.googleapis.com/youtube/v3/videos"
                "?part=snippet,localizations",
@@ -497,27 +515,37 @@ def exports_state():
     return result
 
 
-def caption_prompt(title: str) -> str:
+def title_prefix(name: str) -> str:
+    """'097-Pumpfoil-2026-…' → '097 Pumpfoil 2026' (bisheriges Titel-Schema)."""
+    m = re.match(r"^(\d+)-([Pp]umpfoil)-(\d{4})-", name)
+    return f"{m.group(1)} Pumpfoil {m.group(3)}" if m else ""
+
+
+def caption_prompt(title: str, prefix: str = "") -> str:
+    prefix_rule = (f'\n- JEDER Titel beginnt exakt mit "{prefix} " (unübersetzt), '
+                   f'danach folgt der übersetzte Titel.' if prefix else "")
     return f"""Du bist Social-Media-Redakteur für pumpfoil.org (Pumpfoiling/Dockstart-Wassersport, Tracking-App).
 Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
- "yt_description": "...", "instagram": "...", "tiktok": "..."}}
+ "descriptions": {{...gleiche Sprachen wie titles...}},
+ "hashtags": "...", "instagram": "...", "tiktok": "..."}}
 
 Regeln:
-- titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.
-- yt_description: 1-2 Sätze Deutsch, dann 1-2 Sätze Englisch, dann eine Zeile mit 6-8 Hashtags (#pumpfoil #pumpfoiling #dockstart #foil ...), dann "🌊 https://pumpfoil.org – track every pump".
+- titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
+- descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
+- hashtags: EINE Zeile mit 6-8 Hashtags (#pumpfoil #pumpfoiling #dockstart #foil ...).
 - instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis, Leerzeile, dann 8-12 Hashtags.
 - tiktok: 1 kurzer englischer Satz (+ optional deutsch), 4-6 Hashtags.
 """
 
 
-def generate_captions(title: str) -> dict:
+def generate_captions(title: str, prefix: str = "") -> dict:
     env = {"HOME": str(Path.home()),
            "USER": Path.home().name,  # ohne USER findet die CLI ihre Keychain-Anmeldung nicht
            "PATH": "/opt/homebrew/bin:/usr/bin:/bin:" + str(Path.home() / ".local/bin")}
-    proc = subprocess.run([CLAUDE_BIN, "-p", caption_prompt(title)],
+    proc = subprocess.run([CLAUDE_BIN, "-p", caption_prompt(title, prefix)],
                           capture_output=True, text=True, timeout=300, env=env)
     if proc.returncode != 0:
         raise RuntimeError(f"claude-CLI fehlgeschlagen: {(proc.stderr or proc.stdout)[-300:]}")
@@ -668,6 +696,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(yt_localize(
                     str(req.get("url", "")),
                     req.get("titles") or {},
+                    req.get("descriptions") or {},
+                    str(req.get("hashtags", "")),
                     str(req.get("description", ""))))
             except (RuntimeError, ValueError, OSError) as e:
                 return self._json({"error": str(e)}, 500)
@@ -709,7 +739,8 @@ class Handler(BaseHTTPRequestHandler):
             if not title:
                 return self._json({"error": "Titel fehlt"}, 400)
             try:
-                return self._json(generate_captions(title))
+                return self._json(generate_captions(
+                    title, title_prefix(str(req.get("name", "")))))
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/star":

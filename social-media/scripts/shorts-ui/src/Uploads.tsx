@@ -107,7 +107,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     setErr("");
     setCaps(null);
     try {
-      const d = await api.post<Captions & { error?: string }>("/api/captions", { title });
+      const d = await api.post<Captions & { error?: string }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
       else setCaps(d);
     } catch (e) {
@@ -179,7 +179,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                         setYtMsg("");
                         const r = await api.post<{ ok?: boolean; written?: string[]; error?: string }>(
                           "/api/yt/localize",
-                          { url: ytUrl, titles: caps.titles, description: caps.yt_description },
+                          { url: ytUrl, titles: caps.titles, descriptions: caps.descriptions, hashtags: caps.hashtags },
                         );
                         setYtMsg(r.error ? `❌ ${r.error}` : `✅ ${r.written?.length ?? 0} Sprachen geschrieben`);
                         setYtBusy(false);
@@ -201,8 +201,11 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   </pre>
                 </div>
                 <div className="capblock">
-                  <div className="caphead">YouTube-Beschreibung <CopyBtn text={caps.yt_description} /></div>
-                  <pre>{caps.yt_description}</pre>
+                  <div className="caphead">
+                    YouTube-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
+                    <CopyBtn text={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`} />
+                  </div>
+                  <pre>{(caps.descriptions?.de ?? "") + "\n\n" + (caps.hashtags ?? "")}</pre>
                 </div>
                 <div className="capblock">
                   <div className="caphead">Instagram-Caption <CopyBtn text={caps.instagram} /></div>
