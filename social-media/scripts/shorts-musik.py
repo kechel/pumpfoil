@@ -477,7 +477,10 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
     loc = items[0].get("localizations", {})
     default_lang = (snippet.get("defaultLanguage") or "de").split("-")[0]
     snippet["defaultLanguage"] = snippet.get("defaultLanguage") or "de"
-    # Haupt-Beschreibung (Default-Sprache, i.d.R. de) ebenfalls setzen
+    # Haupt-Titel + Haupt-Beschreibung (Default-Sprache, i.d.R. de) ebenfalls setzen
+    main_title = str((titles or {}).get(default_lang, "")).strip()
+    if main_title:
+        snippet["title"] = main_title[:100]
     main = compose(default_lang)
     if main:
         snippet["description"] = main
