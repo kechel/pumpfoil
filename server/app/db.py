@@ -222,7 +222,10 @@ def _migrate_add_columns() -> None:
             existing = {c["name"] for c in insp.get_columns(table)}
             for name, sqltype in cols.items():
                 if name not in existing:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {sqltype}"))
+                    # IF NOT EXISTS: mehrere uvicorn-Worker rufen init_db() beim Start GLEICHZEITIG auf.
+                    # Ohne IF NOT EXISTS gewinnt ein Worker das ADD, ein anderer (dessen `existing`-
+                    # Snapshot die Spalte noch nicht sah) crasht mit DuplicateColumn -> "startup failed".
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {sqltype}"))
         # Eindeutigkeit des Anzeigenamens (mehrere NULL bleiben erlaubt).
         if insp.has_table("users"):
             conn.execute(text(
