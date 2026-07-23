@@ -36,7 +36,11 @@ export default defineConfig({
       injectRegister: false,        // Registrierung via useRegisterSW (PwaStatus)
       manifest: false,              // wir behalten public/manifest.webmanifest
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        // NUR die App-Shell vorab cachen (JS/CSS/HTML/Fonts/kleine SVGs). Bilder (png/webp:
+        // Changelog/Brand/Screenshots) NICHT precachen — das blähte den Precache auf ~10 MB und
+        // verzögerte die SW-Installation/-Aktivierung bei jedem Update (langes „Laden"). Bilder
+        // kommen bei Bedarf über runtimeCaching (static-img, unten).
+        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/media/],
@@ -96,6 +100,17 @@ export default defineConfig({
             options: {
               cacheName: "media",
               expiration: { maxEntries: 150, maxAgeSeconds: 30 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Statische App-Bilder (Changelog/Brand/Screenshots) — nicht mehr im Precache,
+            // dafür bei Bedarf gecacht (CacheFirst). Hält den SW-Update schlank.
+            urlPattern: ({ request, sameOrigin }) => sameOrigin && request.destination === "image",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-img",
+              expiration: { maxEntries: 120, maxAgeSeconds: 30 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },
