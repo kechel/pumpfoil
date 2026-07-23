@@ -118,6 +118,25 @@ data class CommunityItem(
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
 )
 
+// Tages-Gruppe (ein Nutzer, ein Tag) aus /api/community/sessions-grouped. count==1 -> als
+// normale Karte rendern; count>=2 -> Akkordeon. Stats = Tages-Summen (Speed = Maximum).
+@Serializable
+data class CommunityGroup(
+    @SerialName("user_id") val userId: Int = 0,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val date: String = "",
+    val spot: String? = null,
+    val tz: String? = null,
+    val count: Int = 0,
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    @SerialName("foiling_time_s") val foilingTimeS: Double = 0.0,
+    @SerialName("pump_count") val pumpCount: Int = 0,
+    @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
+    @SerialName("track_previews") val trackPreviews: List<String> = emptyList(),
+    val sessions: List<CommunityItem> = emptyList(),
+)
+
 @Serializable
 data class Analysis(
     @SerialName("total_distance_m") val totalDistanceM: Double? = null,

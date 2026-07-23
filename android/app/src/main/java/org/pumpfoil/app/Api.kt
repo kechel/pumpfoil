@@ -245,6 +245,16 @@ object Api {
         )
     }
 
+    // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
+    suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true): List<CommunityGroup> = withContext(Dispatchers.IO) {
+        val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
+        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp"
+        json.decodeFromString(
+            ListSerializer(CommunityGroup.serializer()),
+            http("GET", "/api/community/sessions-grouped$qs", null, auth = true),
+        )
+    }
+
     suspend fun spotSessions(spot: String, accelOnly: Boolean = true, limit: Int = 50): List<CommunityItem> = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
         json.decodeFromString(

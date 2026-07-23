@@ -28,6 +28,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -94,7 +96,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
-    var feed by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
+    var groups by remember { mutableStateOf<List<CommunityGroup>>(emptyList()) }   // Community/Spot: Tages-Gruppen
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -132,8 +134,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         try {
             when (scope) {
                 Scope.MINE -> own = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
-                Scope.ALL -> feed = Api.communitySessions(accelOnly = accelOnly)
-                Scope.SPOT -> feed = if (spot.isNotBlank()) Api.spotSessions(spot, accelOnly) else emptyList()
+                Scope.ALL -> groups = Api.communitySessionsGrouped(null, accelOnly = accelOnly)
+                Scope.SPOT -> groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly) else emptyList()
             }
             error = null
         } catch (e: Exception) { error = e.message }
@@ -240,7 +242,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             }
             Box(Modifier.fillMaxSize()) {
                 Refreshable(refreshing = loading, onRefresh = { scopeC.launch { load() } }) {
-                    val empty = (scope == Scope.MINE && own.isEmpty()) || (scope != Scope.MINE && feed.isEmpty())
+                    val empty = (scope == Scope.MINE && own.isEmpty()) || (scope != Scope.MINE && groups.isEmpty())
                     if (loading && empty) {
                         CircularProgressIndicator(Modifier.align(Alignment.Center))
                     } else {
@@ -275,7 +277,14 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                                 }
                             } else {
-                                items(feed) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id, null) } }
+                                items(groups) { g ->
+                                    val pad = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                                    if (g.count <= 1) {
+                                        g.sessions.firstOrNull()?.let { c -> CommunityItemRow(c, pad) { onOpen(c.id, null) } }
+                                    } else {
+                                        GroupCard(g, pad) { id -> onOpen(id, null) }
+                                    }
+                                }
                             }
                         }
                     }
@@ -452,6 +461,47 @@ private fun SessionStatsRow(a: Analysis, m: Metrics?) {
 }
 
 private fun fmtDur(s: Double): String { val t = s.toInt(); return "%d:%02d".format(t / 60, t % 60) }
+
+// Tages-Gruppe (≥2 Sessions eines Nutzers am Tag): eingeklappte Kopf-Kachel mit Tages-Summen +
+// Zähler + Kombi-Minimap(s); aufgeklappt die Einzel-Sessions (je mit Detail-Link). Wie PWA.
+@Composable
+private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Unit) {
+    var open by remember(g.userId, g.date) { mutableStateOf(false) }
+    val dateLabel = remember(g.date) {
+        runCatching { g.date.split("-").let { "${it[2]}.${it[1]}.${it[0]}" } }.getOrDefault(g.date)
+    }
+    Card(modifier.fillMaxWidth()) {
+        Column {
+            Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                AvatarCircle(name = g.name, avatarUrl = g.avatarUrl, size = 40.dp)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(dateLabel + (g.name?.let { " · $it" } ?: ""), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    g.spot?.takeIf { it.isNotBlank() }?.let { Row(Modifier.padding(top = 3.dp)) { Pill(it) } }
+                    val stats = buildList {
+                        add("${g.count} " + I18n.t("unit.sessions"))
+                        if (g.foilingKm > 0) add("%.1f km".format(g.foilingKm))
+                        if (g.foilingTimeS > 0) add(fmtDur(g.foilingTimeS))
+                        if (g.pumpCount > 0) add("↕ ${g.pumpCount}")
+                        g.maxSpeedMps?.let { add("max %.1f km/h".format(it * 3.6)) }
+                    }
+                    Row(Modifier.padding(top = 4.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        stats.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                g.trackPreviews.firstOrNull()?.let { TrackPreviewCanvas(it, Modifier.size(width = 58.dp, height = 42.dp)) }
+                Icon(if (open) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (open) {
+                g.sessions.forEach { c ->
+                    CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) }
+                }
+            }
+        }
+    }
+}
 
 private fun statusLabel(s: String): String = when (s) {
     "live" -> "läuft"
