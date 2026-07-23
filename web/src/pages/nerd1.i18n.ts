@@ -653,7 +653,9 @@ const cs: N1 = {
   },
 };
 
-export const NERD1: Record<Lang, N1> = {
+// Partial: Langform-Nerd-Inhalte gibt es nur in einem Teil der Sprachen; fehlende fallen im
+// Consumer auf `de` zurück (NERD1[lang] ?? NERD1.de). Neue UI-Sprachen ohne Nerd-Text = OK.
+export const NERD1: Partial<Record<Lang, N1>> = {
   de,
   gsw,
   "de-AT": deAT,

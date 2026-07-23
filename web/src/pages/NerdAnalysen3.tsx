@@ -52,7 +52,7 @@ const VIDEO_ID = "S85hOgmajb4";   // Doppeluhr + Board-Handy (YouTube-Short)
 
 export default function NerdAnalysen3() {
   const { lang } = useI18n();
-  const c = NERD3[lang] ?? NERD3.de;
+  const c = NERD3[lang] ?? NERD3.de!;
   const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">

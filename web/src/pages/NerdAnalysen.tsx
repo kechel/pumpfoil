@@ -56,7 +56,7 @@ function Pr({ children }: { children: string }) {
 
 export default function NerdAnalysen() {
   const { lang } = useI18n();
-  const c = NERD1[lang] ?? NERD1.de;
+  const c = NERD1[lang] ?? NERD1.de!;
   const photo = (h: string) => `/media/photos/${h}.webp`;
   return (
     <div className="w-full">

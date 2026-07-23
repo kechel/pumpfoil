@@ -1,6 +1,6 @@
 // Leichtgewichtige i18n ohne externe Dependency.
-// `de` ist die Quelle der Wahrheit; fehlende Keys fallen auf `de` zurück,
-// fehlt der Key auch dort, wird der Key selbst zurückgegeben (sichtbar im Dev).
+// Fehlende Keys fallen auf `en` zurück, dann auf `de` (Voll-Bestand), zuletzt wird der Key
+// selbst zurückgegeben (im Dev sichtbar). Neue Sprachen zeigen fehlende Strings also Englisch.
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, getToken } from "../lib/api";
 import de from "./locales/de";
@@ -13,8 +13,14 @@ import es from "./locales/es";
 import fi from "./locales/fi";
 import nl from "./locales/nl";
 import cs from "./locales/cs";
+import pt from "./locales/pt";
+import ja from "./locales/ja";
+import zh from "./locales/zh";
+import ru from "./locales/ru";
+import id from "./locales/id";
 
-export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs";
+export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
+  | "pt" | "ja" | "zh" | "ru" | "id";
 
 export type Dict = Record<string, string>;
 
@@ -30,9 +36,14 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "fi", flag: "🇫🇮", native: "Suomi" },
   { code: "nl", flag: "🇳🇱", native: "Nederlands" },
   { code: "cs", flag: "🇨🇿", native: "Čeština" },
+  { code: "pt", flag: "🇧🇷", native: "Português" },
+  { code: "ja", flag: "🇯🇵", native: "日本語" },
+  { code: "zh", flag: "🇨🇳", native: "中文" },
+  { code: "ru", flag: "🇷🇺", native: "Русский" },
+  { code: "id", flag: "🇮🇩", native: "Bahasa Indonesia" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };
+const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pt, ja, zh, ru, id };
 
 const LS_KEY = "foil_lang";
 
@@ -59,6 +70,11 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("fi")) return "fi";
   if (nav.startsWith("nl")) return "nl";
   if (nav.startsWith("cs")) return "cs";
+  if (nav.startsWith("pt")) return "pt";
+  if (nav.startsWith("ja")) return "ja";
+  if (nav.startsWith("zh")) return "zh";
+  if (nav.startsWith("ru")) return "ru";
+  if (nav.startsWith("id")) return "id";
   if (nav.startsWith("en")) return "en";
   return "en";   // unbekannte Browsersprache -> Englisch (nicht Deutsch)
 }
@@ -91,7 +107,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const t = useCallback<TFunc>(
     (key, vars) => {
-      let s = DICTS[lang][key] ?? DICTS.de[key] ?? key;
+      let s = DICTS[lang][key] ?? DICTS.en[key] ?? DICTS.de[key] ?? key;
       if (vars) {
         for (const k of Object.keys(vars)) {
           s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(vars[k]));

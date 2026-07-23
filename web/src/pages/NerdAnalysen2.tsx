@@ -94,7 +94,7 @@ function Box({ x, y, w, h, title, sub, accent }: { x: number; y: number; w: numb
 
 export default function NerdAnalysen2() {
   const { lang } = useI18n();
-  const c = NERD2[lang] ?? NERD2.de;
+  const c = NERD2[lang] ?? NERD2.de!;
   return (
     <div className="w-full">
       <Link to="/nerd-analysen" className="text-sm text-brand-400 hover:underline">{c.back}</Link>

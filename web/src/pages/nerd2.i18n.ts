@@ -1870,7 +1870,8 @@ const cs: N2 = {
   },
 };
 
-export const NERD2: Record<Lang, N2> = {
+// Partial (siehe nerd1): fehlende Sprachen fallen im Consumer auf `de` zurück.
+export const NERD2: Partial<Record<Lang, N2>> = {
   de,
   gsw,
   "de-AT": deAT,
