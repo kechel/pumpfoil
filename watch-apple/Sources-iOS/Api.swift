@@ -216,6 +216,12 @@ enum Api {
         return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
+    // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
+    static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0, accelOnly: Bool = true) async throws -> [CommunityGroup] {
+        let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)\(sp)", method: "GET", body: nil, auth: true)
+    }
+
     static func stats(accelOnly: Bool = true) async throws -> OverallStats {
         try await request("/api/sessions/stats?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }

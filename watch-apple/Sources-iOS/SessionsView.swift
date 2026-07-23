@@ -9,6 +9,7 @@ struct SessionsView: View {
     @State private var own: [SessionSummary] = []
     @State private var confirmDeleteAll = false
     @State private var feed: [CommunityItem] = []
+    @State private var groups: [CommunityGroup] = []   // Community/Spot: Tages-Gruppen
     @State private var scope: SessionScope = .mine
     @State private var homespot = ""
     @State private var spotNames: [String] = []
@@ -166,8 +167,12 @@ struct SessionsView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
             }
         } else {
-            ForEach(feed) { c in
-                NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+            ForEach(groups) { g in
+                if g.count <= 1, let c = g.sessions.first {
+                    NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+                } else {
+                    GroupCardView(group: g)
+                }
             }
         }
     }
@@ -192,7 +197,7 @@ struct SessionsView: View {
         }
     }
 
-    private var isEmpty: Bool { scope == .mine ? own.isEmpty : feed.isEmpty }
+    private var isEmpty: Bool { scope == .mine ? own.isEmpty : groups.isEmpty }
 
     @ViewBuilder private var scopeChips: some View {
         HStack(spacing: 8) {
@@ -215,8 +220,8 @@ struct SessionsView: View {
         do {
             switch scope {
             case .mine: own = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
-            case .all: feed = try await Api.communitySessions(accelOnly: accelOnly)
-            case .spot: feed = spot.isEmpty ? [] : (try await Api.spotSessions(spot, accelOnly: accelOnly))
+            case .all: groups = try await Api.communitySessionsGrouped(accelOnly: accelOnly)
+            case .spot: groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly))
             }
             error = nil
         } catch { self.error = error.localizedDescription }
@@ -402,6 +407,51 @@ struct LikeButton: View {
 }
 
 // Mini-Track-Vorschau als Canvas-Polylinie (normalisierte Linien aus der Analyse).
+// Tages-Gruppe (≥2 Sessions eines Nutzers am Tag): Kopf mit Tages-Summen + Kombi-Minimap;
+// aufklappen -> Einzel-Sessions je mit Detail-Link. Wie PWA/Android.
+struct GroupCardView: View {
+    let group: CommunityGroup
+    @State private var open = false
+    @AppStorage("appLang") private var lang = "de"
+
+    private var dateLabel: String {
+        let p = group.date.split(separator: "-")
+        return p.count == 3 ? "\(p[2]).\(p[1]).\(p[0])" : group.date
+    }
+    private var statsText: String {
+        var parts: [String] = ["\(group.count) " + Loc.t("unit.sessions", lang)]
+        if group.foiling_km > 0 { parts.append(String(format: "%.1f km", group.foiling_km)) }
+        if group.foiling_time_s > 0 { parts.append(String(format: "%d:%02d", Int(group.foiling_time_s) / 60, Int(group.foiling_time_s) % 60)) }
+        if group.pump_count > 0 { parts.append("↕ \(group.pump_count)") }
+        if let sp = group.max_speed_mps { parts.append(String(format: "max %.1f km/h", sp * 3.6)) }
+        return parts.joined(separator: "  ·  ")
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button { withAnimation { open.toggle() } } label: {
+                HStack(alignment: .top, spacing: 12) {
+                    AvatarView(name: group.name, url: Api.mediaURL(group.avatar_url), size: 40)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(dateLabel + (group.name.map { " · \($0)" } ?? "")).font(.headline)
+                        if let sp = group.spot, !sp.isEmpty { sessionPill(sp) }
+                        Text(statsText).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 8)
+                    if let tp = group.track_previews?.first { TrackPreviewView(data: tp).frame(width: 58, height: 42) }
+                    Image(systemName: open ? "chevron.up" : "chevron.down").foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            if open {
+                ForEach(group.sessions) { c in
+                    NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+                        .padding(.leading, 8)
+                }
+            }
+        }
+    }
+}
+
 struct TrackPreviewView: View {
     let data: String
     var body: some View {

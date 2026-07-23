@@ -387,6 +387,25 @@ struct Segment: Codable {
     let longest_glide_s: Double?
 }
 
+// Tages-Gruppe (ein Nutzer, ein Tag) aus /api/community/sessions-grouped. count==1 -> normale
+// Karte; count>=2 -> Akkordeon. Stats = Tages-Summen (Speed = Maximum).
+struct CommunityGroup: Codable, Identifiable {
+    let user_id: Int
+    let name: String?
+    let avatar_url: String?
+    let date: String
+    let spot: String?
+    let tz: String?
+    let count: Int
+    let foiling_km: Double
+    let foiling_time_s: Double
+    let pump_count: Int
+    let max_speed_mps: Double?
+    let track_previews: [String]?
+    let sessions: [CommunityItem]
+    var id: String { "\(user_id)-\(date)" }
+}
+
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
