@@ -19,5 +19,8 @@
     } catch (e) { /* ignore */ }
     location.reload();
   }
-  window.addEventListener("load", function () { setTimeout(check, 8000); });
+  // 20 s Wartezeit: auf langsamen Verbindungen mountet React sonst evtl. noch, während der
+  // Timer schon feuert -> unnötiges (störendes) Neuladen. Lieber spät prüfen; echter
+  // Blank-Screen bleibt trotzdem selbstheilend, nur ein paar Sekunden später.
+  window.addEventListener("load", function () { setTimeout(check, 20000); });
 })();
