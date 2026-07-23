@@ -1449,29 +1449,6 @@ export default function SessionDetail() {
                 ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
                 : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
             </button>
-            {/* Pumps taggen + Label (PC-only): solange die Play-Controls NOCH NICHT eingeblendet
-                sind, neben „Abspielen" (spart eine Zeile). Sobald ausgeklappt -> eine Zeile tiefer. */}
-            {!playStarted && (
-              <>
-                {playTimeline.length >= 2 && (owned || isAdmin) && (
-                  <button
-                    onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-                    className={`hidden items-center rounded-lg px-3 py-1 text-sm md:inline-flex ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
-                    title={t("sd.tapModeTitle")}
-                  >
-                    {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
-                  </button>
-                )}
-                {!fullscreen && owned && (
-                  <Link
-                    to={`/sessions/${session.id}/label`}
-                    className="hidden items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700 md:inline-flex"
-                  >
-                    {t("sd.label")}
-                  </Link>
-                )}
-              </>
-            )}
             {/* Controls erst nach dem ersten Abspielen-Klick — vorher braucht man sie nicht. */}
             {playStarted && (
               <>
@@ -1517,30 +1494,9 @@ export default function SessionDetail() {
           </div>
         )}
 
-        {/* 4. Labeln (Pump-Marken) — nur am PC. „Pumps taggen" + „Label" sitzen neben „Abspielen",
-            solange die Play-Controls eingeklappt sind; sobald ausgeklappt hier eine Zeile tiefer. */}
+        {/* 4. Labeln (Pump-Marken) — nur am PC. Der Umschalter „Pumps taggen" + „Label" sitzt unten
+            in der Button-Liste (Trimmen/Übertragen); hier nur noch die Tap-Steuerung im Tag-Modus. */}
         <div className="hidden md:block">
-          {playStarted && (
-            <div className={`flex items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-1" : "mt-2"}`}>
-              {playTimeline.length >= 2 && (owned || isAdmin) && (
-                <button
-                  onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-                  className={`inline-flex items-center rounded-lg px-3 py-1 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
-                  title={t("sd.tapModeTitle")}
-                >
-                  {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
-                </button>
-              )}
-              {!fullscreen && owned && (
-                <Link
-                  to={`/sessions/${session.id}/label`}
-                  className="inline-flex items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700"
-                >
-                  {t("sd.label")}
-                </Link>
-              )}
-            </div>
-          )}
 
           {/* Tap-to-Label: Steuerung — nur im Tag-Modus. */}
           {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
@@ -1657,6 +1613,22 @@ export default function SessionDetail() {
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
+              {/* Pumps taggen + Labeln (PC): unten in der Button-Liste bei Trimmen/Übertragen. */}
+              {playTimeline.length >= 2 && (
+                <button
+                  onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+                  className={`hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs md:inline-flex ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+                  title={t("sd.tapModeTitle")}
+                >
+                  {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+                </button>
+              )}
+              <Link
+                to={`/sessions/${session.id}/label`}
+                className="hidden items-center rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 md:inline-flex"
+              >
+                {t("sd.label")}
+              </Link>
               <button
                 onClick={() => setTrimOpen((o) => !o)}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700"
