@@ -633,7 +633,7 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
           {items.map((g) => (
             g.count <= 1
               ? renderCommunitySession(g.sessions[0], t, lastViewed)
-              : <DayGroupCard key={`g-${g.user_id}-${g.date}-${g.spot ?? ""}`} g={g} t={t} lastViewed={lastViewed} />
+              : <DayGroupCard key={`g-${g.user_id}-${g.date}`} g={g} t={t} lastViewed={lastViewed} />
           ))}
         </div>
       )}

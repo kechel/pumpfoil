@@ -231,18 +231,23 @@ def sessions_grouped(
         uid, ftime, pumps = r[nb], r[nb + 1], r[nb + 2]
         ts = r[4]                      # S.started_at (Position in BRIEF_COLS)
         lat, lon = r[nb - 2], r[nb - 1]  # place_lat, place_lon (letzte zwei BRIEF_COLS)
-        key = (uid, _local_date(ts, lat, lon), brief["spot"])
+        # Schlüssel = (Nutzer, Kalendertag in Ortszeit) — bewusst OHNE Spot: alle Sessions eines
+        # Nutzers an einem Tag ergeben EINE Zeile, auch über mehrere Spots hinweg (Jans Vorgabe).
+        key = (uid, _local_date(ts, lat, lon))
         g = groups.get(key)
         if g is None:
             g = {
                 "kind": "group", "user_id": uid, "name": brief["name"],
                 "avatar_url": brief["avatar_url"], "author_new": brief["author_new"],
-                "date": key[1], "spot": brief["spot"], "tz": brief["tz"],
+                "date": key[1], "spot": None, "tz": brief["tz"],
                 "count": 0, "foiling_km": 0.0, "foiling_time_s": 0.0,
-                "pump_count": 0, "max_speed_mps": None, "track_preview": None, "sessions": [],
+                "pump_count": 0, "max_speed_mps": None, "track_preview": None,
+                "_spots": [], "sessions": [],
             }
             groups[key] = g
         g["sessions"].append(brief)
+        if brief["spot"] and brief["spot"] not in g["_spots"]:
+            g["_spots"].append(brief["spot"])
         g["count"] += 1
         g["foiling_km"] = round(g["foiling_km"] + (brief["foiling_km"] or 0), 2)
         g["foiling_time_s"] += float(ftime or 0)
@@ -251,6 +256,10 @@ def sessions_grouped(
             g["max_speed_mps"] = max(g["max_speed_mps"] or 0, brief["max_speed_mps"])
 
     page = list(groups.values())[max(offset, 0): max(offset, 0) + min(max(limit, 1), 100)]
+    # Spot-Label finalisieren: ein Spot -> Name; mehrere -> mit „ · " verkettet; keiner -> None.
+    for g in page:
+        spots = g.pop("_spots", [])
+        g["spot"] = spots[0] if len(spots) == 1 else (" · ".join(spots) if spots else None)
     # Social/Video nur für die tatsächlich ausgelieferten Sessions dieser Seite anheften.
     flat = [s for g in page for s in g["sessions"]]
     _attach_first_video(db, _attach_social(db, user, flat), request)
