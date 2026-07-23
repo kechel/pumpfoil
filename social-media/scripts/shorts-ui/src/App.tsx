@@ -67,24 +67,46 @@ export default function App() {
   );
 }
 
+// Studio-Einstellungen überleben Reloads via localStorage
+const SETTINGS_KEY = "shorts-studio-v1";
+function loadSaved(): Record<string, unknown> {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
 function Studio() {
+  const [saved] = useState(loadSaved);
+  const sv = <T,>(key: string, fallback: T): T =>
+    (saved[key] !== undefined ? (saved[key] as T) : fallback);
+
   const [state, setState] = useState<AppState | null>(null);
-  const [curVideo, setCurVideo] = useState<string | null>(null);
+  const [curVideo, setCurVideo] = useState<string | null>(sv("curVideo", null));
   const [curPlay, setCurPlay] = useState<string | null>(null);
   const [renderingVideo, setRenderingVideo] = useState<string | null>(null);
-  const [sel, setSel] = useState<Sel>({ youtube: null, instagram: null });
-  const [pvPlatform, setPvPlatform] = useState<PvPlatform>("youtube");
-  const [trim, setTrim] = useState<{ start: number | null; end: number | null }>({ start: null, end: null });
-  const [texts, setTexts] = useState<TextSlot[]>(emptyTexts());
-  const [gain, setGain] = useState(-12);
-  const [fade, setFade] = useState(2);
-  const [outName, setOutName] = useState("");
-  const [ovOn, setOvOn] = useState(true);
-  const [ovSel, setOvSel] = useState("");
-  const [outroOn, setOutroOn] = useState(true);
-  const [fltYT, setFltYT] = useState(true);
-  const [fltIG, setFltIG] = useState(true);
+  const [sel, setSel] = useState<Sel>(sv("sel", { youtube: null, instagram: null }));
+  const [pvPlatform, setPvPlatform] = useState<PvPlatform>(sv("pvPlatform", "youtube"));
+  const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
+  const [texts, setTexts] = useState<TextSlot[]>(sv("texts", emptyTexts()));
+  const [gain, setGain] = useState(sv("gain", -12));
+  const [fade, setFade] = useState(sv("fade", 2));
+  const [outName, setOutName] = useState(sv("outName", ""));
+  const [ovOn, setOvOn] = useState(sv("ovOn", true));
+  const [ovSel, setOvSel] = useState(sv("ovSel", ""));
+  const [outroOn, setOutroOn] = useState(sv("outroOn", true));
+  const [fltYT, setFltYT] = useState(sv("fltYT", true));
+  const [fltIG, setFltIG] = useState(sv("fltIG", true));
   const [search, setSearch] = useState("");
+
+  // bei jeder Änderung speichern
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      curVideo, sel, pvPlatform, trim, texts, gain, fade,
+      outName, ovOn, ovSel, outroOn, fltYT, fltIG,
+    }));
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, outroOn, fltYT, fltIG]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -115,10 +137,19 @@ function Studio() {
     void load();
   }, [load]);
 
-  // Auto-Pick des ersten Videos, wenn keins (mehr) gewählt ist
+  // Auto-Pick: beim ersten Laden das gemerkte Video wiederherstellen,
+  // sonst das erste wählen, wenn keins (mehr) gewählt ist
+  const initedRef = useRef(false);
   useEffect(() => {
     if (!state) return;
     setDirInput((d) => (d === "" || !document.activeElement?.classList?.contains("dirinput") ? state.video_dir : d));
+    if (!initedRef.current) {
+      initedRef.current = true;
+      if (curVideo && state.videos.includes(curVideo)) {
+        pickVideo(curVideo);
+        return;
+      }
+    }
     if ((!curVideo || !state.videos.includes(curVideo)) && state.videos.length) {
       pickVideo(state.videos[0]);
     }
@@ -421,6 +452,26 @@ function Studio() {
     return end - (trim.start ?? 0);
   }, [trim]);
 
+  const resetAll = useCallback(() => {
+    if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
+    localStorage.removeItem(SETTINGS_KEY);
+    setSel({ youtube: null, instagram: null });
+    setPvPlatform("youtube");
+    setTrim({ start: null, end: null });
+    setTexts(emptyTexts());
+    setGain(-12);
+    setFade(2);
+    setOutName("");
+    setOvOn(true);
+    setOutroOn(true);
+    setFltYT(true);
+    setFltIG(true);
+    setSearch("");
+    setAMsg("");
+    setLog("");
+    if (state?.videos.length) pickVideo(state.videos[0]);
+  }, [state, pickVideo]);
+
   const ready = !!(curVideo && sel.youtube && sel.instagram && outName.trim());
 
   const doRender = useCallback(async () => {
@@ -693,6 +744,9 @@ function Studio() {
             </button>
           ))}
           <span className="trkname">{pvTrackName}</span>
+          <button className="mini" style={{ marginLeft: "auto" }} title="Alle Studio-Einstellungen zurücksetzen" onClick={resetAll}>
+            Reset
+          </button>
         </div>
       </div>
 
