@@ -95,6 +95,42 @@ function ChangelogBadge() {
   );
 }
 
+// Carve-Anzahl je Grad-Kategorie (90–180° / 180–360° / >360°) je Zeitfenster. Unter der Start-Quote.
+function CarveStatsSection() {
+  const t = useT();
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.carveStats>> | null>(null);
+  useEffect(() => { api.carveStats().then(setData).catch(() => {}); }, []);
+  if (!data) return null;
+  const cats: [string, "s" | "m" | "l"][] = [["90–180°", "s"], ["180–360°", "m"], [">360°", "l"]];
+  const anyCarve = PERIODS.some(([k]) => { const w = data.windows[k]; return w && (w.s + w.m + w.l) > 0; });
+  if (!anyCarve) return null;
+  return (
+    <div className="mt-8">
+      <h2 className="mb-2 text-xl font-bold">Carves</h2>
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[360px] text-sm">
+          <thead>
+            <tr className="bg-slate-900/70 text-slate-300">
+              <th className="px-3 py-2 text-left font-medium"></th>
+              {PERIODS.map(([k, lbl]) => <th key={k} className="px-3 py-2 text-right font-medium">{t(lbl)}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {cats.map(([label, key]) => (
+              <tr key={key} className="border-t border-slate-800">
+                <td className="px-3 py-2 text-slate-300">{label}</td>
+                {PERIODS.map(([k]) => (
+                  <td key={k} className="px-3 py-2 text-right tabular-nums text-brand-400">{data.windows[k]?.[key] ?? 0}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function PersonalHome() {
   const t = useT();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -247,6 +283,7 @@ export default function PersonalHome() {
       </div>
 
       <StartSuccessSection />
+      <CarveStatsSection />
     </div>
   );
 }
