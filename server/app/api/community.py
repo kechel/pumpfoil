@@ -241,7 +241,7 @@ def sessions_grouped(
                 "avatar_url": brief["avatar_url"], "author_new": brief["author_new"],
                 "date": key[1], "spot": None, "tz": brief["tz"],
                 "count": 0, "foiling_km": 0.0, "foiling_time_s": 0.0,
-                "pump_count": 0, "max_speed_mps": None, "track_preview": None,
+                "pump_count": 0, "max_speed_mps": None, "track_previews": [],
                 "_spots": [], "sessions": [],
             }
             groups[key] = g
@@ -268,9 +268,12 @@ def sessions_grouped(
 
 
 def _attach_group_preview(db: Session, groups: list[dict]) -> None:
-    """Setzt g['track_preview'] für Mehrfach-Gruppen = KOMBI-Minimap aller Läufe aller Sessions
-    der Gruppe (gemeinsam normalisiert). Quelle: gespeichertes track_geojson + segments_json je
-    Session (kein GPS-Datei-Load). Nur für die ausgelieferte Seite -> wenige Sessions."""
+    """Setzt g['track_previews'] für Mehrfach-Gruppen = Kombi-Minimap(s) der Läufe.
+
+    EINE Karte je Spot der Gruppe (jeweils für sich normalisiert). Bei einem Spot (Normalfall)
+    also genau eine Karte; bei mehreren Spots eine pro Spot — sonst würden weit auseinander-
+    liegende Spots in einem gemeinsamen Rahmen zu unsichtbaren Klecksen kollabieren.
+    Quelle: gespeichertes track_geojson + segments_json je Session (kein GPS-Datei-Load)."""
     import json as _json
     from ..analysis.preview import build_multi_track_preview
 
@@ -295,8 +298,17 @@ def _attach_group_preview(db: Session, groups: list[dict]) -> None:
                 segments = None
         geo[sid] = (coords, segments)
     for g in multi:
-        pairs = [geo.get(s["session_id"], (None, None)) for s in g["sessions"]]
-        g["track_preview"] = build_multi_track_preview([p for p in pairs if p[0] and p[1]])
+        # Sessions nach Spot bündeln (Reihenfolge des ersten Auftretens beibehalten).
+        by_spot: dict[str, list] = {}
+        for s in g["sessions"]:
+            by_spot.setdefault(s["spot"] or "", []).append(s)
+        previews = []
+        for sess in by_spot.values():
+            pairs = [geo.get(s["session_id"], (None, None)) for s in sess]
+            p = build_multi_track_preview([q for q in pairs if q[0] and q[1]])
+            if p:
+                previews.append(p)
+        g["track_previews"] = previews
 
 
 # --------------------------------------------------------------------- Records ----

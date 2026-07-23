@@ -546,7 +546,9 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
       >
         <div className="flex shrink-0 flex-col items-center gap-1.5">
           <Avatar name={g.name} url={g.avatar_url} size={44} />
-          {g.track_preview && <TrackPreview data={g.track_preview} className="h-12 w-16 text-brand-400" />}
+          {(g.track_previews ?? []).map((tp, i) => (
+            <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
+          ))}
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold">
