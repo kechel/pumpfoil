@@ -325,6 +325,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
     var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
+    // Carve-Daten (nur Anzeige) einmal je Session laden.
+    var carve by remember(s.id) { mutableStateOf<CarveData?>(null) }
+    LaunchedEffect(s.id) { carve = try { Api.sessionCarves(s.id) } catch (_: Exception) { null } }
+    val hasCarves = carve?.carves?.isNotEmpty() == true
+    // Skalen-Max: 0,6 g, aber höher wenn härter gecarvt (gedeckelt 1,0 g gegen GPS-Glitches).
+    val carveGMax = remember(carve) {
+        val vals = (carve?.g ?: emptyList()) + (carve?.arcs?.flatten()?.mapNotNull { it.getOrNull(2) } ?: emptyList())
+        minOf(maxOf(0.6, vals.maxOrNull() ?: 0.6), 1.0)
+    }
     var win by remember(s.id) { mutableStateOf(3) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
@@ -591,12 +600,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     (vs.minOrNull() ?: 0.0) to (vs.maxOrNull() ?: 1.0)
                 }
                 // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
-                if (hasHr || hasPump) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                if (hasHr || hasPump || hasCarves) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
                         if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
+                        if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
                         Spacer(Modifier.weight(1f))
                         if (a.pumpCount != null && a.pumpCount > 0) {
                             Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
@@ -618,10 +628,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Card(Modifier.fillMaxWidth()) {
                     TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
                         selectedRun, { selectedRun = if (selectedRun == it) null else it },
+                        if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
                         Modifier.fillMaxWidth().height(300.dp))
                 }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
-                ColorLegend(colorMode, hrRange, pumpRange)
+                if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)
+                else ColorLegend(colorMode, hrRange, pumpRange)
                 selectedRun?.let { sel ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("${I18n.t("home.runs")} #${sel + 1}", style = MaterialTheme.typography.bodyMedium,
@@ -718,7 +730,26 @@ class Track(
     fun speedsFor(win: Int): List<Double> = when (win) { 1 -> speeds1; 5 -> speeds5; else -> speedsMps }
 }
 
-private enum class ColorMode { SPEED, HR, PUMP }
+private enum class ColorMode { SPEED, HR, PUMP, TURNS }
+
+// Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte an ABSOLUTE g gebunden (grün 0,1 →
+// gelb 0,35 → rot 0,6); oberhalb 0,6 g bis zum Lauf-Max (gMax, gedeckelt 1,0) rot → magenta → weiß.
+// g<=0.02 = kein Carve (grau).
+fun carveColor(g: Double, gMax: Double = 0.6): Color {
+    if (g <= 0.02) return GRAY
+    val top = maxOf(0.6, gMax)
+    val gc = g.coerceIn(0.1, top)
+    fun lerp(a: Color, b: Color, t: Double): Color {
+        val tt = t.coerceIn(0.0, 1.0).toFloat()
+        return Color(a.red + (b.red - a.red) * tt, a.green + (b.green - a.green) * tt, a.blue + (b.blue - a.blue) * tt)
+    }
+    val green = Color(0xFF22C55E); val yellow = Color(0xFFEAB308); val red = Color(0xFFDC2626)
+    val magenta = Color(0xFFD946EF); val white = Color(0xFFFFFFFF)
+    if (gc <= 0.35) return lerp(green, yellow, (gc - 0.1) / 0.25)
+    if (gc <= 0.6) return lerp(yellow, red, (gc - 0.35) / 0.25)
+    val f = (gc - 0.6) / (top - 0.6)
+    return if (f <= 0.5) lerp(red, magenta, f / 0.5) else lerp(magenta, white, (f - 0.5) / 0.5)
+}
 
 // Farb-Legende (horizontaler Verlauf min→max) für den gewählten Farbmodus — wie die PWA.
 @Composable
@@ -727,6 +758,7 @@ private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pai
         ColorMode.SPEED -> "8 km/h" to "25 km/h"     // feste Speed-Skala (wie speedColor)
         ColorMode.HR -> "${hrRange.first}" to "${hrRange.second} bpm"
         ColorMode.PUMP -> "%.1f".format(pumpRange.first) to "%.1f Hz".format(pumpRange.second)
+        ColorMode.TURNS -> "" to ""   // TURNS nutzt CarveLegend, nicht diese Funktion
     }
     val ramp = remember { (0..12).map { rampColor(it / 12.0) } }
     Column(Modifier.fillMaxWidth().padding(top = 2.dp)) {
@@ -737,6 +769,33 @@ private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pai
             Text(hi, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+// Carve-Legende: Kurvenlage-Verlauf (grün→rot, oberhalb 0,6 g magenta→weiß bis Lauf-Max) +
+// Carve-Zähler nach Drehung (fett wenn >0). Nur Anzeige, NICHT Rekorde/Stats.
+@Composable
+private fun CarveLegend(counts: CarveCounts?, gMax: Double) {
+    val c = counts ?: CarveCounts()
+    val ramp = remember(gMax) { (0..12).map { carveColor(0.1 + (gMax - 0.1) * it / 12.0, gMax) } }
+    val maxLabel = if (gMax <= 0.6) "0,6" else String.format(java.util.Locale.US, "%.1f", gMax).replace(".", ",")
+    Column(Modifier.fillMaxWidth().padding(top = 2.dp)) {
+        Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))
+            .background(androidx.compose.ui.graphics.Brush.horizontalGradient(ramp)))
+        Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("0,1 g", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("$maxLabel g", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            CarveCount("90–180°", c.s); CarveCount("180–360°", c.m); CarveCount(">360°", c.l)
+        }
+    }
+}
+
+@Composable
+private fun CarveCount(label: String, n: Int) {
+    Text("$label: $n", style = MaterialTheme.typography.bodySmall,
+        fontWeight = if (n > 0) FontWeight.Bold else FontWeight.Normal,
+        color = if (n > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 fun parseTrack(tg: JsonElement): Track {
@@ -796,6 +855,7 @@ private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
     hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, win: Int,
     selectedRun: Int?, onSelectRun: (Int) -> Unit,
+    carve: CarveData?, carveGMax: Double,
     modifier: Modifier = Modifier,
 ) {
     val pts = track.points
@@ -812,6 +872,7 @@ private fun TrackMap(
             val (lo, hi) = pumpRange
             if (v == null) GRAY else rampColor((v - lo) / (hi - lo).coerceAtLeast(1e-6))
         }
+        ColorMode.TURNS -> GRAY   // Basis-Track grau; die Carve-Bögen kommen farbig darüber
     }
     AndroidView(
         modifier = modifier,
@@ -863,6 +924,23 @@ private fun TrackMap(
                             setInfoWindow(null)
                             setOnMarkerClickListener { _, _ -> true }
                         })
+                    }
+                }
+            }
+            // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,
+            // je Segment nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus (carve != null).
+            if (mode == ColorMode.TURNS && carve != null) {
+                for (arc in carve.arcs) {
+                    for (k in 0 until arc.size - 1) {
+                        val p0 = arc[k]; val p1 = arc[k + 1]
+                        if (p0.size < 3 || p1.size < 3) continue
+                        val g0 = GeoPoint(p0[0], p0[1]); val g1 = GeoPoint(p1[0], p1[1])   // [lat,lon,g]
+                        map.overlays.add(Polyline(map).apply {
+                            setPoints(listOf(g0, g1))
+                            outlinePaint.color = carveColor(p1[2], carveGMax).toArgb()
+                            outlinePaint.strokeWidth = 6f * dens
+                        })
+                        allPts.add(g0); allPts.add(g1)
                     }
                 }
             }

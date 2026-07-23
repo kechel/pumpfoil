@@ -160,6 +160,23 @@ data class Segment(
     @SerialName("longest_glide_s") val longestGlideS: Double = 0.0,
 )
 
+// Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
+@Serializable
+data class CarveData(
+    val g: List<Double> = emptyList(),                  // Zentripetal-g je Track-Punkt (grobe Färbung)
+    val carves: List<Carve> = emptyList(),
+    val arcs: List<List<List<Double>>> = emptyList(),   // je Carve eine 25-Hz-Polylinie: Punkte [lat,lon,g]
+    val counts: CarveCounts = CarveCounts(),
+)
+@Serializable
+data class Carve(
+    val i0: Int = 0, val i1: Int = 0,
+    @SerialName("peak_g") val peakG: Double = 0.0,
+    val rot: Double = 0.0, val dir: String = "", val bucket: String = "",
+)
+@Serializable
+data class CarveCounts(val s: Int = 0, val m: Int = 0, val l: Int = 0)
+
 @Serializable
 data class HistoryPoint(
     @SerialName("session_id") val sessionId: Int,

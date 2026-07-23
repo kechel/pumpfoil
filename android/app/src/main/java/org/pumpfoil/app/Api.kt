@@ -159,6 +159,11 @@ object Api {
         json.decodeFromString(SessionDetail.serializer(), http("GET", "/api/sessions/$id", null, auth = true))
     }
 
+    // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.
+    suspend fun sessionCarves(id: Int): CarveData = withContext(Dispatchers.IO) {
+        json.decodeFromString(CarveData.serializer(), http("GET", "/api/sessions/$id/carves", null, auth = true))
+    }
+
     // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
     suspend fun sessionNeighbors(id: Int): Neighbors = withContext(Dispatchers.IO) {
         json.decodeFromString(Neighbors.serializer(), http("GET", "/api/sessions/$id/neighbors", null, auth = true))
