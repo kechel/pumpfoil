@@ -51,6 +51,8 @@ import kotlinx.coroutines.launch
 private val LANG_LABEL = mapOf(
     "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
     "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
+    "fi" to "Suomi", "nl" to "Nederlands", "cs" to "Čeština",
+    "pt" to "Português", "ja" to "日本語", "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia",
 )
 
 // Gebrandeter Login: Hintergrundbild + Scrim + Card. Reihenfolge wie die PWA:

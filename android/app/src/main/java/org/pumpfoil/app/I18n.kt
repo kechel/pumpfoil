@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 // genau diese 7 Locales pflegen). Fallback: de. Erweiterbar — Strings je Screen ergänzen.
 // Wording, wo möglich, identisch mit web/src/i18n/locales/*.
 object I18n {
-    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs")
+    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id")
     var lang by mutableStateOf("de")
         private set
 
@@ -25,8 +25,14 @@ object I18n {
         if (lang == "fi") FI[key]?.let { return it }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if (lang == "nl") NL[key]?.let { return it }   // nl-Overlay (aus web nl.ts); sonst Englisch
         if (lang == "cs") CS[key]?.let { return it }   // cs-Overlay (aus web cs.ts); sonst Englisch
+        if (lang == "pt") PT[key]?.let { return it }   // pt-Overlay (aus Englisch); sonst Englisch
+        if (lang == "ja") JA[key]?.let { return it }   // ja-Overlay (aus Englisch); sonst Englisch
+        if (lang == "zh") ZH[key]?.let { return it }   // zh-Overlay (aus Englisch); sonst Englisch
+        if (lang == "ru") RU[key]?.let { return it }   // ru-Overlay (aus Englisch); sonst Englisch
+        if (lang == "id") ID[key]?.let { return it }   // id-Overlay (aus Englisch); sonst Englisch
         val row = S[key] ?: return key
-        val fallback = if (lang == "fi" || lang == "nl" || lang == "cs") (row["en"] ?: row["de"]) else row["de"]
+        val overlayLangs = setOf("fi", "nl", "cs", "pt", "ja", "zh", "ru", "id")
+        val fallback = if (lang in overlayLangs) (row["en"] ?: row["de"]) else row["de"]
         return row[lang] ?: fallback ?: row["en"] ?: key
     }
 }
