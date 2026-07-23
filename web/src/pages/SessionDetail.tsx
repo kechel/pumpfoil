@@ -1271,15 +1271,6 @@ export default function SessionDetail() {
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
 
-      {/* Carve-Zähler nach Drehung (fett) — nur wenn welche erkannt wurden. Nur Anzeige, NICHT Rekorde/Stats. */}
-      {carveData && (carveData.counts.s + carveData.counts.m + carveData.counts.l) > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <span className="text-xs uppercase tracking-wide text-slate-400">Carves</span>
-          <span className="font-bold text-slate-100">90–180°: {carveData.counts.s}</span>
-          <span className="font-bold text-slate-100">180–360°: {carveData.counts.m}</span>
-          <span className="font-bold text-slate-100">&gt;360°: {carveData.counts.l}</span>
-        </div>
-      )}
 
       <div
         className={fullscreen ? "fixed inset-0 z-[2000] flex flex-col bg-slate-950" : "mt-5"}
@@ -1396,9 +1387,9 @@ export default function SessionDetail() {
                 <span className="inline-block h-2.5 w-16 rounded" style={{ background: "linear-gradient(90deg,#22c55e,#eab308,#dc2626)" }} />
                 0,1–0,6 g Lage
               </span>
-              <span>90–180°: {carveData?.counts.s ?? 0}</span>
-              <span>180–360°: {carveData?.counts.m ?? 0}</span>
-              <span>&gt;360°: {carveData?.counts.l ?? 0}</span>
+              <span className="font-bold text-slate-100">90–180°: {carveData?.counts.s ?? 0}</span>
+              <span className="font-bold text-slate-100">180–360°: {carveData?.counts.m ?? 0}</span>
+              <span className="font-bold text-slate-100">&gt;360°: {carveData?.counts.l ?? 0}</span>
             </span>
           ) : (
             <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
