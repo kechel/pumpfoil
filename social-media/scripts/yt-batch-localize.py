@@ -16,6 +16,8 @@ import importlib.util
 import json
 import re
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -80,30 +82,43 @@ def main():
     for t in skipped:
         print(f"  übersprungen: {t}", flush=True)
 
-    ok = err = 0
-    for i, v in enumerate(todo, 1):
-        print(f"[{i}/{len(todo)}] {v['title']}", flush=True)
+    workers = 10
+    if "--workers" in sys.argv:
+        workers = int(sys.argv[sys.argv.index("--workers") + 1])
+    lock = threading.Lock()
+    counts = {"ok": 0, "err": 0, "done": 0}
+
+    def process(v):
         try:
-            if v["id"] in cache:
-                caps = cache[v["id"]]
-            else:
+            with lock:
+                caps = cache.get(v["id"])
+            if caps is None:
                 caps = sm.generate_captions(v["worktitle"], v["prefix"])
-                cache[v["id"]] = caps
-                CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False))
+                with lock:
+                    cache[v["id"]] = caps
+                    CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False))
             r = sm.yt_localize(v["id"], caps.get("titles") or {},
                                caps.get("descriptions") or {},
                                str(caps.get("hashtags", "")))
-            progress[v["id"]] = {"status": "ok", "title": v["title"],
-                                 "written": len(r["written"])}
-            ok += 1
-            print(f"    ✓ {len(r['written'])} Sprachen", flush=True)
+            with lock:
+                progress[v["id"]] = {"status": "ok", "title": v["title"],
+                                     "written": len(r["written"])}
+                counts["ok"] += 1
+                counts["done"] += 1
+                PROGRESS_FILE.write_text(json.dumps(progress, ensure_ascii=False, indent=1))
+                print(f"[{counts['done']}/{len(todo)}] ✓ {v['title']}", flush=True)
         except Exception as e:  # noqa: BLE001 — Batch soll weiterlaufen
-            progress[v["id"]] = {"status": "error", "title": v["title"],
-                                 "error": str(e)[:300]}
-            err += 1
-            print(f"    ✗ {str(e)[:200]}", flush=True)
-        PROGRESS_FILE.write_text(json.dumps(progress, ensure_ascii=False, indent=1))
-    print(f"fertig: {ok} ok, {err} Fehler", flush=True)
+            with lock:
+                progress[v["id"]] = {"status": "error", "title": v["title"],
+                                     "error": str(e)[:300]}
+                counts["err"] += 1
+                counts["done"] += 1
+                PROGRESS_FILE.write_text(json.dumps(progress, ensure_ascii=False, indent=1))
+                print(f"[{counts['done']}/{len(todo)}] ✗ {v['title']}: {str(e)[:150]}", flush=True)
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        list(ex.map(process, todo))
+    print(f"fertig: {counts['ok']} ok, {counts['err']} Fehler", flush=True)
 
 
 if __name__ == "__main__":
