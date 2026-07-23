@@ -305,10 +305,27 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         let res = try await PhoneIngest.startSession(meta)
         let received = Set((res["received_chunks"] as? [Int]) ?? [])
         uploading = true; status = "lade hoch…"
-        for cf in Store.chunkFiles(dir) {
-            guard let chunk = Store.readJson(cf) else { continue }
-            if let idx = chunk["index"] as? Int, received.contains(idx) { continue }
-            try await PhoneIngest.uploadChunk(sid, chunk)
+        // Handy hat echtes Netz -> Chunks PARALLEL hochladen (Pool 6). Server nimmt sie in
+        // beliebiger Reihenfolge (je Index eigene Datei/Zeile) -> kollisionsfrei. Jeder Task
+        // liest seine Datei selbst (nur Sendable-Werte gefangen: URL, Set, String).
+        var it = Store.chunkFiles(dir).makeIterator()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            func addNext() -> Bool {
+                guard let cf = it.next() else { return false }
+                group.addTask {
+                    guard let chunk = Store.readJson(cf) else { return }
+                    if let idx = chunk["index"] as? Int, received.contains(idx) { return }
+                    try await PhoneIngest.uploadChunk(sid, chunk)
+                }
+                return true
+            }
+            var running = 0
+            for _ in 0..<6 { if addNext() { running += 1 } }
+            while running > 0 {
+                try await group.next()
+                running -= 1
+                if addNext() { running += 1 }
+            }
         }
         let comp = Store.readJson(dir.appendingPathComponent("complete.json"))
         try await PhoneIngest.complete(sid, endedAt: (comp?["ended_at"] as? String) ?? Self.nowIso(),

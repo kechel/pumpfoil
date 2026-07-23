@@ -2,6 +2,7 @@ import Foundation
 import CoreMotion
 import CoreLocation
 import HealthKit
+import Network
 
 // Nimmt GPS (1 Hz) + rohe Beschleunigung (25 Hz) + HR auf, puffert und lädt
 // in Chunks gemäß Raw-Ingest-Contract hoch. HKWorkoutSession hält die Sensoren
@@ -255,6 +256,18 @@ final class Recorder: NSObject, ObservableObject {
         }
     }
 
+    // Langlebiger Netz-Monitor (vom Framework aktuell gehalten) -> currentPath synchron lesbar.
+    private static let netMonitor: NWPathMonitor = {
+        let m = NWPathMonitor(); m.start(queue: DispatchQueue(label: "pf.net")); return m
+    }()
+    // Wie viele Chunks parallel? Über eigenes Netz der Uhr (WLAN/LTE) aggressiv (6),
+    // über die Bluetooth-Proxy-Verbindung zum iPhone sanft (2).
+    private func uploadPool() -> Int {
+        let p = Self.netMonitor.currentPath
+        let fast = p.usesInterfaceType(.wifi) || p.usesInterfaceType(.cellular) || p.usesInterfaceType(.wiredEthernet)
+        return fast ? 6 : 2
+    }
+
     private func uploadSession(_ dir: URL) async throws {
         guard let meta = LocalStore.readJSON(dir.appendingPathComponent("meta.json")),
               let sid = meta["session_uuid"] as? String else { return }
@@ -268,12 +281,31 @@ final class Recorder: NSObject, ObservableObject {
         uploadError = ""
         uploadTotal = chunkFiles.count
         uploadSent = min(received.count, chunkFiles.count)
-        for cf in chunkFiles {
-            guard let chunk = LocalStore.readJSON(cf) else { continue }
-            let idx = chunk["index"] as? Int ?? -1
-            if received.contains(idx) { continue }
-            try await Api.uploadChunk(sid, chunk)
-            uploadSent = min(uploadSent + 1, chunkFiles.count)
+        // Chunks PARALLEL hochladen (Server nimmt sie in beliebiger Reihenfolge, je Index eigene
+        // Datei/Zeile -> kollisionsfrei). Pool adaptiv: über eigenes WLAN/LTE der Uhr aggressiv,
+        // über den Bluetooth-Proxy zum iPhone sanft. Jeder Task liest seine Datei selbst (nur
+        // Sendable-Werte werden gefangen: URL, Set, String).
+        let pool = uploadPool()
+        var it = chunkFiles.makeIterator()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            func addNext() -> Bool {
+                guard let cf = it.next() else { return false }
+                group.addTask {
+                    guard let chunk = LocalStore.readJSON(cf) else { return }
+                    let idx = chunk["index"] as? Int ?? -1
+                    if received.contains(idx) { return }
+                    try await Api.uploadChunk(sid, chunk)
+                }
+                return true
+            }
+            var running = 0
+            for _ in 0..<pool { if addNext() { running += 1 } }
+            while running > 0 {
+                try await group.next()
+                running -= 1
+                uploadSent = min(uploadSent + 1, chunkFiles.count)
+                if addNext() { running += 1 }
+            }
         }
         let comp = LocalStore.readJSON(dir.appendingPathComponent("complete.json"))
         let endedAt = comp?["ended_at"] as? String ?? Date().iso8601Z

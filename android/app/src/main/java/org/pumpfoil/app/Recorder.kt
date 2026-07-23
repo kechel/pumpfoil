@@ -6,10 +6,16 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.ByteBuffer
@@ -26,6 +32,7 @@ object Recorder {
     const val ACCEL_HZ = 50          // Handys können hoch; >=15 Hz nötig für Pumps
     const val ACCEL_SCALE = 2048.0   // int16 2048 == 1 g
     private const val G = 9.80665
+    private const val UPLOAD_POOL = 6   // parallele Chunk-Uploads (Handy hat echtes Netz)
 
     @Volatile var accelHzActual = ACCEL_HZ
 
@@ -274,11 +281,23 @@ object Recorder {
         _state.value = _state.value.copy(
             uploading = true, status = "lade hoch…", uploadError = "",
             uploadTotal = chunkFiles.size, uploadSent = received.size.coerceAtMost(chunkFiles.size))
-        for (cf in chunkFiles) {
-            val chunk = RecStore.readJson(cf) ?: continue
-            if (chunk.optInt("index", -1) in received) continue
-            Ingest.uploadChunk(sid, chunk)
-            _state.value = _state.value.copy(uploadSent = (_state.value.uploadSent + 1).coerceAtMost(chunkFiles.size))
+        // Handy hat echtes Netz -> Chunks PARALLEL hochladen (Pool), statt einzeln nacheinander.
+        // Der Server nimmt Chunks in beliebiger Reihenfolge an (je Index eigene Datei/Zeile) ->
+        // kollisionsfrei. JSON wird erst im Permit gelesen -> max UPLOAD_POOL Chunks gleichzeitig
+        // im Speicher/Netz. Fehler eines Chunks bricht ab; Resume holt den Rest beim nächsten Lauf.
+        val sent = AtomicInteger(received.size.coerceAtMost(chunkFiles.size))
+        val sem = Semaphore(UPLOAD_POOL)
+        coroutineScope {
+            chunkFiles.map { cf ->
+                async(Dispatchers.IO) {
+                    sem.withPermit {
+                        val chunk = RecStore.readJson(cf) ?: return@withPermit
+                        if (chunk.optInt("index", -1) in received) return@withPermit
+                        Ingest.uploadChunk(sid, chunk)
+                        _state.value = _state.value.copy(uploadSent = sent.incrementAndGet().coerceAtMost(chunkFiles.size))
+                    }
+                }
+            }.awaitAll()
         }
         val comp = RecStore.readJson(java.io.File(dir, "complete.json"))
         Ingest.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)

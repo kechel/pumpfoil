@@ -5,10 +5,16 @@ import android.util.Base64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import java.util.concurrent.atomic.AtomicInteger
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.ByteBuffer
@@ -283,6 +289,20 @@ object Recorder {
         }
     }
 
+    // Wie viele Chunks parallel? Über eigenes Netz der Uhr (WLAN/LTE/Ethernet) aggressiv (6),
+    // über die Bluetooth-Proxy-Verbindung zum Telefon sanft (2). Fehlerfrei defensiv -> 2.
+    private fun uploadPool(ctx: Context): Int {
+        return try {
+            val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            val caps = cm.getNetworkCapabilities(cm.activeNetwork)
+            val fast = caps != null && (
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET))
+            if (fast) 6 else 2
+        } catch (_: Throwable) { 2 }
+    }
+
     private suspend fun uploadSession(ctx: Context, dir: java.io.File) {
         val meta = LocalStore.readJson(java.io.File(dir, "meta.json")) ?: return
         val sid = meta.getString("session_uuid")
@@ -297,11 +317,22 @@ object Recorder {
         _state.value = _state.value.copy(
             uploading = true, status = "lade hoch…", uploadError = "",
             uploadTotal = chunkFiles.size, uploadSent = received.size.coerceAtMost(chunkFiles.size))
-        for (cf in chunkFiles) {
-            val chunk = LocalStore.readJson(cf) ?: continue
-            if (chunk.optInt("index", -1) in received) continue
-            Api.uploadChunk(sid, chunk)
-            _state.value = _state.value.copy(uploadSent = (_state.value.uploadSent + 1).coerceAtMost(chunkFiles.size))
+        // Chunks PARALLEL hochladen (Server nimmt sie in beliebiger Reihenfolge, je Index eigene
+        // Datei/Zeile -> kollisionsfrei). Pool adaptiv: über eigenes WLAN/LTE der Uhr aggressiv,
+        // über die Bluetooth-Bridge zum Telefon sanft. JSON erst im Permit lesen (Speicher bremsen).
+        val sent = AtomicInteger(received.size.coerceAtMost(chunkFiles.size))
+        val sem = Semaphore(uploadPool(ctx))
+        coroutineScope {
+            chunkFiles.map { cf ->
+                async(Dispatchers.IO) {
+                    sem.withPermit {
+                        val chunk = LocalStore.readJson(cf) ?: return@withPermit
+                        if (chunk.optInt("index", -1) in received) return@withPermit
+                        Api.uploadChunk(sid, chunk)
+                        _state.value = _state.value.copy(uploadSent = sent.incrementAndGet().coerceAtMost(chunkFiles.size))
+                    }
+                }
+            }.awaitAll()
         }
         val comp = LocalStore.readJson(java.io.File(dir, "complete.json"))
         Api.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)
