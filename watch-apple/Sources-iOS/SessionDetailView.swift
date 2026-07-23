@@ -24,6 +24,7 @@ struct SessionDetailView: View {
     @State private var lightbox: SessionPhoto?     // angetipptes Foto -> Vollbild
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
+    @State private var carve: CarveData?   // Carve-Bögen + Zähler (GET /carves)
     @State private var win = 3
     @State private var showPumps = false   // Pump-Marker default aus
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
@@ -435,14 +436,18 @@ struct SessionDetailView: View {
         let pumpVals = pumpHz.compactMap { $0 }
         let hrRange = (hrVals.min() ?? 0, hrVals.max() ?? 1)
         let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
+        let hasCarves = !((carve?.carves.isEmpty) ?? true)
+        let carveGVals: [Double] = (carve?.g ?? []) + (carve?.arcs.flatMap { $0 }.compactMap { $0.count > 2 ? $0[2] : nil } ?? [])
+        let carveGMax = min(max(0.6, carveGVals.max() ?? 0.6), 1.0)
         return AnyView(VStack(alignment: .leading, spacing: 16) {
-            // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile.
-            if hasHr || hasPump {
+            // Farbmodus (Speed/Puls/Pump/Carves) + Marker-Umschalter in DERSELBEN Zeile.
+            if hasHr || hasPump || hasCarves {
                 HStack(spacing: 12) {
                     Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
                         Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
                         if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
                         if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+                        if hasCarves { Text("Carves").tag(TrackColorMode.turns) }
                     }
                     .pickerStyle(.segmented)
                     if (s.analysis?.pump_count ?? 0) > 0 {
@@ -463,10 +468,12 @@ struct SessionDetailView: View {
             TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
                      segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
                      showPumps: showPumps, selectedRun: selectedRun,
-                     onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 })
+                     onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
+                     carveArcs: colorMode == .turns ? (carve?.arcs ?? []) : [], carveGMax: carveGMax)
                 .frame(height: 300).frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-            colorLegend(mode: colorMode, hrRange: hrRange, pumpRange: pumpRange)
+            if colorMode == .turns { carveLegend(counts: carve?.counts, gMax: carveGMax) }
+            else { colorLegend(mode: colorMode, hrRange: hrRange, pumpRange: pumpRange) }
             if let sel = selectedRun {
                 HStack {
                     Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
@@ -482,6 +489,7 @@ struct SessionDetailView: View {
         case .speed: return ("8 km/h", "25 km/h")
         case .hr: return ("\(hrRange.0)", "\(hrRange.1) bpm")
         case .pump: return (String(format: "%.1f", pumpRange.0), String(format: "%.1f Hz", pumpRange.1))
+        case .turns: return ("", "")   // TURNS nutzt carveLegend
         }
     }
 
@@ -492,6 +500,25 @@ struct SessionDetailView: View {
                 .frame(height: 10).clipShape(Capsule())
             HStack { Text(lo); Spacer(); Text(hi) }.font(.caption2).foregroundStyle(.secondary)
         }
+    }
+
+    // Carve-Legende: Kurvenlage-Verlauf (grün→rot, oberhalb 0,6 g magenta→weiß bis Lauf-Max) +
+    // Carve-Zähler nach Drehung (fett wenn >0). Nur Anzeige, NICHT Rekorde/Stats.
+    private func carveLegend(counts: CarveCounts?, gMax: Double) -> some View {
+        let c = counts ?? CarveCounts()
+        let step = max((gMax - 0.1) / 8.0, 0.02)
+        let stops: [Color] = stride(from: 0.1, through: gMax, by: step).map { Color(uiColor: carveColor($0, gMax)) }
+        let maxLabel = gMax <= 0.6 ? "0,6" : String(format: "%.1f", gMax).replacingOccurrences(of: ".", with: ",")
+        return VStack(alignment: .leading, spacing: 4) {
+            LinearGradient(colors: stops.count >= 2 ? stops : [.green, .red], startPoint: .leading, endPoint: .trailing)
+                .frame(height: 10).clipShape(Capsule())
+            HStack { Text("0,1 g"); Spacer(); Text("\(maxLabel) g") }.font(.caption2).foregroundStyle(.secondary)
+            HStack(spacing: 12) { carveCount("90–180°", c.s); carveCount("180–360°", c.m); carveCount(">360°", c.l) }
+        }
+    }
+    @ViewBuilder private func carveCount(_ label: String, _ n: Int) -> some View {
+        Text("\(label): \(n)").font(.caption).fontWeight(n > 0 ? .bold : .regular)
+            .foregroundStyle(n > 0 ? Color.primary : Color.secondary)
     }
 
     @ViewBuilder private func foilPicker(_ s: SessionDetail) -> some View {
@@ -609,6 +636,7 @@ struct SessionDetailView: View {
                 SessionCache.store(s)
             }
             session = s
+            carve = try? await Api.sessionCarves(id)   // Carve-Bögen (nur Anzeige)
             neighbors = try? await Api.sessionNeighbors(id)
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
@@ -627,7 +655,27 @@ struct SessionDetailView: View {
     }
 }
 
-enum TrackColorMode { case speed, hr, pump }
+enum TrackColorMode { case speed, hr, pump, turns }
+
+// Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte fix (grün 0,1 → gelb 0,35 → rot 0,6),
+// darüber bis gMax (gedeckelt 1,0) rot → magenta → weiß. g<=0.02 = kein Carve (grau).
+func carveColor(_ g: Double, _ gMax: Double) -> UIColor {
+    if g <= 0.02 { return .systemGray }
+    let top = max(0.6, gMax)
+    let gc = min(max(g, 0.1), top)
+    func lerp(_ a: (Double, Double, Double), _ b: (Double, Double, Double), _ t: Double) -> UIColor {
+        let tt = CGFloat(min(max(t, 0), 1))
+        return UIColor(red: CGFloat(a.0) + (CGFloat(b.0) - CGFloat(a.0)) * tt,
+                       green: CGFloat(a.1) + (CGFloat(b.1) - CGFloat(a.1)) * tt,
+                       blue: CGFloat(a.2) + (CGFloat(b.2) - CGFloat(a.2)) * tt, alpha: 1)
+    }
+    let green = (0.133, 0.773, 0.369), yellow = (0.918, 0.702, 0.031), red = (0.863, 0.149, 0.149)
+    let magenta = (0.851, 0.275, 0.937), white = (1.0, 1.0, 1.0)
+    if gc <= 0.35 { return lerp(green, yellow, (gc - 0.1) / 0.25) }
+    if gc <= 0.6 { return lerp(yellow, red, (gc - 0.35) / 0.25) }
+    let f = (gc - 0.6) / (top - 0.6)
+    return f <= 0.5 ? lerp(red, magenta, f / 0.5) : lerp(magenta, white, (f - 0.5) / 0.5)
+}
 
 // Wert -> Farbe (blau niedrig -> rot hoch).
 private func uiRampColor(_ t: Double) -> UIColor {
@@ -656,6 +704,8 @@ struct TrackMap: UIViewRepresentable {
     let showPumps: Bool
     let selectedRun: Int?
     let onSelectRun: (Int) -> Void
+    var carveArcs: [[[Double]]] = []   // je Carve Punkte [lat,lon,g] — nur im TURNS-Modus
+    var carveGMax: Double = 0.6
     private let maxGapM = 30.0
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -681,6 +731,8 @@ struct TrackMap: UIViewRepresentable {
         case .pump:
             guard let v = (pumpHz.indices.contains(i) ? pumpHz[i] : nil) else { return .systemGray }
             return uiRampColor((v - pumpRange.0) / max(pumpRange.1 - pumpRange.0, 1e-6))
+        case .turns:
+            return .systemGray   // Basis-Track grau; die Carve-Bögen kommen farbig darüber
         }
     }
 
@@ -718,6 +770,26 @@ struct TrackMap: UIViewRepresentable {
                 for idx in (seg.pump_idx ?? []) where points.indices.contains(idx) {
                     let p = points[idx]
                     map.addAnnotation(PumpDot(CLLocationCoordinate2D(latitude: p[1], longitude: p[0])))
+                }
+            }
+        }
+        // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track, je Segment
+        // nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus.
+        if mode == .turns {
+            for arc in carveArcs {
+                var k = 0
+                while k < arc.count - 1 {
+                    let p0 = arc[k], p1 = arc[k + 1]
+                    if p0.count >= 3 && p1.count >= 3 {
+                        let c0 = CLLocationCoordinate2D(latitude: p0[0], longitude: p0[1])   // [lat,lon,g]
+                        let c1 = CLLocationCoordinate2D(latitude: p1[0], longitude: p1[1])
+                        let pl = MKPolyline(coordinates: [c0, c1], count: 2)
+                        co.colors[ObjectIdentifier(pl)] = carveColor(p1[2], carveGMax)
+                        co.widths[ObjectIdentifier(pl)] = 6
+                        map.addOverlay(pl)
+                        all.append(c0); all.append(c1)
+                    }
+                    k += 1
                 }
             }
         }

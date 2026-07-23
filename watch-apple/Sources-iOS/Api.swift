@@ -91,6 +91,11 @@ enum Api {
         try await request("/api/sessions/\(id)", method: "GET", body: nil, auth: true)
     }
 
+    // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.
+    static func sessionCarves(_ id: Int) async throws -> CarveData {
+        try await request("/api/sessions/\(id)/carves", method: "GET", body: nil, auth: true)
+    }
+
     struct ShareLinkResp: Decodable { let token: String; let path: String }
     // Öffentlichen Teilen-Link erzeugen (idempotent) -> volle öffentliche URL (pumpfoil.org/s/<token>).
     static func createShareLink(_ id: Int) async throws -> String {

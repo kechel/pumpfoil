@@ -387,6 +387,16 @@ struct Segment: Codable {
     let longest_glide_s: Double?
 }
 
+// Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
+struct CarveData: Codable {
+    var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
+    var carves: [Carve] = []
+    var arcs: [[[Double]]] = []          // je Carve eine 25-Hz-Polylinie: Punkte [lat,lon,g]
+    var counts: CarveCounts = CarveCounts()
+}
+struct Carve: Codable { var peak_g: Double = 0; var rot: Double = 0; var dir: String = ""; var bucket: String = "" }
+struct CarveCounts: Codable { var s: Int = 0; var m: Int = 0; var l: Int = 0 }
+
 struct Analysis: Codable {
     let total_distance_m: Double?
     let foiling_distance_m: Double?
