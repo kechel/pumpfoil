@@ -32,7 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 23, 2026",
     items: [
-      "Session lists now bundle a rider’s sessions from the same day at the same spot into one row — tap it to expand the individual sessions (each still opens its own detail). Great when someone tracks every run as a separate session. The row shows the day’s totals: number of sessions, foiled distance, on-foil time, pumps and top speed — plus a combined mini-map of all runs from that day.",
+      "Session lists now bundle a rider’s sessions from the same day into one row — tap to expand them. Shows the day’s totals and a combined mini-map of all runs.",
       "Carve counts on your home page: how many carves you rode by angle (90–180° / 180–360° / over 360°), per time window (today / 10 days / 30 days / 1 year / all time).",
     ],
   },
