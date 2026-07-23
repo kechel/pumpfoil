@@ -282,6 +282,7 @@ export interface CommunityGroup {
   foiling_time_s: number;
   pump_count: number;
   max_speed_mps: number | null;
+  track_preview?: string | null;   // Kombi-Minimap aller Läufe der Gruppe (nur bei count>=2)
   sessions: CommunitySession[];
 }
 

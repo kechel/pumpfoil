@@ -9,6 +9,7 @@ import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
 import { fmtPumpRate } from "../lib/pumpRate";
 import { SessionCard } from "../components/SessionCard";
+import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
@@ -558,6 +559,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
             {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
           </div>
         </div>
+        {g.track_preview && <TrackPreview data={g.track_preview} className="h-14 w-20 shrink-0 text-brand-400" />}
         <ChevronIcon className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
       {open && (

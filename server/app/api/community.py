@@ -239,7 +239,7 @@ def sessions_grouped(
                 "avatar_url": brief["avatar_url"], "author_new": brief["author_new"],
                 "date": key[1], "spot": brief["spot"], "tz": brief["tz"],
                 "count": 0, "foiling_km": 0.0, "foiling_time_s": 0.0,
-                "pump_count": 0, "max_speed_mps": None, "sessions": [],
+                "pump_count": 0, "max_speed_mps": None, "track_preview": None, "sessions": [],
             }
             groups[key] = g
         g["sessions"].append(brief)
@@ -254,7 +254,40 @@ def sessions_grouped(
     # Social/Video nur für die tatsächlich ausgelieferten Sessions dieser Seite anheften.
     flat = [s for g in page for s in g["sessions"]]
     _attach_first_video(db, _attach_social(db, user, flat), request)
+    _attach_group_preview(db, page)
     return page
+
+
+def _attach_group_preview(db: Session, groups: list[dict]) -> None:
+    """Setzt g['track_preview'] für Mehrfach-Gruppen = KOMBI-Minimap aller Läufe aller Sessions
+    der Gruppe (gemeinsam normalisiert). Quelle: gespeichertes track_geojson + segments_json je
+    Session (kein GPS-Datei-Load). Nur für die ausgelieferte Seite -> wenige Sessions."""
+    import json as _json
+    from ..analysis.preview import build_multi_track_preview
+
+    multi = [g for g in groups if g["count"] >= 2]
+    if not multi:
+        return
+    ids = [s["session_id"] for g in multi for s in g["sessions"]]
+    geo: dict[int, tuple] = {}
+    for sid, tgj, segs in (db.query(AR.session_id, AR.track_geojson, AR.segments_json)
+                           .filter(AR.session_id.in_(ids)).all()):
+        coords = None
+        if tgj:
+            try:
+                coords = (_json.loads(tgj) or {}).get("geometry", {}).get("coordinates")
+            except ValueError:
+                coords = None
+        segments = None
+        if segs:
+            try:
+                segments = _json.loads(segs)
+            except ValueError:
+                segments = None
+        geo[sid] = (coords, segments)
+    for g in multi:
+        pairs = [geo.get(s["session_id"], (None, None)) for s in g["sessions"]]
+        g["track_preview"] = build_multi_track_preview([p for p in pairs if p[0] and p[1]])
 
 
 # --------------------------------------------------------------------- Records ----
