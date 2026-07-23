@@ -608,6 +608,15 @@ export default function SessionDetail() {
     api.sessionCarves(Number(id)).then(setCarveData).catch(() => setCarveData(null));
   }, [id]);
   const hasTurns = !!carveData && carveData.carves.length > 0;
+  // Skalen-Maximum für die Carve-Farbe: 0,6 g (realistische Kappe), aber höher, falls ein Lauf
+  // härter carvt — dann läuft die Farbe oberhalb 0,6 g weiter (rot→magenta→weiß) bis zu diesem Max.
+  const carveGMax = useMemo(() => {
+    if (!carveData) return 0.6;
+    let mx = 0.6;
+    for (const g of carveData.g) if (g > mx) mx = g;
+    for (const arc of carveData.arcs) for (const p of arc) if (p[2] > mx) mx = p[2];
+    return mx;
+  }, [carveData]);
   useEffect(() => {
     if (colorMode === "turns" && !hasTurns) setColorMode("speed");
   }, [colorMode, hasTurns]);
@@ -896,7 +905,7 @@ export default function SessionDetail() {
         }
         for (let k = 0; k < arc.length - 1; k++) {
           L.polyline([[arc[k][0], arc[k][1]], [arc[k + 1][0], arc[k + 1][1]]],
-            { color: carveColor(arc[k + 1][2]), weight: 6, opacity: 0.98, interactive: false }).addTo(lg);
+            { color: carveColor(arc[k + 1][2], carveGMax), weight: 6, opacity: 0.98, interactive: false }).addTo(lg);
         }
       });
     }
@@ -966,7 +975,7 @@ export default function SessionDetail() {
     const colorAt = (i: number): string => {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
       if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
-      if (colorMode === "turns") { const gg = carveData?.g[i]; return gg != null ? carveColor(gg) : "#334155"; }
+      if (colorMode === "turns") { const gg = carveData?.g[i]; return gg != null ? carveColor(gg, carveGMax) : "#334155"; }
       if (colorMode === "hr") { const v = hr[i]; const [lo, hi] = hrRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
       return speedColor((speeds[i] ?? 0) * 3.6, speedMin, speedMax);
     };
@@ -1383,11 +1392,20 @@ export default function SessionDetail() {
         {/* 2. Skala der Farbverteilung + Geschwindigkeitsanzeige. */}
         <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
           {colorMode === "turns" ? (
-            // Kurvenlage-Farbverlauf (0,3–2 g) + Carve-Zähler nach Drehung (nur Anzeige, NICHT Rekorde/Stats).
+            // Kurvenlage-Farbverlauf + Carve-Zähler nach Drehung (nur Anzeige, NICHT Rekorde/Stats).
+            // Untere Hälfte fix (grün 0,1 → gelb 0,35 → rot 0,6), oberhalb 0,6 g bis zum Lauf-Max
+            // gestreckt (rot → magenta → weiß). Gradient-Stops entsprechend positioniert.
             <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
               <span className="inline-flex items-center gap-1 text-slate-400">
-                <span className="inline-block h-2.5 w-16 rounded" style={{ background: "linear-gradient(90deg,#22c55e,#eab308,#dc2626)" }} />
-                0,1–0,6 g Lage
+                <span className="inline-block h-2.5 w-16 rounded" style={{ background: (() => {
+                  if (carveGMax <= 0.6) return "linear-gradient(90deg,#22c55e,#eab308,#dc2626)";
+                  const span = carveGMax - 0.1;
+                  const y = Math.round(((0.35 - 0.1) / span) * 100);
+                  const r = Math.round(((0.6 - 0.1) / span) * 100);
+                  const mp = Math.round((((0.6 + carveGMax) / 2 - 0.1) / span) * 100);
+                  return `linear-gradient(90deg,#22c55e 0%,#eab308 ${y}%,#dc2626 ${r}%,#d946ef ${mp}%,#ffffff 100%)`;
+                })() }} />
+                0,1–{carveGMax <= 0.6 ? "0,6" : carveGMax.toFixed(1).replace(".", ",")} g Lage
               </span>
               <span className={carveData?.counts.s ? "font-bold text-slate-100" : "text-slate-500"}>90–180°: {carveData?.counts.s ?? 0}</span>
               <span className={carveData?.counts.m ? "font-bold text-slate-100" : "text-slate-500"}>180–360°: {carveData?.counts.m ?? 0}</span>
@@ -1431,24 +1449,28 @@ export default function SessionDetail() {
                 ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
                 : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
             </button>
-            {/* Pumps taggen + Label: PC-only, gleiche Höhe wie Abspielen, in derselben Zeile
-                (spart eine Zeile, solange die Play-Controls noch nicht eingeblendet sind). */}
-            {playTimeline.length >= 2 && (owned || isAdmin) && (
-              <button
-                onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-                className={`hidden items-center rounded-lg px-3 py-1 text-sm md:inline-flex ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
-                title={t("sd.tapModeTitle")}
-              >
-                {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
-              </button>
-            )}
-            {!fullscreen && owned && (
-              <Link
-                to={`/sessions/${session.id}/label`}
-                className="hidden items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700 md:inline-flex"
-              >
-                {t("sd.label")}
-              </Link>
+            {/* Pumps taggen + Label (PC-only): solange die Play-Controls NOCH NICHT eingeblendet
+                sind, neben „Abspielen" (spart eine Zeile). Sobald ausgeklappt -> eine Zeile tiefer. */}
+            {!playStarted && (
+              <>
+                {playTimeline.length >= 2 && (owned || isAdmin) && (
+                  <button
+                    onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+                    className={`hidden items-center rounded-lg px-3 py-1 text-sm md:inline-flex ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
+                    title={t("sd.tapModeTitle")}
+                  >
+                    {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+                  </button>
+                )}
+                {!fullscreen && owned && (
+                  <Link
+                    to={`/sessions/${session.id}/label`}
+                    className="hidden items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700 md:inline-flex"
+                  >
+                    {t("sd.label")}
+                  </Link>
+                )}
+              </>
             )}
             {/* Controls erst nach dem ersten Abspielen-Klick — vorher braucht man sie nicht. */}
             {playStarted && (
@@ -1495,9 +1517,30 @@ export default function SessionDetail() {
           </div>
         )}
 
-        {/* 4. Labeln (Pump-Marken) — nur am PC. Der Umschalter „Pumps taggen" + „Label" sitzt
-            oben neben „Abspielen"; hier nur noch die Tap-Steuerung im Tag-Modus. */}
+        {/* 4. Labeln (Pump-Marken) — nur am PC. „Pumps taggen" + „Label" sitzen neben „Abspielen",
+            solange die Play-Controls eingeklappt sind; sobald ausgeklappt hier eine Zeile tiefer. */}
         <div className="hidden md:block">
+          {playStarted && (
+            <div className={`flex items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-1" : "mt-2"}`}>
+              {playTimeline.length >= 2 && (owned || isAdmin) && (
+                <button
+                  onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
+                  className={`inline-flex items-center rounded-lg px-3 py-1 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
+                  title={t("sd.tapModeTitle")}
+                >
+                  {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
+                </button>
+              )}
+              {!fullscreen && owned && (
+                <Link
+                  to={`/sessions/${session.id}/label`}
+                  className="inline-flex items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700"
+                >
+                  {t("sd.label")}
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Tap-to-Label: Steuerung — nur im Tag-Modus. */}
           {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
