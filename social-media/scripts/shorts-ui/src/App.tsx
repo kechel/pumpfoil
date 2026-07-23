@@ -95,6 +95,7 @@ function Studio() {
   const [outName, setOutName] = useState(sv("outName", ""));
   const [ovOn, setOvOn] = useState(sv("ovOn", true));
   const [ovSel, setOvSel] = useState(sv("ovSel", ""));
+  const [ovAlpha, setOvAlpha] = useState(sv("ovAlpha", 1));
   const [outroOn, setOutroOn] = useState(sv("outroOn", true));
   const [fltYT, setFltYT] = useState(sv("fltYT", true));
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
@@ -104,9 +105,9 @@ function Studio() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, fade,
-      outName, ovOn, ovSel, outroOn, fltYT, fltIG,
+      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, outroOn, fltYT, fltIG]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -463,6 +464,7 @@ function Studio() {
     setFade(2);
     setOutName("");
     setOvOn(true);
+    setOvAlpha(1);
     setOutroOn(true);
     setFltYT(true);
     setFltIG(true);
@@ -497,6 +499,7 @@ function Studio() {
         gain_db: gain,
         fade_out: fade,
         overlay: (ovOn && ovSel) || null,
+        overlay_alpha: ovAlpha,
         trim_start: trim.start,
         trim_end: trim.end,
         out_name: outName,
@@ -668,7 +671,7 @@ function Studio() {
           <div className="vwrap">
             <video ref={vidRef} controls playsInline loop />
             {ovOn && ovSel && (
-              <img className="ovimg" alt="" src={`/media/overlay/${encodeURIComponent(ovSel)}`} />
+              <img className="ovimg" alt="" style={{ opacity: ovAlpha }} src={`/media/overlay/${encodeURIComponent(ovSel)}`} />
             )}
             <img ref={outroImgRef} className="outroimg" alt="" style={{ opacity: 0 }} />
             {texts.map((_, i) => (
@@ -772,6 +775,11 @@ function Studio() {
                 <option key={o} value={o}>{o.replace(/\.png$/, "")}</option>
               ))}
             </select>
+          </div>
+          <div className="row" style={{ paddingLeft: 24 }}>
+            Deckkraft
+            <input type="range" min={0.05} max={1} step={0.05} value={ovAlpha} onChange={(e) => setOvAlpha(+e.target.value)} />
+            <span>{Math.round(ovAlpha * 100)} %</span>
           </div>
           <div className="row">
             <label>

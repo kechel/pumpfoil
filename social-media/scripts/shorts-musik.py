@@ -166,7 +166,8 @@ def video_dims(path):
 def render(video: Path, track: Path, out: Path, gain_db: float,
            fade_out: float = FADE_OUT, overlay: Path = None,
            trim_start: float = 0.0, trim_end: float = None,
-           texts: list = None, outro: Path = None):
+           texts: list = None, outro: Path = None,
+           overlay_alpha: float = 1.0):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -208,7 +209,9 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-i", str(overlay)]
         ov_idx = n_inputs
         n_inputs += 1
-        fc_parts.append(f"[{ov_idx}:v]scale={w}:{h}[ov];"
+        alpha = max(0.0, min(float(overlay_alpha), 1.0))
+        fade_ov = (f",colorchannelmixer=aa={alpha:.3f}" if alpha < 1 else "")
+        fc_parts.append(f"[{ov_idx}:v]format=rgba{fade_ov},scale={w}:{h}[ov];"
                         "[0:v][ov]overlay=0:0:format=auto[vo]")
         vsrc = "[vo]"
     # Text-PNGs: Zeiten beziehen sich aufs Original, nach Trim verschiebt
@@ -847,7 +850,8 @@ class Handler(BaseHTTPRequestHandler):
                                          "erlaubten Ordner")
                 out = OUT_DIR / pf / out_name
                 render(video, track, out, gain, fade_out, overlay,
-                       trim_start, trim_end, texts, outros.get(pf))
+                       trim_start, trim_end, texts, outros.get(pf),
+                       float(req.get("overlay_alpha", 1.0)))
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
