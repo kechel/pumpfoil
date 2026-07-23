@@ -386,7 +386,7 @@ export interface AdminOverview {
   flagged: number; fake: number; reported: number; photos: number; photos_blocked: number; likes: number;
 }
 
-export interface AdminPending { flagged: number; fake: number; suspect?: number; total: number; }
+export interface AdminPending { flagged: number; fake: number; suspect?: number; chat?: number; total: number; }
 
 export interface AdminStatsBucket {
   date: string; new_users: number; active_users: number; sessions: number; photos: number; likes: number;

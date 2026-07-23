@@ -653,7 +653,12 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
                           models.Session.is_pumpfoil.is_(True),
                           models.Session.flagged.isnot(True),
                           models.Session.mod_ok.isnot(True)).scalar() or 0)
-    return {"flagged": flagged, "fake": fake, "suspect": suspect, "total": flagged + fake + suspect}
+    # Offene Chat-Meldungen = gemeldet (report_count>0) und noch nicht ausgeblendet.
+    chat = int(db.query(func.count()).select_from(models.ChatMessage)
+               .filter(models.ChatMessage.report_count > 0,
+                       models.ChatMessage.hidden.isnot(True)).scalar() or 0)
+    return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
+            "total": flagged + fake + suspect + chat}
 
 
 @router.get("/overview")

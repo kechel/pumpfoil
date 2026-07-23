@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -29,18 +29,32 @@ export default function Admin() {
   const [sp, setSp] = useSearchParams();
   const tab = (TABS.find(([k]) => k === sp.get("tab"))?.[0] ?? "overview") as Tab;
   const setTab = (tb: Tab) => setSp(new URLSearchParams({ tab: tb }));  // frischer Tab (Suche/Filter weg)
+  // Offene Moderationszahlen für Tab-Badges (leichtes /admin/pending).
+  const [pending, setPending] = useState<AdminPending | null>(null);
+  useEffect(() => { api.adminPending().then(setPending).catch(() => {}); }, []);
+  const badge: Partial<Record<Tab, number>> = {
+    flagged: pending?.flagged ?? 0, fake: pending?.fake ?? 0,
+    suspect: pending?.suspect ?? 0, chat: pending?.chat ?? 0,
+  };
   return (
     <div>
       <nav className="mb-5 flex flex-wrap gap-0.5 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
-        {TABS.map(([k, labelKey]) => (
+        {TABS.map(([k, labelKey]) => {
+          const n = badge[k] ?? 0;
+          const active = tab === k;
+          return (
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${tab === k ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"}`}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors ${active ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:bg-slate-800 hover:text-slate-100"}`}
           >
             {t(labelKey)}
+            {n > 0 && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums ${active ? "bg-slate-950/25 text-slate-950" : "bg-amber-500 text-slate-950"}`}>{n}</span>
+            )}
           </button>
-        ))}
+          );
+        })}
       </nav>
       {tab === "overview" && <OverviewTab />}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
