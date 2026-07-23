@@ -51,7 +51,8 @@ PROCESSED_DIR = BASE / "videos-verarbeitet"  # Quellvideos nach erfolgreichem Re
 INBOX_DIR = BASE / "neue-videos-ungesichtet"  # Ziel beim Verwerfen eines Exports
 DIST = Path(__file__).resolve().parent / "shorts-ui" / "dist"  # React-Build
 CLAUDE_BIN = shutil.which("claude") or str(Path.home() / ".local/bin/claude")
-CAPTION_LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs"]
+CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
+                 "pt", "ja", "zh", "ru", "id"]
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
@@ -379,7 +380,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) i
  "yt_description": "...", "instagram": "...", "tiktok": "..."}}
 
 Regeln:
-- titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. gsw = Schweizerdeutsch (Mundart), de-AT = österreichisches Deutsch (darf sich von de unterscheiden, z.B. Austriazismen).
+- titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.
 - yt_description: 1-2 Sätze Deutsch, dann 1-2 Sätze Englisch, dann eine Zeile mit 6-8 Hashtags (#pumpfoil #pumpfoiling #dockstart #foil ...), dann "🌊 https://pumpfoil.org – track every pump".
 - instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis, Leerzeile, dann 8-12 Hashtags.
 - tiktok: 1 kurzer englischer Satz (+ optional deutsch), 4-6 Hashtags.

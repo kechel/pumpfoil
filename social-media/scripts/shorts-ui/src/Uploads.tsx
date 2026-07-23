@@ -3,9 +3,10 @@ import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
 
 const LANG_LABELS: Record<string, string> = {
-  de: "🇩🇪 Deutsch", gsw: "🇨🇭 Schwiizerdütsch", "de-AT": "🇦🇹 Österreichisch",
-  en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano", es: "🇪🇸 Español",
-  fi: "🇫🇮 Suomi", nl: "🇳🇱 Nederlands", cs: "🇨🇿 Čeština",
+  de: "🇩🇪 Deutsch", en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano",
+  es: "🇪🇸 Español", fi: "🇫🇮 Suomi", nl: "🇳🇱 Nederlands", cs: "🇨🇿 Čeština",
+  pt: "🇧🇷 Português", ja: "🇯🇵 日本語", zh: "🇨🇳 中文", ru: "🇷🇺 Русский",
+  id: "🇮🇩 Bahasa Indonesia",
 };
 
 function CopyBtn({ text }: { text: string }) {
