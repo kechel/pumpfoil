@@ -208,6 +208,9 @@ def _migrate_add_columns() -> None:
             "best_speed_idx": "INTEGER",
             "best_glide_idx": "INTEGER",
             "max_pump_hz": "FLOAT",
+            "carve_s": "INTEGER",
+            "carve_m": "INTEGER",
+            "carve_l": "INTEGER",
         },
     }
     insp = inspect(engine)

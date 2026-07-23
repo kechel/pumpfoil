@@ -291,60 +291,77 @@ def start_success(user: models.User = Depends(current_user), db: Session = Depen
     return {"threshold_m": thr, "windows": windows}
 
 
-@router.get("/carve-stats")
-def carve_stats(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """PERSÖNLICH: Carve-Anzahl je Grad-Kategorie (s=90–180°, m=180–360°, l=>360°) je Zeitfenster.
-    On-the-fly aus GPS (dieselbe Erkennung wie /sessions/{id}/carves) — read-only, keine DB-Writes,
-    nicht in Community-Rekorde. ~3 ms/Session."""
+def _count_carves(uuid: str, tstart, tend, segs_json) -> tuple[int, int, int] | None:
+    """Carves einer Session je Kategorie (s=90–180°, m=180–360°, l=>360°) aus GPS zählen.
+    Gleiche Erkennung wie /sessions/{id}/carves (getrimmt + Segment-gebunden + Speed-Gate 2,2 m/s).
+    None = keine Segmente/kein GPS (nicht cachebar)."""
     import json as _json
     import numpy as np
     from .. import storage
     from .sessions import _turn_events, _hav_m
+    if not segs_json:
+        return None
+    try:
+        segs = _json.loads(segs_json)
+    except Exception:
+        return None
+    if not segs:
+        return None
+    try:
+        gps = storage.load_gps(uuid)
+    except Exception:
+        return None
+    lo = tstart if tstart is not None else (gps[0][0] if gps else 0)
+    hi = tend if tend is not None else (gps[-1][0] if gps else 0)
+    gps = [r for r in gps if lo <= r[0] <= hi]
+    if len(gps) < 4:
+        return None
+    lat = np.array([r[1] for r in gps]); lon = np.array([r[2] for r in gps])
+    t = np.array([r[0] for r in gps], dtype=float)
+    nlast = len(gps) - 1
+
+    def mps(a, b):
+        dt = (t[b] - t[a]) / 1000.0
+        return sum(_hav_m(lat, lon, x, x + 1) for x in range(a, b)) / dt if dt > 0 else 0.0
+    sc = mc = lc = 0
+    for sg in segs:
+        r0 = max(0, sg["i_start"]); r1 = min(sg["i_end"], nlast)
+        if r1 - r0 < 2:
+            continue
+        for c0, c1, rot in _turn_events(lat, lon, r0, r1):
+            if mps(c0, c1) < 2.2:
+                continue
+            m = abs(rot)
+            if m < 180:
+                sc += 1
+            elif m < 360:
+                mc += 1
+            else:
+                lc += 1
+    return sc, mc, lc
+
+
+@router.get("/carve-stats")
+def carve_stats(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """PERSÖNLICH: Carve-Anzahl je Grad-Kategorie (s=90–180°, m=180–360°, l=>360°) je Zeitfenster.
+    Die drei Zahlen je Session werden gecacht (AnalysisResult.carve_*), NULL = einmalig aus GPS
+    berechnet + gespeichert (Kategorien sind fix, kein User-Setting). run_analysis/Trim setzt den
+    Cache zurück. Nicht in Community-Rekorde."""
     cuts = {p: _cutoff(p) for p in PERIODS}
     agg = {p: [0, 0, 0] for p in PERIODS}
-    rows = (db.query(S.started_at, S.session_uuid, S.trim_start_ms, S.trim_end_ms, AR.segments_json)
+    rows = (db.query(S.started_at, S.session_uuid, S.trim_start_ms, S.trim_end_ms,
+                     AR.segments_json, AR)
             .join(AR, AR.session_id == S.id)
             .filter(S.user_id == user.id, S.deleted.isnot(True)).all())
-    for started_at, uuid, tstart, tend, segs_json in rows:
-        if not segs_json:
-            continue
-        try:
-            segs = _json.loads(segs_json)
-        except Exception:
-            continue
-        if not segs:
-            continue
-        try:
-            gps = storage.load_gps(uuid)
-        except Exception:
-            continue
-        lo = tstart if tstart is not None else (gps[0][0] if gps else 0)
-        hi = tend if tend is not None else (gps[-1][0] if gps else 0)
-        gps = [r for r in gps if lo <= r[0] <= hi]
-        if len(gps) < 4:
-            continue
-        lat = np.array([r[1] for r in gps]); lon = np.array([r[2] for r in gps])
-        t = np.array([r[0] for r in gps], dtype=float)
-        nlast = len(gps) - 1
-
-        def mps(a, b):
-            dt = (t[b] - t[a]) / 1000.0
-            return sum(_hav_m(lat, lon, x, x + 1) for x in range(a, b)) / dt if dt > 0 else 0.0
-        sc = mc = lc = 0
-        for sg in segs:
-            r0 = max(0, sg["i_start"]); r1 = min(sg["i_end"], nlast)
-            if r1 - r0 < 2:
+    dirty = False
+    for started_at, uuid, tstart, tend, segs_json, ar in rows:
+        if ar.carve_s is None:
+            counts = _count_carves(uuid, tstart, tend, segs_json)
+            if counts is None:
                 continue
-            for c0, c1, rot in _turn_events(lat, lon, r0, r1):
-                if mps(c0, c1) < 2.2:
-                    continue
-                m = abs(rot)
-                if m < 180:
-                    sc += 1
-                elif m < 360:
-                    mc += 1
-                else:
-                    lc += 1
+            ar.carve_s, ar.carve_m, ar.carve_l = counts
+            dirty = True
+        sc, mc, lc = ar.carve_s, ar.carve_m, ar.carve_l
         if sc + mc + lc == 0:
             continue
         sa = started_at
@@ -353,6 +370,8 @@ def carve_stats(user: models.User = Depends(current_user), db: Session = Depends
         for p, cut in cuts.items():
             if cut is None or (sa is not None and sa >= cut):
                 agg[p][0] += sc; agg[p][1] += mc; agg[p][2] += lc
+    if dirty:
+        db.commit()
     return {"windows": {p: {"s": agg[p][0], "m": agg[p][1], "l": agg[p][2]} for p in PERIODS}}
 
 

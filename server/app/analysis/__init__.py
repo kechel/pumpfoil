@@ -348,6 +348,8 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.max_speed_mps = res["max_speed_mps"]
     result.track_geojson = json.dumps(res["track_geojson"])
     result.segments_json = json.dumps(res["segments"])
+    # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
+    result.carve_s = result.carve_m = result.carve_l = None
     # Preset-Cache: kanonisch (oben) bleibt Standard = Community. Das AKTUELLE Preset des Besitzers
     # (falls != normal) wird in sensitivity_json abgelegt; bereits gecachte andere Presets bleiben
     # erhalten -> Umschalten ohne Neurechnung. Der Besitzer sieht daraus v. a. die einzelnen Läufe.

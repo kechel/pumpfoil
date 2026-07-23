@@ -365,6 +365,14 @@ class AnalysisResult(Base):
     best_glide_idx: Mapped[int | None] = mapped_column(Integer)
     max_pump_hz: Mapped[float | None] = mapped_column(Float)
 
+    # Carve-Anzahl je Grad-Kategorie (s=90–180°, m=180–360°, l=>360°), lazy gecacht fürs
+    # persönliche Home-Aggregat (/community/carve-stats). NULL = noch nicht berechnet -> beim
+    # nächsten Aufruf einmalig aus GPS ermittelt + gespeichert. run_analysis setzt sie auf NULL
+    # zurück (Trim/Reanalyse ändert Segmente -> Neuberechnung). Fixe Kategorien, kein User-Setting.
+    carve_s: Mapped[int | None] = mapped_column(Integer)
+    carve_m: Mapped[int | None] = mapped_column(Integer)
+    carve_l: Mapped[int | None] = mapped_column(Integer)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     session: Mapped["Session"] = relationship(back_populates="result")
