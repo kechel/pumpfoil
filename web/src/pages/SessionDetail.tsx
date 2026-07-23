@@ -615,7 +615,11 @@ export default function SessionDetail() {
     let mx = 0.6;
     for (const g of carveData.g) if (g > mx) mx = g;
     for (const arc of carveData.arcs) for (const p of arc) if (p[2] > mx) mx = p[2];
-    return mx;
+    // Plausible Obergrenze 1,0 g (≈45°): GPS-Glitches erzeugen bei einem Sprung einen winzigen
+    // Radius -> v²/r explodiert (z. B. S829: 16,86 g). Ohne Deckel würde ein einziger Ausreißer
+    // die ganze Skala sprengen und alle echten Carves ins Grün quetschen. (Sauberer wäre ein
+    // Filter im Detektor server-seitig — separat, mit Regressions-Check.)
+    return Math.min(mx, 1.0);
   }, [carveData]);
   useEffect(() => {
     if (colorMode === "turns" && !hasTurns) setColorMode("speed");
