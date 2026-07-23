@@ -541,10 +541,13 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     <div className="rounded-2xl border border-slate-800 bg-slate-900/40">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
+        className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
         aria-expanded={open}
       >
-        <Avatar name={g.name} url={g.avatar_url} className="h-9 w-9 shrink-0" />
+        <div className="flex shrink-0 flex-col items-center gap-1.5">
+          <Avatar name={g.name} url={g.avatar_url} size={44} />
+          {g.track_preview && <TrackPreview data={g.track_preview} className="h-12 w-16 text-brand-400" />}
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
             <span className="font-medium text-slate-100">{g.name || "—"}</span>
@@ -559,8 +562,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
             {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
           </div>
         </div>
-        {g.track_preview && <TrackPreview data={g.track_preview} className="h-14 w-20 shrink-0 text-brand-400" />}
-        <ChevronIcon className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
+        <ChevronIcon className={`h-5 w-5 shrink-0 self-center text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
       {open && (
         <div className="space-y-3 border-t border-slate-800 px-2 py-3 sm:px-3">
