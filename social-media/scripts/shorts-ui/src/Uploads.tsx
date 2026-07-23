@@ -35,7 +35,51 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-function ExportCard({ exp, onChanged }: { exp: ExportItem; onChanged: (list: ExportItem[]) => void }) {
+interface YtStatus {
+  configured: boolean;
+  authorized: boolean;
+}
+
+function YtBanner({ status, refresh }: { status: YtStatus; refresh: () => void }) {
+  const [waiting, setWaiting] = useState(false);
+  if (status.authorized) return null;
+  return (
+    <div className="exp" style={{ borderColor: "#f59e0b88" }}>
+      <div className="body">
+        <div className="title">YouTube-Verbindung</div>
+        {!status.configured ? (
+          <div className="meta" style={{ fontSize: 12 }}>
+            Client-Secret fehlt: OAuth-Client (Desktop-App) in der Google Cloud Console anlegen und die
+            JSON-Datei als <code>social-media/.yt-client-secret.json</code> speichern — dann hier neu laden.
+          </div>
+        ) : (
+          <div className="btns">
+            <button
+              className="btn primary"
+              disabled={waiting}
+              onClick={async () => {
+                setWaiting(true);
+                await api.post("/api/yt/login", {});
+                const iv = window.setInterval(async () => {
+                  const s = await (await fetch("/api/yt/status")).json();
+                  if (s.authorized) {
+                    window.clearInterval(iv);
+                    setWaiting(false);
+                    refresh();
+                  }
+                }, 1500);
+              }}
+            >
+              {waiting ? "Warte auf Google-Login im Browser …" : "Mit YouTube verbinden"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (list: ExportItem[]) => void; ytReady: boolean }) {
   const [showCaps, setShowCaps] = useState(false);
   const [title, setTitle] = useState(() =>
     exp.name.replace(/\.mp4$/, "").replace(/^\d+-/, "").replace(/^Pumpfoil-\d+-/i, "").replace(/-/g, " "),
@@ -43,6 +87,9 @@ function ExportCard({ exp, onChanged }: { exp: ExportItem; onChanged: (list: Exp
   const [caps, setCaps] = useState<Captions | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [ytUrl, setYtUrl] = useState("");
+  const [ytBusy, setYtBusy] = useState(false);
+  const [ytMsg, setYtMsg] = useState("");
 
   const thumbPf = exp.platforms.includes("tiktok") ? "tiktok" : exp.platforms[0];
 
@@ -115,6 +162,35 @@ function ExportCard({ exp, onChanged }: { exp: ExportItem; onChanged: (list: Exp
             {caps && (
               <>
                 <div className="capblock">
+                  <div className="caphead">Zu YouTube pushen (Titel-Lokalisierungen + Beschreibung)</div>
+                  <div className="genrow">
+                    <input
+                      value={ytUrl}
+                      spellCheck={false}
+                      onChange={(e) => setYtUrl(e.target.value)}
+                      placeholder="YouTube-Link des hochgeladenen Videos (Studio- oder youtu.be-Link)"
+                    />
+                    <button
+                      className="btn primary"
+                      disabled={!ytReady || ytBusy || !ytUrl.trim()}
+                      title={ytReady ? "" : "Erst oben mit YouTube verbinden"}
+                      onClick={async () => {
+                        setYtBusy(true);
+                        setYtMsg("");
+                        const r = await api.post<{ ok?: boolean; written?: string[]; error?: string }>(
+                          "/api/yt/localize",
+                          { url: ytUrl, titles: caps.titles, description: caps.yt_description },
+                        );
+                        setYtMsg(r.error ? `❌ ${r.error}` : `✅ ${r.written?.length ?? 0} Sprachen geschrieben`);
+                        setYtBusy(false);
+                      }}
+                    >
+                      {ytBusy ? <span className="spin" /> : "→ YouTube"}
+                    </button>
+                  </div>
+                  {ytMsg && <div style={{ fontSize: 12 }}>{ytMsg}</div>}
+                </div>
+                <div className="capblock">
                   <div className="caphead">YouTube-Titel (Lokalisierungen) <CopyBtn text={ytTitlesText} /></div>
                   <pre>
                     {Object.entries(caps.titles).map(([l, t]) => (
@@ -147,18 +223,25 @@ function ExportCard({ exp, onChanged }: { exp: ExportItem; onChanged: (list: Exp
 
 export default function Uploads() {
   const [exports, setExports] = useState<ExportItem[] | null>(null);
+  const [yt, setYt] = useState<YtStatus>({ configured: false, authorized: false });
+
+  const refreshYt = useCallback(() => {
+    void fetch("/api/yt/status").then(async (r) => setYt(await r.json()));
+  }, []);
 
   useEffect(() => {
     void fetch("/api/exports").then(async (r) => setExports((await r.json()).exports));
-  }, []);
+    refreshYt();
+  }, [refreshYt]);
 
   if (!exports) return <div className="uploads">lade …</div>;
   return (
     <div className="uploads">
       <h1>Fertige Exporte ({exports.length})</h1>
+      <YtBanner status={yt} refresh={refreshYt} />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
       {exports.map((e) => (
-        <ExportCard key={e.name} exp={e} onChanged={setExports} />
+        <ExportCard key={e.name} exp={e} onChanged={setExports} ytReady={yt.authorized} />
       ))}
     </div>
   );

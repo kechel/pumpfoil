@@ -33,11 +33,15 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -352,6 +356,128 @@ def list_state():
             "vdurs": vdurs}
 
 
+# ------------------------------------------------------------ YouTube -------
+# Stufe A: Titel-Lokalisierungen auf manuell hochgeladene Videos schreiben.
+# OAuth (Desktop-Flow mit PKCE) + Data-API komplett über die Stdlib.
+
+YT_CLIENT_SECRET_FILE = BASE / ".yt-client-secret.json"
+YT_TOKEN_FILE = BASE / ".yt-token.json"
+YT_SCOPES = ("https://www.googleapis.com/auth/youtube "
+             "https://www.googleapis.com/auth/youtube.upload")
+YT_PENDING = {}  # state → code_verifier des laufenden Login-Flows
+# unsere Sprachcodes → YouTube-BCP-47 (zh braucht die Region)
+YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
+           "fi": "fi", "nl": "nl", "cs": "cs", "pt": "pt",
+           "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id"}
+YT_ID_RE = re.compile(
+    r"(?:youtu\.be/|watch\?v=|/shorts/|studio\.youtube\.com/video/|^)"
+    r"([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])")
+
+
+def _http_json(url, data=None, method=None, headers=None, form=False):
+    hdrs = {"Content-Type":
+            "application/x-www-form-urlencoded" if form else "application/json"}
+    if headers:
+        hdrs.update(headers)
+    body = None
+    if isinstance(data, dict):
+        body = (urllib.parse.urlencode(data) if form else json.dumps(data)).encode()
+    req = urllib.request.Request(url, data=body, headers=hdrs,
+                                 method=method or ("POST" if body else "GET"))
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode() or "{}")
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:400]}")
+
+
+def yt_client():
+    d = json.loads(YT_CLIENT_SECRET_FILE.read_text())
+    return d.get("installed") or d.get("web")
+
+
+def yt_login_start():
+    c = yt_client()
+    verifier = secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+    state = secrets.token_urlsafe(16)
+    YT_PENDING[state] = verifier
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode({
+        "client_id": c["client_id"],
+        "redirect_uri": f"http://localhost:{PORT}/api/yt/callback",
+        "response_type": "code",
+        "scope": YT_SCOPES,
+        "access_type": "offline",
+        "prompt": "consent",
+        "state": state,
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
+    })
+    subprocess.run(["open", url], check=False)
+
+
+def yt_login_finish(code, state):
+    verifier = YT_PENDING.pop(state, None)
+    if verifier is None:
+        raise RuntimeError("Unbekannter oder abgelaufener OAuth-State")
+    c = yt_client()
+    tok = _http_json("https://oauth2.googleapis.com/token", {
+        "client_id": c["client_id"], "client_secret": c["client_secret"],
+        "code": code, "code_verifier": verifier,
+        "redirect_uri": f"http://localhost:{PORT}/api/yt/callback",
+        "grant_type": "authorization_code",
+    }, form=True)
+    tok["expires_at"] = time.time() + tok.get("expires_in", 3600)
+    YT_TOKEN_FILE.write_text(json.dumps(tok))
+
+
+def yt_access_token():
+    tok = json.loads(YT_TOKEN_FILE.read_text())
+    if tok.get("expires_at", 0) < time.time() + 60:
+        c = yt_client()
+        new = _http_json("https://oauth2.googleapis.com/token", {
+            "client_id": c["client_id"], "client_secret": c["client_secret"],
+            "refresh_token": tok["refresh_token"],
+            "grant_type": "refresh_token",
+        }, form=True)
+        tok["access_token"] = new["access_token"]
+        tok["expires_at"] = time.time() + new.get("expires_in", 3600)
+        YT_TOKEN_FILE.write_text(json.dumps(tok))
+    return tok["access_token"]
+
+
+def yt_localize(video_url: str, titles: dict, description: str):
+    m = YT_ID_RE.search(video_url.strip())
+    if not m:
+        raise RuntimeError("Keine Video-ID im Link gefunden")
+    vid = m.group(1)
+    auth = {"Authorization": f"Bearer {yt_access_token()}"}
+    data = _http_json(
+        "https://www.googleapis.com/youtube/v3/videos"
+        "?part=snippet,localizations&id=" + vid, headers=auth)
+    items = data.get("items") or []
+    if not items:
+        raise RuntimeError("Video nicht gefunden — gehört es zum verbundenen Kanal?")
+    snippet = items[0]["snippet"]
+    loc = items[0].get("localizations", {})
+    default_lang = (snippet.get("defaultLanguage") or "de").split("-")[0]
+    snippet["defaultLanguage"] = snippet.get("defaultLanguage") or "de"
+    written = []
+    for lang, title in titles.items():
+        code = YT_LANG.get(lang)
+        if not code or code == default_lang or not str(title).strip():
+            continue
+        loc[code] = {"title": str(title)[:100], "description": description}
+        written.append(code)
+    _http_json("https://www.googleapis.com/youtube/v3/videos"
+               "?part=snippet,localizations",
+               {"id": vid, "snippet": snippet, "localizations": loc},
+               method="PUT", headers=auth)
+    return {"ok": True, "video_id": vid, "written": written,
+            "default": snippet["defaultLanguage"]}
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -479,6 +605,23 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(PROGRESS)
             elif path == "/api/exports":
                 self._json({"exports": exports_state()})
+            elif path == "/api/yt/status":
+                self._json({"configured": YT_CLIENT_SECRET_FILE.is_file(),
+                            "authorized": YT_TOKEN_FILE.is_file()})
+            elif path == "/api/yt/callback":
+                try:
+                    yt_login_finish(query.get("code", [""])[0],
+                                    query.get("state", [""])[0])
+                    msg = "✅ YouTube verbunden — dieses Fenster kann zu."
+                except RuntimeError as e:
+                    msg = f"❌ Login fehlgeschlagen: {e}"
+                body = (f"<html><body style='font-family:sans-serif;padding:40px'>"
+                        f"<h2>{msg}</h2></body></html>").encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             elif path.startswith("/media/video/"):
                 self._file(safe_child(VIDEO_DIR, path[len("/media/video/"):]))
             elif path.startswith("/media/musik/"):
@@ -514,6 +657,20 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": f"Kein Ordner: {d}"}, 400)
             VIDEO_DIR = d.resolve()
             return self._json(list_state())
+        if self.path == "/api/yt/login":
+            if not YT_CLIENT_SECRET_FILE.is_file():
+                return self._json({"error": "Client-Secret fehlt "
+                                   f"({YT_CLIENT_SECRET_FILE})"}, 400)
+            yt_login_start()
+            return self._json({"ok": True})
+        if self.path == "/api/yt/localize":
+            try:
+                return self._json(yt_localize(
+                    str(req.get("url", "")),
+                    req.get("titles") or {},
+                    str(req.get("description", ""))))
+            except (RuntimeError, ValueError, OSError) as e:
+                return self._json({"error": str(e)}, 500)
         if self.path == "/api/discard_export":
             name = Path(str(req.get("name", ""))).name
             if not name.endswith(".mp4"):
