@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { api, CommunitySession, SessionSummary, type Transfer } from "../lib/api";
-import { Card, Spinner, ErrorBox } from "../components/ui";
+import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
+import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon } from "../components/Icons";
@@ -120,7 +120,7 @@ function CompareTip() {
 // der Detailansicht an dieselbe Stelle der Liste zurückkehrt statt oben zu landen (Feedback
 // Philipp). Nur im Speicher -> überlebt Client-Navigation, bei echtem Reload frisch.
 const listCache = new Map<string, { items: SessionSummary[]; offset: number; hasMore: boolean; scrollY: number }>();
-const communityCache = new Map<string, { items: CommunitySession[]; offset: number; more: boolean }>();
+const communityCache = new Map<string, { items: CommunityGroup[]; offset: number; more: boolean }>();
 
 // Nach dem Löschen einer Session muss der Listen-Cache raus, sonst zeigt die
 // zurückkehrende Liste die gelöschte Session noch (Feedback Jan).
@@ -490,23 +490,102 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
 
 // --- Community-Sessions (alle / je Spot) ------------------------------------
 
+// Eine Community-Session als Listenkarte (identisch für Einzel-Session und aufgeklappte
+// Gruppen-Mitglieder). `nested` = leicht eingerückt/gedämpft innerhalb einer Gruppe.
+function renderCommunitySession(s: CommunitySession, t: (k: string) => string, lastViewed: number | null) {
+  return (
+    <SessionCard
+      key={s.session_id}
+      sessionId={s.session_id}
+      startedAt={s.started_at}
+      tz={s.tz}
+      endedAt={s.ended_at}
+      spot={s.spot}
+      foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+      deviceLabel={s.device_label}
+      caption={s.caption}
+      name={s.name}
+      avatarName={s.name}
+      avatarUrl={s.avatar_url}
+      thumbUrl={s.thumb_url}
+      photoCount={s.photo_count}
+      youtubeUrl={s.youtube_url}
+      videoUrl={s.video_url}
+      likeCount0={s.like_count ?? 0}
+      liked0={!!s.liked}
+      trackPreview={s.track_preview}
+      highlight={s.session_id === lastViewed}
+      stats={
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
+          <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
+          <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
+        </div>
+      }
+    />
+  );
+}
+
+function durHM(s: number) {
+  const m = Math.round(s / 60);
+  return m >= 60 ? `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")} h` : `${m} min`;
+}
+
+// Tages-Gruppe (≥2 Sessions eines Nutzers am selben Tag/Spot): eingeklappte Kopf-Kachel mit
+// Tages-Summen + Zähler + Chevron; aufgeklappt die Einzel-Sessions (jede mit Detail-Link).
+function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) => string; lastViewed: number | null }) {
+  const [open, setOpen] = useState(false);
+  const dateStr = g.date ? new Date(g.date + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+  const kmh = g.max_speed_mps != null ? (g.max_speed_mps * 3.6).toFixed(1) : null;
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/40">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
+        aria-expanded={open}
+      >
+        <Avatar name={g.name} url={g.avatar_url} className="h-9 w-9 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
+            <span className="font-medium text-slate-100">{g.name || "—"}</span>
+            <span className="text-xs text-slate-400">{dateStr}</span>
+            {g.spot && <span className="inline-flex items-center gap-1 text-xs text-slate-400"><LocationIcon className="h-3.5 w-3.5" /> {g.spot}</span>}
+          </div>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
+            <span className="inline-flex items-center gap-1"><SessionsIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.count}</b> {t("unit.sessions")}</span>
+            <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.foiling_km.toFixed(1)}</b> km</span>
+            {g.foiling_time_s > 0 && <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {durHM(g.foiling_time_s)}</span>}
+            {g.pump_count > 0 && <span className="inline-flex items-center gap-1"><WaveIcon className="h-4 w-4 text-slate-400" /> {g.pump_count}</span>}
+            {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
+          </div>
+        </div>
+        <ChevronIcon className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+      {open && (
+        <div className="space-y-3 border-t border-slate-800 px-2 py-3 sm:px-3">
+          {g.sessions.map((s) => renderCommunitySession(s, t, lastViewed))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; accelOnly: boolean }) {
   const t = useT();
-  const [items, setItems] = useState<CommunitySession[]>([]);
+  const [items, setItems] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const offsetRef = useRef(0);
   const moreRef = useRef(true);
   const loadingRef = useRef(false);
   const sentinel = useRef<HTMLDivElement>(null);
   const restoreRef = useRef(false);
-  const itemsRef = useRef<CommunitySession[]>([]);
+  const itemsRef = useRef<CommunityGroup[]>([]);
   const lastViewed = getLastSession();
 
   const load = (reset: boolean) => {
     if (loadingRef.current || (!reset && !moreRef.current)) return;
     loadingRef.current = true; setLoading(true);
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessions(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly })
+    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly })
       .then((rows) => {
         offsetRef.current = off + rows.length;
         moreRef.current = rows.length === PAGE;
@@ -547,35 +626,10 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
         <Card className="p-8 text-center text-slate-300">{t("all.none")}</Card>
       ) : (
         <div className="space-y-3">
-          {items.map((s) => (
-            <SessionCard
-              key={s.session_id}
-              sessionId={s.session_id}
-              startedAt={s.started_at}
-              tz={s.tz}
-              endedAt={s.ended_at}
-              spot={s.spot}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
-              deviceLabel={s.device_label}
-              caption={s.caption}
-              name={s.name}
-              avatarName={s.name}
-              avatarUrl={s.avatar_url}
-              thumbUrl={s.thumb_url}
-              photoCount={s.photo_count}
-              youtubeUrl={s.youtube_url}
-              videoUrl={s.video_url}
-              likeCount0={s.like_count ?? 0}
-              liked0={!!s.liked}
-              trackPreview={s.track_preview}
-              highlight={s.session_id === lastViewed}
-              stats={
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-300">
-                  <span className="inline-flex items-center gap-1"><RunsIcon className="h-4 w-4 text-slate-400" /> {s.runs} {s.runs === 1 ? t("unit.run") : t("unit.runs")}</span>
-                  <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{s.foiling_km.toFixed(1)}</b> km</span>
-                </div>
-              }
-            />
+          {items.map((g) => (
+            g.count <= 1
+              ? renderCommunitySession(g.sessions[0], t, lastViewed)
+              : <DayGroupCard key={`g-${g.user_id}-${g.date}-${g.spot ?? ""}`} g={g} t={t} lastViewed={lastViewed} />
           ))}
         </div>
       )}

@@ -7,6 +7,7 @@ detection) -> reines SQL, keine Full-Scans/JSON-Parsing.
 """
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -26,6 +27,7 @@ from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user, require_social
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/community", tags=["community"])
 # Historisch getrennt (Spot-Lese-Endpunkte). Inzwischen sind BEIDE Router ungegatet — Age-Gate sperrt
 # nur Chat + Schreiben (Like/Vote via require_social an den POSTs). Bleibt als eigener Router bestehen.
@@ -179,6 +181,80 @@ def spot_sessions(
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
+
+
+# Extra-Spalten fürs Tages-Gruppen-Aggregat (Σ On-Foil-Zeit + Σ Pumps): _brief liefert die
+# nicht mit, darum hinten anhängen und beim Entpacken abschneiden.
+GROUP_EXTRA = (S.user_id, AR.foiling_time_s, AR.pump_count)
+# Sicherheits-Obergrenze fürs Voll-Scannen beim Gruppieren (Python-seitig, s.u.).
+_GROUP_SCAN_CAP = 6000
+
+
+def _local_date(ts, lat, lon) -> str:
+    """Kalendertag der Session in SPOT-Ortszeit (Gruppen-Schlüssel). '' wenn ts fehlt."""
+    if ts is None:
+        return ""
+    return ts.astimezone(tz_of(lat, lon)).date().isoformat()
+
+
+@router.get("/sessions-grouped")
+def sessions_grouped(
+    request: Request,
+    limit: int = 20, offset: int = 0,
+    name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Feed/Spot mit TAGES-GRUPPIERUNG (rein anzeige-seitig, ändert keine Daten/Rekorde):
+    Sessions eines Nutzers am selben Kalendertag (Spot-Ortszeit) + selben Spot werden zu EINER
+    Gruppe gebündelt. Paginierung erfolgt in GRUPPEN (limit/offset = Gruppen).
+
+    Sortierung: nach der jeweils spätesten Session der Gruppe absteigend — ergibt „neuester Tag
+    oben, darin Nutzer-Cluster nach letzter Session" (weil started_at desc gescannt wird, ist die
+    Einfüge-Reihenfolge bereits genau diese). Einzel-Session-Gruppen (count=1) rendert der Client
+    als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
+    q = _community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only)
+    if name:
+        q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
+    if spot:
+        q = q.filter(_spot_cond(spot))
+    rows = q.order_by(S.started_at.desc()).limit(_GROUP_SCAN_CAP + 1).all()
+    truncated = len(rows) > _GROUP_SCAN_CAP
+    if truncated:
+        rows = rows[:_GROUP_SCAN_CAP]
+        log.warning("sessions-grouped: Scan-Cap %d erreicht (name=%r spot=%r) — älteste Gruppen fehlen evtl.",
+                    _GROUP_SCAN_CAP, name, spot)
+
+    nb = len(BRIEF_COLS)
+    groups: dict[tuple, dict] = {}
+    for r in rows:
+        brief = _brief(*r[:nb])
+        uid, ftime, pumps = r[nb], r[nb + 1], r[nb + 2]
+        ts = r[4]                      # S.started_at (Position in BRIEF_COLS)
+        lat, lon = r[nb - 2], r[nb - 1]  # place_lat, place_lon (letzte zwei BRIEF_COLS)
+        key = (uid, _local_date(ts, lat, lon), brief["spot"])
+        g = groups.get(key)
+        if g is None:
+            g = {
+                "kind": "group", "user_id": uid, "name": brief["name"],
+                "avatar_url": brief["avatar_url"], "author_new": brief["author_new"],
+                "date": key[1], "spot": brief["spot"], "tz": brief["tz"],
+                "count": 0, "foiling_km": 0.0, "foiling_time_s": 0.0,
+                "pump_count": 0, "max_speed_mps": None, "sessions": [],
+            }
+            groups[key] = g
+        g["sessions"].append(brief)
+        g["count"] += 1
+        g["foiling_km"] = round(g["foiling_km"] + (brief["foiling_km"] or 0), 2)
+        g["foiling_time_s"] += float(ftime or 0)
+        g["pump_count"] += int(pumps or 0)
+        if brief["max_speed_mps"] is not None:
+            g["max_speed_mps"] = max(g["max_speed_mps"] or 0, brief["max_speed_mps"])
+
+    page = list(groups.values())[max(offset, 0): max(offset, 0) + min(max(limit, 1), 100)]
+    # Social/Video nur für die tatsächlich ausgelieferten Sessions dieser Seite anheften.
+    flat = [s for g in page for s in g["sessions"]]
+    _attach_first_video(db, _attach_social(db, user, flat), request)
+    return page
 
 
 # --------------------------------------------------------------------- Records ----

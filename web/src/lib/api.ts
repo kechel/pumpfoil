@@ -265,6 +265,26 @@ export interface CommunitySession {
   device_label?: string | null;
 }
 
+// Tages-Gruppe (ein Nutzer, ein Tag, ein Spot) aus /community/sessions-grouped.
+// count===1 -> als normale Kachel rendern; count>=2 -> Akkordeon. Stats sind Tages-Summen
+// (Speed = Maximum). `sessions` = die Einzel-Sessions, neueste zuerst.
+export interface CommunityGroup {
+  kind: "group";
+  user_id: number;
+  name: string | null;
+  avatar_url: string | null;
+  author_new?: boolean;
+  date: string;            // lokaler Kalendertag (YYYY-MM-DD, Spot-Ortszeit)
+  spot: string | null;
+  tz?: string | null;
+  count: number;
+  foiling_km: number;
+  foiling_time_s: number;
+  pump_count: number;
+  max_speed_mps: number | null;
+  sessions: CommunitySession[];
+}
+
 export interface SessionSocial {
   like_count: number;
   liked: boolean;
@@ -648,6 +668,13 @@ export const api = {
     if (opts.spot) p.set("spot", opts.spot);
     if (opts.accelOnly === false) p.set("accel_only", "false");
     return req<CommunitySession[]>(`/api/community/sessions?${p}`);
+  },
+  communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
+    const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (opts.name) p.set("name", opts.name);
+    if (opts.spot) p.set("spot", opts.spot);
+    if (opts.accelOnly === false) p.set("accel_only", "false");
+    return req<CommunityGroup[]>(`/api/community/sessions-grouped?${p}`);
   },
   spotSessions: (spot: string, accelOnly = true) =>
     req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
