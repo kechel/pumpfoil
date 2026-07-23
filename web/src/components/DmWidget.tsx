@@ -98,40 +98,48 @@ export function DmWidget() {
   const openScope = (scope: string, label: string) =>
     setActive({ scope, name: label, otherId: 0, avatar: null, blocked: false });
 
-  const back = () => setActive(null);   // Chat → Liste: reine UI (KEIN history.back → keine Seiten-Navigation)
   const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
 
-  // Mobile: Zurück-/Swipe-Geste schließt das Chat-Overlay wie ein Popup — erst den offenen
-  // Chat (zurück zur Liste), dann das Panel; erst danach verlässt man die Seite. Ein
-  // History-Marker JE OFFENER EBENE, gesetzt beim Öffnen (Tiefe in state.__ov). popstate
-  // gleicht die UI-Tiefe an die History-Position an; alle Schließen-Aktionen laufen über die
-  // History (history.back/go), damit popstate die einzige Schließ-Quelle bleibt.
-  const closeOverlay = () => { setActive(null); setOpen(false); };
+  // Mobile: Zurück-/Swipe-Geste schließt das Overlay wie ein Popup — erst den offenen Chat
+  // (zurück zur Liste), dann das Panel; erst danach verlässt man die Seite.
+  //
+  // WICHTIG: EIN History-Marker JE UI-EBENE (1 = Liste offen, 2 = Chat offen), gesetzt IMMER
+  // beim Tiefer-Gehen — NIE im popstate-Handler. Ein pushState AUS dem popstate-Handler heraus
+  // ist auf iOS-PWAs unzuverlässig (wird verschluckt); dadurch fehlte beim zweiten Zurück der
+  // Marker und die App beendete sich, statt das Panel zu schließen. Jetzt liegen beide Marker
+  // vorab auf dem Stack -> jedes Zurück konsumiert genau eine Ebene.
+  const depthRef = useRef(0);       // Anzahl unserer Marker auf dem History-Stack
+  const skipPopRef = useRef(false); // eigenes Button-Schließen -> das folgende popstate ignorieren
 
-  // Hardware-/Swipe-Zurueck (popstate) schliesst zuerst den offenen Chat, dann das Panel.
-  // EIN Marker fuer "Overlay offen"; bei Chat→Liste wird er erneuert (zweistufig). Die Buttons
-  // (←, X) rufen KEIN history.back()/go() mehr -> wenn man zwischendrin in der PWA navigiert
-  // hat (Router pusht eigene Eintraege), poppt der Button nicht mehr versehentlich eine
-  // Seiten-Navigation. Beim Button-Schliessen wird unser Marker nur konsumiert, wenn er noch
-  // obenauf liegt (sonst dangling, aber harmlos — nie eine fremde Navigation zurueckgenommen).
   useEffect(() => {
-    if (!open) return;
-    let marker = true;
-    window.history.pushState({ __chat: true }, "");
+    const level = open ? (active ? 2 : 1) : 0;
+    while (depthRef.current < level) {   // nur beim Tiefer-Gehen pushen (nie im popstate)
+      window.history.pushState({ __chat: depthRef.current + 1 }, "");
+      depthRef.current += 1;
+    }
+  }, [open, active]);
+
+  useEffect(() => {
     const onPop = () => {
-      setActive((a) => {
-        if (a) { window.history.pushState({ __chat: true }, ""); loadRooms(); return null; }  // Chat→Liste
-        marker = false; setOpen(false); return null;                                          // Liste→zu
-      });
+      if (skipPopRef.current) { skipPopRef.current = false; return; }  // eigenes Button-Schließen
+      if (depthRef.current <= 0) return;                               // keiner unserer Marker
+      depthRef.current -= 1;
+      if (depthRef.current >= 1) { setActive(null); loadRooms(); }     // Chat → Liste
+      else { setActive(null); setOpen(false); }                       // Liste → zu
     };
     window.addEventListener("popstate", onPop);
-    return () => {
-      window.removeEventListener("popstate", onPop);
-      if (marker && (window.history.state as { __chat?: boolean } | null)?.__chat) {
-        window.history.back();
-      }
-    };
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // Alle unsere Marker in einem Rutsch konsumieren (Button-Schließen). Das dabei ausgelöste
+  // popstate wird per skipPopRef übersprungen (UI ist schon gesetzt).
+  const consumeMarkers = () => {
+    const n = depthRef.current;
+    depthRef.current = 0;
+    if (n > 0) { skipPopRef.current = true; window.history.go(-n); }
+  };
+  const back = () => window.history.back();   // Chat → Liste (über popstate, EIN Marker)
+  const closeOverlay = () => { setActive(null); setOpen(false); consumeMarkers(); };
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
