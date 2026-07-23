@@ -475,6 +475,7 @@ const en: Record<string, string> = {
   "adm.spot.rename": "Rename",
   "adm.spot.renamePrompt": "New spot name:",
   "adm.chat.none": "No reported messages.",
+  "adm.chat.dismiss": "Dismiss report",
   "adm.chat.hidden": "hidden",
   "adm.chat.readonlyDone": "User set to read-only in chat.",
   "land.f11Title": "Chat & discussion",

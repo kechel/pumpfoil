@@ -753,6 +753,8 @@ function ChatModTab() {
 
   const hide = (id: number, hidden: boolean) =>
     api.chatHide(id, hidden).then(() => setRows((r) => r && r.map((m) => m.id === id ? { ...m, hidden } : m))).catch(() => {});
+  const dismiss = (id: number) =>
+    api.chatDismissReports(id).then(() => setRows((r) => r && r.filter((m) => m.id !== id))).catch(() => {});
   const readonly = (uid: number, name: string | null) => {
     if (!confirm(t("chat.readonlyConfirm", { name: name || "?" }))) return;
     api.chatSetReadonly(uid, true).then(() => alert(t("adm.chat.readonlyDone"))).catch(() => {});
@@ -777,6 +779,7 @@ function ChatModTab() {
               <button onClick={() => hide(m.id, true)} className="rounded-lg bg-amber-600/20 px-2.5 py-1 text-amber-700 hover:bg-amber-600/30 dark:text-amber-300">{t("chat.hide")}</button>
             )}
             <button onClick={() => readonly(m.user_id, m.name)} className="rounded-lg bg-red-500/10 px-2.5 py-1 text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">{t("chat.readonly")}</button>
+            <button onClick={() => dismiss(m.id)} className="rounded-lg bg-slate-500/10 px-2.5 py-1 text-slate-600 hover:bg-slate-500/20 dark:text-slate-300">{t("adm.chat.dismiss")}</button>
           </div>
         </Card>
       ))}

@@ -404,6 +404,7 @@ const es: Record<string, string> = {
   "notif.typeChat": "Nuevos mensajes de chat (salas suscritas)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "No hay mensajes reportados.",
+  "adm.chat.dismiss": "Descartar denuncia",
   "adm.chat.hidden": "oculto",
   "adm.chat.readonlyDone": "Usuario puesto en solo lectura.",
   "land.f11Title": "Chat y discusión",

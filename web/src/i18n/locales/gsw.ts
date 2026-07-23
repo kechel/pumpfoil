@@ -352,6 +352,7 @@ const gsw: Record<string, string> = {
   "notif.typeChat": "Neui Chat-Nachrichte (abonnierti Rüüm)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Kei gmäldeti Nachrichte.",
+  "adm.chat.dismiss": "Mäldig verwärffe",
   "adm.chat.hidden": "uusgbländet",
   "adm.chat.readonlyDone": "Benutzer im Chat schribgsperrt.",
   "land.f11Title": "Chat & Diskussion",

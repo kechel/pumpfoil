@@ -404,6 +404,7 @@ const fr: Record<string, string> = {
   "notif.typeChat": "Nouveaux messages de chat (salons abonnés)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Aucun message signalé.",
+  "adm.chat.dismiss": "Ignorer le signalement",
   "adm.chat.hidden": "masqué",
   "adm.chat.readonlyDone": "Utilisateur passé en lecture seule.",
   "land.f11Title": "Chat & discussion",

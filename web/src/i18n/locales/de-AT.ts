@@ -313,6 +313,7 @@ const deAT: Record<string, string> = {
   "notif.typeChat": "Neue Chat-Nachrichten (abonnierte Räume)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Keine gemeldeten Nachrichten.",
+  "adm.chat.dismiss": "Meldung verwerfen",
   "adm.chat.hidden": "ausgeblendet",
   "adm.chat.readonlyDone": "Nutzer im Chat schreibgesperrt.",
   "land.f11Title": "Chat & Diskussion",

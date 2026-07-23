@@ -421,6 +421,23 @@ def set_hidden(
     return {"ok": True, "id": m.id, "hidden": m.hidden}
 
 
+@router.post("/{message_id}/dismiss-reports")
+def dismiss_reports(
+    message_id: int,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Admin: Meldungen einer Nachricht als unbegründet verwerfen -> Zähler/Meldungen leeren,
+    Nachricht bleibt sichtbar. Fällt danach aus der Prüfliste (report_count = 0)."""
+    _require_admin(user)
+    m = db.get(models.ChatMessage, message_id)
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nachricht nicht gefunden")
+    db.query(models.ChatReport).filter_by(message_id=message_id).delete()
+    m.report_count = 0
+    db.commit()
+    return {"ok": True, "id": m.id}
+
+
 @router.get("/reported")
 def list_reported(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),

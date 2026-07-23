@@ -482,6 +482,7 @@ const fi: Record<string, string> = {
   "adm.spot.rename": "Nimeä uudelleen",
   "adm.spot.renamePrompt": "Uusi spotin nimi:",
   "adm.chat.none": "Ei ilmoitettuja viestejä.",
+  "adm.chat.dismiss": "Hylkää ilmoitus",
   "adm.chat.hidden": "piilotettu",
   "adm.chat.readonlyDone": "Käyttäjä estetty kirjoittamasta chatissa.",
   "land.f11Title": "Chat ja keskustelu",

@@ -510,6 +510,7 @@ export const api = {
   chatDelete: (id: number) => req<{ ok: boolean; id: number }>(`/api/chat/${id}`, { method: "DELETE" }),
   chatHide: (id: number, hidden: boolean) => req<{ ok: boolean; id: number; hidden: boolean }>(`/api/chat/${id}/hide`, { method: "POST", body: JSON.stringify({ hidden }) }),
   chatReported: () => req<(ChatMsg & { scope: string })[]>(`/api/chat/reported`),
+  chatDismissReports: (id: number) => req<{ ok: boolean; id: number }>(`/api/chat/${id}/dismiss-reports`, { method: "POST" }),
   chatSetReadonly: (userId: number, readonly: boolean) => req<{ ok: boolean; user_id: number; chat_readonly: boolean }>(`/api/chat/moderation/readonly`, { method: "POST", body: JSON.stringify({ user_id: userId, readonly }) }),
   chatMarkRead: (scope: string, upTo: number) => req<{ ok: boolean; last_read_id: number }>(`/api/chat/read`, { method: "POST", body: JSON.stringify({ scope, up_to: upTo }) }),
   chatLeave: (scope: string) => req<{ ok: boolean }>(`/api/chat/leave?scope=${encodeURIComponent(scope)}`, { method: "POST" }),

@@ -499,6 +499,7 @@ const de: Record<string, string> = {
   "adm.spot.rename": "Umbenennen",
   "adm.spot.renamePrompt": "Neuer Spot-Name:",
   "adm.chat.none": "Keine gemeldeten Nachrichten.",
+  "adm.chat.dismiss": "Meldung verwerfen",
   "adm.chat.hidden": "ausgeblendet",
   "adm.chat.readonlyDone": "Nutzer im Chat schreibgesperrt.",
   "land.f11Title": "Chat & Diskussion",

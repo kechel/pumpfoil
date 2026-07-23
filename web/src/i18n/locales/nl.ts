@@ -499,6 +499,7 @@ const nl: Record<string, string> = {
   "adm.spot.rename": "Hernoemen",
   "adm.spot.renamePrompt": "Nieuwe spotnaam:",
   "adm.chat.none": "Geen gemelde berichten.",
+  "adm.chat.dismiss": "Melding negeren",
   "adm.chat.hidden": "verborgen",
   "adm.chat.readonlyDone": "Gebruiker in de chat op alleen-lezen gezet.",
   "land.f11Title": "Chat & discussie",

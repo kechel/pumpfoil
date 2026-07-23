@@ -499,6 +499,7 @@ const cs: Record<string, string> = {
   "adm.spot.rename": "Přejmenovat",
   "adm.spot.renamePrompt": "Nový název spotu:",
   "adm.chat.none": "Žádné nahlášené zprávy.",
+  "adm.chat.dismiss": "Zamítnout nahlášení",
   "adm.chat.hidden": "skryto",
   "adm.chat.readonlyDone": "Uživateli zakázáno psát v chatu.",
   "land.f11Title": "Chat a diskuze",
