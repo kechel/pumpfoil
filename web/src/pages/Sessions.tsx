@@ -546,9 +546,14 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
       >
         <div className="flex shrink-0 flex-col items-center gap-1.5">
           <Avatar name={g.name} url={g.avatar_url} size={44} />
-          {(g.track_previews ?? []).map((tp, i) => (
-            <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
-          ))}
+          {/* Mobil: Minimap(s) unter dem Avatar (wie Einzel-Kachel), gestapelt. */}
+          {(g.track_previews?.length ?? 0) > 0 && (
+            <div className="flex flex-col items-center gap-1.5 sm:hidden">
+              {g.track_previews!.map((tp, i) => (
+                <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
+              ))}
+            </div>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold">
@@ -568,6 +573,14 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
             {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
           </div>
         </div>
+        {/* Desktop: Minimap(s) rechts (wie Einzel-Kachel), mehrere nebeneinander. */}
+        {(g.track_previews?.length ?? 0) > 0 && (
+          <div className="hidden shrink-0 items-center gap-2 self-center sm:flex">
+            {g.track_previews!.map((tp, i) => (
+              <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
+            ))}
+          </div>
+        )}
         <ChevronIcon className={`h-5 w-5 shrink-0 self-center text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
       {open && (
