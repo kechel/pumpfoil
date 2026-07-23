@@ -171,6 +171,7 @@ def _migrate_add_columns() -> None:
             "foil_id": "INTEGER",
             "merged_into": "INTEGER",
             "spot_id": "INTEGER",
+            "expected_chunks": "INTEGER",
         },
         "users": {
             "display_name": "VARCHAR(40)",

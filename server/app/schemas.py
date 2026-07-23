@@ -112,6 +112,7 @@ class SessionStartIn(BaseModel):
     foil_id: int | None = None   # auf der Uhr für diese Session gewähltes Foil (Override)
     placement: str | None = None  # "phone" = Handy-Recorder (Tasche/Hüfte); sonst Uhr am Handgelenk
     device_model: str | None = None  # Modell + OS (z. B. "Pixel 7 · Android 14") — nur zur Fehlersuche
+    expected_chunks: int | None = None  # erwartete Gesamt-Chunk-Zahl (gps+accel) für Upload-Fortschritt
 
 
 class SessionStartOut(BaseModel):
@@ -185,6 +186,8 @@ class SessionOut(BaseModel):
     foil_id: int | None = None  # explizit gesetztes Foil dieser Session
     foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige
     transfer_to: str | None = None  # offene Übertragung: Anzeigename des Empfängers (nur eigene Liste)
+    upload_received: int | None = None  # empfangene Chunks (nur im Zwischenzustand recording/live)
+    upload_total: int | None = None     # erwartete Chunks gesamt -> Upload-Fortschritt
     analysis: AnalysisOut | None = None
 
 

@@ -65,12 +65,16 @@ def start_session(
             foil_id=_foil,
             placement=(body.placement or None),
             device_model=(body.device_model or None),
+            expected_chunks=body.expected_chunks,
         )
         db.add(s)
         db.commit()
         db.refresh(s)
     elif s.user_id != device.user_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Session belongs to another user")
+    elif body.expected_chunks is not None and s.expected_chunks != body.expected_chunks:
+        s.expected_chunks = body.expected_chunks   # Resume: erwartete Zahl aktualisieren
+        db.commit()
 
     storage.write_meta(
         body.session_uuid,

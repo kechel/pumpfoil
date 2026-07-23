@@ -246,6 +246,9 @@ class Session(Base):
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")
     total_chunks: Mapped[int | None] = mapped_column(Integer)
+    # Erwartete Gesamt-Chunk-Zahl (gps+accel), von der Uhr beim /session-Start gemeldet — für die
+    # Upload-Fortschrittsanzeige während GPS-first-Uploads (received/expected). NULL = unbekannt.
+    expected_chunks: Mapped[int | None] = mapped_column(Integer)
     # Optionaler Zuschnitt (ms ab Session-Start). Gesetzt -> alle Analysen nutzen nur
     # [trim_start_ms, trim_end_ms] (z. B. Auto-Heimfahrt nach dem Foilen abschneiden).
     trim_start_ms: Mapped[int | None] = mapped_column(Integer)

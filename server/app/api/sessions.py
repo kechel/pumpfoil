@@ -144,6 +144,9 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         # Clients gesetzt (Aufrufer gated); Listen-Karte zeigt damit den passenden Indikator.
         video_url=video_url,
         track_preview=(s.result.track_preview if s.result else None),
+        # Upload-Fortschritt nur im Zwischenzustand (recording/live) — sonst kein N+1 auf s.chunks.
+        upload_received=(len(s.chunks) if s.status in ("recording", "live") else None),
+        upload_total=((s.expected_chunks or s.total_chunks) if s.status in ("recording", "live") else None),
         foil_id=s.foil_id,
         # Persönlicher Preset-Overlay in ALLEN eigenen Ansichten (Liste + Detail): Läufe/Foil-Zeit/
         # -Distanz aus dem gecachten Preset. `sens` wird vom Aufrufer durchgereicht (Liste: direkt
