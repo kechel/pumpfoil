@@ -3,7 +3,7 @@ import Foundation
 // Lokalisierung nach Profil-Sprache (in UserDefaults "appLang", gesetzt nach Login).
 // NICHT Geräte-Locale. Fallback de. Wording wie web/src/i18n/locales/*.
 enum Loc {
-    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs"]
+    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id"]
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
     static let csOverlay: [String: String] = [
@@ -1083,8 +1083,15 @@ enum Loc {
         if lang == "fi", let v = fiOverlay[key] { return v }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if lang == "nl", let v = nlOverlay[key] { return v }   // nl-Overlay (aus web nl.ts); sonst Englisch
         if lang == "cs", let v = csOverlay[key] { return v }   // cs-Overlay (aus web cs.ts); sonst Englisch
+        if lang == "pt", let v = ptOverlay[key] { return v }   // pt-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "ja", let v = jaOverlay[key] { return v }   // ja-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "zh", let v = zhOverlay[key] { return v }   // zh-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "ru", let v = ruOverlay[key] { return v }   // ru-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "id", let v = idOverlay[key] { return v }   // id-Overlay (LocExtra.swift); sonst Englisch
         guard let row = table[key] else { return key }
-        let fallback = (lang == "fi" || lang == "nl" || lang == "cs") ? (row["en"] ?? row["de"]) : row["de"]
+        // Overlay-Sprachen fallen auf Englisch zurück (nicht Deutsch), wenn ein Key im Overlay fehlt.
+        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id"]
+        let fallback = overlayLangs.contains(lang) ? (row["en"] ?? row["de"]) : row["de"]
         return row[lang] ?? fallback ?? row["en"] ?? key
     }
 

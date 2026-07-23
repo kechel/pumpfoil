@@ -5,8 +5,18 @@ import Foundation
 // Reine Einheiten (km/h, bpm, m) bleiben unlokalisiert.
 enum WLoc {
     static func t(_ key: String, _ lang: String) -> String {
+        // Overlay-Sprachen (pt/ja/zh/ru/id) — Übersetzungen in WLocExtra.swift; fehlender Key -> Englisch.
+        switch lang {
+        case "pt": if let v = wPtOverlay[key] { return v }
+        case "ja": if let v = wJaOverlay[key] { return v }
+        case "zh": if let v = wZhOverlay[key] { return v }
+        case "ru": if let v = wRuOverlay[key] { return v }
+        case "id": if let v = wIdOverlay[key] { return v }
+        default: break
+        }
         guard let row = table[key] else { return key }
         if let v = row[lang] { return v }
+        if ["pt", "ja", "zh", "ru", "id"].contains(lang) { return row["en"] ?? row["de"] ?? key }
         // Profil-Sprache kann die Uhr nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die
         // GERÄTE-SYSTEMSPRACHE; sonst Englisch.
         return row[sysLang()] ?? row["en"] ?? row["de"] ?? key
