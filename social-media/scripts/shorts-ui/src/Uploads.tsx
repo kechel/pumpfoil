@@ -1,0 +1,154 @@
+import { useCallback, useEffect, useState } from "react";
+import { api, Captions, ExportItem } from "./api";
+import { Icon } from "./icons";
+
+const LANG_LABELS: Record<string, string> = {
+  de: "🇩🇪 Deutsch", gsw: "🇨🇭 Schwiizerdütsch", "de-AT": "🇦🇹 Österreichisch",
+  en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano", es: "🇪🇸 Español",
+  fi: "🇫🇮 Suomi", nl: "🇳🇱 Nederlands", cs: "🇨🇿 Čeština",
+};
+
+function CopyBtn({ text }: { text: string }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <button
+      className="mini"
+      onClick={() => {
+        void navigator.clipboard.writeText(text);
+        setOk(true);
+        setTimeout(() => setOk(false), 1200);
+      }}
+    >
+      <Icon name="copy" size={11} /> {ok ? "kopiert!" : "kopieren"}
+    </button>
+  );
+}
+
+function ExportCard({ exp, onChanged }: { exp: ExportItem; onChanged: (list: ExportItem[]) => void }) {
+  const [showCaps, setShowCaps] = useState(false);
+  const [title, setTitle] = useState(() =>
+    exp.name.replace(/\.mp4$/, "").replace(/^\d+-/, "").replace(/^Pumpfoil-\d+-/i, "").replace(/-/g, " "),
+  );
+  const [caps, setCaps] = useState<Captions | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const thumbPf = exp.platforms.includes("tiktok") ? "tiktok" : exp.platforms[0];
+
+  const discard = useCallback(async () => {
+    if (!confirm(`Export "${exp.name}" verwerfen?\nLöscht die ${exp.platforms.length} gerenderten Dateien` +
+        (exp.source ? ` und verschiebt das Quellvideo zurück nach neue-videos-ungesichtet.` : `.`)))
+      return;
+    const d = await api.post<{ exports: ExportItem[]; error?: string }>("/api/discard_export", { name: exp.name });
+    if (d.error) setErr(d.error);
+    else onChanged(d.exports);
+  }, [exp, onChanged]);
+
+  const generate = useCallback(async () => {
+    setBusy(true);
+    setErr("");
+    setCaps(null);
+    try {
+      const d = await api.post<Captions & { error?: string }>("/api/captions", { title });
+      if (d.error) setErr(d.error);
+      else setCaps(d);
+    } catch (e) {
+      setErr(String(e));
+    }
+    setBusy(false);
+  }, [title]);
+
+  const ytTitlesText = caps
+    ? Object.entries(caps.titles).map(([l, t]) => `${l}: ${t}`).join("\n")
+    : "";
+
+  return (
+    <div className="exp">
+      <img className="thumb" alt="" loading="lazy"
+        src={`/thumb/${encodeURIComponent(exp.name)}?t=1&base=out:${thumbPf}`}
+        onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
+      />
+      <div className="body">
+        <div className="title">{exp.name.replace(/\.mp4$/, "")}</div>
+        <div className="meta">
+          {new Date(exp.mtime * 1000).toLocaleString("de-DE")} ·{" "}
+          {exp.platforms.map((p) => (p === "youtube" ? "YT" : p === "instagram" ? "IG" : "TT")).join(" + ")}
+          {exp.source ? ` · Quelle: ${exp.source}` : " · Quelle nicht gefunden"}
+        </div>
+        <div className="btns">
+          <button className="btn" onClick={() => setShowCaps((s) => !s)}>
+            <Icon name="wand" size={13} /> Titel &amp; Captions
+          </button>
+          <button className="btn" onClick={() => void api.post("/api/reveal", { name: exp.name })}>
+            <Icon name="folder" size={13} /> Im Finder zeigen
+          </button>
+          <button className="btn" onClick={() => void discard()}>
+            <Icon name="trash" size={13} /> Verwerfen
+          </button>
+        </div>
+        {showCaps && (
+          <div className="caps">
+            <div className="genrow">
+              <input
+                value={title}
+                spellCheck={false}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Arbeitstitel / worum geht's im Video?"
+              />
+              <button className="btn primary" disabled={busy || !title.trim()} onClick={() => void generate()}>
+                {busy ? <span className="spin" /> : "Generieren"}
+              </button>
+            </div>
+            {busy && <div style={{ fontSize: 12, opacity: 0.6 }}>Claude formuliert Titel in 10 Sprachen + Captions … (~30–60 s)</div>}
+            {err && <div className="log">{err}</div>}
+            {caps && (
+              <>
+                <div className="capblock">
+                  <div className="caphead">YouTube-Titel (Lokalisierungen) <CopyBtn text={ytTitlesText} /></div>
+                  <pre>
+                    {Object.entries(caps.titles).map(([l, t]) => (
+                      <div key={l}>
+                        <b>{LANG_LABELS[l] ?? l}:</b> {t} <CopyBtn text={t} />
+                      </div>
+                    ))}
+                  </pre>
+                </div>
+                <div className="capblock">
+                  <div className="caphead">YouTube-Beschreibung <CopyBtn text={caps.yt_description} /></div>
+                  <pre>{caps.yt_description}</pre>
+                </div>
+                <div className="capblock">
+                  <div className="caphead">Instagram-Caption <CopyBtn text={caps.instagram} /></div>
+                  <pre>{caps.instagram}</pre>
+                </div>
+                <div className="capblock">
+                  <div className="caphead">TikTok-Caption <CopyBtn text={caps.tiktok} /></div>
+                  <pre>{caps.tiktok}</pre>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function Uploads() {
+  const [exports, setExports] = useState<ExportItem[] | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/exports").then(async (r) => setExports((await r.json()).exports));
+  }, []);
+
+  if (!exports) return <div className="uploads">lade …</div>;
+  return (
+    <div className="uploads">
+      <h1>Fertige Exporte ({exports.length})</h1>
+      {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
+      {exports.map((e) => (
+        <ExportCard key={e.name} exp={e} onChanged={setExports} />
+      ))}
+    </div>
+  );
+}
