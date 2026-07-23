@@ -401,6 +401,7 @@ export default function SessionDetail() {
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
   const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
+  const [playStarted, setPlayStarted] = useState(false); // Controls (Tempo/Timeline/…) erst nach dem 1. Play
   // Live-Werte beim Abspielen (für coole Videos): aktuelles Tempo (km/h) + Strecke (m) des Laufs.
   const [readout, setReadout] = useState<{ v: number; d: number } | null>(null);
   const [showReadout, setShowReadout] = useState(true);   // Overlay rechts oben ein/aus
@@ -645,7 +646,7 @@ export default function SessionDetail() {
 
   // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
   useEffect(() => {
-    playheadRef.current = 0; setProgress(0); setPlaying(false); setPlayMode(false);
+    playheadRef.current = 0; setProgress(0); setPlaying(false); setPlayMode(false); setPlayStarted(false);
   }, [playTimeline]);
 
   // Beim Abspielen der GANZEN Session: welcher Lauf läuft gerade? (fürs Ring-Highlight unten).
@@ -660,6 +661,7 @@ export default function SessionDetail() {
 
   const togglePlay = () => {
     if (playTimeline.length < 2) return;
+    setPlayStarted(true);   // ab jetzt Tempo/Timeline/Werte-Controls zeigen
     if (!playMode) {
       if (playheadRef.current >= playTimeline.length - 1) { playheadRef.current = 0; setProgress(0); }
       setPlayMode(true); setPlaying(true); return;
@@ -1387,9 +1389,9 @@ export default function SessionDetail() {
                 <span className="inline-block h-2.5 w-16 rounded" style={{ background: "linear-gradient(90deg,#22c55e,#eab308,#dc2626)" }} />
                 0,1–0,6 g Lage
               </span>
-              <span className="font-bold text-slate-100">90–180°: {carveData?.counts.s ?? 0}</span>
-              <span className="font-bold text-slate-100">180–360°: {carveData?.counts.m ?? 0}</span>
-              <span className="font-bold text-slate-100">&gt;360°: {carveData?.counts.l ?? 0}</span>
+              <span className={carveData?.counts.s ? "font-bold text-slate-100" : "text-slate-500"}>90–180°: {carveData?.counts.s ?? 0}</span>
+              <span className={carveData?.counts.m ? "font-bold text-slate-100" : "text-slate-500"}>180–360°: {carveData?.counts.m ?? 0}</span>
+              <span className={carveData?.counts.l ? "font-bold text-slate-100" : "text-slate-500"}>&gt;360°: {carveData?.counts.l ?? 0}</span>
             </span>
           ) : (
             <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
@@ -1429,53 +1431,12 @@ export default function SessionDetail() {
                 ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
                 : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
             </button>
-            {playMode && (
-              <button
-                onClick={stopPlay}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-sm text-slate-200 hover:bg-slate-700"
-                title={t("sd.stop")}
-              >
-                <span className="inline-block h-3 w-3 bg-current" /> {t("sd.stop")}
-              </button>
-            )}
-            <span className="ml-1 text-xs text-slate-400">{t("sd.playSpeed")}</span>
-            {[1, 2, 4, 8, 16].map((mul) => (
-              <button
-                key={mul}
-                onClick={() => setPlayMul(mul)}
-                className={`rounded-lg px-2 py-1 text-xs ${playMul === mul ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
-              >
-                {mul}×
-              </button>
-            ))}
-            <span className="text-xs tabular-nums text-slate-400">
-              {selectedRun != null ? t("sd.playRun") : t("sd.playWhole")}
-            </span>
-            <button
-              onClick={() => setShowReadout((v) => !v)}
-              className={`rounded-lg px-2 py-1 text-xs ${showReadout ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
-              title={t("sd.roToggle")}
-            >
-              {t("sd.roToggle")}
-            </button>
-            <div className="flex min-w-[120px] flex-1 items-center gap-2">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
-                <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />
-              </div>
-              <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
-                {fmtMMSS(progress * (playTimeline.length - 1))} / {fmtMMSS(playTimeline.length - 1)}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* 4. Labeln (Pump-Marken + Label-Interface) — nur am PC, auf dem Handy komplett ausgeblendet. */}
-        <div className="hidden md:block">
-          <div className={`flex items-center gap-2 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>
+            {/* Pumps taggen + Label: PC-only, gleiche Höhe wie Abspielen, in derselben Zeile
+                (spart eine Zeile, solange die Play-Controls noch nicht eingeblendet sind). */}
             {playTimeline.length >= 2 && (owned || isAdmin) && (
               <button
                 onClick={() => { setTagMode((v) => !v); setTapSaved(""); }}
-                className={`rounded-xl px-3 py-2 text-sm ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
+                className={`hidden items-center rounded-lg px-3 py-1 text-sm md:inline-flex ${tagMode ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-100 hover:bg-slate-700"}`}
                 title={t("sd.tapModeTitle")}
               >
                 {tagMode ? t("sd.tapModeOn") : t("sd.tapMode")}
@@ -1484,12 +1445,59 @@ export default function SessionDetail() {
             {!fullscreen && owned && (
               <Link
                 to={`/sessions/${session.id}/label`}
-                className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700"
+                className="hidden items-center rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100 hover:bg-slate-700 md:inline-flex"
               >
                 {t("sd.label")}
               </Link>
             )}
+            {/* Controls erst nach dem ersten Abspielen-Klick — vorher braucht man sie nicht. */}
+            {playStarted && (
+              <>
+                {playMode && (
+                  <button
+                    onClick={stopPlay}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1 text-sm text-slate-200 hover:bg-slate-700"
+                    title={t("sd.stop")}
+                  >
+                    <span className="inline-block h-3 w-3 bg-current" /> {t("sd.stop")}
+                  </button>
+                )}
+                <span className="ml-1 text-xs text-slate-400">{t("sd.playSpeed")}</span>
+                {[1, 2, 4, 8, 16].map((mul) => (
+                  <button
+                    key={mul}
+                    onClick={() => setPlayMul(mul)}
+                    className={`rounded-lg px-2 py-1 text-xs ${playMul === mul ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
+                  >
+                    {mul}×
+                  </button>
+                ))}
+                <span className="text-xs tabular-nums text-slate-400">
+                  {selectedRun != null ? t("sd.playRun") : t("sd.playWhole")}
+                </span>
+                <button
+                  onClick={() => setShowReadout((v) => !v)}
+                  className={`rounded-lg px-2 py-1 text-xs ${showReadout ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+                  title={t("sd.roToggle")}
+                >
+                  {t("sd.roToggle")}
+                </button>
+                <div className="flex min-w-[120px] flex-1 items-center gap-2">
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
+                    <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />
+                  </div>
+                  <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
+                    {fmtMMSS(progress * (playTimeline.length - 1))} / {fmtMMSS(playTimeline.length - 1)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
+        )}
+
+        {/* 4. Labeln (Pump-Marken) — nur am PC. Der Umschalter „Pumps taggen" + „Label" sitzt
+            oben neben „Abspielen"; hier nur noch die Tap-Steuerung im Tag-Modus. */}
+        <div className="hidden md:block">
 
           {/* Tap-to-Label: Steuerung — nur im Tag-Modus. */}
           {playTimeline.length >= 2 && (owned || isAdmin) && tagMode && (
