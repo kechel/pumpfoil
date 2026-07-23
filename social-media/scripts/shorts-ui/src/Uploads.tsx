@@ -2,11 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
 
+// Zusatz = deutsche Sprachbezeichnung, wie sie im YT Studio auszuwählen ist
 const LANG_LABELS: Record<string, string> = {
-  de: "🇩🇪 Deutsch", en: "🇬🇧 English", fr: "🇫🇷 Français", it: "🇮🇹 Italiano",
-  es: "🇪🇸 Español", fi: "🇫🇮 Suomi", nl: "🇳🇱 Nederlands", cs: "🇨🇿 Čeština",
-  pt: "🇧🇷 Português", ja: "🇯🇵 日本語", zh: "🇨🇳 中文", ru: "🇷🇺 Русский",
-  id: "🇮🇩 Bahasa Indonesia",
+  de: "🇩🇪 Deutsch",
+  en: "🇬🇧 Englisch",
+  fr: "🇫🇷 Französisch",
+  it: "🇮🇹 Italienisch",
+  es: "🇪🇸 Spanisch",
+  fi: "🇫🇮 Finnisch",
+  nl: "🇳🇱 Niederländisch",
+  cs: "🇨🇿 Tschechisch",
+  pt: "🇧🇷 Portugiesisch (Brasilien)",
+  ja: "🇯🇵 Japanisch",
+  zh: "🇨🇳 Chinesisch (vereinfacht)",
+  ru: "🇷🇺 Russisch",
+  id: "🇮🇩 Indonesisch",
 };
 
 function CopyBtn({ text }: { text: string }) {
