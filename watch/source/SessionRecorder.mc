@@ -25,8 +25,12 @@ class SessionRecorder {
     const ACCEL_HZ = 25;
     const ACCEL_HZ_LITE = 10;   // sparsamer Modus für speicherarme Uhren (z. B. Forerunner 55)
     const ACCEL_SCALE = 2048;        // int16 pro 1 g
-    const ACCEL_CHUNK_SAMPLES = 750; // 30 s -> ~6 KB base64
-    const GPS_CHUNK_SAMPLES = 60;    // 60 s
+    // Größere Chunks = weniger BLE-Round-Trips = schnellerer Upload (Garmin lädt sequenziell
+    // über die Handy-Bridge). 60 s Accel -> ~12 KB base64/Chunk. TEST: falls makeWebRequest die
+    // größere Payload auf echten Uhren zuverlässig schluckt, hier bleiben; sonst zurück auf 750.
+    // Bestehende Retries/Reconnect (3/10/30 s) fangen BT-Aussetzer weiterhin ab.
+    const ACCEL_CHUNK_SAMPLES = 1500; // 60 s -> ~12 KB base64
+    const GPS_CHUNK_SAMPLES = 120;    // 120 s (klein, halbiert die GPS-Round-Trips)
     const SPEED_AVG_SAMPLES = 3;     // 3-s-Geschwindigkeit
 
     hidden var _fitSession;
