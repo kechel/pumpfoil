@@ -9,7 +9,7 @@ import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
-import { invalidateSessionListCache } from "./Sessions";
+import { invalidateSessionListCache, ProcessingNote } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
@@ -579,6 +579,16 @@ export default function SessionDetail() {
     });
     return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, [id, session?.place_name]);
+
+  // GPS-first-Upload: solange nur GPS da ist (status "live", Accel lädt noch), still nachpollen
+  // und die fertige Version übernehmen -> Läufe/Längen/Pumps aktualisieren sich automatisch.
+  useEffect(() => {
+    if (isPublic || !session || session.owned === false || session.status !== "live") return;
+    const iv = setInterval(() => {
+      api.session(Number(id)).then(setSession).catch(() => {});
+    }, 4000);
+    return () => clearInterval(iv);
+  }, [isPublic, session, id]);
 
   // HR-Bereich der Foiling-Punkte (für die Puls-Farbskala).
   const hrRange = useMemo<[number, number]>(() => {
@@ -1235,7 +1245,9 @@ export default function SessionDetail() {
         />
       </div>
 
-      {m?.detection === "gps_only" && (
+      {/* Zwischenzustand (GPS da, Accel lädt noch): Prozess-Notiz statt der GPS-only-Warnung. */}
+      {owned && session.status === "live" && <div className="mb-4"><ProcessingNote /></div>}
+      {m?.detection === "gps_only" && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           {m.accel_hz_effective != null && m.accel_hz_effective > 0
             ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })

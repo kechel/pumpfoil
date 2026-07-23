@@ -1,4 +1,5 @@
 const en: Record<string, string> = {
+  "session.loadingAccel": "Uploading acceleration data – runs, lengths and pumps will update shortly.",
   "watchStats.title": "Watch stats",
   "watchStats.hint": "Which numbers are ridden with which watch — community aggregate per model.",
   "watchStats.none": "No data yet.",

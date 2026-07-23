@@ -271,6 +271,20 @@ function SpotChatToggle({ spot, t }: { spot: string; t: (k: string) => string })
 
 // --- Eigene Sessions (mit Monats-/Sportart-Filter) --------------------------
 
+// Eigene Session im Zwischenzustand: GPS ist schon da (status "live"), Accel lädt noch hoch.
+// Liste/Detail pollen und ersetzen sie automatisch durch die fertige Version.
+const isInterim = (s: SessionSummary) => (s.owned ?? true) && s.status === "live";
+
+export function ProcessingNote() {
+  const t = useT();
+  return (
+    <div className="mt-2 flex items-center gap-2 rounded-lg bg-brand-500/10 px-2.5 py-1.5 text-xs text-slate-700 dark:text-brand-200">
+      <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-brand-400/40 border-t-brand-400" />
+      {t("session.loadingAccel")}
+    </div>
+  );
+}
+
 function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnly: boolean }) {
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
@@ -393,6 +407,19 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
     }
   }, [items]);
 
+  // Auto-Refresh, solange eine eigene Session noch im Upload/Analyse-Zwischenzustand ist:
+  // erste Seite still nachladen und die betroffenen Karten in-place durch die fertige Version
+  // ersetzen (Läufe/Längen/Pumps „snappen" nach). Läuft nur, wenn wirklich eine „live" ist.
+  useEffect(() => {
+    if (!items.some(isInterim)) return;
+    const iv = setInterval(() => {
+      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current })
+        .then((fresh) => setItems((prev) => prev.map((p) => fresh.find((f) => f.id === p.id) ?? p)))
+        .catch(() => {});
+    }, 4000);
+    return () => clearInterval(iv);
+  }, [items]);
+
   function changeMonth(v: string) {
     setMonth(v); monthRef.current = v; hasMoreRef.current = true; offsetRef.current = 0;
     listCache.delete(cacheKey());
@@ -465,7 +492,12 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               liked0={!!s.liked}
               trackPreview={s.track_preview}
               highlight={s.id === lastViewed}
-              stats={s.analysis && <SessionStats a={s.analysis} />}
+              stats={
+                <>
+                  {s.analysis && <SessionStats a={s.analysis} />}
+                  {isInterim(s) && <ProcessingNote />}
+                </>
+              }
               statusBadge={(s.transfer_to || s.status !== "analyzed") ? (
                 <div className="flex items-center gap-1.5">
                   {s.transfer_to && (

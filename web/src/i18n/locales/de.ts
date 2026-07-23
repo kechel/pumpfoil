@@ -1,6 +1,7 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "session.loadingAccel": "Beschleunigungsdaten werden hochgeladen – Läufe, Längen und Pumps aktualisieren sich gleich.",
   "watchStats.title": "Uhren-Statistik",
   "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell.",
   "watchStats.none": "Noch keine Daten.",
