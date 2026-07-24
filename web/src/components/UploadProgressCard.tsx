@@ -40,12 +40,10 @@ export function UploadProgressCard() {
 
   if (!rows || rows.length === 0) return null;
 
-  const drop = (id: number) => setRows((cur) => (cur ? cur.filter((x) => x.id !== id) : cur));
-
   return (
     <div className="mb-4 space-y-2">
       {rows.map((s) => (
-        <UploadRow key={s.id} s={s} t={t} onDone={drop} />
+        <UploadRow key={s.id} s={s} t={t} />
       ))}
     </div>
   );
@@ -54,11 +52,9 @@ export function UploadProgressCard() {
 function UploadRow({
   s,
   t,
-  onDone,
 }: {
   s: InProgressSession;
   t: ReturnType<typeof useT>;
-  onDone: (id: number) => void;
 }) {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
