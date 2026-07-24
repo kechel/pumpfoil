@@ -20,8 +20,9 @@ interface TextSlot {
 const emptyTexts = (): TextSlot[] =>
   Array.from({ length: TXN }, () => ({ start: null, text: "", hold: TXH }));
 
-type Sel = { youtube: string | null; instagram: string | null };
+type Sel = { youtube: string | null; instagram: string | null; tiktok: string | null };
 type PvPlatform = "youtube" | "instagram" | "tiktok";
+const PF_SHORT: Record<PvPlatform, string> = { youtube: "YT", instagram: "IG", tiktok: "TT" };
 
 const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
   youtube: [
@@ -86,7 +87,7 @@ function Studio() {
   const [curVideo, setCurVideo] = useState<string | null>(sv("curVideo", null));
   const [curPlay, setCurPlay] = useState<string | null>(null);
   const [renderingVideo, setRenderingVideo] = useState<string | null>(null);
-  const [sel, setSel] = useState<Sel>(sv("sel", { youtube: null, instagram: null }));
+  const [sel, setSel] = useState<Sel>({ youtube: null, instagram: null, tiktok: null, ...sv("sel", {}) });
   const [pvPlatform, setPvPlatform] = useState<PvPlatform>(sv("pvPlatform", "youtube"));
   const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
   const [texts, setTexts] = useState<TextSlot[]>(sv("texts", emptyTexts()));
@@ -99,15 +100,16 @@ function Studio() {
   const [outroOn, setOutroOn] = useState(sv("outroOn", true));
   const [fltYT, setFltYT] = useState(sv("fltYT", true));
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
+  const [fltTT, setFltTT] = useState(sv("fltTT", true));
   const [search, setSearch] = useState("");
 
   // bei jeder Änderung speichern
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, fade,
-      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG,
+      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -284,7 +286,8 @@ function Studio() {
     const gap = 54;
     const total = items.length * size + (items.length - 1) * gap;
     let x = (w - total) / 2;
-    const y = h * 0.68;
+    // YT: unteres Drittel wie gehabt; IG/TikTok: exakt mittig (Safe-Space)
+    const y = pf === "youtube" ? h * 0.68 : h / 2 - size / 2;
     g.strokeStyle = "#fff";
     g.shadowColor = "rgba(0,0,0,0.7)";
     g.shadowBlur = 8;
@@ -407,8 +410,10 @@ function Studio() {
       setPvPlatform(pf);
       outroCacheRef.current = { key: "", url: "" };
       const vid = vidRef.current;
-      if (pf === "tiktok" || !sel[pf as "youtube" | "instagram"]) {
+      const rel = sel[pf];
+      if (!rel) {
         stopMusic();
+        // TikTok ohne Track = O-Ton pur → Video trotzdem abspielen
         if (pf === "tiktok" && vid?.src) {
           allowPlayRef.current = 0;
           window.clearTimeout(playTimerRef.current);
@@ -418,33 +423,27 @@ function Studio() {
         }
         return;
       }
-      const rel = sel[pf as "youtube" | "instagram"]!;
       const track = state?.tracks.find((t) => t.rel === rel);
       if (track) togglePlay(track);
     },
     [sel, state, stopMusic, togglePlay, trim.start],
   );
 
-  const selectTrack = useCallback((pf: "youtube" | "instagram", rel: string) => {
+  const selectTrack = useCallback((pf: PvPlatform, rel: string) => {
     setSel((s) => {
       const selecting = s[pf] !== rel;
       if (selecting) {
-        if (pf === "youtube") setFltYT(false);
-        else setFltIG(false);
-        setFltYT((y) => {
-          setFltIG((g) => {
-            if (!y && !g) {
-              setFltYT(true);
-              return true;
-            }
-            return g;
-          });
-          return y;
-        });
+        // Filter der zugewiesenen Plattform ausblenden; alle aus → alle wieder an
+        const flt = { youtube: fltYT, instagram: fltIG, tiktok: fltTT, [pf]: false };
+        if (!flt.youtube && !flt.instagram && !flt.tiktok) {
+          setFltYT(true); setFltIG(true); setFltTT(true);
+        } else {
+          setFltYT(flt.youtube); setFltIG(flt.instagram); setFltTT(flt.tiktok);
+        }
       }
       return { ...s, [pf]: selecting ? rel : null };
     });
-  }, []);
+  }, [fltYT, fltIG, fltTT]);
 
   const effLen = useCallback((): number | null => {
     const vid = vidRef.current;
@@ -456,7 +455,8 @@ function Studio() {
   const resetAll = useCallback(() => {
     if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
     localStorage.removeItem(SETTINGS_KEY);
-    setSel({ youtube: null, instagram: null });
+    setSel({ youtube: null, instagram: null, tiktok: null });
+    setFltTT(true);
     setPvPlatform("youtube");
     setTrim({ start: null, end: null });
     setTexts(emptyTexts());
@@ -538,7 +538,8 @@ function Studio() {
   const want: string[] = [];
   if (fltYT) want.push("youtube");
   if (fltIG) want.push("instagram");
-  const isSel = (t: Track) => sel.youtube === t.rel || sel.instagram === t.rel;
+  if (fltTT) want.push("tiktok");
+  const isSel = (t: Track) => sel.youtube === t.rel || sel.instagram === t.rel || sel.tiktok === t.rel;
   const tooShort = (t: Track) => !!(t.dur && len && t.dur < len - 0.5);
   const selTracks = state.tracks.filter(isSel);
   const listTracks = state.tracks.filter(
@@ -550,9 +551,8 @@ function Studio() {
   );
   const isStarred = !!(curVideo && starred.has(curVideo));
   const pvTrackName =
-    pvPlatform === "tiktok"
-      ? "O-Ton, ohne Musik"
-      : (sel[pvPlatform]?.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "–");
+    sel[pvPlatform]?.split("/").pop()?.replace(/\.[^.]+$/, "")
+    ?? (pvPlatform === "tiktok" ? "O-Ton, ohne Musik" : "–");
 
   const trackRow = (t: Track) => (
     <div key={t.rel} className={`item trk ${curPlay === t.rel ? "playing" : ""}`}>
@@ -570,10 +570,13 @@ function Studio() {
       {t.platforms.map((pf) => (
         <button
           key={pf}
-          className={`mini ${sel[pf as "youtube" | "instagram"] === t.rel ? "sel" : ""}`}
-          onClick={() => selectTrack(pf as "youtube" | "instagram", t.rel)}
+          className={`mini ${sel[pf as PvPlatform] === t.rel ? "sel" : ""}`}
+          title={pf === "youtube" && t.folder !== "youtube"
+            ? "Achtung: freie Musik kann auf YouTube Content-ID-Ansprüche auslösen"
+            : ""}
+          onClick={() => selectTrack(pf as PvPlatform, t.rel)}
         >
-          {pf === "youtube" ? "YT" : "IG"}
+          {PF_SHORT[pf as PvPlatform] ?? pf}
         </button>
       ))}
     </div>
@@ -879,6 +882,9 @@ function Studio() {
           </label>
           <label>
             <input type="checkbox" checked={fltIG} onChange={(e) => setFltIG(e.target.checked)} /> IG
+          </label>
+          <label>
+            <input type="checkbox" checked={fltTT} onChange={(e) => setFltTT(e.target.checked)} /> TT
           </label>
         </div>
         <div className="scroll">

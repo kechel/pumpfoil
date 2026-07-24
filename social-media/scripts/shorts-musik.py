@@ -308,12 +308,14 @@ def next_number():
 
 
 def track_platforms(rel: Path):
-    # YouTube nur mit Tracks aus der YT Audio Library (musik/youtube/) —
-    # Pixabay & Co. lösen dort Content-ID-Sperren aus. Rest → nur Instagram.
+    # Lizenz-Ordner sind hart plattformgebunden; freie Musik (Pixabay, CC …)
+    # ist überall erlaubt — auf YouTube mit Content-ID-Restrisiko (UI warnt).
     top = rel.parts[0] if len(rel.parts) > 1 else ""
     if top == "youtube":
         return ["youtube"]
-    return ["instagram"]
+    if top == "instagram":
+        return ["instagram"]
+    return ["youtube", "instagram", "tiktok"]
 
 
 def list_state():
