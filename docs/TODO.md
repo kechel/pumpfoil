@@ -125,8 +125,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   is_pumpfoil=True. Ziel: prominente Karte GANZ OBEN auf Home + Sessions „Session lädt hoch — GPS ✓,
   N Chunks" mit früher Vorschau, sobald GPS da ist (das interessiert den Nutzer am meisten). Phasen:
   **(1) ✅ erledigt 2026-07-24:** `GET /api/sessions/in-progress` (recording/live des Users, 48h,
-  upload_received/total, gps/accel_received, has_gps). **(2) offen:** Web-UI Home+Sessions-Karte
-  (poll, Balken/„lädt hoch", GPS-Vorschau). **(3) offen (Upload-Pfad, Gerätetest):** Clients senden
+  upload_received/total, gps/accel_received, has_gps). **(2) ✅ Web + Android + iOS** (2026-07-24): UploadProgressCard
+  auf Home (PersonalHome) + Sessions, Poll 4s/20s, GPS ✓/Chunks/Balken/Stall-Hinweis, Klick→Detail;
+  Detail-Screen pollt bei recording/live → 4a lädt seamless nach. NICHT in Community. Offen: Versionen
+  bumpen vor Release (aktuell Phone 1.1.14 / Wear 1.2.15 / iOS 1.1.16 / Garmin 1.0.62); iOS Xcode-Build
+  durch Jan; native fr/it/es/gsw ok, übrige Sprachen via en-Fallback (Muttersprachler-Review optional). **(3) offen (Upload-Pfad, Gerätetest):** Clients senden
   `expected_chunks` beim /session-Start → exakter %-Balken. **(4) ✅ 4a/4b/4c umgesetzt+deployed 2026-07-24
   (server+web, Gerätetest für den Uhr-seitigen Nachzügler-Fall noch offen).** Kernidee: nichts setzt
   eine In-Progress-Session mehr HART auf complete/analyzed → Uhr wirft nichts weg, späte Accel-Daten
