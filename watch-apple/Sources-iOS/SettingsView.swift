@@ -46,6 +46,7 @@ struct SettingsView: View {
                     Picker(Loc.t("account.activityType", lang), selection: $activityType) {
                         Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
                         Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
+                        Text(Loc.t("account.activityPumpfoil", lang)).tag("pumpfoil")
                     }
                 } header: { Text(Loc.t("account.activityType", lang)) }
                 footer: { Text(Loc.t("account.activityTypeHint", lang)) }

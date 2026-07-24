@@ -443,10 +443,14 @@ struct GroupCardView: View {
             }
             .buttonStyle(.plain)
             if open {
-                ForEach(group.sessions) { c in
-                    NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
-                        .padding(.leading, 8)
+                Divider().padding(.top, 10)
+                VStack(spacing: 14) {
+                    ForEach(group.sessions) { c in
+                        NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
+                    }
                 }
+                .padding(.top, 12)
+                .padding(.leading, 8)
             }
         }
     }

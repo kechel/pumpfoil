@@ -376,7 +376,10 @@ struct CommunityRow: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 12) {
-                avatar
+                VStack(spacing: 6) {   // Like unter dem Avatar (wie PWA), nicht in eigener Zeile rechts
+                    avatar
+                    LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
+                }
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.name ?? dateText).font(.headline)
                     if item.name != nil { Text(dateText).font(.caption).foregroundStyle(.secondary) }
@@ -417,10 +420,6 @@ struct CommunityRow: View {
                 }
             }
             if let stats = statsText { Text(stats).font(.caption).lineLimit(1) }
-            HStack {
-                Spacer()
-                LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
-            }
         }
         .padding(.vertical, 4)
     }
