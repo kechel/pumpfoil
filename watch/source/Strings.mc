@@ -2,11 +2,15 @@ using Toybox.Lang;
 using Toybox.System;
 
 // On-Device-Lokalisierung des Garmin-Recorders nach Profil-Sprache (vom Server
-// via /api/devices/config geliefert, in Storage "lang" gecacht). Fallback: de.
+// via /api/devices/config geliefert, in Storage "lang" gecacht).
+// SPRACH-FALLBACK (setLang): unbekannte/nicht direkt unterstützte Sprache -> GERÄTE-
+// SYSTEMSPRACHE, sonst Englisch (NICHT hart Deutsch). Nur der Pro-STRING-Fallback in s()
+// greift auf die de-Spalte zurück, weil die als Quelle immer vollständig gefüllt ist.
 // Reine Einheiten (km/h, bpm, °C, m) bleiben unlokalisiert; nur Wörter werden übersetzt.
 // Hinweis: ja/zh sind NICHT dabei — die Built-in-Fonts der fēnix/Forerunner haben keine
 // CJK-Glyphen (würde Tofu-Boxen zeigen). pt/id (Latein) + ru (Kyrillisch, in den meisten
-// Built-in-Fonts vorhanden) sind dagegen darstellbar.
+// Built-in-Fonts vorhanden) sind dagegen darstellbar. nl/fi/cs (Latein) FEHLEN noch als
+// Spalten -> solche Profile bekommen aktuell System-/Englisch (offen: docs/TODO.md).
 module Strings {
 
     // Sprachreihenfolge der Tabellen-Spalten.
