@@ -115,8 +115,12 @@ class RecordView extends WatchUi.View {
         var n = active.size();
         if (n == 0) { n = 1; active = [Config.FIELD_SPEED3S]; }
 
+        // Felder in einem sicheren Band statt über die volle Höhe: hält die oberen/unteren
+        // Felder vom runden Display-Rand (und von REC-Zeile oben / Seiten-Punkten unten) weg.
+        var top = h * 0.13;
+        var band = h * 0.74;
         for (var i = 0; i < n; i++) {
-            var cy = h * (i + 0.5) / n;
+            var cy = top + band * (i + 0.5) / n;
             _drawField(dc, active[i], w / 2, cy, n);
         }
 
@@ -350,7 +354,10 @@ class RecordView extends WatchUi.View {
         var font = (n >= 3) ? Graphics.FONT_NUMBER_MEDIUM : Graphics.FONT_NUMBER_HOT;
         dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy + 28, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_CENTER);
+        // Beschriftung größer + lesbarer (Tom-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
+        // FONT_XTINY.
+        var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;
+        dc.drawText(cx, cy + 30, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
