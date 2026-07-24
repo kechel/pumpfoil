@@ -108,6 +108,7 @@ class SessionRecorder {
     // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
     var pairCode = "";                // auf der Uhr angezeigter Code
     var pairStatus = "";              // Status-Text auf dem Verbinden-Screen
+    var pairing = false;              // Re-Pair-Versuch läuft -> PairView zeigt Status/Fehler (auch wenn noch gepairt)
     hidden var _claimToken = "";
     hidden var _pairPollCtr = 0;
 
@@ -251,9 +252,16 @@ class SessionRecorder {
     // Token bleibt aktiv, bis ein neues Pairing tatsächlich durchläuft (onPairPoll) — back-out
     // ohne Eingabe lässt die bestehende Verknüpfung also unangetastet.
     function startPairing() {
+        pairing = true;
         pairCode = "";
         _claimToken = "";
         _pairPollCtr = 0;
+        // Ohne Telefon-/Netz-Verbindung kann kein Code erzeugt werden -> sofort klar melden
+        // (sonst „passiert nichts": makeWebRequest liefert nur still einen negativen Code).
+        if (!System.getDeviceSettings().phoneConnected) {
+            pairStatus = Strings.s("pair.noConn");
+            return;
+        }
         pairStatus = Strings.s("pair.fetching");
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/pair-init",
@@ -293,6 +301,7 @@ class SessionRecorder {
             Config.setString("deviceToken", data["device_token"]);
             _claimToken = "";
             pairCode = "";
+            pairing = false;
             pairStatus = Strings.s("pair.done");
             fetchConfig();      // Website-Einstellungen jetzt laden
             Uploader.syncAll(); // ggf. vor dem Pairing aufgenommene Sessions nachschicken

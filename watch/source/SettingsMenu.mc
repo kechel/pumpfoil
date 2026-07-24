@@ -31,6 +31,7 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
         var id = item.getId();
         if (id == :verbinden) {
             if (!_rec.isPaired()) { _rec.startPairing(); }
+            else { _rec.pairing = false; }   // gepairt geöffnet -> Verbunden-Screen (kein stale Pair-Status)
             WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
         } else if (id == :upload) {
             WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);

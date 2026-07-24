@@ -34,6 +34,15 @@ class PairView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, Strings.s("pair.enterThere"), Graphics.TEXT_JUSTIFY_CENTER);
+        } else if (_rec.pairing) {
+            // Re-Pair-Versuch läuft (oder ist gescheitert): Status/Fehler zeigen — auch wenn noch
+            // ein gültiges Pairing besteht. Sonst „passiert nichts" bei ENTER ohne Verbindung.
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.36, Graphics.FONT_MEDIUM, Strings.s("menu.connect"), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            var pmsg = _rec.pairStatus.equals("") ? Strings.s("pair.fetching") : _rec.pairStatus;
+            dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, pmsg, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, Strings.s("pair.repairHint"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (_rec.isPaired()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, Strings.s("menu.connected"), Graphics.TEXT_JUSTIFY_CENTER);
