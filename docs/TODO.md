@@ -131,7 +131,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   (Scope.ALL) und gruppiert bereits (beide Apps rufen `sessions-grouped`). OFFEN:
   (a) **Uploader GPS-first Client-Reorder** — ✅ **Garmin erledigt in v1.0.62** (2026-07-24, Commit,
   Uploader._advance() Phasen :start→:gps→:accel→:final; Compile fenix7xpro ok; Gerätetest durch Jan
-  vor CIQ-Release ausstehend). Offen noch Android/Wear + Apple (Kotlin/Swift-Uploader), Server+Web
+  vor CIQ-Release ausstehend). ✅ **Android+Wear erledigt** (2026-07-24, Commit: parallele Uploader,
+  chunkFiles GPS-first sortiert via neuem chunkKind()-Datei-Kopf-Read; :app/:wear compile ok;
+  Gerätetest ausstehend). Offen noch **Apple** (iPhone- + Watch-Recorder, Swift-Uploader), Server+Web
   bereits GPS-first (dormant); Client berührt kritischen Upload-Pfad → erst mit Gerätetest;
   (b) **Stufe B Teil-Accel-Upload** erst
   datenbasiert verifizieren (Task #17: Läufe/Puffer/Start-Erkennung); (c) **Zepp-i18n** (keine Infra,
