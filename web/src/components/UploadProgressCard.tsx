@@ -9,6 +9,10 @@ import { useT } from "../i18n";
 // ist", einem Stall-Hinweis (>5 min kein Chunk) und einem Button, die Session bewusst mit den
 // bisherigen (ggf. nur GPS-)Daten abzuschließen. Pollt schnell (4 s) solange etwas läuft, sonst
 // träge (20 s). Rendert nichts, wenn nichts läuft. Datenquelle: GET /api/sessions/in-progress.
+//
+// Farben: slate ist per CSS-Variablen theme-invertiert (tailwind.config) -> EINE slate-Klasse
+// pro Element, KEIN dark:-Variant (der würde im Light-Mode brechen). dark: nur für nicht-slate
+// Akzente (cyan/amber).
 export function UploadProgressCard() {
   const t = useT();
   const [rows, setRows] = useState<InProgressSession[] | null>(null);
@@ -94,17 +98,17 @@ function UploadRow({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
             {t("upload.title")}
             {s.device_label && (
-              <span className="inline-flex items-center gap-1 text-xs font-normal text-slate-500 dark:text-slate-400">
+              <span className="inline-flex items-center gap-1 text-xs font-normal text-slate-400">
                 <WatchIcon className="h-3.5 w-3.5" />
                 {s.device_label}
               </span>
             )}
           </div>
 
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
             {s.has_gps ? (
               <span className="inline-flex items-center gap-1 font-medium text-cyan-700 dark:text-cyan-300">
                 <LocationIcon className="h-3.5 w-3.5" />
@@ -112,7 +116,7 @@ function UploadRow({
                 <CheckIcon className="h-3.5 w-3.5" />
               </span>
             ) : (
-              <span className="text-slate-500 dark:text-slate-400">{t("upload.waiting")}</span>
+              <span className="text-slate-400">{t("upload.waiting")}</span>
             )}
             <span>
               {pct !== null
@@ -121,7 +125,9 @@ function UploadRow({
             </span>
           </div>
 
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+          {/* Fortschrittsbalken: exakt bei bekanntem Total, sonst unbestimmt. Track = slate-700
+              (invertiert im Light zu hellgrau). */}
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
             {pct !== null ? (
               <div className="h-full rounded-full bg-cyan-500 transition-all" style={{ width: `${pct}%` }} />
             ) : (
@@ -132,14 +138,13 @@ function UploadRow({
       </div>
 
       {/* Stall-Hinweis (>5 min kein Chunk): App auf der Uhr erneut öffnen, um fortzusetzen */}
-      {stalled && (
+      {stalled ? (
         <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200">
           <InfoIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>{t("upload.stalledHint")}</span>
         </div>
-      )}
-      {!stalled && (
-        <p className="mt-2 text-[11px] leading-snug text-slate-500 dark:text-slate-400">{t("upload.hint")}</p>
+      ) : (
+        <p className="mt-2 text-[11px] leading-snug text-slate-400">{t("upload.hint")}</p>
       )}
 
       {/* Bewusst mit den bisherigen (ggf. nur GPS-)Daten abschließen */}
@@ -147,7 +152,7 @@ function UploadRow({
         <button
           onClick={finalize}
           disabled={busy}
-          className="mt-2.5 w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-700/50 disabled:opacity-60"
+          className="mt-2.5 w-full rounded-lg border border-slate-600 px-3 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800/50 disabled:opacity-60"
         >
           {busy ? t("upload.finalizeBusy") : t("upload.finalize")}
         </button>
