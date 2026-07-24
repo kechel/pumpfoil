@@ -10,10 +10,10 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ## 🚀 App-Release-Stand
 - **LIVE (Stand 2026-07-22):** iOS 1.1.15 (App Store 19.7.), Android Phone 1.1.13, Wear 1.2.14/1024
   (22.7.), Garmin 1.0.60 (CIQ). `appmeta`: ios=1.1.15, android=1.1.13, garmin.latest=1.0.60.
-- **IN PRÜFUNG (2026-07-24): Garmin 1.0.62 (Intern 15)** hochgeladen im CIQ-Store (bis 2 h bis sichtbar).
-  Inhalt: GPS-first-Upload + nl/fi/cs on-watch. ⚠️ **NICHTS ankündigen bis freigegeben** (Jan): dann erst
-  `garmin.latest`→1.0.62 + Restart. **iOS 1.1.16 / Phone 1.1.14 / Wear 1.2.15** gebumpt+bereit (Live-Upload-
-  Karte, GPS-first) — Jan reviewt + released; nach Golive `appmeta` ios→1.1.16 / android→1.1.14 nachziehen.
+- **Garmin 1.0.62 LIVE (2026-07-24, CIQ)** — GPS-first-Upload + nl/fi/cs on-watch. `garmin.latest`=1.0.62
+  gesetzt (Update-Hinweis für Alt-Uhren scharf). **Android Phone 1.1.14 in Play-Prüfung**, **iOS 1.1.16**
+  kompiliert (nach `xcodegen generate` für UploadProgressCard.swift) — Jan released beide. Nach deren
+  Golive: `appmeta` android→1.1.14 / ios→1.1.16 nachziehen. Inhalt: Live-Upload-Karte + GPS-first.
   Details: Memory `watch-apps-release-state`.
 
 ## 🩹 Polish / kleine Baustellen
