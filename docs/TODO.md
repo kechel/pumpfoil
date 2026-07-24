@@ -129,8 +129,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   (CommunityView/Screen) hat keinen chronologischen Session-Feed zum Gruppieren (nur Stats/Rekorde/
   Medien/„Best bewertet"=Like-Ranking/Spots); der eigentliche Alle-Feed liegt im Sessions-Tab
   (Scope.ALL) und gruppiert bereits (beide Apps rufen `sessions-grouped`). OFFEN:
-  (a) **Uploader GPS-first Client-Reorder** aller Plattformen — Server+Web fertig (dormant), Client
-  berührt kritischen Upload-Pfad → erst mit Gerätetest; (b) **Stufe B Teil-Accel-Upload** erst
+  (a) **Uploader GPS-first Client-Reorder** — ✅ **Garmin erledigt in v1.0.62** (2026-07-24, Commit,
+  Uploader._advance() Phasen :start→:gps→:accel→:final; Compile fenix7xpro ok; Gerätetest durch Jan
+  vor CIQ-Release ausstehend). Offen noch Android/Wear + Apple (Kotlin/Swift-Uploader), Server+Web
+  bereits GPS-first (dormant); Client berührt kritischen Upload-Pfad → erst mit Gerätetest;
+  (b) **Stufe B Teil-Accel-Upload** erst
   datenbasiert verifizieren (Task #17: Läufe/Puffer/Start-Erkennung); (c) **Zepp-i18n** (keine Infra,
   0 Nutzer); (d) iOS/Apple xcodegen+Xcode-Build durch Jan. Details Memory [[watch-apps-release-state]].
 - **5 neue Sprachen in Apps + Review** (2026-07-23): Web live in pt/ja/zh/ru/id (15 total).
