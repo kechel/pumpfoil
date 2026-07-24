@@ -35,8 +35,11 @@ export default function CurrentFeedbackRequest() {
 
       <video
         src="/demo/stop-screen.mp4"
-        controls
+        autoPlay
+        loop
+        muted
         playsInline
+        controls
         className="mx-auto mb-6 w-full max-w-xs rounded-2xl border border-slate-700"
       />
 
