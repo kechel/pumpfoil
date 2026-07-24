@@ -172,6 +172,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     ) { pad ->
         val scopeC = rememberCoroutineScope()
         Column(Modifier.padding(pad).fillMaxSize()) {
+            // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
+            UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
             // Scope-Umschalter (scrollbar) + Accel/alle-Umschalter rechts.
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),

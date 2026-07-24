@@ -53,6 +53,24 @@ data class SpotTrack(
     val track: List<List<Double?>> = emptyList(),   // [[lat, lon, speed_mps?]]
 )
 
+// Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).
+// upload_total ist null, bis die Clients expected_chunks senden -> UI zeigt dann unbestimmt.
+@Serializable
+data class InProgressSession(
+    val id: Int,
+    @SerialName("session_uuid") val sessionUuid: String = "",
+    @SerialName("started_at") val startedAt: String = "",
+    val tz: String? = null,
+    val status: String = "",
+    @SerialName("device_label") val deviceLabel: String? = null,
+    @SerialName("upload_received") val uploadReceived: Int = 0,
+    @SerialName("upload_total") val uploadTotal: Int? = null,
+    @SerialName("gps_received") val gpsReceived: Int = 0,
+    @SerialName("accel_received") val accelReceived: Int = 0,
+    @SerialName("has_gps") val hasGps: Boolean = false,
+    @SerialName("last_received_at") val lastReceivedAt: String? = null,
+)
+
 @Serializable
 data class SessionSummary(
     val id: Int,

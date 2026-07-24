@@ -136,6 +136,13 @@ object Api {
         http("DELETE", "/api/sessions/$id/share", null, auth = true); Unit
     }
 
+    suspend fun inProgress(): List<InProgressSession> = withContext(Dispatchers.IO) {
+        json.decodeFromString(
+            ListSerializer(InProgressSession.serializer()),
+            http("GET", "/api/sessions/in-progress", null, auth = true),
+        )
+    }
+
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")

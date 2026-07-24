@@ -152,6 +152,19 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         }
     }
     LaunchedEffect(id) { neighbors = try { Api.sessionNeighbors(id) } catch (_: Exception) { null } }
+    // 4a: eigene In-Progress-Session (recording/live) -> nachpollen. Der GET triggert server-seitig
+    // die gps_only-Vorabanalyse; sobald sie/der fertige Upload da ist, aktualisiert sich das Detail
+    // (Track/Läufe/Pumps) seamless. Stoppt, sobald der Status nicht mehr recording/live ist.
+    LaunchedEffect(session?.status, session?.owned) {
+        val st = session?.status
+        if (session?.owned == true && (st == "recording" || st == "live")) {
+            while (true) {
+                kotlinx.coroutines.delay(4000)
+                val fresh = try { Api.session(id) } catch (_: Exception) { null }
+                if (fresh != null) { session = fresh; SessionCache.store(fresh) }
+            }
+        }
+    }
 
     if (confirmDelete) {
         AlertDialog(
