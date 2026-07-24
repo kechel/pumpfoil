@@ -97,6 +97,13 @@ module Strings {
         "rec.stopping"   => ["Stoppen…", "Stoppe…", "Stoppen…", "Stopping…", "Arrêt…", "Arresto…", "Parando…", "Parando…", "Menghentikan…", "Остановка…", "Stoppen…", "Pysäytetään…", "Zastavování…"],
         "rec.saveRelease" => ["Loslassen: Speichern", "Loslah: Speichere", "Loslassen: Speichern", "Release: Save", "Relâcher : Enreg.", "Rilascia: Salva", "Soltar: Guardar", "Soltar: Salvar", "Lepas: Simpan", "Отпустить: сохранить", "Loslaten: opslaan", "Vapauta: tallenna", "Uvolnit: uložit"],
         "rec.discardHold" => ["Halten: Verwerfen", "Halte: Verwerfe", "Halten: Verwerfen", "Hold: Discard", "Maintenir : Suppr.", "Tieni: Scarta", "Mantener: Descartar", "Segurar: Descartar", "Tahan: Buang", "Удерживать: сброс", "Vasthouden: verwerpen", "Pidä: hylkää", "Podržet: zahodit"],
+        "rec.sessionTitle" => ["Session", "Session", "Session", "Session", "Session", "Sessione", "Sesión", "Sessão", "Sesi", "Сессия", "Sessie", "Sessio", "Relace"],
+        "rec.save"     => ["Speichern", "Speichere", "Speichern", "Save", "Enregistrer", "Salva", "Guardar", "Salvar", "Simpan", "Сохранить", "Opslaan", "Tallenna", "Uložit"],
+        "rec.discard"  => ["Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar", "Descartar", "Buang", "Сбросить", "Verwerpen", "Hylkää", "Zahodit"],
+        "rec.pause"    => ["Pausieren", "Pausiere", "Pausieren", "Pause", "Pause", "Pausa", "Pausar", "Pausar", "Jeda", "Пауза", "Pauzeren", "Tauko", "Pozastavit"],
+        "rec.resume"   => ["Fortsetzen", "Fortsetze", "Fortsetzen", "Resume", "Reprendre", "Riprendi", "Reanudar", "Retomar", "Lanjut", "Продолжить", "Hervatten", "Jatka", "Pokračovat"],
+        "rec.paused"   => ["Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa", "Pausado", "Dijeda", "Пауза", "Gepauzeerd", "Tauolla", "Pozastaveno"],
+        "rec.holdMenu" => ["Menü…", "Menü…", "Menü…", "Menu…", "Menu…", "Menu…", "Menú…", "Menu…", "Menu…", "Меню…", "Menu…", "Valikko…", "Menu…"],
 
         // Datenfeld-Labels (Wörter lokalisiert, Einheiten universell)
         "f.kmh3s"   => ["km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)", "km/h (3s)"],

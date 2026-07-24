@@ -15,7 +15,6 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     hidden var _view;
     hidden var _timer;
     hidden var _holdTimer as Timer.Timer or Null = null;
-    hidden var _armed as Lang.Boolean = false;   // Phase 1 voll (Ring 1) -> Speichern scharf
 
     function initialize(recorder, view) {
         BehaviorDelegate.initialize();
@@ -54,37 +53,33 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         FoilMenuDelegate.show(_rec);
     }
 
-    // Loslassen entscheidet je nach Haltezeit:
-    //   < 3 s  -> Stop abbrechen (Aufnahme läuft weiter; Schutz gegen versehentliches Stoppen)
-    //   3–6 s  -> Speichern & Upload
-    //   ≥ 6 s  -> (bereits per Tick verworfen; hier nur Sicherung)
+    // Loslassen:
+    //   < 3 s  -> nichts (Schutz gegen versehentliches Stoppen); PAUSIERT + kurzer Druck = Fortsetzen
+    //   ≥ 3 s  -> das Aktions-Menü ist beim Halten (onHoldTick) schon aufgegangen -> hier nichts mehr
     function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
             var held = System.getTimer() - _rec.stopHoldStartMs;
             _cancelHold();
-            if (held >= _rec.DISCARD_HOLD_MS) { _rec.discard(); }
-            else if (held >= _rec.STOP_HOLD_MS) { _rec.stop(); _showUploadIfConnected(); }
+            if (held < _rec.STOP_HOLD_MS && _rec.isPaused()) { _rec.resume(); }
             WatchUi.requestUpdate();
             return true;
         }
         return false;
     }
 
-    // Während des Haltens: Ring animieren; bei 3 s „scharf" (Vibration), bei 6 s automatisch verwerfen.
+    // Während des Haltens: Ring animieren; bei 3 s Menü öffnen (Speichern/Verwerfen/Pausieren).
+    // Längeres Halten tut NICHTS mehr (kein versehentliches Verwerfen).
     function onHoldTick() as Void {
         if (_rec.stopHoldStartMs == null) { return; }
         var held = System.getTimer() - _rec.stopHoldStartMs;
-        if (held >= _rec.DISCARD_HOLD_MS) {
+        if (held >= _rec.STOP_HOLD_MS) {
             _cancelHold();
-            _rec.discard();                     // 6 s durchgehalten -> verwerfen
-            WatchUi.requestUpdate();
-            return;
-        }
-        if (!_armed && held >= _rec.STOP_HOLD_MS) {
-            _armed = true;                      // Übergang Phase 1 -> 2: einmal vibrieren
             if (Toybox has :Attention && Attention has :vibrate) {
                 try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
             }
+            WatchUi.pushView(new SessionActionMenu(), new SessionActionDelegate(_rec), WatchUi.SLIDE_LEFT);
+            WatchUi.requestUpdate();
+            return;
         }
         WatchUi.requestUpdate();
     }
@@ -109,7 +104,6 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 
     hidden function _cancelHold() as Void {
         _rec.stopHoldStartMs = null;
-        _armed = false;
         if (_holdTimer != null) { _holdTimer.stop(); }
     }
 

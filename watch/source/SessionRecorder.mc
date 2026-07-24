@@ -36,6 +36,9 @@ class SessionRecorder {
     hidden var _fitSession;
     hidden var _sensorLogger;
     hidden var _recording = false;
+    hidden var _paused = false;            // Aufnahme pausiert (Sensoren aus, FIT-Timer angehalten)
+    hidden var _pausedMs = 0;              // aufsummierte Pausendauer -> _elapsedMs bleibt lückenlos
+    hidden var _pauseStartedMs = 0;        // System.getTimer() beim Pausenbeginn
 
     hidden var _sessionUuid;
     hidden var _startedAt;
@@ -550,6 +553,7 @@ class SessionRecorder {
         if (_recording) { return; }
         stopped = false;
         storageFull = false;
+        _paused = false; _pausedMs = 0; _pauseStartedMs = 0;
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
@@ -694,6 +698,43 @@ class SessionRecorder {
         stopped = false;   // kein „Gespeichert"-Screen -> zurück zum Start-Screen
     }
 
+    function isPaused() { return _paused; }
+
+    // Aufnahme PAUSIEREN: Sensoren aus + FIT-Timer anhalten, Session/Puffer offen lassen.
+    // Bereits gepufferte Rohdaten werden geflusht; die Zeitbasis läuft über _pausedMs lückenlos
+    // weiter (kein Loch im Accel-Stream). Fortsetzen mit resume().
+    function pause() {
+        if (!_recording || _paused) { return; }
+        _paused = true;
+        _pauseStartedMs = System.getTimer();
+        try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
+        if (_accelOn) {
+            try { Sensor.unregisterSensorDataListener(); } catch (e) {}
+            _flushAccel(true);
+        }
+        _flushGps(true);
+        if (_fitSession != null) { try { _fitSession.stop(); } catch (e) {} }
+        _saveState(false);
+    }
+
+    // Aufnahme FORTSETZEN: Pausendauer aufaddieren (Stream bleibt lückenlos), Sensoren + FIT-Timer
+    // wieder scharf.
+    function resume() {
+        if (!_recording || !_paused) { return; }
+        _pausedMs += System.getTimer() - _pauseStartedMs;
+        _paused = false;
+        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+        if (_accelOn) {
+            try {
+                Sensor.registerSensorDataListener(method(:onAccel), {
+                    :period => 1,
+                    :accelerometer => { :enabled => true, :sampleRate => _accelHz }
+                });
+            } catch (e) { _accelOn = false; }
+        }
+        if (_fitSession != null) { try { _fitSession.start(); } catch (e) {} }
+    }
+
     // Alle Storage-Keys der LAUFENDEN Session löschen + aus dem sessions-Index nehmen.
     hidden function _purgeCurrent() as Void {
         if (_sessionUuid == null) { return; }
@@ -756,6 +797,7 @@ class SessionRecorder {
                 if (_pairPollCtr >= 3) { _pairPollCtr = 0; _pollPairing(); }
             }
             if (!_recording) { _maybeAutoStart(); return; }
+            if (_paused) { return; }   // pausiert: keine Lauf-Erkennung/Alarm, nur Anzeige
             var act = Activity.getActivityInfo();
             if (act == null) { return; }
             var spd = _saneSpeed(act.currentSpeed);
@@ -892,7 +934,8 @@ class SessionRecorder {
             // Aktuelle GPS-Geschwindigkeit immer merken (auch im Idle) -> Auto-Start.
             _idleSpeed = info.speed == null ? 0.0 : info.speed;
             // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
-            if (!_recording) { return; }
+            // Pausiert: ebenfalls nichts puffern (Sicherung; LocationEvents sind eh aus).
+            if (!_recording || _paused) { return; }
             var deg = info.position.toDegrees();
             var spd = info.speed == null ? 0.0 : info.speed;
             _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
@@ -907,6 +950,7 @@ class SessionRecorder {
     function onAccel(sensorData as Sensor.SensorData) as Void {
         // Abgesichert: ein fehlerhaftes Accel-Paket darf die Aufnahme nicht beenden.
         try {
+            if (_paused) { return; }   // pausiert: keine Rohdaten sammeln (Sicherung; Listener ist eh ab)
             if (sensorData == null || sensorData.accelerometerData == null) { return; }
             var a = sensorData.accelerometerData;
             var n = a.x.size();
@@ -1110,7 +1154,8 @@ class SessionRecorder {
     }
 
     function _elapsedMs() {
-        return (Time.now().value() - _startedAt.value()) * 1000;
+        // Pausendauer abziehen -> GPS/Accel-Zeitbasis bleibt lückenlos (Server sieht keine Lücke).
+        return (Time.now().value() - _startedAt.value()) * 1000 - _pausedMs;
     }
 
     // Einfache UUID aus Zeit + Zufall (für Idempotenz/Resume ausreichend).
