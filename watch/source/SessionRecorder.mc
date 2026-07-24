@@ -254,7 +254,7 @@ class SessionRecorder {
         pairCode = "";
         _claimToken = "";
         _pairPollCtr = 0;
-        pairStatus = "hole Code…";
+        pairStatus = Strings.s("pair.fetching");
         Communications.makeWebRequest(
             Config.baseUrl() + "/api/devices/pair-init",
             {},
@@ -269,9 +269,9 @@ class SessionRecorder {
         if (responseCode == 200 && data instanceof Lang.Dictionary && data.hasKey("code")) {
             pairCode = data["code"];
             _claimToken = data["claim_token"];
-            pairStatus = "auf pumpfoil.org eingeben";
+            pairStatus = "pumpfoil.org";
         } else {
-            pairStatus = "Fehler (" + responseCode + ")";
+            pairStatus = Strings.s("common.error") + " (" + responseCode + ")";
         }
     }
 
@@ -293,7 +293,7 @@ class SessionRecorder {
             Config.setString("deviceToken", data["device_token"]);
             _claimToken = "";
             pairCode = "";
-            pairStatus = "Verbunden!";
+            pairStatus = Strings.s("pair.done");
             fetchConfig();      // Website-Einstellungen jetzt laden
             Uploader.syncAll(); // ggf. vor dem Pairing aufgenommene Sessions nachschicken
         }
@@ -319,7 +319,7 @@ class SessionRecorder {
     function onPairClaim(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or PersistedContent.Iterator or Null) as Void {
         if (responseCode == 200 && data instanceof Lang.Dictionary && data["device_token"] != null) {
             Config.setString("deviceToken", data["device_token"]);
-            pairStatus = "Verbunden!";
+            pairStatus = Strings.s("pair.done");
             fetchConfig();
             Uploader.syncAll();
         }
@@ -749,7 +749,7 @@ class SessionRecorder {
             if (!_recording) { _maybeAutoStart(); return; }
             var act = Activity.getActivityInfo();
             if (act == null) { return; }
-            var spd = (act.currentSpeed != null) ? act.currentSpeed : 0.0;
+            var spd = _saneSpeed(act.currentSpeed);
             _currentHr = act.currentHeartRate;
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
@@ -955,18 +955,26 @@ class SessionRecorder {
         return (act != null && act.timerTime != null) ? act.timerTime : 0;
     }
 
-    // Weitere Live-Felder aus Activity.Info (alle null-sicher).
+    // Speed-Sanity: null/negativ/absurd -> 0. Der Simulator liefert bei FIT-Wiedergabe
+    // gelegentlich Müllwerte (z. B. 9.6e8 m/s), die die Anzeige sprengen. Kein Wassersport
+    // erreicht > 100 m/s (360 km/h) -> alles darüber ist Unsinn und wird verworfen.
+    hidden function _saneSpeed(v) {
+        if (v == null || v < 0.0 || v > 100.0) { return 0.0; }
+        return v;
+    }
+
+    // Weitere Live-Felder aus Activity.Info (alle null-sicher + Speed-Sanity).
     function currentSpeed() {
         var act = Activity.getActivityInfo();
-        return (act != null && act.currentSpeed != null) ? act.currentSpeed : 0.0;
+        return _saneSpeed(act != null ? act.currentSpeed : null);
     }
     function avgSpeed() {
         var act = Activity.getActivityInfo();
-        return (act != null && act.averageSpeed != null) ? act.averageSpeed : 0.0;
+        return _saneSpeed(act != null ? act.averageSpeed : null);
     }
     function maxSpeed() {
         var act = Activity.getActivityInfo();
-        return (act != null && act.maxSpeed != null) ? act.maxSpeed : 0.0;
+        return _saneSpeed(act != null ? act.maxSpeed : null);
     }
     function avgHr() {
         var act = Activity.getActivityInfo();

@@ -416,11 +416,29 @@ class RetryWatch {
 
     function initialize() {}
 
+    // EIN Timer über die Lebenszeit der Uhr-App — NIE pro arm() ein neues Timer.Timer-Objekt
+    // erzeugen: alte (auch gestoppte/verwaiste) Timer zählen bei Garmin gegen ein hartes Limit,
+    // sonst „Too Many Timers Error" (IQ!-Crash) nach vielen arm()/onTick-Zyklen. Lazy erzeugt,
+    // danach nur noch stop()/start() darauf.
+    hidden function _timerObj() as Timer.Timer {
+        if (_timer == null) { _timer = new Timer.Timer(); }
+        return _timer;
+    }
+
     // Nach jedem syncAll-Lauf aufgerufen: ist noch etwas offen -> nächsten Versuch planen,
     // sonst ruhen. Wartezeit aus dem Backoff (3/10/30 s), danach Reconnect-Poll (30 s).
     function arm() as Void {
         _cancel();
         if (Uploader.pendingCount() == 0) { _idx = 0; _etaMs = -1; return; }
+        // Nicht verbunden UND kein Pairing-Code offen -> es gibt nichts zu wiederholen (der
+        // Upload scheitert ohne Token immer an :auth). Dann NICHT im Kreis retryen (das lief
+        // sonst endlos: onTick -> syncAll -> auth-fail -> arm -> …). Der Sync wird ausgelöst,
+        // sobald das Pairing durchläuft (onPairPoll/onPairClaim) bzw. beim nächsten App-Start.
+        var tok = Config.getString("deviceToken");
+        var code = Config.getString("pairingCode");
+        if ((tok == null || tok.equals("")) && (code == null || code.equals(""))) {
+            _idx = 0; _etaMs = -1; return;
+        }
         _wasConnected = Uploader.phoneConnected();
         var secs;
         if (_idx < Uploader.BACKOFF.size()) {
@@ -430,8 +448,13 @@ class RetryWatch {
             secs = Uploader.WATCH_SECS;
             _etaMs = -1;                                  // nur Reconnect-Beobachtung, kein Countdown
         }
-        _timer = new Timer.Timer();
-        _timer.start(method(:onTick), secs * 1000, false);
+        // Defensiv: selbst wenn das Timer-Limit anderweitig erschöpft ist, darf das den
+        // Upload/App nicht crashen — dann eben kein Auto-Retry (Daten bleiben gepuffert).
+        try {
+            _timerObj().start(method(:onTick), secs * 1000, false);
+        } catch (e) {
+            _etaMs = -1;
+        }
     }
 
     // Frische Auslösung (z. B. manuell geöffneter Upload-Screen): Backoff von vorn.
@@ -448,11 +471,13 @@ class RetryWatch {
     }
 
     hidden function _cancel() as Void {
-        if (_timer != null) { _timer.stop(); _timer = null; }
+        // NUR stoppen, NICHT das Objekt verwerfen (Wiederverwendung -> kein Timer-Leak).
+        if (_timer != null) { _timer.stop(); }
     }
 
     function onTick() as Void {
-        _timer = null;
+        // Der Timer hat gefeuert; er wird bei Bedarf in arm() erneut gestartet (dasselbe
+        // Objekt) — hier NICHT auf null setzen (sonst legt arm() ein neues an -> Timer-Leak).
         if (Uploader.pendingCount() == 0) { _idx = 0; return; }   // alles hochgeladen -> Ruhe
         if (Uploader.isRecordingActive()) { arm(); return; }      // NIE während Aufnahme
         if (Uploader.isBusy()) { arm(); return; }                 // Lauf aktiv -> später erneut

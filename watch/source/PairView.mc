@@ -32,8 +32,8 @@ class PairView extends WatchUi.View {
             // zeigt nur Ziffern und würde die Buchstaben verschlucken).
             dc.drawText(w / 2, h * 0.40, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "auf pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, "eingeben", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, Strings.s("pair.enterThere"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (_rec.isPaired()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, Strings.s("menu.connected"), Graphics.TEXT_JUSTIFY_CENTER);
@@ -48,9 +48,9 @@ class PairView extends WatchUi.View {
         } else {
             // startPairing() wurde beim Öffnen schon ausgelöst -> Code wird gerade erzeugt.
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.36, Graphics.FONT_MEDIUM, "Verbinden", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.36, Graphics.FONT_MEDIUM, Strings.s("menu.connect"), Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            var msg = _rec.pairStatus.equals("") ? "Code wird erzeugt…" : _rec.pairStatus;
+            var msg = _rec.pairStatus.equals("") ? Strings.s("pair.generating") : _rec.pairStatus;
             dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, msg, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }

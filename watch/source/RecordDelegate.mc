@@ -137,15 +137,15 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Während der Aufnahme ist beides nicht möglich -> Menü unterdrücken.
     function onMenu() as Lang.Boolean {
         if (_rec.isRecording()) { return true; }
-        var menu = new WatchUi.Menu2({:title => "Einstellungen"});
+        var menu = new WatchUi.Menu2({:title => Strings.s("menu.settings")});
         menu.addItem(new WatchUi.MenuItem(
-            _rec.isPaired() ? "Verbunden" : "Verbinden",
-            _rec.isPaired() ? "Konto verknüpft" : "Pairing-Code erzeugen",
+            _rec.isPaired() ? Strings.s("menu.connected") : Strings.s("menu.connect"),
+            _rec.isPaired() ? Strings.s("menu.linked") : Strings.s("menu.genCode"),
             :verbinden, {}));
         menu.addItem(new WatchUi.MenuItem(
-            "Upload / Sync", "ausstehende Sessions", :upload, {}));
+            Strings.s("menu.upload"), Strings.s("menu.uploadSub"), :upload, {}));
         menu.addItem(new WatchUi.MenuItem(
-            "Auto-Start", _rec.autoStartOn() ? "An" : "Aus", :autostart, {}));
+            Strings.s("menu.autostart"), _rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"), :autostart, {}));
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
@@ -173,18 +173,18 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
     // :min/:max/null) hält den Fokus nach einem Rebuild an der Stelle, statt oben zu landen.
     static function show(rec) as Void { showFocused(rec, null); }
     static function showFocused(rec, focusId) as Void {
-        var menu = new WatchUi.Menu2({:title => "Foil & Alarm"});
+        var menu = new WatchUi.Menu2({:title => Strings.s("fm.title")});
         var idx = 0;
         var focusIdx = -1;
-        menu.addItem(new WatchUi.MenuItem("Alarm", rec.alarmEnabled ? "An" : "Aus", :alarm, {})); idx++;
+        menu.addItem(new WatchUi.MenuItem(Strings.s("fm.alarm"), rec.alarmEnabled ? Strings.s("common.on") : Strings.s("common.off"), :alarm, {})); idx++;
         if (focusId == :source) { focusIdx = idx; }
-        menu.addItem(new WatchUi.MenuItem("Schwellen",
-            rec.alarmSource.equals("foil") ? "Auto (Foil)" : "Manuell", :source, {})); idx++;
+        menu.addItem(new WatchUi.MenuItem(Strings.s("fm.thresholds"),
+            rec.alarmSource.equals("foil") ? Strings.s("fm.autoFoil") : Strings.s("fm.manual"), :source, {})); idx++;
         if (rec.alarmSource.equals("manual")) {
             if (focusId == :min) { focusIdx = idx; }
-            menu.addItem(new WatchUi.MenuItem("Min", rec.speedLowKmh.toString() + " km/h", :min, {})); idx++;
+            menu.addItem(new WatchUi.MenuItem(Strings.s("fm.min"), rec.speedLowKmh.toString() + " km/h", :min, {})); idx++;
             if (focusId == :max) { focusIdx = idx; }
-            menu.addItem(new WatchUi.MenuItem("Max", rec.speedHighKmh.toString() + " km/h", :max, {})); idx++;
+            menu.addItem(new WatchUi.MenuItem(Strings.s("fm.max"), rec.speedHighKmh.toString() + " km/h", :max, {})); idx++;
         }
         for (var i = 0; i < rec.foils.size(); i++) {
             var f = rec.foils[i];
@@ -192,8 +192,8 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
             menu.addItem(new WatchUi.MenuItem(
                 sel + f["label"], f["min"].toString() + "–" + f["max"].toString() + " km/h", i, {})); idx++;
         }
-        menu.addItem(new WatchUi.MenuItem("Keine Foil",
-            rec.sessionFoilId == null ? "> nur Metadaten" : "nur Metadaten", :none, {}));
+        menu.addItem(new WatchUi.MenuItem(Strings.s("fm.noFoil"),
+            (rec.sessionFoilId == null ? "> " : "") + Strings.s("fm.metaOnly"), :none, {}));
         if (focusIdx >= 0 && menu has :setFocus) { menu.setFocus(focusIdx); }
         WatchUi.pushView(menu, new FoilMenuDelegate(rec), WatchUi.SLIDE_UP);
     }
@@ -209,7 +209,7 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         var id = item.getId();
         if (id == :alarm) {
             _rec.alarmEnabled = !_rec.alarmEnabled;      // An/Aus, unabhängig von Foil
-            item.setSubLabel(_rec.alarmEnabled ? "An" : "Aus");
+            item.setSubLabel(_rec.alarmEnabled ? Strings.s("common.on") : Strings.s("common.off"));
             WatchUi.requestUpdate();
             return;
         }
@@ -221,7 +221,7 @@ class FoilMenuDelegate extends WatchUi.Menu2InputDelegate {
         if (id == :min || id == :max) {
             var isMin = (id == :min);
             var cur = isMin ? _rec.speedLowKmh : _rec.speedHighKmh;
-            var view = new MinMaxView(isMin ? "Min km/h" : "Max km/h", cur, 0, 80);
+            var view = new MinMaxView(isMin ? Strings.s("fm.minKmh") : Strings.s("fm.maxKmh"), cur, 0, 80);
             WatchUi.pushView(view, new MinMaxDelegate(_rec, isMin, view), WatchUi.SLIDE_LEFT);
             return;
         }
@@ -306,7 +306,7 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         } else if (id == :autostart) {
             // Auto-Start auf der Uhr umschalten; Menüpunkt sofort aktualisieren.
             _rec.toggleAutoStart();
-            item.setSubLabel(_rec.autoStartOn() ? "An" : "Aus");
+            item.setSubLabel(_rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"));
             WatchUi.requestUpdate();
         }
     }

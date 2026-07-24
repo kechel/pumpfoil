@@ -135,7 +135,31 @@ module Strings {
         "up.pairAction" => ["START: Code erzeugen", "START: Code erzüge", "START: Code erzeugen", "START: get code", "START : générer le code", "START: genera codice", "START: generar código", "START: gerar código", "START: dapatkan kode", "START: получить код"],
         "up.linkHint"   => ["oder MENU → Verbinden", "oder MENU → Verbinde", "oder MENU → Verbinden", "or MENU → Connect", "ou MENU → Connecter", "o MENU → Collega", "o MENU → Conectar", "ou MENU → Conectar", "atau MENU → Hubungkan", "или MENU → Подключить"],
         "up.waiting"    => ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…", "Aguardando…", "Menunggu…", "Ожидание…"],
-        "up.done"       => ["Upload fertig", "Upload fertig", "Upload fertig", "Upload done", "Upload terminé", "Upload completato", "Subida lista", "Envio concluído", "Unggah selesai", "Загрузка готова"]
+        "up.done"       => ["Upload fertig", "Upload fertig", "Upload fertig", "Upload done", "Upload terminé", "Upload completato", "Subida lista", "Envio concluído", "Unggah selesai", "Загрузка готова"],
+
+        // Einstellungs-Menü (RecordDelegate.onMenu) + Foil-/Alarm-Menü + Min/Max-Editor
+        "menu.settings"  => ["Einstellungen", "Yystellige", "Einstellungen", "Settings", "Réglages", "Impostazioni", "Ajustes", "Ajustes", "Setelan", "Настройки"],
+        "menu.autostart" => ["Auto-Start", "Auto-Start", "Auto-Start", "Auto-start", "Démarrage auto", "Avvio auto", "Inicio auto", "Início auto", "Mulai otomatis", "Автостарт"],
+        "common.on"      => ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл"],
+        "common.off"     => ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл"],
+        "fm.title"       => ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал"],
+        "fm.alarm"       => ["Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma", "Alarme", "Alarm", "Сигнал"],
+        "fm.thresholds"  => ["Schwellen", "Schwelle", "Schwellen", "Thresholds", "Seuils", "Soglie", "Umbrales", "Limites", "Ambang", "Пороги"],
+        "fm.autoFoil"    => ["Auto (Foil)", "Auto (Foil)", "Auto (Foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Авто (фойл)"],
+        "fm.manual"      => ["Manuell", "Manuell", "Manuell", "Manual", "Manuel", "Manuale", "Manual", "Manual", "Manual", "Вручную"],
+        "fm.min"         => ["Min", "Min", "Min", "Min", "Min", "Min", "Mín", "Mín", "Min", "Мин"],
+        "fm.max"         => ["Max", "Max", "Max", "Max", "Max", "Max", "Máx", "Máx", "Maks", "Макс"],
+        "fm.minKmh"      => ["Min km/h", "Min km/h", "Min km/h", "Min km/h", "Min km/h", "Min km/h", "Mín km/h", "Mín km/h", "Min km/h", "Мин km/h"],
+        "fm.maxKmh"      => ["Max km/h", "Max km/h", "Max km/h", "Max km/h", "Max km/h", "Max km/h", "Máx km/h", "Máx km/h", "Maks km/h", "Макс km/h"],
+        "fm.noFoil"      => ["Keine Foil", "Kei Foil", "Keine Foil", "No foil", "Aucun foil", "Nessun foil", "Sin foil", "Sem foil", "Tanpa foil", "Без фойла"],
+        "fm.metaOnly"    => ["nur Metadaten", "nur Metadate", "nur Metadaten", "metadata only", "métadonnées seules", "solo metadati", "solo metadatos", "apenas metadados", "metadata saja", "только метаданные"],
+
+        // Verbinden-/Pair-Ansicht
+        "pair.enterThere" => ["eingeben", "yygeh", "eingeben", "enter it there", "à saisir ici", "inseriscilo", "introdúcelo", "insira aqui", "masukkan", "введите"],
+        "pair.generating" => ["Code wird erzeugt…", "Code wird erzügt…", "Code wird erzeugt…", "generating code…", "génération du code…", "generazione codice…", "generando código…", "gerando código…", "membuat kode…", "создание кода…"],
+        "pair.fetching"   => ["hole Code…", "hole Code…", "hole Code…", "fetching code…", "obtention du code…", "recupero codice…", "obteniendo código…", "obtendo código…", "mengambil kode…", "получение кода…"],
+        "pair.done"       => ["Verbunden!", "Verbunde!", "Verbunden!", "Connected!", "Connecté !", "Connesso!", "¡Conectado!", "Conectado!", "Terhubung!", "Подключено!"],
+        "common.error"    => ["Fehler", "Fähler", "Fehler", "Error", "Erreur", "Errore", "Error", "Erro", "Kesalahan", "Ошибка"]
         };
         return _T;
     }
