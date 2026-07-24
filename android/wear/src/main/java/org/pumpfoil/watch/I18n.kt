@@ -65,6 +65,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.start" to row("Start", "Start", "Start", "Start", "Démarrer", "Avvia", "Iniciar"),
     "rec.stop" to row("Stop", "Stop", "Stop", "Stop", "Arrêter", "Stop", "Parar"),
     "rec.stopHold" to row("Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén"),
+    "rec.discardHold" to row("Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar"),
     "rec.starting" to row("starte…", "start…", "starte…", "starting…", "démarrage…", "avvio…", "iniciando…"),
     "rec.recording" to row("Aufnahme läuft", "Ufnahm lauft", "Aufnahme läuft", "Recording", "Enregistrement", "Registrazione", "Grabando"),
     "rec.saving" to row("speichere…", "speicheret…", "speichere…", "saving…", "enregistrement…", "salvataggio…", "guardando…"),

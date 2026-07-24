@@ -205,6 +205,20 @@ object Recorder {
         }
     }
 
+    /** Aufnahme VERWERFEN: beenden und lokal löschen — KEIN complete, KEIN Upload. Ganzer
+     *  Session-Ordner weg (kein meta.json) -> wird auch nicht als „interrupted" später hochgeladen. */
+    fun discard() {
+        if (!running) return
+        running = false   // stoppt flushLoop + Sensor-Ingestion
+        val ctx = appCtx ?: return
+        val sid = uuid
+        scope.launch {
+            LocalStore.delete(ctx, sid)
+            _state.value = _state.value.copy(
+                recording = false, status = "", pendingCount = LocalStore.pendingCount(ctx))
+        }
+    }
+
     fun refreshPending(ctx: Context) {
         appCtx = ctx.applicationContext
         _state.value = _state.value.copy(pendingCount = LocalStore.pendingCount(ctx))

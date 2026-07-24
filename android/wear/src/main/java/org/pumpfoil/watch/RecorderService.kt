@@ -38,7 +38,8 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopEverything(); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) { stopEverything(save = true); return START_NOT_STICKY }
+        if (intent?.action == ACTION_DISCARD) { stopEverything(save = false); return START_NOT_STICKY }
         startForeground(1, notification())
         Recorder.start(applicationContext)
         registerSensors()
@@ -64,10 +65,10 @@ class RecorderService : Service(), SensorEventListener {
         catch (_: SecurityException) { /* Permission fehlt – UI fordert sie an */ }
     }
 
-    private fun stopEverything() {
+    private fun stopEverything(save: Boolean = true) {
         sensors.unregisterListener(this)
         fused.removeLocationUpdates(locCb)
-        Recorder.stop()
+        if (save) Recorder.stop() else Recorder.discard()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -95,8 +96,11 @@ class RecorderService : Service(), SensorEventListener {
 
     companion object {
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
+        const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
         fun start(ctx: Context) = ctx.startForegroundService(Intent(ctx, RecorderService::class.java))
         fun stop(ctx: Context) = ctx.startService(
             Intent(ctx, RecorderService::class.java).setAction(ACTION_STOP))
+        fun discard(ctx: Context) = ctx.startService(
+            Intent(ctx, RecorderService::class.java).setAction(ACTION_DISCARD))
     }
 }

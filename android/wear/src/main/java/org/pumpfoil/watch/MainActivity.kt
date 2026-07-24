@@ -268,11 +268,15 @@ class MainActivity : ComponentActivity() {
         }
 
         if (s.recording) {
-            // Pager: Stop(0) | Datenansichten 1..n | Übersicht(n+1) | Stop(n+2).
+            // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
+            // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
             val dataCount = views.size
-            val summaryPage = dataCount + 1
-            val pageCount = dataCount + 3
-            val pager = rememberPagerState(initialPage = 1, pageCount = { pageCount })
+            val firstData = 2
+            val lastData = dataCount + 1
+            val summaryPage = dataCount + 2
+            val stopBack = dataCount + 3
+            val pageCount = dataCount + 5
+            val pager = rememberPagerState(initialPage = firstData, pageCount = { pageCount })
             var prevFoil by remember { mutableStateOf(s.isFoiling) }
             var showRunEnd by remember { mutableStateOf(false) }   // true = Lauf-Ende, false = Pause
             // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration): erst
@@ -289,7 +293,7 @@ class MainActivity : ComponentActivity() {
                     kotlinx.coroutines.delay(8_000)
                     if (!Recorder.state.value.isFoiling) showRunEnd = false
                 } else if (s.isFoiling && pager.currentPage == summaryPage) {
-                    pager.animateScrollToPage(dataCount)
+                    pager.animateScrollToPage(lastData)
                 }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -300,8 +304,8 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         when {
-                            page in 1..dataCount -> {
-                                val fields = views[page - 1].filter { it != 0 }.ifEmpty { listOf(1) }
+                            page in firstData..lastData -> {
+                                val fields = views[page - firstData].filter { it != 0 }.ifEmpty { listOf(1) }
                                 fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                             }
                             page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
@@ -309,12 +313,19 @@ class MainActivity : ComponentActivity() {
                                 val fields = v.filter { it != 0 }.ifEmpty { listOf(12) }
                                 fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                             }
-                            else -> {  // Stop-Seiten (vorne & hinten): 3 s halten zum Stoppen
-                                HoldStopButton()
-                                Spacer(Modifier.height(6.dp))
-                                Text(if (s.status.isNotEmpty()) s.status
-                                     else if (page == 0) I18n.t("rec.toData") else I18n.t("rec.toSummary"),
-                                    style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                            page == 1 || page == stopBack -> {  // Stop-Seiten: 3 s halten -> stoppen (speichert + lädt hoch)
+                                HoldButton(I18n.t("rec.stopHold"), Color(0xFFB91C1C), Color(0xFFF87171)) {
+                                    RecorderService.stop(applicationContext)
+                                }
+                                if (s.status.isNotEmpty()) {
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(s.status, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                                }
+                            }
+                            else -> {  // Verwerfen-Seiten (ganz außen): 3 s halten -> Aufnahme löschen (kein Upload)
+                                HoldButton(I18n.t("rec.discardHold"), Color(0xFF92400E), Color(0xFFFBBF24)) {
+                                    RecorderService.discard(applicationContext)
+                                }
                             }
                         }
                     }
@@ -645,19 +656,21 @@ class MainActivity : ComponentActivity() {
     // 3 s halten zum Stoppen (wie Garmin Stop-Halten-Ring) — verhindert versehentliches Stoppen.
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun HoldStopButton() {
+    // Generischer „3 s halten"-Button (Stop = rot, Verwerfen = amber). onHeld feuert erst nach
+    // 3 s ohne Loslassen (bewusste, versehentlich schwer auszulösende Geste).
+    private fun HoldButton(label: String, fill: Color, ring: Color, onHeld: () -> Unit) {
         var progress by remember { mutableStateOf(0f) }
         Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = progress.coerceAtLeast(0.001f),   // immer sichtbarer Ring (zeigt „halten")
                 modifier = Modifier.size(96.dp), strokeWidth = 4.dp,
-                indicatorColor = Color(0xFFF87171))
+                indicatorColor = ring)
             // Plain Box (KEIN Material-Button) -> dessen clickable würde sonst die Press-
             // Geste schlucken und onPress nie feuern.
             Box(
                 modifier = Modifier
                     .size(76.dp)
-                    .background(Color(0xFFB91C1C), CircleShape)
+                    .background(fill, CircleShape)
                     .pointerInput(Unit) {
                         detectTapGestures(onPress = {
                             progress = 0.0001f
@@ -671,15 +684,15 @@ class MainActivity : ComponentActivity() {
                                 }
                                 val released = withTimeoutOrNull(3000) { tryAwaitRelease() }
                                 timer.cancel()
-                                released == null   // null => 3 s ohne Loslassen => stoppen
+                                released == null   // null => 3 s ohne Loslassen => auslösen
                             }
                             progress = 0f
-                            if (held) RecorderService.stop(applicationContext)
+                            if (held) onHeld()
                         })
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(I18n.t("rec.stopHold"), textAlign = TextAlign.Center,
+                Text(label, textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.caption2, color = Color.White)
             }
         }
