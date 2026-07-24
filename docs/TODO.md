@@ -127,10 +127,32 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   **(1) ✅ erledigt 2026-07-24:** `GET /api/sessions/in-progress` (recording/live des Users, 48h,
   upload_received/total, gps/accel_received, has_gps). **(2) offen:** Web-UI Home+Sessions-Karte
   (poll, Balken/„lädt hoch", GPS-Vorschau). **(3) offen (Upload-Pfad, Gerätetest):** Clients senden
-  `expected_chunks` beim /session-Start → exakter %-Balken. **(4) offen (Detektor-OK+Regression):**
-  server-seitige gps_only-Vorabanalyse bei kompletter GPS + hängendem Upload → gekillte Session wird
-  nutzbar ohne Resume. Stufe-A-Servergerüst (expected_chunks-Spalte, SessionOut.upload_*) lag schon
-  dormant (Commit f9e1f15). Jan-Entscheid: mit Phase 1+2 (sichere Zone) starten.
+  `expected_chunks` beim /session-Start → exakter %-Balken. **(4) offen (Detektor-OK+Regression) —
+  von Jan 2026-07-24 geschärft, drei Teile:**
+  (4a) **Detail-View triggert Analyse:** öffnet man die Detailseite einer In-Progress-Session mit
+  vorhandener GPS, soll eine gps_only-Analyse seamless getriggert + nachgeladen werden (heute zeigt
+  Detail NICHTS, obwohl GPS da ist).
+  (4b) **Nachzügler-Daten integrieren:** kommen zu einer bereits abgeschlossenen/analysierten Session
+  später weitere Chunks (Accel), müssen sie integriert + neu analysiert werden (Vervollständigung).
+  Ist-Zustand: `ingest.upload_chunk` SPEICHERT späte Chunks (kein Status-Check), stößt aber KEINE
+  Re-Analyse an; UND die Uhr räumt lokal auf, sobald `/status` „complete" liefert (onStatus→_cleanup)
+  → die restlichen Accel-Chunks werden NIE gesendet. Beide Enden müssen angefasst werden: Server
+  re-analysiert bei neuen Chunks; Uhr darf erst löschen, wenn WIRKLICH alles hochgeladen ist (nicht
+  schon bei „complete").
+  (4c) **Manuelles Finalize** (Button „ohne weitere Daten abschließen") ist die Nutzer-getriggerte
+  Sofort-Variante — ✅ gebaut (POST /finalize), aber Wechselwirkung mit 4b beachten (nach Finalize
+  räumt die Uhr die Accel weg → dann keine Vervollständigung mehr möglich; ggf. Finalize NICHT als
+  hartes „complete" für die Uhr melden).
+  Stufe-A-Servergerüst (expected_chunks-Spalte, SessionOut.upload_*) lag schon dormant (Commit
+  f9e1f15). Jan-Entscheid: mit Phase 1+2 (sichere Zone) gestartet; 3/4 brauchen Upload-Pfad-
+  Gerätetest bzw. Detektor-OK+Regression.
+- **Garmin i18n: nl/fi/cs fehlen** (2026-07-24, Jan): der Garmin-Recorder (`watch/source/Strings.mc`)
+  hat nur 10 Spalten (de/gsw/de-AT/en/fr/it/es/pt/id/ru). nl/fi/cs sind in Web/Apps vorhanden, fehlen
+  aber auf der Uhr → nl/fi/cs-Profil bekommt auf der Garmin Englisch (via System-/EN-Fallback). Anders
+  als ja/zh (CJK-Font-blockiert) sind nl/fi/cs LATEINISCH → darstellbar, nur noch nicht übersetzt.
+  To do: nl/fi/cs-Spalten in Strings.mc ergänzen (ganze Tabelle × 3). Nebenbei: stale Kommentar
+  Zeile 5 („Fallback: de") korrigieren (echt = System→EN); optional Pro-String-Fallback in `s()`
+  von de-Spalte → en umstellen.
 - **Wear Discard-Screens fehlen** (2026-07-24, Jan, TODO für später): beim Testen der Wear sind die
   neuen Discard-Screens nicht zu finden. Geplant war: je EIN zusätzlicher Screen weiter LINKS **vor**
   dem Stopp-Screen sowie einer weiter RECHTS **hinter** dem Stopp-Screen — am Anfang & Ende der
@@ -149,8 +171,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Uploader._advance() Phasen :start→:gps→:accel→:final; Compile fenix7xpro ok; Gerätetest durch Jan
   vor CIQ-Release ausstehend). ✅ **Android+Wear erledigt** (2026-07-24, Commit: parallele Uploader,
   chunkFiles GPS-first sortiert via neuem chunkKind()-Datei-Kopf-Read; :app/:wear compile ok;
-  Gerätetest ausstehend). Offen noch **Apple** (iPhone- + Watch-Recorder, Swift-Uploader), Server+Web
-  bereits GPS-first (dormant); Client berührt kritischen Upload-Pfad → erst mit Gerätetest;
+  Gerätetest ausstehend). ✅ **Apple erledigt** (2026-07-24, Watch Sources/ + iPhone Sources-iOS/:
+  kind in Dateinamen chunk-<index>-<kind>.json + chunkKind(), chunkFiles GPS-first sortiert;
+  Swift-Parse ok; Xcode-Build+Gerätetest durch Jan). **(a) damit code-seitig auf ALLEN Plattformen
+  fertig** — bleibt: Gerätetests (Garmin real durch Jan bestätigt via Session 869; Android/Wear/Apple
+  offen); Server+Web waren schon GPS-first (dormant);
   (b) **Stufe B Teil-Accel-Upload** erst
   datenbasiert verifizieren (Task #17: Läufe/Puffer/Start-Erkennung); (c) **Zepp-i18n** (keine Infra,
   0 Nutzer); (d) iOS/Apple xcodegen+Xcode-Build durch Jan. Details Memory [[watch-apps-release-state]].
