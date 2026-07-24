@@ -77,7 +77,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             if (Toybox has :Attention && Attention has :vibrate) {
                 try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
             }
-            WatchUi.pushView(new SessionActionMenu(), new SessionActionDelegate(_rec), WatchUi.SLIDE_LEFT);
+            var av = new SessionActionView();
+            WatchUi.pushView(av, new SessionActionDelegate(_rec, av), WatchUi.SLIDE_LEFT);
             WatchUi.requestUpdate();
             return;
         }
