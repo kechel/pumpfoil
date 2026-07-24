@@ -580,10 +580,13 @@ export default function SessionDetail() {
     return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, [id, session?.place_name]);
 
-  // GPS-first-Upload: solange nur GPS da ist (status "live", Accel lädt noch), still nachpollen
-  // und die fertige Version übernehmen -> Läufe/Längen/Pumps aktualisieren sich automatisch.
+  // GPS-first-Upload: solange die Session noch lädt/vorläufig ist (status "recording" = erste
+  // Analyse durch den Detail-Aufruf gerade getriggert, oder "live" = gps_only-Vorabanalyse da,
+  // Accel lädt noch), still nachpollen und die fertige Version übernehmen -> Läufe/Längen/Pumps
+  // aktualisieren sich automatisch (4a: seamless nachladen).
   useEffect(() => {
-    if (isPublic || !session || session.owned === false || session.status !== "live") return;
+    if (isPublic || !session || session.owned === false
+        || (session.status !== "live" && session.status !== "recording")) return;
     const iv = setInterval(() => {
       api.session(Number(id)).then(setSession).catch(() => {});
     }, 4000);

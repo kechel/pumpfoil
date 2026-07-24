@@ -96,6 +96,9 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
         .join(U, S.user_id == U.id)
         .filter(S.deleted.isnot(True), S.flagged.isnot(True), U.blocked.isnot(True),
                 or_(U.hidden.isnot(True), U.id == viewer_id),
+                # NUR fertige Sessions: recording/live (In-Progress bzw. gps_only-Vorabanalyse aus
+                # der Detail-Ansicht) NIE in Community/Rekorde — auch wenn is_pumpfoil schon gesetzt.
+                S.status.notin_(("recording", "live")),
                 S.is_pumpfoil.is_(True))
     )
     if accel_only:

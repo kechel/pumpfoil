@@ -582,12 +582,14 @@ def finalize_partial(
         lm = storage.gps_last_ms(s.session_uuid)
         if lm:
             s.ended_at = s.started_at + timedelta(milliseconds=lm)
-    s.total_chunks = int(gps_n)
-    s.status = "complete"
     db.commit()
+    # BEWUSST NICHT hart abschließen (kein status="complete"): sonst meldet /status der Uhr
+    # „complete" und sie wirft noch nicht hochgeladene Accel-Chunks weg (Datenverlust). Stattdessen
+    # gps_only-Vorabanalyse (final=False -> status "live"): sofort auswertbar, und lädt die Uhr den
+    # Upload später doch fort, integrieren sich die Accel-Daten weiterhin (regulär /complete -> final).
     from .ingest import _analyze_in_background
-    background.add_task(_analyze_in_background, s.id)
-    return {"session_id": s.id, "status": s.status, "analysis": "queued"}
+    background.add_task(_analyze_in_background, s.id, False)
+    return {"session_id": s.id, "status": "live", "analysis": "queued"}
 
 
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:
@@ -1000,6 +1002,16 @@ def get_session(
     # nächsten Laden. So kommt die Session sofort zurück (Overpass/is_in kann Sekunden dauern).
     if s.place_name is None:
         background_tasks.add_task(_geocode_place, s.id)
+    # 4a: In-Progress-Session (recording/live) mit vorhandener GPS, aber noch ohne Analyse -> beim
+    # Öffnen der Detailseite eine gps_only-Vorabanalyse im Hintergrund triggern (final=False), damit
+    # der Nutzer nicht auf eine leere Seite schaut. Nur Besitzer, nur wenn GPS-Chunks da sind und
+    # (noch) kein Ergebnis existiert -> kein unnötiges Reanalysieren. Der Client pollt und lädt
+    # das Ergebnis dann seamless nach.
+    if s.user_id == user.id and s.status in ("recording", "live") and s.result is None:
+        has_gps = db.query(models.IngestChunk.id).filter_by(session_id=s.id, kind="gps").first() is not None
+        if has_gps:
+            from .ingest import _analyze_in_background
+            background_tasks.add_task(_analyze_in_background, s.id, False)
     out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,

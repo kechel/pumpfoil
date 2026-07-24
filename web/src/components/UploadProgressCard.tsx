@@ -71,15 +71,16 @@ function UploadRow({
   const stalled =
     !!s.last_received_at && Date.now() - new Date(s.last_received_at).getTime() > stalledMs;
 
-  const finalize = async (e: React.MouseEvent) => {
+  // Non-destruktiv: triggert nur eine gps_only-Vorabanalyse (Server final=False -> Status „live").
+  // Kein hartes „complete" -> die Uhr wirft nichts weg, späte Accel-Daten integrieren sich weiter,
+  // sobald der Upload fortgesetzt wird. Kein Bestätigungsdialog nötig (nichts geht verloren).
+  const analyzeNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (busy) return;
-    if (!window.confirm(t("upload.finalizeConfirm"))) return;
     setBusy(true);
     try {
       await api.finalizeSession(s.id);
-      onDone(s.id);
       nav(`/sessions/${s.id}`);
     } catch {
       setBusy(false);
@@ -150,7 +151,7 @@ function UploadRow({
       {/* Bewusst mit den bisherigen (ggf. nur GPS-)Daten abschließen */}
       {s.has_gps && (
         <button
-          onClick={finalize}
+          onClick={analyzeNow}
           disabled={busy}
           className="mt-2.5 w-full rounded-lg border border-slate-600 px-3 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800/50 disabled:opacity-60"
         >
