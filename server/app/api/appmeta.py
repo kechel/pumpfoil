@@ -49,7 +49,7 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Prüfung durch)!
         # Leer = kein Update-Hinweis auf der Uhr. Die Garmin-App vergleicht das mit Config.VERSION.
-        "latest": "1.0.60",   # LIVE im CIQ-Store 2026-07-20 (59 KB; Sprach-Fallback)
+        "latest": "1.0.62",   # LIVE im CIQ-Store 2026-07-24 (GPS-first-Upload + nl/fi/cs on-watch)
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
