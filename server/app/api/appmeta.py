@@ -37,7 +37,7 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 # ---- MANUELL PFLEGEN nach jedem Store-Release (siehe Modul-Docstring) ----
 _APP_META: dict[str, dict[str, str]] = {
     "ios": {
-        "latest": "1.1.15",    # FREIGEGEBEN 2026-07-19 (eligible for distribution; Submission 99aecbbd)
+        "latest": "1.1.16",    # FREIGEGEBEN 2026-07-24 (eligible for distribution; Submission 1b73a193)
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
