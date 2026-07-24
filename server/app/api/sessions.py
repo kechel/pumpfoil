@@ -492,6 +492,63 @@ def list_sessions(
     return outs
 
 
+@router.get("/in-progress")
+def list_in_progress(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """Eigene Sessions im Zwischenzustand (recording/live) der letzten 48 h, neueste zuerst —
+    Datenquelle für die Live-Upload-Karte auf Home/Sessions. Bewusst NICHT über die normale Liste
+    (die filtert auf is_pumpfoil): eine noch nicht analysierte Session hat is_pumpfoil=NULL und würde
+    dort fehlen. Das 48-h-Fenster hält alte, hängengebliebene Uploads aus der prominenten Anzeige.
+    upload_total ist NULL, bis die Clients expected_chunks senden (Phase 3) — die UI zeigt dann einen
+    unbestimmten „lädt hoch"-Zustand statt %."""
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
+    rows = (
+        db.query(models.Session)
+        .filter(models.Session.user_id == user.id,
+                models.Session.deleted.isnot(True),
+                models.Session.status.in_(("recording", "live")),
+                models.Session.started_at >= cutoff)
+        .order_by(models.Session.started_at.desc())
+        .all()
+    )
+    if not rows:
+        return []
+    ids = [s.id for s in rows]
+    # Chunk-Zahlen je (Session, Kind) in EINER Abfrage — kein N+1.
+    gps_n: dict[int, int] = {}
+    accel_n: dict[int, int] = {}
+    for sid, kind, n in (
+        db.query(models.IngestChunk.session_id, models.IngestChunk.kind, func.count())
+        .filter(models.IngestChunk.session_id.in_(ids))
+        .group_by(models.IngestChunk.session_id, models.IngestChunk.kind).all()
+    ):
+        (gps_n if kind == "gps" else accel_n)[sid] = int(n)
+    dids = {s.device_id for s in rows if s.device_id}
+    dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+                .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
+    out = []
+    for s in rows:
+        g = gps_n.get(s.id, 0)
+        a = accel_n.get(s.id, 0)
+        lbl = dmap.get(s.device_id) if s.device_id else None
+        out.append({
+            "id": s.id,
+            "session_uuid": s.session_uuid,
+            "started_at": s.started_at,
+            "tz": tz_name(s.place_lat, s.place_lon),
+            "status": s.status,
+            "device_label": lbl.split("/")[0].strip() if lbl else None,
+            "upload_received": g + a,
+            "upload_total": s.expected_chunks,   # None bis Clients es senden (Phase 3)
+            "gps_received": g,
+            "accel_received": a,
+            "has_gps": g > 0,
+        })
+    return out
+
+
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
     sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
