@@ -7,10 +7,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
-## 🚀 App-Release-Stand (2026-07-22) — alle live & konform
-- **iOS 1.1.15 LIVE** (App Store, freigegeben 19.7.), **Android Phone 1.1.13 LIVE**, **Wear 1.2.14/1024 LIVE**
-  (22.7., targetSdk 35 → Play-konform), **Garmin 1.0.60 LIVE** (CIQ). `appmeta` gesetzt: ios=1.1.15,
-  android=1.1.13, garmin.latest=1.0.60. Nichts offen im App-Release. Details: Memory `watch-apps-release-state`.
+## 🚀 App-Release-Stand
+- **LIVE (Stand 2026-07-22):** iOS 1.1.15 (App Store 19.7.), Android Phone 1.1.13, Wear 1.2.14/1024
+  (22.7.), Garmin 1.0.60 (CIQ). `appmeta`: ios=1.1.15, android=1.1.13, garmin.latest=1.0.60.
+- **IN PRÜFUNG (2026-07-24): Garmin 1.0.62 (Intern 15)** hochgeladen im CIQ-Store (bis 2 h bis sichtbar).
+  Inhalt: GPS-first-Upload + nl/fi/cs on-watch. ⚠️ **NICHTS ankündigen bis freigegeben** (Jan): dann erst
+  `garmin.latest`→1.0.62 + Restart. **iOS 1.1.16 / Phone 1.1.14 / Wear 1.2.15** gebumpt+bereit (Live-Upload-
+  Karte, GPS-first) — Jan reviewt + released; nach Golive `appmeta` ios→1.1.16 / android→1.1.14 nachziehen.
+  Details: Memory `watch-apps-release-state`.
 
 ## 🩹 Polish / kleine Baustellen
 - **Verlauf-Karte abhärten:** osmdroid-Spot-Animation in der Scroll-Liste → am Emulator ANR bei
