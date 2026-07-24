@@ -45,6 +45,7 @@ enum WLoc {
         "rec.start": r("Start", "Start", "Start", "Start", "Démarrer", "Avvia", "Iniciar"),
         "rec.stop": r("Stop", "Stop", "Stop", "Stop", "Arrêter", "Stop", "Parar"),
         "rec.stopHold": r("Stop · 3 s halten", "Stop · 3 s halte", "Stop · 3 s halten", "Stop · hold 3 s", "Stop · 3 s", "Stop · tieni 3 s", "Stop · mantén 3 s"),
+        "rec.discardHold": r("Verwerfen · 3 s halten", "Verwärfe · 3 s halte", "Verwerfen · 3 s halten", "Discard · hold 3 s", "Suppr. · 3 s", "Scarta · tieni 3 s", "Descartar · mantén 3 s"),
         "rec.starting": r("starte…", "start…", "starte…", "starting…", "démarrage…", "avvio…", "iniciando…"),
         "rec.autoStart": r("Auto-Start aktiv", "Auto-Start aktiv", "Auto-Start aktiv", "Auto-start on", "Démarrage auto", "Avvio auto", "Inicio auto"),
         "rec.autoStartToggle": r("Auto-Start", "Auto-Start", "Auto-Start", "Auto-start", "Démarrage auto", "Avvio automatico", "Inicio automático"),

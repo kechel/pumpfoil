@@ -112,7 +112,7 @@ struct RecordView: View {
     @State private var views: [[Int]] = [[1, 2], [6, 7], [4, 3]]
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
-    @State private var page = 1
+    @State private var page = 2   // Start auf der ersten Datenseite (0=Verwerfen, 1=Stop davor)
     @State private var wasHigh = false
     @State private var wasLow = false
     @State private var syncing = false
@@ -130,7 +130,7 @@ struct RecordView: View {
     @State private var offFoil: [Int] = [12, 17, 16]   // Lauf-Ende-Screen (kurz nach Lauf-Ende)
     @State private var pauseView: [Int] = [12, 20, 2]  // Pausen-Screen: Uhrzeit · Läufe · Puls
     @State private var showRunEnd = false               // true = Lauf-Ende-Screen, false = Pausen-Screen
-    @State private var lastDataPage = 1                 // Rücksprungziel nach der Übersicht
+    @State private var lastDataPage = 2                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
     @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
     @State private var autoCountdown = 10               // s Vorlauf ab Betreten des Start-Screens, bis scharf
@@ -143,27 +143,31 @@ struct RecordView: View {
                 // Pager: Stop(0) | Daten 1..n | Übersicht(n+1) | Stop(n+2). Übersicht ist eine
                 // wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" -> Übersicht
                 // (+kurze Vibration), nach 60 s ohne Wischen zurück; „Lauf gestartet" -> zurück.
+                // Pager: Verwerfen(0) | Stop(1) | Daten 2..n+1 | Übersicht(n+2) | Stop(n+3) | Verwerfen(n+4).
+                // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
                 TabView(selection: $page) {
-                    stopPage(WLoc.t("rec.toData", lang)).tag(0)
+                    discardPage().tag(0)
+                    stopPage(WLoc.t("rec.toData", lang)).tag(1)
                     ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
                         VStack(spacing: 10) {
                             ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .tag(idx + 1)
+                        .tag(idx + 2)
                     }
                     VStack(spacing: 10) {   // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls)
                         ForEach(activeFields(showRunEnd ? offFoil : pauseView), id: \.self) { fid in fieldView(fid) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .tag(views.count + 1)
-                    stopPage(WLoc.t("rec.toSummary", lang)).tag(views.count + 2)
+                    .tag(views.count + 2)
+                    stopPage(WLoc.t("rec.toSummary", lang)).tag(views.count + 3)
+                    discardPage().tag(views.count + 4)
                 }
                 .tabViewStyle(.page)
-                .onChange(of: rec.isRecording) { r in if r { page = 1 } }
-                .onChange(of: page) { p in if p >= 1 && p <= views.count { lastDataPage = p } }
+                .onChange(of: rec.isRecording) { r in if r { page = 2 } }
+                .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
                 .onChange(of: rec.isFoiling) { foiling in
-                    let summaryPage = views.count + 1
+                    let summaryPage = views.count + 2
                     if !foiling {
                         // Lauf beendet -> Übersicht: erst kurz Lauf-Ende, nach 8 s Pausen-Ansicht.
                         // KEIN Rücksprung zur Datenansicht mehr — die bleibt bis zum nächsten Lauf.
@@ -355,6 +359,14 @@ struct RecordView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    // Verwerfen-Seite (ganz außen): 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
+    @ViewBuilder private func discardPage() -> some View {
+        VStack(spacing: 12) {
+            HoldToStopButton(label: WLoc.t("rec.discardHold", lang), tint: .orange) { rec.discard() }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     private func activeFields(_ f: [Int]) -> [Int] {
         let a = f.filter { $0 != 0 }
         return a.isEmpty ? [1] : a
@@ -541,6 +553,7 @@ struct AlarmPickerSheet: View {
 // sichtbar ist, wie lange noch zu halten ist. Loslassen vor Ablauf bricht ab.
 struct HoldToStopButton: View {
     let label: String
+    var tint: Color = .red   // Stop = rot, Verwerfen = orange
     let onStop: () -> Void
     @State private var progress: CGFloat = 0
 
@@ -548,7 +561,7 @@ struct HoldToStopButton: View {
         ZStack {
             Circle().stroke(Color.white.opacity(0.22), lineWidth: 6)
             Circle().trim(from: 0, to: progress)
-                .stroke(Color.red, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .stroke(tint, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text(label).font(.caption).bold().multilineTextAlignment(.center)
                 .foregroundStyle(.white).padding(8)

@@ -207,6 +207,22 @@ final class Recorder: NSObject, ObservableObject {
         await drain()   // sofort hochladen, falls gepairt + online
     }
 
+    /// Aufnahme VERWERFEN: beenden + lokal löschen — KEIN complete, KEIN Upload. Ganzer Session-
+    /// Ordner weg (kein meta.json) -> wird auch nicht als „interrupted" später hochgeladen.
+    func discard() {
+        guard isRecording else { return }
+        isRecording = false
+        isFoiling = false
+        tick?.invalidate(); tick = nil
+        flushTask?.cancel()
+        motion.stopAccelerometerUpdates()
+        location.stopUpdatingLocation()
+        LocalStore.delete(uuid)
+        status = ""
+        pendingCount = LocalStore.pendingCount()
+        endWorkout()
+    }
+
     func refreshPending() { pendingCount = LocalStore.pendingCount() }
 
     /// Lädt fertig aufgezeichnete Sessions hoch, sobald gepairt + online.
