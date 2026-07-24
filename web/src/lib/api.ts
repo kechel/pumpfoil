@@ -719,8 +719,6 @@ export const api = {
     req(`/api/sessions/${id}/videos/${videoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
   inProgress: () => req<InProgressSession[]>("/api/sessions/in-progress"),
-  finalizeSession: (id: number) =>
-    req<{ session_id: number; status: string }>(`/api/sessions/${id}/finalize`, { method: "POST" }),
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",

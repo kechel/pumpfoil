@@ -558,40 +558,6 @@ def list_in_progress(
     return out
 
 
-@router.post("/{session_id}/finalize")
-def finalize_partial(
-    session_id: int,
-    background: BackgroundTasks,
-    user: models.User = Depends(current_user),
-    db: Session = Depends(get_db),
-) -> dict:
-    """Der Nutzer schließt eine unvollständig hochgeladene Session bewusst mit den BEREITS
-    empfangenen Daten ab — z. B. wenn das Recording nicht mehr auf der Uhr liegt und der Upload
-    nie fertig wird. Reine, ausdrücklich ausgelöste Nutzer-Aktion: setzt total_chunks auf die
-    vorhandenen GPS-Chunks, leitet ended_at aus dem letzten GPS-Punkt ab, status=complete und
-    stößt die NORMALE Analyse an (pur GPS, falls Accel unvollständig ist — gps_only). Kein
-    Detektor-Eingriff, exakt derselbe Pfad wie ein reguläres /complete von der Uhr."""
-    s = _owned(db, user, session_id)
-    if s.status not in ("recording", "live"):
-        raise HTTPException(status.HTTP_409_CONFLICT, "Session is not in progress")
-    gps_n = db.query(func.count()).select_from(models.IngestChunk).filter(
-        models.IngestChunk.session_id == s.id, models.IngestChunk.kind == "gps").scalar() or 0
-    if gps_n == 0:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No GPS data received yet")
-    if s.ended_at is None and s.started_at is not None:
-        lm = storage.gps_last_ms(s.session_uuid)
-        if lm:
-            s.ended_at = s.started_at + timedelta(milliseconds=lm)
-    db.commit()
-    # BEWUSST NICHT hart abschließen (kein status="complete"): sonst meldet /status der Uhr
-    # „complete" und sie wirft noch nicht hochgeladene Accel-Chunks weg (Datenverlust). Stattdessen
-    # gps_only-Vorabanalyse (final=False -> status "live"): sofort auswertbar, und lädt die Uhr den
-    # Upload später doch fort, integrieren sich die Accel-Daten weiterhin (regulär /complete -> final).
-    from .ingest import _analyze_in_background
-    background.add_task(_analyze_in_background, s.id, False)
-    return {"session_id": s.id, "status": "live", "analysis": "queued"}
-
-
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
     sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
@@ -990,6 +956,16 @@ def get_session(
     # ETag/304 (PWA-Caching): Stempel aus updated_at + Like-Zustand (Likes bumpen updated_at
     # nicht, sonst wäre der Like-Count aus dem Cache veraltet). Passt If-None-Match -> 304 ohne
     # das schwere Detail (Track/Segmente/Accel/GPS) zu bauen. Browser liefert dann seine Kopie.
+    # 4a: In-Progress-Session (recording/live) mit vorhandener GPS, aber noch ohne Analyse -> beim
+    # Öffnen der Detailseite eine gps_only-Vorabanalyse im Hintergrund triggern (final=False), damit
+    # der Nutzer nicht auf eine leere Seite schaut. MUSS VOR dem ETag/304-Return stehen: sonst
+    # antwortet der Poll dauerhaft 304 (updated_at ändert sich ohne Analyse nie) -> Trigger feuert
+    # nie -> Deadlock. Nur Besitzer, nur mit GPS-Chunks, nur wenn (noch) kein Ergebnis existiert.
+    if s.user_id == user.id and s.status in ("recording", "live") and s.result is None:
+        has_gps = db.query(models.IngestChunk.id).filter_by(session_id=s.id, kind="gps").first() is not None
+        if has_gps:
+            from .ingest import _analyze_in_background
+            background_tasks.add_task(_analyze_in_background, s.id, False)
     like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
@@ -1002,16 +978,6 @@ def get_session(
     # nächsten Laden. So kommt die Session sofort zurück (Overpass/is_in kann Sekunden dauern).
     if s.place_name is None:
         background_tasks.add_task(_geocode_place, s.id)
-    # 4a: In-Progress-Session (recording/live) mit vorhandener GPS, aber noch ohne Analyse -> beim
-    # Öffnen der Detailseite eine gps_only-Vorabanalyse im Hintergrund triggern (final=False), damit
-    # der Nutzer nicht auf eine leere Seite schaut. Nur Besitzer, nur wenn GPS-Chunks da sind und
-    # (noch) kein Ergebnis existiert -> kein unnötiges Reanalysieren. Der Client pollt und lädt
-    # das Ergebnis dann seamless nach.
-    if s.user_id == user.id and s.status in ("recording", "live") and s.result is None:
-        has_gps = db.query(models.IngestChunk.id).filter_by(session_id=s.id, kind="gps").first() is not None
-        if has_gps:
-            from .ingest import _analyze_in_background
-            background_tasks.add_task(_analyze_in_background, s.id, False)
     out = _session_out(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,

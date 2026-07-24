@@ -57,7 +57,6 @@ function UploadRow({
   t: ReturnType<typeof useT>;
 }) {
   const nav = useNavigate();
-  const [busy, setBusy] = useState(false);
   const pct =
     s.upload_total && s.upload_total > 0
       ? Math.min(100, Math.round((s.upload_received / s.upload_total) * 100))
@@ -67,22 +66,8 @@ function UploadRow({
   const stalled =
     !!s.last_received_at && Date.now() - new Date(s.last_received_at).getTime() > stalledMs;
 
-  // Non-destruktiv: triggert nur eine gps_only-Vorabanalyse (Server final=False -> Status „live").
-  // Kein hartes „complete" -> die Uhr wirft nichts weg, späte Accel-Daten integrieren sich weiter,
-  // sobald der Upload fortgesetzt wird. Kein Bestätigungsdialog nötig (nichts geht verloren).
-  const analyzeNow = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (busy) return;
-    setBusy(true);
-    try {
-      await api.finalizeSession(s.id);
-      nav(`/sessions/${s.id}`);
-    } catch {
-      setBusy(false);
-    }
-  };
-
+  // Kein expliziter „auswerten"-Button nötig: Klick auf die Kachel öffnet die Detailseite, deren
+  // GET die gps_only-Vorabanalyse triggert (Server 4a) und seamless nachlädt.
   return (
     <div
       onClick={() => nav(`/sessions/${s.id}`)}
@@ -136,24 +121,14 @@ function UploadRow({
 
       {/* Stall-Hinweis (>5 min kein Chunk): App auf der Uhr erneut öffnen, um fortzusetzen */}
       {stalled ? (
-        <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 text-[11px] leading-snug text-amber-800 dark:text-amber-200">
-          <InfoIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{t("upload.stalledHint")}</span>
         </div>
       ) : (
-        <p className="mt-2 text-[11px] leading-snug text-slate-400">{t("upload.hint")}</p>
+        <p className="mt-2 leading-snug text-slate-400">{t("upload.hint")}</p>
       )}
 
-      {/* Bewusst mit den bisherigen (ggf. nur GPS-)Daten abschließen */}
-      {s.has_gps && (
-        <button
-          onClick={analyzeNow}
-          disabled={busy}
-          className="mt-2.5 w-full rounded-lg border border-slate-600 px-3 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800/50 disabled:opacity-60"
-        >
-          {busy ? t("upload.finalizeBusy") : t("upload.finalize")}
-        </button>
-      )}
     </div>
   );
 }
