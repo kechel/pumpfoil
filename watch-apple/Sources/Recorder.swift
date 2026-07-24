@@ -271,7 +271,11 @@ final class Recorder: NSObject, ObservableObject {
     private func uploadSession(_ dir: URL) async throws {
         guard let meta = LocalStore.readJSON(dir.appendingPathComponent("meta.json")),
               let sid = meta["session_uuid"] as? String else { return }
-        let chunkFiles = LocalStore.chunkFiles(dir)
+        // GPS-first: GPS-Chunks zuerst in den Pool (kind aus dem Dateinamen, billig). Bei
+        // abgebrochenem Upload ist so die GPS-Spur zuerst vollständig -> Session als gps_only
+        // analysierbar statt hängend. Parität zu Server/Web. Reihenfolge je Gruppe bleibt erhalten.
+        let _cf = LocalStore.chunkFiles(dir)
+        let chunkFiles = _cf.filter { LocalStore.chunkKind($0) == "gps" } + _cf.filter { LocalStore.chunkKind($0) != "gps" }
         // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
         // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
         let res = try await Api.startSession(meta)

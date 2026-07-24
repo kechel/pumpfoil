@@ -37,7 +37,20 @@ enum LocalStore {
         writeJSON(meta, to: dir(uuid).appendingPathComponent("meta.json"))
     }
     static func writeChunk(_ uuid: String, _ index: Int, _ chunk: [String: Any]) {
-        writeJSON(chunk, to: dir(uuid).appendingPathComponent(String(format: "chunk-%06d.json", index)))
+        // Kind in den Dateinamen (chunk-<index>-<kind>.json): Swifts JSONSerialization garantiert
+        // KEINE Schlüsselreihenfolge, daher lässt sich das kind NICHT aus dem Datei-Kopf lesen.
+        // Über den Namen sortiert der Uploader GPS-first billig (ohne die Payload zu lesen).
+        let kind = (chunk["kind"] as? String) ?? "x"
+        writeJSON(chunk, to: dir(uuid).appendingPathComponent(String(format: "chunk-%06d-%@.json", index, kind)))
+    }
+
+    // Kind eines Chunks aus dem Dateinamen (chunk-<index>-<kind>.json). Alt-Format ohne Suffix
+    // (chunk-<index>.json) -> "" (wird als nicht-gps einsortiert = ursprüngliche Reihenfolge).
+    static func chunkKind(_ url: URL) -> String {
+        let n = url.lastPathComponent
+        if n.contains("-gps.") { return "gps" }
+        if n.contains("-accel.") { return "accel" }
+        return ""
     }
     static func writeComplete(_ uuid: String, _ c: [String: Any]) {
         writeJSON(c, to: dir(uuid).appendingPathComponent("complete.json"))

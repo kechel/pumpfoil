@@ -308,7 +308,11 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         // Handy hat echtes Netz -> Chunks PARALLEL hochladen (Pool 6). Server nimmt sie in
         // beliebiger Reihenfolge (je Index eigene Datei/Zeile) -> kollisionsfrei. Jeder Task
         // liest seine Datei selbst (nur Sendable-Werte gefangen: URL, Set, String).
-        var it = Store.chunkFiles(dir).makeIterator()
+        // GPS-first: GPS-Chunks zuerst in den Pool (kind aus dem Dateinamen). Bei abgebrochenem
+        // Upload ist die GPS-Spur zuerst vollständig -> Session als gps_only analysierbar statt
+        // hängend. Parität zu Server/Web; Reihenfolge je Gruppe bleibt erhalten.
+        let _cf = Store.chunkFiles(dir)
+        var it = (_cf.filter { Store.chunkKind($0) == "gps" } + _cf.filter { Store.chunkKind($0) != "gps" }).makeIterator()
         try await withThrowingTaskGroup(of: Void.self) { group in
             func addNext() -> Bool {
                 guard let cf = it.next() else { return false }
