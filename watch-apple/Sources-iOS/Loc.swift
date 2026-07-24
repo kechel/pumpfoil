@@ -1755,6 +1755,7 @@ enum Loc {
         "wx.today": r("Heute", "Hüt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
         "wx.tomorrow": r("Morgen", "Morn", "Morgn", "Tomorrow", "Demain", "Domani", "Mañana"),
         "home.foiling": r("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
+        "home.startSuccess": r("Start-Erfolgsquote", "Start-Erfolgsquote", "Start-Erfolgsquote", "Start success rate", "Taux de départs réussis", "Tasso di partenze riuscite", "Tasa de salidas logradas"),
         "home.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
         "home.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
         "home.records": r("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),

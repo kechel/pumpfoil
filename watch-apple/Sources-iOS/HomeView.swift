@@ -21,6 +21,10 @@ struct HomeView: View {
     @State private var updateURL = ""
     @State private var updateDismissed = false
     @State private var community: Api.CommunityStats?
+    @State private var startSuccess: StartSuccess?   // persönliche Home-Stats (unten)
+    @State private var carveStats: CarveStats?
+    // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
+    private let statWindows: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
     @State private var showFeedback = false
     // News-Banner DB-gesteuert (wie PWA): der AppStorage-Wert = zuletzt weggeklickte VERSION.
     @AppStorage("foil_banner_v1") private var newsVerStored = 0
@@ -62,6 +66,8 @@ struct HomeView: View {
                     if incomingXfer > 0 { transferHint }
                     latestSection
                     if let st = stats { recordsSection(st) }
+                    if let ss = startSuccess { startSuccessSection(ss) }
+                    if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
                     if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
                 }
                 .padding(.horizontal).padding(.bottom).padding(.top, 2)
@@ -311,6 +317,53 @@ struct HomeView: View {
         let hs = (try? await Api.settings())?["homespot"] as? String
         if let hs, !hs.isEmpty { weather = (try? await Api.spotWeather(hs))?.weather } else { weather = nil }
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
+        startSuccess = try? await Api.startSuccess()
+        carveStats = try? await Api.carveStats()
+    }
+
+    // --- Persönliche Home-Stats (unten), wie PWA PersonalHome ---
+    private func carveStatsHasAny(_ cs: CarveStats) -> Bool {
+        cs.windows.values.contains { ($0.s + $0.m + $0.l) > 0 }
+    }
+
+    @ViewBuilder private func startSuccessSection(_ ss: StartSuccess) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Loc.t("home.startSuccess", lang)).font(.headline)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(statWindows, id: \.0) { win in
+                        let w = ss.windows[win.0]
+                        VStack(spacing: 2) {
+                            Text(w?.rate.map { "\($0)%" } ?? "–").font(.title3).bold()
+                            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
+                            Text("\(w?.success ?? 0)/\(w?.total ?? 0)").font(.caption2).foregroundStyle(.secondary)
+                        }
+                        .frame(minWidth: 64).padding(8)
+                        .background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func carveStatsSection(_ cs: CarveStats) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Carves").font(.headline)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(statWindows, id: \.0) { win in
+                        let w = cs.windows[win.0]
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
+                            Text("90–180°: \(w?.s ?? 0)").font(.caption)
+                            Text("180–360°: \(w?.m ?? 0)").font(.caption)
+                            Text(">360°: \(w?.l ?? 0)").font(.caption)
+                        }
+                        .padding(8).background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+            }
+        }
     }
 }
 

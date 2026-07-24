@@ -96,6 +96,14 @@ enum Api {
         try await request("/api/sessions/\(id)/carves", method: "GET", body: nil, auth: true)
     }
 
+    // Persönliche Home-Stats: Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
+    static func startSuccess() async throws -> StartSuccess {
+        try await request("/api/community/start-success", method: "GET", body: nil, auth: true)
+    }
+    static func carveStats() async throws -> CarveStats {
+        try await request("/api/community/carve-stats", method: "GET", body: nil, auth: true)
+    }
+
     struct ShareLinkResp: Decodable { let token: String; let path: String }
     // Öffentlichen Teilen-Link erzeugen (idempotent) -> volle öffentliche URL (pumpfoil.org/s/<token>).
     static func createShareLink(_ id: Int) async throws -> String {

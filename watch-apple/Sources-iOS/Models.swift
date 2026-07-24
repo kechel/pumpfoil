@@ -406,6 +406,15 @@ struct CommunityGroup: Codable, Identifiable {
     var id: String { "\(user_id)-\(date)" }
 }
 
+// Home-Stats (persönlich): Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
+struct StartSuccess: Codable {
+    let threshold_m: Int
+    let windows: [String: SSWindow]
+}
+struct SSWindow: Codable { let total: Int; let success: Int; let failed: Int; let rate: Int? }
+struct CarveStats: Codable { let windows: [String: CarveWin] }
+struct CarveWin: Codable { let s: Int; let m: Int; let l: Int }
+
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
