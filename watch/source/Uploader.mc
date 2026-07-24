@@ -314,18 +314,13 @@ class SessionSyncJob {
     }
 
     // Schickt den nächsten fehlenden Chunk; überspringt bereits gelöschte; sonst abschließen.
+    // Reihenfolge GPS-FIRST: erst ALLE GPS-Chunks, dann Accel. Bei abgebrochenem Upload (App im
+    // Hintergrund, Uhr außer Reichweite) ist damit die GPS-Spur zuerst vollständig -> die Session
+    // wird server-seitig als gps_only analysierbar statt hängen zu bleiben. Server/Web sind bereits
+    // GPS-first; das hier ist die Client-Parität. _sa/_sg sind unabhängige Resume-Zähler pro Kind
+    // -> der Reorder ist rückwärtskompatibel mit halb hochgeladenen Alt-Sessions.
     hidden function _advance() as Void {
-        if (_phase == :start) { _phase = :accel; _idx = _sa; }
-        if (_phase == :accel) {
-            while (_idx < _accelTotal) {
-                var bytes = Storage.getValue("ca_" + _uuid + "_" + _idx);
-                if (bytes == null) {
-                    _sa = _idx + 1; Storage.setValue("sa_" + _uuid, _sa); _idx++; continue;
-                }
-                _sendAccel(_idx, bytes); return;
-            }
-            _phase = :gps; _idx = _sg;
-        }
+        if (_phase == :start) { _phase = :gps; _idx = _sg; }
         if (_phase == :gps) {
             while (_idx < _gpsTotal) {
                 var gdata = Storage.getValue("cg_" + _uuid + "_" + _idx);
@@ -333,6 +328,16 @@ class SessionSyncJob {
                     _sg = _idx + 1; Storage.setValue("sg_" + _uuid, _sg); _idx++; continue;
                 }
                 _sendGps(_idx, gdata); return;
+            }
+            _phase = :accel; _idx = _sa;
+        }
+        if (_phase == :accel) {
+            while (_idx < _accelTotal) {
+                var bytes = Storage.getValue("ca_" + _uuid + "_" + _idx);
+                if (bytes == null) {
+                    _sa = _idx + 1; Storage.setValue("sa_" + _uuid, _sa); _idx++; continue;
+                }
+                _sendAccel(_idx, bytes); return;
             }
             _phase = :final;
         }
