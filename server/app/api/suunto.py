@@ -109,7 +109,6 @@ def _fresh_token(link: models.SuuntoLink, db: Session) -> str:
     r = httpx.post(TOKEN_URL,
                    data={"grant_type": "refresh_token", "refresh_token": link.refresh_token},
                    headers={"Authorization": f"Basic {_basic(cid, secret)}",
-                            "Ocp-Apim-Subscription-Key": _sub_key(),
                             "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
                    timeout=20)
     if r.status_code == 200:
@@ -164,7 +163,6 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
         tr = httpx.post(TOKEN_URL,
                         data={"grant_type": "authorization_code", "code": code, "redirect_uri": _redirect_uri()},
                         headers={"Authorization": f"Basic {_basic(cid, secret)}",
-                                 "Ocp-Apim-Subscription-Key": _sub_key(),
                                  "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
                         timeout=20)
         tok = tr.json() if tr.status_code == 200 else {}
