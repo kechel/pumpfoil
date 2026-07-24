@@ -341,7 +341,10 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {   // Like unter dem Avatar (wie PWA)
+                    AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp)
+                    LikeToggle(s.id, s.liked, s.likeCount)
+                }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(dateTimeRange(s.startedAt, s.endedAt, s.tz), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -389,22 +392,25 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
             }
             if (a != null) {
                 Spacer(Modifier.height(8.dp))
-                SessionStatsRow(a, m)
+                // Stats linksbündig mit dem Info-Block (nicht ganz links unter dem Avatar):
+                // um Avatar-Breite (40) + Spacer (10) einrücken.
+                Box(Modifier.padding(start = 50.dp)) { SessionStatsRow(a, m) }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (s.transferTo != null) {
-                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(4.dp)) {
-                        Text(I18n.t("transfer.badge"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+            // Fußzeile nur noch für Transfer-/Status-Badge (Like ist jetzt unter dem Avatar).
+            if (s.transferTo != null || s.status != "analyzed") {
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp, start = 50.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (s.transferTo != null) {
+                        Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(4.dp)) {
+                            Text(I18n.t("transfer.badge"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        }
+                        Spacer(Modifier.width(8.dp))
                     }
-                    Spacer(Modifier.width(8.dp))
+                    if (s.status != "analyzed") {
+                        Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.tertiary)
+                    }
                 }
-                if (s.status != "analyzed") {
-                    Text(statusLabel(s.status), style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary)
-                }
-                Spacer(Modifier.weight(1f))
-                LikeToggle(s.id, s.liked, s.likeCount)
             }
         }
     }
@@ -544,7 +550,10 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {   // Like unter dem Avatar (wie PWA)
+                    AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp)
+                    LikeToggle(c.id, c.liked, c.likeCount)
+                }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(c.name ?: dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -594,10 +603,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     stats.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.weight(1f))
-                LikeToggle(c.id, c.liked, c.likeCount)
-            }
+            // Like ist jetzt unter dem Avatar (nicht mehr eigene Fußzeile).
         }
     }
 }

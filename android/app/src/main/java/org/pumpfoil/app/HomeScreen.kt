@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -72,6 +75,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
+    var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
+    var carveStats by remember { mutableStateOf<CarveStats?>(null) }
     var loading by remember { mutableStateOf(true) }
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -153,6 +158,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
         rooms = try { Api.chatRooms().filter { it.kind != "dm" } } catch (_: Exception) { emptyList() }   // DMs laufen im Chat-Tab
         community = try { Api.communityStats() } catch (_: Exception) { community }
+        startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
+        carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
         val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs).weather } catch (_: Exception) { null } else null
         loading = false
@@ -318,33 +325,16 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 WeatherCard(wb)
             }
 
-            if (social && rooms.isNotEmpty()) {
+            // Persönliche Home-Stats (wie PWA): Start-Erfolgsquote + Carve-Zähler je Zeitfenster.
+            // („Meine Chats" wurde entfernt — läuft im Chat-Tab, wie in der PWA.)
+            startSuccess?.let { ss ->
                 Spacer(Modifier.height(10.dp))
-                Text(I18n.t("home.myChats"), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-                rooms.forEach { room ->
-                    Card(Modifier.fillMaxWidth().padding(vertical = 3.dp).clickable { onOpenChatRoom(room.scope, room.label) }) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(room.label, fontWeight = FontWeight.Medium)
-                                if (room.lastText.isNotBlank()) {
-                                    Text(room.lastText, style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                }
-                            }
-                            if (room.unread > 0) {
-                                Text("${room.unread}", style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .height(20.dp)
-                                        .clip(androidx.compose.foundation.shape.CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                        .padding(horizontal = 7.dp, vertical = 2.dp))
-                            }
-                        }
-                    }
+                StartSuccessSection(ss)
+            }
+            carveStats?.let { cs ->
+                if (cs.windows.values.any { it.s + it.m + it.l > 0 }) {
+                    Spacer(Modifier.height(10.dp))
+                    CarveStatsSection(cs)
                 }
             }
 
@@ -358,6 +348,49 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 }
             }
             Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+private val HOME_STAT_WINDOWS = listOf(
+    "today" to "period.today", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
+
+@Composable
+private fun statTileModifier() = Modifier
+    .clip(RoundedCornerShape(10.dp))
+    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+    .padding(8.dp)
+    .widthIn(min = 64.dp)
+
+@Composable
+private fun StartSuccessSection(ss: StartSuccess) {
+    Text(I18n.t("home.startSuccess"), style = MaterialTheme.typography.titleMedium)
+    Spacer(Modifier.height(6.dp))
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        HOME_STAT_WINDOWS.forEach { (k, lbl) ->
+            val w = ss.windows[k]
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = statTileModifier()) {
+                Text(w?.rate?.let { "$it%" } ?: "–", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(I18n.t(lbl), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${w?.success ?: 0}/${w?.total ?: 0}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CarveStatsSection(cs: CarveStats) {
+    Text("Carves", style = MaterialTheme.typography.titleMedium)
+    Spacer(Modifier.height(6.dp))
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        HOME_STAT_WINDOWS.forEach { (k, lbl) ->
+            val w = cs.windows[k]
+            Column(modifier = statTileModifier()) {
+                Text(I18n.t(lbl), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("90–180°: ${w?.s ?: 0}", style = MaterialTheme.typography.bodySmall)
+                Text("180–360°: ${w?.m ?: 0}", style = MaterialTheme.typography.bodySmall)
+                Text(">360°: ${w?.l ?: 0}", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

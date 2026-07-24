@@ -191,6 +191,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 
     "home.hello" to row("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
     "home.foiling" to row("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
+    "home.startSuccess" to row("Start-Erfolgsquote", "Start-Erfolgsquote", "Start-Erfolgsquote", "Start success rate", "Taux de départs réussis", "Tasso di partenze riuscite", "Tasa de salidas logradas"),
     "home.runs" to row("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
     "home.pumps" to row("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
     "home.records" to row("Rekorde", "Rekord", "Rekorde", "Records", "Records", "Record", "Récords"),

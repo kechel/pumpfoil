@@ -137,6 +137,19 @@ data class CommunityGroup(
     val sessions: List<CommunityItem> = emptyList(),
 )
 
+// Persönliche Home-Stats: Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
+@Serializable
+data class StartSuccess(
+    @SerialName("threshold_m") val thresholdM: Int = 20,
+    val windows: Map<String, SSWindow> = emptyMap(),
+)
+@Serializable
+data class SSWindow(val total: Int = 0, val success: Int = 0, val failed: Int = 0, val rate: Int? = null)
+@Serializable
+data class CarveStats(val windows: Map<String, CarveWin> = emptyMap())
+@Serializable
+data class CarveWin(val s: Int = 0, val m: Int = 0, val l: Int = 0)
+
 @Serializable
 data class Analysis(
     @SerialName("total_distance_m") val totalDistanceM: Double? = null,

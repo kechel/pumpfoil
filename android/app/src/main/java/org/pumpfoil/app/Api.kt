@@ -164,6 +164,14 @@ object Api {
         json.decodeFromString(CarveData.serializer(), http("GET", "/api/sessions/$id/carves", null, auth = true))
     }
 
+    // Persönliche Home-Stats: Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
+    suspend fun startSuccess(): StartSuccess = withContext(Dispatchers.IO) {
+        json.decodeFromString(StartSuccess.serializer(), http("GET", "/api/community/start-success", null, auth = true))
+    }
+    suspend fun carveStats(): CarveStats = withContext(Dispatchers.IO) {
+        json.decodeFromString(CarveStats.serializer(), http("GET", "/api/community/carve-stats", null, auth = true))
+    }
+
     // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
     suspend fun sessionNeighbors(id: Int): Neighbors = withContext(Dispatchers.IO) {
         json.decodeFromString(Neighbors.serializer(), http("GET", "/api/sessions/$id/neighbors", null, auth = true))
