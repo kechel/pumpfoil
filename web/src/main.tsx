@@ -53,6 +53,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import LinkedAccounts from "./pages/LinkedAccounts";
 import Sessions from "./pages/Sessions";
+import CurrentFeedbackRequest from "./pages/CurrentFeedbackRequest";
 import AllSessionsRedirect from "./pages/AllSessionsRedirect";
 import SessionDetail from "./pages/SessionDetail";
 import PublicSession from "./pages/PublicSession";
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
       { path: "community", element: <Home /> },
       { path: "verlauf", element: <History /> },
       { path: "sessions", element: <Sessions /> },
+      { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
       { path: "import", element: <Import /> },
       { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },

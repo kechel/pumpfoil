@@ -2,6 +2,12 @@
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
   "session.loadingAccel": "Beschleunigungsdaten werden hochgeladen – Läufe, Längen und Pumps aktualisieren sich gleich.",
+  "cfr.title": "Feedback erbeten: neuer Stopp-Screen (Garmin)",
+  "cfr.intro": "Wir haben den Stopp-Screen auf der Garmin-Uhr neu gebaut: 3 Sekunden halten öffnet ein Menü — Speichern, Pausieren oder Verwerfen. Machst du nichts, wird nach 5 Sekunden automatisch gespeichert. Wie findest du das? Kurzes Video unten, Feedback direkt darunter.",
+  "cfr.placeholder": "Dein Feedback zum neuen Stopp-Screen…",
+  "cfr.submit": "Feedback senden",
+  "cfr.sending": "Wird gesendet…",
+  "cfr.thanks": "Danke für dein Feedback!",
   "upload.title": "Session lädt hoch",
   "upload.gpsReady": "GPS-Daten da",
   "upload.waiting": "Warte auf Daten…",

@@ -157,6 +157,18 @@ def wear_fgs_demo() -> FileResponse:
     return FileResponse(vids[0], media_type="video/webm", filename="pumpfoil-wear-fgs.webm")
 
 
+@app.get("/demo/stop-screen.mp4")
+def stop_screen_demo() -> FileResponse:
+    """Screen-Recording des neuen Garmin-Stop-Menüs (Speichern/Pausieren/Verwerfen) für die
+    Feedback-Seite /current-feedback-request."""
+    from fastapi import HTTPException
+
+    p = Path(__file__).resolve().parents[2] / "screenshots" / "watch" / "stop-screen-v1063.mp4"
+    if not p.exists():
+        raise HTTPException(404, "kein Video")
+    return FileResponse(p, media_type="video/mp4")
+
+
 # --- Öffentliche Promo-Videos vom YouTube-Kanal (@pumpfoil-org), gecacht. ---
 # Quelle: Kanal-RSS-Feed (kein API-Key, keine Quota). Selbst-aktualisierend, sobald Jan
 # neue Videos postet. Wird auf der öffentlichen Startseite (Landing) eingebunden.
