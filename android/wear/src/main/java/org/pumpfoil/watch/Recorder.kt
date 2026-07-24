@@ -306,7 +306,10 @@ object Recorder {
     private suspend fun uploadSession(ctx: Context, dir: java.io.File) {
         val meta = LocalStore.readJson(java.io.File(dir, "meta.json")) ?: return
         val sid = meta.getString("session_uuid")
-        val chunkFiles = LocalStore.chunkFiles(dir)
+        // GPS-first: GPS-Chunks zuerst in den Pool einreihen (stabil -> Index-Reihenfolge bleibt
+        // je Gruppe erhalten). Bei abgebrochenem Upload ist damit die GPS-Spur zuerst vollständig
+        // -> Session server-seitig als gps_only analysierbar statt hängend. Parität zu Server/Web.
+        val chunkFiles = LocalStore.chunkFiles(dir).sortedBy { if (LocalStore.chunkKind(it) == "gps") 0 else 1 }
         // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
         // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
         val res = Api.startSession(meta)

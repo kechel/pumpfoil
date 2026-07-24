@@ -54,4 +54,18 @@ object LocalStore {
 
     fun chunkFiles(dir: File): List<File> =
         dir.listFiles()?.filter { it.name.startsWith("chunk-") }?.sortedBy { it.name } ?: emptyList()
+
+    // Kind eines Chunks (gps/accel) günstig aus dem Datei-Kopf lesen, OHNE die große data-
+    // Payload zu parsen (Chunk-JSON beginnt mit {"index":N,"kind":"…"). Der Uploader sortiert
+    // damit GPS-first, ohne alle Chunks vorab komplett in den Speicher zu laden.
+    fun chunkKind(f: File): String = try {
+        val head = f.inputStream().use { ins ->
+            val b = ByteArray(64); val n = ins.read(b); if (n <= 0) "" else String(b, 0, n)
+        }
+        when {
+            head.contains("\"kind\":\"gps\"") -> "gps"
+            head.contains("\"kind\":\"accel\"") -> "accel"
+            else -> ""
+        }
+    } catch (_: Exception) { "" }
 }
