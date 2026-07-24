@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
+import { CURRENT_FEEDBACK_REQUEST as CFR } from "../lib/feedbackRequest";
 import { useT } from "../i18n";
 
 // Temporäre „aktuelles Feedback erbeten"-Seite: eingebettetes Video (Server-Route
@@ -18,7 +19,8 @@ export default function CurrentFeedbackRequest() {
     if (!body || sending) return;
     setSending(true);
     try {
-      await api.submitFeedback(body, "current-feedback-request");
+      // Request-Tag voranstellen -> Zuordnung im Feedback-Eingang.
+      await api.submitFeedback("[" + CFR.tag + "]\n" + body, "current-feedback-request");
       setDone(true);
     } catch {
       setSending(false);

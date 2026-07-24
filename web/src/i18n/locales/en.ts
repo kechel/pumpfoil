@@ -1,5 +1,6 @@
 const en: Record<string, string> = {
   "session.loadingAccel": "Uploading acceleration data – runs, lengths and pumps will update shortly.",
+  "cfr.banner": "Feedback wanted: Garmin start / stop / pause",
   "cfr.title": "Feedback wanted: new stop screen (Garmin)",
   "cfr.intro": "We rebuilt the stop screen on the Garmin watch: hold 3 seconds to open a menu — Save, Pause or Discard. Do nothing and it auto-saves after 5 seconds. What do you think? Short video below, feedback right underneath.",
   "cfr.placeholder": "Your feedback on the new stop screen…",

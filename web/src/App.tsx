@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { FeedbackRequestBanner } from "./components/FeedbackRequestBanner";
 import { api, clearToken, Profile } from "./lib/api";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
@@ -259,6 +260,7 @@ export default function App() {
       {/* pb groß genug, dass Seiteninhalt über die mobile Tab-Leiste UND den
           schwebenden Vergleichs-Button (CompareBar, bottom-20) gescrollt werden kann. */}
       <main className="min-w-0 flex-1 overflow-x-clip px-4 py-5 pb-32 md:px-8 md:pb-20">
+        <FeedbackRequestBanner />
         <Outlet />
       </main>
 
