@@ -346,6 +346,11 @@ class AnalysisResult(Base):
     # oben. Der Besitzer sieht sein Preset (v. a. die einzelnen LÄUFE auf der Karte), Community
     # nutzt immer die kanonischen (Standard-)Werte.
     sensitivity_json: Mapped[str | None] = mapped_column(Text)
+    # Start-Erfolgsquote (nur diese Anzeige): Distanzen der attempts-Preset-Läufe als JSON-Liste
+    # [distance_m, …] — lockerer Detektor (ab ~8 km/h, keine Landgänge), erfasst auch kurze Fehl-
+    # startversuche, die die kanonische On-Foil-Erkennung nicht als Lauf zählt. ADDITIV, beeinflusst
+    # KEINE anderen Stats/Rekorde. Wird bei jeder Analyse mitgeschrieben; für Altbestand per Backfill.
+    start_attempts_json: Mapped[str | None] = mapped_column(Text)
     # Accel-Fenster (Pump/Glide/Idle) als JSON-Text (Phase 2).
     accel_windows_json: Mapped[str | None] = mapped_column(Text)
     # Erweiterte Kennzahlen (Puls, Ø/Max/Min-Speed, Segment-Extreme …) als JSON.

@@ -140,6 +140,23 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
     return True
 
 
+def attempt_distances(gps_samples, gps_hz) -> list:
+    """Lauf-Distanzen unter dem 'attempts'-Preset (lockere Startversuch-Erkennung, ab ~8 km/h →
+    keine Landgänge) — NUR für die Start-Erfolgsquote-Anzeige. Reine GPS-Segmentierung, erfasst
+    auch kurze Fehlstartversuche, die die kanonische On-Foil-Erkennung nicht als Lauf zählt.
+    Beeinflusst KEINE anderen Stats/Rekorde/Community."""
+    from .gps import SENSITIVITY_PRESETS
+    if not gps_samples:
+        return []
+    try:
+        kw = SENSITIVITY_PRESETS.get("attempts") or {}
+        r = analyze_gps(gps_samples, gps_hz=gps_hz or 1, **kw)
+        return [round(float(s["distance_m"]), 1) for s in (r.get("segments") or [])
+                if s.get("distance_m") is not None]
+    except Exception:
+        return []
+
+
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
@@ -348,6 +365,9 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.max_speed_mps = res["max_speed_mps"]
     result.track_geojson = json.dumps(res["track_geojson"])
     result.segments_json = json.dumps(res["segments"])
+    # Start-Erfolgsquote (nur Anzeige, ADDITIV): attempts-Preset-Lauf-Distanzen auf denselben
+    # (getrimmten) GPS-Samples. Rührt keine anderen Felder/Stats an.
+    result.start_attempts_json = json.dumps(attempt_distances(gps_samples, session.gps_hz))
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
     # Preset-Cache: kanonisch (oben) bleibt Standard = Community. Das AKTUELLE Preset des Besitzers

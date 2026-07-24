@@ -385,32 +385,38 @@ def community_records(accel_only: bool = True, _user: models.User = Depends(curr
 
 @router.get("/start-success")
 def start_success(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """PERSÖNLICH: Start-Erfolgsquote je Zeitfenster. Ein erkannter Lauf < Schwelle zählt als
-    (misslungener) Startversuch, >= Schwelle als erfolgreich. Nur aus vorhandenen Lauf-Distanzen
-    (segments_json) — keine neue Erkennung, keine DB-Writes. Schwelle aus den Nutzer-Settings."""
+    """PERSÖNLICH: Start-Erfolgsquote je Zeitfenster. Datenquelle = attempts-Preset-Lauf-Distanzen
+    (start_attempts_json): lockere Startversuch-Erkennung ab ~8 km/h (keine Landgänge), erfasst auch
+    KURZE Fehlstartversuche, die die kanonische On-Foil-Erkennung nicht als Lauf zählt. Lauf < Schwelle
+    = misslungener Startversuch, >= Schwelle = erfolgreich. Fallback (noch nicht ge-backfillte Session):
+    kanonische segments_json (dann fehlen kurze Fehlversuche -> tendenziell 100 %). Keine DB-Writes,
+    beeinflusst keine anderen Stats. Schwelle aus den Nutzer-Settings."""
     import json as _json
     stored = _json.loads(user.settings_json) if user.settings_json else {}
     thr = float(stored.get("start_threshold_m", 20))
     cuts = {p: _cutoff(p) for p in PERIODS}
     agg = {p: [0, 0] for p in PERIODS}   # [total, success]
-    rows = (db.query(S.started_at, AR.segments_json)
+    rows = (db.query(S.started_at, AR.start_attempts_json, AR.segments_json)
             .join(AR, AR.session_id == S.id)
             .filter(S.user_id == user.id, S.deleted.isnot(True)).all())
-    for started_at, segs_json in rows:
-        if not segs_json:
-            continue
+    for started_at, attempts_json, segs_json in rows:
+        # Bevorzugt die attempts-Distanzen; sonst Fallback auf die kanonischen Segment-Distanzen.
+        dists: list = []
         try:
-            segs = _json.loads(segs_json)
+            if attempts_json:
+                dists = [float(d) for d in (_json.loads(attempts_json) or []) if d is not None]
+            elif segs_json:
+                dists = [float(sg["distance_m"]) for sg in (_json.loads(segs_json) or [])
+                         if sg.get("distance_m") is not None]
         except Exception:
+            continue
+        if not dists:
             continue
         sa = started_at
         if sa is not None and sa.tzinfo is None:
             sa = sa.replace(tzinfo=timezone.utc)
-        for sg in segs:
-            d = sg.get("distance_m")
-            if d is None:
-                continue
-            ok = float(d) >= thr
+        for d in dists:
+            ok = d >= thr
             for p, cut in cuts.items():
                 if cut is None or (sa is not None and sa >= cut):
                     agg[p][0] += 1

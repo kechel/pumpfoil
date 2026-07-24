@@ -79,6 +79,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE suunto_links ADD COLUMN IF NOT EXISTS suunto_username VARCHAR(128)",
         "ALTER TABLE suunto_links ALTER COLUMN refresh_token TYPE TEXT",
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",
+        # Start-Erfolgsquote (nur Anzeige): attempts-Preset-Lauf-Distanzen; additiv, keine anderen Stats.
+        "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS start_attempts_json TEXT",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_distance_m_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS num_runs_personal",
