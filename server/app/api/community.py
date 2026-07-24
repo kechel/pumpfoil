@@ -385,49 +385,43 @@ def community_records(accel_only: bool = True, _user: models.User = Depends(curr
 
 @router.get("/start-success")
 def start_success(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """PERSÖNLICH: Start-Erfolgsquote je Zeitfenster. Datenquelle = attempts-Preset-Lauf-Distanzen
-    (start_attempts_json): lockere Startversuch-Erkennung ab ~8 km/h (keine Landgänge), erfasst auch
-    KURZE Fehlstartversuche, die die kanonische On-Foil-Erkennung nicht als Lauf zählt. Lauf < Schwelle
-    = misslungener Startversuch, >= Schwelle = erfolgreich. Fallback (noch nicht ge-backfillte Session):
-    kanonische segments_json (dann fehlen kurze Fehlversuche -> tendenziell 100 %). Keine DB-Writes,
-    beeinflusst keine anderen Stats. Schwelle aus den Nutzer-Settings."""
+    """PERSÖNLICH: Start-Erfolgsquote je Zeitfenster, ausgerichtet an den TATSÄCHLICH aufgezeichneten
+    Läufen: **Erfolg = ein Startversuch, der es als echter Lauf in die Session geschafft hat.**
+    total = Zahl der Startversuche (attempts-Preset, start_attempts_json: lockere Erkennung ab ~8 km/h,
+    keine Landgänge, erfasst auch kurze Fehlstarts); success = Zahl der kanonischen Läufe (segments_json,
+    deckt sich mit dem, was der Nutzer in der Session sieht), gedeckelt auf total. So z. B. 3 Läufe von
+    6 Versuchen = 3/6 (nicht 5/6). Fallback ohne attempts-Daten: attempts = Läufe (-> 100 %). Keine
+    DB-Writes, beeinflusst keine anderen Stats."""
     import json as _json
-    stored = _json.loads(user.settings_json) if user.settings_json else {}
-    thr = float(stored.get("start_threshold_m", 20))
     cuts = {p: _cutoff(p) for p in PERIODS}
-    agg = {p: [0, 0] for p in PERIODS}   # [total, success]
+    agg = {p: [0, 0] for p in PERIODS}   # [total_attempts, success_runs]
     rows = (db.query(S.started_at, AR.start_attempts_json, AR.segments_json)
             .join(AR, AR.session_id == S.id)
             .filter(S.user_id == user.id, S.deleted.isnot(True)).all())
     for started_at, attempts_json, segs_json in rows:
-        # Bevorzugt die attempts-Distanzen; sonst Fallback auf die kanonischen Segment-Distanzen.
-        dists: list = []
         try:
-            if attempts_json:
-                dists = [float(d) for d in (_json.loads(attempts_json) or []) if d is not None]
-            elif segs_json:
-                dists = [float(sg["distance_m"]) for sg in (_json.loads(segs_json) or [])
-                         if sg.get("distance_m") is not None]
+            n_run = len(_json.loads(segs_json) or []) if segs_json else 0
+            n_att = len(_json.loads(attempts_json) or []) if attempts_json else n_run  # Fallback: = Läufe
         except Exception:
             continue
-        if not dists:
+        if n_att <= 0:
             continue
+        n_succ = n_run if n_run < n_att else n_att   # Erfolg = echte Läufe (auf Versuche gedeckelt)
         sa = started_at
         if sa is not None and sa.tzinfo is None:
             sa = sa.replace(tzinfo=timezone.utc)
-        for d in dists:
-            ok = d >= thr
-            for p, cut in cuts.items():
-                if cut is None or (sa is not None and sa >= cut):
-                    agg[p][0] += 1
-                    if ok:
-                        agg[p][1] += 1
+        for p, cut in cuts.items():
+            if cut is None or (sa is not None and sa >= cut):
+                agg[p][0] += n_att
+                agg[p][1] += n_succ
     windows = {}
     for p in PERIODS:
         tot, succ = agg[p]
         windows[p] = {"total": tot, "success": succ, "failed": tot - succ,
                       "rate": round(100 * succ / tot) if tot else None}
-    return {"threshold_m": thr, "windows": windows}
+    # threshold_m nur noch für Client-Kompat (die neue Quote ist lauf-/versuchszahlbasiert, nicht
+    # distanzschwellenbasiert). Kann später aus der UI raus.
+    return {"threshold_m": 0, "windows": windows}
 
 
 def _count_carves(uuid: str, tstart, tend, segs_json) -> tuple[int, int, int] | None:
