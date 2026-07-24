@@ -185,7 +185,7 @@ object Recorder {
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
-        _state.value = State(recording = true, status = "Aufnahme läuft",
+        _state.value = State(recording = true, status = I18n.t("rec.recording"),
             pendingCount = LocalStore.pendingCount(ctx))
         scope.launch { flushLoop() }
     }
@@ -195,12 +195,12 @@ object Recorder {
         running = false
         val ctx = appCtx ?: return
         scope.launch {
-            _state.value = _state.value.copy(recording = false, status = "speichere…")
+            _state.value = _state.value.copy(recording = false, status = I18n.t("rec.saving"))
             flushAll()
             LocalStore.writeComplete(ctx, uuid, JSONObject()
                 .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
             _state.value = _state.value.copy(
-                status = "gespeichert", pendingCount = LocalStore.pendingCount(ctx))
+                status = I18n.t("saved.title"), pendingCount = LocalStore.pendingCount(ctx))
             drain(ctx)   // sofort hochladen, falls gepairt + online
         }
     }
@@ -315,7 +315,7 @@ object Recorder {
             for (i in 0 until a.length()) received.add(a.getInt(i))
         }
         _state.value = _state.value.copy(
-            uploading = true, status = "lade hoch…", uploadError = "",
+            uploading = true, status = I18n.t("saved.uploading"), uploadError = "",
             uploadTotal = chunkFiles.size, uploadSent = received.size.coerceAtMost(chunkFiles.size))
         // Chunks PARALLEL hochladen (Server nimmt sie in beliebiger Reihenfolge, je Index eigene
         // Datei/Zeile -> kollisionsfrei). Pool adaptiv: über eigenes WLAN/LTE der Uhr aggressiv,

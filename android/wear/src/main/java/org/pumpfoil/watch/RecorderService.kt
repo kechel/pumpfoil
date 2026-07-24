@@ -84,10 +84,10 @@ class RecorderService : Service(), SensorEventListener {
     private fun notification(): Notification {
         val ch = "rec"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.createNotificationChannel(NotificationChannel(ch, "Aufnahme", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(ch, I18n.t("rec.recording"), NotificationManager.IMPORTANCE_LOW))
         return Notification.Builder(this, ch)
             .setContentTitle("Pumpfoil")
-            .setContentText("Aufnahme läuft")
+            .setContentText(I18n.t("rec.recording"))
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
             .build()
