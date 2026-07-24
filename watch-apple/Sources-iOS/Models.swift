@@ -35,6 +35,23 @@ struct PairedDevice: Codable, Identifiable {
     let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
 }
 
+// Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).
+// upload_total ist nil, bis die Clients expected_chunks senden -> UI zeigt dann unbestimmt.
+struct InProgressSession: Decodable, Identifiable {
+    let id: Int
+    let session_uuid: String
+    let started_at: String
+    let tz: String?
+    let status: String
+    let device_label: String?
+    let upload_received: Int
+    let upload_total: Int?
+    let gps_received: Int
+    let accel_received: Int
+    let has_gps: Bool
+    let last_received_at: String?
+}
+
 struct SessionSummary: Codable, Identifiable {
     let id: Int
     let sport: String

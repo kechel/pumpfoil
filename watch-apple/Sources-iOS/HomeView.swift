@@ -48,6 +48,8 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
+                    UploadProgressCard()
                     if let uv = updateVer, !updateDismissed { updateBanner(uv) }
                     if showBanner, let n = news { welcomeBanner(n) }
                     HStack {

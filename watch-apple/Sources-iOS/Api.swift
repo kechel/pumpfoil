@@ -74,6 +74,10 @@ enum Api {
         try await request("/api/sessions/months?filter=\(filter)", method: "GET", body: nil, auth: true)
     }
 
+    static func inProgress() async throws -> [InProgressSession] {
+        try await request("/api/sessions/in-progress", method: "GET", body: nil, auth: true)
+    }
+
     // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
     struct Neighbors: Decodable { let older: Int?; let newer: Int? }
     static func sessionNeighbors(_ id: Int) async throws -> Neighbors {

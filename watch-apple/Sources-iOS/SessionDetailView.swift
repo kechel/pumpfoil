@@ -117,6 +117,17 @@ struct SessionDetailView: View {
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         }
         .task { await load() }
+        // 4a: eigene In-Progress-Session (recording/live) -> still nachpollen. Der GET triggert
+        // server-seitig die gps_only-Vorabanalyse; sobald sie/der fertige Upload da ist,
+        // aktualisiert sich das Detail (Track/Läufe/Pumps) seamless. Stoppt bei anderem Status.
+        .task(id: session?.status) {
+            guard session?.owned == true,
+                  let st = session?.status, st == "recording" || st == "live" else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 4_000_000_000)
+                if let fresh = try? await Api.session(id) { session = fresh; SessionCache.store(fresh) }
+            }
+        }
         .onChange(of: selectedFoilId) { fid in
             if fid != (session?.foil?.id ?? 0) {
                 Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }

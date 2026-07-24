@@ -27,6 +27,13 @@ struct SessionsView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
+                Section {
+                    UploadProgressCard()
+                        .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                }
                 if scope == .mine { transfersAndSuggestions }
                 filterSection
                 if scope == .spot, let wb = weather {
