@@ -57,6 +57,8 @@ enum WLoc {
             "Parte da solo a 10 km/h – se te ne dimentichi.",
             "Arranca solo a 10 km/h – por si lo olvidas."),
         "rec.recording": r("Aufnahme läuft", "Ufnahm lauft", "Aufnahme läuft", "Recording", "Enregistrement", "Registrazione", "Grabando"),
+        "rec.saving": r("speichere…", "speicheret…", "speichere…", "saving…", "enregistrement…", "salvataggio…", "guardando…"),
+        "rec.saved": r("gespeichert", "gspycheret", "gespeichert", "saved", "enregistré", "salvato", "guardado"),
         "rec.workoutFail": r("Workout-Start fehlgeschlagen: ", "Workout-Start fehlgschlage: ", "Workout-Start fehlgeschlagen: ", "Workout start failed: ", "Échec démarrage workout : ", "Avvio workout fallito: ", "Error al iniciar workout: "),
         "rec.sync": r("Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…", "Sync…"),
         "rec.notNow": r("Jetzt nicht", "Jetz nöd", "Jetzt nicht", "Not now", "Pas maintenant", "Non ora", "Ahora no"),

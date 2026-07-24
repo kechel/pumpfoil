@@ -198,10 +198,10 @@ final class Recorder: NSObject, ObservableObject {
         flushTask?.cancel()
         motion.stopAccelerometerUpdates()
         location.stopUpdatingLocation()
-        status = "speichere…"
+        status = WLoc.t("rec.saving", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         await flushAll()
         LocalStore.writeComplete(uuid, ["ended_at": Date().iso8601Z, "total_chunks": chunkIndex])
-        status = "gespeichert"
+        status = WLoc.t("rec.saved", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         pendingCount = LocalStore.pendingCount()
         endWorkout()
         await drain()   // sofort hochladen, falls gepairt + online
@@ -277,7 +277,7 @@ final class Recorder: NSObject, ObservableObject {
         let res = try await Api.startSession(meta)
         let received = Set(res.received_chunks)
         uploading = true
-        status = "lade hoch…"
+        status = WLoc.t("rec.uploading", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         uploadError = ""
         uploadTotal = chunkFiles.count
         uploadSent = min(received.count, chunkFiles.count)
