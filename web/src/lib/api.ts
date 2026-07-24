@@ -385,6 +385,24 @@ export type StatKey = "today" | "week" | "month" | "total" | "new_today" | "new_
 
 // Kategorie-Filter der Nutzerverwaltung (alle default true).
 export interface UserFilter { normal: boolean; tester: boolean; admin: boolean; new: boolean; }
+// Eigene Session im Zwischenzustand (recording/live) — Datenquelle der Live-Upload-Karte.
+// upload_total ist null, bis die Clients expected_chunks senden (Phase 3) -> UI zeigt dann
+// unbestimmt „lädt hoch" statt %.
+export interface InProgressSession {
+  id: number;
+  session_uuid: string;
+  started_at: string;
+  tz?: string | null;
+  status: string;
+  device_label?: string | null;
+  upload_received: number;
+  upload_total: number | null;
+  gps_received: number;
+  accel_received: number;
+  has_gps: boolean;
+  last_received_at?: string | null;   // Zeitpunkt des letzten Chunks; für Stall-Erkennung (>5 min)
+}
+
 function userFilterQS(f?: UserFilter): string {
   if (!f) return "";
   // Nur explizit ausgeschaltete Klassen senden (Server-Default = true).
@@ -700,6 +718,9 @@ export const api = {
   deleteSessionVideo: (id: number, videoId: number) =>
     req(`/api/sessions/${id}/videos/${videoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
+  inProgress: () => req<InProgressSession[]>("/api/sessions/in-progress"),
+  finalizeSession: (id: number) =>
+    req<{ session_id: number; status: string }>(`/api/sessions/${id}/finalize`, { method: "POST" }),
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",

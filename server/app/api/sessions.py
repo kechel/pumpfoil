@@ -525,6 +525,14 @@ def list_in_progress(
         .group_by(models.IngestChunk.session_id, models.IngestChunk.kind).all()
     ):
         (gps_n if kind == "gps" else accel_n)[sid] = int(n)
+    # Zeitpunkt des zuletzt empfangenen Chunks je Session — Client erkennt darüber einen
+    # ins Stocken geratenen Upload (>5 min still) und zeigt dann den „App auf der Uhr erneut
+    # öffnen"-Hinweis.
+    last_rx: dict[int, datetime] = dict(
+        db.query(models.IngestChunk.session_id, func.max(models.IngestChunk.received_at))
+        .filter(models.IngestChunk.session_id.in_(ids))
+        .group_by(models.IngestChunk.session_id).all()
+    )
     dids = {s.device_id for s in rows if s.device_id}
     dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
@@ -545,8 +553,41 @@ def list_in_progress(
             "gps_received": g,
             "accel_received": a,
             "has_gps": g > 0,
+            "last_received_at": last_rx.get(s.id),   # None, wenn noch kein Chunk da ist
         })
     return out
+
+
+@router.post("/{session_id}/finalize")
+def finalize_partial(
+    session_id: int,
+    background: BackgroundTasks,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Der Nutzer schließt eine unvollständig hochgeladene Session bewusst mit den BEREITS
+    empfangenen Daten ab — z. B. wenn das Recording nicht mehr auf der Uhr liegt und der Upload
+    nie fertig wird. Reine, ausdrücklich ausgelöste Nutzer-Aktion: setzt total_chunks auf die
+    vorhandenen GPS-Chunks, leitet ended_at aus dem letzten GPS-Punkt ab, status=complete und
+    stößt die NORMALE Analyse an (pur GPS, falls Accel unvollständig ist — gps_only). Kein
+    Detektor-Eingriff, exakt derselbe Pfad wie ein reguläres /complete von der Uhr."""
+    s = _owned(db, user, session_id)
+    if s.status not in ("recording", "live"):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Session is not in progress")
+    gps_n = db.query(func.count()).select_from(models.IngestChunk).filter(
+        models.IngestChunk.session_id == s.id, models.IngestChunk.kind == "gps").scalar() or 0
+    if gps_n == 0:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No GPS data received yet")
+    if s.ended_at is None and s.started_at is not None:
+        lm = storage.gps_last_ms(s.session_uuid)
+        if lm:
+            s.ended_at = s.started_at + timedelta(milliseconds=lm)
+    s.total_chunks = int(gps_n)
+    s.status = "complete"
+    db.commit()
+    from .ingest import _analyze_in_background
+    background.add_task(_analyze_in_background, s.id)
+    return {"session_id": s.id, "status": s.status, "analysis": "queued"}
 
 
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:

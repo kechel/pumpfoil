@@ -2,6 +2,16 @@
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
   "session.loadingAccel": "Beschleunigungsdaten werden hochgeladen – Läufe, Längen und Pumps aktualisieren sich gleich.",
+  "upload.title": "Session lädt hoch",
+  "upload.gpsReady": "GPS-Daten da",
+  "upload.waiting": "Warte auf Daten…",
+  "upload.chunks": "{n} Teile hochgeladen",
+  "upload.progressPct": "{pct} % · {n}/{total} Teile",
+  "upload.hint": "Uhr in Reichweite bringen und die App öffnen, um den Upload abzuschließen.",
+  "upload.stalledHint": "Seit über 5 Minuten kein Fortschritt. Öffne die App auf der Uhr noch einmal (ohne eine neue Aufnahme zu starten), während die Uhr per Bluetooth mit dem Handy verbunden ist — dann läuft der Upload weiter.",
+  "upload.finalize": "Session ohne weitere Daten so abschließen",
+  "upload.finalizeBusy": "Wird abgeschlossen…",
+  "upload.finalizeConfirm": "Diese Session mit den bisher hochgeladenen Daten abschließen und auswerten? Fehlende Beschleunigungsdaten werden nicht mehr nachgeladen (reine GPS-Auswertung).",
   "watchStats.title": "Uhren-Statistik",
   "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell.",
   "watchStats.none": "Noch keine Daten.",

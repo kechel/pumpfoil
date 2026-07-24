@@ -9,6 +9,7 @@ import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
 import { fmtPumpRate } from "../lib/pumpRate";
 import { SessionCard } from "../components/SessionCard";
+import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
@@ -224,6 +225,8 @@ export default function Sessions() {
         <SessionsIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{title}</h2>
       </div>
+
+      <UploadProgressCard />
 
       {/* Scope-Umschalter + Spotsuche */}
       <div className="mb-4 flex flex-wrap items-center gap-2">

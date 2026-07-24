@@ -11,6 +11,7 @@ import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon }
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
+import { UploadProgressCard } from "../components/UploadProgressCard";
 import { useT } from "../i18n";
 
 function InstallButton() {
@@ -68,6 +69,7 @@ function InstallButton() {
 export default function Home() {
   return (
     <div>
+      <UploadProgressCard />
       <InstallButton />
       <CommunitySection />
     </div>
