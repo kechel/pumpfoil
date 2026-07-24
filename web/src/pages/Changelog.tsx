@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 24, 2026",
+    items: [
+      "Start success rate now reflects reality: a start where you pumped but never got up on foil now counts as a failed attempt. Before, only clean on-foil runs were counted, so the rate sat near 100% for almost everyone. This is applied to all your past sessions too — and the cutoff between “aborted” and “made it” stays adjustable in your profile.",
+      "Watch a session upload live: on your home page and in Sessions, a session that’s still uploading now appears at the top with live progress — and its GPS map shows up as soon as the track is in, before the rest of the data finishes uploading.",
+      "Garmin watch app 1.0.62 (live in the Connect IQ store): more robust uploads — your GPS track transfers first, so if an upload gets interrupted the session still shows up and can be analysed. The watch app is now also available in Dutch, Finnish and Czech.",
+    ],
+  },
+  {
     date: "July 23, 2026",
     items: [
       "Faster loading — especially when the app updates itself: the update download is much smaller now, so you spend far less time on a loading screen after a new version ships.",
