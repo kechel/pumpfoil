@@ -36,7 +36,6 @@ export default function CurrentFeedbackRequest() {
       <video
         src="/demo/stop-screen.mp4"
         autoPlay
-        loop
         muted
         playsInline
         controls
