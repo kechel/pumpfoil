@@ -11,7 +11,6 @@ import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon }
 import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { UploadProgressCard } from "../components/UploadProgressCard";
 import { useT } from "../i18n";
 
 function InstallButton() {
@@ -66,10 +65,13 @@ function InstallButton() {
   return null;
 }
 
+// ACHTUNG: Diese Datei (Home.tsx) ist die COMMUNITY-Seite (Route /community in main.tsx)!
+// Sie war früher mal die Startseite, ist es aber NICHT mehr. Die echte Startseite ist
+// PersonalHome.tsx (Routen "/" und "/home"). Persönliches (Upload-Karte, eigene Stats etc.)
+// gehört nach PersonalHome.tsx, NICHT hierher.
 export default function Home() {
   return (
     <div>
-      <UploadProgressCard />
       <InstallButton />
       <CommunitySection />
     </div>

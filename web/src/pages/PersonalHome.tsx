@@ -8,6 +8,7 @@ import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
+import { UploadProgressCard } from "../components/UploadProgressCard";
 import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon } from "../components/Icons";
 import { PERIODS } from "./Home";
 import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
@@ -187,6 +188,9 @@ export default function PersonalHome() {
         </h2>
         <ChangelogBadge />
       </div>
+
+      {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
+      <UploadProgressCard />
 
       <TransferHint />
 
