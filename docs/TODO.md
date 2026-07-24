@@ -120,6 +120,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Upload-Progress / Live-Session prominent (Home + Sessions)** (2026-07-24, Jan): eine noch nicht
+  analysierte Session (Status `recording`) taucht heute NIRGENDS auf — die Liste filtert auf
+  is_pumpfoil=True. Ziel: prominente Karte GANZ OBEN auf Home + Sessions „Session lädt hoch — GPS ✓,
+  N Chunks" mit früher Vorschau, sobald GPS da ist (das interessiert den Nutzer am meisten). Phasen:
+  **(1) ✅ erledigt 2026-07-24:** `GET /api/sessions/in-progress` (recording/live des Users, 48h,
+  upload_received/total, gps/accel_received, has_gps). **(2) offen:** Web-UI Home+Sessions-Karte
+  (poll, Balken/„lädt hoch", GPS-Vorschau). **(3) offen (Upload-Pfad, Gerätetest):** Clients senden
+  `expected_chunks` beim /session-Start → exakter %-Balken. **(4) offen (Detektor-OK+Regression):**
+  server-seitige gps_only-Vorabanalyse bei kompletter GPS + hängendem Upload → gekillte Session wird
+  nutzbar ohne Resume. Stufe-A-Servergerüst (expected_chunks-Spalte, SessionOut.upload_*) lag schon
+  dormant (Commit f9e1f15). Jan-Entscheid: mit Phase 1+2 (sichere Zone) starten.
+- **Wear Discard-Screens fehlen** (2026-07-24, Jan, TODO für später): beim Testen der Wear sind die
+  neuen Discard-Screens nicht zu finden. Geplant war: je EIN zusätzlicher Screen weiter LINKS **vor**
+  dem Stopp-Screen sowie einer weiter RECHTS **hinter** dem Stopp-Screen — am Anfang & Ende der
+  Aufnahme-Navigation (Verwerfen-Bestätigung). War Teil der TODOs der abgebrochenen Session. Bei
+  **Apple Watch (+ ggf. Garmin) verifizieren**, ob das dort ähnlich gelöst werden sollte / gelöst ist.
 - **Natives-Parität-Runde 2026-07-23 (autonomer /loop) — Stand:** ✅ Carve-Anzeige + Tages-Gruppierung
   in Android (compile ok) + iOS (parse ok); ✅ 5 Sprachen pt/ja/zh/ru/id in Android/iOS/Web + Garmin
   pt/id/ru (ja/zh CJK-Glyph-blockiert); ✅ Versionen gebumpt (Phone 1.1.14/30, Wear 1.2.15/1025,
