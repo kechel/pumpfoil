@@ -148,13 +148,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Stufe-A-Servergerüst (expected_chunks-Spalte, SessionOut.upload_*) lag schon dormant (Commit
   f9e1f15). Jan-Entscheid: mit Phase 1+2 (sichere Zone) gestartet; 3/4 brauchen Upload-Pfad-
   Gerätetest bzw. Detektor-OK+Regression.
-- **Garmin i18n: nl/fi/cs fehlen** (2026-07-24, Jan): der Garmin-Recorder (`watch/source/Strings.mc`)
-  hat nur 10 Spalten (de/gsw/de-AT/en/fr/it/es/pt/id/ru). nl/fi/cs sind in Web/Apps vorhanden, fehlen
-  aber auf der Uhr → nl/fi/cs-Profil bekommt auf der Garmin Englisch (via System-/EN-Fallback). Anders
-  als ja/zh (CJK-Font-blockiert) sind nl/fi/cs LATEINISCH → darstellbar, nur noch nicht übersetzt.
-  To do: nl/fi/cs-Spalten in Strings.mc ergänzen (ganze Tabelle × 3). Nebenbei: stale Kommentar
-  Zeile 5 („Fallback: de") korrigieren (echt = System→EN); optional Pro-String-Fallback in `s()`
-  von de-Spalte → en umstellen.
+- **Garmin i18n: nl/fi/cs** (2026-07-24) — ✅ **ERLEDIGT**: nl/fi/cs als Spalten 10/11/12 in
+  `watch/source/Strings.mc` ergänzt (alle 82 Keys, KI-Übersetzung), `_idxForCode` + `_systemIdx`
+  (LANGUAGE_DUT/FIN/CES) + Spaltenkommentar aktualisiert; Spaltenzahl-Check (jede Zeile exakt 13) +
+  Compile fenix7xpro/fr55/fenix5 ok. Stale „Fallback: de"-Kommentar ebenfalls korrigiert.
+  **OFFEN:** (a) Muttersprachler-Review der nl/fi/cs-Strings (wie bei den anderen KI-Sprachen);
+  (b) **Glyph-Check auf echter Uhr/Sim** — cs-Diakritika (ř/ů/ě) könnten in manchen Built-in-Fonts
+  fehlen (Tofu); fi (ä/ö) + nl unkritisch. Bei Tofu: betroffene Zeichen meiden/transliterieren.
 - **Wear Discard-Screens fehlen** (2026-07-24, Jan, TODO für später): beim Testen der Wear sind die
   neuen Discard-Screens nicht zu finden. Geplant war: je EIN zusätzlicher Screen weiter LINKS **vor**
   dem Stopp-Screen sowie einer weiter RECHTS **hinter** dem Stopp-Screen — am Anfang & Ende der
