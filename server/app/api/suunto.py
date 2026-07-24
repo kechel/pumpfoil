@@ -19,6 +19,7 @@ ACHTUNG (vor echter Freigabe unverifiziert, bei Zugang prüfen):
 from __future__ import annotations
 
 import base64
+import logging
 import time
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
@@ -35,6 +36,7 @@ from ..db import get_db
 from .deps import current_user
 
 router = APIRouter(prefix="/api/integrations/suunto", tags=["suunto"])
+log = logging.getLogger("pumpfoil.suunto")
 
 AUTHORIZE_URL = "https://cloudapi-oauth.suunto.com/oauth/authorize"
 TOKEN_URL = "https://cloudapi-oauth.suunto.com/oauth/token"
@@ -164,9 +166,16 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
                                  "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
                         timeout=20)
         tok = tr.json() if tr.status_code == 200 else {}
-    except Exception:  # noqa: BLE001
+        if tr.status_code != 200:
+            # Suunto-Fehlerantwort loggen (sonst nicht diagnostizierbar: redirect_uri-Mismatch,
+            # invalid_client, App nicht freigegeben, …). redirect_uri zum Abgleich mitloggen.
+            log.warning("Suunto token-exchange fehlgeschlagen (uid=%s, redirect_uri=%s): %s %s",
+                        uid, _redirect_uri(), tr.status_code, tr.text[:500])
+    except Exception as e:  # noqa: BLE001
+        log.warning("Suunto token-exchange Exception (uid=%s): %r", uid, e)
         return _redir("error")
     if not tok.get("access_token"):
+        log.warning("Suunto token ohne access_token (uid=%s): %s", uid, str(tok)[:300])
         return _redir("error")
     link = db.query(models.SuuntoLink).filter_by(user_id=uid).first()
     if link is None:
