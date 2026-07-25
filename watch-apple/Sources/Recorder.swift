@@ -240,12 +240,15 @@ final class Recorder: NSObject, ObservableObject {
         // Läuft auch offline (rein lokal); danach zählen sie als „fertig" zum Upload.
         recoverInterrupted()
         pendingCount = LocalStore.pendingCount()
-        // Offline -> nicht still scheitern, sondern den Zustand zeigen (UI: „wartet auf Verbindung").
-        guard Reachability.shared.isOnline else {
-            uploadError = pendingCount > 0 ? "offline" : ""
-            return
-        }
-        uploadError = ""   // online -> optimistisch; bei Fehler unten gesetzt
+        if pendingCount == 0 { uploadError = ""; return }
+        // WICHTIG (watchOS): NWPathMonitor meldet auf der Apple Watch häufig fälschlich
+        // .unsatisfied, obwohl die Uhr übers gekoppelte iPhone sehr wohl online ist (der
+        // Companion-Proxy-Pfad zählt nicht als „satisfied"). Früher gate hier auf
+        // Reachability.isOnline -> Upload lief NIE, UI hing auf „wartet auf Verbindung"
+        // (Nutzer-Report: gepairt, Token da, „Jetzt hochladen" tut nichts). Deshalb NICHT
+        // vorab gaten, sondern den Upload versuchen; echtes Offline ergibt sich aus dem
+        // tatsächlichen Netzfehler (isOfflineError) und wird dann sauber angezeigt.
+        uploadError = ""   // optimistisch; bei Fehler unten gesetzt
         for dir in LocalStore.completedSessions() {
             do { try await uploadSession(dir) }
             catch let e as Api.ApiError where e.status == 401 {
@@ -254,8 +257,9 @@ final class Recorder: NSObject, ObservableObject {
                 uploadError = "auth"
                 break
             } catch {
-                // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten.
-                uploadError = Reachability.shared.isOnline ? "server" : "offline"
+                // Chunks/Session bleiben lokal -> später erneut. Ursache fürs UI festhalten:
+                // echter Netzfehler -> „offline", sonst „server".
+                uploadError = Self.isOfflineError(error) ? "offline" : "server"
             }
         }
     }
@@ -269,6 +273,21 @@ final class Recorder: NSObject, ObservableObject {
             let n = LocalStore.chunkFiles(dir).count
             if n == 0 { continue }
             LocalStore.writeComplete(dir.lastPathComponent, ["ended_at": Date().iso8601Z, "total_chunks": n])
+        }
+    }
+
+    // Echter Offline-Fehler (kein Internet / Host nicht erreichbar / Timeout) -> UI „offline".
+    // Alles andere (HTTP-Fehler, Parsing …) -> „server". Ersetzt das unzuverlässige
+    // Vorab-Gaten per NWPathMonitor (s. drain()).
+    private static func isOfflineError(_ error: Error) -> Bool {
+        guard let u = error as? URLError else { return false }
+        switch u.code {
+        case .notConnectedToInternet, .cannotConnectToHost, .cannotFindHost,
+             .networkConnectionLost, .timedOut, .dataNotAllowed, .internationalRoamingOff,
+             .dnsLookupFailed, .resourceUnavailable:
+            return true
+        default:
+            return false
         }
     }
 

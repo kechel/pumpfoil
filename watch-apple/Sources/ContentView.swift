@@ -274,7 +274,7 @@ struct RecordView: View {
                                 Text(WLoc.t("rec.uploading", lang) + (rec.uploadTotal > 0 ? " \(rec.uploadSent)/\(rec.uploadTotal)" : ""))
                                     .font(.caption2).foregroundStyle(.secondary)
                             }
-                        } else if rec.uploadError == "offline" || !Reachability.shared.isOnline {
+                        } else if rec.uploadError == "offline" {
                             Text(WLoc.t("rec.waitConn", lang))
                                 .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
                             Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang) + " — " + WLoc.t("rec.willResume", lang))
@@ -385,7 +385,9 @@ struct RecordView: View {
     // im Hintergrund aktualisieren. Der Sync blockiert nie den Start.
     private func startConfigLoad() {
         applyConfig(Api.cachedConfig())
-        guard Reachability.shared.isOnline else { return }   // offline: Sync überspringen
+        // Kein Vorab-Gate auf Reachability: NWPathMonitor false-negatet auf watchOS (Uhr ist
+        // übers iPhone online) -> sonst würde die Config nie frisch geladen. Fehlschlag ist
+        // via `try?` unkritisch (Cache gilt weiter).
         syncing = true
         configTask = Task {
             let c = try? await Api.deviceConfig()
