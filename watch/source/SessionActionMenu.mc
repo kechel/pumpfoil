@@ -6,6 +6,8 @@ using Toybox.Lang;
 // Aktions-Menü der laufenden Aufnahme (Garmin): erscheint nach 3 s ENTER-Halten. Längeres Halten
 // tut nichts. DOWN blättert: 1×=Speichern, 2×=Pausieren, 3×=Verwerfen; START bestätigt; BACK bricht
 // ab (Aufnahme läuft weiter). OHNE Eingabe wird nach 5 s automatisch GESPEICHERT (sichere Vorauswahl).
+// (:full) -> im Lite-Build (96-KB-Uhren) ausgeschlossen; dort Halten-3s = direkt Speichern.
+(:full)
 class SessionActionView extends WatchUi.View {
     hidden var _sel = -1;        // -1 = nichts gewählt (Default = Speichern); 0=Save 1=Pause 2=Discard
     hidden var _remaining = 5;   // Sekunden bis Auto-Speichern
@@ -35,6 +37,7 @@ class SessionActionView extends WatchUi.View {
     }
 }
 
+(:full)
 class SessionActionDelegate extends WatchUi.BehaviorDelegate {
     hidden var _rec;
     hidden var _view;

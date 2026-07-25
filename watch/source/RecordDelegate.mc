@@ -69,6 +69,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
 
     // Während des Haltens: Ring animieren; bei 3 s Menü öffnen (Speichern/Verwerfen/Pausieren).
     // Längeres Halten tut NICHTS mehr (kein versehentliches Verwerfen).
+    // (:full) — volle App: Aktions-Menü. Lite (96-KB-Uhren) nutzt die schlanke Variante unten.
+    (:full)
     function onHoldTick() as Void {
         if (_rec.stopHoldStartMs == null) { return; }
         var held = System.getTimer() - _rec.stopHoldStartMs;
@@ -79,6 +81,25 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             }
             var av = new SessionActionView();
             WatchUi.pushView(av, new SessionActionDelegate(_rec, av), WatchUi.SLIDE_LEFT);
+            WatchUi.requestUpdate();
+            return;
+        }
+        WatchUi.requestUpdate();
+    }
+
+    // (:lite) — 96-KB-Uhren: kein Aktions-Menü (spart Code+Heap). 3 s Halten = direkt
+    // stoppen+speichern; danach ggf. Upload-Screen (wie das „Speichern" im vollen Menü).
+    (:lite)
+    function onHoldTick() as Void {
+        if (_rec.stopHoldStartMs == null) { return; }
+        var held = System.getTimer() - _rec.stopHoldStartMs;
+        if (held >= _rec.STOP_HOLD_MS) {
+            _cancelHold();
+            if (Toybox has :Attention && Attention has :vibrate) {
+                try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
+            }
+            _rec.stop();
+            _showUploadIfConnected();
             WatchUi.requestUpdate();
             return;
         }

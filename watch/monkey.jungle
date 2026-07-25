@@ -5,3 +5,15 @@ project.manifest = manifest.xml
 #   monkeyc ... -D base_url="https://pumpfoil.org"
 base.sourcePath = source
 base.resourcePath = resources
+
+# --- Build-Varianten (Speicher) ---
+# Volle App (Default): alles außer den Lite-Alternativen -> `(:lite)`-Code wird ausgeschlossen.
+# Lite-Build für die winzigen 96-KB-Uhren (Instinct-2-Klasse): schließt den schweren `(:full)`-
+# Code aus (Stop-/Pause-Menü, 13-Sprachen-Tabelle …) -> kleinerer Code = mehr Heap. Siehe
+# docs + memory garmin-instinct2-lowmem. Die aktive Sprache fällt im Lite auf Englisch zurück.
+base.excludeAnnotations = lite
+instinct2.excludeAnnotations = full
+instinct2s.excludeAnnotations = full
+instinct2x.excludeAnnotations = full
+instinctcrossover.excludeAnnotations = full
+descentg1.excludeAnnotations = full

@@ -25,9 +25,12 @@ DEVICES=$(grep -oP '(?<=iq:product id=")[^"]+' "$HERE/manifest.xml")
 JOBS="${JOBS:-4}"; [ "$JOBS" -lt 1 ] && JOBS=1
 FAILFILE="$(mktemp)"
 export SDK_HOME HERE KEY FAILFILE
+# -r (Release): strippt Debug-Infos -> deutlich kleinerer Laufzeit-Footprint. PFLICHT für die
+# Website-Downloads, sonst crashen speicherarme Uhren (Instinct-2-Klasse, 96 KB) beim Sideload
+# an OOM (Debug-Build ~214 KB vs. Release ~85 KB). Lite/Full pro Gerät regelt die monkey.jungle.
 build_one() {
   if "$SDK_HOME/bin/monkeyc" -f "$HERE/monkey.jungle" -d "$1" \
-        -o "$HERE/bin/foil-$1.prg" -y "$KEY" -w >/dev/null 2>&1; then :; else echo "$1" >> "$FAILFILE"; fi
+        -o "$HERE/bin/foil-$1.prg" -y "$KEY" -r >/dev/null 2>&1; then :; else echo "$1" >> "$FAILFILE"; fi
 }
 export -f build_one
 printf '%s\n' $DEVICES | xargs -P "$JOBS" -I{} bash -c 'build_one "$1"' _ {}

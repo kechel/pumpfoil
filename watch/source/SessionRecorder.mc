@@ -76,6 +76,7 @@ class SessionRecorder {
     var updateAvailable = false;     // neuere App-Version im Store verfügbar (aus /config)
     var updateHintUntilMs = 0;       // System.getTimer()-Zeit, bis der Hinweis eingeblendet wird
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
+    hidden var _lowMem = null;       // Speicherarme Uhr (~96 KB)? null=noch nicht geprüft
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
@@ -578,7 +579,7 @@ class SessionRecorder {
         // ohne Roh-Beschleunigungs-Stream zeichnen GPS-only auf (Server -> gps_only).
         // Im "gps"-Modus (speicherarme Uhren) bewusst KEIN Accel -> minimaler Speicher.
         _accelOn = false;
-        var gpsOnly = recordMode.equals("gps");
+        var gpsOnly = recordMode.equals("gps") || _isLowMem();
         _accelHz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
         var logger = null;
         if (!gpsOnly && Toybox has :SensorLogging) {
@@ -842,9 +843,29 @@ class SessionRecorder {
     // Kurzlabel des Aufzeichnungsmodus für den Start-Screen (zeigt, ob die Config geladen wurde):
     // "25 Hz" (full) | "10 Hz" (lite/sparsam) | "GPS" (nur GPS, ohne Hz-Zahl).
     function recordRateLabel() {
-        if (recordMode.equals("gps")) { return "GPS"; }
+        if (recordMode.equals("gps") || _isLowMem()) { return "GPS"; }
         var hz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
         return hz.format("%d") + " Hz";
+    }
+
+    // Speicherarme Uhr? watchApp-Budget ~96 KB (z. B. Instinct 2): der Roh-Accel-Stream +
+    // FIT-Accel-Puffer sprengen beim Session-Start das Budget ("IQ!"-OOM) -> auf solchen
+    // Geräten GPS-only erzwingen (Server wertet als gps_only, kein Pump — wie FR55).
+    // Einmal geprüft + gecacht. Schwelle knapp über 96 KB (98304).
+    hidden function _isLowMem() {
+        if (_lowMem == null) {
+            _lowMem = false;
+            try {
+                var st = System.getSystemStats();
+                if (st != null && (st has :totalMemory) && st.totalMemory != null
+                        && st.totalMemory <= 100000) {
+                    _lowMem = true;
+                }
+            } catch (e) {
+                _lowMem = false;
+            }
+        }
+        return _lowMem;
     }
 
     // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
