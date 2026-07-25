@@ -544,9 +544,9 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) i
 Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
-- hashtags: EINE Zeile mit 6-8 Hashtags (#pumpfoil #pumpfoiling #dockstart #foil ...).
-- instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis, Leerzeile, dann 8-12 Hashtags.
-- tiktok: 1 kurzer englischer Satz (+ optional deutsch), 4-6 Hashtags.
+- hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
+- instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil).
+- tiktok: 1 kurzer englischer Satz (+ optional deutsch), 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags).
 """
 
 
