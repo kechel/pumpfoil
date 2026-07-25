@@ -85,6 +85,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     exp.name.replace(/\.mp4$/, "").replace(/^\d+-/, "").replace(/^Pumpfoil-\d+-/i, "").replace(/-/g, " "),
   );
   const [caps, setCaps] = useState<Captions | null>(null);
+  const [capsSource, setCapsSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [ytUrl, setYtUrl] = useState("");
@@ -102,10 +103,26 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     else onChanged(d.exports);
   }, [exp, onChanged]);
 
+  // Beim Aufklappen: bereits generierte Texte aus dem Cache anzeigen (UI- oder YT-Batch-Cache)
+  useEffect(() => {
+    if (!showCaps || caps || busy) return;
+    void fetch(`/api/captions_cache?name=${encodeURIComponent(exp.name)}`)
+      .then(async (r) => r.json() as Promise<{ cached: Captions | null; source?: string }>)
+      .then((d) => {
+        if (d.cached) {
+          setCaps(d.cached);
+          setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCaps]);
+
   const generate = useCallback(async () => {
     setBusy(true);
     setErr("");
     setCaps(null);
+    setCapsSource("");
     try {
       const d = await api.post<Captions & { error?: string }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
@@ -154,10 +171,15 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                 placeholder="Arbeitstitel / worum geht's im Video?"
               />
               <button className="btn primary" disabled={busy || !title.trim()} onClick={() => void generate()}>
-                {busy ? <span className="spin" /> : "Generieren"}
+                {busy ? <span className="spin" /> : caps ? "Neu generieren" : "Generieren"}
               </button>
             </div>
             {busy && <div style={{ fontSize: 12, opacity: 0.6 }}>Claude formuliert Titel in 10 Sprachen + Captions … (~30–60 s)</div>}
+            {capsSource && caps && (
+              <div style={{ fontSize: 12, opacity: 0.6 }}>
+                📦 aus Cache geladen ({capsSource}) — „Neu generieren" erstellt frische Texte
+              </div>
+            )}
             {err && <div className="log">{err}</div>}
             {caps && (
               <>

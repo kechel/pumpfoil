@@ -72,6 +72,9 @@ OUTRO_LONG_AB = 20.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
 LAST_RENDER_FILE = BASE / ".shorts-last-render.json"  # für „letzten Render zurückholen"
+CAPTIONS_CACHE_FILE = BASE / ".captions-cache.json"  # generierte Titel/Captions je Export-Name
+YT_BATCH_CACHE_FILE = BASE / ".yt-batch-cache.json"  # Caption-Cache des Kanal-Batches (je Video-ID)
+YT_BATCH_PROGRESS_FILE = BASE / ".yt-batch-progress.json"  # dort stehen die YT-Titel zu den IDs
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
 QUICK_DIRS = [  # Schnellzugriff-Chips in der Sidebar: (Label, Pfad)
     ("janhandy", "/Users/jan/bilder/20260606-janhandy/2026/mp4"),
@@ -96,6 +99,36 @@ def unstar(name):
     if name in stars:
         stars.discard(name)
         save_stars(stars)
+
+
+def _load_json(p: Path, default):
+    try:
+        return json.loads(p.read_text())
+    except (OSError, ValueError):
+        return default
+
+
+def save_captions_cache(name: str, caps: dict):
+    cache = _load_json(CAPTIONS_CACHE_FILE, {})
+    cache[name] = caps
+    CAPTIONS_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False))
+
+
+def cached_captions(name: str) -> dict:
+    """Gecachte Captions zu einem Export: erst UI-Cache (per Name), sonst
+    YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
+    cache = _load_json(CAPTIONS_CACHE_FILE, {})
+    if name in cache:
+        return {"cached": cache[name], "source": "ui"}
+    m = NUM_RE.match(name)
+    if m:
+        progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
+        batch = _load_json(YT_BATCH_CACHE_FILE, {})
+        for vid, entry in progress.items():
+            if str(entry.get("title", "")).startswith(m.group(1) + " ") and vid in batch:
+                return {"cached": batch[vid], "source": "yt-batch",
+                        "yt_title": entry["title"]}
+    return {"cached": None}
 
 
 # ---------------------------------------------------------------- ffmpeg ----
@@ -642,6 +675,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(PROGRESS)
             elif path == "/api/exports":
                 self._json({"exports": exports_state()})
+            elif path == "/api/captions_cache":
+                self._json(cached_captions(query.get("name", [""])[0]))
             elif path == "/api/yt/status":
                 self._json({"configured": YT_CLIENT_SECRET_FILE.is_file(),
                             "authorized": YT_TOKEN_FILE.is_file()})
@@ -772,8 +807,11 @@ class Handler(BaseHTTPRequestHandler):
             if not title:
                 return self._json({"error": "Titel fehlt"}, 400)
             try:
-                return self._json(generate_captions(
-                    title, title_prefix(str(req.get("name", "")))))
+                name = str(req.get("name", ""))
+                caps = generate_captions(title, title_prefix(name))
+                if name:
+                    save_captions_cache(name, caps)
+                return self._json(caps)
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/star":
