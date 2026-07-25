@@ -245,6 +245,11 @@ class Session(Base):
 
     # "recording" → Chunks kommen rein; "complete" → Rohdaten persistiert; "analyzed".
     status: Mapped[str] = mapped_column(String(20), default="recording")
+    # "Session ausgewertet"-Push wurde für diese Session schon verschickt -> nie erneut pushen,
+    # egal wie oft /complete (Retry/Watchdog) oder eine Re-Analyse feuert. Genau EINE Nachricht.
+    # NULL/false = noch nicht benachrichtigt (pushbar), true = schon gepusht. Nullable, damit der
+    # Altbestand-Backfill (bereits analysierte Sessions -> true) idempotent bleibt.
+    analyzed_notified: Mapped[bool | None] = mapped_column(Boolean)
     total_chunks: Mapped[int | None] = mapped_column(Integer)
     # Erwartete Gesamt-Chunk-Zahl (gps+accel), von der Uhr beim /session-Start gemeldet — für die
     # Upload-Fortschrittsanzeige während GPS-first-Uploads (received/expected). NULL = unbekannt.

@@ -69,6 +69,10 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        # „ausgewertet"-Push genau EINMAL je Session (kein Re-Push bei /complete-Retries/Re-Analyse).
+        # Altbestand (schon analysiert) als benachrichtigt markieren -> keine Nachhol-Pushes.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS analyzed_notified BOOLEAN",
+        "UPDATE sessions SET analyzed_notified = true WHERE analyzed_notified IS NULL AND status = 'analyzed'",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS pumpfoil_override BOOLEAN",
         # Feedback: ⭐-Markierung fürs Testimonial-Archiv (überlebt 'Alle löschen').
         "ALTER TABLE feedback ADD COLUMN IF NOT EXISTS starred BOOLEAN DEFAULT false",
