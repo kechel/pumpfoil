@@ -170,12 +170,15 @@ def _seed_stabs() -> None:
             db.add(models.Stab(brand=key[0], model=key[1], size=key[2]))
             added += 1
         if added:
-            # 4 uvicorn-Worker seeden gleichzeitig -> der Zweite läuft in uq_stab_variant.
-            # Kein Fehler: die Zeilen sind dann schon da, also einfach verwerfen.
-            from sqlalchemy.exc import IntegrityError
+            # 4 uvicorn-Worker seeden gleichzeitig. Der Zweite läuft entweder in
+            # uq_stab_variant (IntegrityError) oder — bei größeren Batches — in einen
+            # Postgres-Deadlock, weil beide dieselben Zeilen in anderer Reihenfolge sperren.
+            # Beides ist harmlos: der Gewinner schreibt alle Zeilen, der Verlierer verwirft.
+            # (Ohne das Abfangen stirbt EIN Worker beim Start — real passiert 2026-07-26.)
+            from sqlalchemy.exc import IntegrityError, OperationalError
             try:
                 db.commit()
-            except IntegrityError:
+            except (IntegrityError, OperationalError):
                 db.rollback()
     finally:
         db.close()
