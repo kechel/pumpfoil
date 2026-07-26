@@ -668,5 +668,95 @@
    "brand": "Starboard",
    "model": "RAZR",
    "size": "250"
+  },
+  {
+   "brand": "Unifoil",
+   "model": "Progression Tail",
+   "size": "13.5\""
+  },
+  {
+   "brand": "Unifoil",
+   "model": "Progression Tail",
+   "size": "14.5\""
+  },
+  {
+   "brand": "GoFoil",
+   "model": "FT-SHORT Tail",
+   "size": "12.5\""
+  },
+  {
+   "brand": "GoFoil",
+   "model": "FT-SHORT Tail",
+   "size": "14.5\""
+  },
+  {
+   "brand": "GoFoil",
+   "model": "FT-SHORT Tail",
+   "size": "17\""
+  },
+  {
+   "brand": "GoFoil",
+   "model": "FT-SHORT Tail",
+   "size": "20\""
+  },
+  {
+   "brand": "GoFoil",
+   "model": "ONO Tail",
+   "size": "120"
+  },
+  {
+   "brand": "GoFoil",
+   "model": "ONO Tail",
+   "size": "140"
+  },
+  {
+   "brand": "GoFoil",
+   "model": "ONO Tail",
+   "size": "165"
+  },
+  {
+   "brand": "Levitaz",
+   "model": "Rearwing",
+   "size": "RW250"
+  },
+  {
+   "brand": "Levitaz",
+   "model": "Rearwing",
+   "size": "RW300"
+  },
+  {
+   "brand": "Reedin",
+   "model": "Stabilizer",
+   "size": "33cm"
+  },
+  {
+   "brand": "Reedin",
+   "model": "Stabilizer",
+   "size": "38cm"
+  },
+  {
+   "brand": "Reedin",
+   "model": "Stabilizer",
+   "size": "46cm"
+  },
+  {
+   "brand": "Omen",
+   "model": "Fix Stabilizer",
+   "size": "580"
+  },
+  {
+   "brand": "Omen",
+   "model": "Fix Stabilizer",
+   "size": "700"
+  },
+  {
+   "brand": "Omen",
+   "model": "Fix Stabilizer",
+   "size": "900"
+  },
+  {
+   "brand": "Omen",
+   "model": "Fix Stabilizer",
+   "size": "1100"
   }
 ]
