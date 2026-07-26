@@ -89,7 +89,13 @@ export default function Foils() {
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
       </Link>
-      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold"><FoilIcon className="h-5 w-5 text-brand-400" /> {t("foils.title")}</h2>
+      {/* Überschrift + rechtsbündig der Weg ins Detailed Setup (Stab/Mast/Shim/Board). */}
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-bold"><FoilIcon className="h-5 w-5 text-brand-400" /> {t("foils.title")}</h2>
+        <Link to="/setup" className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700">
+          {t("foils.toSetup")} →
+        </Link>
+      </div>
       <p className="mb-4 text-sm text-slate-300">{t("foils.hint")}</p>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -104,7 +110,7 @@ export default function Foils() {
 
       {mineList.length > 0 && (
         <div className="mb-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-300">{t("foils.title")} ({mineList.length})</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("foils.title")} ({mineList.length})</p>
           <div className="space-y-2">{mineList.map(card)}</div>
         </div>
       )}

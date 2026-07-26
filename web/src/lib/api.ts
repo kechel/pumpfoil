@@ -94,6 +94,19 @@ export interface Foil {
   aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
 }
 
+// Stabilizer (Rear Wing) — Katalog wie Foils, aber Maße sind oft nicht dokumentiert:
+// span_cm/area_cm2 dürfen fehlen, specs_estimated markiert Geschätztes.
+export interface Stab {
+  id: number; brand: string; model: string; size: string;
+  span_cm: number | null; area_cm2: number | null;
+  specs_estimated?: boolean; aspect_ratio: number | null;
+}
+
+// Board — kein Katalog, sondern eigene Einträge des Nutzers.
+export interface Board {
+  id: number; name: string; volume_l: number | null; length_cm: number | null;
+}
+
 export interface Analysis {
   algo_version: string;
   total_distance_m: number | null;
@@ -578,6 +591,20 @@ export const api = {
     return req<Foil[]>(`/api/foils${s ? "?" + s : ""}`);
   },
   foilBrands: () => req<string[]>("/api/foils/brands"),
+  stabs: (params?: { q?: string; brand?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.brand) qs.set("brand", params.brand);
+    const s = qs.toString();
+    return req<Stab[]>(`/api/stabs${s ? "?" + s : ""}`);
+  },
+  stabBrands: () => req<string[]>("/api/stabs/brands"),
+  boards: () => req<Board[]>("/api/boards"),
+  boardCreate: (b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>
+    req<Board>("/api/boards", { method: "POST", body: JSON.stringify(b) }),
+  boardUpdate: (id: number, b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>
+    req<Board>(`/api/boards/${id}`, { method: "PUT", body: JSON.stringify(b) }),
+  boardDelete: (id: number) => req<{ ok: boolean }>(`/api/boards/${id}`, { method: "DELETE" }),
   foilStats: () => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; avg_pump_hz: number | null }[]>("/api/community/foil-stats"),
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   pushKey: () => req<{ key: string }>("/api/push/key"),

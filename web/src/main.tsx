@@ -64,6 +64,7 @@ import Changelog from "./pages/Changelog";
 import Import from "./pages/Import";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
+import Setup from "./pages/Setup";
 import FoilStats from "./pages/FoilStats";
 import WatchStats from "./pages/WatchStats";
 import FoilCalculator from "./pages/FoilCalculator";
@@ -104,6 +105,7 @@ const router = createBrowserRouter([
       { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },
+      { path: "setup", element: <Setup /> },
       { path: "foil-stats", element: <FoilStats /> },
       { path: "watch-stats", element: <WatchStats /> },
       { path: "foil-rechner", element: <FoilCalculator /> },
