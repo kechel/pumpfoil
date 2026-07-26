@@ -35,16 +35,25 @@ export function paletteColor(idx: number, role: "value" | "label" | "line" = "va
 // Uhr kann nur ihre eingebauten Fonts zeichnen und rastet auf den nächsten ein.
 // WICHTIG: die NUMBER-Fonts enthalten NUR Ziffern (plus : . -) → sie sind ausschließlich für
 // Wert-Elemente erlaubt, Labels/Freitexte hören bei „Groß" auf (s. MAX_TEXT_STEP).
+//
+// Die Faktoren sind GEMESSEN, nicht geschätzt (2026-07-26): das SDK legt je Gerät in
+// ~/.Garmin/ConnectIQ/Devices/<id>/simulator.json die Font-Dateien offen, und deren Namen tragen
+// die Pixelgröße (z. B. FNT_FENIX6X_CDPG_ROBOTO_13B = 13 px, ..._BIONIC_BOLD_NUMBER_62 = 62 px).
+// Werte = Median über 42 layout-fähige Geräte (Höhe ÷ Displaybreite), Streuung eng:
+//   xtiny .038–.060 · tiny .048–.071 · small .058–.079 · medium .070–.092 · large .079–.100
+//   numMild .094–.119 · numMedium .125–.147 · numHot .166–.193 · numThaiHot .166–.221
+// Die vorherigen Schätzwerte lagen am oberen Ende 36 % zu hoch (0,30 statt 0,22) — die Vorschau
+// zeigte Werte also deutlich größer als die Uhr, und die Overflow-Warnung schlug zu früh Alarm.
 export const SIZE_STEPS: { key: string; font: string; factor: number }[] = [
-  { key: "xtiny", font: "FONT_XTINY", factor: 0.055 },
-  { key: "tiny", font: "FONT_TINY", factor: 0.070 },
-  { key: "small", font: "FONT_SMALL", factor: 0.085 },
-  { key: "medium", font: "FONT_MEDIUM", factor: 0.100 },
-  { key: "large", font: "FONT_LARGE", factor: 0.120 },
-  { key: "numMild", font: "FONT_NUMBER_MILD", factor: 0.150 },
-  { key: "numMedium", font: "FONT_NUMBER_MEDIUM", factor: 0.190 },
-  { key: "numHot", font: "FONT_NUMBER_HOT", factor: 0.240 },
-  { key: "numThaiHot", font: "FONT_NUMBER_THAI_HOT", factor: 0.300 },
+  { key: "xtiny", font: "FONT_XTINY", factor: 0.050 },
+  { key: "tiny", font: "FONT_TINY", factor: 0.069 },
+  { key: "small", font: "FONT_SMALL", factor: 0.078 },
+  { key: "medium", font: "FONT_MEDIUM", factor: 0.092 },
+  { key: "large", font: "FONT_LARGE", factor: 0.096 },
+  { key: "numMild", font: "FONT_NUMBER_MILD", factor: 0.115 },
+  { key: "numMedium", font: "FONT_NUMBER_MEDIUM", factor: 0.139 },
+  { key: "numHot", font: "FONT_NUMBER_HOT", factor: 0.192 },
+  { key: "numThaiHot", font: "FONT_NUMBER_THAI_HOT", factor: 0.221 },
 ];
 export const SIZE_FACTOR = SIZE_STEPS.map((s) => s.factor);
 /** Höchste Stufe für Text (Labels/Freitext): die NUMBER-Fonts haben keine Buchstaben. */

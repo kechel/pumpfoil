@@ -381,18 +381,17 @@ def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
 
 
 def _latest_garmin_version() -> str | None:
-    """Neueste gebaute Garmin-App-Version aus dem Build-Katalog (Quelle der Wahrheit
-    für den Sideload-Download)."""
-    try:
-        cat = get_settings().app_builds_dir / "catalog.json"
-        if not cat.exists():
-            return None
-        data = json.loads(cat.read_text())
-        if isinstance(data, list) and data:
-            return data[0].get("version")
-    except Exception:
-        pass
-    return None
+    """Version, die als „Update verfügbar" beworben werden darf: die im Connect-IQ-Store
+    FREIGEGEBENE (`appmeta.garmin.latest`) — NICHT die zuletzt gebaute aus dem Katalog.
+
+    Warum: `watch/bin` enthält auch Entwicklungsbuilds (wir bauen dort, um im Simulator zu
+    testen). Als der Katalog die Quelle war, bewarb die Website prompt eine 1.0.66, die noch
+    nicht einmal eingereicht war — Nutzer hätten einen ungetesteten Build installiert
+    (von Jan gemeldet, 2026-07-26). Der Download selbst liefert weiterhin, was im Katalog
+    liegt; beworben wird aber nur Freigegebenes.
+    """
+    v = _APP_META.get("garmin", {}).get("latest") or ""
+    return v or None
 
 
 def _version_lt(a: str, b: str) -> bool:

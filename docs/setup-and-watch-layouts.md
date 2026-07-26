@@ -421,8 +421,40 @@ für Nutzer steht (26.07.).
     Menüpunkt (`menu.layouts`) und Hinweis (`lay.fallback`) in **allen 13 Uhr-Sprachen**;
     StringsLite braucht sie nicht (Lite hat keine Layouts). Build 121 ok / 0 fehlgeschlagen,
     Release-Größen: instinct2 (Lite) **55,8 KB**, fr255s **74,2 KB**, fenix7xpro **74,5 KB**.
-  - **P2b offen:** Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten
-    `SIZE_STEPS`-Faktoren in der PWA nachziehen), Testpakete für fr255s + fenix7xpro.
+  - **P2b Font-Kalibrierung — ERLEDIGT 2026-07-26, aus dem SDK gemessen:** die Faktoren mussten
+    nicht geraten (und nicht im Simulator abgelesen) werden — das SDK legt sie offen. In
+    `~/.Garmin/ConnectIQ/Devices/<id>/simulator.json` steht je Gerät die Font-Datei pro Stufe, und
+    der Dateiname trägt die Pixelgröße (`FNT_FENIX6X_CDPG_ROBOTO_13B` = 13 px,
+    `..._BIONIC_BOLD_NUMBER_62` = 62 px). Über **42 layout-fähige Geräte** ausgewertet (Höhe ÷
+    Displaybreite, Median; Geräte mit Dateinamen ohne erkennbare Größe verworfen statt geschätzt):
+
+    | Stufe | Font | gemessen | Streuung | vorher geschätzt |
+    |---|---|---|---|---|
+    | 0 | FONT_XTINY | 0.050 | .038–.060 | 0.055 |
+    | 1 | FONT_TINY | 0.069 | .048–.071 | 0.070 |
+    | 2 | FONT_SMALL | 0.078 | .058–.079 | 0.085 |
+    | 3 | FONT_MEDIUM | 0.092 | .070–.092 | 0.100 |
+    | 4 | FONT_LARGE | 0.096 | .079–.100 | 0.120 |
+    | 5 | FONT_NUMBER_MILD | 0.115 | .094–.119 | 0.150 |
+    | 6 | FONT_NUMBER_MEDIUM | 0.139 | .125–.147 | 0.190 |
+    | 7 | FONT_NUMBER_HOT | 0.192 | .166–.193 | 0.240 |
+    | 8 | FONT_NUMBER_THAI_HOT | 0.221 | .166–.221 | 0.300 |
+
+    Die Schätzung lag am oberen Ende **36 % zu hoch** — die Vorschau zeigte Werte also deutlich
+    größer als die Uhr, und die Overflow-Warnung schlug zu früh Alarm. Jetzt stimmen beide.
+  - **P2b Testpakete — GELIEFERT 2026-07-26:** Release-`.prg` für **fr255s** (218×218, kleinste
+    taugliche) und **fenix7xpro** (280×280) an Jan; bewusst aus dem Scratchpad, NICHT aus
+    `watch/bin` (s. Regel unten). Offen ist damit nur noch Jans Simulator-Test.
+
+**Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
+Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
+was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
+das nicht einmal eingereicht war (von Jan gemeldet). Zwei Konsequenzen:
+- `_latest_garmin_version()` liest jetzt **`appmeta.garmin.latest`** (= im Store freigegeben) statt
+  der Katalog-Version. Beworben wird nur Freigegebenes.
+- Testbuilds werden mit `monkeyc -r` ins Scratchpad gebaut und direkt geschickt; `watch/bin` bleibt
+  auf dem Release-Stand. Zurückrollen geht per `git worktree add <tmp> <release-commit>` + dort
+  `build-all.sh` + `.prg`/`catalog.json`/`partmap.json` zurückkopieren.
 - **P3:** Wear OS + Apple Watch.
 
 ---
