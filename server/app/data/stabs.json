@@ -15,6 +15,351 @@
    "size": "XXL"
   },
   {
+   "brand": "Gong",
+   "model": "Stab Curve H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "XS"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "XXL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Fluid H",
+   "size": "3XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "38 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "42 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "45 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "47 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "49 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Fluid",
+   "size": "52 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Veloce H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Veloce H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Veloce H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Veloce H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Veloce H",
+   "size": "36 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Veloce H",
+   "size": "40 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Veloce H",
+   "size": "44 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Pro Veloce H",
+   "size": "47 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Curve H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Curve H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Curve H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Curve H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "XS"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "XXL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Fluid H",
+   "size": "3XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Veloce H",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Veloce H",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Veloce H",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Veloce H",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Hyper Trail",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Hyper Trail",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Hyper Trail",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Hyper Trail",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Supra Trail",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Supra Trail",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Supra Trail",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Supra Trail",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Ultra Trail",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Ultra Trail",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Ultra Trail",
+   "size": "L"
+  },
+  {
+   "brand": "Gong",
+   "model": "Tail Wing Ultra Trail",
+   "size": "XL"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "35 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "37 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "39 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "41 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "44 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Freestyle H",
+   "size": "46 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Sirus",
+   "size": "40 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Sirus",
+   "size": "45 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Sirus",
+   "size": "50 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Sirus",
+   "size": "56 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Sirus",
+   "size": "63 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "36 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "39 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "43 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "46 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "49 cm"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Curve",
+   "size": "53 cm"
+  },
+  {
    "brand": "Sabfoil",
    "model": "Flat",
    "size": "325"
