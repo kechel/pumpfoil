@@ -171,7 +171,9 @@ class MainActivity : ComponentActivity() {
         var sessionFoilId by remember { mutableStateOf<Int?>(null) }   // Foil = Metadaten (+ Auto-Schwellen)
         var alarmSource by remember { mutableStateOf("foil") }         // "foil" | "manual" (Schwellen-Quelle)
         var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Lauf-Ende-Screen (kurz nach Lauf-Ende)
-        val pauseView = listOf(12, 20, 2)                                // Pausen-Screen: Uhrzeit · Läufe · Puls
+        // Pausen-Screen (Dümpeln zwischen den Läufen): Default Uhrzeit · Läufe · Puls, per
+        // Account-Config überschreibbar (pauseView). Fehlt der Key -> Default bleibt.
+        var pauseView by remember { mutableStateOf(listOf(12, 20, 2)) }
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
 
         fun applyConfig(c: JSONObject) {
@@ -213,6 +215,10 @@ class MainActivity : ComponentActivity() {
             val ofa = c.optJSONArray("offFoilView")
             if (ofa != null && ofa.length() > 0) {
                 offFoil = (0 until ofa.length()).map { ofa.getInt(it) }
+            }
+            val pva = c.optJSONArray("pauseView")
+            if (pva != null && pva.length() > 0) {
+                pauseView = (0 until pva.length()).map { pva.getInt(it) }
             }
             // Aufzeichnungsmodus (full/lite/gps) persistieren -> Recorder liest beim Start (offline-tauglich).
             val rm = c.optString("recordMode", "full")

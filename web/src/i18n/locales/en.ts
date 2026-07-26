@@ -1070,6 +1070,8 @@ const en: Record<string, string> = {
   "account.claimOk": "Watch connected! ✓",
   "account.offFoilTitle": "Off-foil screen",
   "account.offFoilDesc": "Shown automatically on the watch while you're not foiling (default: clock + last run). When foiling, the watch switches back to your last selected view.",
+  "account.pauseTitle": "Resting view",
+  "account.pauseDesc": "Shown while you're resting between runs — right after the short run summary (default: clock + runs + heart rate). Until now this was fixed on every watch.",
 
   // Watch setup guide (WatchGuide)
   "guide.howto": "How to set up your watch",

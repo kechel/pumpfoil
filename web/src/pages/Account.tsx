@@ -330,6 +330,7 @@ function ViewsEditor() {
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
+  const [pauseView, setPauseView] = useState<number[]>([12, 20, 2]);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -339,11 +340,15 @@ function ViewsEditor() {
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
       setOffFoil(s.off_foil_view ?? [12, 17, 16]);
+      setPauseView(s.pause_view ?? [12, 20, 2]);
     }).catch((e) => setErr(String(e)));
   }, []);
 
   function setOffField(fi: number, val: number) {
     const next = [...offFoil]; next[fi] = val; setOffFoil(next); setSaved(false);
+  }
+  function setPauseField(fi: number, val: number) {
+    const next = [...pauseView]; next[fi] = val; setPauseView(next); setSaved(false);
   }
 
   function update(next: number[][]) {
@@ -367,11 +372,15 @@ function ViewsEditor() {
   async function save() {
     setErr(null);
     try {
-      const res = await api.saveSettings({ views, colorByValue, auto_start: autoStart, off_foil_view: offFoil });
+      const res = await api.saveSettings({
+        views, colorByValue, auto_start: autoStart,
+        off_foil_view: offFoil, pause_view: pauseView,
+      });
       setViews(res.views);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
       if (res.off_foil_view) setOffFoil(res.off_foil_view);
+      if (res.pause_view) setPauseView(res.pause_view);
       setSaved(true);
     } catch (e) {
       setErr(String(e));
@@ -393,7 +402,7 @@ function ViewsEditor() {
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
       </label>
-      <p className="mb-4 text-xs text-slate-400">{t("account.recordModeMoved")}</p>
+      <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
       <div className="space-y-3">
         {views.map((v, vi) => (
@@ -429,7 +438,7 @@ function ViewsEditor() {
 
       <div className="mt-5 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
         <div className="mb-1 text-sm font-medium text-slate-200">{t("account.offFoilTitle")}</div>
-        <p className="mb-2 text-xs text-slate-400">{t("account.offFoilDesc")}</p>
+        <p className="mb-2 text-sm text-slate-400">{t("account.offFoilDesc")}</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <WatchPreview fields={offFoil} colorByValue={colorByValue} />
           <div className="flex-1 space-y-2">
@@ -438,6 +447,28 @@ function ViewsEditor() {
                 key={fi}
                 value={offFoil[fi] ?? 0}
                 onChange={(e) => setOffField(fi, Number(e.target.value))}
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
+              >
+                {FIELD_OPTIONS.map((o) => (
+                  <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
+                ))}
+              </select>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
+        <div className="mb-1 text-sm font-medium text-slate-200">{t("account.pauseTitle")}</div>
+        <p className="mb-2 text-sm text-slate-400">{t("account.pauseDesc")}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <WatchPreview fields={pauseView} colorByValue={colorByValue} />
+          <div className="flex-1 space-y-2">
+            {[0, 1, 2].map((fi) => (
+              <select
+                key={fi}
+                value={pauseView[fi] ?? 0}
+                onChange={(e) => setPauseField(fi, Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
               >
                 {FIELD_OPTIONS.map((o) => (

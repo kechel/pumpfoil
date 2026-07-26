@@ -1150,6 +1150,8 @@ const de: Record<string, string> = {
   "account.claimOk": "Uhr verbunden! ✓",
   "account.offFoilTitle": "Off-Foil-Screen",
   "account.offFoilDesc": "Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück auf deine zuletzt gewählte Ansicht.",
+  "account.pauseTitle": "Pausen-Ansicht",
+  "account.pauseDesc": "Wird gezeigt, wenn du zwischen den Läufen dümpelst — direkt nach der kurzen Lauf-Zusammenfassung (Default: Uhrzeit + Läufe + Puls). Bisher war das auf allen Uhren fest eingestellt.",
 
   // Uhr-Einrichtungs-Guide (WatchGuide)
   "guide.howto": "So richtest du deine Uhr ein",

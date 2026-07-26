@@ -429,6 +429,8 @@ struct RecordView: View {
             autoStart = c.autoStart ?? false                   // Config-Default; danach auf der Uhr umschaltbar
         }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
+        // Pausen-Screen (zwischen den Läufen) — fehlt der Key, bleibt der lokale Default.
+        if let pv = c.pauseView, !pv.isEmpty { pauseView = pv }
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
     }

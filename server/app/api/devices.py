@@ -119,6 +119,10 @@ def device_config(
         # Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird):
         # Default Uhrzeit + letzter-Lauf-Distanz + letzter-Lauf-Dauer (Feld-IDs).
         "offFoilView": settings.get("off_foil_view") or [12, 17, 16],
+        # Pausen-Ansicht: Dümpeln ZWISCHEN den Läufen (nach dem Off-Foil-Screen). War auf allen
+        # vier Uhr-Plattformen hartcodiert [Uhrzeit, Läufe, Puls] -> jetzt konfigurierbar.
+        # Alte Clients ignorieren den Key und nutzen weiter ihren eigenen Default.
+        "pauseView": settings.get("pause_view") or [12, 20, 2],
         # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).

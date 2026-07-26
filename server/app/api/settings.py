@@ -35,6 +35,11 @@ DEFAULTS = {
     # Start-Erfolgsquote: ein erkannter Lauf UNTER dieser Distanz zählt als (misslungener)
     # Startversuch, darüber als erfolgreich. Subjektiv -> pro Nutzer einstellbar.
     "start_threshold_m": 20,
+    # Off-Foil-Screen (kurz nach Lauf-Ende): Uhrzeit + letzter-Lauf-Distanz + -Dauer.
+    "off_foil_view": [12, 17, 16],
+    # Pausen-Ansicht (Dümpeln ZWISCHEN den Läufen, nach dem Off-Foil-Screen):
+    # Uhrzeit + Läufe-Anzahl + Puls. War auf allen Uhren hartcodiert -> jetzt konfigurierbar.
+    "pause_view": [12, 20, 2],
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
@@ -72,6 +77,15 @@ def _clean_views(views) -> list | None:
         if any(f != 0 for f in fields):
             out.append(fields)
     return out or [[1, 2, 0]]
+
+
+def _clean_view3(v) -> list | None:
+    """Validiert EINE Ansicht (Off-Foil / Pause): bis zu 3 gültige Feld-IDs, sonst None."""
+    if not isinstance(v, list):
+        return None
+    out = [int(x) for x in v[:3]
+           if isinstance(x, (int, float)) and int(x) in VALID_FIELD_IDS]
+    return out or None
 
 
 @router.get("")
@@ -133,12 +147,13 @@ def update_settings(
         cleaned = _clean_views(patch["views"])
         if cleaned:
             current["views"] = cleaned
-    # Off-Foil-Screen (Auto-Umschaltung): einzelne View aus bis zu 3 Feld-IDs.
-    if "off_foil_view" in patch and isinstance(patch["off_foil_view"], list):
-        v = [int(x) for x in patch["off_foil_view"][:3]
-             if isinstance(x, (int, float)) and 0 <= int(x) <= 20]
-        if v:
-            current["off_foil_view"] = v
+    # Off-Foil-Screen (kurz nach Lauf-Ende) + Pausen-Ansicht (dazwischen): je eine View
+    # aus bis zu 3 Feld-IDs.
+    for key in ("off_foil_view", "pause_view"):
+        if key in patch:
+            v = _clean_view3(patch[key])
+            if v:
+                current[key] = v
     # Vibrationsalarm
     if "alarm_enabled" in patch:
         current["alarm_enabled"] = bool(patch["alarm_enabled"])

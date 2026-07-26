@@ -76,6 +76,7 @@ enum Api {
         let alarmDefault: String?       // Uhr-Vorwahl: "foil" | "fixed"
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
         let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)
+        let pauseView: [Int]?   // Pausen-Screen (Dümpeln zwischen den Läufen), optional
         let language: String?   // Profil-Sprache (de/gsw/de-AT/en/fr/it/es) für On-Device-Texte
         let recordMode: String? // Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren)
         let autoStart: Bool?    // GPS-Auto-Start (optional/abwärtskompatibel zum Cache)

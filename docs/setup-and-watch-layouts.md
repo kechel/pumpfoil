@@ -197,7 +197,15 @@ bereits, der Wert wird nur nicht übernommen (Einzeiler). Ist-Verteilung: 96 KB 
 für taugliche Uhren anbietet und in der richtigen Form zeichnet.
 
 ### Phasen
-- **P0 (klein, vorziehen):** `pauseView` im **einfachen** 3-Slot-System konfigurierbar machen —
+- **P0 — ERLEDIGT 2026-07-26** (bis auf Garmin, s. u.): `pause_view` in den Settings (Default
+  `[12,20,2]` = Uhrzeit/Läufe/Puls, gemeinsamer Validator `_clean_view3` für Off-Foil + Pause),
+  `pauseView` in `/api/devices/config` (live verifiziert), PWA-Block „Pausen-Ansicht" im
+  Views-Editor (`Account.tsx`, i18n de+en), **Wear** liest `pauseView`, **Apple** liest es über einen
+  **optionalen** Codable-Key. Fehlt der Key → alter hartcodierter Default. Nebenbei: Hinweistexte im
+  Views-Editor von `text-xs` auf `text-sm` (stehende Regel: Hinweise nie winziger als normal).
+  ⏳ **Garmin fehlt noch:** der Pause-Screen sitzt in `SessionRecorder.mc`, und die Datei ist
+  uncommitted (1.0.65-Härtung, wartet auf Jans fenix5-Test) → wird nachgezogen, sobald die frei ist.
+- **P0 (Original-Beschreibung):** `pauseView` im **einfachen** 3-Slot-System konfigurierbar machen —
   Server liefert den Key, die 4 Clients lesen ihn (fehlt er → alter hartcodierter Default). Schließt
   eine Parität-Lücke, funktioniert auch auf speicherarmen Uhren, und testet genau den Config-Pfad,
   den die Advanced-Layouts danach brauchen.
