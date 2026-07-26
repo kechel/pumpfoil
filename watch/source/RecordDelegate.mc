@@ -174,7 +174,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         // Nicht „An" behaupten, wenn faktisch statisch gefahren wird: nach einem Absturz sperrt die
         // Selbstheilung diese Sitzung (Jan hatte genau das — Schalter „An", Layouts trotzdem weg).
         // Auswählen hebt die Sperre bewusst wieder auf.
-        if (_rec.layoutsOffLocal) { return Strings.s("common.off"); }
+        if (!_rec.layoutsWanted()) { return Strings.s("common.off"); }
         if (_rec.layoutCrash) { return Strings.s("lay.fallback"); }
         return Strings.s("common.on");
     }
@@ -330,7 +330,7 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
     }
     (:full) hidden function _toggleLayouts(item) as Void {
         _rec.toggleLayouts();
-        item.setSubLabel(_rec.layoutsOffLocal ? Strings.s("common.off")
+        item.setSubLabel(!_rec.layoutsWanted() ? Strings.s("common.off")
                          : _rec.layoutCrash ? Strings.s("lay.fallback") : Strings.s("common.on"));
         WatchUi.requestUpdate();
     }

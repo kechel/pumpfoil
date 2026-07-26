@@ -510,6 +510,29 @@ für Nutzer steht (26.07.).
     genutzt". Bewusst in Python: `users.settings_json` ist TEXT, nicht JSONB — wird das je teuer,
     ist der Umstieg auf JSONB + Index die Stelle.
 
+  - **P2f Wer entscheidet: die UHR — Korrektur 2026-07-26 (Jan):** „egal was der server sagt, an der
+    uhr will ich es umstellen koennen, nur bei app-start soll es auf den wert des servers einmal
+    vorinitialisiert werden". Vorher war `layoutsOn` ein Veto des Servers, gegen das der
+    On-Watch-Schalter nicht ankam — und weil die Seiten nur bei `layoutsOn=true` mitkamen, hätte er
+    auch gar nichts anzuzeigen gehabt. Jetzt:
+    - `/config` liefert `pages`/`offFoil`/`pause`, sobald die Uhr **genug Speicher** hat (≥ 512 KB;
+      das ist Physik, keine Politik — die 96-KB-Uhren haben den Renderer nicht einmal im Build).
+      `layoutsOn` ist nur noch die **Voreinstellung**.
+    - Die Uhr hält den Schalter als **Dreizustand** in `layouts_pref`: `null` = nie angefasst → es
+      gilt der Server-Wert (bei jedem App-Start neu), `true`/`false` = Wille des Nutzers und sticht
+      den Server dauerhaft. Altbestand `layouts_off` wird einmal übernommen.
+    - `layoutCrash` bleibt eine Sitzungs-Sperre (Selbstheilung) und wird durch bewusstes
+      Einschalten sofort aufgehoben; der Menüpunkt zeigt „Layout aus Absturz", solange sie greift.
+    - Serverseitig gilt ein einzelner gemeldeter Absturz nicht mehr als Sperre
+      (`CANARY_BLOCK_AT = 2`). Vorher war `== 0` verlangt, die Uhr meldet aber genau einmal → der
+      Zähler stand danach dauerhaft auf 1 und die Uhr bekam nie wieder Layouts (Jan lief genau da
+      fest, sein Profil-Reset wurde vom nächsten App-Start überschrieben).
+    - `GET /api/devices/list` liefert je Uhr `layout_state` (on | off_user | off_memory |
+      off_canary | off_model | off_nolayout) aus demselben Gate-Baum; die Profilseite zeigt den
+      Grund im Klartext. Ohne das bleibt bei „Schalter steht auf An, es kommt aber nichts" nur Raten.
+    Verifiziert mit Wegwerf-Token auf emu-test (canary=5, kein Opt-in): `layoutsOn:false`, `pages`
+    trotzdem im Payload → die Uhr kann selbst einschalten. Testdaten danach gelöscht.
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",

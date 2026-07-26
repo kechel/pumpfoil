@@ -109,14 +109,17 @@ class SessionRecorder {
 
     // --- Dynamische Layouts (frei gestaltete Seiten, s. docs/setup-and-watch-layouts.md) ---
     // layoutsOn kommt vom Server (Gating: Gerät >= 512 KB, Modell unauffällig, Nutzer nicht
-    // abgeschaltet) UND kann on-watch abgeschaltet werden (layoutsOffLocal). pages ist die
+    // abgeschaltet) — aber nur als Voreinstellung; der On-Watch-Schalter sticht sie. pages ist die
     // Seitenliste: Eintrag = [0,a,b,c] (klassische 3-Feld-Seite) oder [1,bg,[elemente]].
     // Alles in EINEM Storage-Key (`layouts_config`), damit der Object Store nicht zerfasert.
     var layoutsOn = false;
     var pages = [];
     var offFoilPage = null;
     var pausePage = null;
-    var layoutsOffLocal = false;      // On-Watch-Not-Aus (Storage „layouts_off")
+    // Dreizustand des On-Watch-Schalters (Storage „layouts_pref"): null = nie angefasst -> es gilt
+    // `serverDefault`; true/false = Wille des Nutzers und sticht den Server.
+    var layoutsPref = null;
+    var serverDefault = false;        // Voreinstellung aus /config (`layoutsOn`)
     // Canary (Selbstheilung): beim Aufnahme-Start setzen, beim sauberen Ende löschen. Liegt das
     // Flag beim App-Start noch da, ist die letzte Aufnahme mit dynamischem Layout NICHT sauber
     // beendet worden -> diese Sitzung fährt statisch, der Start-Screen sagt es kurz, und der
@@ -262,9 +265,15 @@ class SessionRecorder {
                        && lay["off"] instanceof Lang.Array) ? lay["off"] : null;
         pausePage = (lay instanceof Lang.Dictionary && lay.hasKey("pause")
                      && lay["pause"] instanceof Lang.Array) ? lay["pause"] : null;
-        // Der On-Watch-Not-Aus sticht ALLES — er muss ohne Handy und ohne Server wirken.
-        // layoutCrash tut dasselbe für die laufende Sitzung (Selbstheilung nach Absturz).
-        layoutsOn = (on && !layoutsOffLocal && !layoutCrash && pages.size() > 0);
+        // WER ENTSCHEIDET: der Schalter auf der Uhr, sobald ihn jemand angefasst hat. Der
+        // Server-Wert ist nur die VOREINSTELLUNG für den Fall, dass das noch nie passiert ist
+        // (Jan: „egal was der server sagt, an der uhr will ich es umstellen koennen, nur bei
+        // app-start soll es auf den wert des servers einmal vorinitialisiert werden").
+        // layoutCrash bleibt davon unberührt: es sperrt nur die Sitzung nach einem Absturz
+        // (Selbstheilung) und wird durch bewusstes Einschalten sofort aufgehoben.
+        serverDefault = on;
+        var want = (layoutsPref == null) ? on : (layoutsPref == true);
+        layoutsOn = (want && !layoutCrash && pages.size() > 0);
     }
 
     // Layout-Paket aus dem Server-Config ziehen und in EINEN Storage-Key cachen. Liefert der
@@ -282,7 +291,10 @@ class SessionRecorder {
     }
 
     (:full) hidden function _layoutsFromCache() {
-        layoutsOffLocal = (Storage.getValue("layouts_off") == true);
+        // Dreizustand: null = nie angefasst (dann gilt der Server-Wert), true/false = Wille des
+        // Nutzers. Altbestand aus 1.0.66 (`layouts_off` = reiner Not-Aus) einmal übernehmen.
+        layoutsPref = Storage.getValue("layouts_pref");
+        if (layoutsPref == null && Storage.getValue("layouts_off") == true) { layoutsPref = false; }
         // Canary noch gesetzt? Dann ist die letzte Aufnahme abgestürzt. NICHT dauerhaft
         // abschalten (das entscheidet der Server je Modell) — nur diese Sitzung statisch fahren,
         // Hinweis zeigen und die Meldung fürs nächste /config vormerken. Flag danach löschen,
@@ -325,17 +337,24 @@ class SessionRecorder {
     //     serverseitig noch gesetzt und ist inzwischen zurückgesetzt) — dafür frisch nachfragen.
     //     Während einer laufenden Aufnahme blockt Garmin das Netz; dann greift weiter der Cache.
     (:full) function toggleLayouts() {
-        layoutsOffLocal = !layoutsOffLocal;
-        _store("layouts_off", layoutsOffLocal);
-        if (!layoutsOffLocal) {
-            layoutCrash = false;
+        // Umschalten heißt: ab jetzt gilt MEIN Wert (aus dem Dreizustand wird ein fester).
+        // Ausgangspunkt ist, was gerade wirkt — also der Server-Wert, wenn noch nie geschaltet wurde.
+        var now = (layoutsPref == null) ? serverDefault : (layoutsPref == true);
+        layoutsPref = !now;
+        _store("layouts_pref", layoutsPref);
+        if (layoutsPref == true) {
+            layoutCrash = false;          // bewusste Entscheidung sticht die Selbstheilung
             layoutHintUntilMs = 0;
         }
         var lc = Storage.getValue("layouts_config");
         if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); } else { layoutsOn = false; }
-        if (!layoutsOffLocal) {
-            try { fetchConfig(); } catch (e) {}
+        if (layoutsPref == true) {
+            try { fetchConfig(); } catch (e) {}   // ggf. frische Seiten holen (im Rennen blockt Garmin das Netz)
         }
+    }
+    // Was der Menüpunkt anzeigen soll: der wirksame Wunsch, nicht das Ergebnis.
+    (:full) function layoutsWanted() {
+        return (layoutsPref == null) ? serverDefault : (layoutsPref == true);
     }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).

@@ -118,7 +118,16 @@ def device_config(
         and (int(device.layout_canary_count or 0) < CANARY_BLOCK_AT or user_opted_in)
         and _model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in)
     )
-    layout_block = _layouts_for_watch(db, device.user_id, settings) if layouts_on else {}
+    # Ausgeliefert wird das Layout-Paket, sobald die Uhr GENUG SPEICHER hat — unabhängig davon, ob
+    # unsere Empfehlung „an" lautet. Denn `layoutsOn` ist nur noch eine VOREINSTELLUNG: die Uhr
+    # initialisiert ihren eigenen Schalter beim App-Start damit, danach entscheidet der Nutzer am
+    # Handgelenk (ausdrücklich Jan: „egal was der server sagt, an der uhr will ich es umstellen
+    # koennen, nur bei app-start soll es auf den wert des servers einmal vorinitialisiert werden").
+    # Ohne mitgeschickte Seiten hätte der Schalter nichts zum Anzeigen.
+    # Die Speichergrenze ist keine Politik, sondern Physik: unter 512 KB liefern wir nichts, und die
+    # 96-KB-Uhren haben den Renderer gar nicht im Build (Lite).
+    layout_capable = (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
+    layout_block = _layouts_for_watch(db, device.user_id, settings) if layout_capable else {}
 
     return {
         "views": settings.get("views", [[1, 2, 0]]),
@@ -157,8 +166,10 @@ def device_config(
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
         "latestVersion": (_APP_META["garmin"]["latest"] if (p or device.platform) == "garmin" else ""),
-        # Dynamische Layouts (F2 P2). `layoutsOn` ist die EINE Wahrheit für die Uhr: false ->
-        # statische Logik wie bisher. `pages`/`offFoil`/`pause` kommen nur mit, wenn true:
+        # Dynamische Layouts (F2 P2). `layoutsOn` ist die VOREINSTELLUNG für den Schalter auf der
+        # Uhr (Speicher + Absturz-Statistik + Modell-Voreinstellung + Profil-Schalter), NICHT ein
+        # Veto: hat der Nutzer den Schalter am Handgelenk angefasst, gilt seiner. `pages`/`offFoil`/
+        # `pause` kommen mit, sobald die Uhr genug Speicher hat:
         #   [0,a,b,c]        = klassische 3-Feld-Seite (Feld-IDs)
         #   [1,bg,[elements]] = freies Layout (Element = [typ,x,y,size,color,flags,extra…])
         # Koordinaten relativ 0…1000, Größe = Font-Stufe, Farbe = Palette-Index.
