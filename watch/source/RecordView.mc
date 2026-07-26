@@ -405,11 +405,16 @@ class RecordView extends WatchUi.View {
         // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
         // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
         var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;
-        // Abstand aus der Fonthöhe des WERTES, Faktor 0,75. Nicht Höhe/2: bei den NUMBER-Fonts
-        // ragen die Ziffern über die von getFontHeight gemeldete Höhe hinaus — mit /2 klebte das
-        // Label am Wert (im Simulator gesehen). 0,75 reproduziert die früheren, bewährten ~30 px
-        // auf 280-px-Uhren und skaliert mit (kleinere Uhr = kleinerer Font = kleinerer Abstand).
-        var gap = dc.getFontHeight(font) * 0.75;
+        // Label-Abstand: NICHT aus dc.getFontHeight() ableiten. Die Funktion liefert bei den
+        // NUMBER-Fonts die ZEILENhöhe inklusive Durchschuss (deutlich mehr als die Ziffernhöhe) —
+        // damit landete das Label mitten im NÄCHSTEN Feld statt unter seinem eigenen Wert
+        // (Jan im Simulator, zwei Anläufe: /2 klebte am Wert, *0,75 rutschte ins nächste Feld).
+        // Stattdessen geometrisch: 42 % der Slot-Höhe (bleibt im eigenen Feld), gekappt auf 12 %
+        // der Displayhöhe (sonst schwebt das Label bei nur einem Feld weit weg vom Wert).
+        var hh = dc.getHeight();
+        var slot = hh * 0.74 / n;
+        var gap = slot * 0.42;
+        if (gap > hh * 0.12) { gap = hh * 0.12; }
         dc.drawText(cx, cy + gap, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
