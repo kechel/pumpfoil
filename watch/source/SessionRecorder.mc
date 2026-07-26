@@ -223,6 +223,10 @@ class SessionRecorder {
         // Gecachter Off-Foil-Screen.
         var of = Storage.getValue("offfoil_config");
         if (of instanceof Lang.Array && of.size() == 3) { offFoilView = of; }
+        // Gecachte Pausen-Ansicht (Dümpeln zwischen den Läufen). Fehlt der Cache, bleibt der
+        // hartcodierte Default — genau wie bei Uhren, die noch nie einen Config-Sync hatten.
+        var pv = Storage.getValue("pause_config");
+        if (pv instanceof Lang.Array && pv.size() == 3) { pauseView = pv; }
         initAlarmSelection();   // Default-Foil/Website (offline aus Cache)
     }
 
@@ -431,6 +435,13 @@ class SessionRecorder {
                     && data["offFoilView"].size() > 0) {
                 offFoilView = _normView(data["offFoilView"]);
                 _store("offfoil_config", offFoilView);
+            }
+            // Pausen-Ansicht (zwischen den Läufen) übernehmen + cachen. Fehlt der Key (alter
+            // Server), bleibt der bisherige Wert — also der hartcodierte Default.
+            if (data.hasKey("pauseView") && data["pauseView"] instanceof Lang.Array
+                    && data["pauseView"].size() > 0) {
+                pauseView = _normView(data["pauseView"]);
+                _store("pause_config", pauseView);
             }
             // Update-Hinweis: neuere im IQ-Store freigegebene Version als unsere? -> kurz einblenden.
             if (data.hasKey("latestVersion") && data["latestVersion"] != null) {

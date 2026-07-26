@@ -298,8 +298,12 @@ Umsetzung (P2):
   Views-Editor (`Account.tsx`, i18n de+en), **Wear** liest `pauseView`, **Apple** liest es über einen
   **optionalen** Codable-Key. Fehlt der Key → alter hartcodierter Default. Nebenbei: Hinweistexte im
   Views-Editor von `text-xs` auf `text-sm` (stehende Regel: Hinweise nie winziger als normal).
-  ⏳ **Garmin fehlt noch:** der Pause-Screen sitzt in `SessionRecorder.mc`, und die Datei ist
-  uncommitted (1.0.65-Härtung, wartet auf Jans fenix5-Test) → wird nachgezogen, sobald die frei ist.
+  ✅ **Garmin nachgezogen 2026-07-26 (1.0.66):** `SessionRecorder` liest `pauseView` aus `/config`
+  und cacht es in `pause_config` (Muster wie Off-Foil); beim App-Start kommt der Wert aus dem Cache.
+  Fehlt Key ODER Cache, bleibt der hartcodierte Default `[Uhrzeit, Läufe, Puls]`. Der Zeichen-Teil
+  brauchte nichts: `RecordView` nutzte schon `_rec.pauseView`. Damit ist **P0 auf allen vier
+  Plattformen** durch. Build: 121 ok / 0 fehlgeschlagen, Lite-Build (96 KB) unverändert tragfähig
+  (instinct2 54,8 KB).
 - **P0 (Original-Beschreibung):** `pauseView` im **einfachen** 3-Slot-System konfigurierbar machen —
   Server liefert den Key, die 4 Clients lesen ihn (fehlt er → alter hartcodierter Default). Schließt
   eine Parität-Lücke, funktioniert auch auf speicherarmen Uhren, und testet genau den Config-Pfad,
