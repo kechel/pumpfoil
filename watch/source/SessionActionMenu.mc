@@ -25,12 +25,16 @@ class SessionActionView extends WatchUi.View {
         var ys = [0.30, 0.50, 0.70];
         for (var i = 0; i < 3; i++) {
             var hot = (i == _sel);
-            dc.setColor(hot ? Config.BRAND_CYAN : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            // Nicht gewählt = WEISS, nicht grau: das Menü kommt am Wasser bei Sonne, und DK_GRAY
+            // ist auf einem MIP-Display im Sonnenlicht nicht lesbar (Jan im Feld). Die Auswahl
+            // hebt sich weiter über Cyan + größeren Font ab.
+            dc.setColor(hot ? Config.BRAND_CYAN : Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * ys[i], hot ? Graphics.FONT_MEDIUM : Graphics.FONT_TINY,
                 labels[i], Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
-        // Auto-Speichern-Countdown unten.
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        // Auto-Speichern-Countdown unten — ebenfalls weiß (gleicher Sonnenlicht-Grund), bleibt
+        // durch FONT_XTINY trotzdem klar zweitrangig.
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY,
             Strings.s("rec.save") + " " + _remaining.toString() + " s",
             Graphics.TEXT_JUSTIFY_CENTER);
