@@ -120,6 +120,22 @@ Größen-/Form-Umschalter wie der Editor.
 **Ein Layout = eine Seite.** Die Seitenliste des Nutzers ist eine Mischung aus klassischen
 3-Slot-Views und Advanced-Layouts → Wischen bleibt unverändert.
 
+**Zuordnung — UMGESETZT 2026-07-26** (Jan: „frei mischbar ja, off-foil & pause unter den on-foil
+screens jeweils als eigener abschnitt mit entweder datenfeld oder auswahl eines custom screens"):
+- `settings.pages` = EINE geordnete Liste; ein Eintrag ist `[a,b,c]` (3-Feld-Seite) **oder** eine
+  Zahl (`watch_layouts.id`, Kategorie `on_foil`). Sortieren/Löschen/Einfügen im Datenseiten-Tab.
+- `settings.views` bleibt daneben die reine 3-Feld-Liste und wird beim Speichern daraus
+  **abgeleitet** — alte Uhr-Apps (Garmin/Wear/Apple) lesen weiter nur `views` und sehen dadurch
+  nie eine halbe Seite. Nie konfiguriert -> `pages` wird beim GET aus `views` erzeugt.
+- Off-Foil und Pause sind eigene Abschnitte mit Umschalter **Datenfelder ↔ eigener Screen**
+  (`off_foil_layout_id` / `pause_layout_id`, null = Felder). Die 3-Feld-Variante bleibt gespeichert,
+  Zurückschalten verliert also nichts. Layout-IDs werden serverseitig gegen **Eigentümer UND
+  Kategorie** geprüft (ein `on_foil`-Layout ist als Off-Foil-Screen nicht wählbar).
+- Beim Löschen eines Layouts räumt der Delete-Endpoint die Verweise mit auf (`pages`-Eintrag raus,
+  Off-Foil-/Pausen-Wahl auf null) — sonst zeigte eine Seite auf ein gelöschtes Layout.
+- `/api/devices/config` liefert weiterhin NUR die 3-Feld-Views: die Uhr kann Layouts noch nicht,
+  und ein zusätzlicher Key ohne Renderer wäre nur Ballast. Das kommt mit P2.
+
 ### Vorschau auf echten Uhren-Größen (Entscheidung Jan)
 Die Vorschau/Platzierung ist auf **Uhren-Größe + Form umschaltbar** — man baut das Layout also für
 die Uhr, die man wirklich trägt, und kann gegenprüfen, wie es auf anderen wirkt.

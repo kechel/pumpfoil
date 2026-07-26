@@ -1320,6 +1320,12 @@ const en: Record<string, string> = {
   "lay.size.numHot": "number huge",
   "lay.size.numThaiHot": "number maximum",
   "lay.sizeTextCap": "Only values go bigger: the watch\u2019s large fonts contain digits only, no letters.",
+  "account.pageN": "Page {n}",
+  "account.addLayoutPage": "+ Insert custom screen",
+  "account.layoutMissing": "(layout deleted)",
+  "account.useFields": "Data fields",
+  "account.useLayout": "Custom screen",
+  "account.noLayoutsYet": "You haven\u2019t built a custom layout for this screen yet.",
 };
 
 export default en;

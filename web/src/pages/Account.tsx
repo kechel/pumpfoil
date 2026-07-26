@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { MOCK_VALUE, valueColor } from "../lib/watchLayout";
+import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchGuide } from "../components/WatchGuide";
 import { ConnectIqButton } from "../components/ConnectIqButton";
@@ -325,26 +326,60 @@ function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
   );
 }
 
+// Datenseiten der Uhr: EINE frei sortierbare Liste, in der klassische 3-Feld-Ansichten und
+// eigene Layouts gemischt stehen (Entscheidung Jan). Darunter je ein Abschnitt für den
+// Off-Foil- und den Pausen-Screen, jeweils entweder 3 Datenfelder ODER ein eigener Screen.
+// Die Uhr zeigt eigene Layouts noch nicht (F2 P2) — die Konfiguration entsteht hier trotzdem
+// schon vollständig. Siehe docs/setup-and-watch-layouts.md.
+type Page = number[] | number;
+
 function ViewsEditor() {
   const t = useT();
-  const [views, setViews] = useState<number[][] | null>(null);
+  const [pages, setPages] = useState<Page[] | null>(null);
+  const [layouts, setLayouts] = useState<WatchLayout[]>([]);
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [pauseView, setPauseView] = useState<number[]>([12, 20, 2]);
+  const [offLayout, setOffLayout] = useState<number | null>(null);
+  const [pauseLayout, setPauseLayout] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     api.getSettings().then((s) => {
-      setViews(s.views ?? [[1, 2, 0]]);
+      setPages((s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
-      setOffFoil(s.off_foil_view ?? [12, 17, 16]);
-      setPauseView(s.pause_view ?? [12, 20, 2]);
+      setOffFoil((s.off_foil_view as number[]) ?? [12, 17, 16]);
+      setPauseView((s.pause_view as number[]) ?? [12, 20, 2]);
+      setOffLayout((s.off_foil_layout_id as number) ?? null);
+      setPauseLayout((s.pause_layout_id as number) ?? null);
     }).catch((e) => setErr(String(e)));
+    api.layouts().then(setLayouts).catch(() => {});
   }, []);
 
+  const byId = (id: number) => layouts.find((l) => l.id === id);
+  const onFoilLayouts = layouts.filter((l) => l.category === "on_foil");
+  const offLayouts = layouts.filter((l) => l.category === "off_foil");
+  const pauseLayouts = layouts.filter((l) => l.category === "pause");
+
+  function update(next: Page[]) { setPages(next); setSaved(false); }
+  function setField(pi: number, fi: number, val: number) {
+    const next = pages!.map((p) => (Array.isArray(p) ? [...p] : p));
+    (next[pi] as number[])[fi] = val;
+    update(next);
+  }
+  function addView() { update([...(pages ?? []), [1, 0, 0]]); }
+  function addLayoutPage(id: number) { if (id) update([...(pages ?? []), id]); }
+  function delPage(pi: number) { update(pages!.filter((_, i) => i !== pi)); }
+  function move(pi: number, dir: -1 | 1) {
+    const next = [...pages!];
+    const j = pi + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[pi], next[j]] = [next[j], next[pi]];
+    update(next);
+  }
   function setOffField(fi: number, val: number) {
     const next = [...offFoil]; next[fi] = val; setOffFoil(next); setSaved(false);
   }
@@ -352,43 +387,90 @@ function ViewsEditor() {
     const next = [...pauseView]; next[fi] = val; setPauseView(next); setSaved(false);
   }
 
-  function update(next: number[][]) {
-    setViews(next);
-    setSaved(false);
-  }
-  function setField(vi: number, fi: number, val: number) {
-    const next = views!.map((v) => [...v]);
-    next[vi][fi] = val;
-    update(next);
-  }
-  function addView() { update([...(views ?? []), [1, 0, 0]]); }
-  function delView(vi: number) { update(views!.filter((_, i) => i !== vi)); }
-  function move(vi: number, dir: -1 | 1) {
-    const next = [...views!];
-    const j = vi + dir;
-    if (j < 0 || j >= next.length) return;
-    [next[vi], next[j]] = [next[j], next[vi]];
-    update(next);
-  }
   async function save() {
     setErr(null);
     try {
       const res = await api.saveSettings({
-        views, colorByValue, auto_start: autoStart,
+        pages, colorByValue, auto_start: autoStart,
         off_foil_view: offFoil, pause_view: pauseView,
+        off_foil_layout_id: offLayout, pause_layout_id: pauseLayout,
       });
-      setViews(res.views);
+      setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
-      if (res.off_foil_view) setOffFoil(res.off_foil_view);
-      if (res.pause_view) setPauseView(res.pause_view);
+      if (res.off_foil_view) setOffFoil(res.off_foil_view as number[]);
+      if (res.pause_view) setPauseView(res.pause_view as number[]);
+      setOffLayout((res.off_foil_layout_id as number) ?? null);
+      setPauseLayout((res.pause_layout_id as number) ?? null);
       setSaved(true);
     } catch (e) {
       setErr(String(e));
     }
   }
 
-  if (!views) return null;
+  // Ein Screen-Abschnitt (Off-Foil / Pause): Datenfelder ODER eigener Screen.
+  function screenSection(
+    title: string, desc: string, fields: number[], setFieldAt: (fi: number, v: number) => void,
+    layoutId: number | null, setLayoutId: (v: number | null) => void, options: WatchLayout[],
+  ) {
+    const l = layoutId ? byId(layoutId) : undefined;
+    return (
+      <div className="mt-3 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
+        <div className="mb-1 text-sm font-medium text-slate-200">{title}</div>
+        <p className="mb-2 text-sm text-slate-400">{desc}</p>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {[["fields", null] as const, ["layout", 1] as const].map(([kind]) => (
+            <button key={kind}
+              onClick={() => {
+                if (kind === "fields") { setLayoutId(null); setSaved(false); }
+                else if (options.length > 0) { setLayoutId(options[0].id); setSaved(false); }
+              }}
+              disabled={kind === "layout" && options.length === 0}
+              className={`rounded-lg px-2.5 py-1.5 text-sm ${
+                (kind === "layout") === (layoutId != null)
+                  ? "bg-brand-500 text-slate-950"
+                  : "bg-slate-800 text-slate-200 hover:bg-slate-700 disabled:opacity-40"}`}>
+              {kind === "fields" ? t("account.useFields") : t("account.useLayout")}
+            </button>
+          ))}
+        </div>
+        {layoutId == null ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <WatchPreview fields={fields} colorByValue={colorByValue} />
+            <div className="flex-1 space-y-2">
+              {[0, 1, 2].map((fi) => (
+                <select key={fi} value={fields[fi] ?? 0}
+                  onChange={(e) => setFieldAt(fi, Number(e.target.value))}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
+                  {FIELD_OPTIONS.map((o) => <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>)}
+                </select>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130} />}
+            <div className="flex-1 space-y-2">
+              <select value={layoutId} onChange={(e) => { setLayoutId(Number(e.target.value)); setSaved(false); }}
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
+                {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+              <Link to={`/layouts/${layoutId}`} className="inline-block text-sm text-brand-700 hover:underline dark:text-brand-300">
+                {t("lay.edit")} →
+              </Link>
+            </div>
+          </div>
+        )}
+        {options.length === 0 && (
+          <p className="mt-2 text-sm text-slate-400">
+            {t("account.noLayoutsYet")} <Link to="/layouts" className="text-brand-700 hover:underline dark:text-brand-300">{t("account.toLayouts")} →</Link>
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  if (!pages) return null;
   return (
     <Card className="mt-5 p-5">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -413,86 +495,68 @@ function ViewsEditor() {
       <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
       <div className="space-y-3">
-        {views.map((v, vi) => (
-          <div key={vi} className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-200">{t("account.viewN", { n: vi + 1 })}</span>
-              <div className="flex items-center gap-1 text-slate-300">
-                <button onClick={() => move(vi, -1)} disabled={vi === 0} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↑</button>
-                <button onClick={() => move(vi, 1)} disabled={vi === views.length - 1} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↓</button>
-                <button onClick={() => delView(vi)} className="rounded px-2 py-1 text-red-400 hover:bg-slate-800">{t("common.deleteLower")}</button>
+        {pages.map((p, pi) => {
+          const isLayout = !Array.isArray(p);
+          const l = isLayout ? byId(p as number) : undefined;
+          return (
+            <div key={pi} className={`rounded-xl border p-3 ${isLayout ? "border-brand-700/40 bg-brand-500/5" : "border-slate-800 bg-slate-900/50"}`}>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium text-slate-200">
+                  {t("account.pageN", { n: pi + 1 })}
+                  {isLayout && <span className="ml-2 text-brand-700 dark:text-brand-300">{l ? l.name : t("account.layoutMissing")}</span>}
+                </span>
+                <div className="flex items-center gap-1 text-slate-300">
+                  <button onClick={() => move(pi, -1)} disabled={pi === 0} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↑</button>
+                  <button onClick={() => move(pi, 1)} disabled={pi === pages.length - 1} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↓</button>
+                  <button onClick={() => delPage(pi)} className="rounded px-2 py-1 text-red-400 hover:bg-slate-800">{t("common.deleteLower")}</button>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <WatchPreview fields={v} colorByValue={colorByValue} />
-              <div className="flex-1 space-y-2">
-                {[0, 1, 2].map((fi) => (
-                  <select
-                    key={fi}
-                    value={v[fi] ?? 0}
-                    onChange={(e) => setField(vi, fi, Number(e.target.value))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
-                  >
-                    {FIELD_OPTIONS.map((o) => (
-                      <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
+              {isLayout ? (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130} />}
+                  <Link to={`/layouts/${p}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
+                    {t("lay.edit")} →
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <WatchPreview fields={p as number[]} colorByValue={colorByValue} />
+                  <div className="flex-1 space-y-2">
+                    {[0, 1, 2].map((fi) => (
+                      <select key={fi} value={(p as number[])[fi] ?? 0}
+                        onChange={(e) => setField(pi, fi, Number(e.target.value))}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
+                        {FIELD_OPTIONS.map((o) => <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>)}
+                      </select>
                     ))}
-                  </select>
-                ))}
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-5 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
-        <div className="mb-1 text-sm font-medium text-slate-200">{t("account.offFoilTitle")}</div>
-        <p className="mb-2 text-sm text-slate-400">{t("account.offFoilDesc")}</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <WatchPreview fields={offFoil} colorByValue={colorByValue} />
-          <div className="flex-1 space-y-2">
-            {[0, 1, 2].map((fi) => (
-              <select
-                key={fi}
-                value={offFoil[fi] ?? 0}
-                onChange={(e) => setOffField(fi, Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
-              >
-                {FIELD_OPTIONS.map((o) => (
-                  <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
-                ))}
-              </select>
-            ))}
-          </div>
-        </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button onClick={addView} className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700">{t("account.addView")}</button>
+        <select value="" onChange={(e) => { addLayoutPage(Number(e.target.value)); e.currentTarget.value = ""; }}
+          disabled={onFoilLayouts.length === 0}
+          className="rounded-xl border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100 disabled:opacity-40">
+          <option value="">{t("account.addLayoutPage")}</option>
+          {onFoilLayouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
       </div>
 
-      <div className="mt-3 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
-        <div className="mb-1 text-sm font-medium text-slate-200">{t("account.pauseTitle")}</div>
-        <p className="mb-2 text-sm text-slate-400">{t("account.pauseDesc")}</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <WatchPreview fields={pauseView} colorByValue={colorByValue} />
-          <div className="flex-1 space-y-2">
-            {[0, 1, 2].map((fi) => (
-              <select
-                key={fi}
-                value={pauseView[fi] ?? 0}
-                onChange={(e) => setPauseField(fi, Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100"
-              >
-                {FIELD_OPTIONS.map((o) => (
-                  <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
-                ))}
-              </select>
-            ))}
-          </div>
-        </div>
-      </div>
+      {screenSection(t("account.offFoilTitle"), t("account.offFoilDesc"), offFoil, setOffField,
+                     offLayout, setOffLayout, offLayouts)}
+      {screenSection(t("account.pauseTitle"), t("account.pauseDesc"), pauseView, setPauseField,
+                     pauseLayout, setPauseLayout, pauseLayouts)}
 
       <div className="mt-4 flex items-center gap-3">
-        <button onClick={addView} className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700">{t("account.addView")}</button>
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>
         {saved && <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</span>}
       </div>
+      <p className="mt-3 text-sm text-slate-400">{t("lay.notOnWatchYet")}</p>
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
   );

@@ -307,5 +307,25 @@ def delete_layout(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Layout nicht gefunden")
     # Kopien anderer Nutzer bleiben erhalten, verlieren aber die Herkunft (FK sauber halten).
     db.query(models.WatchLayout).filter_by(copied_from_id=layout_id).update({"copied_from_id": None})
+    # Verweise in den eigenen Einstellungen mit aufräumen — sonst bleibt eine Seite in `pages`
+    # bzw. ein Off-Foil-/Pausen-Screen auf ein gelöschtes Layout zeigen.
+    if user.settings_json:
+        try:
+            st = json.loads(user.settings_json) or {}
+        except ValueError:
+            st = {}
+        touched = False
+        pages = st.get("pages")
+        if isinstance(pages, list):
+            cleaned = [p for p in pages if not (isinstance(p, (int, float)) and int(p) == layout_id)]
+            if len(cleaned) != len(pages):
+                st["pages"] = cleaned or None
+                touched = True
+        for key in ("off_foil_layout_id", "pause_layout_id"):
+            if st.get(key) == layout_id:
+                st[key] = None
+                touched = True
+        if touched:
+            user.settings_json = json.dumps(st)
     db.delete(l)
     db.commit()

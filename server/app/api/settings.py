@@ -40,6 +40,14 @@ DEFAULTS = {
     # Pausen-Ansicht (Dümpeln ZWISCHEN den Läufen, nach dem Off-Foil-Screen):
     # Uhrzeit + Läufe-Anzahl + Puls. War auf allen Uhren hartcodiert -> jetzt konfigurierbar.
     "pause_view": [12, 20, 2],
+    # Seitenreihenfolge der On-Foil-Ansichten, klassische 3-Feld-Seiten und eigene Layouts
+    # FREI GEMISCHT (Jan): ein Eintrag ist entweder [a,b,c] (3 Feld-IDs) oder eine Zahl
+    # (watch_layouts.id). `views` bleibt daneben als reine 3-Feld-Liste bestehen — alte Clients
+    # (Uhr-Apps) lesen weiter nur die und sehen dadurch nie halbe Layouts.
+    "pages": None,
+    # Off-Foil-/Pausen-Screen alternativ als eigenes Layout statt 3 Datenfelder (null = Felder).
+    "off_foil_layout_id": None,
+    "pause_layout_id": None,
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
@@ -99,6 +107,34 @@ def _clean_view3(v) -> list | None:
     return out or None
 
 
+def _own_layout_id(db: Session, user: models.User, v, category: str) -> int | None:
+    """Layout-ID nur akzeptieren, wenn sie dem Nutzer gehört UND die Kategorie passt."""
+    if not isinstance(v, (int, float)):
+        return None
+    row = (db.query(models.WatchLayout)
+           .filter_by(id=int(v), user_id=user.id, category=category).first())
+    return row.id if row else None
+
+
+def _clean_pages(db: Session, user: models.User, raw) -> list | None:
+    """Seitenreihenfolge validieren: jeder Eintrag ist [a,b,c] (3-Feld-Seite) ODER eine
+    Layout-ID (eigenes on_foil-Layout). Unbekanntes fliegt raus; leer -> None (= aus `views`
+    ableiten)."""
+    if not isinstance(raw, list):
+        return None
+    out: list = []
+    for item in raw[:12]:
+        if isinstance(item, list):
+            v = _clean_view3(item)
+            if v:
+                out.append(v)
+        else:
+            lid = _own_layout_id(db, user, item, "on_foil")
+            if lid:
+                out.append(lid)
+    return out or None
+
+
 def _visible_stab_ids(db: Session, user: models.User, ids: set[int | None]) -> set[int]:
     """Von diesen Stab-IDs die auswählbaren: globaler Katalog + eigene Einträge."""
     wanted = {int(i) for i in ids if i is not None}
@@ -114,6 +150,9 @@ def _visible_stab_ids(db: Session, user: models.User, ids: set[int | None]) -> s
 @router.get("")
 def get_settings(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     m = _merged(user)
+    # Nie konfiguriert -> Seitenreihenfolge = die klassischen 3-Feld-Ansichten (so wie heute).
+    if not m.get("pages"):
+        m["pages"] = [list(v) for v in (m.get("views") or [])]
     # Homespot ist namensbasiert (mit Apps geteilt); zusätzlich die spot_id für neue Clients.
     from ..spots import spot_id_by_name
     m["homespot_id"] = spot_id_by_name(db, m["homespot"]) if m.get("homespot") else None
@@ -221,6 +260,20 @@ def update_settings(
             v = _clean_view3(patch[key])
             if v:
                 current[key] = v
+    # Statt der 3 Felder kann dort auch ein eigenes Layout stehen (null = wieder Felder).
+    # Die Feld-Variante bleibt gespeichert, damit das Zurückschalten nichts verliert.
+    for key, cat in (("off_foil_layout_id", "off_foil"), ("pause_layout_id", "pause")):
+        if key in patch:
+            current[key] = _own_layout_id(db, user, patch[key], cat)
+    # Freie Seitenreihenfolge (3-Feld-Seiten und Layouts gemischt). `views` wird daraus
+    # abgeleitet, damit alte Uhr-Apps weiter eine gültige 3-Feld-Liste bekommen.
+    if "pages" in patch:
+        pages = _clean_pages(db, user, patch["pages"])
+        current["pages"] = pages
+        if pages:
+            classic = [p for p in pages if isinstance(p, list)]
+            if classic:
+                current["views"] = classic
     # Vibrationsalarm
     if "alarm_enabled" in patch:
         current["alarm_enabled"] = bool(patch["alarm_enabled"])
