@@ -77,6 +77,7 @@ class SessionRecorder {
     var updateHintUntilMs = 0;       // System.getTimer()-Zeit, bis der Hinweis eingeblendet wird
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _lowMem = null;       // Speicherarme Uhr (~96 KB)? null=noch nicht geprüft
+    hidden var _accelTgt = null;     // Accel-Chunk-Zielgröße (kleiner auf ≤128-KB-Uhren)
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
@@ -868,6 +869,25 @@ class SessionRecorder {
         return _lowMem;
     }
 
+    // Accel-Chunk-Zielgröße. Auf speicherknappen Uhren (≤128 KB, z. B. fenix5/6, fr55/245/645/935)
+    // kleiner: senkt den RAM-Peak beim Aufnehmen (_accelBuf) UND beim Upload (base64+JSON+HTTP je
+    // Chunk) → keine OOM-Crashes über lange Sessions / große Uploads (Feld-Feedback Örni, fenix5).
+    // Große Uhren behalten 1500 (volle Payload, weniger Round-Trips). Einmal geprüft + gecacht.
+    hidden function _accelChunkTarget() {
+        if (_accelTgt == null) {
+            _accelTgt = ACCEL_CHUNK_SAMPLES;   // Default 1500
+            try {
+                var st = System.getSystemStats();
+                if (st != null && (st has :totalMemory) && st.totalMemory != null
+                        && st.totalMemory <= 131072) {
+                    _accelTgt = 750;           // ~6 KB base64 statt ~12 KB
+                }
+            } catch (e) {
+            }
+        }
+        return _accelTgt;
+    }
+
     // Für den Start-Screen: ist Auto-Start aktiv (zum Einblenden des Hinweises)?
     function autoStartOn() { return autoStart; }
     // Auto-Start scharf (Vorlauf-Countdown durch)?
@@ -981,7 +1001,7 @@ class SessionRecorder {
                 _appendI16(a.z[i]);
                 _accelCount++;
             }
-            if (_accelCount >= ACCEL_CHUNK_SAMPLES) { _flushAccel(false); }
+            if (_accelCount >= _accelChunkTarget()) { _flushAccel(false); }
         } catch (e) {
             // Dieses Paket verwerfen, Aufnahme läuft weiter.
         }
@@ -1134,7 +1154,7 @@ class SessionRecorder {
 
     function _flushAccel(force) {
         if (_accelCount == 0) { return; }
-        if (!force && _accelCount < ACCEL_CHUNK_SAMPLES) { return; }
+        if (!force && _accelCount < _accelChunkTarget()) { return; }
         if (!_store("ca_" + _sessionUuid + "_" + _accelChunkIndex, _accelBuf)) {
             // Object-Store voll: diesen Chunk VERWERFEN statt den Puffer unbegrenzt wachsen
             // zu lassen. Sonst hängt onAccel weiter dran -> RAM läuft voll (Crash-Gefahr auf
