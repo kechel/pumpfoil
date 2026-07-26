@@ -8,7 +8,7 @@ import { FIELD_OPTIONS } from "../lib/fields";
 import {
   EL_DOTS, EL_LABEL, EL_LINE, EL_REC, EL_TEXT, EL_VALUE,
   MAX_ELEMENTS, MAX_SIZE_STEP, MAX_TEXT_LEN, MAX_TEXT_STEP, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
-  SIZE_FACTOR, SIZE_STEPS, SMALLEST, undisplayableChars,
+  SIZE_STEPS, SMALLEST, undisplayableChars, watchTextWidthRatio,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -166,13 +166,14 @@ export default function LayoutEditor() {
     for (const e of l.elements) {
       const typ = Number(e[0]);
       const step = Number(e[3]) || 0;
-      const fontPx = SIZE_FACTOR[step] * boxW;
       let text = "";
       if (typ === EL_VALUE) text = MOCK_VALUE[Number(e[6]) || 0] ?? "--";
       else if (typ === EL_LABEL) text = t(`fw.${Number(e[6]) || 0}`);
       else if (typ === EL_TEXT) text = String(e[6] ?? "");
       if (text) {
-        const wPx = text.length * fontPx * 0.62;   // groben Textbreite (Monospace-Annahme)
+        // Breite, die die UHR braucht (aus den im Simulator gemessenen Fontbreiten), nicht die
+        // Breite in der Vorschau-Schrift — gewarnt werden soll ja vor Überlauf auf dem Gerät.
+        const wPx = watchTextWidthRatio(text, step) * boxW;
         const cx = (Number(e[1]) / 1000) * boxW;
         const flags = Number(e[5]) || 0;
         const left = flags & 1 ? cx : flags & 2 ? cx - wPx : cx - wPx / 2;

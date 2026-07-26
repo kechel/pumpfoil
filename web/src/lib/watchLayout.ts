@@ -36,26 +36,62 @@ export function paletteColor(idx: number, role: "value" | "label" | "line" = "va
 // WICHTIG: die NUMBER-Fonts enthalten NUR Ziffern (plus : . -) → sie sind ausschließlich für
 // Wert-Elemente erlaubt, Labels/Freitexte hören bei „Groß" auf (s. MAX_TEXT_STEP).
 //
-// Die Faktoren sind GEMESSEN, nicht geschätzt (2026-07-26): das SDK legt je Gerät in
-// ~/.Garmin/ConnectIQ/Devices/<id>/simulator.json die Font-Dateien offen, und deren Namen tragen
-// die Pixelgröße (z. B. FNT_FENIX6X_CDPG_ROBOTO_13B = 13 px, ..._BIONIC_BOLD_NUMBER_62 = 62 px).
-// Werte = Median über 42 layout-fähige Geräte (Höhe ÷ Displaybreite), Streuung eng:
-//   xtiny .038–.060 · tiny .048–.071 · small .058–.079 · medium .070–.092 · large .079–.100
-//   numMild .094–.119 · numMedium .125–.147 · numHot .166–.193 · numThaiHot .166–.221
-// Die vorherigen Schätzwerte lagen am oberen Ende 36 % zu hoch (0,30 statt 0,22) — die Vorschau
-// zeigte Werte also deutlich größer als die Uhr, und die Overflow-Warnung schlug zu früh Alarm.
-export const SIZE_STEPS: { key: string; font: string; factor: number }[] = [
-  { key: "xtiny", font: "FONT_XTINY", factor: 0.050 },
-  { key: "tiny", font: "FONT_TINY", factor: 0.069 },
-  { key: "small", font: "FONT_SMALL", factor: 0.078 },
-  { key: "medium", font: "FONT_MEDIUM", factor: 0.092 },
-  { key: "large", font: "FONT_LARGE", factor: 0.096 },
-  { key: "numMild", font: "FONT_NUMBER_MILD", factor: 0.115 },
-  { key: "numMedium", font: "FONT_NUMBER_MEDIUM", factor: 0.139 },
-  { key: "numHot", font: "FONT_NUMBER_HOT", factor: 0.192 },
-  { key: "numThaiHot", font: "FONT_NUMBER_THAI_HOT", factor: 0.221 },
+// Die Faktoren stammen aus einer ECHTEN MESSUNG im Connect IQ Simulator (fenix7xpro, 280×280,
+// 2026-07-26): ein Wegwerf-Debug-Build hat für alle 9 Stufen `dc.getFontHeight()` und
+// `dc.getTextWidthInPixels("18.5")` in die Konsole geschrieben. Genau diese Zahlen stehen unten.
+//
+// Warum die BREITE die Bezugsgröße ist und nicht die Höhe: `getTextWidthInPixels` ist reine Tinte
+// (Vorschubbreite des Strings), `getFontHeight` ist die ZEILENBOX inklusive Reserve — bei den
+// NUMBER-Fonts ist die riesig (Zeilenbox ÷ em = 1,45–1,57, weil FONT_NUMBER_THAI_HOT Platz für
+// Thai-Ober-/Unterlängen vorhält; bei den Textfonts nur 1,29–1,34). Die Zeilenbox als Fontgröße zu
+// nehmen, würde die Vorschau um bis zu 50 % zu groß machen.
+//
+// Damit ist auch der frühere „gemessene" Weg widerlegt: die Pixelgrößen in den Font-DATEINAMEN aus
+// simulator.json (ROBOTO_13B = 13 …) sind nicht die em-Größe, und die daraus gebauten Faktoren
+// waren 16–38 % zu KLEIN — deshalb Jans Befund „die schriftart der labels ist ein klein bisschen zu
+// gross" (Stufe SMALL: genau +16 %). Der ursprüngliche Schätzwert 0,300 für numThaiHot war näher an
+// der Wahrheit (0,3005) als seine „Korrektur" 0,221.
+const FONT_REF_W = 280;                 // Displaybreite, auf der gemessen wurde
+const FONT_SAMPLE = "18.5";             // gemessener String (Ziffern sind tabellarisch)
+// [Zeilenbox, Breite von "18.5"] je Stufe, Pixel bei 280 px Displaybreite.
+const FONT_MEASURED: [number, number][] = [
+  [19, 29], [31, 46], [34, 50], [40, 61], [43, 64], [64, 82], [79, 99], [107, 146], [122, 166],
 ];
+
+// Vorschub des Mess-Strings im Font der VORSCHAU, pro 1 px Fontgröße — im Browser gemessen, damit
+// die Umrechnung nicht an einer angenommenen Roboto-Metrik hängt. Fallback = Roboto/Inter
+// (3 tabellarische Ziffern + Punkt), falls kein Canvas da ist (SSR/Tests).
+function sampleAdvancePerPx(): number {
+  const fallback = 3 * 0.569 + 0.266;
+  try {
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (!ctx) return fallback;
+    ctx.font = "700 100px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+    const w = ctx.measureText(FONT_SAMPLE).width / 100;
+    return w > 0.5 && w < 5 ? w : fallback;
+  } catch {
+    return fallback;
+  }
+}
+const SAMPLE_ADV = sampleAdvancePerPx();
+
+const STEP_NAMES: [string, string][] = [
+  ["xtiny", "FONT_XTINY"], ["tiny", "FONT_TINY"], ["small", "FONT_SMALL"],
+  ["medium", "FONT_MEDIUM"], ["large", "FONT_LARGE"], ["numMild", "FONT_NUMBER_MILD"],
+  ["numMedium", "FONT_NUMBER_MEDIUM"], ["numHot", "FONT_NUMBER_HOT"],
+  ["numThaiHot", "FONT_NUMBER_THAI_HOT"],
+];
+export const SIZE_STEPS: { key: string; font: string; factor: number }[] = STEP_NAMES.map(
+  ([key, font], i) => ({ key, font, factor: FONT_MEASURED[i][1] / SAMPLE_ADV / FONT_REF_W }),
+);
 export const SIZE_FACTOR = SIZE_STEPS.map((s) => s.factor);
+/** Was die UHR für diesen Text bei dieser Stufe an Breite braucht (Anteil der Displaybreite).
+ *  Basis ist die gemessene Breite von „18.5"; Buchstaben sind in Garmins Roboto etwas schmaler als
+ *  Ziffern, die Schätzung fällt also leicht auf die vorsichtige Seite (warnt eher zu früh). */
+export function watchTextWidthRatio(text: string, step: number): number {
+  const w = FONT_MEASURED[Math.max(0, Math.min(FONT_MEASURED.length - 1, step))][1];
+  return (text.length / FONT_SAMPLE.length) * (w / FONT_REF_W);
+}
 /** Höchste Stufe für Text (Labels/Freitext): die NUMBER-Fonts haben keine Buchstaben. */
 export const MAX_TEXT_STEP = 4;
 export const MAX_SIZE_STEP = SIZE_STEPS.length - 1;

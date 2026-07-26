@@ -470,7 +470,24 @@ für Nutzer steht (26.07.).
     - **Label-Abstand klassische Seiten:** in drei Anläufen geometrisch gelöst — `getFontHeight/2`
       klebte am Wert, `slot*0.75` rutschte ins nächste Feld, `slot*0.42` war noch zu tief. Jetzt
       `slot*0.33`, gekappt auf 10 % der Displayhöhe (280 px/3 Felder = 23 px). Von Jan bestätigt.
-    - **Offen: echte Fonthöhen.** Die Faktoren in `SIZE_STEPS` stammen aus den Dateinamen in
+    - **Fontmessung — ERLEDIGT 2026-07-26 (Jans Sim-Ausgabe):** fenix7xpro, 280×280,
+      `dc.getFontHeight()` / `dc.getTextWidthInPixels("18.5")` je Stufe:
+      19/29 · 31/46 · 34/50 · 40/61 · 43/64 · 64/82 · 79/99 · 107/146 · 122/166.
+      **Bezugsgröße ist die BREITE**, nicht die Höhe: die Breite ist reine Tinte, `getFontHeight`
+      ist die Zeilenbox mit Reserve — Zeilenbox ÷ em = 1,29–1,34 bei den Textfonts, aber 1,45–1,57
+      bei den NUMBER-Fonts (FONT_NUMBER_THAI_HOT hält Platz für Thai-Ober-/Unterlängen vor). Die
+      Zeilenbox als Fontgröße zu nehmen, hätte die Vorschau um bis zu 50 % zu groß gemacht.
+      Neue Faktoren (Breite ÷ Vorschub ÷ 280): .0525 .0833 .0905 .1104 .1158 .1484 .1792 .2643 .3005
+      — die alten lagen **16–38 % zu klein**, genau Jans Befund („labels ein klein bisschen zu
+      gross", Stufe SMALL: +16 %). Der Vorschub des Mess-Strings wird im Browser per Canvas
+      gemessen, damit die Umrechnung nicht an einer angenommenen Roboto-Metrik hängt.
+      **Damit ist der frühere „gemessene" Weg widerlegt:** die Pixelzahlen in den Font-Dateinamen
+      aus `simulator.json` (`ROBOTO_13B` …) sind nicht die em-Größe. Der ursprüngliche Schätzwert
+      0,300 für numThaiHot war näher an der Wahrheit (0,3005) als seine „Korrektur" auf 0,221 —
+      Lehre: eine Quelle, die man nicht gegenprüfen kann, ist keine Messung.
+      Die Overflow-Warnung rechnet jetzt mit den gemessenen UHR-Breiten (`watchTextWidthRatio`)
+      statt mit einer Monospace-Annahme in der Vorschau-Schrift.
+    - **Erledigt statt offen: ehemals „echte Fonthöhen".** Die Faktoren in `SIZE_STEPS` stammen aus den Dateinamen in
       `simulator.json` (`ROBOTO_13B` = 13 px …) — die Uhr zeichnet aber sichtbar größer, d. h. im
       Editor wählt man systematisch zu groß („die schriftart der labels ist ein klein bisschen zu
       gross"). Das SDK gibt nichts Besseres her: kein `.fnt` für die eingebauten Fonts, keine
