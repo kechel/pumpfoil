@@ -39,6 +39,10 @@ export default function LayoutEditor() {
   const [showData, setShowData] = useState(true);
   const [sel, setSel] = useState(-1);
   const [saved, setSaved] = useState(false);
+  // Echte Seitenzahl der Uhr = eigene Seiten + Übersichts-Seite. Nur so stimmen die
+  // Seiten-Punkte in der Vorschau mit dem Gerät überein.
+  const [pageCount, setPageCount] = useState(3);
+  const [pageIndex, setPageIndex] = useState(0);
   const [err, setErr] = useState("");
   const boxRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ i: number; end: boolean } | null>(null);
@@ -54,6 +58,12 @@ export default function LayoutEditor() {
         if (m) setSizeId(m.id);
       }
     }).catch(() => setL(null));
+    api.getSettings().then((st) => {
+      const pg = (st.pages as unknown[]) ?? (st.views as unknown[]) ?? [];
+      setPageCount(pg.length + 1);
+      const i = pg.findIndex((x) => typeof x === "number" && String(x) === id);
+      setPageIndex(i >= 0 ? i : 0);
+    }).catch(() => {});
   }, [id]);
 
   function patchEl(i: number, next: LayoutElement) {
@@ -197,7 +207,7 @@ export default function LayoutEditor() {
           <div ref={boxRef} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
             className="inline-block touch-none">
             <LayoutPreview layout={{ ...l, shape: size.shape }} w={size.w} h={size.h} px={280}
-              showData={showData} selected={sel}
+              showData={showData} selected={sel} pageCount={pageCount} pageIndex={pageIndex}
               onPickElement={setSel} onElementPointerDown={onDown} />
           </div>
           <p className="mt-2 max-w-[280px] text-sm text-slate-400">{t("lay.dragHint")}</p>

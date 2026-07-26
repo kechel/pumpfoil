@@ -24,6 +24,7 @@ function shapeStyle(shape: WatchShape): React.CSSProperties {
 
 export function LayoutPreview({
   layout, w, h, px = 220, shape, showData = true,
+  pageCount = 3, pageIndex = 0,
   selected = -1, onPickElement, onElementPointerDown,
 }: {
   layout: PreviewLayout;
@@ -31,6 +32,12 @@ export function LayoutPreview({
   px?: number;                       // Breite der Vorschau auf dem Bildschirm
   shape?: WatchShape;                // überschreibt layout.shape (Größen-Umschalter)
   showData?: boolean;
+  // Seiten-Punkte sind auf der Uhr DYNAMISCH: so viele Punkte wie Seiten, plus die
+  // Übersichts-Seite. Wer den echten Wert kennt (Seiten-Editor, Layout-Liste), gibt ihn hier
+  // mit — sonst zeigt die Vorschau einen Platzhalter und lügt über die Anzahl (real gesehen:
+  // Vorschau 3 Punkte, Uhr 5).
+  pageCount?: number;
+  pageIndex?: number;
   selected?: number;
   onPickElement?: (i: number) => void;
   onElementPointerDown?: (i: number, e: React.PointerEvent) => void;
@@ -122,13 +129,14 @@ export function LayoutPreview({
         if (typ === EL_DOTS) {
           const c = paletteColor(Number(e[4]) || 2, "label");
           const s = Math.max(3, Math.round(boxW * 0.022));
+          const n = Math.max(1, Math.min(12, pageCount));
           return (
             <div key={i} style={{ ...box, display: "flex", alignItems: "center", gap: s }}
               onClick={pick} onPointerDown={down}>
-              {[0, 1, 2].map((d) => (
+              {Array.from({ length: n }, (_, d) => (
                 <span key={d} style={{
                   width: s, height: s, borderRadius: "50%",
-                  background: c, opacity: d === 0 ? 1 : 0.35, display: "inline-block",
+                  background: c, opacity: d === pageIndex ? 1 : 0.35, display: "inline-block",
                 }} />
               ))}
             </div>

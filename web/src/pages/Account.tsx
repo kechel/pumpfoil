@@ -520,7 +520,8 @@ function ViewsEditor() {
               </div>
               {isLayout ? (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130} />}
+                  {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130}
+                    pageCount={pages.length + 1} pageIndex={pi} />}
                   <Link to={`/layouts/${p}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
                     {t("lay.edit")} →
                   </Link>
