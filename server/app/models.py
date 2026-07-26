@@ -149,11 +149,12 @@ class Foil(Base):
 
 
 class Stab(Base):
-    """Stabilizer-/Rear-Wing-Katalog (Stammdaten), Aufbau wie der Foil-Katalog.
+    """Stabilizer-/Rear-Wing-**Bezeichnungen** (Marke/Modell/Größe), Aufbau wie der Foil-Katalog.
 
-    Anders als bei Foils sind die Maße oft NICHT öffentlich dokumentiert -> span_cm/area_cm2
-    sind nullable, und `specs_estimated` markiert geschätzte Werte (in der UI kennzeichnen,
-    analog Foil.thickness_estimated). Rein informativ: es wird nichts damit gerechnet.
+    Nur der Name zählt — genau die Bezeichnung, die der Nutzer auswählt und angezeigt bekommt
+    („GONG Stab Trail L"). Die Größenbezeichnung ist herstellereigen (GONGs S/M/L = Kombi aus
+    Schaftlänge UND Fläche) und wird wörtlich übernommen, nie interpretiert. span_cm/area_cm2
+    bleiben als Altlast nullable, werden aber nicht mehr gepflegt (nichts rechnet damit).
     """
 
     __tablename__ = "stabs"
@@ -187,6 +188,40 @@ class Board(Base):
     length_cm: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class WatchLayout(Base):
+    """Ein frei gestaltetes Uhr-Layout (EINE Seite) — s. docs/setup-and-watch-layouts.md (F2).
+
+    `elements` ist ein JSON-**Array von Arrays** im kompakten Format
+    `[typ, x, y, size, color, flags, extra…]` — bewusst keine Dicts mit String-Keys, weil die Uhr
+    das Server-JSON im Object Store cached und Object-Store-Volllauf ein bekannter Fehlerpfad ist.
+    Koordinaten sind relativ 0…1000, also auflösungs- und formunabhängig (Katalog: 176×176 …
+    454×454, round/rect/semioctagon).
+
+    `authored_w/h/shape` = Displaygröße/Form, auf der das Layout ENTWORFEN wurde. Das ist ein
+    Hinweis (Badge + Galerie-Filter), **keine Schranke**: kopieren und anpassen darf man jedes
+    Layout, auch von einer anderen Größe oder Form.
+    """
+
+    __tablename__ = "watch_layouts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    # on_foil = während des Laufs (beliebig viele Seiten) | off_foil = nach dem Lauf (eine)
+    # | pause = Dümpeln zwischen den Läufen (eine).
+    category: Mapped[str] = mapped_column(String(10), index=True)
+    shape: Mapped[str] = mapped_column(String(12), default="round", server_default="round")
+    bg_color: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    elements: Mapped[str] = mapped_column(Text, default="[]")
+    published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", index=True)
+    copied_from_id: Mapped[int | None] = mapped_column(ForeignKey("watch_layouts.id"))
+    authored_w: Mapped[int | None] = mapped_column(Integer)
+    authored_h: Mapped[int | None] = mapped_column(Integer)
+    authored_shape: Mapped[str | None] = mapped_column(String(12))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class ChatMessage(Base):

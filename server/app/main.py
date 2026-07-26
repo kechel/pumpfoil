@@ -9,7 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, boards, chat, community, coros, devices, feedback, foils, ingest, ml, oauth, polar, push, sessions, settings as settings_api, stabs, strava, suunto, transfers
+from .api import admin, appmeta, auth, boards, chat, community, coros, devices, feedback, foils, ingest, layouts, ml, oauth, polar, push, sessions, settings as settings_api, stabs, strava, suunto, transfers
 from .api.deps import require_social
 from .config import get_settings
 from .db import init_db
@@ -265,6 +265,7 @@ app.include_router(push.router)
 app.include_router(foils.router)
 app.include_router(stabs.router)
 app.include_router(boards.router)
+app.include_router(layouts.router)
 app.include_router(chat.router, dependencies=[Depends(require_social)])
 app.include_router(transfers.router, dependencies=[Depends(require_social)])
 app.include_router(appmeta.router)

@@ -255,6 +255,21 @@ für taugliche Uhren anbietet und in der richtigen Form zeichnet.
   den die Advanced-Layouts danach brauchen.
 - **P1:** Server + PWA komplett (Tabelle, API, Editor, Vorschau, Community-Galerie, Kopieren).
   **Keine** Uhr-Änderung.
+  - **P1a Server — ERLEDIGT 2026-07-26:** Tabelle `watch_layouts` (Modell `WatchLayout`, kommt über
+    `Base.metadata.create_all`) + `server/app/api/layouts.py`:
+    `GET /api/layouts/meta` (Palette + Grenzen als **eine** Quelle für PWA/Uhr),
+    `GET /api/layouts` (eigene, optional je Kategorie), `POST`/`PUT`/`DELETE`,
+    `POST /{id}/publish?published=`, `POST /{id}/copy`, `GET /api/layouts/community`
+    (veröffentlichte + Autor + `copies`-Zähler + `has_freetext`-Badge, Filter Kategorie/Form/Größe).
+    Elemente werden **serverseitig normalisiert**: unbekannte Typen und leere Freitexte fliegen raus,
+    unvollständige Linien (kein 2. Punkt) fliegen raus, x/y auf 0…1000, Größe 0…4, Farbe auf den
+    Palette-Index, Freitext auf 12 Zeichen (Steuerzeichen weg), max. 24 Elemente pro Layout und
+    40 Layouts pro Nutzer. Live verifiziert: Müll-Elemente, Fremdzugriff (PUT/DELETE/publish auf
+    fremdes Layout → 404), Kopieren eines **unveröffentlichten** fremden Layouts → 404, Kopie behält
+    Elemente + Herkunft + Entstehungs-Größe, `copies`-Zähler, Größenfilter, und beim Löschen des
+    Originals bleibt die Kopie (nur `copied_from_id` → NULL). Testdaten wieder entfernt.
+  - **P1b/P1c offen:** Editor-Seite (Vorschau mit Beispieldaten-Umschalter, Uhrengrößen-Auswahl,
+    Nutzersprache, Overflow-Warnung) und Community-Galerie in der PWA.
 - **P2:** Garmin-Renderer + Gating + Sicherheitsnetz.
 - **P3:** Wear OS + Apple Watch.
 
