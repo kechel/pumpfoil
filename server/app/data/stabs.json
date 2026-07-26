@@ -1,7 +1,7 @@
 [
-  {"brand": "GONG", "model": "Stab Trail", "size": "S"},
-  {"brand": "GONG", "model": "Stab Trail", "size": "M"},
-  {"brand": "GONG", "model": "Stab Trail", "size": "L"},
+  {"brand": "Gong", "model": "Stab Trail", "size": "S"},
+  {"brand": "Gong", "model": "Stab Trail", "size": "M"},
+  {"brand": "Gong", "model": "Stab Trail", "size": "L"},
 
   {"brand": "Sabfoil", "model": "Flat", "size": "325"},
   {"brand": "Sabfoil", "model": "Flat", "size": "370"},

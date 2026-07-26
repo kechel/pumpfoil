@@ -9,8 +9,10 @@ Regeln (Jan):
 - Puffer „selber Spot" ~1 km (SAME_SPOT_GAP_M) — 3 km auseinander = getrennt.
 - Kürzeste Strecke zuerst clustern → kompakte Spots entstehen zuerst; lange Fahrten
   kommen zuletzt und sehen dann „≥2 Spots".
-- Überschneidet eine Session ≥2 bestehende Spots → KEIN Spot, nur Gewässername
-  (Bodensee-Traverser fährt an vielen Spots vorbei → „Bodensee").
+- Überschneidet eine Session ≥2 bestehende Spots → **der Startpunkt entscheidet** (Jan,
+  2026-07-26): der Spot, in dem die Session STARTET, gewinnt — eine lange Fahrt von Tizzano
+  Richtung Cala Longa gehört zu Tizzano. Erst wenn der Start in KEINEM der Spots liegt (echte
+  Traverse, die irgendwo dazwischen losfährt), gibt es nur den Gewässernamen ohne Spot.
 
 Reine Geometrie/Engine — kein DB-Zugriff (aufrufbar für Dry-Run UND Apply).
 """
@@ -190,8 +192,23 @@ def rename_spot_row(db, sp, new_name: str, source: str = "manual") -> str:
     (db.query(models.Session).filter(models.Session.spot_id == sp.id)
      .update({models.Session.place_name: new}))
     if old:
-        for m in (models.ChatMessage, models.ChatRoomState):
-            db.query(m).filter(m.scope == f"spot:{old}").update({m.scope: f"spot:{new}"})
+        old_scope, new_scope = f"spot:{old}", f"spot:{new}"
+        db.query(models.ChatMessage).filter_by(scope=old_scope).update({models.ChatMessage.scope: new_scope})
+        # ChatRoomState ist pro (user, scope) EINDEUTIG -> beim Umziehen können zwei Zeilen
+        # desselben Nutzers zusammenfallen (er war in beiden Räumen). Dann zusammenführen:
+        # weiter gelesen gewinnt, „verlassen" nur wenn beide verlassen sind, Push wenn eines an.
+        keep = {r.user_id: r for r in db.query(models.ChatRoomState).filter_by(scope=new_scope).all()}
+        for r in db.query(models.ChatRoomState).filter_by(scope=old_scope).all():
+            tgt = keep.get(r.user_id)
+            if tgt is None:
+                r.scope = new_scope
+                keep[r.user_id] = r
+                continue
+            tgt.last_read_id = max(tgt.last_read_id or 0, r.last_read_id or 0)
+            tgt.left = bool(tgt.left and r.left)
+            tgt.push = bool(tgt.push or r.push)
+            db.delete(r)
+        db.flush()
         import json as _json
         for u in db.query(models.User).filter(models.User.settings_json.isnot(None)).all():
             try:
@@ -321,6 +338,16 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
             taken.add(base)
     if apply and rep.get("renamed"):
         db.commit()
+
+    # --- 5. Namenlose Spots nachbenennen ---------------------------------------------
+    # Overpass ist flaky: schlug die Abfrage beim Anlegen fehl, blieb der Spot (und damit die
+    # place_name aller seiner Sessions) für immer leer — es gab bisher keinen Wiederholungspfad.
+    if apply:
+        rep["naming"] = name_pending_spots(db)
+    else:
+        rep["naming"] = {"pending": (db.query(models.Spot)
+                                     .filter(models.Spot.name.is_(None),
+                                             models.Spot.merged_into.is_(None)).count())}
 
     # Gesamtzahl (unabhängig vom Limit) — damit man sieht, ob ein weiterer Lauf nötig ist.
     total_missing = (db.query(models.Session)
@@ -513,11 +540,29 @@ def assign_one(db, s):
         if sp.name:
             s.place_name = sp.name
         s.place_water = sp.water_name
-    elif len(hits) >= 2:            # ≥2 Spots -> nur Gewässer, kein Spot
-        _, _, w = name_for(*g.start)
-        s.spot_id = None
-        if w:
-            s.place_name = w; s.place_water = w
+    elif len(hits) >= 2:
+        # ≥2 ECHTE (disjunkte) Spots: der Startpunkt entscheidet (Jan) — wer hier losfährt,
+        # foilt an DIESEM Spot, auch wenn die Fahrt bis zum Nachbarspot reicht.
+        from shapely.geometry import Point as _Point
+        start_m = _Point(_project([g.start], lat0)[0])
+        home = None
+        for sp in hits:
+            if _wkt_to_m(sp.poly_wkt, lat0).contains(start_m):
+                home = sp
+                break
+        if home is None:
+            # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot.
+            _, _, w = name_for(*g.start)
+            s.spot_id = None
+            if w:
+                s.place_name = w; s.place_water = w
+        else:
+            # Nur das Polygon des Heimat-Spots wächst mit — sonst würde die lange Fahrt die
+            # Nachbarspots weiter zusammenkleben (genau so entstand „Cala Longa" ↔ „Tizzano").
+            s.spot_id = home.id
+            if home.name:
+                s.place_name = home.name
+            s.place_water = home.water_name
     else:                          # neuer Spot
         name, src, water = name_for(*g.start)
         if name:
