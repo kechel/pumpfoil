@@ -413,8 +413,8 @@ class RecordView extends WatchUi.View {
         // der Displayhöhe (sonst schwebt das Label bei nur einem Feld weit weg vom Wert).
         var hh = dc.getHeight();
         var slot = hh * 0.74 / n;
-        var gap = slot * 0.42;
-        if (gap > hh * 0.12) { gap = hh * 0.12; }
+        var gap = slot * 0.33;
+        if (gap > hh * 0.10) { gap = hh * 0.10; }
         dc.drawText(cx, cy + gap, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
