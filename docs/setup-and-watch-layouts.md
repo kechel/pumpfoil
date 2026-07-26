@@ -17,7 +17,25 @@ nicht ganze Kombis.
 | Stab | neue Tabelle `stabs` + `server/app/data/stabs.json` (brand/model/size, span_cm/area_cm2 wo auffindbar, `*_estimated`-Flag wie bei Foils) | `my_stabs[]`, `stab_id` | `Session.stab_id` |
 | Mast | keiner (keine Modelle) — nur Länge cm | `my_masts[]` (z. B. `[75, 85]`), `mast_len_cm` | `Session.mast_len_cm` |
 | Shim | keiner — nur Gradzahl, 1 Dezimale (`+2`, `+1.5`, `0`, `-0.5`) | `my_shims[]`, `shim_deg` | `Session.shim_deg` |
-| Board | kein Katalog (Recherche-Aufwand ≫ Nutzen) → eigene Einträge: Name + optional Volumen/Länge | `my_boards[]`, `board_id` | `Session.board_id` |
+| Board | kein Katalog (Recherche-Aufwand ≫ Nutzen) → eigene Einträge: Name + optional Volumen/Länge | **Tabelle `boards`** (user-eigene Zeilen) + `board_id` als Default | `Session.board_id` |
+
+**Abweichung vom ersten Entwurf (bewusst, 2026-07-26):** Boards liegen in einer eigenen Tabelle
+`boards` (user_id, name, volume_l, length_cm) statt als Liste in `settings_json`. Grund: `Session.
+board_id` ist dann ein echter Fremdschlüssel (referenzielle Integrität), und Name/Volumen/Länge sind
+Spalten statt verschachteltem JSON. In den Settings steht nur noch der **Default** (`board_id`) —
+ein `my_boards[]` braucht es nicht, weil die Tabelle bereits pro Nutzer ist. Beim Löschen eines
+Boards werden referenzierende Sessions auf „Standard" zurückgesetzt und ein etwaiger Default geleert.
+
+**Status F1-Server-Layer — ERLEDIGT 2026-07-26:** Modelle `Stab` (Katalog, span/area **nullable** +
+`specs_estimated`, weil Stab-Maße oft nicht dokumentiert sind) und `Board`; Session-Spalten
+`stab_id`/`mast_len_cm`/`shim_deg`/`board_id` (je NULL = Nutzer-Standard) inkl. Migration;
+Settings-Keys `my_stabs`/`stab_id`/`my_masts`/`mast_len_cm`/`my_shims`/`shim_deg`/`board_id` mit
+Validierung (Mast 30–130 cm, Shim −5…+5° auf 1 Dezimale, Dedupe, Default impliziert Mitgliedschaft,
+Board nur mit Eigentümer-Prüfung); `GET /api/stabs` + `/api/stabs/brands`; Boards-CRUD
+(`GET/POST/PUT/DELETE /api/boards`); Session-Meta-Patch akzeptiert alle vier; `setup`-Block in der
+Session-Ausgabe mit `*_is_default`-Flags. Live gegen alle Endpunkte verifiziert (inkl.
+Müll-/Clamping-/Dedupe-Fälle und Fremd-Board → null); Testdaten wieder entfernt.
+**Offen für F1:** Stab-Katalog-Daten (Recherche-Probe) + PWA-Seite `/setup` + FoilSelect-Erweiterung.
 
 - **Neue Seite `/setup`** („Detailed Setup"), verlinkt per rechtsbündigem Button auf Höhe der
   Überschrift „Meine Foils" (`web/src/pages/Foils.tsx:87-93` → Flex-Wrapper um das `h2`).

@@ -69,6 +69,12 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
+        # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS mast_len_cm INTEGER",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS shim_deg DOUBLE PRECISION",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS board_id INTEGER REFERENCES boards(id)",
         # „ausgewertet"-Push genau EINMAL je Session (kein Re-Push bei /complete-Retries/Re-Analyse).
         # Altbestand (schon analysiert) als benachrichtigt markieren -> keine Nachhol-Pushes.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS analyzed_notified BOOLEAN",

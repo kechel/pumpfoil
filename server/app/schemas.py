@@ -185,6 +185,7 @@ class SessionOut(BaseModel):
     track_preview: str | None = None  # Mini-Track (normalisierte Polylinien als JSON)
     foil_id: int | None = None  # explizit gesetztes Foil dieser Session
     foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige
+    setup: dict | None = None  # aufgelöstes restliches Setup (Stab/Mast/Shim/Board) für Anzeige
     transfer_to: str | None = None  # offene Übertragung: Anzeigename des Empfängers (nur eigene Liste)
     upload_received: int | None = None  # empfangene Chunks (nur im Zwischenzustand recording/live)
     upload_total: int | None = None     # erwartete Chunks gesamt -> Upload-Fortschritt
@@ -202,6 +203,11 @@ class SessionMetaIn(BaseModel):
     youtube_url: str | None = None
     # Foil dieser Session (Foil.id). null = zurück auf Standard-Foil des Nutzers.
     foil_id: int | None = None
+    # Restliches Setup dieser Session; je null = zurück auf den Standard des Nutzers.
+    stab_id: int | None = None
+    mast_len_cm: int | None = None
+    shim_deg: float | None = None
+    board_id: int | None = None
 
 
 class SessionVideoIn(BaseModel):

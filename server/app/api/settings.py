@@ -43,6 +43,17 @@ DEFAULTS = {
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
+    # Restliches Setup — jede Komponente 1:1 wie Foils: „meine" markieren + einen Default,
+    # je Session überschreibbar. KEIN kombiniertes Setup-Objekt (man wechselt real meist nur
+    # Stab oder Shim). Stab = Katalog (stabs), Mast/Shim = reine Werte, Board = eigene Einträge
+    # (Tabelle boards, deshalb hier nur der Default).
+    "my_stabs": [],
+    "stab_id": None,
+    "my_masts": [],       # Mastlängen in cm, z. B. [75, 85]
+    "mast_len_cm": None,
+    "my_shims": [],       # Shim-Gradzahlen, z. B. [-1, 0, 0.5, 1, 2]
+    "shim_deg": None,
+    "board_id": None,
     # Homespot (Spot-Name). "" -> automatisch Spot der letzten Session.
     "homespot": "",
     # Körpergewicht (kg) — optional, für spätere Leistungsberechnung. 0 = nicht angegeben.
@@ -143,6 +154,47 @@ def update_settings(
     if current.get("foil_id"):
         mf.add(int(current["foil_id"]))
         current["my_foils"] = sorted(mf)
+    # --- Restliches Setup (Stab / Mast / Shim / Board), je 1:1 wie Foils ---
+    if "my_stabs" in patch and isinstance(patch["my_stabs"], list):
+        current["my_stabs"] = sorted({int(x) for x in patch["my_stabs"] if isinstance(x, (int, float))})
+    if "stab_id" in patch:
+        v = patch["stab_id"]
+        current["stab_id"] = int(v) if isinstance(v, (int, float)) else None
+    ms = set(current.get("my_stabs") or [])
+    if current.get("stab_id"):   # Default impliziert Mitgliedschaft (wie beim Foil)
+        ms.add(int(current["stab_id"]))
+        current["my_stabs"] = sorted(ms)
+    if "my_masts" in patch and isinstance(patch["my_masts"], list):
+        current["my_masts"] = sorted({
+            int(x) for x in patch["my_masts"]
+            if isinstance(x, (int, float)) and 30 <= int(x) <= 130})
+    if "mast_len_cm" in patch:
+        v = patch["mast_len_cm"]
+        current["mast_len_cm"] = (
+            max(30, min(130, round(float(v)))) if isinstance(v, (int, float)) else None)
+    mm = set(current.get("my_masts") or [])
+    if current.get("mast_len_cm"):
+        mm.add(int(current["mast_len_cm"]))
+        current["my_masts"] = sorted(mm)
+    if "my_shims" in patch and isinstance(patch["my_shims"], list):
+        current["my_shims"] = sorted({
+            round(float(x), 1) for x in patch["my_shims"]
+            if isinstance(x, (int, float)) and -5 <= float(x) <= 5})
+    if "shim_deg" in patch:
+        v = patch["shim_deg"]
+        current["shim_deg"] = (
+            round(max(-5.0, min(5.0, float(v))), 1) if isinstance(v, (int, float)) else None)
+    sh = set(current.get("my_shims") or [])
+    if current.get("shim_deg") is not None:   # 0° ist ein gültiger Wert -> nicht auf Truthiness prüfen
+        sh.add(round(float(current["shim_deg"]), 1))
+        current["my_shims"] = sorted(sh)
+    if "board_id" in patch:   # Eigentümer-Prüfung: nur eigene Boards
+        v = patch["board_id"]
+        bid = int(v) if isinstance(v, (int, float)) else None
+        if bid is not None:
+            own = db.query(models.Board).filter_by(id=bid, user_id=user.id).first()
+            bid = bid if own else None
+        current["board_id"] = bid
     if "views" in patch:
         cleaned = _clean_views(patch["views"])
         if cleaned:

@@ -148,6 +148,43 @@ class Foil(Base):
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
+class Stab(Base):
+    """Stabilizer-/Rear-Wing-Katalog (Stammdaten), Aufbau wie der Foil-Katalog.
+
+    Anders als bei Foils sind die Maße oft NICHT öffentlich dokumentiert -> span_cm/area_cm2
+    sind nullable, und `specs_estimated` markiert geschätzte Werte (in der UI kennzeichnen,
+    analog Foil.thickness_estimated). Rein informativ: es wird nichts damit gerechnet.
+    """
+
+    __tablename__ = "stabs"
+    __table_args__ = (UniqueConstraint("brand", "model", "size", name="uq_stab_variant"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    brand: Mapped[str] = mapped_column(String(60), index=True)
+    model: Mapped[str] = mapped_column(String(80))
+    size: Mapped[str] = mapped_column(String(20))
+    span_cm: Mapped[float | None] = mapped_column(Float)
+    area_cm2: Mapped[float | None] = mapped_column(Float)
+    specs_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+
+class Board(Base):
+    """Board des Nutzers — KEIN Katalog (Recherche-Aufwand ≫ Nutzen), sondern eigene Einträge.
+
+    Deshalb user-eigene Zeilen statt globaler Stammdaten; Volumen/Länge optional.
+    """
+
+    __tablename__ = "boards"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    volume_l: Mapped[float | None] = mapped_column(Float)
+    length_cm: Mapped[float | None] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 class ChatMessage(Base):
     """Chat/Diskussion — gemeinsame Engine. scope = "session:<id>" | "spot:<name>"."""
 
@@ -269,6 +306,12 @@ class Session(Base):
     place_lon: Mapped[float | None] = mapped_column(Float)
     # Mit welchem Foil gefahren (Foil.id). null -> Standard-Foil des Nutzers.
     foil_id: Mapped[int | None] = mapped_column(ForeignKey("foils.id"))
+    # Restliches Setup dieser Session — je null = Standard des Nutzers (settings_json).
+    # Bewusst KEIN kombiniertes „Setup"-Objekt: man wechselt real meist nur Stab oder Shim.
+    stab_id: Mapped[int | None] = mapped_column(ForeignKey("stabs.id"))
+    mast_len_cm: Mapped[int | None] = mapped_column(Integer)
+    shim_deg: Mapped[float | None] = mapped_column(Float)
+    board_id: Mapped[int | None] = mapped_column(ForeignKey("boards.id"))
     # Eigene Beschriftung des Besitzers (frei, max 30 Zeichen) + optionale YouTube-URL.
     caption: Mapped[str | None] = mapped_column(String(40))
     # LEGACY-SPIEGEL: erstes (ältestes, nicht geblocktes) SessionVideo — Quelle der Wahrheit

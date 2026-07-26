@@ -191,6 +191,46 @@ def _resolve_foil(db: Session, s: models.Session) -> dict | None:
     }
 
 
+def _resolve_setup(db: Session, s: models.Session) -> dict | None:
+    """Restliches Setup für die Anzeige: Stab/Mast/Shim/Board der Session, sonst der Standard
+    des Besitzers (settings_json). Je Komponente `*_is_default`, damit die UI „geerbt" zeigen
+    kann. None, wenn nichts gesetzt ist (dann blendet die UI den Block aus)."""
+    st: dict = {}
+    if s.user and s.user.settings_json:
+        try:
+            st = json.loads(s.user.settings_json) or {}
+        except ValueError:
+            st = {}
+    out: dict = {}
+    stab_id = s.stab_id if s.stab_id is not None else st.get("stab_id")
+    if stab_id:
+        stab = db.get(models.Stab, int(stab_id))
+        if stab is not None:
+            out["stab"] = {
+                "id": stab.id, "brand": stab.brand, "model": stab.model, "size": stab.size,
+                "span_cm": stab.span_cm, "area_cm2": stab.area_cm2,
+                "specs_estimated": bool(stab.specs_estimated),
+                "is_default": s.stab_id is None,
+            }
+    mast = s.mast_len_cm if s.mast_len_cm is not None else st.get("mast_len_cm")
+    if mast:
+        out["mast_len_cm"] = int(mast)
+        out["mast_is_default"] = s.mast_len_cm is None
+    shim = s.shim_deg if s.shim_deg is not None else st.get("shim_deg")
+    if shim is not None:   # 0° ist ein gültiger Wert
+        out["shim_deg"] = round(float(shim), 1)
+        out["shim_is_default"] = s.shim_deg is None
+    board_id = s.board_id if s.board_id is not None else st.get("board_id")
+    if board_id:
+        b = db.get(models.Board, int(board_id))
+        if b is not None:
+            out["board"] = {
+                "id": b.id, "name": b.name, "volume_l": b.volume_l, "length_cm": b.length_cm,
+                "is_default": s.board_id is None,
+            }
+    return out or None
+
+
 def _apply_pump_filter(q, user, filter: str):
     """Filtert eine Session-Query auf Pumpfoil ('pump') bzw. Aussortierte ('other').
     Für Nutzer mit persönlicher Empfindlichkeit entscheidet sein gecachtes Preset
@@ -984,6 +1024,7 @@ def get_session(
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
+    out.setup = _resolve_setup(db, s)
     # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht — ein gezielter Lookup, kein N+1).
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
@@ -1053,6 +1094,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
+    out.setup = _resolve_setup(db, s)
     if s.device_id:
         dev = db.get(models.DeviceToken, s.device_id)
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
@@ -1325,6 +1367,24 @@ def set_meta(
         if fid is not None and db.get(models.Foil, fid) is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekanntes Foil")
         s.foil_id = fid
+    # Restliches Setup je Session — je null = zurück auf den Standard des Nutzers.
+    if "stab_id" in body.model_fields_set:
+        sid = body.stab_id or None
+        if sid is not None and db.get(models.Stab, sid) is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekannter Stab")
+        s.stab_id = sid
+    if "board_id" in body.model_fields_set:
+        bid = body.board_id or None
+        if bid is not None and db.query(models.Board).filter_by(
+                id=bid, user_id=user.id).first() is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekanntes Board")
+        s.board_id = bid
+    if "mast_len_cm" in body.model_fields_set:
+        v = body.mast_len_cm
+        s.mast_len_cm = max(30, min(130, int(v))) if v else None
+    if "shim_deg" in body.model_fields_set:
+        v = body.shim_deg
+        s.shim_deg = round(max(-5.0, min(5.0, float(v))), 1) if v is not None else None
     db.commit()
     db.refresh(s)
     out = _session_out(
@@ -1333,6 +1393,7 @@ def set_meta(
         owner_avatar_url=s.user.avatar_url if s.user else None,
     )
     out.foil = _resolve_foil(db, s)
+    out.setup = _resolve_setup(db, s)
     return out
 
 
