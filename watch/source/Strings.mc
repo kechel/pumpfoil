@@ -212,6 +212,9 @@ module Strings {
         // Nach einem Absturz mit dynamischem Layout: diese Sitzung läuft statisch.
         if (key.equals("lay.fallback")) { return ["Layout aus (Absturz)", "Layout us (Absturz)", "Layout aus (Absturz)", "Layout off (crash)", "Layout off (plantage)", "Layout off (crash)", "Diseño off (fallo)", "Layout off (falha)", "Tata letak off (error)", "Макет выкл (сбой)", "Layout uit (crash)", "Asettelu pois (kaatui)", "Rozvržení vyp (pád)"]; }
         if (key.equals("common.on"))     { return ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл", "Aan", "Päällä", "Zap"]; }
+        // „Automatisch" = die Voreinstellung vom Server übernehmen (Dreizustand des
+        // Layout-Schalters). Reihenfolge der Spalten wie überall: de gsw de-AT en fr it es pt id ru nl fi cs
+        if (key.equals("common.auto"))   { return ["Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático", "Automático", "Otomatis", "Авто", "Automatisch", "Automaattinen", "Automaticky"]; }
         if (key.equals("common.off"))    { return ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл", "Uit", "Pois", "Vyp"]; }
         if (key.equals("fm.title"))      { return ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал", "Foil & alarm", "Foil & hälytys", "Foil & alarm"]; }
         if (key.equals("fm.alarm"))      { return ["Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma", "Alarme", "Alarm", "Сигнал", "Alarm", "Hälytys", "Alarm"]; }

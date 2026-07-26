@@ -174,9 +174,14 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         // Nicht „An" behaupten, wenn faktisch statisch gefahren wird: nach einem Absturz sperrt die
         // Selbstheilung diese Sitzung (Jan hatte genau das — Schalter „An", Layouts trotzdem weg).
         // Auswählen hebt die Sperre bewusst wieder auf.
-        if (!_rec.layoutsWanted()) { return Strings.s("common.off"); }
         if (_rec.layoutCrash) { return Strings.s("lay.fallback"); }
-        return Strings.s("common.on");
+        // „Automatisch" zeigt zusätzlich, was daraus gerade folgt — sonst rät man, was der Server
+        // geliefert hat (und genau das war nicht nachprüfbar).
+        if (_rec.layoutsAuto()) {
+            return Strings.s("common.auto") + " ("
+                + (_rec.layoutsWanted() ? Strings.s("common.on") : Strings.s("common.off")) + ")";
+        }
+        return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
     }
     (:full) hidden function _addLayoutItem(menu) as Void {
         menu.addItem(new WatchUi.MenuItem(
@@ -328,10 +333,17 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         Menu2InputDelegate.initialize();
         _rec = recorder;
     }
+    (:full) hidden function _layoutState() as Lang.String {
+        if (_rec.layoutCrash) { return Strings.s("lay.fallback"); }
+        if (_rec.layoutsAuto()) {
+            return Strings.s("common.auto") + " ("
+                + (_rec.layoutsWanted() ? Strings.s("common.on") : Strings.s("common.off")) + ")";
+        }
+        return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
+    }
     (:full) hidden function _toggleLayouts(item) as Void {
         _rec.toggleLayouts();
-        item.setSubLabel(!_rec.layoutsWanted() ? Strings.s("common.off")
-                         : _rec.layoutCrash ? Strings.s("lay.fallback") : Strings.s("common.on"));
+        item.setSubLabel(_layoutState());
         WatchUi.requestUpdate();
     }
     (:lite) hidden function _toggleLayouts(item) as Void { }

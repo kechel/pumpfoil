@@ -533,6 +533,22 @@ für Nutzer steht (26.07.).
     Verifiziert mit Wegwerf-Token auf emu-test (canary=5, kein Opt-in): `layoutsOn:false`, `pages`
     trotzdem im Payload → die Uhr kann selbst einschalten. Testdaten danach gelöscht.
 
+  - **P2g Schalter mit DREI Zuständen — 2026-07-26:** Jan: „ob die initialisierung vom server
+    geklappt hat beim ersten aufruf … kann ich ja nie wieder testen oder?" — richtig, und das war ein
+    Produkt-Mangel, kein Test-Problem: „nie angefasst" war nur der interne Anfangswert und nach dem
+    ersten Umschalten nicht wieder erreichbar (nur durch Löschen des App-Speichers). Der Menüpunkt
+    schaltet jetzt **Automatisch → An → Aus → Automatisch** und zeigt bei „Automatisch" in Klammern,
+    was daraus gerade folgt (`Automatisch (An)`), damit man den Server-Wert nicht raten muss.
+    „Automatisch" ist genau der Zustand einer frisch installierten Uhr — es testet also den echten
+    Erstinstallations-Fall. Neuer String `common.auto` in allen 13 Sprachspalten.
+  - **Offen / später (Jans Modell, zurückgestellt bis der Dreizustand getestet ist):** „letzte
+    Änderung gewinnt" über beide Orte — stellt man auf der Uhr um, gilt das, bis man am Server
+    umstellt, und umgekehrt. Umsetzung wäre eine **Änderungs-Nummer** (`layouts_rev` in den
+    Settings, bei jeder echten Änderung von `layouts_enabled` erhöht, in `/config` mitgeliefert) und
+    auf der Uhr ein `layouts_rev_seen`: ist die Server-Nummer höher als die gesehene, ist die
+    Server-Änderung die jüngere und sticht die lokale Wahl. Bewusst KEIN Uhrzeit-Vergleich zwischen
+    Uhr und Server (zwei unabhängige Uhren, Offline-Fälle).
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",

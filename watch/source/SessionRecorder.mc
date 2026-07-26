@@ -336,11 +336,19 @@ class SessionRecorder {
     //   * Ein `layoutsOn:false` im Cache, das aus einem früheren Start stammt (z. B. das Flag war
     //     serverseitig noch gesetzt und ist inzwischen zurückgesetzt) — dafür frisch nachfragen.
     //     Während einer laufenden Aufnahme blockt Garmin das Netz; dann greift weiter der Cache.
+    // Der Schalter hat DREI Zustände, weil es drei Wünsche gibt: „an", „aus" und „entscheide du"
+    // (= Voreinstellung vom Server übernehmen). Der dritte war vorher nur der interne Anfangswert
+    // und damit nicht wieder erreichbar — Jan zu Recht: „ob die initialisierung vom server geklappt
+    // hat beim ersten aufruf … kann ich ja nie wieder testen oder?".
+    // Reihenfolge: Automatisch -> An -> Aus -> Automatisch.
     (:full) function toggleLayouts() {
-        // Umschalten heißt: ab jetzt gilt MEIN Wert (aus dem Dreizustand wird ein fester).
-        // Ausgangspunkt ist, was gerade wirkt — also der Server-Wert, wenn noch nie geschaltet wurde.
-        var now = (layoutsPref == null) ? serverDefault : (layoutsPref == true);
-        layoutsPref = !now;
+        if (layoutsPref == null) {
+            layoutsPref = true;
+        } else if (layoutsPref == true) {
+            layoutsPref = false;
+        } else {
+            layoutsPref = null;
+        }
         _store("layouts_pref", layoutsPref);
         if (layoutsPref == true) {
             layoutCrash = false;          // bewusste Entscheidung sticht die Selbstheilung
@@ -356,6 +364,8 @@ class SessionRecorder {
     (:full) function layoutsWanted() {
         return (layoutsPref == null) ? serverDefault : (layoutsPref == true);
     }
+    // null = „Automatisch" (Server entscheidet), sonst die feste Wahl des Nutzers.
+    (:full) function layoutsAuto() { return layoutsPref == null; }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
     hidden function _normView(v) {
