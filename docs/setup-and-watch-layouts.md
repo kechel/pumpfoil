@@ -253,13 +253,43 @@ alle Auflösungen und Formen tragfähig; im Katalog: 108 round, 5 rectangle, 8 s
 
 Renderer liegt hinter `(:full)` → die 96-KB-Lite-Uhren bekommen den Code gar nicht.
 
-### Geräte-Gating
+### Geräte-Gating — MESSWERTE (2026-07-26, `mem` jetzt im Katalog)
 `DeviceToken.part_number` → `watch/bin/partmap.json` → `watch/bin/catalog.json` → Tier.
-**Fehlt nur `memoryLimit` im Katalog** — `watch/build-all.sh:63-68` liest die SDK-`compiler.json`
-bereits, der Wert wird nur nicht übernommen (Einzeiler). Ist-Verteilung: 96 KB = 5 Geräte,
-128 KB = 16, ≥512 KB = 100. Dynamische Layouts ab ≥256 KB; mit Netz 1+2 ggf. mutiger.
-`/api/devices/list` sollte künftig `family`/`w`/`h`/`mem` mitliefern, damit die PWA den Editor nur
-für taugliche Uhren anbietet und in der richtigen Form zeichnet.
+`build-all.sh` übernimmt jetzt `appTypes[type=="watchApp"].memoryLimit` als `mem` in den Katalog.
+
+**Es gibt kein 256-KB-Tier.** Ist-Verteilung der 121 Geräte:
+
+| Budget | Geräte | kleinste Auflösung | Layouts? |
+|---|---|---|---|
+| 96 KB | 5 (Instinct 2/2S/2X, Crossover, Descent G1) | 163×163 | **nein** — Lite-Build, Renderer wird gar nicht mitkompiliert |
+| 128 KB | 16 (fēnix 5/6, FR 55/245/645/935, Instinct 3/E …) | 166×166 | **nein** — genau hier crashte 1.0.64 unter Dauerlast |
+| ≥512 KB | 100 | **218×218** (FR 255S) | **ja** |
+
+Daraus folgt zweierlei:
+- Die Schwelle ist faktisch **≥512 KB** (nicht 256 KB) → 100 von 121 Geräten.
+- **Kein semioctagon-Gerät bekommt Layouts** (die Instinct-Klasse ist komplett ≤128 KB). Die
+  Overflow-Prüfung im Editor lief anfangs gegen 176×176 — falsch, das Gerät kriegt den Renderer
+  nie. Sie prüft jetzt gegen **218×218 round** (`SMALLEST` in `web/src/lib/watchLayout.ts`);
+  176×176 und 208×208 bleiben als Vorschau-Größen mit dem Zusatz „kein Layout-Support".
+- **Testplan-Konsequenz:** Jans fēnix 5 (128 KB) und die Instinct (96 KB) können den Renderer NICHT
+  testen. Testgeräte sind FR 255S (218×218, kleinste taugliche) und z. B. fēnix 7X Pro (280×280).
+
+`/api/devices/list` liefert bereits `screen_w`/`screen_h`/`shape`; `mem` kommt beim Editor-Gating dazu.
+
+### Selbstlernender Kill-Switch je Modell (Entscheidung Jan, 2026-07-26)
+Der Canary bleibt nicht auf der Uhr: **jede Uhr, die ihren Canary auslöst, meldet das beim nächsten
+Config-Abruf an den Server.** Der Server zählt das je **Uhrenmodell** — und liefert Layouts für
+dieses Modell künftig per Default nicht mehr aus. Damit heilt sich das Feature flotten-weit, ohne
+dass ein Mensch eingreift, und neue Uhren desselben Typs bekommen von Anfang an die richtige
+Voreinstellung.
+
+Umsetzung (P2):
+- Uhr: Canary-Flag im Storage beim Aufnahme-Start setzen, beim sauberen Ende löschen. Beim App-Start
+  noch gesetzt → statisch fahren, Hinweis zeigen UND `canary=1` beim nächsten `/config` mitsenden.
+- Server: Zähler je Modell (ausgelöst / sauber beendet). Auto-Aus für ein Modell, wenn mindestens
+  **zwei verschiedene Uhren** dieses Modells ausgelöst haben (eine einzelne kann andere Ursachen
+  haben) — plus Admin-Override in beide Richtungen, damit ein Fehlalarm ein Modell nicht dauerhaft
+  aussperrt. Sichtbar im Admin-Bereich mit Zähler.
 
 ### Phasen
 - **P0 — ERLEDIGT 2026-07-26** (bis auf Garmin, s. u.): `pause_view` in den Settings (Default

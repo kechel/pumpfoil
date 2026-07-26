@@ -91,8 +91,9 @@ export function valueColor(fieldId: number, colorByValue: boolean): string | nul
 // Auswahl. Apple/Wear melden ihre echten Maße künftig beim Config-Abruf; bis dahin gängige Größen.
 export type WatchShape = "round" | "rect" | "semioctagon";
 export const PREVIEW_SIZES: { id: string; label: string; w: number; h: number; shape: WatchShape }[] = [
-  { id: "g176", label: "Garmin 176×176 (Instinct)", w: 176, h: 176, shape: "semioctagon" },
-  { id: "g208", label: "Garmin 208×208", w: 208, h: 208, shape: "round" },
+  { id: "g176", label: "Garmin 176×176 (Instinct, kein Layout-Support)", w: 176, h: 176, shape: "semioctagon" },
+  { id: "g208", label: "Garmin 208×208 (kein Layout-Support)", w: 208, h: 208, shape: "round" },
+  { id: "g218", label: "Garmin 218×218 (kleinste unterstützte)", w: 218, h: 218, shape: "round" },
   { id: "g240", label: "Garmin 240×240", w: 240, h: 240, shape: "round" },
   { id: "g260", label: "Garmin 260×260", w: 260, h: 260, shape: "round" },
   { id: "g280", label: "Garmin 280×280", w: 280, h: 280, shape: "round" },
@@ -104,8 +105,12 @@ export const PREVIEW_SIZES: { id: string; label: string; w: number; h: number; s
   { id: "w450", label: "Wear OS 450×450", w: 450, h: 450, shape: "round" },
   { id: "w384", label: "Wear OS 384×384", w: 384, h: 384, shape: "round" },
 ];
-/** Kleinste relevante Größe — gegen die prüft der Editor auf Überlauf. */
-export const SMALLEST = PREVIEW_SIZES[0];
+/** Kleinste Größe, die dynamische Layouts überhaupt bekommt — dagegen prüft der Editor auf
+ *  Überlauf. NICHT 176×176: die Instinct-Klasse (96 KB) und das 128-KB-Tier (u. a. fēnix 5,
+ *  FR 55/245/935) bekommen den Renderer nicht — sie sind zu knapp bei Speicher (dort crashte
+ *  1.0.64 unter Dauerlast). Die kleinste Auflösung im layout-fähigen Tier (≥512 KB, 100 Geräte)
+ *  ist 218×218 (Forerunner 255S). */
+export const SMALLEST = PREVIEW_SIZES.find((s) => s.id === "g218") ?? PREVIEW_SIZES[0];
 
 /** Neues Layout: REC-Punkt + Seiten-Punkte an den heutigen Positionen (RecordView: h*0.085 bzw.
  *  h*0.92) plus ein großer Speed-Wert mit Label — sieht per Default aus wie bisher, ist aber
