@@ -460,6 +460,39 @@ für Nutzer steht (26.07.).
     taugliche) und **fenix7xpro** (280×280) an Jan; bewusst aus dem Scratchpad, NICHT aus
     `watch/bin` (s. Regel unten). Offen ist damit nur noch Jans Simulator-Test.
 
+  - **P2d Jans Simulator-Tests (fenix7xpro) — Rückmeldungen 2026-07-26:**
+    - Rendering, Farbe-nach-Wert, Canary-Selbstheilung: bestätigt („die custom anzeigen sind super").
+      Der Canary schlägt auch beim **Abwürgen des Simulators während der Aufnahme** an — für die App
+      nicht von einem Absturz zu unterscheiden, also korrektes Verhalten, beim Testen aber lästig:
+      Aufnahme regulär beenden, dann den Simulator schließen.
+    - Seiten 3/4 vertauscht + Punkte-Anzahl: gefixt (`summaryIdx = _pageCount() - 1`, `pageCount`
+      an die Vorschau).
+    - **Label-Abstand klassische Seiten:** in drei Anläufen geometrisch gelöst — `getFontHeight/2`
+      klebte am Wert, `slot*0.75` rutschte ins nächste Feld, `slot*0.42` war noch zu tief. Jetzt
+      `slot*0.33`, gekappt auf 10 % der Displayhöhe (280 px/3 Felder = 23 px). Von Jan bestätigt.
+    - **Offen: echte Fonthöhen.** Die Faktoren in `SIZE_STEPS` stammen aus den Dateinamen in
+      `simulator.json` (`ROBOTO_13B` = 13 px …) — die Uhr zeichnet aber sichtbar größer, d. h. im
+      Editor wählt man systematisch zu groß („die schriftart der labels ist ein klein bisschen zu
+      gross"). Das SDK gibt nichts Besseres her: kein `.fnt` für die eingebauten Fonts, keine
+      Metriken unter `~/.Garmin/ConnectIQ/Devices/<id>/`, `strings` auf der Device-`.bin` findet
+      die Font-Namen nicht. **Einzige belastbare Quelle ist `dc.getFontHeight()` im Simulator** →
+      Wegwerf-Debug-Build (`System.println` für alle 9 Stufen + `getTextWidthInPixels("18.5")`)
+      an Jan geliefert; Kalibrierung erst mit diesen Zahlen, **nicht** über einen geschätzten
+      Korrekturfaktor. Der Mess-Code ist absichtlich nicht committet.
+    - **Trennlinien (Jan-Wunsch, ERLEDIGT):** waagerecht/senkrecht per Knopf (rechnet um die Mitte,
+      damit die Linie beim Umschalten nicht wegwandert), Länge in %, Ziehen am Körper verschiebt
+      beide Punkte, zwei Griffe an den Enden für frei/diagonal. Das Format konnte das immer
+      (`[6]`/`[7]` = zweiter Punkt) — greifbar war die Linie im Editor nur nicht, weil die
+      SVG-Ebene `pointer-events: none` trug.
+  - **P2e Nutzungs-Ranking (Jan-Wunsch, ERLEDIGT 2026-07-26):** kein Zähler, keine Buchführung —
+    `layouts._usage_stats` leitet alles aus vorhandenen Daten ab: `used_by` = verschiedene **fremde**
+    Nutzer, die das Original oder eine Kopie davon wirklich eingebunden haben (Seitenliste,
+    Off-Foil, Pause — eine bloß gespeicherte Kopie zählt nicht), `unchanged_copies` = wie viele
+    Kopien unverändert sind (gleiche Elemente + gleicher Hintergrund). `GET /api/layouts/community`
+    sortiert per Standard `sort=used` danach (`sort=new` bleibt), Galerie-Badge „von N Foilern
+    genutzt". Bewusst in Python: `users.settings_json` ist TEXT, nicht JSONB — wird das je teuer,
+    ist der Umstieg auf JSONB + Index die Stelle.
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
