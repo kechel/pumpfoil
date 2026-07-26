@@ -48,6 +48,9 @@ DEFAULTS = {
     # Off-Foil-/Pausen-Screen alternativ als eigenes Layout statt 3 Datenfelder (null = Felder).
     "off_foil_layout_id": None,
     "pause_layout_id": None,
+    # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
+    # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
+    "layouts_enabled": True,
     # Eigene Foils (Foil.ids) + Standard-Foil (eine davon). foil_id je Session überschreibbar.
     "my_foils": [],
     "foil_id": None,
@@ -179,6 +182,8 @@ def update_settings(
         current["speed_auto"] = bool(patch["speed_auto"])
     if "colorByValue" in patch:
         current["colorByValue"] = bool(patch["colorByValue"])
+    if "layouts_enabled" in patch:
+        current["layouts_enabled"] = bool(patch["layouts_enabled"])
     if "auto_start" in patch:
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):

@@ -73,6 +73,9 @@ def _migrate_add_indexes() -> None:
         # Eigene Stab-Einträge (user_id NULL = globaler Katalog) — die Hersteller-Landschaft ist
         # zu groß/volatil für einen vollständigen Katalog, jeder darf seinen Stab selbst benennen.
         "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)",
+        # Canary-Meldung der dynamischen Layouts je Uhr (selbstlernender Kill-Switch je Modell).
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS layout_canary_count INTEGER DEFAULT 0",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS layout_canary_at TIMESTAMPTZ",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",

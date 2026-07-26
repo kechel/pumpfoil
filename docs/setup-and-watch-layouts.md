@@ -362,6 +362,27 @@ Umsetzung (P2):
 **F2 P1 ist damit abgeschlossen** (Server + PWA vollständig, KEINE Uhr-Änderung). Changelog-Eintrag
 für Nutzer steht (26.07.).
 - **P2:** Garmin-Renderer + Gating + Sicherheitsnetz.
+  - **P2a Server-Auslieferung — ERLEDIGT 2026-07-26:** `/api/devices/config` liefert die Layouts
+    kompakt und positionell aus — `[0,a,b,c]` = klassische 3-Feld-Seite, `[1,bg,[elements]]` =
+    freies Layout; ein Tag-Byte vorneweg macht beides unterscheidbar, ohne String-Keys im
+    Object Store. Keys: `layoutsOn` (die EINE Wahrheit für die Uhr), `pages`, `offFoil`, `pause`.
+    `views`/`offFoilView`/`pauseView` bleiben unverändert daneben → alte Uhr-Apps merken nichts.
+    Die Layout-Keys kommen **nur** mit, wenn `layoutsOn` — sonst bleibt die Payload klein.
+    Drei Tore, alle live geprüft:
+    1. **Gerät** ≥ 512 KB (`mem` aus dem Katalog). fēnix 5 (128 KB) bekommt `layoutsOn:false` und
+       gar keine `pages` — verifiziert.
+    2. **Modell** unauffällig: `?canary=1` am Config-Abruf zählt auf `DeviceToken.layout_canary_count`;
+       sobald **zwei verschiedene** Uhren eines Modells gemeldet haben, ist das Modell aus
+       (verifiziert: nach der ersten Meldung noch an, nach der zweiten aus). Admin-Override in
+       `watch_model_flags` (`on|off|auto`) sticht die Automatik — verifiziert.
+    3. **Nutzer**: `settings.layouts_enabled` (Default an) — verifiziert.
+    Admin: `GET /api/admin/layout-health` (je Modell: Budget, taugliche Uhr?, Canary-Uhren/Limit,
+    Canary-Events, Override, effektiver Zustand) + `POST /api/admin/layout-health/{model_id}?allowed=on|off|auto&note=`.
+    Alle Tests mit dem Testkonto `emu-test` und Wegwerf-Gerätetoken; danach alles zurückgesetzt
+    (Zähler 0, Flags weg, Testlayouts gelöscht).
+  - **P2b offen:** Garmin-Renderer hinter `(:full)`, Pausen-Screen, On-Watch-Schalter, Canary-Flag
+    setzen/löschen/melden, Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten
+    `SIZE_STEPS`-Faktoren in der PWA nachziehen).
 - **P3:** Wear OS + Apple Watch.
 
 ---

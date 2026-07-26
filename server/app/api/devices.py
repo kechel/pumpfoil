@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -65,6 +66,7 @@ def device_config(
     v: str | None = Query(None),   # gemeldete App-Version der Uhr
     p: str | None = Query(None),   # Plattform: garmin | wear | apple
     pn: str | None = Query(None),  # Geräte-Part-Number (Garmin) -> später Modell-Zuordnung
+    canary: int | None = Query(None),  # 1 = letzte Session mit dynamischem Layout ist abgestürzt
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -80,6 +82,12 @@ def device_config(
         model = _partmap().get(pn)
         if model and (not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch")):
             device.label = model["name"][:120]
+    # Canary-Meldung der Uhr: die letzte Aufnahme mit dynamischem Layout ist nicht sauber
+    # beendet worden. Zählen (nicht überschreiben) — daraus lernt der Modell-Kill-Switch.
+    if canary:
+        device.layout_canary_count = int(device.layout_canary_count or 0) + 1
+        device.layout_canary_at = datetime.now(timezone.utc)
+        dirty = True
     if dirty:
         db.commit()
     user = db.get(models.User, device.user_id)
@@ -89,6 +97,17 @@ def device_config(
     # Auto-Alarm-Schwellen (Min = Min-Viable, Max = Optimal-Speed). Der Nutzer wählt
     # beim Start das heutige Foil; ein manuell gesetzter Alarm hat Vorrang (s. Uhr-Logik).
     foils_out = _foil_alarm_list(db, settings)
+
+    # Dynamische Layouts: nur wenn Gerät stark genug UND Modell unauffällig UND Nutzer es
+    # nicht abgeschaltet hat. Sonst kommt der Block gar nicht mit (alte Clients ignorieren
+    # ihn ohnehin, aber so bleibt die Payload klein und der Object Store der Uhr frei).
+    cat = _catalog_entry(pn or device.part_number)
+    layouts_on = (
+        bool(settings.get("layouts_enabled", True))
+        and (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
+        and _model_layouts_allowed(db, _model_id(pn or device.part_number))
+    )
+    layout_block = _layouts_for_watch(db, device.user_id, settings) if layouts_on else {}
 
     return {
         "views": settings.get("views", [[1, 2, 0]]),
@@ -127,6 +146,13 @@ def device_config(
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
         "latestVersion": (_APP_META["garmin"]["latest"] if (p or device.platform) == "garmin" else ""),
+        # Dynamische Layouts (F2 P2). `layoutsOn` ist die EINE Wahrheit für die Uhr: false ->
+        # statische Logik wie bisher. `pages`/`offFoil`/`pause` kommen nur mit, wenn true:
+        #   [0,a,b,c]        = klassische 3-Feld-Seite (Feld-IDs)
+        #   [1,bg,[elements]] = freies Layout (Element = [typ,x,y,size,color,flags,extra…])
+        # Koordinaten relativ 0…1000, Größe = Font-Stufe, Farbe = Palette-Index.
+        "layoutsOn": layouts_on,
+        **layout_block,
     }
 
 
@@ -266,6 +292,92 @@ def _shape_from_family(family: str | None) -> str | None:
     if "round" in f:
         return "round"
     return None
+
+
+# ---------------------------------------------------------------- Dynamische Layouts ----
+# Auslieferung der frei gestalteten Uhr-Layouts (F2 P2). Drei Tore müssen offen sein:
+#   1. Gerät stark genug — >= 512 KB watchApp-Budget (aus dem Katalog, `mem`). Es gibt kein
+#      256-KB-Tier: 96 KB (5 Geräte, Lite-Build) und 128 KB (16, dort crashte 1.0.64 unter
+#      Dauerlast) bekommen den Renderer bewusst NICHT.
+#   2. Modell nicht auffällig — selbstlernender Kill-Switch: haben ZWEI VERSCHIEDENE Uhren
+#      desselben Modells ihren Canary ausgelöst, ist das Modell aus (Admin kann übersteuern).
+#   3. Nutzer hat es nicht abgeschaltet (`settings.layouts_enabled`).
+LAYOUT_MIN_MEMORY = 524288      # Bytes watchApp-Budget
+LAYOUT_CANARY_LIMIT = 2         # so viele verschiedene Uhren eines Modells -> Modell aus
+
+
+def _catalog_entry(part_number: str | None) -> dict | None:
+    """Katalog-Eintrag (inkl. `mem`) für eine gemeldete Part-Number."""
+    if not part_number:
+        return None
+    m = _partmap().get(part_number)
+    if not m:
+        return None
+    return _catalog_by_id().get(m["id"])
+
+
+def _model_id(part_number: str | None) -> str | None:
+    m = _partmap().get(part_number) if part_number else None
+    return m["id"] if m else None
+
+
+def _model_layouts_allowed(db: Session, model_id: str | None) -> bool:
+    """Modell-Zustand: Admin-Override vor Automatik. Automatik = aus, sobald
+    LAYOUT_CANARY_LIMIT verschiedene Uhren dieses Modells einen Canary gemeldet haben."""
+    if not model_id:
+        return False
+    flag = db.query(models.WatchModelFlag).filter_by(model_id=model_id).first()
+    if flag is not None and flag.layouts_allowed is not None:
+        return bool(flag.layouts_allowed)
+    # Automatik: Canary-Meldungen dieses Modells zählen (über die Part-Numbers des Modells).
+    pns = [pn for pn, m in _partmap().items() if m.get("id") == model_id]
+    if not pns:
+        return True
+    n = (db.query(func.count(models.DeviceToken.id))
+         .filter(models.DeviceToken.part_number.in_(pns),
+                 models.DeviceToken.layout_canary_count > 0).scalar() or 0)
+    return n < LAYOUT_CANARY_LIMIT
+
+
+def _layout_payload(l: models.WatchLayout) -> list:
+    """Ein Layout kompakt: [1, bg_color, [element, …]]. Positionell und ohne String-Keys —
+    die Uhr cached das Server-JSON im Object Store, und der läuft schnell voll."""
+    try:
+        elements = json.loads(l.elements or "[]")
+    except ValueError:
+        elements = []
+    return [1, int(l.bg_color or 0), elements]
+
+
+def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
+    """Seitenliste + Off-Foil/Pause in Uhr-Form. Klassische 3-Feld-Seite = [0,a,b,c],
+    Layout-Seite = [1,bg,[elements]] — ein Tag-Byte vorneweg macht beides unterscheidbar."""
+    own = {l.id: l for l in db.query(models.WatchLayout).filter_by(user_id=user_id).all()}
+
+    def one(ref, cat: str, fallback: list) -> list:
+        l = own.get(int(ref)) if isinstance(ref, (int, float)) else None
+        if l is not None and l.category == cat:
+            return _layout_payload(l)
+        return [0] + list(fallback)
+
+    pages: list = []
+    for item in (settings.get("pages") or settings.get("views") or [[1, 2, 0]]):
+        if isinstance(item, list):
+            f = [int(x) for x in item[:3]] + [0] * max(0, 3 - len(item))
+            pages.append([0] + f)
+        else:
+            l = own.get(int(item)) if isinstance(item, (int, float)) else None
+            if l is not None and l.category == "on_foil":
+                pages.append(_layout_payload(l))
+    if not pages:
+        pages = [[0, 1, 2, 0]]
+    return {
+        "pages": pages,
+        "offFoil": one(settings.get("off_foil_layout_id"), "off_foil",
+                       settings.get("off_foil_view") or [12, 17, 16]),
+        "pause": one(settings.get("pause_layout_id"), "pause",
+                     settings.get("pause_view") or [12, 20, 2]),
+    }
 
 
 def _latest_garmin_version() -> str | None:

@@ -126,6 +126,13 @@ class DeviceToken(Base):
     record_mode: Mapped[str | None] = mapped_column(String(8))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Canary der dynamischen Layouts: die Uhr setzt beim Aufnahme-Start ein Storage-Flag und
+    # löscht es beim sauberen Ende. Liegt es beim App-Start noch da, ist die letzte Session
+    # abgestürzt -> die Uhr fällt auf die statische Ansicht zurück UND meldet das hier beim
+    # nächsten Config-Abruf. Der Server zählt es je MODELL (s. WatchModelFlag) und liefert
+    # Layouts für dieses Modell dann per Default nicht mehr aus.
+    layout_canary_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    layout_canary_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="devices")
 
@@ -188,6 +195,26 @@ class Board(Base):
     length_cm: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class WatchModelFlag(Base):
+    """Feature-Zustand je UHRENMODELL (Katalog-ID, z. B. "fenix7xpro").
+
+    Selbstlernender Kill-Switch (Entscheidung Jan): Uhren melden einen ausgelösten Canary beim
+    nächsten Config-Abruf; sind es ZWEI VERSCHIEDENE Uhren desselben Modells, liefert der Server
+    dynamische Layouts für dieses Modell per Default nicht mehr aus. Diese Tabelle hält NUR den
+    manuellen Override (`layouts_allowed`: True = erzwingen, False = sperren, NULL = automatisch),
+    die Zählung kommt live aus `DeviceToken.layout_canary_count` — so gibt es keine doppelte
+    Buchführung, die auseinanderlaufen kann.
+    """
+
+    __tablename__ = "watch_model_flags"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    model_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    layouts_allowed: Mapped[bool | None] = mapped_column(Boolean)
+    note: Mapped[str | None] = mapped_column(String(200))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class WatchLayout(Base):
