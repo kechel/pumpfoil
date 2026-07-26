@@ -41,6 +41,10 @@ export default defineConfig({
         // verzögerte die SW-Installation/-Aktivierung bei jedem Update (langes „Laden"). Bilder
         // kommen bei Bedarf über runtimeCaching (static-img, unten).
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // Das App-Bundle hat 2026-07-26 die Workbox-Standardgrenze von 2 MiB überschritten →
+        // Build brach ab und der SW wäre ohne App-Shell ausgeliefert worden (kein Offline).
+        // Grenze hochgezogen; TODO bleibt: das Bundle per Code-Splitting kleiner machen.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/media/],

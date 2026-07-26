@@ -280,9 +280,24 @@ für taugliche Uhren anbietet und in der richtigen Form zeichnet.
     absichtlich keine Keys und fallen auf Englisch zurück: genau das rendert die Uhr auch (keine
     CJK-Glyphen). Der bestehende 3-Slot-`WatchPreview` in `Account.tsx` nutzt jetzt dieselbe Quelle
     (vorher hartcodiert deutsch). Dazu die API-Bindings in `web/src/lib/api.ts`.
-  - **P1b Editor + P1c Galerie offen:** Editor-Seite (Drag-Positionierung, Eigenschaften-Panel,
-    Umschalter Feldnamen ↔ Beispieldaten, Uhrengrößen-Umschalter, Overflow-Warnung) und
-    Community-Galerie.
+  - **P1b Editor — ERLEDIGT 2026-07-26:** `components/LayoutPreview.tsx` rendert ein Layout
+    formgetreu (round / rect / semioctagon per `clip-path`), mit Hintergrundfarbe, allen sechs
+    Element-Typen, Ausrichtung, Palette-Farben und dem Umschalter **Feldnamen ↔ Beispieldaten**.
+    Seite **`/layouts`** listet die eigenen Layouts je Kategorie (neu anlegen, kopieren,
+    veröffentlichen/zurückziehen, löschen) mit Badges „entworfen für", „enthält eigene Texte",
+    „Kopie". Editor **`/layouts/:id`**: Elemente per **Ziehen** platzieren (Pointer-Events →
+    0…1000-Skala, funktioniert auch auf Touch), Eigenschaften-Panel (Datenfeld, Größenstufe,
+    Palette-Farbe, Ausrichtung, „Farbe nach Wert", Freitext, Linien-Endpunkt), Hintergrundfarbe,
+    Kategorie, Uhrengrößen-Umschalter (12 Größen inkl. Instinct-Semioctagon, Apple, Wear) und
+    **Warnblock**: Überlauf gegen die kleinste Uhr (176×176, Textbreite grob geschätzt) plus
+    Zeichen, die die Built-in-Fonts nicht können. Beim Speichern werden `authored_w/h/shape` auf die
+    gewählte Uhrengröße gesetzt — die Größe ist also Prüfwerkzeug UND Entstehungs-Angabe, kein
+    zweiter Datensatz. Jede Seite sagt deutlich, dass die **Uhr die Layouts noch nicht zeigt**.
+    Nebenbefund beim Build-Gate: das App-Bundle riss die Workbox-Grenze von 2 MiB → Build brach ab
+    und der SW wäre ohne App-Shell rausgegangen. Grenze in `vite.config.ts` hochgezogen; das Bundle
+    per Code-Splitting zu verkleinern ist als TODO notiert.
+  - **P1c Galerie offen:** Community-Galerie (`/layouts/community`) mit Vorschau in der eigenen
+    Uhr-Größe (umschaltbar auf die Autoren-Größe), Filtern und Kopieren.
 - **P2:** Garmin-Renderer + Gating + Sicherheitsnetz.
 - **P3:** Wear OS + Apple Watch.
 
