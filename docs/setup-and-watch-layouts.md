@@ -580,6 +580,16 @@ für Nutzer steht (26.07.).
     (Örnis fēnix 5 bei 25 Hz). Umstellen erst mit Belegen von echter Hardware — bis dahin ist es ein
     bewusster Opt-in-Test, den der Canary absichert.
 
+  - **F2 P2 RELEASED — Garmin 1.0.66 live im Connect-IQ-Store (2026-07-26 abends).** Von Jan auf der
+    echten fēnix aus dem Store bestätigt („sieht super duper aus auf meiner garmin!!"). Damit erledigt:
+    `appmeta.garmin.latest` 1.0.66, `watch/bin` neu gebaut (121 ok / 0 fehlgeschlagen, Katalog
+    durchgehend 1.0.66, Direkt-Download gegen `/api/app/latest` + `/api/app/devices` + `download/
+    fenix7xpro` geprüft), Changelog-Eintrag geschrieben und der überholte Satz „Watches don't show
+    these layouts yet" im Vormittags-Eintrag ersetzt.
+    **Offen als Ideen, nicht gebaut:** Karussell-/Raster-Ansicht der Galerie, Warnung bei sich
+    überlappenden Elementen (nur Displayrand wird geprüft), „letzte Änderung gewinnt" zwischen Uhr und
+    Server (Skizze oben), „Änderungen des Autors übernehmen"-Abo für Kopien (`copied_from_id` ist da).
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
