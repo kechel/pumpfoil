@@ -64,12 +64,53 @@ shape (round|rect), bg_color, elements, published, copied_from_id, created_at, u
 **Ein Layout = eine Seite.** Die Seitenliste des Nutzers ist eine Mischung aus klassischen
 3-Slot-Views und Advanced-Layouts → Wischen bleibt unverändert.
 
+### Vorschau auf echten Uhren-Größen (Entscheidung Jan)
+Die Vorschau/Platzierung ist auf **Uhren-Größe + Form umschaltbar** — man baut das Layout also für
+die Uhr, die man wirklich trägt, und kann gegenprüfen, wie es auf anderen wirkt.
+
+**Datenlage (geprüft 2026-07-26):**
+- **Garmin: vollständig vorhanden** — `watch/bin/catalog.json` (aus dem SDK erzeugt,
+  `watch/build-all.sh:52-89`) liefert je Gerät `w`/`h` + `family` (= Form). Verteilung: **108 round,
+  8 semioctagon** (Instinct-Klasse!), **5 rectangle**, 2 unbekannt. Auflösungen **176×176 … 454×454**,
+  häufigste 240×240 (36 Geräte), dann 390×390 (22). Ausgeliefert via `GET /api/app/devices`
+  (`server/app/main.py:101-111`). TODO nebenbei: die 2 Einträge mit `w/h = null` (fehlende
+  `compiler.json` im Build-Dir) reparieren; `memoryLimit` mit aufnehmen (s. Geräte-Gating).
+- **Apple Watch + Wear OS: keine Daten im Repo.** Statt Modell-Listen zu pflegen (Apple ~9 Größen,
+  Wear Wildwuchs, jährlich neue) **meldet die Uhr ihre Maße selbst** beim Config-Abruf — analog zur
+  heute schon gemeldeten `part_number` (`server/app/api/devices.py:73-84`, Query `?v=&p=&pn=`).
+  Neue Felder auf `DeviceToken`: `screen_w`, `screen_h`, `shape (round|rect|semioctagon)`.
+  Alle drei Plattformen können das liefern: Apple `WKInterfaceDevice.screenBounds`, Wear
+  DisplayMetrics, Garmin `dc.getWidth/getHeight`. Immer korrekt, auch für künftige Modelle,
+  null Pflegeaufwand.
+
+**Editor-Geräteauswahl:** zuerst die **eigenen gepairten Uhren** (echte Maße/Form aus `DeviceToken`,
+über `/api/devices/list` ausgeliefert), dazu generische Größen als Fallback (Garmin aus dem Katalog;
+für Apple/Wear eine kleine Auswahl gängiger Größen, bis eine Uhr ihre Maße gemeldet hat). Da die
+Koordinaten relativ (0…1000) sind, skalieren Layouts automatisch — die Auswahl ist ein **Prüf- und
+Formwerkzeug**, kein zweiter Datensatz.
+
+**Overflow-Warnung:** der Editor prüft das Layout gegen die **kleinste relevante Größe** (176×176,
+Instinct-Klasse) und warnt, wenn Werte/Labels kollidieren oder rauslaufen — Textbreiten und
+Font-Stufen unterscheiden sich zwischen 176×176 und 454×454 drastisch.
+
 **Vorschau mit Umschalter** (Entscheidung Jan): die Editor-/Galerie-Vorschau kann zwischen
 **Feldnamen** (Struktur-Ansicht — beim Anordnen sieht man, welches Feld wo liegt) und
 **Beispieldaten** (realistische Werte wie `34,2 km/h`, `142 bpm`, `1:12:44` → zeigt, wie es im
 Einsatz wirklich aussieht, inkl. Textbreiten und Farb-Buckets) umschalten. Mock-Werte gibt es schon:
 `web/src/pages/Account.tsx:465-478` (`WatchPreview` + Farb-Buckets) — von dort übernehmen, damit
 Editor, Galerie-Vorschau und bestehende Mini-Vorschau dieselbe Quelle nutzen.
+
+**Vorschau in der Sprache des Nutzers** (Entscheidung Jan) — deckt eine bestehende Lücke auf:
+- Die Uhr zieht ihre Feld-Labels **lokalisiert** aus `watch/source/Strings.mc` (Keys `f.*`,
+  13 Sprachen), die Web-UI nutzt dagegen **hartcodierte deutsche** Labels
+  (`web/src/lib/fields.ts:3-26`) — betrifft heute schon die Dropdowns im einfachen Views-Editor.
+  → `fields.ts` auf i18n-Keys umstellen und die **kurzen Uhr-Formulierungen** übernehmen
+  (`km/h Ø`, `letzter Lauf`, …), nicht längere Web-Wordings. Sonst lügt die Vorschau bei den
+  Textbreiten und die Overflow-Warnung ist wertlos.
+- **Fallback-Wahrheit zeigen:** Garmin kann **ja/zh nicht darstellen** (keine CJK-Glyphen in den
+  Built-in-Fonts, s. Kommentar in `Strings.mc:10-13`) und weicht auf System-/Englisch aus; der
+  Lite-Build (96-KB-Uhren) ist **immer Englisch**. Die Vorschau muss also die Sprache anzeigen, die
+  die Uhr **tatsächlich** rendern würde — inkl. kurzem Hinweis, wenn das nicht die Profilsprache ist.
 
 **Element-Format kompakt** — `[typ, x, y, size, color, flags]`, Trennlinien als eigener Typ mit
 2 Punkten. **Keine Dicts mit String-Keys**: die Uhr cached das Server-JSON im Object Store
