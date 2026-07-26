@@ -549,6 +549,13 @@ für Nutzer steht (26.07.).
     Server-Änderung die jüngere und sticht die lokale Wahl. Bewusst KEIN Uhrzeit-Vergleich zwischen
     Uhr und Server (zwei unabhängige Uhren, Offline-Fälle).
 
+  - **P2h Jans Testrunde bestätigt (fenix7xpro, 2026-07-26):** mehrere Sessions gestartet/beendet,
+    Schalter in allen drei Zuständen bespielt („funktioniert"), klassische Labels sitzen richtig,
+    Trennlinien frei positioniert inkl. vier verschieden gefärbter Diagonalen („geht auch perfekt").
+    **Offen bleibt:** FR 255S (218×218, kleinste taugliche — Überlauf-Verhalten), Off-Foil-/Pausen-
+    Screen aus einem Custom-Layout, und der Store-Weg für 1.0.66 (Einreichung + appmeta-Bump +
+    Changelog-Eintrag: alles Jans Entscheidung, nichts davon vorwegnehmen).
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
