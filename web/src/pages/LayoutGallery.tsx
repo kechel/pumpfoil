@@ -22,7 +22,10 @@ export default function LayoutGallery() {
   const [sizeId, setSizeId] = useState("g240");
   const [ownSize, setOwnSize] = useState<{ w: number; h: number; shape: WatchShape; label: string } | null>(null);
   const [showData, setShowData] = useState(true);
-  const [asAuthor, setAsAuthor] = useState<Record<number, boolean>>({});
+  // EIN Schalter für die ganze Liste (Jan: „das sollte nur ein einziger umschalter ueber der ganzen
+  // liste sein") — pro Karte war es Unsinn: man will die Liste einheitlich vergleichen, nicht jede
+  // Karte einzeln umstellen.
+  const [asAuthor, setAsAuthor] = useState(false);
   const [copied, setCopied] = useState<number[]>([]);
   const [err, setErr] = useState("");
 
@@ -53,7 +56,7 @@ export default function LayoutGallery() {
   }
 
   const card = (l: WatchLayout) => {
-    const mine = asAuthor[l.id] !== true;
+    const mine = !asAuthor;
     const w = mine ? size.w : l.authored_w || size.w;
     const h = mine ? size.h : l.authored_h || size.h;
     const sh = (mine ? size.shape : (l.authored_shape as WatchShape) || size.shape) as WatchShape;
@@ -76,17 +79,6 @@ export default function LayoutGallery() {
             {(l.copies ?? 0) > 0 && <span className="text-slate-400">{t("lay.copies", { n: l.copies ?? 0 })}</span>}
             {l.has_freetext && <span className="text-amber-700 dark:text-amber-300">{t("lay.hasFreetext")}</span>}
           </div>
-          {/* NUR die Vorschau-Größe: aus = in der Größe DEINER Uhr, an = in der Displaygröße/Form,
-              auf der der Autor es entworfen hat. Hat nichts mit dem Kopieren zu tun — eine Kopie ist
-              immer eine unabhängige Momentaufnahme, sie folgt dem Original nicht (Jan fragte genau
-              das: „anpassungen immer uebernehmen vs. eigene unabhaengige kopie"). Der alte Text
-              „wie der Autor es entworfen hat" legte diese Deutung nahe. */}
-          <label className="mt-2 inline-flex items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" checked={asAuthor[l.id] === true}
-              onChange={(e) => setAsAuthor((m) => ({ ...m, [l.id]: e.target.checked }))}
-              className="h-4 w-4 accent-brand-500" />
-            {t("lay.asAuthor")}
-          </label>
         </div>
         <div className="shrink-0">
           {copied.includes(l.id) ? (
@@ -132,6 +124,14 @@ export default function LayoutGallery() {
           <input type="checkbox" checked={showData} onChange={(e) => setShowData(e.target.checked)}
             className="h-4 w-4 accent-brand-500" />
           {t("lay.showData")}
+        </label>
+        {/* Vorschau-Größe für die GANZE Liste: aus = Größe der eigenen Uhr (Standard, so sieht man,
+            was es für einen selbst wäre), an = Displaygröße/Form des Autors. Sagt nichts über das
+            Kopieren — eine Kopie ist immer eine unabhängige Momentaufnahme. */}
+        <label className="inline-flex items-center gap-2 text-sm text-slate-300">
+          <input type="checkbox" checked={asAuthor} onChange={(e) => setAsAuthor(e.target.checked)}
+            className="h-4 w-4 accent-brand-500" />
+          {t("lay.asAuthor")}
         </label>
       </div>
       {ownSize && <p className="mb-4 text-sm text-slate-400">{t("lay.ownWatchNote", { name: ownSize.label })}</p>}
