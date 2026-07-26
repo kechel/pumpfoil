@@ -168,6 +168,14 @@ export interface SessionSummary {
   track_preview?: string | null;
   foil_id?: number | null;
   foil?: { id: number; brand: string; model: string; size: string; span_cm?: number; area_cm2?: number; thickness_mm?: number; thickness_estimated?: boolean; aspect_ratio: number | null; is_default?: boolean } | null;
+  // Aufgeloestes restliches Setup (Stab/Mast/Shim/Board) — je Komponente sagt *_is_default,
+  // ob der Wert von den Nutzer-Standards geerbt ist oder fuer diese Session explizit gesetzt.
+  setup?: {
+    stab?: { id: number; brand: string; model: string; size: string; span_cm: number | null; area_cm2: number | null; specs_estimated?: boolean; is_default?: boolean };
+    mast_len_cm?: number; mast_is_default?: boolean;
+    shim_deg?: number; shim_is_default?: boolean;
+    board?: { id: number; name: string; volume_l: number | null; length_cm: number | null; is_default?: boolean };
+  } | null;
   transfer_to?: string | null;   // offene Übertragung an diesen Empfänger (eigene Liste)
   analysis: Analysis | null;
 }
@@ -746,7 +754,8 @@ export const api = {
     req(`/api/sessions/${id}/videos/${videoId}`, { method: "DELETE" }),
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
   inProgress: () => req<InProgressSession[]>("/api/sessions/in-progress"),
-  updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null }) =>
+  updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null;
+    stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",
       body: JSON.stringify(patch),

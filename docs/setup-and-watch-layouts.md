@@ -35,7 +35,21 @@ Board nur mit Eigentümer-Prüfung); `GET /api/stabs` + `/api/stabs/brands`; Boa
 (`GET/POST/PUT/DELETE /api/boards`); Session-Meta-Patch akzeptiert alle vier; `setup`-Block in der
 Session-Ausgabe mit `*_is_default`-Flags. Live gegen alle Endpunkte verifiziert (inkl.
 Müll-/Clamping-/Dedupe-Fälle und Fremd-Board → null); Testdaten wieder entfernt.
-**Offen für F1:** Stab-Katalog-Daten (Recherche-Probe) + PWA-Seite `/setup` + FoilSelect-Erweiterung.
+**Status F1-PWA — ERLEDIGT 2026-07-26:** Seite **`/setup`** (`web/src/pages/Setup.tsx`, Route
+`/setup`), verlinkt per rechtsbündigem Button auf Höhe der „Meine Foils"-Überschrift. Mast + Shim
+als Chip-Listen (Klick = Standard, `×` = entfernen; Komma **oder** Punkt als Dezimaltrenner; die UI
+übernimmt die Server-Antwort, zeigt also das validierte Ergebnis). Boards anlegen/löschen. Stabs mit
+Suche + Markenfilter, fehlende Maße werden benannt, Geschätztes trägt ein Badge.
+**`FoilSelect`** (Session-Detail) zeigt/ändert jetzt Foil **+ Stab + Mast + Shim + Board**;
+Auswahlfelder erscheinen nur für Komponenten, die der Nutzer eingerichtet hat (Badge-Zeile bleibt
+schlank), Fremde sehen Chips. Leere Auswahl = Nutzer-Standard (geerbt) — live verifiziert über die
+`*_is_default`-Flags (geerbt ↔ explizit ↔ zurück).
+
+**Anzeige-Konvention (Jan):** immer **Marke + Modell + Größe** ausschreiben, auch in Auswahllisten
+(z. B. „GONG Stab Trail L"). Die Namen sind eindeutig genug — es braucht keine Maß-Abnahme.
+
+**Offen für F1:** Stab-Katalog auf alle Marken ausbauen (Bezeichnungen vollständig, Maße nur wo
+dokumentiert; **GONG mit Größen S/M/L/XL** unbedingt dabei — fährt Jan selbst).
 
 - **Neue Seite `/setup`** („Detailed Setup"), verlinkt per rechtsbündigem Button auf Höhe der
   Überschrift „Meine Foils" (`web/src/pages/Foils.tsx:87-93` → Flex-Wrapper um das `h2`).
