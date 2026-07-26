@@ -490,7 +490,10 @@ function ViewsEditor() {
         )}
         {options.length === 0 && (
           <p className="mt-2 text-sm text-slate-400">
-            {t("account.noLayoutsYet")} <Link to="/layouts" className="text-brand-700 hover:underline dark:text-brand-300">{t("account.toLayouts")} →</Link>
+            {t("account.noLayoutsYet")}{" "}
+            <Link to="/layouts" className="text-brand-700 hover:underline dark:text-brand-300">{t("account.toLayouts")} →</Link>
+            {" · "}
+            <Link to="/layouts/community" className="text-brand-700 hover:underline dark:text-brand-300">{t("lay.toCommunity")} →</Link>
           </p>
         )}
       </div>
@@ -502,11 +505,19 @@ function ViewsEditor() {
     <Card className="mt-5 p-5">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">{t("account.viewsTitle")}</h3>
-        {/* Einstieg in die frei positionierbaren Layouts (bisher nur per URL erreichbar). */}
-        <Link to="/layouts"
-          className="rounded-xl bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700">
-          {t("account.toLayouts")} →
-        </Link>
+        {/* Einstieg in die frei positionierbaren Layouts — BEIDE Wege sichtbar: eigene bauen und
+            fertige von anderen holen. Jan suchte die Galerie hier und fand nur „eigenen Screen
+            hinzufügen", also war sie faktisch versteckt. */}
+        <div className="flex flex-wrap gap-2">
+          <Link to="/layouts/community"
+            className="rounded-xl bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700">
+            {t("lay.toCommunity")} →
+          </Link>
+          <Link to="/layouts"
+            className="rounded-xl bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700">
+            {t("account.toLayouts")} →
+          </Link>
+        </div>
       </div>
       <p className="mb-3 text-sm text-slate-300">
         {t("account.viewsDesc")}
