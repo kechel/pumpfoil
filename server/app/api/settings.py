@@ -99,6 +99,18 @@ def _clean_view3(v) -> list | None:
     return out or None
 
 
+def _visible_stab_ids(db: Session, user: models.User, ids: set[int | None]) -> set[int]:
+    """Von diesen Stab-IDs die auswählbaren: globaler Katalog + eigene Einträge."""
+    wanted = {int(i) for i in ids if i is not None}
+    if not wanted:
+        return set()
+    from sqlalchemy import or_
+    rows = db.query(models.Stab.id).filter(
+        models.Stab.id.in_(wanted),
+        or_(models.Stab.user_id.is_(None), models.Stab.user_id == user.id)).all()
+    return {i for (i,) in rows}
+
+
 @router.get("")
 def get_settings(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     m = _merged(user)
@@ -156,10 +168,13 @@ def update_settings(
         current["my_foils"] = sorted(mf)
     # --- Restliches Setup (Stab / Mast / Shim / Board), je 1:1 wie Foils ---
     if "my_stabs" in patch and isinstance(patch["my_stabs"], list):
-        current["my_stabs"] = sorted({int(x) for x in patch["my_stabs"] if isinstance(x, (int, float))})
+        ids = {int(x) for x in patch["my_stabs"] if isinstance(x, (int, float))}
+        current["my_stabs"] = sorted(_visible_stab_ids(db, user, ids))
     if "stab_id" in patch:
         v = patch["stab_id"]
-        current["stab_id"] = int(v) if isinstance(v, (int, float)) else None
+        sid = int(v) if isinstance(v, (int, float)) else None
+        # Nur Katalog oder EIGENER Eintrag (fremde private Bezeichnungen sind nicht wählbar).
+        current["stab_id"] = sid if sid in _visible_stab_ids(db, user, {sid}) else None
     ms = set(current.get("my_stabs") or [])
     if current.get("stab_id"):   # Default impliziert Mitgliedschaft (wie beim Foil)
         ms.add(int(current["stab_id"]))

@@ -94,12 +94,10 @@ export interface Foil {
   aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
 }
 
-// Stabilizer (Rear Wing) — Katalog wie Foils, aber Maße sind oft nicht dokumentiert:
-// span_cm/area_cm2 dürfen fehlen, specs_estimated markiert Geschätztes.
+// Stabilizer (Rear Wing) — NUR die Bezeichnung („GONG Stab Trail L"); Maße pflegen wir nicht,
+// es rechnet nichts damit. is_own = eigener, privater Eintrag (nicht im globalen Katalog).
 export interface Stab {
-  id: number; brand: string; model: string; size: string;
-  span_cm: number | null; area_cm2: number | null;
-  specs_estimated?: boolean; aspect_ratio: number | null;
+  id: number; brand: string; model: string; size: string; is_own?: boolean;
 }
 
 // Board — kein Katalog, sondern eigene Einträge des Nutzers.
@@ -171,7 +169,7 @@ export interface SessionSummary {
   // Aufgeloestes restliches Setup (Stab/Mast/Shim/Board) — je Komponente sagt *_is_default,
   // ob der Wert von den Nutzer-Standards geerbt ist oder fuer diese Session explizit gesetzt.
   setup?: {
-    stab?: { id: number; brand: string; model: string; size: string; span_cm: number | null; area_cm2: number | null; specs_estimated?: boolean; is_default?: boolean };
+    stab?: { id: number; brand: string; model: string; size: string; is_default?: boolean };
     mast_len_cm?: number; mast_is_default?: boolean;
     shim_deg?: number; shim_is_default?: boolean;
     board?: { id: number; name: string; volume_l: number | null; length_cm: number | null; is_default?: boolean };
@@ -607,6 +605,10 @@ export const api = {
     return req<Stab[]>(`/api/stabs${s ? "?" + s : ""}`);
   },
   stabBrands: () => req<string[]>("/api/stabs/brands"),
+  // Eigene Bezeichnung anlegen (privat). Gibt es sie schon, kommt der bestehende Eintrag zurück.
+  stabCreate: (s: { brand: string; model: string; size: string }) =>
+    req<Stab>("/api/stabs", { method: "POST", body: JSON.stringify(s) }),
+  stabDelete: (id: number) => req<void>(`/api/stabs/${id}`, { method: "DELETE" }),
   boards: () => req<Board[]>("/api/boards"),
   boardCreate: (b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>
     req<Board>("/api/boards", { method: "POST", body: JSON.stringify(b) }),

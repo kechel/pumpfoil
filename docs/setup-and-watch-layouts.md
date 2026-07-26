@@ -14,7 +14,7 @@ nicht ganze Kombis.
 
 | Komponente | Katalog | Nutzer-Auswahl (`users.settings_json`) | Session-Override |
 |---|---|---|---|
-| Stab | neue Tabelle `stabs` + `server/app/data/stabs.json` (brand/model/size, span_cm/area_cm2 wo auffindbar, `*_estimated`-Flag wie bei Foils) | `my_stabs[]`, `stab_id` | `Session.stab_id` |
+| Stab | Tabelle `stabs` + `server/app/data/stabs.json` — **nur Bezeichnung** (brand/model/size); `user_id` NULL = allgemeine Liste, gesetzt = privater Eintrag des Nutzers | `my_stabs[]`, `stab_id` | `Session.stab_id` |
 | Mast | keiner (keine Modelle) — nur Länge cm | `my_masts[]` (z. B. `[75, 85]`), `mast_len_cm` | `Session.mast_len_cm` |
 | Shim | keiner — nur Gradzahl, 1 Dezimale (`+2`, `+1.5`, `0`, `-0.5`) | `my_shims[]`, `shim_deg` | `Session.shim_deg` |
 | Board | kein Katalog (Recherche-Aufwand ≫ Nutzen) → eigene Einträge: Name + optional Volumen/Länge | **Tabelle `boards`** (user-eigene Zeilen) + `board_id` als Default | `Session.board_id` |
@@ -26,8 +26,7 @@ Spalten statt verschachteltem JSON. In den Settings steht nur noch der **Default
 ein `my_boards[]` braucht es nicht, weil die Tabelle bereits pro Nutzer ist. Beim Löschen eines
 Boards werden referenzierende Sessions auf „Standard" zurückgesetzt und ein etwaiger Default geleert.
 
-**Status F1-Server-Layer — ERLEDIGT 2026-07-26:** Modelle `Stab` (Katalog, span/area **nullable** +
-`specs_estimated`, weil Stab-Maße oft nicht dokumentiert sind) und `Board`; Session-Spalten
+**Status F1-Server-Layer — ERLEDIGT 2026-07-26:** Modelle `Stab` und `Board`; Session-Spalten
 `stab_id`/`mast_len_cm`/`shim_deg`/`board_id` (je NULL = Nutzer-Standard) inkl. Migration;
 Settings-Keys `my_stabs`/`stab_id`/`my_masts`/`mast_len_cm`/`my_shims`/`shim_deg`/`board_id` mit
 Validierung (Mast 30–130 cm, Shim −5…+5° auf 1 Dezimale, Dedupe, Default impliziert Mitgliedschaft,
@@ -39,17 +38,30 @@ Müll-/Clamping-/Dedupe-Fälle und Fremd-Board → null); Testdaten wieder entfe
 `/setup`), verlinkt per rechtsbündigem Button auf Höhe der „Meine Foils"-Überschrift. Mast + Shim
 als Chip-Listen (Klick = Standard, `×` = entfernen; Komma **oder** Punkt als Dezimaltrenner; die UI
 übernimmt die Server-Antwort, zeigt also das validierte Ergebnis). Boards anlegen/löschen. Stabs mit
-Suche + Markenfilter, fehlende Maße werden benannt, Geschätztes trägt ein Badge.
+Suche + Markenfilter; eigene Bezeichnungen anlegen/löschen (Marke/Modell/Größe).
 **`FoilSelect`** (Session-Detail) zeigt/ändert jetzt Foil **+ Stab + Mast + Shim + Board**;
 Auswahlfelder erscheinen nur für Komponenten, die der Nutzer eingerichtet hat (Badge-Zeile bleibt
 schlank), Fremde sehen Chips. Leere Auswahl = Nutzer-Standard (geerbt) — live verifiziert über die
 `*_is_default`-Flags (geerbt ↔ explizit ↔ zurück).
 
-**Anzeige-Konvention (Jan):** immer **Marke + Modell + Größe** ausschreiben, auch in Auswahllisten
-(z. B. „GONG Stab Trail L"). Die Namen sind eindeutig genug — es braucht keine Maß-Abnahme.
+**Anzeige-Konvention (Jan, 2026-07-26 nachgeschärft):** immer **Marke + Modell + Größe**
+ausschreiben, auch in Auswahllisten (z. B. „GONG Stab Trail L") — **und sonst nichts.** Die
+Größenbezeichnung ist herstellereigen: GONGs S/M/L ist *nicht* die Schaftlänge, sondern die
+Kombination aus Schaftlänge und Fläche (abgestimmt auf die gleichnamigen Trail-Foils L/XL/XXL).
+Deshalb wird sie **wörtlich übernommen und nie umgerechnet oder interpretiert**. Maße (span/area)
+pflegen wir gar nicht mehr: es rechnet nichts damit, und geraten wäre schlechter als weglassen.
+Die Spalten bleiben in der DB, werden aber nicht mehr geseedet/angezeigt.
 
-**Offen für F1:** Stab-Katalog auf alle Marken ausbauen (Bezeichnungen vollständig, Maße nur wo
-dokumentiert; **GONG mit Größen S/M/L/XL** unbedingt dabei — fährt Jan selbst).
+**Status F1-Bezeichnungen — ERLEDIGT 2026-07-26:** `stabs.json` enthält nur noch Bezeichnungen
+(GONG Stab Trail S/M/L + Sabfoil/AXIS/North wie recherchiert). Fehlt eine Bezeichnung, legt der
+Nutzer sie über `POST /api/stabs` **privat** an (`Stab.user_id`) — sichtbar nur für ihn, fremde
+private Einträge sind weder in der Liste noch als Default/Session-Override wählbar (409 bei
+gleichlautender Bezeichnung, weil die Variante DB-weit eindeutig ist). Gute private Einträge
+übernehmen wir später von Hand in die allgemeine Liste bzw. recherchieren dann gezielt nach.
+`DELETE /api/stabs/{id}` nur für eigene Einträge; referenzierende Sessions und ein etwaiger Default
+fallen auf „Standard" zurück. Live verifiziert (Sichtbarkeit, 409, Fremd-ID → null, Delete-Cleanup).
+Nebenbefund: der Seeder lief in 4 Workern in `uq_stab_variant` → `IntegrityError` wird jetzt
+abgefangen (Worker-Rennen, harmlos).
 
 - **Neue Seite `/setup`** („Detailed Setup"), verlinkt per rechtsbündigem Button auf Höhe der
   Überschrift „Meine Foils" (`web/src/pages/Foils.tsx:87-93` → Flex-Wrapper um das `h2`).
@@ -63,7 +75,7 @@ dokumentiert; **GONG mit Größen S/M/L/XL** unbedingt dabei — fährt Jan selb
 - `PUT /api/settings` ist eine **Whitelist** (`server/app/api/settings.py:86-186`) — unbekannte Keys
   werden still verworfen. Alle neuen Keys müssen dort ergänzt + validiert werden.
 - `_seed_foils()` (`server/app/db.py:101-132`) **aktualisiert bestehende Zeilen nicht**, nur Inserts.
-  Der Stab-Seeder wird mit Update-Fähigkeit gebaut (sonst greifen Korrekturen in Prod nie).
+  Der Stab-Seeder macht es genauso — es gibt nichts zu korrigieren, weil nur Bezeichnungen drinstehen.
 - Migration: kein Alembic → `ALTER TABLE … ADD COLUMN IF NOT EXISTS` in `server/app/db.py:43-92`;
   neue Tabellen kommen über `Base.metadata.create_all`.
 

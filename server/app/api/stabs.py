@@ -1,12 +1,20 @@
-"""Stabilizer-/Rear-Wing-Katalog (Stammdaten) — read-only, Aufbau wie api/foils.py.
+"""Stabilizer-/Rear-Wing-Bezeichnungen — Katalog + eigene Einträge.
 
-Anders als bei Foils sind die Maße oft nicht dokumentiert: span_cm/area_cm2 dürfen fehlen,
-`specs_estimated` markiert geschätzte Werte (UI kennzeichnet das). Rein informativ — es wird
-nichts damit gerechnet (die Analyse nutzt auch die Foil-Geometrie nicht).
+Absichtlich nur Marke/Modell/Größe: genau die Bezeichnung, die der Nutzer auswählt und angezeigt
+bekommt („GONG Stab Trail L"). Es wird nichts damit gerechnet (die Analyse nutzt auch die
+Foil-Geometrie nicht), deshalb pflegen wir keine Maße.
+
+`Stab.user_id` NULL = globaler Katalog (geseedet, sichtbar für alle). Gesetzt = privater Eintrag
+dieses Nutzers — die Hersteller-Landschaft ist zu groß, um auf einen vollständigen Katalog zu
+warten. Gute private Einträge übernehmen wir später von Hand in den globalen Katalog.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -16,29 +24,37 @@ from .deps import current_user
 router = APIRouter(prefix="/api/stabs", tags=["stabs"])
 
 
+class StabIn(BaseModel):
+    brand: str = Field(min_length=1, max_length=60)
+    model: str = Field(min_length=1, max_length=80)
+    size: str = Field(default="", max_length=20)
+
+
 def _out(s: models.Stab) -> dict:
-    # Aspect Ratio nur, wenn beide Maße vorliegen (sonst null — kein Raten).
-    ar = round((s.span_cm ** 2) / s.area_cm2, 2) if (s.span_cm and s.area_cm2) else None
     return {
         "id": s.id, "brand": s.brand, "model": s.model, "size": s.size,
-        "span_cm": s.span_cm, "area_cm2": s.area_cm2,
-        "specs_estimated": bool(s.specs_estimated),
-        "aspect_ratio": ar,
+        "is_own": s.user_id is not None,
     }
+
+
+def _visible(db: Session, user: models.User):
+    """Globaler Katalog + eigene Einträge (fremde private Einträge bleiben unsichtbar)."""
+    return db.query(models.Stab).filter(
+        or_(models.Stab.user_id.is_(None), models.Stab.user_id == user.id))
 
 
 @router.get("")
 def list_stabs(
     q: str | None = Query(None), brand: str | None = Query(None),
-    _user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Katalog (optional gefiltert nach Freitext q und/oder Marke)."""
-    query = db.query(models.Stab)
+    """Auswahlliste (optional gefiltert nach Freitext q und/oder Marke)."""
+    query = _visible(db, user)
     if brand:
         query = query.filter(models.Stab.brand == brand)
     if q:
         like = f"%{q.lower()}%"
-        from sqlalchemy import func, or_
+        from sqlalchemy import func
         query = query.filter(or_(
             func.lower(models.Stab.brand).like(like),
             func.lower(models.Stab.model).like(like),
@@ -48,5 +64,58 @@ def list_stabs(
 
 
 @router.get("/brands")
-def brands(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[str]:
-    return [b for (b,) in db.query(models.Stab.brand).distinct().order_by(models.Stab.brand).all()]
+def brands(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[str]:
+    rows = _visible(db, user).with_entities(models.Stab.brand).distinct().order_by(models.Stab.brand).all()
+    return [b for (b,) in rows]
+
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+def create_stab(
+    body: StabIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Bezeichnung anlegen. Gibt es die Variante schon (Katalog oder eigene), kommt
+    genau diese zurück — kein Duplikat (die Variante ist DB-weit eindeutig)."""
+    brand, model, size = body.brand.strip(), body.model.strip(), body.size.strip()
+    if not brand or not model:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Marke und Modell sind nötig")
+    dupe = db.query(models.Stab).filter(
+        models.Stab.brand == brand, models.Stab.model == model, models.Stab.size == size).first()
+    if dupe is not None:
+        # Fremder privater Eintrag mit gleicher Bezeichnung: nicht verraten, aber auch nicht
+        # kollidieren lassen -> als Treffer behandeln wäre falsch, also 409.
+        if dupe.user_id not in (None, user.id):
+            raise HTTPException(status.HTTP_409_CONFLICT, "Bezeichnung bereits vergeben")
+        return _out(dupe)
+    s = models.Stab(user_id=user.id, brand=brand, model=model, size=size)
+    db.add(s)
+    db.commit()
+    db.refresh(s)
+    return _out(s)
+
+
+@router.delete("/{stab_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_stab(
+    stab_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> None:
+    """Nur eigene Einträge. Sessions, die darauf zeigen, verlieren die Zuordnung (NULL)."""
+    s = db.get(models.Stab, stab_id)
+    if s is None or s.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nicht gefunden")
+    # Sessions, die darauf zeigen, auf „Standard" zurücksetzen (FK sauber halten).
+    db.query(models.Session).filter_by(stab_id=stab_id).update({"stab_id": None})
+    if user.settings_json:
+        try:
+            st = json.loads(user.settings_json) or {}
+        except ValueError:
+            st = {}
+        touched = False
+        if st.get("stab_id") == stab_id:
+            st["stab_id"] = None
+            touched = True
+        if stab_id in (st.get("my_stabs") or []):
+            st["my_stabs"] = [x for x in st["my_stabs"] if x != stab_id]
+            touched = True
+        if touched:
+            user.settings_json = json.dumps(st)
+    db.delete(s)
+    db.commit()

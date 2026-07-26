@@ -206,10 +206,9 @@ def _resolve_setup(db: Session, s: models.Session) -> dict | None:
     if stab_id:
         stab = db.get(models.Stab, int(stab_id))
         if stab is not None:
+            # Nur die Bezeichnung — Maße pflegen wir bei Stabs nicht (nichts rechnet damit).
             out["stab"] = {
                 "id": stab.id, "brand": stab.brand, "model": stab.model, "size": stab.size,
-                "span_cm": stab.span_cm, "area_cm2": stab.area_cm2,
-                "specs_estimated": bool(stab.specs_estimated),
                 "is_default": s.stab_id is None,
             }
     mast = s.mast_len_cm if s.mast_len_cm is not None else st.get("mast_len_cm")
@@ -1370,8 +1369,11 @@ def set_meta(
     # Restliches Setup je Session — je null = zurück auf den Standard des Nutzers.
     if "stab_id" in body.model_fields_set:
         sid = body.stab_id or None
-        if sid is not None and db.get(models.Stab, sid) is None:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekannter Stab")
+        if sid is not None:
+            # Katalog (user_id NULL) oder EIGENER Eintrag — fremde private Bezeichnungen nicht.
+            stab = db.get(models.Stab, sid)
+            if stab is None or stab.user_id not in (None, user.id):
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekannter Stab")
         s.stab_id = sid
     if "board_id" in body.model_fields_set:
         bid = body.board_id or None

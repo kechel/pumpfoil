@@ -160,6 +160,10 @@ class Stab(Base):
     __table_args__ = (UniqueConstraint("brand", "model", "size", name="uq_stab_variant"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # NULL = globaler Katalog (geseedet). Gesetzt = EIGENER Eintrag dieses Nutzers: die
+    # Hersteller-Landschaft ist zu groß und ändert sich jährlich, deshalb kann jeder seinen
+    # Stab selbst benennen (wie bei den Boards) statt auf den Katalog zu warten.
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True)
     brand: Mapped[str] = mapped_column(String(60), index=True)
     model: Mapped[str] = mapped_column(String(80))
     size: Mapped[str] = mapped_column(String(20))

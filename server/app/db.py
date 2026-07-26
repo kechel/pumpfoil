@@ -70,6 +70,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS share_token VARCHAR(64)",
+        # Eigene Stab-Einträge (user_id NULL = globaler Katalog) — die Hersteller-Landschaft ist
+        # zu groß/volatil für einen vollständigen Katalog, jeder darf seinen Stab selbst benennen.
+        "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",
@@ -140,11 +143,12 @@ def _seed_foils() -> None:
 
 
 def _seed_stabs() -> None:
-    """Stab-Katalog aus app/data/stabs.json befüllen.
+    """Stab-Katalog aus app/data/stabs.json befüllen (nur Bezeichnungen).
 
-    Anders als `_seed_foils` werden bestehende Zeilen AKTUALISIERT (Maße korrigieren sich beim
-    Nachrecherchieren; bei Foils greifen Korrekturen in Prod bis heute nicht). Schlüssel bleibt
-    die Variante (brand/model/size). span_cm/area_cm2 dürfen fehlen -> NULL.
+    Bewusst NUR Marke/Modell/Größe — genau die Bezeichnung, die der Nutzer auswählt und angezeigt
+    bekommt (z. B. „GONG Stab Trail L"). Maße werden nirgends verrechnet, also pflegen wir sie
+    auch nicht; fehlt eine Bezeichnung im Katalog, legt der Nutzer sie sich privat selbst an
+    (`Stab.user_id`). Idempotent je Variante wie `_seed_foils`.
     """
     import json
     from pathlib import Path
@@ -156,22 +160,23 @@ def _seed_stabs() -> None:
         f = Path(__file__).parent / "data" / "stabs.json"
         if not f.exists():
             return
-        rows = {(x.brand, x.model, x.size): x for x in db.query(models.Stab).all()}
-        changed = 0
+        existing = {(x.brand, x.model, x.size) for x in db.query(
+            models.Stab.brand, models.Stab.model, models.Stab.size).all()}
+        added = 0
         for r in json.loads(f.read_text()):
             key = (r["brand"], r["model"], r["size"])
-            span, area = r.get("span_cm"), r.get("area_cm2")
-            est = bool(r.get("specs_estimated"))
-            cur = rows.get(key)
-            if cur is None:
-                db.add(models.Stab(brand=key[0], model=key[1], size=key[2],
-                                   span_cm=span, area_cm2=area, specs_estimated=est))
-                changed += 1
-            elif (cur.span_cm, cur.area_cm2, bool(cur.specs_estimated)) != (span, area, est):
-                cur.span_cm, cur.area_cm2, cur.specs_estimated = span, area, est
-                changed += 1
-        if changed:
-            db.commit()
+            if key in existing:
+                continue
+            db.add(models.Stab(brand=key[0], model=key[1], size=key[2]))
+            added += 1
+        if added:
+            # 4 uvicorn-Worker seeden gleichzeitig -> der Zweite läuft in uq_stab_variant.
+            # Kein Fehler: die Zeilen sind dann schon da, also einfach verwerfen.
+            from sqlalchemy.exc import IntegrityError
+            try:
+                db.commit()
+            except IntegrityError:
+                db.rollback()
     finally:
         db.close()
 

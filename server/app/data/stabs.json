@@ -1,21 +1,25 @@
 [
-  {"brand": "Sabfoil", "model": "Flat", "size": "325", "span_cm": 32.5, "area_cm2": 155},
-  {"brand": "Sabfoil", "model": "Flat", "size": "370", "span_cm": 37.0, "area_cm2": 195},
-  {"brand": "Sabfoil", "model": "Flat", "size": "425", "span_cm": 42.5, "area_cm2": 266},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "355", "span_cm": 36.0, "area_cm2": 160},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "375", "span_cm": 38.0, "area_cm2": 178},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "395", "span_cm": 40.0, "area_cm2": 198},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "380", "span_cm": 38.0, "area_cm2": 180},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "430", "span_cm": 43.0, "area_cm2": 240},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "480", "span_cm": 48.0, "area_cm2": 285},
+  {"brand": "GONG", "model": "Stab Trail", "size": "S"},
+  {"brand": "GONG", "model": "Stab Trail", "size": "M"},
+  {"brand": "GONG", "model": "Stab Trail", "size": "L"},
 
-  {"brand": "AXIS", "model": "Freeride", "size": "400/90", "span_cm": 40.0, "area_cm2": 291.18},
-  {"brand": "AXIS", "model": "Freeride", "size": "500/90", "span_cm": 50.0, "area_cm2": 360.77},
+  {"brand": "Sabfoil", "model": "Flat", "size": "325"},
+  {"brand": "Sabfoil", "model": "Flat", "size": "370"},
+  {"brand": "Sabfoil", "model": "Flat", "size": "425"},
+  {"brand": "Sabfoil", "model": "Reverse", "size": "355"},
+  {"brand": "Sabfoil", "model": "Reverse", "size": "375"},
+  {"brand": "Sabfoil", "model": "Reverse", "size": "395"},
+  {"brand": "Sabfoil", "model": "Gullwing", "size": "380"},
+  {"brand": "Sabfoil", "model": "Gullwing", "size": "430"},
+  {"brand": "Sabfoil", "model": "Gullwing", "size": "480"},
 
-  {"brand": "North", "model": "Sonar", "size": "S178", "area_cm2": 178, "specs_estimated": true},
-  {"brand": "North", "model": "Sonar", "size": "S208", "area_cm2": 208, "specs_estimated": true},
-  {"brand": "North", "model": "Sonar", "size": "S210", "area_cm2": 210, "specs_estimated": true},
-  {"brand": "North", "model": "Sonar", "size": "S215", "area_cm2": 215, "specs_estimated": true},
-  {"brand": "North", "model": "Sonar", "size": "S270", "area_cm2": 270, "specs_estimated": true},
-  {"brand": "North", "model": "Sonar", "size": "S320", "area_cm2": 320, "specs_estimated": true}
+  {"brand": "AXIS", "model": "Freeride", "size": "400/90"},
+  {"brand": "AXIS", "model": "Freeride", "size": "500/90"},
+
+  {"brand": "North", "model": "Sonar", "size": "S178"},
+  {"brand": "North", "model": "Sonar", "size": "S208"},
+  {"brand": "North", "model": "Sonar", "size": "S210"},
+  {"brand": "North", "model": "Sonar", "size": "S215"},
+  {"brand": "North", "model": "Sonar", "size": "S270"},
+  {"brand": "North", "model": "Sonar", "size": "S320"}
 ]

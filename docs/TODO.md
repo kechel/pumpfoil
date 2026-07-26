@@ -130,7 +130,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   (Apple-Decoder, Garmin-Fonts, Speicher-Tiers), dreistufiges Sicherheitsnetz (On-Watch-Schalter +
   Canary-Selbstheilung + Server-Kill-Switch), Phasen P0–P3. **P0 ist ein kleiner Vorab-Gewinn:**
   `pauseView` im einfachen 3-Slot-System konfigurierbar machen (heute auf allen 4 Plattformen
-  hartcodiert). Offen: Stab-Recherche-Umfang, Reihenfolge, Chrome abschaltbar.
+  hartcodiert). Stand: **P0 erledigt** (bis auf Garmin-Client), **F1 erledigt** (Server + `/setup` +
+  `FoilSelect` + Stab-Bezeichnungen inkl. eigener privater Einträge). Offen: F2 P1 (Layout-Editor +
+  Community-Galerie, ohne Uhr-Änderung), Chrome abschaltbar.
 - **fenix5/128-KB unter Dauerlast: OOM bei langer Session + großem Upload** (2026-07-25, Feld-Feedback
   Örni, fenix5, App 1.0.64): NICHT der (gefixte) Startup-OOM. Voller Modus crasht über eine aktive
   Session (Accel-Chunk ~12 KB base64 + HTTP/JSON peaken auf 128 KB); GPS-only lief laut Örni deutlich

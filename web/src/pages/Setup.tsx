@@ -27,6 +27,8 @@ export default function Setup() {
   const [newMast, setNewMast] = useState("");
   const [newShim, setNewShim] = useState("");
   const [newBoard, setNewBoard] = useState({ name: "", volume_l: "", length_cm: "" });
+  const [newStab, setNewStab] = useState({ brand: "", model: "", size: "" });
+  const [stabErr, setStabErr] = useState("");
 
   useEffect(() => {
     api.stabs().then(setStabs).catch(() => setStabs([]));
@@ -64,6 +66,27 @@ export default function Setup() {
   }
   function setStabDefault(id: number) {
     save({ my_stabs: myStabs.includes(id) ? myStabs : [...myStabs, id], stab_id: stabId === id ? null : id });
+  }
+  // Fehlt eine Bezeichnung im Katalog: selbst anlegen (privat, nur für mich sichtbar) und
+  // direkt zu „meine Stabs" hinzufügen. Gute Einträge übernehmen wir später global.
+  function addStab() {
+    const brand = newStab.brand.trim(), model = newStab.model.trim();
+    if (!brand || !model) return;
+    api.stabCreate({ brand, model, size: newStab.size.trim() }).then((s) => {
+      setStabs((list) => (list?.some((x) => x.id === s.id) ? list : [...(list ?? []), s]));
+      setBrands((bs) => (bs.includes(s.brand) ? bs : [...bs, s.brand].sort()));
+      setNewStab({ brand: "", model: "", size: "" });
+      setStabErr("");
+      save({ my_stabs: myStabs.includes(s.id) ? myStabs : [...myStabs, s.id] });
+    }).catch(() => setStabErr(t("setup.stabAddErr")));
+  }
+  function delStab(s: Stab) {
+    if (!confirm(t("setup.stabDelConfirm"))) return;
+    api.stabDelete(s.id).then(() => {
+      setStabs((list) => (list ?? []).filter((x) => x.id !== s.id));
+      setMyStabs((ids) => ids.filter((x) => x !== s.id));
+      if (stabId === s.id) setStabId(null);
+    }).catch(() => {});
   }
 
   // --- Masten / Shims (reine Werte, kein Katalog) ---
@@ -131,16 +154,7 @@ export default function Setup() {
       <Card key={s.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
         <div className="min-w-0">
           <div className="font-semibold">{s.brand} {s.model} <span className="text-slate-400">{s.size}</span></div>
-          <div className="text-sm text-slate-400">
-            {s.area_cm2 != null ? `${s.area_cm2} cm²` : t("setup.noSpecs")}
-            {s.span_cm != null && ` · ${s.span_cm} cm`}
-            {s.aspect_ratio != null && ` · AR ${s.aspect_ratio}`}
-            {s.specs_estimated && (
-              <span className="ml-1 rounded bg-amber-500/15 px-1 text-sm text-amber-700 dark:text-amber-300" title={t("setup.estimatedHint")}>
-                {t("foils.estimated")}
-              </span>
-            )}
-          </div>
+          {s.is_own && <div className="text-sm text-slate-400">{t("setup.ownStab")}</div>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => setStabDefault(s.id)} title={t("setup.setDefault")}
@@ -151,6 +165,12 @@ export default function Setup() {
             className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${isMine ? "bg-slate-700 text-slate-100" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
             {isMine ? t("foils.remove") : t("foils.add")}
           </button>
+          {s.is_own && (
+            <button onClick={() => delStab(s)}
+              className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700">
+              {t("common.deleteLower")}
+            </button>
+          )}
         </div>
       </Card>
     );
@@ -247,9 +267,28 @@ export default function Setup() {
         </div>
       </Card>
 
-      {/* Stabs (Katalog) */}
+      {/* Stabs (Katalog + eigene Bezeichnungen) */}
       <h3 className="mb-1 font-semibold">{t("setup.stabTitle")}</h3>
       <p className="mb-3 text-sm text-slate-400">{t("setup.stabDesc")}</p>
+
+      {/* Nicht im Katalog? Selbst anlegen (privat). */}
+      <Card className="mb-4 p-4">
+        <p className="mb-2 text-sm text-slate-300">{t("setup.stabAddHint")}</p>
+        <div className="flex flex-wrap gap-2">
+          <input value={newStab.brand} onChange={(e) => setNewStab({ ...newStab, brand: e.target.value })}
+            placeholder={t("setup.stabBrandPlaceholder")}
+            className="w-32 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+          <input value={newStab.model} onChange={(e) => setNewStab({ ...newStab, model: e.target.value })}
+            placeholder={t("setup.stabModelPlaceholder")}
+            className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+          <input value={newStab.size} onChange={(e) => setNewStab({ ...newStab, size: e.target.value })}
+            placeholder={t("setup.stabSizePlaceholder")}
+            className="w-24 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+          <Button onClick={addStab} className="text-sm">{t("setup.addValue")}</Button>
+        </div>
+        {stabErr && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{stabErr}</p>}
+      </Card>
+
       <div className="mb-4 flex flex-wrap gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("foils.search")}
           className="min-w-[12rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
