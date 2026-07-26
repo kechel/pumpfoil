@@ -64,6 +64,13 @@ shape (round|rect), bg_color, elements, published, copied_from_id, created_at, u
 **Ein Layout = eine Seite.** Die Seitenliste des Nutzers ist eine Mischung aus klassischen
 3-Slot-Views und Advanced-Layouts → Wischen bleibt unverändert.
 
+**Vorschau mit Umschalter** (Entscheidung Jan): die Editor-/Galerie-Vorschau kann zwischen
+**Feldnamen** (Struktur-Ansicht — beim Anordnen sieht man, welches Feld wo liegt) und
+**Beispieldaten** (realistische Werte wie `34,2 km/h`, `142 bpm`, `1:12:44` → zeigt, wie es im
+Einsatz wirklich aussieht, inkl. Textbreiten und Farb-Buckets) umschalten. Mock-Werte gibt es schon:
+`web/src/pages/Account.tsx:465-478` (`WatchPreview` + Farb-Buckets) — von dort übernehmen, damit
+Editor, Galerie-Vorschau und bestehende Mini-Vorschau dieselbe Quelle nutzen.
+
 **Element-Format kompakt** — `[typ, x, y, size, color, flags]`, Trennlinien als eigener Typ mit
 2 Punkten. **Keine Dicts mit String-Keys**: die Uhr cached das Server-JSON im Object Store
 (`SessionRecorder.setScreensFromConfig`), und Object-Store-Volllauf ist ein bekannter Fehlerpfad.
@@ -80,8 +87,14 @@ alle Auflösungen und Formen tragfähig; im Katalog: 108 round, 5 rectangle, 8 s
 - **Kontrast**: heute geht die Uhr von dunklem Grund aus (Werte weiß, Labels hellgrau,
   `colorByValue`-Buckets ebenso). Editor warnt bei schlechtem Kontrast; Default-Hintergrund bleibt
   schwarz (= heutiges Verhalten).
-- **Chrome**: REC-Punkt (`h*0.085`) und Seiten-Punkte (`h*0.92`) kollidieren mit freier
-  Positionierung → als reservierte Zone modellieren **oder** abschaltbar (→ offene Frage).
+- **Chrome sind normale Elemente** (Entscheidung Jan): der **REC-Punkt + „REC"** (heute fix
+  `h*0.085`, `RecordView.mc:136-139`) und die **Seiten-Punkte** (heute fix `h*0.92`,
+  `RecordView.mc:128-133`) werden **eigene Element-Typen** — also genauso frei **verschiebbar,
+  einfärbbar und löschbar** wie Felder/Linien. Kein Sonderfall „reservierte Zone" im Editor.
+  **Neue Layouts werden mit beiden vorbelegt**, an den heutigen Positionen → sieht per Default aus
+  wie bisher, kann aber komplett umgebaut oder entfernt werden (z. B. für einen bildschirmfüllenden
+  Speed-Wert). Die Seiten-Punkte bleiben dabei dynamisch (Anzahl = Seitenzahl); gespeichert werden
+  nur Position + Farbe.
 
 ### Sicherheitsnetz (dreistufig) — Voraussetzung für den Rollout
 1. **Schalter auf der Uhr** (Einstellungs-Menü: „Dynamische Layouts An/Aus"). Muss **ohne
@@ -117,7 +130,13 @@ für taugliche Uhren anbietet und in der richtigen Form zeichnet.
 
 ---
 
+## Entschieden (2026-07-26)
+- **Reihenfolge:** P0 (`pauseView` konfigurierbar) → F1 (Setup) → F2 P1 (Editor + Community).
+  Risikoarm zuerst; P0 testet den Config-Pfad, den F2 P2 später braucht.
+- **Chrome** = normale, verschiebbare/einfärbbare/löschbare Elemente, in neuen Layouts vorbelegt.
+- **Vorschau-Umschalter** Feldnamen ↔ Beispieldaten.
+- **Recherche-Vorgehen** (gilt generell): bei tiefen Recherchen erst 2-3 Marken als Probe, Jan prüft
+  Format/Quellen/Unsicherheiten, dann skalieren. Geschätzte Werte immer als geschätzt markieren.
+
 ## Offene Entscheidungen
-1. **Stab-Recherche:** erst ~5 große Marken als Qualitätsprobe (Jan prüft), dann die restlichen 20?
-2. **Reihenfolge:** Feature 1 (Setup) zuerst oder Feature 2 (Layouts, P0 vorab)?
-3. **Chrome im Advanced-Layout** (REC-Punkt + Seiten-Punkte) abschaltbar oder feste reservierte Zone?
+- keine mehr — bereit zur Umsetzung (F2 P2 = Uhren-Renderer braucht Jans Simulator-Tests).
