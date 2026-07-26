@@ -969,6 +969,11 @@ export interface PairedDevice {
   model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
   record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
   low_accel: boolean;         // FR55 & Co.: 'full' wird automatisch auf 'lite' gekappt
+  // Displaymaße/Form aus dem Build-Katalog (nur Garmin; Apple/Wear melden sie noch nicht) —
+  // damit die Layout-Vorschau die ECHTE Größe dieser Uhr nutzen kann.
+  screen_w?: number | null;
+  screen_h?: number | null;
+  shape?: string | null;
 }
 
 export interface AppDevice {

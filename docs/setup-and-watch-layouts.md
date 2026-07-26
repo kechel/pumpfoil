@@ -296,8 +296,20 @@ für taugliche Uhren anbietet und in der richtigen Form zeichnet.
     Nebenbefund beim Build-Gate: das App-Bundle riss die Workbox-Grenze von 2 MiB → Build brach ab
     und der SW wäre ohne App-Shell rausgegangen. Grenze in `vite.config.ts` hochgezogen; das Bundle
     per Code-Splitting zu verkleinern ist als TODO notiert.
-  - **P1c Galerie offen:** Community-Galerie (`/layouts/community`) mit Vorschau in der eigenen
-    Uhr-Größe (umschaltbar auf die Autoren-Größe), Filtern und Kopieren.
+  - **P1c Galerie — ERLEDIGT 2026-07-26:** `/layouts/community` (Route VOR `layouts/:id`) zeigt
+    veröffentlichte Layouts mit Autor, `copies`-Zähler, „enthält eigene Texte"-Badge und
+    Entstehungs-Größe. Vorschau **standardmäßig in der Größe der eigenen Uhr**, je Karte umschaltbar
+    auf „wie der Autor es entworfen hat"; Filter Kategorie/Form + Größen-Umschalter sind Komfort,
+    kopieren darf man jedes Layout. Dafür liefert `/api/devices/list` jetzt `screen_w`/`screen_h`/
+    `shape` mit — aufgelöst über `part_number` → `partmap.json` → `catalog.json` (`family` →
+    round/rect/semioctagon). Damit ist die im Design offene Frage „woher kennt die PWA die Maße der
+    Uhr?" für **Garmin** beantwortet; Apple/Wear melden ihre Maße weiterhin nicht (dort greift die
+    Größen-Auswahl), das bleibt für P3.
+    Live verifiziert: Galerie-Sichtbarkeit erst nach `publish`, Filter, Kopieren durch einen anderen
+    Nutzer, `copies`-Zähler, SPA-Route. Testdaten wieder entfernt.
+
+**F2 P1 ist damit abgeschlossen** (Server + PWA vollständig, KEINE Uhr-Änderung). Changelog-Eintrag
+für Nutzer steht (26.07.).
 - **P2:** Garmin-Renderer + Gating + Sicherheitsnetz.
 - **P3:** Wear OS + Apple Watch.
 

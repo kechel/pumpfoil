@@ -1350,6 +1350,22 @@ const de: Record<string, string> = {
   "lay.addLine": "Linie",
   "lay.addRec": "REC",
   "lay.addDots": "Punkte",
+
+  "lay.toCommunity": "Layouts der Community",
+  "lay.galleryTitle": "Layouts der Community",
+  "lay.galleryHint": "Veröffentlichte Layouts anderer ansehen und ins eigene Profil kopieren. Die Vorschau nutzt standardmäßig die Größe deiner Uhr — kopieren kannst du jedes Layout, auch wenn es für eine andere Größe oder Form entworfen wurde (die Positionen sind relativ).",
+  "lay.byAuthor": "von {name}",
+  "lay.copies": "{n}× kopiert",
+  "lay.asAuthor": "wie der Autor es entworfen hat",
+  "lay.copyToMine": "In mein Profil kopieren",
+  "lay.copiedGoto": "Kopiert — zu meinen Layouts",
+  "lay.allCats": "Alle Kategorien",
+  "lay.allShapes": "Alle Formen",
+  "lay.shape.round": "rund",
+  "lay.shape.rect": "rechteckig",
+  "lay.shape.semioctagon": "Instinct (abgeflacht)",
+  "lay.ownWatchNote": "Vorschau in der Größe deiner Uhr ({name}).",
+  "lay.galleryEmpty": "Noch nichts veröffentlicht. Veröffentliche dein Layout — dann sehen es die anderen hier.",
 };
 
 export default de;

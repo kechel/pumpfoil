@@ -170,6 +170,7 @@ def list_devices(
     )
     latest_garmin = _latest_garmin_version()
     pm = _partmap()
+    cat = _catalog_by_id()
     udefault = "full"
     if user and user.settings_json:
         try:
@@ -195,6 +196,11 @@ def list_devices(
             "update_available": update,
             "model": model["name"] if model else None,
             "model_id": model["id"] if model else None,   # für /api/app/download/<id>
+            # Displaymaße/Form (nur Garmin, aus dem Build-Katalog) — die PWA nutzt sie, um
+            # Uhr-Layouts in der echten Größe dieser Uhr vorzuschauen.
+            "screen_w": (cat.get(model["id"]) or {}).get("w") if model else None,
+            "screen_h": (cat.get(model["id"]) or {}).get("h") if model else None,
+            "shape": _shape_from_family((cat.get(model["id"]) or {}).get("family")) if model else None,
             # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
             "record_mode": d.record_mode or udefault,
             # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
@@ -233,6 +239,33 @@ def _partmap() -> dict:
     except Exception:  # noqa: BLE001
         pass
     return {}
+
+
+def _catalog_by_id() -> dict:
+    """Geräte-ID -> Katalog-Eintrag (watch/bin/catalog.json, aus dem SDK erzeugt).
+    Liefert u. a. `w`/`h`/`family` — damit kann die PWA Layouts in der ECHTEN Displaygröße
+    der gepairten Uhr vorschauen. Frisch gelesen, damit Rebuilds sofort greifen."""
+    try:
+        p = get_settings().app_builds_dir / "catalog.json"
+        if p.exists():
+            return {d["id"]: d for d in json.loads(p.read_text()) if d.get("id")}
+    except Exception:  # noqa: BLE001
+        pass
+    return {}
+
+
+def _shape_from_family(family: str | None) -> str | None:
+    """Katalog-`family` (z. B. "round-240x240", "semi-octagon-176x176") -> unsere Formen."""
+    if not family:
+        return None
+    f = family.lower()
+    if "semi" in f or "octagon" in f:
+        return "semioctagon"
+    if "rect" in f:
+        return "rect"
+    if "round" in f:
+        return "round"
+    return None
 
 
 def _latest_garmin_version() -> str | None:

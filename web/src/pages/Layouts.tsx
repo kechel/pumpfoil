@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, Spinner } from "../components/ui";
 import { LayoutPreview } from "../components/LayoutPreview";
-import { ChevronIcon, WatchIcon } from "../components/Icons";
+import { ChevronIcon, WatchIcon, CommunityIcon } from "../components/Icons";
 import { PREVIEW_SIZES, defaultElements } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -97,6 +97,9 @@ export default function Layouts() {
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <WatchIcon className="h-5 w-5 text-brand-400" /> {t("lay.title")}
         </h2>
+        <Link to="/layouts/community" className="inline-flex items-center gap-1 text-sm text-brand-700 hover:underline dark:text-brand-300">
+          <CommunityIcon className="h-4 w-4" /> {t("lay.toCommunity")}
+        </Link>
       </div>
       <p className="mb-4 text-sm text-slate-300">{t("lay.hint")}</p>
       <label className="mb-5 inline-flex items-center gap-2 text-sm text-slate-300">

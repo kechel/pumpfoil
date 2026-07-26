@@ -1293,6 +1293,22 @@ const en: Record<string, string> = {
   "lay.addLine": "Line",
   "lay.addRec": "REC",
   "lay.addDots": "Dots",
+
+  "lay.toCommunity": "Community layouts",
+  "lay.galleryTitle": "Community layouts",
+  "lay.galleryHint": "Browse layouts other riders published and copy them into your own profile. The preview uses your watch size by default \u2014 you can copy any layout, even one designed for a different size or shape (positions are relative).",
+  "lay.byAuthor": "by {name}",
+  "lay.copies": "copied {n}\u00d7",
+  "lay.asAuthor": "as the author designed it",
+  "lay.copyToMine": "Copy to my profile",
+  "lay.copiedGoto": "Copied \u2014 go to my layouts",
+  "lay.allCats": "All categories",
+  "lay.allShapes": "All shapes",
+  "lay.shape.round": "round",
+  "lay.shape.rect": "rectangular",
+  "lay.shape.semioctagon": "Instinct (flat edge)",
+  "lay.ownWatchNote": "Preview in your watch\u2019s size ({name}).",
+  "lay.galleryEmpty": "Nothing published yet. Publish your layout \u2014 then others will see it here.",
 };
 
 export default en;

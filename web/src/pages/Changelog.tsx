@@ -30,6 +30,15 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 26, 2026",
+    items: [
+      "Build your own watch screens: under Watch layouts you can now place values, labels, separator lines, the REC dot and the page dots anywhere on the screen — pick a size step, a colour, the background colour and the watch shape. Preview it with sample data or field names, in your own language, and switch between watch sizes to check it fits (there\u2019s a warning if something would run off the smallest screens). Watches don\u2019t show these layouts yet — support lands in a coming update, and your current 3-field views keep working exactly as before.",
+      "Share layouts with the community: publish one of yours, browse what other riders published, and copy any of them into your own profile to adapt. The preview shows a layout in your watch\u2019s size, so you see right away what it would look like for you.",
+      "Detailed setup per session: next to your foil you can now also record your stabiliser, mast length, shim angle and board — each one separately, with one default and an override per session (most days you only swap the stab or the shim). Pick your stab by name; if it\u2019s missing you can add the name yourself.",
+      "The pause screen is configurable: choose which three values the watch shows while you\u2019re waiting between runs (it used to be fixed). Set it under Watch \u203a Data views.",
+    ],
+  },
+  {
     date: "July 25, 2026",
     items: [
       "Garmin watch app 1.0.64 (live in the Connect IQ store): fixed the app crashing on startup (the “IQ!” error) on watches with less memory. On the fēnix 5 / quatix 5, fēnix 6 / 6S, fēnix Chronos, Enduro, Forerunner 55 / 245 / 645 / 935, Instinct E, Venu Sq and vívoactive 3 the full app runs again. The most memory-constrained watches — Instinct 2 / 2S / 2X, Instinct Crossover and Descent G1 — now run a streamlined version (GPS recording only, English, no on-watch menus) so they stay within their tighter memory. If your watch was affected, just update to 1.0.64.",
