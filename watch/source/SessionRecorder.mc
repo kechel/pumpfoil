@@ -366,6 +366,10 @@ class SessionRecorder {
     }
     // null = „Automatisch" (Server entscheidet), sonst die feste Wahl des Nutzers.
     (:full) function layoutsAuto() { return layoutsPref == null; }
+    // Nur ein AUSDRÜCKLICHES „an" auf der Uhr fordert Layouts an (nicht „Automatisch"): sonst
+    // bekäme jede knappe Uhr das Paket, obwohl niemand danach gefragt hat.
+    (:full) hidden function _layoutsRequested() { return layoutsPref == true; }
+    (:lite) hidden function _layoutsRequested() { return false; }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
     hidden function _normView(v) {
@@ -497,6 +501,10 @@ class SessionRecorder {
             // Layouts dort ab, sobald zwei verschiedene Uhren desselben Modells gemeldet haben.
             var params = { "v" => Config.VERSION, "p" => "garmin", "pn" => pn };
             if (canaryPending) { params["canary"] = "1"; }
+            // Hat der Nutzer eigene Layouts am Handgelenk EINGESCHALTET, das mitsagen: bei knappen
+            // Uhren (128-KB-Klasse, z. B. fēnix 5) liefert der Server sie nur auf Anfrage aus.
+            // Ohne das zeigte die fēnix 5 trotz Umschalten nichts — das Paket kam nie an.
+            if (_layoutsRequested()) { params["lay"] = "1"; }
             Communications.makeWebRequest(
                 Config.baseUrl() + "/api/devices/config",
                 params,   // Version+Plattform+PartNo (+ Canary-Meldung)

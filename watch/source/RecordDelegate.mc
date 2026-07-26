@@ -181,6 +181,11 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             return Strings.s("common.auto") + " ("
                 + (_rec.layoutsWanted() ? Strings.s("common.on") : Strings.s("common.off")) + ")";
         }
+        if (_rec.layoutsWanted() && _rec.pages.size() == 0) {
+            // „An", aber der Server hat nichts geliefert (knappe Uhr, noch nicht nachgefragt, oder
+            // offline). Nicht „An" behaupten — das war genau Jans Befund auf der fēnix 5.
+            return Strings.s("common.on") + " (" + Strings.s("lay.none") + ")";
+        }
         return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
     }
     (:full) hidden function _addLayoutItem(menu) as Void {
@@ -338,6 +343,9 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         if (_rec.layoutsAuto()) {
             return Strings.s("common.auto") + " ("
                 + (_rec.layoutsWanted() ? Strings.s("common.on") : Strings.s("common.off")) + ")";
+        }
+        if (_rec.layoutsWanted() && _rec.pages.size() == 0) {
+            return Strings.s("common.on") + " (" + Strings.s("lay.none") + ")";
         }
         return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
     }

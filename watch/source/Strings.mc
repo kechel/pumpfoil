@@ -214,6 +214,9 @@ module Strings {
         if (key.equals("common.on"))     { return ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл", "Aan", "Päällä", "Zap"]; }
         // „Automatisch" = die Voreinstellung vom Server übernehmen (Dreizustand des
         // Layout-Schalters). Reihenfolge der Spalten wie überall: de gsw de-AT en fr it es pt id ru nl fi cs
+        // Schalter steht auf „an", der Server hat aber (noch) keine Layout-Seiten geliefert —
+        // ehrlich anzeigen statt „An" zu behaupten.
+        if (key.equals("lay.none"))      { return ["keine Seiten", "kei Site", "keine Seiten", "no pages", "aucune page", "nessuna pagina", "sin páginas", "sem páginas", "tidak ada", "нет страниц", "geen pagina's", "ei sivuja", "žádné strany"]; }
         if (key.equals("common.auto"))   { return ["Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático", "Automático", "Otomatis", "Авто", "Automatisch", "Automaattinen", "Automaticky"]; }
         if (key.equals("common.off"))    { return ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл", "Uit", "Pois", "Vyp"]; }
         if (key.equals("fm.title"))      { return ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал", "Foil & alarm", "Foil & hälytys", "Foil & alarm"]; }

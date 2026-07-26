@@ -67,6 +67,7 @@ def device_config(
     p: str | None = Query(None),   # Plattform: garmin | wear | apple
     pn: str | None = Query(None),  # Geräte-Part-Number (Garmin) -> später Modell-Zuordnung
     canary: int | None = Query(None),  # 1 = letzte Session mit dynamischem Layout ist abgestürzt
+    lay: int | None = Query(None),  # 1 = der Nutzer hat eigene Layouts AUF DER UHR eingeschaltet
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -124,9 +125,14 @@ def device_config(
     # Handgelenk (ausdrücklich Jan: „egal was der server sagt, an der uhr will ich es umstellen
     # koennen, nur bei app-start soll es auf den wert des servers einmal vorinitialisiert werden").
     # Ohne mitgeschickte Seiten hätte der Schalter nichts zum Anzeigen.
-    # Die Speichergrenze ist keine Politik, sondern Physik: unter 512 KB liefern wir nichts, und die
-    # 96-KB-Uhren haben den Renderer gar nicht im Build (Lite).
-    layout_capable = (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
+    # Speicher: ab 512 KB liefern wir ungefragt. Zwischen 128 und 512 KB nur, wenn die Uhr es
+    # ausdrücklich ANFORDERT (`lay=1`, gesetzt wenn der Nutzer den Schalter am Handgelenk auf „an"
+    # gestellt hat) — Jans fēnix 5 (128 KB) zeigte sonst trotz Umschalten nichts, weil das Paket nie
+    # ankam. So bleibt die Voreinstellung für diese Klasse sicher (sie ist die Absturz-anfällige,
+    # s. Örni/FR55), aber wer testen will, darf. Unter 128 KB ist es unmöglich: der Lite-Build hat
+    # den Renderer gar nicht drin.
+    _mem = (cat or {}).get("mem", 0)
+    layout_capable = _mem >= LAYOUT_MIN_MEMORY or (_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1)
     layout_block = _layouts_for_watch(db, device.user_id, settings) if layout_capable else {}
 
     return {
@@ -277,8 +283,11 @@ def _layout_state(db: Session, d: models.DeviceToken, stored: dict,
     user_opted_in = "layouts_enabled" in stored and bool(stored.get("layouts_enabled"))
     if "layouts_enabled" in stored and not stored.get("layouts_enabled"):
         return "off_user"
-    if (cat_entry or {}).get("mem", 0) < LAYOUT_MIN_MEMORY:
+    mem = (cat_entry or {}).get("mem", 0)
+    if mem < LAYOUT_MIN_ON_REQUEST:
         return "off_memory"
+    if mem < LAYOUT_MIN_MEMORY:
+        return "off_memory_optin"
     if int(d.layout_canary_count or 0) >= CANARY_BLOCK_AT and not user_opted_in:
         return "off_canary"
     if not _model_layouts_allowed(db, model_id, user_opted_in):
@@ -389,6 +398,10 @@ LAYOUT_MIN_MEMORY = 524288      # Bytes watchApp-Budget
 # die Uhr heilt einen Einzelfall selbst (eine Sitzung statisch), und ihre Meldung würde sie dann
 # dauerhaft aussperren. Ab 2 (Wiederholung) sieht es nach echtem Problem aus.
 CANARY_BLOCK_AT = 2
+# Ab diesem Budget darf eine Uhr Layouts ANFORDERN (`lay=1`), auch wenn wir sie nicht von selbst
+# ausliefern. 128 KB = die Klasse, in der der Renderer im Build steckt (kein Lite), aber der
+# Speicher knapp ist. Darunter (96 KB, Lite) existiert der Renderer nicht -> nichts anzufordern.
+LAYOUT_MIN_ON_REQUEST = 131072
 
 
 def _catalog_entry(part_number: str | None) -> dict | None:

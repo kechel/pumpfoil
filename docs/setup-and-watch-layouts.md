@@ -556,6 +556,24 @@ für Nutzer steht (26.07.).
     Screen aus einem Custom-Layout, und der Store-Weg für 1.0.66 (Einreichung + appmeta-Bump +
     Changelog-Eintrag: alles Jans Entscheidung, nichts davon vorwegnehmen).
 
+  - **P2i fēnix 5 / Instinct 2 getestet — zwei Befunde, beide gefixt (2026-07-26):**
+    - **Label lief in die Seiten-Punkte** (240 px, 3 Felder): `drawText` ohne VCENTER setzt die
+      Textkante OBEN an, also stand das Label mit seiner ganzen Fonthöhe in der Punktreihe bei
+      `h*0.92`. Jetzt Boden bei `h*0.92 − 5 − getFontHeight(lblFont)`; auf 280 px fiel es nie auf,
+      weil dort 26 px Luft bleiben, auf 176 px greift die Kappung ebenfalls.
+    - **Umschalten auf der Uhr zeigte nichts (fēnix 5, 128 KB):** der Server liefert das Layout-Paket
+      erst ab 512 KB, der Schalter hatte also nichts anzuzeigen. Neu: die Uhr **fordert** es an
+      (`lay=1` am `/config`, gesetzt nur bei ausdrücklichem „An", nicht bei „Automatisch"), und der
+      Server liefert ab `LAYOUT_MIN_ON_REQUEST` = 128 KB auf Anfrage. Voreinstellung für diese
+      Klasse bleibt aus (sie ist die absturzanfällige, s. Örni/FR55) — aber wer testen will, darf.
+      Unter 128 KB (Lite) ist es unmöglich, dort existiert der Renderer nicht.
+      Der Menüpunkt sagt jetzt auch „An (keine Seiten)", solange nichts geliefert wurde, statt „An"
+      zu behaupten; `/api/devices/list` unterscheidet `off_memory` (Lite, unmöglich) von
+      `off_memory_optin` (128–512 KB, per Uhr-Schalter möglich).
+    - Instinct 2 (96 KB, Lite) verhält sich wie vorgesehen: statisch, englisch, kein Layout-Menü.
+      Kosmetik-Notiz: auf dem Instinct-Display überdeckt das runde Teilfenster oben rechts einen Teil
+      des ersten Wertes — von Jan gesehen und als „passt" bewertet, nicht angefasst.
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",

@@ -409,13 +409,20 @@ class RecordView extends WatchUi.View {
         // NUMBER-Fonts die ZEILENhöhe inklusive Durchschuss (deutlich mehr als die Ziffernhöhe) —
         // damit landete das Label mitten im NÄCHSTEN Feld statt unter seinem eigenen Wert
         // (Jan im Simulator, zwei Anläufe: /2 klebte am Wert, *0,75 rutschte ins nächste Feld).
-        // Stattdessen geometrisch: 42 % der Slot-Höhe (bleibt im eigenen Feld), gekappt auf 12 %
+        // Stattdessen geometrisch: 33 % der Slot-Höhe (bleibt im eigenen Feld), gekappt auf 10 %
         // der Displayhöhe (sonst schwebt das Label bei nur einem Feld weit weg vom Wert).
         var hh = dc.getHeight();
         var slot = hh * 0.74 / n;
         var gap = slot * 0.33;
         if (gap > hh * 0.10) { gap = hh * 0.10; }
-        dc.drawText(cx, cy + gap, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
+        var y = cy + gap;
+        // Unterste Grenze: das Label darf die Seiten-Punkte (h*0.92, Radius 3) nicht berühren.
+        // `drawText` ohne VCENTER setzt die Textkante OBEN an, also die Fonthöhe einrechnen. Auf
+        // 240 px (fēnix 5, 3 Felder) lief das Label sonst genau in die Punktreihe — von Jan im
+        // Simulator gesehen; auf 280 px fiel es nicht auf, weil dort 26 px Luft bleiben.
+        var floorY = hh * 0.92 - 5 - dc.getFontHeight(lblFont);
+        if (_pageCount() > 1 && y > floorY) { y = floorY; }
+        dc.drawText(cx, y, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // ================================ Layout-Renderer =================================

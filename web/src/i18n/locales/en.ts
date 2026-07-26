@@ -1339,6 +1339,7 @@ const en: Record<string, string> = {
   "account.layoutsEnabledHint": "Off = your watches show the classic 3-field views. Only affects you; if one watch misbehaves you can also switch it off on the device (menu \u2192 Custom layouts).",
   "account.layoutState.off_user": "Custom layouts are switched off in your profile.",
   "account.layoutState.off_memory": "This watch does not have enough memory for custom layouts.",
+  "account.layoutState.off_memory_optin": "This watch is short on memory — custom layouts aren’t delivered automatically, but you can switch them on in the watch menu and try.",
   "account.layoutState.off_canary": "Off for this watch: it reported repeated crashes. Reset the counter, or deliberately set the switch above to “on”.",
   "account.layoutState.off_model": "We currently don't ship custom layouts to this watch model by default — you can still test it with the switch above.",
   "account.layoutState.off_nolayout": "You haven’t added a custom layout as a page yet — create one under “Watch layouts” and put it into your views.",
