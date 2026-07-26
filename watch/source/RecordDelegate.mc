@@ -170,11 +170,17 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Not-Aus für die dynamischen Layouts — Stufe 1 des Sicherheitsnetzes. MUSS ohne Handy und
     // ohne Server erreichbar sein: rein lokaler Storage-Schalter. Zeigt der Punkt „Aus", fährt
     // die Uhr die alte statische Logik, auch wenn der Server Layouts liefert.
+    (:full) hidden function _layoutState() as Lang.String {
+        // Nicht „An" behaupten, wenn faktisch statisch gefahren wird: nach einem Absturz sperrt die
+        // Selbstheilung diese Sitzung (Jan hatte genau das — Schalter „An", Layouts trotzdem weg).
+        // Auswählen hebt die Sperre bewusst wieder auf.
+        if (_rec.layoutsOffLocal) { return Strings.s("common.off"); }
+        if (_rec.layoutCrash) { return Strings.s("lay.fallback"); }
+        return Strings.s("common.on");
+    }
     (:full) hidden function _addLayoutItem(menu) as Void {
         menu.addItem(new WatchUi.MenuItem(
-            Strings.s("menu.layouts"),
-            _rec.layoutsOffLocal ? Strings.s("common.off") : Strings.s("common.on"),
-            :layouts, {}));
+            Strings.s("menu.layouts"), _layoutState(), :layouts, {}));
     }
     (:lite) hidden function _addLayoutItem(menu) as Void { }
 
@@ -324,7 +330,8 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
     }
     (:full) hidden function _toggleLayouts(item) as Void {
         _rec.toggleLayouts();
-        item.setSubLabel(_rec.layoutsOffLocal ? Strings.s("common.off") : Strings.s("common.on"));
+        item.setSubLabel(_rec.layoutsOffLocal ? Strings.s("common.off")
+                         : _rec.layoutCrash ? Strings.s("lay.fallback") : Strings.s("common.on"));
         WatchUi.requestUpdate();
     }
     (:lite) hidden function _toggleLayouts(item) as Void { }

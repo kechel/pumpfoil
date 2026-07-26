@@ -315,11 +315,27 @@ class SessionRecorder {
     (:lite) hidden function _applyLayouts(lay) { layoutsOn = false; }
 
     // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.
+    //
+    // Einschalten heißt „ich will es JETZT wieder probieren" (ausdrücklich Jan: „selbst dann darf
+    // ein user das gerne aktivieren und testen"). Also hebt es beides auf, was sonst noch sperrt:
+    //   * `layoutCrash` (Selbstheilung nach Absturz) gilt nur bis zum nächsten Start — eine
+    //     bewusste Nutzer-Entscheidung sticht das sofort. `canaryPending` bleibt: der Server soll
+    //     den Absturz trotzdem erfahren, das ist Statistik und keine Sperre.
+    //   * Ein `layoutsOn:false` im Cache, das aus einem früheren Start stammt (z. B. das Flag war
+    //     serverseitig noch gesetzt und ist inzwischen zurückgesetzt) — dafür frisch nachfragen.
+    //     Während einer laufenden Aufnahme blockt Garmin das Netz; dann greift weiter der Cache.
     (:full) function toggleLayouts() {
         layoutsOffLocal = !layoutsOffLocal;
         _store("layouts_off", layoutsOffLocal);
+        if (!layoutsOffLocal) {
+            layoutCrash = false;
+            layoutHintUntilMs = 0;
+        }
         var lc = Storage.getValue("layouts_config");
         if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); } else { layoutsOn = false; }
+        if (!layoutsOffLocal) {
+            try { fetchConfig(); } catch (e) {}
+        }
     }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
