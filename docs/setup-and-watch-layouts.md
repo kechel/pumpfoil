@@ -59,7 +59,19 @@ Hintergrundfarbe/Palette.
 
 ### Datenmodell
 Neue Tabelle `watch_layouts`: `id, user_id, name, category (on_foil|off_foil|pause),
-shape (round|rect), bg_color, elements, published, copied_from_id, created_at, updated_at`.
+shape (round|rect), bg_color, elements, published, copied_from_id, created_at, updated_at`
++ **Entstehungs-Display** `authored_w, authored_h, authored_shape` (Entscheidung Jan): auf welcher
+Displaygröße/Form das Layout **entworfen** wurde.
+
+**Der Entstehungs-Wert ist ein Hinweis, keine Schranke** (ausdrücklich Jan): In der Galerie kann man
+damit **filtern/sortieren** („passt zu meiner Uhr") und jedes Layout trägt ein Badge à la
+„entworfen für 240×240 rund". Aber **kopieren darf man jedes Layout** — auch von einer anderen
+Größe/Form — und es dann anpassen. Kein Gate, keine Pflicht. Da die Koordinaten relativ (0…1000)
+sind, rendert jedes Layout überall; die Größe sagt nur, wo es garantiert gut aussieht.
+
+**Galerie-Vorschau standardmäßig in der Größe der EIGENEN Uhr** (so sieht man sofort, was es für
+einen selbst bedeutet), umschaltbar auf „wie der Autor es entworfen hat" — nutzt denselben
+Größen-/Form-Umschalter wie der Editor.
 
 **Ein Layout = eine Seite.** Die Seitenliste des Nutzers ist eine Mischung aus klassischen
 3-Slot-Views und Advanced-Layouts → Wischen bleibt unverändert.
