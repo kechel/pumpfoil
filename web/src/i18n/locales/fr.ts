@@ -991,6 +991,29 @@ const fr: Record<string, string> = {
   "wx.today": "Aujourd'hui",
   "wx.tomorrow": "Demain",
   "wx.water": "Eau",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Temps",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h moy",
+  "fw.7": "km/h max",
+  "fw.8": "bpm moy",
+  "fw.9": "bpm max",
+  "fw.10": "m alt",
+  "fw.11": "°C",
+  "fw.12": "Heure",
+  "fw.13": "m ↑",
+  "fw.14": "Run",
+  "fw.15": "km Run",
+  "fw.16": "dernier run",
+  "fw.17": "km dernier",
+  "fw.18": "km/h moy dern.",
+  "fw.19": "km/h max dern.",
+  "fw.20": "Runs",
 };
 
 export default fr;

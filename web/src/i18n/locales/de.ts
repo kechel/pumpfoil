@@ -1265,6 +1265,29 @@ const de: Record<string, string> = {
   "guide.w.s4Title": "4. Aufnehmen:",
   "guide.w.s4": "App öffnen → Start → foilen → Stop. Offline-Aufnahme + automatischer Sync.",
 
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Zeit",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h Ø",
+  "fw.7": "km/h max",
+  "fw.8": "bpm Ø",
+  "fw.9": "bpm max",
+  "fw.10": "m Höhe",
+  "fw.11": "°C",
+  "fw.12": "Uhr",
+  "fw.13": "m ↑",
+  "fw.14": "Lauf",
+  "fw.15": "km Lauf",
+  "fw.16": "letzter Lauf",
+  "fw.17": "km letzter",
+  "fw.18": "km/h Ø letzt.",
+  "fw.19": "km/h max letzt.",
+  "fw.20": "Läufe",
 };
 
 export default de;

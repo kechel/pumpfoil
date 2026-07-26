@@ -1215,6 +1215,29 @@ const nl: Record<string, string> = {
   "guide.w.s4Title": "4. Opnemen:",
   "guide.w.s4": "App openen → start → foilen → stop. Offline opname + automatische sync.",
 
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Tijd",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h gem",
+  "fw.7": "km/h max",
+  "fw.8": "bpm gem",
+  "fw.9": "bpm max",
+  "fw.10": "m hgt",
+  "fw.11": "°C",
+  "fw.12": "Klok",
+  "fw.13": "m ↑",
+  "fw.14": "Run",
+  "fw.15": "km Run",
+  "fw.16": "laatste run",
+  "fw.17": "km laatste",
+  "fw.18": "km/h gem laatst",
+  "fw.19": "km/h max laatst",
+  "fw.20": "Runs",
 };
 
 export default nl;

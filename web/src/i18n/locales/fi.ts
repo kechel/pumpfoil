@@ -1180,6 +1180,29 @@ const fi: Record<string, string> = {
   "guide.w.s4Title": "4. Tallennus:",
   "guide.w.s4": "Avaa sovellus → Aloita → foilaa → Pysäytä. Offline-tallennus + automaattinen synkkaus.",
 
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Aika",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h ka",
+  "fw.7": "km/h maks",
+  "fw.8": "bpm ka",
+  "fw.9": "bpm maks",
+  "fw.10": "m kork",
+  "fw.11": "°C",
+  "fw.12": "Kello",
+  "fw.13": "m ↑",
+  "fw.14": "Veto",
+  "fw.15": "km Veto",
+  "fw.16": "viime veto",
+  "fw.17": "km viime",
+  "fw.18": "km/h ka viim",
+  "fw.19": "km/h maks viim",
+  "fw.20": "Vedot",
 };
 
 export default fi;

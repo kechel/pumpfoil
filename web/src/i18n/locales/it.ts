@@ -989,6 +989,29 @@ const it: Record<string, string> = {
   "imp.googleNote": "L'uso delle informazioni provenienti dalle API di Google è conforme alla <a href=\"https://developers.google.com/terms/api-services-user-data-policy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google API Services User Data Policy</a>, inclusi i requisiti Limited Use.",
   "sd.colorOptimal": "vs. ottimale",
   "watches.linkAccount": "Collegamento account disponibile",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Tempo",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h media",
+  "fw.7": "km/h max",
+  "fw.8": "bpm media",
+  "fw.9": "bpm max",
+  "fw.10": "m alt",
+  "fw.11": "°C",
+  "fw.12": "Ora",
+  "fw.13": "m ↑",
+  "fw.14": "Run",
+  "fw.15": "km Run",
+  "fw.16": "ultimo run",
+  "fw.17": "km ultimo",
+  "fw.18": "km/h media ult.",
+  "fw.19": "km/h max ult.",
+  "fw.20": "Run",
 };
 
 export default it;

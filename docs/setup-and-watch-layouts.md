@@ -268,8 +268,21 @@ für taugliche Uhren anbietet und in der richtigen Form zeichnet.
     fremdes Layout → 404), Kopieren eines **unveröffentlichten** fremden Layouts → 404, Kopie behält
     Elemente + Herkunft + Entstehungs-Größe, `copies`-Zähler, Größenfilter, und beim Löschen des
     Originals bleibt die Kopie (nur `copied_from_id` → NULL). Testdaten wieder entfernt.
-  - **P1b/P1c offen:** Editor-Seite (Vorschau mit Beispieldaten-Umschalter, Uhrengrößen-Auswahl,
-    Nutzersprache, Overflow-Warnung) und Community-Galerie in der PWA.
+  - **P1b Vorschau-Fundament — ERLEDIGT 2026-07-26:** `web/src/lib/watchLayout.ts` ist die
+    **gemeinsame Quelle** für alle Uhr-Vorschauen (Element-Typen, Palette als Spiegel des Servers,
+    Größenstufen als Faktoren, Beispieldaten + Farb-Buckets, Displaygrößen-Liste inkl.
+    176×176-Instinct als kleinste relevante Größe, Default-Elemente für neue Layouts mit REC-Punkt
+    und Seiten-Punkten an den heutigen Positionen, Zeichensatz-Prüfung für Freitexte).
+    Die **Label-Lücke ist geschlossen**: `fw.<Feld-ID>` in **allen 13 Uhr-Sprachen** direkt aus
+    `watch/source/Strings.mc` erzeugt (Spaltenreihenfolge de/gsw/de-AT/en/fr/it/es/pt/id/ru/nl/fi/cs,
+    Distanzfelder inkl. Einheit+Wort wie `RecordView._drawField` sie zusammensetzt) — die Vorschau
+    zeigt jetzt dieselben kurzen Texte und damit dieselben Breiten wie das Gerät. ja/zh haben
+    absichtlich keine Keys und fallen auf Englisch zurück: genau das rendert die Uhr auch (keine
+    CJK-Glyphen). Der bestehende 3-Slot-`WatchPreview` in `Account.tsx` nutzt jetzt dieselbe Quelle
+    (vorher hartcodiert deutsch). Dazu die API-Bindings in `web/src/lib/api.ts`.
+  - **P1b Editor + P1c Galerie offen:** Editor-Seite (Drag-Positionierung, Eigenschaften-Panel,
+    Umschalter Feldnamen ↔ Beispieldaten, Uhrengrößen-Umschalter, Overflow-Warnung) und
+    Community-Galerie.
 - **P2:** Garmin-Renderer + Gating + Sicherheitsnetz.
 - **P3:** Wear OS + Apple Watch.
 

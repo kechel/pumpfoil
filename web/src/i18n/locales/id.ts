@@ -1158,6 +1158,29 @@ const id: Record<string, string> = {
   "imp.ytNote": "Penyedia: Google Ireland Ltd. Selengkapnya di <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">kebijakan privasi Google</a>.",
   "imp.ytTitle": "Video YouTube tersemat",
   "metric.metersPerPump": "meter / pump",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Waktu",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h rata",
+  "fw.7": "km/h maks",
+  "fw.8": "bpm rata",
+  "fw.9": "bpm maks",
+  "fw.10": "m ket",
+  "fw.11": "°C",
+  "fw.12": "Jam",
+  "fw.13": "m ↑",
+  "fw.14": "Run",
+  "fw.15": "km Run",
+  "fw.16": "run terakhir",
+  "fw.17": "km terakhir",
+  "fw.18": "km/h rata akhir",
+  "fw.19": "km/h maks akhir",
+  "fw.20": "Run",
 };
 
 export default id;

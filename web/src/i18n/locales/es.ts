@@ -989,6 +989,29 @@ const es: Record<string, string> = {
   "compare.colorTrack": "Por traza",
   "wx.tomorrow": "Mañana",
   "guide.g.manualLead": "O manualmente por sideload (p. ej. para builds de vista previa):",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Tiempo",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h med",
+  "fw.7": "km/h máx",
+  "fw.8": "bpm med",
+  "fw.9": "bpm máx",
+  "fw.10": "m alt",
+  "fw.11": "°C",
+  "fw.12": "Hora",
+  "fw.13": "m ↑",
+  "fw.14": "Tramo",
+  "fw.15": "km Tramo",
+  "fw.16": "último tramo",
+  "fw.17": "km último",
+  "fw.18": "km/h med últ.",
+  "fw.19": "km/h máx últ.",
+  "fw.20": "Tramos",
 };
 
 export default es;

@@ -1214,6 +1214,29 @@ const cs: Record<string, string> = {
   "guide.w.s3": "listovatelné stránky, konfigurovatelné v záložce „Datová pole“.",
   "guide.w.s4Title": "4. Nahrávání:",
   "guide.w.s4": "Otevři aplikaci → Start → foil → Stop. Offline nahrávání + automatický sync.",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Čas",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h prům",
+  "fw.7": "km/h max",
+  "fw.8": "bpm prům",
+  "fw.9": "bpm max",
+  "fw.10": "m výš",
+  "fw.11": "°C",
+  "fw.12": "Hodiny",
+  "fw.13": "m ↑",
+  "fw.14": "Jízda",
+  "fw.15": "km Jízda",
+  "fw.16": "posl. jízda",
+  "fw.17": "km posl.",
+  "fw.18": "km/h prům posl.",
+  "fw.19": "km/h max posl.",
+  "fw.20": "Jízdy",
 };
 
 export default cs;

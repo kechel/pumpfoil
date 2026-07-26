@@ -100,6 +100,39 @@ export interface Stab {
   id: number; brand: string; model: string; size: string; is_own?: boolean;
 }
 
+// Ein frei gestaltetes Uhr-Layout (= EINE Seite). Element-Format kompakt/positionell:
+// [typ, x, y, size, color, flags, extra…] — s. lib/watchLayout.ts + server/app/api/layouts.py.
+// authored_* = wo das Layout entworfen wurde (Hinweis + Galerie-Filter, KEINE Schranke).
+export type LayoutElement = (number | string)[];
+export interface WatchLayout {
+  id: number;
+  name: string;
+  category: "on_foil" | "off_foil" | "pause";
+  shape: "round" | "rect" | "semioctagon";
+  bg_color: number;
+  elements: LayoutElement[];
+  published: boolean;
+  copied_from_id: number | null;
+  authored_w: number | null;
+  authored_h: number | null;
+  authored_shape: string | null;
+  has_freetext: boolean;
+  updated_at: string | null;
+  author?: string;   // nur in der Galerie
+  copies?: number;   // nur in der Galerie
+}
+export type WatchLayoutPatch = Omit<WatchLayout,
+  "id" | "published" | "copied_from_id" | "has_freetext" | "updated_at" | "author" | "copies">;
+export interface LayoutMeta {
+  palette: string[];
+  categories: string[];
+  shapes: string[];
+  max_elements: number;
+  max_layouts: number;
+  max_text_len: number;
+  element_types: Record<string, number>;
+}
+
 // Board — kein Katalog, sondern eigene Einträge des Nutzers.
 export interface Board {
   id: number; name: string; volume_l: number | null; length_cm: number | null;
@@ -615,6 +648,27 @@ export const api = {
   boardUpdate: (id: number, b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>
     req<Board>(`/api/boards/${id}`, { method: "PUT", body: JSON.stringify(b) }),
   boardDelete: (id: number) => req<{ ok: boolean }>(`/api/boards/${id}`, { method: "DELETE" }),
+  // Advanced Uhr-Layouts
+  layoutMeta: () => req<LayoutMeta>("/api/layouts/meta"),
+  layouts: (category?: string) =>
+    req<WatchLayout[]>(`/api/layouts${category ? `?category=${category}` : ""}`),
+  layoutCommunity: (p?: { category?: string; shape?: string; w?: number; h?: number }) => {
+    const qs = new URLSearchParams();
+    if (p?.category) qs.set("category", p.category);
+    if (p?.shape) qs.set("shape", p.shape);
+    if (p?.w) qs.set("w", String(p.w));
+    if (p?.h) qs.set("h", String(p.h));
+    const s = qs.toString();
+    return req<WatchLayout[]>(`/api/layouts/community${s ? "?" + s : ""}`);
+  },
+  layoutCreate: (l: WatchLayoutPatch) =>
+    req<WatchLayout>("/api/layouts", { method: "POST", body: JSON.stringify(l) }),
+  layoutUpdate: (id: number, l: WatchLayoutPatch) =>
+    req<WatchLayout>(`/api/layouts/${id}`, { method: "PUT", body: JSON.stringify(l) }),
+  layoutPublish: (id: number, published: boolean) =>
+    req<WatchLayout>(`/api/layouts/${id}/publish?published=${published}`, { method: "POST" }),
+  layoutCopy: (id: number) => req<WatchLayout>(`/api/layouts/${id}/copy`, { method: "POST" }),
+  layoutDelete: (id: number) => req<void>(`/api/layouts/${id}`, { method: "DELETE" }),
   foilStats: () => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; avg_pump_hz: number | null }[]>("/api/community/foil-stats"),
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   pushKey: () => req<{ key: string }>("/api/push/key"),

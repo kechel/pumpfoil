@@ -989,6 +989,29 @@ const gsw: Record<string, string> = {
   "wx.today": "Hüt",
   "wx.tomorrow": "Morn",
   "wx.water": "Wasser",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Ziit",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h Ø",
+  "fw.7": "km/h max",
+  "fw.8": "bpm Ø",
+  "fw.9": "bpm max",
+  "fw.10": "m Höchi",
+  "fw.11": "°C",
+  "fw.12": "Uhr",
+  "fw.13": "m ↑",
+  "fw.14": "Lauf",
+  "fw.15": "km Lauf",
+  "fw.16": "letschte Lauf",
+  "fw.17": "km letschte",
+  "fw.18": "km/h Ø letscht.",
+  "fw.19": "km/h max letscht.",
+  "fw.20": "Läuf",
 };
 
 export default gsw

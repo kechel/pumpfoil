@@ -1158,6 +1158,29 @@ const pt: Record<string, string> = {
   "imp.ytNote": "Provedor: Google Ireland Ltd. Mais na <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">política de privacidade do Google</a>.",
   "imp.ytTitle": "Vídeos do YouTube incorporados",
   "metric.metersPerPump": "metros / pump",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Tempo",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h méd",
+  "fw.7": "km/h máx",
+  "fw.8": "bpm méd",
+  "fw.9": "bpm máx",
+  "fw.10": "m alt",
+  "fw.11": "°C",
+  "fw.12": "Hora",
+  "fw.13": "m ↑",
+  "fw.14": "Run",
+  "fw.15": "km Run",
+  "fw.16": "último run",
+  "fw.17": "km último",
+  "fw.18": "km/h méd últ.",
+  "fw.19": "km/h máx últ.",
+  "fw.20": "Runs",
 };
 
 export default pt;

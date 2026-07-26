@@ -1158,6 +1158,29 @@ const ru: Record<string, string> = {
   "imp.ytNote": "Провайдер: Google Ireland Ltd. Подробнее в <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">политике конфиденциальности Google</a>.",
   "imp.ytTitle": "Встроенные видео YouTube",
   "metric.metersPerPump": "метров / помпинг",
+
+  // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
+  // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
+  "fw.1": "km/h (3s)",
+  "fw.2": "bpm",
+  "fw.3": "Время",
+  "fw.4": "km",
+  "fw.5": "km/h",
+  "fw.6": "km/h ср",
+  "fw.7": "km/h макс",
+  "fw.8": "bpm ср",
+  "fw.9": "bpm макс",
+  "fw.10": "m выс",
+  "fw.11": "°C",
+  "fw.12": "Часы",
+  "fw.13": "m ↑",
+  "fw.14": "Заезд",
+  "fw.15": "km Заезд",
+  "fw.16": "посл. заезд",
+  "fw.17": "km посл.",
+  "fw.18": "km/h ср посл.",
+  "fw.19": "km/h макс посл.",
+  "fw.20": "Заезды",
 };
 
 export default ru;
