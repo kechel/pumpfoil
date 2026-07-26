@@ -1,25 +1,192 @@
 [
-  {"brand": "Gong", "model": "Stab Trail", "size": "S"},
-  {"brand": "Gong", "model": "Stab Trail", "size": "M"},
-  {"brand": "Gong", "model": "Stab Trail", "size": "L"},
-
-  {"brand": "Sabfoil", "model": "Flat", "size": "325"},
-  {"brand": "Sabfoil", "model": "Flat", "size": "370"},
-  {"brand": "Sabfoil", "model": "Flat", "size": "425"},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "355"},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "375"},
-  {"brand": "Sabfoil", "model": "Reverse", "size": "395"},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "380"},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "430"},
-  {"brand": "Sabfoil", "model": "Gullwing", "size": "480"},
-
-  {"brand": "AXIS", "model": "Freeride", "size": "400/90"},
-  {"brand": "AXIS", "model": "Freeride", "size": "500/90"},
-
-  {"brand": "North", "model": "Sonar", "size": "S178"},
-  {"brand": "North", "model": "Sonar", "size": "S208"},
-  {"brand": "North", "model": "Sonar", "size": "S210"},
-  {"brand": "North", "model": "Sonar", "size": "S215"},
-  {"brand": "North", "model": "Sonar", "size": "S270"},
-  {"brand": "North", "model": "Sonar", "size": "S320"}
+  {
+   "brand": "Gong",
+   "model": "Stab Trail",
+   "size": "S"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Trail",
+   "size": "M"
+  },
+  {
+   "brand": "Gong",
+   "model": "Stab Trail",
+   "size": "L"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Flat",
+   "size": "325"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Flat",
+   "size": "370"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Flat",
+   "size": "425"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Reverse",
+   "size": "355"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Reverse",
+   "size": "375"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Reverse",
+   "size": "395"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Gullwing",
+   "size": "380"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Gullwing",
+   "size": "430"
+  },
+  {
+   "brand": "Sabfoil",
+   "model": "Gullwing",
+   "size": "480"
+  },
+  {
+   "brand": "AXIS",
+   "model": "Freeride",
+   "size": "400/90"
+  },
+  {
+   "brand": "AXIS",
+   "model": "Freeride",
+   "size": "500/90"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S178"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S208"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S210"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S215"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S270"
+  },
+  {
+   "brand": "North",
+   "model": "Sonar",
+   "size": "S320"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "142AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "150AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "158AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "166AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "175AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "AR Series",
+   "size": "188AR"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "R Series",
+   "size": "110R"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "R Series",
+   "size": "120R"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "R Series",
+   "size": "135R"
+  },
+  {
+   "brand": "Code Foils",
+   "model": "R Series",
+   "size": "151R"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide HA",
+   "size": "100"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide HA",
+   "size": "130"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide HA",
+   "size": "150"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide HA",
+   "size": "170"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide HA",
+   "size": "190"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Flash",
+   "size": "150"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Flash",
+   "size": "170"
+  },
+  {
+   "brand": "TAKOON",
+   "model": "Foil Stab Glide",
+   "size": "220"
+  }
 ]
