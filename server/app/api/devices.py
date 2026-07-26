@@ -102,10 +102,18 @@ def device_config(
     # nicht abgeschaltet hat. Sonst kommt der Block gar nicht mit (alte Clients ignorieren
     # ihn ohnehin, aber so bleibt die Payload klein und der Object Store der Uhr frei).
     cat = _catalog_entry(pn or device.part_number)
+    # „Hat der Nutzer den Schalter selbst angefasst?" — steht der Key im GESPEICHERTEN JSON
+    # (nicht bloß im DEFAULTS-Merge), war es eine bewusste Entscheidung und sticht eine
+    # Modell-Voreinstellung auf „aus".
+    stored = json.loads(user.settings_json) if (user and user.settings_json) else {}
+    user_opted_in = "layouts_enabled" in stored and bool(stored.get("layouts_enabled"))
     layouts_on = (
         bool(settings.get("layouts_enabled", True))
         and (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
-        and _model_layouts_allowed(db, _model_id(pn or device.part_number))
+        # Selbstheilung PRO UHR: diese Uhr hat einen Absturz gemeldet -> für sie aus, bis der
+        # Nutzer den Zähler zurücksetzt. Andere Uhren und andere Nutzer bleiben unberührt.
+        and int(device.layout_canary_count or 0) == 0
+        and _model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in)
     )
     layout_block = _layouts_for_watch(db, device.user_id, settings) if layouts_on else {}
 
@@ -231,8 +239,28 @@ def list_devices(
             "record_mode": d.record_mode or udefault,
             # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
             "low_accel": _is_low_accel_model(d.part_number),
+            # Eigene Layouts: kann diese Uhr sie überhaupt (Speicher) und hat sie einen Absturz
+            # gemeldet? Die UI zeigt das je Uhr und bietet das Zurücksetzen an.
+            "layout_capable": bool(((cat.get(model["id"]) or {}).get("mem") or 0) >= LAYOUT_MIN_MEMORY) if model else False,
+            "layout_canary_count": int(d.layout_canary_count or 0),
+            "layout_canary_at": d.layout_canary_at.isoformat() if d.layout_canary_at else None,
         })
     return out
+
+
+@router.post("/{device_id}/layout-canary/reset")
+def reset_layout_canary(device_id: int, user: models.User = Depends(current_user),
+                        db: Session = Depends(get_db)) -> dict:
+    """Absturz-Zähler DIESER Uhr zurücksetzen -> sie bekommt wieder eigene Layouts. Bewusst in
+    der Hand des Nutzers: er weiß, ob er das Problem behoben hat oder es nochmal probieren will.
+    Die Modell-Statistik bleibt erhalten (sie ist unsere Datenbasis, kein Schalter)."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    d.layout_canary_count = 0
+    d.layout_canary_at = None
+    db.commit()
+    return {"ok": True, "id": device_id}
 
 
 @router.put("/{device_id}/record-mode")
@@ -295,15 +323,26 @@ def _shape_from_family(family: str | None) -> str | None:
 
 
 # ---------------------------------------------------------------- Dynamische Layouts ----
-# Auslieferung der frei gestalteten Uhr-Layouts (F2 P2). Drei Tore müssen offen sein:
-#   1. Gerät stark genug — >= 512 KB watchApp-Budget (aus dem Katalog, `mem`). Es gibt kein
-#      256-KB-Tier: 96 KB (5 Geräte, Lite-Build) und 128 KB (16, dort crashte 1.0.64 unter
-#      Dauerlast) bekommen den Renderer bewusst NICHT.
-#   2. Modell nicht auffällig — selbstlernender Kill-Switch: haben ZWEI VERSCHIEDENE Uhren
-#      desselben Modells ihren Canary ausgelöst, ist das Modell aus (Admin kann übersteuern).
-#   3. Nutzer hat es nicht abgeschaltet (`settings.layouts_enabled`).
+# Auslieferung der frei gestalteten Uhr-Layouts (F2 P2).
+#
+# WICHTIG (Entscheidung Jan, 2026-07-26): ein Absturz wirkt **nur für die betroffene Uhr**, NICHT
+# global für alle Nutzer desselben Modells. Ein einzelnes Gerät kann aus vielen Gründen abstürzen;
+# anderen Nutzern deshalb das Feature wegzunehmen wäre übergriffig. Die Modell-Statistik sammeln
+# wir trotzdem — aber als DATENBASIS für eine spätere Entscheidung, was wir je Modell als
+# Voreinstellung ausliefern. Und selbst dann darf ein Nutzer es für sich einschalten und testen.
+#
+# Tore, in dieser Reihenfolge:
+#   1. Gerät stark genug — >= 512 KB watchApp-Budget (Katalog-Feld `mem`). Es gibt kein 256-KB-
+#      Tier: 96 KB (5 Geräte, Lite-Build) und 128 KB (16, dort crashte 1.0.64 unter Dauerlast)
+#      bekommen den Renderer bewusst nicht.
+#   2. DIESE Uhr hat keinen Absturz gemeldet (`DeviceToken.layout_canary_count`). Selbstheilung
+#      pro Gerät; der Nutzer kann den Zähler in der Uhr-Liste zurücksetzen.
+#   3. Nutzer hat es nicht abgeschaltet (`settings.layouts_enabled`, Default an).
+#   4. Modell-Voreinstellung (`watch_model_flags.layouts_allowed`): NULL = erlaubt,
+#      False = für dieses Modell per Default AUS (datenbasiert von uns gesetzt), True = erzwungen.
+#      Ein `False` gilt nur, solange der Nutzer den Schalter nicht selbst angefasst hat — wer
+#      bewusst einschaltet, bekommt Layouts trotzdem (Testen erlaubt).
 LAYOUT_MIN_MEMORY = 524288      # Bytes watchApp-Budget
-LAYOUT_CANARY_LIMIT = 2         # so viele verschiedene Uhren eines Modells -> Modell aus
 
 
 def _catalog_entry(part_number: str | None) -> dict | None:
@@ -321,22 +360,35 @@ def _model_id(part_number: str | None) -> str | None:
     return m["id"] if m else None
 
 
-def _model_layouts_allowed(db: Session, model_id: str | None) -> bool:
-    """Modell-Zustand: Admin-Override vor Automatik. Automatik = aus, sobald
-    LAYOUT_CANARY_LIMIT verschiedene Uhren dieses Modells einen Canary gemeldet haben."""
+def _model_layouts_allowed(db: Session, model_id: str | None, user_opted_in: bool = False) -> bool:
+    """VOREINSTELLUNG je Modell — kein globaler Kill-Switch.
+
+    NULL/kein Eintrag = erlaubt. `False` heißt „für dieses Modell liefern wir es per Default nicht
+    aus" (setzen wir datenbasiert, wenn die Statistik es hergibt) — greift aber NICHT, wenn der
+    Nutzer den Schalter selbst angefasst hat: dann darf er testen. `True` = erzwungen.
+    """
     if not model_id:
         return False
     flag = db.query(models.WatchModelFlag).filter_by(model_id=model_id).first()
-    if flag is not None and flag.layouts_allowed is not None:
-        return bool(flag.layouts_allowed)
-    # Automatik: Canary-Meldungen dieses Modells zählen (über die Part-Numbers des Modells).
+    if flag is None or flag.layouts_allowed is None:
+        return True
+    if flag.layouts_allowed:
+        return True
+    return user_opted_in
+
+
+def _model_canary_devices(db: Session, model_id: str | None) -> int:
+    """Wie viele VERSCHIEDENE Uhren dieses Modells haben einen Absturz gemeldet. Rein
+    informativ (Admin-Statistik) — daraus entscheiden WIR später über Voreinstellungen,
+    es sperrt nichts automatisch."""
+    if not model_id:
+        return 0
     pns = [pn for pn, m in _partmap().items() if m.get("id") == model_id]
     if not pns:
-        return True
-    n = (db.query(func.count(models.DeviceToken.id))
-         .filter(models.DeviceToken.part_number.in_(pns),
-                 models.DeviceToken.layout_canary_count > 0).scalar() or 0)
-    return n < LAYOUT_CANARY_LIMIT
+        return 0
+    return (db.query(func.count(models.DeviceToken.id))
+            .filter(models.DeviceToken.part_number.in_(pns),
+                    models.DeviceToken.layout_canary_count > 0).scalar() or 0)
 
 
 def _layout_payload(l: models.WatchLayout) -> list:

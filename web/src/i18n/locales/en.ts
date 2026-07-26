@@ -1328,6 +1328,10 @@ const en: Record<string, string> = {
   "account.noLayoutsYet": "You haven\u2019t built a custom layout for this screen yet.",
   "account.keepOnePage": "At least one page has to stay.",
   "account.maxPages": "The watch stores at most {n} pages.",
+  "account.layoutsEnabled": "Send my custom layouts to my watches",
+  "account.layoutsEnabledHint": "Off = your watches show the classic 3-field views. Only affects you; if one watch misbehaves you can also switch it off on the device (menu \u2192 Custom layouts).",
+  "account.layoutCanary": "This watch reported a crash with a custom layout ({n}\u00d7) \u2014 it shows the classic views for now. Your other watches are unaffected.",
+  "account.layoutCanaryReset": "Try again",
 };
 
 export default en;

@@ -921,8 +921,8 @@ def layout_health(_a: models.User = Depends(current_admin), db: Session = Depend
     Kill-Switch. Zeigt nur Modelle, die überhaupt gepairt sind: Speicherbudget, wie viele
     Uhren dieses Modells einen Canary gemeldet haben, den Admin-Override und was daraus
     effektiv folgt."""
-    from ..api.devices import (LAYOUT_CANARY_LIMIT, LAYOUT_MIN_MEMORY, _catalog_by_id,
-                               _partmap, _model_layouts_allowed)
+    from ..api.devices import (LAYOUT_MIN_MEMORY, _catalog_by_id, _partmap,
+                               _model_layouts_allowed)
     pm, cat = _partmap(), _catalog_by_id()
     rows = (db.query(models.DeviceToken.part_number,
                      func.count(models.DeviceToken.id),
@@ -949,8 +949,10 @@ def layout_health(_a: models.User = Depends(current_admin), db: Session = Depend
         a["capable"] = (c.get("mem") or 0) >= LAYOUT_MIN_MEMORY
         a["override"] = None if f is None else f.layouts_allowed
         a["note"] = f.note if f else None
-        a["effective"] = bool(a["capable"] and _model_layouts_allowed(db, mid))
-        a["canary_limit"] = LAYOUT_CANARY_LIMIT
+        # „default_on" = was eine frische Uhr dieses Modells bekommt (ohne eigenen Absturz und
+        # ohne dass der Nutzer den Schalter angefasst hat). Ein Absturz sperrt nur die betroffene
+        # UHR — diese Liste ist die Datenbasis für spätere Voreinstellungen, kein Kill-Switch.
+        a["default_on"] = bool(a["capable"] and _model_layouts_allowed(db, mid))
         out.append(a)
     out.sort(key=lambda x: (-x["canary_devices"], x["name"]))
     return out

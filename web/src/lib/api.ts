@@ -721,6 +721,9 @@ export const api = {
     }),
   myDevices: () => req<PairedDevice[]>("/api/devices/list"),
   revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
+  // Absturz-Zähler dieser Uhr zurücksetzen -> sie bekommt wieder eigene Layouts.
+  resetLayoutCanary: (id: number) =>
+    req<{ ok: boolean }>(`/api/devices/${id}/layout-canary/reset`, { method: "POST" }),
   setDeviceRecordMode: (id: number, record_mode: string) =>
     req<{ ok: boolean; record_mode: string }>(`/api/devices/${id}/record-mode`, {
       method: "PUT", body: JSON.stringify({ record_mode }),
@@ -974,6 +977,11 @@ export interface PairedDevice {
   screen_w?: number | null;
   screen_h?: number | null;
   shape?: string | null;
+  // Eigene Layouts: Speicher reicht? Und hat DIESE Uhr einen Absturz gemeldet (Canary)?
+  // Ein Absturz schaltet die Layouts nur für diese Uhr ab, bis der Nutzer zurücksetzt.
+  layout_capable?: boolean;
+  layout_canary_count?: number;
+  layout_canary_at?: string | null;
 }
 
 export interface AppDevice {

@@ -276,20 +276,34 @@ Daraus folgt zweierlei:
 
 `/api/devices/list` liefert bereits `screen_w`/`screen_h`/`shape`; `mem` kommt beim Editor-Gating dazu.
 
-### Selbstlernender Kill-Switch je Modell (Entscheidung Jan, 2026-07-26)
+### Canary-Meldung: wirkt PRO UHR, nicht global (Entscheidung Jan, 2026-07-26, nachgeschärft)
 Der Canary bleibt nicht auf der Uhr: **jede Uhr, die ihren Canary auslöst, meldet das beim nächsten
-Config-Abruf an den Server.** Der Server zählt das je **Uhrenmodell** — und liefert Layouts für
-dieses Modell künftig per Default nicht mehr aus. Damit heilt sich das Feature flotten-weit, ohne
-dass ein Mensch eingreift, und neue Uhren desselben Typs bekommen von Anfang an die richtige
-Voreinstellung.
+Config-Abruf an den Server** (`?canary=1` → `DeviceToken.layout_canary_count`).
 
-Umsetzung (P2):
-- Uhr: Canary-Flag im Storage beim Aufnahme-Start setzen, beim sauberen Ende löschen. Beim App-Start
-  noch gesetzt → statisch fahren, Hinweis zeigen UND `canary=1` beim nächsten `/config` mitsenden.
-- Server: Zähler je Modell (ausgelöst / sauber beendet). Auto-Aus für ein Modell, wenn mindestens
-  **zwei verschiedene Uhren** dieses Modells ausgelöst haben (eine einzelne kann andere Ursachen
-  haben) — plus Admin-Override in beide Richtungen, damit ein Fehlalarm ein Modell nicht dauerhaft
-  aussperrt. Sichtbar im Admin-Bereich mit Zähler.
+**Wirkung bewusst begrenzt** (Jans Korrektur, nachdem der erste Entwurf modellweit sperrte): ein
+Absturz schaltet die Layouts **nur für die betroffene Uhr** ab — nicht für andere Uhren desselben
+Nutzers und erst recht nicht für andere Nutzer desselben Modells. Ein einzelnes Gerät kann aus
+vielen Gründen abstürzen; anderen deshalb das Feature wegzunehmen wäre übergriffig. Jans Worte:
+„globales sperren machen wir wenn aus der statistik, jeder sperrt sowas nur fuer sich selber bis wir
+datenbasiert das entscheiden … aber selbst dann darf ein user das gerne aktivieren und testen".
+
+Daraus die vier Tore in `/api/devices/config` (alle live geprüft):
+1. **Gerät** ≥ 512 KB (`mem`).
+2. **Diese Uhr** hat keinen Absturz gemeldet. Zurücksetzen kann der Nutzer selbst in der Uhr-Liste
+   (`POST /api/devices/{id}/layout-canary/reset`) — er weiß, ob er es nochmal versuchen will.
+3. **Nutzer-Schalter** `settings.layouts_enabled` (Default an), jetzt auch mit UI im
+   Datenseiten-Tab. Gilt nur für ihn.
+4. **Modell-Voreinstellung** `watch_model_flags.layouts_allowed`: NULL = erlaubt, `False` = „für
+   dieses Modell liefern wir es per Default nicht aus" (setzen WIR, datenbasiert), `True` =
+   erzwungen. Ein `False` greift **nicht**, wenn der Nutzer den Schalter selbst angefasst hat
+   (erkannt am Key im gespeicherten `settings_json`) — Testen bleibt erlaubt.
+
+Die Modell-Statistik (`GET /api/admin/layout-health`: Budget, Tauglichkeit, wie viele verschiedene
+Uhren gemeldet haben, `default_on`) ist damit **Datenbasis, kein Kill-Switch**.
+
+Verifiziert mit zwei Wegwerf-Uhren auf dem Testkonto: Uhr A meldet → nur A aus, B bleibt an; beide
+melden → beide aus, während ein anderes Konto mit demselben Modell weiter `default_on=true` hat;
+Reset für A → sofort wieder an.
 
 ### Phasen
 - **P0 — ERLEDIGT 2026-07-26** (bis auf Garmin, s. u.): `pause_view` in den Settings (Default

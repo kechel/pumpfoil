@@ -153,6 +153,9 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     if (!confirm(t("account.revokeConfirm", { name: label || t("account.deviceUnnamed") }))) return;
     api.revokeDevice(id).then(load).catch(() => {});
   };
+  const resetCanary = (id: number) => {
+    api.resetLayoutCanary(id).then(load).catch(() => {});
+  };
   const setMode = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, record_mode: mode } : x)) : ds));
     api.setDeviceRecordMode(id, mode).catch(() => load());
@@ -211,6 +214,19 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     {d.platform === "garmin" && (
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{t("account.recordModeGarminHint")}</p>
                     )}
+                  </div>
+                )}
+                {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr
+                    aus (andere Uhren/Nutzer unberührt) — mit Knopf zum Zurücksetzen. */}
+                {!d.revoked_at && (d.layout_canary_count ?? 0) > 0 && (
+                  <div className="mt-2 rounded-lg border border-amber-600/40 bg-amber-500/10 p-2">
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      {t("account.layoutCanary", { n: d.layout_canary_count ?? 0 })}
+                    </p>
+                    <button onClick={() => resetCanary(d.id)}
+                      className="mt-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-100 hover:bg-slate-700">
+                      {t("account.layoutCanaryReset")}
+                    </button>
                   </div>
                 )}
               </div>
@@ -342,6 +358,7 @@ function ViewsEditor() {
   const [layouts, setLayouts] = useState<WatchLayout[]>([]);
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
+  const [layoutsEnabled, setLayoutsEnabled] = useState(true);
   const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
   const [pauseView, setPauseView] = useState<number[]>([12, 20, 2]);
   const [offLayout, setOffLayout] = useState<number | null>(null);
@@ -354,6 +371,7 @@ function ViewsEditor() {
       setPages((s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
+      setLayoutsEnabled(s.layouts_enabled !== false);
       setOffFoil((s.off_foil_view as number[]) ?? [12, 17, 16]);
       setPauseView((s.pause_view as number[]) ?? [12, 20, 2]);
       setOffLayout((s.off_foil_layout_id as number) ?? null);
@@ -394,13 +412,14 @@ function ViewsEditor() {
     setErr(null);
     try {
       const res = await api.saveSettings({
-        pages, colorByValue, auto_start: autoStart,
+        pages, colorByValue, auto_start: autoStart, layouts_enabled: layoutsEnabled,
         off_foil_view: offFoil, pause_view: pauseView,
         off_foil_layout_id: offLayout, pause_layout_id: pauseLayout,
       });
       setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
+      setLayoutsEnabled(res.layouts_enabled !== false);
       if (res.off_foil_view) setOffFoil(res.off_foil_view as number[]);
       if (res.pause_view) setPauseView(res.pause_view as number[]);
       setOffLayout((res.off_foil_layout_id as number) ?? null);
@@ -491,10 +510,18 @@ function ViewsEditor() {
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}
       </label>
-      <label className="mb-4 flex items-center gap-2 text-sm text-slate-200">
+      <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
       </label>
+      {/* Not-Aus für die eigenen Layouts auf der Uhr. Wirkt nur für DICH — Layouts anderer
+          Nutzer sind davon unberührt. Aus = die Uhr fährt die klassischen 3-Feld-Ansichten. */}
+      <label className="mb-1 flex items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={layoutsEnabled}
+          onChange={(e) => { setLayoutsEnabled(e.target.checked); setSaved(false); }} />
+        {t("account.layoutsEnabled")}
+      </label>
+      <p className="mb-4 text-sm text-slate-400">{t("account.layoutsEnabledHint")}</p>
       <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
       <div className="space-y-3">

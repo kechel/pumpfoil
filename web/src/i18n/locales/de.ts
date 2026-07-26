@@ -1385,6 +1385,10 @@ const de: Record<string, string> = {
   "account.noLayoutsYet": "Für diesen Screen hast du noch kein eigenes Layout angelegt.",
   "account.keepOnePage": "Mindestens eine Seite muss bleiben.",
   "account.maxPages": "Mehr als {n} Seiten speichert die Uhr nicht.",
+  "account.layoutsEnabled": "Eigene Layouts an meine Uhren senden",
+  "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Gilt nur für dich; wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).",
+  "account.layoutCanary": "Diese Uhr hat einen Absturz mit eigenem Layout gemeldet ({n}×) — sie zeigt vorläufig die klassischen Ansichten. Andere Uhren sind nicht betroffen.",
+  "account.layoutCanaryReset": "Wieder versuchen",
 };
 
 export default de;
