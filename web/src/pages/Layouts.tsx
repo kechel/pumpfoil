@@ -101,7 +101,7 @@ export default function Layouts() {
             anderen browsen koennte"). Fertige Layouts anzusehen ist der leichtere Einstieg als
             selbst eines zu bauen — der Weg dahin darf nicht der unauffälligste auf der Seite sein. */}
         <Link to="/layouts/community"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
           <CommunityIcon className="h-4 w-4" /> {t("lay.toCommunity")} →
         </Link>
       </div>

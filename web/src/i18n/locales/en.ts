@@ -1233,7 +1233,7 @@ const en: Record<string, string> = {
   "fw.20": "Runs",
 
   // Advanced watch layouts (freely positioned data fields)
-  "lay.title": "Watch layouts (advanced)",
+  "lay.title": "Custom watch layouts",
   "lay.hint": "Place data fields, labels and separator lines anywhere on the watch screen \u2014 size, colour, background and shape included. One layout is ONE page; the category says when it is shown.",
   "lay.toSimple": "Simple views (3 fields)",
   "lay.showData": "Sample data instead of field names",
@@ -1316,7 +1316,7 @@ const en: Record<string, string> = {
   "lay.shape.semioctagon": "Instinct (flat edge)",
   "lay.ownWatchNote": "Preview in your watch\u2019s size ({name}).",
   "lay.galleryEmpty": "Nothing published yet. Publish your layout \u2014 then others will see it here.",
-  "account.toLayouts": "Advanced layouts",
+  "account.toLayouts": "Custom layouts",
   "lay.size.xtiny": "very small",
   "lay.size.tiny": "small",
   "lay.size.small": "smallish",

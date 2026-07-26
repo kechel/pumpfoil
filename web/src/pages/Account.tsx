@@ -509,10 +509,10 @@ function ViewsEditor() {
             fertige von anderen holen. Jan suchte die Galerie hier und fand nur „eigenen Screen
             hinzufügen", also war sie faktisch versteckt. */}
         <div className="flex flex-wrap gap-2">
-          <Link to="/layouts/community" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+          <Link to="/layouts/community" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
             {t("lay.toCommunity")} →
           </Link>
-          <Link to="/layouts" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+          <Link to="/layouts" className="rounded-xl bg-brand-500 px-3 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
             {t("account.toLayouts")} →
           </Link>
         </div>

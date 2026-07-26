@@ -1290,7 +1290,7 @@ const de: Record<string, string> = {
   "fw.20": "Läufe",
 
   // Advanced Uhr-Layouts (frei positionierbare Datenfelder)
-  "lay.title": "Uhr-Layouts (erweitert)",
+  "lay.title": "Eigene Uhr-Layouts",
   "lay.hint": "Datenfelder, Labels und Trennlinien frei auf dem Uhr-Display platzieren — Größe, Farbe, Hintergrund und Form inklusive. Ein Layout ist EINE Seite; die Kategorie sagt, wann sie gezeigt wird.",
   "lay.toSimple": "Einfache Ansichten (3 Felder)",
   "lay.showData": "Beispieldaten statt Feldnamen",
@@ -1373,7 +1373,7 @@ const de: Record<string, string> = {
   "lay.shape.semioctagon": "Instinct (abgeflacht)",
   "lay.ownWatchNote": "Vorschau in der Größe deiner Uhr ({name}).",
   "lay.galleryEmpty": "Noch nichts veröffentlicht. Veröffentliche dein Layout — dann sehen es die anderen hier.",
-  "account.toLayouts": "Erweiterte Layouts",
+  "account.toLayouts": "Eigene Layouts",
   "lay.size.xtiny": "sehr klein",
   "lay.size.tiny": "klein",
   "lay.size.small": "mittelklein",
