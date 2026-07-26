@@ -126,8 +126,11 @@ def _clean_pages(db: Session, user: models.User, raw) -> list | None:
     for item in raw[:12]:
         if isinstance(item, list):
             v = _clean_view3(item)
-            if v:
-                out.append(v)
+            if not v or not any(f != 0 for f in v):
+                continue                      # „leere" Seite (nur 0) ist keine Seite
+            while len(v) < 3:                 # Uhr liest immer 3 Slots -> auffüllen
+                v.append(0)
+            out.append(v)
         else:
             lid = _own_layout_id(db, user, item, "on_foil")
             if lid:

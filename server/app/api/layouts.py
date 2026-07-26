@@ -165,6 +165,31 @@ def _out(l: models.WatchLayout, author: str | None = None, copies: int | None = 
     return d
 
 
+def _drop_layout_refs(user: models.User, layout_id: int, *, drop_page: bool = True,
+                      drop_off: bool = True, drop_pause: bool = True) -> None:
+    """Verweise auf ein Layout aus den Einstellungen des Nutzers entfernen (Seitenliste und/oder
+    Off-Foil-/Pausen-Wahl). Kein Commit — der Aufrufer committed."""
+    if not user.settings_json:
+        return
+    try:
+        st = json.loads(user.settings_json) or {}
+    except ValueError:
+        return
+    touched = False
+    if drop_page and isinstance(st.get("pages"), list):
+        cleaned = [p for p in st["pages"]
+                   if not (isinstance(p, (int, float)) and int(p) == layout_id)]
+        if len(cleaned) != len(st["pages"]):
+            st["pages"] = cleaned or None
+            touched = True
+    for key, do in (("off_foil_layout_id", drop_off), ("pause_layout_id", drop_pause)):
+        if do and st.get(key) == layout_id:
+            st[key] = None
+            touched = True
+    if touched:
+        user.settings_json = json.dumps(st)
+
+
 def _apply(l: models.WatchLayout, body: LayoutIn) -> None:
     name = (body.name or "").strip()[:60]
     l.name = name or "Layout"
@@ -252,7 +277,16 @@ def update_layout(
     l = db.query(models.WatchLayout).filter_by(id=layout_id, user_id=user.id).first()
     if l is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Layout nicht gefunden")
+    was = l.category
     _apply(l, body)
+    # Kategorie umgestellt? Dann passen bestehende Verweise nicht mehr: ein Layout, das jetzt
+    # „pause" ist, darf keine On-Foil-Seite mehr sein (und umgekehrt). Sonst zeigte die
+    # Seitenliste auf ein Layout der falschen Sorte, bis der Nutzer zufällig neu speichert.
+    if was != l.category:
+        _drop_layout_refs(user, layout_id,
+                          drop_page=(l.category != "on_foil"),
+                          drop_off=(l.category != "off_foil"),
+                          drop_pause=(l.category != "pause"))
     db.commit()
     db.refresh(l)
     return _out(l)
@@ -309,23 +343,6 @@ def delete_layout(
     db.query(models.WatchLayout).filter_by(copied_from_id=layout_id).update({"copied_from_id": None})
     # Verweise in den eigenen Einstellungen mit aufräumen — sonst bleibt eine Seite in `pages`
     # bzw. ein Off-Foil-/Pausen-Screen auf ein gelöschtes Layout zeigen.
-    if user.settings_json:
-        try:
-            st = json.loads(user.settings_json) or {}
-        except ValueError:
-            st = {}
-        touched = False
-        pages = st.get("pages")
-        if isinstance(pages, list):
-            cleaned = [p for p in pages if not (isinstance(p, (int, float)) and int(p) == layout_id)]
-            if len(cleaned) != len(pages):
-                st["pages"] = cleaned or None
-                touched = True
-        for key in ("off_foil_layout_id", "pause_layout_id"):
-            if st.get(key) == layout_id:
-                st[key] = None
-                touched = True
-        if touched:
-            user.settings_json = json.dumps(st)
+    _drop_layout_refs(user, layout_id)
     db.delete(l)
     db.commit()

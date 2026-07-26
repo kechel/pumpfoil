@@ -1326,6 +1326,8 @@ const en: Record<string, string> = {
   "account.useFields": "Data fields",
   "account.useLayout": "Custom screen",
   "account.noLayoutsYet": "You haven\u2019t built a custom layout for this screen yet.",
+  "account.keepOnePage": "At least one page has to stay.",
+  "account.maxPages": "The watch stores at most {n} pages.",
 };
 
 export default en;

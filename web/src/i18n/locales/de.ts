@@ -1383,6 +1383,8 @@ const de: Record<string, string> = {
   "account.useFields": "Datenfelder",
   "account.useLayout": "Eigener Screen",
   "account.noLayoutsYet": "Für diesen Screen hast du noch kein eigenes Layout angelegt.",
+  "account.keepOnePage": "Mindestens eine Seite muss bleiben.",
+  "account.maxPages": "Mehr als {n} Seiten speichert die Uhr nicht.",
 };
 
 export default de;

@@ -32,6 +32,10 @@ export default function LayoutEditor() {
   const nav = useNavigate();
   const [l, setL] = useState<WatchLayout | null | undefined>(undefined);
   const [sizeId, setSizeId] = useState("g240");
+  // Wurde die Uhrengröße vom Nutzer bewusst gewählt? Nur dann darf sie beim Speichern die
+  // Entstehungs-Angabe überschreiben — sonst würde ein Layout, das für eine hier nicht
+  // gelistete Größe entworfen wurde, beim ersten Speichern stillschweigend „umgetauft".
+  const [sizeTouched, setSizeTouched] = useState(false);
   const [showData, setShowData] = useState(true);
   const [sel, setSel] = useState(-1);
   const [saved, setSaved] = useState(false);
@@ -129,10 +133,14 @@ export default function LayoutEditor() {
 
   function save() {
     if (!l) return;
+    const keep = !sizeTouched && l.authored_w != null;
     api.layoutUpdate(l.id, {
-      name: l.name, category: l.category, shape: size.shape, bg_color: l.bg_color,
-      elements: l.elements,
-      authored_w: size.w, authored_h: size.h, authored_shape: size.shape,
+      name: l.name, category: l.category,
+      shape: (keep ? (l.authored_shape as typeof size.shape) : size.shape) || size.shape,
+      bg_color: l.bg_color, elements: l.elements,
+      authored_w: keep ? l.authored_w : size.w,
+      authored_h: keep ? l.authored_h : size.h,
+      authored_shape: keep ? l.authored_shape : size.shape,
     }).then((n) => { setL(n); setSaved(true); setErr(""); }).catch(() => setErr(t("lay.saveErr")));
   }
 
@@ -176,7 +184,7 @@ export default function LayoutEditor() {
         {/* Vorschau + Ziehen */}
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <select value={sizeId} onChange={(ev) => setSizeId(ev.target.value)}
+            <select value={sizeId} onChange={(ev) => { setSizeId(ev.target.value); setSizeTouched(true); }}
               className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
               {PREVIEW_SIZES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>

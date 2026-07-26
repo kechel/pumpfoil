@@ -332,6 +332,9 @@ function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
 // Die Uhr zeigt eigene Layouts noch nicht (F2 P2) — die Konfiguration entsteht hier trotzdem
 // schon vollständig. Siehe docs/setup-and-watch-layouts.md.
 type Page = number[] | number;
+// Der Server behält maximal 12 Seiten (settings._clean_pages) — hier hart dieselbe Grenze,
+// damit nichts stillschweigend beim Speichern verschwindet.
+const MAX_PAGES = 12;
 
 function ViewsEditor() {
   const t = useT();
@@ -508,7 +511,11 @@ function ViewsEditor() {
                 <div className="flex items-center gap-1 text-slate-300">
                   <button onClick={() => move(pi, -1)} disabled={pi === 0} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↑</button>
                   <button onClick={() => move(pi, 1)} disabled={pi === pages.length - 1} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↓</button>
-                  <button onClick={() => delPage(pi)} className="rounded px-2 py-1 text-red-400 hover:bg-slate-800">{t("common.deleteLower")}</button>
+                  {/* Die letzte Seite bleibt: eine Uhr ohne Datenseite gibt es nicht (der
+                      Server würde eine leere Liste ohnehin auf die alte zurückfallen lassen). */}
+                  <button onClick={() => delPage(pi)} disabled={pages.length <= 1}
+                    title={pages.length <= 1 ? t("account.keepOnePage") : undefined}
+                    className="rounded px-2 py-1 text-red-400 hover:bg-slate-800 disabled:opacity-30">{t("common.deleteLower")}</button>
                 </div>
               </div>
               {isLayout ? (
@@ -538,13 +545,15 @@ function ViewsEditor() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button onClick={addView} className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700">{t("account.addView")}</button>
+        <button onClick={addView} disabled={pages.length >= MAX_PAGES}
+          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">{t("account.addView")}</button>
         <select value="" onChange={(e) => { addLayoutPage(Number(e.target.value)); e.currentTarget.value = ""; }}
-          disabled={onFoilLayouts.length === 0}
+          disabled={onFoilLayouts.length === 0 || pages.length >= MAX_PAGES}
           className="rounded-xl border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100 disabled:opacity-40">
           <option value="">{t("account.addLayoutPage")}</option>
           {onFoilLayouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
         </select>
+        {pages.length >= MAX_PAGES && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
       </div>
 
       {screenSection(t("account.offFoilTitle"), t("account.offFoilDesc"), offFoil, setOffField,
