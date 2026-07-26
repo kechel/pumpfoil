@@ -7,8 +7,8 @@ import { ChevronIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import {
   EL_DOTS, EL_LABEL, EL_LINE, EL_REC, EL_TEXT, EL_VALUE,
-  MAX_ELEMENTS, MAX_TEXT_LEN, MOCK_VALUE, PALETTE, PREVIEW_SIZES, SIZE_FACTOR, SMALLEST,
-  undisplayableChars,
+  MAX_ELEMENTS, MAX_SIZE_STEP, MAX_TEXT_LEN, MAX_TEXT_STEP, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
+  SIZE_FACTOR, SIZE_STEPS, SMALLEST, undisplayableChars,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -248,11 +248,27 @@ export default function LayoutEditor() {
                   </label>
                 )}
 
+                {/* Schriftgröße je Element: EINE Stufe = EIN echter Garmin-Font. Wert-Elemente
+                    dürfen in die großen NUMBER-Fonts, Labels/Texte nicht (dort fehlen Buchstaben). */}
                 <label className="block text-sm text-slate-300">
-                  {typ === EL_LINE ? t("lay.thickness") : t("lay.size")}
-                  <input type="range" min={typ === EL_LINE ? 1 : 0} max={4} value={Number(e[3]) || 0}
+                  <span className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span>{typ === EL_LINE ? t("lay.thickness") : t("lay.size")}</span>
+                    {typ !== EL_LINE && (
+                      <span className="text-slate-400">
+                        {t(`lay.size.${SIZE_STEPS[Number(e[3]) || 0]?.key ?? "medium"}`)}
+                        {" · "}
+                        <code className="text-slate-500">{SIZE_STEPS[Number(e[3]) || 0]?.font}</code>
+                      </span>
+                    )}
+                  </span>
+                  <input type="range" min={typ === EL_LINE ? 1 : 0}
+                    max={typ === EL_LINE ? 4 : typ === EL_VALUE ? MAX_SIZE_STEP : MAX_TEXT_STEP}
+                    value={Number(e[3]) || 0}
                     onChange={(ev) => setField(sel, 3, Number(ev.target.value))}
                     className="mt-1 w-full accent-brand-500" />
+                  {typ !== EL_LINE && typ !== EL_VALUE && (
+                    <span className="text-sm text-slate-400">{t("lay.sizeTextCap")}</span>
+                  )}
                 </label>
 
                 <div>

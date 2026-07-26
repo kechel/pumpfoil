@@ -203,8 +203,13 @@ alle Auflösungen und Formen tragfähig; im Katalog: 108 round, 5 rectangle, 8 s
 - **Apple hat einen strikten Decoder** (`watch-apple/Sources/Api.swift:68`, `views: [[Int]]`) → das
   Layout kommt als **zusätzlicher, optionaler Key**; `views` bleibt unverändert. Sonst brechen alte
   Clients hart.
-- **Garmin-Fonts sind diskret** (`FONT_XTINY … FONT_NUMBER_THAI_HOT`) → Größe als Stufe S/M/L/XL
+- **Garmin-Fonts sind diskret** (`FONT_XTINY … FONT_NUMBER_THAI_HOT`) → Größe als **Stufe**
   modellieren, nicht in px. Label-Abstand über `dc.getFontHeight()` statt des heutigen fixen `+30`.
+  **Umsetzung (2026-07-26, Jans Wunsch „Schriftgröße je Element einstellbar"):** 9 Stufen =
+  1:1 die eingebauten Fonts (`SIZE_STEPS` in `web/src/lib/watchLayout.ts`), je Element frei
+  wählbar, mit Stufen-Name UND Font-Konstante im Editor. **Ab Stufe 5 sind es NUMBER-Fonts, die
+  nur Ziffern enthalten** → nur Wert-Elemente dürfen dorthin; Labels/Freitexte kappt der Server
+  auf `FONT_LARGE` (sonst wären sie auf der Uhr unsichtbar), die UI erklärt das.
 - **Farbpalette kuratiert** — MIP-Displays können nicht beliebige Farben.
 - **Kontrast**: heute geht die Uhr von dunklem Grund aus (Werte weiß, Labels hellgrau,
   `colorByValue`-Buckets ebenso). Editor warnt bei schlechtem Kontrast; Default-Hintergrund bleibt

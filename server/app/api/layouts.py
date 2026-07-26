@@ -52,6 +52,10 @@ PALETTE = [
     "#aa00ff", "#ff00aa",
 ]
 MAX_COLOR = len(PALETTE) - 1
+# Größenstufen = die eingebauten Garmin-Fonts (FONT_XTINY … FONT_NUMBER_THAI_HOT). Ab Stufe 5
+# sind es NUMBER-Fonts, die nur Ziffern enthalten -> nur Wert-Elemente dürfen dort hoch.
+MAX_SIZE_STEP = 8
+MAX_TEXT_STEP = 4
 MAX_ELEMENTS = 24          # Uhr-Speicher + Object Store: bewusst knapp
 MAX_LAYOUTS = 40           # pro Nutzer
 MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object Store
@@ -92,13 +96,17 @@ def _clean_element(e) -> list | None:
     typ = _clamp(e[0], 0, 9, 0)
     if typ not in ELEMENT_TYPES:
         return None
+    # Größenstufe = ein echter Garmin-Font (0 = FONT_XTINY … 8 = FONT_NUMBER_THAI_HOT).
+    # Die NUMBER-Fonts (ab Stufe 5) enthalten NUR Ziffern -> nur für Wert-Elemente zulassen,
+    # Labels/Freitexte werden auf FONT_LARGE (4) gekappt, sonst wären sie unsichtbar.
+    max_step = MAX_SIZE_STEP if typ == 1 else MAX_TEXT_STEP
     out = [
         typ,
-        _clamp(e[1], 0, 1000),       # x
-        _clamp(e[2], 0, 1000),       # y
-        _clamp(e[3], 0, 4, 2),       # size-Stufe (bei Linie: Dicke)
-        _clamp(e[4], 0, MAX_COLOR),  # Palette-Index
-        _clamp(e[5], 0, 7),          # flags: 1 = linksbündig, 2 = rechtsbündig, 4 = colorByValue
+        _clamp(e[1], 0, 1000),           # x
+        _clamp(e[2], 0, 1000),           # y
+        _clamp(e[3], 0, max_step, 2),    # size-Stufe (bei Linie: Dicke, s. unten)
+        _clamp(e[4], 0, MAX_COLOR),      # Palette-Index
+        _clamp(e[5], 0, 7),              # flags: 1 = linksbündig, 2 = rechtsbündig, 4 = colorByValue
     ]
     if typ in (1, 2):               # Wert / übersetztes Label -> Feld-ID
         fid = _clamp(e[6] if len(e) > 6 else 0, 0, 20)
@@ -176,6 +184,7 @@ def meta(_user: models.User = Depends(current_user)) -> dict:
     return {
         "palette": PALETTE, "categories": list(CATEGORIES), "shapes": list(SHAPES),
         "max_elements": MAX_ELEMENTS, "max_layouts": MAX_LAYOUTS, "max_text_len": MAX_TEXT_LEN,
+        "max_size_step": MAX_SIZE_STEP, "max_text_step": MAX_TEXT_STEP,
         "element_types": {"value": 1, "label": 2, "text": 3, "line": 4, "rec": 5, "dots": 6},
     }
 

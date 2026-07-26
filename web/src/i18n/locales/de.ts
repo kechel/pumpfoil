@@ -1367,6 +1367,16 @@ const de: Record<string, string> = {
   "lay.ownWatchNote": "Vorschau in der Größe deiner Uhr ({name}).",
   "lay.galleryEmpty": "Noch nichts veröffentlicht. Veröffentliche dein Layout — dann sehen es die anderen hier.",
   "account.toLayouts": "Erweiterte Layouts",
+  "lay.size.xtiny": "sehr klein",
+  "lay.size.tiny": "klein",
+  "lay.size.small": "mittelklein",
+  "lay.size.medium": "mittel",
+  "lay.size.large": "groß",
+  "lay.size.numMild": "Zahl groß",
+  "lay.size.numMedium": "Zahl größer",
+  "lay.size.numHot": "Zahl riesig",
+  "lay.size.numThaiHot": "Zahl maximal",
+  "lay.sizeTextCap": "Größer geht nur bei Werten: die großen Uhr-Schriften enthalten nur Ziffern, keine Buchstaben.",
 };
 
 export default de;

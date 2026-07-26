@@ -1310,6 +1310,16 @@ const en: Record<string, string> = {
   "lay.ownWatchNote": "Preview in your watch\u2019s size ({name}).",
   "lay.galleryEmpty": "Nothing published yet. Publish your layout \u2014 then others will see it here.",
   "account.toLayouts": "Advanced layouts",
+  "lay.size.xtiny": "very small",
+  "lay.size.tiny": "small",
+  "lay.size.small": "smallish",
+  "lay.size.medium": "medium",
+  "lay.size.large": "large",
+  "lay.size.numMild": "number large",
+  "lay.size.numMedium": "number larger",
+  "lay.size.numHot": "number huge",
+  "lay.size.numThaiHot": "number maximum",
+  "lay.sizeTextCap": "Only values go bigger: the watch\u2019s large fonts contain digits only, no letters.",
 };
 
 export default en;
