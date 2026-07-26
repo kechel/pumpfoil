@@ -177,6 +177,33 @@ def rebuild_all(db, apply: bool = False):
     return {"spots": len(spots), "multi_spot_sessions": n_multi, "detail": report}
 
 
+def rename_spot_row(db, sp, new_name: str, source: str = "manual") -> str:
+    """Spot umbenennen und den Namen überall mitziehen: `place_name` aller Sessions,
+    Chat-Scope (`spot:<name>`) und Homespot-Einstellungen. Der NAME ist kanonisch (bestehende
+    Daten sind namensbasiert), deshalb muss ein Rename immer alle drei Stellen anfassen.
+    Kein Commit — der Aufrufer entscheidet."""
+    from . import models
+    old, new = sp.name, (new_name or "").strip()[:120]
+    if not new or new == old:
+        return old
+    sp.name, sp.name_source = new, source
+    (db.query(models.Session).filter(models.Session.spot_id == sp.id)
+     .update({models.Session.place_name: new}))
+    if old:
+        for m in (models.ChatMessage, models.ChatRoomState):
+            db.query(m).filter(m.scope == f"spot:{old}").update({m.scope: f"spot:{new}"})
+        import json as _json
+        for u in db.query(models.User).filter(models.User.settings_json.isnot(None)).all():
+            try:
+                st = _json.loads(u.settings_json)
+            except ValueError:
+                continue
+            if st.get("homespot") == old:
+                st["homespot"] = new
+                u.settings_json = _json.dumps(st)
+    return new
+
+
 def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     """Spot-Daten generisch heilen (wiederholbar, `apply=False` = Dry-Run).
 
@@ -274,6 +301,27 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
                                                "place": s.place_name})
         else:
             rep["sessions_still_without_spot"] += 1
+    # --- 4. Zähler-Suffixe aufräumen -------------------------------------------------
+    # Nach dem Mergen bleiben Namen wie „Bachern 2" übrig, obwohl es kein „Bachern" mehr gibt
+    # (der Suffix kam von `_unique_name`, als die Dublette noch existierte). Nur einstellige
+    # Zähler 2…9 anfassen — sonst würde „Bremerhavener Ruderverein v. 1889" verstümmelt.
+    import re as _re
+    active = (db.query(models.Spot).filter(models.Spot.merged_into.is_(None)).all())
+    taken = {(x.name or "").strip() for x in active}
+    for sp in active:
+        m = _re.match(r"^(.+) ([2-9])$", (sp.name or "").strip())
+        if not m or m.group(1) in taken:
+            continue
+        base = m.group(1)
+        rep.setdefault("renamed", []).append({"id": sp.id, "from": sp.name, "to": base,
+                                              "sessions": _session_count(db, sp.id)})
+        if apply:
+            rename_spot_row(db, sp, base, source=sp.name_source or "town")
+            taken.discard(sp.name)
+            taken.add(base)
+    if apply and rep.get("renamed"):
+        db.commit()
+
     # Gesamtzahl (unabhängig vom Limit) — damit man sieht, ob ein weiterer Lauf nötig ist.
     total_missing = (db.query(models.Session)
                      .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)

@@ -939,25 +939,12 @@ def rename_spot(spot_id: int, name: str = Query(...),
     sp = db.get(models.Spot, spot_id)
     if sp is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot nicht gefunden")
-    old, new = sp.name, (name or "").strip()[:120]
-    if not new:
+    from ..spots import rename_spot_row
+    old, want = sp.name, (name or "").strip()[:120]
+    if not want:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Name leer")
-    sp.name, sp.name_source = new, "manual"
-    (db.query(models.Session).filter(models.Session.spot_id == spot_id)
-     .update({models.Session.place_name: new}))
-    if old and old != new:
-        for m in (models.ChatMessage, models.ChatRoomState):
-            db.query(m).filter(m.scope == f"spot:{old}").update({m.scope: f"spot:{new}"})
-        # Homespot-Einstellungen, die auf den alten Namen zeigen, mitziehen (kleine Tabelle).
-        import json as _json
-        for u in db.query(models.User).filter(models.User.settings_json.isnot(None)).all():
-            try:
-                st = _json.loads(u.settings_json)
-            except ValueError:
-                continue
-            if st.get("homespot") == old:
-                st["homespot"] = new
-                u.settings_json = _json.dumps(st)
+    # Kaskade (Sessions/Chat-Scope/Homespot) liegt in spots.rename_spot_row — eine Quelle.
+    new = rename_spot_row(db, sp, want)
     _log(db, admin, "spot_rename", "spot", spot_id, f"{old!r}->{new!r}")
     db.commit()
     return {"ok": True, "name": new}
