@@ -75,7 +75,11 @@ class RecordView extends WatchUi.View {
             return;
         }
 
-        var summaryIdx = _rec.screens.size();
+        // Übersichts-Slot ist IMMER die letzte Seite. Die Zahl muss aus derselben Quelle kommen
+        // wie _pageCount() — sonst sind mit dynamischen Layouts Seiten unerreichbar: mit
+        // `screens.size()` (nur die klassischen Seiten) hielt die Uhr Seite 3 für die Übersicht
+        // und sprang bei Seite 4 auf 1 zurück (von Jan im Simulator gefunden).
+        var summaryIdx = _pageCount() - 1;
         if (screenIdx > summaryIdx) { screenIdx = 0; }
 
         // Auto-Umschaltung NUR auf der Flanke: Lauf beendet (foil->off) -> Übersichts-Slot
@@ -401,7 +405,11 @@ class RecordView extends WatchUi.View {
         // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
         // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
         var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;
-        var gap = dc.getFontHeight(font) / 2 + dc.getFontHeight(lblFont) / 4;
+        // Abstand aus der Fonthöhe des WERTES, Faktor 0,75. Nicht Höhe/2: bei den NUMBER-Fonts
+        // ragen die Ziffern über die von getFontHeight gemeldete Höhe hinaus — mit /2 klebte das
+        // Label am Wert (im Simulator gesehen). 0,75 reproduziert die früheren, bewährten ~30 px
+        // auf 280-px-Uhren und skaliert mit (kleinere Uhr = kleinerer Font = kleinerer Abstand).
+        var gap = dc.getFontHeight(font) * 0.75;
         dc.drawText(cx, cy + gap, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
