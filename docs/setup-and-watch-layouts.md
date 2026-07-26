@@ -574,6 +574,12 @@ für Nutzer steht (26.07.).
       Kosmetik-Notiz: auf dem Instinct-Display überdeckt das runde Teilfenster oben rechts einen Teil
       des ersten Wertes — von Jan gesehen und als „passt" bewertet, nicht angefasst.
 
+  - **Datenpunkt: der Renderer läuft auf der 128-KB-Klasse** (fēnix 5 im Simulator, angefordert per
+    `lay=1`, Jan 2026-07-26: „jo, sehen beide gut aus"). Die **Voreinstellung bleibt trotzdem aus**:
+    der Simulator ist keine echte Uhr, und ausgerechnet auf dieser Klasse ist ein Absturz belegt
+    (Örnis fēnix 5 bei 25 Hz). Umstellen erst mit Belegen von echter Hardware — bis dahin ist es ein
+    bewusster Opt-in-Test, den der Canary absichert.
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
