@@ -195,6 +195,15 @@ function SuuntoCard() {
         </a>
         {st.linked && <span className="inline-flex items-center gap-1 text-sm font-medium text-success"><CheckIcon className="h-4 w-4" /> {t("settings.suunto.connected")}</span>}
       </div>
+      {/* Störungshinweis: Suunto lehnt den Token-Tausch derzeit mit 401 ab (belegt im Server-Log für
+          zwei verschiedene Nutzer, 24. + 26.07.2026) — der Login BEI SUUNTO klappt, danach bricht es
+          ab. Normale Schriftgröße, beide Farbmodi gesetzt: Warnungen dürfen nicht winzig oder im
+          Light-Mode unlesbar sein. Wegnehmen, sobald eine Verknüpfung wieder durchläuft. */}
+      {!st.linked && (
+        <p className="mb-3 rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+          {t("settings.suunto.broken")}
+        </p>
+      )}
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.suunto.connect")}</Button>
       ) : (

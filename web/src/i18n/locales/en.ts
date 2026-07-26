@@ -969,6 +969,7 @@ const en: Record<string, string> = {
   "settings.coros.help4": "Disconnect anytime (revokes access and stops the import).",
   "settings.suunto.title": "Suunto import",
   "settings.suunto.hint": "Connect your Suunto account and import your workouts as sessions.",
+  "settings.suunto.broken": "⚠ Linking with Suunto is currently not working: signing in at Suunto succeeds (Suunto even sends you a confirmation email), but Suunto then denies our app access to your account. This is not your fault and has nothing to do with your password — we are sorting it out with Suunto. Until then you can import Suunto activities as a file.",
   "settings.suunto.connect": "Connect Suunto",
   "settings.suunto.connected": "Connected",
   "settings.suunto.sync": "Import workouts",

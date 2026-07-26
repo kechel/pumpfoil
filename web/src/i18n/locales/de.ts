@@ -1063,6 +1063,7 @@ const de: Record<string, string> = {
   "settings.coros.help4": "Trennen jederzeit möglich (entzieht den Zugriff und stoppt den Import).",
   "settings.suunto.title": "Suunto-Import",
   "settings.suunto.hint": "Verbinde dein Suunto-Konto und importiere deine Workouts als Sessions.",
+  "settings.suunto.broken": "⚠ Die Verknüpfung mit Suunto funktioniert im Moment nicht: die Anmeldung bei Suunto läuft durch (du bekommst von Suunto sogar eine Bestätigungs-Mail), aber Suunto verweigert unserer App danach den Zugriff auf dein Konto. Der Fehler liegt nicht bei dir und nicht an deinem Passwort — wir klären das mit Suunto. Bis dahin kannst du Suunto-Aktivitäten als Datei importieren.",
   "settings.suunto.connect": "Mit Suunto verbinden",
   "settings.suunto.connected": "Verbunden",
   "settings.suunto.sync": "Workouts importieren",
