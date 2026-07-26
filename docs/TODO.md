@@ -10,6 +10,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ## 🚀 App-Release-Stand
 - **LIVE (Stand 2026-07-22):** iOS 1.1.15 (App Store 19.7.), Android Phone 1.1.13, Wear 1.2.14/1024
   (22.7.), Garmin 1.0.60 (CIQ). `appmeta`: ios=1.1.15, android=1.1.13, garmin.latest=1.0.60.
+- **Garmin 1.0.65 EINGEREICHT (2026-07-26, CIQ-Store)** — OOM-Härtung unter Dauerlast: auf Uhren
+  mit ≤128 KB schreibt der Recorder Accel-Chunks mit 750 statt 1500 Samples (halber RAM-Peak beim
+  Aufnehmen UND beim Upload). Anlass: Örnis fenix5 crashte über lange Sessions/große Uploads mit
+  1.0.64. Jans Simulator-Test mit 1.0.65 lief durch, mit 1.0.64 reproduzierte er den Crash.
+  **Website liefert 1.0.65 bereits aus** (121 Geräte gebaut, Katalog auf 1.0.65) → Sideload-Gegentest
+  möglich. `appmeta.garmin.latest` bleibt bei **1.0.64**, bis der Store freigibt (Regel im Code:
+  nur auf freigegebene Versionen zeigen). NICHT enthalten: konfigurierbare Pausen-Ansicht (Garmin-
+  Client fehlt noch, jetzt unblocked) und die erweiterten Layouts (F2 P2).
 - **Garmin 1.0.62 LIVE (2026-07-24, CIQ)** — GPS-first-Upload + nl/fi/cs on-watch. `garmin.latest`=1.0.62
   gesetzt (Update-Hinweis für Alt-Uhren scharf). **Android Phone 1.1.14 in Play-Prüfung**, **iOS 1.1.16**
   kompiliert (nach `xcodegen generate` für UploadProgressCard.swift) — Jan released beide. Nach deren
