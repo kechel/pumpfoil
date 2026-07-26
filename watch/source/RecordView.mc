@@ -226,6 +226,9 @@ class RecordView extends WatchUi.View {
             dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("upd.store"), Graphics.TEXT_JUSTIFY_CENTER);
         }
+        // Selbstheilung: letzte Aufnahme mit dynamischem Layout ist abgestürzt -> diese Sitzung
+        // läuft statisch. Kurz sagen, damit der Nutzer weiß, warum seine Layouts fehlen.
+        _drawLayoutCrashHint(dc, w, h);
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
         // Aufzeichnungsrate hinten dran (Config-Check: 25 Hz / 10 Hz / GPS).
         var rl = _rec.recordRateLabel();
@@ -521,6 +524,14 @@ class RecordView extends WatchUi.View {
     (:lite) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
         _drawFieldPage(dc, [Config.FIELD_SPEED3S, Config.FIELD_NONE, Config.FIELD_NONE], w, h);
     }
+
+    (:full) hidden function _drawLayoutCrashHint(dc, w, h) as Void {
+        if (!_rec.layoutCrash || System.getTimer() >= _rec.layoutHintUntilMs) { return; }
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("lay.fallback"),
+            Graphics.TEXT_JUSTIFY_CENTER);
+    }
+    (:lite) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
     hidden function _drawBell(dc, cx, cy) {

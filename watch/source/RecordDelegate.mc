@@ -162,9 +162,21 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
             Strings.s("menu.upload"), Strings.s("menu.uploadSub"), :upload, {}));
         menu.addItem(new WatchUi.MenuItem(
             Strings.s("menu.autostart"), _rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"), :autostart, {}));
+        _addLayoutItem(menu);
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
+
+    // Not-Aus für die dynamischen Layouts — Stufe 1 des Sicherheitsnetzes. MUSS ohne Handy und
+    // ohne Server erreichbar sein: rein lokaler Storage-Schalter. Zeigt der Punkt „Aus", fährt
+    // die Uhr die alte statische Logik, auch wenn der Server Layouts liefert.
+    (:full) hidden function _addLayoutItem(menu) as Void {
+        menu.addItem(new WatchUi.MenuItem(
+            Strings.s("menu.layouts"),
+            _rec.layoutsOffLocal ? Strings.s("common.off") : Strings.s("common.on"),
+            :layouts, {}));
+    }
+    (:lite) hidden function _addLayoutItem(menu) as Void { }
 
     // Back während Aufzeichnung ignorieren (versehentliches Beenden vermeiden).
     function onBack() as Lang.Boolean {
@@ -310,6 +322,12 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         Menu2InputDelegate.initialize();
         _rec = recorder;
     }
+    (:full) hidden function _toggleLayouts(item) as Void {
+        _rec.toggleLayouts();
+        item.setSubLabel(_rec.layoutsOffLocal ? Strings.s("common.off") : Strings.s("common.on"));
+        WatchUi.requestUpdate();
+    }
+    (:lite) hidden function _toggleLayouts(item) as Void { }
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
         if (id == :upload) {
@@ -324,6 +342,8 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
             _rec.toggleAutoStart();
             item.setSubLabel(_rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"));
             WatchUi.requestUpdate();
+        } else if (id == :layouts) {
+            _toggleLayouts(item);
         }
     }
 }

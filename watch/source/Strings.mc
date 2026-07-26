@@ -207,6 +207,10 @@ module Strings {
     function _a7(key as Lang.String) {
         if (key.equals("menu.settings")) { return ["Einstellungen", "Yystellige", "Einstellungen", "Settings", "Réglages", "Impostazioni", "Ajustes", "Ajustes", "Setelan", "Настройки", "Instellingen", "Asetukset", "Nastavení"]; }
         if (key.equals("menu.autostart")) { return ["Auto-Start", "Auto-Start", "Auto-Start", "Auto-start", "Démarrage auto", "Avvio auto", "Inicio auto", "Início auto", "Mulai otomatis", "Автостарт", "Auto-start", "Autom. start", "Autostart"]; }
+        // Not-Aus für die frei gestalteten Layouts (Sicherheitsnetz Stufe 1, rein lokal).
+        if (key.equals("menu.layouts")) { return ["Eigene Layouts", "Eigeni Layouts", "Eigene Layouts", "Custom layouts", "Layouts perso", "Layout personali", "Diseños propios", "Layouts próprios", "Tata letak sendiri", "Свои макеты", "Eigen layouts", "Omat asettelut", "Vlastní rozvržení"]; }
+        // Nach einem Absturz mit dynamischem Layout: diese Sitzung läuft statisch.
+        if (key.equals("lay.fallback")) { return ["Layout aus (Absturz)", "Layout us (Absturz)", "Layout aus (Absturz)", "Layout off (crash)", "Layout off (plantage)", "Layout off (crash)", "Diseño off (fallo)", "Layout off (falha)", "Tata letak off (error)", "Макет выкл (сбой)", "Layout uit (crash)", "Asettelu pois (kaatui)", "Rozvržení vyp (pád)"]; }
         if (key.equals("common.on"))     { return ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл", "Aan", "Päällä", "Zap"]; }
         if (key.equals("common.off"))    { return ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл", "Uit", "Pois", "Vyp"]; }
         if (key.equals("fm.title"))      { return ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал", "Foil & alarm", "Foil & hälytys", "Foil & alarm"]; }

@@ -404,9 +404,25 @@ für Nutzer steht (26.07.).
       annotiert (mit leeren `(:lite)`-Gegenstücken). Instinct 2 (Lite, 96 KB Budget): 54,8 → **55,6 KB**
       (erster Wurf war 56,4 KB, weil die Recorder-Seite noch ungated war). fēnix 7X Pro: 70,5 →
       **73,1 KB**. Build 121 ok / 0 fehlgeschlagen.
-  - **P2b offen:** Canary-Flag setzen/löschen/melden + On-Watch-Menüpunkt verdrahten,
-    Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten `SIZE_STEPS`-Faktoren in
-    der PWA nachziehen), Testpakete für fr255s + fenix7xpro.
+  - **P2b Sicherheitsnetz — ERLEDIGT 2026-07-26 (1.0.66):** alle drei Stufen verdrahtet, jede
+    hinter `(:full)` mit leerem `(:lite)`-Gegenstück.
+    1. **On-Watch-Schalter:** Menüpunkt „Eigene Layouts An/Aus" im Idle-Menü (dort, wo Verbinden/
+       Upload/Auto-Start liegen) → `SessionRecorder.toggleLayouts()`, Storage-Flag `layouts_off`.
+       Rein lokal, wirkt ohne Handy und ohne Server und sticht die Server-Auslieferung.
+    2. **Canary:** `_armCanary()` beim Aufnahme-Start (nur wenn wirklich ein Layout aktiv ist),
+       `_clearCanary()` bei `stop()` UND `discard()` — ein Storage-Write je Session, nicht je Frame.
+       Liegt das Flag beim App-Start noch da (`_layoutsFromCache`), fährt die Uhr **diese Sitzung**
+       statisch (`layoutCrash` sticht `layoutsOn`), zeigt ~6 s „Layout aus (Absturz)" in Orange auf
+       dem Start-Screen und löscht das Flag — ein einzelner Absturz hallt also nicht ewig nach. Ob
+       ein Modell dauerhaft aussetzt, entscheidet der Server.
+    3. **Meldung:** `fetchConfig()` hängt `canary=1` an, solange `canaryPending`; erst im
+       Erfolgspfad von `onConfig` gilt sie als abgesetzt. Damit greift der selbstlernende
+       Kill-Switch (zwei verschiedene Uhren eines Modells → Modell aus).
+    Menüpunkt (`menu.layouts`) und Hinweis (`lay.fallback`) in **allen 13 Uhr-Sprachen**;
+    StringsLite braucht sie nicht (Lite hat keine Layouts). Build 121 ok / 0 fehlgeschlagen,
+    Release-Größen: instinct2 (Lite) **55,8 KB**, fr255s **74,2 KB**, fenix7xpro **74,5 KB**.
+  - **P2b offen:** Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten
+    `SIZE_STEPS`-Faktoren in der PWA nachziehen), Testpakete für fr255s + fenix7xpro.
 - **P3:** Wear OS + Apple Watch.
 
 ---

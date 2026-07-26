@@ -117,6 +117,13 @@ class SessionRecorder {
     var offFoilPage = null;
     var pausePage = null;
     var layoutsOffLocal = false;      // On-Watch-Not-Aus (Storage „layouts_off")
+    // Canary (Selbstheilung): beim Aufnahme-Start setzen, beim sauberen Ende löschen. Liegt das
+    // Flag beim App-Start noch da, ist die letzte Aufnahme mit dynamischem Layout NICHT sauber
+    // beendet worden -> diese Sitzung fährt statisch, der Start-Screen sagt es kurz, und der
+    // nächste Config-Abruf meldet es dem Server (der zählt je Modell und schaltet es dort ab).
+    var layoutCrash = false;          // letzte Session ist abgestürzt -> jetzt statisch
+    var canaryPending = false;        // dem Server noch zu melden (?canary=1)
+    var layoutHintUntilMs = 0;        // Start-Screen-Hinweis bis zu dieser Timer-Zeit
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
@@ -256,7 +263,8 @@ class SessionRecorder {
         pausePage = (lay instanceof Lang.Dictionary && lay.hasKey("pause")
                      && lay["pause"] instanceof Lang.Array) ? lay["pause"] : null;
         // Der On-Watch-Not-Aus sticht ALLES — er muss ohne Handy und ohne Server wirken.
-        layoutsOn = (on && !layoutsOffLocal && pages.size() > 0);
+        // layoutCrash tut dasselbe für die laufende Sitzung (Selbstheilung nach Absturz).
+        layoutsOn = (on && !layoutsOffLocal && !layoutCrash && pages.size() > 0);
     }
 
     // Layout-Paket aus dem Server-Config ziehen und in EINEN Storage-Key cachen. Liefert der
@@ -275,12 +283,33 @@ class SessionRecorder {
 
     (:full) hidden function _layoutsFromCache() {
         layoutsOffLocal = (Storage.getValue("layouts_off") == true);
+        // Canary noch gesetzt? Dann ist die letzte Aufnahme abgestürzt. NICHT dauerhaft
+        // abschalten (das entscheidet der Server je Modell) — nur diese Sitzung statisch fahren,
+        // Hinweis zeigen und die Meldung fürs nächste /config vormerken. Flag danach löschen,
+        // damit ein einzelner Absturz nicht ewig nachhallt.
+        if (Storage.getValue("layout_canary") == true) {
+            layoutCrash = true;
+            canaryPending = true;
+            layoutHintUntilMs = System.getTimer() + 6000;
+            _store("layout_canary", false);
+        }
         var lc = Storage.getValue("layouts_config");
         if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); }
     }
 
     (:lite) hidden function _layoutsFromConfig(data) { }
     (:lite) hidden function _layoutsFromCache() { }
+
+    // Canary scharf machen — NUR wenn diese Aufnahme wirklich mit dynamischem Layout läuft.
+    // Ein Storage-Write pro Session-Start, nicht pro Frame.
+    (:full) hidden function _armCanary() {
+        if (layoutsOn) { _store("layout_canary", true); }
+    }
+    (:full) hidden function _clearCanary() {
+        if (Storage.getValue("layout_canary") == true) { _store("layout_canary", false); }
+    }
+    (:lite) hidden function _armCanary() { }
+    (:lite) hidden function _clearCanary() { }
 
     // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
     (:lite) hidden function _applyLayouts(lay) { layoutsOn = false; }
@@ -418,9 +447,14 @@ class SessionRecorder {
             var pn = "";
             var ds = System.getDeviceSettings();
             if (ds != null && ds.partNumber != null) { pn = ds.partNumber; }
+            // Steht eine Canary-Meldung aus (letzte Aufnahme mit dynamischem Layout ist
+            // abgestürzt), geht sie hier mit: der Server zählt sie je Uhrenmodell und schaltet
+            // Layouts dort ab, sobald zwei verschiedene Uhren desselben Modells gemeldet haben.
+            var params = { "v" => Config.VERSION, "p" => "garmin", "pn" => pn };
+            if (canaryPending) { params["canary"] = "1"; }
             Communications.makeWebRequest(
                 Config.baseUrl() + "/api/devices/config",
-                { "v" => Config.VERSION, "p" => "garmin", "pn" => pn },   // Version+Plattform+PartNo melden
+                params,   // Version+Plattform+PartNo (+ Canary-Meldung)
                 {
                     :method => Communications.HTTP_REQUEST_METHOD_GET,
                     :headers => { "X-Device-Token" => token },
@@ -508,6 +542,8 @@ class SessionRecorder {
             }
             // Dynamische Layouts (nur (:full)-Builds; im Lite-Build ist das ein No-Op).
             _layoutsFromConfig(data);
+            // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
+            canaryPending = false;
             // Update-Hinweis: neuere im IQ-Store freigegebene Version als unsere? -> kurz einblenden.
             if (data.hasKey("latestVersion") && data["latestVersion"] != null) {
                 if (_versionNewer(data["latestVersion"], Config.VERSION)) {
@@ -646,6 +682,7 @@ class SessionRecorder {
         _saveState(false);
         // Object-Store voll? -> gar nicht erst starten (kein Crash), UI zeigt Hinweis.
         if (storageFull) { return; }
+        _armCanary();
         // Lauferkennung zurücksetzen.
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;
@@ -741,6 +778,7 @@ class SessionRecorder {
         }
         _flushGps(true);
         _recording = false;
+        _clearCanary();                 // sauber beendet -> kein Absturz-Verdacht
         Uploader.setRecording(false);   // Aufnahme vorbei -> Auto-Retry wieder erlaubt
         stopped = true;   // -> Erfolgs-/Upload-Screen
         // Session als abgeschlossen markieren und SICHER in Storage persistieren.
@@ -764,6 +802,7 @@ class SessionRecorder {
         try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
         if (_accelOn) { try { Sensor.unregisterSensorDataListener(); } catch (e) {} }
         _recording = false;
+        _clearCanary();                 // bewusst verworfen ist auch „sauber beendet"
         Uploader.setRecording(false);
         _purgeCurrent();
         // FIT verwerfen statt speichern (fällt bei fehlendem discard auf save+ignorieren zurück).
