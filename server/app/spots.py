@@ -177,6 +177,115 @@ def rebuild_all(db, apply: bool = False):
     return {"spots": len(spots), "multi_spot_sessions": n_multi, "detail": report}
 
 
+def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
+    """Spot-Daten generisch heilen (wiederholbar, `apply=False` = Dry-Run).
+
+    Drei Klassen von Altlasten, die die laufende Zuordnung blockieren:
+      1. **Waisen-Spots** ohne aktive Session (Reste von Renn-/Löschsituationen). Überlappen sie
+         einen echten Spot, werden sie dorthin gemerged, sonst entfernt.
+      2. **Überlappende Spots** — zwei Zeilen für denselben Ort. Werden zusammengeführt
+         (meiste Sessions gewinnt, Name/Gewässer werden übernommen).
+      3. **Sessions ohne Spot**, die einen bekommen müssten (`is_pumpfoil`, Läufe > 0, Track da).
+         Nach 1.+2. greift `assign_one` wieder normal.
+
+    NICHT angetastet wird die bewusste Regel „Track überschneidet ≥2 ECHTE (disjunkte) Spots ->
+    nur Gewässername" — Traversen über mehrere Spots bleiben ohne Spot.
+    """
+    from . import models
+    rep: dict = {"orphans_merged": [], "orphans_deleted": [], "overlaps_merged": [],
+                 "needs_review": [], "sessions_reassigned": [], "sessions_still_without_spot": 0,
+                 "applied": apply}
+    spots = (db.query(models.Spot)
+             .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
+                     models.Spot.poly_wkt.isnot(None)).all())
+    counts = {sp.id: _session_count(db, sp.id) for sp in spots}
+
+    # --- 1./2. Überlappungen auflösen (Waisen bevorzugt als Quelle) -------------------
+    done: set[int] = set()
+    for sp in spots:
+        if sp.id in done or sp.merged_into is not None:
+            continue
+        lat0 = sp.lat
+        try:
+            base = _wkt_to_m(sp.poly_wkt, lat0)
+        except Exception:  # noqa: BLE001
+            continue
+        group = [sp]
+        for other in spots:
+            if other.id in done or other.id == sp.id or other.merged_into is not None:
+                continue
+            if abs((other.lat or 0) - lat0) > 0.25:
+                continue
+            try:
+                if base.intersects(_wkt_to_m(other.poly_wkt, lat0)):
+                    group.append(other)
+            except Exception:  # noqa: BLE001
+                continue
+        if len(group) == 1:
+            continue
+        group.sort(key=lambda x: (-counts.get(x.id, 0), x.name is None, x.id))
+        target, sources = group[0], group[1:]
+        for x in group:
+            done.add(x.id)
+        entry = {"into": target.id, "into_name": target.name,
+                 "from": [{"id": x.id, "name": x.name, "sessions": counts.get(x.id, 0)} for x in sources]}
+        if not _auto_mergeable(db, group):
+            # Mehrere echte Spots mit Sessions und verschiedenen Namen -> Mensch entscheidet.
+            rep["needs_review"].append(entry)
+            continue
+        if all(counts.get(x.id, 0) == 0 for x in sources):
+            rep["orphans_merged"].append(entry)
+        else:
+            rep["overlaps_merged"].append(entry)
+        if apply:
+            _merge_spot_rows(db, target, sources, lat0)
+    if apply:
+        db.commit()
+
+    # --- 1b. Waisen ohne Überlappungspartner: weg damit ------------------------------
+    for sp in spots:
+        if sp.merged_into is not None or sp.id in done or counts.get(sp.id, 0) > 0:
+            continue
+        rep["orphans_deleted"].append({"id": sp.id, "name": sp.name})
+        if apply:
+            db.delete(sp)
+    if apply:
+        db.commit()
+
+    # --- 3. Sessions ohne Spot erneut zuordnen ---------------------------------------
+    rows = (db.query(models.Session)
+            .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+            .filter(models.Session.deleted.isnot(True), models.Session.spot_id.is_(None),
+                    models.Session.place_lat.isnot(None), models.Session.is_pumpfoil.is_(True),
+                    models.AnalysisResult.num_runs > 0)
+            .order_by(models.Session.id.desc()).limit(reassign_limit).all())
+    for s in rows:
+        if not apply:
+            rep["sessions_reassigned"].append({"session": s.id, "spot": None})
+            continue
+        try:
+            assign_one(db, s)
+        except Exception as e:  # noqa: BLE001
+            rep.setdefault("errors", []).append(f"session {s.id}: {e}")
+            db.rollback()
+            continue
+        if s.spot_id:
+            rep["sessions_reassigned"].append({"session": s.id, "spot": s.spot_id,
+                                               "place": s.place_name})
+        else:
+            rep["sessions_still_without_spot"] += 1
+    # Gesamtzahl (unabhängig vom Limit) — damit man sieht, ob ein weiterer Lauf nötig ist.
+    total_missing = (db.query(models.Session)
+                     .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+                     .filter(models.Session.deleted.isnot(True), models.Session.spot_id.is_(None),
+                             models.Session.place_lat.isnot(None), models.Session.is_pumpfoil.is_(True),
+                             models.AnalysisResult.num_runs > 0).count())
+    rep["sessions_without_spot_total"] = total_missing
+    if not apply:
+        rep["sessions_without_spot_candidates"] = len(rows)
+    return rep
+
+
 def spot_name_by_id(db, sid) -> str | None:
     from . import models
     row = db.get(models.Spot, int(sid)) if str(sid).isdigit() else None
@@ -239,6 +348,84 @@ def name_pending_spots(db, max_spots: int | None = None) -> dict:
     return {"named": named, "still_pending": pending}
 
 
+def _merge_spot_rows(db, target, sources, lat0):
+    """Spot-Zeilen zusammenführen: Sessions umhängen, Polygone vereinigen, Quellen als
+    `merged_into` markieren. Gleiche Semantik wie der Admin-Merge, nur intern aufrufbar."""
+    from . import models
+    polys = [_wkt_to_m(target.poly_wkt, lat0)] if target.poly_wkt else []
+    for sp in sources:
+        if sp.id == target.id or sp.merged_into is not None:
+            continue
+        (db.query(models.Session).filter(models.Session.spot_id == sp.id)
+         .update({models.Session.spot_id: target.id,
+                  models.Session.place_name: target.name or models.Session.place_name,
+                  models.Session.place_water: target.water_name}))
+        if sp.poly_wkt:
+            polys.append(_wkt_to_m(sp.poly_wkt, lat0))
+        sp.merged_into = target.id
+    if len(polys) > 1:
+        target.poly_wkt = _m_to_wkt(unary_union(polys), lat0)
+    # Fehlende Angaben vom besseren Kandidaten übernehmen (der Ziel-Spot kann namenlos sein).
+    for sp in sources:
+        if not target.name and sp.name:
+            target.name, target.name_source = sp.name, sp.name_source
+        if not target.water_name and sp.water_name:
+            target.water_name = sp.water_name
+    db.flush()
+    return target
+
+
+def _session_count(db, spot_id: int) -> int:
+    from . import models
+    return (db.query(models.Session)
+            .filter(models.Session.spot_id == spot_id, models.Session.deleted.isnot(True))
+            .count())
+
+
+def _auto_mergeable(db, group) -> bool:
+    """Darf diese Gruppe überlappender Spots automatisch verschmolzen werden?
+
+    JA, wenn höchstens EINER aktive Sessions hat — dann sind die anderen Waisen/Dubletten
+    (typisch: Worker-Rennen beim Anlegen). NEIN, wenn mehrere echte Spots mit Sessions und
+    UNTERSCHIEDLICHEN Namen zusammenstoßen: dann hat vermutlich eine lange Fahrt ein Polygon
+    aufgeblasen (real gesehen: „Cala Longa" ↔ „Tizzano" auf Korsika). Solche Fälle sind eine
+    inhaltliche Entscheidung und gehören in den Admin-Review, nicht in die Automatik.
+    """
+    populated = [sp for sp in group if _session_count(db, sp.id) > 0]
+    if len(populated) <= 1:
+        return True
+    names = {(sp.name or "").strip().lower() for sp in populated if sp.name}
+    return len(names) <= 1
+
+
+def _dedupe_hits(db, hits, lat0):
+    """Mehrere Treffer, die sich UNTEREINANDER überlappen, sind kein „≥2 Spots"-Fall, sondern
+    EIN fälschlich gespaltener Spot (z. B. durch ein Worker-Rennen beim Anlegen entstanden).
+    Solche Treffer werden hier zusammengeführt; echte, voneinander getrennte Spots bleiben
+    getrennt (Jans Regel „Traverse über mehrere Spots -> nur Gewässer" bleibt gültig).
+    Rückgabe: die verbleibenden, paarweise disjunkten Spot-Zeilen."""
+    if len(hits) < 2:
+        return hits
+    polys = {sp.id: _wkt_to_m(sp.poly_wkt, lat0) for sp in hits}
+    groups: list[list] = []
+    for sp in hits:
+        for grp in groups:
+            if any(polys[sp.id].intersects(polys[o.id]) for o in grp):
+                grp.append(sp)
+                break
+        else:
+            groups.append([sp])
+    out = []
+    for grp in groups:
+        if len(grp) == 1 or not _auto_mergeable(db, grp):
+            out += grp          # echte, verschieden benannte Spots: unverändert lassen
+            continue
+        # Ziel = meiste Sessions, bei Gleichstand der benannte, sonst der ältere.
+        grp.sort(key=lambda sp: (-_session_count(db, sp.id), sp.name is None, sp.id))
+        out.append(_merge_spot_rows(db, grp[0], grp[1:], lat0))
+    return out
+
+
 def assign_one(db, s):
     """Laufende Zuordnung einer EINZELNEN (neu analysierten) Session zu einem Spot.
     Setzt spot_id + place_name + place_water. Legt bei Bedarf einen neuen Spot an."""
@@ -263,6 +450,13 @@ def assign_one(db, s):
                     models.Spot.lat.between(lat0 - 0.25, lat0 + 0.25),
                     models.Spot.poly_wkt.isnot(None)).all())
     hits = [sp for sp in cand if _wkt_to_m(sp.poly_wkt, lat0).intersects(new_m)]
+    # Waisen aussortieren: Spots ohne aktive Session sind Müll (entstehen z. B., wenn zwei
+    # Worker parallel für dieselbe Session einen Spot anlegen — der Verlierer bleibt leer
+    # zurück). Sie würden hier sonst als zweiter „Treffer" jede Zuordnung blockieren.
+    orphans = [sp for sp in hits if _session_count(db, sp.id) == 0]
+    if orphans and len(orphans) < len(hits):
+        hits = [sp for sp in hits if sp not in orphans]
+    hits = _dedupe_hits(db, hits, lat0)
     if len(hits) == 1:
         sp = hits[0]
         merged = unary_union([_wkt_to_m(sp.poly_wkt, lat0), new_m])

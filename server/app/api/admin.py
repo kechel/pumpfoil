@@ -915,6 +915,22 @@ def merge_spots(body: dict, admin: models.User = Depends(current_admin), db: Ses
     return {"ok": True, "into": target.id, "merged": moved}
 
 
+@router.post("/spots/repair")
+def repair_spots(apply: bool = Query(False), limit: int = Query(100, ge=1, le=500),
+                 admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Spot-Daten generisch heilen statt Einzelfälle von Hand zu mergen: Waisen-Spots (0 Sessions)
+    und überlappende Doppel-Spots zusammenführen, danach Sessions ohne Spot neu zuordnen.
+    `apply=false` (Default) ist ein Dry-Run und ändert nichts. Wiederholbar."""
+    from ..spots import repair
+    out = repair(db, apply=apply, reassign_limit=limit)
+    if apply:
+        _log(db, admin, "spot_repair", "spot", None,
+             f"orphans={len(out['orphans_merged'])+len(out['orphans_deleted'])} "
+             f"overlaps={len(out['overlaps_merged'])} reassigned={len(out['sessions_reassigned'])}")
+        db.commit()
+    return out
+
+
 @router.post("/spots/{spot_id}/rename")
 def rename_spot(spot_id: int, name: str = Query(...),
                 admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
