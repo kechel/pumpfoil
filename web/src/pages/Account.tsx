@@ -391,7 +391,14 @@ function ViewsEditor() {
   if (!views) return null;
   return (
     <Card className="mt-5 p-5">
-      <h3 className="mb-1 font-semibold">{t("account.viewsTitle")}</h3>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-semibold">{t("account.viewsTitle")}</h3>
+        {/* Einstieg in die frei positionierbaren Layouts (bisher nur per URL erreichbar). */}
+        <Link to="/layouts"
+          className="rounded-xl bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700">
+          {t("account.toLayouts")} →
+        </Link>
+      </div>
       <p className="mb-3 text-sm text-slate-300">
         {t("account.viewsDesc")}
       </p>

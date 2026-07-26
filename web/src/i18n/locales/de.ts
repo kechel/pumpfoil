@@ -1366,6 +1366,7 @@ const de: Record<string, string> = {
   "lay.shape.semioctagon": "Instinct (abgeflacht)",
   "lay.ownWatchNote": "Vorschau in der Größe deiner Uhr ({name}).",
   "lay.galleryEmpty": "Noch nichts veröffentlicht. Veröffentliche dein Layout — dann sehen es die anderen hier.",
+  "account.toLayouts": "Erweiterte Layouts",
 };
 
 export default de;

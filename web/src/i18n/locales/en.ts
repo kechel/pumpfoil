@@ -1309,6 +1309,7 @@ const en: Record<string, string> = {
   "lay.shape.semioctagon": "Instinct (flat edge)",
   "lay.ownWatchNote": "Preview in your watch\u2019s size ({name}).",
   "lay.galleryEmpty": "Nothing published yet. Publish your layout \u2014 then others will see it here.",
+  "account.toLayouts": "Advanced layouts",
 };
 
 export default en;
