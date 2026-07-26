@@ -1363,7 +1363,7 @@ const de: Record<string, string> = {
   "lay.byAuthor": "von {name}",
   "lay.usedBy": "von {n} Foilern genutzt",
   "lay.copies": "{n}× kopiert",
-  "lay.asAuthor": "wie der Autor es entworfen hat",
+  "lay.asAuthor": "Vorschau in Originalgröße des Autors",
   "lay.copyToMine": "In mein Profil kopieren",
   "lay.copiedGoto": "Kopiert — zu meinen Layouts",
   "lay.allCats": "Alle Kategorien",

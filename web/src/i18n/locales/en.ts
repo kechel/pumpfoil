@@ -1306,7 +1306,7 @@ const en: Record<string, string> = {
   "lay.byAuthor": "by {name}",
   "lay.usedBy": "used by {n} foilers",
   "lay.copies": "copied {n}\u00d7",
-  "lay.asAuthor": "as the author designed it",
+  "lay.asAuthor": "Preview in the author’s original size",
   "lay.copyToMine": "Copy to my profile",
   "lay.copiedGoto": "Copied \u2014 go to my layouts",
   "lay.allCats": "All categories",

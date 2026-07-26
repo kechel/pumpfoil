@@ -76,6 +76,11 @@ export default function LayoutGallery() {
             {(l.copies ?? 0) > 0 && <span className="text-slate-400">{t("lay.copies", { n: l.copies ?? 0 })}</span>}
             {l.has_freetext && <span className="text-amber-700 dark:text-amber-300">{t("lay.hasFreetext")}</span>}
           </div>
+          {/* NUR die Vorschau-Größe: aus = in der Größe DEINER Uhr, an = in der Displaygröße/Form,
+              auf der der Autor es entworfen hat. Hat nichts mit dem Kopieren zu tun — eine Kopie ist
+              immer eine unabhängige Momentaufnahme, sie folgt dem Original nicht (Jan fragte genau
+              das: „anpassungen immer uebernehmen vs. eigene unabhaengige kopie"). Der alte Text
+              „wie der Autor es entworfen hat" legte diese Deutung nahe. */}
           <label className="mt-2 inline-flex items-center gap-2 text-sm text-slate-300">
             <input type="checkbox" checked={asAuthor[l.id] === true}
               onChange={(e) => setAsAuthor((m) => ({ ...m, [l.id]: e.target.checked }))}
