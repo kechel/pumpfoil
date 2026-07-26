@@ -26,8 +26,11 @@ class RecordView extends WatchUi.View {
         _rec.resetAutoLead();
     }
 
-    // Seitenzahl inkl. Übersichts-Seite (Index = screens.size()).
-    hidden function _pageCount() { return _rec.screens.size() + 1; }
+    // Seitenzahl inkl. Übersichts-Seite. Mit dynamischen Layouts ist `_rec.pages` die
+    // Seitenliste (klassische 3-Feld-Seiten und freie Layouts gemischt), sonst `_rec.screens`.
+    hidden function _pageCount() {
+        return (_rec.layoutsOn && _rec.pages.size() > 0 ? _rec.pages.size() : _rec.screens.size()) + 1;
+    }
 
     // UP/DOWN: manuelles Blättern bricht den Auto-Rücksprung ab (Nutzer hat Kontrolle).
     function nextScreen() { screenIdx = (screenIdx + 1) % _pageCount(); _summaryShownAtMs = null; }
@@ -95,49 +98,78 @@ class RecordView extends WatchUi.View {
         if (screenIdx < summaryIdx) { _lastDataIdx = screenIdx; }
 
         var summary = (screenIdx == summaryIdx);
-        // Übersichts-Slot ist adaptiv: kurz nach Lauf-Ende die Lauf-Zusammenfassung
-        // (offFoilView), danach die Pausen-Ansicht (Uhrzeit/Läufe/Puls). Beides mit REC.
-        var fields;
+        var h = dc.getHeight();
+        var w = dc.getWidth();
+        var dyn = (_rec.layoutsOn && _rec.pages.size() > 0);
+
+        // Welche Seite? Übersichts-Slot ist adaptiv: kurz nach Lauf-Ende die Lauf-
+        // Zusammenfassung (Off-Foil), danach die Pausen-Ansicht. Ein Seiten-EINTRAG ist
+        // entweder [0,a,b,c] (klassische 3-Feld-Seite) oder [1,bg,[elemente]] (freies Layout).
+        var entry = null;
+        var fields = null;
         if (summary) {
             var justEnded = (_summaryShownAtMs != null
                 && System.getTimer() - _summaryShownAtMs < RUNEND_SHOW_MS);
-            fields = justEnded ? _rec.offFoilView : _rec.pauseView;
+            if (dyn) {
+                entry = justEnded ? _rec.offFoilPage : _rec.pausePage;
+            }
+            if (entry == null) { fields = justEnded ? _rec.offFoilView : _rec.pauseView; }
+        } else if (dyn) {
+            entry = _rec.pages[screenIdx];
         } else {
             fields = _rec.screens[screenIdx];
         }
+        // Eintrag auflösen: Tag 0 = 3 Feld-IDs, Tag 1 = Layout (nur im (:full)-Build).
+        if (entry != null) {
+            if (entry.size() > 0 && entry[0] == 1) {
+                _drawLayoutPage(dc, entry, w, h, screenIdx);
+                return;                       // Layout zeichnet Chrome (REC/Punkte) selbst
+            }
+            fields = [
+                entry.size() > 1 ? entry[1] : Config.FIELD_NONE,
+                entry.size() > 2 ? entry[2] : Config.FIELD_NONE,
+                entry.size() > 3 ? entry[3] : Config.FIELD_NONE];
+        }
+
+        _drawFieldPage(dc, fields, w, h);
+        _drawPageDots(dc, w, h, screenIdx, Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
+        _drawRec(dc, w / 2, h * 0.085, Graphics.COLOR_RED);
+    }
+
+    // Klassische Seite: bis zu 3 Felder gleichmäßig in einem sicheren Band gestapelt.
+    hidden function _drawFieldPage(dc, fields, w, h) {
         var active = [];
         for (var i = 0; i < 3; i++) {
             if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }
         }
-
-        var h = dc.getHeight();
-        var w = dc.getWidth();
         var n = active.size();
         if (n == 0) { n = 1; active = [Config.FIELD_SPEED3S]; }
-
-        // Felder in einem sicheren Band statt über die volle Höhe: hält die oberen/unteren
-        // Felder vom runden Display-Rand (und von REC-Zeile oben / Seiten-Punkten unten) weg.
+        // Band statt volle Höhe: hält die oberen/unteren Felder vom runden Display-Rand
+        // (und von REC-Zeile oben / Seiten-Punkten unten) weg.
         var top = h * 0.13;
         var band = h * 0.74;
         for (var i = 0; i < n; i++) {
             var cy = top + band * (i + 0.5) / n;
             _drawField(dc, active[i], w / 2, cy, n);
         }
+    }
 
-        // Seiten-Indikator (Punkte): Datenansichten + Übersicht (letzter Punkt).
-        if (_pageCount() > 1) {
-            for (var i = 0; i < _pageCount(); i++) {
-                dc.setColor(i == screenIdx ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-                dc.fillCircle(w / 2 + (i - (_pageCount() - 1) / 2.0) * 12, h * 0.92, 3);
-            }
+    // Seiten-Indikator (Punkte). Farben kommen von außen, damit ein Layout eigene setzen kann.
+    hidden function _drawPageDots(dc, w, h, idx, onColor, offColor) {
+        var cnt = _pageCount();
+        if (cnt <= 1) { return; }
+        for (var i = 0; i < cnt; i++) {
+            dc.setColor(i == idx ? onColor : offColor, Graphics.COLOR_TRANSPARENT);
+            dc.fillCircle(w / 2 + (i - (cnt - 1) / 2.0) * 12, h * 0.92, 3);
         }
+    }
 
-        // Status oben: roter Punkt + „REC" = aufzeichnend.
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(w / 2 - 24, h * 0.085, 5);
-        dc.drawText(w / 2 - 12, h * 0.085, Graphics.FONT_XTINY, "REC",
+    // Roter Punkt + „REC" (Position/Farbe von außen, damit ein Layout sie verschieben kann).
+    hidden function _drawRec(dc, cx, cy, color) {
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(cx - 24, cy, 5);
+        dc.drawText(cx - 12, cy, Graphics.FONT_XTINY, "REC",
             Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-
     }
 
     // Halten zum Aktions-Menü, EINE Stufe, auf schwarzem Vollbild (keine Datenfelder dahinter):
@@ -279,7 +311,9 @@ class RecordView extends WatchUi.View {
         dc.fillCircle(w / 2, h * 0.10, 6);
     }
 
-    hidden function _drawField(dc, type, cx, cy, n) {
+    // Wert + Label + Farbe eines Datenfelds. EINE Quelle für die klassische 3-Feld-Ansicht
+    // UND den Layout-Renderer — sonst driften Formatierung/Farb-Buckets auseinander.
+    hidden function _fieldParts(type) {
         var value;
         var label;
         var color = Graphics.COLOR_WHITE;
@@ -349,15 +383,143 @@ class RecordView extends WatchUi.View {
         } else {
             value = "--"; label = "";
         }
+        return [value, label, color];
+    }
 
-        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+    hidden function _drawField(dc, type, cx, cy, n) {
+        var pp = _fieldParts(type);
+        var value = pp[0];
+        var label = pp[1];
+        dc.setColor(pp[2], Graphics.COLOR_TRANSPARENT);
         var font = (n >= 3) ? Graphics.FONT_NUMBER_MEDIUM : Graphics.FONT_NUMBER_HOT;
         dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         // Beschriftung größer + lesbarer (Tom-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
-        // FONT_XTINY.
+        // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
+        // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
         var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;
-        dc.drawText(cx, cy + 30, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
+        var gap = dc.getFontHeight(font) / 2 + dc.getFontHeight(lblFont) / 4;
+        dc.drawText(cx, cy + gap, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // ================================ Layout-Renderer =================================
+    // Zeichnet eine frei gestaltete Seite: [1, bg, [element, …]] mit
+    //   element = [typ, x, y, size, color, flags, extra…]
+    //   typ 1 Wert (extra Feld-ID) · 2 übersetztes Label (Feld-ID) · 3 Freitext (String)
+    //       4 Trennlinie (extra x2,y2; size = Dicke) · 5 REC-Punkt · 6 Seiten-Punkte
+    //   x/y RELATIV 0…1000 -> mal dc.getWidth()/getHeight(): trägt über alle Auflösungen
+    //       (176…454 px) und Formen. size = Font-Stufe, color = Index in die Palette.
+    //   flags: Bit0 linksbündig, Bit1 rechtsbündig, Bit2 Farbe nach Wert.
+    // KOMPLETT hinter (:full): die 96-KB-Uhren bekommen diesen Code nicht mitkompiliert.
+    // Server-Vertrag + Palette: server/app/api/layouts.py, Vorschau: web/src/lib/watchLayout.ts.
+    (:full) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
+        var bg = _layoutColor(entry.size() > 1 ? entry[1] : 0, Graphics.COLOR_BLACK);
+        dc.setColor(bg, bg);
+        dc.clear();
+        var els = (entry.size() > 2 && entry[2] instanceof Lang.Array) ? entry[2] : [];
+        // Trennlinien zuerst (liegen hinter Text), dann der Rest — wie in der Web-Vorschau.
+        for (var pass = 0; pass < 2; pass++) {
+            for (var i = 0; i < els.size(); i++) {
+                var e = els[i];
+                if (!(e instanceof Lang.Array) || e.size() < 6) { continue; }
+                var isLine = (e[0] == 4);
+                if ((pass == 0) != isLine) { continue; }
+                _drawElement(dc, e, w, h, idx);
+            }
+        }
+    }
+
+    (:full) hidden function _drawElement(dc, e, w, h, idx) {
+        var typ = e[0];
+        var x = w * e[1] / 1000.0;
+        var y = h * e[2] / 1000.0;
+        var step = e[3];
+        var flags = e[5];
+        if (typ == 4) {                                   // Trennlinie
+            if (e.size() < 8) { return; }
+            dc.setColor(_layoutColor(e[4], Graphics.COLOR_DK_GRAY), Graphics.COLOR_TRANSPARENT);
+            var pen = step < 1 ? 1 : step;
+            dc.setPenWidth(pen);
+            dc.drawLine(x, y, w * e[6] / 1000.0, h * e[7] / 1000.0);
+            dc.setPenWidth(1);
+            return;
+        }
+        if (typ == 5) {                                   // REC-Punkt
+            _drawRec(dc, x, y, _layoutColor(e[4], Graphics.COLOR_RED));
+            return;
+        }
+        if (typ == 6) {                                   // Seiten-Punkte
+            var c = _layoutColor(e[4], Graphics.COLOR_LT_GRAY);
+            _drawPageDots(dc, w, h, idx, c, Graphics.COLOR_DK_GRAY);
+            return;
+        }
+        // Text-Elemente: Wert / übersetztes Label / Freitext.
+        var txt = null;
+        var col = null;
+        if (typ == 1) {
+            var pp = _fieldParts(e.size() > 6 ? e[6] : Config.FIELD_NONE);
+            txt = pp[0];
+            // Bit2: Farbe nach Wert (dieselben Buckets wie die klassische Ansicht).
+            if ((flags & 4) != 0) { col = pp[2]; }
+        } else if (typ == 2) {
+            txt = _fieldParts(e.size() > 6 ? e[6] : Config.FIELD_NONE)[1];
+        } else if (typ == 3) {
+            txt = (e.size() > 6 && e[6] != null) ? e[6].toString() : "";
+        }
+        if (txt == null || txt.equals("")) { return; }
+        if (col == null) {
+            col = _layoutColor(e[4], typ == 1 ? Graphics.COLOR_WHITE : Graphics.COLOR_LT_GRAY);
+        }
+        dc.setColor(col, Graphics.COLOR_TRANSPARENT);
+        var just = Graphics.TEXT_JUSTIFY_CENTER;
+        if ((flags & 1) != 0) { just = Graphics.TEXT_JUSTIFY_LEFT; }
+        else if ((flags & 2) != 0) { just = Graphics.TEXT_JUSTIFY_RIGHT; }
+        dc.drawText(x, y, _layoutFont(step, typ), txt, just | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    // Größenstufe -> echter Garmin-Font. Ab Stufe 5 sind es NUMBER-Fonts: die enthalten NUR
+    // Ziffern, deshalb bekommen Labels/Freitexte (typ 2/3) höchstens FONT_LARGE — sonst wären
+    // sie auf der Uhr unsichtbar. Dieselbe Grenze prüft der Server (MAX_TEXT_STEP).
+    (:full) hidden function _layoutFont(step, typ) {
+        var s = step;
+        if (typ != 1 && s > 4) { s = 4; }
+        if (s <= 0) { return Graphics.FONT_XTINY; }
+        if (s == 1) { return Graphics.FONT_TINY; }
+        if (s == 2) { return Graphics.FONT_SMALL; }
+        if (s == 3) { return Graphics.FONT_MEDIUM; }
+        if (s == 4) { return Graphics.FONT_LARGE; }
+        if (s == 5) { return Graphics.FONT_NUMBER_MILD; }
+        if (s == 6) { return Graphics.FONT_NUMBER_MEDIUM; }
+        if (s == 7) { return Graphics.FONT_NUMBER_HOT; }
+        return Graphics.FONT_NUMBER_THAI_HOT;
+    }
+
+    // Palette-Index -> Gerätefarbe. Index 0 = „auto" -> der übergebene Standard.
+    // Reihenfolge identisch mit PALETTE in server/app/api/layouts.py und der Web-Vorschau.
+    (:full) hidden function _layoutColor(idx, fallback) {
+        if (idx == null || idx <= 0) { return fallback; }
+        if (idx == 1) { return Graphics.COLOR_WHITE; }
+        if (idx == 2) { return Graphics.COLOR_LT_GRAY; }
+        if (idx == 3) { return Graphics.COLOR_DK_GRAY; }
+        if (idx == 4) { return Graphics.COLOR_BLACK; }
+        if (idx == 5) { return Graphics.COLOR_RED; }
+        if (idx == 6) { return Graphics.COLOR_ORANGE; }
+        if (idx == 7) { return 0xFFAA00; }
+        if (idx == 8) { return Graphics.COLOR_YELLOW; }
+        if (idx == 9) { return Graphics.COLOR_GREEN; }
+        if (idx == 10) { return Graphics.COLOR_DK_GREEN; }
+        if (idx == 11) { return 0x00FFFF; }
+        if (idx == 12) { return Config.BRAND_CYAN; }
+        if (idx == 13) { return Graphics.COLOR_BLUE; }
+        if (idx == 14) { return Graphics.COLOR_PURPLE; }
+        if (idx == 15) { return Graphics.COLOR_PINK; }
+        return fallback;
+    }
+
+    // Lite-Build (96-KB-Uhren): kein Renderer. Der Server liefert diesen Uhren gar keine
+    // Layouts (Gating >= 512 KB), diese Variante ist nur der Kompilier-Ersatz.
+    (:lite) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
+        _drawFieldPage(dc, [Config.FIELD_SPEED3S, Config.FIELD_NONE, Config.FIELD_NONE], w, h);
     }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.

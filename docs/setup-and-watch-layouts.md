@@ -384,9 +384,29 @@ für Nutzer steht (26.07.).
     Canary-Events, Override, effektiver Zustand) + `POST /api/admin/layout-health/{model_id}?allowed=on|off|auto&note=`.
     Alle Tests mit dem Testkonto `emu-test` und Wegwerf-Gerätetoken; danach alles zurückgesetzt
     (Zähler 0, Flags weg, Testlayouts gelöscht).
-  - **P2b offen:** Garmin-Renderer hinter `(:full)`, Pausen-Screen, On-Watch-Schalter, Canary-Flag
-    setzen/löschen/melden, Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten
-    `SIZE_STEPS`-Faktoren in der PWA nachziehen).
+  - **P2b Renderer — ERLEDIGT 2026-07-26 (1.0.66):** `RecordView` zeichnet freie Seiten.
+    - `_drawLayoutPage(dc, [1,bg,[els]], …)`: Hintergrundfarbe, dann Trennlinien (liegen hinter
+      Text, wie in der Web-Vorschau), dann der Rest. `_drawElement` deckt alle sechs Typen ab;
+      Position aus `x/y ÷ 1000 × dc.getWidth()/getHeight()`, Ausrichtung aus den Flags,
+      „Farbe nach Wert" über Bit 2.
+    - `_layoutFont(step, typ)` mappt die Stufe auf den echten Garmin-Font und **kappt Labels/
+      Freitexte bei `FONT_LARGE`** (NUMBER-Fonts haben nur Ziffern) — dieselbe Grenze wie im Server.
+      `_layoutColor(idx, fallback)` spiegelt die Palette-Reihenfolge von Server und Vorschau.
+    - **`_fieldParts(type)` herausgezogen**: Wert, Label und Farb-Bucket kommen jetzt aus EINER
+      Quelle für die klassische 3-Feld-Ansicht und den Renderer — sonst driften Formatierung und
+      Farben auseinander. Label-Abstand aus `dc.getFontHeight()` statt fixer 30 px (hilft auch der
+      klassischen Ansicht auf 176-px-Uhren).
+    - `SessionRecorder`: `layoutsOn`/`pages`/`offFoilPage`/`pausePage` aus `/config`, gecacht in
+      **EINEM** Storage-Key `layouts_config` (Object Store nicht zerfasern), plus `layouts_off`
+      für den On-Watch-Not-Aus — der sticht alles, auch ohne Handy/Server. Alles defensiv: was
+      nicht wie erwartet aussieht, wird verworfen und die Uhr fährt statisch weiter.
+    - **`(:full)`-Gating verifiziert an der Release-Größe:** Renderer UND Layout-Verwaltung sind
+      annotiert (mit leeren `(:lite)`-Gegenstücken). Instinct 2 (Lite, 96 KB Budget): 54,8 → **55,6 KB**
+      (erster Wurf war 56,4 KB, weil die Recorder-Seite noch ungated war). fēnix 7X Pro: 70,5 →
+      **73,1 KB**. Build 121 ok / 0 fehlgeschlagen.
+  - **P2b offen:** Canary-Flag setzen/löschen/melden + On-Watch-Menüpunkt verdrahten,
+    Font-Kalibrierung gegen `dc.getFontHeight()` (danach die geschätzten `SIZE_STEPS`-Faktoren in
+    der PWA nachziehen), Testpakete für fr255s + fenix7xpro.
 - **P3:** Wear OS + Apple Watch.
 
 ---

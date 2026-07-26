@@ -107,6 +107,17 @@ class SessionRecorder {
     // Uhrzeit + Läufe der aktuellen Session + Puls. REC-Symbol bleibt dabei sichtbar.
     var pauseView = [Config.FIELD_CLOCK, Config.FIELD_RUN_COUNT, Config.FIELD_HR];
 
+    // --- Dynamische Layouts (frei gestaltete Seiten, s. docs/setup-and-watch-layouts.md) ---
+    // layoutsOn kommt vom Server (Gating: Gerät >= 512 KB, Modell unauffällig, Nutzer nicht
+    // abgeschaltet) UND kann on-watch abgeschaltet werden (layoutsOffLocal). pages ist die
+    // Seitenliste: Eintrag = [0,a,b,c] (klassische 3-Feld-Seite) oder [1,bg,[elemente]].
+    // Alles in EINEM Storage-Key (`layouts_config`), damit der Object Store nicht zerfasert.
+    var layoutsOn = false;
+    var pages = [];
+    var offFoilPage = null;
+    var pausePage = null;
+    var layoutsOffLocal = false;      // On-Watch-Not-Aus (Storage „layouts_off")
+
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
 
@@ -227,7 +238,59 @@ class SessionRecorder {
         // hartcodierte Default — genau wie bei Uhren, die noch nie einen Config-Sync hatten.
         var pv = Storage.getValue("pause_config");
         if (pv instanceof Lang.Array && pv.size() == 3) { pauseView = pv; }
+        // Dynamische Layouts aus dem Cache (offline verfügbar) + On-Watch-Not-Aus.
+        _layoutsFromCache();
         initAlarmSelection();   // Default-Foil/Website (offline aus Cache)
+    }
+
+    // Gecachtes/geliefertes Layout-Paket übernehmen. Defensiv: alles, was nicht wie erwartet
+    // aussieht, wird verworfen -> die Uhr fährt statisch weiter statt zu crashen.
+    // (:full): die 96-KB-Uhren bekommen vom Server ohnehin keine Layouts (Gating >= 512 KB),
+    // also braucht ihr Build weder Parser noch Umschalter — jedes Byte zählt dort.
+    (:full) hidden function _applyLayouts(lay) {
+        var on = (lay instanceof Lang.Dictionary && lay.hasKey("on") && lay["on"] == true);
+        var pg = (lay instanceof Lang.Dictionary && lay.hasKey("pages")) ? lay["pages"] : null;
+        pages = (pg instanceof Lang.Array) ? pg : [];
+        offFoilPage = (lay instanceof Lang.Dictionary && lay.hasKey("off")
+                       && lay["off"] instanceof Lang.Array) ? lay["off"] : null;
+        pausePage = (lay instanceof Lang.Dictionary && lay.hasKey("pause")
+                     && lay["pause"] instanceof Lang.Array) ? lay["pause"] : null;
+        // Der On-Watch-Not-Aus sticht ALLES — er muss ohne Handy und ohne Server wirken.
+        layoutsOn = (on && !layoutsOffLocal && pages.size() > 0);
+    }
+
+    // Layout-Paket aus dem Server-Config ziehen und in EINEN Storage-Key cachen. Liefert der
+    // Server layoutsOn=false (oder den Key gar nicht), fällt die Uhr auf die statische Logik
+    // zurück — ohne App-Update.
+    (:full) hidden function _layoutsFromConfig(data) {
+        if (!data.hasKey("layoutsOn")) { return; }
+        var lay = {
+            "on" => (data["layoutsOn"] == true),
+            "pages" => (data.hasKey("pages") ? data["pages"] : []),
+            "off" => (data.hasKey("offFoil") ? data["offFoil"] : null),
+            "pause" => (data.hasKey("pause") ? data["pause"] : null)};
+        _applyLayouts(lay);
+        _store("layouts_config", lay);
+    }
+
+    (:full) hidden function _layoutsFromCache() {
+        layoutsOffLocal = (Storage.getValue("layouts_off") == true);
+        var lc = Storage.getValue("layouts_config");
+        if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); }
+    }
+
+    (:lite) hidden function _layoutsFromConfig(data) { }
+    (:lite) hidden function _layoutsFromCache() { }
+
+    // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
+    (:lite) hidden function _applyLayouts(lay) { layoutsOn = false; }
+
+    // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.
+    (:full) function toggleLayouts() {
+        layoutsOffLocal = !layoutsOffLocal;
+        _store("layouts_off", layoutsOffLocal);
+        var lc = Storage.getValue("layouts_config");
+        if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); } else { layoutsOn = false; }
     }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
@@ -443,6 +506,8 @@ class SessionRecorder {
                 pauseView = _normView(data["pauseView"]);
                 _store("pause_config", pauseView);
             }
+            // Dynamische Layouts (nur (:full)-Builds; im Lite-Build ist das ein No-Op).
+            _layoutsFromConfig(data);
             // Update-Hinweis: neuere im IQ-Store freigegebene Version als unsere? -> kurz einblenden.
             if (data.hasKey("latestVersion") && data["latestVersion"] != null) {
                 if (_versionNewer(data["latestVersion"], Config.VERSION)) {
