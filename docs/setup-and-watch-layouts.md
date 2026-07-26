@@ -124,8 +124,33 @@ Editor, Galerie-Vorschau und bestehende Mini-Vorschau dieselbe Quelle nutzen.
   Lite-Build (96-KB-Uhren) ist **immer Englisch**. Die Vorschau muss also die Sprache anzeigen, die
   die Uhr **tatsächlich** rendern würde — inkl. kurzem Hinweis, wenn das nicht die Profilsprache ist.
 
-**Element-Format kompakt** — `[typ, x, y, size, color, flags]`, Trennlinien als eigener Typ mit
-2 Punkten. **Keine Dicts mit String-Keys**: die Uhr cached das Server-JSON im Object Store
+### Element-Typen
+| Typ | Inhalt | frei positionierbar |
+|---|---|---|
+| **Wert** | Live-Wert eines Datenfelds (IDs 0–20) | ✅ Position, Größenstufe, Farbe |
+| **Übersetztes Label** | die Bezeichnung eines Datenfelds — referenziert den i18n-Key (`f.*`), wird **in der Sprache der Uhr gerendert** | ✅ **unabhängig vom Wert** platzierbar |
+| **Freitext-Label** | eigener Text des Nutzers | ✅ — wird **nicht übersetzt** (s. u.) |
+| **Trennlinie** | Linie mit 2 Punkten + Dicke/Farbe | ✅ |
+| **REC-Indikator** | roter Punkt + „REC" | ✅ verschiebbar/einfärbbar/löschbar |
+| **Seiten-Punkte** | Pagination (Anzahl dynamisch) | ✅ verschiebbar/einfärbbar/löschbar |
+
+**Label und Wert sind entkoppelt** (Entscheidung Jan): heute zeichnet die Uhr das Label starr
+`cy+30` unter den Wert (`RecordView.mc:360`). Künftig ist das Label ein **eigenes Element** — man
+kann es woanders hinsetzen, kleiner/größer machen, anders färben oder ganz weglassen.
+
+**Freitext-Labels** (Entscheidung Jan): frei eintippbarer Text, wird **as-is gespeichert und nie
+übersetzt** — kopiert ein Nutzer mit anderer Sprache das Layout, bleibt der Text in der
+Originalsprache (naturgemäß). Konsequenzen, die ich mitbaue:
+- **Zeichensatz-Warnung:** die Uhr rendert mit Built-in-Fonts → **CJK und Emoji erscheinen als
+  Kästchen** (Garmin hat keine CJK-Glyphen, s. `Strings.mc:10-13`); Latein + Kyrillisch gehen.
+  Der Editor warnt bei nicht darstellbaren Zeichen.
+- **Längen-/Anzahl-Limit** (z. B. ~12 Zeichen, wenige pro Layout): Strings landen im Object Store der
+  Uhr, und Object-Store-Volllauf ist ein bekannter Fehlerpfad.
+- **Galerie-Hinweis:** ein geteiltes Layout mit Freitexten zeigt ein Badge à la „enthält eigene Texte
+  (Deutsch)", damit klar ist, dass man die nach dem Kopieren evtl. anpassen will.
+
+**Element-Format kompakt** — `[typ, x, y, size, color, flags]` (+ Zusatzfeld: 2. Punkt bei Linien,
+Feld-ID bei Wert/Label, Text bei Freitext). **Keine Dicts mit String-Keys**: die Uhr cached das Server-JSON im Object Store
 (`SessionRecorder.setScreensFromConfig`), und Object-Store-Volllauf ist ein bekannter Fehlerpfad.
 **Koordinaten 0…1000 relativ** (die Garmin-App rechnet alles aus `dc.getWidth/getHeight` → über
 alle Auflösungen und Formen tragfähig; im Katalog: 108 round, 5 rectangle, 8 semioctagon).
