@@ -120,9 +120,14 @@ export interface WatchLayout {
   updated_at: string | null;
   author?: string;   // nur in der Galerie
   copies?: number;   // nur in der Galerie
+  // Nutzungs-Ranking (nur in der Galerie): `used_by` = verschiedene Nutzer, die dieses Layout oder
+  // eine Kopie davon wirklich eingebunden haben; `unchanged_copies` = davon unverändert.
+  used_by?: number;
+  unchanged_copies?: number;
 }
 export type WatchLayoutPatch = Omit<WatchLayout,
-  "id" | "published" | "copied_from_id" | "has_freetext" | "updated_at" | "author" | "copies">;
+  "id" | "published" | "copied_from_id" | "has_freetext" | "updated_at" | "author" | "copies"
+  | "used_by" | "unchanged_copies">;
 export interface LayoutMeta {
   palette: string[];
   categories: string[];

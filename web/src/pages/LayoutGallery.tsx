@@ -70,6 +70,9 @@ export default function LayoutGallery() {
                 {t("lay.authoredFor", { size: `${l.authored_w}×${l.authored_h}` })}
               </span>
             )}
+            {(l.used_by ?? 0) > 0 && (
+              <span className="text-brand-700 dark:text-brand-300">{t("lay.usedBy", { n: l.used_by ?? 0 })}</span>
+            )}
             {(l.copies ?? 0) > 0 && <span className="text-slate-400">{t("lay.copies", { n: l.copies ?? 0 })}</span>}
             {l.has_freetext && <span className="text-amber-700 dark:text-amber-300">{t("lay.hasFreetext")}</span>}
           </div>

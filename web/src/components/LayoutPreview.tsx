@@ -40,7 +40,9 @@ export function LayoutPreview({
   pageIndex?: number;
   selected?: number;
   onPickElement?: (i: number) => void;
-  onElementPointerDown?: (i: number, e: React.PointerEvent) => void;
+  // `handle` sagt, WAS gegriffen wurde: "move" = ganzes Element verschieben, "a"/"b" = einzelner
+  // Endpunkt einer Trennlinie. Ohne Endpunkt-Griffe wäre eine Linie nur schief zu ziehen.
+  onElementPointerDown?: (i: number, e: React.PointerEvent, handle?: "move" | "a" | "b") => void;
 }) {
   const t = useT();
   const sh = (shape ?? layout.shape) as WatchShape;
@@ -61,14 +63,33 @@ export function LayoutPreview({
   return (
     <div className="relative shrink-0 overflow-hidden border-2 border-slate-700"
       style={{ width: boxW, height: boxH, background: bg, ...shapeStyle(sh) }}>
-      {/* Trennlinien zuerst (liegen hinter Text) */}
-      <svg className="pointer-events-none absolute inset-0" width={boxW} height={boxH}>
+      {/* Trennlinien zuerst (liegen hinter Text). Interaktiv nur im Editor (onElementPointerDown):
+          eine unsichtbare, dicke Fang-Linie macht 1-px-Linien überhaupt greifbar, die zwei Griffe
+          an den Enden machen sie frei ausrichtbar. */}
+      <svg className="absolute inset-0" width={boxW} height={boxH}
+        style={{ pointerEvents: onElementPointerDown ? undefined : "none" }}>
         {els.map((e, i) => Number(e[0]) === EL_LINE && (
-          <line key={i} x1={rel(e[1], boxW)} y1={rel(e[2], boxH)}
-            x2={rel(e[6], boxW)} y2={rel(e[7], boxH)}
-            stroke={paletteColor(Number(e[4]), "line")}
-            strokeWidth={Math.max(1, Number(e[3]) || 1)}
-            opacity={selected === i ? 0.6 : 1} />
+          <g key={i}>
+            <line x1={rel(e[1], boxW)} y1={rel(e[2], boxH)}
+              x2={rel(e[6], boxW)} y2={rel(e[7], boxH)}
+              stroke={paletteColor(Number(e[4]), "line")}
+              strokeWidth={Math.max(1, Number(e[3]) || 1)}
+              opacity={selected === i ? 0.6 : 1} style={{ pointerEvents: "none" }} />
+            {onElementPointerDown && (
+              <line x1={rel(e[1], boxW)} y1={rel(e[2], boxH)}
+                x2={rel(e[6], boxW)} y2={rel(e[7], boxH)}
+                stroke="transparent" strokeWidth={12} style={{ cursor: "move" }}
+                onClick={onPickElement ? () => onPickElement(i) : undefined}
+                onPointerDown={(ev) => onElementPointerDown(i, ev, "move")} />
+            )}
+            {onElementPointerDown && selected === i && ([["a", e[1], e[2]], ["b", e[6], e[7]]] as const).map(
+              ([hn, hx, hy]) => (
+                <circle key={hn} cx={rel(hx, boxW)} cy={rel(hy, boxH)} r={5}
+                  fill="#22d3ee" stroke="#0f172a" strokeWidth={1}
+                  style={{ cursor: "crosshair" }}
+                  onPointerDown={(ev) => { ev.stopPropagation(); onElementPointerDown(i, ev, hn); }} />
+              ))}
+          </g>
         ))}
       </svg>
 
@@ -86,7 +107,7 @@ export function LayoutPreview({
           cursor: onElementPointerDown ? "move" : undefined,
         };
         const pick = onPickElement ? () => onPickElement(i) : undefined;
-        const down = onElementPointerDown ? (ev: React.PointerEvent) => onElementPointerDown(i, ev) : undefined;
+        const down = onElementPointerDown ? (ev: React.PointerEvent) => onElementPointerDown(i, ev, "move") : undefined;
 
         if (typ === EL_VALUE) {
           const fid = Number(e[6]) || 0;

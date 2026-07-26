@@ -45,7 +45,9 @@ export default function LayoutEditor() {
   const [pageIndex, setPageIndex] = useState(0);
   const [err, setErr] = useState("");
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef<{ i: number; end: boolean } | null>(null);
+  const dragRef = useRef<
+    { i: number; handle: "move" | "a" | "b"; grabX: number; grabY: number; started: boolean } | null
+  >(null);
 
   const size = PREVIEW_SIZES.find((s) => s.id === sizeId) ?? PREVIEW_SIZES[2];
 
@@ -95,9 +97,14 @@ export default function LayoutEditor() {
   }
 
   // --- Ziehen: Pointer auf dem Element greifen, Bewegung auf die 0…1000-Skala umrechnen ---
-  function onDown(i: number, e: React.PointerEvent) {
+  // Bei einer Trennlinie hängt es am Griff: „move" verschiebt die GANZE Linie (beide Punkte,
+  // Ausrichtung und Länge bleiben), „a"/„b" zieht einen Endpunkt frei.
+  function onDown(i: number, e: React.PointerEvent, handle: "move" | "a" | "b" = "move") {
     setSel(i);
-    dragRef.current = { i, end: false };
+    const el = l?.elements[i];
+    const grabX = Number(el?.[1]) || 0;
+    const grabY = Number(el?.[2]) || 0;
+    dragRef.current = { i, handle, grabX, grabY, started: false };
     (e.target as Element).setPointerCapture?.(e.pointerId);
   }
   function onMove(e: React.PointerEvent) {
@@ -108,10 +115,48 @@ export default function LayoutEditor() {
     const x = Math.max(0, Math.min(1000, Math.round(((e.clientX - r.left) / r.width) * 1000)));
     const y = Math.max(0, Math.min(1000, Math.round(((e.clientY - r.top) / r.height) * 1000)));
     const el = [...l.elements[d.i]];
-    if (d.end) { el[6] = x; el[7] = y; } else { el[1] = x; el[2] = y; }
+    const isLine = Number(el[0]) === EL_LINE;
+    if (isLine && d.handle === "b") {
+      el[6] = x; el[7] = y;
+    } else if (isLine && d.handle === "move") {
+      // Gegriffen wird irgendwo AUF der Linie: den Versatz zum ersten Punkt beibehalten, damit die
+      // Linie nicht zum Zeiger springt, und den zweiten Punkt mitziehen.
+      if (!d.started) { d.grabX = x - (Number(el[1]) || 0); d.grabY = y - (Number(el[2]) || 0); d.started = true; }
+      const dx = x - d.grabX - (Number(el[1]) || 0);
+      const dy = y - d.grabY - (Number(el[2]) || 0);
+      const cl = (v: number) => Math.max(0, Math.min(1000, v));
+      el[1] = cl((Number(el[1]) || 0) + dx); el[2] = cl((Number(el[2]) || 0) + dy);
+      el[6] = cl((Number(el[6]) || 0) + dx); el[7] = cl((Number(el[7]) || 0) + dy);
+    } else {
+      el[1] = x; el[2] = y;
+    }
     patchEl(d.i, el);
   }
   function onUp() { dragRef.current = null; }
+
+  // Ausrichtung/Länge einer Trennlinie: um die Mitte herum neu setzen, damit sie beim Umschalten
+  // nicht wegwandert. „frei" lässt die Punkte, wie sie sind (Diagonalen bleiben möglich).
+  function lineGeom(el: LayoutElement) {
+    const x1 = Number(el[1]) || 0, y1 = Number(el[2]) || 0;
+    const x2 = Number(el[6]) || 0, y2 = Number(el[7]) || 0;
+    const dx = Math.abs(x2 - x1), dy = Math.abs(y2 - y1);
+    const orient = dy <= 2 && dx > 2 ? "h" : dx <= 2 && dy > 2 ? "v" : "free";
+    const len = orient === "v" ? dy : orient === "h" ? dx : Math.round(Math.hypot(dx, dy));
+    return { x1, y1, x2, y2, cx: (x1 + x2) / 2, cy: (y1 + y2) / 2, orient, len };
+  }
+  function setLine(i: number, orient: "h" | "v", len?: number) {
+    if (!l) return;
+    const el = [...l.elements[i]];
+    const g = lineGeom(el as LayoutElement);
+    const half = Math.max(10, Math.min(1000, len ?? (g.orient === "free" ? 700 : g.len))) / 2;
+    const c = (v: number) => Math.max(0, Math.min(1000, Math.round(v)));
+    if (orient === "h") {
+      el[1] = c(g.cx - half); el[6] = c(g.cx + half); el[2] = c(g.cy); el[7] = c(g.cy);
+    } else {
+      el[2] = c(g.cy - half); el[7] = c(g.cy + half); el[1] = c(g.cx); el[6] = c(g.cx);
+    }
+    patchEl(i, el);
+  }
 
   // --- Warnungen: Überlauf auf der kleinsten Uhr + Zeichen, die die Uhr nicht kann ---
   const warnings = useMemo(() => {
@@ -265,6 +310,42 @@ export default function LayoutEditor() {
                     <span className="text-sm text-slate-400">{t("lay.textHint", { n: MAX_TEXT_LEN })}</span>
                   </label>
                 )}
+
+                {typ === EL_LINE && (() => {
+                  const g = lineGeom(e);
+                  const btn = (on: boolean) =>
+                    `rounded-lg px-2.5 py-1.5 text-sm ${on ? "bg-brand-600 text-white" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`;
+                  return (
+                    <div className="space-y-3">
+                      <div>
+                        <div className="mb-1 text-sm text-slate-300">{t("lay.lineOrient")}</div>
+                        <div className="flex flex-wrap gap-2">
+                          <button className={btn(g.orient === "h")} onClick={() => setLine(sel, "h")}>
+                            {t("lay.lineH")}
+                          </button>
+                          <button className={btn(g.orient === "v")} onClick={() => setLine(sel, "v")}>
+                            {t("lay.lineV")}
+                          </button>
+                          <span className={`rounded-lg px-2.5 py-1.5 text-sm ${g.orient === "free" ? "bg-slate-700 text-slate-200" : "text-slate-500"}`}>
+                            {t("lay.lineFree")}
+                          </span>
+                        </div>
+                      </div>
+                      {g.orient !== "free" && (
+                        <label className="block text-sm text-slate-300">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span>{t("lay.lineLength")}</span>
+                            <span className="text-slate-400">{Math.round(g.len / 10)} %</span>
+                          </span>
+                          <input type="range" min={20} max={1000} step={10} value={g.len}
+                            onChange={(ev) => setLine(sel, g.orient === "v" ? "v" : "h", Number(ev.target.value))}
+                            className="mt-1 w-full accent-brand-500" />
+                        </label>
+                      )}
+                      <p className="text-sm text-slate-400">{t("lay.lineHint")}</p>
+                    </div>
+                  );
+                })()}
 
                 {/* Schriftgröße je Element: EINE Stufe = EIN echter Garmin-Font. Wert-Elemente
                     dürfen in die großen NUMBER-Fonts, Labels/Texte nicht (dort fehlen Buchstaben). */}

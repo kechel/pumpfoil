@@ -143,7 +143,63 @@ def _has_freetext(elements: list) -> bool:
     return any(isinstance(e, list) and e and e[0] == 3 for e in elements)
 
 
-def _out(l: models.WatchLayout, author: str | None = None, copies: int | None = None) -> dict:
+def _usage_stats(db: Session) -> tuple[dict[int, set[int]], dict[int, int]]:
+    """Wie oft ein Layout **tatsächlich benutzt** wird — ohne jede Zusatz-Buchführung, allein aus
+    vorhandenen Daten (Jans Wunsch: „vielleicht geht das aber auch einfach jederzeit mit einer
+    SQL-Abfrage ganz ohne unser Zutun").
+
+    Zwei Zahlen je Original:
+      * `users`  = verschiedene Nutzer, die das Original ODER eine Kopie davon in ihren
+                   Einstellungen eingebunden haben (Seitenliste, Off-Foil, Pause). Eingebunden =
+                   die Uhr zeigt es wirklich; eine bloß gespeicherte Kopie zählt nicht.
+      * `unchanged` = wie viele dieser Kopien **unverändert** sind (gleiche Elemente + gleicher
+                   Hintergrund wie das Original).
+
+    Bewusst in Python statt in SQL: `users.settings_json` ist TEXT (kein JSONB), und die Nutzerzahl
+    ist klein. Wird das je teuer, ist der Umstieg auf JSONB + Index die Stelle.
+    """
+    rows = db.query(models.WatchLayout.id, models.WatchLayout.copied_from_id,
+                    models.WatchLayout.elements, models.WatchLayout.bg_color).all()
+    origin: dict[int, int] = {}      # Layout-ID -> ID des Originals (oder sich selbst)
+    body: dict[int, tuple[str, int]] = {}
+    for lid, src, els, bg in rows:
+        origin[lid] = src or lid
+        try:
+            body[lid] = (json.dumps(json.loads(els or "[]"), separators=(",", ":")), int(bg or 0))
+        except ValueError:
+            body[lid] = ("[]", int(bg or 0))
+
+    users: dict[int, set[int]] = {}
+    for uid, sj in db.query(models.User.id, models.User.settings_json).filter(
+            models.User.settings_json.isnot(None)).all():
+        try:
+            st = json.loads(sj or "{}")
+        except ValueError:
+            continue
+        used: set[int] = set()
+        # In `pages` ist eine Layout-Seite eine NACKTE ID; eine Liste ist eine klassische
+        # 3-Feld-Seite (s. settings._clean_pages) — bool vor int prüfen, True ist sonst 1.
+        for p in st.get("pages") or []:
+            if isinstance(p, int) and not isinstance(p, bool) and p > 0:
+                used.add(p)
+        for key in ("off_foil_layout_id", "pause_layout_id"):
+            v = st.get(key)
+            if isinstance(v, int) and v:
+                used.add(v)
+        for lid in used:
+            root = origin.get(lid)
+            if root:
+                users.setdefault(root, set()).add(uid)
+
+    unchanged: dict[int, int] = {}
+    for lid, src, _els, _bg in rows:
+        if src and src in body and body.get(lid) == body.get(src):
+            unchanged[src] = unchanged.get(src, 0) + 1
+    return users, unchanged
+
+
+def _out(l: models.WatchLayout, author: str | None = None, copies: int | None = None,
+         used_by: int | None = None, unchanged: int | None = None) -> dict:
     try:
         elements = json.loads(l.elements or "[]")
     except ValueError:
@@ -162,6 +218,10 @@ def _out(l: models.WatchLayout, author: str | None = None, copies: int | None = 
         d["author"] = author
     if copies is not None:
         d["copies"] = copies
+    if used_by is not None:
+        d["used_by"] = used_by
+    if unchanged is not None:
+        d["unchanged_copies"] = unchanged
     return d
 
 
@@ -230,11 +290,15 @@ def list_layouts(
 def community(
     category: str | None = Query(None), shape: str | None = Query(None),
     w: int | None = Query(None), h: int | None = Query(None),
-    limit: int = Query(60, ge=1, le=200),
+    limit: int = Query(60, ge=1, le=200), sort: str = Query("used"),
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Veröffentlichte Layouts anderer (+ eigene). Größe/Form filtern ist ein **Komfort-Filter**,
-    keine Schranke: kopieren darf man jedes Layout (Koordinaten sind relativ)."""
+    keine Schranke: kopieren darf man jedes Layout (Koordinaten sind relativ).
+
+    `sort=used` (Standard) rankt nach **tatsächlicher Nutzung** (verschiedene Nutzer, die das
+    Layout oder eine Kopie eingebunden haben, s. `_usage_stats`) — damit steht oben, was sich in
+    der Praxis bewährt hat, ohne dass jemand Ränge pflegen muss. `sort=new` = neueste zuerst."""
     copies = (db.query(models.WatchLayout.copied_from_id, func.count().label("n"))
               .filter(models.WatchLayout.copied_from_id.isnot(None))
               .group_by(models.WatchLayout.copied_from_id).all())
@@ -250,8 +314,18 @@ def community(
         q = q.filter(models.WatchLayout.authored_w == _clamp(w, 100, 600))
     if h:
         q = q.filter(models.WatchLayout.authored_h == _clamp(h, 100, 600))
-    rows = q.order_by(models.WatchLayout.updated_at.desc()).limit(limit).all()
-    return [_out(l, author=name or "?", copies=copy_count.get(l.id, 0)) for l, name in rows]
+    rows = q.order_by(models.WatchLayout.updated_at.desc()).all()
+    used, unchanged = _usage_stats(db)
+    # „von ANDEREN Nutzern genutzt" — den Autor rausrechnen, sonst rankt sich jeder selbst hoch.
+    out = [_out(l, author=name or "?", copies=copy_count.get(l.id, 0),
+                used_by=len(used.get(l.id, set()) - {l.user_id}),
+                unchanged=unchanged.get(l.id, 0))
+           for l, name in rows]
+    if sort != "new":
+        # Nutzung zuerst, dann Kopien, dann neu — die Reihenfolge aus `rows` (updated_at desc) ist
+        # der stabile Gleichstand-Entscheid.
+        out.sort(key=lambda d: (d["used_by"], d["copies"]), reverse=True)
+    return out[:limit]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
