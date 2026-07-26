@@ -987,6 +987,10 @@ export interface PairedDevice {
   layout_capable?: boolean;
   layout_canary_count?: number;
   layout_canary_at?: string | null;
+  // Warum liefert der Server dieser Uhr (keine) Layouts: on | off_user | off_memory | off_canary
+  // | off_model | off_nolayout. Ohne diese Begründung bleibt bei „steht auf An, kommt aber nichts"
+  // nur Raten.
+  layout_state?: string;
 }
 
 export interface AppDevice {

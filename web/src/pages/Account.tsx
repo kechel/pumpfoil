@@ -218,6 +218,11 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                 )}
                 {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr
                     aus (andere Uhren/Nutzer unberührt) — mit Knopf zum Zurücksetzen. */}
+                {!d.revoked_at && d.layout_capable && d.layout_state && d.layout_state !== "on" && (
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    {t(`account.layoutState.${d.layout_state}`)}
+                  </p>
+                )}
                 {!d.revoked_at && (d.layout_canary_count ?? 0) > 0 && (
                   <div className="mt-2 rounded-lg border border-amber-600/40 bg-amber-500/10 p-2">
                     <p className="text-sm text-amber-700 dark:text-amber-300">

@@ -110,9 +110,12 @@ def device_config(
     layouts_on = (
         bool(settings.get("layouts_enabled", True))
         and (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
-        # Selbstheilung PRO UHR: diese Uhr hat einen Absturz gemeldet -> für sie aus, bis der
-        # Nutzer den Zähler zurücksetzt. Andere Uhren und andere Nutzer bleiben unberührt.
-        and int(device.layout_canary_count or 0) == 0
+        # Selbstheilung PRO UHR — aber erst bei WIEDERHOLUNG (s. CANARY_BLOCK_AT). Ein einzelner
+        # Absturz ist auf der Uhr selbst schon abgefangen (sie fährt die betroffene Sitzung
+        # statisch); ihn hier dauerhaft zu sperren, machte aus der Selbstheilung ein Standverbot,
+        # das nur ein manueller Reset im Profil aufhebt. Genau darin lief Jan fest: Uhr meldet den
+        # Absturz -> Zähler zurück auf 1 -> Server liefert nie wieder Layouts.
+        and (int(device.layout_canary_count or 0) < CANARY_BLOCK_AT or user_opted_in)
         and _model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in)
     )
     layout_block = _layouts_for_watch(db, device.user_id, settings) if layouts_on else {}
@@ -206,11 +209,13 @@ def list_devices(
     pm = _partmap()
     cat = _catalog_by_id()
     udefault = "full"
+    ustored: dict = {}
     if user and user.settings_json:
         try:
-            udefault = json.loads(user.settings_json).get("record_mode", "full")
+            ustored = json.loads(user.settings_json)
+            udefault = ustored.get("record_mode", "full")
         except Exception:  # noqa: BLE001
-            pass
+            ustored = {}
     out = []
     for d in rows:
         # Update-Hinweis nur für Garmin (Sideload). Wear/Apple aktualisieren über ihre Stores.
@@ -244,8 +249,32 @@ def list_devices(
             "layout_capable": bool(((cat.get(model["id"]) or {}).get("mem") or 0) >= LAYOUT_MIN_MEMORY) if model else False,
             "layout_canary_count": int(d.layout_canary_count or 0),
             "layout_canary_at": d.layout_canary_at.isoformat() if d.layout_canary_at else None,
+            # WARUM liefert der Server dieser Uhr (keine) Layouts? Ohne das bleibt nur Raten —
+            # genau daran hing eine ganze Testrunde („steht auf an, zeigt sie aber nicht").
+            # on | off_user | off_memory | off_canary | off_model | off_nolayout
+            "layout_state": _layout_state(db, d, ustored, cat.get(model["id"]) if model else None,
+                                          model["id"] if model else None),
         })
     return out
+
+
+def _layout_state(db: Session, d: models.DeviceToken, stored: dict,
+                  cat_entry: dict | None, model_id: str | None) -> str:
+    """Denselben Gate-Baum wie `/config` auswerten, aber als BEGRÜNDUNG für die UI. Die Reihenfolge
+    ist absichtlich dieselbe wie dort — sonst erklärt die Anzeige irgendwann etwas anderes, als der
+    Server tut."""
+    user_opted_in = "layouts_enabled" in stored and bool(stored.get("layouts_enabled"))
+    if "layouts_enabled" in stored and not stored.get("layouts_enabled"):
+        return "off_user"
+    if (cat_entry or {}).get("mem", 0) < LAYOUT_MIN_MEMORY:
+        return "off_memory"
+    if int(d.layout_canary_count or 0) >= CANARY_BLOCK_AT and not user_opted_in:
+        return "off_canary"
+    if not _model_layouts_allowed(db, model_id, user_opted_in):
+        return "off_model"
+    if not (_layouts_for_watch(db, d.user_id, stored) or {}).get("pages"):
+        return "off_nolayout"
+    return "on"
 
 
 @router.post("/{device_id}/layout-canary/reset")
@@ -335,14 +364,20 @@ def _shape_from_family(family: str | None) -> str | None:
 #   1. Gerät stark genug — >= 512 KB watchApp-Budget (Katalog-Feld `mem`). Es gibt kein 256-KB-
 #      Tier: 96 KB (5 Geräte, Lite-Build) und 128 KB (16, dort crashte 1.0.64 unter Dauerlast)
 #      bekommen den Renderer bewusst nicht.
-#   2. DIESE Uhr hat keinen Absturz gemeldet (`DeviceToken.layout_canary_count`). Selbstheilung
-#      pro Gerät; der Nutzer kann den Zähler in der Uhr-Liste zurücksetzen.
+#   2. DIESE Uhr hat nicht WIEDERHOLT Abstürze gemeldet (`DeviceToken.layout_canary_count` <
+#      CANARY_BLOCK_AT). Ein einzelner Absturz fängt die Uhr selbst ab (betroffene Sitzung
+#      statisch) — er ist Statistik, keine Sperre. Erst der zweite blockt serverseitig, und auch
+#      der nur, solange der Nutzer den Schalter nicht selbst auf „an" gestellt hat.
 #   3. Nutzer hat es nicht abgeschaltet (`settings.layouts_enabled`, Default an).
 #   4. Modell-Voreinstellung (`watch_model_flags.layouts_allowed`): NULL = erlaubt,
 #      False = für dieses Modell per Default AUS (datenbasiert von uns gesetzt), True = erzwungen.
 #      Ein `False` gilt nur, solange der Nutzer den Schalter nicht selbst angefasst hat — wer
 #      bewusst einschaltet, bekommt Layouts trotzdem (Testen erlaubt).
 LAYOUT_MIN_MEMORY = 524288      # Bytes watchApp-Budget
+# Ab dem WIEVIELTEN gemeldeten Absturz sperrt der Server die Layouts für DIESE Uhr. 1 wäre falsch:
+# die Uhr heilt einen Einzelfall selbst (eine Sitzung statisch), und ihre Meldung würde sie dann
+# dauerhaft aussperren. Ab 2 (Wiederholung) sieht es nach echtem Problem aus.
+CANARY_BLOCK_AT = 2
 
 
 def _catalog_entry(part_number: str | None) -> dict | None:

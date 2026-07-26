@@ -1337,6 +1337,11 @@ const en: Record<string, string> = {
   "account.maxPages": "The watch stores at most {n} pages.",
   "account.layoutsEnabled": "Send my custom layouts to my watches",
   "account.layoutsEnabledHint": "Off = your watches show the classic 3-field views. Only affects you; if one watch misbehaves you can also switch it off on the device (menu \u2192 Custom layouts).",
+  "account.layoutState.off_user": "Custom layouts are switched off in your profile.",
+  "account.layoutState.off_memory": "This watch does not have enough memory for custom layouts.",
+  "account.layoutState.off_canary": "Off for this watch: it reported repeated crashes. Reset the counter, or deliberately set the switch above to “on”.",
+  "account.layoutState.off_model": "We currently don't ship custom layouts to this watch model by default — you can still test it with the switch above.",
+  "account.layoutState.off_nolayout": "You haven’t added a custom layout as a page yet — create one under “Watch layouts” and put it into your views.",
   "account.layoutCanary": "This watch reported a crash with a custom layout ({n}\u00d7) \u2014 it shows the classic views for now. Your other watches are unaffected.",
   "account.layoutCanaryReset": "Try again",
 };

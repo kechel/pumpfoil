@@ -1394,6 +1394,11 @@ const de: Record<string, string> = {
   "account.maxPages": "Mehr als {n} Seiten speichert die Uhr nicht.",
   "account.layoutsEnabled": "Eigene Layouts an meine Uhren senden",
   "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Gilt nur für dich; wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).",
+  "account.layoutState.off_user": "Eigene Layouts sind in deinem Profil abgeschaltet.",
+  "account.layoutState.off_memory": "Diese Uhr hat zu wenig Speicher für eigene Layouts.",
+  "account.layoutState.off_canary": "Für diese Uhr aus: sie hat mehrfach Abstürze gemeldet. Zähler zurücksetzen oder den Schalter oben bewusst auf „An“ stellen.",
+  "account.layoutState.off_model": "Für dieses Uhrmodell liefern wir eigene Layouts derzeit nicht automatisch aus — mit dem Schalter oben kannst du es trotzdem testen.",
+  "account.layoutState.off_nolayout": "Du hast noch kein eigenes Layout als Seite eingebunden — unter „Uhr-Layouts“ anlegen und in den Ansichten einsetzen.",
   "account.layoutCanary": "Diese Uhr hat einen Absturz mit eigenem Layout gemeldet ({n}×) — sie zeigt vorläufig die klassischen Ansichten. Andere Uhren sind nicht betroffen.",
   "account.layoutCanaryReset": "Wieder versuchen",
 };
