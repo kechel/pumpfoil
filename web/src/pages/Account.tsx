@@ -20,6 +20,21 @@ export default function Account() {
   const [tab, setTab] = useState<"guide" | "connect" | "views" | "alarm" | "app" | "compat">(initialTab);
   const dlQuery = sp.get("dl") ?? "";
 
+  // Wer schon eine Uhr verbunden hat, kommt nicht wegen der Anleitung — der will einstellen, was sie
+  // anzeigt. Also „Datenfelder" als Startseite, sobald ein nicht widerrufenes Gerät existiert.
+  // Ein ?tab=… in der URL hat Vorrang (Deep-Links aus anderen Seiten dürfen nicht umspringen), und
+  // umgeschaltet wird nur, solange der Nutzer noch nichts selbst angeklickt hat.
+  const [tabTouched, setTabTouched] = useState(false);
+  useEffect(() => {
+    if (paramTab || tabTouched) return;
+    api.myDevices()
+      .then((rows) => {
+        if (rows.some((d) => !d.revoked_at)) setTab((cur) => (cur === "guide" ? "views" : cur));
+      })
+      .catch(() => {});
+  }, [paramTab, tabTouched]);
+  const pickTab = (v: typeof TABS[number]) => { setTabTouched(true); setTab(v); };
+
   return (
     <div className="w-full">
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
@@ -31,11 +46,11 @@ export default function Account() {
       </div>
 
       <div className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:grid-cols-5">
-        <TabBtn active={tab === "guide"} onClick={() => setTab("guide")}>{t("account.tabGuide")}</TabBtn>
-        <TabBtn active={tab === "views"} onClick={() => setTab("views")}>{t("account.tabViews")}</TabBtn>
-        <TabBtn active={tab === "alarm"} onClick={() => setTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
-        <TabBtn active={tab === "connect"} onClick={() => setTab("connect")}>{t("account.tabConnect")}</TabBtn>
-        <TabBtn active={tab === "compat"} onClick={() => setTab("compat")}>{t("account.tabCompat")}</TabBtn>
+        <TabBtn active={tab === "guide"} onClick={() => pickTab("guide")}>{t("account.tabGuide")}</TabBtn>
+        <TabBtn active={tab === "views"} onClick={() => pickTab("views")}>{t("account.tabViews")}</TabBtn>
+        <TabBtn active={tab === "alarm"} onClick={() => pickTab("alarm")}>{t("account.tabAlarm")}</TabBtn>
+        <TabBtn active={tab === "connect"} onClick={() => pickTab("connect")}>{t("account.tabConnect")}</TabBtn>
+        <TabBtn active={tab === "compat"} onClick={() => pickTab("compat")}>{t("account.tabCompat")}</TabBtn>
       </div>
 
       {tab === "guide" && <WatchGuide onOpenApp={() => setTab("app")} onOpenConnect={() => setTab("connect")} />}

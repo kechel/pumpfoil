@@ -298,7 +298,7 @@ const de: Record<string, string> = {
 
   // Account / Uhr
   "account.tabGuide": "Anleitung",
-  "account.tabConnect": "Verbinden",
+  "account.tabConnect": "Meine Uhr(en)",
   "account.tabViews": "Datenfelder",
   "account.tabApp": "App",
   "account.tabCompat": "Kompatibilität",

@@ -276,7 +276,7 @@ const en: Record<string, string> = {
 
   "common.deleteLower": "delete",
 
-  "account.tabConnect": "Connect",
+  "account.tabConnect": "My watch(es)",
   "account.tabViews": "Data fields",
   "account.tabApp": "App",
   "account.tabCompat": "Compatibility",
