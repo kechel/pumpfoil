@@ -37,6 +37,7 @@ def init_db() -> None:
     _migrate_add_columns()
     _migrate_add_indexes()
     _seed_foils()
+    _seed_stabs()
     _seed_news()
 
 
@@ -133,6 +134,43 @@ def _seed_foils() -> None:
             ))
             added += 1
         if added:
+            db.commit()
+    finally:
+        db.close()
+
+
+def _seed_stabs() -> None:
+    """Stab-Katalog aus app/data/stabs.json befüllen.
+
+    Anders als `_seed_foils` werden bestehende Zeilen AKTUALISIERT (Maße korrigieren sich beim
+    Nachrecherchieren; bei Foils greifen Korrekturen in Prod bis heute nicht). Schlüssel bleibt
+    die Variante (brand/model/size). span_cm/area_cm2 dürfen fehlen -> NULL.
+    """
+    import json
+    from pathlib import Path
+
+    from . import models
+
+    db = SessionLocal()
+    try:
+        f = Path(__file__).parent / "data" / "stabs.json"
+        if not f.exists():
+            return
+        rows = {(x.brand, x.model, x.size): x for x in db.query(models.Stab).all()}
+        changed = 0
+        for r in json.loads(f.read_text()):
+            key = (r["brand"], r["model"], r["size"])
+            span, area = r.get("span_cm"), r.get("area_cm2")
+            est = bool(r.get("specs_estimated"))
+            cur = rows.get(key)
+            if cur is None:
+                db.add(models.Stab(brand=key[0], model=key[1], size=key[2],
+                                   span_cm=span, area_cm2=area, specs_estimated=est))
+                changed += 1
+            elif (cur.span_cm, cur.area_cm2, bool(cur.specs_estimated)) != (span, area, est):
+                cur.span_cm, cur.area_cm2, cur.specs_estimated = span, area, est
+                changed += 1
+        if changed:
             db.commit()
     finally:
         db.close()
