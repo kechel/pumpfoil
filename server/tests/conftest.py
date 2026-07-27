@@ -7,12 +7,19 @@ Es wird bewusst NIE die Prod-`DATABASE_URL` (`.env`) verwendet, damit Tests nich
 """
 from __future__ import annotations
 
+import atexit
 import os
+import shutil
 import tempfile
 
 import pytest
 
 _tmp = tempfile.mkdtemp(prefix="foil-test-")
+# Nach dem Lauf wieder wegräumen. Ohne das bleibt pro Testlauf ein Ordner in /tmp liegen — es hatten
+# sich 143 angesammelt (34 MB), bevor es jemandem auffiel. atexit statt Fixture, weil das Verzeichnis
+# schon beim IMPORT gebraucht wird (die Env-Variablen unten müssen vor dem ersten App-Import stehen)
+# und so auch abgebrochene Läufe aufräumen. `FOIL_KEEP_TMP=1` behält es, wenn man hineinschauen will.
+atexit.register(lambda: None if os.environ.get("FOIL_KEEP_TMP") else shutil.rmtree(_tmp, ignore_errors=True))
 os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{_tmp}/test.sqlite3"
 os.environ["DATA_DIR"] = f"{_tmp}/data"
 os.environ["JWT_SECRET"] = "test-secret"
