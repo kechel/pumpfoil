@@ -598,7 +598,7 @@ const en: Record<string, string> = {
   "adm.subtitle": "Moderation & management.",
   "adm.tab.overview": "Overview",
   "adm.tab.classify": "Classification",
-  "adm.cls.none": "No open cases.",
+  "adm.cls.none": "No appeals open.",
   "adm.cls.appeal": "Appeal",
   "adm.cls.detector": "Detector: {detection} · {runs} runs · max {speed} km/h",
   "adm.cls.keep": "It is pumpfoil",

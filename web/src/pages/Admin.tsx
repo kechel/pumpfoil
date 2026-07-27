@@ -861,11 +861,11 @@ function SpotsTab() {
   );
 }
 
-// ---- Sportart-Klassifikation: offene Fälle (docs/sport-classification.md) ----
-// Zwei Sorten in EINER Liste, Widersprüche zuerst (der Server sortiert schon so):
-// (a) Besitzer hat widersprochen -> braucht ein Urteil, (b) zwei Melder, Besitzer hat noch nicht
-// reagiert -> steht hier, damit nichts liegen bleibt. Anders als der Besitzer sieht der Admin, WER
-// gemeldet hat und was sie geschrieben haben — genau dafür ist diese Seite da.
+// ---- Sportart-Klassifikation: WIDERSPRÜCHE (docs/sport-classification.md) ----
+// Hier stehen ausschließlich Fälle, in denen der Besitzer sagt „war doch Pumpfoiling" (Jan: „sonst
+// will ich damit nichts zu tun haben"). Sessions, die bloß auf die Zuordnung durch den Besitzer
+// warten, tauchen NICHT auf — das klärt er selbst. Anders als der Besitzer sieht der Admin, WER
+// gemeldet hat und was sie geschrieben haben; genau dafür ist diese Seite da.
 function ClassifyTab() {
   const t = useT();
   const [rows, setRows] = useState<Record<string, any>[] | null>(null);

@@ -1020,16 +1020,18 @@ def rename_spot(spot_id: int, name: str = Query(...),
 def classification_queue(
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Offene Fälle zur endgültigen Entscheidung. Zwei Sorten, Widersprüche zuerst:
-    (a) der Besitzer hat WIDERSPROCHEN („war doch Pumpfoiling") — braucht ein Urteil;
-    (b) zwei Melder, aber der Besitzer hat noch nicht reagiert — meist erledigt er das selbst,
-        steht hier nur, damit nichts liegen bleibt.
+    """NUR Widersprüche — Fälle, in denen der Besitzer sagt „war doch Pumpfoiling".
+
+    Jan ausdrücklich (2026-07-27): „im admin-bereich mir aber nur anzeigen wenn der nutzer einspruch
+    eingelegt hat, sonst will ich damit nichts zu tun haben." Sessions, die bloß auf die Zuordnung
+    durch den Besitzer warten, erscheinen hier also NICHT — die klärt er selbst, und eine Liste, die
+    sich von allein leert, erzeugt nur Druck ohne Nutzen.
     Anders als der Besitzer sieht der Admin, WER gemeldet hat und was sie geschrieben haben."""
     rows = (db.query(models.Session)
             .filter(models.Session.deleted.isnot(True),
-                    models.Session.needs_classification.is_(True))
-            .order_by(models.Session.appeal_at.desc().nullslast(),
-                      models.Session.id.desc())
+                    models.Session.needs_classification.is_(True),
+                    models.Session.appeal_at.isnot(None))
+            .order_by(models.Session.appeal_at.desc())
             .limit(200).all())
     out = []
     for s in rows:

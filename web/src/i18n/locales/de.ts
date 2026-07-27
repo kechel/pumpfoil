@@ -623,7 +623,7 @@ const de: Record<string, string> = {
   "adm.subtitle": "Moderation & Verwaltung.",
   "adm.tab.overview": "Übersicht",
   "adm.tab.classify": "Klassifikation",
-  "adm.cls.none": "Keine offenen Fälle.",
+  "adm.cls.none": "Keine Widersprüche offen.",
   "adm.cls.appeal": "Widerspruch",
   "adm.cls.detector": "Detektor: {detection} · {runs} Läufe · max {speed} km/h",
   "adm.cls.keep": "Doch Pumpfoil",
