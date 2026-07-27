@@ -184,6 +184,14 @@ export interface SessionSummary {
   trim_start_ms?: number | null;
   trim_end_ms?: number | null;
   owned?: boolean;
+  // Menschliche Sportart-Klassifikation (docs/sport-classification.md). ACHTUNG: `sport` oben ist
+  // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
+  sport_class?: string | null;          // pumpfoil (Default) | wingfoil | foildrive | …
+  data_quality?: string | null;        // ok | false_data | duplicate | test
+  sport_source?: string | null;        // default | owner | admin
+  needs_classification?: boolean;      // 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
+  flag_count?: number;                 // nur Besitzer/Admin (Melder bleiben anonym)
+  appeal_text?: string | null;         // eigener Widerspruch
   merged_count?: number;   // >0 = zusammengeführt (auflösbar)
   owner_name?: string | null;
   owner_avatar_url?: string | null;
@@ -853,6 +861,18 @@ export const api = {
   unmergeSession: (id: number) =>
     req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
   getSettings: () => req<Record<string, any>>("/api/settings"),
+  // --- Sportart-Klassifikation (docs/sport-classification.md) ---
+  flagNotPumpfoil: (id: number, note?: string) =>
+    req<{ ok: boolean; flags?: number; needs_classification?: boolean }>(
+      `/api/sessions/${id}/not-pumpfoil`, { method: "POST", body: JSON.stringify({ note: note ?? null }) }),
+  setClassification: (id: number, patch: { sport?: string; data_quality?: string }) =>
+    req<{ ok: boolean; sport_class: string; data_quality: string; sport_source: string }>(
+      `/api/sessions/${id}/classification`, { method: "PUT", body: JSON.stringify(patch) }),
+  appealClassification: (id: number, text: string) =>
+    req<{ ok: boolean }>(`/api/sessions/${id}/appeal`, { method: "POST", body: JSON.stringify({ text }) }),
+  adminClassificationQueue: () => req<Record<string, any>[]>("/api/admin/classification-queue"),
+  adminKeepPumpfoil: (id: number) =>
+    req<{ ok: boolean }>(`/api/admin/sessions/${id}/keep-pumpfoil`, { method: "POST" }),
   saveSettings: (patch: Record<string, unknown>) =>
     req<Record<string, any>>("/api/settings", {
       method: "PUT",

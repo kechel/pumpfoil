@@ -495,6 +495,9 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               liked0={!!s.liked}
               trackPreview={s.track_preview}
               highlight={s.id === lastViewed}
+              sportClass={s.sport_class}
+              dataQuality={s.data_quality}
+              needsClassification={!!s.needs_classification}
               stats={
                 <>
                   {s.analysis && <SessionStats a={s.analysis} />}

@@ -9,6 +9,7 @@ import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
+import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
@@ -1230,6 +1231,7 @@ export default function SessionDetail() {
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && !isPublic && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>
+      {!isPublic && <ClassificationPanel session={session} owned={owned} onChange={setSession} />}
         </div>
       </div>
 
@@ -1962,6 +1964,112 @@ function RunsTable({
       <p className="mt-2 px-1 text-xs text-slate-400">
         {t("sd.tableFooter")}
       </p>
+    </div>
+  );
+}
+
+// ---- Sportart-Klassifikation (docs/sport-classification.md) ----
+// Drei Rollen in einem Bauteil, weil sie dieselbe Sache betreffen:
+//   Besitzer + offene Frage -> freundliche Bitte, zuordnen ODER widersprechen
+//   Besitzer, nichts offen   -> Kategorie frei änderbar (unauffällig, kein Alarm)
+//   Fremder                  -> „Sieht nicht nach Pumpfoil aus" (eine Bitte, keine Anzeige)
+function ClassificationPanel({ session, owned, onChange }: {
+  session: SessionSummary; owned: boolean; onChange: (s: SessionSummary) => void;
+}) {
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const [appealOpen, setAppealOpen] = useState(false);
+  const [appealText, setAppealText] = useState("");
+  const [flagged, setFlagged] = useState(false);
+  const [msg, setMsg] = useState("");
+  const needs = !!session.needs_classification;
+
+  const setClass = (patch: { sport?: string; data_quality?: string }) => {
+    setBusy(true); setMsg("");
+    api.setClassification(session.id, patch)
+      .then((r) => onChange({ ...session, sport_class: r.sport_class, data_quality: r.data_quality,
+                              sport_source: r.sport_source, needs_classification: false }))
+      .catch((e) => setMsg(String(e)))
+      .finally(() => setBusy(false));
+  };
+
+  if (!owned) {
+    // Fremde Session: nur die Bitte. Nach dem Absenden verschwindet der Knopf — man muss nicht
+    // erfahren, ob die Meldung „gezählt" hat (das wäre eine Einladung zum Nachzählen).
+    if (flagged) return <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">{t("cls.thanks")}</p>;
+    return (
+      <div className="mb-4">
+        <button
+          disabled={busy}
+          onClick={() => {
+            if (!window.confirm(t("cls.confirmFlag"))) return;
+            setBusy(true);
+            api.flagNotPumpfoil(session.id).then(() => setFlagged(true))
+              .catch((e) => setMsg(String(e))).finally(() => setBusy(false));
+          }}
+          className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-40">
+          {t("cls.notPumpfoil")}
+        </button>
+        {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
+      </div>
+    );
+  }
+
+  const picker = (
+    <div className="flex flex-wrap items-center gap-2">
+      <select value={needs ? "" : (session.sport_class ?? "pumpfoil")} disabled={busy}
+        onChange={(e) => e.target.value && setClass({ sport: e.target.value })}
+        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+        {needs && <option value="">{t("cls.choose")}</option>}
+        {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+      </select>
+      <select value={session.data_quality ?? "ok"} disabled={busy}
+        onChange={(e) => setClass({ data_quality: e.target.value })}
+        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+        {DATA_QUALITY.map((k) => <option key={k} value={k}>{t(`cls.dq.${k}`)}</option>)}
+      </select>
+    </div>
+  );
+
+  if (!needs) {
+    return (
+      <div className="mb-4">
+        {picker}
+        {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 p-3">
+      <p className="mb-2 text-sm text-amber-800 dark:text-amber-200">{t("cls.ownerAsk")}</p>
+      {picker}
+      <div className="mt-2">
+        {appealOpen ? (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input value={appealText} onChange={(e) => setAppealText(e.target.value)}
+              placeholder={t("cls.appealPlaceholder")}
+              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100" />
+            <button disabled={busy}
+              onClick={() => {
+                setBusy(true); setMsg("");
+                api.appealClassification(session.id, appealText)
+                  .then(() => { setAppealOpen(false); onChange({ ...session, appeal_text: appealText || "—" }); })
+                  .catch((e) => setMsg(String(e))).finally(() => setBusy(false));
+              }}
+              className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-sm text-slate-950 hover:bg-brand-400">
+              {t("cls.appealSend")}
+            </button>
+          </div>
+        ) : session.appeal_text ? (
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("cls.appealPending")}</p>
+        ) : (
+          <button onClick={() => setAppealOpen(true)}
+            className="text-sm text-brand-700 hover:underline dark:text-brand-300">
+            {t("cls.wasPumpfoil")}
+          </button>
+        )}
+      </div>
+      {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
     </div>
   );
 }

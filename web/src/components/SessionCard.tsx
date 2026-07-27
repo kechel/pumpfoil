@@ -7,6 +7,7 @@ import { TrackPreview } from "./TrackPreview";
 import { VideoModal, ytId, videoPlatform } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
+import { classLabelKey, isClassified } from "../lib/sportClass";
 import { fmtDate, fmtTime } from "../lib/time";
 function fmtSpan(start: string, end: string) {
   const s = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
@@ -22,6 +23,7 @@ export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, deviceLabel, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
+  sportClass, dataQuality, needsClassification = false,
 }: {
   sessionId: number;
   owned?: boolean;   // eigene Session? -> Merge-Angebot in Vergleichen
@@ -45,6 +47,12 @@ export function SessionCard({
   statusBadge?: ReactNode;
   trackPreview?: string | null;
   highlight?: boolean;   // zuletzt angesehene Session in der Liste hervorheben
+  // Menschliche Sportart-Klassifikation (docs/sport-classification.md) — Jan: „klassifikation dann
+  // auch in den session cards mit anzeigen". Die Karte rendert das Badge selbst, damit es in allen
+  // Listen gleich aussieht.
+  sportClass?: string | null;
+  dataQuality?: string | null;
+  needsClassification?: boolean;
 }) {
   const t = useT();
   const [liked, setLiked] = useState(liked0);
@@ -207,6 +215,15 @@ export function SessionCard({
             {trackEl}
           </div>
           {statusBadge}
+          {needsClassification ? (
+            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
+              {t("cls.needsBadge")}
+            </span>
+          ) : isClassified({ sport_class: sportClass, data_quality: dataQuality }) ? (
+            <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-600 dark:text-slate-300">
+              {t(classLabelKey({ sport_class: sportClass, data_quality: dataQuality }))}
+            </span>
+          ) : null}
           <ChevronIcon className="h-5 w-5 text-slate-400" />
         </div>
       </Card>
