@@ -83,7 +83,8 @@ def _cutoff(period: str) -> datetime | None:
     return now - timedelta(days=days)
 
 
-def _community(query, viewer_id: int | None = None, accel_only: bool = True):
+def _community(query, viewer_id: int | None = None, accel_only: bool = True,
+               sport: str = "pumpfoil"):
     """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten.
 
     Versteckte Konten (hidden, App-Store-Tester) werden für alle ANDEREN ausgeblendet;
@@ -104,7 +105,11 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
                 # Sessions (zwei Melder, noch nicht zugeordnet) erscheinen in KEINER Kategorie,
                 # andere Sportarten und Datenmüll nicht in den Pumpfoil-Auswertungen.
                 S.needs_classification.isnot(True),
-                or_(S.sport_class.is_(None), S.sport_class == "pumpfoil"),
+                # Sportart: für „pumpfoil" zählen auch Altbestände mit NULL mit (die Spalte kam erst
+                # 2026-07-27); für jede ANDERE Sportart muss sie ausdrücklich gesetzt sein, sonst
+                # rutschten unklassifizierte Sessions in fremde Rekorde.
+                (or_(S.sport_class.is_(None), S.sport_class == "pumpfoil")
+                 if sport == "pumpfoil" else (S.sport_class == sport)),
                 or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
     if accel_only:
@@ -165,11 +170,12 @@ def community_sessions(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
+    sport: str = "pumpfoil",
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed: community-sichtbare Sessions, neueste zuerst, echte SQL-Paginierung.
     Optional gefiltert nach Anzeigename (Teiltreffer) und/oder Spot."""
-    q = _community(db.query(*BRIEF_COLS), user.id, accel_only)
+    q = _community(db.query(*BRIEF_COLS), user.id, accel_only, sport)
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
@@ -185,7 +191,7 @@ def spot_sessions(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        _community(db.query(*BRIEF_COLS), user.id, accel_only).filter(_spot_cond(spot))
+        _community(db.query(*BRIEF_COLS), user.id, accel_only, sport).filter(_spot_cond(spot))
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
@@ -211,6 +217,7 @@ def sessions_grouped(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
+    sport: str = "pumpfoil",
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed/Spot mit TAGES-GRUPPIERUNG (rein anzeige-seitig, ändert keine Daten/Rekorde):
@@ -221,7 +228,7 @@ def sessions_grouped(
     oben, darin Nutzer-Cluster nach letzter Session" (weil started_at desc gescannt wird, ist die
     Einfüge-Reihenfolge bereits genau diese). Einzel-Session-Gruppen (count=1) rendert der Client
     als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
-    q = _community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only)
+    q = _community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only, sport)
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
@@ -325,13 +332,13 @@ _EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": N
               "name": None, "avatar_url": None, "spot": None, "track_preview": None, "tz": None}
 
 
-def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True) -> dict:
+def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
     if metric in TIME_METRICS:
-        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only)
+        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            S.place_lat, S.place_lon), viewer_id, accel_only)
+                            S.place_lat, S.place_lon), viewer_id, accel_only, sport)
     q = q.filter(valcol > 0)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
@@ -349,7 +356,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     }
 
 
-def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True) -> dict:
+def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
     """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
 
     Wert = Sekunden seit lokaler Mitternacht des Starts. Night Owl zählt das Session-ENDE
@@ -357,7 +364,7 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     23:30), zählt via started_at zum Vortag; Anzeige rechnet mod 24 h. Kaputte ended_at
     werden auf [0, 24 h] geklemmt."""
     q = _community(db.query(S.id, S.started_at, S.ended_at, S.place_lat, S.place_lon,
-                            NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only)
+                            NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only, sport)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
@@ -384,9 +391,30 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     }
 
 
+@router.get("/sports")
+def community_sports(
+    accel_only: bool = False, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Sportarten, für die es überhaupt etwas zu zeigen gibt: mindestens EIN Lauf, all time
+    (Jans Vorgabe — „nur die mit mind. einem lauf all time in der selectbox mit anzeigen").
+
+    Ohne diese Einschränkung stünden neun Kategorien in der Auswahl, von denen acht leer sind.
+    Gezählt wird über denselben Community-Filter wie die Rekorde, damit die Auswahl nicht Sportarten
+    anbietet, deren Sessions gar nicht sichtbar sind (versteckte Konten, unklassifiziert, Datenmüll).
+    """
+    from .sessions import SPORTS
+    out = []
+    for sp in SPORTS:
+        n = (_community(db.query(func.coalesce(func.sum(AR.num_runs), 0)), user.id, accel_only, sp)
+             .scalar() or 0)
+        if int(n) > 0:
+            out.append({"sport": sp, "runs": int(n)})
+    return out
+
+
 @router.get("/records")
-def community_records(accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only) for m in METRICS} for p in PERIODS}
+def community_records(accel_only: bool = True, sport: str = "pumpfoil", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport) for m in METRICS} for p in PERIODS}
 
 
 @router.get("/start-success")
@@ -516,23 +544,24 @@ def carve_stats(user: models.User = Depends(current_user), db: Session = Depends
 
 @spot_router.get("/spot-records")
 def spot_records(
-    spot: str, period: str = "all", accel_only: bool = True,
+    spot: str, period: str = "all", accel_only: bool = True, sport: str = "pumpfoil",
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     cut = _cutoff(period)
-    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only) for m in METRICS}
+    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only, sport=sport)
+            for m in METRICS}
 
 
 # ------------------------------------------------------------------- Leaders ----
 @router.get("/leaders")
-def leaders(period: str = "all", accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     cut = _cutoff(period)
     q = _community(db.query(
         NAME, U.avatar_url,
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(AR.pump_count), 0),
-    ), _user.id, accel_only)
+    ), _user.id, accel_only, sport)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
@@ -622,11 +651,11 @@ def latest_photos(
 
 
 @spot_router.get("/spots")
-def spots(accel_only: bool = True, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     has_place = (S.place_name.isnot(None), S.place_name != "")
-    qual = sorted({p for (p,) in _community(db.query(S.place_name), user.id, accel_only).filter(*has_place).distinct().all()})
+    qual = sorted({p for (p,) in _community(db.query(S.place_name), user.id, accel_only, sport).filter(*has_place).distinct().all()})
     mine_rows = (
-        _community(db.query(S.place_name), user.id, accel_only).filter(S.user_id == user.id, *has_place)
+        _community(db.query(S.place_name), user.id, accel_only, sport).filter(S.user_id == user.id, *has_place)
         .order_by(S.started_at.desc()).all()
     )
     qualset = set(qual)

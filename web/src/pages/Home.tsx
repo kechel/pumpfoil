@@ -254,12 +254,12 @@ function LatestMedia() {
   );
 }
 
-function Leaderboards({ period, accelOnly }: { period: string; accelOnly: boolean }) {
+function Leaderboards({ period, accelOnly, sport = "pumpfoil" }: { period: string; accelOnly: boolean; sport?: string }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   useEffect(() => {
-    api.leaders(period, accelOnly).then(setData).catch(() => {});
-  }, [period, accelOnly]);
+    api.leaders(period, accelOnly, sport).then(setData).catch(() => {});
+  }, [period, accelOnly, sport]);
   if (!data) return null;
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
   if (empty) return null;
@@ -339,14 +339,22 @@ function SpotSessions({ spot, accelOnly }: { spot: string; accelOnly: boolean })
 function CommunitySection() {
   const t = useT();
   const [data, setData] = useState<CommunityRecords | null>(null);
+  // Sportart-Filter (docs/sport-classification.md). Nur Sportarten mit mindestens EINEM Lauf
+  // all time stehen zur Wahl (Jans Vorgabe) — sonst neun Kategorien, acht davon leer.
+  const [sport, setSport] = useState("pumpfoil");
+  const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   const [period, setPeriod] = useState("10d");
   // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
   // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
   const [accelOnly, setAccelOnly] = useAccelDefault();
 
   useEffect(() => {
-    api.communityRecords(accelOnly).then(setData).catch(() => {});
-  }, [accelOnly]);
+    api.communityRecords(accelOnly, sport).then(setData).catch(() => {});
+  }, [accelOnly, sport]);
+
+  useEffect(() => {
+    api.communitySports().then(setSports).catch(() => {});
+  }, []);
 
   if (!data) return null;
   return (
@@ -377,12 +385,22 @@ function CommunitySection() {
           </button>
         ))}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
+        {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
+            (Jan: „nur die mit mind. einem lauf all time"). Betrifft Rekorde, Rangliste und Spots —
+            NICHT „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich
+            immer aus allen Sportarten. */}
+        {sports.length > 1 && (
+          <select value={sport} onChange={(e) => setSport(e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+          </select>
+        )}
       </div>
       <RecordGrid rec={data[period]} showSpot />
       <LatestMedia />
-      <Leaderboards period={period} accelOnly={accelOnly} />
+      <Leaderboards period={period} accelOnly={accelOnly} sport={sport} />
       <TopLiked period={period} />
-      <SpotSection period={period} accelOnly={accelOnly} />
+      <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
       <LayoutTeaser />
     </div>
   );
@@ -438,7 +456,7 @@ function LayoutTeaser() {
   );
 }
 
-function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean }) {
+function SpotSection({ period, accelOnly, sport = "pumpfoil" }: { period: string; accelOnly: boolean; sport?: string }) {
   const t = useT();
   const [spots, setSpots] = useState<{ mine: string[]; all: string[] } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -449,21 +467,21 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
   // die Rekorde/Sessions je Spot respektieren weiterhin den accel|alle-Umschalter.
   // Default: der eigene Homespot (aus den Einstellungen) — sonst nichts.
   useEffect(() => {
-    api.communitySpots(false).then(setSpots).catch(() => {});
+    api.communitySpots(false, sport).then(setSpots).catch(() => {});   // Sportart wechselt -> andere Spots
     api.getSettings().then((s) => {
       const hs = typeof s.homespot === "string" ? s.homespot : "";
       setSelected(hs || null);
     }).catch(() => {});
-  }, []);
+  }, [sport]);
 
   // Rekorde des gewählten Spots für Zeitraum + Accel/GPS laden (Key = accelOnly:period:spot).
   useEffect(() => {
     if (!selected) return;
-    const key = `${accelOnly}:${period}:${selected}`;
+    const key = `${sport}:${accelOnly}:${period}:${selected}`;
     if (!(key in recs)) {
-      api.spotRecords(selected, period, accelOnly).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
+      api.spotRecords(selected, period, accelOnly, sport).then((r) => setRecs((prev) => ({ ...prev, [key]: r }))).catch(() => {});
     }
-  }, [selected, period, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selected, period, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!spots) return null;
 
@@ -519,7 +537,7 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
           <div className="mb-1.5 flex items-center gap-2">
             <span className="inline-flex items-center gap-1 font-semibold text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
           </div>
-          <RecordGrid rec={recs[`${accelOnly}:${period}:${selected}`]} />
+          <RecordGrid rec={recs[`${sport}:${accelOnly}:${period}:${selected}`]} />
           <SpotSessions spot={selected} accelOnly={accelOnly} />
         </div>
       )}

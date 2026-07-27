@@ -781,13 +781,18 @@ export const api = {
     req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
   hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
   stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
-  communityRecords: (accelOnly = true) => req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}`),
+  // `sport` = Sportart-Filter der Community-Seite (docs/sport-classification.md). Default pumpfoil,
+  // damit Aufrufer ohne Filter unverändert weiterlaufen.
+  communityRecords: (accelOnly = true, sport = "pumpfoil") =>
+    req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}&sport=${sport}`),
+  communitySports: () => req<{ sport: string; runs: number }[]>("/api/community/sports"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
-  communitySpots: (accelOnly = true) => req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}`),
+  communitySpots: (accelOnly = true, sport = "pumpfoil") =>
+    req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}&sport=${sport}`),
   communityStats: () => req<{ foilers: number; spots: number; sessions: number; pumps: number }>(`/api/community/stats`),
-  spotRecords: (spot: string, period = "all", accelOnly = true) =>
-    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}`),
+  spotRecords: (spot: string, period = "all", accelOnly = true, sport = "pumpfoil") =>
+    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${sport}`),
   spotCompare: (period = "all", accelOnly = false) =>
     req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
   sessionCarves: (id: number) =>
@@ -808,7 +813,8 @@ export const api = {
   },
   spotSessions: (spot: string, accelOnly = true) =>
     req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
-  leaders: (period = "all", accelOnly = true) => req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}`),
+  leaders: (period = "all", accelOnly = true, sport = "pumpfoil") =>
+    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   toggleLike: (id: number) =>
