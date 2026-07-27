@@ -138,7 +138,22 @@ export function DmWidget() {
     depthRef.current = 0;
     if (n > 0) { skipPopRef.current = true; window.history.go(-n); }
   };
-  const back = () => window.history.back();   // Chat → Liste (über popstate, EIN Marker)
+  // Zurück-KNOPF im Chatfenster: setzt die UI DIREKT zurück und hängt NICHT an der Browser-Historie
+  // (Jan: „der zurueck-button im chatfenster springt oft auch die seite im browser zurueck, das
+  // sollte komplett unabhaengig funktionieren"). Vorher rief er `history.back()` und verließ die
+  // Seite, sobald unser Marker fehlte — was passiert, wenn ein `pushState` verschluckt wurde (iOS-PWA)
+  // oder zwischenzeitlich die Route wechselte. Jetzt räumt er nur noch seinen EIGENEN Marker ab, und
+  // zwar nur, wenn er wirklich auf dem Stack liegt. Die Zurück-GESTE des Systems läuft unverändert
+  // über popstate.
+  const back = () => {
+    setActive(null);
+    loadRooms();
+    if (depthRef.current >= 2) {
+      depthRef.current -= 1;
+      skipPopRef.current = true;
+      window.history.go(-1);
+    }
+  };
   const closeOverlay = () => { setActive(null); setOpen(false); consumeMarkers(); };
 
   const toggleBlock = () => {
