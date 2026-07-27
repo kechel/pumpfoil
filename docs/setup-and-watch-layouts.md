@@ -664,7 +664,16 @@ durch Jan und Store-Release offen.
 - Größen (Release): fenix7xpro 75,1 KB · fr255s 74,7 KB · fenix5 92,3 KB · instinct2 (Lite) 55,3 KB.
 - **Von Jan im Simulator bestätigt (fenix7xpro, 2026-07-27): „funktioniert perfekt".** Offen: Store-
   Einreichung 1.0.67 + `appmeta`-Bump + `watch/bin` + Changelog — alles erst nach der Freigabe, wie
-  bei 1.0.66 (Regel unten). Lite-Gegenprobe (instinct2) noch nicht gemeldet.
+  bei 1.0.66 (Regel unten). **Lite-Gegenprobe (instinct2) 2026-07-27 ebenfalls in
+  Ordnung.** Jans erster Eindruck „nach dem Beenden schwarzer Bildschirm" war Ungeduld, kein Fehler —
+  ein Diagnose-Build (System.println je Frame) zeigte den Ablauf sauber: Upload läuft (`busy, total=1,
+  sent=0`), wird fertig (`sent=1, pending=0`), Upload-Screen im „fertig"-Zweig, danach wieder
+  RecordView. Nebenbefund aus dem Log: `_showUploadIfConnected()` setzt `stopped=false`, bevor es den
+  Upload-Screen öffnet — in diesem Weg gibt es also ABSICHTLICH keinen „Gespeichert"-Screen, BACK führt
+  auf den Start-Screen, der auf dem Instinct sehr karg ist. Kein F3-Thema (Pfade unverändert), aber die
+  Quelle des Eindrucks. Ebenso notiert: der Lite-Tabelle fehlen 4 Strings (`common.auto`,
+  `lay.fallback`, `lay.none`, `menu.layouts`) — alle nur in `(:full)`-Code verwendet, also harmlos und
+  bewusst NICHT nachzupflegen (kostet nur Bytes).
 
 ---
 
