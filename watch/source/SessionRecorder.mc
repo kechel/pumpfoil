@@ -174,9 +174,15 @@ class SessionRecorder {
     hidden var _lastRunMaxSpeed = 0.0;
     hidden var _lastRunAvgSpeed = 0.0;
 
-    // Stop erfordert 3 s Halten (gegen versehentliches Beenden beim Foilen).
-    const STOP_HOLD_MS = 3000;      // Phase 1: halten bis hier -> Stop scharf (loslassen = Speichern)
-    const DISCARD_HOLD_MS = 6000;   // Phase 2: weiter halten bis hier -> Verwerfen
+    // Stop erfordert Halten (gegen versehentliches Beenden beim Foilen) — seit 2026-07-27 ZWEI
+    // Sekunden statt drei (Jan): seit es das Menue Speichern/Pausieren/Verwerfen gibt, beendet das
+    // Halten die Aufnahme nicht mehr selbst, sondern oeffnet nur die Auswahl. Ein Fehlgriff ist damit
+    // harmlos, und 3 s fuehlten sich am Wasser unnoetig lang an. Dieselbe Aenderung ist fuer Wear OS,
+    // Apple Watch und den Handy-Recorder vorgemerkt (docs/TODO.md).
+    const STOP_HOLD_MS = 2000;      // Phase 1: halten bis hier -> Menue (Lite: direkt speichern)
+    // Phase 2 (weiter halten = verwerfen) stammt aus der Zeit VOR dem Menue und hat keinen Aufrufer
+    // mehr (discardHoldProgress). Bleibt vorerst stehen; beim naechsten Aufraeumen kann beides weg.
+    const DISCARD_HOLD_MS = 6000;
     var stopHoldStartMs as Lang.Number or Null = null;
 
     // Fortschritt 0..1 des Stop-Haltens Phase 1 (Ring 1, 0..3 s). >=1.0 = „Speichern scharf".

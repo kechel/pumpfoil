@@ -131,6 +131,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Halten zum Stoppen: 2 s statt 3 s — auf den ANDEREN Plattformen nachziehen** (Jan 2026-07-27:
+  „ebenso spaeter auf allen anderen uhren und handy-recorder wenn wir da alles uebernehmen, das aber
+  erstmal notieren"). Garmin ist ERLEDIGT (`SessionRecorder.STOP_HOLD_MS = 2000`, ab 1.0.68). Begründung:
+  seit es das Menü Speichern/Pausieren/Verwerfen gibt, beendet das Halten die Aufnahme nicht mehr selbst
+  — ein Fehlgriff ist harmlos, 3 s fühlten sich am Wasser unnötig lang an.
+  Offen: **Wear OS** (`android/wear`, HoldButton), **Apple Watch** (`watch-apple/Sources`,
+  `.onLongPressGesture(minimumDuration: 3)`), **Handy-Recorder** (Android/iOS), **Zepp** (dort ist es
+  der neue Tasten-Langdruck — Zepp bestimmt die Dauer selbst, ggf. eigene Zeitmessung).
+  Achtung Apple/Wear: dort gibt es das Aktions-Menü teils NICHT — wo Halten direkt beendet, bleiben
+  3 s richtig. Erst prüfen, wo ein Menü dahinterliegt.
 - **Standard-Sportart im Profil** (Jan 2026-07-27: „im profil ein einfaches auswahlfeld als welche
   sportart zukuenftige sessions als ‚default' eingestellt werden sollen … ist ja wie mein
   default-foil … aber das wirklich nicht mehr heute"). Nur Web/Server, KEINE Uhr-Änderung nötig:

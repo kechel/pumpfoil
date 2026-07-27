@@ -6,7 +6,7 @@ using Toybox.Attention;
 
 // Steuerung:
 //   START/STOP (KEY_ENTER): kurzer Druck startet; im laufenden Betrieb muss man
-//   3 s HALTEN, um zu stoppen+speichern (Ring-Indikator in der View). So kein
+//   2 s HALTEN, um das Aktions-Menue zu oeffnen (Ring-Indikator in der View). So kein
 //   versehentliches Beenden beim Foilen.
 //   Menü-Taste: Upload. 1-Hz-Tick aktualisiert Live-Werte.
 class RecordDelegate extends WatchUi.BehaviorDelegate {
@@ -54,8 +54,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     }
 
     // Loslassen:
-    //   < 3 s  -> nichts (Schutz gegen versehentliches Stoppen); PAUSIERT + kurzer Druck = Fortsetzen
-    //   ≥ 3 s  -> das Aktions-Menü ist beim Halten (onHoldTick) schon aufgegangen -> hier nichts mehr
+    //   < 2 s  -> nichts (Schutz gegen versehentliches Stoppen); PAUSIERT + kurzer Druck = Fortsetzen
+    //   >= 2 s -> das Aktions-Menü ist beim Halten (onHoldTick) schon aufgegangen -> hier nichts mehr
     function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
             var held = System.getTimer() - _rec.stopHoldStartMs;
@@ -67,7 +67,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
 
-    // Während des Haltens: Ring animieren; bei 3 s Menü öffnen (Speichern/Verwerfen/Pausieren).
+    // Während des Haltens: Ring animieren; bei 2 s Menü öffnen (Speichern/Verwerfen/Pausieren).
     // Längeres Halten tut NICHTS mehr (kein versehentliches Verwerfen).
     // (:full) — volle App: Aktions-Menü. Lite (96-KB-Uhren) nutzt die schlanke Variante unten.
     (:full)
@@ -87,7 +87,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.requestUpdate();
     }
 
-    // (:lite) — 96-KB-Uhren: kein Aktions-Menü (spart Code+Heap). 3 s Halten = direkt
+    // (:lite) — 96-KB-Uhren: kein Aktions-Menü (spart Code+Heap). 2 s Halten = direkt
     // stoppen+speichern; danach ggf. Upload-Screen (wie das „Speichern" im vollen Menü).
     (:lite)
     function onHoldTick() as Void {
