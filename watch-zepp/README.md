@@ -85,4 +85,12 @@ auslösen, dieselbe Logik wie das 3-s-Halten auf der Garmin. `KEY_BACK` bleibt u
 sitzt man in der App fest. Zepp erlaubt nur EINE `onKey`-Registrierung, deshalb ein Callback für alle
 Tasten. Touch/Wischen funktioniert unverändert weiter.
 
-**Ungetestet** — Build und Simulator/Gerätetest gehen nur auf Jans Mac (Zeus CLI, Testgerät Balance 2).
+**Auf Hardware ungetestet, bewusst so released (2026-07-27):** der Zepp-**Simulator hat keine
+Hardware-Tasten**, der Tasten-Pfad ist dort also nicht prüfbar. Jan gibt 1.0.3 trotzdem in den Store;
+**Fabian testet nach der Freigabe** — er hat es angefragt und hat das Gerät. Deshalb ist der ganze
+Callback in `try/catch` gekapselt: geht dort etwas schief, tut die Taste nichts, statt die laufende
+Aufnahme mitzunehmen. Falls der Langdruck auf echter Hardware nicht als `KEY_EVENT_LONG_PRESS`
+ankommt, ist der Umbau klein (Doppelklick oder `KEY_EVENT_PRESS`/`RELEASE` mit eigener Zeitmessung) —
+dafür genügt, was im Log der Uhr ankommt.
+Wer die Tasten VOR einem Release prüfen will: `zeus preview` läuft auf der echten Uhr, dort gibt es
+sie.

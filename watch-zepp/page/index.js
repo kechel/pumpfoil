@@ -101,6 +101,11 @@ Page(
       try {
         onKey({
           callback: (key, event) => {
+            // Alles hier drin abgesichert: der Tasten-Pfad ist auf echter Hardware UNGETESTET
+            // (der Simulator hat keine Hardware-Tasten). Eine Ausnahme in diesem Callback würde
+            // sonst die laufende Aufnahme mitnehmen — lieber tut die Taste nichts, als dass die
+            // App abstürzt und die Session verloren geht.
+            try {
             if (key === KEY_BACK) return false;
             const long = (event === KEY_EVENT_LONG_PRESS);
             const click = (event === KEY_EVENT_CLICK);
@@ -120,6 +125,7 @@ Page(
               return true;
             }
             return false;
+            } catch (e) { return false; }
           },
         });
       } catch (e) {}
