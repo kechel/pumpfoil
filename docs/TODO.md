@@ -137,7 +137,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `pausePages`/`browseAll` an JEDE Uhr, die Elemente sind reine Zahlen-Arrays. Zu bauen ist also nur je
   ein Renderer: **Zepp/Amazfit** (`watch-zepp/page/index.js`, Widgets statt dc-Zeichnen — dort ist
   Fabians Tasten-Update gerade im Review), **Wear OS** (`android/wear`, Compose Canvas) und
-  **Apple Watch** (`watch-apple/Sources`, SwiftUI Canvas). Reihenfolge nach Nutzerzahl entscheiden.
+  **Apple Watch** (`watch-apple/Sources`, SwiftUI Canvas).
+  **TOR (Jan 2026-07-27): erst nachziehen, wenn Garmin-F3 im ECHTEN Einsatz bewährt ist** — „erstmal
+  garmin fertig machen und testen, nachziehen dann sobald das gut funktioniert und im einsatz war."
+  Also nicht parallel bauen: die Zustandsmaschine ist frisch, und ein Modellfehler wäre sonst dreimal
+  einzusammeln. Reihenfolge danach nach Nutzerzahl.
   Design + Elementformat: `docs/setup-and-watch-layouts.md` (F2/F3).
 - **Suunto: Frist bis 2026-08-03 — dann aus Banner + Uhr-Tabelle entfernen** (Jans Entscheidung
   2026-07-27: „wenns in einer woche nicht geht nehmen wir aber suunto wieder raus aus dem banner &
