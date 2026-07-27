@@ -1,6 +1,6 @@
 import { LayoutElement, WatchLayout } from "../lib/api";
 import {
-  EL_DOTS, EL_LABEL, EL_LINE, EL_REC, EL_TEXT, EL_VALUE,
+  EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
   MOCK_VALUE, PALETTE, SIZE_FACTOR, WatchShape, paletteColor, valueColor,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
@@ -125,6 +125,17 @@ export function LayoutPreview({
             <div key={i} style={{ ...box, fontSize: fontPx(e[3]), color: paletteColor(Number(e[4]), "label") }}
               onClick={pick} onPointerDown={down}>
               {t(`fw.${Number(e[6]) || 0}`)}
+            </div>
+          );
+        }
+        if (typ === EL_PAUSED) {
+          // „Pausiert"-Hinweis: in Pausen-Layouts Pflicht, hier genauso gezeichnet wie auf der Uhr
+          // (übersetzter Text, kleine Stufe). Er ist auswählbar und ziehbar, aber nicht löschbar.
+          return (
+            <div key={i} style={{ ...box, fontSize: fontPx(e[3]), fontWeight: 700,
+              color: paletteColor(Number(e[4]), "label"), letterSpacing: "0.05em" }}
+              onClick={pick} onPointerDown={down}>
+              {t("lay.pausedHint")}
             </div>
           );
         }

@@ -375,14 +375,13 @@ const MAX_PAGES = 12;
 function ViewsEditor() {
   const t = useT();
   const [pages, setPages] = useState<Page[] | null>(null);
+  const [offPages, setOffPages] = useState<Page[]>([]);
+  const [pausePages, setPausePages] = useState<Page[]>([]);
   const [layouts, setLayouts] = useState<WatchLayout[]>([]);
   const [colorByValue, setColorByValue] = useState(false);
   const [autoStart, setAutoStart] = useState(true);
   const [layoutsEnabled, setLayoutsEnabled] = useState(true);
-  const [offFoil, setOffFoil] = useState<number[]>([12, 17, 16]);
-  const [pauseView, setPauseView] = useState<number[]>([12, 20, 2]);
-  const [offLayout, setOffLayout] = useState<number | null>(null);
-  const [pauseLayout, setPauseLayout] = useState<number | null>(null);
+  const [browseAll, setBrowseAll] = useState(true);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -392,127 +391,37 @@ function ViewsEditor() {
       setColorByValue(!!s.colorByValue);
       setAutoStart(s.auto_start !== false);
       setLayoutsEnabled(s.layouts_enabled !== false);
-      setOffFoil((s.off_foil_view as number[]) ?? [12, 17, 16]);
-      setPauseView((s.pause_view as number[]) ?? [12, 20, 2]);
-      setOffLayout((s.off_foil_layout_id as number) ?? null);
-      setPauseLayout((s.pause_layout_id as number) ?? null);
+      setBrowseAll(s.browse_all_pages !== false);
+      // F3: Off-Foil und Pause sind Listen. Wer noch die alte Einzel-Konfiguration hat, sieht sie
+      // hier als Liste MIT EINEM Eintrag — nichts geht verloren und nichts wird stillschweigend
+      // umgeschrieben (gespeichert wird erst, wenn der Nutzer speichert).
+      const one = (layoutId: unknown, view: unknown, fallback: number[]): Page[] =>
+        typeof layoutId === "number" && layoutId ? [layoutId]
+        : Array.isArray(view) ? [view as number[]] : [fallback];
+      setOffPages((s.off_foil_pages as Page[]) ?? one(s.off_foil_layout_id, s.off_foil_view, [12, 17, 16]));
+      setPausePages((s.pause_pages as Page[]) ?? one(s.pause_layout_id, s.pause_view, [12, 20, 2]));
     }).catch((e) => setErr(String(e)));
     api.layouts().then(setLayouts).catch(() => {});
   }, []);
-
-  const byId = (id: number) => layouts.find((l) => l.id === id);
-  const onFoilLayouts = layouts.filter((l) => l.category === "on_foil");
-  const offLayouts = layouts.filter((l) => l.category === "off_foil");
-  const pauseLayouts = layouts.filter((l) => l.category === "pause");
-
-  function update(next: Page[]) { setPages(next); setSaved(false); }
-  function setField(pi: number, fi: number, val: number) {
-    const next = pages!.map((p) => (Array.isArray(p) ? [...p] : p));
-    (next[pi] as number[])[fi] = val;
-    update(next);
-  }
-  function addView() { update([...(pages ?? []), [1, 0, 0]]); }
-  function addLayoutPage(id: number) { if (id) update([...(pages ?? []), id]); }
-  function delPage(pi: number) { update(pages!.filter((_, i) => i !== pi)); }
-  function move(pi: number, dir: -1 | 1) {
-    const next = [...pages!];
-    const j = pi + dir;
-    if (j < 0 || j >= next.length) return;
-    [next[pi], next[j]] = [next[j], next[pi]];
-    update(next);
-  }
-  function setOffField(fi: number, val: number) {
-    const next = [...offFoil]; next[fi] = val; setOffFoil(next); setSaved(false);
-  }
-  function setPauseField(fi: number, val: number) {
-    const next = [...pauseView]; next[fi] = val; setPauseView(next); setSaved(false);
-  }
 
   async function save() {
     setErr(null);
     try {
       const res = await api.saveSettings({
         pages, colorByValue, auto_start: autoStart, layouts_enabled: layoutsEnabled,
-        off_foil_view: offFoil, pause_view: pauseView,
-        off_foil_layout_id: offLayout, pause_layout_id: pauseLayout,
+        off_foil_pages: offPages, pause_pages: pausePages, browse_all_pages: browseAll,
       });
       setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
       setLayoutsEnabled(res.layouts_enabled !== false);
-      if (res.off_foil_view) setOffFoil(res.off_foil_view as number[]);
-      if (res.pause_view) setPauseView(res.pause_view as number[]);
-      setOffLayout((res.off_foil_layout_id as number) ?? null);
-      setPauseLayout((res.pause_layout_id as number) ?? null);
+      setBrowseAll(res.browse_all_pages !== false);
+      if (res.off_foil_pages) setOffPages(res.off_foil_pages as Page[]);
+      if (res.pause_pages) setPausePages(res.pause_pages as Page[]);
       setSaved(true);
     } catch (e) {
       setErr(String(e));
     }
-  }
-
-  // Ein Screen-Abschnitt (Off-Foil / Pause): Datenfelder ODER eigener Screen.
-  function screenSection(
-    title: string, desc: string, fields: number[], setFieldAt: (fi: number, v: number) => void,
-    layoutId: number | null, setLayoutId: (v: number | null) => void, options: WatchLayout[],
-  ) {
-    const l = layoutId ? byId(layoutId) : undefined;
-    return (
-      <div className="mt-3 rounded-xl border border-brand-700/40 bg-slate-900/50 p-3">
-        <div className="mb-1 text-sm font-medium text-slate-200">{title}</div>
-        <p className="mb-2 text-sm text-slate-400">{desc}</p>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {[["fields", null] as const, ["layout", 1] as const].map(([kind]) => (
-            <button key={kind}
-              onClick={() => {
-                if (kind === "fields") { setLayoutId(null); setSaved(false); }
-                else if (options.length > 0) { setLayoutId(options[0].id); setSaved(false); }
-              }}
-              disabled={kind === "layout" && options.length === 0}
-              className={`rounded-lg px-2.5 py-1.5 text-sm ${
-                (kind === "layout") === (layoutId != null)
-                  ? "bg-brand-500 text-slate-950"
-                  : "bg-slate-800 text-slate-200 hover:bg-slate-700 disabled:opacity-40"}`}>
-              {kind === "fields" ? t("account.useFields") : t("account.useLayout")}
-            </button>
-          ))}
-        </div>
-        {layoutId == null ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <WatchPreview fields={fields} colorByValue={colorByValue} />
-            <div className="flex-1 space-y-2">
-              {[0, 1, 2].map((fi) => (
-                <select key={fi} value={fields[fi] ?? 0}
-                  onChange={(e) => setFieldAt(fi, Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
-                  {FIELD_OPTIONS.map((o) => <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>)}
-                </select>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130} />}
-            <div className="flex-1 space-y-2">
-              <select value={layoutId} onChange={(e) => { setLayoutId(Number(e.target.value)); setSaved(false); }}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
-                {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-              </select>
-              <Link to={`/layouts/${layoutId}`} className="inline-block text-sm text-brand-700 hover:underline dark:text-brand-300">
-                {t("lay.edit")} →
-              </Link>
-            </div>
-          </div>
-        )}
-        {options.length === 0 && (
-          <p className="mt-2 text-sm text-slate-400">
-            {t("account.noLayoutsYet")}{" "}
-            <Link to="/layouts" className="text-brand-700 hover:underline dark:text-brand-300">{t("account.toLayouts")} →</Link>
-            {" · "}
-            <Link to="/layouts/community" className="text-brand-700 hover:underline dark:text-brand-300">{t("lay.toCommunity")} →</Link>
-          </p>
-        )}
-      </div>
-    );
   }
 
   if (!pages) return null;
@@ -532,9 +441,7 @@ function ViewsEditor() {
           </Link>
         </div>
       </div>
-      <p className="mb-3 text-sm text-slate-300">
-        {t("account.viewsDesc")}
-      </p>
+      <p className="mb-3 text-sm text-slate-300">{t("account.viewsDesc")}</p>
       <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}
@@ -550,26 +457,82 @@ function ViewsEditor() {
           onChange={(e) => { setLayoutsEnabled(e.target.checked); setSaved(false); }} />
         {t("account.layoutsEnabled")}
       </label>
-      <p className="mb-4 text-sm text-slate-400">{t("account.layoutsEnabledHint")}</p>
+      <p className="mb-3 text-sm text-slate-400">{t("account.layoutsEnabledHint")}</p>
+      {/* F3-Schalter: Default AN, damit niemand Seiten verliert, die er heute erreicht. Aus = je
+          Zustand strikt nur die zugehörigen Screens (Jans Modell für Fortgeschrittene). */}
+      <label className="mb-1 flex items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={browseAll}
+          onChange={(e) => { setBrowseAll(e.target.checked); setSaved(false); }} />
+        {t("account.browseAll")}
+      </label>
+      <p className="mb-4 text-sm text-slate-400">{t("account.browseAllHint")}</p>
       <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
-      {/* ÜBER der Liste und in Cyan (Jan gegenüber Tom Petr angekündigt, der die Stelle nicht fand):
-          „eigenen Screen einfügen" ist der Weg, den man sucht — er stand unauffällig UNTER der Liste. */}
+      <PageList title={t("account.onFoilTitle")} desc={t("account.onFoilDesc")}
+        pages={pages} setPages={(v) => { setPages(v); setSaved(false); }}
+        layouts={layouts} category="on_foil" colorByValue={colorByValue} keepOne />
+      <PageList title={t("account.offFoilTitle")} desc={t("account.offFoilDesc")}
+        pages={offPages} setPages={(v) => { setOffPages(v); setSaved(false); }}
+        layouts={layouts} category="off_foil" colorByValue={colorByValue} />
+      <PageList title={t("account.pauseTitle")} desc={t("account.pauseDesc")}
+        pages={pausePages} setPages={(v) => { setPausePages(v); setSaved(false); }}
+        layouts={layouts} category="pause" colorByValue={colorByValue} />
+
+      <div className="mt-4 flex items-center gap-3">
+        <Button onClick={save} className="text-sm">{t("common.save")}</Button>
+        {saved && <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</span>}
+      </div>
+      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
+    </Card>
+  );
+}
+
+// EINE Seitenliste, dreimal verwendet — on_foil, off_foil, pause (F3, Jan: „bitte gleich beide
+// generisch machen … so dass man ueberall beliebig viele einfuegen kann"). Vorher war on_foil eine
+// Liste und die beiden anderen je EIN Screen; genau daran ist Tom Petr hängengeblieben.
+// `keepOne` gilt nur für on_foil: eine Uhr ohne Datenseite gibt es nicht. Off-Foil und Pause dürfen
+// leer bleiben — dann liefert der Server den bisherigen Standard-Screen.
+function PageList({ title, desc, pages, setPages, layouts, category, colorByValue, keepOne = false }: {
+  title: string; desc: string;
+  pages: Page[]; setPages: (v: Page[]) => void;
+  layouts: WatchLayout[]; category: "on_foil" | "off_foil" | "pause";
+  colorByValue: boolean; keepOne?: boolean;
+}) {
+  const t = useT();
+  const byId = (id: number) => layouts.find((l) => l.id === id);
+  const options = layouts.filter((l) => l.category === category);
+  const full = pages.length >= MAX_PAGES;
+  const move = (pi: number, dir: -1 | 1) => {
+    const next = [...pages];
+    const j = pi + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[pi], next[j]] = [next[j], next[pi]];
+    setPages(next);
+  };
+  return (
+    <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+      <div className="mb-1 text-sm font-semibold text-slate-200">{title}</div>
+      <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{desc}</p>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <select value="" onChange={(e) => { addLayoutPage(Number(e.target.value)); e.currentTarget.value = ""; }}
-          disabled={onFoilLayouts.length === 0 || pages.length >= MAX_PAGES}
+        <select value="" disabled={options.length === 0 || full}
+          onChange={(e) => { const id = Number(e.target.value); if (id) setPages([...pages, id]); e.currentTarget.value = ""; }}
           className="rounded-xl bg-brand-500 px-3 py-2 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
           <option value="">{t("account.addLayoutPage")}</option>
-          {onFoilLayouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          {options.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
         </select>
-        <button onClick={addView} disabled={pages.length >= MAX_PAGES}
-          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">{t("account.addView")}</button>
-        {pages.length >= MAX_PAGES && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
+        <button onClick={() => setPages([...pages, [1, 0, 0]])} disabled={full}
+          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">
+          {t("account.addView")}
+        </button>
+        {full && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
+        {options.length === 0 && (
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t("account.noLayoutsOfKind")}</span>
+        )}
       </div>
       <div className="space-y-3">
-        {pages.map((p, pi) => {
-          const isLayout = !Array.isArray(p);
-          const l = isLayout ? byId(p as number) : undefined;
+        {pages.map((pg, pi) => {
+          const isLayout = !Array.isArray(pg);
+          const l = isLayout ? byId(pg as number) : undefined;
           return (
             <div key={pi} className={`rounded-xl border p-3 ${isLayout ? "border-brand-700/40 bg-brand-500/5" : "border-slate-800 bg-slate-900/50"}`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -580,28 +543,31 @@ function ViewsEditor() {
                 <div className="flex items-center gap-1 text-slate-300">
                   <button onClick={() => move(pi, -1)} disabled={pi === 0} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↑</button>
                   <button onClick={() => move(pi, 1)} disabled={pi === pages.length - 1} className="rounded px-2 py-1 hover:bg-slate-800 disabled:opacity-30">↓</button>
-                  {/* Die letzte Seite bleibt: eine Uhr ohne Datenseite gibt es nicht (der
-                      Server würde eine leere Liste ohnehin auf die alte zurückfallen lassen). */}
-                  <button onClick={() => delPage(pi)} disabled={pages.length <= 1}
-                    title={pages.length <= 1 ? t("account.keepOnePage") : undefined}
+                  <button onClick={() => setPages(pages.filter((_, i) => i !== pi))}
+                    disabled={keepOne && pages.length <= 1}
+                    title={keepOne && pages.length <= 1 ? t("account.keepOnePage") : undefined}
                     className="rounded px-2 py-1 text-red-400 hover:bg-slate-800 disabled:opacity-30">{t("common.deleteLower")}</button>
                 </div>
               </div>
               {isLayout ? (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {l && <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={130}
-                    pageCount={pages.length + 1} pageIndex={pi} />}
-                  <Link to={`/layouts/${p}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
+                    pageCount={pages.length} pageIndex={pi} />}
+                  <Link to={`/layouts/${pg}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">
                     {t("lay.edit")} →
                   </Link>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <WatchPreview fields={p as number[]} colorByValue={colorByValue} />
+                  <WatchPreview fields={pg as number[]} colorByValue={colorByValue} />
                   <div className="flex-1 space-y-2">
                     {[0, 1, 2].map((fi) => (
-                      <select key={fi} value={(p as number[])[fi] ?? 0}
-                        onChange={(e) => setField(pi, fi, Number(e.target.value))}
+                      <select key={fi} value={(pg as number[])[fi] ?? 0}
+                        onChange={(e) => {
+                          const next = pages.map((x) => (Array.isArray(x) ? [...x] : x));
+                          (next[pi] as number[])[fi] = Number(e.target.value);
+                          setPages(next);
+                        }}
                         className="w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
                         {FIELD_OPTIONS.map((o) => <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>)}
                       </select>
@@ -612,21 +578,11 @@ function ViewsEditor() {
             </div>
           );
         })}
+        {pages.length === 0 && (
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t("account.emptyStateDefault")}</p>
+        )}
       </div>
-
-
-      {screenSection(t("account.offFoilTitle"), t("account.offFoilDesc"), offFoil, setOffField,
-                     offLayout, setOffLayout, offLayouts)}
-      {screenSection(t("account.pauseTitle"), t("account.pauseDesc"), pauseView, setPauseField,
-                     pauseLayout, setPauseLayout, pauseLayouts)}
-
-      <div className="mt-4 flex items-center gap-3">
-        <Button onClick={save} className="text-sm">{t("common.save")}</Button>
-        {saved && <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</span>}
-      </div>
-      <p className="mt-3 text-sm text-slate-400">{t("lay.notOnWatchYet")}</p>
-      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
-    </Card>
+    </div>
   );
 }
 

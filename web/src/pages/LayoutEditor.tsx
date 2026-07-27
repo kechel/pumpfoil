@@ -6,9 +6,9 @@ import { LayoutPreview } from "../components/LayoutPreview";
 import { ChevronIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import {
-  EL_DOTS, EL_LABEL, EL_LINE, EL_REC, EL_TEXT, EL_VALUE,
-  MAX_ELEMENTS, MAX_SIZE_STEP, MAX_TEXT_LEN, MAX_TEXT_STEP, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
-  SIZE_STEPS, SMALLEST, undisplayableChars, watchTextWidthRatio,
+  EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
+  MAX_ELEMENTS, MAX_TEXT_LEN, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
+  SIZE_STEPS, SMALLEST, maxStepFor, undisplayableChars, watchTextWidthRatio,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -54,7 +54,7 @@ export default function LayoutEditor() {
   useEffect(() => {
     api.layouts().then((rows) => {
       const found = rows.find((x) => String(x.id) === id) ?? null;
-      setL(found);
+      setL(found ? withPausedHint(found) : null);
       if (found?.authored_w) {
         const m = PREVIEW_SIZES.find((s) => s.w === found.authored_w && s.shape === found.authored_shape);
         if (m) setSizeId(m.id);
@@ -77,6 +77,16 @@ export default function LayoutEditor() {
     e[pos] = v;
     patchEl(i, e);
   }
+  // Der „Pausiert"-Hinweis gehört zu JEDEM Pausen-Layout (Server erzwingt ihn beim Speichern).
+  // Hier lokal spiegeln, damit er sofort sichtbar ist — auch in Layouts, die es vor F3 schon gab —
+  // und beim Wechsel in eine andere Kategorie wieder verschwindet.
+  function withPausedHint(l: WatchLayout): WatchLayout {
+    const els = l.elements.filter((e) => Number(e[0]) !== EL_PAUSED);
+    if (l.category !== "pause") return els.length === l.elements.length ? l : { ...l, elements: els };
+    const hint = l.elements.find((e) => Number(e[0]) === EL_PAUSED) ?? [EL_PAUSED, 500, 150, 1, 0, 0];
+    return { ...l, elements: [...els, hint as LayoutElement] };
+  }
+
   function addElement(typ: number) {
     if (!l || l.elements.length >= MAX_ELEMENTS) { setErr(t("lay.maxElements")); return; }
     const base: LayoutElement =
@@ -227,7 +237,8 @@ export default function LayoutEditor() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <input value={l.name} onChange={(ev) => { setL({ ...l, name: ev.target.value }); setSaved(false); }}
           className="min-w-[10rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-        <select value={l.category} onChange={(ev) => { setL({ ...l, category: ev.target.value as WatchLayout["category"] }); setSaved(false); }}
+        <select value={l.category}
+          onChange={(ev) => { setL(withPausedHint({ ...l, category: ev.target.value as WatchLayout["category"] })); setSel(-1); setSaved(false); }}
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
           {["on_foil", "off_foil", "pause"].map((c) => <option key={c} value={c}>{t(`lay.cat.${c}`)}</option>)}
         </select>
@@ -284,10 +295,17 @@ export default function LayoutEditor() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold">{t(`lay.type.${typ}`)}</div>
-                  <button onClick={() => delElement(sel)}
-                    className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-300 hover:bg-slate-700">
-                    {t("lay.delElement")}
-                  </button>
+                  {/* Der „Pausiert"-Hinweis ist in Pausen-Layouts Pflicht (Jan: „verschiebbar,
+                      aber nicht entfernbar") — kein Löschknopf, der Server würde ihn ohnehin
+                      wieder ergänzen. Verschieben, Farbe und Ausrichtung bleiben frei. */}
+                  {typ === EL_PAUSED ? (
+                    <span className="text-sm text-slate-500 dark:text-slate-400">{t("lay.pausedFixed")}</span>
+                  ) : (
+                    <button onClick={() => delElement(sel)}
+                      className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-300 hover:bg-slate-700">
+                      {t("lay.delElement")}
+                    </button>
+                  )}
                 </div>
 
                 {(typ === EL_VALUE || typ === EL_LABEL) && (
@@ -362,7 +380,7 @@ export default function LayoutEditor() {
                     )}
                   </span>
                   <input type="range" min={typ === EL_LINE ? 1 : 0}
-                    max={typ === EL_LINE ? 4 : typ === EL_VALUE ? MAX_SIZE_STEP : MAX_TEXT_STEP}
+                    max={typ === EL_LINE ? 4 : maxStepFor(typ)}
                     value={Number(e[3]) || 0}
                     onChange={(ev) => setField(sel, 3, Number(ev.target.value))}
                     className="mt-1 w-full accent-brand-500" />

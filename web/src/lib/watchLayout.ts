@@ -12,6 +12,10 @@ export const EL_TEXT = 3;    // Freitext des Nutzers, wird nie übersetzt
 export const EL_LINE = 4;    // Trennlinie (2. Punkt in [6]/[7])
 export const EL_REC = 5;     // REC-Indikator (Punkt + „REC")
 export const EL_DOTS = 6;    // Seiten-Punkte (Anzahl bleibt dynamisch)
+// „Pausiert"-Hinweis — NUR in Pausen-Layouts, dort PFLICHT (Server erzwingt es, s.
+// layouts._enforce_paused_hint): verschiebbar und einfärbbar, aber nicht entfernbar, und klein
+// gedeckelt. Ohne ihn weiß niemand, dass die Aufnahme pausiert ist und wie er sie fortsetzt.
+export const EL_PAUSED = 7;
 
 // Kuratierte Palette — Spiegel von server/app/api/layouts.py PALETTE (Index = `color`).
 // Index 0 = „auto": die Uhr entscheidet (Werte weiß, Labels hellgrau) = heutiges Verhalten.
@@ -95,6 +99,14 @@ export function watchTextWidthRatio(text: string, step: number): number {
 /** Höchste Stufe für Text (Labels/Freitext): die NUMBER-Fonts haben keine Buchstaben. */
 export const MAX_TEXT_STEP = 4;
 export const MAX_SIZE_STEP = SIZE_STEPS.length - 1;
+
+/** Höchste Größenstufe für einen Elementtyp: Werte dürfen in die NUMBER-Fonts, Text nicht, der
+ *  Pausiert-Hinweis bleibt klein (Jan: „aber nicht zu gross"). Spiegel von layouts._clean_element. */
+export function maxStepFor(typ: number): number {
+  if (typ === EL_VALUE) return MAX_SIZE_STEP;
+  if (typ === EL_PAUSED) return 2;
+  return MAX_TEXT_STEP;
+}
 
 // Beispieldaten je Feld — realistische Werte, damit man Textbreiten und Farb-Buckets sieht.
 export const MOCK_VALUE: Record<number, string> = {
