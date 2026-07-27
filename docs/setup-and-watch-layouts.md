@@ -664,7 +664,9 @@ durch Jan und Store-Release offen.
 - Größen (Release): fenix7xpro 75,1 KB · fr255s 74,7 KB · fenix5 92,3 KB · instinct2 (Lite) 55,3 KB.
 - **Von Jan im Simulator bestätigt (fenix7xpro, 2026-07-27): „funktioniert perfekt".** Offen: Store-
   Einreichung 1.0.67 + `appmeta`-Bump + `watch/bin` + Changelog — alles erst nach der Freigabe, wie
-  bei 1.0.66 (Regel unten). **Lite-Gegenprobe (instinct2) 2026-07-27 ebenfalls in
+  bei 1.0.66 (Regel unten). — **ERLEDIGT: 1.0.67 ist seit 2026-07-27 im Store live**, appmeta auf
+  1.0.67, `watch/bin` neu (121 ok / 0), Changelog geschrieben, Download-Pfad gegengeprüft.
+  **Lite-Gegenprobe (instinct2) 2026-07-27 ebenfalls in
   Ordnung.** Jans erster Eindruck „nach dem Beenden schwarzer Bildschirm" war Ungeduld, kein Fehler —
   ein Diagnose-Build (System.println je Frame) zeigte den Ablauf sauber: Upload läuft (`busy, total=1,
   sent=0`), wird fertig (`sent=1, pending=0`), Upload-Screen im „fertig"-Zweig, danach wieder
