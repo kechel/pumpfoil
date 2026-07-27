@@ -51,6 +51,58 @@ Snapshots korrigiert werden.
 3. **Spots je Kategorie.** Eine Wingfoil-Session darf keinen „Pumpfoil-Spot" erzeugen; Spots und
    Spot-Rekorde bekommen die Sportart-Dimension.
 
+## Ton: eine Bitte, kein Vorwurf (Jan, 2026-07-27)
+
+„es sollte ‚freundlich' formuliert sein, sowas wie ‚ich glaube das ist nicht pumpfoil, bitte richtig
+klassifizieren', und die klassifizierung ueberlassen wir dann dem ersteller der session selber."
+
+Daraus folgt mehr als eine Textfrage: **eine Fremdmeldung setzt keine Kategorie.** Sie sagt nur „das
+sieht nicht nach Pumpfoil aus" und bittet den Ersteller, es richtig zuzuordnen. Nur **Besitzer** und
+**Admin** dürfen die Kategorie setzen — beide gleichberechtigt.
+
+**Solange nicht zugeordnet ist, erscheint die Session in KEINER Kategorie** (Jan). Also nicht nur raus
+aus den Pumpfoil-Rekorden, sondern auch nicht in Wingfoil-, Foildrive- oder sonstigen Auswertungen —
+sie ist schlicht unklassifiziert. Das ist die richtige Voreinstellung: sie belohnt keine Seite und
+schafft einen sanften Anreiz, die Frage zu beantworten. In der eigenen Historie bleibt sie sichtbar.
+
+### Textentwürfe (DE/EN, noch nicht in i18n eingetragen)
+
+**Knopf an fremden Sessions:** „Sieht nicht nach Pumpfoil aus" / „Doesn't look like pumpfoil"
+(nicht „melden" — das klingt nach Anzeige).
+
+**Bestätigungsdialog beim Melden:**
+> Du glaubst, das ist keine Pumpfoil-Session? Dann bekommt <Name> eine freundliche Bitte, sie richtig
+> zuzuordnen — zum Beispiel als Wingfoil oder Foildrive. Du bleibst dabei anonym, und niemandem wird
+> etwas vorgeworfen: es geht nur darum, dass die Rekorde vergleichbar bleiben.
+
+> You think this isn't a pumpfoil session? <Name> will get a friendly request to classify it properly
+> — as wingfoil or foildrive, for example. You stay anonymous, and nobody is being accused of
+> anything: it's only about keeping the records comparable.
+
+**Was der Besitzer sieht (Benachrichtigung + Badge an der Session):**
+> Ein anderer Foiler glaubt, dass diese Session kein Pumpfoiling ist. Magst du sie kurz richtig
+> zuordnen? Bis dahin erscheint sie in keiner Auswertung. Wenn es doch Pumpfoiling war, sag es uns —
+> dann schaut jemand von uns drauf.
+
+> Another foiler thinks this session isn't pumpfoiling. Could you classify it? Until then it won't
+> appear in any of the stats. If it really was pumpfoiling, just tell us and we'll take a look.
+
+**Nach der Zuordnung durch den Besitzer:** kein weiterer Schritt, keine Bestätigung durch den Melder —
+die Sache ist erledigt. Nur bei **Widerspruch** („war doch Pumpfoiling") geht es in Jans Warteschlange.
+
+## Zustände
+
+| Zustand | wie man hinkommt | zählt für |
+|---|---|---|
+| `classified` (Default `pumpfoil`) | Analyse, niemand widerspricht | seine Kategorie |
+| `needs_classification` | **2 unabhängige Melder** — oder der Besitzer markiert selbst ohne Kategorie | **nichts** (keine Kategorie, keine Spots, keine Rekorde) |
+| `classified` durch Besitzer/Admin | Besitzer oder Admin wählt `sport`/`data_quality` | seine Kategorie (bzw. nichts bei `data_quality != ok`) |
+| `appealed` | Besitzer widerspricht („war doch Pumpfoiling") | nichts, bis Jan entscheidet |
+| `admin_locked` | Jans „doch Pumpfoil" | Pumpfoil — weitere Meldungen wirken nicht mehr |
+
+Eine **einzelne** Meldung ändert nichts außer einem Eintrag in Jans Warteschlange (Griefing-Schutz,
+s. oben).
+
 ## Pflichten gegenüber dem Betroffenen
 
 - **Benachrichtigung**, sobald die Wirkung eintritt (2. Melder) — lautlos aus den Rekorden zu
@@ -94,9 +146,10 @@ Session  + sport               VARCHAR default 'pumpfoil'   # WIRKSAMER Wert (Me
 
 ## Vorgeschlagene Reihenfolge
 
-- **Stufe 1 (Kern):** Spalten + `session_flags`, Melden (eigen: mit Kategorie · fremd: nur „bitte
-  klassifizieren"), 2-Melder-Regel, Einspruch, Admin-Warteschlange mit Entscheidung + `admin_locked`,
-  Ausschluss aus Community-Rekorden/Stats, Benachrichtigungen, Badge.
+- **Stufe 1 (Kern):** Spalten + `session_flags`, Melden (fremd: nur die freundliche Bitte, KEINE
+  Kategorie · Besitzer und Admin: Kategorie setzen), 2-Melder-Regel, Zustand
+  `needs_classification` = erscheint in KEINER Kategorie, Widerspruch, Admin-Warteschlange mit
+  Entscheidung + `admin_locked`, Benachrichtigungen, Badge, freundliche Texte in 15 Sprachen.
 - **Stufe 2 (Ausbau):** Rekorde/Stats **je Sportart** in der Community, Spots je Sportart, Labels in
   die Detektor-Ablage, Korrektur alter Rekord-Snapshots.
 
