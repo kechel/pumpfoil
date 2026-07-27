@@ -110,14 +110,21 @@ export function DmWidget() {
   // vorab auf dem Stack -> jedes Zurück konsumiert genau eine Ebene.
   const depthRef = useRef(0);       // Anzahl unserer Marker auf dem History-Stack
   const skipPopRef = useRef(false); // eigenes Button-Schließen -> das folgende popstate ignorieren
+  // NUR auf Touch-Geräten (Jan: „das war glaub nur zum schliessen per slide auf mobile mal gedacht,
+  // wenn moeglich sollte das verhalten (nur mobile) beibehalten werden"). Am Desktop gibt es keine
+  // Wisch-Geste; dort würden die Marker nur dazu führen, dass der Browser-Zurück-Knopf den Chat
+  // schließt statt zu navigieren — also gar keine Marker setzen.
+  const gestureNav = typeof window !== "undefined"
+    && window.matchMedia?.("(hover: none) and (pointer: coarse)").matches === true;
 
   useEffect(() => {
+    if (!gestureNav) return;
     const level = open ? (active ? 2 : 1) : 0;
     while (depthRef.current < level) {   // nur beim Tiefer-Gehen pushen (nie im popstate)
       window.history.pushState({ __chat: depthRef.current + 1 }, "");
       depthRef.current += 1;
     }
-  }, [open, active]);
+  }, [open, active, gestureNav]);
 
   useEffect(() => {
     const onPop = () => {
