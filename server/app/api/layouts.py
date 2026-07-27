@@ -1,8 +1,9 @@
 """Advanced Uhr-Layouts (frei positionierbare Datenfelder) — Server-Teil von F2 P1.
 
 Design: docs/setup-and-watch-layouts.md. Ein Layout = EINE Seite. Kategorie sagt, wann sie gilt:
-`on_foil` (während des Laufs, beliebig viele Seiten), `off_foil` (nach dem Lauf, eine), `pause`
-(Dümpeln zwischen den Läufen, eine).
+`on_foil` (Lauf läuft), `off_foil` (Aufnahme läuft, gerade kein Lauf) und `pause` (Aufnahme MANUELL
+pausiert). Seit F3 hat JEDER Zustand beliebig viele Seiten — s. `settings.off_foil_pages`/`pause_pages`
+und den Abschnitt „F3" im Design-Doc.
 
 Das Element-Format ist absichtlich kompakt und rein positionell — `[typ, x, y, size, color, flags,
 extra…]`, keine Dicts mit String-Keys: die Uhr cached das Server-JSON im Object Store, und
@@ -14,6 +15,8 @@ Object-Store-Volllauf ist ein bekannter Fehlerpfad (s. garmin-watch-fieldtest-go
     typ 4  Trennlinie    extra: [6] = x2, [7] = y2 (size = Dicke)
     typ 5  REC-Indikator (roter Punkt + „REC")
     typ 6  Seiten-Punkte (Anzahl bleibt dynamisch, gespeichert werden nur Position/Farbe)
+    typ 7  „Pausiert"-Anzeige — NUR in Kategorie `pause`, dort PFLICHT: verschiebbar, aber nicht
+           entfernbar (s. _enforce_paused_hint). Klein gehalten (Stufe max. 2).
 
 x/y sind **relativ 0…1000** (die Uhr rechnet aus `dc.getWidth/getHeight`) → tragfähig über alle
 Auflösungen (176×176 … 454×454) und Formen (round/rect/semioctagon). `size` ist eine **Stufe**
@@ -60,7 +63,7 @@ MAX_ELEMENTS = 24          # Uhr-Speicher + Object Store: bewusst knapp
 MAX_LAYOUTS = 40           # pro Nutzer
 MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object Store
 VALID_FIELD_IDS = set(range(0, 21))
-ELEMENT_TYPES = (1, 2, 3, 4, 5, 6)
+ELEMENT_TYPES = (1, 2, 3, 4, 5, 6, 7)
 
 
 class LayoutIn(BaseModel):
@@ -99,7 +102,9 @@ def _clean_element(e) -> list | None:
     # Größenstufe = ein echter Garmin-Font (0 = FONT_XTINY … 8 = FONT_NUMBER_THAI_HOT).
     # Die NUMBER-Fonts (ab Stufe 5) enthalten NUR Ziffern -> nur für Wert-Elemente zulassen,
     # Labels/Freitexte werden auf FONT_LARGE (4) gekappt, sonst wären sie unsichtbar.
-    max_step = MAX_SIZE_STEP if typ == 1 else MAX_TEXT_STEP
+    # Typ 7 („Pausiert"-Anzeige) wird bewusst KLEIN gehalten: sie ist ein Hinweis, um den man
+    # herum gestaltet, kein Hauptelement (Jan: „aber nicht zu gross").
+    max_step = MAX_SIZE_STEP if typ == 1 else (2 if typ == 7 else MAX_TEXT_STEP)
     out = [
         typ,
         _clamp(e[1], 0, 1000),           # x
@@ -250,13 +255,33 @@ def _drop_layout_refs(user: models.User, layout_id: int, *, drop_page: bool = Tr
         user.settings_json = json.dumps(st)
 
 
+def _enforce_paused_hint(els: list[list], category: str) -> list[list]:
+    """In PAUSEN-Layouts steckt der „Pausiert"-Hinweis (Typ 7) fest drin: **verschiebbar, aber nicht
+    entfernbar** (Jan, 2026-07-27). Grund: ein eigenes Layout weiß nicht, dass die Aufnahme pausiert
+    ist und wie man sie fortsetzt — ohne den Hinweis sitzt jemand in einer pausierten Aufnahme fest
+    und hält es für einen Absturz. Hier serverseitig erzwungen, nicht nur in der PWA, sonst hebelt
+    ein direkter API-Aufruf die Zusicherung aus.
+
+    In den anderen Kategorien wird Typ 7 entfernt: „Pausiert" während der Fahrt wäre eine Lüge."""
+    others = [e for e in els if e and e[0] != 7]
+    if category != "pause":
+        return others
+    hints = [e for e in els if e and e[0] == 7]
+    if not hints:
+        # Standardposition oben mittig — dort liegt in den Vorlagen sonst nur der REC-Punkt, und
+        # die Mitte bleibt für Werte frei.
+        hints = [[7, 500, 150, 1, 0, 0]]
+    return others + hints[:1]
+
+
 def _apply(l: models.WatchLayout, body: LayoutIn) -> None:
     name = (body.name or "").strip()[:60]
     l.name = name or "Layout"
     l.category = body.category if body.category in CATEGORIES else "on_foil"
     l.shape = body.shape if body.shape in SHAPES else "round"
     l.bg_color = _clamp(body.bg_color, 0, MAX_COLOR)
-    l.elements = json.dumps(_clean_elements(body.elements), ensure_ascii=False)
+    l.elements = json.dumps(_enforce_paused_hint(_clean_elements(body.elements), l.category),
+                            ensure_ascii=False)
     l.authored_w = _clamp(body.authored_w, 100, 600) if body.authored_w else None
     l.authored_h = _clamp(body.authored_h, 100, 600) if body.authored_h else None
     l.authored_shape = body.authored_shape if body.authored_shape in SHAPES else None
