@@ -662,6 +662,9 @@ durch Jan und Store-Release offen.
   eigenen Layout nur **6 Sekunden** nach dem Pausieren — man braucht ihn genau dann, danach bleibt
   das Layout frei. Ohne diese Regel hätte ein Layout mit Typ 7 nirgends gesagt, wie man fortsetzt.
 - Größen (Release): fenix7xpro 75,1 KB · fr255s 74,7 KB · fenix5 92,3 KB · instinct2 (Lite) 55,3 KB.
+- **Von Jan im Simulator bestätigt (fenix7xpro, 2026-07-27): „funktioniert perfekt".** Offen: Store-
+  Einreichung 1.0.67 + `appmeta`-Bump + `watch/bin` + Changelog — alles erst nach der Freigabe, wie
+  bei 1.0.66 (Regel unten). Lite-Gegenprobe (instinct2) noch nicht gemeldet.
 
 ---
 
