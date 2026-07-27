@@ -202,6 +202,16 @@ export default function PersonalHome() {
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
         <Link to="/sessions" className="text-xs text-brand-300 hover:text-brand-200">{t("phome.allMine")} →</Link>
       </div>
+      {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
+          (wer Push aus hat, erfährt nie, dass seine Session aus den Auswertungen gefallen ist) und die
+          drei Karten unten zeigen ältere Sessions nicht. Jan: „der andere sollte schon eine meldung
+          sehen in seinem homebereich … oder einen marker an seiner session". Beides jetzt. */}
+      {(profile?.needs_classification ?? 0) > 0 && (
+        <Link to={profile?.needs_classification_id ? `/sessions/${profile.needs_classification_id}` : "/sessions"}
+          className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
+          {t("home.needsClassification", { n: profile?.needs_classification ?? 0 })} →
+        </Link>
+      )}
       {!latest ? <Spinner /> : latest.length === 0 ? (
         <Card className="p-6 text-center text-sm text-slate-300">{t("sessions.none")}</Card>
       ) : (
@@ -228,6 +238,9 @@ export default function PersonalHome() {
               trackPreview={s.track_preview}
               stats={s.analysis && <SessionStats a={s.analysis} />}
               statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
+              sportClass={s.sport_class}
+              dataQuality={s.data_quality}
+              needsClassification={!!s.needs_classification}
             />
           ))}
         </div>

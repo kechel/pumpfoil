@@ -82,6 +82,32 @@ def _create_display_name(db: Session, raw: str | None) -> str | None:
     return next_free_display_name(db, name)
 
 
+def _needs_classification_id(db: Session, user_id: int) -> int | None:
+    """Neueste eigene Session, die auf Zuordnung wartet — Ziel des Startseiten-Hinweises."""
+    try:
+        row = (db.query(models.Session.id)
+               .filter(models.Session.user_id == user_id,
+                       models.Session.deleted.isnot(True),
+                       models.Session.needs_classification.is_(True))
+               .order_by(models.Session.id.desc()).first())
+        return int(row[0]) if row else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _needs_classification(db: Session, user_id: int) -> int:
+    """Eigene Sessions, die auf eine Zuordnung warten. Wird in jedes Profil-Payload gehängt, weil die
+    Startseite den Hinweis daraus baut (Jan: „der andere sollte schon eine meldung sehen in seinem
+    homebereich … oder einen marker an seiner session")."""
+    try:
+        return int(db.query(func.count(models.Session.id)).filter(
+            models.Session.user_id == user_id,
+            models.Session.deleted.isnot(True),
+            models.Session.needs_classification.is_(True)).scalar() or 0)
+    except Exception:  # noqa: BLE001 – darf das Profil nie brechen
+        return 0
+
+
 @router.post("/register", response_model=TokenOut)
 def register(
     body: RegisterIn, db: Session = Depends(get_db),
@@ -102,8 +128,10 @@ def register(
 
 
 @router.get("/me", response_model=ProfileOut)
-def me(user: models.User = Depends(current_user)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+                      needs_classification=_needs_classification(db, user.id),
+                      needs_classification_id=_needs_classification_id(db, user.id))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -134,7 +162,9 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+                      needs_classification=_needs_classification(db, user.id),
+                      needs_classification_id=_needs_classification_id(db, user.id))
 
 
 @router.put("/me/age-range", response_model=ProfileOut)
@@ -152,7 +182,9 @@ def set_age_range(
                       is_admin=user.is_admin, language=user.language or "en",
                       beta=True,
                       foil_sensitivity=(user.foil_sensitivity or "normal"),
-                      social_allowed=(user.social_allowed is not False))
+                      social_allowed=(user.social_allowed is not False),
+                      needs_classification=_needs_classification(db, user.id),
+                      needs_classification_id=_needs_classification_id(db, user.id))
 
 
 @router.get("/me/reanalysis")
@@ -290,7 +322,9 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False))
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+                      needs_classification=_needs_classification(db, user.id),
+                      needs_classification_id=_needs_classification_id(db, user.id))
 
 
 @router.post("/login", response_model=TokenOut)

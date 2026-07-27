@@ -409,6 +409,10 @@ export interface Profile {
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
   foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
   social_allowed?: boolean;   // false = unter 13, UGC/Feed/Chat gesperrt (Apple-Vorgabe)
+  // Eigene Sessions, die auf eine Zuordnung warten (docs/sport-classification.md) + die neueste
+  // davon, damit der Hinweis direkt dorthin verlinkt.
+  needs_classification?: number;
+  needs_classification_id?: number | null;
 }
 
 export interface AdminUser {

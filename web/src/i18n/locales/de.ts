@@ -189,6 +189,7 @@ const de: Record<string, string> = {
   "home.installIosHint": "In Safari: <b>Teilen</b>-Symbol ⬆ → <b>„Zum Home-Bildschirm“</b>.",
   "home.noSessions": "Noch keine Sessions.",
   "home.uploadFit": "FIT hochladen →",
+  "home.needsClassification": "{n} deiner Sessions wartet auf eine Zuordnung — sie erscheint bis dahin in keiner Auswertung",
   "home.layouts": "Uhr-Layouts der Community",
   "home.layoutsAll": "Alle ansehen",
   "home.layoutsHint": "Fertige Aufnahme-Screens von anderen Foilern — ansehen, in dein Profil übernehmen, auf deiner Uhr anzeigen.",

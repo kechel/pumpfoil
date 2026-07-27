@@ -50,6 +50,13 @@ class ProfileOut(BaseModel):
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
     social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
+    # Wie viele eigene Sessions warten auf Zuordnung (docs/sport-classification.md)? Die Startseite
+    # zeigt darauf einen Hinweis — ein Push allein genügt nicht: wer Push aus hat, würde nie erfahren,
+    # dass seine Session aus den Auswertungen gefallen ist.
+    needs_classification: int = 0
+    # Neueste betroffene Session — damit der Hinweis auf der Startseite DIREKT dorthin verlinkt
+    # statt in eine Liste, in der man dann sucht.
+    needs_classification_id: int | None = None
 
 
 class LoginIn(BaseModel):
