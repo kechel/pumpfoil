@@ -480,37 +480,39 @@ function SpotSection({ period, accelOnly }: { period: string; accelOnly: boolean
         {t("home.spots")}
         {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
       </h3>
-      <div className="relative mb-4 max-w-xs">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t("home.spotSearch")}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-        />
-        {matches.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
-            {matches.map((m) => (
-              <button key={m} onClick={() => pick(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
-                <LocationIcon className="h-4 w-4 text-slate-400" /> {m}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Dropdown zum Durchsehen aller Spots. */}
-      {others.length > 0 && (
-        <div className="mb-4 max-w-xs">
+      {/* Suche + Auswahl NEBENEINANDER (Jan): beides sind Wege zum selben Ziel, gestapelt sahen sie
+          wie zwei Schritte aus. `flex-1 basis-40` statt fixer Breite -> teilen sich die Zeile und
+          brechen erst um, wenn wirklich kein Platz ist. Die Trefferliste hängt am Suchfeld
+          (`relative`), nicht an der Zeile — sonst würde sie über das Dropdown laufen. */}
+      <div className="mb-4 flex max-w-xl flex-wrap items-start gap-2">
+        <div className="relative min-w-0 flex-1 basis-40">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("home.spotSearch")}
+            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          />
+          {matches.length > 0 && (
+            <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
+              {matches.map((m) => (
+                <button key={m} onClick={() => pick(m)} className="flex w-full items-center gap-1 px-3 py-2 text-left text-sm hover:bg-slate-800">
+                  <LocationIcon className="h-4 w-4 text-slate-400" /> {m}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {others.length > 0 && (
           <select
             value=""
             onChange={(e) => { if (e.target.value) pick(e.target.value); }}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+            className="min-w-0 flex-1 basis-40 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
             <option value="">{t("home.spotPick")}</option>
             {others.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-        </div>
-      )}
+        )}
+      </div>
 
       {selected && (
         <div>
