@@ -114,8 +114,14 @@ class SessionRecorder {
     // Alles in EINEM Storage-Key (`layouts_config`), damit der Object Store nicht zerfasert.
     var layoutsOn = false;
     var pages = [];
-    var offFoilPage = null;
-    var pausePage = null;
+    // F3: je Zustand ein SATZ Seiten (nicht mehr einer). offFoilPages gilt, solange die Aufnahme
+    // läuft und gerade kein Lauf ist (inkl. Dümpeln); pausePages nur bei MANUELL pausierter
+    // Aufnahme. Leer = die Uhr nimmt ihre klassische Einzel-Ansicht (offFoilView/pauseView).
+    var offFoilPages = [];
+    var pausePages = [];
+    // Darf man in off_foil/pause auch durch die übrigen Seiten blättern? Server-Default AN, damit
+    // niemand Seiten verliert, die er heute erreicht (Einwand Jan).
+    var browseAll = true;
     // Dreizustand des On-Watch-Schalters (Storage „layouts_pref"): null = nie angefasst -> es gilt
     // `serverDefault`; true/false = Wille des Nutzers und sticht den Server.
     var layoutsPref = null;
@@ -261,10 +267,13 @@ class SessionRecorder {
         var on = (lay instanceof Lang.Dictionary && lay.hasKey("on") && lay["on"] == true);
         var pg = (lay instanceof Lang.Dictionary && lay.hasKey("pages")) ? lay["pages"] : null;
         pages = (pg instanceof Lang.Array) ? pg : [];
-        offFoilPage = (lay instanceof Lang.Dictionary && lay.hasKey("off")
-                       && lay["off"] instanceof Lang.Array) ? lay["off"] : null;
-        pausePage = (lay instanceof Lang.Dictionary && lay.hasKey("pause")
-                     && lay["pause"] instanceof Lang.Array) ? lay["pause"] : null;
+        // Seiten-SÄTZE (F3). Ein Cache aus 1.0.66 kennt nur die Einzel-Einträge „off"/„pause" —
+        // daraus wird hier eine Liste mit einem Element, damit ein App-Update ohne frisches
+        // /config nicht plötzlich ohne Off-Foil-/Pausen-Screen dasteht.
+        offFoilPages = _pageSet(lay, "offPages", "off");
+        pausePages = _pageSet(lay, "pausePages", "pause");
+        browseAll = !(lay instanceof Lang.Dictionary && lay.hasKey("browseAll")
+                      && lay["browseAll"] == false);
         // WER ENTSCHEIDET: der Schalter auf der Uhr, sobald ihn jemand angefasst hat. Der
         // Server-Wert ist nur die VOREINSTELLUNG für den Fall, dass das noch nie passiert ist
         // (Jan: „egal was der server sagt, an der uhr will ich es umstellen koennen, nur bei
@@ -276,6 +285,23 @@ class SessionRecorder {
         layoutsOn = (want && !layoutCrash && pages.size() > 0);
     }
 
+    // Einen Seiten-Satz aus dem Paket lesen: erst der F3-Schlüssel (Liste), sonst der alte
+    // Einzel-Eintrag als Liste mit einem Element. Alles, was nicht wie erwartet aussieht, wird
+    // verworfen — lieber statisch weiterfahren als crashen.
+    (:full) hidden function _pageSet(lay, key, legacyKey) {
+        if (!(lay instanceof Lang.Dictionary)) { return []; }
+        if (lay.hasKey(key) && lay[key] instanceof Lang.Array && lay[key].size() > 0) {
+            var out = [];
+            var src = lay[key];
+            for (var i = 0; i < src.size(); i++) {
+                if (src[i] instanceof Lang.Array && src[i].size() > 0) { out.add(src[i]); }
+            }
+            return out;
+        }
+        if (lay.hasKey(legacyKey) && lay[legacyKey] instanceof Lang.Array) { return [lay[legacyKey]]; }
+        return [];
+    }
+
     // Layout-Paket aus dem Server-Config ziehen und in EINEN Storage-Key cachen. Liefert der
     // Server layoutsOn=false (oder den Key gar nicht), fällt die Uhr auf die statische Logik
     // zurück — ohne App-Update.
@@ -285,7 +311,11 @@ class SessionRecorder {
             "on" => (data["layoutsOn"] == true),
             "pages" => (data.hasKey("pages") ? data["pages"] : []),
             "off" => (data.hasKey("offFoil") ? data["offFoil"] : null),
-            "pause" => (data.hasKey("pause") ? data["pause"] : null)};
+            "pause" => (data.hasKey("pause") ? data["pause"] : null),
+            // F3-Sätze; ältere Server liefern sie nicht -> dann bleibt es bei „off"/„pause".
+            "offPages" => (data.hasKey("offFoilPages") ? data["offFoilPages"] : null),
+            "pausePages" => (data.hasKey("pausePages") ? data["pausePages"] : null),
+            "browseAll" => !(data.hasKey("browseAll") && data["browseAll"] == false)};
         _applyLayouts(lay);
         _store("layouts_config", lay);
     }
@@ -325,6 +355,7 @@ class SessionRecorder {
 
     // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
     (:lite) hidden function _applyLayouts(lay) { layoutsOn = false; }
+    (:lite) hidden function _pageSet(lay, key, legacyKey) { return []; }
 
     // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.
     //

@@ -9,11 +9,15 @@ class RecordView extends WatchUi.View {
 
     hidden var _rec;
     var screenIdx = 0;   // aktive Seite (Datenansichten 0..n-1, n = Übersicht)
-    hidden var _prevFoiling = false;
     hidden var _prevRecording = false;
-    hidden var _lastDataIdx = 0;          // zuletzt gezeigte Datenansicht (Rücksprungziel)
-    hidden var _summaryShownAtMs = null;  // Zeitpunkt des Lauf-Endes (steuert Lauf-Ende- vs. Pausen-Ansicht)
-    const RUNEND_SHOW_MS = 8000;          // so lange nach Lauf-Ende die Lauf-Zusammenfassung, dann Pausen-Ansicht
+    // Zustand der letzten Zeichnung (F3): wechselt er, fängt der Ring vorne an und die Uhr
+    // vibriert einmal kurz. Ersetzt _prevFoiling/_lastDataIdx/_summaryShownAtMs und die
+    // 8-Sekunden-Regel — Zustand statt Zeit (s. docs/setup-and-watch-layouts.md, F3).
+    hidden var _prevState = null;
+    // Wann wurde pausiert? Über einem eigenen Layout zeigt die Uhr den Fortsetzen-Hinweis nur die
+    // ersten Sekunden — man braucht ihn genau dann, und danach bleibt das Layout frei.
+    hidden var _pausedAtMs = null;
+    const PAUSE_HINT_MS = 6000;
 
     function initialize(recorder) {
         View.initialize();
@@ -26,15 +30,16 @@ class RecordView extends WatchUi.View {
         _rec.resetAutoLead();
     }
 
-    // Seitenzahl inkl. Übersichts-Seite. Mit dynamischen Layouts ist `_rec.pages` die
-    // Seitenliste (klassische 3-Feld-Seiten und freie Layouts gemischt), sonst `_rec.screens`.
+    // Seitenzahl des AKTUELLEN Zustands (F3) — es gibt keinen Übersichts-Slot mehr, jeder Zustand
+    // hat seinen eigenen Ring. Wird auch von den Seiten-Punkten und dem Label-Boden gebraucht.
     hidden function _pageCount() {
-        return (_rec.layoutsOn && _rec.pages.size() > 0 ? _rec.pages.size() : _rec.screens.size()) + 1;
+        var n = _ring(_state()).size();
+        return n > 0 ? n : 1;
     }
 
-    // UP/DOWN: manuelles Blättern bricht den Auto-Rücksprung ab (Nutzer hat Kontrolle).
-    function nextScreen() { screenIdx = (screenIdx + 1) % _pageCount(); _summaryShownAtMs = null; }
-    function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); _summaryShownAtMs = null; }
+    // UP/DOWN: blättert im Ring des aktuellen Zustands.
+    function nextScreen() { screenIdx = (screenIdx + 1) % _pageCount(); }
+    function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); }
 
     function onUpdate(dc) {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
@@ -44,7 +49,7 @@ class RecordView extends WatchUi.View {
         // die gewählte Ansicht sieht, nicht die Übersicht vom letzten Mal).
         var recording = _rec.isRecording();
         if (recording && !_prevRecording) {
-            screenIdx = 0; _prevFoiling = false; _summaryShownAtMs = null; _lastDataIdx = 0;
+            screenIdx = 0; _prevState = null;
         }
         _prevRecording = recording;
 
@@ -69,76 +74,123 @@ class RecordView extends WatchUi.View {
             return;
         }
 
-        // Pausiert -> eigener Screen (ENTER = fortsetzen, 3 s halten = Menü).
-        if (_rec.isPaused()) {
-            _drawPaused(dc, dc.getWidth(), dc.getHeight());
+        // ================= Zustandsmaschine (F3) =================
+        // Drei Zustände, jeder mit EIGENEM Seiten-Satz; geblättert wird innerhalb des Zustands
+        // (Jan: „je nach status … durch jeweils alle zugehoerigen screens blaettern koennen und
+        // durch keine anderen"). Steht der Haken „auch die übrigen Seiten", hängen die anderen
+        // Sätze hinten dran — Default, damit niemand Seiten verliert, die er heute erreicht.
+        // Ersetzt die frühere Zeitregel (8 s Off-Foil, dann Pause) und den Übersichts-Slot.
+        var state = _state();
+        if (state != _prevState) {
+            screenIdx = 0;                 // neuer Zustand -> vorne anfangen
+            if (_prevState != null) { _vibeSwitch(); }
+            _pausedAtMs = (state == :paused) ? System.getTimer() : null;
+            _prevState = state;
+        }
+        var ring = _ring(state);
+        if (ring.size() == 0) { ring = [[0, Config.FIELD_SPEED3S, 0, 0]]; }
+        if (screenIdx >= ring.size()) { screenIdx = 0; }
+
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        var entry = ring[screenIdx];
+
+        if (entry instanceof Lang.Array && entry.size() > 0 && entry[0] == 1) {
+            _drawLayoutPage(dc, entry, w, h, screenIdx);
+            // Pausiert muss auch über einem eigenen Layout erkennbar bleiben. Enthält das Layout
+            // den Pflicht-Hinweis (Typ 7), zeichnet ihn der Renderer selbst; fehlt er (Layout von
+            // vor F3), blendet die Uhr ihn zusätzlich ein — sonst sitzt man in einer pausierten
+            // Aufnahme und hält es für einen Absturz.
+            if (state == :paused) {
+                // Hinweis nur, wenn das Layout ihn nicht selbst hat; der Fortsetzen-Tipp kurz.
+                _drawPausedChrome(dc, w, h, false, !_hasPausedHint(entry), _pauseHintDue());
+            }
             return;
         }
-
-        // Übersichts-Slot ist IMMER die letzte Seite. Die Zahl muss aus derselben Quelle kommen
-        // wie _pageCount() — sonst sind mit dynamischen Layouts Seiten unerreichbar: mit
-        // `screens.size()` (nur die klassischen Seiten) hielt die Uhr Seite 3 für die Übersicht
-        // und sprang bei Seite 4 auf 1 zurück (von Jan im Simulator gefunden).
-        var summaryIdx = _pageCount() - 1;
-        if (screenIdx > summaryIdx) { screenIdx = 0; }
-
-        // Auto-Umschaltung NUR auf der Flanke: Lauf beendet (foil->off) -> Übersichts-Slot
-        // (+ kurze Vibration als Bestätigung); Lauf gestartet (off->foil) -> zurück zur
-        // letzten Datenansicht. Dazwischen blättert der Nutzer frei.
-        var foil = _rec.isFoiling();
-        if (foil != _prevFoiling) {
-            if (!foil) {
-                screenIdx = summaryIdx;
-                _summaryShownAtMs = System.getTimer();   // Zeitpunkt Lauf-Ende
-                _vibeSwitch();
-            } else {
-                if (screenIdx == summaryIdx) { screenIdx = _lastDataIdx; }
-                _summaryShownAtMs = null;
-            }
-            _prevFoiling = foil;
-        }
-        // Bewusst KEIN 60-s-Rücksprung mehr: in der Pause bleibt die Übersicht stehen.
-        // Die „volle" Datenansicht kommt erst mit dem nächsten Lauf (off->foil) zurück.
-        if (screenIdx < summaryIdx) { _lastDataIdx = screenIdx; }
-
-        var summary = (screenIdx == summaryIdx);
-        var h = dc.getHeight();
-        var w = dc.getWidth();
-        var dyn = (_rec.layoutsOn && _rec.pages.size() > 0);
-
-        // Welche Seite? Übersichts-Slot ist adaptiv: kurz nach Lauf-Ende die Lauf-
-        // Zusammenfassung (Off-Foil), danach die Pausen-Ansicht. Ein Seiten-EINTRAG ist
-        // entweder [0,a,b,c] (klassische 3-Feld-Seite) oder [1,bg,[elemente]] (freies Layout).
-        var entry = null;
-        var fields = null;
-        if (summary) {
-            var justEnded = (_summaryShownAtMs != null
-                && System.getTimer() - _summaryShownAtMs < RUNEND_SHOW_MS);
-            if (dyn) {
-                entry = justEnded ? _rec.offFoilPage : _rec.pausePage;
-            }
-            if (entry == null) { fields = justEnded ? _rec.offFoilView : _rec.pauseView; }
-        } else if (dyn) {
-            entry = _rec.pages[screenIdx];
-        } else {
-            fields = _rec.screens[screenIdx];
-        }
-        // Eintrag auflösen: Tag 0 = 3 Feld-IDs, Tag 1 = Layout (nur im (:full)-Build).
-        if (entry != null) {
-            if (entry.size() > 0 && entry[0] == 1) {
-                _drawLayoutPage(dc, entry, w, h, screenIdx);
-                return;                       // Layout zeichnet Chrome (REC/Punkte) selbst
-            }
-            fields = [
-                entry.size() > 1 ? entry[1] : Config.FIELD_NONE,
-                entry.size() > 2 ? entry[2] : Config.FIELD_NONE,
-                entry.size() > 3 ? entry[3] : Config.FIELD_NONE];
-        }
-
+        var fields = [
+            entry.size() > 1 ? entry[1] : Config.FIELD_NONE,
+            entry.size() > 2 ? entry[2] : Config.FIELD_NONE,
+            entry.size() > 3 ? entry[3] : Config.FIELD_NONE];
         _drawFieldPage(dc, fields, w, h);
         _drawPageDots(dc, w, h, screenIdx, Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
-        _drawRec(dc, w / 2, h * 0.085, Graphics.COLOR_RED);
+        if (state == :paused) {
+            _drawPausedChrome(dc, w, h, true, true, true);   // klassische Seite: beides, dauerhaft
+        } else {
+            _drawRec(dc, w / 2, h * 0.085, Graphics.COLOR_RED);
+        }
     }
+
+    // Welcher Zustand gilt gerade? Reihenfolge ist wichtig: manuell pausiert sticht alles.
+    hidden function _state() {
+        if (_rec.isPaused()) { return :paused; }
+        return _rec.isFoiling() ? :onFoil : :offFoil;
+    }
+
+    // Seiten-Ring des Zustands. Ohne dynamische Layouts sind es die klassischen Ansichten —
+    // dieselbe Logik, nur mit [0,a,b,c]-Einträgen, damit Lite-Uhren nichts anderes tun.
+    hidden function _setFor(state) {
+        var dyn = (_rec.layoutsOn && _rec.pages.size() > 0);
+        if (state == :onFoil) {
+            if (dyn) { return _rec.pages; }
+            var out = [];
+            for (var i = 0; i < _rec.screens.size(); i++) {
+                var v = _rec.screens[i];
+                out.add([0, v[0], v[1], v[2]]);
+            }
+            return out;
+        }
+        var lst = (state == :paused) ? _rec.pausePages : _rec.offFoilPages;
+        if (lst instanceof Lang.Array && lst.size() > 0) { return lst; }
+        var f = (state == :paused) ? _rec.pauseView : _rec.offFoilView;
+        return [[0, f[0], f[1], f[2]]];
+    }
+
+    hidden function _ring(state) {
+        var ring = _setFor(state);
+        if (state == :onFoil || !_rec.browseAll) { return ring; }
+        // „Auch die übrigen Seiten": erst die des Zustands, dann der Rest in fester Reihenfolge —
+        // vorhersehbar statt clever.
+        var out = [];
+        for (var i = 0; i < ring.size(); i++) { out.add(ring[i]); }
+        var extra = (state == :paused)
+            ? [_setFor(:onFoil), _setFor(:offFoil)]
+            : [_setFor(:onFoil), _setFor(:paused)];
+        for (var k = 0; k < extra.size(); k++) {
+            var set = extra[k];
+            for (var j = 0; j < set.size(); j++) { out.add(set[j]); }
+        }
+        return out;
+    }
+
+    // „Pausiert" + Fortsetzen-Hinweis als Chrome. `full` = klassische Seite (dort ist Platz oben),
+    // sonst nur die knappe Zeile, damit ein eigenes Layout nicht zugedeckt wird.
+    hidden function _drawPausedChrome(dc, w, h, classic, showPaused, showResume) {
+        if (showPaused) {
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.055, Graphics.FONT_XTINY, Strings.s("rec.paused"),
+                Graphics.TEXT_JUSTIFY_CENTER);
+        }
+        if (showResume) {
+            dc.setColor(classic ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_WHITE,
+                Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.955, Graphics.FONT_XTINY, "ENTER: " + Strings.s("rec.resume"),
+                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
+    // Fortsetzen-Hinweis über einem eigenen Layout: nur die ersten Sekunden nach dem Pausieren.
+    hidden function _pauseHintDue() {
+        return _pausedAtMs != null && System.getTimer() - _pausedAtMs < PAUSE_HINT_MS;
+    }
+
+    (:full) hidden function _hasPausedHint(entry) {
+        var els = (entry.size() > 2 && entry[2] instanceof Lang.Array) ? entry[2] : [];
+        for (var i = 0; i < els.size(); i++) {
+            if (els[i] instanceof Lang.Array && els[i].size() > 0 && els[i][0] == 7) { return true; }
+        }
+        return false;
+    }
+    (:lite) hidden function _hasPausedHint(entry) { return false; }
 
     // Klassische Seite: bis zu 3 Felder gleichmäßig in einem sicheren Band gestapelt.
     hidden function _drawFieldPage(dc, fields, w, h) {
@@ -190,18 +242,6 @@ class RecordView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.42, Graphics.FONT_TINY, Strings.s("rec.holdMenu"),
             Graphics.TEXT_JUSTIFY_CENTER);
-    }
-
-    // Pausiert-Screen: „Pausiert" + ENTER = fortsetzen, 3 s halten = Menü.
-    hidden function _drawPaused(dc, w, h) {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.34, Graphics.FONT_MEDIUM, Strings.s("rec.paused"), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.56, Graphics.FONT_XTINY, "ENTER: " + Strings.s("rec.resume"), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.68, Graphics.FONT_XTINY, Strings.s("rec.holdMenu"), Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Idle: nur der Start-Screen. Verbinden + Upload liegen — wie bei nativen
@@ -474,6 +514,16 @@ class RecordView extends WatchUi.View {
         if (typ == 6) {                                   // Seiten-Punkte
             var c = _layoutColor(e[4], Graphics.COLOR_LT_GRAY);
             _drawPageDots(dc, w, h, idx, c, Graphics.COLOR_DK_GRAY);
+            return;
+        }
+        if (typ == 7) {                                   // „Pausiert"-Hinweis (Pflicht in Pausen-Layouts)
+            var pc = _layoutColor(e[4], Config.BRAND_CYAN);
+            dc.setColor(pc, Graphics.COLOR_TRANSPARENT);
+            var pf = _layoutFont(step > 2 ? 2 : step, 2);   // klein halten, wie im Editor gedeckelt
+            var pj = Graphics.TEXT_JUSTIFY_CENTER;
+            if ((flags & 1) != 0) { pj = Graphics.TEXT_JUSTIFY_LEFT; }
+            else if ((flags & 2) != 0) { pj = Graphics.TEXT_JUSTIFY_RIGHT; }
+            dc.drawText(x, y, pf, Strings.s("rec.paused"), pj | Graphics.TEXT_JUSTIFY_VCENTER);
             return;
         }
         // Text-Elemente: Wert / übersetztes Label / Freitext.

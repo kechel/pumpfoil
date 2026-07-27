@@ -642,9 +642,26 @@ Aufnahme festsitzt, muss die Uhr über einem Pausen-Layout **weiterhin einen kle
 einblenden** (Chrome, nicht verhandelbar) — nicht in die Freiheit des Layouts eingreifen, aber
 sichtbar bleiben.
 
-**Reihenfolge der Umsetzung:** (1) Server (Listen + Validierung + additive Config-Schlüssel),
-(2) PWA (drei gleichartige Listen), (3) Uhr 1.0.67 (Zustandsmaschine + Punkte je Zustand + Pausiert-
-Hinweis) mit Simulator-Tests und Store-Release.
+**Reihenfolge der Umsetzung:** (1) Server ✅, (2) PWA ✅, (3) Uhr 1.0.67 ✅ gebaut — Simulator-Tests
+durch Jan und Store-Release offen.
+
+**Uhr-Umsetzung (1.0.67), Stand 2026-07-27:**
+- `RecordView._state()` liefert `:paused | :onFoil | :offFoil` (manuell pausiert sticht alles),
+  `_setFor(state)` den Seiten-Satz, `_ring(state)` den Ring: bei `browseAll` erst der eigene Satz,
+  dann die anderen in FESTER Reihenfolge (vorhersehbar statt clever). Zustandswechsel setzt
+  `screenIdx = 0` und vibriert einmal.
+- **Entfernt:** Übersichts-Slot als letzte Seite, `_summaryShownAtMs`/`RUNEND_SHOW_MS` (8-s-Regel),
+  `_prevFoiling`/`_lastDataIdx` und der eigene `_drawPaused`-Screen (11 Zeilen toter Code).
+  `_pageCount()` ist jetzt die Ringgröße des aktuellen Zustands — davon hängen auch Seiten-Punkte
+  und der Label-Boden ab.
+- Klassische Ansichten laufen durch dieselbe Maschine (`[0,a,b,c]`-Einträge), damit Lite-Uhren
+  nichts anderes tun als die großen.
+- **Pausiert-Anzeige:** Typ 7 zeichnet der Renderer (klein, Stufe ≤ 2, Palette-Farbe, Ausrichtung wie
+  andere Textelemente). Fehlt er (Layout von vor F3), blendet die Uhr „Pausiert" zusätzlich oben ein.
+  Der **Fortsetzen-Hinweis** („ENTER: …") steht auf klassischen Seiten dauerhaft unten, über einem
+  eigenen Layout nur **6 Sekunden** nach dem Pausieren — man braucht ihn genau dann, danach bleibt
+  das Layout frei. Ohne diese Regel hätte ein Layout mit Typ 7 nirgends gesagt, wie man fortsetzt.
+- Größen (Release): fenix7xpro 75,1 KB · fr255s 74,7 KB · fenix5 92,3 KB · instinct2 (Lite) 55,3 KB.
 
 ---
 
