@@ -131,6 +131,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+- **Eigene Uhr-Screens auf die anderen Plattformen** (Jan 2026-07-27: „die custom-screens ziehen wir
+  dann spaeter nach, heute nicht"). Garmin kann es seit 1.0.66/1.0.67 (Renderer + F3-Zustandsmaschine);
+  Server und PWA sind plattformneutral — `/api/devices/config` liefert `pages`/`offFoilPages`/
+  `pausePages`/`browseAll` an JEDE Uhr, die Elemente sind reine Zahlen-Arrays. Zu bauen ist also nur je
+  ein Renderer: **Zepp/Amazfit** (`watch-zepp/page/index.js`, Widgets statt dc-Zeichnen — dort ist
+  Fabians Tasten-Update gerade im Review), **Wear OS** (`android/wear`, Compose Canvas) und
+  **Apple Watch** (`watch-apple/Sources`, SwiftUI Canvas). Reihenfolge nach Nutzerzahl entscheiden.
+  Design + Elementformat: `docs/setup-and-watch-layouts.md` (F2/F3).
 - **Suunto: Frist bis 2026-08-03 — dann aus Banner + Uhr-Tabelle entfernen** (Jans Entscheidung
   2026-07-27: „wenns in einer woche nicht geht nehmen wir aber suunto wieder raus aus dem banner &
   /uhr tabelle"). Hintergrund: Suuntos Token-Endpunkt liefert seit ~19.07. für ALLE Nutzer 401,
