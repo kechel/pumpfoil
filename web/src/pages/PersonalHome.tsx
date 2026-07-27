@@ -207,9 +207,16 @@ export default function PersonalHome() {
           drei Karten unten zeigen ältere Sessions nicht. Jan: „der andere sollte schon eine meldung
           sehen in seinem homebereich … oder einen marker an seiner session". Beides jetzt. */}
       {(profile?.needs_classification ?? 0) > 0 && (
-        <Link to={profile?.needs_classification_id ? `/sessions/${profile.needs_classification_id}` : "/sessions"}
+        <Link
+          /* Bei EINER offenen Session direkt dorthin, bei mehreren in die Liste — dort trägt jede
+             betroffene Karte das Badge „Bitte zuordnen". Acht einzelne Hinweise wären Lärm, und ein
+             Link auf nur eine von acht würde die anderen sieben verstecken. */
+          to={(profile?.needs_classification ?? 0) === 1 && profile?.needs_classification_id
+                ? `/sessions/${profile.needs_classification_id}` : "/sessions"}
           className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
-          {t("home.needsClassification", { n: profile?.needs_classification ?? 0 })} →
+          {(profile?.needs_classification ?? 0) === 1
+            ? t("home.needsClassification")
+            : t("home.needsClassificationN", { n: profile?.needs_classification ?? 0 })} →
         </Link>
       )}
       {!latest ? <Spinner /> : latest.length === 0 ? (
