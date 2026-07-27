@@ -30,6 +30,16 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 27, 2026",
+    items: [
+      "Garmin watch app 1.0.67 (live in the Connect IQ store): your screens now follow what you\u2019re doing. Set up as many as you like for three situations \u2014 while riding, while you\u2019re not riding (which includes waiting between runs) and while the recording is paused \u2014 and page through the ones belonging to the current situation. Before, \u201cafter a run\u201d and \u201cbetween runs\u201d took exactly one screen each, and the watch switched between them on a timer. Set it up under Watch \u203a Data views; by default every screen stays reachable in every situation, and you can switch that off if you prefer a strict split.",
+      "Paused screens always show a \u201cPaused\u201d marker. You can move it and colour it, but not remove it \u2014 otherwise there\u2019s no way to tell a paused recording from a frozen watch.",
+      "Separator lines in your own screens can now run horizontally, vertically or diagonally: drag the line to move it, or drag either end to place it exactly.",
+      "The editor now shows font sizes the way the watch really draws them. They used to be shown up to a third too small, so anything you picked came out bigger than expected on the wrist.",
+      "Watch layouts from the community are now on the community page, and the gallery ranks them by how many riders actually use them.",
+    ],
+  },
+  {
     date: "July 26, 2026",
     items: [
       "Garmin watch app 1.0.66 (live in the Connect IQ store): your own layouts now actually run on the watch. Pages you designed on pumpfoil.org show up while you ride, including your own screen for after a run and for waiting between runs. You can switch custom layouts on and off right on the watch, and if anything ever goes wrong the watch quietly falls back to the classic screens for that session instead of leaving you without data. Two more things you’ll notice: the save / pause / discard menu is white now, so it stays readable in bright sunlight, and field labels sit closer to their value. Needs a watch with enough memory — on smaller ones you can still switch it on and give it a try.",
