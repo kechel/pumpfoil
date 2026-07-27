@@ -5,10 +5,12 @@ import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
 import { useT } from "../i18n";
+import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 
-type Tab = "overview" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
+type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
+  ["classify", "adm.tab.classify"],
   ["flagged", "adm.tab.flagged"],
   ["fake", "adm.tab.fake"],
   ["suspect", "adm.tab.suspect"],
@@ -57,6 +59,7 @@ export default function Admin() {
         })}
       </nav>
       {tab === "overview" && <OverviewTab />}
+      {tab === "classify" && <ClassifyTab />}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
       {tab === "suspect" && <SessionsTab scope="suspect" />}
@@ -854,6 +857,75 @@ function SpotsTab() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ---- Sportart-Klassifikation: offene Fälle (docs/sport-classification.md) ----
+// Zwei Sorten in EINER Liste, Widersprüche zuerst (der Server sortiert schon so):
+// (a) Besitzer hat widersprochen -> braucht ein Urteil, (b) zwei Melder, Besitzer hat noch nicht
+// reagiert -> steht hier, damit nichts liegen bleibt. Anders als der Besitzer sieht der Admin, WER
+// gemeldet hat und was sie geschrieben haben — genau dafür ist diese Seite da.
+function ClassifyTab() {
+  const t = useT();
+  const [rows, setRows] = useState<Record<string, any>[] | null>(null);
+  const [busy, setBusy] = useState<number | null>(null);
+  const load = () => api.adminClassificationQueue().then(setRows).catch(() => setRows([]));
+  useEffect(() => { load(); }, []);
+  const act = (id: number, fn: () => Promise<unknown>) => {
+    setBusy(id);
+    fn().then(load).catch(() => {}).finally(() => setBusy(null));
+  };
+  if (!rows) return <Spinner />;
+  if (rows.length === 0) return <Card className="p-6 text-sm text-slate-300">{t("adm.cls.none")}</Card>;
+  return (
+    <div className="space-y-3">
+      {rows.map((r) => (
+        <Card key={r.session_id} className="p-4">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <Link to={`/sessions/${r.session_id}`} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
+              #{r.session_id}
+            </Link>
+            <span className="text-sm text-slate-600 dark:text-slate-300">{r.name}</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{r.spot ?? "—"}</span>
+            {r.appeal_text && (
+              <span className="rounded bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
+                {t("adm.cls.appeal")}
+              </span>
+            )}
+          </div>
+          {/* Entscheidungshilfe: was sagt der Detektor, was sagen die Melder? */}
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            {t("adm.cls.detector", { detection: r.detection ?? "—", runs: r.num_runs ?? 0,
+              speed: r.max_speed ? (r.max_speed * 3.6).toFixed(1) : "—" })}
+          </p>
+          {r.appeal_text && <p className="mt-1 text-sm italic text-slate-700 dark:text-slate-200">„{r.appeal_text}"</p>}
+          <ul className="mt-1 space-y-0.5 text-sm text-slate-500 dark:text-slate-400">
+            {(r.flags ?? []).map((f: any) => (
+              <li key={f.user_id}>{f.name}{f.note ? `: „${f.note}"` : ""}</li>
+            ))}
+          </ul>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button disabled={busy === r.session_id}
+              onClick={() => act(r.session_id, () => api.adminKeepPumpfoil(r.session_id))}
+              className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
+              {t("adm.cls.keep")}
+            </button>
+            <select value="" disabled={busy === r.session_id}
+              onChange={(e) => { const v = e.target.value; if (v) act(r.session_id, () => api.setClassification(r.session_id, { sport: v })); }}
+              className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+              <option value="">{t("adm.cls.setSport")}</option>
+              {SPORTS.filter((k) => k !== "pumpfoil").map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+            </select>
+            <select value="" disabled={busy === r.session_id}
+              onChange={(e) => { const v = e.target.value; if (v) act(r.session_id, () => api.setClassification(r.session_id, { data_quality: v })); }}
+              className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+              <option value="">{t("adm.cls.setQuality")}</option>
+              {DATA_QUALITY.filter((k) => k !== "ok").map((k) => <option key={k} value={k}>{t(`cls.dq.${k}`)}</option>)}
+            </select>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }
