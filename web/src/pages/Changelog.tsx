@@ -32,6 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 27, 2026",
     items: [
+      "Garmin watch app 1.0.68 (live in the Connect IQ store): holding STOP now brings up the save / pause / discard menu after two seconds instead of three. Since that menu appeared, holding no longer ends the recording by itself \u2014 so there was no reason to make you wait as long.",
       "If you mostly record another sport, set it once: your profile now has a default sport for new sessions, right next to your default foil. Sessions then arrive in the right category and you don\u2019t have to sort each one afterwards. Existing sessions stay as they are, and picking it on the watch itself will come later.",
       "Sessions can now say which sport they are. If you accidentally recorded a wingfoil, foildrive or SUP session \u2014 or the GPS produced nonsense \u2014 you can label it on the session page. Labelled sessions stay in your own history but stop competing in the pumpfoil records, so the leaderboards compare like with like.",
       "Spotted a session in the community that doesn\u2019t look like pumpfoiling? There\u2019s a new button next to \u201clooks fake\u201d and \u201cinappropriate\u201d: it sends the owner a friendly request to label it properly. You stay anonymous, nobody is accused of anything, and one request alone changes nothing \u2014 it takes two people before a session is set aside, and only the owner (or we) can say what it actually was. If you think your session was pumpfoiling after all, you can say so and we\u2019ll look at it.",
