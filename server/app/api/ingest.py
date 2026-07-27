@@ -52,6 +52,17 @@ def start_session(
                     _foil = (_json.loads(_u.settings_json) or {}).get("foil_id")
                 except ValueError:
                     _foil = None
+        # Standard-Sportart des Nutzers (docs/sport-classification.md): wer überwiegend Wingfoil
+        # aufzeichnet, landet direkt in der richtigen Kategorie statt jede Session nachzuordnen.
+        # `sport_source` bleibt „default" — es ist eine Voreinstellung, kein Einzelurteil.
+        _sport_class = "pumpfoil"
+        _uu = db.get(models.User, device.user_id)
+        if _uu and _uu.settings_json:
+            try:
+                _sport_class = ((_json.loads(_uu.settings_json) or {}).get("default_sport_class")
+                                or "pumpfoil")
+            except ValueError:
+                _sport_class = "pumpfoil"
         s = models.Session(
             session_uuid=body.session_uuid,
             user_id=device.user_id,
@@ -63,6 +74,7 @@ def start_session(
             accel_scale=body.accel_scale,
             status="recording",
             foil_id=_foil,
+            sport_class=_sport_class,
             placement=(body.placement or None),
             device_model=(body.device_model or None),
             expected_chunks=body.expected_chunks,

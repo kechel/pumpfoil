@@ -58,6 +58,10 @@ DEFAULTS = {
     # ein Nutzer, der nichts konfiguriert hat, Seiten, die er heute erreicht (Einwand Jan).
     # Aus = strenges Modell: je Zustand nur die zugehörigen Screens.
     "browse_all_pages": True,
+    # Standard-Sportart für NEUE Sessions (docs/sport-classification.md) — wie das Standard-Foil.
+    # Wer überwiegend Wingfoil aufzeichnet, lädt damit direkt in die richtige Kategorie hoch und muss
+    # nichts nachträglich zuordnen. Wirkt nur beim Anlegen; bestehende Sessions bleiben unberührt.
+    "default_sport_class": "pumpfoil",
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -302,6 +306,11 @@ def update_settings(
                 current[legacy_layout] = None
             else:
                 current[legacy_layout] = first
+    if "default_sport_class" in patch:
+        from .sessions import SPORTS
+        v = patch["default_sport_class"]
+        if v in SPORTS:
+            current["default_sport_class"] = v
     if "browse_all_pages" in patch:
         current["browse_all_pages"] = bool(patch["browse_all_pages"])
     # Freie Seitenreihenfolge (3-Feld-Seiten und Layouts gemischt). `views` wird daraus

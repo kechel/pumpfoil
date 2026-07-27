@@ -4,6 +4,7 @@ import { api, Foil } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
+import { SPORTS } from "../lib/sportClass";
 
 // Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern).
 export default function Foils() {
@@ -15,6 +16,9 @@ export default function Foils() {
   const [mine, setMine] = useState<number[]>([]);
   const [def, setDef] = useState<number | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // kurz hervorgehobenes Foil
+  // Standard-Sportart für NEUE Sessions (docs/sport-classification.md) — steht hier, weil es
+  // derselbe Gedanke wie das Standard-Foil ist (Jan: „ist ja wie mein default-foil").
+  const [defSport, setDefSport] = useState("pumpfoil");
 
   useEffect(() => {
     api.foils().then(setFoils).catch(() => setFoils([]));
@@ -22,6 +26,7 @@ export default function Foils() {
     api.getSettings().then((s) => {
       setMine((s.my_foils as number[]) ?? []);
       setDef((s.foil_id as number) ?? null);
+      setDefSport((s.default_sport_class as string) ?? "pumpfoil");
     }).catch(() => {});
   }, []);
 
@@ -96,7 +101,19 @@ export default function Foils() {
           {t("foils.toSetup")} →
         </Link>
       </div>
-      <p className="mb-4 text-sm text-slate-300">{t("foils.hint")}</p>
+      <p className="mb-3 text-sm text-slate-300">{t("foils.hint")}</p>
+
+      {/* Standard-Sportart: wirkt nur auf NEUE Sessions. Wer überwiegend Wingfoil oder Foildrive
+          aufzeichnet, muss dann nicht jede Session nachträglich zuordnen. */}
+      <label className="mb-4 block text-sm text-slate-700 dark:text-slate-200">
+        {t("foils.defaultSport")}
+        <select value={defSport}
+          onChange={(e) => { const v = e.target.value; setDefSport(v); api.saveSettings({ default_sport_class: v }).catch(() => {}); }}
+          className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+          {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+        </select>
+        <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">{t("foils.defaultSportHint")}</span>
+      </label>
 
       <div className="mb-4 flex flex-wrap gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("foils.search")}

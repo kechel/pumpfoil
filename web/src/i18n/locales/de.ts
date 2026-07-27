@@ -1009,6 +1009,8 @@ const de: Record<string, string> = {
   "spots.search": "Spot suchen…",
 
   "foils.title": "Meine Foils",
+  "foils.defaultSport": "Standard-Sportart für neue Sessions",
+  "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",
   "foils.search": "Foil suchen…",
   "foils.allBrands": "Alle Marken",

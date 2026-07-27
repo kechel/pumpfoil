@@ -318,11 +318,18 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     accel_hz = parsed["accel_hz"] or 25
     session_uuid = uuid_prefix + uuid.uuid4().hex
     last_ms = samples[-1][0]
+    # Standard-Sportart des Nutzers auch beim Datei-Import anwenden (sonst wäre die Voreinstellung
+    # nur für Uhr-Uploads da und der Import wäre die Ausnahme, die niemand erwartet).
+    try:
+        _dsc = (json.loads(user.settings_json or "{}") or {}).get("default_sport_class") or "pumpfoil"
+    except ValueError:
+        _dsc = "pumpfoil"
     s = models.Session(
         session_uuid=session_uuid,
         user_id=user.id,
         content_hash=content_hash,
         sport=parsed["sport"],
+        sport_class=(_dsc if _dsc in SPORTS else "pumpfoil"),
         started_at=started_at,
         ended_at=started_at + _ms(last_ms),
         gps_hz=1,

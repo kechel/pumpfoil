@@ -915,6 +915,8 @@ const en: Record<string, string> = {
   "spots.search": "Search spot…",
 
   "foils.title": "My foils",
+  "foils.defaultSport": "Default sport for new sessions",
+  "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",
   "foils.search": "Search foil…",
   "foils.allBrands": "All brands",
