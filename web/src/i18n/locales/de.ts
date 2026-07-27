@@ -1325,6 +1325,7 @@ const de: Record<string, string> = {
   "cls.confirmFlag": "Du glaubst, das ist keine Pumpfoil-Session? Dann bekommt der Besitzer eine freundliche Bitte, sie richtig zuzuordnen — zum Beispiel als Wingfoil oder Foildrive. Du bleibst dabei anonym, und niemandem wird etwas vorgeworfen: es geht nur darum, dass die Rekorde vergleichbar bleiben.",
   "cls.thanks": "Danke! Der Besitzer wird gebeten, die Session zuzuordnen.",
   "cls.ownerAsk": "Ein anderer Foiler glaubt, dass diese Session kein Pumpfoiling ist. Magst du sie kurz richtig zuordnen? Bis dahin erscheint sie in keiner Auswertung. Wenn es doch Pumpfoiling war, sag es uns — dann schaut jemand von uns drauf.",
+  "cls.pickErr": "Konnte nicht gespeichert werden",
   "cls.choose": "Sportart wählen …",
   "cls.wasPumpfoil": "Das war doch Pumpfoiling →",
   "cls.appealPlaceholder": "Was war es wirklich? (hilft beim Prüfen)",

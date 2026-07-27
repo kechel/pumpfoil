@@ -278,9 +278,13 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
           </>
         )}
         <div className="ml-auto flex items-center gap-2">
-          {/* Reihenfolge = Schwere: „nicht Pumpfoil" ist die harmloseste Meldung (nur eine Bitte um
-              Zuordnung), deshalb LINKS von „wirkt unecht" und „unangemessen" (Jans Vorgabe). */}
+          {/* EIGENE Session: hier stehen die Klassifikations-Felder. „wirkt unecht" und
+              „unangemessen" gibt es dafür nur bei FREMDEN Sessions — sich selbst zu melden ist
+              sinnlos (Jan). Reihenfolge bei fremden = Schwere: „nicht Pumpfoil" ist die harmloseste
+              Meldung (nur eine Bitte um Zuordnung), deshalb links. */}
+          {owned && !isPublic && <ClassPickers sessionId={sessionId} compact />}
           {!owned && !isPublic && <NotPumpfoilButton sessionId={sessionId} />}
+          {!owned && <>
           <button
             onClick={() => vote("fake")}
             className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
@@ -293,6 +297,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
           >
             <FlagIcon className="h-4 w-4 text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
           </button>
+          </>}
         </div>
       </div>
       {owned && ytOpen && (
@@ -2015,14 +2020,8 @@ function ClassificationPanel({ session, owned, onChange }: {
     </div>
   );
 
-  if (!needs) {
-    return (
-      <div className="mb-4">
-        {picker}
-        {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
-      </div>
-    );
-  }
+  // Nichts offen -> kein Kasten. Die Kategorie ändert man in der Aktionszeile (ClassPickers).
+  if (!needs) return null;
   return (
     <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 p-3">
       <p className="mb-2 text-sm text-amber-800 dark:text-amber-200">{t("cls.ownerAsk")}</p>
@@ -2078,5 +2077,45 @@ function NotPumpfoilButton({ sessionId }: { sessionId: number }) {
     >
       <FoilOffIcon className="h-4 w-4 text-slate-400" /> {t("cls.notPumpfoil")}
     </button>
+  );
+}
+
+// Klassifikations-Felder für die EIGENE Session — sitzen in der Aktionszeile an der Stelle, an der
+// bei fremden Sessions „wirkt unecht"/„unangemessen" stehen (Jans Vorgabe). Sie holen ihren Stand
+// selbst, weil die SocialBar nur die Session-ID kennt.
+function ClassPickers({ sessionId, compact = false }: { sessionId: number; compact?: boolean }) {
+  const t = useT();
+  const [sport, setSport] = useState<string | null>(null);
+  const [dq, setDq] = useState<string | null>(null);
+  const [needs, setNeeds] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    api.session(sessionId).then((x) => {
+      setSport(x.sport_class ?? "pumpfoil");
+      setDq(x.data_quality ?? "ok");
+      setNeeds(!!x.needs_classification);
+    }).catch(() => {});
+  }, [sessionId]);
+  if (sport == null) return null;
+  const save = (patch: { sport?: string; data_quality?: string }) => {
+    setBusy(true); setErr("");
+    api.setClassification(sessionId, patch)
+      .then((r) => { setSport(r.sport_class); setDq(r.data_quality); setNeeds(false); })
+      .catch(() => setErr(t("cls.pickErr")))
+      .finally(() => setBusy(false));
+  };
+  const cls = "rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100 disabled:opacity-40";
+  return (
+    <div className={`flex flex-wrap items-center gap-2 ${compact ? "" : "mb-4"}`}>
+      <select value={needs ? "" : sport} disabled={busy} onChange={(e) => e.target.value && save({ sport: e.target.value })} className={cls}>
+        {needs && <option value="">{t("cls.choose")}</option>}
+        {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+      </select>
+      <select value={dq ?? "ok"} disabled={busy} onChange={(e) => save({ data_quality: e.target.value })} className={cls}>
+        {DATA_QUALITY.map((k) => <option key={k} value={k}>{t(`cls.dq.${k}`)}</option>)}
+      </select>
+      {err && <span className="text-sm text-red-700 dark:text-red-300">{err}</span>}
+    </div>
   );
 }
