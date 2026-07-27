@@ -21,7 +21,6 @@ from ..analysis import maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
-from ..notify import notify_needs_classification
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
 from ..tzlookup import tz_name
@@ -2030,13 +2029,13 @@ def flag_not_pumpfoil(
         db.add(models.SessionFlag(session_id=s.id, user_id=user.id, note=note))
         db.flush()
     n = db.query(func.count(models.SessionFlag.id)).filter_by(session_id=s.id).scalar() or 0
-    became = False
     if n >= FLAGS_TO_HIDE and not s.needs_classification:
         s.needs_classification = True
-        became = True
     db.commit()
-    if became:
-        notify_needs_classification(db, s)
+    # BEWUSST KEIN Push (Jan, 2026-07-27: „eigentlich braucht es garkeinen push bei sowas finde ich,
+    # der hinweis reicht"). Der Besitzer sieht den Hinweis auf der Startseite und das Badge an der
+    # Karte — beides bleibt stehen, bis er zuordnet. Ein Push wäre hier zudem unangenehm: er kommt
+    # unaufgefordert und klingt nach Vorwurf, während der Hinweis auf der Seite in Ruhe erklärt wird.
     return {"ok": True, "counted": True, "flags": n, "needs_classification": bool(s.needs_classification)}
 
 

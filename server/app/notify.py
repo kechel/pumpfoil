@@ -30,20 +30,3 @@ def notify_session_analyzed(db: Session, session: "models.Session") -> None:
     except Exception as e:  # noqa: BLE001 – Benachrichtigung darf nie den Flow brechen
         log.warning("notify_session_analyzed failed: %s", e)
     db.commit()
-
-
-def notify_needs_classification(db: Session, session: "models.Session") -> None:
-    """Besitzer bitten, eine Session zuzuordnen (docs/sport-classification.md).
-
-    Wird genau dann gerufen, wenn die Wirkung eintritt (zweiter unabhängiger Melder) — lautlos aus
-    den Auswertungen zu verschwinden wäre schlimmer als ein falscher Rekord. Der Ton ist bewusst eine
-    Bitte, kein Vorwurf, und der Melder wird NICHT genannt (sonst entstehen Privatfehden aus einer
-    Klassifikationsfrage)."""
-    if not push_enabled():
-        return
-    try:
-        if wants(db, session.user_id, "analyzed"):
-            send_push(db, session.user_id, "Pumpfoil",
-                      "Magst du eine Session kurz zuordnen? 🙏", f"/sessions/{session.id}")
-    except Exception as e:  # noqa: BLE001 – Benachrichtigung darf nie den Flow brechen
-        log.warning("notify_needs_classification failed: %s", e)

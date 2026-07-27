@@ -111,8 +111,12 @@ s. oben).
 
 ## Pflichten gegenüber dem Betroffenen
 
-- **Benachrichtigung**, sobald die Wirkung eintritt (2. Melder) — lautlos aus den Rekorden zu
-  verschwinden ist schlimmer als ein falscher Rekord.
+- **KEIN Push beim Melden** (Jan, 2026-07-27: „eigentlich braucht es garkeinen push bei sowas finde
+  ich, der hinweis reicht"). Stattdessen der Hinweis auf der Startseite + das Badge an der Karte —
+  beide bleiben stehen, bis zugeordnet ist, verschwinden also nicht wie eine Benachrichtigung.
+  Inhaltlich ist das auch angenehmer: ein Push kommt unaufgefordert und klingt nach Vorwurf.
+  Ein Push bleibt nur bei der **Admin-Entscheidung** nach einem Widerspruch — dort verschwindet der
+  Hinweis ja, und ohne Push erfährt der Nutzer das Ergebnis seines Widerspruchs nie.
 - **Badge an der Session** + Einspruchsknopf mit Freitext.
 - **Der Melder bleibt für den Besitzer unsichtbar**, nur der Admin sieht ihn. Sonst entstehen
   Privatfehden aus einer Klassifikationsfrage.
