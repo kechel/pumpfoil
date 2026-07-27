@@ -42,10 +42,16 @@ Snapshots korrigiert werden.
 
 ## Entschiedenes Verhalten (Jan, 2026-07-27)
 
-1. **Eine Fremdmeldung reicht NICHT.** Sie legt die Session in Jans Warteschlange, sie zählt weiter.
-   Raus aus Community-Rekorden/Stats erst bei **zwei unabhängigen Meldern** — oder sofort, wenn der
-   **Besitzer selbst** markiert (dann ist es keine Meldung, sondern eine Tatsache).
-   Grund: eine einzelne anonyme Meldung wäre sonst eine Waffe gegen den Führenden.
+1. **EINE Meldung genügt** (geändert 2026-07-27, Jan: „mach mal das bereits eine meldung 'nicht
+   pumpfoil' ausreicht zum melden, ausblenden und im admin-bereich mir anzeigen, wenn dann jemand
+   stoert sperren wir dem die funktion"). `FLAGS_TO_HIDE = 1`.
+   Der Griefing-Schutz ist damit nicht weg, sondern **verlagert**: jede Meldung ist im Admin-Bereich
+   MIT Melder und Gesamtzahl seiner Meldungen sichtbar (`GET /api/admin/session-flags`), und wer
+   stört, verliert die Funktion (`User.flag_blocked`, `POST /api/admin/users/{id}/flag-block`).
+   Das ist die bessere Reihenfolge: es hilft dem Normalfall (eine ehrliche Meldung wirkt sofort) und
+   bestraft nur den Ausnahmefall. Gesperrte Melder bekommen 403 mit klarer Meldung, nicht stilles
+   Ignorieren. Bestehende Meldungen bleiben beim Sperren stehen — sie können berechtigt gewesen sein.
+   (Vorher galt: erst zwei unabhängige Melder.)
 2. **Eigene Zahlen bleiben.** Die Session verschwindet aus der Community, bleibt aber in der eigenen
    Historie und den persönlichen Zahlen.
 3. **Spots je Kategorie.** Eine Wingfoil-Session darf keinen „Pumpfoil-Spot" erzeugen; Spots und

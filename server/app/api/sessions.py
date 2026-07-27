@@ -1971,7 +1971,13 @@ def delete_video(
 SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "sup_paddle", "wake",
           "efoil", "foildrive", "other")
 DATA_QUALITY = ("ok", "false_data", "duplicate", "test")
-FLAGS_TO_HIDE = 2          # so viele unabhängige Melder machen eine Session unklassifiziert
+# Ab wie vielen Meldern eine Session unklassifiziert wird. Seit 2026-07-27 **1** (Jan): „mach mal das
+# bereits eine meldung 'nicht pumpfoil' ausreicht zum melden, ausblenden und im admin-bereich mir
+# anzeigen, wenn dann jemand stoert sperren wir dem die funktion." Der Griefing-Schutz ist damit nicht
+# weg, sondern verlagert: jede Meldung ist im Admin-Bereich mit Melder sichtbar, und wer stört,
+# verliert die Funktion (User.flag_blocked). Das ist die bessere Reihenfolge — es hilft dem
+# Normalfall (eine ehrliche Meldung wirkt sofort) und bestraft nur den Ausnahmefall.
+FLAGS_TO_HIDE = 1
 
 
 class ClassifyIn(BaseModel):
@@ -2008,6 +2014,10 @@ def flag_not_pumpfoil(
         # Ein Admin hat „doch Pumpfoil" entschieden -> weitere Meldungen wirken nicht mehr, sonst
         # könnten zwei neue Melder die Entscheidung einfach überstimmen.
         return {"ok": True, "counted": False, "needs_classification": False}
+    if getattr(user, "flag_blocked", False):
+        # Admin hat diesem Nutzer das Melden entzogen (Missbrauch). Bewusst 403 mit klarer Meldung
+        # statt stillem Ignorieren — sonst meldet er weiter und wundert sich.
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Melden ist für dein Konto deaktiviert")
     # Wer sich gegenseitig blockiert hat, soll sich nicht über Meldungen erreichen können.
     blocked = db.query(models.UserBlock).filter(
         or_(and_(models.UserBlock.blocker_id == user.id, models.UserBlock.blocked_id == s.user_id),

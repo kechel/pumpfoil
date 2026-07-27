@@ -881,6 +881,9 @@ export const api = {
   appealClassification: (id: number, text: string) =>
     req<{ ok: boolean }>(`/api/sessions/${id}/appeal`, { method: "POST", body: JSON.stringify({ text }) }),
   adminClassificationQueue: () => req<Record<string, any>[]>("/api/admin/classification-queue"),
+  adminSessionFlags: () => req<Record<string, any>[]>("/api/admin/session-flags"),
+  adminFlagBlock: (uid: number, blocked: boolean) =>
+    req<{ ok: boolean; flag_blocked: boolean }>(`/api/admin/users/${uid}/flag-block?blocked=${blocked}`, { method: "POST" }),
   adminKeepPumpfoil: (id: number) =>
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/keep-pumpfoil`, { method: "POST" }),
   saveSettings: (patch: Record<string, unknown>) =>

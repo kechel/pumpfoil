@@ -106,6 +106,7 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS needs_classification BOOLEAN DEFAULT FALSE",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_text TEXT",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_at TIMESTAMPTZ",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS flag_blocked BOOLEAN DEFAULT FALSE",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_distance_m_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS num_runs_personal",

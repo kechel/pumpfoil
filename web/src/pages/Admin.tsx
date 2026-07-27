@@ -59,7 +59,7 @@ export default function Admin() {
         })}
       </nav>
       {tab === "overview" && <OverviewTab />}
-      {tab === "classify" && <ClassifyTab />}
+      {tab === "classify" && <><ClassifyTab /><FlagsTab /></>}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
       {tab === "suspect" && <SessionsTab scope="suspect" />}
@@ -926,6 +926,60 @@ function ClassifyTab() {
           </div>
         </Card>
       ))}
+    </div>
+  );
+}
+
+// ---- Alle „Sieht nicht nach Pumpfoil aus"-Meldungen (Missbrauchs-Blick) ----
+// Seit EINE Meldung genügt (Jan, 2026-07-27), ist das der Ausgleich: jede Meldung ist hier mit Melder
+// sichtbar, „Meldungen insgesamt" macht Serien-Melder sofort erkennbar, und wer stört, verliert die
+// Funktion. Die Meldungen selbst bleiben beim Sperren stehen — sie können ja berechtigt gewesen sein.
+function FlagsTab() {
+  const t = useT();
+  const [rows, setRows] = useState<Record<string, any>[] | null>(null);
+  const [busy, setBusy] = useState<number | null>(null);
+  const load = () => api.adminSessionFlags().then(setRows).catch(() => setRows([]));
+  useEffect(() => { load(); }, []);
+  if (!rows) return null;
+  return (
+    <div className="mt-6">
+      <h3 className="mb-2 font-semibold">{t("adm.flags.title")}</h3>
+      {rows.length === 0 ? (
+        <Card className="p-4 text-sm text-slate-300">{t("adm.flags.none")}</Card>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((r) => (
+            <Card key={r.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
+              <Link to={`/sessions/${r.session_id}`} className="text-brand-700 hover:underline dark:text-brand-300">
+                #{r.session_id}
+              </Link>
+              <span className="text-slate-500 dark:text-slate-400">{r.owner?.name ?? "—"}</span>
+              <span className="text-slate-700 dark:text-slate-200">
+                {t("adm.flags.by", { name: r.by?.name ?? "—", n: r.by?.flags_total ?? 0 })}
+              </span>
+              {r.note && <span className="italic text-slate-500 dark:text-slate-400">„{r.note}"</span>}
+              {r.needs_classification && (
+                <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-200">
+                  {t("cls.needsBadge")}
+                </span>
+              )}
+              {r.by?.flag_blocked && (
+                <span className="rounded bg-red-500/15 px-2 py-0.5 text-red-700 dark:text-red-300">
+                  {t("adm.flags.blocked")}
+                </span>
+              )}
+              <button disabled={busy === r.by?.id}
+                onClick={() => {
+                  setBusy(r.by.id);
+                  api.adminFlagBlock(r.by.id, !r.by.flag_blocked).then(load).catch(() => {}).finally(() => setBusy(null));
+                }}
+                className="ml-auto rounded-lg bg-slate-800 px-2.5 py-1 text-slate-200 hover:bg-slate-700 disabled:opacity-40">
+                {r.by?.flag_blocked ? t("adm.flags.unblock") : t("adm.flags.block")}
+              </button>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

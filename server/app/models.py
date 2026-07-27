@@ -42,6 +42,9 @@ class User(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(255))
     # Admin: darf moderieren (alles sehen, freigeben/löschen).
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # „Sieht nicht nach Pumpfoil aus" gesperrt (Missbrauch). Seit eine EINZELNE Meldung wirkt, ist das
+    # der Hebel gegen Störer — statt alle Meldungen zu entwerten (docs/sport-classification.md).
+    flag_blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Gesperrt: kein Login, Token ungültig, Inhalte aus der Community ausgeblendet.
     blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Chat-Read-Only: darf Chats lesen, aber nicht mehr posten (Moderation).

@@ -1082,3 +1082,51 @@ def keep_pumpfoil(
     except Exception:  # noqa: BLE001
         pass
     return {"ok": True}
+
+
+@router.get("/session-flags")
+def session_flags(
+    limit: int = 100, _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Alle „Sieht nicht nach Pumpfoil aus"-Meldungen, neueste zuerst.
+
+    Seit eine EINZELNE Meldung wirkt (Jan, 2026-07-27), ist das der Missbrauchs-Blick: `by_user`
+    sagt, wie viele Meldungen dieser Nutzer INSGESAMT abgegeben hat — ein Serien-Melder fällt damit
+    sofort auf, und `flag_blocked` zeigt, ob ihm die Funktion schon entzogen ist."""
+    rows = (db.query(models.SessionFlag, models.User, models.Session)
+            .join(models.User, models.User.id == models.SessionFlag.user_id)
+            .join(models.Session, models.Session.id == models.SessionFlag.session_id)
+            .order_by(models.SessionFlag.id.desc()).limit(min(limit, 500)).all())
+    counts = dict(db.query(models.SessionFlag.user_id, func.count(models.SessionFlag.id))
+                  .group_by(models.SessionFlag.user_id).all())
+    out = []
+    for f, u, s in rows:
+        owner = db.get(models.User, s.user_id)
+        out.append({
+            "id": f.id, "session_id": s.id, "at": f.created_at.isoformat() if f.created_at else None,
+            "note": f.note,
+            "by": {"id": u.id, "name": u.display_name, "flags_total": int(counts.get(u.id, 0)),
+                   "flag_blocked": bool(getattr(u, "flag_blocked", False))},
+            "owner": {"id": s.user_id, "name": owner.display_name if owner else None},
+            "sport_class": s.sport_class, "data_quality": s.data_quality,
+            "needs_classification": bool(s.needs_classification),
+            "appeal_text": s.appeal_text,
+        })
+    return out
+
+
+@router.post("/users/{uid}/flag-block")
+def set_flag_block(
+    uid: int, blocked: bool = True, admin: models.User = Depends(current_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Einem Nutzer das Melden entziehen bzw. zurückgeben (Jan: „wenn dann jemand stoert sperren wir
+    dem die funktion"). Bestehende Meldungen bleiben stehen — sie können ja berechtigt gewesen sein;
+    wer sie loswerden will, klassifiziert die Session oder entscheidet den Widerspruch."""
+    u = db.get(models.User, uid)
+    if u is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nutzer nicht gefunden")
+    u.flag_blocked = bool(blocked)
+    _log(db, admin, "flag_block" if blocked else "flag_unblock", "user", uid, None)
+    db.commit()
+    return {"ok": True, "flag_blocked": bool(u.flag_blocked)}
