@@ -2,7 +2,8 @@ import * as hmUI from "@zos/ui";
 import { px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
-import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN, GESTURE_LEFT, GESTURE_RIGHT } from "@zos/interaction";
+import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN, GESTURE_LEFT, GESTURE_RIGHT,
+         onKey, KEY_BACK, KEY_EVENT_CLICK, KEY_EVENT_LONG_PRESS } from "@zos/interaction";
 import { getConnectStatus } from "@zos/ble";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
@@ -14,7 +15,7 @@ const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048;
 const GPS_CHUNK = 10;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.3";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
@@ -86,6 +87,43 @@ Page(
       // Alle Wisch-Gesten konsumieren (return true) → kein versehentliches Verlassen der App
       // (Zepp deutet den Horizontal-Wisch sonst als Zurück/Exit). Richtung egal: hoch=links (vor),
       // runter=rechts (zurück). Verlassen der App nur über die Hardware-Taste.
+      // HARDWARE-TASTE (Fabian per Instagram, 2026-07-27): „Stoppen geht leider nur über wischen und
+      // nicht über eine taste. Das funktioniert nicht wenn das display nass ist mit nassen Fingern."
+      // Genau der Fall, für den es Tasten gibt — nass ist der Normalzustand beim Pumpfoilen. Deshalb
+      // ist die App jetzt OHNE Berührung bedienbar:
+      //   Aufnahme: Taste kurz = nächste Seite · Taste HALTEN = stoppen & speichern
+      //   Start-Screen: Taste HALTEN = Aufnahme starten (kurz = Seite blättern)
+      //   Zusammenfassung: Taste kurz oder lang = fertig
+      // Halten (nicht kurz) für Start/Stopp, damit ein versehentlicher Druck in der Tasche nichts
+      // auslöst — dieselbe Logik wie auf der Garmin (3 s halten).
+      // KEY_BACK bleibt unangetastet (System-Zurück), sonst sitzt man in der App fest.
+      // Zepp erlaubt nur EINE onKey-Registrierung — deshalb ein Callback für alle Tasten.
+      try {
+        onKey({
+          callback: (key, event) => {
+            if (key === KEY_BACK) return false;
+            const long = (event === KEY_EVENT_LONG_PRESS);
+            const click = (event === KEY_EVENT_CLICK);
+            if (!long && !click) return false;      // PRESS/RELEASE ignorieren (sonst doppelt)
+            if (s.recording) {
+              if (long) { this.stop(); return true; }
+              const last = s.views.length + 1;
+              s.page = s.page >= last ? 0 : s.page + 1;   // hier MIT Wrap: eine Taste, eine Richtung
+              this.applyButton(); this.renderRecording();
+              return true;
+            }
+            if (s.screen === "summary") { this.done(); return true; }
+            if (s.screen === "idle") {
+              if (long) { if (s.idlePage === 0) { this.start(); } return true; }
+              s.idlePage = s.idlePage >= 3 ? 0 : s.idlePage + 1;
+              this.applyButton(); this.renderIdle();
+              return true;
+            }
+            return false;
+          },
+        });
+      } catch (e) {}
+
       onGesture({
         callback: (e) => {
           const dir = (e === GESTURE_LEFT || e === GESTURE_UP) ? 1
@@ -342,13 +380,13 @@ Page(
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
         this.setSlots([mmss(el), "Zeit"], [fmtDist(s.dist), "Distanz"], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, "STOPP unten · wischen: Ansichten");
+        w.status.setProperty(hmUI.prop.TEXT, "Taste halten = Stopp · kurz = Seite");
         return;
       }
       const pg = s.page - 1;
       w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
       this.renderFields(s.views[pg]);
-      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · wischen: Stopp");
+      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · Taste halten = Stopp");
     },
     renderSummary() {
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };

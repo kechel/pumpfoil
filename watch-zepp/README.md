@@ -64,3 +64,25 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 - Offline-Queue liegt aktuell in `@zos/storage` (JSON). Für lange Sessions besser auf `@zos/fs`
   (Datei) umstellen — LocalStorage-Größe ist begrenzt.
 - Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.
+
+## Tastenbedienung (1.0.3, 2026-07-27)
+
+Anlass: Fabian per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
+funktioniert nicht wenn das display nass ist mit nassen Fingern." Beim Pumpfoilen ist nass der
+Normalzustand, ein Touch-only-Recorder ist dort also unbenutzbar.
+
+Seither ist die App **ohne jede Berührung** bedienbar (`onKey` aus `@zos/interaction`, API 2.0+; die
+App verlangt ohnehin 3.0):
+
+| Zustand | Taste kurz | Taste halten |
+|---|---|---|
+| Aufnahme | nächste Seite (mit Umlauf) | **stoppen & speichern** |
+| Start-Screen | nächste Seite | **Aufnahme starten** (nur auf Seite 1) |
+| Zusammenfassung | fertig | fertig |
+
+Start/Stopp brauchen bewusst ein **Halten** — ein versehentlicher Druck in der Tasche soll nichts
+auslösen, dieselbe Logik wie das 3-s-Halten auf der Garmin. `KEY_BACK` bleibt unangetastet, sonst
+sitzt man in der App fest. Zepp erlaubt nur EINE `onKey`-Registrierung, deshalb ein Callback für alle
+Tasten. Touch/Wischen funktioniert unverändert weiter.
+
+**Ungetestet** — Build und Simulator/Gerätetest gehen nur auf Jans Mac (Zeus CLI, Testgerät Balance 2).
