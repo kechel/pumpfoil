@@ -46,8 +46,18 @@ DEFAULTS = {
     # (Uhr-Apps) lesen weiter nur die und sehen dadurch nie halbe Layouts.
     "pages": None,
     # Off-Foil-/Pausen-Screen alternativ als eigenes Layout statt 3 Datenfelder (null = Felder).
+    # LEGACY: tragen ab F3 nur noch den ERSTEN Screen des jeweiligen Satzes — 1.0.66 im Store liest
+    # genau einen Eintrag, eine Liste würde dort als Feld-ID gelesen und Müll zeichnen.
     "off_foil_layout_id": None,
     "pause_layout_id": None,
+    # F3: beliebig viele Screens JE ZUSTAND, gemischt wie `pages` (3-Feld-Seite oder Layout-ID).
+    # off_foil = Aufnahme läuft, aber kein Lauf (inkl. Dümpeln); pause = MANUELL pausiert.
+    "off_foil_pages": None,
+    "pause_pages": None,
+    # Darf man in off_foil/pause auch die übrigen Seiten durchblättern? Default JA — sonst verliert
+    # ein Nutzer, der nichts konfiguriert hat, Seiten, die er heute erreicht (Einwand Jan).
+    # Aus = strenges Modell: je Zustand nur die zugehörigen Screens.
+    "browse_all_pages": True,
     # Not-Aus für die dynamischen Layouts auf der Uhr (Stufe 3 des Sicherheitsnetzes, pro Nutzer).
     # Aus = die Uhr fährt die alte statische Logik, ohne App-Update.
     "layouts_enabled": True,
@@ -119,10 +129,13 @@ def _own_layout_id(db: Session, user: models.User, v, category: str) -> int | No
     return row.id if row else None
 
 
-def _clean_pages(db: Session, user: models.User, raw) -> list | None:
+def _clean_pages(db: Session, user: models.User, raw, category: str = "on_foil") -> list | None:
     """Seitenreihenfolge validieren: jeder Eintrag ist [a,b,c] (3-Feld-Seite) ODER eine
-    Layout-ID (eigenes on_foil-Layout). Unbekanntes fliegt raus; leer -> None (= aus `views`
-    ableiten)."""
+    Layout-ID (eigenes Layout der angegebenen Kategorie). Unbekanntes fliegt raus; leer -> None.
+
+    Dieselbe Funktion für alle drei Zustände (on_foil | off_foil | pause) — F3, s.
+    docs/setup-and-watch-layouts.md. Die Kategorie MUSS mitgeprüft werden, sonst könnte man ein
+    Fahr-Layout als Pausen-Seite einhängen und die Uhr zeigt es im falschen Zustand."""
     if not isinstance(raw, list):
         return None
     out: list = []
@@ -135,7 +148,7 @@ def _clean_pages(db: Session, user: models.User, raw) -> list | None:
                 v.append(0)
             out.append(v)
         else:
-            lid = _own_layout_id(db, user, item, "on_foil")
+            lid = _own_layout_id(db, user, item, category)
             if lid:
                 out.append(lid)
     return out or None
@@ -273,6 +286,24 @@ def update_settings(
     for key, cat in (("off_foil_layout_id", "off_foil"), ("pause_layout_id", "pause")):
         if key in patch:
             current[key] = _own_layout_id(db, user, patch[key], cat)
+    # F3: Seiten-Sätze für off_foil und pause. Die Alt-Schlüssel werden mitgeführt (erster
+    # Eintrag), damit im Store befindliche Uhren (1.0.66) unverändert weiterlaufen.
+    for key, cat, legacy_view, legacy_layout in (
+            ("off_foil_pages", "off_foil", "off_foil_view", "off_foil_layout_id"),
+            ("pause_pages", "pause", "pause_view", "pause_layout_id")):
+        if key not in patch:
+            continue
+        lst = _clean_pages(db, user, patch[key], cat)
+        current[key] = lst
+        if lst:
+            first = lst[0]
+            if isinstance(first, list):
+                current[legacy_view] = first
+                current[legacy_layout] = None
+            else:
+                current[legacy_layout] = first
+    if "browse_all_pages" in patch:
+        current["browse_all_pages"] = bool(patch["browse_all_pages"])
     # Freie Seitenreihenfolge (3-Feld-Seiten und Layouts gemischt). `views` wird daraus
     # abgeleitet, damit alte Uhr-Apps weiter eine gültige 3-Feld-Liste bekommen.
     if "pages" in patch:

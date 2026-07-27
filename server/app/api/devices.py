@@ -482,12 +482,35 @@ def _layouts_for_watch(db: Session, user_id: int, settings: dict) -> dict:
                 pages.append(_layout_payload(l))
     if not pages:
         pages = [[0, 1, 2, 0]]
+    # F3: je Zustand ein SATZ Seiten. `offFoil`/`pause` (Einzahl) bleiben für 1.0.66 im Store
+    # erhalten und tragen den ersten Eintrag; `offFoilPages`/`pausePages` sind die vollen Listen,
+    # die neuere Uhren lesen. Fehlt ein Satz, fällt es auf den Einzel-Screen zurück.
+    def many(key: str, cat: str, fallback: list) -> list:
+        raw = settings.get(key)
+        out: list = []
+        if isinstance(raw, list):
+            for item in raw:
+                if isinstance(item, list):
+                    f = [int(x) for x in item[:3]] + [0] * max(0, 3 - len(item))
+                    out.append([0] + f)
+                else:
+                    l = own.get(int(item)) if isinstance(item, (int, float)) else None
+                    if l is not None and l.category == cat:
+                        out.append(_layout_payload(l))
+        return out or [fallback]
+
+    off_one = one(settings.get("off_foil_layout_id"), "off_foil",
+                  settings.get("off_foil_view") or [12, 17, 16])
+    pause_one = one(settings.get("pause_layout_id"), "pause",
+                    settings.get("pause_view") or [12, 20, 2])
     return {
         "pages": pages,
-        "offFoil": one(settings.get("off_foil_layout_id"), "off_foil",
-                       settings.get("off_foil_view") or [12, 17, 16]),
-        "pause": one(settings.get("pause_layout_id"), "pause",
-                     settings.get("pause_view") or [12, 20, 2]),
+        "offFoilPages": many("off_foil_pages", "off_foil", off_one),
+        "pausePages": many("pause_pages", "pause", pause_one),
+        # Blättern in off_foil/pause auch durch die übrigen Seiten? Default an (s. settings).
+        "browseAll": bool(settings.get("browse_all_pages", True)),
+        "offFoil": off_one,
+        "pause": pause_one,
     }
 
 
