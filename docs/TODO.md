@@ -136,11 +136,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   erstmal notieren"). Garmin ist ERLEDIGT (`SessionRecorder.STOP_HOLD_MS = 2000`, ab 1.0.68). Begründung:
   seit es das Menü Speichern/Pausieren/Verwerfen gibt, beendet das Halten die Aufnahme nicht mehr selbst
   — ein Fehlgriff ist harmlos, 3 s fühlten sich am Wasser unnötig lang an.
-  Offen: **Wear OS** (`android/wear`, HoldButton), **Apple Watch** (`watch-apple/Sources`,
-  `.onLongPressGesture(minimumDuration: 3)`), **Handy-Recorder** (Android/iOS), **Zepp** (dort ist es
-  der neue Tasten-Langdruck — Zepp bestimmt die Dauer selbst, ggf. eigene Zeitmessung).
-  Achtung Apple/Wear: dort gibt es das Aktions-Menü teils NICHT — wo Halten direkt beendet, bleiben
-  3 s richtig. Erst prüfen, wo ein Menü dahinterliegt.
+  **Auf Apple Watch und Wear OS gibt es das gar nicht** (Jan, 2026-07-27): dort wischt man erst auf
+  einen Stopp-Screen, es gibt kein Halten mit Ring. Also NICHTS zu ändern — nicht danach suchen.
+  Bleibt offen für: **Handy-Recorder** (Android/iOS, falls dort ein Halten existiert) und **Zepp**
+  (dort ist es der neue Tasten-Langdruck; die Dauer bestimmt Zepp selbst, für 2 s bräuchte es eine
+  eigene Zeitmessung über KEY_EVENT_PRESS/RELEASE).
 - **Standard-Sportart im Profil** (Jan 2026-07-27: „im profil ein einfaches auswahlfeld als welche
   sportart zukuenftige sessions als ‚default' eingestellt werden sollen … ist ja wie mein
   default-foil … aber das wirklich nicht mehr heute"). Nur Web/Server, KEINE Uhr-Änderung nötig:
