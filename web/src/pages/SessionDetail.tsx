@@ -9,6 +9,7 @@ import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
+import { FoilOffIcon } from "../components/Icons";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
@@ -277,6 +278,9 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
           </>
         )}
         <div className="ml-auto flex items-center gap-2">
+          {/* Reihenfolge = Schwere: „nicht Pumpfoil" ist die harmloseste Meldung (nur eine Bitte um
+              Zuordnung), deshalb LINKS von „wirkt unecht" und „unangemessen" (Jans Vorgabe). */}
+          {!owned && !isPublic && <NotPumpfoilButton sessionId={sessionId} />}
           <button
             onClick={() => vote("fake")}
             className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
@@ -1980,7 +1984,6 @@ function ClassificationPanel({ session, owned, onChange }: {
   const [busy, setBusy] = useState(false);
   const [appealOpen, setAppealOpen] = useState(false);
   const [appealText, setAppealText] = useState("");
-  const [flagged, setFlagged] = useState(false);
   const [msg, setMsg] = useState("");
   const needs = !!session.needs_classification;
 
@@ -1993,27 +1996,8 @@ function ClassificationPanel({ session, owned, onChange }: {
       .finally(() => setBusy(false));
   };
 
-  if (!owned) {
-    // Fremde Session: nur die Bitte. Nach dem Absenden verschwindet der Knopf — man muss nicht
-    // erfahren, ob die Meldung „gezählt" hat (das wäre eine Einladung zum Nachzählen).
-    if (flagged) return <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">{t("cls.thanks")}</p>;
-    return (
-      <div className="mb-4">
-        <button
-          disabled={busy}
-          onClick={() => {
-            if (!window.confirm(t("cls.confirmFlag"))) return;
-            setBusy(true);
-            api.flagNotPumpfoil(session.id).then(() => setFlagged(true))
-              .catch((e) => setMsg(String(e))).finally(() => setBusy(false));
-          }}
-          className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-40">
-          {t("cls.notPumpfoil")}
-        </button>
-        {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
-      </div>
-    );
-  }
+  // Fremde Sessions: der Knopf sitzt bei den anderen Melde-Knöpfen (NotPumpfoilButton), nicht hier.
+  if (!owned) return null;
 
   const picker = (
     <div className="flex flex-wrap items-center gap-2">
@@ -2071,5 +2055,28 @@ function ClassificationPanel({ session, owned, onChange }: {
       </div>
       {msg && <p className="mt-1 text-sm text-red-700 dark:text-red-300">{msg}</p>}
     </div>
+  );
+}
+
+// „Sieht nicht nach Pumpfoil aus" — steht bei den anderen Melde-Knöpfen, als mildeste Stufe links.
+// Danach nur „Danke": bewusst OHNE Rückmeldung, ob die Meldung „gezählt" hat — sonst wird das
+// Nachzählen zum Spiel, und die Wirkung tritt erst beim zweiten unabhängigen Melder ein.
+function NotPumpfoilButton({ sessionId }: { sessionId: number }) {
+  const t = useT();
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (done) return <span className="text-sm text-slate-500 dark:text-slate-400">{t("cls.thanks")}</span>;
+  return (
+    <button
+      disabled={busy}
+      onClick={() => {
+        if (!window.confirm(t("cls.confirmFlag"))) return;
+        setBusy(true);
+        api.flagNotPumpfoil(sessionId).then(() => setDone(true)).catch(() => {}).finally(() => setBusy(false));
+      }}
+      className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700 disabled:opacity-40"
+    >
+      <FoilOffIcon className="h-4 w-4 text-slate-400" /> {t("cls.notPumpfoil")}
+    </button>
   );
 }

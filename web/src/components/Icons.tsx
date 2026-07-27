@@ -133,6 +133,18 @@ export const FoilIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// „Sieht nicht nach Pumpfoil aus" — unser Foil, durchgestrichen (Jans Wunsch). Bewusst dasselbe
+// Foil wie in FoilIcon plus ein Balken: das liest sich als „nicht diese Sportart" und nicht als
+// Verbotszeichen.
+export const FoilOffIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M2 7c6-3 14-3 20 0-6 2.5-14 2.5-20 0Z" />
+    <path d="M12 7v11" />
+    <path d="M8.5 18h7" />
+    <path d="M3 21 21 3" />
+  </svg>
+);
+
 // Trimmen — Schere.
 export const ScissorsIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
