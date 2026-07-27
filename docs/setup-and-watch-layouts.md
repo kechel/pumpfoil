@@ -586,9 +586,15 @@ für Nutzer steht (26.07.).
     durchgehend 1.0.66, Direkt-Download gegen `/api/app/latest` + `/api/app/devices` + `download/
     fenix7xpro` geprüft), Changelog-Eintrag geschrieben und der überholte Satz „Watches don't show
     these layouts yet" im Vormittags-Eintrag ersetzt.
-    **Offen als Ideen, nicht gebaut:** Karussell-/Raster-Ansicht der Galerie, Warnung bei sich
-    überlappenden Elementen (nur Displayrand wird geprüft), „letzte Änderung gewinnt" zwischen Uhr und
-    Server (Skizze oben), „Änderungen des Autors übernehmen"-Abo für Kopien (`copied_from_id` ist da).
+    **Offen als Ideen, nicht gebaut:** Warnung bei sich überlappenden Elementen (geprüft wird nur der
+    Displayrand), „letzte Änderung gewinnt" zwischen Uhr und Server (Skizze oben).
+    **Karussell — ERLEDIGT 2026-07-27:** `LayoutTeaser` in `Home.tsx` (= /community), unter den Spots,
+    max. 5 on_foil-Layouts in Server-Reihenfolge (`sort=used`), Scroll-Snap statt Bibliothek, auf dem
+    Handy eine Karte pro Ansicht, Klick irgendwo → Galerie.
+    **VERWORFEN (Jan, 2026-07-27): „Änderungen des Autors übernehmen"-Abo für Kopien** — „brauchen wir
+    nicht, ich kann ja erneut kopieren". Nicht wieder vorschlagen: ein Abo müsste festlegen, was mit
+    den eigenen Anpassungen passiert, wenn sich das Original ändert; erneut kopieren beantwortet das
+    ohne jede Regel.
 
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
