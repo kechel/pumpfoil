@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
@@ -502,6 +502,18 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
   const byId = (id: number) => layouts.find((l) => l.id === id);
   const options = layouts.filter((l) => l.category === category);
   const full = pages.length >= MAX_PAGES;
+  // Neu hinzugefügte Seite kurz hervorheben und ins Bild holen. Sonst sieht man beim wiederholten
+  // Klicken nicht, dass etwas dazukommt — der Knopf wandert nach unten weg, die neue Karte erscheint
+  // direkt darüber, und bei langer Liste ist das außerhalb des Sichtfensters (Einwand Jan).
+  const [added, setAdded] = useState(-1);
+  const addedRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (added < 0) return;
+    addedRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const to = setTimeout(() => setAdded(-1), 1600);
+    return () => clearTimeout(to);
+  }, [added]);
+  const append = (pg: Page) => { setPages([...pages, pg]); setAdded(pages.length); };
   const move = (pi: number, dir: -1 | 1) => {
     const next = [...pages];
     const j = pi + dir;
@@ -513,28 +525,13 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
     <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
       <div className="mb-1 text-sm font-semibold text-slate-200">{title}</div>
       <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{desc}</p>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <select value="" disabled={options.length === 0 || full}
-          onChange={(e) => { const id = Number(e.target.value); if (id) setPages([...pages, id]); e.currentTarget.value = ""; }}
-          className="rounded-xl bg-brand-500 px-3 py-2 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
-          <option value="">{t("account.addLayoutPage")}</option>
-          {options.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
-        <button onClick={() => setPages([...pages, [1, 0, 0]])} disabled={full}
-          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">
-          {t("account.addView")}
-        </button>
-        {full && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
-        {options.length === 0 && (
-          <span className="text-sm text-slate-500 dark:text-slate-400">{t("account.noLayoutsOfKind")}</span>
-        )}
-      </div>
       <div className="space-y-3">
         {pages.map((pg, pi) => {
           const isLayout = !Array.isArray(pg);
           const l = isLayout ? byId(pg as number) : undefined;
           return (
-            <div key={pi} className={`rounded-xl border p-3 ${isLayout ? "border-brand-700/40 bg-brand-500/5" : "border-slate-800 bg-slate-900/50"}`}>
+            <div key={pi} ref={pi === added ? addedRef : undefined}
+              className={`rounded-xl border p-3 transition-shadow ${isLayout ? "border-brand-700/40 bg-brand-500/5" : "border-slate-800 bg-slate-900/50"} ${pi === added ? "ring-2 ring-brand-400" : ""}`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm font-medium text-slate-200">
                   {t("account.pageN", { n: pi + 1 })}
@@ -580,6 +577,25 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
         })}
         {pages.length === 0 && (
           <p className="text-sm text-slate-500 dark:text-slate-400">{t("account.emptyStateDefault")}</p>
+        )}
+      </div>
+      {/* Knöpfe UNTER der Liste — dort standen sie ursprünglich. Kurz waren sie oben, weil es aussah
+          als hätte Tom Petr sie nicht gefunden; er hatte sie gefunden, das war ein Missverständnis.
+          Das Cyan bleibt, das reicht als Auffälligkeit (Jan: „so blau ist das ausreichend"). */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <select value="" disabled={options.length === 0 || full}
+          onChange={(e) => { const id = Number(e.target.value); if (id) append(id); e.currentTarget.value = ""; }}
+          className="rounded-xl bg-brand-500 px-3 py-2 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
+          <option value="">{t("account.addLayoutPage")}</option>
+          {options.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+        <button onClick={() => append([1, 0, 0])} disabled={full}
+          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">
+          {t("account.addView")}
+        </button>
+        {full && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
+        {options.length === 0 && (
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t("account.noLayoutsOfKind")}</span>
         )}
       </div>
     </div>
