@@ -1012,3 +1012,71 @@ def rename_spot(spot_id: int, name: str = Query(...),
     _log(db, admin, "spot_rename", "spot", spot_id, f"{old!r}->{new!r}")
     db.commit()
     return {"ok": True, "name": new}
+
+
+# =============== Sportart-Klassifikation: Warteschlange (docs/sport-classification.md) ===============
+
+@router.get("/classification-queue")
+def classification_queue(
+    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Offene Fälle zur endgültigen Entscheidung. Zwei Sorten, Widersprüche zuerst:
+    (a) der Besitzer hat WIDERSPROCHEN („war doch Pumpfoiling") — braucht ein Urteil;
+    (b) zwei Melder, aber der Besitzer hat noch nicht reagiert — meist erledigt er das selbst,
+        steht hier nur, damit nichts liegen bleibt.
+    Anders als der Besitzer sieht der Admin, WER gemeldet hat und was sie geschrieben haben."""
+    rows = (db.query(models.Session)
+            .filter(models.Session.deleted.isnot(True),
+                    models.Session.needs_classification.is_(True))
+            .order_by(models.Session.appeal_at.desc().nullslast(),
+                      models.Session.id.desc())
+            .limit(200).all())
+    out = []
+    for s in rows:
+        u = db.get(models.User, s.user_id)
+        flags = (db.query(models.SessionFlag, models.User.display_name)
+                 .join(models.User, models.User.id == models.SessionFlag.user_id)
+                 .filter(models.SessionFlag.session_id == s.id).all())
+        ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+        d = _session_brief(db, s, u)
+        d.update({
+            "sport_class": s.sport_class, "data_quality": s.data_quality,
+            "sport_source": s.sport_source,
+            "appeal_text": s.appeal_text,
+            "appeal_at": s.appeal_at.isoformat() if s.appeal_at else None,
+            # Entscheidungshilfe: was sagt der Detektor?
+            "detection": getattr(ar, "detection", None),
+            "num_runs": getattr(ar, "num_runs", None),
+            "max_speed": getattr(ar, "max_speed", None),
+            "flags": [{"user_id": f.user_id, "name": name, "note": f.note,
+                       "at": f.created_at.isoformat() if f.created_at else None}
+                      for f, name in flags],
+        })
+        out.append(d)
+    return out
+
+
+@router.post("/sessions/{sid}/keep-pumpfoil")
+def keep_pumpfoil(
+    sid: int, admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """„Doch Pumpfoil" — endgültig. Setzt `pumpfoil_override=True`: das überlebt Reanalysen UND
+    sperrt weitere Meldungen (sonst könnten zwei neue Melder die Entscheidung überstimmen)."""
+    s = _get_session(db, sid)
+    s.sport_class = "pumpfoil"
+    s.data_quality = "ok"
+    s.sport_source = "admin"
+    s.needs_classification = False
+    s.appeal_text = None
+    s.appeal_at = None
+    s.pumpfoil_override = True
+    _log(db, admin, "keep_pumpfoil", "session", sid, None)
+    db.commit()
+    try:
+        from ..push import send_push, wants
+        if wants(db, s.user_id, "analyzed"):
+            send_push(db, s.user_id, "Pumpfoil", "Deine Session zählt weiter als Pumpfoil ✓",
+                      f"/sessions/{sid}")
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True}

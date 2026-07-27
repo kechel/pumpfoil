@@ -99,7 +99,13 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True):
                 # NUR fertige Sessions: recording/live (In-Progress bzw. gps_only-Vorabanalyse aus
                 # der Detail-Ansicht) NIE in Community/Rekorde — auch wenn is_pumpfoil schon gesetzt.
                 S.status.notin_(("recording", "live")),
-                S.is_pumpfoil.is_(True))
+                S.is_pumpfoil.is_(True),
+                # Menschliche Klassifikation (docs/sport-classification.md): unklassifizierte
+                # Sessions (zwei Melder, noch nicht zugeordnet) erscheinen in KEINER Kategorie,
+                # andere Sportarten und Datenmüll nicht in den Pumpfoil-Auswertungen.
+                S.needs_classification.isnot(True),
+                or_(S.sport_class.is_(None), S.sport_class == "pumpfoil"),
+                or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
     if accel_only:
         q = q.filter(AR.detection == "model")

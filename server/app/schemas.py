@@ -171,6 +171,14 @@ class SessionOut(BaseModel):
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)
     spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)
+    # Menschliche Sportart-Klassifikation (docs/sport-classification.md). `sport` oben ist der
+    # Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
+    sport_class: str | None = None          # pumpfoil (Default) | wingfoil | foildrive | …
+    data_quality: str | None = None         # ok | false_data | duplicate | test
+    sport_source: str | None = None         # default | owner | admin
+    needs_classification: bool = False      # 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
+    flag_count: int = 0                     # nur für Besitzer/Admin sichtbar (Melder bleiben anonym)
+    appeal_text: str | None = None           # Widerspruch des Besitzers (Besitzer/Admin)
     tz: str | None = None           # IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
     device_label: str | None = None  # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht)
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv

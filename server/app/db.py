@@ -98,6 +98,14 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS sensitivity_json TEXT",
         # Start-Erfolgsquote (nur Anzeige): attempts-Preset-Lauf-Distanzen; additiv, keine anderen Stats.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS start_attempts_json TEXT",
+        # Sportart-Klassifikation durch Menschen (docs/sport-classification.md). Defaults so, dass
+        # Altbestand unverändert als Pumpfoil zählt — die Migration darf nichts umklassifizieren.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS sport_class VARCHAR(16) DEFAULT 'pumpfoil'",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS data_quality VARCHAR(16) DEFAULT 'ok'",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS sport_source VARCHAR(10) DEFAULT 'default'",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS needs_classification BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_text TEXT",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_at TIMESTAMPTZ",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_time_s_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS foiling_distance_m_personal",
         "ALTER TABLE analysis_results DROP COLUMN IF EXISTS num_runs_personal",

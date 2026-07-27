@@ -11,8 +11,9 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
-from sqlalchemy import Integer, cast, func, not_, or_
+from sqlalchemy import Integer, and_, cast, func, not_, or_
 from sqlalchemy.dialects.postgresql import JSONB
+from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, object_session
 
 from .. import media, models, storage
@@ -20,6 +21,7 @@ from ..analysis import maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
+from ..notify import notify_needs_classification
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
 from ..tzlookup import tz_name
@@ -117,6 +119,18 @@ def _list_ended_at(s: models.Session):
     return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
 
 
+def _flag_count(s: models.Session) -> int:
+    """Wie viele Nutzer haben „sieht nicht nach Pumpfoil aus" gemeldet? Nur die ZAHL verlässt den
+    Server Richtung Besitzer — wer gemeldet hat, sieht ausschließlich der Admin."""
+    db = object_session(s)
+    if db is None:
+        return 0
+    try:
+        return int(db.query(func.count(models.SessionFlag.id)).filter_by(session_id=s.id).scalar() or 0)
+    except Exception:  # noqa: BLE001 – alte DB ohne Tabelle darf die Ausgabe nicht brechen
+        return 0
+
+
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
                  sens: str | None = None, video_url: str | None = None) -> SessionOut:
@@ -124,6 +138,16 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         id=s.id,
         session_uuid=s.session_uuid,
         sport=s.sport,
+        # Menschliche Klassifikation — in JEDER Ausgabe dabei, damit die Session-Karten sie zeigen
+        # können (Jan: „klassifikation dann auch in den session cards mit anzeigen"). `flag_count`
+        # und `appeal_text` nur für Besitzer/Admin: die Melder bleiben für den Betroffenen anonym,
+        # aber wie viele es sind, darf er wissen.
+        sport_class=getattr(s, "sport_class", None) or "pumpfoil",
+        data_quality=getattr(s, "data_quality", None) or "ok",
+        sport_source=getattr(s, "sport_source", None) or "default",
+        needs_classification=bool(getattr(s, "needs_classification", False)),
+        flag_count=(_flag_count(s) if owned else 0),
+        appeal_text=(s.appeal_text if owned else None),
         started_at=s.started_at,
         ended_at=_list_ended_at(s),
         status=s.status,
@@ -1924,5 +1948,135 @@ def delete_video(
     db.flush()
     _sync_video_mirror(db, s)
     db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
+    db.commit()
+    return {"ok": True}
+
+
+# =============== Sportart-Klassifikation (docs/sport-classification.md) ===============
+# Drei Endpunkte, drei Rollen:
+#   * FREMDE melden nur „sieht nicht nach Pumpfoil aus" — ohne Kategorie. Es ist eine Bitte an den
+#     Besitzer, keine Entscheidung (Jans Vorgabe: freundlich formuliert, Zuordnung beim Ersteller).
+#   * BESITZER (und Admin) ordnen zu.
+#   * BESITZER kann widersprechen -> Admin entscheidet.
+# Wirkung erst beim ZWEITEN unabhängigen Melder: eine einzelne anonyme Meldung wäre sonst eine Waffe
+# gegen den Führenden in der Rangliste.
+
+SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "sup_paddle", "wake",
+          "efoil", "foildrive", "other")
+DATA_QUALITY = ("ok", "false_data", "duplicate", "test")
+FLAGS_TO_HIDE = 2          # so viele unabhängige Melder machen eine Session unklassifiziert
+
+
+class ClassifyIn(BaseModel):
+    sport: str | None = None
+    data_quality: str | None = None
+
+
+class FlagIn(BaseModel):
+    note: str | None = None
+
+
+class AppealIn(BaseModel):
+    text: str | None = None
+
+
+def _session_or_404(db: Session, session_id: int) -> models.Session:
+    s = db.get(models.Session, session_id)
+    if s is None or s.deleted:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session nicht gefunden")
+    return s
+
+
+@router.post("/{session_id}/not-pumpfoil")
+def flag_not_pumpfoil(
+    session_id: int, body: FlagIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """„Sieht nicht nach Pumpfoil aus" von einem ANDEREN Nutzer. Setzt keine Kategorie."""
+    s = _session_or_404(db, session_id)
+    if s.user_id == user.id:
+        # Der Besitzer braucht das nicht: er ordnet direkt zu (PUT /classification).
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Eigene Session bitte direkt zuordnen")
+    if s.pumpfoil_override is True:
+        # Ein Admin hat „doch Pumpfoil" entschieden -> weitere Meldungen wirken nicht mehr, sonst
+        # könnten zwei neue Melder die Entscheidung einfach überstimmen.
+        return {"ok": True, "counted": False, "needs_classification": False}
+    # Wer sich gegenseitig blockiert hat, soll sich nicht über Meldungen erreichen können.
+    blocked = db.query(models.UserBlock).filter(
+        or_(and_(models.UserBlock.blocker_id == user.id, models.UserBlock.blocked_id == s.user_id),
+            and_(models.UserBlock.blocker_id == s.user_id, models.UserBlock.blocked_id == user.id))).first()
+    if blocked is not None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Nicht möglich")
+    existing = db.query(models.SessionFlag).filter_by(session_id=s.id, user_id=user.id).first()
+    if existing is None:
+        note = (body.note or "").strip()[:500] or None
+        db.add(models.SessionFlag(session_id=s.id, user_id=user.id, note=note))
+        db.flush()
+    n = db.query(func.count(models.SessionFlag.id)).filter_by(session_id=s.id).scalar() or 0
+    became = False
+    if n >= FLAGS_TO_HIDE and not s.needs_classification:
+        s.needs_classification = True
+        became = True
+    db.commit()
+    if became:
+        notify_needs_classification(db, s)
+    return {"ok": True, "counted": True, "flags": n, "needs_classification": bool(s.needs_classification)}
+
+
+@router.put("/{session_id}/classification")
+def set_classification(
+    session_id: int, body: ClassifyIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Zuordnen — durch den BESITZER oder einen ADMIN (gleichberechtigt, Jans Vorgabe)."""
+    s = _session_or_404(db, session_id)
+    is_admin = bool(getattr(user, "is_admin", False))
+    if s.user_id != user.id and not is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Nicht deine Session")
+    sport = body.sport if body.sport in SPORTS else None
+    dq = body.data_quality if body.data_quality in DATA_QUALITY else None
+    if sport is None and dq is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Kategorie fehlt")
+    # LOCH, das der erste Test aufgedeckt hat: ohne diese Sperre könnte der Besitzer nach zwei
+    # Meldungen einfach „pumpfoil" wählen und die Meldungen damit aushebeln. Zurück auf Pumpfoil
+    # führt deshalb NUR über den Widerspruch, den der Admin entscheidet (Jans Ablauf). In jede
+    # ANDERE Kategorie darf er frei zuordnen — das ist ja der Sinn der Bitte.
+    if (not is_admin and s.needs_classification
+            and (sport in (None, "pumpfoil")) and (dq in (None, "ok"))):
+        raise HTTPException(status.HTTP_409_CONFLICT,
+                            "Bitte Widerspruch einlegen — das entscheidet ein Admin")
+    if sport is not None:
+        s.sport_class = sport
+    if dq is not None:
+        s.data_quality = dq
+    s.sport_source = "admin" if is_admin else "owner"
+    # Zugeordnet heißt: die Frage ist beantwortet, der Widerspruch damit erledigt.
+    s.needs_classification = False
+    s.appeal_text = None
+    s.appeal_at = None
+    if is_admin and s.sport_class == "pumpfoil" and s.data_quality == "ok":
+        # Admin sagt „doch Pumpfoil" -> gegen weitere Meldungen sperren (überlebt auch Reanalysen,
+        # s. Kommentar an Session.pumpfoil_override).
+        s.pumpfoil_override = True
+    db.commit()
+    return {"ok": True, "sport_class": s.sport_class, "data_quality": s.data_quality,
+            "sport_source": s.sport_source}
+
+
+@router.post("/{session_id}/appeal")
+def appeal_classification(
+    session_id: int, body: AppealIn,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """„War doch Pumpfoiling" — Widerspruch des Besitzers, landet in der Admin-Warteschlange."""
+    s = _session_or_404(db, session_id)
+    if s.user_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Nicht deine Session")
+    if not s.needs_classification:
+        # Nichts offen -> nichts zu widersprechen. Sonst landen sinnlose Einträge in der
+        # Admin-Warteschlange und verdecken die echten Fälle.
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Für diese Session ist nichts offen")
+    s.appeal_text = (body.text or "").strip()[:1000] or "—"
+    s.appeal_at = datetime.now(timezone.utc)
     db.commit()
     return {"ok": True}

@@ -401,6 +401,26 @@ class Session(Base):
     # im Aussortiert-Tab), True = zwangsweise Pumpfoil (für späteren Nutzer-Einspruch reserviert).
     # Überlebt Reanalysen (run_analysis wendet ihn nach der Klassifikation an).
     pumpfoil_override: Mapped[bool | None] = mapped_column(Boolean)
+    # --- Sportart-Klassifikation durch MENSCHEN (docs/sport-classification.md) ---
+    # Bewusst getrennt von is_pumpfoil/detection: die gehören dem Detektor und werden von jeder
+    # Reanalyse überschrieben. Zwei Achsen, weil sie sich unterschiedlich verhalten:
+    #   sport        = andere Sportart, aber GÜLTIGE Messung (wingfoil, kitefoil, surf_downwind,
+    #                  sup_paddle, wake, efoil, foildrive, other) -> darf eigene Rekorde begründen
+    #   data_quality = Müll/Dopplung (false_data, duplicate, test) -> zählt NIRGENDS
+    # ACHTUNG: NICHT `sport` — das gibt es schon (Aktivitätstyp aus der Aufnahmedatei, weiter oben).
+    # `sport_class` ist das MENSCHLICHE Urteil und eine andere Sache: die Uhr kann „surfing" melden,
+    # während die Session tatsächlich Wingfoil war.
+    sport_class: Mapped[str] = mapped_column(String(16), default="pumpfoil", server_default="pumpfoil")
+    data_quality: Mapped[str] = mapped_column(String(16), default="ok", server_default="ok")
+    # Wer hat den Wert gesetzt: default (Analyse) | owner | admin. „community" gibt es NICHT —
+    # eine Fremdmeldung setzt keine Kategorie, sie stellt nur eine Frage (Jans Vorgabe).
+    sport_source: Mapped[str] = mapped_column(String(10), default="default", server_default="default")
+    # Zwei unabhängige Melder (oder der Besitzer selbst) -> unklassifiziert: erscheint in KEINER
+    # Kategorie, bis Besitzer oder Admin zuordnet.
+    needs_classification: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Widerspruch des Besitzers („war doch Pumpfoiling") -> Admin entscheidet.
+    appeal_text: Mapped[str | None] = mapped_column(Text)
+    appeal_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Moderation: flagged = als unangemessen gemeldet -> in Community ausgeblendet,
     # bis ein Admin entscheidet. mod_ok = vom Admin freigegeben (nicht erneut flaggen).
     flagged: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
@@ -852,3 +872,23 @@ class RecordEvent(Base):
     prev_session_id: Mapped[int | None] = mapped_column(ForeignKey("sessions.id"))
     prev_value: Mapped[float | None] = mapped_column(Float)
     pushed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+
+class SessionFlag(Base):
+    """„Sieht nicht nach Pumpfoil aus" — EINE Meldung eines Nutzers zu EINER Session.
+
+    Bewusst eine eigene Tabelle statt eines Zählers: wir müssen unabhängige Melder zählen können
+    (die Wirkung tritt erst beim zweiten ein, sonst wäre eine einzelne anonyme Meldung eine Waffe
+    gegen den Führenden) und der Admin muss sehen, WER gemeldet hat. Für den Besitzer bleiben die
+    Melder unsichtbar — sonst entstehen Privatfehden aus einer Klassifikationsfrage.
+    Design: docs/sport-classification.md.
+    """
+
+    __tablename__ = "session_flags"
+    __table_args__ = (UniqueConstraint("session_id", "user_id", name="uq_session_flag_user"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
