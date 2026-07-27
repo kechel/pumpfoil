@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto } from "../lib/api";
+import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout } from "../lib/api";
+import { LayoutPreview } from "../components/LayoutPreview";
+import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar } from "../components/ui";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
@@ -381,6 +383,57 @@ function CommunitySection() {
       <Leaderboards period={period} accelOnly={accelOnly} />
       <TopLiked period={period} />
       <SpotSection period={period} accelOnly={accelOnly} />
+      <LayoutTeaser />
+    </div>
+  );
+}
+
+// Uhr-Layouts der Community, ganz unten auf der Community-Seite: höchstens 5, sortiert wie die
+// Galerie (meistgenutzte zuerst, s. layouts._usage_stats). Klick irgendwo -> Galerie.
+// Wischen statt Pfeil-Knöpfe: eine Scroll-Snap-Reihe. Auf dem Handy ist EINE Karte volle Breite
+// (`w-full`), also wischt man genau von Layout zu Layout; ab sm liegen sie nebeneinander. Das
+// braucht keine Karussell-Bibliothek und funktioniert mit Touch, Trackpad und Tastatur.
+function LayoutTeaser() {
+  const t = useT();
+  const [rows, setRows] = useState<WatchLayout[] | null>(null);
+  useEffect(() => {
+    api.layoutCommunity({ category: "on_foil" })
+      .then((r) => setRows(r.slice(0, 5)))
+      .catch(() => setRows([]));
+  }, []);
+  if (!rows || rows.length === 0) return null;   // nichts veröffentlicht -> keine leere Box
+  return (
+    <div className="mt-6">
+      <div className="mb-1.5 flex items-center gap-2">
+        <WatchIcon className="h-5 w-5 text-brand-400" />
+        <h3 className="text-lg font-bold">{t("home.layouts")}</h3>
+        <Link to="/layouts/community" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">
+          {t("home.layoutsAll")} →
+        </Link>
+      </div>
+      <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">{t("home.layoutsHint")}</p>
+      <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
+        {rows.map((l) => (
+          <Link key={l.id} to="/layouts/community"
+            className="w-full shrink-0 snap-center sm:w-56">
+            <Card className="flex h-full flex-col items-center gap-2 p-3 hover:border-slate-600">
+              <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240}
+                shape={(l.authored_shape as WatchShape) || "round"} px={150} />
+              <div className="w-full min-w-0 text-center">
+                <div className="truncate text-sm font-semibold">{l.name}</div>
+                <div className="truncate text-sm text-slate-500 dark:text-slate-400">
+                  {t("lay.byAuthor", { name: l.author ?? "?" })}
+                </div>
+                {(l.used_by ?? 0) > 0 && (
+                  <div className="text-sm text-brand-700 dark:text-brand-300">
+                    {t("lay.usedBy", { n: l.used_by ?? 0 })}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
