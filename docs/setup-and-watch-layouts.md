@@ -600,6 +600,54 @@ für Nutzer steht (26.07.).
     den eigenen Anpassungen passiert, wenn sich das Original ändert; erneut kopieren beantwortet das
     ohne jede Regel.
 
+## F3 — Beliebig viele Screens JE ZUSTAND (Entscheidung Jan, 2026-07-27)
+
+Auslöser: Tom Petr hatte **zwei** „between rides"-Screens gebaut und fand nicht, warum der zweite
+nirgends auftaucht — Off-Foil und Pause nahmen je genau einen. Jan: „bitte gleich beide generisch
+machen, pause und off-foil, so dass man ueberall beliebig viele einfuegen kann."
+
+**Das neue Modell (Jans Wortlaut):** „pausen-screens nur wenn man die session manuell pausiert hat (da
+wo man auch speichern/verwerfen kann), je nach status (pause oder on-foil oder off-foil) soll man
+durch jeweils alle zugehoerigen screens blaettern koennen und durch keine anderen."
+
+Damit wird aus der heutigen Zeitregel eine **Zustandsmaschine**:
+
+| Zustand | wann | Seiten-Satz | Blättern |
+|---|---|---|---|
+| **on_foil** | Lauf läuft | `pages` | UP/DOWN nur durch on_foil |
+| **off_foil** | Aufnahme läuft, aber gerade kein Lauf (inkl. Dümpeln zwischen Läufen) | `off_foil_pages` | nur durch off_foil |
+| **pause** | Aufnahme **manuell pausiert** (Stopp-Menü → Pausieren) | `pause_pages` | nur durch pause |
+
+Was das **abschafft**: die 8-Sekunden-Regel (nach Lauf-Ende erst Off-Foil-Screen, dann Pausen-Screen)
+und den Übersichts-Slot als letzte Seite im Ring. Beides war zeit- statt zustandsgesteuert und passt
+nicht mehr — „Dümpeln zwischen den Läufen" ist nach dem neuen Modell **off_foil**, denn die Aufnahme
+läuft ja. Wer heute eine Lauf-Zusammenfassung direkt nach dem Lauf will, macht sie zum **ersten**
+Off-Foil-Screen.
+
+**Semantik-Verschiebung, die Nutzer betrifft (bewusst NICHT automatisch migriert):** ein heute unter
+„Pause zwischen den Läufen" konfigurierter Screen erscheint künftig nur noch beim manuellen Pausieren.
+Betrifft aktuell Jan und Tom (je 1–2 Screens) — sie sortieren das in einer halben Minute selbst um.
+Automatisches Umschreiben fremder Einstellungen wäre der falsche Preis für die Bequemlichkeit
+([[never-touch-db-unasked]]).
+
+**Harte Randbedingung: 1.0.66 ist im Store** und liest `offFoil`/`pause` als je EINEN Eintrag
+(`[0,a,b,c]` oder `[1,bg,[…]]`). Eine Liste dorthin zu schicken würde dort als Feld-ID gelesen →
+Müll auf dem Display. Also **additiv**: alte Schlüssel bleiben und tragen den ERSTEN Screen des
+jeweiligen Satzes, neu kommen `offFoilPages`/`pausePages` als Arrays hinzu. Alte Uhren zeigen weiter
+genau einen Screen, neue alle.
+
+**Sicherheitsnetz beim manuellen Pausieren:** der bisherige `_drawPaused`-Screen sagt „Pausiert" und
+wie man fortsetzt. Ein eigenes Pausen-Layout weiß das nicht. Damit niemand in einer pausierten
+Aufnahme festsitzt, muss die Uhr über einem Pausen-Layout **weiterhin einen kleinen „Pausiert"-Hinweis
+einblenden** (Chrome, nicht verhandelbar) — nicht in die Freiheit des Layouts eingreifen, aber
+sichtbar bleiben.
+
+**Reihenfolge der Umsetzung:** (1) Server (Listen + Validierung + additive Config-Schlüssel),
+(2) PWA (drei gleichartige Listen), (3) Uhr 1.0.67 (Zustandsmaschine + Punkte je Zustand + Pausiert-
+Hinweis) mit Simulator-Tests und Store-Release.
+
+---
+
 **Regel, hart gelernt (2026-07-26): Entwicklungsbuilds gehören NIE in `watch/bin`.**
 Der Server liest `watch/bin` live: `/api/app/devices` + `/api/app/download/<id>` liefern genau das,
 was dort liegt. Als 1.0.66 dort landete, bewarb die Website prompt ein „Update verfügbar: v1.0.66",
