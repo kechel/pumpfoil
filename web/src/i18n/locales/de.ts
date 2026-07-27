@@ -1185,6 +1185,7 @@ const de: Record<string, string> = {
   "setup.emptyList": "Noch nichts eingetragen.",
   "setup.noSpecs": "keine Maße veröffentlicht",
   "account.pauseTitle": "Pausen-Ansicht",
+  "account.oneScreenOnly": "Hier zeigt die Uhr genau EINEN Screen. Du hast {n} Layouts dieser Art — die anderen bleiben ungenutzt, bis du sie hier auswählst.",
   "account.pauseDesc": "Wird gezeigt, wenn du zwischen den Läufen dümpelst — direkt nach der kurzen Lauf-Zusammenfassung (Default: Uhrzeit + Läufe + Puls). Bisher war das auf allen Uhren fest eingestellt.",
 
   // Uhr-Einrichtungs-Guide (WatchGuide)

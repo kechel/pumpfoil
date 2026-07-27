@@ -553,6 +553,19 @@ function ViewsEditor() {
       <p className="mb-4 text-sm text-slate-400">{t("account.layoutsEnabledHint")}</p>
       <p className="mb-4 text-sm text-slate-400">{t("account.recordModeMoved")}</p>
 
+      {/* ÜBER der Liste und in Cyan (Jan gegenüber Tom Petr angekündigt, der die Stelle nicht fand):
+          „eigenen Screen einfügen" ist der Weg, den man sucht — er stand unauffällig UNTER der Liste. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <select value="" onChange={(e) => { addLayoutPage(Number(e.target.value)); e.currentTarget.value = ""; }}
+          disabled={onFoilLayouts.length === 0 || pages.length >= MAX_PAGES}
+          className="rounded-xl bg-brand-500 px-3 py-2 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
+          <option value="">{t("account.addLayoutPage")}</option>
+          {onFoilLayouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+        <button onClick={addView} disabled={pages.length >= MAX_PAGES}
+          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">{t("account.addView")}</button>
+        {pages.length >= MAX_PAGES && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
+      </div>
       <div className="space-y-3">
         {pages.map((p, pi) => {
           const isLayout = !Array.isArray(p);
@@ -601,17 +614,6 @@ function ViewsEditor() {
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button onClick={addView} disabled={pages.length >= MAX_PAGES}
-          className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">{t("account.addView")}</button>
-        <select value="" onChange={(e) => { addLayoutPage(Number(e.target.value)); e.currentTarget.value = ""; }}
-          disabled={onFoilLayouts.length === 0 || pages.length >= MAX_PAGES}
-          className="rounded-xl border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100 disabled:opacity-40">
-          <option value="">{t("account.addLayoutPage")}</option>
-          {onFoilLayouts.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
-        {pages.length >= MAX_PAGES && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
-      </div>
 
       {screenSection(t("account.offFoilTitle"), t("account.offFoilDesc"), offFoil, setOffField,
                      offLayout, setOffLayout, offLayouts)}

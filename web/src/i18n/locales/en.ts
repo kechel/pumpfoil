@@ -1105,6 +1105,7 @@ const en: Record<string, string> = {
   "setup.emptyList": "Nothing added yet.",
   "setup.noSpecs": "no dimensions published",
   "account.pauseTitle": "Resting view",
+  "account.oneScreenOnly": "The watch shows exactly ONE screen here. You have {n} layouts of this kind — the others stay unused until you select them here.",
   "account.pauseDesc": "Shown while you're resting between runs — right after the short run summary (default: clock + runs + heart rate). Until now this was fixed on every watch.",
 
   // Watch setup guide (WatchGuide)
