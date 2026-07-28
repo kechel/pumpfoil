@@ -33,7 +33,6 @@ const ENTRIES: Entry[] = [
     date: "July 28, 2026",
     items: [
       "Connecting a Suunto account works again. Between July 19 and 28 it stopped part way through: you could log in at Suunto, and then it gave up. That was on Suunto’s side, not yours — nothing was wrong with your password or your watch. If you gave up back then, please give it another go under [Linked accounts](/konten); your workouts then import as sessions.",
-      "New Suunto workouts should now also arrive on their own, without pressing Import workouts — upload a workout in the Suunto app and it turns up here. If it doesn’t, the Import button still works.",
     ],
   },
   {
