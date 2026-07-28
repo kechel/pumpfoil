@@ -80,6 +80,17 @@ enum Api {
         let language: String?   // Profil-Sprache (de/gsw/de-AT/en/fr/it/es) für On-Device-Texte
         let recordMode: String? // Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren)
         let autoStart: Bool?    // GPS-Auto-Start (optional/abwärtskompatibel zum Cache)
+        // Eigene Layouts (F2/F3). `pages`/`offFoilPages`/`pausePages` sind GEMISCHT: ein Eintrag ist
+        // entweder eine 3-Feld-Seite ([Int]) oder eine Layout-ID (Int) -- deshalb LayoutPrimOrList
+        // statt [[Int]]. `layouts` bildet Layout-ID -> Definition ab. `layoutsOn` ist nur die
+        // VOREINSTELLUNG des Schalters auf der Uhr, kein Veto (wie bei Garmin).
+        let layoutsOn: Bool?
+        let layouts: [String: [LayoutPrimOrList]]?
+        let pages: [LayoutPrimOrList]?
+        let offFoilPages: [LayoutPrimOrList]?
+        let pausePages: [LayoutPrimOrList]?
+        let browseAll: Bool?
+        let latestVersion: String?   // Update-Hinweis (leer = keiner); seit a08e67d plattform-generisch
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt
@@ -94,11 +105,14 @@ enum Api {
         }
     }
 
-    static func deviceConfig() async throws -> DeviceConfig {
+    /// wantLayouts: der Nutzer hat eigene Layouts nicht abgeschaltet -> `lay=1` anfordern
+    /// (derselbe Parameter wie bei Garmin; auf watchOS gibt es keine Speichergrenze).
+    static func deviceConfig(wantLayouts: Bool = true) async throws -> DeviceConfig {
         // Version + Plattform melden -> Update-Hinweis im Web.
         let v = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
-        let q = v.isEmpty ? "?p=apple"
-            : "?v=\(v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v)&p=apple"
+        let lay = wantLayouts ? "&lay=1" : ""
+        let q = (v.isEmpty ? "?p=apple"
+            : "?v=\(v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v)&p=apple") + lay
         guard let url = URL(string: baseURL + "/api/devices/config" + q) else { throw err("Bad URL") }
         var req = URLRequest(url: url)
         req.timeoutInterval = 10   // nicht ewig warten — der Nutzer kann „Jetzt nicht" tippen

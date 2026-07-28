@@ -34,6 +34,14 @@ enum WLoc {
 
     private static let table: [String: [String: String]] = [
         // Pairing
+        // Eigene Layouts: Texte woertlich aus dem Garmin-Recorder (watch/source/Strings.mc),
+        // damit dieselbe Funktion auf allen Uhren gleich heisst.
+        "menu.layouts": r("Eigene Layouts", "Eigeni Layouts", "Eigene Layouts", "Custom layouts", "Layouts perso", "Layout personali", "Diseños propios"),
+        "common.auto": r("Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático"),
+        "common.on": r("An", "Aa", "An", "On", "Activé", "On", "Sí"),
+        "common.off": r("Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No"),
+        "lay.none": r("keine Seiten", "kei Site", "keine Seiten", "no pages", "aucune page", "nessuna pagina", "sin páginas"),
+        "rec.paused": r("Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa"),
         "pair.title": r("Uhr verbinden", "Uhr verbinde", "Uhr verbinden", "Connect watch", "Connecter la montre", "Collega l'orologio", "Conectar reloj"),
         "pair.howto": r("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Pairing-Code erzüge und uf pumpfoil.org (Account) yygeh.", "Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Generate a pairing code and enter it on pumpfoil.org (Account).", "Générez un code et saisissez-le sur pumpfoil.org (Compte).", "Genera un codice e inseriscilo su pumpfoil.org (Account).", "Genera un código e introdúcelo en pumpfoil.org (Cuenta)."),
         "pair.gen": r("Pairing-Code erzeugen", "Pairing-Code erzüge", "Pairing-Code erzeugen", "Generate pairing code", "Générer un code", "Genera codice", "Generar código"),

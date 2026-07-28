@@ -110,6 +110,14 @@ struct RecordView: View {
     @AppStorage("appLang") private var lang = "de"
     // Default = sinnvolles 3-Seiten-Layout, bis die Account-Config gesynct ist.
     @State private var views: [[Int]] = [[1, 2], [6, 7], [4, 3]]
+    // Eigene Layouts (F2/F3): gemischte Seiten-Saetze + Definitionen; `layoutsPref` ist dreistufig
+    // (nil = automatisch, also Server-Voreinstellung) -- der Nutzer soll am Handgelenk umstellen
+    // koennen, ohne dass der Server ihn ueberstimmt. Genau wie bei Garmin.
+    @State private var layoutDefs: [Int: LayoutPageDef] = [:]
+    @State private var onFoilPages: [WatchPageRef] = []
+    @State private var offFoilPages: [WatchPageRef] = []
+    @State private var layoutsServerDefault = false
+    @AppStorage("layoutsPref") private var layoutsPrefRaw = 0   // 0 = auto, 1 = an, 2 = aus
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
     @State private var page = 2   // Start auf der ersten Datenseite (0=Verwerfen, 1=Stop davor)
@@ -148,20 +156,18 @@ struct RecordView: View {
                 TabView(selection: $page) {
                     discardPage().tag(0)
                     stopPage(WLoc.t("rec.toData", lang)).tag(1)
-                    ForEach(Array(views.enumerated()), id: \.offset) { idx, fields in
-                        VStack(spacing: 10) {
-                            ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .tag(idx + 2)
+                    ForEach(Array(dataPages.enumerated()), id: \.offset) { idx, ref in
+                        dataPageView(ref, idx: idx)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .tag(idx + 2)
                     }
                     VStack(spacing: 10) {   // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls)
                         ForEach(activeFields(showRunEnd ? offFoil : pauseView), id: \.self) { fid in fieldView(fid) }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .tag(views.count + 2)
-                    stopPage(WLoc.t("rec.toSummary", lang)).tag(views.count + 3)
-                    discardPage().tag(views.count + 4)
+                    .tag(dataPages.count + 2)
+                    stopPage(WLoc.t("rec.toSummary", lang)).tag(dataPages.count + 3)
+                    discardPage().tag(dataPages.count + 4)
                 }
                 .tabViewStyle(.page)
                 .onChange(of: rec.isRecording) { r in if r { page = 2 } }
@@ -245,6 +251,8 @@ struct RecordView: View {
                             foils: foils,
                             alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
                             autoStart: $autoStart,
+                            layoutsPrefRaw: $layoutsPrefRaw,
+                            hasLayoutPages: dataPages.contains { if case .layout = $0 { return true } else { return false } },
                             onPick: { showFoilPicker = false },
                             onCancel: { showFoilPicker = false })
                     }
@@ -372,6 +380,45 @@ struct RecordView: View {
         return a.isEmpty ? [1] : a
     }
 
+    // Seiten des Datenrings: der gemischte Satz vom Server, Rueckfall die klassischen `views`.
+    private var dataPages: [WatchPageRef] {
+        onFoilPages.isEmpty ? views.map { WatchPageRef.classic($0) } : onFoilPages
+    }
+
+    /// nil = automatisch (Server entscheidet), true/false = Nutzerwahl auf der Uhr.
+    private var layoutsPref: Bool? {
+        switch layoutsPrefRaw {
+        case 1: return true
+        case 2: return false
+        default: return nil
+        }
+    }
+    private var layoutsEffective: Bool { layoutsPref ?? layoutsServerDefault }
+
+    @ViewBuilder private func dataPageView(_ ref: WatchPageRef, idx: Int) -> some View {
+        switch ref {
+        case .layout(let id):
+            if layoutsEffective, let def = layoutDefs[id] {
+                LayoutPageView(
+                    page: def, pageIndex: idx, pageCount: dataPages.count,
+                    recording: rec.recording, pausedText: WLoc.t("rec.paused", lang),
+                    fieldValue: { fid in fieldValue(fid, rec, lang).0 },
+                    fieldLabel: { fid in fieldValue(fid, rec, lang).1 },
+                    fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil }
+                )
+            } else {
+                // Layout aus oder Definition fehlt -> klassische Ansicht, damit die Seite nicht leer ist.
+                VStack(spacing: 10) {
+                    ForEach(activeFields(views.first ?? [1]), id: \.self) { fid in fieldView(fid) }
+                }
+            }
+        case .classic(let fields):
+            VStack(spacing: 10) {
+                ForEach(activeFields(fields), id: \.self) { fid in fieldView(fid) }
+            }
+        }
+    }
+
     @ViewBuilder private func fieldView(_ fid: Int) -> some View {
         let fv = fieldValue(fid, rec, lang)
         VStack(spacing: 0) {
@@ -407,6 +454,18 @@ struct RecordView: View {
         guard let c else { return }
         if let l = c.language, !l.isEmpty { lang = l }   // Profil-Sprache übernehmen (persistiert via @AppStorage)
         if !c.views.isEmpty { views = c.views }
+        // Layout-Paket. Fehlt es, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
+        layoutsServerDefault = c.layoutsOn ?? false
+        if let defs = c.layouts {
+            var m: [Int: LayoutPageDef] = [:]
+            for (k, v) in defs {
+                if let id = Int(k), let def = LayoutPageDef(v) { m[id] = def }
+            }
+            layoutDefs = m
+        }
+        onFoilPages = (c.pages?.compactMap { WatchPageRef($0) }) ?? views.map { WatchPageRef.classic($0) }
+        offFoilPages = (c.offFoilPages?.compactMap { WatchPageRef($0) })
+            ?? [WatchPageRef.classic(c.offFoilView ?? offFoil)]
         colorBy = c.colorByValue
         manualAlarm = c.alarmEnabled
         alarmDefault = c.alarmDefault ?? "foil"
@@ -496,6 +555,8 @@ struct AlarmPickerSheet: View {
     @Binding var alarmSource: String
     @Binding var selectedFoilId: Int?
     @Binding var autoStart: Bool
+    @Binding var layoutsPrefRaw: Int     // 0 = automatisch, 1 = an, 2 = aus
+    var hasLayoutPages: Bool             // false -> Hinweis "keine Seiten" wie bei Garmin
     var onPick: () -> Void
     var onCancel: () -> Void
     @AppStorage("appLang") private var lang = "de"
@@ -506,6 +567,22 @@ struct AlarmPickerSheet: View {
                 Toggle(WLoc.t("rec.autoStartToggle", lang), isOn: $autoStart)
             } footer: {
                 Text(WLoc.t("rec.autoStartHelp", lang))
+            }
+            // Eigene Layouts: Automatisch / An / Aus -- derselbe Dreiklang wie im Garmin-Menue
+            // (RecordDelegate._layoutState). Der Server-Wert ist nur die Vorbelegung beim App-Start.
+            Section {
+                Picker(WLoc.t("menu.layouts", lang), selection: $layoutsPrefRaw) {
+                    Text(WLoc.t("common.auto", lang)).tag(0)
+                    Text(WLoc.t("common.on", lang)).tag(1)
+                    Text(WLoc.t("common.off", lang)).tag(2)
+                }
+            } footer: {
+                // Fusstext nur, wenn er etwas Konkretes sagt: "An, aber es sind keine Seiten
+                // konfiguriert". Einen allgemeinen Hilfetext gibt es im Garmin-Recorder nicht, und
+                // ich erfinde ihn nicht in sieben Sprachen.
+                if layoutsPrefRaw == 1 && !hasLayoutPages {
+                    Text(WLoc.t("lay.none", lang))
+                }
             }
             Section {
                 Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
