@@ -32,6 +32,10 @@ data class Profile(
     @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
     @SerialName("social_allowed") val socialAllowed: Boolean? = null,
     val beta: Boolean = false,
+    // Offene Sportart-Zuordnungen des Nutzers (Server: auth.py:_needs_classification) — Hinweis auf
+    // der Startseite; bei genau einer Session verlinkt die ID direkt dorthin.
+    @SerialName("needs_classification") val needsClassification: Int = 0,
+    @SerialName("needs_classification_id") val needsClassificationId: Int? = null,
 )
 
 @Serializable
@@ -93,6 +97,11 @@ data class SessionSummary(
     val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
     @SerialName("transfer_to") val transferTo: String? = null,      // offene Übertragung → Badge
+    // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`, das ist
+    // der Aktivitätstyp aus der Aufnahmedatei.
+    @SerialName("sport_class") val sportClass: String? = null,
+    @SerialName("data_quality") val dataQuality: String? = null,
+    @SerialName("needs_classification") val needsClassification: Boolean = false,
     val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
 )
 
@@ -532,6 +541,11 @@ data class SessionDetail(
     @SerialName("youtube_url") val youtubeUrl: String? = null,
     @SerialName("place_water") val placeWater: String? = null,   // Gewässer als Zusatz-Label
     @SerialName("spot_id") val spotId: Int? = null,               // additiv; Nav bleibt namensbasiert
+    // Sportart-Klassifikation (docs/sport-classification.md); `appealText` gesetzt = Widerspruch läuft.
+    @SerialName("sport_class") val sportClass: String? = null,
+    @SerialName("data_quality") val dataQuality: String? = null,
+    @SerialName("needs_classification") val needsClassification: Boolean = false,
+    @SerialName("appeal_text") val appealText: String? = null,
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
@@ -252,6 +253,37 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                         Spacer(Modifier.width(10.dp))
                         Text(I18n.t("transfer.homeHint"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                         Text("→", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+
+            // Offene Sportart-Zuordnung (docs/sport-classification.md): jemand hat gebeten, eine
+            // eigene Session einzuordnen. Bewusst KEIN Push (Jan) — dieser Hinweis reicht, und er
+            // erklärt in Ruhe, statt unaufgefordert nach Vorwurf zu klingen. Bei genau einer Session
+            // direkt dorthin, sonst in die Liste.
+            val needsCls = profile?.needsClassification ?: 0
+            if (needsCls > 0) {
+                val one = needsCls == 1
+                val target = profile?.needsClassificationId
+                Card(
+                    Modifier.fillMaxWidth().clickable {
+                        if (one && target != null) onOpen(target, null) else onOpenSessions()
+                    },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.HelpOutline, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            if (one) I18n.t("home.needsClassification")
+                            else I18n.t("home.needsClassificationN").replace("{n}", needsCls.toString()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text("→", color = MaterialTheme.colorScheme.onTertiaryContainer)
                     }
                 }
                 Spacer(Modifier.height(10.dp))

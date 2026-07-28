@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -35,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Favorite
@@ -123,6 +125,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
+    var askNotPumpfoil by remember { mutableStateOf(false) }   // Bestätigung vor dem Melden
+    var flagDone by remember { mutableStateOf(false) }         // Danke-Hinweis nach dem Melden
     var showTrim by remember { mutableStateOf(false) }
     var showShare by remember { mutableStateOf(false) }
     var showLink by remember { mutableStateOf(false) }        // Teilen-Link-Popup (Besitzer)
@@ -242,6 +246,32 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         )
     }
 
+    // Melden „sieht nicht nach Pumpfoil aus": erst erklären, dann senden. Der Text sagt ausdrücklich,
+    // dass niemandem etwas vorgeworfen wird und der Melder anonym bleibt.
+    if (askNotPumpfoil) {
+        AlertDialog(
+            onDismissRequest = { askNotPumpfoil = false },
+            title = { Text(I18n.t("cls.notPumpfoil")) },
+            text = { Text(I18n.t("cls.confirmFlag")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askNotPumpfoil = false
+                    scope.launch {
+                        try { Api.flagNotPumpfoil(id); flagDone = true } catch (_: Exception) {}
+                    }
+                }) { Text(I18n.t("chat.send")) }
+            },
+            dismissButton = { TextButton(onClick = { askNotPumpfoil = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    if (flagDone) {
+        AlertDialog(
+            onDismissRequest = { flagDone = false },
+            text = { Text(I18n.t("cls.thanks")) },
+            confirmButton = { TextButton(onClick = { flagDone = false }) { Text(I18n.t("common.close")) } },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -259,6 +289,16 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                                 Icon(Icons.Filled.Flag, contentDescription = I18n.t("sd.report"))
                             }
                             DropdownMenu(expanded = showReport, onDismissRequest = { showReport = false }) {
+                                // „Sieht nicht nach Pumpfoil aus" steht ZUERST: es ist der harmloseste
+                                // der drei Melde-Wege (Bitte um Zuordnung statt Vorwurf). In der PWA
+                                // ist das die Position links neben „wirkt unecht"/„unangemessen" —
+                                // im vertikalen Menü ist das eben oben.
+                                DropdownMenuItem(
+                                    text = { Text(I18n.t("cls.notPumpfoil")) },
+                                    leadingIcon = { Icon(Icons.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    onClick = { showReport = false; askNotPumpfoil = true },
+                                )
+                                HorizontalDivider()
                                 DropdownMenuItem(
                                     text = { Text(I18n.t("sd.reportFake")) },
                                     leadingIcon = { Icon(Icons.Filled.Flag, contentDescription = null, tint = AmberReport) },
@@ -472,6 +512,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 )
             }
         }
+
+        // Sportart-Klassifikation (docs/sport-classification.md): der Besitzer ordnet selbst zu,
+        // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
+        if (s.owned) ClassificationPanel(s, scope, onReload)
 
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
         // (mehrere, wie PWA). Tippen -> Vollbild/Video.
@@ -1305,4 +1349,93 @@ private fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85
         val res = out.toByteArray()
         if (res.size < src.size) res else src   // kein Gewinn -> Original
     } catch (_: Exception) { src }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Sportart-Klassifikation (docs/sport-classification.md), Besitzer-Sicht.
+// Aufbau wie in der PWA (web/src/pages/SessionDetail.tsx): amber Kasten nur solange eine Bitte
+// offen ist, darunter/immer die zwei Auswahlfelder. Widerspruch ist der EINZIGE Weg zurück auf
+// „Pumpfoil" — der Server lehnt das direkte Zurücksetzen nach einer Meldung mit 409 ab.
+// Farben in beiden Modi lesbar (amber-800 auf hell, amber-200 auf dunkel).
+private val AmberOnLight = Color(0xFF92400E)
+private val AmberOnDark = Color(0xFFFDE68A)
+
+@Composable
+private fun ClassificationPanel(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
+    var appealDraft by remember(s.id) { mutableStateOf("") }
+    var appealOpen by remember(s.id) { mutableStateOf(false) }
+    var msg by remember(s.id) { mutableStateOf<String?>(null) }
+    // NICHT isSystemInDarkTheme(): ThemeState kann Hell/Dunkel erzwingen (Theme.kt:57-60).
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val amber = if (dark) AmberOnDark else AmberOnLight
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (s.needsClassification) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(AmberReport.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(I18n.t("cls.ownerAsk"), color = amber)
+                if (s.appealText != null) {
+                    Text(I18n.t("cls.appealPending"), color = amber, fontWeight = FontWeight.SemiBold)
+                } else if (!appealOpen) {
+                    TextButton(onClick = { appealOpen = true }) { Text(I18n.t("cls.wasPumpfoil")) }
+                } else {
+                    OutlinedTextField(
+                        value = appealDraft, onValueChange = { appealDraft = it },
+                        placeholder = { Text(I18n.t("cls.appealPlaceholder")) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = false,
+                    )
+                    FilledTonalButton(onClick = {
+                        scope.launch {
+                            try { Api.appealClassification(s.id, appealDraft); appealOpen = false; onReload() }
+                            catch (_: Exception) { msg = I18n.t("cls.pickErr") }
+                        }
+                    }) { Text(I18n.t("cls.appealSend")) }
+                }
+            }
+        }
+        Text(I18n.t("cls.choose"), style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ClassDropdown(
+                options = SPORTS, selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
+                onPick = { v ->
+                    scope.launch {
+                        try { Api.setClassification(s.id, sport = v); msg = null; onReload() }
+                        catch (_: Exception) { msg = I18n.t("cls.pickErr") }
+                    }
+                },
+            )
+            ClassDropdown(
+                options = DATA_QUALITY, selected = s.dataQuality ?: "ok", keyPrefix = "cls.dq.",
+                onPick = { v ->
+                    scope.launch {
+                        try { Api.setClassification(s.id, dataQuality = v); msg = null; onReload() }
+                        catch (_: Exception) { msg = I18n.t("cls.pickErr") }
+                    }
+                },
+            )
+        }
+        msg?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+    }
+}
+
+@Composable
+private fun ClassDropdown(options: List<String>, selected: String, keyPrefix: String, onPick: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { open = true }) {
+            Text(I18n.t("$keyPrefix$selected"), maxLines = 1)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEach { o ->
+                DropdownMenuItem(text = { Text(I18n.t("$keyPrefix$o")) }, onClick = { open = false; onPick(o) })
+            }
+        }
+    }
 }

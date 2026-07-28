@@ -398,9 +398,27 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 // um Avatar-Breite (40) + Spacer (10) einrücken.
                 Box(Modifier.padding(start = 50.dp)) { SessionStatsRow(a, m) }
             }
-            // Fußzeile nur noch für Transfer-/Status-Badge (Like ist jetzt unter dem Avatar).
-            if (s.transferTo != null || s.status != "analyzed") {
+            // Fußzeile für Transfer-/Status-/Klassifikations-Badge (Like ist unter dem Avatar).
+            val classified = isClassified(s.sportClass, s.dataQuality)
+            if (s.transferTo != null || s.status != "analyzed" || classified || s.needsClassification) {
                 Row(Modifier.fillMaxWidth().padding(top = 6.dp, start = 50.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Sportart/Datenqualität, sobald sie von Pumpfoil abweicht — damit man auf der
+                    // Karte sieht, warum die Session in keiner Auswertung auftaucht. „Bitte zuordnen"
+                    // hat Vorrang: da ist noch nichts entschieden.
+                    if (s.needsClassification) {
+                        Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(4.dp)) {
+                            Text(I18n.t("cls.needsBadge"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                    } else if (classified) {
+                        Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(4.dp)) {
+                            Text(I18n.t(classLabelKey(s.sportClass, s.dataQuality)),
+                                Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                    }
                     if (s.transferTo != null) {
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(4.dp)) {
                             Text(I18n.t("transfer.badge"), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),

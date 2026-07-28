@@ -309,6 +309,28 @@ object Api {
         http("POST", "/api/community/sessions/$id/vote?kind=$kind", null, auth = true)
     }
 
+    // Sportart-Klassifikation (docs/sport-classification.md). Drei getrennte Rollen:
+    // flagNotPumpfoil = FREMDE Session melden (Server lehnt eigene mit 400 ab),
+    // setClassification = Besitzer/Admin ordnet zu (409, wenn der Besitzer nach einer Meldung
+    // zurück auf pumpfoil/ok will — dafür ist der Widerspruch da), appeal = Widerspruch.
+    suspend fun flagNotPumpfoil(id: Int, note: String? = null): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { if (!note.isNullOrBlank()) put("note", note) }
+        http("POST", "/api/sessions/$id/not-pumpfoil", body.toString(), auth = true)
+    }
+
+    suspend fun setClassification(id: Int, sport: String? = null, dataQuality: String? = null): Unit =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject {
+                if (sport != null) put("sport", sport)
+                if (dataQuality != null) put("data_quality", dataQuality)
+            }
+            http("PUT", "/api/sessions/$id/classification", body.toString(), auth = true)
+        }
+
+    suspend fun appealClassification(id: Int, text: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/sessions/$id/appeal", buildJsonObject { put("text", text) }.toString(), auth = true)
+    }
+
     suspend fun setCaption(id: Int, caption: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("caption", caption) }.toString(), auth = true)
     }
