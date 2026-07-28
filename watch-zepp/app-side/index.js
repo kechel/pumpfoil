@@ -48,13 +48,23 @@ async function handle(req) {
   // --- Config (konfigurierte Datenfelder) ---
   if (req.method === "CONFIG") {
     if (!req.token) return { paired: false };
-    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp", method: "GET", headers: { "X-Device-Token": req.token } });
+    // Die Uhr darf kein HTTP -- alles laeuft hier durch. Diese Whitelist war der Grund, warum die
+    // Uhr Sprache, Update-Hinweis und Layouts nie sah: sie kamen vom Server, wurden aber hier
+    // weggefiltert. `v` (gemeldete App-Version) und `lay` (Uhr will Layouts) gehen jetzt mit raus.
+    const qv = req.version ? "&v=" + encodeURIComponent(req.version) : "";
+    const ql = req.wantLayouts ? "&lay=1" : "";
+    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql, method: "GET", headers: { "X-Device-Token": req.token } });
     const code = r.status || 0;
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };
     const b = parse(r);
     return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart, colorByValue: b && b.colorByValue,
-      foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow };
+      foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow,
+      // Neu durchgelassen: Profil-Sprache (i18n), Update-Hinweis, Pausen-Screen und das
+      // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).
+      language: b && b.language, latestVersion: b && b.latestVersion, pauseView: b && b.pauseView,
+      layoutsOn: b && b.layoutsOn, layouts: b && b.layouts, pages: b && b.pages,
+      offFoilPages: b && b.offFoilPages, pausePages: b && b.pausePages, browseAll: b && b.browseAll };
   }
 
   // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---
@@ -63,7 +73,7 @@ async function handle(req) {
     const now = Date.now();
     const uuid = "zepp-mini-" + now;
     console.log("[pumpfoil] TESTUPLOAD " + uuid);
-    const s = await authPost(TOK, "/api/ingest/session", { session_uuid: uuid, started_at: iso(now - 60000), sport: "pumpfoil", gps_hz: 1, accel_hz: 25, accel_scale: 2048 });
+    const s = await authPost(TOK, "/api/ingest/session", { session_uuid: uuid, started_at: iso(now - 60000), sport: "pumpfoil", gps_hz: 1, accel_hz: 0, accel_scale: 0 });
     await authPost(TOK, `/api/ingest/session/${uuid}/chunk`, { index: 0, kind: "gps", encoding: "json", t0_ms: 0, count: 3, data: [[0, 47.66, 9.355, 5, 0, 0], [1000, 47.6601, 9.3551, 5, 0, 0], [2000, 47.6602, 9.3552, 5, 0, 0]] });
     await authPost(TOK, `/api/ingest/session/${uuid}/complete`, { ended_at: iso(now), total_chunks: 1 });
     return { ok: true, http: s.status, uuid: uuid };

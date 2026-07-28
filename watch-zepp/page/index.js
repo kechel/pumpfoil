@@ -9,7 +9,14 @@ import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
-const GPS_HZ = 1, ACCEL_HZ = 25, ACCEL_SCALE = 2048;
+// ACHTUNG: diese App bindet KEINEN Beschleunigungssensor ein (Sensor-Imports unten: nur
+// Geolocation/HeartRate/Vibrator, und app.json fordert die Berechtigung nicht an). Bis 1.0.3 wurden
+// dem Server trotzdem 25 Hz / Scale 2048 gemeldet -- eine Ankuendigung, zu der nie ein Chunk kam.
+// Der Server bestimmt die echte Rate ohnehin aus den Daten und stuft solche Sessions auf gps_only;
+// die falsche Zahl blieb aber in den Metadaten stehen und macht Auswertungen der Art "welche
+// Plattform liefert Accel?" unbrauchbar. Jetzt ehrlich 0. Sobald der Sensor angebunden ist
+// (eigenes Feature, nicht Paritaet), hier wieder auf 25/2048 setzen.
+const GPS_HZ = 1, ACCEL_HZ = 0, ACCEL_SCALE = 0;
 // Kleine CHUNKs: 10 Punkte/Nachricht (~500 B) statt 60 (~3,3 KB) -> passt zuverlässig durch BLE
 // (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
 const GPS_CHUNK = 10;
@@ -55,6 +62,9 @@ Page(
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
+      // Update-Hinweis + Layout-Zustand. layoutsPref wird aus LocalStorage geladen (siehe init),
+      // null = automatisch; layoutsServerDefault ist nur die Vorbelegung vom Server.
+      updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, _almActive: false, _foilInit: false,
@@ -175,6 +185,9 @@ Page(
       s.hbTimer = setInterval(() => this.heartbeat(), 20000);
 
       if (getTok()) s.paired = true;
+      // Layout-Wahl von der letzten Sitzung wiederherstellen ("" = automatisch).
+      const lp = store.getItem("layoutsPref", "");
+      s.layoutsPref = lp === "1" ? true : (lp === "0" ? false : null);
       // Local-first: App startet ganz normal auf dem START-Screen (auch ungepaart aufnehmbar).
       // Ungepaart weist der Screen nur auf ›Verbinden‹ hin; der Code erzeugt sich automatisch,
       // sobald man tatsächlich zur Verbindungs-Seite wischt (siehe Gesten-Handler).
@@ -188,8 +201,15 @@ Page(
       const s = this.state;
       if (!bleOk()) { this.rerender(); return; }
       if (!getTok()) { this.rerender(); return; }   // kein Auto-Pairing — nur per "Neuer Code"
-      this.reqQ({ method: "CONFIG", token: getTok() }).then((r) => {
+      // Version melden (Update-Hinweis) und Layouts anfordern, solange der Nutzer sie nicht
+      // abgeschaltet hat. layoutsPref: null = automatisch (Server entscheidet), true/false = Wahl
+      // auf der Uhr -- dieselbe Dreistufigkeit wie bei Garmin.
+      this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION,
+                  wantLayouts: s.layoutsPref !== false }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
+        // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
+        if (r && r.latestVersion && r.latestVersion !== APP_VERSION) s.updateVersion = r.latestVersion;
+        if (r && typeof r.layoutsOn !== "undefined") s.layoutsServerDefault = !!r.layoutsOn;
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
         if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
@@ -307,6 +327,14 @@ Page(
     renderIdle() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
+      // Update-Hinweis (Audit-Rückstand): im vorhandenen Versions-Widget, bewusst OHNE Worte —
+      // "v1.0.3 → 1.0.4" braucht keine Übersetzung und passt in die schmale Zeile.
+      if (w.ver) {
+        w.ver.setProperty(hmUI.prop.MORE, {
+          text: s.updateVersion ? "v" + APP_VERSION + " → " + s.updateVersion : "v" + APP_VERSION,
+          color: s.updateVersion ? 0x22d3ee : 0x64748b,
+        });
+      }
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
       const gps = "GPS " + (s.fix ? "●" : "suche…");
       const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
@@ -339,15 +367,29 @@ Page(
       const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
         x: px(30), y: y, w: DW - px(60), h: px(46), radius: px(23),
         text: text, text_size: px(20), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
+      // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
+      // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
+      // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
+      const layTxt = s.layoutsPref === null
+        ? "Auto (" + (s.layoutsServerDefault ? "An" : "Aus") + ")"
+        : (s.layoutsPref ? "An" : "Aus");
       w.foilBtns = [
-        mk(Math.round(DH * 0.20), "Alarm: " + (s.almOn ? "An" : "Aus"), () => { s.almOn = !s.almOn; this.renderIdle(); }),
-        mk(Math.round(DH * 0.42), "Schwellen: " + (s.almSrc === "foil" ? "Auto" : "Manuell"), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
-        mk(Math.round(DH * 0.64), "Foil: " + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
+        mk(Math.round(DH * 0.14), "Alarm: " + (s.almOn ? "An" : "Aus"), () => { s.almOn = !s.almOn; this.renderIdle(); }),
+        mk(Math.round(DH * 0.33), "Schwellen: " + (s.almSrc === "foil" ? "Auto" : "Manuell"), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
+        mk(Math.round(DH * 0.52), "Foil: " + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
+        mk(Math.round(DH * 0.71), "Layouts: " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
       ];
     },
     _clearFoilBtns() {
       const w = this.state.w;
       if (w.foilBtns) { w.foilBtns.forEach((b) => hmUI.deleteWidget(b)); w.foilBtns = null; }
+    },
+    // Automatisch -> An -> Aus -> Automatisch, persistiert (im Gegensatz zu Alarm/Schwellen, die
+    // nur fuer die laufende Sitzung gelten).
+    _cycleLayoutsPref() {
+      const s = this.state;
+      s.layoutsPref = s.layoutsPref === null ? true : (s.layoutsPref ? false : null);
+      store.setItem("layoutsPref", s.layoutsPref === null ? "" : (s.layoutsPref ? "1" : "0"));
     },
     _cycleFoil() {
       const s = this.state;
