@@ -305,6 +305,12 @@ object Api {
         http("DELETE", "/api/sessions/$id", null, auth = true)
     }
 
+    // Daumen-hoch auf eine Chat-Nachricht umschalten -> neuer Zustand + Anzahl.
+    suspend fun chatLike(messageId: Int): Pair<Boolean, Int> = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("POST", "/api/chat/$messageId/like", null, auth = true)).jsonObject
+        Pair(r["liked"]?.jsonPrimitive?.booleanOrNull ?: false, r["like_count"]?.jsonPrimitive?.intOrNull ?: 0)
+    }
+
     suspend fun voteSession(id: Int, kind: String): Unit = withContext(Dispatchers.IO) {
         http("POST", "/api/community/sessions/$id/vote?kind=$kind", null, auth = true)
     }

@@ -1,5 +1,7 @@
 package org.pumpfoil.app
 
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -482,13 +484,42 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                         .then(if (m.hidden) Modifier.alpha(0.5f) else Modifier),
                     verticalAlignment = Alignment.Top,
                 ) {
-                    val av = Api.mediaUrl(m.avatarUrl)
-                    if (av != null) {
-                        AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(32.dp).clip(CircleShape))
-                    } else {
-                        Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp))
+                    // Avatar und darunter der Daumen-hoch — dieselbe Anordnung wie in der PWA
+                    // (Chat.tsx:244-252): aktiv cyan/gefuellt, inaktiv grau, Zaehler nur wenn > 0.
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val av = Api.mediaUrl(m.avatarUrl)
+                        if (av != null) {
+                            AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(32.dp).clip(CircleShape))
+                        } else {
+                            Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp))
+                        }
+                        if (!m.hidden) {
+                            Row(
+                                Modifier.padding(top = 2.dp).clickable {
+                                    scope.launch {
+                                        try {
+                                            val (liked, count) = Api.chatLike(m.id)
+                                            msgs = msgs.map { if (it.id == m.id) it.copy(liked = liked, likeCount = count) else it }
+                                        } catch (_: Exception) {}
+                                    }
+                                },
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    if (m.liked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                                    contentDescription = null,
+                                    tint = if (m.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                if (m.likeCount > 0) {
+                                    Spacer(Modifier.width(2.dp))
+                                    Text("${m.likeCount}", style = MaterialTheme.typography.labelSmall,
+                                        color = if (m.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
                     }
                     Spacer(Modifier.width(8.dp))
                     Column(Modifier.weight(1f)) {

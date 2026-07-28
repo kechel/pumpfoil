@@ -398,6 +398,9 @@ data class ChatMsg(
     @SerialName("created_at") val createdAt: String? = null,
     val mine: Boolean = false,
     val hidden: Boolean = false,
+    // Daumen-hoch je Nachricht (Server: chat.py:_msg_out + POST /api/chat/{id}/like).
+    @SerialName("like_count") val likeCount: Int = 0,
+    val liked: Boolean = false,
 )
 
 @Serializable
