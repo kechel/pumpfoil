@@ -66,6 +66,7 @@ struct HomeView: View {
                     }
                     .padding(.top, 12)
                     if incomingXfer > 0 { transferHint }
+                    if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
                     latestSection
                     if let st = stats { recordsSection(st) }
                     if let ss = startSuccess { startSuccessSection(ss) }
@@ -116,6 +117,31 @@ struct HomeView: View {
         (session.profile?.display_name?.isEmpty == false)
             ? Loc.t("phome.hello", lang).replacingOccurrences(of: "{name}", with: session.profile!.display_name!)
             : Loc.t("nav.home", lang)
+    }
+
+    // Offene Sportart-Zuordnung (docs/sport-classification.md): jemand hat gebeten, eine eigene
+    // Session einzuordnen. Bewusst KEIN Push -- dieser Hinweis reicht und erklaert in Ruhe, statt
+    // unaufgefordert nach Vorwurf zu klingen. Bei genau einer Session direkt dorthin.
+    @ViewBuilder private func needsClassHint(_ n: Int) -> some View {
+        let one = n == 1
+        let sid = session.profile?.needs_classification_id
+        let text = one
+            ? Loc.t("home.needsClassification", lang)
+            : Loc.t("home.needsClassificationN", lang).replacingOccurrences(of: "{n}", with: "\(n)")
+        NavigationLink {
+            if one, let sid { SessionDetailView(id: sid) } else { SessionsView() }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                Text(text).font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
     }
 
     private var transferHint: some View {

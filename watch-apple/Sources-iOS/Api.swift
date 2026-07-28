@@ -296,6 +296,26 @@ enum Api {
         guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
     }
 
+    // Sportart-Klassifikation (docs/sport-classification.md). flagNotPumpfoil = FREMDE Session
+    // melden (Server lehnt eigene mit 400 ab); setClassification = Besitzer/Admin ordnet zu (409,
+    // wenn der Besitzer nach einer Meldung zurueck auf pumpfoil/ok will); appeal = Widerspruch.
+    static func flagNotPumpfoil(_ id: Int, note: String? = nil) async throws {
+        var body: [String: Any] = [:]
+        if let n = note, !n.isEmpty { body["note"] = n }
+        try await sendVoid("/api/sessions/\(id)/not-pumpfoil", method: "POST", body: body)
+    }
+
+    static func setClassification(_ id: Int, sport: String? = nil, dataQuality: String? = nil) async throws {
+        var body: [String: Any] = [:]
+        if let s = sport { body["sport"] = s }
+        if let q = dataQuality { body["data_quality"] = q }
+        try await sendVoid("/api/sessions/\(id)/classification", method: "PUT", body: body)
+    }
+
+    static func appealClassification(_ id: Int, text: String) async throws {
+        try await sendVoid("/api/sessions/\(id)/appeal", method: "POST", body: ["text": text])
+    }
+
     static func vote(_ id: Int, kind: String) async throws {
         guard let url = URL(string: baseURL + "/api/community/sessions/\(id)/vote?kind=\(kind)") else { throw ApiError.badURL }
         var req = URLRequest(url: url)
@@ -657,6 +677,24 @@ enum Api {
     // Client-Kennung: Plattform/Version -> Server gated Video-Plattformen (IG/TikTok erst ab
     // App-Version mit Anzeige; bis dahin nur YouTube). Siehe server/app/videos.py.
     static let clientId: String = "ios/" + ((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "0")
+
+    /// Aufruf ohne Rueckgabewert (JSON-Body optional). Die Datei baut solche Requests bisher
+    /// jedes Mal von Hand -- dieser Helfer fasst das zusammen, damit neue Aufrufe kurz bleiben.
+    private static func sendVoid(_ path: String, method: String, body: [String: Any]? = nil) async throws {
+        guard let url = URL(string: baseURL + path) else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = method
+        req.timeoutInterval = 20
+        req.setValue(clientId, forHTTPHeaderField: "X-Pumpfoil-Client")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        if let body {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        }
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+    }
 
     private static func request<T: Decodable>(
         _ path: String, method: String, body: [String: Any]?, auth: Bool

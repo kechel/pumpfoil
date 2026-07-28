@@ -286,6 +286,21 @@ struct SessionRow: View {
                 Text(stats).font(.caption).lineLimit(1)
             }
             HStack(spacing: 8) {
+                // Sportart/Datenqualitaet, sobald sie von Pumpfoil abweicht -- so sieht man auf der
+                // Karte, warum die Session in keiner Auswertung auftaucht. "Bitte zuordnen" hat
+                // Vorrang: da ist noch nichts entschieden.
+                if session.needs_classification == true {
+                    Text(Loc.t("cls.needsBadge", lang)).font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                } else if isClassified(sportClass: session.sport_class, dataQuality: session.data_quality) {
+                    Text(Loc.t(classLabelKey(sportClass: session.sport_class, dataQuality: session.data_quality), lang))
+                        .font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.secondary.opacity(0.18)).foregroundStyle(.secondary)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
                 if session.transfer_to != nil {
                     Text(Loc.t("transfer.badge", lang)).font(.caption2)
                         .padding(.horizontal, 6).padding(.vertical, 2)

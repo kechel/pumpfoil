@@ -10,6 +10,10 @@ struct Profile: Codable {
     let foil_sensitivity: String?
     let social_allowed: Bool?   // false = unter 13, Social-Features (UGC/Feed/Chat) gesperrt
     let beta: Bool?             // Beta-Konto (BETA_USER_IDS) -> experimentelle Features sichtbar
+    // Offene Sportart-Zuordnungen (Server: auth.py:_needs_classification) — Hinweis auf der
+    // Startseite; bei genau einer Session verlinkt die ID direkt dorthin.
+    let needs_classification: Int?
+    let needs_classification_id: Int?
 }
 
 // Fortschritt der Reanalyse nach Empfindlichkeits-Wechsel (GET /api/auth/me/reanalysis).
@@ -74,6 +78,11 @@ struct SessionSummary: Codable, Identifiable {
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let transfer_to: String?   // offene Übertragung → Badge
+    // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`,
+    // das ist der Aktivitätstyp aus der Aufnahmedatei.
+    let sport_class: String?
+    let data_quality: String?
+    let needs_classification: Bool?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
@@ -498,6 +507,11 @@ struct MergeSuggestion: Codable, Identifiable {
 struct SessionDetail: Codable, Identifiable {
     let id: Int
     let sport: String
+    // Sportart-Klassifikation; appeal_text gesetzt = Widerspruch läuft (docs/sport-classification.md).
+    let sport_class: String?
+    let data_quality: String?
+    let needs_classification: Bool?
+    let appeal_text: String?
     let started_at: String
     let ended_at: String?
     let status: String

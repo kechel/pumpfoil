@@ -14,6 +14,12 @@ struct SessionDetailView: View {
     @State private var session: SessionDetail?
     @State private var loading = true
     @State private var error: String?
+    // Sportart-Klassifikation (docs/sport-classification.md)
+    @State private var askNotPumpfoil = false
+    @State private var flagDone = false
+    @State private var appealOpen = false
+    @State private var appealDraft = ""
+    @State private var classErr: String?
     @State private var liked = false
     @State private var likeCount = 0
     @State private var photos: [SessionPhoto] = []
@@ -91,6 +97,12 @@ struct SessionDetailView: View {
             } else if session != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        // Zuerst der harmloseste Weg: Bitte um Zuordnung statt Vorwurf. In der PWA
+                        // steht er links neben "wirkt unecht"/"unangemessen" -- im Menue also oben.
+                        Button { askNotPumpfoil = true } label: {
+                            Label(Loc.t("cls.notPumpfoil", lang), systemImage: "questionmark.circle")
+                        }
+                        Divider()
                         Button { Task { try? await Api.vote(id, kind: "fake") } } label: {
                             Label(Loc.t("sd.reportFake", lang), systemImage: "flag")
                         }
@@ -106,6 +118,17 @@ struct SessionDetailView: View {
                 Task { try? await Api.deleteSession(id); dismiss() }
             }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        }
+        .confirmationDialog(Loc.t("cls.notPumpfoil", lang), isPresented: $askNotPumpfoil, titleVisibility: .visible) {
+            Button(Loc.t("chat.send", lang)) {
+                Task {
+                    do { try await Api.flagNotPumpfoil(id); flagDone = true } catch {}
+                }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        } message: { Text(Loc.t("cls.confirmFlag", lang)) }
+        .alert(Loc.t("cls.thanks", lang), isPresented: $flagDone) {
+            Button(Loc.t("common.close", lang)) {}
         }
         .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) {
             TextField(Loc.t("sd.caption", lang), text: $draftCaption)
@@ -212,6 +235,7 @@ struct SessionDetailView: View {
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
+            if s.owned { classificationPanel(s) }
             mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
@@ -530,6 +554,81 @@ struct SessionDetailView: View {
     @ViewBuilder private func carveCount(_ label: String, _ n: Int) -> some View {
         Text("\(label): \(n)").font(.caption).fontWeight(n > 0 ? .bold : .regular)
             .foregroundStyle(n > 0 ? Color.primary : Color.secondary)
+    }
+
+    // Sportart-Klassifikation, Besitzer-Sicht (docs/sport-classification.md). Aufbau wie in der PWA:
+    // amber Kasten nur solange eine Bitte offen ist, darunter die zwei Auswahlfelder. Zurueck auf
+    // "Pumpfoil" geht NUR ueber den Widerspruch -- der Server lehnt das direkte Zuruecksetzen mit 409 ab.
+    // Bewusst in kleine Teil-Views zerlegt ([[ios-swift-typecheck-hang]]).
+    @ViewBuilder private func classificationPanel(_ s: SessionDetail) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if s.needs_classification == true { appealBox(s) }
+            Text(Loc.t("cls.choose", lang)).font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                classPicker(current: s.sport_class ?? "pumpfoil", options: SPORTS, prefix: "cls.sport.") { v in
+                    Task { await applyClass(sport: v) }
+                }
+                classPicker(current: s.data_quality ?? "ok", options: DATA_QUALITY, prefix: "cls.dq.") { v in
+                    Task { await applyClass(dq: v) }
+                }
+            }
+            if let e = classErr { Text(e).font(.callout).foregroundStyle(.red) }
+        }
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder private func appealBox(_ s: SessionDetail) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("cls.ownerAsk", lang)).font(.callout)
+            if s.appeal_text != nil {
+                Text(Loc.t("cls.appealPending", lang)).font(.callout).fontWeight(.semibold)
+            } else if appealOpen {
+                TextField(Loc.t("cls.appealPlaceholder", lang), text: $appealDraft, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                Button(Loc.t("cls.appealSend", lang)) {
+                    Task {
+                        do {
+                            try await Api.appealClassification(id, text: appealDraft)
+                            appealOpen = false
+                            await load()
+                        } catch { classErr = Loc.t("cls.pickErr", lang) }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Button(Loc.t("cls.wasPumpfoil", lang)) { appealOpen = true }
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder private func classPicker(
+        current: String, options: [String], prefix: String, onPick: @escaping (String) -> Void
+    ) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { o in
+                Button(Loc.t(prefix + o, lang)) { onPick(o) }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(Loc.t(prefix + current, lang)).lineLimit(1)
+                Image(systemName: "chevron.down").font(.caption2)
+            }
+            .padding(.horizontal, 10).padding(.vertical, 6)
+            .background(Color.secondary.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private func applyClass(sport: String? = nil, dq: String? = nil) async {
+        do {
+            try await Api.setClassification(id, sport: sport, dataQuality: dq)
+            classErr = nil
+            await load()
+        } catch { classErr = Loc.t("cls.pickErr", lang) }
     }
 
     @ViewBuilder private func foilPicker(_ s: SessionDetail) -> some View {
