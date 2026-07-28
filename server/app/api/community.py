@@ -188,6 +188,7 @@ def community_sessions(
 def spot_sessions(
     request: Request,
     spot: str, limit: int = 50, offset: int = 0, accel_only: bool = True,
+    sport: str = "pumpfoil",
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
