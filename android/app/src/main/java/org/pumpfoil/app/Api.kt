@@ -342,6 +342,11 @@ object Api {
     }
 
     // Stab-Katalog (sichtbar = oeffentliche Eintraege + eigene) und eigene Boards.
+    // Eigene Uhr-Layouts (gestaltet wird in der PWA; die App zeigt/waehlt sie nur).
+    suspend fun watchLayouts(): List<WatchLayoutBrief> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(WatchLayoutBrief.serializer()), http("GET", "/api/layouts", null, auth = true))
+    }
+
     suspend fun stabBrands(): List<String> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/stabs/brands", null, auth = true))
     }

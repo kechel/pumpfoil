@@ -595,3 +595,12 @@ data class MergeSuggestion(
     val date: String = "",
     val tz: String? = null,               // IANA-Zeitzone des Spots (Gruppen-Ebene)
 )
+
+// Kopf eines eigenen Uhr-Layouts (server/app/api/layouts.py:_out) — mehr braucht die App nicht,
+// gestaltet wird ausschliesslich in der PWA.
+@Serializable
+data class WatchLayoutBrief(
+    val id: Int,
+    val name: String = "",
+    val category: String = "on_foil",
+)

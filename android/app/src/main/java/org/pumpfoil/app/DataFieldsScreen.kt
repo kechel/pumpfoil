@@ -16,6 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Switch
+import kotlinx.serialization.json.booleanOrNull
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,44 +62,87 @@ import kotlinx.serialization.json.put
 private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20)
 private fun fieldLabel(id: Int) = I18n.t("field.$id")
 
+// Eine Seite ist ENTWEDER eine klassische 3-Feld-Seite ODER ein eigenes Layout (nur Verweis auf
+// dessen ID). Genau so liegt es im Server: ein Eintrag in `pages`/`off_foil_pages`/`pause_pages`
+// ist eine Liste (3 Feld-IDs) oder eine Zahl (watch_layouts.id) — siehe settings.py:43-56.
+private sealed interface WatchPage
+private data class ClassicPage(val fields: List<Int>) : WatchPage
+private data class LayoutPage(val layoutId: Int) : WatchPage
+
+/** Liest einen Seiten-Satz; fällt auf die Alt-Schlüssel zurück, wenn der neue fehlt. */
+private fun readPages(
+    s: kotlinx.serialization.json.JsonObject, key: String, legacyView: String?, legacyLayout: String?,
+): List<WatchPage> {
+    val arr = s[key]?.jsonArray
+    if (arr != null) {
+        val out = arr.mapNotNull { el ->
+            val prim = (el as? kotlinx.serialization.json.JsonPrimitive)?.intOrNull
+            if (prim != null) LayoutPage(prim)
+            else (el as? kotlinx.serialization.json.JsonArray)?.let { row ->
+                val f = row.map { it.jsonPrimitive.intOrNull ?: 0 }
+                ClassicPage(listOf(f.getOrElse(0) { 0 }, f.getOrElse(1) { 0 }, f.getOrElse(2) { 0 }))
+            }
+        }
+        if (out.isNotEmpty()) return out
+    }
+    legacyLayout?.let { k -> s[k]?.jsonPrimitive?.intOrNull?.let { return listOf(LayoutPage(it)) } }
+    legacyView?.let { k ->
+        s[k]?.jsonArray?.map { it.jsonPrimitive.intOrNull ?: 0 }?.let { f ->
+            if (f.size >= 3) return listOf(ClassicPage(listOf(f[0], f[1], f[2])))
+        }
+    }
+    return emptyList()
+}
+
+private fun pagesJson(pages: List<WatchPage>) = buildJsonArray {
+    pages.forEach { pg ->
+        when (pg) {
+            is ClassicPage -> add(buildJsonArray { pg.fields.forEach { add(it) } })
+            is LayoutPage -> add(pg.layoutId)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DataFieldsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var loaded by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
-    var views by remember { mutableStateOf<List<List<Int>>>(listOf(listOf(1, 2, 0))) }
-    var offFoil by remember { mutableStateOf(listOf(12, 17, 16)) }   // Off-Foil-Screen: Default Uhrzeit + letzter Lauf
+    var onFoil by remember { mutableStateOf<List<WatchPage>>(listOf(ClassicPage(listOf(1, 2, 0)))) }
+    var offFoil by remember { mutableStateOf<List<WatchPage>>(listOf(ClassicPage(listOf(12, 17, 16)))) }
+    var pause by remember { mutableStateOf<List<WatchPage>>(listOf(ClassicPage(listOf(12, 20, 2)))) }
+    var browseAll by remember { mutableStateOf(true) }
+    var layoutsEnabled by remember { mutableStateOf(true) }
+    var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         try {
             val s = Api.settings()
-            val v = s["views"]?.jsonArray?.map { row ->
-                row.jsonArray.map { it.jsonPrimitive.intOrNull ?: 0 }.let { f ->
-                    listOf(f.getOrElse(0) { 0 }, f.getOrElse(1) { 0 }, f.getOrElse(2) { 0 })
-                }
-            }
-            if (!v.isNullOrEmpty()) views = v
-            s["off_foil_view"]?.jsonArray?.map { it.jsonPrimitive.intOrNull ?: 0 }?.let { of ->
-                if (of.size >= 3) offFoil = listOf(of[0], of[1], of[2])
-            }
+            // `pages` ist der maßgebliche Satz (3-Feld-Seiten und Layouts gemischt); `views` ist
+            // nur die abgeleitete Alt-Liste für Uhren-Apps ohne Layout-Unterstützung.
+            readPages(s, "pages", "views", null).let { if (it.isNotEmpty()) onFoil = it }
+            readPages(s, "off_foil_pages", "off_foil_view", "off_foil_layout_id").let { if (it.isNotEmpty()) offFoil = it }
+            readPages(s, "pause_pages", "pause_view", "pause_layout_id").let { if (it.isNotEmpty()) pause = it }
+            browseAll = s["browse_all_pages"]?.jsonPrimitive?.booleanOrNull ?: true
+            layoutsEnabled = s["layouts_enabled"]?.jsonPrimitive?.booleanOrNull ?: true
         } catch (_: Exception) {}
+        layouts = try { Api.watchLayouts() } catch (_: Exception) { emptyList() }
         loaded = true
-    }
-
-    fun setField(viewIdx: Int, slot: Int, id: Int) {
-        views = views.mapIndexed { i, v -> if (i == viewIdx) v.toMutableList().also { it[slot] = id } else v }
-        saved = false
     }
 
     fun save() {
         scope.launch {
             try {
                 Api.saveSettings(buildJsonObject {
-                    put("views", buildJsonArray {
-                        views.forEach { v -> add(buildJsonArray { v.forEach { add(it) } }) }
-                    })
-                    put("off_foil_view", buildJsonArray { offFoil.forEach { add(it) } })
+                    // pages schreiben, NICHT views: views laesst der Server unabhaengig stehen, eine
+                    // reine views-Speicherung wuerde die gemischte Reihenfolge (mit Layouts) auf
+                    // neuen Uhren unveraendert lassen und damit wirkungslos bleiben.
+                    put("pages", pagesJson(onFoil))
+                    put("off_foil_pages", pagesJson(offFoil))
+                    put("pause_pages", pagesJson(pause))
+                    put("browse_all_pages", browseAll)
+                    put("layouts_enabled", layoutsEnabled)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -106,7 +153,7 @@ fun DataFieldsScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text(I18n.t("profile.datafields")) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) } },
             )
         },
     ) { pad ->
@@ -118,48 +165,144 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             Text(I18n.t("datafields.intro"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(12.dp))
-            views.forEachIndexed { vi, v ->
-                Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                    Column(Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("${I18n.t("datafields.page")} ${vi + 1}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                            if (views.size > 1) {
-                                IconButton(onClick = { views = views.filterIndexed { i, _ -> i != vi }; saved = false }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = I18n.t("datafields.removePage"))
-                                }
-                            }
-                        }
-                        (0..2).forEach { slot ->
-                            FieldDropdown(v.getOrElse(slot) { 0 }) { setField(vi, slot, it) }
-                            Spacer(Modifier.height(6.dp))
-                        }
-                    }
-                }
+
+            PageSetEditor(
+                title = null, pages = onFoil, layouts = layouts, max = 8,
+                onChange = { onFoil = it; saved = false },
+            )
+            Spacer(Modifier.height(16.dp))
+            SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
+                PageSetEditor(
+                    title = null, pages = offFoil, layouts = layouts, max = 8,
+                    onChange = { offFoil = it; saved = false },
+                )
             }
-            if (views.size < 8) {
-                OutlinedButton(onClick = { views = views + listOf(listOf(0, 0, 0)); saved = false }) {
-                    Text(I18n.t("datafields.addPage"))
-                }
+            Spacer(Modifier.height(12.dp))
+            SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
+                PageSetEditor(
+                    title = null, pages = pause, layouts = layouts, max = 8,
+                    onChange = { pause = it; saved = false },
+                )
             }
-            // Off-Foil-Screen: 3 Felder, die die Uhr automatisch zeigt, solange man nicht foilt.
-            Spacer(Modifier.height(8.dp))
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) {
-                    Text(I18n.t("account.offFoilTitle"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Text(I18n.t("account.offFoilDesc"), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 8.dp))
-                    (0..2).forEach { slot ->
-                        FieldDropdown(offFoil.getOrElse(slot) { 0 }) {
-                            offFoil = offFoil.toMutableList().also { l -> l[slot] = it }; saved = false
-                        }
-                        Spacer(Modifier.height(6.dp))
-                    }
-                }
+
+            Spacer(Modifier.height(16.dp))
+            SwitchRow(I18n.t("account.browseAll"), I18n.t("account.browseAllHint"), browseAll) {
+                browseAll = it; saved = false
             }
+            SwitchRow(I18n.t("account.layoutsEnabled"), I18n.t("account.layoutsEnabledHint"), layoutsEnabled) {
+                layoutsEnabled = it; saved = false
+            }
+
             Spacer(Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { save() }) { Text(I18n.t("common.save")) }
                 if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun SectionCard(title: String, desc: String, content: @Composable () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(desc, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 8.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SwitchRow(title: String, hint: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            // Hinweis in normaler Lesegroesse (bodySmall), nicht kleiner -- Warnungen und
+            // Erklaerungen duerfen nicht winzig sein.
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(12.dp))
+        Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+// Editor fuer EINEN Seiten-Satz. Klassische Seiten sind hier bearbeitbar; Layout-Seiten koennen
+// hinzugefuegt, entfernt und verschoben werden, gestaltet werden sie aber nur in der PWA.
+@Composable
+private fun PageSetEditor(
+    title: String?,
+    pages: List<WatchPage>,
+    layouts: List<WatchLayoutBrief>,
+    max: Int,
+    onChange: (List<WatchPage>) -> Unit,
+) {
+    Column {
+        title?.let { Text(it, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold) }
+        pages.forEachIndexed { idx, pg ->
+            Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("${I18n.t("datafields.page")} ${idx + 1}", Modifier.weight(1f),
+                            style = MaterialTheme.typography.labelLarge)
+                        if (idx > 0) {
+                            IconButton(onClick = {
+                                onChange(pages.toMutableList().also { it.add(idx - 1, it.removeAt(idx)) })
+                            }) { Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null) }
+                        }
+                        if (idx < pages.size - 1) {
+                            IconButton(onClick = {
+                                onChange(pages.toMutableList().also { it.add(idx + 1, it.removeAt(idx)) })
+                            }) { Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null) }
+                        }
+                        if (pages.size > 1) {
+                            IconButton(onClick = { onChange(pages.filterIndexed { i, _ -> i != idx }) }) {
+                                Icon(Icons.Filled.Delete, contentDescription = I18n.t("datafields.removePage"))
+                            }
+                        }
+                    }
+                    when (pg) {
+                        is ClassicPage -> (0..2).forEach { slot ->
+                            FieldDropdown(pg.fields.getOrElse(slot) { 0 }) { id ->
+                                onChange(pages.mapIndexed { i, p ->
+                                    if (i == idx && p is ClassicPage) ClassicPage(p.fields.toMutableList().also { it[slot] = id }) else p
+                                })
+                            }
+                            Spacer(Modifier.height(6.dp))
+                        }
+                        is LayoutPage -> {
+                            val name = layouts.firstOrNull { it.id == pg.layoutId }?.name
+                            Text(name ?: I18n.t("account.layoutMissing"),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (name != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (pages.size < max) {
+                OutlinedButton(onClick = { onChange(pages + ClassicPage(listOf(0, 0, 0))) }) {
+                    Text(I18n.t("datafields.addPage"))
+                }
+            }
+            if (pages.size < max && layouts.isNotEmpty()) {
+                var open by remember { mutableStateOf(false) }
+                Box {
+                    OutlinedButton(onClick = { open = true }) {
+                        Text(I18n.t("account.addLayoutPage"), maxLines = 1)
+                        Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                    }
+                    DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                        layouts.forEach { l ->
+                            DropdownMenuItem(text = { Text(l.name) }, onClick = {
+                                open = false; onChange(pages + LayoutPage(l.id))
+                            })
+                        }
+                    }
+                }
             }
         }
     }
