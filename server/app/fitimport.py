@@ -112,7 +112,14 @@ def parse_fit_bytes(data: bytes) -> dict:
         fit = fitparse.FitFile(data)
         records, accel_msgs = [], []
         sport = "pumpfoil"
+        # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM
+        # eine formal gültige FIT-Datei nichts hergibt: eine Tagesaufzeichnung (Schritte/Stress,
+        # type=monitoring_b) enthält gar keine `record`-Messages. Genau das kam als „wird nicht als
+        # FIT-Datei erkannt" zurück, was in die falsche Richtung führt.
+        fit_type = None
         for msg in fit.get_messages():
+            if msg.name == "file_id":
+                fit_type = {d.name: d.value for d in msg}.get("type")
             if msg.name == "record":
                 records.append({d.name: d.value for d in msg})
             elif msg.name == "accelerometer_data":
@@ -141,7 +148,8 @@ def parse_fit_bytes(data: bytes) -> dict:
     if not times:
         a0 = _accel_msg_time(accel_msgs[0]) if accel_msgs else None
         if a0 is None:
-            return {"gps_samples": [], "accel_bytes": b"", "accel_hz": 0, "started_at": None, "sport": sport}
+            return {"gps_samples": [], "accel_bytes": b"", "accel_hz": 0, "started_at": None,
+                    "sport": sport, "fit_type": fit_type, "record_count": len(records)}
         times = [a0]
     t0 = min(times)
 
@@ -157,6 +165,10 @@ def parse_fit_bytes(data: bytes) -> dict:
         and r.get("timestamp") is not None
     ]
     return {
+        # Dateiart + Anzahl der Track-Punkte: erlaubt dem Aufrufer eine KONKRETE Fehlermeldung,
+        # statt „keine GPS-Daten" für zwei völlig verschiedene Ursachen.
+        "fit_type": fit_type,
+        "record_count": len(records),
         "gps_samples": gps_samples,
         "accel_bytes": accel_bytes,
         "accel_hz": accel_hz,

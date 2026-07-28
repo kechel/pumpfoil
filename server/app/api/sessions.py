@@ -406,7 +406,28 @@ async def upload_fit(
     samples = parsed["gps_samples"]
     started_at = parsed["started_at"]
     if not samples or started_at is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No GPS records found in FIT")
+        # Konkret werden, statt alles als „keine GPS-Daten" abzutun: eine Tagesaufzeichnung
+        # (type=monitoring_b, Schritte/Stress) hat gar keine Aktivitäts-Records und ist ein völlig
+        # anderer Fehler als eine Indoor-Aktivität ohne GPS. Ein Nutzer hat genau deshalb gedacht,
+        # seine Dateien würden „nicht als FIT erkannt".
+        ftype = str(parsed.get("fit_type") or "")
+        nrec = int(parsed.get("record_count") or 0)
+        if ftype.startswith("monitoring") or ftype in ("daily_monitoring", "sleep", "metrics"):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "Das ist eine Tagesaufzeichnung der Uhr (Schritte, Stress, Schlaf), keine Aktivität. "
+                "Bitte die Aktivitäts-Datei nehmen: auf der Uhr im Ordner ACTIVITY, oder in "
+                "Garmin Connect die Aktivität öffnen und 'Original exportieren'.")
+        if ftype and ftype != "activity":
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                f"Diese FIT-Datei ist vom Typ '{ftype}' und enthält keine Aktivität. "
+                "Bitte die Aktivitäts-Datei nehmen (Ordner ACTIVITY bzw. 'Original exportieren').")
+        if nrec == 0:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                                "Die Datei enthält keine Aufzeichnungspunkte (leere Aktivität).")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            "Die Aktivität enthält keine GPS-Punkte (z. B. Indoor aufgezeichnet).")
 
     # Bulk-Filter VOR der Dup-Prüfung -> Skip-Entscheidung unabhängig vom Import-Stand.
     sport = parsed["sport"]
