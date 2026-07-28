@@ -326,6 +326,9 @@ struct ChatMsg: Codable, Identifiable {
     let created_at: String?
     let mine: Bool
     let hidden: Bool
+    // Daumen-hoch je Nachricht (Server: chat.py:_msg_out + POST /api/chat/{id}/like).
+    let like_count: Int?
+    let liked: Bool?
 }
 
 struct Foil: Codable, Identifiable {
@@ -542,4 +545,10 @@ struct SessionDetail: Codable, Identifiable {
         f.formatOptions = [.withInternetDateTime]
         return f.date(from: s)
     }
+}
+
+// Antwort von POST /api/chat/{id}/like.
+struct ChatLikeResult: Codable {
+    let liked: Bool
+    let like_count: Int
 }

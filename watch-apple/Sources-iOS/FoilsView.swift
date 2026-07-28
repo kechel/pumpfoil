@@ -4,6 +4,9 @@ import SwiftUI
 // (Stern). Persistiert via PUT /api/settings (my_foils, foil_id).
 struct FoilsView: View {
     @AppStorage("appLang") private var lang = "de"
+    // Standard-Sportart neuer Sessions (docs/sport-classification.md). Sitzt hier und nicht in
+    // den Einstellungen, weil die PWA sie auch auf der Foil-Seite hat (Foils.tsx).
+    @State private var defSport = "pumpfoil"
     @State private var foils: [Foil] = []
     @State private var brands: [String] = []
     @State private var brand = ""
@@ -23,6 +26,17 @@ struct FoilsView: View {
     var body: some View {
         Form {
             if let error { Text(error).foregroundStyle(.secondary) }
+            Section {
+                Picker(Loc.t("foils.defaultSport", lang), selection: $defSport) {
+                    ForEach(SPORTS, id: \.self) { sp in
+                        Text(Loc.t("cls.sport." + sp, lang)).tag(sp)
+                    }
+                }
+                .onChange(of: defSport) { _, v in
+                    Task { try? await Api.saveSettings(["default_sport_class": v]) }
+                }
+                Text(Loc.t("foils.defaultSportHint", lang)).font(.callout).foregroundStyle(.secondary)
+            }
             Section {
                 TextField(Loc.t("foils.search", lang), text: $query)
                 if !brands.isEmpty {
@@ -91,6 +105,7 @@ struct FoilsView: View {
                 if let mf = s["my_foils"] as? [Int] { mine = Set(mf) }
                 else if let mf = s["my_foils"] as? [NSNumber] { mine = Set(mf.map(\.intValue)) }
                 def = (s["foil_id"] as? Int) ?? (s["foil_id"] as? NSNumber)?.intValue
+                if let ds = s["default_sport_class"] as? String, !ds.isEmpty { defSport = ds }
             }
             error = nil
         } catch { self.error = error.localizedDescription }

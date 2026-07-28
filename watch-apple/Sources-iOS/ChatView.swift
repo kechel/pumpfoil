@@ -331,7 +331,7 @@ struct ChatRoomView: View {
     // passend für den öffentlichen Spot-Gruppenchat und konsistent mit Web/Android.
     @ViewBuilder private func bubble(_ m: ChatMsg) -> some View {
         HStack(alignment: .top, spacing: 8) {
-            chatAvatar(m)
+            chatAvatarColumn(m)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(m.name ?? "—").font(.subheadline).fontWeight(.semibold)
@@ -380,6 +380,42 @@ struct ChatRoomView: View {
             }
         }
         return a
+    }
+
+    // Avatar plus Daumen-hoch darunter -- dieselbe Anordnung wie in der PWA (Chat.tsx:244-252):
+    // gefuellt+cyan wenn gesetzt, sonst grau, Zaehler nur wenn > 0, bei versteckten Nachrichten gar
+    // nicht. In zwei Teil-Views getrennt ([[ios-swift-typecheck-hang]]).
+    @ViewBuilder private func chatAvatarColumn(_ m: ChatMsg) -> some View {
+        VStack(spacing: 2) {
+            chatAvatar(m)
+            if !m.hidden { chatLikeButton(m) }
+        }
+    }
+
+    @ViewBuilder private func chatLikeButton(_ m: ChatMsg) -> some View {
+        let isLiked = m.liked ?? false
+        let count = m.like_count ?? 0
+        Button {
+            Task {
+                if let r = try? await Api.chatLike(m.id) {
+                    msgs = msgs.map { x in
+                        x.id == m.id
+                            ? ChatMsg(id: x.id, user_id: x.user_id, name: x.name, avatar_url: x.avatar_url,
+                                      text: x.text, created_at: x.created_at, mine: x.mine, hidden: x.hidden,
+                                      like_count: r.like_count, liked: r.liked)
+                            : x
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Image(systemName: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    .font(.caption)
+                if count > 0 { Text("\(count)").font(.caption2) }
+            }
+            .foregroundStyle(isLiked ? Color.accentColor : Color.secondary)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {

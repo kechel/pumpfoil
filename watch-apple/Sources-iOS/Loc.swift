@@ -1607,6 +1607,9 @@ enum Loc {
         _t1.merging(_t2) { a, _ in a }.merging(_t3) { a, _ in a }
 
     private static let _t1: [String: [String: String]] = [
+        "foils.defaultSport": r("Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions"),
+        "foils.defaultSportHint": r("Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later."),
+        "home.startThreshold": r("Versuch < ", "Versuch < ", "Versuch < ", "Attempt < ", "Attempt < ", "Attempt < ", "Attempt < "),
         // Sportart-Klassifikation (docs/sport-classification.md). Wortlaut woertlich aus der
         // PWA (web/src/i18n/locales/de.ts + en.ts); dort sind nur de+en gepflegt, alle anderen
         // Sprachen fallen auf Englisch zurueck -- hier genauso.

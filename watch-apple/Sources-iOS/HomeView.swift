@@ -354,9 +354,36 @@ struct HomeView: View {
         cs.windows.values.contains { ($0.s + $0.m + $0.l) > 0 }
     }
 
+    // Eigene Schwelle: ab welcher Distanz ein Start als echter Lauf gilt. Der aktuelle Wert ist
+    // immer dabei, auch wenn er nicht in der Vorschlagsliste steht (der Server erlaubt jeden Wert).
+    @ViewBuilder private func thresholdPicker(_ current: Int) -> some View {
+        let opts = Array(Set([20, 30, 40, 50, 75, 100, current])).sorted()
+        Menu {
+            ForEach(opts, id: \.self) { o in
+                Button("\(o) m") { Task { await saveThreshold(o) } }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Text("\(current) m").font(.caption)
+                Image(systemName: "chevron.down").font(.caption2)
+            }
+        }
+    }
+
+    private func saveThreshold(_ m: Int) async {
+        // Nach dem Speichern die Quote neu holen -- die Prozentwerte haengen an der Schwelle.
+        try? await Api.saveSettings(["start_threshold_m": m])
+        startSuccess = try? await Api.startSuccess()
+    }
+
     @ViewBuilder private func startSuccessSection(_ ss: StartSuccess) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(Loc.t("home.startSuccess", lang)).font(.headline)
+            HStack(spacing: 6) {
+                Text(Loc.t("home.startSuccess", lang)).font(.headline)
+                Spacer()
+                Text(Loc.t("home.startThreshold", lang)).font(.caption).foregroundStyle(.secondary)
+                thresholdPicker(ss.threshold_m)
+            }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(statWindows, id: \.0) { win in

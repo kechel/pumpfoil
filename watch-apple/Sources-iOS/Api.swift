@@ -299,6 +299,12 @@ enum Api {
     // Sportart-Klassifikation (docs/sport-classification.md). flagNotPumpfoil = FREMDE Session
     // melden (Server lehnt eigene mit 400 ab); setClassification = Besitzer/Admin ordnet zu (409,
     // wenn der Besitzer nach einer Meldung zurueck auf pumpfoil/ok will); appeal = Widerspruch.
+    /// Daumen-hoch auf eine Chat-Nachricht umschalten -> neuer Zustand + Anzahl.
+    /// ACHTUNG: das vorhandene toggleLike() sind SESSION-Likes, nicht Chat.
+    static func chatLike(_ messageId: Int) async throws -> ChatLikeResult {
+        try await request("/api/chat/\(messageId)/like", method: "POST", body: nil, auth: true)
+    }
+
     static func flagNotPumpfoil(_ id: Int, note: String? = nil) async throws {
         var body: [String: Any] = [:]
         if let n = note, !n.isEmpty { body["note"] = n }
