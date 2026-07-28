@@ -19,20 +19,24 @@ ACHTUNG (vor echter Freigabe unverifiziert, bei Zugang prüfen):
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
+import json
 import logging
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import get_settings
-from ..db import get_db
+from ..db import SessionLocal, get_db
 from .deps import current_user
 
 router = APIRouter(prefix="/api/integrations/suunto", tags=["suunto"])
@@ -265,31 +269,68 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
 
 
 @router.post("/webhook")
-async def webhook(request: Request, db: Session = Depends(get_db)) -> dict:
-    """Auto-Import: Suunto benachrichtigt bei neuem Workout (Notification enthält Username +
-    Workout-Key). Wir lösen den Link über den Username auf, holen genau dieses Workout und
-    importieren es. Antwortet immer schnell 200 (Webhook-Konvention). Öffentlich (keine Auth) —
-    kein Schaden möglich: wir importieren nur Workouts des zum Username gehörenden Tokens."""
+async def webhook(request: Request, background: BackgroundTasks) -> dict:
+    """Auto-Import: Suunto benachrichtigt bei neuem Workout.
+
+    Vertrag laut `apizone.suunto.com/webhooks`:
+    - Antwort **binnen 2 Sekunden** mit 2XX, sonst Retries mit Backoff und danach ein Circuit
+      Breaker, der *alle* Benachrichtigungen für unsere App pausiert. Deshalb wird hier nur
+      geprüft und sofort geantwortet; Token-Holen + FIT-Import laufen im Hintergrund.
+    - `X-HMAC-SHA256-Signature` = HMAC-SHA256 über den **rohen** Body mit dem im Portal selbst
+      gesetzten Notification Secret (`OAUTH_SUUNTO_NOTIFICATION_SECRET`). Ohne gesetztes Secret
+      wird nicht geprüft (sonst wäre der Webhook vor dem Portal-Eintrag tot).
+    - Nutzer steckt in `username`, der Workout-Key verschachtelt in `workout.workoutKey`
+      (die flache Form ist nur die Legacy-Variante mit Form-Parametern).
+    Immer 2XX, auch bei Unbekanntem — alles andere provoziert nur Retries.
+    """
+    raw = await request.body()
+    secret = os.environ.get("OAUTH_SUUNTO_NOTIFICATION_SECRET", "")
+    if secret:
+        want = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        got = request.headers.get("X-HMAC-SHA256-Signature", "")
+        if not hmac.compare_digest(want, got.strip().lower()):
+            log.warning("Suunto Webhook: Signatur passt nicht (Header %r, %d Bytes Body)", got, len(raw))
+            return {"ok": True}
     try:
-        body = await request.json()
-    except Exception:  # noqa: BLE001
-        return {"ok": True}
-    # VERIFY: Feldnamen gegen die Suunto-Webhook-Doku (how-to-start) abgleichen.
+        body = json.loads(raw or b"{}")
+        if not isinstance(body, dict):
+            raise ValueError("kein Objekt")
+    except Exception:  # noqa: BLE001  -> Legacy-Form-Parameter
+        form = await request.form()
+        body = {k: v for k, v in form.items()}
+    typ = str(body.get("type") or "")
+    wo = body.get("workout") if isinstance(body.get("workout"), dict) else {}
     username = str(body.get("username") or body.get("user") or "")
-    key = str(body.get("workoutid") or body.get("workoutKey") or body.get("id") or "")
-    if not username or not key:
-        return {"ok": True}
-    link = db.query(models.SuuntoLink).filter_by(suunto_username=username).first()
-    if link is None:
-        return {"ok": True}   # kein verknüpfter Nutzer -> ignorieren
-    user = db.get(models.User, link.user_id)
-    if user is None:
-        return {"ok": True}
-    token = _fresh_token(link, db)
-    if _import_workout(db, user, token, key):
-        link.last_sync_at = datetime.now(timezone.utc)
-        db.commit()
+    key = str(wo.get("workoutKey") or body.get("workoutid") or body.get("workoutKey") or "")
+    # Erster echter Ping: festhalten, was tatsächlich ankommt (Feldnamen, Header). Bewusst
+    # warning: für unsere Logger ist ohne Logging-Config nur root=WARNING aktiv, info verfällt.
+    log.warning("Suunto Webhook: type=%r username=%r key=%r felder=%s header=%s",
+                typ, username, key, sorted(body.keys()), sorted(request.headers.keys()))
+    if typ and typ != "WORKOUT_CREATED":
+        return {"ok": True}   # Route/24-7-Benachrichtigungen interessieren uns nicht
+    if username and key:
+        background.add_task(_import_notified_workout, username, key)
     return {"ok": True}
+
+
+def _import_notified_workout(username: str, key: str) -> None:
+    """Import nach der Webhook-Antwort, in eigener DB-Session (die Request-Session ist zu)."""
+    db = SessionLocal()
+    try:
+        link = db.query(models.SuuntoLink).filter_by(suunto_username=username).first()
+        if link is None:
+            log.info("Suunto Webhook: kein verknüpfter Nutzer für username=%r", username)
+            return
+        user = db.get(models.User, link.user_id)
+        if user is None:
+            return
+        if _import_workout(db, user, _fresh_token(link, db), key):
+            link.last_sync_at = datetime.now(timezone.utc)
+            db.commit()
+    except Exception as e:  # noqa: BLE001
+        log.warning("Suunto Webhook-Import fehlgeschlagen (username=%r, key=%r): %r", username, key, e)
+    finally:
+        db.close()
 
 
 @router.delete("")
