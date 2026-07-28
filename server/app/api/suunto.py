@@ -98,6 +98,29 @@ def _basic(cid: str, secret: str) -> str:
     return base64.b64encode(f"{cid}:{secret}".encode()).decode()
 
 
+def _token_post(data: dict, *, who: str) -> httpx.Response:
+    """Token-Tausch. Zugangsdaten im BODY statt per HTTP Basic.
+
+    Gemessen 2026-07-28: `/oauth/token` antwortet auf JEDE Anfrage mit `Authorization: Basic …`
+    pauschal `{"code":401,"message":"Unauthorized"}` — auch ohne Zugangsdaten und mit unsinnigem
+    grant_type, unsere Daten werden also nicht geprüft. Ihr Gateway erwartet unter `Authorization`
+    offenbar nur noch `Bearer <JWT>`. Mit den Zugangsdaten im Body antwortet der Endpunkt dagegen
+    inhaltlich. Der dokumentierte Basic-Weg bleibt als Rückfall, falls sie es zurückdrehen.
+    """
+    cid, secret = _creds()
+    hdr = {"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
+    r = httpx.post(TOKEN_URL, data={**data, "client_id": cid, "client_secret": secret},
+                   headers=hdr, timeout=20)
+    if r.status_code == 200:
+        return r
+    log.warning("Suunto token (%s): Body-Zugangsdaten -> %s %s", who, r.status_code, r.text[:300])
+    rb = httpx.post(TOKEN_URL, data=data,
+                    headers={**hdr, "Authorization": f"Basic {_basic(cid, secret)}"}, timeout=20)
+    if rb.status_code != 200:
+        log.warning("Suunto token (%s): Basic-Auth -> %s %s", who, rb.status_code, rb.text[:300])
+    return rb if rb.status_code == 200 else r
+
+
 def _fresh_token(link: models.SuuntoLink, db: Session) -> str:
     """Token bei Ablauf (täglich!) per refresh_token erneuern."""
     exp = link.token_expires_at
@@ -105,12 +128,8 @@ def _fresh_token(link: models.SuuntoLink, db: Session) -> str:
         exp = exp.replace(tzinfo=timezone.utc)
     if exp and exp - timedelta(minutes=5) > datetime.now(timezone.utc):
         return link.access_token
-    cid, secret = _creds()
-    r = httpx.post(TOKEN_URL,
-                   data={"grant_type": "refresh_token", "refresh_token": link.refresh_token},
-                   headers={"Authorization": f"Basic {_basic(cid, secret)}",
-                            "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
-                   timeout=20)
+    r = _token_post({"grant_type": "refresh_token", "refresh_token": link.refresh_token},
+                    who=f"refresh uid={link.user_id}")
     if r.status_code == 200:
         _store_token(link, r.json())
         db.commit()
@@ -138,6 +157,11 @@ def connect(user: models.User = Depends(current_user)) -> dict:
         "redirect_uri": _redirect_uri(),
         "scope": "workout",
         "state": _state_for(user.id),   # signiertes JWT -> im /callback zurück -> user_id
+        # In Suuntos Doku NICHT vorgesehen, aber ihre Login-Seite trägt genau diesen einen Parameter
+        # über die Anmeldung hinweg weiter (`<form action="/uaa/login?subscription-key=…">`). Ohne Wert
+        # bricht ihr Authorize-Schritt nach dem Login mit 400 ab (gemessen 2026-07-28), unser /callback
+        # wird nie erreicht. Versuch, ihrem Backend die aktive Subscription mitzugeben.
+        "subscription-key": _sub_key(),
     }
     return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
 
@@ -160,11 +184,8 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
     if not code or uid is None:
         return _redir("error")   # abgelaufener/fehlender state
     try:
-        tr = httpx.post(TOKEN_URL,
-                        data={"grant_type": "authorization_code", "code": code, "redirect_uri": _redirect_uri()},
-                        headers={"Authorization": f"Basic {_basic(cid, secret)}",
-                                 "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
-                        timeout=20)
+        tr = _token_post({"grant_type": "authorization_code", "code": code,
+                          "redirect_uri": _redirect_uri()}, who=f"connect uid={uid}")
         tok = tr.json() if tr.status_code == 200 else {}
         if tr.status_code != 200:
             # Suunto-Fehlerantwort loggen (sonst nicht diagnostizierbar: redirect_uri-Mismatch,
