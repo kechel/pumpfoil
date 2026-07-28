@@ -234,6 +234,8 @@ const en: Record<string, string> = {
   "sessions.noneMonth": "No sessions this month.",
   "sessions.none": "No sessions yet.",
   "sessions.uploadHint": "Upload a FIT file or connect the watch and go ride.",
+  "sessions.uploadSkipped": "{skipped} of {total} files skipped — they aren’t activities (e.g. the watch’s daily monitoring). Everything else was imported.",
+  "sessions.uploadSkippedOne": "Not imported: {reason}.",
   "sessions.uploadFail": "{fail} of {total} file(s) failed (no FIT / no GPS data?).",
   "sessions.timeTo": "to",
   "sessions.listEnd": "— End —",

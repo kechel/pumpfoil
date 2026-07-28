@@ -248,6 +248,8 @@ const de: Record<string, string> = {
   "sessions.noneMonth": "Keine Sessions in diesem Monat.",
   "sessions.none": "Noch keine Sessions.",
   "sessions.uploadHint": "FIT-Datei hochladen oder die Uhr verbinden und fahren.",
+  "sessions.uploadSkipped": "{skipped} von {total} Dateien übersprungen — das sind keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.",
+  "sessions.uploadSkippedOne": "Nicht importiert: {reason}.",
   "sessions.uploadFail": "{fail} von {total} Datei(en) fehlgeschlagen (kein FIT/keine GPS-Daten?).",
   "sessions.timeTo": "bis",
   "sessions.listEnd": "— Ende —",

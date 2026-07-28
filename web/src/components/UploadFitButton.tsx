@@ -31,15 +31,30 @@ export function UploadFitButton({
     if (!files.length) return;
     setUploading(true);
     let fail = 0;
+    // Übersprungen ist KEIN Fehler: der Garmin-Gesamtexport enthält Aktivitäten und
+    // Tagesaufzeichnungen gemischt (am Dateinamen nicht unterscheidbar). Wer den Ordner hochlädt,
+    // soll „12 importiert, 87 übersprungen" lesen und nicht „87 fehlgeschlagen".
+    let skipped = 0;
+    let skipDetail = "";
     let last: SessionSummary | null = null;
     for (let i = 0; i < files.length; i++) {
       if (files.length > 1) setProgress(`${i + 1}/${files.length}`);
-      try { last = await api.uploadFit(files[i]); } catch { fail++; }
+      try {
+        const r = await api.uploadFit(files[i]) as SessionSummary & { skipped?: string; detail?: string };
+        if (r && r.skipped) { skipped++; if (!skipDetail && r.detail) skipDetail = r.detail; }
+        else last = r;
+      } catch { fail++; }
     }
     setProgress(null);
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
     if (fail) alert(t("sessions.uploadFail", { fail, total: files.length }));
+    else if (skipped) {
+      // Bei genau EINER Datei den Grund im Klartext zeigen — sonst rätselt man, warum nichts passiert.
+      alert(files.length === 1 && skipDetail
+        ? t("sessions.uploadSkippedOne", { reason: skipDetail })
+        : t("sessions.uploadSkipped", { skipped, total: files.length }));
+    }
     if (onDone) onDone(last);
     else if (last) nav(`/sessions/${last.id}`);
     else nav("/sessions");

@@ -412,22 +412,22 @@ async def upload_fit(
         # seine Dateien würden „nicht als FIT erkannt".
         ftype = str(parsed.get("fit_type") or "")
         nrec = int(parsed.get("record_count") or 0)
+        # KEIN Fehler, sondern „übersprungen" — wie before_cutoff/not_water/deleted. Grund: der
+        # Garmin-Gesamtexport (DI_CONNECT/DI-Connect-Fitness-Uploaded-Files) enthält ALLES, was die
+        # Uhr hochgeladen hat, Aktivitäten und Tagesaufzeichnungen gemischt, am Dateinamen nicht
+        # unterscheidbar. Wer den Ordner hochlädt, bekäme sonst Dutzende „fehlgeschlagen" gemeldet,
+        # obwohl gar nichts kaputt ist. Der Grund wird mitgeliefert, damit die UI es erklären kann.
         if ftype.startswith("monitoring") or ftype in ("daily_monitoring", "sleep", "metrics"):
-            raise HTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                "Das ist eine Tagesaufzeichnung der Uhr (Schritte, Stress, Schlaf), keine Aktivität. "
-                "Bitte die Aktivitäts-Datei nehmen: auf der Uhr im Ordner ACTIVITY, oder in "
-                "Garmin Connect die Aktivität öffnen und 'Original exportieren'.")
+            return {"skipped": "not_activity", "fit_type": ftype,
+                    "detail": "Tagesaufzeichnung der Uhr (Schritte/Stress/Schlaf), keine Aktivität"}
         if ftype and ftype != "activity":
-            raise HTTPException(
-                status.HTTP_400_BAD_REQUEST,
-                f"Diese FIT-Datei ist vom Typ '{ftype}' und enthält keine Aktivität. "
-                "Bitte die Aktivitäts-Datei nehmen (Ordner ACTIVITY bzw. 'Original exportieren').")
+            return {"skipped": "not_activity", "fit_type": ftype,
+                    "detail": f"FIT-Datei vom Typ '{ftype}', keine Aktivität"}
         if nrec == 0:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                                "Die Datei enthält keine Aufzeichnungspunkte (leere Aktivität).")
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            "Die Aktivität enthält keine GPS-Punkte (z. B. Indoor aufgezeichnet).")
+            return {"skipped": "empty", "fit_type": ftype or "activity",
+                    "detail": "keine Aufzeichnungspunkte (leere Aktivität)"}
+        return {"skipped": "no_gps", "fit_type": ftype or "activity",
+                "detail": "Aktivität ohne GPS-Punkte (z. B. Indoor aufgezeichnet)"}
 
     # Bulk-Filter VOR der Dup-Prüfung -> Skip-Entscheidung unabhängig vom Import-Stand.
     sport = parsed["sport"]
