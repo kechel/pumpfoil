@@ -175,6 +175,14 @@ class MainActivity : ComponentActivity() {
         // Account-Config überschreibbar (pauseView). Fehlt der Key -> Default bleibt.
         var pauseView by remember { mutableStateOf(listOf(12, 20, 2)) }
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
+        // Eigene Layouts (F2/F3). `pages`/`offFoilPages` sind gemischte Saetze: ein Eintrag ist
+        // entweder eine 3-Feld-Seite oder eine Layout-ID. `layoutsOn` ist nur die VOREINSTELLUNG
+        // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
+        var layoutDefs by remember { mutableStateOf<Map<Int, LayoutPageDef>>(emptyMap()) }
+        var onFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
+        var offFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
+        var layoutsPref by remember { mutableStateOf(LocalStore.layoutsPref(ctx)) }   // null = automatisch
+        var layoutsServerDefault by remember { mutableStateOf(false) }
 
         fun applyConfig(c: JSONObject) {
             if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
@@ -185,6 +193,24 @@ class MainActivity : ComponentActivity() {
                     (0 until row.length()).map { row.getInt(it) }
                 }
             }
+            // Layout-Paket. Fehlt es (Server liefert es nur, wenn der Nutzer Layouts anhat), bleiben
+            // die klassischen 3-Feld-Seiten unveraendert stehen.
+            layoutsServerDefault = c.optBoolean("layoutsOn", false)
+            c.optJSONObject("layouts")?.let { obj ->
+                val m = mutableMapOf<Int, LayoutPageDef>()
+                val it2 = obj.keys()
+                while (it2.hasNext()) {
+                    val k = it2.next()
+                    val arr = obj.optJSONArray(k) ?: continue
+                    parseLayoutPage(arr)?.let { def -> k.toIntOrNull()?.let { id -> m[id] = def } }
+                }
+                layoutDefs = m
+            }
+            onFoilPages = parsePageRefs(c.optJSONArray("pages")) ?: pagesFromViews(views)
+            offFoilPages = parsePageRefs(c.optJSONArray("offFoilPages"))
+                ?: listOf(WatchPageRef.Classic(c.optJSONArray("offFoilView").let { a ->
+                    if (a == null) offFoil else (0 until a.length()).map { a.getInt(it) }
+                }))
             colorBy = c.optBoolean("colorByValue", false)
             autoStart = c.optBoolean("autoStart", false)
             manualAlarm = c.optBoolean("alarmEnabled", false)
@@ -237,7 +263,7 @@ class MainActivity : ComponentActivity() {
                 syncing = true
                 configJob = scope.launch {
                     try {
-                        val c = Api.deviceConfig(appVersion(ctx))
+                        val c = Api.deviceConfig(appVersion(ctx), wantLayouts = layoutsPref != false)
                         applyConfig(c)
                         Api.cacheConfig(ctx, c)
                     } catch (_: Exception) {}
@@ -276,7 +302,8 @@ class MainActivity : ComponentActivity() {
         if (s.recording) {
             // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
             // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
-            val dataCount = views.size
+            // Seitenzahl aus dem gemischten Satz (Layouts + 3-Feld-Seiten), Rueckfall views.
+            val dataCount = (if (onFoilPages.isNotEmpty()) onFoilPages.size else views.size).coerceAtLeast(1)
             val firstData = 2
             val lastData = dataCount + 1
             val summaryPage = dataCount + 2
@@ -311,13 +338,47 @@ class MainActivity : ComponentActivity() {
                     ) {
                         when {
                             page in firstData..lastData -> {
-                                val fields = views[page - firstData].filter { it != 0 }.ifEmpty { listOf(1) }
-                                fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                                // Eigene Layouts nur, wenn der Schalter an ist (null = Server-Vorgabe).
+                                val useLayouts = layoutsPref ?: layoutsServerDefault
+                                val ref = onFoilPages.getOrNull(page - firstData)
+                                val def = (ref as? WatchPageRef.Layout)?.id?.let { layoutDefs[it] }
+                                if (useLayouts && def != null) {
+                                    LayoutPageView(
+                                        page = def, pageIndex = page - firstData, pageCount = dataCount,
+                                        recording = true, pausedText = I18n.t("rec.paused"),
+                                        fieldValue = { fid -> fieldValue(fid, s).first },
+                                        fieldLabel = { fid -> fieldValue(fid, s).second },
+                                        fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                } else {
+                                    val classic = (ref as? WatchPageRef.Classic)?.fields
+                                        ?: views.getOrNull(page - firstData) ?: listOf(1)
+                                    val fields = classic.filter { it != 0 }.ifEmpty { listOf(1) }
+                                    fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                                }
                             }
                             page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
-                                val v = if (showRunEnd) offFoil else pauseView
-                                val fields = v.filter { it != 0 }.ifEmpty { listOf(12) }
-                                fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                                val useLayouts = layoutsPref ?: layoutsServerDefault
+                                val ref = if (showRunEnd) offFoilPages.firstOrNull() else null
+                                val def = (ref as? WatchPageRef.Layout)?.id?.let { layoutDefs[it] }
+                                if (useLayouts && def != null) {
+                                    LayoutPageView(
+                                        page = def, pageIndex = 0, pageCount = 1,
+                                        recording = true, pausedText = I18n.t("rec.paused"),
+                                        fieldValue = { fid -> fieldValue(fid, s).first },
+                                        fieldLabel = { fid -> fieldValue(fid, s).second },
+                                        fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                } else {
+                                    val v = when {
+                                        showRunEnd -> (ref as? WatchPageRef.Classic)?.fields ?: offFoil
+                                        else -> pauseView
+                                    }
+                                    val fields = v.filter { it != 0 }.ifEmpty { listOf(12) }
+                                    fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
+                                }
                             }
                             page == 1 || page == stopBack -> {  // Stop-Seiten: 3 s halten -> stoppen (speichert + lädt hoch)
                                 HoldButton(I18n.t("rec.stopHold"), Color(0xFFB91C1C), Color(0xFFF87171)) {
@@ -378,6 +439,15 @@ class MainActivity : ComponentActivity() {
                         onToggleAlarm = { alarm = alarm.copy(enabled = !alarm.enabled) },
                         onToggleSource = { alarmSource = if (alarmSource == "foil") "manual" else "foil" },
                         onToggleAutoStart = { autoStart = !autoStart },
+                        layoutsPref = layoutsPref,
+                        layoutsEffective = layoutsPref ?: layoutsServerDefault,
+                        layoutsPageCount = onFoilPages.count { it is WatchPageRef.Layout },
+                        onCycleLayouts = {
+                            // Automatisch -> An -> Aus -> Automatisch (wie Garmin)
+                            val next = when (layoutsPref) { null -> true; true -> false; false -> null }
+                            layoutsPref = next
+                            LocalStore.setLayoutsPref(ctx, next)
+                        },
                         onManualLow = { v -> alarm = alarm.copy(low = v) },
                         onManualHigh = { v -> alarm = alarm.copy(high = v) },
                         onPick = { f -> sessionFoilId = f.id; foilLabel = f.label; showFoilPicker = false },
@@ -792,6 +862,10 @@ fun FoilPicker(
     onToggleAlarm: () -> Unit,
     onToggleSource: () -> Unit,
     onToggleAutoStart: () -> Unit,
+    layoutsPref: Boolean?,          // null = automatisch (Server-Voreinstellung)
+    layoutsEffective: Boolean,      // was gerade wirklich gilt -> Anzeige bei "Automatisch"
+    layoutsPageCount: Int,          // 0 = es gibt gar keine Layout-Seiten -> Hinweis wie bei Garmin
+    onCycleLayouts: () -> Unit,
     onManualLow: (Int) -> Unit,
     onManualHigh: (Int) -> Unit,
     onPick: (FoilOpt) -> Unit,
@@ -822,6 +896,24 @@ fun FoilPicker(
             modifier = Modifier.fillMaxWidth(),
         )
         Help(I18n.t("rec.autoStartHelp"))
+        // Eigene Layouts: Automatisch / An / Aus — derselbe Dreiklang wie im Garmin-Menue
+        // (RecordDelegate._layoutState). Der Server-Wert ist nur die Vorbelegung.
+        Chip(
+            onClick = onCycleLayouts,
+            label = { Text(I18n.t("menu.layouts")) },
+            secondaryLabel = {
+                Text(
+                    when (layoutsPref) {
+                        null -> I18n.t("common.auto") + " (" +
+                            (if (layoutsEffective) I18n.t("common.on") else I18n.t("common.off")) + ")"
+                        true -> if (layoutsPageCount == 0)
+                            I18n.t("common.on") + " (" + I18n.t("lay.none") + ")" else I18n.t("common.on")
+                        false -> I18n.t("common.off")
+                    }
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
         // Alarm An/Aus + Hinweis
         Chip(
             onClick = onToggleAlarm,

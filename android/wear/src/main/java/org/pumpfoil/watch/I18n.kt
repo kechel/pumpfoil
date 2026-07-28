@@ -54,6 +54,13 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 
 private val S: Map<String, Map<String, String>> = mapOf(
     // Pairing
+    // Eigene Layouts: Texte woertlich aus dem Garmin-Recorder (watch/source/Strings.mc),
+    // damit dieselbe Funktion auf beiden Uhren gleich heisst. ja/zh fehlen dort absichtlich
+    // (keine CJK-Glyphen in den Garmin-Fonts) -> hier fallen sie auf Englisch zurueck.
+    "menu.layouts" to row("Eigene Layouts", "Eigeni Layouts", "Eigene Layouts", "Custom layouts", "Layouts perso", "Layout personali", "Diseños propios"),
+    "common.auto" to row("Automatisch", "Automatisch", "Automatisch", "Automatic", "Automatique", "Automatico", "Automático"),
+    "lay.none" to row("keine Seiten", "kei Site", "keine Seiten", "no pages", "aucune page", "nessuna pagina", "sin páginas"),
+    "lay.fallback" to row("Layout aus (Absturz)", "Layout us (Absturz)", "Layout aus (Absturz)", "Layout off (crash)", "Layout off (plantage)", "Layout off (crash)", "Diseño off (fallo)"),
     "pair.title" to row("Uhr verbinden", "Uhr verbinde", "Uhr verbinden", "Connect watch", "Connecter la montre", "Collega l'orologio", "Conectar reloj"),
     "pair.howto" to row("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Pairing-Code erzüge und uf pumpfoil.org (Account) yygeh.", "Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Generate a pairing code and enter it on pumpfoil.org (Account).", "Générez un code et saisissez-le sur pumpfoil.org (Compte).", "Genera un codice e inseriscilo su pumpfoil.org (Account).", "Genera un código e introdúcelo en pumpfoil.org (Cuenta)."),
     "pair.gen" to row("Code erzeugen", "Code erzüge", "Code erzeugen", "Generate code", "Générer un code", "Genera codice", "Generar código"),
@@ -169,6 +176,10 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
+    "menu.layouts" to "Layouts próprios",
+    "common.auto" to "Automático",
+    "lay.none" to "sem páginas",
+    "lay.fallback" to "Layout off (falha)",
     "pair.title" to "Conectar relógio",
     "pair.howto" to "Gere um código de emparelhamento e insira em pumpfoil.org (Conta).",
     "pair.gen" to "Gerar código",
@@ -409,6 +420,10 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunMax" to "上次最高",
 )
 private val RU: Map<String, String> = mapOf(
+    "menu.layouts" to "Свои макеты",
+    "common.auto" to "Авто",
+    "lay.none" to "нет страниц",
+    "lay.fallback" to "Макет выкл (сбой)",
     "pair.title" to "Подключить часы",
     "pair.howto" to "Сгенерируйте код сопряжения и введите его на pumpfoil.org (Аккаунт).",
     "pair.gen" to "Сгенерировать код",
@@ -489,6 +504,10 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunMax" to "посл макс",
 )
 private val ID: Map<String, String> = mapOf(
+    "menu.layouts" to "Tata letak sendiri",
+    "common.auto" to "Otomatis",
+    "lay.none" to "tidak ada",
+    "lay.fallback" to "Tata letak off (error)",
     "pair.title" to "Hubungkan jam",
     "pair.howto" to "Buat kode pemasangan dan masukkan di pumpfoil.org (Akun).",
     "pair.gen" to "Buat kode",

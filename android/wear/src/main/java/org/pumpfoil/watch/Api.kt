@@ -70,10 +70,13 @@ object Api {
     }
 
     // version: gemeldete App-Version (für den Update-Hinweis im Web), p=wear als Plattform.
-    suspend fun deviceConfig(version: String = ""): JSONObject = withContext(Dispatchers.IO) {
-        val q = if (version.isNotEmpty())
-            "?v=" + java.net.URLEncoder.encode(version, "UTF-8") + "&p=wear" else "?p=wear"
-        get("/api/devices/config$q")
+    // version: gemeldete App-Version (fuer den Update-Hinweis), p=wear als Plattform.
+    // lay=1 heisst "diese Uhr will eigene Layouts" — auf Wear ohne Speichergrenze, aber der Server
+    // nutzt denselben Parameter wie bei Garmin, also schicken wir ihn, wenn der Schalter an ist.
+    suspend fun deviceConfig(version: String = "", wantLayouts: Boolean = false): JSONObject = withContext(Dispatchers.IO) {
+        val v = if (version.isNotEmpty()) "&v=" + java.net.URLEncoder.encode(version, "UTF-8") else ""
+        val lay = if (wantLayouts) "&lay=1" else ""
+        get("/api/devices/config?p=wear$v$lay")
     }
 
     // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt

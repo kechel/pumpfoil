@@ -16,6 +16,21 @@ import java.io.File
 //            complete.json    {ended_at, total_chunks}   (erst beim Stop -> "fertig aufgezeichnet")
 object LocalStore {
     private fun root(ctx: Context) = File(ctx.filesDir, "sessions").apply { mkdirs() }
+
+    // Eigene Layouts auf der Uhr: null = automatisch (Server-Voreinstellung), true = an, false = aus.
+    // Dreistufig wie bei Garmin (SessionRecorder.layouts_pref): der Nutzer soll am Handgelenk
+    // umstellen koennen, ohne dass der Server ihn ueberstimmt.
+    private const val PREF_LAYOUTS = "layouts_pref"
+    fun layoutsPref(ctx: Context): Boolean? {
+        val p = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+        if (!p.contains(PREF_LAYOUTS)) return null
+        return p.getBoolean(PREF_LAYOUTS, true)
+    }
+    fun setLayoutsPref(ctx: Context, v: Boolean?) {
+        val e = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).edit()
+        if (v == null) e.remove(PREF_LAYOUTS) else e.putBoolean(PREF_LAYOUTS, v)
+        e.apply()
+    }
     fun dir(ctx: Context, uuid: String) = File(root(ctx), uuid).apply { mkdirs() }
 
     fun writeMeta(ctx: Context, uuid: String, meta: JSONObject) =
