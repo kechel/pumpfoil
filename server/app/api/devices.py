@@ -103,6 +103,13 @@ def device_config(
     # nicht abgeschaltet hat. Sonst kommt der Block gar nicht mit (alte Clients ignorieren
     # ihn ohnehin, aber so bleibt die Payload klein und der Object Store der Uhr frei).
     cat = _catalog_entry(pn or device.part_number)
+    # Plattform der anfragenden Uhr. Das Speicher-Gate unten stammt aus der Connect-IQ-Welt
+    # (96-512 KB RAM, Katalog nach Part-Number) und ergibt NUR dort Sinn. Für wear/apple/zepp gibt es
+    # keine Part-Number, also war `cat` None, `mem` 0 und damit `layout_capable` immer False: der
+    # Layout-Block wurde an diese Uhren NIE ausgeliefert, egal was der Client kann. Solange nur
+    # Garmin einen Renderer hatte, fiel das nicht auf.
+    plat = (p or device.platform or "garmin")
+    is_garmin = plat == "garmin"
     # „Hat der Nutzer den Schalter selbst angefasst?" — steht der Key im GESPEICHERTEN JSON
     # (nicht bloß im DEFAULTS-Merge), war es eine bewusste Entscheidung und sticht eine
     # Modell-Voreinstellung auf „aus".
@@ -110,14 +117,16 @@ def device_config(
     user_opted_in = "layouts_enabled" in stored and bool(stored.get("layouts_enabled"))
     layouts_on = (
         bool(settings.get("layouts_enabled", True))
-        and (cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY
+        # Speicher-/Modell-/Canary-Gates sind Garmin-spezifisch (s. Kommentar an `plat`): auf den
+        # anderen Plattformen entscheidet allein der Profil-Schalter.
+        and ((cat or {}).get("mem", 0) >= LAYOUT_MIN_MEMORY or not is_garmin)
         # Selbstheilung PRO UHR — aber erst bei WIEDERHOLUNG (s. CANARY_BLOCK_AT). Ein einzelner
         # Absturz ist auf der Uhr selbst schon abgefangen (sie fährt die betroffene Sitzung
         # statisch); ihn hier dauerhaft zu sperren, machte aus der Selbstheilung ein Standverbot,
         # das nur ein manueller Reset im Profil aufhebt. Genau darin lief Jan fest: Uhr meldet den
         # Absturz -> Zähler zurück auf 1 -> Server liefert nie wieder Layouts.
-        and (int(device.layout_canary_count or 0) < CANARY_BLOCK_AT or user_opted_in)
-        and _model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in)
+        and (int(device.layout_canary_count or 0) < CANARY_BLOCK_AT or user_opted_in or not is_garmin)
+        and (_model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in) or not is_garmin)
     )
     # Ausgeliefert wird das Layout-Paket, sobald die Uhr GENUG SPEICHER hat — unabhängig davon, ob
     # unsere Empfehlung „an" lautet. Denn `layoutsOn` ist nur noch eine VOREINSTELLUNG: die Uhr
@@ -132,7 +141,11 @@ def device_config(
     # s. fēnix-5-/FR55-Meldungen), aber wer testen will, darf. Unter 128 KB ist es unmöglich: der Lite-Build hat
     # den Renderer gar nicht drin.
     _mem = (cat or {}).get("mem", 0)
-    layout_capable = _mem >= LAYOUT_MIN_MEMORY or (_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1)
+    layout_capable = (
+        not is_garmin   # Wear/watchOS/Zepp: kein 96-KB-Problem, Renderer immer bedienbar
+        or _mem >= LAYOUT_MIN_MEMORY
+        or (_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1)
+    )
     layout_block = _layouts_for_watch(db, device.user_id, settings) if layout_capable else {}
 
     return {
@@ -171,7 +184,10 @@ def device_config(
         # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
-        "latestVersion": (_APP_META["garmin"]["latest"] if (p or device.platform) == "garmin" else ""),
+        # War hart auf Garmin verdrahtet; jetzt plattform-generisch, damit auch Zepp/Wear/Apple einen
+        # Hinweis bekommen, SOBALD in appmeta ein Eintrag für sie steht. Ohne Eintrag bleibt es leer
+        # (kein Hinweis) — die Store-Freigaben pflegt Jan dort ein, nicht dieser Code.
+        "latestVersion": (_APP_META.get(plat) or {}).get("latest", ""),
         # Dynamische Layouts (F2 P2). `layoutsOn` ist die VOREINSTELLUNG für den Schalter auf der
         # Uhr (Speicher + Absturz-Statistik + Modell-Voreinstellung + Profil-Schalter), NICHT ein
         # Veto: hat der Nutzer den Schalter am Handgelenk angefasst, gilt seiner. `pages`/`offFoil`/
