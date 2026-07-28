@@ -342,6 +342,32 @@ object Api {
     }
 
     // Stab-Katalog (sichtbar = oeffentliche Eintraege + eigene) und eigene Boards.
+    suspend fun stabBrands(): List<String> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/stabs/brands", null, auth = true))
+    }
+
+    suspend fun stabCreate(brand: String, model: String, size: String): StabBrief = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("brand", brand); put("model", model); put("size", size) }
+        json.decodeFromString(StabBrief.serializer(), http("POST", "/api/stabs", body.toString(), auth = true))
+    }
+
+    suspend fun stabDelete(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/stabs/$id", null, auth = true); Unit
+    }
+
+    suspend fun boardCreate(name: String, volumeL: Double?, lengthCm: Double?): BoardBrief = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            put("name", name)
+            if (volumeL == null) put("volume_l", JsonNull) else put("volume_l", volumeL)
+            if (lengthCm == null) put("length_cm", JsonNull) else put("length_cm", lengthCm)
+        }
+        json.decodeFromString(BoardBrief.serializer(), http("POST", "/api/boards", body.toString(), auth = true))
+    }
+
+    suspend fun boardDelete(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/boards/$id", null, auth = true); Unit
+    }
+
     suspend fun stabs(): List<StabBrief> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(StabBrief.serializer()), http("GET", "/api/stabs", null, auth = true))
     }

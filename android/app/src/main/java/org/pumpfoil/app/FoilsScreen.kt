@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,7 +61,7 @@ import kotlin.math.roundToInt
 // Standard (Stern). Persistiert via PUT /api/settings (my_foils, foil_id).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoilsScreen(onBack: () -> Unit = {}) {
+fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
     var foils by remember { mutableStateOf<List<Foil>?>(null) }
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var brand by remember { mutableStateOf("") }
@@ -116,6 +117,12 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             // Standard-Sportart oben, vor der Foil-Suche: sie gilt fuer die naechste Aufnahme und
             // gehoert damit zur Ausruestungs-Vorbereitung (wie in der PWA).
+            item {
+                // Wie in der PWA (Foils.tsx:100): von hier geht es ins detaillierte Setup.
+                TextButton(onClick = onSetup, modifier = Modifier.padding(top = 8.dp)) {
+                    Text("${I18n.t("foils.toSetup")} \u2192")
+                }
+            }
             item {
                 Column(Modifier.padding(top = 8.dp)) {
                     Text(I18n.t("foils.defaultSport"), style = MaterialTheme.typography.labelMedium,

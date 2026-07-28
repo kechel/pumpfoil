@@ -208,7 +208,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
-            composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }) }
+            composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }, onSetup = { nav.navigate("setup") }) }
+            composable("setup") { SetupScreen(onBack = { nav.popBackStack() }) }
             composable("foilstats") { FoilStatsScreen(onBack = { nav.popBackStack() }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
