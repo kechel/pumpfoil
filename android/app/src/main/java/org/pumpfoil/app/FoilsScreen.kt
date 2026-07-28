@@ -1,5 +1,12 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
+import kotlinx.serialization.json.contentOrNull
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +67,9 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
     var query by remember { mutableStateOf("") }
     var mine by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var def by remember { mutableStateOf<Int?>(null) }
+    // Standard-Sportart neuer Sessions (docs/sport-classification.md). Sitzt hier und nicht in den
+    // Einstellungen, weil die PWA es auch hier hat (Foils.tsx) — gleiche Stelle, gleiche Erwartung.
+    var defSport by remember { mutableStateOf("pumpfoil") }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -69,6 +79,7 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
             val s = Api.settings()
             mine = (s["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()).toSet()
             def = s["foil_id"]?.jsonPrimitive?.intOrNull
+            defSport = s["default_sport_class"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
         } catch (_: Exception) { foils = emptyList() }
     }
 
@@ -103,6 +114,36 @@ fun FoilsScreen(onBack: () -> Unit = {}) {
         val restList = filtered.filter { !mine.contains(it.id) }
 
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+            // Standard-Sportart oben, vor der Foil-Suche: sie gilt fuer die naechste Aufnahme und
+            // gehoert damit zur Ausruestungs-Vorbereitung (wie in der PWA).
+            item {
+                Column(Modifier.padding(top = 8.dp)) {
+                    Text(I18n.t("foils.defaultSport"), style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(4.dp))
+                    var openSport by remember { mutableStateOf(false) }
+                    Box {
+                        OutlinedButton(onClick = { openSport = true }) {
+                            Text(I18n.t("cls.sport.$defSport"), maxLines = 1)
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                        }
+                        DropdownMenu(expanded = openSport, onDismissRequest = { openSport = false }) {
+                            SPORTS.forEach { sp ->
+                                DropdownMenuItem(text = { Text(I18n.t("cls.sport.$sp")) }, onClick = {
+                                    openSport = false
+                                    defSport = sp
+                                    scope.launch {
+                                        try { Api.saveSettings(buildJsonObject { put("default_sport_class", sp) }) }
+                                        catch (_: Exception) {}
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    Text(I18n.t("foils.defaultSportHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
             item {
                 OutlinedTextField(value = query, onValueChange = { query = it },
                     label = { Text(I18n.t("foils.search")) }, singleLine = true,

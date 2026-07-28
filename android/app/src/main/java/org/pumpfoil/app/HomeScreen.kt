@@ -1,5 +1,10 @@
 package org.pumpfoil.app
 
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -98,6 +103,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var showFeedback by remember { mutableStateOf(false) }
     var showRating by remember { mutableStateOf(false) }
     var incomingXfer by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
     val tick by WatchSync.tick.collectAsState()
 
     if (showFeedback) FeedbackDialog(onDismiss = { showFeedback = false })
@@ -363,7 +369,15 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             // („Meine Chats" wurde entfernt — läuft im Chat-Tab, wie in der PWA.)
             startSuccess?.let { ss ->
                 Spacer(Modifier.height(10.dp))
-                StartSuccessSection(ss)
+                StartSuccessSection(ss) { m ->
+                    // Schwelle speichern und die Quote frisch holen — die Prozentwerte haengen daran.
+                    scope.launch {
+                        try {
+                            Api.saveSettings(buildJsonObject { put("start_threshold_m", m) })
+                            startSuccess = Api.startSuccess()
+                        } catch (_: Exception) {}
+                    }
+                }
             }
             carveStats?.let { cs ->
                 if (cs.windows.values.any { it.s + it.m + it.l > 0 }) {
@@ -397,8 +411,28 @@ private fun statTileModifier() = Modifier
     .widthIn(min = 64.dp)
 
 @Composable
-private fun StartSuccessSection(ss: StartSuccess) {
-    Text(I18n.t("home.startSuccess"), style = MaterialTheme.typography.titleMedium)
+private fun StartSuccessSection(ss: StartSuccess, onThreshold: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(I18n.t("home.startSuccess"), style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.weight(1f))
+        // Eigene Schwelle: ab welcher Distanz ein Start als echter Lauf gilt. Der aktuelle Wert ist
+        // immer dabei, auch wenn er nicht in der Vorschlagsliste steht (Server kann jeden Wert haben).
+        val opts = (listOf(20, 30, 40, 50, 75, 100) + ss.thresholdM).distinct().sorted()
+        var open by remember { mutableStateOf(false) }
+        Text(I18n.t("home.startThreshold"), style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box {
+            TextButton(onClick = { open = true }) {
+                Text("${ss.thresholdM} m", style = MaterialTheme.typography.labelLarge)
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                opts.forEach { o ->
+                    DropdownMenuItem(text = { Text("$o m") }, onClick = { open = false; onThreshold(o) })
+                }
+            }
+        }
+    }
     Spacer(Modifier.height(6.dp))
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         HOME_STAT_WINDOWS.forEach { (k, lbl) ->
