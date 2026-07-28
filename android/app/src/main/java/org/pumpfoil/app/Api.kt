@@ -341,6 +341,32 @@ object Api {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("caption", caption) }.toString(), auth = true)
     }
 
+    // Stab-Katalog (sichtbar = oeffentliche Eintraege + eigene) und eigene Boards.
+    suspend fun stabs(): List<StabBrief> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(StabBrief.serializer()), http("GET", "/api/stabs", null, auth = true))
+    }
+
+    suspend fun boards(): List<BoardBrief> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(BoardBrief.serializer()), http("GET", "/api/boards", null, auth = true))
+    }
+
+    /** Setup-Teil je Session setzen; null = zurueck auf den Standard des Nutzers.
+     *  Nur die uebergebenen Felder werden geaendert (Server prueft model_fields_set). */
+    suspend fun setSessionSetup(
+        id: Int, stabId: Int? = null, setStab: Boolean = false,
+        mastLenCm: Int? = null, setMast: Boolean = false,
+        shimDeg: Double? = null, setShim: Boolean = false,
+        boardId: Int? = null, setBoard: Boolean = false,
+    ): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            if (setStab) { if (stabId == null) put("stab_id", JsonNull) else put("stab_id", stabId) }
+            if (setMast) { if (mastLenCm == null) put("mast_len_cm", JsonNull) else put("mast_len_cm", mastLenCm) }
+            if (setShim) { if (shimDeg == null) put("shim_deg", JsonNull) else put("shim_deg", shimDeg) }
+            if (setBoard) { if (boardId == null) put("board_id", JsonNull) else put("board_id", boardId) }
+        }
+        http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
+    }
+
     suspend fun setSessionFoil(id: Int, foilId: Int?): Unit = withContext(Dispatchers.IO) {
         val body = buildJsonObject { if (foilId == null) put("foil_id", JsonNull) else put("foil_id", foilId) }
         http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)

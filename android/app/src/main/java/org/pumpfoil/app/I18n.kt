@@ -42,6 +42,12 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 
 // Kuratiertes Start-Set: Navigation, häufige Aktionen, Haupttitel.
 private val S: Map<String, Map<String, String>> = mapOf(
+    "setup.stabTitle" to row("Stabilizer", "Stabilizer", "Stabilizer", "Stabilizer", "Stabilizer", "Stabilizer", "Stabilizer"),
+    "setup.myStabs" to row("Meine Stabs", "Meine Stabs", "Meine Stabs", "My stabs", "My stabs", "My stabs", "My stabs"),
+    "setup.mastTitle" to row("Mastlänge", "Mastlänge", "Mastlänge", "Mast length", "Mast length", "Mast length", "Mast length"),
+    "setup.shimTitle" to row("Shim (Anstellwinkel)", "Shim (Anstellwinkel)", "Shim (Anstellwinkel)", "Shim (angle)", "Shim (angle)", "Shim (angle)", "Shim (angle)"),
+    "setup.boardTitle" to row("Boards", "Boards", "Boards", "Boards", "Boards", "Boards", "Boards"),
+    "setup.inherit" to row("Standard verwenden", "Standard verwende", "Standard verwenden", "Use default", "Utiliser la valeur par défaut", "Usa il valore predefinito", "Usar el valor predeterminado"),
     "foils.defaultSport" to row("Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions"),
     "foils.defaultSportHint" to row("Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later."),
     "home.startThreshold" to row("Versuch < ", "Versuch < ", "Versuch < ", "Attempt < ", "Attempt < ", "Attempt < ", "Attempt < "),

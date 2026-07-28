@@ -525,6 +525,37 @@ data class WatchStat(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
+// Restliches Setup einer Session (Server: sessions.py:_resolve_setup). Jedes Teil hat ein
+// `*_is_default`: true = vom Nutzer-Standard geerbt, false = fuer DIESE Session gesetzt.
+@Serializable
+data class StabBrief(
+    val id: Int,
+    val brand: String = "",
+    val model: String = "",
+    val size: String = "",
+    @SerialName("is_default") val isDefault: Boolean = true,
+    @SerialName("is_own") val isOwn: Boolean = false,
+)
+
+@Serializable
+data class BoardBrief(
+    val id: Int,
+    val name: String = "",
+    @SerialName("volume_l") val volumeL: Double? = null,
+    @SerialName("length_cm") val lengthCm: Double? = null,
+    @SerialName("is_default") val isDefault: Boolean = true,
+)
+
+@Serializable
+data class SessionSetup(
+    val stab: StabBrief? = null,
+    @SerialName("mast_len_cm") val mastLenCm: Int? = null,
+    @SerialName("mast_is_default") val mastIsDefault: Boolean = true,
+    @SerialName("shim_deg") val shimDeg: Double? = null,
+    @SerialName("shim_is_default") val shimIsDefault: Boolean = true,
+    val board: BoardBrief? = null,
+)
+
 @Serializable
 data class SessionDetail(
     val id: Int,
@@ -549,6 +580,7 @@ data class SessionDetail(
     @SerialName("data_quality") val dataQuality: String? = null,
     @SerialName("needs_classification") val needsClassification: Boolean = false,
     @SerialName("appeal_text") val appealText: String? = null,
+    val setup: SessionSetup? = null,   // Stab/Mast/Shim/Board (geerbt oder je Session gesetzt)
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt

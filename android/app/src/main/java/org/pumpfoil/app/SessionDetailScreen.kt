@@ -397,12 +397,26 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var draftCaption by remember(s.id) { mutableStateOf("") }
     var allFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
     var mineIds by remember(s.id) { mutableStateOf<Set<Int>>(emptySet()) }
+    // Restliches Setup: Katalog/Listen fuer die Auswahlfelder. Mast und Shim sind reine Werte aus
+    // den Einstellungen des Nutzers (my_masts/my_shims) — ohne eigene Werte kein Auswahlfeld,
+    // genau wie in der PWA (FoilSelect.tsx).
+    var allStabs by remember(s.id) { mutableStateOf<List<StabBrief>>(emptyList()) }
+    var myStabIds by remember(s.id) { mutableStateOf<Set<Int>>(emptySet()) }
+    var myMasts by remember(s.id) { mutableStateOf<List<Int>>(emptyList()) }
+    var myShims by remember(s.id) { mutableStateOf<List<Double>>(emptyList()) }
+    var myBoards by remember(s.id) { mutableStateOf<List<BoardBrief>>(emptyList()) }
     LaunchedEffect(Unit) {
         weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
         if (s.owned) {
             try {
-                mineIds = Api.settings()["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
+                val st = Api.settings()
+                mineIds = st["my_foils"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
+                myStabIds = st["my_stabs"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }?.toSet() ?: emptySet()
+                myMasts = st["my_masts"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
+                myShims = st["my_shims"]?.jsonArray?.mapNotNull { it.jsonPrimitive.doubleOrNull } ?: emptyList()
                 allFoils = Api.foils()
+                allStabs = try { Api.stabs() } catch (_: Exception) { emptyList() }
+                myBoards = try { Api.boards() } catch (_: Exception) { emptyList() }
             } catch (_: Exception) {}
         }
     }
@@ -510,6 +524,75 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
                     onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
                 )
+            }
+        }
+        // Restliches Setup je Session: Stab, Mastlaenge, Shim, Board. Leere Auswahl = Standard des
+        // Nutzers erben; der geerbte Wert steht dann im Knopf. Jedes Feld erscheint nur, wenn es
+        // ueberhaupt etwas zu waehlen gibt (Katalog bzw. eigene Werte) — wie FoilSelect.tsx.
+        if (s.owned) {
+            val setup = s.setup
+            fun label(explicit: Boolean, own: String?, inherited: String?, fallback: String) =
+                if (explicit) own ?: fallback else inherited ?: I18n.t("setup.inherit")
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (allStabs.isNotEmpty()) {
+                    val expl = setup?.stab?.isDefault == false
+                    SetupDropdown(
+                        title = I18n.t("setup.stabTitle"),
+                        current = label(expl, setup?.stab?.let { "${it.brand} ${it.model} ${it.size}".trim() }, null, ""),
+                        groups = listOf(
+                            I18n.t("setup.myStabs") to allStabs.filter { it.id in myStabIds },
+                            I18n.t("foils.allBrands") to allStabs.filter { it.id !in myStabIds },
+                        ),
+                        labelOf = { "${it.brand} ${it.model} ${it.size}".trim() },
+                        idOf = { it.id },
+                        onPick = { id ->
+                            scope.launch {
+                                try { Api.setSessionSetup(s.id, stabId = id, setStab = true); onReload() } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                }
+                if (myMasts.isNotEmpty()) {
+                    val expl = setup?.mastIsDefault == false
+                    SetupValueDropdown(
+                        title = I18n.t("setup.mastTitle"),
+                        current = if (expl || setup?.mastLenCm != null) "${setup?.mastLenCm} cm" else I18n.t("setup.inherit"),
+                        options = myMasts.map { it to "$it cm" },
+                        onPick = { v ->
+                            scope.launch {
+                                try { Api.setSessionSetup(s.id, mastLenCm = v, setMast = true); onReload() } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                }
+                if (myShims.isNotEmpty()) {
+                    val expl = setup?.shimIsDefault == false
+                    SetupValueDropdown(
+                        title = I18n.t("setup.shimTitle"),
+                        current = if (expl || setup?.shimDeg != null) fmtShim(setup?.shimDeg) else I18n.t("setup.inherit"),
+                        options = myShims.map { it to fmtShim(it) },
+                        onPick = { v ->
+                            scope.launch {
+                                try { Api.setSessionSetup(s.id, shimDeg = v, setShim = true); onReload() } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                }
+                if (myBoards.isNotEmpty()) {
+                    val expl = setup?.board?.isDefault == false
+                    SetupDropdown(
+                        title = I18n.t("setup.boardTitle"),
+                        current = label(expl, setup?.board?.name, null, ""),
+                        groups = listOf("" to myBoards),
+                        labelOf = { it.name },
+                        idOf = { it.id },
+                        onPick = { id ->
+                            scope.launch {
+                                try { Api.setSessionSetup(s.id, boardId = id, setBoard = true); onReload() } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                }
             }
         }
 
@@ -1435,6 +1518,82 @@ private fun ClassDropdown(options: List<String>, selected: String, keyPrefix: St
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { o ->
                 DropdownMenuItem(text = { Text(I18n.t("$keyPrefix$o")) }, onClick = { open = false; onPick(o) })
+            }
+        }
+    }
+}
+
+// Shim-Anzeige: 0 bleibt "0°", sonst mit Vorzeichen und einer Dezimale nur wenn nötig
+// (1.0 -> "+1°", 0.5 -> "+0.5°"). Spiegelt fmtShim in web/src/components/FoilSelect.tsx.
+private fun fmtShim(v: Double?): String {
+    if (v == null) return "—"
+    val txt = if (v == v.toLong().toDouble()) "${v.toLong()}" else "$v"
+    return (if (v > 0) "+$txt" else txt) + "°"
+}
+
+// Auswahl aus Objekt-Listen (Stab, Board) mit optionalen Gruppen-Überschriften. Erster Eintrag ist
+// immer "Standard verwenden" = Override löschen (null an den Server).
+@Composable
+private fun <T> SetupDropdown(
+    title: String,
+    current: String,
+    groups: List<Pair<String, List<T>>>,
+    labelOf: (T) -> String,
+    idOf: (T) -> Int,
+    onPick: (Int?) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Column {
+        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(2.dp))
+        Box {
+            OutlinedButton(onClick = { open = true }) {
+                Text(current.ifBlank { I18n.t("setup.inherit") }, maxLines = 1)
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                DropdownMenuItem(text = { Text(I18n.t("setup.inherit")) }, onClick = { open = false; onPick(null) })
+                groups.forEach { (header, items) ->
+                    if (items.isNotEmpty()) {
+                        HorizontalDivider()
+                        if (header.isNotBlank()) {
+                            Text(header, Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        items.forEach { it2 ->
+                            DropdownMenuItem(text = { Text(labelOf(it2)) }, onClick = { open = false; onPick(idOf(it2)) })
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Auswahl aus reinen Werten (Mastlänge in cm, Shim in Grad).
+@Composable
+private fun <V> SetupValueDropdown(
+    title: String,
+    current: String,
+    options: List<Pair<V, String>>,
+    onPick: (V?) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Column {
+        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(2.dp))
+        Box {
+            OutlinedButton(onClick = { open = true }) {
+                Text(current, maxLines = 1)
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                DropdownMenuItem(text = { Text(I18n.t("setup.inherit")) }, onClick = { open = false; onPick(null) })
+                HorizontalDivider()
+                options.forEach { (v, lbl) ->
+                    DropdownMenuItem(text = { Text(lbl) }, onClick = { open = false; onPick(v) })
+                }
             }
         }
     }
