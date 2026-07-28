@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { FeedbackRequestBanner } from "./components/FeedbackRequestBanner";
 import { api, clearToken, Profile } from "./lib/api";
+import { clearLastSession } from "./lib/lastSession";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -149,6 +150,7 @@ export default function App() {
             key={it.to}
             to={it.to}
             end={it.end}
+            onClick={it.to.startsWith("/sessions") ? clearLastSession : undefined}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                 isActive ? "bg-slate-800 nav-active" : "text-slate-300 hover:bg-slate-900 hover:text-slate-200"
@@ -274,6 +276,7 @@ export default function App() {
             key={it.to}
             to={it.to}
             end={it.end}
+            onClick={it.to.startsWith("/sessions") ? clearLastSession : undefined}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-1 py-3 text-xs ${
                 isActive ? "nav-active" : "text-slate-200"

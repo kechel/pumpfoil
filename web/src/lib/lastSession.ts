@@ -11,6 +11,13 @@ export function getLastSession(): number | null {
   return lastViewed;
 }
 
+// Menü-Klick auf „Sessions" heißt: neu anfangen. Ohne Marker hebt die Liste nichts hervor und
+// scrollt nirgendwohin, und ScrollToTop bringt die Seite wieder an den Anfang. Der Sprung zur
+// zuletzt geöffneten Session bleibt dem Weg aus der Detailansicht zurück vorbehalten.
+export function clearLastSession() {
+  lastViewed = null;
+}
+
 // Volle Query der Sessions-Liste (scope/spot/filter/month), damit der Zurück-Link im
 // Detail wieder in denselben Scope/Filter zurückführt statt auf die nackte Liste.
 let lastSessionsSearch = "";
