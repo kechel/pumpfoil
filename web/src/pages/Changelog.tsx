@@ -30,6 +30,13 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 28, 2026",
+    items: [
+      "Connecting a Suunto account works again. Between July 19 and 28 it stopped part way through: you could log in at Suunto, and then it gave up. That was on Suunto’s side, not yours — nothing was wrong with your password or your watch. If you gave up back then, please give it another go under [Linked accounts](/konten); your workouts then import as sessions.",
+      "New Suunto workouts should now also arrive on their own, without pressing Import workouts — upload a workout in the Suunto app and it turns up here. If it doesn’t, the Import button still works.",
+    ],
+  },
+  {
     date: "July 27, 2026",
     items: [
       "Garmin watch app 1.0.68 (live in the Connect IQ store): holding STOP now brings up the save / pause / discard menu after two seconds instead of three. Since that menu appeared, holding no longer ends the recording by itself \u2014 so there was no reason to make you wait as long.",
