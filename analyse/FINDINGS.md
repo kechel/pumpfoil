@@ -53,7 +53,7 @@ Pitch oszilliert ~1×/Pump-Zyklus, phasengekoppelt an die vertikale Last (Heave)
   Auflösung.
 
 ## Konsequenzen fürs nächste Field-Test
-1. **FR55 in FULL (25 Hz)** aufzeichnen, nicht „Sparsam"/Lite (10 Hz) — Philipps Konto umstellen.
+1. **FR55 in FULL (25 Hz)** aufzeichnen, nicht „Sparsam"/Lite (10 Hz) — Konto des Testnutzers umstellen.
 2. **Object-Store-Abbruch fixen**: der Mast-Accel bricht mitten im Lauf ab (P1/P4 ganz
    vor dem Foiling). Ursache = voller CIQ-Store → `setValue` wirft, Chunk wird verworfen
    (1.0.37 fängt nur ab, rettet die Daten aber nicht). → vor Session-Start syncen/Store leeren,
@@ -69,7 +69,7 @@ Garmin-Connect-Export („Original") beider Uhren importiert → **die Chunk-Lim
 - **FR55 Mast: 25 Hz, volle 657 s** (statt 165 s/10 Hz-Stummel). SensorLogging schreibt in den
   Activity-Flash, nicht in den CIQ-Object-Store → kein Abbruch.
 - Skripte: `fitlib.py` (FIT-Loader, FIT-Zeit ist UTC → `_unix()`), `06_start_sequence.py`,
-  `07_p3_pitch_fit.py`. FITs in `fits/` (gitignored, Philipps Daten).
+  `07_p3_pitch_fit.py`. FITs in `fits/` (gitignored, Daten des Testnutzers).
 
 **Pitch-Pump-Modell bestätigt (07, volle 25-Hz-Mastdaten):** im Foiling dominiert die
 **Fore-Aft-Pitch-Bewegung den Roll ~3,6:1** (Pitch-RMS 13,3° vs Roll 3,7°) — genau Jans

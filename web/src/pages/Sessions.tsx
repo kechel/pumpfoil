@@ -120,7 +120,7 @@ function CompareTip() {
 
 // Zurück-Navigation: geladene Items + Scroll-Position je Filter/Monat merken, damit man aus
 // der Detailansicht an dieselbe Stelle der Liste zurückkehrt statt oben zu landen (Feedback
-// Philipp). Nur im Speicher -> überlebt Client-Navigation, bei echtem Reload frisch.
+// Nutzer-Feedback). Nur im Speicher -> überlebt Client-Navigation, bei echtem Reload frisch.
 const listCache = new Map<string, { items: SessionSummary[]; offset: number; hasMore: boolean; scrollY: number }>();
 const communityCache = new Map<string, { items: CommunityGroup[]; offset: number; more: boolean }>();
 

@@ -1076,7 +1076,7 @@ class SessionRecorder {
 
     // Accel-Chunk-Zielgröße. Auf speicherknappen Uhren (≤128 KB, z. B. fenix5/6, fr55/245/645/935)
     // kleiner: senkt den RAM-Peak beim Aufnehmen (_accelBuf) UND beim Upload (base64+JSON+HTTP je
-    // Chunk) → keine OOM-Crashes über lange Sessions / große Uploads (Feld-Feedback Örni, fenix5).
+    // Chunk) → keine OOM-Crashes über lange Sessions / große Uploads (Feld-Feedback, fenix 5).
     // Große Uhren behalten 1500 (volle Payload, weniger Round-Trips). Einmal geprüft + gecacht.
     hidden function _accelChunkTarget() {
         if (_accelTgt == null) {

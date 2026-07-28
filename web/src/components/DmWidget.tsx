@@ -28,7 +28,7 @@ export function DmWidget() {
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<DmUser[]>([]);
-  // Verschiebbares Popup (nur Desktop; Philipp: verdeckt sonst Statistiken). Position NUR im
+  // Verschiebbares Popup (nur Desktop; Nutzer-Feedback: verdeckt sonst Statistiken). Position NUR im
   // Speicher (kein localStorage) — Reload = zurück auf die Ausgangsposition (Rettungsanker,
   // falls man sich verschoben hat). Clamp hält die Titelzeile IMMER im Viewport (Fenster ist
   // 66vh hoch; y so begrenzen, dass die Oberkante nie über den oberen Rand rutscht).
@@ -244,7 +244,7 @@ export function DmWidget() {
                 <Avatar name={active.name} url={active.avatar} size={28} />
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-100">{active.name || "—"}</span>
                 {/* „Blockieren" bewusst NICHT hier oben neben dem X (zu leicht versehentlich
-                    getroffen, Philipp-Feedback) — steht jetzt unten bei der Tipp-Zeile. */}
+                    getroffen, Nutzer-Feedback) — steht jetzt unten bei der Tipp-Zeile. */}
               </>
             ) : (
               // Kein Titel — die Tabs beschriften den Inhalt selbst (spart Höhe im schmalen Popup).

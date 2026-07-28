@@ -9,7 +9,7 @@ Siehe Memory `board-imu-experiment`. **Nur lokal/explorativ — nichts davon geh
 
 ## Setup
 - **fenix** (Jans Konto, user 2): am **Handgelenk**, 25 Hz Accel, gutes GPS.
-- **FR55** (Philipps Konto, user 5): am **Foil-Mast, unter Wasser**, **über Kopf**
+- **FR55** (Konto des Testnutzers, user 5): am **Foil-Mast, unter Wasser**, **über Kopf**
   montiert, **Start-Knopf (rechts) in Fahrtrichtung**. 10 Hz Accel (Modus „Sparsam").
   **Kein brauchbares GPS** (Satellitensignal kommt unter Wasser nicht durch).
 

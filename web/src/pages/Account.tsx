@@ -489,7 +489,7 @@ function ViewsEditor() {
 
 // EINE Seitenliste, dreimal verwendet — on_foil, off_foil, pause (F3, Jan: „bitte gleich beide
 // generisch machen … so dass man ueberall beliebig viele einfuegen kann"). Vorher war on_foil eine
-// Liste und die beiden anderen je EIN Screen; genau daran ist Tom Petr hängengeblieben.
+// Liste und die beiden anderen je EIN Screen; genau daran ist ein Nutzer hängengeblieben.
 // `keepOne` gilt nur für on_foil: eine Uhr ohne Datenseite gibt es nicht. Off-Foil und Pause dürfen
 // leer bleiben — dann liefert der Server den bisherigen Standard-Screen.
 function PageList({ title, desc, pages, setPages, layouts, category, colorByValue, keepOne = false }: {
@@ -580,7 +580,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
         )}
       </div>
       {/* Knöpfe UNTER der Liste — dort standen sie ursprünglich. Kurz waren sie oben, weil es aussah
-          als hätte Tom Petr sie nicht gefunden; er hatte sie gefunden, das war ein Missverständnis.
+          als hätte ein Nutzer sie nicht gefunden; er hatte sie gefunden, das war ein Missverständnis.
           Das Cyan bleibt, das reicht als Auffälligkeit (Jan: „so blau ist das ausreichend"). */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <select value="" disabled={options.length === 0 || full}

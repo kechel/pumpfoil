@@ -87,7 +87,7 @@ Page(
       // Alle Wisch-Gesten konsumieren (return true) → kein versehentliches Verlassen der App
       // (Zepp deutet den Horizontal-Wisch sonst als Zurück/Exit). Richtung egal: hoch=links (vor),
       // runter=rechts (zurück). Verlassen der App nur über die Hardware-Taste.
-      // HARDWARE-TASTE (Fabian per Instagram, 2026-07-27): „Stoppen geht leider nur über wischen und
+      // HARDWARE-TASTE (Nutzer-Meldung per Instagram, 2026-07-27): „Stoppen geht leider nur über wischen und
       // nicht über eine taste. Das funktioniert nicht wenn das display nass ist mit nassen Fingern."
       // Genau der Fall, für den es Tasten gibt — nass ist der Normalzustand beim Pumpfoilen. Deshalb
       // ist die App jetzt OHNE Berührung bedienbar:

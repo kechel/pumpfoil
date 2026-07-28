@@ -565,7 +565,7 @@ für Nutzer steht (26.07.).
       erst ab 512 KB, der Schalter hatte also nichts anzuzeigen. Neu: die Uhr **fordert** es an
       (`lay=1` am `/config`, gesetzt nur bei ausdrücklichem „An", nicht bei „Automatisch"), und der
       Server liefert ab `LAYOUT_MIN_ON_REQUEST` = 128 KB auf Anfrage. Voreinstellung für diese
-      Klasse bleibt aus (sie ist die absturzanfällige, s. Örni/FR55) — aber wer testen will, darf.
+      Klasse bleibt aus (sie ist die absturzanfällige, s. fēnix-5-/FR55-Meldungen) — aber wer testen will, darf.
       Unter 128 KB (Lite) ist es unmöglich, dort existiert der Renderer nicht.
       Der Menüpunkt sagt jetzt auch „An (keine Seiten)", solange nichts geliefert wurde, statt „An"
       zu behaupten; `/api/devices/list` unterscheidet `off_memory` (Lite, unmöglich) von
@@ -577,7 +577,7 @@ für Nutzer steht (26.07.).
   - **Datenpunkt: der Renderer läuft auf der 128-KB-Klasse** (fēnix 5 im Simulator, angefordert per
     `lay=1`, Jan 2026-07-26: „jo, sehen beide gut aus"). Die **Voreinstellung bleibt trotzdem aus**:
     der Simulator ist keine echte Uhr, und ausgerechnet auf dieser Klasse ist ein Absturz belegt
-    (Örnis fēnix 5 bei 25 Hz). Umstellen erst mit Belegen von echter Hardware — bis dahin ist es ein
+    (fēnix 5 eines Nutzers bei 25 Hz). Umstellen erst mit Belegen von echter Hardware — bis dahin ist es ein
     bewusster Opt-in-Test, den der Canary absichert.
 
   - **F2 P2 RELEASED — Garmin 1.0.66 live im Connect-IQ-Store (2026-07-26 abends).** Von Jan auf der
@@ -602,7 +602,7 @@ für Nutzer steht (26.07.).
 
 ## F3 — Beliebig viele Screens JE ZUSTAND (Entscheidung Jan, 2026-07-27)
 
-Auslöser: Tom Petr hatte **zwei** „between rides"-Screens gebaut und fand nicht, warum der zweite
+Auslöser: ein Nutzer hatte **zwei** „between rides"-Screens gebaut und fand nicht, warum der zweite
 nirgends auftaucht — Off-Foil und Pause nahmen je genau einen. Jan: „bitte gleich beide generisch
 machen, pause und off-foil, so dass man ueberall beliebig viele einfuegen kann."
 

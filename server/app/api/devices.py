@@ -29,13 +29,13 @@ router = APIRouter(prefix="/api/devices", tags=["devices"])
 PAIRING_TTL_MIN = 15
 
 # Speicherarme Uhren, die bei voller Accel-Rate (25 Hz) die Aufnahme abbrechen/abstürzen
-# -> serverseitig auf 'lite' kappen. FR55 belegt (Philipp); Vorgänger der Reihe vermutlich auch.
+# -> serverseitig auf 'lite' kappen. FR55 belegt (Nutzer-Meldung); Vorgänger der Reihe vermutlich auch.
 _LOW_ACCEL_MODEL_HINTS = ("Forerunner® 55", "Forerunner® 45", "Forerunner® 35", "Forerunner® 30", "Forerunner® 25")
 
 # Gezielt per PART-NUMMER (nicht Namens-Substring, der würde Plus/5S/5X mitfangen): die
-# Basis-fēnix 5 / quatix 5 (128-KB-Klasse wie FR55) — B2697 + B2796. Absturz belegt: Oerni
+# Basis-fēnix 5 / quatix 5 (128-KB-Klasse wie FR55) — B2697 + B2796. Absturz belegt: Nutzer-Meldung
 # (fēnix 5, IQ!-Logo bei 25 Hz, 2026-07-19). Die fēnix 5 PLUS (B3089/B3110) ist leistungsfähiger
-# und läuft mit 25 Hz sauber (Session #385 Peter) -> bewusst NICHT gekappt. 5S/5X: bis Beleg offen.
+# und läuft mit 25 Hz sauber (Session #385) -> bewusst NICHT gekappt. 5S/5X: bis Beleg offen.
 _LOW_ACCEL_PARTS = frozenset({"006-B2697-00", "006-B2796-00"})
 
 
@@ -129,7 +129,7 @@ def device_config(
     # ausdrücklich ANFORDERT (`lay=1`, gesetzt wenn der Nutzer den Schalter am Handgelenk auf „an"
     # gestellt hat) — Jans fēnix 5 (128 KB) zeigte sonst trotz Umschalten nichts, weil das Paket nie
     # ankam. So bleibt die Voreinstellung für diese Klasse sicher (sie ist die Absturz-anfällige,
-    # s. Örni/FR55), aber wer testen will, darf. Unter 128 KB ist es unmöglich: der Lite-Build hat
+    # s. fēnix-5-/FR55-Meldungen), aber wer testen will, darf. Unter 128 KB ist es unmöglich: der Lite-Build hat
     # den Renderer gar nicht drin.
     _mem = (cat or {}).get("mem", 0)
     layout_capable = _mem >= LAYOUT_MIN_MEMORY or (_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1)
@@ -707,7 +707,7 @@ def pair_poll(
 ) -> PairPollOut:
     """Uhr pollt: sobald der Web-Nutzer den Code eingelöst hat, kommt hier der Device-Token.
     Bewusst OHNE Rate-Limit: ältere Uhr-Apps pollen aggressiv (kein Backoff) und liefen sonst
-    in 429 (Feldtest Peter) — der Request ist billig (ein indexierter Lookup)."""
+    in 429 (Feldtest) — der Request ist billig (ein indexierter Lookup)."""
     p = db.query(models.DevicePairing).filter_by(claim_token=claim_token).first()
     now = datetime.now(timezone.utc)
     if p is None or _aware(p.expires_at) < now:

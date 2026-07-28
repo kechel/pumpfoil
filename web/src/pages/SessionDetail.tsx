@@ -814,7 +814,7 @@ export default function SessionDetail() {
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22 });
       L.control.zoom({ position: "bottomright" }).addTo(mapObj.current);
-      // Dezente Maßstabsleiste (Philipp-Wunsch: bei fremden Spots fehlt das Größengefühl).
+      // Dezente Maßstabsleiste (Nutzer-Wunsch: bei fremden Spots fehlt das Größengefühl).
       L.control.scale({ imperial: false, maxWidth: 100 }).addTo(mapObj.current);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",

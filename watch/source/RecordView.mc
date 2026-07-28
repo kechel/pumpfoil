@@ -441,7 +441,7 @@ class RecordView extends WatchUi.View {
         var font = (n >= 3) ? Graphics.FONT_NUMBER_MEDIUM : Graphics.FONT_NUMBER_HOT;
         dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        // Beschriftung größer + lesbarer (Tom-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
+        // Beschriftung größer + lesbarer (Nutzer-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
         // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
         // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
         var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;

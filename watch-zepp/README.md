@@ -67,7 +67,7 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 
 ## Tastenbedienung (1.0.3, 2026-07-27)
 
-Anlass: Fabian per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
+Anlass: Nutzer-Meldung per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
 funktioniert nicht wenn das display nass ist mit nassen Fingern." Beim Pumpfoilen ist nass der
 Normalzustand, ein Touch-only-Recorder ist dort also unbenutzbar.
 
@@ -87,7 +87,7 @@ Tasten. Touch/Wischen funktioniert unverändert weiter.
 
 **Auf Hardware ungetestet, bewusst so released (2026-07-27):** der Zepp-**Simulator hat keine
 Hardware-Tasten**, der Tasten-Pfad ist dort also nicht prüfbar. Jan gibt 1.0.3 trotzdem in den Store;
-**Fabian testet nach der Freigabe** — er hat es angefragt und hat das Gerät. Deshalb ist der ganze
+**Der Melder testet nach der Freigabe** — er hat es angefragt und hat das Gerät. Deshalb ist der ganze
 Callback in `try/catch` gekapselt: geht dort etwas schief, tut die Taste nichts, statt die laufende
 Aufnahme mitzunehmen. Falls der Langdruck auf echter Hardware nicht als `KEY_EVENT_LONG_PRESS`
 ankommt, ist der Umbau klein (Doppelklick oder `KEY_EVENT_PRESS`/`RELEASE` mit eigener Zeitmessung) —

@@ -65,8 +65,8 @@ GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median e
 # --- Mehrsekündige Doppler-Bursts abfangen (2026-07-04) ---------------------------------
 # Befund: GPS-only-Sessions (Polar-Import) enthalten kurze (~3 s) Doppler-Bursts, die WEIT
 # über der echten Fahrt liegen, aber UNTER GLITCH_SPEED (90) bleiben. Beispiele:
-#   • Session #428 (James): sonst p99=18,6 km/h, aber Sek. 3390-3392 = 56/48/49 km/h.
-#   • Session #410 (James): sonst ≤23 km/h, aber ein 3-s-Blip auf 30-33 km/h.
+#   • Session #428: sonst p99=18,6 km/h, aber Sek. 3390-3392 = 56/48/49 km/h.
+#   • Session #410: sonst ≤23 km/h, aber ein 3-s-Blip auf 30-33 km/h.
 #   • Session #71  (Jan):   221-s-Test, 95 % Stillstand, 2-s-Start-Blip auf 29-30 km/h.
 # Ein 3-s-Burst füllt das 3-s- UND 5-s-Median-Fenster -> der geglättete Max bleibt hoch und
 # reißt das 30-km/h-Pumpfoil-Gate (unten) -> Session fälschlich als „kein Pumpfoil" aussortiert
@@ -76,7 +76,7 @@ GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median e
 #   1) mehr als BURST_MARGIN über dem 15-s-Median  (relativ: isolierter Ausreißer)
 #   2) UND absolut über BURST_ABS_MIN (~28 km/h)    (schützt normale Foil-Läufe: ein 20-km/h-
 #      Lauf in einer idle-lastigen Session hätte sonst allein über Median+Marge ausgelöst).
-# Regressions-Check: nur #428 & #410 (James) kippen korrekt auf pumpfoil=true; #71 (echter
+# Regressions-Check: nur #428 & #410 kippen korrekt auf pumpfoil=true; #71 (echter
 # 2-s-Start-Glitch, keine echte Session) kippt korrekt auf false; sonst keine Klassifikations-
 # Änderung, alle betroffenen Topspeeds nur nach unten (Glitch-Bereinigung).
 # Kausaler Despike (Beschleunigung): ein Wert, der den Median der letzten Sekunden um mehr
@@ -355,7 +355,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     segments = _extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
     # Ruhiges Gleiten/Pumpen NACH dem Aufstehen nachholen: Ende vorwärts ziehen, solange
     # der Speed im Foil-Band bleibt (das Modell verliert bei langsamen/leichten Fahrern das
-    # gleichmäßige On-Foil-Cruisen — Alex #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
+    # gleichmäßige On-Foil-Cruisen — #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
     segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
     # Dead-Reckoning-Drift am Ende verwerfen (Uhr untergetaucht) -> echtes Ende.
     segments = _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
