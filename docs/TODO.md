@@ -81,14 +81,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 - (Suunto ✅ live, Polar ✅ AccessLink live, Garmin-FIT-Import wartet auf Garmins Formular.)
 
 ## 💡 Backlog (Produktideen — bewusst später)
-- **Komplettes Setup statt nur Front-Foil** (Nutzer-Feedback 2026-07-20): zusätzlich zur Foil-Liste
-  auch Stabilizer/Rear-Wing, Fuselage/Tail-Größe, Shim erfassen — oder Freitext-Setup-Beschreibung je
-  Session. „Macht großen Unterschied, inspiriert andere Foiler." (Erweiterung Foil-/Session-Modell.)
+- [x] **Komplettes Setup statt nur Front-Foil** — ERLEDIGT: Stabilizer, Mastlänge, Shim und Board je
+  einzeln, mit Standard im Profil und Override je Session. Web + Server waren schon da; 2026-07-28 auf
+  Android (`bbc766c`, `8065078`) und iOS (`83f3d89`) nachgezogen. Fuselage/Tail bleibt offen (kein
+  Server-Feld) — als eigene Idee behandeln, falls jemand danach fragt.
 - **Garmin-Datenseiten-UX aufräumen** (Feedback Tom 2026-07-20): Screen-Konfiguration verwirrend
   („weiß nicht wo ich bin"; Hinzufügen ersetzte den On-Foil-Screen durch 1/2/3), Feldbezeichnungen
   unklar (was heißt welcher Wert) — FoilMotion sei übersichtlicher. On-Watch/Web-Konfig-UX überdenken.
 - **Session pausieren (Garmin)** (Feedback Tom 2026-07-20) — Aufnahme pausieren/fortsetzen können.
-- **Chat: Like/👍 für Beiträge** (Feedback Tom 2026-07-20) — Daumen-hoch auf Chat-Nachrichten.
+- [x] **Chat: Daumen-hoch für Beiträge** — ERLEDIGT: Server war fertig, Web hatte es; 2026-07-28 auf
+  Android (`ecbefb3`) und iOS (`dc47149`) nachgezogen (Daumen unter dem Avatar, Zähler, abschaltbar).
 - **Pumps/min über die Web-Detail hinaus** (Feedback Tom + Laurent) — Toggle Hz↔Pumps/min gibt's jetzt
   in der Web-Session-Detail; ggf. auch in Apps/Listen/Community anbieten. (Web-Detail erledigt 2026-07-20.)
 - **Upload-Speed Garmin→pumpfoil.org** (Feedback Tom 2026-07-20): dauert „ewig" vs. Garmin-Sync —
