@@ -36,6 +36,8 @@ struct FoilsView: View {
                     Task { try? await Api.saveSettings(["default_sport_class": v]) }
                 }
                 Text(Loc.t("foils.defaultSportHint", lang)).font(.callout).foregroundStyle(.secondary)
+                // Wie in der PWA (Foils.tsx:100): von hier geht es ins detaillierte Setup.
+                NavigationLink(Loc.t("foils.toSetup", lang)) { SetupView() }
             }
             Section {
                 TextField(Loc.t("foils.search", lang), text: $query)

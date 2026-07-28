@@ -510,6 +510,7 @@ struct MergeSuggestion: Codable, Identifiable {
 struct SessionDetail: Codable, Identifiable {
     let id: Int
     let sport: String
+    let setup: SessionSetup?   // Stab/Mast/Shim/Board (geerbt oder je Session gesetzt)
     // Sportart-Klassifikation; appeal_text gesetzt = Widerspruch läuft (docs/sport-classification.md).
     let sport_class: String?
     let data_quality: String?
@@ -551,4 +552,39 @@ struct SessionDetail: Codable, Identifiable {
 struct ChatLikeResult: Codable {
     let liked: Bool
     let like_count: Int
+}
+
+// Restliches Setup einer Session (Server: sessions.py:_resolve_setup). Jedes Teil hat ein
+// `*_is_default`: true = vom Nutzer-Standard geerbt, false = fuer DIESE Session gesetzt.
+struct StabBrief: Codable, Identifiable {
+    let id: Int
+    let brand: String
+    let model: String
+    let size: String
+    let is_default: Bool?
+    let is_own: Bool?
+}
+
+struct BoardBrief: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let volume_l: Double?
+    let length_cm: Double?
+    let is_default: Bool?
+}
+
+struct SessionSetup: Codable {
+    let stab: StabBrief?
+    let mast_len_cm: Int?
+    let mast_is_default: Bool?
+    let shim_deg: Double?
+    let shim_is_default: Bool?
+    let board: BoardBrief?
+}
+
+// Kopf eines eigenen Uhr-Layouts (layouts.py:_out) — gestaltet wird nur in der PWA.
+struct WatchLayoutBrief: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let category: String?
 }

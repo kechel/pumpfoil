@@ -305,6 +305,64 @@ enum Api {
         try await request("/api/chat/\(messageId)/like", method: "POST", body: nil, auth: true)
     }
 
+    // --- Setup-Kataloge und Session-Overrides (docs/sport-classification.md ist hier nicht gemeint;
+    // Vertrag: settings.py:66-80 fuer die Standards, sessions.py:1420ff fuer die Overrides) ---
+    static func stabs() async throws -> [StabBrief] {
+        try await request("/api/stabs", method: "GET", body: nil, auth: true)
+    }
+
+    static func stabBrands() async throws -> [String] {
+        try await request("/api/stabs/brands", method: "GET", body: nil, auth: true)
+    }
+
+    static func stabCreate(brand: String, model: String, size: String) async throws -> StabBrief {
+        try await request("/api/stabs", method: "POST", body: ["brand": brand, "model": model, "size": size], auth: true)
+    }
+
+    static func stabDelete(_ id: Int) async throws {
+        try await sendVoid("/api/stabs/\(id)", method: "DELETE")
+    }
+
+    static func boards() async throws -> [BoardBrief] {
+        try await request("/api/boards", method: "GET", body: nil, auth: true)
+    }
+
+    static func boardCreate(name: String, volumeL: Double?, lengthCm: Double?) async throws -> BoardBrief {
+        let body: [String: Any] = [
+            "name": name,
+            "volume_l": volumeL.map { $0 as Any } ?? NSNull(),
+            "length_cm": lengthCm.map { $0 as Any } ?? NSNull(),
+        ]
+        return try await request("/api/boards", method: "POST", body: body, auth: true)
+    }
+
+    static func boardDelete(_ id: Int) async throws {
+        try await sendVoid("/api/boards/\(id)", method: "DELETE")
+    }
+
+    /// Eigene Uhr-Layouts (nur lesen; gestaltet wird in der PWA).
+    static func watchLayouts() async throws -> [WatchLayoutBrief] {
+        try await request("/api/layouts", method: "GET", body: nil, auth: true)
+    }
+
+    /// Setup-Teil je Session setzen. WICHTIG: der Server unterscheidet "Feld nicht geschickt" von
+    /// "null geschickt" (model_fields_set) -- ein Override laesst sich nur mit explizit
+    /// mitgesendetem null loeschen. Deshalb die set*-Flags statt bloss optionaler Werte.
+    static func setSessionSetup(
+        _ id: Int,
+        stabId: Int? = nil, setStab: Bool = false,
+        mastLenCm: Int? = nil, setMast: Bool = false,
+        shimDeg: Double? = nil, setShim: Bool = false,
+        boardId: Int? = nil, setBoard: Bool = false
+    ) async throws {
+        var body: [String: Any] = [:]
+        if setStab { body["stab_id"] = stabId.map { $0 as Any } ?? NSNull() }
+        if setMast { body["mast_len_cm"] = mastLenCm.map { $0 as Any } ?? NSNull() }
+        if setShim { body["shim_deg"] = shimDeg.map { $0 as Any } ?? NSNull() }
+        if setBoard { body["board_id"] = boardId.map { $0 as Any } ?? NSNull() }
+        try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: body)
+    }
+
     static func flagNotPumpfoil(_ id: Int, note: String? = nil) async throws {
         var body: [String: Any] = [:]
         if let n = note, !n.isEmpty { body["note"] = n }

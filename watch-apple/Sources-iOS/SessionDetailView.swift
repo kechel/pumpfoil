@@ -14,6 +14,13 @@ struct SessionDetailView: View {
     @State private var session: SessionDetail?
     @State private var loading = true
     @State private var error: String?
+    // Setup-Kataloge fuer die Auswahlfelder je Session. Mast und Shim sind reine Werte aus den
+    // Einstellungen des Nutzers -- ohne eigene Werte kein Feld, genau wie FoilSelect.tsx.
+    @State private var allStabs: [StabBrief] = []
+    @State private var myStabIds: Set<Int> = []
+    @State private var myMasts: [Int] = []
+    @State private var myShims: [Double] = []
+    @State private var myBoards: [BoardBrief] = []
     // Sportart-Klassifikation (docs/sport-classification.md)
     @State private var askNotPumpfoil = false
     @State private var flagDone = false
@@ -235,6 +242,7 @@ struct SessionDetailView: View {
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
+            if s.owned == true { setupPickers(s) }
             if s.owned { classificationPanel(s) }
             mediaSection(s)
             trackSection(s)
@@ -556,6 +564,101 @@ struct SessionDetailView: View {
             .foregroundStyle(n > 0 ? Color.primary : Color.secondary)
     }
 
+    // Restliches Setup je Session: Stab, Mastlaenge, Shim, Board. "Standard verwenden" = Override
+    // loeschen (der Server braucht dafuer ein explizit gesendetes null). Jedes Feld erscheint nur,
+    // wenn es etwas zu waehlen gibt. Bewusst vier kleine Teil-Views ([[ios-swift-typecheck-hang]]).
+    @ViewBuilder private func setupPickers(_ s: SessionDetail) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if !allStabs.isEmpty { stabPicker(s) }
+            if !myMasts.isEmpty { mastPicker(s) }
+            if !myShims.isEmpty { shimPicker(s) }
+            if !myBoards.isEmpty { boardPicker(s) }
+        }
+    }
+
+    @ViewBuilder private func stabPicker(_ s: SessionDetail) -> some View {
+        let explicit = s.setup?.stab?.is_default == false
+        let label = explicit ? stabLabel(s.setup?.stab) : Loc.t("setup.inherit", lang)
+        Menu {
+            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(stab: nil, setStab: true) } }
+            // Eigene zuerst, dann der Rest des Katalogs -- wie die Gruppen in FoilSelect.tsx.
+            ForEach(allStabs.filter { myStabIds.contains($0.id) }) { st in
+                Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
+            }
+            Divider()
+            ForEach(allStabs.filter { !myStabIds.contains($0.id) }) { st in
+                Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
+            }
+        } label: { setupRow(Loc.t("setup.stabTitle", lang), label) }
+    }
+
+    @ViewBuilder private func mastPicker(_ s: SessionDetail) -> some View {
+        let explicit = s.setup?.mast_is_default == false
+        let label = explicit || s.setup?.mast_len_cm != nil
+            ? "\(s.setup?.mast_len_cm ?? 0) cm" : Loc.t("setup.inherit", lang)
+        Menu {
+            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(mast: nil, setMast: true) } }
+            ForEach(myMasts, id: \.self) { m in
+                Button("\(m) cm") { Task { await applySetup(mast: m, setMast: true) } }
+            }
+        } label: { setupRow(Loc.t("setup.mastTitle", lang), label) }
+    }
+
+    @ViewBuilder private func shimPicker(_ s: SessionDetail) -> some View {
+        let explicit = s.setup?.shim_is_default == false
+        let label = explicit || s.setup?.shim_deg != nil
+            ? fmtShim(s.setup?.shim_deg) : Loc.t("setup.inherit", lang)
+        Menu {
+            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(shim: nil, setShim: true) } }
+            ForEach(myShims, id: \.self) { v in
+                Button(fmtShim(v)) { Task { await applySetup(shim: v, setShim: true) } }
+            }
+        } label: { setupRow(Loc.t("setup.shimTitle", lang), label) }
+    }
+
+    @ViewBuilder private func boardPicker(_ s: SessionDetail) -> some View {
+        let explicit = s.setup?.board?.is_default == false
+        let label = explicit ? (s.setup?.board?.name ?? "") : Loc.t("setup.inherit", lang)
+        Menu {
+            Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(board: nil, setBoard: true) } }
+            ForEach(myBoards) { b in
+                Button(b.name) { Task { await applySetup(board: b.id, setBoard: true) } }
+            }
+        } label: { setupRow(Loc.t("setup.boardTitle", lang), label) }
+    }
+
+    @ViewBuilder private func setupRow(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title).font(.callout).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).font(.callout)
+            Image(systemName: "chevron.down").font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    private func stabLabel(_ st: StabBrief?) -> String {
+        guard let st else { return "" }
+        return "\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Shim-Anzeige: 0 bleibt "0 Grad", positive Werte mit Vorzeichen, Dezimale nur wenn noetig.
+    private func fmtShim(_ v: Double?) -> String {
+        guard let v else { return "—" }
+        let txt = v == v.rounded() ? String(Int(v)) : String(v)
+        return (v > 0 ? "+" + txt : txt) + "°"
+    }
+
+    private func applySetup(
+        stab: Int? = nil, setStab: Bool = false,
+        mast: Int? = nil, setMast: Bool = false,
+        shim: Double? = nil, setShim: Bool = false,
+        board: Int? = nil, setBoard: Bool = false
+    ) async {
+        try? await Api.setSessionSetup(id, stabId: stab, setStab: setStab, mastLenCm: mast, setMast: setMast,
+                                      shimDeg: shim, setShim: setShim, boardId: board, setBoard: setBoard)
+        await load()
+    }
+
     // Sportart-Klassifikation, Besitzer-Sicht (docs/sport-classification.md). Aufbau wie in der PWA:
     // amber Kasten nur solange eine Bitte offen ist, darunter die zwei Auswahlfelder. Zurueck auf
     // "Pumpfoil" geht NUR ueber den Widerspruch -- der Server lehnt das direkte Zuruecksetzen mit 409 ab.
@@ -759,6 +862,15 @@ struct SessionDetailView: View {
             if s.owned == true {
                 mineIds = Set((settings["my_foils"] as? [Any])?.compactMap { $0 as? Int } ?? [])
                 allFoils = (try? await Api.foils()) ?? []
+                myStabIds = Set((settings["my_stabs"] as? [Any])?.compactMap { $0 as? Int } ?? [])
+                myMasts = (settings["my_masts"] as? [Any])?.compactMap { $0 as? Int } ?? []
+                myShims = (settings["my_shims"] as? [Any])?.compactMap { v -> Double? in
+                    if let d = v as? Double { return d }
+                    if let i = v as? Int { return Double(i) }
+                    return nil
+                } ?? []
+                allStabs = (try? await Api.stabs()) ?? []
+                myBoards = (try? await Api.boards()) ?? []
             }
             error = nil
         } catch { self.error = error.localizedDescription }
