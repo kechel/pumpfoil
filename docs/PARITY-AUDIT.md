@@ -2,7 +2,7 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-07-22** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-07-28** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
@@ -10,6 +10,31 @@ Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo
 Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
 Off-Foil, Einstellungen, i18n 10 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
 FIT-Import und die „Optimal"-Färbung.
+
+## Stand 2026-07-28 — grosse Paritaets-Runde (Vorbereitung eines gemeinsamen Releases)
+
+Geschlossen auf **Android Phone UND iOS** (je einzeln kompiliert bzw. syntaxgeprueft, Commits in
+Klammern): Sportart-Klassifikation inkl. Melden/Einspruch/Home-Hinweis/Karten-Badge
+(`1314d78`/`3264394`), Standard-Sportart (`1d06807`/`dc47149`), Ausruestung je Session + Setup-Seite
+fuer die Standards (`bbc766c`+`8065078`/`83f3d89`), Chat-Likes (`ecbefb3`/`dc47149`),
+eigene Startquoten-Schwelle (`1d06807`/`dc47149`), Uhr-Datenseiten mit drei Zustaenden, gemischten
+Seiten, `browse_all_pages` und `layouts_enabled` (`fecea66`/`ad7cac8`).
+
+**Nicht mehr offen, weil bereits vorhanden** (gegen den Code geprueft, aeltere Audit-Eintraege waren
+veraltet): die fuenf Sprachen pt/ja/zh/ru/id (alle Apps haben 15 Sprachen), News-Banner,
+Session-Uebertragung, Carve-Zaehler. Die Tages-Buendelung fehlt in der EIGENEN Liste auch in der PWA
+und die Live-Upload-Karte hat dort ebenfalls keine Mini-Karte -> Paritaet erfuellt, kein Rueckstand.
+
+Recorder-Uhren: **eigene Layouts rendern jetzt auch Wear OS (`bf31da8`) und Apple Watch
+(`2fc8d9c`)**, samt Tri-State-Schalter auf der Uhr. Voraussetzung war ein Server-Befund: die
+Layout-Auslieferung hing am Garmin-Part-Number-Katalog und erreichte die anderen Plattformen nie
+(`a08e67d`). Bei Zepp sind Bridge-Whitelist, Update-Hinweis und ein ehrliches Accel-Meta erledigt
+(`fc4c2a6`); Renderer, i18n und Lauf-Erkennung sind dort weiterhin offen (Begruendung in docs/TODO.md).
+
+**Bewusst NICHT portiert:** Lite-Build, Canary-Selbstheilung und halbierte Accel-Chunks von Garmin —
+das sind Notloesungen fuer 96-128 KB RAM und haben auf Wear/watchOS/Zepp kein Gegenstueck.
+Der strenge Zustandsring (`browseAll=false`) fehlt auf Wear und Apple Watch: beide nutzen einen
+linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es dort gar nicht.
 
 ## A) Phone-Apps vs. Web
 
