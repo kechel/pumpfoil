@@ -226,58 +226,6 @@ fun SetupScreen(onBack: () -> Unit) {
                     )
                 }
             }
-            item { SubTitle(if (mineList.isEmpty()) I18n.t("foils.catalog") else I18n.t("foils.more")) }
-            items(restList, key = { "rs${it.id}" }) { st ->
-                StabRow(
-                    st = st, isMine = false, isDefault = false,
-                    onDefault = {
-                        save(buildJsonObject {
-                            put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } })
-                            put("stab_id", st.id)
-                        })
-                    },
-                    onToggleMine = {
-                        save(buildJsonObject { put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } }) })
-                    },
-                    onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
-                )
-            }
-            // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
-            item {
-                Column(Modifier.padding(vertical = 8.dp)) {
-                    Text(I18n.t("setup.stabAddHint"), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(value = nsBrand, onValueChange = { nsBrand = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabBrandPlaceholder")) }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = nsModel, onValueChange = { nsModel = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabModelPlaceholder")) }, modifier = Modifier.weight(1f))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(value = nsSize, onValueChange = { nsSize = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabSizePlaceholder")) }, modifier = Modifier.weight(1f))
-                        TextButton(onClick = {
-                            val b = nsBrand.trim(); val m = nsModel.trim()
-                            if (b.isNotEmpty() && m.isNotEmpty()) {
-                                scope.launch {
-                                    try {
-                                        val created = Api.stabCreate(b, m, nsSize.trim())
-                                        stabs = (stabs ?: emptyList()).let { l -> if (l.any { it.id == created.id }) l else l + created }
-                                        if (created.brand !in brands) brands = (brands + created.brand).sorted()
-                                        nsBrand = ""; nsModel = ""; nsSize = ""; stabErr = ""
-                                        save(buildJsonObject {
-                                            put("my_stabs", buildJsonArray { (if (created.id in myStabs) myStabs else myStabs + created.id).forEach { add(it) } })
-                                        })
-                                    } catch (_: Exception) { stabErr = I18n.t("setup.stabAddErr") }
-                                }
-                            }
-                        }) { Text(I18n.t("foils.add")) }
-                    }
-                    if (stabErr.isNotEmpty()) Text(stabErr, color = MaterialTheme.colorScheme.error)
-                }
-            }
-
             // --- Mastlängen (reine Werte, 30–130 cm) ---
             item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
             item { SectionTitle(I18n.t("setup.mastTitle")) }
@@ -405,6 +353,62 @@ fun SetupScreen(onBack: () -> Unit) {
                     }
                 }
             }
+            // Der Katalog steht ZULETZT: er hat hunderte Einträge, und alles Bedienbare
+            // (meine Stabs, Mastlängen, Shims, Boards) wäre darunter praktisch unerreichbar.
+            // Am Emulator getestet — in der PWA fällt das auf dem breiten Bildschirm nicht auf.
+            item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
+            item { SubTitle(if (mineList.isEmpty()) I18n.t("foils.catalog") else I18n.t("foils.more")) }
+            items(restList, key = { "rs${it.id}" }) { st ->
+                StabRow(
+                    st = st, isMine = false, isDefault = false,
+                    onDefault = {
+                        save(buildJsonObject {
+                            put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } })
+                            put("stab_id", st.id)
+                        })
+                    },
+                    onToggleMine = {
+                        save(buildJsonObject { put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } }) })
+                    },
+                    onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
+                )
+            }
+            // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
+            item {
+                Column(Modifier.padding(vertical = 8.dp)) {
+                    Text(I18n.t("setup.stabAddHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(value = nsBrand, onValueChange = { nsBrand = it }, singleLine = true,
+                            label = { Text(I18n.t("setup.stabBrandPlaceholder")) }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(value = nsModel, onValueChange = { nsModel = it }, singleLine = true,
+                            label = { Text(I18n.t("setup.stabModelPlaceholder")) }, modifier = Modifier.weight(1f))
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedTextField(value = nsSize, onValueChange = { nsSize = it }, singleLine = true,
+                            label = { Text(I18n.t("setup.stabSizePlaceholder")) }, modifier = Modifier.weight(1f))
+                        TextButton(onClick = {
+                            val b = nsBrand.trim(); val m = nsModel.trim()
+                            if (b.isNotEmpty() && m.isNotEmpty()) {
+                                scope.launch {
+                                    try {
+                                        val created = Api.stabCreate(b, m, nsSize.trim())
+                                        stabs = (stabs ?: emptyList()).let { l -> if (l.any { it.id == created.id }) l else l + created }
+                                        if (created.brand !in brands) brands = (brands + created.brand).sorted()
+                                        nsBrand = ""; nsModel = ""; nsSize = ""; stabErr = ""
+                                        save(buildJsonObject {
+                                            put("my_stabs", buildJsonArray { (if (created.id in myStabs) myStabs else myStabs + created.id).forEach { add(it) } })
+                                        })
+                                    } catch (_: Exception) { stabErr = I18n.t("setup.stabAddErr") }
+                                }
+                            }
+                        }) { Text(I18n.t("foils.add")) }
+                    }
+                    if (stabErr.isNotEmpty()) Text(stabErr, color = MaterialTheme.colorScheme.error)
+                }
+            }
+
             item { Spacer(Modifier.height(24.dp)) }
         }
     }
