@@ -311,8 +311,20 @@ object Api {
         Pair(r["liked"]?.jsonPrimitive?.booleanOrNull ?: false, r["like_count"]?.jsonPrimitive?.intOrNull ?: 0)
     }
 
-    suspend fun voteSession(id: Int, kind: String): Unit = withContext(Dispatchers.IO) {
-        http("POST", "/api/community/sessions/$id/vote?kind=$kind", null, auth = true)
+    // Melde-Zaehler + eigene Stimmen einer Session. Beide Endpunkte (GET social, POST vote) liefern
+    // dieselben Felder, deshalb ein gemeinsamer Rueckgabetyp; unbekannte Felder ignoriert der Parser.
+    @kotlinx.serialization.Serializable
+    data class VoteState(
+        val fake_count: Int = 0, val my_fake: Boolean = false,
+        val inappropriate_count: Int = 0, val my_inappropriate: Boolean = false,
+    )
+
+    suspend fun sessionVotes(id: Int): VoteState = withContext(Dispatchers.IO) {
+        json.decodeFromString(VoteState.serializer(), http("GET", "/api/community/sessions/$id/social", null, auth = true))
+    }
+
+    suspend fun voteSession(id: Int, kind: String): VoteState = withContext(Dispatchers.IO) {
+        json.decodeFromString(VoteState.serializer(), http("POST", "/api/community/sessions/$id/vote?kind=$kind", null, auth = true))
     }
 
     // Sportart-Klassifikation (docs/sport-classification.md). Drei getrennte Rollen:

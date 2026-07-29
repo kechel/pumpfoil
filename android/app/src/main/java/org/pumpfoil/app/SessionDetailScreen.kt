@@ -15,6 +15,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -124,9 +125,6 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
-    var showReport by remember { mutableStateOf(false) }
-    var askNotPumpfoil by remember { mutableStateOf(false) }   // Bestätigung vor dem Melden
-    var flagDone by remember { mutableStateOf(false) }         // Danke-Hinweis nach dem Melden
     var showTrim by remember { mutableStateOf(false) }
     var showShare by remember { mutableStateOf(false) }
     var showLink by remember { mutableStateOf(false) }        // Teilen-Link-Popup (Besitzer)
@@ -246,32 +244,6 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
         )
     }
 
-    // Melden „sieht nicht nach Pumpfoil aus": erst erklären, dann senden. Der Text sagt ausdrücklich,
-    // dass niemandem etwas vorgeworfen wird und der Melder anonym bleibt.
-    if (askNotPumpfoil) {
-        AlertDialog(
-            onDismissRequest = { askNotPumpfoil = false },
-            title = { Text(I18n.t("cls.notPumpfoil")) },
-            text = { Text(I18n.t("cls.confirmFlag")) },
-            confirmButton = {
-                TextButton(onClick = {
-                    askNotPumpfoil = false
-                    scope.launch {
-                        try { Api.flagNotPumpfoil(id); flagDone = true } catch (_: Exception) {}
-                    }
-                }) { Text(I18n.t("chat.send")) }
-            },
-            dismissButton = { TextButton(onClick = { askNotPumpfoil = false }) { Text(I18n.t("common.cancel")) } },
-        )
-    }
-    if (flagDone) {
-        AlertDialog(
-            onDismissRequest = { flagDone = false },
-            text = { Text(I18n.t("cls.thanks")) },
-            confirmButton = { TextButton(onClick = { flagDone = false }) { Text(I18n.t("common.close")) } },
-        )
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -283,41 +255,9 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 },
                 actions = {
                     val s = session
-                    if (s != null && !s.owned) {
-                        Box {
-                            IconButton(onClick = { showReport = true }) {
-                                Icon(Icons.Filled.Flag, contentDescription = I18n.t("sd.report"))
-                            }
-                            DropdownMenu(expanded = showReport, onDismissRequest = { showReport = false }) {
-                                // „Sieht nicht nach Pumpfoil aus" steht ZUERST: es ist der harmloseste
-                                // der drei Melde-Wege (Bitte um Zuordnung statt Vorwurf). In der PWA
-                                // ist das die Position links neben „wirkt unecht"/„unangemessen" —
-                                // im vertikalen Menü ist das eben oben.
-                                DropdownMenuItem(
-                                    text = { Text(I18n.t("cls.notPumpfoil")) },
-                                    leadingIcon = { Icon(Icons.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                                    onClick = { showReport = false; askNotPumpfoil = true },
-                                )
-                                HorizontalDivider()
-                                DropdownMenuItem(
-                                    text = { Text(I18n.t("sd.reportFake")) },
-                                    leadingIcon = { Icon(Icons.Filled.Flag, contentDescription = null, tint = AmberReport) },
-                                    onClick = {
-                                        showReport = false
-                                        scope.launch { try { Api.voteSession(id, "fake") } catch (_: Exception) {} }
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(I18n.t("sd.reportInappropriate")) },
-                                    leadingIcon = { Icon(Icons.Filled.Report, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                                    onClick = {
-                                        showReport = false
-                                        scope.launch { try { Api.voteSession(id, "inappropriate") } catch (_: Exception) {} }
-                                    },
-                                )
-                            }
-                        }
-                    }
+                    // Die Melde-Knöpfe standen früher hier in einem Überlauf-Menü hinter dem
+                    // Flaggen-Symbol — praktisch unsichtbar. Sie stehen jetzt sichtbar in der
+                    // Aktionszeile im Inhalt (ReportRow), genau wie in der PWA.
                     // Spot-Chat der Session (scope "spot:<name>") — für jede Session mit Spot.
                     // Bei Age-Gate (social=false) ausgeblendet; Spot/Session bleiben sichtbar, nur Chat aus.
                     if (social) s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
@@ -598,7 +538,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
 
         // Sportart-Klassifikation (docs/sport-classification.md): der Besitzer ordnet selbst zu,
         // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
-        if (s.owned) ClassificationPanel(s, scope, onReload)
+        if (s.owned) ClassificationPanel(s, scope, onReload) else ReportRow(s.id)
 
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
         // (mehrere, wie PWA). Tippen -> Vollbild/Video.
@@ -1442,6 +1382,111 @@ private fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85
 // Farben in beiden Modi lesbar (amber-800 auf hell, amber-200 auf dunkel).
 private val AmberOnLight = Color(0xFF92400E)
 private val AmberOnDark = Color(0xFFFDE68A)
+
+// ---------------------------------------------------------------------------------------------
+// Melde-Knöpfe für FREMDE Sessions — an derselben Stelle, an der bei eigenen Sessions die
+// Klassifikations-Felder stehen (wie in der PWA, web/src/pages/SessionDetail.tsx). Sich selbst zu
+// melden ist sinnlos, deshalb nur bei fremden. Reihenfolge nach Schwere, mildestes links:
+// „nicht Pumpfoil" ist nur eine Bitte um Zuordnung, „wirkt unecht" zweifelt die Daten an,
+// „unangemessen" ist die Beschwerde. Waren früher in einem Überlauf-Menü versteckt.
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun ReportRow(sessionId: Int) {
+    val scope = rememberCoroutineScope()
+    // NICHT isSystemInDarkTheme(): ThemeState kann Hell/Dunkel erzwingen (Theme.kt:57-60).
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val amber = if (dark) AmberOnDark else AmberOnLight
+    val red = MaterialTheme.colorScheme.error
+    var votes by remember(sessionId) { mutableStateOf<Api.VoteState?>(null) }
+    var flagDone by remember(sessionId) { mutableStateOf(false) }
+    var askNotPumpfoil by remember(sessionId) { mutableStateOf(false) }
+    var askInappropriate by remember(sessionId) { mutableStateOf(false) }
+    LaunchedEffect(sessionId) { votes = try { Api.sessionVotes(sessionId) } catch (_: Exception) { null } }
+
+    // Melden „sieht nicht nach Pumpfoil aus": erst erklären, dann senden. Der Text sagt ausdrücklich,
+    // dass niemandem etwas vorgeworfen wird und der Melder anonym bleibt.
+    if (askNotPumpfoil) {
+        AlertDialog(
+            onDismissRequest = { askNotPumpfoil = false },
+            title = { Text(I18n.t("cls.notPumpfoil")) },
+            text = { Text(I18n.t("cls.confirmFlag")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askNotPumpfoil = false
+                    // Bewusst OHNE Rückmeldung, ob die Meldung „gezählt" hat (wie PWA): sonst wird
+                    // das Nachzählen zum Spiel. Der Knopf weicht einfach dem Dank.
+                    flagDone = true
+                    scope.launch { try { Api.flagNotPumpfoil(sessionId) } catch (_: Exception) {} }
+                }) { Text(I18n.t("sd.report")) }
+            },
+            dismissButton = { TextButton(onClick = { askNotPumpfoil = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    if (askInappropriate) {
+        AlertDialog(
+            onDismissRequest = { askInappropriate = false },
+            text = { Text(I18n.t("vote.reportConfirm")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askInappropriate = false
+                    scope.launch { try { votes = Api.voteSession(sessionId, "inappropriate") } catch (_: Exception) {} }
+                }) { Text(I18n.t("sd.report")) }
+            },
+            dismissButton = { TextButton(onClick = { askInappropriate = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+
+    val v = votes
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (flagDone) {
+            Text(I18n.t("cls.thanks"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            FilledTonalButton(
+                onClick = { askNotPumpfoil = true },
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+            ) {
+                Icon(Icons.Filled.HelpOutline, contentDescription = null, modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t("cls.notPumpfoil"))
+            }
+        }
+        // „wirkt unecht" und „unangemessen" sind umschaltbar (nochmal tippen = Stimme zurückziehen),
+        // deshalb zeigt der aktive Zustand die eigene Stimme farbig an.
+        FilledTonalButton(
+            onClick = { scope.launch { try { votes = Api.voteSession(sessionId, "fake") } catch (_: Exception) {} } },
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = if (v?.my_fake == true) AmberReport.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (v?.my_fake == true) amber else MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
+            Icon(Icons.Filled.Flag, contentDescription = null, modifier = Modifier.size(18.dp), tint = amber)
+            Spacer(Modifier.width(6.dp))
+            Text(I18n.t("sd.fake"))
+            if ((v?.fake_count ?: 0) > 0) { Spacer(Modifier.width(6.dp)); Text("${v?.fake_count}") }
+        }
+        FilledTonalButton(
+            onClick = {
+                // Vor dem Melden fragen — beim Zurückziehen der eigenen Meldung nicht.
+                if (v?.my_inappropriate == true) {
+                    scope.launch { try { votes = Api.voteSession(sessionId, "inappropriate") } catch (_: Exception) {} }
+                } else askInappropriate = true
+            },
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = if (v?.my_inappropriate == true) red.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (v?.my_inappropriate == true) red else MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
+            Icon(Icons.Filled.Report, contentDescription = null, modifier = Modifier.size(18.dp), tint = red)
+            Spacer(Modifier.width(6.dp))
+            Text(if (v?.my_inappropriate == true) I18n.t("sd.reported") else I18n.t("sd.inappropriate"))
+            if ((v?.inappropriate_count ?: 0) > 0) { Spacer(Modifier.width(6.dp)); Text("${v?.inappropriate_count}") }
+        }
+    }
+}
 
 @Composable
 private fun ClassificationPanel(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
