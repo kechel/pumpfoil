@@ -77,7 +77,10 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   in den Banner** (Privatsphäre); persönliche Nachrichten ausschließlich per 1:1-Chat/DM. „Trag den Banner
   nach" = nur allgemeine News; im Zweifel nachfragen. **TODO:** dasselbe in Android/iOS (könnten
   `/api/app/news` auch abfragen).
-- Commit-Trailer wie vom Harness vorgegeben.
+- **Scripts/Backups — HARTE REGEL:** NIEMALS ungefragt etwas ausführen, das löscht oder
+  überschreiben kann (z. B. `rsync --delete`, `rm`, Spiegel-Syncs). Destruktive Optionen nur nach
+  explizitem OK von Jan. Und: „schreib mir ein Script" heißt **nur schreiben** — nicht automatisch
+  ausführen; Ausführung nur, wenn Jan es ausdrücklich sagt.
 
 ## Dokumentation & weitere Kontext-Quellen
 
