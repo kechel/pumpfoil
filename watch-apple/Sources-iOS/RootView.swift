@@ -8,6 +8,16 @@ struct RootView: View {
     @State private var showSplash = true
     @State private var wasBackground = false
     var body: some View {
+        content
+            .preferredColorScheme(preferredScheme)
+            .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
+            .task { await session.bootstrap() }
+            // Nur echte Rückkehr aus dem Hintergrund (nicht der Start — den macht bootstrap()).
+            .onChange(of: scenePhase) { phase in handleScenePhase(phase) }
+            .overlay { splashOverlay }
+    }
+
+    private var content: some View {
         Group {
             if session.isLoggedIn {
                 MainTabView()
@@ -15,28 +25,39 @@ struct RootView: View {
                 LoginView()
             }
         }
-        .preferredColorScheme(themeMode == "light" ? .light : themeMode == "dark" ? .dark : nil)
-        .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
-        .task { await session.bootstrap() }
-        // Nur echte Rückkehr aus dem Hintergrund (nicht der Start — den macht bootstrap()).
-        .onChange(of: scenePhase) { phase in
-            if phase == .background {
-                wasBackground = true
-            } else if phase == .active, wasBackground {
-                wasBackground = false
-                Task { await session.refreshDisplayPrefs() }
-            }
+    }
+
+    // War ein verschachteltes Ternary direkt im Modifier — das ist teuer, weil der Type-Checker
+    // dafuer alle ColorScheme-Ueberladungen durchgeht. "auto" = nil, also System-Einstellung.
+    private var preferredScheme: ColorScheme? {
+        if themeMode == "light" { return .light }
+        if themeMode == "dark" { return .dark }
+        return nil
+    }
+
+    // Inhaltlich unveraendert (frischer Fix): nur die echte Rueckkehr aus dem Hintergrund laedt
+    // die Anzeige-Einstellungen neu — den Kaltstart macht bootstrap(). Als Methode statt als
+    // onChange-Closure: Ablauflogik kostet den Type-Checker im ViewBuilder unnoetig viel.
+    private func handleScenePhase(_ phase: ScenePhase) {
+        if phase == .background {
+            wasBackground = true
+        } else if phase == .active, wasBackground {
+            wasBackground = false
+            Task { await session.refreshDisplayPrefs() }
         }
-        .overlay {
-            if showSplash {
-                SplashView()
-                    .transition(.opacity)
-                    .task {
-                        try? await Task.sleep(nanoseconds: 1_100_000_000)
-                        withAnimation(.easeOut(duration: 0.4)) { showSplash = false }
-                    }
-            }
+    }
+
+    @ViewBuilder private var splashOverlay: some View {
+        if showSplash {
+            SplashView()
+                .transition(.opacity)
+                .task { await hideSplash() }
         }
+    }
+
+    private func hideSplash() async {
+        try? await Task.sleep(nanoseconds: 1_100_000_000)
+        withAnimation(.easeOut(duration: 0.4)) { showSplash = false }
     }
 }
 
@@ -55,64 +76,87 @@ struct MainTabView: View {
     // Spots, Chat, Profil. Age-Gate blendet NUR den Chat (5) aus; Foilers (2) darf man ansehen.
     private var visibleTabs: [Int] { socialOK ? [0, 2, 1, 3, 4, 5, 6] : [0, 2, 1, 3, 4, 6] }
 
+    // Seiten-Stapel, Tab-Leiste und Vergleichs-Balken sind je ein eigener, explizit typisierter
+    // Ausdruck: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck auf, und dieser Body
+    // war ~58 Zeilen mit zwei ForEach + Button-Closure darin. Layout und Reihenfolge unveraendert.
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-                ForEach(visibleTabs, id: \.self) { i in
-                    tabContent(i)
-                        .id("tab\(i)-\(resetTokens[i])")
-                        .opacity(tab == i ? 1 : 0)
-                        .allowsHitTesting(tab == i)
-                        .zIndex(tab == i ? 1 : 0)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            tabPages
             Divider()
-            HStack(alignment: .top, spacing: 0) {
-                ForEach(visibleTabs, id: \.self) { i in
-                    Button {
-                        // „Sessions" im Menue heisst IMMER: oben in der Liste anfangen — nicht in
-                        // der zuletzt geoeffneten Session (die auf dem NavigationStack liegt) und
-                        // nicht auf der alten Scroll-Position. Die anderen Tabs behalten ihren
-                        // Zustand beim Wechsel; nur erneutes Tippen setzt sie zurueck. Gleiche
-                        // Regel wie in der PWA (dort der lastSession-Marker beim Menue-Klick).
-                        if tab == i || i == 1 { resetTokens[i] += 1 }
-                        if tab != i { tab = i }
-                    } label: {
-                        VStack(spacing: 2) {
-                            // Feste Icon-Höhe -> alle Labels auf identischer Höhe (SF-Symbole sind
-                            // unterschiedlich hoch, z. B. mappin höher als house).
-                            Image(systemName: tabIcon(i)).font(.system(size: 17))
-                                .frame(height: 20)
-                            Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .foregroundStyle(tab == i ? Color.accentColor : Color.secondary)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.top, 6)
-            .background(.bar)
+            tabBar
         }
-        .overlay(alignment: .bottom) {
-            if !compare.ids.isEmpty {
-                Button { showCompare = true } label: {
-                    Label(Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count)),
-                          systemImage: "arrow.left.arrow.right")
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 18).padding(.vertical, 12)
-                        .background(Color.accentColor, in: Capsule())
-                        .foregroundStyle(.black)
-                        .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
-                }
-                .padding(.bottom, 72)
-            }
-        }
+        .overlay(alignment: .bottom) { compareOverlay }
         .sheet(isPresented: $showCompare) {
             NavigationStack { CompareView(preselect: compare.ids) }
         }
+    }
+
+    private var tabPages: some View {
+        ZStack {
+            ForEach(visibleTabs, id: \.self) { i in
+                tabContent(i)
+                    .id("tab\(i)-\(resetTokens[i])")
+                    .opacity(tab == i ? 1 : 0)
+                    .allowsHitTesting(tab == i)
+                    .zIndex(tab == i ? 1 : 0)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var tabBar: some View {
+        HStack(alignment: .top, spacing: 0) {
+            ForEach(visibleTabs, id: \.self) { i in tabButton(i) }
+        }
+        .padding(.top, 6)
+        .background(.bar)
+    }
+
+    private func tabButton(_ i: Int) -> some View {
+        Button { selectTab(i) } label: { tabButtonLabel(i) }
+            .buttonStyle(.plain)
+    }
+
+    private func tabButtonLabel(_ i: Int) -> some View {
+        VStack(spacing: 2) {
+            // Feste Icon-Höhe -> alle Labels auf identischer Höhe (SF-Symbole sind
+            // unterschiedlich hoch, z. B. mappin höher als house).
+            Image(systemName: tabIcon(i)).font(.system(size: 17))
+                .frame(height: 20)
+            Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+        .foregroundStyle(tab == i ? Color.accentColor : Color.secondary)
+        .contentShape(Rectangle())
+    }
+
+    // Unveraendert aus der Button-Closure heruebergezogen (frischer Fix):
+    // „Sessions" im Menue heisst IMMER: oben in der Liste anfangen — nicht in
+    // der zuletzt geoeffneten Session (die auf dem NavigationStack liegt) und
+    // nicht auf der alten Scroll-Position. Die anderen Tabs behalten ihren
+    // Zustand beim Wechsel; nur erneutes Tippen setzt sie zurueck. Gleiche
+    // Regel wie in der PWA (dort der lastSession-Marker beim Menue-Klick).
+    private func selectTab(_ i: Int) {
+        if tab == i || i == 1 { resetTokens[i] += 1 }
+        if tab != i { tab = i }
+    }
+
+    @ViewBuilder private var compareOverlay: some View {
+        if !compare.ids.isEmpty {
+            Button { showCompare = true } label: {
+                Label(compareBarText, systemImage: "arrow.left.arrow.right")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 18).padding(.vertical, 12)
+                    .background(Color.accentColor, in: Capsule())
+                    .foregroundStyle(.black)
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
+            }
+            .padding(.bottom, 72)
+        }
+    }
+
+    private var compareBarText: String {
+        Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count))
     }
 
     @ViewBuilder private func tabContent(_ i: Int) -> some View {

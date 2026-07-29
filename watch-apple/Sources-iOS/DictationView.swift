@@ -96,47 +96,80 @@ struct DictationView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var dict = SpeechDictator()
 
+    // Kopf, Transkript und Tastenreihe sind je ein eigener, explizit typisierter Ausdruck: Swifts
+    // Type-Checker loest einen ViewBuilder als EINEN Ausdruck auf, und vier dictButton-Aufrufe mit
+    // eigenen Closures in einem Body summieren sich. Layout und Verhalten unveraendert.
     var body: some View {
         VStack(spacing: 20) {
-            VStack(spacing: 4) {
-                Text(title).font(.headline).foregroundStyle(.secondary)
-                Text(dict.listening ? Loc.t("dict.listening", lang) : " ").font(.subheadline).foregroundStyle(Color.accentColor)
-            }
-            .padding(.top, 24)
+            header
 
             Spacer()
-            ScrollView {
-                VStack(spacing: 10) {
-                    if !existing.isEmpty {
-                        Text(existing).font(.title3).foregroundStyle(.secondary.opacity(0.6))
-                    }
-                    if dict.denied {
-                        Text(Loc.t("dict.permDenied", lang)).foregroundStyle(.red)
-                    } else {
-                        Text(dict.transcript.isEmpty ? "…" : dict.transcript)
-                            .font(.title.bold()).foregroundStyle(Color.accentColor)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
+            transcriptScroll
             Spacer()
 
-            HStack(spacing: 6) {
-                dictButton("xmark", Loc.t("common.cancel", lang)) { dict.stop(); dismiss() }
-                dictButton("arrow.clockwise", Loc.t("dict.retry", lang)) { dict.stop(); dict.start(lang: lang) }
-                dictButton("pencil", Loc.t("dict.edit", lang), enabled: !dict.transcript.isEmpty) {
-                    dict.stop(); onResult(dict.transcript, false); dismiss()
-                }
-                dictButton("paperplane.fill", Loc.t("chat.send", lang), enabled: !dict.transcript.isEmpty, tint: .accentColor) {
-                    dict.stop(); onResult(dict.transcript, true); dismiss()
-                }
-            }
-            .padding(.bottom, 24)
+            buttonRow
         }
         .padding(.horizontal, 20)
         .task { dict.start(lang: lang) }
         .onDisappear { dict.stop() }
+    }
+
+    private var header: some View {
+        VStack(spacing: 4) {
+            Text(title).font(.headline).foregroundStyle(.secondary)
+            Text(listeningText).font(.subheadline).foregroundStyle(Color.accentColor)
+        }
+        .padding(.top, 24)
+    }
+
+    private var transcriptScroll: some View {
+        ScrollView {
+            VStack(spacing: 10) {
+                if !existing.isEmpty {
+                    Text(existing).font(.title3).foregroundStyle(.secondary.opacity(0.6))
+                }
+                transcriptLine
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder private var transcriptLine: some View {
+        if dict.denied {
+            Text(Loc.t("dict.permDenied", lang)).foregroundStyle(.red)
+        } else {
+            Text(transcriptText)
+                .font(.title.bold()).foregroundStyle(Color.accentColor)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    // Ternaries vorab typisiert — im ViewBuilder zwingen sie den Checker durch alle
+    // Text-/LocalizedStringKey-Ueberladungen.
+    private var listeningText: String { dict.listening ? Loc.t("dict.listening", lang) : " " }
+    private var transcriptText: String { dict.transcript.isEmpty ? "…" : dict.transcript }
+    private var hasTranscript: Bool { !dict.transcript.isEmpty }
+
+    private var buttonRow: some View {
+        HStack(spacing: 6) {
+            dictButton("xmark", Loc.t("common.cancel", lang)) { cancelTapped() }
+            dictButton("arrow.clockwise", Loc.t("dict.retry", lang)) { retryTapped() }
+            dictButton("pencil", Loc.t("dict.edit", lang), enabled: hasTranscript) { finish(send: false) }
+            dictButton("paperplane.fill", Loc.t("chat.send", lang), enabled: hasTranscript, tint: .accentColor) {
+                finish(send: true)
+            }
+        }
+        .padding(.bottom, 24)
+    }
+
+    // MARK: - Aktionen (Ablauflogik aus den Button-Closures heraus)
+
+    private func cancelTapped() { dict.stop(); dismiss() }
+    private func retryTapped() { dict.stop(); dict.start(lang: lang) }
+    private func finish(send: Bool) {
+        dict.stop()
+        onResult(dict.transcript, send)
+        dismiss()
     }
 
     @ViewBuilder private func dictButton(_ icon: String, _ label: String, enabled: Bool = true, tint: Color = .secondary, _ action: @escaping () -> Void) -> some View {
