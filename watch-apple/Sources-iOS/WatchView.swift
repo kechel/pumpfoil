@@ -14,81 +14,144 @@ struct WatchView: View {
         Task { try? await Task.sleep(nanoseconds: 1_600_000_000); savedFlash = false }
     }
 
+    // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
+    // ViewBuilder als EINEN Ausdruck auf; dieser Body war ~76 Zeilen (inkl. Geraetezeile mit
+    // eigenem Binding) und stand mit >500 ms im Build-Log. Reihenfolge/Inhalte unveraendert.
     var body: some View {
         List {
-            // Apple-Watch-Status: Updates kommen automatisch mit der iPhone-App (eingebettet);
-            // ist die Uhr gekoppelt, aber die App fehlt -> Hinweis (Installieren via Watch-App).
-            Section(Loc.t("watch.title", lang)) {
-                if sync.watchAppInstalled {
-                    Label(Loc.t("watch.ok", lang), systemImage: "checkmark.circle.fill")
-                        .font(.caption).foregroundStyle(.secondary)
-                } else if sync.watchPaired {
-                    Label(Loc.t("watch.notInstalled", lang), systemImage: "applewatch.slash")
-                        .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Label(Loc.t("watch.none", lang), systemImage: "applewatch")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            .task { sync.refreshConnection() }
-
-            // Verbundene Uhren mit Aufzeichnungsmodus je Uhr (wie PWA). Nur aktive Geräte.
-            let active = devices.filter { $0.revoked_at == nil }
-            if !active.isEmpty {
-                Section {
-                    ForEach(active) { d in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
-                                Text(d.model ?? d.label ?? Loc.t("account.deviceUnnamed", lang)).fontWeight(.medium)
-                                Spacer()
-                                if let v = d.app_version { Text("v\(v)").font(.caption2).foregroundStyle(.secondary) }
-                            }
-                            Picker(Loc.t("account.recordMode", lang), selection: Binding(
-                                get: { modes[d.id] ?? "full" },
-                                set: { v in modes[d.id] = v; Task { try? await Api.setDeviceRecordMode(d.id, mode: v); flashSaved() } }
-                            )) {
-                                Text(Loc.t("account.recordModeFull", lang)).tag("full")
-                                Text(Loc.t("account.recordModeLite", lang)).tag("lite")
-                                Text(Loc.t("account.recordModeGps", lang)).tag("gps")
-                            }
-                            if (d.low_accel ?? false) && (modes[d.id] ?? "full") == "full" {
-                                Text(Loc.t("account.recordModeAutoLite", lang)).font(.caption).foregroundStyle(.orange)
-                            }
-                            if d.platform == "garmin" {
-                                Text(Loc.t("account.recordModeGarminHint", lang)).font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                } header: { Text(Loc.t("account.devicesTitle", lang)) }
-                footer: { if savedFlash { Text(Loc.t("common.saved", lang)).foregroundStyle(.green) } }
-            }
-
-            Section {
-                NavigationLink {
-                    GarminPairView()
-                } label: {
-                    Label { Text(Loc.t("garmin.title", lang)) } icon: { Image(systemName: "link.circle").foregroundStyle(Color.accentColor) }
-                }
-                NavigationLink {
-                    AlarmView()
-                } label: {
-                    Label { Text(Loc.t("profile.alarm", lang)) } icon: { Image(systemName: "waveform.path").foregroundStyle(Color.accentColor) }
-                }
-                NavigationLink {
-                    DataFieldsView()
-                } label: {
-                    Label { Text(Loc.t("profile.datafields", lang)) } icon: { Image(systemName: "square.grid.2x2").foregroundStyle(Color.accentColor) }
-                }
-            }
+            appleWatchSection
+            devicesSection
+            navSection
         }
         .brandToolbar(Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            if let ds = try? await Api.myDevices() {
-                devices = ds
-                modes = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.record_mode ?? "full") })
+        .task { await loadDevices() }
+    }
+
+    // MARK: - Abschnitte
+
+    // Apple-Watch-Status: Updates kommen automatisch mit der iPhone-App (eingebettet);
+    // ist die Uhr gekoppelt, aber die App fehlt -> Hinweis (Installieren via Watch-App).
+    private var appleWatchSection: some View {
+        Section(Loc.t("watch.title", lang)) {
+            appleWatchStatus
+        }
+        .task { sync.refreshConnection() }
+    }
+
+    @ViewBuilder private var appleWatchStatus: some View {
+        if sync.watchAppInstalled {
+            Label(Loc.t("watch.ok", lang), systemImage: "checkmark.circle.fill")
+                .font(.caption).foregroundStyle(.secondary)
+        } else if sync.watchPaired {
+            Label(Loc.t("watch.notInstalled", lang), systemImage: "applewatch.slash")
+                .font(.caption).foregroundStyle(.secondary)
+        } else {
+            Label(Loc.t("watch.none", lang), systemImage: "applewatch")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    // Verbundene Uhren mit Aufzeichnungsmodus je Uhr (wie PWA). Nur aktive Geräte.
+    @ViewBuilder private var devicesSection: some View {
+        if !activeDevices.isEmpty {
+            Section {
+                ForEach(activeDevices) { d in deviceRow(d) }
+            } header: { Text(Loc.t("account.devicesTitle", lang)) }
+            footer: { savedFooter }
+        }
+    }
+
+    // Filter als typisierte Property statt als `let` im ViewBuilder.
+    private var activeDevices: [PairedDevice] {
+        devices.filter { $0.revoked_at == nil }
+    }
+
+    @ViewBuilder private var savedFooter: some View {
+        if savedFlash { Text(Loc.t("common.saved", lang)).foregroundStyle(.green) }
+    }
+
+    private func deviceRow(_ d: PairedDevice) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: "applewatch").foregroundStyle(Color.accentColor)
+                Text(deviceTitle(d)).fontWeight(.medium)
+                Spacer()
+                versionLabel(d)
             }
+            // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des Pickers — nur so findet
+            // die Auswahl ihre Einträge.
+            Picker(Loc.t("account.recordMode", lang), selection: recordModeBinding(d)) {
+                Text(Loc.t("account.recordModeFull", lang)).tag("full")
+                Text(Loc.t("account.recordModeLite", lang)).tag("lite")
+                Text(Loc.t("account.recordModeGps", lang)).tag("gps")
+            }
+            autoLiteHint(d)
+            garminHint(d)
+        }
+    }
+
+    @ViewBuilder private func versionLabel(_ d: PairedDevice) -> some View {
+        if let v = d.app_version { Text("v\(v)").font(.caption2).foregroundStyle(.secondary) }
+    }
+
+    @ViewBuilder private func autoLiteHint(_ d: PairedDevice) -> some View {
+        if showsAutoLiteHint(d) {
+            Text(Loc.t("account.recordModeAutoLite", lang)).font(.caption).foregroundStyle(.orange)
+        }
+    }
+
+    @ViewBuilder private func garminHint(_ d: PairedDevice) -> some View {
+        if d.platform == "garmin" {
+            Text(Loc.t("account.recordModeGarminHint", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var navSection: some View {
+        Section {
+            navRow("garmin.title", "link.circle") { GarminPairView() }
+            navRow("profile.alarm", "waveform.path") { AlarmView() }
+            navRow("profile.datafields", "square.grid.2x2") { DataFieldsView() }
+        }
+    }
+
+    // NavigationLink + Label als typisierter Helfer: derselbe Ausdruck stand dreimal im
+    // ViewBuilder und kostete den Checker jedes Mal die volle Auflösung von Label/Image/Color.
+    private func navRow<D: View>(_ key: String, _ symbol: String,
+                                @ViewBuilder destination: () -> D) -> some View {
+        NavigationLink {
+            destination()
+        } label: {
+            Label { Text(Loc.t(key, lang)) } icon: { Image(systemName: symbol).foregroundStyle(Color.accentColor) }
+        }
+    }
+
+    // MARK: - Werte/Ablauflogik vorab typisiert
+
+    private func deviceTitle(_ d: PairedDevice) -> String {
+        d.model ?? d.label ?? Loc.t("account.deviceUnnamed", lang)
+    }
+
+    private func mode(_ d: PairedDevice) -> String { modes[d.id] ?? "full" }
+
+    private func showsAutoLiteHint(_ d: PairedDevice) -> Bool {
+        (d.low_accel ?? false) && mode(d) == "full"
+    }
+
+    // Binding + Speichern als Methode statt als Closure im ViewBuilder.
+    private func recordModeBinding(_ d: PairedDevice) -> Binding<String> {
+        Binding(get: { mode(d) }, set: { v in setMode(d.id, v) })
+    }
+
+    private func setMode(_ id: Int, _ v: String) {
+        modes[id] = v
+        Task { try? await Api.setDeviceRecordMode(id, mode: v); flashSaved() }
+    }
+
+    private func loadDevices() async {
+        if let ds = try? await Api.myDevices() {
+            devices = ds
+            modes = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.record_mode ?? "full") })
         }
     }
 }

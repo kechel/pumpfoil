@@ -32,88 +32,22 @@ struct SettingsView: View {
     @State private var reanalysis: ReanalysisProgress?
     @State private var sensReady = false   // erst nach dem Laden auf Änderungen reagieren
 
+    // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
+    // ViewBuilder als EINEN Ausdruck auf; elf Sections mit je eigenen header/footer-Closures
+    // multiplizieren sich darin. Dieser Body war ~97 Zeilen und stand mit >500 ms im Build-Log
+    // (Archive hing minutenlang). Reihenfolge und Inhalte sind unveraendert.
     var body: some View {
         Form {
-            Section(Loc.t("settings.weight", lang)) {
-                Stepper("\(weight) kg", value: $weight, in: 0...300)
-            }
-            Section(Loc.t("settings.homespot", lang)) {
-                Picker(Loc.t("settings.homespot", lang), selection: $homespot) {
-                    Text(Loc.t("settings.auto", lang)).tag("")
-                    ForEach(spots, id: \.self) { Text($0).tag($0) }
-                }
-            }
-            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
-            if hasGarmin {
-                Section {
-                    Picker(Loc.t("account.activityType", lang), selection: $activityType) {
-                        Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
-                        Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
-                        Text(Loc.t("account.activityPumpfoil", lang)).tag("pumpfoil")
-                    }
-                } header: { Text(Loc.t("account.activityType", lang)) }
-                footer: { Text(Loc.t("account.activityTypeHint", lang)) }
-            }
-            Section(Loc.t("settings.design", lang)) {
-                Picker(Loc.t("settings.design", lang), selection: $themeMode) {
-                    Text(Loc.t("settings.auto", lang)).tag("auto")
-                    Text(Loc.t("settings.light", lang)).tag("light")
-                    Text(Loc.t("settings.dark", lang)).tag("dark")
-                }
-                .pickerStyle(.segmented)
-            }
-            // Sprache: wirkt sofort (appLang) + ans Profil gespeichert (synct zu Web/Uhr).
-            Section(Loc.t("settings.language", lang)) {
-                Picker(Loc.t("settings.language", lang), selection: $lang) {
-                    ForEach(Loc.langs, id: \.self) { code in
-                        Text(langNames[code] ?? code).tag(code)
-                    }
-                }
-            }
-            // Pump-Kadenz als Hz oder Pumps pro Minute — „1,43 Hz" kann sich kaum jemand vorstellen.
-            Section {
-                Picker(Loc.t("pumpunit.label", lang), selection: $pumpUnit) {
-                    Text(Loc.t("pumpunit.hz", lang)).tag("hz")
-                    Text(Loc.t("pumpunit.ppm", lang)).tag("ppm")
-                }
-            } header: { Text(Loc.t("pumpunit.label", lang)) }
-            footer: { Text(Loc.t("pumpunit.hint", lang)) }
-            // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
-            Section {
-                Picker(Loc.t("foilsens.label", lang), selection: $sensitivity) {
-                    Text(Loc.t("foilsens.normal", lang)).tag("normal")
-                    Text(Loc.t("foilsens.light", lang)).tag("light")
-                    Text(Loc.t("foilsens.attempts", lang)).tag("attempts")
-                }
-                if let p = reanalysis, p.running {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("\(p.done)/\(p.total > 0 ? String(p.total) : "…") · \(Loc.t("foilsens.reanalyzing", lang))")
-                            .font(.footnote).foregroundStyle(.secondary)
-                        if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) }
-                    }
-                }
-            } header: { Text(Loc.t("foilsens.label", lang)) }
-            footer: { Text(Loc.t("foilsens.hint", lang)) }
-            Section(Loc.t("settings.notifications", lang)) {
-                Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
-                Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
-                Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
-            }
-            // Passwort ändern (wie PWA-Settings).
-            Section {
-                Text(Loc.t("profile.changePwHint", lang)).font(.footnote).foregroundStyle(.secondary)
-                SecureField(Loc.t("profile.curPw", lang), text: $pwCur)
-                SecureField(Loc.t("profile.newPw", lang), text: $pwNew)
-                Button(Loc.t("profile.changePw", lang)) { changePassword() }
-                    .disabled(pwBusy || pwCur.isEmpty || pwNew.isEmpty)
-                if let m = pwMsg {
-                    Text(m.text).font(.footnote).foregroundStyle(m.ok ? Color.accentColor : .red)
-                }
-            } header: { Text(Loc.t("profile.changePw", lang)) }
-            Section {
-                Button(Loc.t("common.save", lang)) { save() }
-                if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
-            }
+            weightSection
+            homespotSection
+            activitySection
+            designSection
+            languageSection
+            pumpUnitSection
+            sensitivitySection
+            notificationsSection
+            passwordSection
+            saveSection
         }
         .brandToolbar(Loc.t("settings.title", lang))
         .navigationBarTitleDisplayMode(.inline)
@@ -126,9 +60,152 @@ struct SettingsView: View {
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
         .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
-        .onChange(of: activityType) { v in
-            if activityReady { Task { try? await Api.saveSettings(["activity_type": v]); saved = true } }
+        .onChange(of: activityType) { v in changeActivityType(v) }
+    }
+
+    // MARK: - Abschnitte
+
+    private var weightSection: some View {
+        Section(Loc.t("settings.weight", lang)) {
+            Stepper(weightLabel, value: $weight, in: 0...300)
         }
+    }
+
+    // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder ihres Pickers — nur so findet die
+    // Auswahl ihre Eintraege. Darum wird immer die ganze Section ausgelagert, nie deren Inhalt.
+    private var homespotSection: some View {
+        Section(Loc.t("settings.homespot", lang)) {
+            Picker(Loc.t("settings.homespot", lang), selection: $homespot) {
+                Text(Loc.t("settings.auto", lang)).tag("")
+                ForEach(spots, id: \.self) { Text($0).tag($0) }
+            }
+        }
+    }
+
+    // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
+    @ViewBuilder private var activitySection: some View {
+        if hasGarmin {
+            Section {
+                Picker(Loc.t("account.activityType", lang), selection: $activityType) {
+                    Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
+                    Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
+                    Text(Loc.t("account.activityPumpfoil", lang)).tag("pumpfoil")
+                }
+            } header: { Text(Loc.t("account.activityType", lang)) }
+            footer: { Text(Loc.t("account.activityTypeHint", lang)) }
+        }
+    }
+
+    private var designSection: some View {
+        Section(Loc.t("settings.design", lang)) {
+            Picker(Loc.t("settings.design", lang), selection: $themeMode) {
+                Text(Loc.t("settings.auto", lang)).tag("auto")
+                Text(Loc.t("settings.light", lang)).tag("light")
+                Text(Loc.t("settings.dark", lang)).tag("dark")
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    // Sprache: wirkt sofort (appLang) + ans Profil gespeichert (synct zu Web/Uhr).
+    private var languageSection: some View {
+        Section(Loc.t("settings.language", lang)) {
+            Picker(Loc.t("settings.language", lang), selection: $lang) {
+                ForEach(Loc.langs, id: \.self) { code in
+                    Text(langNames[code] ?? code).tag(code)
+                }
+            }
+        }
+    }
+
+    // Pump-Kadenz als Hz oder Pumps pro Minute — „1,43 Hz" kann sich kaum jemand vorstellen.
+    private var pumpUnitSection: some View {
+        Section {
+            Picker(Loc.t("pumpunit.label", lang), selection: $pumpUnit) {
+                Text(Loc.t("pumpunit.hz", lang)).tag("hz")
+                Text(Loc.t("pumpunit.ppm", lang)).tag("ppm")
+            }
+        } header: { Text(Loc.t("pumpunit.label", lang)) }
+        footer: { Text(Loc.t("pumpunit.hint", lang)) }
+    }
+
+    // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
+    private var sensitivitySection: some View {
+        Section {
+            Picker(Loc.t("foilsens.label", lang), selection: $sensitivity) {
+                Text(Loc.t("foilsens.normal", lang)).tag("normal")
+                Text(Loc.t("foilsens.light", lang)).tag("light")
+                Text(Loc.t("foilsens.attempts", lang)).tag("attempts")
+            }
+            reanalysisLine
+        } header: { Text(Loc.t("foilsens.label", lang)) }
+        footer: { Text(Loc.t("foilsens.hint", lang)) }
+    }
+
+    @ViewBuilder private var reanalysisLine: some View {
+        if let p = reanalysis, p.running {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(reanalysisText(p))
+                    .font(.footnote).foregroundStyle(.secondary)
+                if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) }
+            }
+        }
+    }
+
+    private var notificationsSection: some View {
+        Section(Loc.t("settings.notifications", lang)) {
+            Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
+            Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
+            Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
+        }
+    }
+
+    // Passwort ändern (wie PWA-Settings).
+    private var passwordSection: some View {
+        Section {
+            Text(Loc.t("profile.changePwHint", lang)).font(.footnote).foregroundStyle(.secondary)
+            SecureField(Loc.t("profile.curPw", lang), text: $pwCur)
+            SecureField(Loc.t("profile.newPw", lang), text: $pwNew)
+            Button(Loc.t("profile.changePw", lang)) { changePassword() }
+                .disabled(pwDisabled)
+            pwMessage
+        } header: { Text(Loc.t("profile.changePw", lang)) }
+    }
+
+    // Ternary vorab in eine typisierte Farbe aufgeloest — im Modifier ist es teuer.
+    @ViewBuilder private var pwMessage: some View {
+        if let m = pwMsg {
+            let color: Color = m.ok ? Color.accentColor : Color.red
+            Text(m.text).font(.footnote).foregroundStyle(color)
+        }
+    }
+
+    private var saveSection: some View {
+        Section {
+            Button(Loc.t("common.save", lang)) { save() }
+            savedFlash
+        }
+    }
+
+    @ViewBuilder private var savedFlash: some View {
+        if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.footnote) }
+    }
+
+    // MARK: - Texte/Flags vorab typisiert (Interpolation + Verkettung kosten im ViewBuilder am meisten)
+
+    private var weightLabel: String { "\(weight) kg" }
+
+    private var pwDisabled: Bool { pwBusy || pwCur.isEmpty || pwNew.isEmpty }
+
+    private func reanalysisText(_ p: ReanalysisProgress) -> String {
+        let total: String = p.total > 0 ? String(p.total) : "…"
+        let what: String = Loc.t("foilsens.reanalyzing", lang)
+        return "\(p.done)/\(total) · \(what)"
+    }
+
+    private func changeActivityType(_ v: String) {
+        guard activityReady else { return }
+        Task { try? await Api.saveSettings(["activity_type": v]); saved = true }
     }
 
     private func changeSensitivity(_ v: String) {
