@@ -597,7 +597,9 @@ func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil)
     let oc = Loc.t("sessions.oclock", lang)
     let ocSuffix = oc.isEmpty ? "" : " " + oc
     if let endISO, let end = TimeFmt.timeOnly(endISO, tz) {
-        return start + " – " + end + ocSuffix
+        // Drei Verkettungen in einem Ausdruck -> zwei typisierte Schritte.
+        let spanne: String = start + " – " + end
+        return spanne + ocSuffix
     }
     return start + ocSuffix
 }

@@ -255,7 +255,14 @@ struct MediaItem: Codable, Identifiable {
     let spot: String?
     let caption: String?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
-    var id: String { (kind ?? "") + "\(session_id)" + (url ?? youtube_url ?? "") }
+    var id: String {
+        // Schrittweise und explizit typisiert: die Kombination aus ??-Kette, "+"-Verkettung und
+        // Interpolation in EINEM Ausdruck ist der Fall, an dem der Swift-Solver exponentiell wird.
+        let k: String = kind ?? ""
+        let sid: String = String(session_id)
+        let u: String = url ?? youtube_url ?? ""
+        return k + sid + u
+    }
 }
 
 struct ChatRoom: Codable, Identifiable {

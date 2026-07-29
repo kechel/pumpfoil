@@ -841,7 +841,9 @@ struct SessionDetailView: View {
     private func fmtShim(_ v: Double?) -> String {
         guard let v else { return "—" }
         let txt = v == v.rounded() ? String(Int(v)) : String(v)
-        return (v > 0 ? "+" + txt : txt) + "°"
+        // Ternary + zwei Verkettungen in einem Ausdruck -> in Schritte zerlegt (Type-Checker).
+        let vorzeichen: String = v > 0 ? "+" : ""
+        return vorzeichen + txt + "°"
     }
 
     private func applySetup(
