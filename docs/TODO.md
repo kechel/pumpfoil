@@ -166,6 +166,40 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 - **FIT-Import: `accel_hz` behauptet 25 Hz, obwohl keine Accel-Daten dabei sind.** In
+### Stand 29.07.2026 — Uhr-Layouts, Kadenz-Einheit, Type-Checker
+
+- [x] **Layout-Renderer Wear + Apple Watch**: Seiten-Drahtformat (getaggte Listen, nicht IDs),
+      Größenstufen aus der Simulator-Messung statt geschätzt (waren 32–56 % zu groß), exakte Palette,
+      Fett nur für Werte, REC mit Text, randloses Zeichnen, kein doppelter Seiten-Indikator,
+      Geschwindigkeitsfarbe in vier Stufen wie Garmin. Am Wear-Emulator gegen die PWA-Vorschau
+      ausgemessen (≤ 1 % Abweichung) und von Jan auf beiden Uhren bestätigt.
+- [x] **Halten zum Stoppen/Verwerfen**: 3 s → 2 s auf Wear und Apple Watch (inkl. Labels in 12 Sprachen).
+- [x] **Einheit der Lauf-Distanz** gehört ins Label, nicht in den Wert (Wear/Apple; Garmin war schon richtig).
+- [x] **Melde-Knöpfe für fremde Sessions** sichtbar in der Aktionszeile auf Android und iOS
+      (waren nur im Overflow-/Flaggen-Menü), mit Zählern und Zuständen wie in der PWA.
+- [x] **Kadenz-Einheit Hz oder Pumps/min** pro Nutzer: Server, PWA (live), Android, iOS.
+- [x] **iOS/Watch Type-Checker**: Diagnose-Schwelle auf 100 ms, große SwiftUI-Ausdrücke zerlegt
+      (Watch: größter Block 202 → 31 Zeilen). Ziel: kein Block über ~40 Zeilen.
+- [x] **project.yml**: Version kam doppelt vor (Settings 1.1.18/22, Info.plist 1.1.17/21 — die plist
+      gewinnt) → Archiv wäre als bereits veröffentlichte Version gebaut worden. Jetzt referenziert
+      die plist die Build-Settings.
+
+Offen daraus:
+- [ ] **Pausen-Seiten (`pausePages`) auf Wear und Apple Watch** — hängen an der manuellen Pause,
+      die es auf beiden Uhren noch nicht gibt.
+- [ ] **Strenger Zustandsring** (`browse_all_pages=false`) auf Wear und Apple Watch.
+- [ ] **Icon-Satz für den Layout-Editor** (Nutzerwunsch „Font Awesome"): die eingebauten
+      Garmin-Fonts haben keine Symbol-Glyphen, der Editor warnt schon davor
+      (`undisplayableChars`). Machbar als eingebetteter Bitmap-Font + neuer Elementtyp „Icon",
+      auf Wear/Apple native gezeichnet. Nur `:full`-Builds. **Braucht Jans Go.**
+- [ ] **Falsch erkannter Kurz-Lauf** (Nutzer-Meldung zu einer Session mit 6 Läufen): Kandidat-Regel
+      „Dauer < 10 s UND Spitze < 13 km/h" trifft 9,1 % aller 4635 Läufe, alle ≤ 9 s; **23 Sessions
+      verlieren dabei alle Läufe** → vorher stichprobenartig prüfen. Eine reine Spitzen-Schwelle
+      wäre falsch (bei 13 km/h fielen 19,6 % weg, inkl. eines 145-s-Laufs). **Detektor-Änderung,
+      braucht Jans OK.**
+- [ ] **Layout-Vorschau in den Handy-Apps**: Android und iOS zeigen eine Layout-Seite nur als Namen.
+      Der Renderer von Wear/Apple ließe sich dafür nachnutzen.
+
   `sessions.py:317` steht `accel_hz = parsed["accel_hz"] or 25`; Suunto-FITs (und andere ohne
   Rohbeschleunigung) liefern 0, gespeichert wird dann 25. Die Auswertung macht es richtig
   (`detection=gps_only`, keine Pumps — sie bestimmt die echte Rate aus den Daten), nur der
