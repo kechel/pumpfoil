@@ -688,9 +688,9 @@ struct HoldToStopButton: View {
     case 12: let f = DateFormatter(); f.dateFormat = "HH:mm"; return (f.string(from: Date()), WLoc.t("f.clock", lang))
     case 13: return ("–", WLoc.t("f.ascent", lang))
     case 14: return (msStr(r.runDurationMs), WLoc.t("f.runTime", lang))
-    case 15: return (distLabeled(r.runDistanceM), WLoc.t("f.runDist", lang))
+    case 15: return (distVal(r.runDistanceM), distUnit(r.runDistanceM) + " " + WLoc.t("f.runDist", lang))
     case 16: return (msStr(r.lastRunDurationMs), WLoc.t("f.lastRunTime", lang))
-    case 17: return (distLabeled(r.lastRunDistanceM), WLoc.t("f.lastRunDist", lang))
+    case 17: return (distVal(r.lastRunDistanceM), distUnit(r.lastRunDistanceM) + " " + WLoc.t("f.lastRunDist", lang))
     case 18: return (String(format: "%.1f", r.lastRunAvgSpeedKmh), WLoc.t("f.lastRunAvg", lang))
     case 19: return (String(format: "%.1f", r.lastRunMaxSpeedKmh), WLoc.t("f.lastRunMax", lang))
     case 20: return ("\(r.runCount)", WLoc.t("f.runs", lang))
@@ -699,9 +699,13 @@ struct HoldToStopButton: View {
 }
 
 private func msStr(_ ms: Int) -> String { let s = ms / 1000; return String(format: "%d:%02d", s / 60, s % 60) }
-private func distLabeled(_ m: Double) -> String {
-    m < 1000 ? String(format: "%.0f m", m) : String(format: "%.2f km", m / 1000)
+// Distanz wie bei Garmin (RecordView._distVal/_distUnit): die EINHEIT GEHOERT INS LABEL, nicht in
+// den Wert. Vorher stand sie im Wert ("12 m"), das Label trug nur "Lauf-Dist" — in einem Layout mit
+// Wert und Label nebeneinander wirkt das doppelt, und die PWA-Vorschau zeigte es anders.
+private func distVal(_ m: Double) -> String {
+    m < 1000 ? String(format: "%.0f", m) : String(format: "%.2f", m / 1000)
 }
+private func distUnit(_ m: Double) -> String { m < 1000 ? "m" : "km" }
 
 @MainActor private func fieldColor(_ id: Int, _ r: Recorder) -> Color {
     switch id {

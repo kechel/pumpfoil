@@ -814,9 +814,9 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     12 -> clockStr() to I18n.t("f.clock")
     13 -> "–" to I18n.t("f.ascent")
     14 -> msStr(s.runDurationMs) to I18n.t("f.runTime")
-    15 -> distLabeled(s.runDistanceM) to I18n.t("f.runDist")
+    15 -> distVal(s.runDistanceM) to (distUnit(s.runDistanceM) + " " + I18n.t("f.runDist"))
     16 -> msStr(s.lastRunDurationMs) to I18n.t("f.lastRunTime")
-    17 -> distLabeled(s.lastRunDistanceM) to I18n.t("f.lastRunDist")
+    17 -> distVal(s.lastRunDistanceM) to (distUnit(s.lastRunDistanceM) + " " + I18n.t("f.lastRunDist"))
     18 -> String.format("%.1f", s.lastRunAvgSpeedKmh) to I18n.t("f.lastRunAvg")
     19 -> String.format("%.1f", s.lastRunMaxSpeedKmh) to I18n.t("f.lastRunMax")
     20 -> s.runCount.toString() to I18n.t("f.runs")
@@ -824,8 +824,13 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
 }
 
 private fun msStr(ms: Long): String { val sec = ms / 1000; return String.format("%d:%02d", sec / 60, sec % 60) }
-private fun distLabeled(m: Double): String =
-    if (m < 1000) String.format("%.0f m", m) else String.format("%.2f km", m / 1000.0)
+// Distanz wie bei Garmin (RecordView._distVal/_distUnit): die EINHEIT GEHOERT INS LABEL, nicht in
+// den Wert. Vorher stand sie hier im Wert ("12 m") und das Label trug nur "Lauf-Dist" — dann sieht
+// ein Layout, das Wert und Label nebeneinander stellt, doppelt oder widerspruechlich aus, und die
+// PWA-Vorschau (MOCK_VALUE ohne Einheit) zeigte etwas anderes als die Uhr.
+private fun distVal(m: Double): String =
+    if (m < 1000) String.format("%.0f", m) else String.format("%.2f", m / 1000.0)
+private fun distUnit(m: Double): String = if (m < 1000) "m" else "km"
 private fun clockStr(): String =
     java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
 
