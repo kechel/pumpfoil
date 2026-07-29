@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 29, 2026",
+    items: [
+      "Pump cadence can now be shown as pumps per minute instead of Hz. “1.43 Hz” is hard to picture, “86/min” is not. Choose it once in your profile under Pump cadence and it applies everywhere: session pages and run tables, your history, comparisons and the community tables. Tapping the cadence tile on a session still flips it, and the choice now follows your account instead of only this device. Nothing is recalculated — it is only how the number is written.",
+    ],
+  },
+  {
     date: "July 28, 2026",
     items: [
       "Connecting a Suunto account works again. Between July 19 and 28 it stopped part way through: you could log in at Suunto, and then it gave up. That was on Suunto’s side, not yours — nothing was wrong with your password or your watch. If you gave up back then, please give it another go under [Linked accounts](/konten); your workouts then import as sessions.",

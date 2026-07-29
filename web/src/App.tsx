@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { FeedbackRequestBanner } from "./components/FeedbackRequestBanner";
 import { api, clearToken, Profile } from "./lib/api";
+import { applyPumpUnit } from "./lib/pumpRate";
 import { clearLastSession } from "./lib/lastSession";
 import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
@@ -102,6 +103,8 @@ export default function App() {
       warmMedia([p.avatar_url]);   // eigenes Profilbild offline-sicher vorladen
       // Serverseitig gespeicherte Sprachpräferenz anwenden (ohne erneut zu sichern).
       if (p.language) setLang(p.language as any, { persist: false });
+      // Anzeige-Einheit der Pump-Kadenz aus dem Profil übernehmen (gilt app-weit).
+      applyPumpUnit(p.pump_unit);
     }).catch(() => {});
     // Profil-Änderungen (Avatar/Name in den Einstellungen) sofort übernehmen.
     const h = (e: Event) => setProfile((e as CustomEvent).detail);

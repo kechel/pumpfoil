@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, HistoryPoint } from "../lib/api";
-import { pumpValue, pumpSuffix } from "../lib/pumpRate";
+import { usePumpFmt, type PumpFmt } from "../lib/pumpRate";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { ChartIcon } from "../components/Icons";
 import { SpotProgression } from "../components/SpotProgression";
@@ -22,13 +22,13 @@ const METRICS: { key: keyof HistoryPoint; labelKey: string; fmt: (v: number) => 
 type Agg = {
   key: string; field?: keyof HistoryPoint | null; kind: "sum" | "avg" | "count" | "ratio" | "max";
   num?: keyof HistoryPoint; den?: keyof HistoryPoint | "count";
-  labelKey: string; fmt: (v: number) => string; color: string;
+  labelKey: string; fmt: (v: number, pf: PumpFmt) => string; color: string;
 };
 // Oben (Einzel-Werte je Fenster/kumuliert): Mittel + Verhältnis, neben den Bestwerten.
 const AGG_TOP: Agg[] = [
   // Bestwert-Sektion: bester Session-Ø im Fenster (kumuliert = laufender Bestwert).
   { key: "avg_speed", field: "avg_speed", kind: "max", labelKey: "sd.avgSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, color: "#f59e0b" },
-  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v) => `${pumpValue(v)} ${pumpSuffix()}`, color: "#f472b6" },
+  { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v, pf) => pf.fmt(v), color: "#f472b6" },
   { key: "pumps_per_session", kind: "ratio", num: "pumps", den: "count", labelKey: "metric.pumpsPerSession", fmt: (v) => v.toFixed(0), color: "#fb7185" },
   // Meter pro Pump im Zeitverlauf: Σ Foiling-km / Σ Pumps (×1000 = m), als Verhältnis
   // (kein Summen-Wert -> bewusst nicht in der Kumuliert-/Summen-Sektion).
@@ -102,15 +102,17 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
 
 function AggMetricChart({ data, metric, mode, onPick, domain }: { data: HistoryPoint[]; metric: Agg; mode: Mode; onPick: (p: Pt) => void; domain: [number, number] }) {
   const t = useT();
+  const pf = usePumpFmt();
   const pts = useMemo(() => aggSeries(data, metric, mode, domain), [data, metric, mode, domain]);
   const cur = pts.length ? pts[pts.length - 1].v : 0;
+  const fmt = (v: number) => metric.fmt(v, pf);
   return (
     <Card className="p-4">
       <div className="mb-1 flex items-baseline justify-between">
         <span className="text-sm font-semibold text-slate-200">{t(metric.labelKey)}</span>
-        <span className="tabular-nums font-bold" style={{ color: metric.color }}>{cur ? metric.fmt(cur) : "–"}</span>
+        <span className="tabular-nums font-bold" style={{ color: metric.color }}>{cur ? fmt(cur) : "–"}</span>
       </div>
-      <LineChart pts={pts} color={metric.color} fmt={metric.fmt} onPick={onPick} domain={domain} />
+      <LineChart pts={pts} color={metric.color} fmt={fmt} onPick={onPick} domain={domain} />
     </Card>
   );
 }

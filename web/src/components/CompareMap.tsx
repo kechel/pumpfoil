@@ -4,6 +4,7 @@ import { SessionSummary } from "../lib/api";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { useT } from "../i18n";
+import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 
 export interface CompareMapItem {
@@ -212,6 +213,7 @@ function ModeBtn({ active, onClick, children }: { active: boolean; onClick: () =
 
 function ValueLegend({ mode, speedRange, pumpRange, hrRange, optimal }: { mode: Mode; speedRange: [number, number]; pumpRange: [number, number]; hrRange: [number, number]; optimal: number | null }) {
   const t = useT();
+  const pf = usePumpFmt();
   if (mode === "optimal") {
     const opt = optimal ?? 0;
     const ticks = [1 - OPTIMAL_SPAN, 1, 1 + OPTIMAL_SPAN].map((r) => Math.round(opt * r));
@@ -224,10 +226,10 @@ function ValueLegend({ mode, speedRange, pumpRange, hrRange, optimal }: { mode: 
     );
   }
   const [lo, hi] = mode === "speed" ? speedRange : mode === "pump" ? pumpRange : hrRange;
-  const unit = mode === "speed" ? "km/h" : mode === "pump" ? "Hz" : "bpm";
+  const unit = mode === "speed" ? "km/h" : mode === "pump" ? pf.suffix : "bpm";
   const ticksT = [0, 0.25, 0.5, 0.75, 1];
   const stops = ticksT.map((tt) => rampColor(tt)).join(", ");
-  const ticks = ticksT.map((tt) => mode === "pump" ? (lo + tt * (hi - lo)).toFixed(1) : Math.round(lo + tt * (hi - lo)));
+  const ticks = ticksT.map((tt) => mode === "pump" ? pf.tick(lo + tt * (hi - lo)) : Math.round(lo + tt * (hi - lo)));
   return (
     <div className="text-xs text-slate-300"><div className="flex items-center gap-3">
       <div className="w-48"><div className="h-2 w-full rounded" style={{ background: `linear-gradient(to right, ${stops})` }} />

@@ -8,6 +8,7 @@ import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { FontScaleSelect } from "../components/FontScaleSelect";
+import { PumpUnitSelect } from "../components/PumpUnitSelect";
 import { InstallPwa } from "../components/InstallPwa";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { MyFoilsSubline } from "../components/MyFoilsSubline";
@@ -290,6 +291,12 @@ export default function Settings() {
         <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("lang.hint")}</p>
         <LanguageSelect />
+      </Card>
+
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
+        <PumpUnitSelect />
       </Card>
 
       <Card className="mt-4 p-5">

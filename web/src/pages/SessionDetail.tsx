@@ -17,7 +17,7 @@ import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { carveColor } from "../lib/turns";
-import { pumpUnit, setPumpUnit, pumpValue, pumpSuffix, type PumpUnit } from "../lib/pumpRate";
+import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
@@ -375,6 +375,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
 
 export default function SessionDetail() {
   const t = useT();
+  const pf = usePumpFmt();   // Pump-Kadenz-Einheit (Hz | /min) aus dem Profil
   const { id, token } = useParams();
   const isPublic = !!token;   // Route /s/:token → öffentliche read-only Ansicht ohne Login
   const nav = useNavigate();
@@ -1325,7 +1326,7 @@ export default function SessionDetail() {
           <ModeButton active={colorMode === "speed"} onClick={() => setColorMode("speed")}>{t("sd.colorSpeed")}</ModeButton>
           <ModeButton active={colorMode === "hr"} onClick={() => setColorMode("hr")}>{t("sd.colorPulse")}</ModeButton>
           {hasPump && (
-            <ModeButton active={colorMode === "pump"} onClick={() => setColorMode("pump")}>{t("sd.colorPumpHz")}</ModeButton>
+            <ModeButton active={colorMode === "pump"} onClick={() => setColorMode("pump")}>{t("sd.colorPumpHz", { unit: pf.suffix })}</ModeButton>
           )}
           {optimalKmh != null && (
             <ModeButton active={colorMode === "optimal"} onClick={() => setColorMode("optimal")}>{t("sd.colorOptimal")}</ModeButton>
@@ -1588,7 +1589,7 @@ export default function SessionDetail() {
                       <thead><tr className="text-slate-500">
                         <th className="pr-3 text-left">Take</th><th className="pr-3 text-right">{t("stat.pumps")}</th>
                         <th className="pr-3 text-right">Offset</th><th className="pr-3 text-right">Match</th>
-                        <th className="pr-3 text-right">Jitter</th><th className="pr-2 text-right">Hz</th><th className="pl-1 text-center">✓</th>
+                        <th className="pr-3 text-right">Jitter</th><th className="pr-2 text-right">{pf.suffix}</th><th className="pl-1 text-center">✓</th>
                       </tr></thead>
                       <tbody>
                         {cmp.takes.map((r) => {
@@ -1601,7 +1602,7 @@ export default function SessionDetail() {
                             <td className="pr-3 text-right">{r.is_ref ? "–" : `${r.offset_ms > 0 ? "+" : ""}${(r.offset_ms / 1000).toFixed(2)}s`}</td>
                             <td className="pr-3 text-right">{r.is_ref ? "–" : r.matched}</td>
                             <td className="pr-3 text-right">{r.is_ref ? "–" : `±${Math.round(r.jitter_ms)}ms`}</td>
-                            <td className="pr-2 text-right">{q ? q.cadence_hz.toFixed(1) : "–"}</td>
+                            <td className="pr-2 text-right">{q ? pf.tick(q.cadence_hz) : "–"}</td>
                             <td className="pl-1 text-center">{q ? (q.plausible ? "✓" : "⚠") : ""}</td>
                           </tr>
                           );
@@ -1713,18 +1714,14 @@ function ClickStat({
 
 // Pump-Kadenz-Kachel: per Tap zwischen Hz und Pumps/Minute (Hz×60) umschalten. Merk-Badge
 // oben rechts zeigt die ALTERNATIVE Einheit -> signalisiert, dass man tippen kann. Die Wahl
-// steckt gerätelokal im localStorage (nicht serverseitig), gilt für alle Sessions.
+// landet im Profil (siehe lib/pumpRate) und gilt sofort in allen Ansichten.
 function PumpRateStat({ hz }: { hz: number }) {
   const t = useT();
-  const [unit, setUnitState] = useState<PumpUnit>(pumpUnit);
-  const toggle = () => {
-    const n: PumpUnit = unit === "hz" ? "min" : "hz";
-    setUnitState(n);
-    setPumpUnit(n);
-  };
-  const value = pumpValue(hz, unit);
-  const sub = pumpSuffix(unit);
-  const alt = unit === "hz" ? "/min" : "Hz";
+  const pf = usePumpFmt();
+  const toggle = () => setPumpUnit(pf.unit === "hz" ? "ppm" : "hz");
+  const value = pf.value(hz);
+  const sub = pf.suffix;
+  const alt = pf.unit === "hz" ? t("unit.pumpPerMin") : "Hz";
   return (
     <button
       onClick={toggle}
@@ -1755,6 +1752,7 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
 
 function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: ColorMode; hrRange: [number, number]; speedRange: [number, number]; pumpRange: [number, number]; optimal?: number | null }) {
   const t = useT();
+  const pf = usePumpFmt();
   // Optimal-Modus: divergierende Skala blau -> grün (Optimal) -> rot mit km/h-Ticks.
   if (mode === "optimal") {
     const opt = optimal ?? 0;
@@ -1775,11 +1773,11 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
     );
   }
   const [lo, hi] = mode === "speed" ? speedRange : mode === "pump" ? pumpRange : hrRange;
-  const unit = mode === "speed" ? "km/h" : mode === "pump" ? "Hz" : "bpm";
+  const unit = mode === "speed" ? "km/h" : mode === "pump" ? pf.suffix : "bpm";
   const ticksT = [0, 0.25, 0.5, 0.75, 1];
   const stops = ticksT.map((tt) => rampColor(tt)).join(", ");
   const ticks = ticksT.map((tt) =>
-    mode === "pump" ? (lo + tt * (hi - lo)).toFixed(1) : Math.round(lo + tt * (hi - lo))
+    mode === "pump" ? pf.tick(lo + tt * (hi - lo)) : Math.round(lo + tt * (hi - lo))
   );
   return (
     <div className="text-xs text-slate-300">
@@ -1880,6 +1878,7 @@ function RunsTable({
   tz?: string | null;
 }) {
   const t = useT();
+  const pf = usePumpFmt();
   if (!segments.length) return null;
   // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start), in Spot-Ortszeit.
   const sessionStartMs = new Date(startedAt).getTime();
@@ -1890,7 +1889,8 @@ function RunsTable({
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
-  const hz = (v: number | null | undefined) => (v != null ? v.toFixed(2) : "–");
+  // Kadenz-Zellen ohne Einheit — die steht in der Spaltenüberschrift (Hz bzw. /min).
+  const hz = (v: number | null | undefined) => (v != null ? pf.value(v) : "–");
   const val = (s: any, kind: "avg" | "max" | "min") => {
     const v = s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps);
     return v != null ? (v * 3.6).toFixed(1) : "–";
@@ -1916,8 +1916,8 @@ function RunsTable({
               {showPower && <th className="px-3 py-2 font-medium">{t("sd.colPower")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
-              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump")}</th>}
-              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin")}</th>}
+              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: pf.suffix })}</th>}
+              {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin", { unit: pf.suffix })}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
             </tr>
           </thead>

@@ -408,6 +408,7 @@ export interface Profile {
   language: string;
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
   foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
+  pump_unit?: "hz" | "ppm";    // Anzeige-Einheit der Pump-Kadenz (nur Darstellung, ppm = Hz×60)
   social_allowed?: boolean;   // false = unter 13, UGC/Feed/Chat gesperrt (Apple-Vorgabe)
   // Eigene Sessions, die auf eine Zuordnung warten (docs/sport-classification.md) + die neueste
   // davon, damit der Hinweis direkt dorthin verlinkt.
@@ -702,6 +703,12 @@ export const api = {
     req<Profile>("/api/auth/me", {
       method: "PATCH",
       body: JSON.stringify({ language }),
+    }),
+  // Anzeige-Einheit der Pump-Kadenz (hz|ppm). Reine Darstellung — nichts wird neu berechnet.
+  updatePumpUnit: (pump_unit: string) =>
+    req<Profile>("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ pump_unit }),
     }),
   // Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts). Server reanalysiert
   // danach die EIGENEN Sessions (kann kurz dauern); Community/Rekorde bleiben Standard.
