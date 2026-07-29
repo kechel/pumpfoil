@@ -1130,3 +1130,126 @@ def set_flag_block(
     _log(db, admin, "flag_block" if blocked else "flag_unblock", "user", uid, None)
     db.commit()
     return {"ok": True, "flag_blocked": bool(u.flag_blocked)}
+
+
+# =============== Sportart JE NUTZER (docs/sport-classification.md) ===============
+# Für Nutzer, die auf die Bitte „bitte richtig zuordnen" nicht reagieren. Vorher musste das in der
+# Datenbank passieren. ZWEI GETRENNTE Aktionen, absichtlich ohne stille Nebenwirkungen:
+#   1) Profil-Standard setzen  -> wirkt nur für KÜNFTIGE Sessions (settings_json.default_sport_class)
+#   2) offene Aufforderungen auflösen -> wirkt nur auf BESTEHENDE Sessions mit needs_classification
+# Wer nur (1) klickt, ändert keine einzige bestehende Session; wer nur (2) klickt, ändert den
+# Profil-Standard nicht. Beides läuft im Audit-Log mit.
+
+def _open_classification_q(db: Session, uid: int):
+    return (db.query(models.Session)
+            .filter(models.Session.user_id == uid,
+                    models.Session.deleted.isnot(True),
+                    models.Session.needs_classification.is_(True)))
+
+
+def _default_sport(u: models.User) -> str:
+    try:
+        return str((json.loads(u.settings_json or "{}") or {}).get("default_sport_class")
+                   or "pumpfoil")
+    except (ValueError, TypeError):
+        return "pumpfoil"
+
+
+def _sport_or_400(payload: dict) -> str:
+    """Eine Sportart aus der EINEN Quelle (sessions.SPORTS). Ungültig -> 400, nie ein 500er."""
+    from .sessions import SPORTS
+    sport = (payload or {}).get("sport")
+    if not isinstance(sport, str) or sport not in SPORTS:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültige Sportart")
+    return sport
+
+
+@router.get("/user-sport")
+def user_sport_list(
+    q: str | None = Query(None), limit: int = 20,
+    _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Nutzersuche nach ANZEIGENAME + die drei Zahlen, die für die Entscheidung zählen:
+    aktueller Profil-Standard, Sessions insgesamt, offene Aufforderungen.
+    Ohne Suchbegriff: die Nutzer MIT offenen Aufforderungen (die Arbeitsliste), meiste zuerst."""
+    U = models.User
+    term = (q or "").strip()
+    if term:
+        rows = (db.query(U)
+                .filter(func.lower(func.coalesce(U.display_name, "")).like(f"%{term.lower()}%"))
+                .order_by(U.display_name.asc()).limit(min(max(limit, 1), 50)).all())
+    else:
+        open_q = (db.query(models.Session.user_id, func.count(models.Session.id).label("n"))
+                  .filter(models.Session.deleted.isnot(True),
+                          models.Session.needs_classification.is_(True))
+                  .group_by(models.Session.user_id).subquery())
+        rows = (db.query(U).join(open_q, open_q.c.user_id == U.id)
+                .order_by(open_q.c.n.desc()).limit(min(max(limit, 1), 50)).all())
+    out = []
+    for u in rows:
+        nsess = int(db.query(func.count()).select_from(models.Session)
+                    .filter(models.Session.user_id == u.id,
+                            models.Session.deleted.isnot(True)).scalar() or 0)
+        nopen = int(_open_classification_q(db, u.id)
+                    .with_entities(func.count(models.Session.id)).scalar() or 0)
+        out.append({
+            "id": u.id, "display_name": u.display_name, "avatar_url": u.avatar_url,
+            "default_sport_class": _default_sport(u),
+            "sessions": nsess, "open_classifications": nopen,
+        })
+    return out
+
+
+@router.post("/users/{uid}/default-sport")
+def set_default_sport(
+    uid: int, payload: dict = Body(...), admin: models.User = Depends(current_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Profil-Standard setzen — NUR der Schlüssel `default_sport_class`, alles andere im
+    Einstellungs-JSON bleibt unangetastet. Wirkt für KÜNFTIGE Sessions (s. api/ingest.py)."""
+    u = db.get(models.User, uid)
+    if u is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nutzer nicht gefunden")
+    sport = _sport_or_400(payload)
+    try:
+        cur = json.loads(u.settings_json or "{}") or {}
+    except (ValueError, TypeError):
+        cur = {}
+    if not isinstance(cur, dict):
+        cur = {}
+    cur["default_sport_class"] = sport
+    u.settings_json = json.dumps(cur)
+    _log(db, admin, "user_default_sport", "user", uid, sport)
+    db.commit()
+    return {"ok": True, "default_sport_class": sport}
+
+
+@router.post("/users/{uid}/resolve-classification")
+def resolve_open_classifications(
+    uid: int, payload: dict = Body(...), admin: models.User = Depends(current_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Offene Aufforderungen dieses Nutzers auflösen: alle Sessions mit `needs_classification`
+    bekommen die gewählte Sportart, das Flag fällt.
+
+    `sport_source = "admin"` — genau wie beim Einzelurteil in sessions.set_classification; es ist ein
+    menschliches/administratives Urteil, kein Detektor- und kein Voreinstellungs-Wert ("default").
+    `data_quality` wird NICHT angefasst (andere Achse, s. docs/sport-classification.md), und es wird
+    keine Reanalyse angestoßen. Bei „pumpfoil" setzt das — wieder wie beim Einzelurteil — zusätzlich
+    `pumpfoil_override`, sonst würde eine einzige neue Meldung die Entscheidung sofort aushebeln."""
+    u = db.get(models.User, uid)
+    if u is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nutzer nicht gefunden")
+    sport = _sport_or_400(payload)
+    rows = _open_classification_q(db, uid).all()
+    for s in rows:
+        s.sport_class = sport
+        s.sport_source = "admin"
+        s.needs_classification = False
+        s.appeal_text = None
+        s.appeal_at = None
+        if sport == "pumpfoil" and (s.data_quality or "ok") == "ok":
+            s.pumpfoil_override = True
+    _log(db, admin, "resolve_classification", "user", uid, f"{sport} n={len(rows)}")
+    db.commit()
+    return {"ok": True, "sport": sport, "resolved": len(rows)}

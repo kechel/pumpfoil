@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -59,7 +59,7 @@ export default function Admin() {
         })}
       </nav>
       {tab === "overview" && <OverviewTab />}
-      {tab === "classify" && <><ClassifyTab /><FlagsTab /></>}
+      {tab === "classify" && <><ClassifyTab /><FlagsTab /><UserSportTab /></>}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
       {tab === "fake" && <SessionsTab scope="fake" />}
       {tab === "suspect" && <SessionsTab scope="suspect" />}
@@ -981,5 +981,100 @@ function FlagsTab() {
         </div>
       )}
     </div>
+  );
+}
+
+// ---- Sportart JE NUTZER (docs/sport-classification.md) ----
+// Für die Nutzer, die auf die Bitte „bitte richtig zuordnen" schlicht nicht reagieren. Bisher musste
+// Jan dafür in die Datenbank. ZWEI GETRENNTE Knöpfe, weil es zwei verschiedene Dinge sind:
+//   * Profil-Standard -> wirkt nur für KÜNFTIGE Sessions
+//   * offene Aufforderungen auflösen -> wirkt nur auf die BESTEHENDEN Sessions mit Aufforderung
+// Die Anzahl steht VOR dem Klick am Knopf, damit niemand blind eine Massenänderung auslöst.
+function UserSportTab() {
+  const t = useT();
+  const [q, setQ] = useState("");
+  const [term, setTerm] = useState("");
+  const [rows, setRows] = useState<AdminUserSport[] | null>(null);
+  const load = () => api.adminUserSport(term || undefined).then(setRows).catch(() => setRows([]));
+  useEffect(() => { setRows(null); load(); }, [term]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div className="mt-8">
+      <h3 className="mb-2 font-semibold">{t("adm.usport.title")}</h3>
+      <p className="mb-3 text-sm text-slate-700 dark:text-slate-300">{t("adm.usport.hint")}</p>
+      <form onSubmit={(e) => { e.preventDefault(); setTerm(q.trim()); }} className="mb-3 flex gap-2">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.usport.search")}
+          className="w-56 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+        <button className="rounded-xl bg-slate-200 px-3 text-sm text-slate-800 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          {t("common.search")}
+        </button>
+      </form>
+      {!rows ? <Spinner /> : rows.length === 0 ? (
+        <Card className="p-4 text-sm text-slate-700 dark:text-slate-300">
+          {term ? t("adm.usport.noMatch") : t("adm.usport.none")}
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((u) => <UserSportRow key={u.id} u={u} onDone={load} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) {
+  const t = useT();
+  const [sport, setSport] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const run = (fn: () => Promise<unknown>, done: (r: any) => string) => {
+    setBusy(true); setMsg(null);
+    fn().then((r) => { setMsg(done(r)); onDone(); })
+      .catch((e) => setMsg(t("adm.error") + e))
+      .finally(() => setBusy(false));
+  };
+  const setDefault = () => {
+    if (!sport) return;
+    run(() => api.adminSetDefaultSport(u.id, sport), () => t("adm.usport.doneDefault", { sport: t(`cls.sport.${sport}`) }));
+  };
+  const resolve = () => {
+    if (!sport || u.open_classifications === 0) return;
+    if (!confirm(t("adm.usport.confirm", { n: u.open_classifications, sport: t(`cls.sport.${sport}`) }))) return;
+    run(() => api.adminResolveClassifications(u.id, sport),
+        (r) => t("adm.usport.doneResolve", { n: r?.resolved ?? 0 }));
+  };
+  return (
+    <Card className="p-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+        <Avatar url={u.avatar_url} name={u.display_name} size={28} />
+        <span className="font-semibold text-slate-800 dark:text-slate-100">{u.display_name ?? "—"}</span>
+        <span className="text-slate-700 dark:text-slate-300">
+          {t("adm.usport.default", { sport: t(`cls.sport.${u.default_sport_class}`) })}
+        </span>
+        <span className="text-slate-600 dark:text-slate-400">{t("adm.usport.sessions", { n: u.sessions })}</span>
+        {u.open_classifications > 0 && (
+          <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-200">
+            {t("adm.usport.open", { n: u.open_classifications })}
+          </span>
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <select value={sport} onChange={(e) => setSport(e.target.value)} disabled={busy}
+          className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+          <option value="">{t("adm.usport.pick")}</option>
+          {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+        </select>
+        <button onClick={setDefault} disabled={busy || !sport}
+          className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-sm font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-40">
+          {t("adm.usport.setDefault")}
+        </button>
+        <button onClick={resolve} disabled={busy || !sport || u.open_classifications === 0}
+          className="rounded-lg bg-amber-500 px-2.5 py-1.5 text-sm font-medium text-slate-950 hover:bg-amber-400 disabled:opacity-40">
+          {u.open_classifications === 0
+            ? t("adm.usport.resolveNone")
+            : t("adm.usport.resolve", { n: u.open_classifications })}
+        </button>
+        {msg && <span className="text-sm text-slate-700 dark:text-slate-200">{msg}</span>}
+      </div>
+    </Card>
   );
 }

@@ -435,6 +435,16 @@ export interface AdminUser {
   links?: string[];              // Import-Konten (polar|coros|suunto|strava)
 }
 
+/** Admin: Sportart je Nutzer (docs/sport-classification.md). */
+export interface AdminUserSport {
+  id: number;
+  display_name: string | null;
+  avatar_url: string | null;
+  default_sport_class: string;    // Profil-Standard für KÜNFTIGE Sessions
+  sessions: number;
+  open_classifications: number;   // noch offene Aufforderungen (needs_classification)
+}
+
 export interface AdminWatch {
   platform: string | null;       // garmin | wear | apple
   name: string;                  // Modellname (partmap) oder Label
@@ -893,6 +903,15 @@ export const api = {
     req<{ ok: boolean; flag_blocked: boolean }>(`/api/admin/users/${uid}/flag-block?blocked=${blocked}`, { method: "POST" }),
   adminKeepPumpfoil: (id: number) =>
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/keep-pumpfoil`, { method: "POST" }),
+  // Sportart je Nutzer (für Nutzer, die auf die Bitte nicht reagieren) — zwei getrennte Aktionen.
+  adminUserSport: (q?: string) =>
+    req<AdminUserSport[]>(`/api/admin/user-sport${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+  adminSetDefaultSport: (uid: number, sport: string) =>
+    req<{ ok: boolean; default_sport_class: string }>(`/api/admin/users/${uid}/default-sport`,
+      { method: "POST", body: JSON.stringify({ sport }) }),
+  adminResolveClassifications: (uid: number, sport: string) =>
+    req<{ ok: boolean; sport: string; resolved: number }>(`/api/admin/users/${uid}/resolve-classification`,
+      { method: "POST", body: JSON.stringify({ sport }) }),
   saveSettings: (patch: Record<string, unknown>) =>
     req<Record<string, any>>("/api/settings", {
       method: "PUT",
