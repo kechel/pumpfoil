@@ -79,7 +79,7 @@ data class LayoutElement(
 /** Eine Layout-Seite: Hintergrundfarbe + Elemente. */
 data class LayoutPageDef(val bg: Int, val elements: List<LayoutElement>)
 
-/** Parst einen Layout-Eintrag `[1, bg, [elements…]]` aus dem Config-JSON. */
+/** Parst eine Layout-Seite `[1, bg, [elements…]]` (Tag-Byte an Position 0). */
 fun parseLayoutPage(arr: JSONArray): LayoutPageDef? {
     if (arr.length() < 3) return null
     val bg = arr.optInt(1, 0)
@@ -128,6 +128,8 @@ fun LayoutPageView(
         val w = size.width
         val h = size.height
         val dens = density
+        // Hintergrundfarbe der Seite zuerst (RecordView.mc:479-481) — sonst bleibt jedes Layout schwarz.
+        drawRect(color = layoutColor(page.bg, Color.Black), size = size)
         val sorted = page.elements.sortedBy { if (it.typ == 4) 0 else 1 }
         for (e in sorted) {
             val px = w * e.x / 1000f
@@ -213,30 +215,33 @@ private fun DrawScope.drawPageDots(idx: Int, count: Int, active: Color, w: Float
 }
 
 // --- Seiten-Sätze (F3) ---------------------------------------------------------------------
-// Ein Eintrag in `pages`/`offFoilPages`/`pausePages` ist ENTWEDER eine 3-Feld-Seite ODER eine
-// Layout-ID. Genau so liegt es im Server (settings.py:43-56).
+// WICHTIG, hier lag mein Fehler: der Server schickt KEINE Layout-IDs mit separatem Definitions-
+// Wörterbuch. Jeder Eintrag in `pages`/`offFoilPages`/`pausePages` ist eine LISTE mit einem
+// TAG-Byte vorneweg (server/app/api/devices.py:_layouts_for_watch, wie RecordView.mc:98-114):
+//   [0, a, b, c]          klassische Seite mit drei Feld-IDs
+//   [1, bg, [elemente…]]  eigenes Layout, Hintergrundfarbe + Elemente INLINE
+// Damit ist beides in derselben Liste unterscheidbar, ohne zweiten Request.
 
 sealed interface WatchPageRef {
     data class Classic(val fields: List<Int>) : WatchPageRef
-    data class Layout(val id: Int) : WatchPageRef
+    /** Layout kommt fertig mit; keine ID, kein Nachladen. */
+    data class Layout(val def: LayoutPageDef) : WatchPageRef
 }
 
-/** Parst einen gemischten Seiten-Satz; null wenn das Feld fehlt (Aufrufer nimmt dann den Rückfall). */
+/** Parst einen gemischten Seiten-Satz; null wenn das Feld fehlt (Aufrufer nimmt den Rückfall). */
 fun parsePageRefs(arr: JSONArray?): List<WatchPageRef>? {
     if (arr == null) return null
     val out = mutableListOf<WatchPageRef>()
     for (i in 0 until arr.length()) {
-        val row = arr.optJSONArray(i)
-        if (row != null) {
-            out.add(WatchPageRef.Classic((0 until row.length()).map { row.optInt(it, 0) }))
-        } else {
-            val id = arr.optInt(i, -1)
-            if (id > 0) out.add(WatchPageRef.Layout(id))
+        val row = arr.optJSONArray(i) ?: continue
+        when (row.optInt(0, 0)) {
+            1 -> parseLayoutPage(row)?.let { out.add(WatchPageRef.Layout(it)) }
+            else -> out.add(WatchPageRef.Classic(listOf(row.optInt(1, 0), row.optInt(2, 0), row.optInt(3, 0))))
         }
     }
     return out.ifEmpty { null }
 }
 
-/** Rückfall: die klassische `views`-Liste als Seiten-Satz. */
+/** Rückfall: die klassische `views`-Liste (ohne Tag-Byte) als Seiten-Satz. */
 fun pagesFromViews(views: List<List<Int>>): List<WatchPageRef> =
     views.map { WatchPageRef.Classic(it) }

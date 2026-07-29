@@ -113,7 +113,6 @@ struct RecordView: View {
     // Eigene Layouts (F2/F3): gemischte Seiten-Saetze + Definitionen; `layoutsPref` ist dreistufig
     // (nil = automatisch, also Server-Voreinstellung) -- der Nutzer soll am Handgelenk umstellen
     // koennen, ohne dass der Server ihn ueberstimmt. Genau wie bei Garmin.
-    @State private var layoutDefs: [Int: LayoutPageDef] = [:]
     @State private var onFoilPages: [WatchPageRef] = []
     @State private var offFoilPages: [WatchPageRef] = []
     @State private var layoutsServerDefault = false
@@ -397,8 +396,8 @@ struct RecordView: View {
 
     @ViewBuilder private func dataPageView(_ ref: WatchPageRef, idx: Int) -> some View {
         switch ref {
-        case .layout(let id):
-            if layoutsEffective, let def = layoutDefs[id] {
+        case .layout(let def):
+            if layoutsEffective {
                 LayoutPageView(
                     page: def, pageIndex: idx, pageCount: dataPages.count,
                     recording: rec.isRecording, pausedText: WLoc.t("rec.paused", lang),
@@ -454,15 +453,9 @@ struct RecordView: View {
         guard let c else { return }
         if let l = c.language, !l.isEmpty { lang = l }   // Profil-Sprache übernehmen (persistiert via @AppStorage)
         if !c.views.isEmpty { views = c.views }
-        // Layout-Paket. Fehlt es, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
+        // Layout-Paket. Die Seiten tragen ihre Definition INLINE (Tag-Byte, s. WatchLayoutRender);
+        // fehlt das Paket, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
         layoutsServerDefault = c.layoutsOn ?? false
-        if let defs = c.layouts {
-            var m: [Int: LayoutPageDef] = [:]
-            for (k, v) in defs {
-                if let id = Int(k), let def = LayoutPageDef(v) { m[id] = def }
-            }
-            layoutDefs = m
-        }
         onFoilPages = (c.pages?.compactMap { WatchPageRef($0) }) ?? views.map { WatchPageRef.classic($0) }
         offFoilPages = (c.offFoilPages?.compactMap { WatchPageRef($0) })
             ?? [WatchPageRef.classic(c.offFoilView ?? offFoil)]
@@ -649,8 +642,9 @@ struct HoldToStopButton: View {
         }
         .frame(width: 104, height: 104)
         .contentShape(Circle())
-        .onLongPressGesture(minimumDuration: 3, maximumDistance: 60, pressing: { down in
-            withAnimation(down ? .linear(duration: 3) : .easeOut(duration: 0.25)) {
+        .onLongPressGesture(minimumDuration: 2, maximumDistance: 60, pressing: { down in
+            // Fuell-Dauer MUSS zu minimumDuration passen, sonst feuert die Aktion vor dem vollen Ring.
+            withAnimation(down ? .linear(duration: 2) : .easeOut(duration: 0.25)) {
                 progress = down ? 1 : 0
             }
         }, perform: {

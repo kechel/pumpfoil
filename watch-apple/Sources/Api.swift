@@ -85,7 +85,6 @@ enum Api {
         // statt [[Int]]. `layouts` bildet Layout-ID -> Definition ab. `layoutsOn` ist nur die
         // VOREINSTELLUNG des Schalters auf der Uhr, kein Veto (wie bei Garmin).
         let layoutsOn: Bool?
-        let layouts: [String: [LayoutPrimOrList]]?
         let pages: [LayoutPrimOrList]?
         let offFoilPages: [LayoutPrimOrList]?
         let pausePages: [LayoutPrimOrList]?

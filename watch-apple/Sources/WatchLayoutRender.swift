@@ -160,19 +160,26 @@ enum LayoutPrimOrList: Codable {
     var asIntValue: Int { asPrim.asInt }
 }
 
-/// Eine Seite je Zustand: klassische 3-Feld-Seite oder Verweis auf ein Layout.
+/// Eine Seite je Zustand: klassische 3-Feld-Seite oder ein eigenes Layout.
+///
+/// WICHTIG: der Server schickt KEINE Layout-IDs und kein Definitions-Woerterbuch. Jeder Eintrag in
+/// `pages`/`offFoilPages`/`pausePages` ist eine Liste mit TAG-Byte vorneweg — genauso wie Garmin es
+/// liest (RecordView.mc:98-114), erzeugt in server/app/api/devices.py:_layouts_for_watch:
+///   `[0, a, b, c]`         klassische Seite mit drei Feld-IDs
+///   `[1, bg, [elemente…]]` eigenes Layout, Hintergrund + Elemente INLINE
 enum WatchPageRef {
     case classic([Int])
-    case layout(Int)
+    case layout(LayoutPageDef)
 
     /// Aus einem Eintrag von `pages`/`offFoilPages`/`pausePages`.
     init?(_ item: LayoutPrimOrList) {
-        switch item {
-        case .list(let l): self = .classic(l.map { $0.asIntValue })
-        case .prim(let p):
-            let id = p.asInt
-            if id <= 0 { return nil }
-            self = .layout(id)
+        guard case .list(let l) = item, !l.isEmpty else { return nil }
+        if l[0].asIntValue == 1 {
+            guard let def = LayoutPageDef(l) else { return nil }
+            self = .layout(def)
+        } else {
+            // Tag 0: die drei Feld-IDs stehen ab Index 1.
+            self = .classic((1..<4).map { $0 < l.count ? l[$0].asIntValue : 0 })
         }
     }
 }
@@ -197,6 +204,9 @@ struct LayoutPageView: View {
             let w = geo.size.width
             let h = geo.size.height
             ZStack(alignment: .topLeading) {
+                // Hintergrundfarbe der Seite zuerst (RecordView.mc:479-481) — sonst bleibt jedes
+                // Layout schwarz, obwohl der Nutzer in der PWA eine Farbe gewaehlt hat.
+                layoutColor(page.bg, .black).frame(width: w, height: h)
                 // Linien zuerst — sonst liegen Striche über den Werten (derselbe 2-Pass wie Garmin).
                 ForEach(Array(page.elements.enumerated()), id: \.offset) { pair in
                     lineIfNeeded(pair.element, w: w, h: h)

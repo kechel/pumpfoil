@@ -178,7 +178,6 @@ class MainActivity : ComponentActivity() {
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages` sind gemischte Saetze: ein Eintrag ist
         // entweder eine 3-Feld-Seite oder eine Layout-ID. `layoutsOn` ist nur die VOREINSTELLUNG
         // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
-        var layoutDefs by remember { mutableStateOf<Map<Int, LayoutPageDef>>(emptyMap()) }
         var onFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
         var offFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
         var layoutsPref by remember { mutableStateOf(LocalStore.layoutsPref(ctx)) }   // null = automatisch
@@ -193,19 +192,9 @@ class MainActivity : ComponentActivity() {
                     (0 until row.length()).map { row.getInt(it) }
                 }
             }
-            // Layout-Paket. Fehlt es (Server liefert es nur, wenn der Nutzer Layouts anhat), bleiben
-            // die klassischen 3-Feld-Seiten unveraendert stehen.
+            // Layout-Paket. Die Seiten tragen ihre Layout-Definition INLINE (Tag-Byte, s. WatchLayout.kt);
+            // fehlt das Paket, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
             layoutsServerDefault = c.optBoolean("layoutsOn", false)
-            c.optJSONObject("layouts")?.let { obj ->
-                val m = mutableMapOf<Int, LayoutPageDef>()
-                val it2 = obj.keys()
-                while (it2.hasNext()) {
-                    val k = it2.next()
-                    val arr = obj.optJSONArray(k) ?: continue
-                    parseLayoutPage(arr)?.let { def -> k.toIntOrNull()?.let { id -> m[id] = def } }
-                }
-                layoutDefs = m
-            }
             onFoilPages = parsePageRefs(c.optJSONArray("pages")) ?: pagesFromViews(views)
             offFoilPages = parsePageRefs(c.optJSONArray("offFoilPages"))
                 ?: listOf(WatchPageRef.Classic(c.optJSONArray("offFoilView").let { a ->
@@ -341,7 +330,7 @@ class MainActivity : ComponentActivity() {
                                 // Eigene Layouts nur, wenn der Schalter an ist (null = Server-Vorgabe).
                                 val useLayouts = layoutsPref ?: layoutsServerDefault
                                 val ref = onFoilPages.getOrNull(page - firstData)
-                                val def = (ref as? WatchPageRef.Layout)?.id?.let { layoutDefs[it] }
+                                val def = (ref as? WatchPageRef.Layout)?.def
                                 if (useLayouts && def != null) {
                                     LayoutPageView(
                                         page = def, pageIndex = page - firstData, pageCount = dataCount,
@@ -361,7 +350,7 @@ class MainActivity : ComponentActivity() {
                             page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
                                 val useLayouts = layoutsPref ?: layoutsServerDefault
                                 val ref = if (showRunEnd) offFoilPages.firstOrNull() else null
-                                val def = (ref as? WatchPageRef.Layout)?.id?.let { layoutDefs[it] }
+                                val def = (ref as? WatchPageRef.Layout)?.def
                                 if (useLayouts && def != null) {
                                     LayoutPageView(
                                         page = def, pageIndex = 0, pageCount = 1,
@@ -380,7 +369,7 @@ class MainActivity : ComponentActivity() {
                                     fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                                 }
                             }
-                            page == 1 || page == stopBack -> {  // Stop-Seiten: 3 s halten -> stoppen (speichert + lädt hoch)
+                            page == 1 || page == stopBack -> {  // Stop-Seiten: 2 s halten -> stoppen (speichert + lädt hoch)
                                 HoldButton(I18n.t("rec.stopHold"), Color(0xFFB91C1C), Color(0xFFF87171)) {
                                     RecorderService.stop(applicationContext)
                                 }
@@ -389,7 +378,7 @@ class MainActivity : ComponentActivity() {
                                     Text(s.status, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                                 }
                             }
-                            else -> {  // Verwerfen-Seiten (ganz außen): 3 s halten -> Aufnahme löschen (kein Upload)
+                            else -> {  // Verwerfen-Seiten (ganz außen): 2 s halten -> Aufnahme löschen (kein Upload)
                                 HoldButton(I18n.t("rec.discardHold"), Color(0xFF92400E), Color(0xFFFBBF24)) {
                                     RecorderService.discard(applicationContext)
                                 }
@@ -729,11 +718,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 3 s halten zum Stoppen (wie Garmin Stop-Halten-Ring) — verhindert versehentliches Stoppen.
+    // 2 s halten zum Stoppen (wie Garmin Stop-Halten-Ring) — verhindert versehentliches Stoppen.
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    // Generischer „3 s halten"-Button (Stop = rot, Verwerfen = amber). onHeld feuert erst nach
-    // 3 s ohne Loslassen (bewusste, versehentlich schwer auszulösende Geste).
+    // Generischer „2 s halten"-Button (Stop = rot, Verwerfen = amber). onHeld feuert erst nach
+    // 2 s ohne Loslassen (bewusste, versehentlich schwer auszulösende Geste).
     private fun HoldButton(label: String, fill: Color, ring: Color, onHeld: () -> Unit) {
         var progress by remember { mutableStateOf(0f) }
         Box(contentAlignment = Alignment.Center) {
@@ -754,13 +743,13 @@ class MainActivity : ComponentActivity() {
                                 val timer = launch {
                                     val start = System.currentTimeMillis()
                                     while (isActive) {
-                                        progress = ((System.currentTimeMillis() - start) / 3000f).coerceIn(0f, 1f)
+                                        progress = ((System.currentTimeMillis() - start) / 2000f).coerceIn(0f, 1f)
                                         kotlinx.coroutines.delay(30)
                                     }
                                 }
-                                val released = withTimeoutOrNull(3000) { tryAwaitRelease() }
+                                val released = withTimeoutOrNull(2000) { tryAwaitRelease() }
                                 timer.cancel()
-                                released == null   // null => 3 s ohne Loslassen => auslösen
+                                released == null   // null => 2 s ohne Loslassen => auslösen
                             }
                             progress = 0f
                             if (held) onHeld()
