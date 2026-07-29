@@ -1606,8 +1606,10 @@ export default function SessionDetail() {
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} />
 
-      {!owned && <ReportButtons sessionId={session.id} />}
-      {owned && (
+      {/* In der oeffentlichen Teilen-Ansicht KEINES von beiden: dort ist man evtl. nicht angemeldet,
+          und beide Aktionen brauchen ein Konto (der Not-Pumpfoil-Knopf war schon vorher so gegated). */}
+      {!owned && !isPublic && <ReportButtons sessionId={session.id} />}
+      {owned && !isPublic && (
         <div className="mt-8 border-t border-slate-800 pt-4">
           <div className="flex flex-wrap items-center gap-2">
             <ClassPickers sessionId={session.id} compact />
