@@ -7,7 +7,9 @@
     "dev": "vite --host --port 8090",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test:physics": "node scripts/verify-foil-physics.mjs"
+    "test:physics": "node scripts/verify-foil-physics.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "prebuild": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

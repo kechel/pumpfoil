@@ -227,14 +227,14 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
                     )}
                     {d.platform === "garmin" && (
-                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{t("account.recordModeGarminHint")}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">{t("account.recordModeGarminHint")}</p>
                     )}
                   </div>
                 )}
                 {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr
                     aus (andere Uhren/Nutzer unberührt) — mit Knopf zum Zurücksetzen. */}
                 {!d.revoked_at && d.layout_capable && d.layout_state && d.layout_state !== "on" && (
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  <p className="mt-2 text-sm text-slate-300">
                     {t(`account.layoutState.${d.layout_state}`)}
                   </p>
                 )}
@@ -524,7 +524,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
   return (
     <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
       <div className="mb-1 text-sm font-semibold text-slate-200">{title}</div>
-      <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">{desc}</p>
+      <p className="mb-2 text-sm text-slate-400">{desc}</p>
       <div className="space-y-3">
         {pages.map((pg, pi) => {
           const isLayout = !Array.isArray(pg);
@@ -576,7 +576,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
           );
         })}
         {pages.length === 0 && (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t("account.emptyStateDefault")}</p>
+          <p className="text-sm text-slate-400">{t("account.emptyStateDefault")}</p>
         )}
       </div>
       {/* Knöpfe UNTER der Liste — dort standen sie ursprünglich. Kurz waren sie oben, weil es aussah
@@ -595,7 +595,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
         </button>
         {full && <span className="text-sm text-slate-400">{t("account.maxPages", { n: MAX_PAGES })}</span>}
         {options.length === 0 && (
-          <span className="text-sm text-slate-500 dark:text-slate-400">{t("account.noLayoutsOfKind")}</span>
+          <span className="text-sm text-slate-400">{t("account.noLayoutsOfKind")}</span>
         )}
       </div>
     </div>

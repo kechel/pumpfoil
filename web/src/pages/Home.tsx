@@ -429,7 +429,7 @@ function LayoutTeaser() {
           {t("home.layoutsAll")} →
         </Link>
       </div>
-      <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">{t("home.layoutsHint")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("home.layoutsHint")}</p>
       <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
         {rows.map((l) => (
           <Link key={l.id} to="/layouts/community"
@@ -439,7 +439,7 @@ function LayoutTeaser() {
                 shape={(l.authored_shape as WatchShape) || "round"} px={150} />
               <div className="w-full min-w-0 text-center">
                 <div className="truncate text-sm font-semibold">{l.name}</div>
-                <div className="truncate text-sm text-slate-500 dark:text-slate-400">
+                <div className="truncate text-sm text-slate-400">
                   {t("lay.byAuthor", { name: l.author ?? "?" })}
                 </div>
                 {(l.used_by ?? 0) > 0 && (

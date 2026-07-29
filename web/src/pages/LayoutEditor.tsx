@@ -299,7 +299,7 @@ export default function LayoutEditor() {
                       aber nicht entfernbar") — kein Löschknopf, der Server würde ihn ohnehin
                       wieder ergänzen. Verschieben, Farbe und Ausrichtung bleiben frei. */}
                   {typ === EL_PAUSED ? (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">{t("lay.pausedFixed")}</span>
+                    <span className="text-sm text-slate-400">{t("lay.pausedFixed")}</span>
                   ) : (
                     <button onClick={() => delElement(sel)}
                       className="rounded-lg bg-slate-800 px-2.5 py-1.5 text-sm text-slate-300 hover:bg-slate-700">

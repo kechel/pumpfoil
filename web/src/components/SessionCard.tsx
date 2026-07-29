@@ -220,7 +220,7 @@ export function SessionCard({
               {t("cls.needsBadge")}
             </span>
           ) : isClassified({ sport_class: sportClass, data_quality: dataQuality }) ? (
-            <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-600 dark:text-slate-300">
+            <span className="rounded-lg bg-slate-500/15 px-2 py-0.5 text-sm text-slate-300">
               {t(classLabelKey({ sport_class: sportClass, data_quality: dataQuality }))}
             </span>
           ) : null}

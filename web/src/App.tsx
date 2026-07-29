@@ -63,7 +63,7 @@ function ChangelogLink() {
     : "bg-slate-400/20 text-slate-600 dark:text-slate-400";
   return (
     <Link to="/changelog"
-      className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-500 hover:text-slate-400 dark:text-slate-400 dark:hover:text-slate-300">
+      className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-400 dark:hover:text-slate-300">
       {t("nav.changelog")}
       <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>
         {shortDate(LATEST_CHANGELOG_DATE, lang)}

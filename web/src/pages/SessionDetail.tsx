@@ -2044,7 +2044,7 @@ function ClassificationPanel({ session, owned, onChange }: {
             </button>
           </div>
         ) : session.appeal_text ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">{t("cls.appealPending")}</p>
+          <p className="text-sm text-slate-300">{t("cls.appealPending")}</p>
         ) : (
           <button onClick={() => setAppealOpen(true)}
             className="text-sm text-brand-700 hover:underline dark:text-brand-300">
@@ -2064,7 +2064,7 @@ function NotPumpfoilButton({ sessionId }: { sessionId: number }) {
   const t = useT();
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
-  if (done) return <span className="text-sm text-slate-500 dark:text-slate-400">{t("cls.thanks")}</span>;
+  if (done) return <span className="text-sm text-slate-400">{t("cls.thanks")}</span>;
   return (
     <button
       disabled={busy}

@@ -105,14 +105,14 @@ export default function Foils() {
 
       {/* Standard-Sportart: wirkt nur auf NEUE Sessions. Wer überwiegend Wingfoil oder Foildrive
           aufzeichnet, muss dann nicht jede Session nachträglich zuordnen. */}
-      <label className="mb-4 block text-sm text-slate-700 dark:text-slate-200">
+      <label className="mb-4 block text-sm text-slate-200">
         {t("foils.defaultSport")}
         <select value={defSport}
           onChange={(e) => { const v = e.target.value; setDefSport(v); api.saveSettings({ default_sport_class: v }).catch(() => {}); }}
           className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
           {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
         </select>
-        <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">{t("foils.defaultSportHint")}</span>
+        <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
       </label>
 
       <div className="mb-4 flex flex-wrap gap-2">

@@ -782,7 +782,7 @@ function ChatModTab() {
               <button onClick={() => hide(m.id, true)} className="rounded-lg bg-amber-600/20 px-2.5 py-1 text-amber-700 hover:bg-amber-600/30 dark:text-amber-300">{t("chat.hide")}</button>
             )}
             <button onClick={() => readonly(m.user_id, m.name)} className="rounded-lg bg-red-500/10 px-2.5 py-1 text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">{t("chat.readonly")}</button>
-            <button onClick={() => dismiss(m.id)} className="rounded-lg bg-slate-500/10 px-2.5 py-1 text-slate-600 hover:bg-slate-500/20 dark:text-slate-300">{t("adm.chat.dismiss")}</button>
+            <button onClick={() => dismiss(m.id)} className="rounded-lg bg-slate-500/10 px-2.5 py-1 text-slate-300 hover:bg-slate-500/20">{t("adm.chat.dismiss")}</button>
           </div>
         </Card>
       ))}
@@ -886,8 +886,8 @@ function ClassifyTab() {
             <Link to={`/sessions/${r.session_id}`} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
               #{r.session_id}
             </Link>
-            <span className="text-sm text-slate-600 dark:text-slate-300">{r.name}</span>
-            <span className="text-sm text-slate-500 dark:text-slate-400">{r.spot ?? "—"}</span>
+            <span className="text-sm text-slate-300">{r.name}</span>
+            <span className="text-sm text-slate-400">{r.spot ?? "—"}</span>
             {r.appeal_text && (
               <span className="rounded bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
                 {t("adm.cls.appeal")}
@@ -895,12 +895,12 @@ function ClassifyTab() {
             )}
           </div>
           {/* Entscheidungshilfe: was sagt der Detektor, was sagen die Melder? */}
-          <p className="text-sm text-slate-600 dark:text-slate-300">
+          <p className="text-sm text-slate-300">
             {t("adm.cls.detector", { detection: r.detection ?? "—", runs: r.num_runs ?? 0,
               speed: r.max_speed ? (r.max_speed * 3.6).toFixed(1) : "—" })}
           </p>
-          {r.appeal_text && <p className="mt-1 text-sm italic text-slate-700 dark:text-slate-200">„{r.appeal_text}"</p>}
-          <ul className="mt-1 space-y-0.5 text-sm text-slate-500 dark:text-slate-400">
+          {r.appeal_text && <p className="mt-1 text-sm italic text-slate-200">„{r.appeal_text}"</p>}
+          <ul className="mt-1 space-y-0.5 text-sm text-slate-400">
             {(r.flags ?? []).map((f: any) => (
               <li key={f.user_id}>{f.name}{f.note ? `: „${f.note}"` : ""}</li>
             ))}
@@ -953,11 +953,11 @@ function FlagsTab() {
               <Link to={`/sessions/${r.session_id}`} className="text-brand-700 hover:underline dark:text-brand-300">
                 #{r.session_id}
               </Link>
-              <span className="text-slate-500 dark:text-slate-400">{r.owner?.name ?? "—"}</span>
-              <span className="text-slate-700 dark:text-slate-200">
+              <span className="text-slate-400">{r.owner?.name ?? "—"}</span>
+              <span className="text-slate-200">
                 {t("adm.flags.by", { name: r.by?.name ?? "—", n: r.by?.flags_total ?? 0 })}
               </span>
-              {r.note && <span className="italic text-slate-500 dark:text-slate-400">„{r.note}"</span>}
+              {r.note && <span className="italic text-slate-400">„{r.note}"</span>}
               {r.needs_classification && (
                 <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-200">
                   {t("cls.needsBadge")}
@@ -1000,16 +1000,16 @@ function UserSportTab() {
   return (
     <div className="mt-8">
       <h3 className="mb-2 font-semibold">{t("adm.usport.title")}</h3>
-      <p className="mb-3 text-sm text-slate-700 dark:text-slate-300">{t("adm.usport.hint")}</p>
+      <p className="mb-3 text-sm text-slate-300">{t("adm.usport.hint")}</p>
       <form onSubmit={(e) => { e.preventDefault(); setTerm(q.trim()); }} className="mb-3 flex gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("adm.usport.search")}
-          className="w-56 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
-        <button className="rounded-xl bg-slate-200 px-3 text-sm text-slate-800 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+          className="w-56 rounded-xl border border-slate-700 bg-white px-3 py-1.5 text-sm text-slate-100 dark:bg-slate-900" />
+        <button className="rounded-xl bg-slate-800 px-3 text-sm text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700">
           {t("common.search")}
         </button>
       </form>
       {!rows ? <Spinner /> : rows.length === 0 ? (
-        <Card className="p-4 text-sm text-slate-700 dark:text-slate-300">
+        <Card className="p-4 text-sm text-slate-300">
           {term ? t("adm.usport.noMatch") : t("adm.usport.none")}
         </Card>
       ) : (
@@ -1046,11 +1046,11 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
     <Card className="p-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         <Avatar url={u.avatar_url} name={u.display_name} size={28} />
-        <span className="font-semibold text-slate-800 dark:text-slate-100">{u.display_name ?? "—"}</span>
-        <span className="text-slate-700 dark:text-slate-300">
+        <span className="font-semibold text-slate-100">{u.display_name ?? "—"}</span>
+        <span className="text-slate-300">
           {t("adm.usport.default", { sport: t(`cls.sport.${u.default_sport_class}`) })}
         </span>
-        <span className="text-slate-600 dark:text-slate-400">{t("adm.usport.sessions", { n: u.sessions })}</span>
+        <span className="text-slate-400">{t("adm.usport.sessions", { n: u.sessions })}</span>
         {u.open_classifications > 0 && (
           <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-200">
             {t("adm.usport.open", { n: u.open_classifications })}
@@ -1059,7 +1059,7 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <select value={sport} onChange={(e) => setSport(e.target.value)} disabled={busy}
-          className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+          className="rounded-lg border border-slate-700 bg-white px-2 py-1.5 text-sm text-slate-100 dark:bg-slate-900">
           <option value="">{t("adm.usport.pick")}</option>
           {SPORTS.map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
         </select>
@@ -1073,7 +1073,7 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
             ? t("adm.usport.resolveNone")
             : t("adm.usport.resolve", { n: u.open_classifications })}
         </button>
-        {msg && <span className="text-sm text-slate-700 dark:text-slate-200">{msg}</span>}
+        {msg && <span className="text-sm text-slate-200">{msg}</span>}
       </div>
     </Card>
   );
