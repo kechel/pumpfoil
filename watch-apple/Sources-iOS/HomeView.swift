@@ -44,71 +44,99 @@ struct HomeView: View {
     private let cols = [GridItem(.flexible()), GridItem(.flexible())]
     private let cols3 = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
+    // Der Body war EIN Ausdruck (66 Zeilen: 11 Kinder + 14 Modifier mit Closures) und stand mit
+    // >500 ms im Build-Log — Swifts Type-Checker loest einen ViewBuilder als einen einzigen Ausdruck
+    // auf. Jeder Abschnitt ist jetzt ein eigener, typisierter Teil; Ablauflogik steckt in Methoden.
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
-                    UploadProgressCard()
-                    if let uv = updateVer, !updateDismissed { updateBanner(uv) }
-                    if showBanner, let n = news { welcomeBanner(n) }
-                    HStack {
-                        Text(helloText).font(.title2).bold()
-                        Spacer()
-                        // Hängt NUR am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag
-                        // wird für echte private Betas frei, siehe docs/TODO).
-                        if phoneRecEnabled {
-                            Button { showRecord = true } label: {
-                                Label(Loc.t("home.recordBtn", lang), systemImage: "record.circle")
-                                    .font(.headline)
-                            }.buttonStyle(.borderedProminent).controlSize(.large)
-                        }
+            ScrollView { homeStack }
+                .navigationTitle(Loc.t("nav.home", lang))
+                .brandToolbar(Loc.t("nav.home", lang))
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showFeedback = true } label: { Image(systemName: "envelope") }
                     }
-                    .padding(.top, 12)
-                    if incomingXfer > 0 { transferHint }
-                    if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
-                    latestSection
-                    if let st = stats { recordsSection(st) }
-                    if let ss = startSuccess { startSuccessSection(ss) }
-                    if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
-                    if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
                 }
-                .padding(.horizontal).padding(.bottom).padding(.top, 2)
-            }
-            .navigationTitle(Loc.t("nav.home", lang))
-            .brandToolbar(Loc.t("nav.home", lang))
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showFeedback = true } label: { Image(systemName: "envelope") }
-                }
-            }
-            .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
-            .fullScreenCover(isPresented: $showRecord) { RecordView() }
-            .sheet(isPresented: $showRating) {
-                RatingView(
-                    lang: lang,
-                    onLater: { ratingSnooze = Date().timeIntervalSince1970 + 14 * 24 * 3600 },
-                    onRated: { ratingDone = true },   // >=4 Sterne -> nie mehr
-                    onFeedback: {
-                        ratingFbCount += 1
-                        let days: Double = ratingFbCount >= 2 ? 90 : 14   // ab 2. Feedback 3-Monats-Rhythmus
-                        ratingSnooze = Date().timeIntervalSince1970 + days * 24 * 3600
-                        ratingMinCount = stats?.count ?? 0                // erst wieder bei neuen Sessions
-                    })
-            }
-            .overlay { if loading && stats == nil { ProgressView() } }
-            .refreshable { await load() }
-            .task { await load() }
-            .task { await checkUpdate() }
-            .onChange(of: sync.tick) { _ in Task { await load() } }
-            .onChange(of: stats?.count) { _ in maybeShowRating() }
-            .task {   // Rating frühestens 2 min nach App-Start prüfen (auch wenn stats früher da sind)
-                let wait = max(0, 120 - Date().timeIntervalSince(AppSession.launch))
-                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
-                maybeShowRating()
-            }
-            .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
+                .sheet(isPresented: $showFeedback) { FeedbackView(lang: lang) }
+                .fullScreenCover(isPresented: $showRecord) { RecordView() }
+                .sheet(isPresented: $showRating) { ratingSheet }
+                .overlay { if loading && stats == nil { ProgressView() } }
+                .refreshable { await load() }
+                .task { await load() }
+                .task { await checkUpdate() }
+                .onChange(of: sync.tick) { _ in Task { await load() } }
+                .onChange(of: stats?.count) { _ in maybeShowRating() }
+                .task { await ratingAfterDelay() }
+                .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
         }
+    }
+
+    private var homeStack: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Live-Upload-Karte ganz oben: eigene Session lädt gerade hoch (Parität zur PWA).
+            UploadProgressCard()
+            updateBannerIfAny
+            newsBannerIfAny
+            greetingRow
+            if incomingXfer > 0 { transferHint }
+            if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
+            latestSection
+            if let st = stats { recordsSection(st) }
+            if let ss = startSuccess { startSuccessSection(ss) }
+            if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
+            if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
+        }
+        .padding(.horizontal).padding(.bottom).padding(.top, 2)
+    }
+
+    @ViewBuilder private var updateBannerIfAny: some View {
+        if let uv = updateVer, !updateDismissed { updateBanner(uv) }
+    }
+
+    @ViewBuilder private var newsBannerIfAny: some View {
+        if showBanner, let n = news { welcomeBanner(n) }
+    }
+
+    private var greetingRow: some View {
+        HStack {
+            Text(helloText).font(.title2).bold()
+            Spacer()
+            recordButton
+        }
+        .padding(.top, 12)
+    }
+
+    // Hängt NUR am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag
+    // wird für echte private Betas frei, siehe docs/TODO).
+    @ViewBuilder private var recordButton: some View {
+        if phoneRecEnabled {
+            Button { showRecord = true } label: {
+                Label(Loc.t("home.recordBtn", lang), systemImage: "record.circle")
+                    .font(.headline)
+            }.buttonStyle(.borderedProminent).controlSize(.large)
+        }
+    }
+
+    private var ratingSheet: some View {
+        RatingView(
+            lang: lang,
+            onLater: { ratingSnooze = Date().timeIntervalSince1970 + 14 * 24 * 3600 },
+            onRated: { ratingDone = true },   // >=4 Sterne -> nie mehr
+            onFeedback: { onRatingFeedback() })
+    }
+
+    private func onRatingFeedback() {
+        ratingFbCount += 1
+        let days: Double = ratingFbCount >= 2 ? 90 : 14   // ab 2. Feedback 3-Monats-Rhythmus
+        ratingSnooze = Date().timeIntervalSince1970 + days * 24 * 3600
+        ratingMinCount = stats?.count ?? 0                // erst wieder bei neuen Sessions
+    }
+
+    // Rating frühestens 2 min nach App-Start prüfen (auch wenn stats früher da sind).
+    private func ratingAfterDelay() async {
+        let wait: Double = max(0, 120 - Date().timeIntervalSince(AppSession.launch))
+        try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+        maybeShowRating()
     }
 
     // Willkommens-/Community-Banner (schließbar). Spiegelt web WelcomeBanner.
@@ -206,7 +234,7 @@ struct HomeView: View {
     }
 
     @ViewBuilder private func welcomeBanner(_ n: NewsBanner) -> some View {
-        let newsText = n.texts[lang] ?? n.texts["de"] ?? ""
+        let newsText: String = n.texts[lang] ?? n.texts["de"] ?? ""
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -214,8 +242,7 @@ struct HomeView: View {
                         Text(newsText).font(.subheadline).bold().foregroundStyle(Color.accentColor)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    (Text("👋 ") + Text("Pumpfoil.org").bold() + Text(" " + Loc.t("banner.msg", lang)))
-                        .font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                    bannerMsgLine
                 }
                 Spacer(minLength: 4)
                 Button { newsVerStored = n.version } label: { Image(systemName: "xmark") }
@@ -231,6 +258,14 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
+    // Text-Verkettung explizit als Text typisiert: jedes „+" zwingt den Type-Checker durch alle
+    // Operator-Ueberladungen — im ViewBuilder war das mit Abstand der teuerste Teil des Banners.
+    private var bannerMsgLine: some View {
+        let msg: String = " " + Loc.t("banner.msg", lang)
+        let line: Text = Text("👋 ") + Text("Pumpfoil.org").bold() + Text(msg)
+        return line.font(.subheadline).fixedSize(horizontal: false, vertical: true)
+    }
+
     // Nicht-blockierender Update-Hinweis (wie das PWA-Update-Banner).
     @ViewBuilder private func updateBanner(_ version: String) -> some View {
         HStack {
@@ -239,17 +274,21 @@ struct HomeView: View {
                 Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Button(Loc.t("update.action", lang)) {
-                if let url = URL(string: updateURL.isEmpty ? "https://apps.apple.com/app/pumpfoil" : updateURL) {
-                    UIApplication.shared.open(url)
-                }
-            }.buttonStyle(.borderedProminent).controlSize(.small)
+            Button(Loc.t("update.action", lang)) { openStore() }
+                .buttonStyle(.borderedProminent).controlSize(.small)
             Button { updateDismissed = true } label: { Image(systemName: "xmark") }
                 .buttonStyle(.plain).foregroundStyle(.secondary)
         }
         .padding(12)
         .background(Color.accentColor.opacity(0.15))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // Fallback-URL, falls der Server keine Store-URL mitschickt. Als Methode statt als Ternaer in
+    // der Button-Aktion (Ablauflogik im ViewBuilder kostet den Type-Checker unnoetig viel).
+    private func openStore() {
+        let s: String = updateURL.isEmpty ? "https://apps.apple.com/app/pumpfoil" : updateURL
+        if let url = URL(string: s) { UIApplication.shared.open(url) }
     }
 
     private func maybeShowRating() {
@@ -386,19 +425,34 @@ struct HomeView: View {
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    ForEach(statWindows, id: \.0) { win in
-                        let w = ss.windows[win.0]
-                        VStack(spacing: 2) {
-                            Text(w?.rate.map { "\($0)%" } ?? "–").font(.title3).bold()
-                            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
-                            Text("\(w?.success ?? 0)/\(w?.total ?? 0)").font(.caption2).foregroundStyle(.secondary)
-                        }
-                        .frame(minWidth: 64).padding(8)
-                        .background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
+                    ForEach(statWindows, id: \.0) { win in startSuccessTile(ss, win) }
                 }
             }
         }
+    }
+
+    // Kachel + Beschriftungen als eigene, typisierte Teile: die Optional-Ketten (rate.map, ?? 0)
+    // standen sonst mitten im ViewBuilder und wurden je ForEach-Element mitgeloest.
+    private func startSuccessTile(_ ss: StartSuccess, _ win: (String, String)) -> some View {
+        let w: SSWindow? = ss.windows[win.0]
+        return VStack(spacing: 2) {
+            Text(rateText(w)).font(.title3).bold()
+            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
+            Text(ratioText(w)).font(.caption2).foregroundStyle(.secondary)
+        }
+        .frame(minWidth: 64).padding(8)
+        .background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func rateText(_ w: SSWindow?) -> String {
+        guard let r = w?.rate else { return "–" }
+        return "\(r)%"
+    }
+
+    private func ratioText(_ w: SSWindow?) -> String {
+        let s: Int = w?.success ?? 0
+        let t: Int = w?.total ?? 0
+        return "\(s)/\(t)"
     }
 
     @ViewBuilder private func carveStatsSection(_ cs: CarveStats) -> some View {
@@ -406,19 +460,26 @@ struct HomeView: View {
             Text("Carves").font(.headline)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    ForEach(statWindows, id: \.0) { win in
-                        let w = cs.windows[win.0]
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
-                            Text("90–180°: \(w?.s ?? 0)").font(.caption)
-                            Text("180–360°: \(w?.m ?? 0)").font(.caption)
-                            Text(">360°: \(w?.l ?? 0)").font(.caption)
-                        }
-                        .padding(8).background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
+                    ForEach(statWindows, id: \.0) { win in carveTile(cs, win) }
                 }
             }
         }
+    }
+
+    private func carveTile(_ cs: CarveStats, _ win: (String, String)) -> some View {
+        let w: CarveWin? = cs.windows[win.0]
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(Loc.t(win.1, lang)).font(.caption2).foregroundStyle(.secondary)
+            Text(carveLine("90–180°", w?.s)).font(.caption)
+            Text(carveLine("180–360°", w?.m)).font(.caption)
+            Text(carveLine(">360°", w?.l)).font(.caption)
+        }
+        .padding(8).background(Color.secondary.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func carveLine(_ label: String, _ n: Int?) -> String {
+        let v: Int = n ?? 0
+        return label + ": \(v)"
     }
 }
 

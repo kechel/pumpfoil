@@ -24,64 +24,90 @@ struct SessionsView: View {
     @State private var months: [MonthCount] = []
     @State private var weather: WeatherBlock?
 
+    // Der Body war EIN Ausdruck (List mit 7 Kindern + 15 Modifier mit Closures) und stand mit
+    // >500 ms im Build-Log. Listeninhalt, Toolbar und Startladen sind jetzt eigene typisierte Teile.
     var body: some View {
         NavigationStack {
-            List {
-                // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
-                Section {
-                    UploadProgressCard()
-                        .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+            List { listContent }
+                .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
+                .navigationTitle(title)
+                .brandToolbar(title)
+                .toolbar {
+                    // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/SpotSessions).
+                    if scope == .spot, !spot.isEmpty { spotChatItem }
+                    ToolbarItem(placement: .topBarTrailing) { SyncButton() }
                 }
-                if scope == .mine { transfersAndSuggestions }
-                filterSection
-                if scope == .spot, let wb = weather {
-                    Section { HomeWeatherCard(wb: wb, lang: lang) }
-                }
-                if let error { Text(error).foregroundStyle(.secondary) }
-                sessionRows
-                if isEmpty && !loading && error == nil {
-                    Text(scope == .mine && !month.isEmpty ? Loc.t("sessions.noneMonth", lang) : Loc.t("sessions.empty", lang))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
-            .navigationTitle(title)
-            .brandToolbar(title)
-            .toolbar {
-                // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/SpotSessions).
-                if scope == .spot, !spot.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
-                            Image(systemName: "bubble.left.and.bubble.right")
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) { SyncButton() }
-            }
-            .overlay { if loading && isEmpty { ProgressView() } }
-            .refreshable { await reloadIncoming(); await load() }
-            .task {
-                if homespot.isEmpty {
-                    homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
-                }
-                suggestions = (try? await Api.mergeSuggestions()) ?? []
-                spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
-                await reloadIncoming()
-                await load()
-            }
-            // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA) — leert
-            // die Liste nicht, aktualisiert nur im Hintergrund.
-            .onAppear { Task { await load() } }
-            .onChange(of: scope) { _ in Task { await load() } }
-            .onChange(of: spot) { _ in Task { await loadWeather(); await load() } }
-            .onChange(of: accelOnly) { _ in Task { await load() } }
-            .onChange(of: filter) { _ in Task { await loadMonths(); await load() } }
-            .onChange(of: month) { _ in Task { await load() } }
-            .onChange(of: sync.tick) { _ in Task { await load() } }
-            .task { await loadMonths() }
+                .overlay { if loading && isEmpty { ProgressView() } }
+                .refreshable { await reloadIncoming(); await load() }
+                .task { await initialLoad() }
+                // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA) — leert
+                // die Liste nicht, aktualisiert nur im Hintergrund.
+                .onAppear { Task { await load() } }
+                .onChange(of: scope) { _ in Task { await load() } }
+                .onChange(of: spot) { _ in Task { await loadWeather(); await load() } }
+                .onChange(of: accelOnly) { _ in Task { await load() } }
+                .onChange(of: filter) { _ in Task { await loadMonths(); await load() } }
+                .onChange(of: month) { _ in Task { await load() } }
+                .onChange(of: sync.tick) { _ in Task { await load() } }
+                .task { await loadMonths() }
         }
+    }
+
+    @ViewBuilder private var listContent: some View {
+        uploadCardSection
+        if scope == .mine { transfersAndSuggestions }
+        filterSection
+        spotWeatherSection
+        if let error { Text(error).foregroundStyle(.secondary) }
+        sessionRows
+        emptyHint
+    }
+
+    // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
+    private var uploadCardSection: some View {
+        Section {
+            UploadProgressCard()
+                .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+        }
+    }
+
+    @ViewBuilder private var spotWeatherSection: some View {
+        if scope == .spot, let wb = weather {
+            Section { HomeWeatherCard(wb: wb, lang: lang) }
+        }
+    }
+
+    @ViewBuilder private var emptyHint: some View {
+        if isEmpty && !loading && error == nil {
+            Text(emptyText).foregroundStyle(.secondary)
+        }
+    }
+
+    // Ternaer aus dem ViewBuilder heraus in einen typisierten String.
+    private var emptyText: String {
+        if scope == .mine && !month.isEmpty { return Loc.t("sessions.noneMonth", lang) }
+        return Loc.t("sessions.empty", lang)
+    }
+
+    private var spotChatItem: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            NavigationLink { ChatRoomView(scope: "spot:\(spot)", title: spot) } label: {
+                Image(systemName: "bubble.left.and.bubble.right")
+            }
+        }
+    }
+
+    // Erstes Laden als Methode statt als .task-Closure im Body (Ablauflogik im ViewBuilder).
+    private func initialLoad() async {
+        if homespot.isEmpty {
+            homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
+        }
+        suggestions = (try? await Api.mergeSuggestions()) ?? []
+        spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
+        await reloadIncoming()
+        await load()
     }
 
     // In typisierte Teil-Views zerlegt, damit der Swift-Type-Checker den body nicht als einen
@@ -140,7 +166,7 @@ struct SessionsView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(month.isEmpty ? Loc.t("sessions.allMonths", lang) : monthLabel(month)).font(.subheadline)
+                    Text(monthMenuLabel).font(.subheadline)
                     Image(systemName: "chevron.down").font(.caption2)
                 }
             }
@@ -152,15 +178,21 @@ struct SessionsView: View {
             }
         }
         .alert(Loc.t("sessions.deleteAllOther", lang), isPresented: $confirmDeleteAll) {
-            Button(Loc.t("common.delete", lang), role: .destructive) {
-                Task {
-                    _ = try? await Api.deleteAllOtherSessions()
-                    await load()
-                }
-            }
+            Button(Loc.t("common.delete", lang), role: .destructive) { deleteAllOther() }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         } message: {
             Text(Loc.t("sessions.deleteAllOtherConfirm", lang))
+        }
+    }
+
+    private var monthMenuLabel: String {
+        month.isEmpty ? Loc.t("sessions.allMonths", lang) : monthLabel(month)
+    }
+
+    private func deleteAllOther() {
+        Task {
+            _ = try? await Api.deleteAllOtherSessions()
+            await load()
         }
     }
 
@@ -260,63 +292,105 @@ struct SessionRow: View {
             }
     }
 
+    // War ein 58-Zeilen-Ausdruck mit vier verschachtelten Stacks und mehreren Badge-Zweigen ->
+    // in typisierte Teile zerlegt, damit jeder unter der Type-Checker-Schwelle bleibt.
     private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Kopf: Avatar + Titel/Chips (Titel OBEN, volle Breite — nicht neben die Medien quetschen).
-            HStack(alignment: .top, spacing: 12) {
-                leading
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(headline).font(.footnote).fontWeight(.semibold)
-                        .lineLimit(1).minimumScaleFactor(0.75)
-                    let chips = chipLabels
-                    if !chips.isEmpty {
-                        HStack(spacing: 6) { ForEach(chips, id: \.self) { pill($0) } }
-                    }
-                    if !showOwner, let cap = session.caption, !cap.isEmpty {
-                        Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                }
-                Spacer(minLength: 8)
-                // Track-Vorschau bleibt rechts im Kopf.
-                if let tp = session.track_preview {
-                    TrackPreviewView(data: tp).frame(width: 74, height: 42)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-            }
+            headRow
             media   // Foto/Video als eigene Zeile DARUNTER
-            if let stats = statsText {
-                Text(stats).font(.caption).lineLimit(1)
-            }
-            HStack(spacing: 8) {
-                // Sportart/Datenqualitaet, sobald sie von Pumpfoil abweicht -- so sieht man auf der
-                // Karte, warum die Session in keiner Auswertung auftaucht. "Bitte zuordnen" hat
-                // Vorrang: da ist noch nichts entschieden.
-                if session.needs_classification == true {
-                    Text(Loc.t("cls.needsBadge", lang)).font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                } else if isClassified(sportClass: session.sport_class, dataQuality: session.data_quality) {
-                    Text(Loc.t(classLabelKey(sportClass: session.sport_class, dataQuality: session.data_quality), lang))
-                        .font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.18)).foregroundStyle(.secondary)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-                if session.transfer_to != nil {
-                    Text(Loc.t("transfer.badge", lang)).font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-                if session.status != "analyzed" {
-                    Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
-                }
-                Spacer()
-                LikeButton(sessionId: session.id, liked: session.liked ?? false, count: session.like_count ?? 0)
-            }
+            statsLine
+            bottomRow
         }
         .padding(.vertical, 4)
+    }
+
+    // Kopf: Avatar + Titel/Chips (Titel OBEN, volle Breite — nicht neben die Medien quetschen).
+    private var headRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            leading
+            titleColumn
+            Spacer(minLength: 8)
+            trackPreview
+        }
+    }
+
+    private var titleColumn: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(headline).font(.footnote).fontWeight(.semibold)
+                .lineLimit(1).minimumScaleFactor(0.75)
+            chipRow
+            captionLine
+        }
+    }
+
+    @ViewBuilder private var chipRow: some View {
+        let chips: [String] = chipLabels
+        if !chips.isEmpty {
+            HStack(spacing: 6) { ForEach(chips, id: \.self) { pill($0) } }
+        }
+    }
+
+    @ViewBuilder private var captionLine: some View {
+        if !showOwner, let cap = session.caption, !cap.isEmpty {
+            Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+        }
+    }
+
+    // Track-Vorschau bleibt rechts im Kopf.
+    @ViewBuilder private var trackPreview: some View {
+        if let tp = session.track_preview {
+            TrackPreviewView(data: tp).frame(width: 74, height: 42)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    @ViewBuilder private var statsLine: some View {
+        if let stats = statsText {
+            Text(stats).font(.caption).lineLimit(1)
+        }
+    }
+
+    private var bottomRow: some View {
+        HStack(spacing: 8) {
+            classBadge
+            transferBadge
+            statusText
+            Spacer()
+            LikeButton(sessionId: session.id, liked: session.liked ?? false, count: session.like_count ?? 0)
+        }
+    }
+
+    // Sportart/Datenqualitaet, sobald sie von Pumpfoil abweicht -- so sieht man auf der
+    // Karte, warum die Session in keiner Auswertung auftaucht. "Bitte zuordnen" hat
+    // Vorrang: da ist noch nichts entschieden.
+    @ViewBuilder private var classBadge: some View {
+        if session.needs_classification == true {
+            Text(Loc.t("cls.needsBadge", lang)).font(.caption2)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else if isClassified(sportClass: session.sport_class, dataQuality: session.data_quality) {
+            Text(Loc.t(classLabelKey(sportClass: session.sport_class, dataQuality: session.data_quality), lang))
+                .font(.caption2)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.18)).foregroundStyle(.secondary)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        }
+    }
+
+    @ViewBuilder private var transferBadge: some View {
+        if session.transfer_to != nil {
+            Text(Loc.t("transfer.badge", lang)).font(.caption2)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.2)).foregroundStyle(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        }
+    }
+
+    @ViewBuilder private var statusText: some View {
+        if session.status != "analyzed" {
+            Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
+        }
     }
 
     // Profilbild des Besitzers, sonst farbiger Kreis mit Initiale (wie PWA). owner_* liefert der
@@ -327,33 +401,38 @@ struct SessionRow: View {
 
     // Foto/Video als eigene Zeile unter dem Titel — gleich große Kacheln (Track bleibt im Kopf).
     @ViewBuilder private var media: some View {
-        let thumb = Api.mediaURL(session.thumb_url)
-        let vid = youtubeId(session.youtube_url)
+        let thumb: URL? = Api.mediaURL(session.thumb_url)
+        let vid: String? = youtubeId(session.youtube_url)
         if thumb != nil || vid != nil {
             HStack(spacing: 8) {
-                if let url = thumb {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color.secondary.opacity(0.15)
-                        }
-                    }
-                    .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                if let vid {
-                    ZStack {
-                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
-                            switch phase {
-                            case .success(let img): img.resizable().scaledToFill()
-                            default: Color.secondary.opacity(0.15)
-                            }
-                        }
-                        .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
-                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
-                    }
-                }
+                if let url = thumb { photoThumb(url) }
+                if let vid { videoThumb(vid) }
                 Spacer(minLength: 0)
             }
+        }
+    }
+
+    private func photoThumb(_ url: URL) -> some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let img): img.resizable().scaledToFill()
+            default: Color.secondary.opacity(0.15)
+            }
+        }
+        .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func videoThumb(_ vid: String) -> some View {
+        let url: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")
+        return ZStack {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Color.secondary.opacity(0.15)
+                }
+            }
+            .frame(width: 74, height: 42).clipShape(RoundedRectangle(cornerRadius: 8))
+            Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
         }
     }
 

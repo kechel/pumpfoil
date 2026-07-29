@@ -60,93 +60,127 @@ struct SessionDetailView: View {
     @State private var neighbors: Api.Neighbors?
     @Environment(\.dismiss) private var dismiss
 
+    // Der Body war EIN Ausdruck von 88 Zeilen (Toolbar mit vier Zweigen, zwei Dialoge mit Aktionen,
+    // Poll-Task, drei Sheets) und stand mit >500 ms im Build-Log — Swifts Type-Checker loest einen
+    // ViewBuilder als einen einzigen Ausdruck auf. Jeder Teil unten ist eigenstaendig typisiert;
+    // alle Ablauflogik steckt in Methoden statt in Closures.
     var body: some View {
-        ScrollView {
-            if loading {
-                ProgressView().padding(40)
-            } else if let error {
-                Text(error).foregroundStyle(.secondary).padding()
-            } else if let s = session {
-                content(s)
+        ScrollView { scrollBody }
+            .navigationTitle(Loc.t("sd.title", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { toolbarItems }
+            .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
+                deleteDialogActions
+            }
+            .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) { captionAlertActions }
+            .task { await load() }
+            .task(id: session?.status) { await pollWhileLive() }
+            .onChange(of: selectedFoilId) { fid in onFoilPicked(fid) }
+            .sheet(isPresented: $showLink) { linkSheet }
+            .sheet(isPresented: $showTrim) { trimSheet }
+            .sheet(isPresented: $showShare) { shareSheet }
+            .fullScreenCover(item: $lightbox) { start in
+                PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
+            }
+    }
+
+    @ViewBuilder private var scrollBody: some View {
+        if loading {
+            ProgressView().padding(40)
+        } else if let error {
+            Text(error).foregroundStyle(.secondary).padding()
+        } else if let s = session {
+            content(s)
+        }
+    }
+
+    // Die Melde-Aktionen standen früher hier in einem Menü hinter einem Flaggen-Symbol —
+    // praktisch unsichtbar. Sie stehen jetzt sichtbar im Inhalt (SessionReportRow), an
+    // derselben Stelle wie die Klassifikations-Felder eigener Sessions (wie in der PWA).
+    @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
+        spotChatItem
+        ownerToolbarItems
+    }
+
+    // Spot-Chat der Session (scope "spot:<name>") — bei Age-Gate (social_allowed=false) aus.
+    @ToolbarContentBuilder private var spotChatItem: some ToolbarContent {
+        if let sp = session?.place_name, !sp.isEmpty, store.profile?.social_allowed != false {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink { ChatRoomView(scope: "spot:\(sp)", title: sp) } label: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                }
             }
         }
-        .navigationTitle(Loc.t("sd.title", lang))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            // Spot-Chat der Session (scope "spot:<name>") — bei Age-Gate (social_allowed=false) aus.
-            if let sp = session?.place_name, !sp.isEmpty, store.profile?.social_allowed != false {
+    }
+
+    // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
+    @ToolbarContentBuilder private var ownerToolbarItems: some ToolbarContent {
+        if session?.owned == true {
+            if session?.analysis?.track_geojson != nil {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { ChatRoomView(scope: "spot:\(sp)", title: sp) } label: {
-                        Image(systemName: "bubble.left.and.bubble.right")
-                    }
+                    Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
                 }
             }
-            if session?.owned == true {
-                if session?.analysis?.track_geojson != nil {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
-                    }
-                }
-                // Öffentlicher Teilen-Link (Besitzer): Link-Icon -> Sheet mit Erklärung + Kopieren.
+            // Öffentlicher Teilen-Link (Besitzer): Link-Icon -> Sheet mit Erklärung + Kopieren.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { openShareLink() } label: { Image(systemName: "link") }
+            }
+            // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").
+            // Code (LabelingView) bleibt bestehen — nur der Toolbar-Button ist deaktiviert.
+            if false {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showLink = true; linkCopied = false
-                        if shareUrl == nil { Task { shareUrl = try? await Api.createShareLink(id) } }
-                    } label: { Image(systemName: "link") }
+                    NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
                 }
-                // Pump-Label-Ansicht mobil vorerst ausgeblendet (Jan: „machen wir andermal").
-                // Code (LabelingView) bleibt bestehen — nur der Toolbar-Button ist deaktiviert.
-                if false {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { LabelingView(id: id) } label: { Image(systemName: "tag") }
-                    }
-                }
-                // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
-            }
-            // Die Melde-Aktionen standen früher hier in einem Menü hinter einem Flaggen-Symbol —
-            // praktisch unsichtbar. Sie stehen jetzt sichtbar im Inhalt (SessionReportRow), an
-            // derselben Stelle wie die Klassifikations-Felder eigener Sessions (wie in der PWA).
-        }
-        .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button(Loc.t("common.delete", lang), role: .destructive) {
-                Task { try? await Api.deleteSession(id); dismiss() }
-            }
-            Button(Loc.t("common.cancel", lang), role: .cancel) {}
-        }
-        .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) {
-            TextField(Loc.t("sd.caption", lang), text: $draftCaption)
-            Button(Loc.t("common.save", lang)) {
-                let c = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
-                caption = c
-                Task { try? await Api.setCaption(id, caption: c) }
-            }
-            Button(Loc.t("common.cancel", lang), role: .cancel) {}
-        }
-        .task { await load() }
-        // 4a: eigene In-Progress-Session (recording/live) -> still nachpollen. Der GET triggert
-        // server-seitig die gps_only-Vorabanalyse; sobald sie/der fertige Upload da ist,
-        // aktualisiert sich das Detail (Track/Läufe/Pumps) seamless. Stoppt bei anderem Status.
-        .task(id: session?.status) {
-            guard session?.owned == true,
-                  let st = session?.status, st == "recording" || st == "live" else { return }
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 4_000_000_000)
-                if let fresh = try? await Api.session(id) { session = fresh; SessionCache.store(fresh) }
             }
         }
-        .onChange(of: selectedFoilId) { fid in
-            if fid != (session?.foil?.id ?? 0) {
-                Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }
-            }
+    }
+
+    private func openShareLink() {
+        showLink = true; linkCopied = false
+        if shareUrl == nil { Task { shareUrl = try? await Api.createShareLink(id) } }
+    }
+
+    @ViewBuilder private var deleteDialogActions: some View {
+        Button(Loc.t("common.delete", lang), role: .destructive) {
+            Task { try? await Api.deleteSession(id); dismiss() }
         }
-        .sheet(isPresented: $showLink) { linkSheet }
-        .sheet(isPresented: $showTrim) { trimSheet }
-        .sheet(isPresented: $showShare) {
-            if let s = session { ShareCardView(session: s, lang: lang, initialHighlight: selectedRun ?? -1) }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
+    @ViewBuilder private var captionAlertActions: some View {
+        TextField(Loc.t("sd.caption", lang), text: $draftCaption)
+        Button(Loc.t("common.save", lang)) { saveCaption() }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
+    private func saveCaption() {
+        let c: String = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
+        caption = c
+        Task { try? await Api.setCaption(id, caption: c) }
+    }
+
+    @ViewBuilder private var shareSheet: some View {
+        if let s = session {
+            ShareCardView(session: s, lang: lang, initialHighlight: selectedRun ?? -1)
         }
-        .fullScreenCover(item: $lightbox) { start in
-            PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
+    }
+
+    // 4a: eigene In-Progress-Session (recording/live) -> still nachpollen. Der GET triggert
+    // server-seitig die gps_only-Vorabanalyse; sobald sie/der fertige Upload da ist,
+    // aktualisiert sich das Detail (Track/Läufe/Pumps) seamless. Stoppt bei anderem Status.
+    private func pollWhileLive() async {
+        guard session?.owned == true,
+              let st = session?.status, st == "recording" || st == "live" else { return }
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            if let fresh = try? await Api.session(id) { session = fresh; SessionCache.store(fresh) }
         }
+    }
+
+    private func onFoilPicked(_ fid: Int) {
+        let current: Int = session?.foil?.id ?? 0
+        guard fid != current else { return }
+        Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }
     }
 
     private var durSec: Double {
@@ -275,46 +309,86 @@ struct SessionDetailView: View {
         }
     }
 
-    @ViewBuilder private func headerRow(_ s: SessionDetail) -> some View {
+    private func headerRow(_ s: SessionDetail) -> some View {
         HStack(alignment: .top, spacing: 10) {
             AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(dateText(s)).font(.title2).bold()
-                if s.owned != true, let on = s.owner_name, !on.isEmpty {
-                    Text(on).font(.subheadline).foregroundStyle(Color.accentColor)
-                }
-                if let p = s.place_name, !p.isEmpty {
-                    Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
-                }
-                if let w = s.place_water, !w.isEmpty, w != s.place_name {
-                    Text(w).font(.caption).foregroundStyle(.secondary)
-                }
-                if let tr = timeRangeText(s) {
-                    Text(tr).font(.caption).foregroundStyle(.secondary)
-                }
-                if let dl = s.device_label, !dl.isEmpty {
-                    Label(dl, systemImage: "applewatch").font(.caption2).foregroundStyle(.secondary)
-                }
-                if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
-                if s.owned == true {
-                    Button(caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)) {
-                        draftCaption = caption; editingCaption = true
-                    }
-                    .font(.caption).buttonStyle(.borderless)
-                }
-            }
+            headerMeta(s)
             Spacer()
-            Button {
-                let prev = liked; liked.toggle(); likeCount += liked ? 1 : -1
-                Task {
-                    do { let st = try await Api.toggleLike(s.id); liked = st.liked; likeCount = st.like_count }
-                    catch { liked = prev; likeCount += liked ? 1 : -1 }
-                }
-            } label: {
-                Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
-                    .foregroundStyle(liked ? .pink : Color.accentColor)
-            }
-            .buttonStyle(.bordered)
+            likeButton(s)
+        }
+    }
+
+    // Jede Kopfzeile ein eigener kleiner Ausdruck: acht Optional-Zweige in EINEM VStack waren der
+    // zweitteuerste Ausdruck der Ansicht.
+    private func headerMeta(_ s: SessionDetail) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(dateText(s)).font(.title2).bold()
+            ownerLine(s)
+            placeLine(s)
+            waterLine(s)
+            timeLine(s)
+            deviceLine(s)
+            if !caption.isEmpty { Text(caption).foregroundStyle(.secondary) }
+            captionButton(s)
+        }
+    }
+
+    @ViewBuilder private func ownerLine(_ s: SessionDetail) -> some View {
+        if s.owned != true, let on = s.owner_name, !on.isEmpty {
+            Text(on).font(.subheadline).foregroundStyle(Color.accentColor)
+        }
+    }
+
+    @ViewBuilder private func placeLine(_ s: SessionDetail) -> some View {
+        if let p = s.place_name, !p.isEmpty {
+            Label(p, systemImage: "mappin.and.ellipse").font(.subheadline).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func waterLine(_ s: SessionDetail) -> some View {
+        if let w = s.place_water, !w.isEmpty, w != s.place_name {
+            Text(w).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func timeLine(_ s: SessionDetail) -> some View {
+        if let tr = timeRangeText(s) {
+            Text(tr).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func deviceLine(_ s: SessionDetail) -> some View {
+        if let dl = s.device_label, !dl.isEmpty {
+            Label(dl, systemImage: "applewatch").font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func captionButton(_ s: SessionDetail) -> some View {
+        if s.owned == true {
+            Button(captionButtonLabel) { draftCaption = caption; editingCaption = true }
+                .font(.caption).buttonStyle(.borderless)
+        }
+    }
+
+    private var captionButtonLabel: String {
+        caption.isEmpty ? Loc.t("sd.captionAdd", lang) : Loc.t("sd.captionEdit", lang)
+    }
+
+    private func likeButton(_ s: SessionDetail) -> some View {
+        Button { toggleLike(s.id) } label: {
+            Label("\(likeCount)", systemImage: liked ? "heart.fill" : "heart")
+                .foregroundStyle(liked ? .pink : Color.accentColor)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    // Optimistisch wie in der Liste; bei Fehler auf den vorherigen Stand zurueck.
+    private func toggleLike(_ sid: Int) {
+        let prev: Bool = liked
+        liked.toggle(); likeCount += liked ? 1 : -1
+        Task {
+            do { let st = try await Api.toggleLike(sid); liked = st.liked; likeCount = st.like_count }
+            catch { liked = prev; likeCount += liked ? 1 : -1 }
         }
     }
 
@@ -327,103 +401,131 @@ struct SessionDetailView: View {
 
     // Medien als EIN 2-Spalten-Grid (Videos zuerst, dann Fotos) — gleich große 16:9-Kacheln, wie PWA/Android.
     @ViewBuilder private func mediaSection(_ s: SessionDetail) -> some View {
-        if !videos.isEmpty || !photos.isEmpty {
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                ForEach(videos) { v in
-                    videoTile(v, owned: s.owned == true)
-                }
-                ForEach(photos) { p in
-                    mediaTile {
-                        AsyncImage(url: Api.mediaURL(p.url)) { phase in
-                            switch phase {
-                            case .success(let img): img.resizable().scaledToFill()
-                            default: Color(.secondarySystemBackground)
-                            }
-                        }
-                    }
-                    .onTapGesture { lightbox = p }
-                    .overlay(alignment: .topTrailing) {
-                        if s.owned == true {
-                            Button {
-                                Task {
-                                    try? await Api.deleteSessionPhoto(id, photoId: p.id)
-                                    photos = (try? await Api.sessionPhotos(id)) ?? []
-                                }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
-                                    .padding(6)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
+        if !videos.isEmpty || !photos.isEmpty { mediaGrid(s) }
+        if s.owned == true { mediaAddRow(s) }
+    }
+
+    private func mediaGrid(_ s: SessionDetail) -> some View {
+        let cols: [GridItem] = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+        let owned: Bool = s.owned == true
+        return LazyVGrid(columns: cols, spacing: 10) {
+            ForEach(videos) { v in videoTile(v, owned: owned) }
+            ForEach(photos) { p in photoTile(p, owned: owned) }
+        }
+    }
+
+    private func photoTile(_ p: SessionPhoto, owned: Bool) -> some View {
+        mediaTile {
+            AsyncImage(url: Api.mediaURL(p.url)) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Color(.secondarySystemBackground)
                 }
             }
         }
-        if s.owned == true {
-            HStack(spacing: 16) {
-                PhotosPicker(selection: $pickerItem, matching: .images) {
-                    Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
-                }
-                .onChange(of: pickerItem) { item in
-                    Task {
-                        if let data = try? await item?.loadTransferable(type: Data.self) {
-                            try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
-                            photos = (try? await Api.sessionPhotos(id)) ?? []
-                        }
-                    }
-                }
-                Button {
-                    videoUrl = ""; videoErr = false; videoDialog = true
-                } label: {
-                    Label(Loc.t("meta.linkVideo", lang), systemImage: "video.badge.plus")
-                }
-            }
-            .alert(Loc.t("meta.linkVideo", lang), isPresented: $videoDialog) {
-                TextField(Loc.t("meta.youtubePlaceholder", lang), text: $videoUrl)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                Button(Loc.t("common.save", lang)) { addVideo(s) }
-                Button(Loc.t("common.cancel", lang), role: .cancel) {}
-            }
-            .alert(Loc.t("meta.errYoutube", lang), isPresented: $videoErr) {
-                Button("OK", role: .cancel) {}
+        .onTapGesture { lightbox = p }
+        .overlay(alignment: .topTrailing) { photoRemoveButton(p, owned: owned) }
+    }
+
+    @ViewBuilder private func photoRemoveButton(_ p: SessionPhoto, owned: Bool) -> some View {
+        if owned {
+            Button { removePhoto(p) } label: { removeBadge }
+                .buttonStyle(.plain)
+        }
+    }
+
+    // Gleiches X-Symbol fuer Foto- und Video-Kachel (vorher zweimal derselbe Ausdruck).
+    private var removeBadge: some View {
+        Image(systemName: "xmark.circle.fill")
+            .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
+            .padding(6)
+    }
+
+    private func removePhoto(_ p: SessionPhoto) {
+        Task {
+            try? await Api.deleteSessionPhoto(id, photoId: p.id)
+            photos = (try? await Api.sessionPhotos(id)) ?? []
+        }
+    }
+
+    private func removeVideo(_ v: SessionVideo) {
+        Task {
+            try? await Api.deleteSessionVideo(id, videoId: v.id)
+            videos = (try? await Api.sessionVideos(id)) ?? []
+        }
+    }
+
+    private func mediaAddRow(_ s: SessionDetail) -> some View {
+        HStack(spacing: 16) {
+            photoPickerButton
+            linkVideoButton
+        }
+        .alert(Loc.t("meta.linkVideo", lang), isPresented: $videoDialog) { videoAlertActions(s) }
+        .alert(Loc.t("meta.errYoutube", lang), isPresented: $videoErr) {
+            Button("OK", role: .cancel) {}
+        }
+    }
+
+    private var photoPickerButton: some View {
+        PhotosPicker(selection: $pickerItem, matching: .images) {
+            Label(Loc.t("sd.addPhoto", lang), systemImage: "photo.badge.plus")
+        }
+        .onChange(of: pickerItem) { item in onPhotoPicked(item) }
+    }
+
+    private func onPhotoPicked(_ item: PhotosPickerItem?) {
+        Task {
+            if let data = try? await item?.loadTransferable(type: Data.self) {
+                try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
+                photos = (try? await Api.sessionPhotos(id)) ?? []
             }
         }
+    }
+
+    private var linkVideoButton: some View {
+        Button {
+            videoUrl = ""; videoErr = false; videoDialog = true
+        } label: {
+            Label(Loc.t("meta.linkVideo", lang), systemImage: "video.badge.plus")
+        }
+    }
+
+    @ViewBuilder private func videoAlertActions(_ s: SessionDetail) -> some View {
+        TextField(Loc.t("meta.youtubePlaceholder", lang), text: $videoUrl)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+        Button(Loc.t("common.save", lang)) { addVideo(s) }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
     }
 
     // 16:9-Video-Kachel: YouTube-Thumb + Play; Besitzer bekommt ein X zum Entfernen.
     @ViewBuilder private func videoTile(_ v: SessionVideo, owned: Bool) -> some View {
         if let ytId = youtubeId(v.youtube_url), let ytUrl = URL(string: v.youtube_url) {
-            Link(destination: ytUrl) {
-                mediaTile {
-                    AsyncImage(url: URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color(.secondarySystemBackground)
-                        }
-                    }
-                }
-                .overlay {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 40)).foregroundStyle(.white.opacity(0.9))
-                }
-            }
-            .overlay(alignment: .topTrailing) {
-                if owned && v.id > 0 {
-                    Button {
-                        Task {
-                            try? await Api.deleteSessionVideo(id, videoId: v.id)
-                            videos = (try? await Api.sessionVideos(id)) ?? []
-                        }
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3).foregroundStyle(.white, .black.opacity(0.55))
-                            .padding(6)
-                    }
-                    .buttonStyle(.plain)
+            Link(destination: ytUrl) { videoTileLabel(ytId) }
+                .overlay(alignment: .topTrailing) { videoRemoveButton(v, owned: owned) }
+        }
+    }
+
+    private func videoTileLabel(_ ytId: String) -> some View {
+        let thumb: URL? = URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")
+        return mediaTile {
+            AsyncImage(url: thumb) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Color(.secondarySystemBackground)
                 }
             }
+        }
+        .overlay {
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 40)).foregroundStyle(.white.opacity(0.9))
+        }
+    }
+
+    @ViewBuilder private func videoRemoveButton(_ v: SessionVideo, owned: Bool) -> some View {
+        if owned && v.id > 0 {
+            Button { removeVideo(v) } label: { removeBadge }
+                .buttonStyle(.plain)
         }
     }
 
@@ -448,64 +550,122 @@ struct SessionDetailView: View {
 
     // Schwerste Sektion: viele let-Bindungen/Tupel + Ternär. Als non-builder-Funktion mit guard +
     // AnyView -> der Type-Checker sieht die lets als normale Statements (nicht im Result-Builder).
+    // Die Werte stecken zusaetzlich in EINEM typisierten Wert, die Zeilen in eigenen Teil-Views.
     private func trackSection(_ s: SessionDetail) -> some View {
         guard let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2,
               let segs = s.analysis?.segments, !segs.isEmpty else { return AnyView(EmptyView()) }
-        let speeds3 = track.properties?.speeds_mps ?? []
-        let speeds = colorMode == .speed ? (track.properties?.speeds?[String(win)] ?? speeds3) : speeds3
-        let hr = track.properties?.hr ?? []
-        let pumpHz = track.properties?.pump_hz ?? []
-        let hasHr = hr.contains { ($0 ?? 0) > 0 }
-        let hasPump = pumpHz.contains { $0 != nil }
-        let hrVals = hr.compactMap { $0 }.filter { $0 > 0 }
-        let pumpVals = pumpHz.compactMap { $0 }
-        let hrRange = (hrVals.min() ?? 0, hrVals.max() ?? 1)
-        let pumpRange = (pumpVals.min() ?? 0, pumpVals.max() ?? 1)
-        let hasCarves = !((carve?.carves.isEmpty) ?? true)
-        let carveGVals: [Double] = (carve?.g ?? []) + (carve?.arcs.flatMap { $0 }.compactMap { $0.count > 2 ? $0[2] : nil } ?? [])
-        let carveGMax = min(max(0.6, carveGVals.max() ?? 0.6), 1.0)
+        let v = trackVals(track)
         return AnyView(VStack(alignment: .leading, spacing: 16) {
-            // Farbmodus (Speed/Puls/Pump/Carves) + Marker-Umschalter in DERSELBEN Zeile.
-            if hasHr || hasPump || hasCarves {
-                HStack(spacing: 12) {
-                    Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
-                        Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
-                        if hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
-                        if hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
-                        if hasCarves { Text("Carves").tag(TrackColorMode.turns) }
-                    }
-                    .pickerStyle(.segmented)
-                    if (s.analysis?.pump_count ?? 0) > 0 {
-                        Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
-                    }
-                }
-            }
-            // Glättung (nur Speed) in eigener Zeile darunter.
-            if colorMode == .speed {
-                HStack {
-                    Picker("", selection: $win) {
-                        Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
-                    }
-                    .pickerStyle(.segmented).frame(maxWidth: 200)
-                    Spacer()
-                }
-            }
-            TrackMap(points: track.geometry.coordinates, speedsMps: speeds, hr: hr, pumpHz: pumpHz,
-                     segments: segs, mode: colorMode, hrRange: hrRange, pumpRange: pumpRange,
-                     showPumps: showPumps, selectedRun: selectedRun,
-                     onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
-                     carveArcs: colorMode == .turns ? (carve?.arcs ?? []) : [], carveGMax: carveGMax)
-                .frame(height: 300).frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            if colorMode == .turns { carveLegend(counts: carve?.counts, gMax: carveGMax) }
-            else { colorLegend(mode: colorMode, hrRange: hrRange, pumpRange: pumpRange) }
-            if let sel = selectedRun {
-                HStack {
-                    Text("\(Loc.t("home.runs", lang)) #\(sel + 1)").font(.subheadline).foregroundStyle(Color.accentColor)
-                    Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
-                }
-            }
+            modeRow(s, v)
+            smoothingRow
+            trackMap(track, segs, v)
+            legendRow(v)
+            selectedRunRow
         })
+    }
+
+    // Alle abgeleiteten Track-Werte explizit typisiert an einer Stelle — vorher ein Dutzend
+    // let-Bindungen (inkl. Tupel und ??-Ketten) unmittelbar vor dem ViewBuilder.
+    private struct TrackVals {
+        let speeds: [Double]
+        let hr: [Int?]
+        let pumpHz: [Double?]
+        let hasHr: Bool
+        let hasPump: Bool
+        let hasCarves: Bool
+        let hrRange: (Int, Int)
+        let pumpRange: (Double, Double)
+        let carveGMax: Double
+    }
+
+    private func trackVals(_ track: TrackGeo) -> TrackVals {
+        let speeds3: [Double] = track.properties?.speeds_mps ?? []
+        let smoothed: [Double] = track.properties?.speeds?[String(win)] ?? speeds3
+        let speeds: [Double] = colorMode == .speed ? smoothed : speeds3
+        let hr: [Int?] = track.properties?.hr ?? []
+        let pumpHz: [Double?] = track.properties?.pump_hz ?? []
+        let hrVals: [Int] = hr.compactMap { $0 }.filter { $0 > 0 }
+        let pumpVals: [Double] = pumpHz.compactMap { $0 }
+        let gVals: [Double] = carveGValues()
+        return TrackVals(speeds: speeds, hr: hr, pumpHz: pumpHz,
+                         hasHr: hr.contains { ($0 ?? 0) > 0 },
+                         hasPump: pumpHz.contains { $0 != nil },
+                         hasCarves: !((carve?.carves.isEmpty) ?? true),
+                         hrRange: (hrVals.min() ?? 0, hrVals.max() ?? 1),
+                         pumpRange: (pumpVals.min() ?? 0, pumpVals.max() ?? 1),
+                         carveGMax: min(max(0.6, gVals.max() ?? 0.6), 1.0))
+    }
+
+    private func carveGValues() -> [Double] {
+        let base: [Double] = carve?.g ?? []
+        let fromArcs: [Double] = carve?.arcs.flatMap { $0 }.compactMap { $0.count > 2 ? $0[2] : nil } ?? []
+        return base + fromArcs
+    }
+
+    // Farbmodus (Speed/Puls/Pump/Carves) + Marker-Umschalter in DERSELBEN Zeile.
+    @ViewBuilder private func modeRow(_ s: SessionDetail, _ v: TrackVals) -> some View {
+        if v.hasHr || v.hasPump || v.hasCarves {
+            HStack(spacing: 12) {
+                colorModePicker(v)
+                if (s.analysis?.pump_count ?? 0) > 0 {
+                    Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
+                }
+            }
+        }
+    }
+
+    // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des Pickers.
+    private func colorModePicker(_ v: TrackVals) -> some View {
+        Picker(Loc.t("sd.coloring", lang), selection: $colorMode) {
+            Text(Loc.t("sd.colorSpeed", lang)).tag(TrackColorMode.speed)
+            if v.hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
+            if v.hasPump { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
+            if v.hasCarves { Text("Carves").tag(TrackColorMode.turns) }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    // Glättung (nur Speed) in eigener Zeile darunter.
+    @ViewBuilder private var smoothingRow: some View {
+        if colorMode == .speed {
+            HStack {
+                Picker("", selection: $win) {
+                    Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
+                }
+                .pickerStyle(.segmented).frame(maxWidth: 200)
+                Spacer()
+            }
+        }
+    }
+
+    private func trackMap(_ track: TrackGeo, _ segs: [Segment], _ v: TrackVals) -> some View {
+        let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
+        let h: CGFloat = 300
+        return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
+                        segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
+                        showPumps: showPumps, selectedRun: selectedRun,
+                        onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
+                        carveArcs: arcs, carveGMax: v.carveGMax)
+            .frame(height: h).frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder private func legendRow(_ v: TrackVals) -> some View {
+        if colorMode == .turns { carveLegend(counts: carve?.counts, gMax: v.carveGMax) }
+        else { colorLegend(mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange) }
+    }
+
+    @ViewBuilder private var selectedRunRow: some View {
+        if let sel = selectedRun {
+            HStack {
+                Text(runLabel(sel)).font(.subheadline).foregroundStyle(Color.accentColor)
+                Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
+            }
+        }
+    }
+
+    private func runLabel(_ idx: Int) -> String {
+        Loc.t("home.runs", lang) + " #\(idx + 1)"
     }
 
     // Farb-Legende (min→max Verlauf) für den gewählten Modus — wie PWA/Android.
@@ -1113,16 +1273,20 @@ struct TrackMap: UIViewRepresentable {
         }
         // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
         let fit = (selectedRun != nil && !sel.isEmpty) ? sel : all
-        if !fit.isEmpty {
-            let lats = fit.map { $0.latitude }, lons = fit.map { $0.longitude }
-            let center = CLLocationCoordinate2D(
-                latitude: (lats.min()! + lats.max()!) / 2,
-                longitude: (lons.min()! + lons.max()!) / 2)
-            let span = MKCoordinateSpan(
-                latitudeDelta: max((lats.max()! - lats.min()!) * 1.3, 0.002),
-                longitudeDelta: max((lons.max()! - lons.min()!) * 1.3, 0.002))
-            map.setRegion(MKCoordinateRegion(center: center, span: span), animated: false)
-        }
+        if !fit.isEmpty { map.setRegion(region(fitting: fit), animated: false) }
+    }
+
+    // Ausschnitt um die Punkte (13 % Rand, Mindest-Span). Als eigene Methode mit explizit
+    // typisierten Zwischenwerten: die Literal-Arithmetik war der teuerste Teil von updateUIView.
+    private func region(fitting fit: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
+        let lats: [CLLocationDegrees] = fit.map { $0.latitude }
+        let lons: [CLLocationDegrees] = fit.map { $0.longitude }
+        let latMin: CLLocationDegrees = lats.min() ?? 0, latMax: CLLocationDegrees = lats.max() ?? 0
+        let lonMin: CLLocationDegrees = lons.min() ?? 0, lonMax: CLLocationDegrees = lons.max() ?? 0
+        let center = CLLocationCoordinate2D(latitude: (latMin + latMax) / 2, longitude: (lonMin + lonMax) / 2)
+        let span = MKCoordinateSpan(latitudeDelta: max((latMax - latMin) * 1.3, 0.002),
+                                    longitudeDelta: max((lonMax - lonMin) * 1.3, 0.002))
+        return MKCoordinateRegion(center: center, span: span)
     }
 
     final class Coordinator: NSObject, MKMapViewDelegate {
