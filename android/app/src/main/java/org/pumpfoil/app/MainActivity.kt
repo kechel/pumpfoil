@@ -255,10 +255,15 @@ fun MainScaffold(onLogout: () -> Unit) {
 
 // Tab-Wechsel mit Zustands-Erhalt (Standard-Compose-Navigationsmuster).
 private fun NavController.switchTab(route: String) {
+    // „Sessions" im Menue heisst IMMER: oben in der Liste anfangen. Sonst holt restoreState den
+    // gespeicherten Zustand des Tabs zurueck — man landet auf der alten Scroll-Position bzw. in der
+    // zuletzt geoeffneten Session. Gleiche Regel wie in der PWA (lastSession-Marker) und in der
+    // iOS-App (Remount von Tab 1). Alle anderen Tabs behalten ihren Zustand wie bisher.
+    val fresh = route == "sessions"
     navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo(graph.findStartDestination().id) { saveState = !fresh }
         launchSingleTop = true
-        restoreState = true
+        restoreState = !fresh
     }
 }
 
