@@ -11,6 +11,9 @@ private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "�
 struct SettingsView: View {
     @AppStorage("themeMode") private var themeMode = "auto"
     @AppStorage("appLang") private var lang = "de"
+    // Anzeige-Einheit der Pump-Kadenz (hz|ppm): lokal sofort wirksam, danach ans Profil
+    // (synct zu Web/anderen Geräten). Reine Darstellung — siehe PumpUnit.swift.
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var weight = 0
     @State private var homespot = ""
     @State private var activityType = "surfing"
@@ -67,6 +70,14 @@ struct SettingsView: View {
                     }
                 }
             }
+            // Pump-Kadenz als Hz oder Pumps pro Minute — „1,43 Hz" kann sich kaum jemand vorstellen.
+            Section {
+                Picker(Loc.t("pumpunit.label", lang), selection: $pumpUnit) {
+                    Text(Loc.t("pumpunit.hz", lang)).tag("hz")
+                    Text(Loc.t("pumpunit.ppm", lang)).tag("ppm")
+                }
+            } header: { Text(Loc.t("pumpunit.label", lang)) }
+            footer: { Text(Loc.t("pumpunit.hint", lang)) }
             // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
             Section {
                 Picker(Loc.t("foilsens.label", lang), selection: $sensitivity) {
@@ -114,6 +125,7 @@ struct SettingsView: View {
         .onChange(of: nRecord) { _ in saved = false }
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
+        .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
         .onChange(of: activityType) { v in
             if activityReady { Task { try? await Api.saveSettings(["activity_type": v]); saved = true } }
         }

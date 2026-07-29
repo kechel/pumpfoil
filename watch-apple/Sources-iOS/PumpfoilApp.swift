@@ -45,7 +45,12 @@ struct PumpfoilApp: App {
 final class SessionStore: ObservableObject {
     @Published var token: String? = Api.token
     @Published var profile: Profile? {
-        didSet { UserDefaults.standard.set(profile?.language ?? "de", forKey: "appLang") }
+        didSet {
+            UserDefaults.standard.set(profile?.language ?? "de", forKey: "appLang")
+            // Anzeige-Einheit der Pump-Kadenz spiegeln (nur wenn bekannt — beim Abmelden nicht
+            // die lokale Wahl wegwerfen).
+            if let u = profile?.pump_unit { PumpUnit.store(u) }
+        }
     }
     var isLoggedIn: Bool { token != nil }
 
@@ -64,6 +69,14 @@ final class SessionStore: ObservableObject {
             // Age-Gate läuft jetzt als View-Modifier in RootView (.ageGate) — braucht die
             // SwiftUI-Environment-Action requestAgeRange, daher nicht mehr hier im Store.
         } else { logout() }   // Token ungültig -> abmelden
+    }
+
+    // Rückkehr aus dem Hintergrund: nur die Anzeige-Einstellungen frisch holen, damit eine
+    // Änderung im Web (z. B. Pump-Kadenz auf Pumps/min) hier ankommt. Kein Logout bei Fehler —
+    // das entscheidet ausschliesslich bootstrap()/der 401-Pfad.
+    func refreshDisplayPrefs() async {
+        guard token != nil, let p = try? await Api.getProfile() else { return }
+        profile = p
     }
 
     func login(email: String, password: String) async throws {

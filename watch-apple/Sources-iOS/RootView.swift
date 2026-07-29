@@ -4,7 +4,9 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
     @AppStorage("themeMode") private var themeMode = "auto"   // "auto" | "light" | "dark"
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showSplash = true
+    @State private var wasBackground = false
     var body: some View {
         Group {
             if session.isLoggedIn {
@@ -16,6 +18,15 @@ struct RootView: View {
         .preferredColorScheme(themeMode == "light" ? .light : themeMode == "dark" ? .dark : nil)
         .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
         .task { await session.bootstrap() }
+        // Nur echte Rückkehr aus dem Hintergrund (nicht der Start — den macht bootstrap()).
+        .onChange(of: scenePhase) { phase in
+            if phase == .background {
+                wasBackground = true
+            } else if phase == .active, wasBackground {
+                wasBackground = false
+                Task { await session.refreshDisplayPrefs() }
+            }
+        }
         .overlay {
             if showSplash {
                 SplashView()

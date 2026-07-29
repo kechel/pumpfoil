@@ -3,6 +3,8 @@ import SwiftUI
 // Uhren-Statistik (spiegelt web/WatchStats): Community-Aggregat je Uhr-Modell als Cards.
 struct WatchStatsView: View {
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var rows: [WatchStat] = []
     @State private var loading = true
     @State private var error: String?
@@ -38,7 +40,7 @@ struct WatchStatsView: View {
                     ("km", Loc.t("watchStats.km", lang)),
                     ("speed", "Ø km/h"),
                     ("bestSpeed", Loc.t("watchStats.bestSpeed", lang)),
-                    ("hz", "Ø Hz"),
+                    ("hz", "Ø " + PumpUnit.unitLabel(lang)),
                 ], sortKey: $sortKey, sortAsc: $sortAsc)
             }
             if let error { Text(error).foregroundStyle(.secondary) }
@@ -55,7 +57,7 @@ struct WatchStatsView: View {
                     HStack {
                         metric(s.avg_speed_kmh.map { String(format: "%.1f", $0) } ?? "–", "Ø km/h")
                         Spacer(); metric(s.best_speed_kmh.map { String(format: "%.1f", $0) } ?? "–", Loc.t("watchStats.bestSpeed", lang))
-                        Spacer(); metric(s.avg_pump_hz.map { String(format: "%.2f", $0) } ?? "–", "Ø Hz")
+                        Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), "Ø " + PumpUnit.unitLabel(lang))
                     }
                 }
             }

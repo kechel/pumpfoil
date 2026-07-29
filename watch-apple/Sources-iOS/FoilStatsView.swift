@@ -42,6 +42,8 @@ func sortStats<T>(_ list: [T], asc: Bool, key: (T) -> Double?) -> [T] {
 // Foil-Statistik (spiegelt web/FoilStats): Community-Vergleich je Foil als Cards.
 struct FoilStatsView: View {
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var rows: [FoilStat] = []
     @State private var loading = true
     @State private var error: String?
@@ -77,7 +79,7 @@ struct FoilStatsView: View {
                     ("speed", "Ø km/h"),
                     ("mpp", "m/Pump"),
                     ("best", Loc.t("foilstats.bestKm", lang)),
-                    ("hz", "Ø Hz"),
+                    ("hz", "Ø " + PumpUnit.unitLabel(lang)),
                 ], sortKey: $sortKey, sortAsc: $sortAsc)
             }
             if let error { Text(error).foregroundStyle(.secondary) }
@@ -94,7 +96,7 @@ struct FoilStatsView: View {
                     HStack {
                         metric(s.meters_per_pump.map { String(format: "%.1f", $0) } ?? "–", "m/Pump")
                         Spacer(); metric(s.best_distance_m.map { String(format: "%.2f", $0 / 1000) } ?? "–", Loc.t("foilstats.bestKm", lang))
-                        Spacer(); metric(s.avg_pump_hz.map { String(format: "%.2f", $0) } ?? "–", "Ø Hz")
+                        Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), "Ø " + PumpUnit.unitLabel(lang))
                     }
                 }
             }

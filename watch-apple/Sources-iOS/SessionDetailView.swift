@@ -11,6 +11,8 @@ struct SessionDetailView: View {
     var dataVersion: Int? = nil   // aus der Liste: erlaubt Cache-Treffer ohne Netz (nil -> immer laden)
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var session: SessionDetail?
     @State private var loading = true
     @State private var error: String?
@@ -511,7 +513,8 @@ struct SessionDetailView: View {
         switch mode {
         case .speed: return ("8 km/h", "25 km/h")
         case .hr: return ("\(hrRange.0)", "\(hrRange.1) bpm")
-        case .pump: return (String(format: "%.1f", pumpRange.0), String(format: "%.1f Hz", pumpRange.1))
+        case .pump: return (PumpUnit.fmtLegend(pumpRange.0, lang, withUnit: false),
+                            PumpUnit.fmtLegend(pumpRange.1, lang, withUnit: true))
         case .turns: return ("", "")   // TURNS nutzt carveLegend
         }
     }
@@ -807,7 +810,7 @@ struct SessionDetailView: View {
             out.append(StatItem(Loc.t("home.pumps", lang), "\(pc)"))
             if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
         }
-        if let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), String(format: "%.2f Hz", v))) }
+        if let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
         if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
         if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }
         if let i = longestRunIdx, let v = segs[i].duration_s { out.append(StatItem(Loc.t("home.longestRun", lang), mmssD(v), runIdx: i)) }

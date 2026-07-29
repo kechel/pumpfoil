@@ -254,6 +254,11 @@ enum Api {
         try await request("/api/auth/me", method: "PUT", body: ["foil_sensitivity": v], auth: true)
     }
 
+    // Anzeige-Einheit der Pump-Kadenz (hz|ppm) — reine Darstellung, nichts wird neu analysiert.
+    static func updatePumpUnit(_ v: String) async throws -> Profile {
+        try await request("/api/auth/me", method: "PUT", body: ["pump_unit": v], auth: true)
+    }
+
     // Ergebnis der Declared Age Range API ans Profil melden (sperrt Social für unter 13).
     static func setAgeRange(socialAllowed: Bool, ageBracket: String) async throws -> Profile {
         try await request("/api/auth/me/age-range", method: "PUT",

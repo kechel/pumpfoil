@@ -8,6 +8,8 @@ import UIKit
 struct CompareView: View {
     var preselect: Set<Int> = []
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var results: [SessionDetail] = []
     @State private var loading = true
     @State private var merging = false
@@ -218,11 +220,20 @@ struct CompareView: View {
         }
     }
 
+    // Einheit der Karten-Legende je Modus (Pump: Hz oder Pumps/min, siehe PumpUnit.swift).
+    private var unitLabel: String {
+        if mapMode == .pump { return PumpUnit.unitLabel(lang) }
+        return mapMode == .hr ? "bpm" : "km/h"
+    }
+
     // Farbverlauf-Legende für Wert-Modi (Speed/Pump/Puls).
-    private func rangeStr(_ v: Double) -> String { mapMode == .pump ? String(format: "%.1f", v) : "\(Int(v))" }
+    private func rangeStr(_ v: Double) -> String {
+        if mapMode == .pump { return PumpUnit.fmtLegend(v, lang, withUnit: false) }
+        return "\(Int(v))"
+    }
     @ViewBuilder private var gradientLegend: some View {
         let range: (Double, Double) = mapMode == .pump ? pumpRange : (mapMode == .hr ? hrRange : speedRange)
-        let unit: String = mapMode == .pump ? "Hz" : (mapMode == .hr ? "bpm" : "km/h")
+        let unit: String = unitLabel
         let grad = LinearGradient(colors: [Color(hue: 240 / 360, saturation: 0.85, brightness: 0.95),
                                            Color(hue: 120 / 360, saturation: 0.85, brightness: 0.95),
                                            Color(hue: 0, saturation: 0.85, brightness: 0.95)],
@@ -278,7 +289,7 @@ struct CompareView: View {
     // bei verschachtelten .map{}??-Interpolationen -> „unendliches" Kompilieren).
     private func meters(_ m: Double?) -> String { guard let m else { return "–" }; return "\(Int(m)) m" }
     private func kmh(_ mps: Double?) -> String { guard let v = mps else { return "–" }; return String(format: "%.1f km/h", v * 3.6) }
-    private func hz(_ v: Double?) -> String { guard let v else { return "–" }; return String(format: "%.2f Hz", v) }
+    private func hz(_ v: Double?) -> String { PumpUnit.fmt(v, lang) }
     private func pumpsStr(_ p: Int?) -> String { guard let p else { return "–" }; return "\(p)P" }
     private func intStr(_ n: Int?) -> String { guard let n else { return "–" }; return "\(n)" }
     private func runDist(_ seg: Segment) -> String { "\(Int(seg.distance_m ?? 0)) m · \(mmss(seg.duration_s))" }

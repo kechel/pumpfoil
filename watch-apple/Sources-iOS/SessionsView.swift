@@ -240,6 +240,8 @@ struct SessionRow: View {
     var showOwner: Bool = false
     @ObservedObject private var compare = CompareStore.shared
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
 
     var body: some View {
         content
@@ -387,7 +389,7 @@ struct SessionRow: View {
         if let s = m?.avg_speed_mps { parts.append(String(format: "Ø %.1f km/h", s * 3.6)) }
         if let p = a.pump_count {
             var s = "↕ \(p)"
-            if let hz = m?.avg_pump_hz { s += String(format: " · %.2f Hz", hz) }
+            if let hz = m?.avg_pump_hz { s += " · " + PumpUnit.fmt(hz, lang) }
             parts.append(s)
         }
         if let hr = m?.avg_hr, hr > 0 {

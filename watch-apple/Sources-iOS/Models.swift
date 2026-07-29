@@ -8,6 +8,7 @@ struct Profile: Codable {
     let is_admin: Bool?
     let language: String?
     let foil_sensitivity: String?
+    let pump_unit: String?      // hz|ppm — Anzeige-Einheit der Pump-Kadenz (nur Darstellung, PumpUnit.swift)
     let social_allowed: Bool?   // false = unter 13, Social-Features (UGC/Feed/Chat) gesperrt
     let beta: Bool?             // Beta-Konto (BETA_USER_IDS) -> experimentelle Features sichtbar
     // Offene Sportart-Zuordnungen (Server: auth.py:_needs_classification) — Hinweis auf der

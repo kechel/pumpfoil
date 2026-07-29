@@ -5,6 +5,8 @@ import CoreLocation
 // Verlauf: Trend-Charts je Kennzahl (kumuliert / 7-Tage- / 30-Tage-Fenster) — spiegelt web + Android.
 struct VerlaufView: View {
     @AppStorage("appLang") private var lang = "de"
+    // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var items: [HistoryPoint] = []
     @State private var loading = false
     @State private var error: String?
@@ -103,7 +105,8 @@ struct VerlaufView: View {
         VMetric("home.longestGlide", 0xA78BFA, .max, { $0.glide }, fmt: { String(format: "%.1f s", $0) }),
         VMetric("verlauf.foilingPerSession", 0x60A5FA, .max, { $0.foiling_km }, fmt: { String(format: "%.1f km", $0) }),
         VMetric("sd.avgSpeed", 0xF59E0B, .max, { $0.avg_speed.map { $0 * 3.6 } }, fmt: { String(format: "%.1f km/h", $0) }),
-        VMetric("sd.avgPump", 0xF472B6, .max, { $0.avg_pump_hz }, fmt: { String(format: "%.2f Hz", $0) }),
+        // Statische Liste ohne View-Kontext -> Sprache/Einheit kommen aus PumpUnit (UserDefaults).
+        VMetric("sd.avgPump", 0xF472B6, .max, { $0.avg_pump_hz }, fmt: { PumpUnit.fmt($0, PumpUnit.curLang) }),
         VMetric("verlauf.pumpsPerSession", 0xFB7185, .ratio, { _ in nil },
                 num: { Double($0.pumps) }, den: { _ in 1.0 }, fmt: { String(format: "%.0f", $0) }),
         VMetric("sd.avgDistPerPump", 0x2DD4BF, .ratio, { _ in nil },
