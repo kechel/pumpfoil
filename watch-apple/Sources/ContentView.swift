@@ -401,7 +401,7 @@ struct RecordView: View {
             if layoutsEffective, let def = layoutDefs[id] {
                 LayoutPageView(
                     page: def, pageIndex: idx, pageCount: dataPages.count,
-                    recording: rec.recording, pausedText: WLoc.t("rec.paused", lang),
+                    recording: rec.isRecording, pausedText: WLoc.t("rec.paused", lang),
                     fieldValue: { fid in fieldValue(fid, rec, lang).0 },
                     fieldLabel: { fid in fieldValue(fid, rec, lang).1 },
                     fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil }
