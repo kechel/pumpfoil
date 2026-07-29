@@ -58,6 +58,10 @@ class User(Base):
     # Foil-Limits NUR für die eigene Auswertung (leichte/langsame Fahrer, Startversuche);
     # Community/Rekorde nutzen immer "normal". Siehe analysis.gps.SENSITIVITY_PRESETS.
     foil_sensitivity: Mapped[str] = mapped_column(String(16), default="normal", server_default="normal")
+    # Anzeige der Pump-Kadenz: "hz" (1.43 Hz) oder "ppm" (86 Pumps/min). Reine DARSTELLUNG, kein
+    # Einfluss auf Analyse oder Rekorde — Nutzerwunsch: Hz sind zu technisch, man kann sich nichts
+    # darunter vorstellen. Serverseitig am Nutzer, damit alle Clients dieselbe Einheit zeigen.
+    pump_unit: Mapped[str] = mapped_column(String(8), default="hz", server_default="hz")
     # Social-Freigabe (UGC/Feed/Chat): für unter-13 gesperrt (Apple-Vorgabe „soziale Medien",
     # via iOS Declared Age Range API ermittelt). Default true; nur die iOS-Alters-Abfrage setzt es
     # ggf. auf false. age_bracket = zuletzt gemeldete Spanne (under13|13-15|16-17|18+|undisclosed).

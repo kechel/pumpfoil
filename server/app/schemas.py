@@ -18,6 +18,7 @@ class ProfileIn(BaseModel):
     display_name: str | None = None
     language: str | None = None
     foil_sensitivity: str | None = None   # normal|light|attempts (persönliche Erkennungs-Empfindlichkeit)
+    pump_unit: str | None = None          # hz|ppm — Anzeige-Einheit der Pump-Kadenz (nur Darstellung)
 
 
 class PasswordChangeIn(BaseModel):
@@ -49,6 +50,7 @@ class ProfileOut(BaseModel):
     language: str = "en"
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
+    pump_unit: str = "hz"              # Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung)
     social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
     # Wie viele eigene Sessions warten auf Zuordnung (docs/sport-classification.md)? Die Startseite
     # zeigt darauf einen Hinweis — ein Push allein genügt nicht: wer Push aus hat, würde nie erfahren,

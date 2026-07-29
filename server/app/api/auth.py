@@ -129,7 +129,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       needs_classification=_needs_classification(db, user.id),
                       needs_classification_id=_needs_classification_id(db, user.id))
 
@@ -150,6 +150,9 @@ def update_me(
     # Persönliche Erkennungs-Empfindlichkeit: bei Änderung im HINTERGRUND die EIGENEN Sessions
     # (nur die noch nicht für dieses Preset gecachten) reanalysieren — Request kommt sofort zurück,
     # PWA pollt /me/reanalysis für die Fortschrittsanzeige. Community/Rekorde bleiben Standard.
+    # Anzeige-Einheit der Kadenz: reine Darstellung -> KEINE Reanalyse, kein Einfluss auf Rekorde.
+    if body.pump_unit is not None:
+        user.pump_unit = body.pump_unit if body.pump_unit in ("hz", "ppm") else "hz"
     if body.foil_sensitivity is not None:
         from ..analysis.gps import SENSITIVITY_PRESETS
         from ..reanalysis import start_reanalysis
@@ -162,7 +165,7 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       needs_classification=_needs_classification(db, user.id),
                       needs_classification_id=_needs_classification_id(db, user.id))
 
@@ -181,7 +184,7 @@ def set_age_range(
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
                       is_admin=user.is_admin, language=user.language or "en",
                       beta=True,
-                      foil_sensitivity=(user.foil_sensitivity or "normal"),
+                      foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"),
                       social_allowed=(user.social_allowed is not False),
                       needs_classification=_needs_classification(db, user.id),
                       needs_classification_id=_needs_classification_id(db, user.id))
@@ -322,7 +325,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       needs_classification=_needs_classification(db, user.id),
                       needs_classification_id=_needs_classification_id(db, user.id))
 
