@@ -48,8 +48,12 @@ targets:
       path: Sources-iOS/Info.plist
       properties:
         CFBundleDisplayName: Pumpfoil
-        CFBundleShortVersionString: "1.1.17"
-        CFBundleVersion: "21"
+        # Version NICHT doppelt pflegen: die Info.plist zieht sie aus den Build-Settings oben.
+        # Vorher stand hier 1.1.17/21, waehrend MARKETING_VERSION schon auf 1.1.18/22 stand — weil
+        # GENERATE_INFOPLIST_FILE=NO ist, gewinnt die plist, das Archiv waere also als bereits
+        # veroeffentlichte 1.1.17 (21) gebaut und von App Store Connect abgelehnt worden.
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen:
           UIColorName: LaunchBackground
@@ -98,8 +102,8 @@ targets:
         WKApplication: true
         WKCompanionAppBundleIdentifier: org.pumpfoil.coolwatch   # iOS-Companion
         CFBundleDisplayName: Pumpfoil
-        CFBundleShortVersionString: "1.1.17"
-        CFBundleVersion: "21"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: "GPS-Track deiner Pump-Foiling-Session."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung."
