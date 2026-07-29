@@ -98,7 +98,7 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
                     sortChip(I18n.t("watchStats.km"), "km", sortKey, sortAsc, ::sel)
                     sortChip("Ø km/h", "speed", sortKey, sortAsc, ::sel)
                     sortChip(I18n.t("watchStats.bestSpeed"), "bestSpeed", sortKey, sortAsc, ::sel)
-                    sortChip("Ø Hz", "hz", sortKey, sortAsc, ::sel)
+                    sortChip("Ø ${PumpUnit.unitLabel()}", "hz", sortKey, sortAsc, ::sel)
                 }
             }
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
@@ -123,7 +123,7 @@ private fun watchCard(s: WatchStat) {
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 wMetric(s.avgSpeedKmh?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
                 wMetric(s.bestSpeedKmh?.let { "%.1f".format(it) } ?: "–", I18n.t("watchStats.bestSpeed"))
-                wMetric(s.avgPumpHz?.let { "%.2f".format(it) } ?: "–", "Ø Hz")
+                wMetric(PumpUnit.fmtValue(s.avgPumpHz), "Ø ${PumpUnit.unitLabel()}")
             }
         }
     }

@@ -751,7 +751,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     add(StatItem(I18n.t("home.pumps"), pc.toString()))
                     if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
-                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), "%.2f Hz".format(it))) }
+                (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), PumpUnit.fmt(it))) }
                 (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
                 (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
                 longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
@@ -837,7 +837,7 @@ private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pai
     val (lo, hi) = when (mode) {
         ColorMode.SPEED -> "8 km/h" to "25 km/h"     // feste Speed-Skala (wie speedColor)
         ColorMode.HR -> "${hrRange.first}" to "${hrRange.second} bpm"
-        ColorMode.PUMP -> "%.1f".format(pumpRange.first) to "%.1f Hz".format(pumpRange.second)
+        ColorMode.PUMP -> PumpUnit.fmtLegend(pumpRange.first, false) to PumpUnit.fmtLegend(pumpRange.second, true)
         ColorMode.TURNS -> "" to ""   // TURNS nutzt CarveLegend, nicht diese Funktion
     }
     val ramp = remember { (0..12).map { rampColor(it / 12.0) } }

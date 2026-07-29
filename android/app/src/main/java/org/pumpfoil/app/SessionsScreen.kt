@@ -476,7 +476,7 @@ private fun SessionStatsRow(a: Analysis, m: Metrics?) {
         a.foilingTimeS?.let { add(fmtDur(it)) }
         m?.numSegments?.let { if (it > 0) add("$it " + if (it == 1) "Lauf" else "Läufe") }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
-        a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · %.2f Hz".format(it) } ?: "")) }
+        a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
         m?.avgHr?.let { if (it > 0) add("$it" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
     }
     if (parts.isEmpty()) return

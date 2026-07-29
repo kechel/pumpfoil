@@ -104,6 +104,12 @@ object Api {
         http("PUT", "/api/auth/me", "{\"foil_sensitivity\":\"$v\"}", auth = true)
     }
 
+    // Anzeige-Einheit der Pump-Kadenz (hz|ppm) — reine Darstellung, keine Reanalyse.
+    // PUT-Alias, da HttpURLConnection kein PATCH kann; ungültige Werte fängt der Server auf "hz".
+    suspend fun updatePumpUnit(v: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/auth/me", "{\"pump_unit\":\"$v\"}", auth = true)
+    }
+
     // Age-Gate (Apple Declared Age Range): social_allowed + age_bracket setzen. Auf Android v. a.
     // für den Debug-Toggle (Verifikation der Feed/Chat-Sperre).
     suspend fun setAgeRange(socialAllowed: Boolean, ageBracket: String): Profile = withContext(Dispatchers.IO) {

@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
         SessionCache.init(applicationContext)   // Detail-Disk-Cache + Eviction (>90 T)
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)
+        PumpUnit.load(applicationContext)   // Pump-Kadenz als Hz oder Pumps/min (Profil-Einstellung)
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         setContent { PumpfoilTheme { App() } }
     }
@@ -117,7 +118,12 @@ fun MainScaffold(onLogout: () -> Unit) {
         val obs = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 scope.launch {
-                    try { val p = Api.me(); p.language?.let { I18n.set(ctx, it) }; social = p.socialAllowed != false }
+                    try {
+                        val p = Api.me()
+                        p.language?.let { I18n.set(ctx, it) }
+                        PumpUnit.set(ctx, p.pumpUnit ?: "hz")   // auf anderem Gerät geändert -> hier übernehmen
+                        social = p.socialAllowed != false
+                    }
                     catch (_: Exception) {}
                 }
             }

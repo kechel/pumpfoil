@@ -284,7 +284,7 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
 private fun GradientLegend(mode: CompareMode, pumpRange: Pair<Double, Double>, hrRange: Pair<Int, Int>) {
     val lo: String; val hi: String; val unit: String
     when (mode) {
-        CompareMode.PUMP -> { lo = "%.1f".format(pumpRange.first); hi = "%.1f".format(pumpRange.second); unit = "Hz" }
+        CompareMode.PUMP -> { lo = PumpUnit.fmtLegend(pumpRange.first, false); hi = PumpUnit.fmtLegend(pumpRange.second, false); unit = PumpUnit.unitLabel() }
         CompareMode.HR -> { lo = "${hrRange.first}"; hi = "${hrRange.second}"; unit = "bpm" }
         else -> { lo = "8"; hi = "25"; unit = "km/h" }
     }
@@ -337,7 +337,7 @@ private fun CompareTable(sessions: List<SessionDetail>) {
         I18n.t("home.topSpeed") to { s -> s.analysis?.maxSpeedMps?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
         I18n.t("home.pumps") to { s -> s.analysis?.pumpCount?.toString() ?: "–" },
         I18n.t("compare.foilTime") to { s -> s.analysis?.foilingTimeS?.let { "%d:%02d".format((it / 60).toInt(), (it % 60).toInt()) } ?: "–" },
-        I18n.t("compare.cadence") to { s -> s.analysis?.avgCadenceHz?.let { "%.2f Hz".format(it) } ?: "–" },
+        I18n.t("compare.cadence") to { s -> PumpUnit.fmt(s.analysis?.avgCadenceHz) },
     )
     val cell = 110.dp
     Column(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(12.dp)) {

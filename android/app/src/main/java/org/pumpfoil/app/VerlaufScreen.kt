@@ -88,7 +88,7 @@ private val METRICS = listOf(
     HMetric("home.longestGlide", Color(0xFFA78BFA), Kind.MAX, { it.glide }, fmt = { "%.1f s".format(it) }),
     HMetric("verlauf.foilingPerSession", Color(0xFF60A5FA), Kind.MAX, { it.foilingKm }, fmt = { "%.1f km".format(it) }),
     HMetric("sd.avgSpeed", Color(0xFFF59E0B), Kind.MAX, { it.avgSpeed?.let { v -> v * 3.6 } }, fmt = { "%.1f km/h".format(it) }),
-    HMetric("sd.avgPump", Color(0xFFF472B6), Kind.MAX, { it.avgPumpHz }, fmt = { "%.2f Hz".format(it) }),
+    HMetric("sd.avgPump", Color(0xFFF472B6), Kind.MAX, { it.avgPumpHz }, fmt = { PumpUnit.fmt(it) }),
     HMetric("verlauf.pumpsPerSession", Color(0xFFFB7185), Kind.RATIO, { null },
         num = { it.pumps.toDouble() }, den = { 1.0 }, fmt = { "%.0f".format(it) }),
     HMetric("sd.avgDistPerPump", Color(0xFF2DD4BF), Kind.RATIO, { null },

@@ -78,6 +78,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     var pwMsg by remember { mutableStateOf<Pair<Boolean, String>?>(null) }   // (ok, text)
     var pwBusy by remember { mutableStateOf(false) }
     var sensitivity by remember { mutableStateOf("normal") }
+    var pumpUnit by remember { mutableStateOf(PumpUnit.unit) }
     var reanalysis by remember { mutableStateOf<ReanalysisProgress?>(null) }
 
     LaunchedEffect(Unit) {
@@ -92,7 +93,12 @@ fun SettingsScreen(onBack: () -> Unit) {
                 nRecord = np["record"]?.jsonPrimitive?.booleanOrNull ?: true
             }
         } catch (_: Exception) {}
-        try { sensitivity = Api.me().foilSensitivity ?: "normal" } catch (_: Exception) {}
+        try {
+            val p = Api.me()
+            sensitivity = p.foilSensitivity ?: "normal"
+            pumpUnit = p.pumpUnit ?: "hz"
+            PumpUnit.set(ctx, pumpUnit)
+        } catch (_: Exception) {}
         hasGarmin = try { Api.myDevices().any { it.platform == "garmin" && it.revokedAt == null } } catch (_: Exception) { false }
         spots = try { Api.spots().all } catch (_: Exception) { emptyList() }
         loaded = true
@@ -184,6 +190,25 @@ fun SettingsScreen(onBack: () -> Unit) {
                 options = I18n.LANGS.map { it to (LANG_NAMES[it] ?: it) },
                 selected = lang,
                 onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
+            )
+            Spacer(Modifier.height(16.dp))
+
+            // Pump-Kadenz als Hz oder als Pumps pro Minute (reine Anzeige, wirkt sofort überall).
+            Text(I18n.t("pumpunit.label"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("pumpunit.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            Dropdown(
+                options = listOf(
+                    "hz" to I18n.t("pumpunit.hz"),
+                    "ppm" to I18n.t("pumpunit.ppm"),
+                ),
+                selected = pumpUnit,
+                onSelect = onSelect@{ v ->
+                    if (v == pumpUnit) return@onSelect
+                    pumpUnit = v
+                    PumpUnit.set(ctx, v)   // lokal sofort, danach ans Profil (synct zu Web/anderen Geräten)
+                    scope.launch { try { Api.updatePumpUnit(v) } catch (_: Exception) {} }
+                },
             )
             Spacer(Modifier.height(16.dp))
 

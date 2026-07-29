@@ -100,7 +100,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
                     sortChip("Ø km/h", "speed", sortKey, sortAsc, ::sel)
                     sortChip("m/Pump", "mpp", sortKey, sortAsc, ::sel)
                     sortChip(I18n.t("foilstats.bestKm"), "best", sortKey, sortAsc, ::sel)
-                    sortChip("Ø Hz", "hz", sortKey, sortAsc, ::sel)
+                    sortChip("Ø ${PumpUnit.unitLabel()}", "hz", sortKey, sortAsc, ::sel)
                 }
             }
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
@@ -144,7 +144,7 @@ private fun statCard(s: FoilStat) {
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 metric(s.metersPerPump?.let { "%.1f".format(it) } ?: "–", "m/Pump")
                 metric(s.bestDistanceM?.let { "${(it / 1000).let { km -> "%.2f".format(km) }}" } ?: "–", I18n.t("foilstats.bestKm"))
-                metric(s.avgPumpHz?.let { "%.2f".format(it) } ?: "–", "Ø Hz")
+                metric(PumpUnit.fmtValue(s.avgPumpHz), "Ø ${PumpUnit.unitLabel()}")
             }
         }
     }

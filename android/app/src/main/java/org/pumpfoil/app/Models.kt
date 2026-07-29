@@ -30,6 +30,8 @@ data class Profile(
     @SerialName("is_admin") val isAdmin: Boolean = false,
     val language: String? = null,
     @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
+    // Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung, siehe PumpUnit.kt).
+    @SerialName("pump_unit") val pumpUnit: String? = null,
     @SerialName("social_allowed") val socialAllowed: Boolean? = null,
     val beta: Boolean = false,
     // Offene Sportart-Zuordnungen des Nutzers (Server: auth.py:_needs_classification) — Hinweis auf
