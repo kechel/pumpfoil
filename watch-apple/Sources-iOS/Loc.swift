@@ -6,7 +6,16 @@ enum Loc {
     static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id"]
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
-    static let csOverlay: [String: String] = [
+    // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let csOverlay: [String: String] = {
+        var d: [String: String] = [:]
+        for p in [_csOverlayP1, _csOverlayP2, _csOverlayP3, _csOverlayP4, _csOverlayP5, _csOverlayP6, _csOverlayP7, _csOverlayP8, _csOverlayP9, _csOverlayP10] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let _csOverlayP1: [String: String] = [
         "setup.inherit": "Použít výchozí",
         "nav.home": "Domů",
         "nav.community": "Komunita",
@@ -62,6 +71,9 @@ enum Loc {
         "common.noData": "Zatím žádná data",
         "common.start": "Začátek",
         "common.end": "Konec",
+    ]
+
+    private static let _csOverlayP2: [String: String] = [
         "login.email": "E-mail",
         "login.password": "Heslo (min. 8 znaků)",
         "login.passwordReg": "Heslo (min. 8 znaků)",
@@ -117,6 +129,9 @@ enum Loc {
         "account.recordModeGarminHint": "Pod jakým typem aktivity se nahrávka objeví v Garmin Connect nastavíš v profilu pod „Typ aktivity v Garmin Connect“.",
         "settings.design": "Vzhled",
         "settings.language": "Jazyk",
+    ]
+
+    private static let _csOverlayP3: [String: String] = [
         "settings.light": "Světlý",
         "settings.dark": "Tmavý",
         "settings.notifications": "Oznámení",
@@ -172,6 +187,9 @@ enum Loc {
         "verlauf.total": "Celkem",
         "verlauf.cumulative": "Kumulativně",
         "verlauf.daysWord": "dní",
+    ]
+
+    private static let _csOverlayP4: [String: String] = [
         "verlauf.daysAbbr": "d",
         "verlauf.period": "Období",
         "verlauf.kmFoiling": "km foiling",
@@ -228,6 +246,9 @@ enum Loc {
         "profile.pwChanged": "Heslo změněno.",
         "profile.pwWrong": "Nesprávné aktuální heslo.",
         "profile.error": "Chyba.",
+    ]
+
+    private static let _csOverlayP5: [String: String] = [
         "compare.bar": "Porovnání ({n})",
         "compare.open": "Otevřít porovnání",
         "compare.add": "Do porovnání",
@@ -283,6 +304,9 @@ enum Loc {
         "rec.sessionTime": "Čas na foilu",
         "rec.sessionPumps": "Nejvíce pumpnutí",
         "rec.maxHr": "Max. tep",
+    ]
+
+    private static let _csOverlayP6: [String: String] = [
         "rec.earlyBird": "Ranní ptáče",
         "rec.nightOwl": "Noční sova",
         "side.records": "Rekordy",
@@ -338,6 +362,9 @@ enum Loc {
         "imp.ownerTitle": "🔒 Jen ty sám (vlastník relace)",
         "imp.owner1": "<b>Surová data</b> tvých relací (jednotlivé GPS body, zrychlení 25 Hz) — např. pro označování.",
         "imp.owner2": "Štítky, oříznutí, opětovná analýza, nahrávání/mazání fotek.",
+    ]
+
+    private static let _csOverlayP7: [String: String] = [
         "imp.owner3": "Tvoje <b>e-mailová adresa</b> a nastavení účtu — nikdy viditelné pro jiné uživatele.",
         "imp.owner4": "Kdo konkrétně u relace hlasoval / dal to se mi líbí, se ostatním uživatelům nezobrazuje.",
         "imp.operatorTitle": "🛠 Jen provozovatel (Jan)",
@@ -393,6 +420,9 @@ enum Loc {
         "account.offFoilTitle": "Off-foil obrazovka",
         "account.offFoilDesc": "Zobrazuje se na hodinkách automaticky, dokud se právě nefoilíš (výchozí: hodiny + poslední jízda). Při foilingu hodinky přepnou zpět na tvé naposledy zvolené zobrazení.",
         "datafields.page": "Stránka",
+    ]
+
+    private static let _csOverlayP8: [String: String] = [
         "datafields.field": "Pole",
         "datafields.removePage": "Odebrat stránku",
         "datafields.addPage": "Přidat stránku",
@@ -448,6 +478,9 @@ enum Loc {
         "merge.done": "Sloučeno ✓",
         "merge.suggestTitle": "Sloučit?",
         "merge.open": "Porovnat a sloučit",
+    ]
+
+    private static let _csOverlayP9: [String: String] = [
         "merge.unmerge": "Rozdělit",
         "merge.mergedFrom": "Sloučeno z několika",
         "compare.result": "Porovnání",
@@ -503,6 +536,9 @@ enum Loc {
         "meta.youtubePlaceholder": "odkaz na YouTube, Instagram nebo TikTok",
         "meta.errYoutube": "Povolené jsou jen odkazy na YouTube, Instagram nebo TikTok.",
         "sd.colorSpeed": "Rychlost",
+    ]
+
+    private static let _csOverlayP10: [String: String] = [
         "sd.colorPuls": "Tep",
         "sd.colorPump": "Pump",
         "sd.pumpMarker": "Značky pumpnutí",
@@ -554,8 +590,18 @@ enum Loc {
     ]
 
 
+
     // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
-    static let nlOverlay: [String: String] = [
+    // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let nlOverlay: [String: String] = {
+        var d: [String: String] = [:]
+        for p in [_nlOverlayP1, _nlOverlayP2, _nlOverlayP3, _nlOverlayP4, _nlOverlayP5, _nlOverlayP6, _nlOverlayP7, _nlOverlayP8, _nlOverlayP9, _nlOverlayP10] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let _nlOverlayP1: [String: String] = [
         "setup.inherit": "Standaard gebruiken",
         "nav.home": "Home",
         "nav.community": "Community",
@@ -611,6 +657,9 @@ enum Loc {
         "common.noData": "Nog geen gegevens",
         "common.start": "Start",
         "common.end": "Einde",
+    ]
+
+    private static let _nlOverlayP2: [String: String] = [
         "login.email": "E-mail",
         "login.password": "Wachtwoord (min. 8 tekens)",
         "login.passwordReg": "Wachtwoord (min. 8 tekens)",
@@ -666,6 +715,9 @@ enum Loc {
         "account.recordModeGarminHint": "Onder welk activiteitstype de opname in Garmin Connect verschijnt, stel je in het profiel in onder ‘Activiteitstype in Garmin Connect’.",
         "settings.design": "Thema",
         "settings.language": "Taal",
+    ]
+
+    private static let _nlOverlayP3: [String: String] = [
         "settings.light": "Licht",
         "settings.dark": "Donker",
         "settings.notifications": "Meldingen",
@@ -721,6 +773,9 @@ enum Loc {
         "verlauf.total": "Totaal",
         "verlauf.cumulative": "Cumulatief",
         "verlauf.daysWord": "dagen",
+    ]
+
+    private static let _nlOverlayP4: [String: String] = [
         "verlauf.daysAbbr": "d",
         "verlauf.period": "Periode",
         "verlauf.kmFoiling": "km foiling",
@@ -777,6 +832,9 @@ enum Loc {
         "profile.pwChanged": "Wachtwoord gewijzigd.",
         "profile.pwWrong": "Huidig wachtwoord onjuist.",
         "profile.error": "Fout.",
+    ]
+
+    private static let _nlOverlayP5: [String: String] = [
         "compare.bar": "Vergelijking ({n})",
         "compare.open": "Vergelijking openen",
         "compare.add": "Aan vergelijking toevoegen",
@@ -832,6 +890,9 @@ enum Loc {
         "rec.sessionTime": "On-foil-tijd",
         "rec.sessionPumps": "Meeste pumps",
         "rec.maxHr": "Max. hartslag",
+    ]
+
+    private static let _nlOverlayP6: [String: String] = [
         "rec.earlyBird": "Vroege vogel",
         "rec.nightOwl": "Nachtuil",
         "side.records": "Records",
@@ -887,6 +948,9 @@ enum Loc {
         "imp.ownerTitle": "🔒 Alleen jijzelf (eigenaar van de sessie)",
         "imp.owner1": "<b>Ruwe data</b> van je sessies (afzonderlijke GPS-punten, 25 Hz-versnelling) — bijv. voor het labelen.",
         "imp.owner2": "Labels, trimmen, opnieuw analyseren, foto's uploaden/verwijderen.",
+    ]
+
+    private static let _nlOverlayP7: [String: String] = [
         "imp.owner3": "Je <b>e-mailadres</b> en accountinstellingen — nooit zichtbaar voor andere gebruikers.",
         "imp.owner4": "Wie concreet op een sessie heeft gestemd/geliket, wordt niet aan andere gebruikers getoond.",
         "imp.operatorTitle": "🛠 Alleen de beheerder (Jan)",
@@ -942,6 +1006,9 @@ enum Loc {
         "account.offFoilTitle": "Off-foil-scherm",
         "account.offFoilDesc": "Wordt op het horloge automatisch getoond zolang je even niet foilt (standaard: kloktijd + laatste run). Tijdens het foilen schakelt het horloge terug naar je laatst gekozen weergave.",
         "datafields.page": "Pagina",
+    ]
+
+    private static let _nlOverlayP8: [String: String] = [
         "datafields.field": "Veld",
         "datafields.removePage": "Pagina verwijderen",
         "datafields.addPage": "Pagina toevoegen",
@@ -997,6 +1064,9 @@ enum Loc {
         "merge.done": "Samengevoegd ✓",
         "merge.suggestTitle": "Samenvoegen?",
         "merge.open": "Vergelijken & samenvoegen",
+    ]
+
+    private static let _nlOverlayP9: [String: String] = [
         "merge.unmerge": "Opheffen",
         "merge.mergedFrom": "Samengevoegd uit meerdere",
         "compare.result": "Vergelijking",
@@ -1052,6 +1122,9 @@ enum Loc {
         "meta.youtubePlaceholder": "YouTube-link (optioneel)",
         "meta.errYoutube": "Alleen YouTube-links toegestaan.",
         "sd.colorSpeed": "Snelheid",
+    ]
+
+    private static let _nlOverlayP10: [String: String] = [
         "sd.colorPuls": "Hartslag",
         "sd.colorPump": "Pump",
         "sd.pumpMarker": "Pump-markers",
@@ -1103,6 +1176,7 @@ enum Loc {
     ]
 
 
+
     static func t(_ key: String, _ lang: String) -> String {
         if lang == "fi", let v = fiOverlay[key] { return v }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if lang == "nl", let v = nlOverlay[key] { return v }   // nl-Overlay (aus web nl.ts); sonst Englisch
@@ -1120,7 +1194,16 @@ enum Loc {
     }
 
     // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts). App-eigene Keys ohne fi -> Englisch.
-    static let fiOverlay: [String: String] = [
+    // In 10 Bloecke zerlegt: EIN Literal mit 509 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let fiOverlay: [String: String] = {
+        var d: [String: String] = [:]
+        for p in [_fiOverlayP1, _fiOverlayP2, _fiOverlayP3, _fiOverlayP4, _fiOverlayP5, _fiOverlayP6, _fiOverlayP7, _fiOverlayP8, _fiOverlayP9, _fiOverlayP10] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let _fiOverlayP1: [String: String] = [
         "setup.inherit": "Käytä oletusta",
         "nav.community": "Yhteisö",
         "common.saved": "Tallennettu",
@@ -1176,6 +1259,9 @@ enum Loc {
         "settings.dark": "Tumma",
         "settings.notifications": "Ilmoitukset",
         "settings.nLikes": "Tykkäykset",
+    ]
+
+    private static let _fiOverlayP2: [String: String] = [
         "settings.nAnalyzed": "Analyysi valmis",
         "settings.nRecord": "Tallennus/ennätykset",
         "home.hello": "Hei",
@@ -1231,6 +1317,9 @@ enum Loc {
         "foils.all": "Kaikki foilit",
         "foils.more": "Lisää",
         "foils.default": "Oletus",
+    ]
+
+    private static let _fiOverlayP3: [String: String] = [
         "foilstats.intro": "Mitä arvoja milläkin foililla ajetaan (yhteisö).",
         "foilstats.riders": "Ajajat",
         "foilstats.bestKm": "paras km",
@@ -1286,6 +1375,9 @@ enum Loc {
         "sd.reportFake": "Ilmoita huijaukseksi",
         "sd.reportInappropriate": "Ilmoita sopimattomaksi",
         "sd.fake": "vaikuttaa epäaidolta",
+    ]
+
+    private static let _fiOverlayP4: [String: String] = [
         "sd.inappropriate": "sopimaton",
         "sd.reported": "ilmoitettu",
         "vote.reportConfirm": "Ilmoitetaanko tämä sessio sopimattomaksi?",
@@ -1341,6 +1433,9 @@ enum Loc {
         "account.recordModeFull": "Täysi · 25 Hz",
         "account.recordModeLite": "Säästö · 10 Hz",
         "account.recordModeGps": "Vain GPS",
+    ]
+
+    private static let _fiOverlayP5: [String: String] = [
         "account.recordModeAutoLite": "Tämä kello rajoitetaan automaattisesti tilasta ”Täysi” tilaan ”Säästö” (vähän muistia).",
         "account.recordModeGarminHint": "Millä aktiviteettityypillä tallenne näkyy Garmin Connectissa, määritetään profiilissa kohdassa ”Aktiviteettityyppi Garmin Connectissa”.",
         "foilsens.label": "Tunnistuksen herkkyys",
@@ -1397,6 +1492,9 @@ enum Loc {
         "pumpunit.hint": "Vaikuttaa vain näyttöön — mitatut arvot ja ennätykset pysyvät samoina.",
         "unit.spots": "spottia",
         "home.spots": "Spotit",
+    ]
+
+    private static let _fiOverlayP6: [String: String] = [
         "home.spotSearch": "Hae spotti (toinen järvi)…",
         "home.noSpots": "Ei vielä spotteja — hae yltä.",
         "home.remove": "poista",
@@ -1452,6 +1550,9 @@ enum Loc {
         "rec.mostRuns": "Eniten lenkkejä",
         "rec.sessionDistance": "Pisin sessio",
         "rec.sessionTime": "Foil-aika",
+    ]
+
+    private static let _fiOverlayP7: [String: String] = [
         "rec.sessionPumps": "Eniten pumppeja",
         "rec.maxHr": "Max. syke",
         "rec.earlyBird": "Aamuvirkku",
@@ -1507,6 +1608,9 @@ enum Loc {
         "imp.owner4": "Kuka tarkalleen äänesti/tykkäsi sessiosta, ei näytetä muille käyttäjille.",
         "imp.operatorTitle": "🛠 Vain ylläpitäjä (Jan)",
         "imp.operator1": "Sähköpostiosoitteet, kaikki raakadata, laitelinkitykset ja tekniset palvelinlokit.",
+    ]
+
+    private static let _fiOverlayP8: [String: String] = [
         "imp.operator2": "Salasanat tallennetaan vain suolattuna hashina (PBKDF2) — en näe niitäkään selkokielisenä.",
         "imp.privacyTitle": "Tietojen poisto",
         "imp.privacyText": "Kaikki ladatut tiedot säilytetään pysyvästi. Poistaaksesi käytä profiilisi „Poista tili“ -painiketta (web-sovellus tai iOS-/Android-sovellus) — se poistaa tilisi kaikkine sessioineen, raakadatoineen ja kuvineen lopullisesti. Tiedonsiirto on salattua (HTTPS).",
@@ -1562,6 +1666,9 @@ enum Loc {
         "alarm.enable": "Ota värinähälytys käyttöön",
         "alarm.defaultSource": "Oletus kellossa",
         "alarm.defaultFoil": "Oma oletus-foil",
+    ]
+
+    private static let _fiOverlayP9: [String: String] = [
         "alarm.defaultFixed": "Kiinteät arvot (alla)",
         "alarm.defaultHelp": "Millä kello on käynnistyessä esitäytetty – kellossa (↓) vaihdettavissa milloin vain. „Oma oletus-foil“ käyttää foilista + painosta lasketut rajat, „Kiinteät arvot“ alla asetetut.",
         "alarm.overTitle": "Maksiminopeus ylitetty",
@@ -1617,6 +1724,9 @@ enum Loc {
         "share.background": "Tausta",
         "share.addPhoto": "Kuva",
         "share.changePhoto": "Vaihda kuva",
+    ]
+
+    private static let _fiOverlayP10: [String: String] = [
         "share.noPhoto": "Ilman",
         "share.darken": "Tummenna",
         "share.photoHint": "Vedä siirtääksesi · kahdella sormella zoomaus",
@@ -1633,6 +1743,7 @@ enum Loc {
         "calc.disclaimer": "Mallilaskelma — likiarvoja, ei mittaus. Paras (pienin) teho kussakin sarakkeessa korostettu.",
     ]
 
+
     private static func r(_ de: String, _ gsw: String, _ deAT: String, _ en: String, _ fr: String, _ it: String, _ es: String) -> [String: String] {
         ["de": de, "gsw": gsw, "de-AT": deAT, "en": en, "fr": fr, "it": it, "es": es]
     }
@@ -1642,7 +1753,16 @@ enum Loc {
     private static let table: [String: [String: String]] =
         _t1.merging(_t2) { a, _ in a }.merging(_t3) { a, _ in a }
 
-    private static let _t1: [String: [String: String]] = [
+    // In 5 Bloecke zerlegt: EIN Literal mit 242 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let _t1: [String: [String: String]] = {
+        var d: [String: [String: String]] = [:]
+        for p in [__t1P1, __t1P2, __t1P3, __t1P4, __t1P5] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let __t1P1: [String: [String: String]] = [
         "foils.defaultSport": r("Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions"),
         "foils.defaultSportHint": r("Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later."),
         "home.startThreshold": r("Versuch < ", "Versuch < ", "Versuch < ", "Attempt < ", "Attempt < ", "Attempt < ", "Attempt < "),
@@ -1701,6 +1821,9 @@ enum Loc {
         "cls.sport.efoil": r("eFoil (Motor im Board)", "eFoil (Motor im Board)", "eFoil (Motor im Board)", "eFoil (motor in the board)", "eFoil (motor in the board)", "eFoil (motor in the board)", "eFoil (motor in the board)"),
         "cls.sport.foildrive": r("Foildrive (Motor am Mast)", "Foildrive (Motor am Mast)", "Foildrive (Motor am Mast)", "Foildrive (motor on the mast)", "Foildrive (motor on the mast)", "Foildrive (motor on the mast)", "Foildrive (motor on the mast)"),
         "cls.sport.other": r("Andere Sportart", "Andere Sportart", "Andere Sportart", "Another sport", "Another sport", "Another sport", "Another sport"),
+    ]
+
+    private static let __t1P2: [String: [String: String]] = [
         "cls.dq.ok": r("Daten in Ordnung", "Daten in Ordnung", "Daten in Ordnung", "Data is fine", "Data is fine", "Data is fine", "Data is fine"),
         "cls.dq.false_data": r("Fehlerhafte Daten", "Fehlerhafte Daten", "Fehlerhafte Daten", "Faulty data", "Faulty data", "Faulty data", "Faulty data"),
         "cls.dq.duplicate": r("Doppelte Aufnahme", "Doppelte Aufnahme", "Doppelte Aufnahme", "Duplicate recording", "Duplicate recording", "Duplicate recording", "Duplicate recording"),
@@ -1756,6 +1879,9 @@ enum Loc {
         "rec.foilOther": r("Anderes Foil …", "Anders Foil …", "Anderes Foil …", "Other foil …", "Autre foil …", "Altro foil …", "Otro foil …"),
         "rec.start": r("START", "START", "START", "START", "START", "START", "START"),
         "rec.stop": r("STOPP", "STOPP", "STOPP", "STOP", "STOP", "STOP", "STOP"),
+    ]
+
+    private static let __t1P3: [String: [String: String]] = [
         "rec.holdStop": r("Zum Stoppen gedrückt halten", "Zum Stoppe drucke haa", "Zum Stoppen gedrückt halten", "Press and hold to stop", "Maintenir pour arrêter", "Tieni premuto per fermare", "Mantén pulsado para parar"),
         "rec.recording": r("Aufnahme läuft", "Ufnahm lauft", "Aufnahme läuft", "Recording", "Enregistrement", "Registrazione", "Grabando"),
         "rec.onfoil": r("On Foil", "On Foil", "On Foil", "On foil", "On foil", "On foil", "On foil"),
@@ -1778,7 +1904,6 @@ enum Loc {
         "common.noData": r("Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Aucune donnée", "Nessun dato", "Sin datos"),
         "common.start": r("Start", "Start", "Start", "Start", "Début", "Inizio", "Inicio"),
         "common.end": r("Ende", "Ändi", "Ende", "End", "Fin", "Fine", "Fin"),
-
         "login.email": r("E-Mail", "E-Mail", "E-Mail", "Email", "E-mail", "E-mail", "Correo electrónico"),
         "login.password": r("Passwort (min. 8 Zeichen)", "Passwort (min. 8 Zeiche)", "Passwort (min. 8 Zeichn)", "Password (min. 8 characters)", "Mot de passe (min. 8 caractères)", "Password (min. 8 caratteri)", "Contraseña (mín. 8 caracteres)"),
         "login.passwordReg": r("Passwort (min. 8 Zeichen)", "Passwort (min. 8 Zeiche)", "Passwort (min. 8 Zeichen)", "Password (min. 8 chars)", "Mot de passe (8+ car.)", "Password (min. 8)", "Contraseña (mín. 8)"),
@@ -1789,7 +1914,6 @@ enum Loc {
         "login.toLogin": r("Schon ein Konto? Anmelden", "Scho es Konto? Aamelde", "Schon ein Konto? Anmelden", "Have an account? Sign in", "Déjà un compte ? Se connecter", "Hai un account? Accedi", "¿Ya tienes cuenta? Inicia sesión"),
         "login.or": r("oder", "oder", "oder", "or", "ou", "o", "o"),
         "login.google": r("Mit Google anmelden", "Mit Google aamelde", "Mit Google anmelden", "Sign in with Google", "Se connecter avec Google", "Accedi con Google", "Iniciar sesión con Google"),
-
         "profile.foils": r("Foils", "Foils", "Foils", "Foils", "Foils", "Foils", "Foils"),
         "profile.foilsSub": r("Katalog · meine & Standard", "Katalog · myni & Standard", "Katalog · meine & Standard", "Catalog · mine & default", "Catalogue · les miens & défaut", "Catalogo · i miei & predefinito", "Catálogo · míos & predet."),
         "profile.calc": r("Foil-Rechner", "Foil-Rächner", "Foil-Rechner", "Foil calculator", "Calculateur de foil", "Calcolatore foil", "Calculadora de foil"),
@@ -1813,11 +1937,13 @@ enum Loc {
         "profile.compareSub": r("Kennzahlen mehrerer Sessions", "Kennzahle vo mehrere Sessions", "Kennzahlen mehrerer Sessions", "Metrics of multiple sessions", "Mesures de plusieurs sessions", "Metriche di più sessioni", "Métricas de varias sesiones"),
         "profile.logout": r("Abmelden", "Abmälde", "Abmelden", "Sign out", "Se déconnecter", "Esci", "Cerrar sesión"),
         "profile.deleteAccount": r("Konto löschen", "Konto lösche", "Konto löschn", "Delete account", "Supprimer le compte", "Elimina account", "Eliminar cuenta"),
+    ]
+
+    private static let __t1P4: [String: [String: String]] = [
         "profile.deleteConfirm": r("Konto wirklich unwiderruflich löschen? Alle Sessions, Rohdaten und Fotos werden entfernt. Das kann nicht rückgängig gemacht werden.", "S Konto würkli unwiderrueflich lösche? Alli Sessions, Rohdate und Föteli wärded entfernt. Cha nöd rückgängig gmacht werde.", "Konto wirklich unwiderruflich löschn? Olle Sessions, Rohdaten und Fotos werdn entfernt. Des kann ma ned rückgängig machn.", "Permanently delete your account? All sessions, raw data and photos will be removed. This cannot be undone.", "Supprimer définitivement ton compte ? Toutes les sessions, données brutes et photos seront supprimées. Irréversible.", "Eliminare definitivamente l'account? Tutte le sessioni, i dati grezzi e le foto saranno rimossi. Irreversibile.", "¿Eliminar tu cuenta de forma permanente? Se eliminarán todas las sesiones, datos brutos y fotos. No se puede deshacer."),
         "profile.deleteConfirmBtn": r("Endgültig löschen", "Entgültig lösche", "Endgültig löschen", "Delete permanently", "Supprimer définitivement", "Elimina definitivamente", "Eliminar permanentemente"),
         "profile.editName": r("Anzeigename", "Aazeigname", "Anzeigename", "Display name", "Nom affiché", "Nome visualizzato", "Nombre visible"),
         "profile.web": r("pumpfoil.org öffnen", "pumpfoil.org öffne", "pumpfoil.org öffnen", "Open pumpfoil.org", "Ouvrir pumpfoil.org", "Apri pumpfoil.org", "Abrir pumpfoil.org"),
-
         "settings.title": r("Einstellungen", "Yystellige", "Einstellungen", "Settings", "Réglages", "Impostazioni", "Ajustes"),
         "settings.weight": r("Gewicht", "Gwicht", "Gewicht", "Weight", "Poids", "Peso", "Peso"),
         "settings.homespot": r("Homespot", "Homespot", "Homespot", "Home spot", "Spot principal", "Spot principale", "Spot principal"),
@@ -1865,11 +1991,13 @@ enum Loc {
         "settings.nLikes": r("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
         "settings.nAnalyzed": r("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
         "settings.nRecord": r("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
-
         "home.hello": r("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
         "home.weather": r("Wetter am Homespot", "Wätter am Homespot", "Wetter am Homespot", "Weather at home spot", "Météo au spot", "Meteo allo spot", "Tiempo en el spot"),
         "home.myChats": r("Meine Chats", "Mini Chats", "Meine Chats", "My chats", "Mes chats", "Le mie chat", "Mis chats"),
         "wx.today": r("Heute", "Hüt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
+    ]
+
+    private static let __t1P5: [String: [String: String]] = [
         "wx.tomorrow": r("Morgen", "Morn", "Morgn", "Tomorrow", "Demain", "Domani", "Mañana"),
         "home.foiling": r("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
         "home.startSuccess": r("Start-Erfolgsquote", "Start-Erfolgsquote", "Start-Erfolgsquote", "Start success rate", "Taux de départs réussis", "Tasso di partenze riuscite", "Tasa de salidas logradas"),
@@ -1884,19 +2012,27 @@ enum Loc {
         "home.longestGlide": r("Längster Gleit", "Längschte Gleit", "Längster Gleit", "Longest glide", "Plus long plané", "Planata max", "Planeo máx"),
         "home.mostRuns": r("Meiste Läufe", "Meischti Läuf", "Meiste Läufe", "Most runs", "Plus de runs", "Più run", "Más tramos"),
         "home.latest": r("Letzte Sessions", "Letschti Sessions", "Letzte Sessions", "Latest sessions", "Dernières sessions", "Ultime sessioni", "Últimas sesiones"),
-
         "sessions.mine": r("Meine", "Myni", "Meine", "Mine", "Les miennes", "Le mie", "Mías"),
         "sessions.all": r("Alle", "Alli", "Alle", "All", "Toutes", "Tutte", "Todas"),
         "sessions.searchSpot": r("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
         "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
         "sessions.oclock": r("Uhr", "Uhr", "Uhr", "", "", "", ""),
         "sd.duration": r("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
-
         "verlauf.empty": r("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
         "verlauf.total": r("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),
     ]
 
-    private static let _t2: [String: [String: String]] = [
+
+    // In 5 Bloecke zerlegt: EIN Literal mit 257 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let _t2: [String: [String: String]] = {
+        var d: [String: [String: String]] = [:]
+        for p in [__t2P1, __t2P2, __t2P3, __t2P4, __t2P5] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let __t2P1: [String: [String: String]] = [
         "verlauf.cumulative": r("Kumuliert", "Kumuliert", "Kumuliert", "Cumulative", "Cumulé", "Cumulato", "Acumulado"),
         "verlauf.daysWord": r("Tage", "Täg", "Tage", "days", "jours", "giorni", "días"),
         "verlauf.daysAbbr": r("T", "T", "T", "d", "j", "g", "d"),
@@ -1953,6 +2089,9 @@ enum Loc {
         "profile.newPw": r("Neues Passwort (min. 8 Zeichen)", "Nöis Passwort (min. 8 Zeiche)", "Neiches Passwort (min. 8 Zeichen)", "New password (min. 8 characters)", "Nouveau mot de passe (min. 8 caractères)", "Nuova password (min. 8 caratteri)", "Nueva contraseña (mín. 8 caracteres)"),
         "profile.pwMin": r("Neues Passwort: mind. 8 Zeichen.", "Nöis Passwort: mindeschtens 8 Zeiche.", "Neiches Passwort: mindestens 8 Zeichen.", "New password: at least 8 characters.", "Nouveau mot de passe : au moins 8 caractères.", "Nuova password: almeno 8 caratteri.", "Nueva contraseña: al menos 8 caracteres."),
         "profile.pwChanged": r("Passwort geändert.", "Passwort gänderet.", "Passwort gändert.", "Password changed.", "Mot de passe modifié.", "Password modificata.", "Contraseña cambiada."),
+    ]
+
+    private static let __t2P2: [String: [String: String]] = [
         "profile.pwWrong": r("Aktuelles Passwort falsch.", "Aktuells Passwort falsch.", "Aktuells Passwort foisch.", "Current password is wrong.", "Mot de passe actuel incorrect.", "Password attuale errata.", "La contraseña actual es incorrecta."),
         "profile.error": r("Fehler.", "Fähler.", "Fehler.", "Error.", "Erreur.", "Errore.", "Error."),
         "compare.bar": r("Vergleich ({n})", "Verglych ({n})", "Vergleich ({n})", "Compare ({n})", "Comparaison ({n})", "Confronto ({n})", "Comparación ({n})"),
@@ -1978,7 +2117,6 @@ enum Loc {
         "watch.ok": r("App installiert · Updates kommen automatisch mit der iPhone-App.", "App installiert · Updates chömed automatisch mit de iPhone-App.", "App installiert · Updates kommen automatisch mit der iPhone-App.", "App installed · updates come automatically with the iPhone app.", "App installée · mises à jour auto avec l'app iPhone.", "App installata · aggiornamenti automatici con l'app iPhone.", "App instalada · actualizaciones automáticas con la app de iPhone."),
         "watch.notInstalled": r("Uhr gekoppelt, App fehlt — in der Watch-App auf dem iPhone unter „Verfügbare Apps“ hinzufügen.", "Uhr kopplet, App fählt — i de Watch-App ufem iPhone under „Verfügbari Apps“ zuefüege.", "Uhr gekoppelt, App fehlt — in der Watch-App am iPhone unter „Verfügbare Apps“ hinzufügen.", "Watch paired, app missing — add it in the Watch app on iPhone under “Available Apps”.", "Montre liée, app absente — ajoutez-la dans l'app Watch (iPhone), « Apps disponibles ».", "Orologio accoppiato, app assente — aggiungila nell'app Watch su iPhone in “App disponibili”.", "Reloj emparejado, falta la app — añádela en la app Watch del iPhone en «Apps disponibles»."),
         "watch.none": r("Keine Apple Watch gekoppelt.", "Kei Apple Watch kopplet.", "Keine Apple Watch gekoppelt.", "No Apple Watch paired.", "Aucune Apple Watch liée.", "Nessuna Apple Watch accoppiata.", "Ningún Apple Watch emparejado."),
-
         "spots.empty": r("Noch keine Spots", "No kei Spots", "Noch keine Spots", "No spots yet", "Aucun spot", "Nessuno spot", "Sin spots"),
         "chat.empty": r("Noch keine Nachrichten. Schreib die erste!", "No kei Nachrichte. Schrib di erscht!", "No kane Nachrichten. Schreib die erste, geh!", "No messages yet. Be the first!", "Aucun message pour l’instant. Sois le premier !", "Ancora nessun messaggio. Scrivi il primo!", "Aún no hay mensajes. ¡Sé el primero!"),
         "chat.globalName": r("Community-Chat", "Community-Chat", "Community-Chat", "Community chat", "Chat communautaire", "Chat della community", "Chat de la comunidad"),
@@ -2023,6 +2161,9 @@ enum Loc {
         "rec.mostRuns": r("Meiste Läufe", "Meischti Läuf", "Meiste Läuf", "Most runs", "Plus de runs", "Più run", "Más runs"),
         "rec.sessionDistance": r("Weiteste Session", "Wiitesti Session", "Weiteste Session", "Farthest session", "Distance max (session)", "Distanza max (sessione)", "Distancia máx. (sesión)"),
         "rec.sessionTime": r("On-Foil-Zeit", "On-Foil-Ziit", "On-Foil-Zeit", "On-foil time", "Temps on-foil", "Tempo on-foil", "Tiempo on-foil"),
+    ]
+
+    private static let __t2P3: [String: [String: String]] = [
         "rec.sessionPumps": r("Meiste Pumps", "Meischti Pumps", "Meiste Pumps", "Most pumps", "Pumps max", "Più pump", "Más pumps"),
         "rec.maxHr": r("Max. Puls", "Max. Puls", "Max. Puls", "Max heart rate", "FC max", "FC max", "FC máx."),
         "rec.earlyBird": r("Early Bird", "Early Bird", "Early Bird", "Early bird", "Lève-tôt", "Mattiniero", "Madrugador"),
@@ -2078,6 +2219,9 @@ enum Loc {
         "imp.community4": r("Likes (Anzahl) und die Anzahl der „wirkt unecht“/„unangemessen“-Stimmen.", "Likes (Aazahl) und d Aazahl vo de „wirkt unecht“/„unaagmässe“-Stimme.", "Likes (Anzahl) und die Anzahl der „wirkt unecht“/„unangemessen“-Stimmen.", "Likes (count) and the number of “looks fake”/“inappropriate” votes.", "Likes (nombre) et le nombre de votes « semble faux »/« inapproprié ».", "Like (numero) e il numero di voti « sembra falso »/« inappropriato ».", "Me gusta (número) y el número de votos « parece falso »/« inapropiado »."),
         "imp.communityNote": r("Sessions sind nicht anonym — sie sind der Person über ihren Anzeigenamen zugeordnet. Sessions ohne erkanntes Foiling (z. B. reine GPS-Importe) tauchen nicht in den Community-Listen auf.", "Sessions sind nöd anonym — si sind de Person über ihre Aazeigename zuegordnet. Sessions ohni erkanntes Foiling (z. B. reini GPS-Import) tauchet nöd i de Community-Lischte uf.", "Sessions sind nicht anonym — sie sind der Person über ihren Anzeigenamen zugeordnet. Sessions ohne erkanntes Foiling (z. B. reine GPS-Importe) tauchen nicht in den Community-Listen auf.", "Sessions are not anonymous — they are linked to the person via their display name. Sessions without detected foiling (e.g. pure GPS imports) don't appear in the community lists.", "Les sessions ne sont pas anonymes — elles sont associées à la personne via son nom d'affichage. Les sessions sans foil détecté (p. ex. simples imports GPS) n'apparaissent pas dans les listes de la communauté.", "Le sessioni non sono anonime — sono associate alla persona tramite il nome visualizzato. Le sessioni senza foil rilevato (es. semplici import GPS) non compaiono negli elenchi della community.", "Las sesiones no son anónimas — están asociadas a la persona mediante su nombre visible. Las sesiones sin foil detectado (p. ej. importaciones GPS puras) no aparecen en las listas de la comunidad."),
         "imp.ownerTitle": r("🔒 Nur du selbst (Besitzer der Session)", "🔒 Nur du sälber (Bsitzer vo de Session)", "🔒 Nur du selbst (Besitzer der Session)", "🔒 Only you (the session owner)", "🔒 Toi seul (propriétaire de la session)", "🔒 Solo tu (proprietario della sessione)", "🔒 Solo tú (propietario de la sesión)"),
+    ]
+
+    private static let __t2P4: [String: [String: String]] = [
         "imp.owner1": r("Rohdaten deiner Sessions (einzelne GPS-Punkte, 25-Hz-Beschleunigung) — z. B. fürs Labeln.", "Rohdate vo dine Sessions (einzelni GPS-Pünkt, 25-Hz-Beschlünigung) — z. B. fürs Labele.", "Rohdaten deiner Sessions (einzelne GPS-Punkte, 25-Hz-Beschleunigung) — z. B. fürs Labeln.", "Raw data of your sessions (individual GPS points, 25 Hz acceleration) — e.g. for labeling.", "Données brutes de tes sessions (points GPS individuels, accélération 25 Hz) — p. ex. pour le labeling.", "Dati grezzi delle tue sessioni (singoli punti GPS, accelerazione 25 Hz) — es. per l'etichettatura.", "Datos brutos de tus sesiones (puntos GPS individuales, aceleración 25 Hz) — p. ej. para el etiquetado."),
         "imp.owner2": r("Labels, Trimmen, Neu-Analysieren, Fotos hochladen/löschen.", "Labels, Trimme, Neu-Analysiere, Föteli uuflade/lösche.", "Labels, Trimmen, Neu-Analysieren, Fotos hochladen/löschen.", "Labels, trimming, re-analyzing, uploading/deleting photos.", "Labels, rognage, ré-analyse, importer/supprimer des photos.", "Etichette, taglio, ri-analisi, caricare/eliminare foto.", "Etiquetas, recorte, re-análisis, subir/eliminar fotos."),
         "imp.owner3": r("Deine E-Mail-Adresse und Konto-Einstellungen — nie für andere Nutzer sichtbar.", "Dini E-Mail-Adrässe und d Konto-Yystellige — nie für anderi Nutzer sichtbar.", "Deine E-Mail-Adresse und Konto-Einstellungen — nie für andere Nutzer sichtbar.", "Your email address and account settings — never visible to other users.", "Ton adresse e-mail et les réglages du compte — jamais visibles par les autres utilisateurs.", "Il tuo indirizzo e-mail e le impostazioni dell'account — mai visibili ad altri utenti.", "Tu dirección de correo y los ajustes de la cuenta — nunca visibles para otros usuarios."),
@@ -2117,14 +2261,12 @@ enum Loc {
         "dict.edit": r("Bearbeiten", "Bearbeite", "Bearbeitn", "Edit", "Modifier", "Modifica", "Editar"),
         "dict.permDenied": r("Mikrofon-Zugriff nötig", "Mikrofon-Zuegriff nötig", "Mikrofon-Zuagriff notwendig", "Microphone access needed", "Accès au micro requis", "Serve l'accesso al microfono", "Se necesita acceso al micrófono"),
         "chat.editHint": r("Tipp: eigene Nachrichten der letzten Stunde per langem Drücken bearbeiten oder löschen.", "Tipp: eigeni Nachrichte vo dr letschte Stund mit langem Drucke bearbeite oder lösche.", "Tipp: eigene Nochrichtn vo da letztn Stund mit langem Drückn bearbeitn oder löschn.", "Tip: long-press your own messages from the last hour to edit or delete them.", "Astuce : appuie longuement sur tes messages de la dernière heure pour les modifier ou les supprimer.", "Suggerimento: tieni premuto sui tuoi messaggi dell'ultima ora per modificarli o eliminarli.", "Consejo: mantén pulsados tus mensajes de la última hora para editarlos o eliminarlos."),
-
         "foils.search": r("Foil suchen…", "Foil sueche…", "Foil suachn…", "Search foil…", "Chercher un foil…", "Cerca foil…", "Buscar foil…"),
         "foils.brand": r("Marke", "Marke", "Marke", "Brand", "Marque", "Marca", "Marca"),
         "foils.mine": r("Mein Foil", "Mis Foil", "Mei Foil", "My foil", "Mon foil", "Il mio foil", "Mi foil"),
         "foils.all": r("Alle Foils", "Alli Foils", "Alle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
         "foils.more": r("Weitere", "Wytri", "Weitere", "More", "Autres", "Altri", "Más"),
         "foils.default": r("Standard", "Standard", "Standard", "Default", "Défaut", "Predefinito", "Predet."),
-
         "foilstats.intro": r("Welche Werte mit welchem Foil gefahren werden (Community).", "Weli Wärt mit welem Foil gfahre wärde (Community).", "Welche Werte mit welchem Foil gefahren werden (Community).", "Which values are ridden with which foil (community).", "Quelles valeurs avec quel foil (communauté).", "Quali valori con quale foil (community).", "Qué valores con qué foil (comunidad)."),
         "foilstats.riders": r("Fahrer", "Fahrer", "Fahrer", "Riders", "Riders", "Rider", "Riders"),
         "watchStats.title": r("Uhren-Statistik", "Uhre-Statistik", "Uhren-Statistik", "Watch stats", "Stats par montre", "Statistiche orologi", "Estadísticas de relojes"),
@@ -2133,15 +2275,16 @@ enum Loc {
         "watchStats.km": r("Foil-km", "Foil-km", "Foil-km", "Foil km", "Km foil", "Km foil", "Km foil"),
         "watchStats.bestSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Vel. max", "Vel. máx"),
         "foilstats.bestKm": r("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
-
         "datafields.intro": r("Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Bis zu 3 Fälder pro Syte. Lääri Syte falle uf de Uhr wäg.", "Bis zu 3 Felder pro Seite. Leere Seiten entfallen auf der Uhr.", "Up to 3 fields per page. Empty pages are skipped on the watch.", "Jusqu'à 3 champs par page. Les pages vides sont ignorées sur la montre.", "Fino a 3 campi per pagina. Le pagine vuote vengono saltate sull'orologio.", "Hasta 3 campos por página. Las páginas vacías se omiten en el reloj."),
         "account.offFoilTitle": r("Off-Foil-Screen", "Off-Foil-Screen", "Off-Foil-Screen", "Off-foil screen", "Écran hors-foil", "Schermata off-foil", "Pantalla off-foil"),
+    ]
+
+    private static let __t2P5: [String: [String: String]] = [
         "account.offFoilDesc": r("Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück auf deine zuletzt gewählte Ansicht.", "Wird uf de Uhr automatisch zeigt, solang du grad nöd foilsch (Standard: Ziit + letschte Lauf). Bim Foile schaltet d Uhr zrugg uf dini zletscht gwählti Aasicht.", "Wird auf der Uhr automatisch gezeigt, solange du gerade nicht foilst (Default: Uhrzeit + letzter Lauf). Beim Foilen schaltet die Uhr zurück auf deine zuletzt gewählte Ansicht.", "Shown automatically on the watch while you're not foiling (default: clock + last run). When foiling, the watch switches back to your last selected view.", "S'affiche automatiquement sur la montre tant que tu ne foils pas (par défaut : heure + dernier run). Pendant le foil, la montre revient à ta dernière vue choisie.", "Viene mostrato automaticamente sull'orologio finché non sei in foil (predefinito: ora + ultimo run). Durante il foil l'orologio torna alla tua ultima vista scelta.", "Se muestra automáticamente en el reloj mientras no estás en foil (por defecto: hora + último run). Durante el foil, el reloj vuelve a tu última vista elegida."),
         "datafields.page": r("Seite", "Syte", "Seite", "Page", "Page", "Pagina", "Página"),
         "datafields.field": r("Feld", "Fäld", "Feld", "Field", "Champ", "Campo", "Campo"),
         "datafields.removePage": r("Seite entfernen", "Syte entferne", "Seite entfernen", "Remove page", "Supprimer la page", "Rimuovi pagina", "Quitar página"),
         "datafields.addPage": r("Seite hinzufügen", "Syte zuefüege", "Seite hinzufügen", "Add page", "Ajouter une page", "Aggiungi pagina", "Añadir página"),
-
         "field.0": r("— leer —", "— leer —", "— leer —", "— off —", "— vide —", "— vuoto —", "— vacío —"),
         "field.1": r("Speed (3 s)", "Speed (3 s)", "Speed (3 s)", "Speed (3 s)", "Vitesse (3 s)", "Velocità (3 s)", "Velocidad (3 s)"),
         "field.5": r("Speed (aktuell)", "Speed (aktuell)", "Speed (aktuell)", "Speed (current)", "Vitesse (actuelle)", "Velocità (attuale)", "Velocidad (actual)"),
@@ -2163,7 +2306,6 @@ enum Loc {
         "field.18": r("Letzter Lauf: Ø Speed", "Letschte Lauf: Ø Speed", "Letzter Lauf: Ø Speed", "Last run: avg speed", "Dernier run : vitesse moy.", "Ultimo run: velocità media", "Último run: velocidad media"),
         "field.19": r("Letzter Lauf: Max Speed", "Letschte Lauf: Max Speed", "Letzter Lauf: Max Speed", "Last run: max speed", "Dernier run : vitesse max", "Ultimo run: velocità max", "Último run: velocidad máx"),
         "field.20": r("Läufe (Anzahl)", "Läuf (Aazahl)", "Läufe (Anzahl)", "Runs (count)", "Runs (nombre)", "Run (numero)", "Runs (número)"),
-
         "alarm.title": r("Vibrationsalarm", "Vibrationsalarm", "Vibrationsalarm", "Vibration alarm", "Alarme vibrante", "Allarme a vibrazione", "Alarma por vibración"),
         "alarm.desc": r("Die Uhr vibriert beim Foilen, sobald du eine Geschwindigkeitsgrenze über- oder unterschreitest – z. B. um in der optimalen Pump-Geschwindigkeit zu bleiben. Ist der Alarm aus, zeigt der Uhr-Startbildschirm „Alarm: aus“.", "D Uhr vibriert bim Foile, sobald d über oder under e Gschwindigkeitsgränze chunnsch – z. B. zum i de optimale Pump-Gschwindigkeit blibe. Wenn de Alarm us isch, zeigt de Uhr-Startbildschirm „Alarm: us“.", "Die Uhr vibriert beim Foilen, sobald du eine Geschwindigkeitsgrenze über- oder unterschreitest – z. B. um in der optimalen Pump-Geschwindigkeit zu bleiben. Ist der Alarm aus, zeigt der Uhr-Startbildschirm „Alarm: aus“.", "The watch vibrates while foiling when you cross a speed threshold – e.g. to stay in the optimal pump speed. When the alarm is off, the watch start screen shows “Alarm: off”.", "La montre vibre pendant le foil quand tu franchis un seuil de vitesse, p. ex. pour rester à la vitesse de pompage optimale. Si l'alarme est désactivée, l'écran d'accueil de la montre affiche « Alarme : off ».", "L'orologio vibra durante il foiling quando superi una soglia di velocità, ad es. per restare alla velocità di pompaggio ottimale. Se l'allarme è disattivato, la schermata iniziale dell'orologio mostra «Allarme: off».", "El reloj vibra mientras foileas cuando cruzas un umbral de velocidad, p. ej. para mantenerte en la velocidad óptima de bombeo. Si la alarma está desactivada, la pantalla de inicio del reloj muestra «Alarma: off»."),
         "alarm.enable": r("Vibrationsalarm aktivieren", "Vibrationsalarm aktiviere", "Vibrationsalarm aktivieren", "Enable vibration alarm", "Activer l'alarme vibrante", "Attiva l'allarme a vibrazione", "Activar alarma por vibración"),
@@ -2177,7 +2319,17 @@ enum Loc {
         "alarm.minSpeed": r("Min", "Min", "Min", "Min", "Min", "Min", "Mín"),
     ]
 
-    private static let _t3: [String: [String: String]] = [
+
+    // In 3 Bloecke zerlegt: EIN Literal mit 123 Eintraegen ist fuer den
+    // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+    // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    static let _t3: [String: [String: String]] = {
+        var d: [String: [String: String]] = [:]
+        for p in [__t3P1, __t3P2, __t3P3] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+
+    private static let __t3P1: [String: [String: String]] = [
         "alarm.pattern": r("Muster", "Muster", "Muster", "Pattern", "Motif", "Schema", "Patrón"),
         "alarm.mode": r("Auslösen", "Uslöse", "Auslösen", "Trigger", "Déclenchement", "Attivazione", "Activación"),
         "alarm.modeOnce": r("einmalig beim Über-/Unterschreiten", "eimal bim Über-/Underschriite", "einmalig beim Über-/Unterschreiten", "once when crossing", "une fois au franchissement", "una volta al superamento", "una vez al cruzar"),
@@ -2187,7 +2339,6 @@ enum Loc {
         "alarm.patShort2": r("2× kurz", "2× churz", "2× kurz", "2× short", "2× court", "2× breve", "2× corto"),
         "alarm.patLong2": r("2× lang", "2× lang", "2× lang", "2× long", "2× long", "2× lungo", "2× largo"),
         "alarm.patLsl": r("lang-kurz-lang", "lang-churz-lang", "lang-kurz-lang", "long-short-long", "long-court-long", "lungo-breve-lungo", "largo-corto-largo"),
-
         "compare.title": r("Vergleich", "Verglych", "Vergleich", "Compare", "Comparaison", "Confronto", "Comparación"),
         "merge.action": r("Zusammenführen", "Zämeführe", "Zsammführn", "Merge", "Fusionner", "Unisci", "Combinar"),
         "merge.compareHint": r("Eigene Sessions vom selben Tag & Spot — 'Zusammenführen' macht daraus EINE Session (Rohdaten aneinandergehängt, neu ausgewertet; Quellen werden archiviert).", "Eigeni Sessions vom gliiche Tag & Spot — 'Zämeführe' macht draus EI Session (Rohdate aneinand, nöi usgwertet; Quelle wärded archiviert).", "Eigene Sessions vom söbn Tog & Spot — 'Zsammführn' mocht daraus OANE Session (Rohdatn aneinand, nei ausgwertt; Quelln wern archiviert).", "Your own sessions from the same day & spot — 'Merge' combines them into ONE session (raw data concatenated and re-analyzed; sources are archived).", "Vos sessions du même jour et spot — 'Fusionner' les combine en UNE session (données brutes concaténées et ré-analysées; sources archivées).", "Le tue sessioni dello stesso giorno e spot — 'Unisci' le combina in UNA sessione (dati grezzi concatenati e ri-analizzati; le origini vengono archiviate).", "Tus sesiones del mismo día y spot — 'Combinar' las une en UNA sesión (datos sin procesar concatenados y reanalizados; los orígenes se archivan)."),
@@ -2207,7 +2358,6 @@ enum Loc {
         "compare.distance": r("Strecke", "Strecki", "Strecke", "Distance", "Distance", "Distanza", "Distancia"),
         "compare.foilTime": r("Foil-Zeit", "Foil-Ziit", "Foil-Zeit", "Foil time", "Temps foil", "Tempo foil", "Tiempo foil"),
         "compare.cadence": r("Cadence", "Cadence", "Cadence", "Cadence", "Cadence", "Cadenza", "Cadencia"),
-
         "lab.title": r("Labeln", "Labele", "Labeln", "Label", "Étiqueter", "Etichetta", "Etiquetar"),
         "lab.pump": r("Pumpen", "Pumpe", "Pumpen", "Pumping", "Pump", "Pump", "Pump"),
         "lab.glide": r("Gleiten", "Gleite", "Gleiten", "Gliding", "Glisse", "Planata", "Planeo"),
@@ -2216,11 +2366,9 @@ enum Loc {
         "lab.add": r("Label hinzufügen", "Label zuefüege", "Label hinzufügen", "Add label", "Ajouter un label", "Aggiungi etichetta", "Añadir etiqueta"),
         "lab.type": r("Typ", "Typ", "Typ", "Type", "Type", "Tipo", "Tipo"),
         "lab.introShort": r("Bereiche markieren (Trainingsdaten fürs Modell).", "Beriich markiere (Trainingsdate fürs Modäll).", "Bereiche markieren (Trainingsdaten fürs Modell).", "Mark ranges (training data for the model).", "Marquer des plages (données d'entraînement pour le modèle).", "Segna intervalli (dati di addestramento per il modello).", "Marca rangos (datos de entrenamiento del modelo)."),
-
         "records.today": r("Heute", "Hüt", "Heute", "Today", "Aujourd'hui", "Oggi", "Hoy"),
         "records.year": r("Jahr", "Jahr", "Jahr", "Year", "Année", "Anno", "Año"),
         "records.empty": r("Noch keine Rekorde in diesem Zeitraum.", "No kei Rekord i dem Ziitruum.", "Noch keine Rekorde in diesem Zeitraum.", "No records in this period yet.", "Aucun record sur cette période.", "Nessun record in questo periodo.", "Sin récords en este periodo."),
-
         "calc.intro": r("Vergleiche Foils: Basis-Kennwerte und theoretische Leistung über die Geschwindigkeit.", "Vergliich Foils: Basis-Wärt und theoretischi Leischtig über d Gschwindigkeit.", "Vergleiche Foils: Basis-Kennwerte und theoretische Leistung über die Geschwindigkeit.", "Compare foils: basic characteristics and theoretical power across speed.", "Comparez les foils : caractéristiques de base et puissance théorique selon la vitesse.", "Confronta i foil: caratteristiche di base e potenza teorica al variare della velocità.", "Compara foils: características básicas y potencia teórica según la velocidad."),
         "calc.params": r("Parameter", "Parameter", "Parameter", "Parameters", "Paramètres", "Parametri", "Parámetros"),
         "calc.equip": r("Equip. (kg)", "Equip. (kg)", "Equip. (kg)", "Equip. (kg)", "Équip. (kg)", "Equip. (kg)", "Equipo (kg)"),
@@ -2234,10 +2382,12 @@ enum Loc {
         "calc.frequency": r("Frequenz", "Frequänz", "Frequenz", "Frequency", "Fréquence", "Frequenza", "Frecuencia"),
         "calc.heaveWord": r("Hub", "Hub", "Hub", "Heave", "Amplitude", "Corsa", "Carrera"),
         "calc.lossWord": r("Verlust", "Verluscht", "Verlust", "Loss", "Perte", "Perdita", "Pérdida"),
-
         "sd.title": r("Session", "Session", "Session", "Session", "Session", "Sessione", "Sesión"),
         "sd.deleteTitle": r("Session löschen?", "Session lösche?", "Session löschen?", "Delete session?", "Supprimer la session ?", "Eliminare la sessione?", "¿Eliminar sesión?"),
         "sd.deleteBody": r("Diese Session wird ausgeblendet und aus der Community entfernt.", "Die Session wird usgblendet und us de Community entfernt.", "Diese Session wird ausgeblendet und aus der Community entfernt.", "This session will be hidden and removed from the community.", "Cette session sera masquée et retirée de la communauté.", "Questa sessione verrà nascosta e rimossa dalla community.", "Esta sesión se ocultará y se quitará de la comunidad."),
+    ]
+
+    private static let __t3P2: [String: [String: String]] = [
         "sd.trim": r("Trimmen", "Trimme", "Trimmen", "Trim", "Rogner", "Taglia", "Recortar"),
         "sd.trimReset": r("Zuschnitt aufheben", "Zueschnitt ufhebe", "Zuschnitt aufheben", "Clear trim", "Annuler le rognage", "Annulla ritaglio", "Quitar recorte"),
         "sd.apply": r("Anwenden", "Aawände", "Anwenden", "Apply", "Appliquer", "Applica", "Aplicar"),
@@ -2301,6 +2451,9 @@ enum Loc {
         "share.stat.distance": r("Strecke", "Strecki", "Strecke", "Distance", "Distance", "Distanza", "Distancia"),
         "share.stat.pumprate": r("Ø Pumps/min", "Ø Pumps/min", "Ø Pumps/min", "Avg pumps/min", "Ø pumps/min", "Ø pump/min", "Ø pumps/min"),
         "sd.analyzing": r("Auswertung läuft noch …", "Uuswertig lauft no …", "Auswertung läuft noch …", "Analysis still running …", "Analyse en cours …", "Analisi in corso …", "Análisis en curso …"),
+    ]
+
+    private static let __t3P3: [String: [String: String]] = [
         "sd.power": r("Leistung", "Leischtig", "Leistung", "Power", "Puissance", "Potenza", "Potencia"),
         "sd.atAvg": r("bei Ø-Speed", "bi Ø-Speed", "bei Ø-Speed", "at avg speed", "à vit. moy.", "a vel. media", "a vel. med."),
         "sd.atTop": r("bei Top-Speed", "bi Top-Speed", "bei Top-Speed", "at top speed", "à vit. max", "a vel. max", "a vel. máx"),
@@ -2315,5 +2468,6 @@ enum Loc {
         "calc.powerRow": r("Pump-Leistung (W) je km/h", "Pump-Leischtig (W) pro km/h", "Pump-Leistung (W) je km/h", "Pump power (W) per km/h", "Puissance de pump (W) par km/h", "Potenza di pump (W) per km/h", "Potencia de pump (W) por km/h"),
         "calc.disclaimer": r("Modellrechnung — Näherungswerte, keine Messung. Beste (niedrigste) Leistung je Spalte hervorgehoben.", "Modällrächnig — Näherigswärt, kei Mässig. Beschti (niedrigschti) Leischtig je Spalte hervorghobe.", "Modellrechnung — Näherungswerte, keine Messung. Beste (niedrigste) Leistung je Spalte hervorgehoben.", "Model estimate — approximate, not measured. Best (lowest) power per column highlighted.", "Estimation au modèle — approximative, non mesurée. Meilleure (plus basse) puissance par colonne mise en évidence.", "Stima del modello — approssimativa, non misurata. Migliore (più bassa) potenza per colonna evidenziata.", "Estimación del modelo — aproximada, no medida. Mejor (menor) potencia por columna resaltada."),
     ]
+
 
 }

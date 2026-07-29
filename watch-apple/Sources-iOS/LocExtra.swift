@@ -6,7 +6,16 @@ import Foundation
 // (siehe Loc.t). Referenziert aus Loc.t als ptOverlay/jaOverlay/zhOverlay/ruOverlay/idOverlay.
 
 // Portugiesisch-Overlay (532 Keys). Fallback: Englisch.
-let ptOverlay: [String: String] = [
+// In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+// Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+// minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+let ptOverlay: [String: String] = {
+    var d: [String: String] = [:]
+    for p in [_ptOverlayP1, _ptOverlayP2, _ptOverlayP3, _ptOverlayP4, _ptOverlayP5, _ptOverlayP6, _ptOverlayP7, _ptOverlayP8, _ptOverlayP9, _ptOverlayP10] { d.merge(p) { a, _ in a } }
+    return d
+}()
+
+private let _ptOverlayP1: [String: String] = [
     "setup.inherit": "Usar o padrão",
     "nav.home": "Início",
     "nav.community": "Comunidade",
@@ -62,6 +71,9 @@ let ptOverlay: [String: String] = [
     "common.noData": "Ainda sem dados",
     "common.start": "Início",
     "common.end": "Fim",
+]
+
+private let _ptOverlayP2: [String: String] = [
     "login.email": "E-mail",
     "login.password": "Senha (mín. 8 caracteres)",
     "login.passwordReg": "Senha (mín. 8 caract.)",
@@ -117,6 +129,9 @@ let ptOverlay: [String: String] = [
     "account.recordModeGarminHint": "Como qual tipo de atividade sua gravação aparece no Garmin Connect é definido no seu perfil em “Tipo de atividade no Garmin Connect”.",
     "settings.design": "Tema",
     "settings.language": "Idioma",
+]
+
+private let _ptOverlayP3: [String: String] = [
     "settings.light": "Claro",
     "settings.dark": "Escuro",
     "settings.notifications": "Notificações",
@@ -172,6 +187,9 @@ let ptOverlay: [String: String] = [
     "verlauf.total": "Total",
     "verlauf.cumulative": "Acumulado",
     "verlauf.daysWord": "dias",
+]
+
+private let _ptOverlayP4: [String: String] = [
     "verlauf.daysAbbr": "d",
     "verlauf.period": "Período",
     "verlauf.kmFoiling": "km de foiling",
@@ -228,6 +246,9 @@ let ptOverlay: [String: String] = [
     "profile.pwChanged": "Senha alterada.",
     "profile.pwWrong": "A senha atual está incorreta.",
     "profile.error": "Erro.",
+]
+
+private let _ptOverlayP5: [String: String] = [
     "compare.bar": "Comparar ({n})",
     "compare.open": "Abrir comparação",
     "compare.add": "Adicionar à comparação",
@@ -283,6 +304,9 @@ let ptOverlay: [String: String] = [
     "rec.sessionTime": "Tempo no foil",
     "rec.sessionPumps": "Mais pumps",
     "rec.maxHr": "Freq. cardíaca máx.",
+]
+
+private let _ptOverlayP6: [String: String] = [
     "rec.earlyBird": "Madrugador",
     "rec.nightOwl": "Coruja da noite",
     "side.records": "Recordes",
@@ -338,6 +362,9 @@ let ptOverlay: [String: String] = [
     "imp.ownerTitle": "🔒 Apenas você (dono da sessão)",
     "imp.owner1": "Dados brutos das suas sessões (pontos GPS individuais, aceleração a 25 Hz) — ex.: para rotulagem.",
     "imp.owner2": "Rótulos, corte, reanálise, envio/exclusão de fotos.",
+]
+
+private let _ptOverlayP7: [String: String] = [
     "imp.owner3": "Seu endereço de e-mail e configurações da conta — nunca visíveis para outros usuários.",
     "imp.owner4": "Quem especificamente votou/curtiu uma sessão não é mostrado a outros usuários.",
     "imp.operatorTitle": "🛠 Apenas o operador (Jan)",
@@ -393,6 +420,9 @@ let ptOverlay: [String: String] = [
     "account.offFoilTitle": "Tela fora do foil",
     "account.offFoilDesc": "Mostrada automaticamente no relógio enquanto você não está no foil (padrão: relógio + último run). Ao foilar, o relógio volta para a última visão selecionada.",
     "datafields.page": "Página",
+]
+
+private let _ptOverlayP8: [String: String] = [
     "datafields.field": "Campo",
     "datafields.removePage": "Remover página",
     "datafields.addPage": "Adicionar página",
@@ -448,6 +478,9 @@ let ptOverlay: [String: String] = [
     "merge.done": "Unidas ✓",
     "merge.suggestTitle": "Unir sessões?",
     "merge.open": "Comparar e unir",
+]
+
+private let _ptOverlayP9: [String: String] = [
     "merge.unmerge": "Desfazer união",
     "merge.mergedFrom": "Unida de várias",
     "compare.result": "Comparação",
@@ -503,6 +536,9 @@ let ptOverlay: [String: String] = [
     "meta.youtubePlaceholder": "Link do YouTube (opcional)",
     "meta.errYoutube": "Somente links do YouTube são permitidos.",
     "sd.colorSpeed": "Velocidade",
+]
+
+private let _ptOverlayP10: [String: String] = [
     "sd.colorPuls": "Pulso",
     "sd.colorPump": "Pump",
     "sd.pumpMarker": "Marcadores de pump",
@@ -553,8 +589,18 @@ let ptOverlay: [String: String] = [
     "calc.disclaimer": "Estimativa do modelo — aproximada, não medida. Melhor (menor) potência por coluna destacada.",
 ]
 
+
 // Japanisch-Overlay (532 Keys). Fallback: Englisch.
-let jaOverlay: [String: String] = [
+// In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+// Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+// minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+let jaOverlay: [String: String] = {
+    var d: [String: String] = [:]
+    for p in [_jaOverlayP1, _jaOverlayP2, _jaOverlayP3, _jaOverlayP4, _jaOverlayP5, _jaOverlayP6, _jaOverlayP7, _jaOverlayP8, _jaOverlayP9, _jaOverlayP10] { d.merge(p) { a, _ in a } }
+    return d
+}()
+
+private let _jaOverlayP1: [String: String] = [
     "setup.inherit": "デフォルトを使用",
     "nav.home": "ホーム",
     "nav.community": "コミュニティ",
@@ -610,6 +656,9 @@ let jaOverlay: [String: String] = [
     "common.noData": "まだデータがありません",
     "common.start": "開始",
     "common.end": "終了",
+]
+
+private let _jaOverlayP2: [String: String] = [
     "login.email": "メールアドレス",
     "login.password": "パスワード(8文字以上)",
     "login.passwordReg": "パスワード(8文字以上)",
@@ -665,6 +714,9 @@ let jaOverlay: [String: String] = [
     "account.recordModeGarminHint": "記録がGarmin Connectでどのアクティビティタイプとして表示されるかは、プロフィールの「Garmin Connectでのアクティビティタイプ」で設定します。",
     "settings.design": "テーマ",
     "settings.language": "言語",
+]
+
+private let _jaOverlayP3: [String: String] = [
     "settings.light": "ライト",
     "settings.dark": "ダーク",
     "settings.notifications": "通知",
@@ -720,6 +772,9 @@ let jaOverlay: [String: String] = [
     "verlauf.total": "合計",
     "verlauf.cumulative": "累計",
     "verlauf.daysWord": "日",
+]
+
+private let _jaOverlayP4: [String: String] = [
     "verlauf.daysAbbr": "日",
     "verlauf.period": "期間",
     "verlauf.kmFoiling": "フォイリングkm",
@@ -776,6 +831,9 @@ let jaOverlay: [String: String] = [
     "profile.pwChanged": "パスワードを変更しました。",
     "profile.pwWrong": "現在のパスワードが違います。",
     "profile.error": "エラー。",
+]
+
+private let _jaOverlayP5: [String: String] = [
     "compare.bar": "比較({n})",
     "compare.open": "比較を開く",
     "compare.add": "比較に追加",
@@ -831,6 +889,9 @@ let jaOverlay: [String: String] = [
     "rec.sessionTime": "フォイル上時間",
     "rec.sessionPumps": "最多ポンプ",
     "rec.maxHr": "最大心拍数",
+]
+
+private let _jaOverlayP6: [String: String] = [
     "rec.earlyBird": "早起き",
     "rec.nightOwl": "夜更かし",
     "side.records": "レコード",
@@ -886,6 +947,9 @@ let jaOverlay: [String: String] = [
     "imp.ownerTitle": "🔒 あなただけ(セッションの所有者)",
     "imp.owner1": "セッションの生データ(個々のGPSポイント、25 Hzの加速度)—例えばラベリング用。",
     "imp.owner2": "ラベル付け、トリミング、再分析、写真のアップロード/削除。",
+]
+
+private let _jaOverlayP7: [String: String] = [
     "imp.owner3": "あなたのメールアドレスとアカウント設定—他のユーザーには決して見えません。",
     "imp.owner4": "誰が具体的にセッションに投票/いいねしたかは、他のユーザーには表示されません。",
     "imp.operatorTitle": "🛠 運営者(Jan)だけ",
@@ -941,6 +1005,9 @@ let jaOverlay: [String: String] = [
     "account.offFoilTitle": "フォイル外画面",
     "account.offFoilDesc": "フォイリングしていない間、ウォッチに自動的に表示されます(デフォルト:時計+最後のラン)。フォイリング中は、ウォッチが最後に選択した表示に戻ります。",
     "datafields.page": "ページ",
+]
+
+private let _jaOverlayP8: [String: String] = [
     "datafields.field": "フィールド",
     "datafields.removePage": "ページを削除",
     "datafields.addPage": "ページを追加",
@@ -996,6 +1063,9 @@ let jaOverlay: [String: String] = [
     "merge.done": "結合しました ✓",
     "merge.suggestTitle": "セッションを結合しますか?",
     "merge.open": "比較して結合",
+]
+
+private let _jaOverlayP9: [String: String] = [
     "merge.unmerge": "結合を解除",
     "merge.mergedFrom": "複数から結合",
     "compare.result": "比較",
@@ -1051,6 +1121,9 @@ let jaOverlay: [String: String] = [
     "meta.youtubePlaceholder": "YouTubeリンク(任意)",
     "meta.errYoutube": "YouTubeリンクのみ許可されています。",
     "sd.colorSpeed": "速度",
+]
+
+private let _jaOverlayP10: [String: String] = [
     "sd.colorPuls": "心拍",
     "sd.colorPump": "ポンプ",
     "sd.pumpMarker": "ポンプマーカー",
@@ -1101,8 +1174,18 @@ let jaOverlay: [String: String] = [
     "calc.disclaimer": "モデル推定値—おおよその値で、実測ではありません。列ごとに最良(最小)の出力をハイライトしています。",
 ]
 
+
 // Chinesisch (vereinfacht)-Overlay (532 Keys). Fallback: Englisch.
-let zhOverlay: [String: String] = [
+// In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+// Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+// minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+let zhOverlay: [String: String] = {
+    var d: [String: String] = [:]
+    for p in [_zhOverlayP1, _zhOverlayP2, _zhOverlayP3, _zhOverlayP4, _zhOverlayP5, _zhOverlayP6, _zhOverlayP7, _zhOverlayP8, _zhOverlayP9, _zhOverlayP10] { d.merge(p) { a, _ in a } }
+    return d
+}()
+
+private let _zhOverlayP1: [String: String] = [
     "setup.inherit": "使用默认值",
     "nav.home": "主页",
     "nav.community": "社区",
@@ -1158,6 +1241,9 @@ let zhOverlay: [String: String] = [
     "common.noData": "暂无数据",
     "common.start": "开始",
     "common.end": "结束",
+]
+
+private let _zhOverlayP2: [String: String] = [
     "login.email": "邮箱",
     "login.password": "密码（至少 8 个字符）",
     "login.passwordReg": "密码（至少 8 位）",
@@ -1213,6 +1299,9 @@ let zhOverlay: [String: String] = [
     "account.recordModeGarminHint": "你的记录在 Garmin Connect 中显示为哪种活动类型，在个人资料的“Garmin Connect 中的活动类型”里设置。",
     "settings.design": "主题",
     "settings.language": "语言",
+]
+
+private let _zhOverlayP3: [String: String] = [
     "settings.light": "浅色",
     "settings.dark": "深色",
     "settings.notifications": "通知",
@@ -1268,6 +1357,9 @@ let zhOverlay: [String: String] = [
     "verlauf.total": "总计",
     "verlauf.cumulative": "累计",
     "verlauf.daysWord": "天",
+]
+
+private let _zhOverlayP4: [String: String] = [
     "verlauf.daysAbbr": "天",
     "verlauf.period": "时段",
     "verlauf.kmFoiling": "水翼公里数",
@@ -1324,6 +1416,9 @@ let zhOverlay: [String: String] = [
     "profile.pwChanged": "密码已修改。",
     "profile.pwWrong": "当前密码不正确。",
     "profile.error": "出错了。",
+]
+
+private let _zhOverlayP5: [String: String] = [
     "compare.bar": "对比（{n}）",
     "compare.open": "打开对比",
     "compare.add": "加入对比",
@@ -1379,6 +1474,9 @@ let zhOverlay: [String: String] = [
     "rec.sessionTime": "在 foil 上的时间",
     "rec.sessionPumps": "最多泵动",
     "rec.maxHr": "最大心率",
+]
+
+private let _zhOverlayP6: [String: String] = [
     "rec.earlyBird": "早起鸟",
     "rec.nightOwl": "夜猫子",
     "side.records": "纪录",
@@ -1434,6 +1532,9 @@ let zhOverlay: [String: String] = [
     "imp.ownerTitle": "🔒 仅你本人（记录所有者）",
     "imp.owner1": "你记录的原始数据（单个 GPS 点、25 Hz 加速度） — 例如用于打标签。",
     "imp.owner2": "打标签、裁剪、重新分析、上传/删除照片。",
+]
+
+private let _zhOverlayP7: [String: String] = [
     "imp.owner3": "你的邮箱地址和账号设置 — 其他用户永远看不到。",
     "imp.owner4": "具体是谁给某条记录投票/点赞不会展示给其他用户。",
     "imp.operatorTitle": "🛠 仅运营者（Jan）",
@@ -1489,6 +1590,9 @@ let zhOverlay: [String: String] = [
     "account.offFoilTitle": "非 foil 屏幕",
     "account.offFoilDesc": "当你不在 foil 上时，手表会自动显示此屏（默认：时钟 + 上次航次）。开始冲浪后，手表会切回你上次选择的视图。",
     "datafields.page": "页",
+]
+
+private let _zhOverlayP8: [String: String] = [
     "datafields.field": "字段",
     "datafields.removePage": "删除此页",
     "datafields.addPage": "添加页",
@@ -1544,6 +1648,9 @@ let zhOverlay: [String: String] = [
     "merge.done": "已合并 ✓",
     "merge.suggestTitle": "合并记录？",
     "merge.open": "对比并合并",
+]
+
+private let _zhOverlayP9: [String: String] = [
     "merge.unmerge": "取消合并",
     "merge.mergedFrom": "由多条合并而来",
     "compare.result": "对比结果",
@@ -1599,6 +1706,9 @@ let zhOverlay: [String: String] = [
     "meta.youtubePlaceholder": "YouTube 链接（可选）",
     "meta.errYoutube": "只允许 YouTube 链接。",
     "sd.colorSpeed": "速度",
+]
+
+private let _zhOverlayP10: [String: String] = [
     "sd.colorPuls": "脉搏",
     "sd.colorPump": "泵动",
     "sd.pumpMarker": "泵动标记",
@@ -1649,8 +1759,18 @@ let zhOverlay: [String: String] = [
     "calc.disclaimer": "模型估算 — 为近似值，非实测。每列最佳（最低）功率已高亮。",
 ]
 
+
 // Russisch-Overlay (532 Keys). Fallback: Englisch.
-let ruOverlay: [String: String] = [
+// In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+// Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+// minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+let ruOverlay: [String: String] = {
+    var d: [String: String] = [:]
+    for p in [_ruOverlayP1, _ruOverlayP2, _ruOverlayP3, _ruOverlayP4, _ruOverlayP5, _ruOverlayP6, _ruOverlayP7, _ruOverlayP8, _ruOverlayP9, _ruOverlayP10] { d.merge(p) { a, _ in a } }
+    return d
+}()
+
+private let _ruOverlayP1: [String: String] = [
     "setup.inherit": "По умолчанию",
     "nav.home": "Главная",
     "nav.community": "Сообщество",
@@ -1706,6 +1826,9 @@ let ruOverlay: [String: String] = [
     "common.noData": "Пока нет данных",
     "common.start": "Старт",
     "common.end": "Конец",
+]
+
+private let _ruOverlayP2: [String: String] = [
     "login.email": "Email",
     "login.password": "Пароль (мин. 8 символов)",
     "login.passwordReg": "Пароль (мин. 8 симв.)",
@@ -1761,6 +1884,9 @@ let ruOverlay: [String: String] = [
     "account.recordModeGarminHint": "Тип активности для отображения записи в Garmin Connect задаётся в профиле в «Тип активности в Garmin Connect».",
     "settings.design": "Тема",
     "settings.language": "Язык",
+]
+
+private let _ruOverlayP3: [String: String] = [
     "settings.light": "Светлая",
     "settings.dark": "Тёмная",
     "settings.notifications": "Уведомления",
@@ -1816,6 +1942,9 @@ let ruOverlay: [String: String] = [
     "verlauf.total": "Всего",
     "verlauf.cumulative": "Накопительно",
     "verlauf.daysWord": "дней",
+]
+
+private let _ruOverlayP4: [String: String] = [
     "verlauf.daysAbbr": "д",
     "verlauf.period": "Период",
     "verlauf.kmFoiling": "км на фойле",
@@ -1872,6 +2001,9 @@ let ruOverlay: [String: String] = [
     "profile.pwChanged": "Пароль изменён.",
     "profile.pwWrong": "Текущий пароль неверен.",
     "profile.error": "Ошибка.",
+]
+
+private let _ruOverlayP5: [String: String] = [
     "compare.bar": "Сравнить ({n})",
     "compare.open": "Открыть сравнение",
     "compare.add": "Добавить к сравнению",
@@ -1927,6 +2059,9 @@ let ruOverlay: [String: String] = [
     "rec.sessionTime": "Время на фойле",
     "rec.sessionPumps": "Больше всего пампов",
     "rec.maxHr": "Макс. пульс",
+]
+
+private let _ruOverlayP6: [String: String] = [
     "rec.earlyBird": "Ранняя пташка",
     "rec.nightOwl": "Ночная сова",
     "side.records": "Рекорды",
@@ -1982,6 +2117,9 @@ let ruOverlay: [String: String] = [
     "imp.ownerTitle": "🔒 Только вы (владелец сессии)",
     "imp.owner1": "Сырые данные ваших сессий (отдельные GPS-точки, ускорение 25 Гц) — например, для разметки.",
     "imp.owner2": "Метки, обрезка, повторный анализ, загрузка/удаление фото.",
+]
+
+private let _ruOverlayP7: [String: String] = [
     "imp.owner3": "Ваш email и настройки аккаунта — никогда не видны другим пользователям.",
     "imp.owner4": "Кто именно голосовал/лайкал сессию, другим пользователям не показывается.",
     "imp.operatorTitle": "🛠 Только оператор (Jan)",
@@ -2037,6 +2175,9 @@ let ruOverlay: [String: String] = [
     "account.offFoilTitle": "Экран вне фойла",
     "account.offFoilDesc": "Показывается на часах автоматически, пока вы не на фойле (по умолчанию: часы + последний заезд). На фойле часы возвращаются к последнему выбранному виду.",
     "datafields.page": "Страница",
+]
+
+private let _ruOverlayP8: [String: String] = [
     "datafields.field": "Поле",
     "datafields.removePage": "Удалить страницу",
     "datafields.addPage": "Добавить страницу",
@@ -2092,6 +2233,9 @@ let ruOverlay: [String: String] = [
     "merge.done": "Объединено ✓",
     "merge.suggestTitle": "Объединить сессии?",
     "merge.open": "Сравнить и объединить",
+]
+
+private let _ruOverlayP9: [String: String] = [
     "merge.unmerge": "Разъединить",
     "merge.mergedFrom": "Объединено из нескольких",
     "compare.result": "Сравнение",
@@ -2147,6 +2291,9 @@ let ruOverlay: [String: String] = [
     "meta.youtubePlaceholder": "Ссылка YouTube (необязательно)",
     "meta.errYoutube": "Разрешены только ссылки YouTube.",
     "sd.colorSpeed": "Скорость",
+]
+
+private let _ruOverlayP10: [String: String] = [
     "sd.colorPuls": "Пульс",
     "sd.colorPump": "Памп",
     "sd.pumpMarker": "Маркеры пампов",
@@ -2197,8 +2344,18 @@ let ruOverlay: [String: String] = [
     "calc.disclaimer": "Оценка модели — приблизительная, не измеренная. Лучшая (наименьшая) мощность в столбце выделена.",
 ]
 
+
 // Indonesisch-Overlay (532 Keys). Fallback: Englisch.
-let idOverlay: [String: String] = [
+// In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
+// Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
+// minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+let idOverlay: [String: String] = {
+    var d: [String: String] = [:]
+    for p in [_idOverlayP1, _idOverlayP2, _idOverlayP3, _idOverlayP4, _idOverlayP5, _idOverlayP6, _idOverlayP7, _idOverlayP8, _idOverlayP9, _idOverlayP10] { d.merge(p) { a, _ in a } }
+    return d
+}()
+
+private let _idOverlayP1: [String: String] = [
     "setup.inherit": "Gunakan default",
     "nav.home": "Beranda",
     "nav.community": "Komunitas",
@@ -2254,6 +2411,9 @@ let idOverlay: [String: String] = [
     "common.noData": "Belum ada data",
     "common.start": "Mulai",
     "common.end": "Selesai",
+]
+
+private let _idOverlayP2: [String: String] = [
     "login.email": "Email",
     "login.password": "Kata sandi (min. 8 karakter)",
     "login.passwordReg": "Kata sandi (min. 8 karakter)",
@@ -2309,6 +2469,9 @@ let idOverlay: [String: String] = [
     "account.recordModeGarminHint": "Sebagai jenis aktivitas apa rekaman Anda muncul di Garmin Connect diatur di profil Anda pada “Jenis aktivitas di Garmin Connect”.",
     "settings.design": "Tema",
     "settings.language": "Bahasa",
+]
+
+private let _idOverlayP3: [String: String] = [
     "settings.light": "Terang",
     "settings.dark": "Gelap",
     "settings.notifications": "Notifikasi",
@@ -2364,6 +2527,9 @@ let idOverlay: [String: String] = [
     "verlauf.total": "Total",
     "verlauf.cumulative": "Kumulatif",
     "verlauf.daysWord": "hari",
+]
+
+private let _idOverlayP4: [String: String] = [
     "verlauf.daysAbbr": "hr",
     "verlauf.period": "Periode",
     "verlauf.kmFoiling": "km foiling",
@@ -2420,6 +2586,9 @@ let idOverlay: [String: String] = [
     "profile.pwChanged": "Kata sandi diubah.",
     "profile.pwWrong": "Kata sandi saat ini salah.",
     "profile.error": "Kesalahan.",
+]
+
+private let _idOverlayP5: [String: String] = [
     "compare.bar": "Bandingkan ({n})",
     "compare.open": "Buka perbandingan",
     "compare.add": "Tambah ke perbandingan",
@@ -2475,6 +2644,9 @@ let idOverlay: [String: String] = [
     "rec.sessionTime": "Waktu on-foil",
     "rec.sessionPumps": "Pump terbanyak",
     "rec.maxHr": "Detak jantung maks",
+]
+
+private let _idOverlayP6: [String: String] = [
     "rec.earlyBird": "Bangun pagi",
     "rec.nightOwl": "Kalong malam",
     "side.records": "Rekor",
@@ -2530,6 +2702,9 @@ let idOverlay: [String: String] = [
     "imp.ownerTitle": "🔒 Hanya Anda (pemilik sesi)",
     "imp.owner1": "Data mentah sesi Anda (titik GPS individu, akselerasi 25 Hz) — mis. untuk pelabelan.",
     "imp.owner2": "Label, pemangkasan, analisis ulang, mengunggah/menghapus foto.",
+]
+
+private let _idOverlayP7: [String: String] = [
     "imp.owner3": "Alamat email dan pengaturan akun Anda — tidak pernah terlihat oleh pengguna lain.",
     "imp.owner4": "Siapa persisnya yang memberi suara/suka pada suatu sesi tidak ditampilkan ke pengguna lain.",
     "imp.operatorTitle": "🛠 Hanya operator (Jan)",
@@ -2585,6 +2760,9 @@ let idOverlay: [String: String] = [
     "account.offFoilTitle": "Layar off-foil",
     "account.offFoilDesc": "Ditampilkan otomatis di jam saat Anda tidak foiling (bawaan: jam + lintasan terakhir). Saat foiling, jam beralih kembali ke tampilan terakhir yang Anda pilih.",
     "datafields.page": "Halaman",
+]
+
+private let _idOverlayP8: [String: String] = [
     "datafields.field": "Bidang",
     "datafields.removePage": "Hapus halaman",
     "datafields.addPage": "Tambah halaman",
@@ -2640,6 +2818,9 @@ let idOverlay: [String: String] = [
     "merge.done": "Digabung ✓",
     "merge.suggestTitle": "Gabungkan sesi?",
     "merge.open": "Bandingkan & gabung",
+]
+
+private let _idOverlayP9: [String: String] = [
     "merge.unmerge": "Batalkan gabung",
     "merge.mergedFrom": "Digabung dari beberapa",
     "compare.result": "Perbandingan",
@@ -2695,6 +2876,9 @@ let idOverlay: [String: String] = [
     "meta.youtubePlaceholder": "Tautan YouTube (opsional)",
     "meta.errYoutube": "Hanya tautan YouTube yang diperbolehkan.",
     "sd.colorSpeed": "Kecepatan",
+]
+
+private let _idOverlayP10: [String: String] = [
     "sd.colorPuls": "Denyut",
     "sd.colorPump": "Pump",
     "sd.pumpMarker": "Penanda pump",
@@ -2744,3 +2928,4 @@ let idOverlay: [String: String] = [
     "calc.powerRow": "Tenaga pump (W) per km/h",
     "calc.disclaimer": "Perkiraan model — kira-kira, bukan hasil ukur. Tenaga terbaik (terendah) per kolom disorot.",
 ]
+
