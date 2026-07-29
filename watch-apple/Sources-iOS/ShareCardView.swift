@@ -58,130 +58,245 @@ struct ShareCardView: View {
         guard let m = session.analysis?.metrics else { return false }
         return m.avg_hr != nil || m.max_hr != nil
     }
-    private var configKey: String { "\(color)|\(sel.sorted().joined(separator: ","))|\(track)|\(shade)|\(title)|\(photoVersion > 0 && photo != nil)|\(highlight)|\(loaded)" }
-    private var saveKey: String { "\(color)|\(sel.sorted().joined(separator: ","))|\(track)|\(shade)|\(dim)|\(loaded)" }
+    // Schluessel vorab aus typisierten Teilen zusammensetzen — eine achtteilige Interpolation mit
+    // Bool-Ausdruck darin ist fuer den Type-Checker teuer. Ergebnis-String unveraendert.
+    private var configKey: String {
+        let stats: String = sel.sorted().joined(separator: ",")
+        let withPhoto: Bool = photoVersion > 0 && photo != nil
+        return "\(color)|\(stats)|\(track)|\(shade)|\(title)|\(withPhoto)|\(highlight)|\(loaded)"
+    }
+    private var saveKey: String {
+        let stats: String = sel.sorted().joined(separator: ",")
+        return "\(color)|\(stats)|\(track)|\(shade)|\(dim)|\(loaded)"
+    }
 
+    // Dieser Body war 121 Zeilen und der teuerste Ausdruck der App (>500 ms im Build-Log): zehn
+    // Geschwister, drei Picker, Gesten mit CGFloat-Rechnung und mehrere Ternaries in einem einzigen
+    // ViewBuilder — dessen Pruefaufwand waechst ueberproportional. Jetzt ein eigener, explizit
+    // typisierter Ausdruck pro Abschnitt; der VStack flacht die TupleViews genauso ab, also bleiben
+    // Reihenfolge, Abstaende und Bildmasse Punkt fuer Punkt gleich.
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Vorschau (quadratisch); mit Foto: ziehen zum Verschieben, kneifen zum Zoomen.
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground))
-                        if let composited {
-                            Image(uiImage: composited).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: 14))
-                        }
-                        if loading { ProgressView() }
-                    }
-                    .aspectRatio(1, contentMode: .fit)
-                    .contentShape(Rectangle())
-                    .background(GeometryReader { g in
-                        Color.clear
-                            .onAppear { previewSide = g.size.width }
-                            .onChange(of: g.size) { s in previewSide = s.width }
-                    })
-                    .gesture(
-                        SimultaneousGesture(
-                            DragGesture()
-                                .onChanged { v in
-                                    let k = 1080 / max(previewSide, 1)
-                                    offset = CGSize(width: baseOffset.width + v.translation.width * k,
-                                                    height: baseOffset.height + v.translation.height * k)
-                                    updatePreview()
-                                }
-                                .onEnded { _ in baseOffset = offset },
-                            MagnificationGesture()
-                                .onChanged { m in scale = max(0.5, baseScale * m); updatePreview() }
-                                .onEnded { _ in baseScale = scale }
-                        ),
-                        including: photo == nil ? .subviews : .all
-                    )
-                    if photo != nil {
-                        Text(Loc.t("share.photoHint", lang)).font(.caption2).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-
-                    TextField(Loc.t("share.cardTitlePlaceholder", lang), text: $title)
-                        .textFieldStyle(.roundedBorder)
-                        .onChange(of: title) { newVal in if newVal.count > 40 { title = String(newVal.prefix(40)) } }
-
-                    Toggle(Loc.t("share.showTrack", lang), isOn: $track)
-
-                    // Track-Farbe (Labels weggelassen — selbsterklärend).
-                    if track {
-                        Picker("", selection: $color) {
-                            Text(Loc.t("share.color.cyan", lang)).tag("cyan")
-                            Text(Loc.t("share.color.speed", lang)).tag("speed")
-                            if hasHr { Text(Loc.t("share.color.hr", lang)).tag("hr") }
-                        }.pickerStyle(.segmented)
-                    }
-
-                    // Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile.
-                    HStack {
-                        PhotosPicker(selection: $photoItem, matching: .images) {
-                            Label(photo == nil ? Loc.t("share.addPhoto", lang) : Loc.t("share.changePhoto", lang), systemImage: "photo")
-                        }.buttonStyle(.bordered)
-                        if photo != nil {
-                            Button(Loc.t("share.noPhoto", lang), role: .destructive) {
-                                photo = nil; photoVersion += 1; updatePreview()
-                            }.buttonStyle(.bordered)
-                        }
-                        Spacer()
-                        let segs = session.analysis?.segments ?? []
-                        if track && segs.count >= 2 {
-                            Picker("", selection: $highlight) {
-                                Text(Loc.t("share.allRuns", lang)).tag(-1)
-                                ForEach(Array(segs.enumerated()), id: \.offset) { i, seg in
-                                    let m = seg.distance_m ?? 0
-                                    let km = m >= 1000 ? String(format: "%.1f km", m / 1000) : "\(Int(m)) m"
-                                    Text("\(Loc.t("share.runLabel", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")) · \(km)").tag(i)
-                                }
-                            }.pickerStyle(.menu)
-                        }
-                    }
-                    if photo != nil {
-                        Slider(value: $dim, in: 0...0.85) { _ in } .onChange(of: dim) { _ in updatePreview() }
-                    }
-
-                    Picker("", selection: $shade) {
-                        Text(Loc.t("share.shade.light", lang)).tag("light")
-                        Text(Loc.t("share.shade.dark", lang)).tag("dark")
-                    }.pickerStyle(.segmented)
-
-                    if !avail.isEmpty {
-                        FlowChips(items: avail, selected: sel) { k in
-                            if sel.contains(k) { sel.remove(k) } else { sel.insert(k) }
-                        } label: { Loc.t("share.stat.\($0)", lang) }
-                    }
-
-                    Button {
-                        writeAndShare()
-                    } label: {
-                        Label(Loc.t("sd.share", lang), systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(composited == nil)
+                    previewBlock
+                    titleAndTrack
+                    photoAndRunRow
+                    shadeAndStats
+                    shareButton
                 }
                 .padding()
             }
             .navigationTitle(Loc.t("sd.share", lang))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { dismiss() } } }
+            .toolbar { cancelToolbar }
         }
         .task { await loadDefaults() }
         .task(id: configKey) { await refresh() }
         .task(id: saveKey) { await saveDefault() }
-        .onChange(of: photoItem) { item in
-            guard let item else { return }
-            Task {
-                if let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) {
-                    photo = img; scale = 1; baseScale = 1; offset = .zero; baseOffset = .zero
-                    photoVersion += 1; updatePreview()
+        .onChange(of: photoItem) { item in loadPickedPhoto(item) }
+        .sheet(item: $shareURL) { item in ActivityView(items: [item.url]) }
+    }
+
+    @ToolbarContentBuilder private var cancelToolbar: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { dismiss() } }
+    }
+
+    @ViewBuilder private var previewBlock: some View {
+        preview
+        photoHint
+    }
+
+    // Vorschau (quadratisch); mit Foto: ziehen zum Verschieben, kneifen zum Zoomen.
+    private var preview: some View {
+        previewStack
+            .aspectRatio(1, contentMode: .fit)
+            .contentShape(Rectangle())
+            .background(previewSizeReader)
+            .gesture(photoGesture, including: gestureMask)
+    }
+
+    private var previewStack: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground))
+            previewImage
+            if loading { ProgressView() }
+        }
+    }
+
+    @ViewBuilder private var previewImage: some View {
+        if let composited {
+            Image(uiImage: composited).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
+    private var previewSizeReader: some View {
+        GeometryReader { g in
+            Color.clear
+                .onAppear { previewSide = g.size.width }
+                .onChange(of: g.size) { s in previewSide = s.width }
+        }
+    }
+
+    // Gesten getrennt vom Layout; die Umrechnung Vorschau -> 1080er-Einheiten steckt in den Methoden
+    // unten (gemischte CGFloat-Arithmetik im ViewBuilder war einer der Kostentreiber).
+    private var photoGesture: some Gesture {
+        SimultaneousGesture(
+            DragGesture()
+                .onChanged { v in onPhotoDrag(v.translation) }
+                .onEnded { _ in baseOffset = offset },
+            MagnificationGesture()
+                .onChanged { m in onPhotoMagnify(m) }
+                .onEnded { _ in baseScale = scale }
+        )
+    }
+
+    private var gestureMask: GestureMask { photo == nil ? .subviews : .all }
+
+    private func onPhotoDrag(_ t: CGSize) {
+        let k: CGFloat = 1080 / max(previewSide, 1)
+        offset = CGSize(width: baseOffset.width + t.width * k,
+                        height: baseOffset.height + t.height * k)
+        updatePreview()
+    }
+
+    private func onPhotoMagnify(_ m: CGFloat) {
+        scale = max(0.5, baseScale * m)
+        updatePreview()
+    }
+
+    @ViewBuilder private var photoHint: some View {
+        if photo != nil {
+            Text(Loc.t("share.photoHint", lang)).font(.caption2).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+
+    @ViewBuilder private var titleAndTrack: some View {
+        TextField(Loc.t("share.cardTitlePlaceholder", lang), text: $title)
+            .textFieldStyle(.roundedBorder)
+            .onChange(of: title) { newVal in clampTitle(newVal) }
+        Toggle(Loc.t("share.showTrack", lang), isOn: $track)
+        colorPicker
+    }
+
+    // Track-Farbe (Labels weggelassen — selbsterklärend). Die .tag()-Aufrufe bleiben direkte Kinder
+    // des Pickers, sonst findet die Auswahl ihre Eintraege nicht.
+    @ViewBuilder private var colorPicker: some View {
+        if track {
+            Picker("", selection: $color) {
+                Text(Loc.t("share.color.cyan", lang)).tag("cyan")
+                Text(Loc.t("share.color.speed", lang)).tag("speed")
+                if hasHr { Text(Loc.t("share.color.hr", lang)).tag("hr") }
+            }.pickerStyle(.segmented)
+        }
+    }
+
+    @ViewBuilder private var photoAndRunRow: some View {
+        // Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile.
+        HStack {
+            photoPickerButton
+            removePhotoButton
+            Spacer()
+            runPicker
+        }
+        dimSlider
+    }
+
+    private var photoPickerButton: some View {
+        PhotosPicker(selection: $photoItem, matching: .images) {
+            Label(photoButtonLabel, systemImage: "photo")
+        }.buttonStyle(.bordered)
+    }
+
+    @ViewBuilder private var removePhotoButton: some View {
+        if photo != nil {
+            Button(Loc.t("share.noPhoto", lang), role: .destructive) {
+                removePhoto()
+            }.buttonStyle(.bordered)
+        }
+    }
+
+    @ViewBuilder private var runPicker: some View {
+        if track && segs.count >= 2 {
+            Picker("", selection: $highlight) {
+                Text(Loc.t("share.allRuns", lang)).tag(-1)
+                ForEach(Array(segs.enumerated()), id: \.offset) { i, seg in
+                    Text(runLabel(i, seg)).tag(i)
                 }
+            }.pickerStyle(.menu)
+        }
+    }
+
+    @ViewBuilder private var dimSlider: some View {
+        if photo != nil {
+            Slider(value: $dim, in: 0...0.85) { _ in } .onChange(of: dim) { _ in updatePreview() }
+        }
+    }
+
+    @ViewBuilder private var shadeAndStats: some View {
+        Picker("", selection: $shade) {
+            Text(Loc.t("share.shade.light", lang)).tag("light")
+            Text(Loc.t("share.shade.dark", lang)).tag("dark")
+        }.pickerStyle(.segmented)
+        statChips
+    }
+
+    @ViewBuilder private var statChips: some View {
+        if !avail.isEmpty {
+            FlowChips(items: avail, selected: sel) { k in
+                toggleStat(k)
+            } label: { Loc.t("share.stat.\($0)", lang) }
+        }
+    }
+
+    private var shareButton: some View {
+        Button {
+            writeAndShare()
+        } label: {
+            Label(Loc.t("sd.share", lang), systemImage: "square.and.arrow.up")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(composited == nil)
+    }
+
+    private var segs: [Segment] { session.analysis?.segments ?? [] }
+
+    // Texte vorab typisiert: Ternary, Verkettung und Interpolation sind im ViewBuilder die teuersten
+    // Konstrukte (jede + -Ueberladung muss geprueft werden). Ergebnis-Strings unveraendert.
+    private var photoButtonLabel: String {
+        photo == nil ? Loc.t("share.addPhoto", lang) : Loc.t("share.changePhoto", lang)
+    }
+
+    private func runLabel(_ i: Int, _ seg: Segment) -> String {
+        let m: Double = seg.distance_m ?? 0
+        let km: String = m >= 1000 ? String(format: "%.1f km", m / 1000) : "\(Int(m)) m"
+        let name: String = Loc.t("share.runLabel", lang).replacingOccurrences(of: "{n}", with: "\(i + 1)")
+        return name + " · " + km
+    }
+
+    // Ablauflogik als Methoden statt als Closures im ViewBuilder.
+    private func clampTitle(_ newVal: String) {
+        if newVal.count > 40 { title = String(newVal.prefix(40)) }
+    }
+
+    private func toggleStat(_ k: String) {
+        if sel.contains(k) { sel.remove(k) } else { sel.insert(k) }
+    }
+
+    private func removePhoto() {
+        photo = nil; photoVersion += 1; updatePreview()
+    }
+
+    private func loadPickedPhoto(_ item: PhotosPickerItem?) {
+        guard let item else { return }
+        Task {
+            if let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) {
+                photo = img; scale = 1; baseScale = 1; offset = .zero; baseOffset = .zero
+                photoVersion += 1; updatePreview()
             }
         }
-        .sheet(item: $shareURL) { item in ActivityView(items: [item.url]) }
     }
 
     private func loadDefaults() async {
@@ -238,11 +353,13 @@ struct ShareCardView: View {
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: n, height: n))
         return renderer.image { ctx in
             if let p = photo {
-                let base = max(n / p.size.width, n / p.size.height)   // Cover-Fit
-                let w = p.size.width * base * scale
-                let h = p.size.height * base * scale
-                let x = (n - w) / 2 + offset.width
-                let y = (n - h) / 2 + offset.height
+                // Alle Zwischenwerte explizit CGFloat: gemischte Int/Double-Arithmetik zwingt den
+                // Type-Checker durch die Zahl-Ueberladungen. Gerechnet wird exakt dasselbe.
+                let base: CGFloat = max(n / p.size.width, n / p.size.height)   // Cover-Fit
+                let w: CGFloat = p.size.width * base * scale
+                let h: CGFloat = p.size.height * base * scale
+                let x: CGFloat = (n - w) / 2 + offset.width
+                let y: CGFloat = (n - h) / 2 + offset.height
                 p.draw(in: CGRect(x: x, y: y, width: w, height: h))
                 // Scrim MUSS mit .normal blenden — ctx.fill nutzt sonst .copy und LÖSCHT das Foto.
                 UIColor(red: 2.0/255.0, green: 6.0/255.0, blue: 23.0/255.0, alpha: CGFloat(dim)).setFill()
@@ -294,14 +411,18 @@ private struct Wrap<Data: RandomAccessCollection, Content: View>: View where Dat
     init(_ data: Data, spacing: CGFloat, @ViewBuilder content: @escaping (Data.Element) -> Content) {
         self.data = data; self.spacing = spacing; self.content = content
     }
-    var body: some View {
-        // Grobe Aufteilung in Reihen zu je 3 — reicht fuer bis zu 8 Stats.
-        let perRow = 3
-        let elems = Array(data)
-        let rows = stride(from: 0, to: elems.count, by: perRow).map { start in
+    // Grobe Aufteilung in Reihen zu je 3 — reicht fuer bis zu 8 Stats. Die stride/map/Slice-Generik
+    // steht als typisierte Property ausserhalb des ViewBuilder.
+    private var rows: [[Data.Element]] {
+        let perRow: Int = 3
+        let elems: [Data.Element] = Array(data)
+        return stride(from: 0, to: elems.count, by: perRow).map { start in
             Array(elems[start..<min(start + perRow, elems.count)])
         }
-        return VStack(alignment: .leading, spacing: spacing) {
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: spacing) {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 HStack(spacing: spacing) { ForEach(row, id: \.self) { content($0) } }
             }

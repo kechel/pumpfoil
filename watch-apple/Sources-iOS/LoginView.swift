@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import AuthenticationServices
 
 private let LANG_LABEL: [String: String] = [
@@ -20,77 +21,144 @@ struct LoginView: View {
     @State private var error: String?
     @State private var resetMsg: String?
 
+    // Der Body war EIN Ausdruck mit 13 Geschwistern im VStack (71 Zeilen) und stand mit >500 ms im
+    // Build-Log: Swifts Type-Checker loest einen ViewBuilder als einen einzigen Ausdruck auf, und der
+    // Aufwand waechst ueberproportional mit Kindern, Modifiern und Ternaries. Jeder Abschnitt unten
+    // ist ein eigener, explizit typisierter Ausdruck; verschachtelte TupleViews flacht der VStack
+    // genauso ab -> Layout, Reihenfolge und Abstaende bleiben identisch.
     var body: some View {
         NavigationStack {
             ZStack {
-                Image("LoginBg").resizable().scaledToFill().ignoresSafeArea()
-                Color(red: 0.008, green: 0.024, blue: 0.09).opacity(0.8).ignoresSafeArea()   // Navy-Scrim
-
-                ScrollView {
-                    VStack(spacing: 12) {
-                        Image("LaunchLogo").resizable().scaledToFit().frame(height: 72)
-                        Text(Loc.t(register ? "login.createAccount" : "login.welcomeBack", lang))
-                            .font(.subheadline).foregroundStyle(.secondary)
-
-                        TextField(Loc.t("login.email", lang), text: $email)
-                            .keyboardType(.emailAddress).textContentType(.username)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .textFieldStyle(.roundedBorder)
-                        SecureField(Loc.t(register ? "login.passwordReg" : "login.password", lang), text: $password)
-                            .textContentType(register ? .newPassword : .password)
-                            .textFieldStyle(.roundedBorder)
-                        if register {
-                            TextField(Loc.t("login.displayName", lang), text: $name)
-                                .textInputAutocapitalization(.words).textFieldStyle(.roundedBorder)
-                        }
-                        if let error { Text(error).foregroundStyle(.red).font(.footnote) }
-                        if let resetMsg { Text(resetMsg).foregroundStyle(Color.accentColor).font(.footnote) }
-
-                        Button(action: { Task { await submit() } }) {
-                            HStack { Spacer()
-                                if busy { ProgressView() } else { Text(Loc.t(register ? "login.create" : "login.signin", lang)).bold() }
-                                Spacer() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(busy || email.isEmpty || password.isEmpty)
-
-                        if !register {
-                            Button(Loc.t("login.forgot", lang)) {
-                                error = nil; resetMsg = nil
-                                if email.isEmpty { error = Loc.t("login.enterEmail", lang) }
-                                else { Task { try? await Api.forgotPassword(email.trimmingCharacters(in: .whitespaces)) }; resetMsg = Loc.t("login.resetSent", lang) }
-                            }.font(.footnote)
-                        }
-                        Button(Loc.t(register ? "login.toLogin" : "login.toRegister", lang)) {
-                            register.toggle(); error = nil; resetMsg = nil
-                        }.font(.footnote)
-
-                        Text(Loc.t("login.or", lang)).font(.footnote).foregroundStyle(.secondary)
-                        SignInWithAppleButton(.signIn,
-                            onRequest: { $0.requestedScopes = [.fullName, .email] },
-                            onCompletion: handleApple)
-                            .signInWithAppleButtonStyle(.black).frame(height: 44).disabled(busy)
-
-                        HStack {
-                            Menu {
-                                ForEach(Loc.langs, id: \.self) { l in
-                                    Button(LANG_LABEL[l] ?? l) { lang = l }
-                                }
-                            } label: {
-                                Label(LANG_LABEL[lang] ?? "Deutsch", systemImage: "globe").font(.footnote)
-                            }
-                            Spacer()
-                            NavigationLink(Loc.t("nav.imprint", lang)) { ImpressumView() }.font(.footnote)
-                        }
-                        .padding(.top, 4)
-                    }
-                    .padding(20)
-                    .background(Color(.systemBackground).opacity(0.96), in: RoundedRectangle(cornerRadius: 20))
-                    .frame(maxWidth: 420)
-                    .padding()
-                }
+                background
+                ScrollView { card }
             }
         }
+    }
+
+    @ViewBuilder private var background: some View {
+        Image("LoginBg").resizable().scaledToFill().ignoresSafeArea()
+        Color(red: 0.008, green: 0.024, blue: 0.09).opacity(0.8).ignoresSafeArea()   // Navy-Scrim
+    }
+
+    private var card: some View {
+        VStack(spacing: 12) {
+            header
+            credentialFields
+            messages
+            actions
+            appleBlock
+            footerRow
+        }
+        .padding(20)
+        .background(Color(.systemBackground).opacity(0.96), in: RoundedRectangle(cornerRadius: 20))
+        .frame(maxWidth: 420)
+        .padding()
+    }
+
+    @ViewBuilder private var header: some View {
+        Image("LaunchLogo").resizable().scaledToFit().frame(height: 72)
+        Text(subtitleText)
+            .font(.subheadline).foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder private var credentialFields: some View {
+        TextField(Loc.t("login.email", lang), text: $email)
+            .keyboardType(.emailAddress).textContentType(.username)
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .textFieldStyle(.roundedBorder)
+        SecureField(passwordLabel, text: $password)
+            .textContentType(passwordContentType)
+            .textFieldStyle(.roundedBorder)
+        if register {
+            TextField(Loc.t("login.displayName", lang), text: $name)
+                .textInputAutocapitalization(.words).textFieldStyle(.roundedBorder)
+        }
+    }
+
+    @ViewBuilder private var messages: some View {
+        if let error { Text(error).foregroundStyle(.red).font(.footnote) }
+        if let resetMsg { Text(resetMsg).foregroundStyle(Color.accentColor).font(.footnote) }
+    }
+
+    @ViewBuilder private var actions: some View {
+        submitButton
+        if !register {
+            Button(Loc.t("login.forgot", lang)) { requestReset() }.font(.footnote)
+        }
+        Button(toggleLabel) { toggleMode() }.font(.footnote)
+    }
+
+    private var submitButton: some View {
+        Button(action: { Task { await submit() } }) {
+            HStack { Spacer()
+                submitBusyOrLabel
+                Spacer() }
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(busy || email.isEmpty || password.isEmpty)
+    }
+
+    @ViewBuilder private var submitBusyOrLabel: some View {
+        if busy { ProgressView() } else { Text(submitLabel).bold() }
+    }
+
+    @ViewBuilder private var appleBlock: some View {
+        Text(Loc.t("login.or", lang)).font(.footnote).foregroundStyle(.secondary)
+        SignInWithAppleButton(.signIn,
+            onRequest: { $0.requestedScopes = [.fullName, .email] },
+            onCompletion: handleApple)
+            .signInWithAppleButtonStyle(.black).frame(height: 44).disabled(busy)
+    }
+
+    private var footerRow: some View {
+        HStack {
+            langMenu
+            Spacer()
+            NavigationLink(Loc.t("nav.imprint", lang)) { ImpressumView() }.font(.footnote)
+        }
+        .padding(.top, 4)
+    }
+
+    private var langMenu: some View {
+        Menu {
+            ForEach(Loc.langs, id: \.self) { l in
+                Button(LANG_LABEL[l] ?? l) { lang = l }
+            }
+        } label: {
+            Label(langMenuLabel, systemImage: "globe").font(.footnote)
+        }
+    }
+
+    // Texte/Werte vorab typisiert: Ternaries und Wörterbuch-Zugriffe im ViewBuilder muss der
+    // Type-Checker sonst gegen alle Überladungen prüfen.
+    private var subtitleText: String {
+        Loc.t(register ? "login.createAccount" : "login.welcomeBack", lang)
+    }
+    private var passwordLabel: String {
+        Loc.t(register ? "login.passwordReg" : "login.password", lang)
+    }
+    private var submitLabel: String {
+        Loc.t(register ? "login.create" : "login.signin", lang)
+    }
+    private var toggleLabel: String {
+        Loc.t(register ? "login.toLogin" : "login.toRegister", lang)
+    }
+    private var langMenuLabel: String {
+        LANG_LABEL[lang] ?? "Deutsch"
+    }
+    private var passwordContentType: UITextContentType {
+        register ? .newPassword : .password
+    }
+
+    // Ablauflogik als Methoden statt als Closures im ViewBuilder.
+    private func requestReset() {
+        error = nil; resetMsg = nil
+        if email.isEmpty { error = Loc.t("login.enterEmail", lang) }
+        else { Task { try? await Api.forgotPassword(email.trimmingCharacters(in: .whitespaces)) }; resetMsg = Loc.t("login.resetSent", lang) }
+    }
+
+    private func toggleMode() {
+        register.toggle(); error = nil; resetMsg = nil
     }
 
     private func handleApple(_ result: Result<ASAuthorization, Error>) {
