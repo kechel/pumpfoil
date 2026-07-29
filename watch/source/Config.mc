@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.68";  // Halten zum Stoppen: 2 s statt 3 s
+    const VERSION = "1.0.69";  // „Pausiert"-Hinweis nur bei echter Pause
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
