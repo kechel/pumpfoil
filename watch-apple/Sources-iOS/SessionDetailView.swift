@@ -261,7 +261,12 @@ struct SessionDetailView: View {
         Divider()
         if s.owned == true {
             classificationPickers(s)
-        } else {
+        } else if store.profile?.social_allowed != false {
+            // Melden ist eine SOZIALE Funktion und haengt damit am Age-Gate — genauso wie der
+            // Spot-Chat weiter oben in dieser Datei. Fuer Konten unter 13 (social_allowed = false)
+            // weist der Server den Vote mit 403 ab; die Knoepfe waeren also nicht nur unerlaubt,
+            // sondern auch kaputt. Die Klassifikation der EIGENEN Session bleibt erlaubt, die ist
+            // nicht sozial.
             SessionReportRow(sessionId: s.id, lang: lang)
         }
     }

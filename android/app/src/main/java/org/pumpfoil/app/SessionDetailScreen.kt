@@ -300,6 +300,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
                 s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ },
+                    social = social,
                     canTrim = (s.owned && durSec > 1f),
                     onTrim = { trimStart = 0f; trimEnd = durSec; showTrim = true },
                     onDelete = { confirmDelete = true },
@@ -313,7 +314,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
                           canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {},
-                          onRunSelected: (Int?) -> Unit = {}) {
+                          onRunSelected: (Int?) -> Unit = {}, social: Boolean = true) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -768,7 +769,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         Spacer(Modifier.height(12.dp))
         HorizontalDivider()
         Spacer(Modifier.height(8.dp))
-        if (s.owned) ClassificationPickers(s, scope, onReload) else ReportRow(s.id)
+        // Melden ist eine SOZIALE Funktion und haengt damit am Age-Gate, genau wie der Spot-Chat
+        // oben. Fuer Konten unter 13 (social=false) weist der Server den Vote mit 403 ab — die
+        // Knoepfe waeren also nicht nur unerlaubt, sondern kaputt. Die Klassifikation der EIGENEN
+        // Session bleibt, die ist nicht sozial.
+        if (s.owned) ClassificationPickers(s, scope, onReload) else if (social) ReportRow(s.id)
 
         // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
         if (s.owned && s.mergedCount > 0) {
