@@ -13,7 +13,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 
@@ -30,37 +29,44 @@ import org.json.JSONArray
 //   typ 7 = „Pausiert"-Hinweis         (Pflicht in Pausen-Layouts, nicht entfernbar)
 //   flags Bit0 = links, Bit1 = rechts, sonst zentriert
 //
-// NICHT übernommen: die Garmin-Größenstufen selbst. Deren Zahlen sind gemessene Connect-IQ-Fonts
-// (FONT_XTINY…FONT_NUMBER_THAI_HOT); auf Wear OS gibt es frei skalierbare Größen. Die Stufen 0…8
-// werden deshalb auf einen Anteil der Displaybreite abgebildet — dasselbe Verhältnis wie im
-// Editor der PWA, aber plattformeigen berechnet.
-private val SIZE_FACTORS = listOf(0.075f, 0.11f, 0.13f, 0.15f, 0.17f, 0.23f, 0.28f, 0.36f, 0.42f)
+// Größenstufen: EXAKT dieselbe Ableitung wie die PWA-Vorschau (web/src/lib/watchLayout.ts:58-91),
+// nicht mehr geschätzt. Grundlage ist eine echte Messung im Connect-IQ-Simulator (fenix7xpro,
+// 280 px breit): Stufe i zeichnet den String "18.5" FONT_INK_W_280[i] Pixel breit. Aus der
+// Tintenbreite wird die Schriftgröße: Größe = Breite / Vorschub-pro-px / Referenzbreite.
+//
+// Meine ersten Werte hier waren frei geschätzt und 32–56 % ZU GROSS — daher Jans Befund
+// "Schrift etwas zu gross" auf beiden Uhren, mit Labels, die in die Werte liefen.
+private val FONT_INK_W_280 = listOf(29, 46, 50, 61, 64, 82, 99, 146, 166)
+private const val FONT_REF_W = 280f
+// Vorschub von "18.5" je 1 px Schriftgröße (3 tabellarische Ziffern + Punkt) in Roboto/Sans —
+// derselbe Wert, den die PWA im Browser misst (dort Fallback 1,973).
+private const val SAMPLE_ADV = 1.973f
+private val SIZE_FACTORS = FONT_INK_W_280.map { it / SAMPLE_ADV / FONT_REF_W }
 
-/** Stufe -> Schriftgröße in sp, relativ zur Displaybreite. */
+/** Stufe -> Schriftgröße in sp, relativ zur Displaybreite. Untergrenze wie in der Vorschau. */
 fun layoutTextSize(step: Int, widthPx: Float, density: Float): TextUnit {
     val f = SIZE_FACTORS[step.coerceIn(0, SIZE_FACTORS.size - 1)]
-    return ((widthPx * f) / density).sp
+    return (maxOf(7f, widthPx * f) / density).sp
 }
 
-/** Farbpalette 1…15 wie RecordView.mc:_layoutColor; 0/unbekannt -> Vorgabe des Aufrufers. */
-fun layoutColor(idx: Int, fallback: Color): Color = when (idx) {
-    1 -> Color.White
-    2 -> Color(0xFFAAAAAA)
-    3 -> Color(0xFF555555)
-    4 -> Color.Black
-    5 -> Color(0xFFFF0000)
-    6 -> Color(0xFFFF5500)
-    7 -> Color(0xFFFFAA00)
-    8 -> Color(0xFFFFFF00)
-    9 -> Color(0xFF00FF00)
-    10 -> Color(0xFF008800)
-    11 -> Color(0xFF00FFFF)
-    12 -> Color(0xFF22D3EE)   // Marken-Cyan
-    13 -> Color(0xFF0000FF)
-    14 -> Color(0xFFAA00FF)
-    15 -> Color(0xFFFF00AA)
-    else -> fallback
-}
+// Farbpalette 1…15 = PALETTE in server/app/api/layouts.py (Quelle der Wahrheit, die PWA spiegelt
+// sie). Garmin muss auf seine Hardware-Farbkonstanten runden (COLOR_LT_GRAY statt #d0d0d0 usw.) —
+// Wear kann die echten Werte zeichnen, deshalb hier exakt die Palette und nicht Garmins Rundung.
+private val PALETTE = listOf(
+    Color(0xFFFFFFFF), Color(0xFFD0D0D0), Color(0xFF808080), Color(0xFF000000),
+    Color(0xFFFF0000), Color(0xFFFF5500), Color(0xFFFFAA00), Color(0xFFFFFF00),
+    Color(0xFF00FF00), Color(0xFF00AA00), Color(0xFF00FFFF), Color(0xFF22D3EE),
+    Color(0xFF0055FF), Color(0xFFAA00FF), Color(0xFFFF00AA),
+)
+
+/** Palette-Index -> Farbe; 0 ("auto") und Unbekanntes -> Vorgabe des Aufrufers. */
+fun layoutColor(idx: Int, fallback: Color): Color =
+    PALETTE.getOrNull(idx - 1) ?: fallback
+
+// Rollen-Vorgaben für "auto" — identisch mit paletteColor() in der Vorschau.
+private val AUTO_VALUE = Color(0xFFFFFFFF)
+private val AUTO_LABEL = Color(0xFFD0D0D0)
+private val AUTO_LINE = Color(0xFF808080)
 
 /** Ein Element als Zahlenliste; `extraText` nur bei typ 3 (Freitext) belegt. */
 data class LayoutElement(
@@ -139,19 +145,24 @@ fun LayoutPageView(
                     val x2 = w * (e.x2 ?: e.x) / 1000f
                     val y2 = h * (e.y2 ?: e.y) / 1000f
                     drawLine(
-                        color = layoutColor(e.color, Color(0xFF555555)),
+                        color = layoutColor(e.color, AUTO_LINE),
                         start = Offset(px, py), end = Offset(x2, y2),
                         strokeWidth = (if (e.step < 1) 1 else e.step).toFloat(),
                     )
                 }
+                // REC = Punkt UND "REC"-Text (Garmin _drawRec, Vorschau EL_REC) — vorher fehlte
+                // der Text, das war allein schon ein sichtbarer Unterschied zur Vorschau.
                 5 -> if (recording) {
-                    drawCircle(layoutColor(e.color, Color(0xFFFF0000)), radius = 4.dp.toPx(), center = Offset(px, py))
+                    drawRecIndicator(measurer, px, py, w, e.flags, layoutColor(e.color, PALETTE[4]))
                 }
-                6 -> drawPageDots(pageIndex, pageCount, layoutColor(e.color, Color(0xFFAAAAAA)), w, h)
+                6 -> drawLayoutDots(
+                    idx = pageIndex, count = pageCount,
+                    color = layoutColor(e.color, AUTO_LABEL), x = px, y = py, w = w, flags = e.flags,
+                )
                 7 -> drawLayoutText(
                     measurer, pausedText, px, py, e,
                     layoutTextSize(e.step.coerceAtMost(2), w, dens),
-                    layoutColor(e.color, Color(0xFF22D3EE)), dens,
+                    layoutColor(e.color, AUTO_LABEL), bold = true,
                 )
                 1, 2, 3 -> {
                     val txt = when (e.typ) {
@@ -162,8 +173,12 @@ fun LayoutPageView(
                     if (txt.isNotEmpty()) {
                         val byValue = if (e.typ == 1 && (e.flags and 4) != 0) fieldColor(e.extraInt ?: 0) else null
                         val col = byValue
-                            ?: layoutColor(e.color, if (e.typ == 1) Color.White else Color(0xFFAAAAAA))
-                        drawLayoutText(measurer, txt, px, py, e, layoutTextSize(e.step, w, dens), col, dens)
+                            ?: layoutColor(e.color, if (e.typ == 1) AUTO_VALUE else AUTO_LABEL)
+                        // Nur Werte und der Pausiert-Hinweis sind fett — genau wie in der Vorschau.
+                        drawLayoutText(
+                            measurer, txt, px, py, e, layoutTextSize(e.step, w, dens), col,
+                            bold = e.typ == 1,
+                        )
                     }
                 }
             }
@@ -181,11 +196,14 @@ private fun DrawScope.drawLayoutText(
     e: LayoutElement,
     fontSize: TextUnit,
     color: Color,
-    dens: Float,
+    bold: Boolean,
 ) {
     val style = TextStyle(
-        fontSize = fontSize, color = color, fontWeight = FontWeight.Medium,
+        fontSize = fontSize, color = color,
+        fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
         fontFamily = FontFamily.SansSerif,
+        // Tabellarische Ziffern: sonst zappeln Werte bei jedem Update in der Breite.
+        fontFeatureSettings = "tnum",
     )
     val res = measurer.measure(text, style)
     val tw = res.size.width.toFloat()
@@ -198,20 +216,55 @@ private fun DrawScope.drawLayoutText(
     drawText(res, topLeft = Offset(left, y - th / 2f))
 }
 
-// Seiten-Punkte unten mittig, aktive Seite hell — Gegenstück zu RecordView._drawPageDots.
-private fun DrawScope.drawPageDots(idx: Int, count: Int, active: Color, w: Float, h: Float) {
-    if (count <= 1) return
-    val r = w * 0.012f
-    val gap = r * 3f
-    val total = (count - 1) * gap
-    val startX = w / 2f - total / 2f
-    val y = h * 0.92f
-    for (i in 0 until count) {
+// Seiten-Punkte AN DER ELEMENT-POSITION, aktive Seite voll, die anderen blass (Vorschau EL_DOTS:
+// Durchmesser 2,2 % der Breite, Abstand = Durchmesser, inaktiv 35 % Deckkraft).
+//
+// Bewusste Abweichung von Garmin: dort ignoriert _drawPageDots die x/y des Elements und zeichnet
+// immer unten mittig. Für das Standard-Element (500/920) kommt genau dasselbe heraus, aber wer die
+// Punkte verschiebt, sieht es hier — und nur so stimmt es mit der Vorschau. Garmins Festposition
+// ist der Ausreißer; das gehört gemeldet, nicht nachgebaut.
+private fun DrawScope.drawLayoutDots(
+    idx: Int, count: Int, color: Color,
+    x: Float, y: Float, w: Float, flags: Int,
+) {
+    val n = count.coerceIn(1, 12)
+    if (n <= 1) return
+    val d = w * 0.022f
+    val step = d * 2f
+    val total = (n - 1) * step
+    val startX = when {
+        (flags and 1) != 0 -> x + d / 2f
+        (flags and 2) != 0 -> x - total - d / 2f
+        else -> x - total / 2f
+    }
+    for (i in 0 until n) {
         drawCircle(
-            color = if (i == idx) active else Color(0xFF555555),
-            radius = r, center = Offset(startX + i * gap, y),
+            color = if (i == idx) color else color.copy(alpha = 0.35f),
+            radius = d / 2f, center = Offset(startX + i * step, y),
         )
     }
+}
+
+// REC-Indikator: Punkt + "REC" als Gruppe, ausgerichtet wie Text (Vorschau: Punkt 3 % der Breite,
+// Schrift 5,5 %, Abstand halber Punkt).
+private fun DrawScope.drawRecIndicator(
+    measurer: TextMeasurer, x: Float, y: Float, w: Float, flags: Int, color: Color,
+) {
+    val d = maxOf(4f, w * 0.03f)
+    val gap = d / 2f
+    val style = TextStyle(
+        fontSize = (maxOf(7f, w * 0.055f) / density).sp, color = color,
+        fontFamily = FontFamily.SansSerif,
+    )
+    val res = measurer.measure("REC", style)
+    val total = d + gap + res.size.width
+    val left = when {
+        (flags and 1) != 0 -> x
+        (flags and 2) != 0 -> x - total
+        else -> x - total / 2f
+    }
+    drawCircle(color = color, radius = d / 2f, center = Offset(left + d / 2f, y))
+    drawText(res, topLeft = Offset(left + d + gap, y - res.size.height / 2f))
 }
 
 // --- Seiten-Sätze (F3) ---------------------------------------------------------------------

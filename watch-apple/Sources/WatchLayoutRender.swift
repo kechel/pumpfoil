@@ -15,37 +15,47 @@ import SwiftUI
 //   typ 7 = „Pausiert"-Hinweis      (Pflicht in Pausen-Layouts, nicht entfernbar)
 //   flags Bit0 = links, Bit1 = rechts, sonst zentriert
 //
-// Die Größenstufen sind NICHT die Garmin-Zahlen (das sind gemessene Connect-IQ-Fonts). watchOS
-// skaliert frei, also bilden die Stufen 0…8 auf einen Anteil der Displaybreite ab — gleiche
-// Verhältnisse wie im Editor, plattformeigen gerechnet. Dynamic Type wird bewusst NICHT
-// mitskaliert: absolut positionierte Elemente würden sonst überlappen.
-private let LAYOUT_SIZE_FACTORS: [CGFloat] = [0.075, 0.11, 0.13, 0.15, 0.17, 0.23, 0.28, 0.36, 0.42]
+// Größenstufen: EXAKT dieselbe Ableitung wie die PWA-Vorschau (web/src/lib/watchLayout.ts:58-91)
+// und die Wear-Fassung — nicht geschätzt. Grundlage ist eine echte Messung im Connect-IQ-Simulator
+// (fenix7xpro, 280 px breit): Stufe i zeichnet "18.5" FONT_INK_W_280[i] Pixel breit. Daraus die
+// Schriftgröße: Größe = Tintenbreite / Vorschub-pro-px / Referenzbreite.
+//
+// Meine ersten Werte waren frei geschätzt und 32–56 % ZU GROSS — Jans Befund "Schrift etwas zu
+// gross", mit Labels, die in die Werte liefen. Dynamic Type wird bewusst NICHT mitskaliert:
+// absolut positionierte Elemente würden sonst überlappen.
+private let FONT_INK_W_280: [CGFloat] = [29, 46, 50, 61, 64, 82, 99, 146, 166]
+private let FONT_REF_W: CGFloat = 280
+/// Vorschub von "18.5" je 1 pt Schriftgröße (3 tabellarische Ziffern + Punkt).
+private let SAMPLE_ADV: CGFloat = 1.973
+private let LAYOUT_SIZE_FACTORS: [CGFloat] = FONT_INK_W_280.map { $0 / SAMPLE_ADV / FONT_REF_W }
 
 func layoutFontSize(_ step: Int, width: CGFloat) -> CGFloat {
     let i = min(max(step, 0), LAYOUT_SIZE_FACTORS.count - 1)
-    return width * LAYOUT_SIZE_FACTORS[i]
+    return max(7, width * LAYOUT_SIZE_FACTORS[i])
 }
 
-/// Farbpalette 1…15 wie RecordView.mc:_layoutColor; 0/unbekannt -> Vorgabe des Aufrufers.
+// Farbpalette 1…15 = PALETTE in server/app/api/layouts.py (Quelle der Wahrheit, die PWA spiegelt
+// sie). Garmin rundet auf seine Hardware-Farbkonstanten; watchOS kann die echten Werte zeichnen,
+// deshalb hier exakt die Palette statt Garmins Rundung.
+private func hexColor(_ v: UInt32) -> Color {
+    Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255,
+          blue: Double(v & 0xFF) / 255)
+}
+private let LAYOUT_PALETTE: [Color] = [
+    hexColor(0xFFFFFF), hexColor(0xD0D0D0), hexColor(0x808080), hexColor(0x000000),
+    hexColor(0xFF0000), hexColor(0xFF5500), hexColor(0xFFAA00), hexColor(0xFFFF00),
+    hexColor(0x00FF00), hexColor(0x00AA00), hexColor(0x00FFFF), hexColor(0x22D3EE),
+    hexColor(0x0055FF), hexColor(0xAA00FF), hexColor(0xFF00AA),
+]
+/// Rollen-Vorgaben für Palette 0 ("auto") — identisch mit paletteColor() in der Vorschau.
+let autoValueColor = hexColor(0xFFFFFF)
+let autoLabelColor = hexColor(0xD0D0D0)
+let autoLineColor = hexColor(0x808080)
+
+/// Palette-Index -> Farbe; 0 ("auto") und Unbekanntes -> Vorgabe des Aufrufers.
 func layoutColor(_ idx: Int, _ fallback: Color) -> Color {
-    switch idx {
-    case 1: return .white
-    case 2: return Color(red: 0.67, green: 0.67, blue: 0.67)
-    case 3: return Color(red: 0.33, green: 0.33, blue: 0.33)
-    case 4: return .black
-    case 5: return Color(red: 1, green: 0, blue: 0)
-    case 6: return Color(red: 1, green: 0.33, blue: 0)
-    case 7: return Color(red: 1, green: 0.67, blue: 0)
-    case 8: return Color(red: 1, green: 1, blue: 0)
-    case 9: return Color(red: 0, green: 1, blue: 0)
-    case 10: return Color(red: 0, green: 0.53, blue: 0)
-    case 11: return Color(red: 0, green: 1, blue: 1)
-    case 12: return Color(red: 0.13, green: 0.83, blue: 0.93)   // Marken-Cyan
-    case 13: return Color(red: 0, green: 0, blue: 1)
-    case 14: return Color(red: 0.67, green: 0, blue: 1)
-    case 15: return Color(red: 1, green: 0, blue: 0.67)
-    default: return fallback
-    }
+    let i = idx - 1
+    return (i >= 0 && i < LAYOUT_PALETTE.count) ? LAYOUT_PALETTE[i] : fallback
 }
 
 /// Ein Wert aus dem Layout-JSON. Die Element-Arrays sind gemischt (Zahlen und, bei Freitext,
@@ -224,8 +234,7 @@ struct LayoutPageView: View {
                 p.move(to: CGPoint(x: w * CGFloat(e.x) / 1000, y: h * CGFloat(e.y) / 1000))
                 p.addLine(to: CGPoint(x: w * CGFloat(e.x2 ?? e.x) / 1000, y: h * CGFloat(e.y2 ?? e.y) / 1000))
             }
-            .stroke(layoutColor(e.color, Color(red: 0.33, green: 0.33, blue: 0.33)),
-                    lineWidth: CGFloat(max(e.step, 1)))
+            .stroke(layoutColor(e.color, autoLineColor), lineWidth: CGFloat(max(e.step, 1)))
         }
     }
 
@@ -234,24 +243,23 @@ struct LayoutPageView: View {
         let py = h * CGFloat(e.y) / 1000
         switch e.typ {
         case 5:
+            // REC = Punkt UND "REC"-Text (Garmin _drawRec, Vorschau EL_REC); vorher nur ein Punkt.
             if recording {
-                Circle()
-                    .fill(layoutColor(e.color, Color(red: 1, green: 0, blue: 0)))
-                    .frame(width: 8, height: 8)
-                    .position(x: px, y: py)
+                recIndicator(e, px: px, py: py, w: w, color: layoutColor(e.color, LAYOUT_PALETTE[4]))
             }
         case 6:
-            pageDots(w: w, h: h, active: layoutColor(e.color, Color(red: 0.67, green: 0.67, blue: 0.67)))
+            pageDots(e, px: px, py: py, w: w, color: layoutColor(e.color, autoLabelColor))
         case 7:
             layoutText(pausedText, e, px: px, py: py, w: w,
                        step: min(e.step, 2),
-                       color: layoutColor(e.color, Color(red: 0.13, green: 0.83, blue: 0.93)))
+                       color: layoutColor(e.color, autoLabelColor), bold: true)
         case 1, 2, 3:
             let txt = textFor(e)
             if !txt.isEmpty {
                 let byValue = (e.typ == 1 && (e.flags & 4) != 0) ? fieldColor(e.extraInt ?? 0) : nil
-                let col = byValue ?? layoutColor(e.color, e.typ == 1 ? .white : Color(red: 0.67, green: 0.67, blue: 0.67))
-                layoutText(txt, e, px: px, py: py, w: w, step: e.step, color: col)
+                let col = byValue ?? layoutColor(e.color, e.typ == 1 ? autoValueColor : autoLabelColor)
+                // Nur Werte sind fett — genau wie in der Vorschau.
+                layoutText(txt, e, px: px, py: py, w: w, step: e.step, color: col, bold: e.typ == 1)
             }
         default:
             EmptyView()
@@ -269,17 +277,41 @@ struct LayoutPageView: View {
     // Ausrichtung: flags Bit0 links, Bit1 rechts, sonst zentriert; vertikal immer mittig
     // (entspricht TEXT_JUSTIFY_VCENTER bei Garmin).
     @ViewBuilder private func layoutText(
-        _ txt: String, _ e: LayoutElement, px: CGFloat, py: CGFloat, w: CGFloat, step: Int, color: Color
+        _ txt: String, _ e: LayoutElement, px: CGFloat, py: CGFloat, w: CGFloat, step: Int,
+        color: Color, bold: Bool
     ) -> some View {
         let size = layoutFontSize(step, width: w)
+        // Normale Sans (nicht .rounded) und nur Werte fett — sonst weicht es von der Vorschau ab.
         Text(txt)
-            .font(.system(size: size, weight: .medium, design: .rounded))
+            .font(.system(size: size, weight: bold ? .bold : .regular))
             .monospacedDigit()
             .foregroundStyle(color)
             .lineLimit(1)
             .fixedSize()
             .frame(maxWidth: w, alignment: alignmentFor(e.flags))
             .position(x: anchorX(e.flags, px: px, w: w), y: py)
+    }
+
+    /// Linke Kante der Punktgruppe, ausgerichtet wie Text (flags Bit0 links, Bit1 rechts).
+    private func dotsStartX(_ flags: Int, px: CGFloat, total: CGFloat, d: CGFloat) -> CGFloat {
+        if (flags & 1) != 0 { return px + d / 2 }
+        if (flags & 2) != 0 { return px - total - d / 2 }
+        return px - total / 2
+    }
+
+    /// REC-Indikator: Punkt + "REC" als Gruppe (Vorschau: Punkt 3 % der Breite, Schrift 5,5 %,
+    /// Abstand halber Punkt). Ausrichtung wie bei Text.
+    @ViewBuilder private func recIndicator(
+        _ e: LayoutElement, px: CGFloat, py: CGFloat, w: CGFloat, color: Color
+    ) -> some View {
+        let d = max(4, w * 0.03)
+        HStack(spacing: d / 2) {
+            Circle().fill(color).frame(width: d, height: d)
+            Text("REC").font(.system(size: max(7, w * 0.055))).foregroundStyle(color)
+        }
+        .fixedSize()
+        .frame(maxWidth: w, alignment: alignmentFor(e.flags))
+        .position(x: anchorX(e.flags, px: px, w: w), y: py)
     }
 
     private func alignmentFor(_ flags: Int) -> Alignment {
@@ -296,16 +328,26 @@ struct LayoutPageView: View {
         return px
     }
 
-    @ViewBuilder private func pageDots(w: CGFloat, h: CGFloat, active: Color) -> some View {
-        if pageCount > 1 {
-            let r = w * 0.012
-            let gap = r * 3
-            let startX = w / 2 - CGFloat(pageCount - 1) * gap / 2
-            ForEach(0..<pageCount, id: \.self) { i in
+    // Seiten-Punkte AN DER ELEMENT-POSITION (Vorschau EL_DOTS: Durchmesser 2,2 % der Breite,
+    // Abstand = Durchmesser, inaktiv 35 % Deckkraft).
+    //
+    // Bewusste Abweichung von Garmin: dort ignoriert _drawPageDots x/y und zeichnet immer unten
+    // mittig. Beim Standard-Element (500/920) kommt dasselbe heraus, aber wer die Punkte
+    // verschiebt, sieht es hier — und nur so stimmt es mit der Vorschau.
+    @ViewBuilder private func pageDots(
+        _ e: LayoutElement, px: CGFloat, py: CGFloat, w: CGFloat, color: Color
+    ) -> some View {
+        let n = min(max(pageCount, 1), 12)
+        if n > 1 {
+            let d = w * 0.022
+            let stepX = d * 2
+            let total = CGFloat(n - 1) * stepX
+            let startX = dotsStartX(e.flags, px: px, total: total, d: d)
+            ForEach(0..<n, id: \.self) { i in
                 Circle()
-                    .fill(i == pageIndex ? active : Color(red: 0.33, green: 0.33, blue: 0.33))
-                    .frame(width: r * 2, height: r * 2)
-                    .position(x: startX + CGFloat(i) * gap, y: h * 0.92)
+                    .fill(color.opacity(i == pageIndex ? 1 : 0.35))
+                    .frame(width: d, height: d)
+                    .position(x: startX + CGFloat(i) * stepX, y: py)
             }
         }
     }
