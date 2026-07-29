@@ -309,7 +309,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
                           canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {},
@@ -455,90 +455,88 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
             }
         }
-        // Foil dieser Session (Metadaten, wie PWA): beeinflusst Leistung + Community-Foil-Stats.
-        if (s.owned && allFoils.isNotEmpty()) {
-            Column {
-                Text(I18n.t("sd.foilOfSession"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(4.dp))
-                FoilDropdown(
-                    all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
-                    onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
-                )
-            }
-        }
-        // Restliches Setup je Session: Stab, Mastlaenge, Shim, Board. Leere Auswahl = Standard des
-        // Nutzers erben; der geerbte Wert steht dann im Knopf. Jedes Feld erscheint nur, wenn es
-        // ueberhaupt etwas zu waehlen gibt (Katalog bzw. eigene Werte) — wie FoilSelect.tsx.
+        // Setup dieser Session: Foil, Stab, Mastlaenge, Shim, Board — OHNE Labels, alles in EINER
+        // umbrechenden Zeile. Die Label-Spalte darueber brauchte viel zu viel Platz (Jan, 29.07.);
+        // dieselbe Form hat die iOS-App und die PWA (FoilSelect.tsx). Ein Feld erscheint nur, wenn
+        // dafuer ueberhaupt ein Wert gesetzt ist (explizit fuer die Session ODER als Profil-Standard)
+        // — der Platzhalter „Standard verwenden" faellt damit weg. Wer eine Kategorie ganz ohne Wert
+        // fuellen will, setzt zuerst den Standard im Profil.
         if (s.owned) {
             val setup = s.setup
-            fun label(explicit: Boolean, own: String?, inherited: String?, fallback: String) =
-                if (explicit) own ?: fallback else inherited ?: I18n.t("setup.inherit")
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (allStabs.isNotEmpty()) {
-                    val expl = setup?.stab?.isDefault == false
-                    SetupDropdown(
-                        title = I18n.t("setup.stabTitle"),
-                        current = label(expl, setup?.stab?.let { "${it.brand} ${it.model} ${it.size}".trim() }, null, ""),
-                        groups = listOf(
-                            I18n.t("setup.myStabs") to allStabs.filter { it.id in myStabIds },
-                            I18n.t("foils.allBrands") to allStabs.filter { it.id !in myStabIds },
-                        ),
-                        labelOf = { "${it.brand} ${it.model} ${it.size}".trim() },
-                        idOf = { it.id },
-                        onPick = { id ->
-                            scope.launch {
-                                try { Api.setSessionSetup(s.id, stabId = id, setStab = true); onReload() } catch (_: Exception) {}
-                            }
-                        },
-                    )
-                }
-                if (myMasts.isNotEmpty()) {
-                    val expl = setup?.mastIsDefault == false
-                    SetupValueDropdown(
-                        title = I18n.t("setup.mastTitle"),
-                        current = if (expl || setup?.mastLenCm != null) "${setup?.mastLenCm} cm" else I18n.t("setup.inherit"),
-                        options = myMasts.map { it to "$it cm" },
-                        onPick = { v ->
-                            scope.launch {
-                                try { Api.setSessionSetup(s.id, mastLenCm = v, setMast = true); onReload() } catch (_: Exception) {}
-                            }
-                        },
-                    )
-                }
-                if (myShims.isNotEmpty()) {
-                    val expl = setup?.shimIsDefault == false
-                    SetupValueDropdown(
-                        title = I18n.t("setup.shimTitle"),
-                        current = if (expl || setup?.shimDeg != null) fmtShim(setup?.shimDeg) else I18n.t("setup.inherit"),
-                        options = myShims.map { it to fmtShim(it) },
-                        onPick = { v ->
-                            scope.launch {
-                                try { Api.setSessionSetup(s.id, shimDeg = v, setShim = true); onReload() } catch (_: Exception) {}
-                            }
-                        },
-                    )
-                }
-                if (myBoards.isNotEmpty()) {
-                    val expl = setup?.board?.isDefault == false
-                    SetupDropdown(
-                        title = I18n.t("setup.boardTitle"),
-                        current = label(expl, setup?.board?.name, null, ""),
-                        groups = listOf("" to myBoards),
-                        labelOf = { it.name },
-                        idOf = { it.id },
-                        onPick = { id ->
-                            scope.launch {
-                                try { Api.setSessionSetup(s.id, boardId = id, setBoard = true); onReload() } catch (_: Exception) {}
-                            }
-                        },
-                    )
+            val stabTxt = setup?.stab?.let { "${it.brand} ${it.model} ${it.size}".trim() }
+            val mastTxt = setup?.mastLenCm?.let { "$it cm" }
+            val shimTxt = setup?.shimDeg?.let { fmtShim(it) }
+            val boardTxt = setup?.board?.name
+            val zeigeFoil = allFoils.isNotEmpty()
+            if (zeigeFoil || stabTxt != null || mastTxt != null || shimTxt != null || boardTxt != null) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (zeigeFoil) {
+                        FoilDropdown(
+                            all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
+                            onSelect = { id -> scope.launch { try { Api.setSessionFoil(s.id, id); onReload() } catch (_: Exception) {} } },
+                        )
+                    }
+                    if (allStabs.isNotEmpty() && stabTxt != null) {
+                        SetupDropdown(
+                            current = stabTxt,
+                            groups = listOf(
+                                I18n.t("setup.myStabs") to allStabs.filter { it.id in myStabIds },
+                                I18n.t("foils.allBrands") to allStabs.filter { it.id !in myStabIds },
+                            ),
+                            labelOf = { "${it.brand} ${it.model} ${it.size}".trim() },
+                            idOf = { it.id },
+                            onPick = { id ->
+                                scope.launch {
+                                    try { Api.setSessionSetup(s.id, stabId = id, setStab = true); onReload() } catch (_: Exception) {}
+                                }
+                            },
+                        )
+                    }
+                    if (myMasts.isNotEmpty() && mastTxt != null) {
+                        SetupValueDropdown(
+                            current = mastTxt,
+                            options = myMasts.map { it to "$it cm" },
+                            onPick = { v ->
+                                scope.launch {
+                                    try { Api.setSessionSetup(s.id, mastLenCm = v, setMast = true); onReload() } catch (_: Exception) {}
+                                }
+                            },
+                        )
+                    }
+                    if (myShims.isNotEmpty() && shimTxt != null) {
+                        SetupValueDropdown(
+                            current = shimTxt,
+                            options = myShims.map { it to fmtShim(it) },
+                            onPick = { v ->
+                                scope.launch {
+                                    try { Api.setSessionSetup(s.id, shimDeg = v, setShim = true); onReload() } catch (_: Exception) {}
+                                }
+                            },
+                        )
+                    }
+                    if (myBoards.isNotEmpty() && boardTxt != null) {
+                        SetupDropdown(
+                            current = boardTxt,
+                            groups = listOf("" to myBoards),
+                            labelOf = { it.name },
+                            idOf = { it.id },
+                            onPick = { id ->
+                                scope.launch {
+                                    try { Api.setSessionSetup(s.id, boardId = id, setBoard = true); onReload() } catch (_: Exception) {}
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
 
         // Sportart-Klassifikation (docs/sport-classification.md): der Besitzer ordnet selbst zu,
         // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
-        if (s.owned) ClassificationPanel(s, scope, onReload) else ReportRow(s.id)
+        if (s.owned) ClassificationPanel(s, scope, onReload)
 
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
         // (mehrere, wie PWA). Tippen -> Vollbild/Video.
@@ -760,6 +758,16 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             if (segList.isNotEmpty()) RunsTable(segList, selectedRun) { selectedRun = if (selectedRun == it) null else it }
+        }
+
+        // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen,
+        // dann urteilen — oben stand es im Weg. Nur bei FREMDEN Sessions; bei eigenen sitzen an
+        // dieser Stelle im Ablauf die Klassifikations-Felder (oben im Inhalt).
+        if (!s.owned) {
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+            ReportRow(s.id)
         }
 
         // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
@@ -1488,6 +1496,7 @@ private fun ReportRow(sessionId: Int) {
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun ClassificationPanel(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
     var appealDraft by remember(s.id) { mutableStateOf("") }
@@ -1580,7 +1589,6 @@ private fun fmtShim(v: Double?): String {
 // immer "Standard verwenden" = Override löschen (null an den Server).
 @Composable
 private fun <T> SetupDropdown(
-    title: String,
     current: String,
     groups: List<Pair<String, List<T>>>,
     labelOf: (T) -> String,
@@ -1588,10 +1596,7 @@ private fun <T> SetupDropdown(
     onPick: (Int?) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    Column {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(2.dp))
-        Box {
+    Box {
             OutlinedButton(onClick = { open = true }) {
                 Text(current.ifBlank { I18n.t("setup.inherit") }, maxLines = 1)
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
@@ -1613,22 +1618,17 @@ private fun <T> SetupDropdown(
                 }
             }
         }
-    }
 }
 
 // Auswahl aus reinen Werten (Mastlänge in cm, Shim in Grad).
 @Composable
 private fun <V> SetupValueDropdown(
-    title: String,
     current: String,
     options: List<Pair<V, String>>,
     onPick: (V?) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    Column {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(2.dp))
-        Box {
+    Box {
             OutlinedButton(onClick = { open = true }) {
                 Text(current, maxLines = 1)
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
@@ -1641,5 +1641,4 @@ private fun <V> SetupValueDropdown(
                 }
             }
         }
-    }
 }
