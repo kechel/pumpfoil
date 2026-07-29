@@ -9,6 +9,14 @@ import UIKit
 struct SessionDetailView: View {
     let id: Int
     var dataVersion: Int? = nil   // aus der Liste: erlaubt Cache-Treffer ohne Netz (nil -> immer laden)
+    // Welche Session gerade GEZEIGT wird. „Älter"/„Neuer" TAUSCHEN sie hier aus, statt eine weitere
+    // Detailansicht auf den Navigations-Stack zu legen. Vorher tat genau das der NavigationLink im
+    // neighborNav -- mit der Folge, dass der Zurueck-Button oben links durch die Kette der
+    // durchgeblaetterten Sessions lief statt eine Ebene hoeher (Jans Befund: Rekord antippen, zurueck,
+    // und man steht in einer voellig anderen Session). Der Zurueck-Button gehoert der Ebene; zum
+    // Blaettern gibt es „Älter"/„Neuer".
+    @State private var shownId: Int?
+    private var sid: Int { shownId ?? id }
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
@@ -73,7 +81,7 @@ struct SessionDetailView: View {
                 deleteDialogActions
             }
             .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) { captionAlertActions }
-            .task { await load() }
+            .task(id: sid) { await load() }
             .task(id: session?.status) { await pollWhileLive() }
             .onChange(of: selectedFoilId) { fid in onFoilPicked(fid) }
             .sheet(isPresented: $showLink) { linkSheet }
@@ -137,12 +145,12 @@ struct SessionDetailView: View {
 
     private func openShareLink() {
         showLink = true; linkCopied = false
-        if shareUrl == nil { Task { shareUrl = try? await Api.createShareLink(id) } }
+        if shareUrl == nil { Task { shareUrl = try? await Api.createShareLink(sid) } }
     }
 
     @ViewBuilder private var deleteDialogActions: some View {
         Button(Loc.t("common.delete", lang), role: .destructive) {
-            Task { try? await Api.deleteSession(id); dismiss() }
+            Task { try? await Api.deleteSession(sid); dismiss() }
         }
         Button(Loc.t("common.cancel", lang), role: .cancel) {}
     }
@@ -156,7 +164,7 @@ struct SessionDetailView: View {
     private func saveCaption() {
         let c: String = String(draftCaption.prefix(30)).trimmingCharacters(in: .whitespaces)
         caption = c
-        Task { try? await Api.setCaption(id, caption: c) }
+        Task { try? await Api.setCaption(sid, caption: c) }
     }
 
     @ViewBuilder private var shareSheet: some View {
@@ -173,14 +181,14 @@ struct SessionDetailView: View {
               let st = session?.status, st == "recording" || st == "live" else { return }
         while !Task.isCancelled {
             try? await Task.sleep(nanoseconds: 4_000_000_000)
-            if let fresh = try? await Api.session(id) { session = fresh; SessionCache.store(fresh) }
+            if let fresh = try? await Api.session(sid) { session = fresh; SessionCache.store(fresh) }
         }
     }
 
     private func onFoilPicked(_ fid: Int) {
         let current: Int = session?.foil?.id ?? 0
         guard fid != current else { return }
-        Task { try? await Api.setSessionFoil(id, foilId: fid == 0 ? nil : fid); await load() }
+        Task { try? await Api.setSessionFoil(sid, foilId: fid == 0 ? nil : fid); await load() }
     }
 
     private var durSec: Double {
@@ -206,7 +214,7 @@ struct SessionDetailView: View {
                 }
                 .buttonStyle(.borderedProminent).controlSize(.large).disabled(shareUrl == nil)
                 Button(role: .destructive) {
-                    Task { try? await Api.revokeShareLink(id) }
+                    Task { try? await Api.revokeShareLink(sid) }
                     shareUrl = nil; showLink = false
                 } label: { Text(Loc.t("share.revoke", lang)) }
                 Spacer()
@@ -229,11 +237,11 @@ struct SessionDetailView: View {
                     Button(Loc.t("sd.apply", lang)) {
                         let a = min(trimStart, trimEnd), b = max(trimStart, trimEnd)
                         showTrim = false
-                        Task { try? await Api.setTrim(id, startMs: Int(a * 1000), endMs: Int(b * 1000)); await load() }
+                        Task { try? await Api.setTrim(sid, startMs: Int(a * 1000), endMs: Int(b * 1000)); await load() }
                     }
                     Button(Loc.t("sd.trimReset", lang), role: .destructive) {
                         showTrim = false
-                        Task { try? await Api.setTrim(id, startMs: nil, endMs: nil); await load() }
+                        Task { try? await Api.setTrim(sid, startMs: nil, endMs: nil); await load() }
                     }
                 }
             }
@@ -297,16 +305,33 @@ struct SessionDetailView: View {
     @ViewBuilder private var neighborNav: some View {
         if let nb = neighbors, nb.older != nil || nb.newer != nil {
             HStack {
-                if let o = nb.older {
-                    NavigationLink { SessionDetailView(id: o) } label: { Text(Loc.t("sd.older", lang)) }
-                } else { Text(Loc.t("sd.older", lang)).foregroundStyle(.tertiary) }
+                neighborButton(Loc.t("sd.older", lang), target: nb.older)
                 Spacer()
-                if let n = nb.newer {
-                    NavigationLink { SessionDetailView(id: n) } label: { Text(Loc.t("sd.newer", lang)) }
-                } else { Text(Loc.t("sd.newer", lang)).foregroundStyle(.tertiary) }
+                neighborButton(Loc.t("sd.newer", lang), target: nb.newer)
             }
             .font(.subheadline)
         }
+    }
+
+    @ViewBuilder private func neighborButton(_ title: String, target: Int?) -> some View {
+        if let target {
+            Button(title) { showSession(target) }
+        } else {
+            Text(title).foregroundStyle(.tertiary)
+        }
+    }
+
+    /// Angezeigte Session austauschen (kein Push!). Der Zustand der alten muss weg, sonst blitzt sie
+    /// in der neuen kurz auf; `.task(id: sid)` laedt anschliessend neu.
+    private func showSession(_ newId: Int) {
+        session = nil; carve = nil; neighbors = nil
+        photos = []; videos = []
+        selectedRun = nil; lightbox = nil
+        shareUrl = nil; linkCopied = false; showLink = false
+        appealOpen = false; appealDraft = ""; classErr = nil
+        editingCaption = false
+        error = nil; loading = true
+        shownId = newId
     }
 
     private func headerRow(_ s: SessionDetail) -> some View {
@@ -394,7 +419,7 @@ struct SessionDetailView: View {
 
     // Videos laden; Fallback (alter Server ohne /videos): Legacy-Feld als Einzelvideo.
     private func loadVideos(_ s: SessionDetail) async -> [SessionVideo] {
-        if let v = try? await Api.sessionVideos(id) { return v }
+        if let v = try? await Api.sessionVideos(sid) { return v }
         if let url = s.youtube_url, !url.isEmpty { return [SessionVideo(id: 0, youtube_url: url)] }
         return []
     }
@@ -443,15 +468,15 @@ struct SessionDetailView: View {
 
     private func removePhoto(_ p: SessionPhoto) {
         Task {
-            try? await Api.deleteSessionPhoto(id, photoId: p.id)
-            photos = (try? await Api.sessionPhotos(id)) ?? []
+            try? await Api.deleteSessionPhoto(sid, photoId: p.id)
+            photos = (try? await Api.sessionPhotos(sid)) ?? []
         }
     }
 
     private func removeVideo(_ v: SessionVideo) {
         Task {
-            try? await Api.deleteSessionVideo(id, videoId: v.id)
-            videos = (try? await Api.sessionVideos(id)) ?? []
+            try? await Api.deleteSessionVideo(sid, videoId: v.id)
+            videos = (try? await Api.sessionVideos(sid)) ?? []
         }
     }
 
@@ -476,8 +501,8 @@ struct SessionDetailView: View {
     private func onPhotoPicked(_ item: PhotosPickerItem?) {
         Task {
             if let data = try? await item?.loadTransferable(type: Data.self) {
-                try? await Api.uploadSessionPhoto(id, data: downscaleJPEG(data))
-                photos = (try? await Api.sessionPhotos(id)) ?? []
+                try? await Api.uploadSessionPhoto(sid, data: downscaleJPEG(data))
+                photos = (try? await Api.sessionPhotos(sid)) ?? []
             }
         }
     }
@@ -534,7 +559,7 @@ struct SessionDetailView: View {
         guard !u.isEmpty else { return }
         Task {
             do {
-                try await Api.addSessionVideo(id, youtubeUrl: u)
+                try await Api.addSessionVideo(sid, youtubeUrl: u)
                 videos = await loadVideos(s)
             } catch { videoErr = true }
         }
@@ -797,7 +822,7 @@ struct SessionDetailView: View {
         shim: Double? = nil, setShim: Bool = false,
         board: Int? = nil, setBoard: Bool = false
     ) async {
-        try? await Api.setSessionSetup(id, stabId: stab, setStab: setStab, mastLenCm: mast, setMast: setMast,
+        try? await Api.setSessionSetup(sid, stabId: stab, setStab: setStab, mastLenCm: mast, setMast: setMast,
                                       shimDeg: shim, setShim: setShim, boardId: board, setBoard: setBoard)
         await load()
     }
@@ -834,7 +859,7 @@ struct SessionDetailView: View {
                 Button(Loc.t("cls.appealSend", lang)) {
                     Task {
                         do {
-                            try await Api.appealClassification(id, text: appealDraft)
+                            try await Api.appealClassification(sid, text: appealDraft)
                             appealOpen = false
                             await load()
                         } catch { classErr = Loc.t("cls.pickErr", lang) }
@@ -871,7 +896,7 @@ struct SessionDetailView: View {
 
     private func applyClass(sport: String? = nil, dq: String? = nil) async {
         do {
-            try await Api.setClassification(id, sport: sport, dataQuality: dq)
+            try await Api.setClassification(sid, sport: sport, dataQuality: dq)
             classErr = nil
             await load()
         } catch { classErr = Loc.t("cls.pickErr", lang) }
@@ -921,7 +946,7 @@ struct SessionDetailView: View {
                 Text(Loc.t("merge.mergedFrom", lang)).font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button(Loc.t("merge.unmerge", lang), role: .destructive) {
-                    Task { try? await Api.unmergeSession(id); await load() }
+                    Task { try? await Api.unmergeSession(sid); await load() }
                 }.font(.caption)
             }
         }
@@ -982,23 +1007,23 @@ struct SessionDetailView: View {
     private func load() async {
         loading = true; defer { loading = false }
         // Cache-Treffer (data_version stimmt) -> Detail aus dem Disk-Cache, kein Netz-Fetch.
-        let cached = session == nil ? SessionCache.load(id: id, expectedVersion: dataVersion) : nil
+        let cached = session == nil ? SessionCache.load(id: sid, expectedVersion: shownId == nil ? dataVersion : nil) : nil
         do {
             let s: SessionDetail
             if let cached {
                 s = cached
             } else {
-                s = try await Api.session(id)
+                s = try await Api.session(sid)
                 SessionCache.store(s)
             }
             session = s
-            carve = try? await Api.sessionCarves(id)   // Carve-Bögen (nur Anzeige)
-            neighbors = try? await Api.sessionNeighbors(id)
+            carve = try? await Api.sessionCarves(sid)   // Carve-Bögen (nur Anzeige)
+            neighbors = try? await Api.sessionNeighbors(sid)
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
             caption = s.caption ?? ""
             selectedFoilId = s.foil?.id ?? 0
-            photos = (try? await Api.sessionPhotos(id)) ?? []
+            photos = (try? await Api.sessionPhotos(sid)) ?? []
             videos = await loadVideos(s)
             let settings = (try? await Api.settings()) ?? [:]
             weightKg = (settings["weight_kg"] as? Int).map(Double.init) ?? 0
