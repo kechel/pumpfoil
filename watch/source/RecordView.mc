@@ -517,6 +517,11 @@ class RecordView extends WatchUi.View {
             return;
         }
         if (typ == 7) {                                   // „Pausiert"-Hinweis (Pflicht in Pausen-Layouts)
+            // NUR zeichnen, wenn die Aufnahme wirklich pausiert ist. Steht „Alle Seiten durchblättern"
+            // an, blättert man auch durch die Pausen-Layouts, während ganz normal aufgezeichnet wird —
+            // ein „Pausiert" wäre dort schlicht falsch und beunruhigt (Jan, 29.07.). Das Element bleibt
+            // im Layout unlöschbar; es blendet sich nur dynamisch aus.
+            if (!_rec.isPaused()) { return; }
             var pc = _layoutColor(e[4], Config.BRAND_CYAN);
             dc.setColor(pc, Graphics.COLOR_TRANSPARENT);
             var pf = _layoutFont(step > 2 ? 2 : step, 2);   // klein halten, wie im Editor gedeckelt

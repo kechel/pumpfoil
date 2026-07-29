@@ -523,6 +523,11 @@ struct RecordView: View {
                 LayoutPageView(
                     page: def, pageIndex: idx, pageCount: dataPages.count,
                     recording: rec.isRecording, pausedText: WLoc.t("rec.paused", lang),
+                    // Die manuelle Pause gibt es auf der Apple Watch noch nicht (nur Garmin hat
+                    // sie). Bis dahin waere der Hinweis IMMER falsch, deshalb hart false — sonst
+                    // stuende "Pausiert" auf jeder durchgeblaetterten Pausen-Seite mitten in der
+                    // Aufnahme.
+                    paused: false,
                     fieldValue: { fid in fieldValue(fid, rec, lang).0 },
                     fieldLabel: { fid in fieldValue(fid, rec, lang).1 },
                     fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil }

@@ -347,6 +347,11 @@ class MainActivity : ComponentActivity() {
                                     LayoutPageView(
                                         page = def, pageIndex = page - firstData, pageCount = dataCount,
                                         recording = true, pausedText = I18n.t("rec.paused"),
+                                        // Die manuelle Pause gibt es auf Wear noch nicht (nur
+                                        // Garmin hat sie). Bis dahin ist der Hinweis IMMER falsch,
+                                        // deshalb hart false — sonst stünde "Pausiert" auf jeder
+                                        // durchgeblätterten Pausen-Seite mitten in der Aufnahme.
+                                        paused = false,
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
                                         fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
@@ -366,6 +371,11 @@ class MainActivity : ComponentActivity() {
                                     LayoutPageView(
                                         page = def, pageIndex = 0, pageCount = 1,
                                         recording = true, pausedText = I18n.t("rec.paused"),
+                                        // Die manuelle Pause gibt es auf Wear noch nicht (nur
+                                        // Garmin hat sie). Bis dahin ist der Hinweis IMMER falsch,
+                                        // deshalb hart false — sonst stünde "Pausiert" auf jeder
+                                        // durchgeblätterten Pausen-Seite mitten in der Aufnahme.
+                                        paused = false,
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
                                         fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },

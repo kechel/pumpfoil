@@ -124,6 +124,8 @@ fun LayoutPageView(
     pageCount: Int,
     recording: Boolean,
     pausedText: String,
+    /** Ist die Aufnahme WIRKLICH pausiert? Nur dann zeichnet Element typ 7 seinen Hinweis. */
+    paused: Boolean,
     fieldValue: (Int) -> String,
     fieldLabel: (Int) -> String,
     fieldColor: (Int) -> Color?,
@@ -159,7 +161,10 @@ fun LayoutPageView(
                     idx = pageIndex, count = pageCount,
                     color = layoutColor(e.color, AUTO_LABEL), x = px, y = py, w = w, flags = e.flags,
                 )
-                7 -> drawLayoutText(
+                // „Pausiert"-Hinweis NUR bei echter Pause: mit „Alle Seiten durchblättern" laufen
+                // die Pausen-Layouts auch während der Aufnahme durch den Ring, und dort wäre der
+                // Hinweis falsch (Jan, 29.07.). Garmin macht es jetzt genauso (RecordView._drawElement).
+                7 -> if (paused) drawLayoutText(
                     measurer, pausedText, px, py, e,
                     layoutTextSize(e.step.coerceAtMost(2), w, dens),
                     layoutColor(e.color, AUTO_LABEL), bold = true,
