@@ -60,7 +60,13 @@ struct MainTabView: View {
             HStack(alignment: .top, spacing: 0) {
                 ForEach(visibleTabs, id: \.self) { i in
                     Button {
-                        if tab == i { resetTokens[i] += 1 } else { tab = i }
+                        // „Sessions" im Menue heisst IMMER: oben in der Liste anfangen — nicht in
+                        // der zuletzt geoeffneten Session (die auf dem NavigationStack liegt) und
+                        // nicht auf der alten Scroll-Position. Die anderen Tabs behalten ihren
+                        // Zustand beim Wechsel; nur erneutes Tippen setzt sie zurueck. Gleiche
+                        // Regel wie in der PWA (dort der lastSession-Marker beim Menue-Klick).
+                        if tab == i || i == 1 { resetTokens[i] += 1 }
+                        if tab != i { tab = i }
                     } label: {
                         VStack(spacing: 2) {
                             // Feste Icon-Höhe -> alle Labels auf identischer Höhe (SF-Symbole sind
