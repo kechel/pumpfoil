@@ -28,50 +28,85 @@ struct WatchStatsView: View {
         }
     }
 
+    // Ein Abschnitt = eine eigene Teil-View, Strings vorformatiert: der Body war EIN Ausdruck aus
+    // Sortier-Chips (7 Tupel), zwei Kennzahl-Zeilen mit je drei .map{}??-Interpolationen und einer
+    // Toolbar — das kostete den Type-Checker am meisten. Inhalt/Reihenfolge unverändert.
     var body: some View {
         List {
-            Section {
-                Text(Loc.t("watchStats.intro", lang))
-                    .font(.caption).foregroundStyle(.secondary)
-                StatSortBar(options: [
-                    ("name", Loc.t("nav.watch", lang)),
-                    ("sessions", Loc.t("nav.sessions", lang)),
-                    ("users", Loc.t("watchStats.users", lang)),
-                    ("km", Loc.t("watchStats.km", lang)),
-                    ("speed", "Ø km/h"),
-                    ("bestSpeed", Loc.t("watchStats.bestSpeed", lang)),
-                    ("hz", "Ø " + PumpUnit.unitLabel(lang)),
-                ], sortKey: $sortKey, sortAsc: $sortAsc)
-            }
-            if let error { Text(error).foregroundStyle(.secondary) }
-            if !loading && rows.isEmpty && error == nil {
-                Text(Loc.t("common.noData", lang)).foregroundStyle(.secondary)
-            }
-            ForEach(sorted) { s in
-                Section(s.watch) {
-                    HStack {
-                        metric("\(s.sessions)", Loc.t("nav.sessions", lang))
-                        Spacer(); metric("\(s.users)", Loc.t("watchStats.users", lang))
-                        Spacer(); metric(s.foiling_km.map { String(format: "%.1f", $0) } ?? "–", Loc.t("watchStats.km", lang))
-                    }
-                    HStack {
-                        metric(s.avg_speed_kmh.map { String(format: "%.1f", $0) } ?? "–", "Ø km/h")
-                        Spacer(); metric(s.best_speed_kmh.map { String(format: "%.1f", $0) } ?? "–", Loc.t("watchStats.bestSpeed", lang))
-                        Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), "Ø " + PumpUnit.unitLabel(lang))
-                    }
-                }
-            }
+            introSection
+            statusRows
+            statRows
         }
         .overlay { if loading { ProgressView() } }
         .navigationTitle(Loc.t("watchStats.title", lang))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            // Wie im Web: oben rechts zur jeweils anderen Statistik.
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(Loc.t("profile.stats", lang)) { FoilStatsView() }
+        .toolbar { otherStatsToolbar }
+        .task { await load() }
+    }
+
+    private var introSection: some View {
+        Section {
+            Text(Loc.t("watchStats.intro", lang))
+                .font(.caption).foregroundStyle(.secondary)
+            StatSortBar(options: sortOptions, sortKey: $sortKey, sortAsc: $sortAsc)
+        }
+    }
+
+    // Sortier-Chips: vorab typisiert statt als Literal-Array im ViewBuilder.
+    private var sortOptions: [(key: String, label: String)] {
+        [("name", Loc.t("nav.watch", lang)),
+         ("sessions", Loc.t("nav.sessions", lang)),
+         ("users", Loc.t("watchStats.users", lang)),
+         ("km", Loc.t("watchStats.km", lang)),
+         ("speed", "Ø km/h"),
+         ("bestSpeed", Loc.t("watchStats.bestSpeed", lang)),
+         ("hz", avgPumpLabel)]
+    }
+
+    @ViewBuilder private var statusRows: some View {
+        if let error { Text(error).foregroundStyle(.secondary) }
+        if !loading && rows.isEmpty && error == nil {
+            Text(Loc.t("common.noData", lang)).foregroundStyle(.secondary)
+        }
+    }
+
+    private var statRows: some View {
+        ForEach(sorted) { s in
+            Section(s.watch) {
+                topRow(s)
+                speedRow(s)
             }
         }
-        .task { await load() }
+    }
+
+    private func topRow(_ s: WatchStat) -> some View {
+        HStack {
+            metric("\(s.sessions)", Loc.t("nav.sessions", lang))
+            Spacer(); metric("\(s.users)", Loc.t("watchStats.users", lang))
+            Spacer(); metric(dec1(s.foiling_km), Loc.t("watchStats.km", lang))
+        }
+    }
+
+    private func speedRow(_ s: WatchStat) -> some View {
+        HStack {
+            metric(dec1(s.avg_speed_kmh), "Ø km/h")
+            Spacer(); metric(dec1(s.best_speed_kmh), Loc.t("watchStats.bestSpeed", lang))
+            Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), avgPumpLabel)
+        }
+    }
+
+    // Wie im Web: oben rechts zur jeweils anderen Statistik.
+    @ToolbarContentBuilder private var otherStatsToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            NavigationLink(Loc.t("profile.stats", lang)) { FoilStatsView() }
+        }
+    }
+
+    // Explizit typisierte Helfer statt Verkettung/`.map{}??` direkt im ViewBuilder.
+    private var avgPumpLabel: String { "Ø " + PumpUnit.unitLabel(lang) }
+    private func dec1(_ v: Double?) -> String {
+        guard let v else { return "–" }
+        return String(format: "%.1f", v)
     }
 
     private func metric(_ value: String, _ label: String) -> some View {

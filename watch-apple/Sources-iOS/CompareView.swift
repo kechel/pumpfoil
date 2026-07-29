@@ -19,6 +19,9 @@ struct CompareView: View {
     @State private var mapWin = 3          // Glättungsfenster für Speed-Färbung
     @State private var mapFull = false     // Vollbild-Karte
 
+    // Zerlegt, weil Swift einen ViewBuilder als EINEN Ausdruck auflöst: Ladezustand, Inhalt,
+    // Merge-Fußzeile samt Task-Closure und das Binding der navigationDestination steckten in
+    // einem Ausdruck. Reihenfolge, Layout und Texte sind unverändert.
     var body: some View {
         // Kein eigener NavigationStack: View wird gepusht und nutzt den vorhandenen Stack.
         Group {
@@ -27,47 +30,68 @@ struct CompareView: View {
             } else if results.isEmpty {
                 Text(Loc.t("compare.pick", lang)).foregroundStyle(.secondary).padding()
             } else {
-                VStack(spacing: 0) {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 18) {
-                            compareMapSection
-                            compareTable
-                            allRunsSection
-                        }
-                        .padding(.vertical)
-                    }
-                    // Merge-Hinweis + Button unten fixiert (nur wenn zusammenführbar).
-                    if mergeable {
-                        VStack(spacing: 8) {
-                            Text(Loc.t("merge.compareHint", lang))
-                                .font(.caption).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            if let mergeError { Text(mergeError).font(.caption).foregroundStyle(.red) }
-                            Button {
-                                mergeError = nil; merging = true
-                                Task {
-                                    do { mergedId = try await Api.mergeSessions(Array(preselect)) }
-                                    catch { mergeError = error.localizedDescription }
-                                    merging = false
-                                }
-                            } label: { Text(Loc.t("merge.action", lang)).frame(maxWidth: .infinity) }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(merging)
-                        }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                    } else if let mergeError {
-                        Text(mergeError).font(.caption).foregroundStyle(.red).padding()
-                    }
-                }
+                resultsBody
             }
         }
-        .navigationDestination(isPresented: Binding(get: { mergedId != nil }, set: { if !$0 { mergedId = nil } })) {
-            if let id = mergedId { SessionDetailView(id: id) }
-        }
+        .navigationDestination(isPresented: mergedBinding) { mergedDestination }
         .navigationTitle(Loc.t("compare.title", lang))
         .task { await load() }
+    }
+
+    private var resultsBody: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    compareMapSection
+                    compareTable
+                    allRunsSection
+                }
+                .padding(.vertical)
+            }
+            mergeFooter
+        }
+    }
+
+    // Merge-Hinweis + Button unten fixiert (nur wenn zusammenführbar).
+    @ViewBuilder private var mergeFooter: some View {
+        if mergeable {
+            VStack(spacing: 8) {
+                Text(Loc.t("merge.compareHint", lang))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let mergeError { Text(mergeError).font(.caption).foregroundStyle(.red) }
+                mergeButton
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+        } else if let mergeError {
+            Text(mergeError).font(.caption).foregroundStyle(.red).padding()
+        }
+    }
+
+    private var mergeButton: some View {
+        Button { merge() } label: { Text(Loc.t("merge.action", lang)).frame(maxWidth: .infinity) }
+            .buttonStyle(.borderedProminent)
+            .disabled(merging)
+    }
+
+    private var mergedBinding: Binding<Bool> {
+        Binding(get: { mergedId != nil }, set: { if !$0 { mergedId = nil } })
+    }
+
+    @ViewBuilder private var mergedDestination: some View {
+        if let id = mergedId { SessionDetailView(id: id) }
+    }
+
+    // Ablauflogik aus dem Button-Closure heraus.
+    private func merge() {
+        mergeError = nil; merging = true
+        Task {
+            do { mergedId = try await Api.mergeSessions(Array(preselect)) }
+            catch { mergeError = error.localizedDescription }
+            merging = false
+        }
     }
 
     private func load() async {
@@ -139,7 +163,7 @@ struct CompareView: View {
         var v: [Double] = []
         for tr in mapTracks where !tr.speedsKmh.isEmpty {
             for seg in tr.segments {
-                let lo = max(0, seg.i_start), hi = min(seg.i_end, tr.speedsKmh.count - 1)
+                let lo: Int = max(0, seg.i_start), hi: Int = min(seg.i_end, tr.speedsKmh.count - 1)
                 if lo <= hi { for i in lo...hi where tr.speedsKmh[i] > 0 { v.append(tr.speedsKmh[i]) } }
             }
         }
@@ -147,26 +171,33 @@ struct CompareView: View {
     }
 
     @ViewBuilder private var compareMapSection: some View {
-        let tracks = mapTracks
+        let tracks: [CompareMap.Track] = mapTracks
         if !tracks.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 sessionChips
                 mapControls
-                CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange, speedRange: speedRange)
+                compareMap(tracks)
                     .frame(height: 240)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal)
                 if mapMode != .rider && mapMode != .track { gradientLegend }
             }
-            .fullScreenCover(isPresented: $mapFull) {
-                ZStack(alignment: .topTrailing) {
-                    CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange, speedRange: speedRange)
-                        .ignoresSafeArea()
-                    Button { mapFull = false } label: {
-                        Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.white, .black.opacity(0.5))
-                    }.padding()
-                }
-            }
+            .fullScreenCover(isPresented: $mapFull) { fullscreenMap(tracks) }
+        }
+    }
+
+    // Karte einmal typisiert bauen (Normal- und Vollbild-Ansicht teilen dieselben Parameter).
+    private func compareMap(_ tracks: [CompareMap.Track]) -> CompareMap {
+        CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange, speedRange: speedRange)
+    }
+
+    private func fullscreenMap(_ tracks: [CompareMap.Track]) -> some View {
+        ZStack(alignment: .topTrailing) {
+            compareMap(tracks)
+                .ignoresSafeArea()
+            Button { mapFull = false } label: {
+                Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.white, .black.opacity(0.5))
+            }.padding()
         }
     }
 
@@ -174,24 +205,31 @@ struct CompareView: View {
     @ViewBuilder private var mapControls: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Picker(Loc.t("sd.coloring", lang), selection: $mapMode) {
-                    if riderList.count > 1 { Text(Loc.t("compare.colorRider", lang)).tag(CompareColorMode.rider) }
-                    Text(Loc.t("compare.colorTrack", lang)).tag(CompareColorMode.track)
-                    Text(Loc.t("sd.colorSpeed", lang)).tag(CompareColorMode.speed)
-                    if hasPumpData { Text(Loc.t("sd.colorPump", lang)).tag(CompareColorMode.pump) }
-                    if hasHrData { Text(Loc.t("sd.colorPuls", lang)).tag(CompareColorMode.hr) }
-                }
-                .pickerStyle(.segmented)
+                colorModePicker
                 Button { mapFull = true } label: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
                     .padding(.leading, 6)
             }
-            if mapMode == .speed {
-                Picker(Loc.t("sd.smoothing", lang), selection: $mapWin) {
-                    Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
-                }.pickerStyle(.segmented)
-            }
+            if mapMode == .speed { smoothingPicker }
         }
         .padding(.horizontal)
+    }
+
+    // Beide Picker bleiben als Ganzes eine Teil-View — .tag() muss direktes Kind bleiben.
+    private var colorModePicker: some View {
+        Picker(Loc.t("sd.coloring", lang), selection: $mapMode) {
+            if riderList.count > 1 { Text(Loc.t("compare.colorRider", lang)).tag(CompareColorMode.rider) }
+            Text(Loc.t("compare.colorTrack", lang)).tag(CompareColorMode.track)
+            Text(Loc.t("sd.colorSpeed", lang)).tag(CompareColorMode.speed)
+            if hasPumpData { Text(Loc.t("sd.colorPump", lang)).tag(CompareColorMode.pump) }
+            if hasHrData { Text(Loc.t("sd.colorPuls", lang)).tag(CompareColorMode.hr) }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    private var smoothingPicker: some View {
+        Picker(Loc.t("sd.smoothing", lang), selection: $mapWin) {
+            Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
+        }.pickerStyle(.segmented)
     }
 
     // Chips oben (wie PWA): je Session Farbe · Fahrer · Datum · Foil. Farbe = aktueller Modus.
@@ -199,25 +237,34 @@ struct CompareView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(Array(results.enumerated()), id: \.element.id) { i, s in
-                    HStack(spacing: 6) {
-                        Circle().fill(mapMode == .rider ? riderColorC(s.owner_name) : sessColor(i)).frame(width: 10, height: 10)
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack(spacing: 4) {
-                                if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
-                                Text(dateStr(s))
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            if let fl = foilLabel(s) {
-                                Label(fl, systemImage: "water.waves").font(.caption2).foregroundStyle(.secondary).labelStyle(.titleAndIcon)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Color(.secondarySystemBackground), in: Capsule())
+                    sessionChip(i, s)
                 }
             }
             .padding(.horizontal)
         }
+    }
+
+    private func sessionChip(_ i: Int, _ s: SessionDetail) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(dotColor(i, s)).frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
+                    Text(dateStr(s))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if let fl = foilLabel(s) {
+                    Label(fl, systemImage: "water.waves").font(.caption2).foregroundStyle(.secondary).labelStyle(.titleAndIcon)
+                }
+            }
+        }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(Color(.secondarySystemBackground), in: Capsule())
+    }
+
+    // Punkt-Farbe je Modus — als Helfer statt Ternary direkt im .fill()-Modifier.
+    private func dotColor(_ i: Int, _ s: SessionDetail) -> Color {
+        mapMode == .rider ? riderColorC(s.owner_name) : sessColor(i)
     }
 
     // Einheit der Karten-Legende je Modus (Pump: Hz oder Pumps/min, siehe PumpUnit.swift).
@@ -231,18 +278,27 @@ struct CompareView: View {
         if mapMode == .pump { return PumpUnit.fmtLegend(v, lang, withUnit: false) }
         return "\(Int(v))"
     }
-    @ViewBuilder private var gradientLegend: some View {
-        let range: (Double, Double) = mapMode == .pump ? pumpRange : (mapMode == .hr ? hrRange : speedRange)
-        let unit: String = unitLabel
-        let grad = LinearGradient(colors: [Color(hue: 240 / 360, saturation: 0.85, brightness: 0.95),
-                                           Color(hue: 120 / 360, saturation: 0.85, brightness: 0.95),
-                                           Color(hue: 0, saturation: 0.85, brightness: 0.95)],
-                                  startPoint: .leading, endPoint: .trailing)
-        HStack(spacing: 8) {
+    // Wertebereich der Legende: verschachteltes Ternary raus aus dem ViewBuilder.
+    private var legendRange: (Double, Double) {
+        if mapMode == .pump { return pumpRange }
+        if mapMode == .hr { return hrRange }
+        return speedRange
+    }
+
+    private var legendGradient: LinearGradient {
+        LinearGradient(colors: [Color(hue: 240 / 360, saturation: 0.85, brightness: 0.95),
+                                Color(hue: 120 / 360, saturation: 0.85, brightness: 0.95),
+                                Color(hue: 0, saturation: 0.85, brightness: 0.95)],
+                       startPoint: .leading, endPoint: .trailing)
+    }
+
+    private var gradientLegend: some View {
+        let range: (Double, Double) = legendRange
+        return HStack(spacing: 8) {
             Text(rangeStr(range.0)).font(.caption2).monospacedDigit()
-            grad.frame(height: 8).clipShape(Capsule())
+            legendGradient.frame(height: 8).clipShape(Capsule())
             Text(rangeStr(range.1)).font(.caption2).monospacedDigit()
-            Text(unit).font(.caption2).foregroundStyle(.secondary)
+            Text(unitLabel).font(.caption2).foregroundStyle(.secondary)
         }.padding(.horizontal)
     }
 
@@ -256,29 +312,40 @@ struct CompareView: View {
                 Text(Loc.t("compare.runsTitle", lang)).font(.headline).padding(.horizontal).padding(.bottom, 6)
                 ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
                     let (s, idx, seg) = r
-                    HStack(spacing: 10) {
-                        Text("\(idx + 1)").font(.caption2).bold().foregroundStyle(Color.accentColor)
-                            .frame(width: 22, height: 22).background(Color.accentColor.opacity(0.12), in: Circle())
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack(spacing: 5) {
-                                Circle().fill(mapMode == .rider ? riderColorC(s.owner_name) : sessColor(results.firstIndex(where: { $0.id == s.id }) ?? 0)).frame(width: 7, height: 7)
-                                if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
-                                Text(dateStr(s)).font(.caption).foregroundStyle(.secondary)
-                            }
-                            if let p = s.place_name, !p.isEmpty { Text(p).font(.caption2).foregroundStyle(.secondary) }
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: 1) {
-                            Text(runDist(seg)).font(.caption).monospacedDigit()
-                            Text(runStat(seg))
-                                .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
-                        }
-                    }
-                    .padding(.horizontal).padding(.vertical, 6)
+                    runRow(s, idx, seg)
                     Divider()
                 }
             }
         }
+    }
+
+    private func runRow(_ s: SessionDetail, _ idx: Int, _ seg: Segment) -> some View {
+        HStack(spacing: 10) {
+            Text("\(idx + 1)").font(.caption2).bold().foregroundStyle(Color.accentColor)
+                .frame(width: 22, height: 22).background(Color.accentColor.opacity(0.12), in: Circle())
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 5) {
+                    Circle().fill(runDotColor(s)).frame(width: 7, height: 7)
+                    if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
+                    Text(dateStr(s)).font(.caption).foregroundStyle(.secondary)
+                }
+                if let p = s.place_name, !p.isEmpty { Text(p).font(.caption2).foregroundStyle(.secondary) }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(runDist(seg)).font(.caption).monospacedDigit()
+                Text(runStat(seg))
+                    .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
+            }
+        }
+        .padding(.horizontal).padding(.vertical, 6)
+    }
+
+    // Farbe der Lauf-Zeile: Index-Suche + Ternary vorab, nicht im .fill()-Modifier.
+    private func runDotColor(_ s: SessionDetail) -> Color {
+        if mapMode == .rider { return riderColorC(s.owner_name) }
+        let i: Int = results.firstIndex(where: { $0.id == s.id }) ?? 0
+        return sessColor(i)
     }
 
     private func mmss(_ s: Double?) -> String {
@@ -296,35 +363,50 @@ struct CompareView: View {
     private func runStat(_ seg: Segment) -> String { "\(kmh(seg.avg_speed_mps)) · \(pumpsStr(seg.pumps))" }
     private func dateStr(_ s: SessionDetail) -> String { TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at }
 
+    // Kennzahl-Zeilen der Tabelle: Array aus Tupeln mit Closures — vorab typisiert, nicht im
+    // ViewBuilder. Spaltenbreiten explizit CGFloat.
+    private var tableMetrics: [(String, (SessionDetail) -> String)] {
+        [(Loc.t("compare.distance", lang), { self.meters($0.analysis?.total_distance_m) }),
+         (Loc.t("home.foiling", lang), { self.meters($0.analysis?.foiling_distance_m) }),
+         (Loc.t("home.topSpeed", lang), { self.kmh($0.analysis?.max_speed_mps) }),
+         (Loc.t("home.pumps", lang), { self.intStr($0.analysis?.pump_count) }),
+         (Loc.t("compare.foilTime", lang), { self.mmss($0.analysis?.foiling_time_s) }),
+         (Loc.t("compare.cadence", lang), { self.hz($0.analysis?.avg_cadence_hz) })]
+    }
+
+    // Computed (kein stored let) — der memberwise-Init von CompareView(preselect:) bleibt so gleich.
+    private var labelW: CGFloat { 90 }
+    private var colW: CGFloat { 120 }
+
     private var compareTable: some View {
-        let metrics: [(String, (SessionDetail) -> String)] = [
-            (Loc.t("compare.distance", lang), { self.meters($0.analysis?.total_distance_m) }),
-            (Loc.t("home.foiling", lang), { self.meters($0.analysis?.foiling_distance_m) }),
-            (Loc.t("home.topSpeed", lang), { self.kmh($0.analysis?.max_speed_mps) }),
-            (Loc.t("home.pumps", lang), { self.intStr($0.analysis?.pump_count) }),
-            (Loc.t("compare.foilTime", lang), { self.mmss($0.analysis?.foiling_time_s) }),
-            (Loc.t("compare.cadence", lang), { self.hz($0.analysis?.avg_cadence_hz) }),
-        ]
-        return ScrollView([.horizontal]) {
+        ScrollView([.horizontal]) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("").frame(width: 90, alignment: .leading)
-                    ForEach(results) { s in
-                        Text(dateStr(s))
-                            .font(.caption).bold().frame(width: 120, alignment: .leading)
-                    }
-                }
+                tableHeader
                 Divider()
-                ForEach(metrics, id: \.0) { label, fn in
-                    HStack {
-                        Text(label).font(.caption).foregroundStyle(.secondary).frame(width: 90, alignment: .leading)
-                        ForEach(results) { s in
-                            Text(fn(s)).frame(width: 120, alignment: .leading)
-                        }
-                    }
+                ForEach(tableMetrics, id: \.0) { label, fn in
+                    tableRow(label, fn)
                 }
             }
             .padding()
+        }
+    }
+
+    private var tableHeader: some View {
+        HStack {
+            Text("").frame(width: labelW, alignment: .leading)
+            ForEach(results) { s in
+                Text(dateStr(s))
+                    .font(.caption).bold().frame(width: colW, alignment: .leading)
+            }
+        }
+    }
+
+    private func tableRow(_ label: String, _ fn: @escaping (SessionDetail) -> String) -> some View {
+        HStack {
+            Text(label).font(.caption).foregroundStyle(.secondary).frame(width: labelW, alignment: .leading)
+            ForEach(results) { s in
+                Text(fn(s)).frame(width: colW, alignment: .leading)
+            }
         }
     }
 }

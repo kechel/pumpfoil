@@ -22,6 +22,8 @@ struct VerlaufView: View {
         return (f, l)
     }
 
+    // Inhalt in typisierte Teile zerlegt: Ladezustände, Chip-Zeile und zwei Karten-Listen standen
+    // als EIN ViewBuilder-Ausdruck da (samt String-Verkettung im Zwischentitel).
     var body: some View {
         NavigationStack {
             Group {
@@ -32,27 +34,7 @@ struct VerlaufView: View {
                 } else if data.count < 2 {
                     Text(Loc.t("verlauf.empty", lang)).foregroundStyle(.secondary).padding()
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 8) {
-                                modeChip(.cumulative, Loc.t("verlauf.cumulative", lang))
-                                modeChip(.w7, "7 \(Loc.t("verlauf.daysAbbr", lang))")
-                                modeChip(.w30, "30 \(Loc.t("verlauf.daysAbbr", lang))")
-                            }
-                            .padding(.top, 8)
-                            ForEach(VerlaufView.metrics) { m in
-                                MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
-                            }
-                            Text(Loc.t("verlauf.aggTitle", lang) + aggSuffix)
-                                .font(.title3).fontWeight(.semibold).padding(.top, 6)
-                            ForEach(VerlaufView.metricsSum) { m in
-                                MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
-                            }
-                            SpotProgressionView(lang: lang)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 16)
-                    }
+                    chartsScroll
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -62,6 +44,45 @@ struct VerlaufView: View {
             .task { if items.isEmpty { await load() } }
         }
     }
+
+    private var chartsScroll: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 10) {
+                modeChips
+                bestCharts
+                Text(aggTitle)
+                    .font(.title3).fontWeight(.semibold).padding(.top, 6)
+                sumCharts
+                SpotProgressionView(lang: lang)
+            }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 16)
+        }
+    }
+
+    private var modeChips: some View {
+        HStack(spacing: 8) {
+            modeChip(.cumulative, Loc.t("verlauf.cumulative", lang))
+            modeChip(.w7, "7 \(Loc.t("verlauf.daysAbbr", lang))")
+            modeChip(.w30, "30 \(Loc.t("verlauf.daysAbbr", lang))")
+        }
+        .padding(.top, 8)
+    }
+
+    private var bestCharts: some View {
+        ForEach(VerlaufView.metrics) { m in card(m) }
+    }
+
+    private var sumCharts: some View {
+        ForEach(VerlaufView.metricsSum) { m in card(m) }
+    }
+
+    private func card(_ m: VMetric) -> MetricChartCard {
+        MetricChartCard(data: data, metric: m, mode: mode, domain: domain, lang: lang)
+    }
+
+    // String-Verkettung vorab, nicht im ViewBuilder.
+    private var aggTitle: String { Loc.t("verlauf.aggTitle", lang) + aggSuffix }
 
     private var aggSuffix: String {
         switch mode {
@@ -157,52 +178,92 @@ private let DAY_S: Double = 86400
 private func winS(_ mode: VMode) -> Double { (mode == .w7 ? 7 : 30) * DAY_S }
 
 // Zeitreihe für eine Metrik (kumuliert oder gleitendes Fenster über das Tagesraster).
+// In benannte Teilschritte zerlegt und durchgängig explizit typisiert: die vorherige Fassung war
+// EIN Ausdrucksgeflecht aus compactMap mit unbenannten Tupeln, lokalen at()-Funktionen und
+// Switch-Zuweisungen — für den Type-Checker mit Abstand der teuerste Posten der Datei.
+// Rechenweg und Ergebnisse sind identisch.
 func vSeries(_ data: [(t: Double, h: HistoryPoint)], _ m: VMetric, _ mode: VMode, _ domain: (Double, Double)) -> [VPt] {
-    if m.kind == .ratio {
-        let valid: [(Double, Double, Double)] = data.compactMap { (t, h) in
-            guard let n = m.num?(h), let d = m.den?(h), n.isFinite, d.isFinite, n > 0, d > 0 else { return nil }
-            return (t, n, d)
-        }
-        if valid.count < 2 { return [] }
-        if mode == .cumulative {
-            var sn = 0.0, sd = 0.0
-            return valid.map { (t, n, d) in sn += n; sd += d; return VPt(t: t, v: sd > 0 ? sn / sd : 0) }
-        }
-        let w = winS(mode)
-        func at(_ tt: Double) -> VPt {
-            var sn = 0.0, sd = 0.0
-            for (t, n, d) in valid where t > tt - w && t <= tt { sn += n; sd += d }
-            return VPt(t: tt, v: sd > 0 ? sn / sd : 0)
-        }
-        var out: [VPt] = []; var tt = domain.0
-        while tt < domain.1 { out.append(at(tt)); tt += DAY_S }
-        out.append(at(domain.1)); return out
+    if m.kind == .ratio { return vRatioSeries(data, m, mode, domain) }
+    return vValueSeries(data, m, mode, domain)
+}
+
+// Tagesraster über die Domain; letzter Punkt liegt exakt auf domain.1 (nur Fenster-Modi).
+private func vGrid(_ domain: (Double, Double), _ at: (Double) -> VPt) -> [VPt] {
+    var out: [VPt] = []
+    var tt: Double = domain.0
+    while tt < domain.1 { out.append(at(tt)); tt += DAY_S }
+    out.append(at(domain.1))
+    return out
+}
+
+// MARK: - Verhältnis-Metriken (z. B. m/Pump): Zähler und Nenner getrennt summieren
+
+private func vRatioPairs(_ data: [(t: Double, h: HistoryPoint)], _ m: VMetric) -> [(t: Double, n: Double, d: Double)] {
+    data.compactMap { p -> (t: Double, n: Double, d: Double)? in
+        guard let n = m.num?(p.h), let d = m.den?(p.h), n.isFinite, d.isFinite, n > 0, d > 0 else { return nil }
+        return (t: p.t, n: n, d: d)
     }
-    let valid: [(Double, Double)] = data.compactMap { (t, h) in
-        guard let v = m.value(h), v.isFinite else { return nil }
-        return (t, v)
-    }
+}
+
+private func vRatio(_ sn: Double, _ sd: Double) -> Double { sd > 0 ? sn / sd : 0 }
+
+private func vRatioSeries(_ data: [(t: Double, h: HistoryPoint)], _ m: VMetric,
+                          _ mode: VMode, _ domain: (Double, Double)) -> [VPt] {
+    let valid: [(t: Double, n: Double, d: Double)] = vRatioPairs(data, m)
     if valid.count < 2 { return [] }
     if mode == .cumulative {
-        var sum = 0.0, n = 0, mx = 0.0
-        return valid.map { (t, v) in
-            sum += v; n += 1; if v > mx { mx = v }
-            let val: Double
-            switch m.kind { case .avg: val = sum / Double(n); case .count: val = Double(n); case .max: val = mx; default: val = sum }
-            return VPt(t: t, v: val)
+        var sn: Double = 0, sd: Double = 0
+        return valid.map { p in
+            sn += p.n; sd += p.d
+            return VPt(t: p.t, v: vRatio(sn, sd))
         }
     }
-    let w = winS(mode)
-    func at(_ tt: Double) -> VPt {
-        var sum = 0.0, n = 0, mx = 0.0
-        for (t, v) in valid where t > tt - w && t <= tt { sum += v; n += 1; if v > mx { mx = v } }
-        let val: Double
-        switch m.kind { case .avg: val = n > 0 ? sum / Double(n) : 0; case .count: val = Double(n); case .max: val = mx; default: val = sum }
-        return VPt(t: tt, v: val)
+    let w: Double = winS(mode)
+    return vGrid(domain) { tt in
+        var sn: Double = 0, sd: Double = 0
+        for p in valid where p.t > tt - w && p.t <= tt { sn += p.n; sd += p.d }
+        return VPt(t: tt, v: vRatio(sn, sd))
     }
-    var out: [VPt] = []; var tt = domain.0
-    while tt < domain.1 { out.append(at(tt)); tt += DAY_S }
-    out.append(at(domain.1)); return out
+}
+
+// MARK: - Wert-Metriken (max/sum/count/avg)
+
+private func vValues(_ data: [(t: Double, h: HistoryPoint)], _ m: VMetric) -> [(t: Double, v: Double)] {
+    data.compactMap { p -> (t: Double, v: Double)? in
+        guard let v = m.value(p.h), v.isFinite else { return nil }
+        return (t: p.t, v: v)
+    }
+}
+
+// Aggregat je Art; `.avg` ohne Punkte -> 0 (kumuliert ist n immer >= 1, also gleiches Ergebnis).
+private func vAgg(_ kind: VKind, sum: Double, n: Int, mx: Double) -> Double {
+    switch kind {
+    case .avg: return n > 0 ? sum / Double(n) : 0
+    case .count: return Double(n)
+    case .max: return mx
+    default: return sum
+    }
+}
+
+private func vValueSeries(_ data: [(t: Double, h: HistoryPoint)], _ m: VMetric,
+                          _ mode: VMode, _ domain: (Double, Double)) -> [VPt] {
+    let valid: [(t: Double, v: Double)] = vValues(data, m)
+    if valid.count < 2 { return [] }
+    if mode == .cumulative {
+        var sum: Double = 0, mx: Double = 0
+        var n: Int = 0
+        return valid.map { p in
+            sum += p.v; n += 1; if p.v > mx { mx = p.v }
+            return VPt(t: p.t, v: vAgg(m.kind, sum: sum, n: n, mx: mx))
+        }
+    }
+    let w: Double = winS(mode)
+    return vGrid(domain) { tt in
+        var sum: Double = 0, mx: Double = 0
+        var n: Int = 0
+        for p in valid where p.t > tt - w && p.t <= tt { sum += p.v; n += 1; if p.v > mx { mx = p.v } }
+        return VPt(t: tt, v: vAgg(m.kind, sum: sum, n: n, mx: mx))
+    }
 }
 
 struct MetricChartCard: View {
@@ -214,30 +275,49 @@ struct MetricChartCard: View {
 
     private var pts: [VPt] { vSeries(data, metric, mode, domain) }
 
+    // Reihe EINMAL berechnen und weitergeben (vorher dreimal `pts` im selben Body) und Kopf-/
+    // Achsenzeile als typisierte Teile — der Ternary steckt jetzt in einem String-Helfer.
     var body: some View {
-        let cur = pts.last?.v ?? 0
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(Loc.t(metric.labelKey, lang)).font(.subheadline).fontWeight(.semibold)
-                Spacer()
-                Text(cur > 0 ? metric.fmt(cur) : "–").font(.subheadline).fontWeight(.semibold).foregroundStyle(metric.color)
-            }
-            LineChartView(pts: pts, color: metric.color, domain: domain, lang: lang).frame(height: 110)
-            if pts.count >= 2 {
-                let shortSpan = (domain.1 - domain.0) <= 120 * 86400
-                HStack {
-                    Text(axisDate(domain.0, shortSpan)).font(.caption2).foregroundStyle(.secondary)
-                    Spacer()
-                    Text(axisDate(domain.1, shortSpan)).font(.caption2).foregroundStyle(.secondary)
-                }
-            }
+        let series: [VPt] = pts
+        return VStack(alignment: .leading, spacing: 6) {
+            titleRow(series)
+            LineChartView(pts: series, color: metric.color, domain: domain, lang: lang).frame(height: 110)
+            axisRow(series)
         }
         .padding(12)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    private func titleRow(_ series: [VPt]) -> some View {
+        HStack {
+            Text(Loc.t(metric.labelKey, lang)).font(.subheadline).fontWeight(.semibold)
+            Spacer()
+            Text(valueText(series)).font(.subheadline).fontWeight(.semibold).foregroundStyle(metric.color)
+        }
+    }
+
+    @ViewBuilder private func axisRow(_ series: [VPt]) -> some View {
+        if series.count >= 2 {
+            HStack {
+                Text(axisDate(domain.0, shortSpan)).font(.caption2).foregroundStyle(.secondary)
+                Spacer()
+                Text(axisDate(domain.1, shortSpan)).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func valueText(_ series: [VPt]) -> String {
+        let cur: Double = series.last?.v ?? 0
+        return cur > 0 ? metric.fmt(cur) : "–"
+    }
+
     // Kurze Zeitspanne -> Tag+Monat (wie Web), sonst Monat+Jahr.
+    private var shortSpan: Bool {
+        let span: Double = domain.1 - domain.0
+        return span <= 120 * 86400
+    }
+
     private func axisDate(_ s: Double, _ shortSpan: Bool) -> String {
         let f = DateFormatter(); f.dateFormat = shortSpan ? "dd. MMM" : "MMM yy"
         return f.string(from: Date(timeIntervalSince1970: s))
@@ -255,14 +335,17 @@ struct LineChartView: View {
             Text(Loc.t("verlauf.empty", lang)).font(.caption2).foregroundStyle(.secondary)
         } else {
             Canvas { ctx, size in
-                let w = size.width, h = size.height, padB: CGFloat = 6
-                let tmin = domain.0, tmax = max(domain.1, tmin + 1)
-                let vmax = max((pts.map { $0.v }.max() ?? 1) * 1.05, 1e-6)
+                // Diagramm-Arithmetik durchgängig explizit (CGFloat vs. Double) — gemischte
+                // Literale in einem Ausdruck sind für den Type-Checker teuer.
+                let w: CGFloat = size.width, h: CGFloat = size.height, padB: CGFloat = 6
+                let tmin: Double = domain.0, tmax: Double = max(domain.1, tmin + 1)
+                let vpeak: Double = pts.map { $0.v }.max() ?? 1
+                let vmax: Double = max(vpeak * 1.05, 1e-6)
                 func px(_ t: Double) -> CGFloat { CGFloat((t - tmin) / (tmax - tmin)) * w }
                 func py(_ v: Double) -> CGFloat { h - padB - CGFloat(v / vmax) * (h - padB) }
                 var line = Path(), area = Path()
                 for (i, p) in pts.enumerated() {
-                    let x = px(p.t), y = py(p.v)
+                    let x: CGFloat = px(p.t), y: CGFloat = py(p.v)
                     if i == 0 { line.move(to: CGPoint(x: x, y: y)); area.move(to: CGPoint(x: x, y: h - padB)); area.addLine(to: CGPoint(x: x, y: y)) }
                     else { line.addLine(to: CGPoint(x: x, y: y)); area.addLine(to: CGPoint(x: x, y: y)) }
                 }
@@ -294,12 +377,13 @@ struct SpotProgressionView: View {
 
     // Globale Speed-Skala (km/h) über ALLE Spuren -> eine Skala für alle.
     private var speedRange: (Double, Double) {
-        var mn = Double.infinity, mx = -Double.infinity
+        var mn: Double = Double.infinity, mx: Double = -Double.infinity
         for tr in tracks ?? [] {
-            for p in tr.track { if p.count > 2, let s = p[2] { let k = s * 3.6; mn = min(mn, k); mx = max(mx, k) } }
+            for p in tr.track { if p.count > 2, let s = p[2] { let k: Double = s * 3.6; mn = min(mn, k); mx = max(mx, k) } }
         }
         guard mn.isFinite && mx.isFinite else { return (8, 25) }
-        return (mn.rounded(.down), max(mx.rounded(.up), mn.rounded(.down) + 1))
+        let lo: Double = mn.rounded(.down)
+        return (lo, max(mx.rounded(.up), lo + 1))
     }
 
     var body: some View {
@@ -329,32 +413,52 @@ struct SpotProgressionView: View {
         } else if (tracks?.isEmpty ?? true) {
             Text(Loc.t("sessions.none", lang)).font(.caption).foregroundStyle(.secondary)
         } else {
-            let trs = tracks!
-            let safe = min(max(idx, 0), trs.count - 1)
+            let trs: [SpotTrack] = tracks!
+            let safe: Int = min(max(idx, 0), trs.count - 1)
             SpotProgressMap(all: trs, current: trs[safe], speedRange: speedRange, regionKey: spot)
                 .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 12))
             legend
-            HStack(spacing: 8) {
-                Button {
-                    if idx >= trs.count - 1 { idx = 0 }
-                    playing.toggle()
-                } label: { Image(systemName: playing ? "pause.fill" : "play.fill").font(.title3) }
-                .buttonStyle(.plain)
-                ForEach([1, 2, 4], id: \.self) { m in
-                    Button { mul = m } label: {
-                        Text("\(m)×").font(.caption).fontWeight(.semibold)
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(mul == m ? Color.accentColor : Color(.tertiarySystemBackground))
-                            .foregroundStyle(mul == m ? Color.white : Color.primary)
-                            .clipShape(Capsule())
-                    }.buttonStyle(.plain)
-                }
-                Slider(value: Binding(get: { Double(safe) }, set: { playing = false; idx = Int($0.rounded()) }),
-                       in: 0...Double(max(trs.count - 1, 1)), step: 1)
-            }
-            Text("\(spotDateStr(trs[safe].started_at)) · \(String(format: "%.1f", trs[safe].foiling_km)) km · \(safe + 1)/\(trs.count)")
+            playbackControls(trs, safe)
+            Text(statusText(trs, safe))
                 .font(.caption2).foregroundStyle(.secondary)
         }
+    }
+
+    // Abspiel-Leiste: Play/Pause, Tempo, Position. Ternaries und Binding als Helfer heraus.
+    private func playbackControls(_ trs: [SpotTrack], _ safe: Int) -> some View {
+        HStack(spacing: 8) {
+            Button { togglePlay(trs) } label: {
+                Image(systemName: playing ? "pause.fill" : "play.fill").font(.title3)
+            }
+            .buttonStyle(.plain)
+            ForEach([1, 2, 4], id: \.self) { m in speedButton(m) }
+            Slider(value: idxBinding(safe), in: 0...Double(max(trs.count - 1, 1)), step: 1)
+        }
+    }
+
+    private func speedButton(_ m: Int) -> some View {
+        Button { mul = m } label: {
+            Text("\(m)×").font(.caption).fontWeight(.semibold)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(mul == m ? Color.accentColor : Color(.tertiarySystemBackground))
+                .foregroundStyle(mul == m ? Color.white : Color.primary)
+                .clipShape(Capsule())
+        }.buttonStyle(.plain)
+    }
+
+    private func idxBinding(_ safe: Int) -> Binding<Double> {
+        Binding(get: { Double(safe) }, set: { playing = false; idx = Int($0.rounded()) })
+    }
+
+    private func togglePlay(_ trs: [SpotTrack]) {
+        if idx >= trs.count - 1 { idx = 0 }
+        playing.toggle()
+    }
+
+    // Vierteilige Interpolation vorab (Datum · km · Position).
+    private func statusText(_ trs: [SpotTrack], _ safe: Int) -> String {
+        let km: String = String(format: "%.1f", trs[safe].foiling_km)
+        return "\(spotDateStr(trs[safe].started_at)) · \(km) km · \(safe + 1)/\(trs.count)"
     }
 
     private var legend: some View {

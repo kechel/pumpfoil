@@ -46,21 +46,16 @@ struct CommunityView: View {
         return all.filter { $0.lowercased().contains(q) && !spotShown.contains($0) }.prefix(6).map { $0 }
     }
 
+    // Kopfzeilen + Toolbar ebenfalls als eigene Teile, Ladefolgen als Methoden: der Body war EIN
+    // Ausdruck aus acht Abschnitten, drei Toolbar-Items und fünf Closures mit je derselben
+    // dreiteiligen Ladefolge. Reihenfolge und Ladereihenfolge sind unverändert.
     var body: some View {
         NavigationStack {
             List {
-                if let error { Text(error).foregroundStyle(.secondary) }
-
-                if let cs = cstats {
-                    communityStatsText(cs, lang)
-                        .font(.caption)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
-                }
-
+                errorRow
+                statsHeader
                 periodSection
-                if records != nil {
-                    Section { recordGrid(records?[period], showSpot: true) }
-                }
+                recordsSection
                 mediaFeedSection
                 leaderboardSection
                 topLikedSection
@@ -69,24 +64,44 @@ struct CommunityView: View {
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
             .navigationTitle(Loc.t("nav.community", lang))
             .brandToolbar(Loc.t("nav.community", lang))
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink { FoilStatsView() } label: { Image(systemName: "figure.surfing") }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink { WatchStatsView() } label: { Image(systemName: "applewatch") }
-                }
-                ToolbarItem(placement: .topBarTrailing) { SyncButton() }
-            }
+            .toolbar { communityToolbar }
             .overlay { if loading && records == nil { ProgressView() } }
-            .refreshable { await loadBase(); await loadPeriod(); await loadSpotRecs() }
-            .task { if records == nil { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
+            .refreshable { await reloadAll() }
+            .task { if records == nil { await reloadAll() } }
             // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
-            .onAppear { Task { media = (try? await Api.latestPhotos()) ?? [] } }
-            .onChange(of: accelOnly) { _ in Task { await loadBase(); await loadPeriod(); await loadSpotRecs() } }
-            .onChange(of: period) { _ in Task { await loadPeriod(); await loadSpotRecs() } }
+            .onAppear { Task { await refreshMedia() } }
+            .onChange(of: accelOnly) { _ in Task { await reloadAll() } }
+            .onChange(of: period) { _ in Task { await reloadPeriod() } }
             .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
         }
+    }
+
+    @ViewBuilder private var errorRow: some View {
+        if let error { Text(error).foregroundStyle(.secondary) }
+    }
+
+    @ViewBuilder private var statsHeader: some View {
+        if let cs = cstats {
+            communityStatsText(cs, lang)
+                .font(.caption)
+                .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+        }
+    }
+
+    @ViewBuilder private var recordsSection: some View {
+        if records != nil {
+            Section { recordGrid(records?[period], showSpot: true) }
+        }
+    }
+
+    @ToolbarContentBuilder private var communityToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            NavigationLink { FoilStatsView() } label: { Image(systemName: "figure.surfing") }
+        }
+        ToolbarItem(placement: .topBarLeading) {
+            NavigationLink { WatchStatsView() } label: { Image(systemName: "applewatch") }
+        }
+        ToolbarItem(placement: .topBarTrailing) { SyncButton() }
     }
 
     // MARK: - Rekord-Grid
@@ -321,6 +336,22 @@ struct CommunityView: View {
 
     // MARK: - Laden
 
+    // Dieselbe Folge wie vorher inline (Basis -> Zeitraum -> Spot-Rekorde), nur einmal benannt.
+    private func reloadAll() async {
+        await loadBase()
+        await loadPeriod()
+        await loadSpotRecs()
+    }
+
+    private func reloadPeriod() async {
+        await loadPeriod()
+        await loadSpotRecs()
+    }
+
+    private func refreshMedia() async {
+        media = (try? await Api.latestPhotos()) ?? []
+    }
+
     private func loadBase() async {
         loading = true; defer { loading = false }
         do {
@@ -373,60 +404,101 @@ struct CommunityRow: View {
             }
     }
 
+    // Zeile in Spalten zerlegt: die Zeile war EIN Ausdruck mit sieben Geschwistern, davon drei
+    // optionale Bild-Zweige mit eigenen AsyncImage-phase-switches — der teuerste Posten der Datei.
     private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(spacing: 6) {   // Like unter dem Avatar (wie PWA), nicht in eigener Zeile rechts
-                    avatar
-                    LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.name ?? dateText).font(.headline)
-                    if item.name != nil { Text(dateText).font(.caption).foregroundStyle(.secondary) }
-                    if (item.spot?.isEmpty == false) || (item.device_label?.isEmpty == false) {
-                        HStack(spacing: 6) {
-                            if let spot = item.spot, !spot.isEmpty { sessionPill(spot) }
-                            if let dl = item.device_label, !dl.isEmpty { sessionPill(dl) }
-                        }
-                    }
-                    if let cap = item.caption, !cap.isEmpty {
-                        Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                }
-                Spacer(minLength: 8)
-                if let tp = item.track_preview {
-                    TrackPreviewView(data: tp).frame(width: 58, height: 42)
-                }
-                if let url = Api.mediaURL(item.thumb_url) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color.secondary.opacity(0.15)
-                        }
-                    }
-                    .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                if let vid = youtubeId(item.youtube_url) {
-                    ZStack {
-                        AsyncImage(url: URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")) { phase in
-                            switch phase {
-                            case .success(let img): img.resizable().scaledToFill()
-                            default: Color.secondary.opacity(0.15)
-                            }
-                        }
-                        .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                        Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
-                    }
-                }
-            }
+            headerRow
             if let stats = statsText { Text(stats).font(.caption).lineLimit(1) }
         }
         .padding(.vertical, 4)
     }
 
+    private var headerRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            avatarColumn
+            infoColumn
+            Spacer(minLength: 8)
+            trackPreview
+            photoThumb
+            videoThumb
+        }
+    }
+
+    private var avatarColumn: some View {
+        VStack(spacing: 6) {   // Like unter dem Avatar (wie PWA), nicht in eigener Zeile rechts
+            avatar
+            LikeButton(sessionId: item.id, liked: item.liked ?? false, count: item.like_count ?? 0)
+        }
+    }
+
+    private var infoColumn: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(item.name ?? dateText).font(.headline)
+            if item.name != nil { Text(dateText).font(.caption).foregroundStyle(.secondary) }
+            pillRow
+            captionText
+        }
+    }
+
+    @ViewBuilder private var pillRow: some View {
+        if (item.spot?.isEmpty == false) || (item.device_label?.isEmpty == false) {
+            HStack(spacing: 6) {
+                if let spot = item.spot, !spot.isEmpty { sessionPill(spot) }
+                if let dl = item.device_label, !dl.isEmpty { sessionPill(dl) }
+            }
+        }
+    }
+
+    @ViewBuilder private var captionText: some View {
+        if let cap = item.caption, !cap.isEmpty {
+            Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+        }
+    }
+
+    @ViewBuilder private var trackPreview: some View {
+        if let tp = item.track_preview {
+            TrackPreviewView(data: tp).frame(width: 58, height: 42)
+        }
+    }
+
+    @ViewBuilder private var photoThumb: some View {
+        if let url = Api.mediaURL(item.thumb_url) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Color.secondary.opacity(0.15)
+                }
+            }
+            .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    @ViewBuilder private var videoThumb: some View {
+        if let vid = youtubeId(item.youtube_url) {
+            ZStack {
+                AsyncImage(url: videoThumbURL(vid)) { phase in
+                    switch phase {
+                    case .success(let img): img.resizable().scaledToFill()
+                    default: Color.secondary.opacity(0.15)
+                    }
+                }
+                .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+                Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
+            }
+        }
+    }
+
+    private func videoThumbURL(_ vid: String) -> URL? {
+        URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")
+    }
+
     private var statsText: String? {
         var parts: [String] = []
-        if let r = item.runs, r > 0 { parts.append("\(r) " + (r == 1 ? "Lauf" : "Läufe")) }
+        if let r = item.runs, r > 0 {
+            let unit: String = r == 1 ? "Lauf" : "Läufe"
+            parts.append("\(r) \(unit)")
+        }
         if let km = item.foiling_km, km > 0 { parts.append(String(format: "%.2f km", km)) }
         if let mx = item.max_speed_mps { parts.append(String(format: "max %.1f km/h", mx * 3.6)) }
         return parts.isEmpty ? nil : parts.joined(separator: "  ·  ")
