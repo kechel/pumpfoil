@@ -255,19 +255,24 @@ struct SessionDetailView: View {
 
     // In kleine, je einzeln type-gecheckte Helfer zerlegt (früher ein ~200-Zeilen-@ViewBuilder mit
     // >10 direkten Kindern -> Swift-Type-Checker/Archive lief exponentiell/„ewig"; vgl. CompareView).
+    // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen, dann
+    // urteilen — oben stand es im Weg. Nur bei FREMDEN Sessions; sich selbst zu melden ist sinnlos.
+    @ViewBuilder private func reportSection(_ s: SessionDetail) -> some View {
+        if s.owned != true {
+            Divider()
+            SessionReportRow(sessionId: s.id, lang: lang)
+        }
+    }
+
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
             if s.owned == true { setupPickers(s) }
-            // Eigene Session: Klassifikation. Fremde: die Melde-Knöpfe an genau derselben Stelle
-            // (sich selbst zu melden ist sinnlos) — wie in der PWA.
-            if s.owned == true {
-                classificationPanel(s)
-            } else {
-                SessionReportRow(sessionId: s.id, lang: lang)
-            }
+            // Eigene Session: Klassifikation bleibt oben (man ordnet die eigene Fahrt gleich ein).
+            // Fremde Session: die MELDE-Knöpfe stehen ganz unten, s. reportSection.
+            if s.owned == true { classificationPanel(s) }
             mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
@@ -276,6 +281,7 @@ struct SessionDetailView: View {
             statsSection(s)
             unmergeRow(s)
             bottomActions(s)
+            reportSection(s)
         }
         .padding()
     }

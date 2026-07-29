@@ -152,8 +152,6 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
 
   const like = () =>
     api.toggleLike(sessionId).then((r) => setS((p) => (p ? { ...p, liked: r.liked, like_count: r.like_count } : p))).catch(() => {});
-  const vote = (kind: "fake" | "inappropriate") =>
-    api.toggleVote(sessionId, kind).then((r) => setS((p) => (p ? { ...p, ...r } : p))).catch(() => {});
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -282,22 +280,9 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
               „unangemessen" gibt es dafür nur bei FREMDEN Sessions — sich selbst zu melden ist
               sinnlos (Jan). Reihenfolge bei fremden = Schwere: „nicht Pumpfoil" ist die harmloseste
               Meldung (nur eine Bitte um Zuordnung), deshalb links. */}
+          {/* Die MELDE-Knöpfe fremder Sessions stehen nicht mehr hier oben, sondern ganz unten
+              unter den Lauf-Statistiken (ReportButtons) — erst ansehen, dann urteilen (Jan). */}
           {owned && !isPublic && <ClassPickers sessionId={sessionId} compact />}
-          {!owned && !isPublic && <NotPumpfoilButton sessionId={sessionId} />}
-          {!owned && <>
-          <button
-            onClick={() => vote("fake")}
-            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-          >
-            <FakeIcon className="h-4 w-4 text-amber-400" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
-          </button>
-          <button
-            onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.reportConfirm"))) return; vote("inappropriate"); }}
-            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_inappropriate ? "bg-red-500/20 text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-          >
-            <FlagIcon className="h-4 w-4 text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
-          </button>
-          </>}
         </div>
       </div>
       {owned && ytOpen && (
@@ -1621,6 +1606,8 @@ export default function SessionDetail() {
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} />
 
+      {!owned && <ReportButtons sessionId={session.id} />}
+
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 
       {owned && (session.merged_count ?? 0) > 0 && (
@@ -2060,6 +2047,38 @@ function ClassificationPanel({ session, owned, onChange }: {
 // „Sieht nicht nach Pumpfoil aus" — steht bei den anderen Melde-Knöpfen, als mildeste Stufe links.
 // Danach nur „Danke": bewusst OHNE Rückmeldung, ob die Meldung „gezählt" hat — sonst wird das
 // Nachzählen zum Spiel, und die Wirkung tritt erst beim zweiten unabhängigen Melder ein.
+// Melden einer FREMDEN Session — ganz unten unter den Lauf-Statistiken (Jan, 29.07.): oben stand es
+// im Weg, und urteilen sollte man erst, nachdem man die Session angesehen hat. Holt den Stand selbst,
+// weil die SocialBar oben nur die Session-ID kennt (gleiches Muster wie ClassPickers).
+// Reihenfolge = Schwere, mildestes links: „nicht Pumpfoil" ist nur die Bitte um Zuordnung.
+function ReportButtons({ sessionId }: { sessionId: number }) {
+  const t = useT();
+  const [s, setS] = useState<SocialData | null>(null);
+  useEffect(() => { api.sessionSocial(sessionId).then(setS).catch(() => {}); }, [sessionId]);
+  const vote = (kind: "fake" | "inappropriate") =>
+    api.toggleVote(sessionId, kind).then(setS).catch(() => {});
+  if (!s) return null;
+  return (
+    <div className="mt-8 border-t border-slate-800 pt-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <NotPumpfoilButton sessionId={sessionId} />
+        <button
+          onClick={() => vote("fake")}
+          className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-800 dark:text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+        >
+          <FakeIcon className="h-4 w-4 text-amber-500 dark:text-amber-400" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
+        </button>
+        <button
+          onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.reportConfirm"))) return; vote("inappropriate"); }}
+          className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_inappropriate ? "bg-red-500/20 text-red-800 dark:text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+        >
+          <FlagIcon className="h-4 w-4 text-red-600 dark:text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function NotPumpfoilButton({ sessionId }: { sessionId: number }) {
   const t = useT();
   const [done, setDone] = useState(false);
