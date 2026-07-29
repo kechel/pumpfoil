@@ -443,6 +443,8 @@ export interface AdminUserSport {
   default_sport_class: string;    // Profil-Standard für KÜNFTIGE Sessions
   sessions: number;
   open_classifications: number;   // noch offene Aufforderungen (needs_classification)
+  sessions_unjudged: number;      // ohne menschliches Urteil -> „alle setzen" würde sie ändern
+  sessions_judged: number;        // von Besitzer/Admin eingeordnet -> bleiben unverändert
 }
 
 export interface AdminWatch {
@@ -903,7 +905,7 @@ export const api = {
     req<{ ok: boolean; flag_blocked: boolean }>(`/api/admin/users/${uid}/flag-block?blocked=${blocked}`, { method: "POST" }),
   adminKeepPumpfoil: (id: number) =>
     req<{ ok: boolean }>(`/api/admin/sessions/${id}/keep-pumpfoil`, { method: "POST" }),
-  // Sportart je Nutzer (für Nutzer, die auf die Bitte nicht reagieren) — zwei getrennte Aktionen.
+  // Sportart je Nutzer (für Nutzer, die auf die Bitte nicht reagieren) — drei getrennte Aktionen.
   adminUserSport: (q?: string) =>
     req<AdminUserSport[]>(`/api/admin/user-sport${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   adminSetDefaultSport: (uid: number, sport: string) =>
@@ -911,6 +913,11 @@ export const api = {
       { method: "POST", body: JSON.stringify({ sport }) }),
   adminResolveClassifications: (uid: number, sport: string) =>
     req<{ ok: boolean; sport: string; resolved: number }>(`/api/admin/users/${uid}/resolve-classification`,
+      { method: "POST", body: JSON.stringify({ sport }) }),
+  // Alle Sessions ohne menschliches Urteil auf eine Sportart setzen (auch die ohne Aufforderung).
+  adminSetAllSport: (uid: number, sport: string) =>
+    req<{ ok: boolean; sport: string; changed: number; skipped: number; sessions: number }>(
+      `/api/admin/users/${uid}/set-all-sport`,
       { method: "POST", body: JSON.stringify({ sport }) }),
   saveSettings: (patch: Record<string, unknown>) =>
     req<Record<string, any>>("/api/settings", {

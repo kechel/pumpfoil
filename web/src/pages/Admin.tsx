@@ -999,9 +999,11 @@ function FlagsTab() {
 
 // ---- Sportart JE NUTZER (docs/sport-classification.md) ----
 // Für die Nutzer, die auf die Bitte „bitte richtig zuordnen" schlicht nicht reagieren. Bisher musste
-// Jan dafür in die Datenbank. ZWEI GETRENNTE Knöpfe, weil es zwei verschiedene Dinge sind:
+// Jan dafür in die Datenbank. DREI GETRENNTE Knöpfe, weil es drei verschiedene Dinge sind:
 //   * Profil-Standard -> wirkt nur für KÜNFTIGE Sessions
 //   * offene Aufforderungen auflösen -> wirkt nur auf die BESTEHENDEN Sessions mit Aufforderung
+//   * alle Sessions setzen -> alle bestehenden Sessions OHNE menschliches Urteil, auch wenn nie
+//     jemand gemeldet hat (der Fall, den „Offene auflösen" nicht erreichen konnte)
 // Die Anzahl steht VOR dem Klick am Knopf, damit niemand blind eine Massenänderung auslöst.
 function UserSportTab() {
   const t = useT();
@@ -1055,6 +1057,14 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
     run(() => api.adminResolveClassifications(u.id, sport),
         (r) => t("adm.usport.doneResolve", { n: r?.resolved ?? 0 }));
   };
+  const setAll = () => {
+    if (!sport || u.sessions_unjudged === 0) return;
+    if (!confirm(t("adm.usport.setAllConfirm", {
+      n: u.sessions_unjudged, k: u.sessions_judged, sport: t(`cls.sport.${sport}`),
+    }))) return;
+    run(() => api.adminSetAllSport(u.id, sport),
+        (r) => t("adm.usport.doneSetAll", { n: r?.changed ?? 0, k: r?.skipped ?? 0 }));
+  };
   return (
     <Card className="p-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -1086,8 +1096,18 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
             ? t("adm.usport.resolveNone")
             : t("adm.usport.resolve", { n: u.open_classifications })}
         </button>
+        <button onClick={setAll} disabled={busy || !sport || u.sessions_unjudged === 0}
+          className="rounded-lg bg-red-500 px-2.5 py-1.5 text-sm font-medium text-slate-950 hover:bg-red-400 disabled:opacity-40">
+          {u.sessions_unjudged === 0
+            ? t("adm.usport.setAllNone")
+            : t("adm.usport.setAll", { n: u.sessions_unjudged })}
+        </button>
         {msg && <span className="text-sm text-slate-200">{msg}</span>}
       </div>
+      {/* Was der Knopf NICHT anfasst — vor dem Klick sichtbar, nicht erst im Ergebnis. */}
+      <p className="mt-2 text-sm text-slate-300">
+        {t("adm.usport.setAllKeep", { k: u.sessions_judged })}
+      </p>
     </Card>
   );
 }

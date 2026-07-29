@@ -1137,17 +1137,35 @@ def set_flag_block(
 
 # =============== Sportart JE NUTZER (docs/sport-classification.md) ===============
 # Für Nutzer, die auf die Bitte „bitte richtig zuordnen" nicht reagieren. Vorher musste das in der
-# Datenbank passieren. ZWEI GETRENNTE Aktionen, absichtlich ohne stille Nebenwirkungen:
+# Datenbank passieren. DREI GETRENNTE Aktionen, absichtlich ohne stille Nebenwirkungen:
 #   1) Profil-Standard setzen  -> wirkt nur für KÜNFTIGE Sessions (settings_json.default_sport_class)
 #   2) offene Aufforderungen auflösen -> wirkt nur auf BESTEHENDE Sessions mit needs_classification
+#   3) alle Sessions setzen -> alle BESTEHENDEN Sessions ohne menschliches Urteil, auch die ohne
+#      Aufforderung (genau die Lücke von (2): niemand muss gemeldet haben)
 # Wer nur (1) klickt, ändert keine einzige bestehende Session; wer nur (2) klickt, ändert den
-# Profil-Standard nicht. Beides läuft im Audit-Log mit.
+# Profil-Standard nicht. Alles läuft im Audit-Log mit.
 
 def _open_classification_q(db: Session, uid: int):
     return (db.query(models.Session)
             .filter(models.Session.user_id == uid,
                     models.Session.deleted.isnot(True),
                     models.Session.needs_classification.is_(True)))
+
+
+# Wer hat die Sportart gesetzt? `sport_source` kennt genau drei Werte (s. models.Session):
+# „default" = Voreinstellung aus dem Import (api/ingest.py, niemand hat hingesehen),
+# „owner"/„admin" = MENSCHLICHES Urteil. Nur „default" darf eine Massenaktion überschreiben.
+_HUMAN_SPORT_SOURCES = ("owner", "admin")
+
+
+def _unjudged_q(db: Session, uid: int):
+    """Sessions dieses Nutzers OHNE menschliches Urteil (und nicht gelöscht) — genau die, die eine
+    Massenaktion anfassen darf. NULL wird mitgenommen: Alt-Zeilen aus der Zeit vor der Spalte."""
+    return (db.query(models.Session)
+            .filter(models.Session.user_id == uid,
+                    models.Session.deleted.isnot(True),
+                    or_(models.Session.sport_source.is_(None),
+                        models.Session.sport_source.notin_(_HUMAN_SPORT_SOURCES))))
 
 
 def _default_sport(u: models.User) -> str:
@@ -1172,8 +1190,9 @@ def user_sport_list(
     q: str | None = Query(None), limit: int = 20,
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Nutzersuche nach ANZEIGENAME + die drei Zahlen, die für die Entscheidung zählen:
-    aktueller Profil-Standard, Sessions insgesamt, offene Aufforderungen.
+    """Nutzersuche nach ANZEIGENAME + die Zahlen, die für die Entscheidung zählen: aktueller
+    Profil-Standard, Sessions insgesamt, offene Aufforderungen und die Aufteilung nach Urteil
+    (ohne menschliches Urteil = würde eine Massenaktion ändern, mit Urteil = bleibt).
     Ohne Suchbegriff: die Nutzer MIT offenen Aufforderungen (die Arbeitsliste), meiste zuerst."""
     U = models.User
     term = (q or "").strip()
@@ -1195,10 +1214,14 @@ def user_sport_list(
                             models.Session.deleted.isnot(True)).scalar() or 0)
         nopen = int(_open_classification_q(db, u.id)
                     .with_entities(func.count(models.Session.id)).scalar() or 0)
+        nunjudged = int(_unjudged_q(db, u.id)
+                        .with_entities(func.count(models.Session.id)).scalar() or 0)
         out.append({
             "id": u.id, "display_name": u.display_name, "avatar_url": u.avatar_url,
             "default_sport_class": _default_sport(u),
             "sessions": nsess, "open_classifications": nopen,
+            # Für den Knopf „alle Sessions setzen": Anzahl VOR dem Klick, getrennt nach Urteil.
+            "sessions_unjudged": nunjudged, "sessions_judged": max(nsess - nunjudged, 0),
         })
     return out
 
@@ -1256,3 +1279,47 @@ def resolve_open_classifications(
     _log(db, admin, "resolve_classification", "user", uid, f"{sport} n={len(rows)}")
     db.commit()
     return {"ok": True, "sport": sport, "resolved": len(rows)}
+
+
+@router.post("/users/{uid}/set-all-sport")
+def set_all_sessions_sport(
+    uid: int, payload: dict = Body(...), admin: models.User = Depends(current_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """ALLE Sessions dieses Nutzers auf eine Sportart setzen — die dritte Aktion, weil die beiden
+    anderen einen ganzen Fall nicht erreichen: „Offene auflösen" fasst nur Sessions mit
+    `needs_classification` an, und wer viele hundert falsch geführte Sessions hat, hat oft **null**
+    offene Aufforderungen (niemand hat gemeldet). Der Profil-Standard wirkt nur auf KÜNFTIGE
+    Sessions. Es blieb also nur Handarbeit je Session bzw. der Griff in die Datenbank.
+
+    ANGEFASST wird ausschließlich, was noch **kein menschliches Urteil** hat
+    (`sport_source = "default"`, s. `_unjudged_q`): wer seine Session selbst eingeordnet hat
+    („owner") oder wo ein Admin schon entschieden hat („admin"), behält sie. Gelöschte Sessions
+    bleiben außen vor.
+
+    Gesetzt wird wie beim Einzelurteil in sessions.set_classification: `sport_source = "admin"`
+    (es IST ein administratives Urteil), eine etwaige offene Aufforderung fällt, und bei „pumpfoil"
+    zusätzlich `pumpfoil_override` — sonst hebelt eine einzige neue Meldung die Entscheidung aus.
+    `data_quality` bleibt unangetastet (andere Achse, s. docs/sport-classification.md), und es wird
+    KEINE Reanalyse angestoßen: das hier ändert nur die Klassifikation, nicht die Messung."""
+    u = db.get(models.User, uid)
+    if u is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nutzer nicht gefunden")
+    sport = _sport_or_400(payload)
+    total = int(db.query(func.count()).select_from(models.Session)
+                .filter(models.Session.user_id == uid,
+                        models.Session.deleted.isnot(True)).scalar() or 0)
+    rows = _unjudged_q(db, uid).all()
+    for s in rows:
+        s.sport_class = sport
+        s.sport_source = "admin"
+        s.needs_classification = False
+        s.appeal_text = None
+        s.appeal_at = None
+        if sport == "pumpfoil" and (s.data_quality or "ok") == "ok":
+            s.pumpfoil_override = True
+    _log(db, admin, "user_set_all_sport", "user", uid,
+         f"{sport} n={len(rows)} kept={max(total - len(rows), 0)}")
+    db.commit()
+    return {"ok": True, "sport": sport, "changed": len(rows),
+            "skipped": max(total - len(rows), 0), "sessions": total}
