@@ -363,6 +363,9 @@ data class CommunityRecordEntry(
     @SerialName("started_at") val startedAt: String? = null,
     @SerialName("run_idx") val runIdx: Int? = null,
     val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
+    // Mini-Track-Vorschau der Rekord-Session (dieselbe Form wie in den Session-Karten).
+    // Fehlt bei Sessions ohne Vorschau in der Analyse -> dann wird nichts gezeichnet.
+    @SerialName("track_preview") val trackPreview: String? = null,
 )
 
 @Serializable

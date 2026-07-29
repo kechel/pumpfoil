@@ -537,8 +537,9 @@ private fun statusLabel(s: String): String = when (s) {
 
 private val previewJson = Json { ignoreUnknownKeys = true }
 
+// internal (nicht private): das Rekord-Grid in CommunityScreen zeichnet dieselbe Vorschau.
 @Composable
-private fun TrackPreviewCanvas(data: String, modifier: Modifier) {
+internal fun TrackPreviewCanvas(data: String, modifier: Modifier) {
     val tp = remember(data) { runCatching { previewJson.decodeFromString(TrackPreview.serializer(), data) }.getOrNull() }
     if (tp == null || tp.lines.isEmpty()) return
     val color = MaterialTheme.colorScheme.primary

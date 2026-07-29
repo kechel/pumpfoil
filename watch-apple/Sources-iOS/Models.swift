@@ -165,6 +165,9 @@ struct CommunityRecordEntry: Codable {
     let started_at: String?
     let run_idx: Int?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    // Mini-Track-Vorschau der Rekord-Session (dieselbe Form wie in den Session-Karten).
+    // Fehlt bei Sessions ohne Vorschau in der Analyse -> dann wird nichts gezeichnet.
+    let track_preview: String?
 }
 
 struct PeriodRecords: Codable {

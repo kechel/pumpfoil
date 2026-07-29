@@ -50,6 +50,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -349,6 +350,9 @@ private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Un
                     Card(
                         Modifier.weight(1f).then(if (has) Modifier.clickable { onOpen(ri.e.sessionId!!) } else Modifier),
                     ) {
+                      // Box nur als Overlay-Rahmen: die Vorschau liegt ÜBER der Kachel (wie in der
+                      // PWA, Home.tsx) und beeinflusst die Höhe nicht — ohne Track bleibt alles gleich.
+                      Box(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(10.dp)) {
                             Text(if (has) ri.value else "–", style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1)
@@ -372,6 +376,12 @@ private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Un
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
+                        // Farbe kommt aus colorScheme.primary (TrackPreviewCanvas) -> beide Farbmodi.
+                        if (has) ri.e.trackPreview?.takeIf { it.isNotBlank() }?.let { tp ->
+                            TrackPreviewCanvas(tp, Modifier.align(Alignment.CenterEnd)
+                                .padding(end = 6.dp).size(width = 56.dp, height = 40.dp).alpha(0.7f))
+                        }
+                      }
                     }
                 }
                 if (row.size == 1) Spacer(Modifier.weight(1f))

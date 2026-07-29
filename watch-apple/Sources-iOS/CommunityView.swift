@@ -171,7 +171,21 @@ struct CommunityView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
         .background(Color(.secondarySystemBackground))
+        .overlay(alignment: .trailing) { recTrack(t.entry?.track_preview) }
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // Mini-Track der Rekord-Session, wie in der PWA (Home.tsx: halbtransparent rechts in der
+    // Kachel). Als Overlay, nicht als Layout-Element: ohne Vorschau bleibt die Kachel exakt
+    // gleich groß (kein Platzhalter, kein Sprung). Farbe = Akzentfarbe -> beide Farbmodi ok.
+    @ViewBuilder private func recTrack(_ data: String?) -> some View {
+        if let d = data, !d.isEmpty {
+            TrackPreviewView(data: d)
+                .frame(width: 56, height: 40)
+                .opacity(0.7)
+                .padding(.trailing, 6)
+                .allowsHitTesting(false)
+        }
     }
 
     // MARK: - Kleine Bausteine
