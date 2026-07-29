@@ -1096,7 +1096,10 @@ def session_flags(
     rows = (db.query(models.SessionFlag, models.User, models.Session)
             .join(models.User, models.User.id == models.SessionFlag.user_id)
             .join(models.Session, models.Session.id == models.SessionFlag.session_id)
-            .order_by(models.SessionFlag.id.desc()).limit(min(limit, 500)).all())
+            # OFFENE zuerst: die Liste ist auf `limit` gedeckelt, und der Admin-Blick soll nie an
+            # abgearbeiteten Meldungen hängen bleiben (die PWA klappt sie zusätzlich weg).
+            .order_by(models.Session.needs_classification.desc(), models.SessionFlag.id.desc())
+            .limit(min(limit, 500)).all())
     counts = dict(db.query(models.SessionFlag.user_id, func.count(models.SessionFlag.id))
                   .group_by(models.SessionFlag.user_id).all())
     out = []

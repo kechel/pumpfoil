@@ -941,14 +941,13 @@ function FlagsTab() {
   const load = () => api.adminSessionFlags().then(setRows).catch(() => setRows([]));
   useEffect(() => { load(); }, []);
   if (!rows) return null;
-  return (
-    <div className="mt-6">
-      <h3 className="mb-2 font-semibold">{t("adm.flags.title")}</h3>
-      {rows.length === 0 ? (
-        <Card className="p-4 text-sm text-slate-300">{t("adm.flags.none")}</Card>
-      ) : (
-        <div className="space-y-2">
-          {rows.map((r) => (
+  // Erledigte NICHT mehr in der Hauptliste: sobald die Zuordnung entschieden ist, ist die Meldung
+  // abgearbeitet und verstopft nur den Blick auf das Offene (Jan, 29.07.). Sie bleibt aber
+  // erreichbar -- als Melde-Historie ist sie der Missbrauchs-Blick, und Serien-Melder erkennt man
+  // nur, wenn die alten Meldungen nicht verschwinden.
+  const open = rows.filter((r) => r.needs_classification);
+  const done = rows.filter((r) => !r.needs_classification);
+  const flagRow = (r: Record<string, any>) => (
             <Card key={r.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
               <Link to={`/sessions/${r.session_id}`} className="text-brand-700 hover:underline dark:text-brand-300">
                 #{r.session_id}
@@ -977,8 +976,22 @@ function FlagsTab() {
                 {r.by?.flag_blocked ? t("adm.flags.unblock") : t("adm.flags.block")}
               </button>
             </Card>
-          ))}
-        </div>
+  );
+  return (
+    <div className="mt-6">
+      <h3 className="mb-2 font-semibold">{t("adm.flags.title")}</h3>
+      {open.length === 0 ? (
+        <Card className="p-4 text-sm text-slate-300">{t("adm.flags.none")}</Card>
+      ) : (
+        <div className="space-y-2">{open.map(flagRow)}</div>
+      )}
+      {done.length > 0 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm text-slate-300">
+            {t("adm.flags.doneToggle", { n: done.length })}
+          </summary>
+          <div className="mt-2 space-y-2">{done.map(flagRow)}</div>
+        </details>
       )}
     </div>
   );

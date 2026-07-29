@@ -633,6 +633,7 @@ const de: Record<string, string> = {
   "adm.tab.overview": "Übersicht",
   "adm.tab.classify": "Klassifikation",
   "adm.flags.title": "Meldungen „nicht Pumpfoil“",
+  "adm.flags.doneToggle": "Erledigt ({n}) einblenden",
   "adm.flags.none": "Noch keine Meldungen.",
   "adm.flags.by": "gemeldet von {name} ({n} Meldungen insgesamt)",
   "adm.flags.blocked": "Melden gesperrt",
