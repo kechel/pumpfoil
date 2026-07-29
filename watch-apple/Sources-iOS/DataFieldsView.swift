@@ -84,10 +84,10 @@ struct DataFieldsView: View {
     @ViewBuilder private var switchSection: some View {
         Section {
             Toggle(Loc.t("account.browseAll", lang), isOn: $browseAll)
-                .onChange(of: browseAll) { _, _ in saved = false }
+                .onChange(of: browseAll) { _ in saved = false }
             Text(Loc.t("account.browseAllHint", lang)).font(.callout).foregroundStyle(.secondary)
             Toggle(Loc.t("account.layoutsEnabled", lang), isOn: $layoutsEnabled)
-                .onChange(of: layoutsEnabled) { _, _ in saved = false }
+                .onChange(of: layoutsEnabled) { _ in saved = false }
             Text(Loc.t("account.layoutsEnabledHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
     }

@@ -32,7 +32,7 @@ struct FoilsView: View {
                         Text(Loc.t("cls.sport." + sp, lang)).tag(sp)
                     }
                 }
-                .onChange(of: defSport) { _, v in
+                .onChange(of: defSport) { v in
                     Task { try? await Api.saveSettings(["default_sport_class": v]) }
                 }
                 Text(Loc.t("foils.defaultSportHint", lang)).font(.callout).foregroundStyle(.secondary)
