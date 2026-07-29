@@ -676,66 +676,118 @@ struct AlarmPickerSheet: View {
     var onCancel: () -> Void
     @AppStorage("appLang") private var lang = "de"
 
+    // Auch hier ein Body pro Abschnitt statt sechs Sections in EINEM Ausdruck: jede Section bringt
+    // eigene header/footer-Closures mit, und im ViewBuilder multipliziert sich das (s. Kommentar an
+    // RecordView.body). Reihenfolge und Inhalte sind unveraendert.
     var body: some View {
         List {
-            Section {
-                Toggle(WLoc.t("rec.autoStartToggle", lang), isOn: $autoStart)
-            } footer: {
-                Text(WLoc.t("rec.autoStartHelp", lang))
-            }
-            // Eigene Layouts: Automatisch / An / Aus -- derselbe Dreiklang wie im Garmin-Menue
-            // (RecordDelegate._layoutState). Der Server-Wert ist nur die Vorbelegung beim App-Start.
-            Section {
-                Picker(WLoc.t("menu.layouts", lang), selection: $layoutsPrefRaw) {
-                    Text(WLoc.t("common.auto", lang)).tag(0)
-                    Text(WLoc.t("common.on", lang)).tag(1)
-                    Text(WLoc.t("common.off", lang)).tag(2)
-                }
-            } footer: {
-                // Fusstext nur, wenn er etwas Konkretes sagt: "An, aber es sind keine Seiten
-                // konfiguriert". Einen allgemeinen Hilfetext gibt es im Garmin-Recorder nicht, und
-                // ich erfinde ihn nicht in sieben Sprachen.
-                if layoutsPrefRaw == 1 && !hasLayoutPages {
-                    Text(WLoc.t("lay.none", lang))
-                }
-            }
-            Section {
-                Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
-            } header: {
-                Text(WLoc.t("foil.alarm", lang))
-            } footer: {
-                Text(WLoc.t("foil.alarmHelp", lang))
-            }
-            Section(WLoc.t("foil.thresholds", lang)) {
-                Picker(WLoc.t("foil.source", lang), selection: $alarmSource) {
-                    Text(WLoc.t("foil.auto", lang)).tag("foil")
-                    Text(WLoc.t("foil.manual", lang)).tag("manual")
-                }
-                if alarmSource == "manual" {
-                    Stepper(value: $alarm.low, in: 0...80) {
-                        Text("\(WLoc.t("foil.min", lang)): \(alarm.low) km/h").font(.footnote)
-                    }
-                    Stepper(value: $alarm.high, in: 0...80) {
-                        Text("\(WLoc.t("foil.max", lang)): \(alarm.high) km/h").font(.footnote)
-                    }
-                }
-            }
-            Section {
-                ForEach(foils) { f in
-                    Button { selectedFoilId = f.id; onPick() } label: {
-                        row((selectedFoilId == f.id ? "✓ " : "") + f.label, "\(f.min)–\(f.max) km/h")
-                    }
-                }
-                Button { selectedFoilId = nil; onPick() } label: {
-                    row((selectedFoilId == nil ? "✓ " : "") + WLoc.t("foil.noFoil", lang), WLoc.t("foil.noneSub", lang))
-                }
-            } header: {
-                Text(WLoc.t("foil.choose", lang))
-            } footer: {
-                Text(WLoc.t("foil.chooseHelp", lang))
-            }
+            autoStartSection
+            layoutsSection
+            alarmToggleSection
+            thresholdsSection
+            foilChoiceSection
             Section { Button(WLoc.t("common.cancel", lang), role: .cancel, action: onCancel) }
         }
+    }
+
+    private var autoStartSection: some View {
+        Section {
+            Toggle(WLoc.t("rec.autoStartToggle", lang), isOn: $autoStart)
+        } footer: {
+            Text(WLoc.t("rec.autoStartHelp", lang))
+        }
+    }
+
+    // Eigene Layouts: Automatisch / An / Aus -- derselbe Dreiklang wie im Garmin-Menue
+    // (RecordDelegate._layoutState). Der Server-Wert ist nur die Vorbelegung beim App-Start.
+    private var layoutsSection: some View {
+        Section {
+            Picker(WLoc.t("menu.layouts", lang), selection: $layoutsPrefRaw) {
+                Text(WLoc.t("common.auto", lang)).tag(0)
+                Text(WLoc.t("common.on", lang)).tag(1)
+                Text(WLoc.t("common.off", lang)).tag(2)
+            }
+        } footer: {
+            layoutsFooter
+        }
+    }
+
+    // Fusstext nur, wenn er etwas Konkretes sagt: "An, aber es sind keine Seiten konfiguriert".
+    // Einen allgemeinen Hilfetext gibt es im Garmin-Recorder nicht, und ich erfinde ihn nicht in
+    // sieben Sprachen.
+    @ViewBuilder private var layoutsFooter: some View {
+        if layoutsPrefRaw == 1 && !hasLayoutPages {
+            Text(WLoc.t("lay.none", lang))
+        }
+    }
+
+    private var alarmToggleSection: some View {
+        Section {
+            Toggle(WLoc.t("foil.alarmOn", lang), isOn: $alarm.enabled)
+        } header: {
+            Text(WLoc.t("foil.alarm", lang))
+        } footer: {
+            Text(WLoc.t("foil.alarmHelp", lang))
+        }
+    }
+
+    private var thresholdsSection: some View {
+        Section(WLoc.t("foil.thresholds", lang)) {
+            Picker(WLoc.t("foil.source", lang), selection: $alarmSource) {
+                Text(WLoc.t("foil.auto", lang)).tag("foil")
+                Text(WLoc.t("foil.manual", lang)).tag("manual")
+            }
+            manualThresholdSteppers
+        }
+    }
+
+    @ViewBuilder private var manualThresholdSteppers: some View {
+        if alarmSource == "manual" {
+            Stepper(value: $alarm.low, in: 0...80) {
+                Text(thresholdLabel("foil.min", alarm.low)).font(.footnote)
+            }
+            Stepper(value: $alarm.high, in: 0...80) {
+                Text(thresholdLabel("foil.max", alarm.high)).font(.footnote)
+            }
+        }
+    }
+
+    private var foilChoiceSection: some View {
+        Section {
+            ForEach(foils) { f in
+                Button { selectedFoilId = f.id; onPick() } label: {
+                    row(foilRowTitle(f), foilRangeText(f))
+                }
+            }
+            Button { selectedFoilId = nil; onPick() } label: {
+                row(noFoilTitle, WLoc.t("foil.noneSub", lang))
+            }
+        } header: {
+            Text(WLoc.t("foil.choose", lang))
+        } footer: {
+            Text(WLoc.t("foil.chooseHelp", lang))
+        }
+    }
+
+    // Texte vorab typisiert: Ternary + String-Verkettung + Interpolation sind im ViewBuilder die
+    // teuersten Konstrukte fuer den Type-Checker.
+    private func thresholdLabel(_ key: String, _ value: Int) -> String {
+        let name: String = WLoc.t(key, lang)
+        return "\(name): \(value) km/h"
+    }
+
+    private func foilRowTitle(_ f: Api.FoilOpt) -> String {
+        let mark: String = selectedFoilId == f.id ? "✓ " : ""
+        return mark + f.label
+    }
+
+    private func foilRangeText(_ f: Api.FoilOpt) -> String {
+        "\(f.min)–\(f.max) km/h"
+    }
+
+    private var noFoilTitle: String {
+        let mark: String = selectedFoilId == nil ? "✓ " : ""
+        return mark + WLoc.t("foil.noFoil", lang)
     }
     @ViewBuilder private func row(_ title: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
