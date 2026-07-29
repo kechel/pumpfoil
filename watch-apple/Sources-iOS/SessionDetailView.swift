@@ -1493,7 +1493,10 @@ struct StatItem: Identifiable {
     let label: String
     let value: String
     let runIdx: Int?
-    let id = UUID()
+    // Stabil, nicht UUID(): buildStats() laeuft im Body, mit UUID() bekaeme jede Kachel bei jedem
+    // Neuzeichnen eine neue Identitaet (dasselbe Muster wie RecRow in CommunityView). Labels sind
+    // innerhalb einer Session eindeutig.
+    var id: String { label }
     init(_ label: String, _ value: String, runIdx: Int? = nil) {
         self.label = label; self.value = value; self.runIdx = runIdx
     }

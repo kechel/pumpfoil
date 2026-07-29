@@ -106,12 +106,17 @@ struct CommunityView: View {
 
     // MARK: - Rekord-Grid
 
-    private struct RecRow: Identifiable { let id = UUID(); let label: String; let value: String; let entry: CommunityRecordEntry? }
+    // Die `id` MUSS stabil sein: `recordRows()` laeuft bei jedem Neuzeichnen, mit `UUID()` bekam
+    // jede Zeile dabei eine NEUE Identitaet. SwiftUI hat die NavigationLinks darunter deshalb
+    // verworfen und neu aufgebaut — und damit eine laufende Navigation zerlegt: nach „zurueck"
+    // landete man irgendwo statt auf der Community-Seite (Jans Befund, mehrfach). Der Metrik-Key ist
+    // stabil und eindeutig, also ist er die Identitaet.
+    private struct RecRow: Identifiable { let id: String; let label: String; let value: String; let entry: CommunityRecordEntry? }
 
     private func recordRows(_ r: PeriodRecords?) -> [RecRow] {
         func ok(_ e: CommunityRecordEntry?) -> Bool { e?.session_id != nil && (e?.value ?? 0) > 0 }
         func row(_ key: String, _ e: CommunityRecordEntry?, _ fmt: (Double) -> String) -> RecRow {
-            RecRow(label: Loc.t(key, lang), value: ok(e) ? fmt(e!.value ?? 0) : "–", entry: ok(e) ? e : nil)
+            RecRow(id: key, label: Loc.t(key, lang), value: ok(e) ? fmt(e!.value ?? 0) : "–", entry: ok(e) ? e : nil)
         }
         func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
         // Tageszeit-Rekorde: Sekunden seit Mitternacht (Spot-Ortszeit); Night Owl kann >24 h sein.

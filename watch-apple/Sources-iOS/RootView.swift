@@ -130,14 +130,12 @@ struct MainTabView: View {
         .contentShape(Rectangle())
     }
 
-    // Unveraendert aus der Button-Closure heruebergezogen (frischer Fix):
-    // „Sessions" im Menue heisst IMMER: oben in der Liste anfangen — nicht in
-    // der zuletzt geoeffneten Session (die auf dem NavigationStack liegt) und
-    // nicht auf der alten Scroll-Position. Die anderen Tabs behalten ihren
-    // Zustand beim Wechsel; nur erneutes Tippen setzt sie zurueck. Gleiche
-    // Regel wie in der PWA (dort der lastSession-Marker beim Menue-Klick).
+    // Ein Tipp im Menue fuehrt IMMER zur Uebersicht des Bereichs — bei JEDEM Tab, nicht nur bei
+    // Sessions. Die Ansichten bleiben pro Tab am Leben, also bleibt auch ihr NavigationStack stehen:
+    // eine zuvor geoeffnete Session lag sonst noch darunter. Zum Blaettern zwischen Sessions gibt es
+    // „Aelter"/„Neuer". Preis: die Scroll-Position eines Tabs geht beim Wechsel verloren.
     private func selectTab(_ i: Int) {
-        if tab == i || i == 1 { resetTokens[i] += 1 }
+        resetTokens[i] += 1
         if tab != i { tab = i }
     }
 
