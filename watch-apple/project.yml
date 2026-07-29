@@ -40,7 +40,7 @@ targets:
         # länger als 150 ms zum Type-Checken braucht (nennt Datei:Zeile). So findet man die eine
         # explodierende SwiftUI-Zeile, die das Archive „ewig" hängen lässt, statt zu raten.
         # Nur Diagnose (kein Build-Fehler); Schwelle bei Bedarf senken (z. B. 80).
-        OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=150 -Xfrontend -warn-long-function-bodies=150"
+        OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100"
         TARGETED_DEVICE_FAMILY: "1"   # nur iPhone (Portrait-Port; iPad-Multitasking-Orientierungen entfallen)
         DEVELOPMENT_TEAM: MEKT477FXE       # SmartKomm GmbH (Team-ID, = exportOptions.plist) -> Team nach xcodegen automatisch gesetzt
         CODE_SIGN_STYLE: Automatic
@@ -88,7 +88,7 @@ targets:
         SWIFT_VERSION: "5.0"
         # Wie beim iOS-Target: per-file statt WMO (WMO hing im Release/Archive) + Type-Check-Diagnose.
         SWIFT_COMPILATION_MODE: singlefile
-        OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=150 -Xfrontend -warn-long-function-bodies=150"
+        OTHER_SWIFT_FLAGS: "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100"
         TARGETED_DEVICE_FAMILY: "4"   # 4 = Apple Watch
         DEVELOPMENT_TEAM: MEKT477FXE       # SmartKomm GmbH — Team nach xcodegen automatisch gesetzt
         CODE_SIGN_STYLE: Automatic

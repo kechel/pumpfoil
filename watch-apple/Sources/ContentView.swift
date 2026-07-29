@@ -144,183 +144,17 @@ struct RecordView: View {
     @State private var autoArmed = false                // Monitor aktiv (Countdown durch)?
     private let autoTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    // Der Body ist bewusst KURZ gehalten: Swifts Type-Checker loest einen ViewBuilder als EINEN
+    // Ausdruck auf, und der Aufwand waechst ueberproportional mit der Zahl der Kinder und
+    // Modifier. Dieser Body war 202 Zeilen lang und stand mit >500 ms im Build-Log (Archive hing
+    // minutenlang). Jede Teil-Ansicht unten ist ein eigener, EXPLIZIT typisierter Ausdruck und
+    // wird unabhaengig geprueft — zusammen deutlich schneller als ein Riesenausdruck.
     var body: some View {
         Group {
             if rec.isRecording {
-                // Pager: Stop(0) | Daten 1..n | Übersicht(n+1) | Stop(n+2). Übersicht ist eine
-                // wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" -> Übersicht
-                // (+kurze Vibration), nach 60 s ohne Wischen zurück; „Lauf gestartet" -> zurück.
-                // Pager: Verwerfen(0) | Stop(1) | Daten 2..n+1 | Übersicht(n+2) | Stop(n+3) | Verwerfen(n+4).
-                // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
-                TabView(selection: $page) {
-                    discardPage().tag(0)
-                    stopPage(WLoc.t("rec.toData", lang)).tag(1)
-                    ForEach(Array(dataPages.enumerated()), id: \.offset) { idx, ref in
-                        dataPageView(ref, idx: idx)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .tag(idx + 2)
-                    }
-                    VStack(spacing: 10) {   // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls)
-                        ForEach(activeFields(showRunEnd ? offFoil : pauseView), id: \.self) { fid in fieldView(fid) }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .tag(dataPages.count + 2)
-                    stopPage(WLoc.t("rec.toSummary", lang)).tag(dataPages.count + 3)
-                    discardPage().tag(dataPages.count + 4)
-                }
-                // Der System-Indikator wird auf eigenen Layout-Seiten ausgeblendet: dort bringt das
-                // Layout seine eigenen Punkte mit (Element typ 6). Garmin macht es genauso
-                // (_drawLayoutPage kehrt vor _drawPageDots zurueck, RecordView.mc:98-115). Sonst
-                // liegen zwei Punktreihen mit verschiedener Anzahl uebereinander — am Wear-Emulator
-                // reproduziert und in Jans Apple-Screenshot ebenfalls zu sehen.
-                .tabViewStyle(.page(indexDisplayMode: currentPageIsLayout ? .never : .automatic))
-                .onChange(of: rec.isRecording) { r in if r { page = 2 } }
-                .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
-                .onChange(of: rec.isFoiling) { foiling in
-                    let summaryPage = views.count + 2
-                    if !foiling {
-                        // Lauf beendet -> Übersicht: erst kurz Lauf-Ende, nach 8 s Pausen-Ansicht.
-                        // KEIN Rücksprung zur Datenansicht mehr — die bleibt bis zum nächsten Lauf.
-                        page = summaryPage
-                        showRunEnd = true
-                        WKInterfaceDevice.current().play(.click)
-                        Task {
-                            try? await Task.sleep(nanoseconds: 8_000_000_000)
-                            if !rec.isFoiling { showRunEnd = false }
-                        }
-                    } else if page == summaryPage {
-                        page = lastDataPage
-                    }
-                }
-                // Upload-Indikator: kleines Wolken-Symbol, wenn gerade Chunks hochgeladen werden.
-                .overlay(alignment: .top) {
-                    if rec.uploading {
-                        Image(systemName: "icloud.and.arrow.up")
-                            .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
-                    }
-                }
+                recordingPager
             } else {
-                VStack(spacing: 8) {
-                    // Titel + Version (+ Auto-Start-Zeile) eng zusammen. Der ganze Block ist ein
-                    // großer Tap-Bereich (dicke Finger) -> öffnet die Einstellungen.
-                    VStack(spacing: 0) {
-                        HStack(spacing: 6) {
-                            Image("Logo").resizable().frame(width: 22, height: 22)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                            Text("Pumpfoil").font(.title3)
-                        }
-                        .padding(.top, 6)   // nicht in die Uhrzeit-Anzeige oben laufen
-                        if let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                            Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
-                        }
-                        if autoStart && !rec.starting {
-                            // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln
-                            // (z.B. im Auto). Erst wenn scharf -> blau. Eng unter der Version.
-                            if autoArmed {
-                                Text(WLoc.t("rec.autoStart", lang)).font(.caption2).foregroundStyle(.cyan).padding(.top, 2)
-                            } else {
-                                Text("\(WLoc.t("rec.autoStart", lang)) in \(autoCountdown)s").font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
-                            }
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture { showFoilPicker = true }   // ganzer Kopfbereich -> Einstellungen
-                    if rec.starting {
-                        // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
-                        ProgressView().scaleEffect(0.8)
-                        Text(rec.status.isEmpty ? WLoc.t("rec.starting", lang) : rec.status)
-                            .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    } else {
-                    // Foil-Vorwahl: nur der Foil-Name (klein, lange Namen skalieren herunter);
-                    // antippen zum Ändern. Standard ist gesetzt -> kein Zwangs-Sheet beim Start.
-                    if manualAlarm || !foils.isEmpty {
-                        Button { showFoilPicker = true } label: {
-                            HStack(spacing: 3) {
-                                Text("\(WLoc.t("foil.prefix", lang))\(foilLabel)")
-                                    .lineLimit(1).minimumScaleFactor(0.6)
-                                if alarm.enabled { Image(systemName: "bell.fill").foregroundStyle(.yellow) }
-                            }
-                            .font(.caption2)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.secondary)
-                    }
-                    Button(WLoc.t("rec.start", lang)) {
-                        skipSync()
-                        Task { await rec.start(foilId: selectedFoilId) }   // Foil = Metadaten, unabhängig vom Alarm
-                    }
-                    .tint(.green)
-                    .sheet(isPresented: $showFoilPicker) {
-                        AlarmPickerSheet(
-                            foils: foils,
-                            alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
-                            autoStart: $autoStart,
-                            layoutsPrefRaw: $layoutsPrefRaw,
-                            hasLayoutPages: dataPages.contains { if case .layout = $0 { return true } else { return false } },
-                            onPick: { showFoilPicker = false },
-                            onCancel: { showFoilPicker = false })
-                    }
-                    // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
-                    if syncing {
-                        HStack(spacing: 6) {
-                            ProgressView().scaleEffect(0.6)
-                            Text(WLoc.t("rec.sync", lang)).font(.caption2).foregroundStyle(.secondary)
-                            Button(WLoc.t("rec.notNow", lang)) { skipSync() }
-                                .font(.caption2).buttonStyle(.borderless).tint(.secondary)
-                        }
-                    } else if !rec.status.isEmpty {
-                        Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    }
-                    // Nicht verbunden: Hinweis + Verbinden (Aufnahme geht trotzdem, lokal).
-                    if Api.deviceToken == nil {
-                        Text(WLoc.t("rec.notLinked", lang))
-                            .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
-                        Button(WLoc.t("rec.connect", lang)) { onWantPair() }
-                            .font(.caption2).buttonStyle(.borderless)
-                    }
-                    // Lokal wartende Sessions: Fortschritt + Verbindungsstatus statt nur „X warten".
-                    if rec.pendingCount > 0 {
-                        if rec.uploading {
-                            HStack(spacing: 6) {
-                                ProgressView().scaleEffect(0.6)
-                                Text(WLoc.t("rec.uploading", lang) + (rec.uploadTotal > 0 ? " \(rec.uploadSent)/\(rec.uploadTotal)" : ""))
-                                    .font(.caption2).foregroundStyle(.secondary)
-                            }
-                        } else if rec.uploadError == "offline" {
-                            Text(WLoc.t("rec.waitConn", lang))
-                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
-                            Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang) + " — " + WLoc.t("rec.willResume", lang))
-                                .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                        } else if rec.uploadError == "auth" {
-                            // Token ungültig/abgelaufen -> neu pairen (Aufnahmen bleiben lokal).
-                            Text(WLoc.t("rec.authErr", lang))
-                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
-                            Button(WLoc.t("rec.repair", lang)) { onWantPair() }
-                                .font(.caption2).buttonStyle(.borderless)
-                        } else if rec.uploadError == "server" {
-                            Text(WLoc.t("rec.serverErr", lang))
-                                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
-                        } else {
-                            Text("\(rec.pendingCount) " + WLoc.t("rec.pendingUpload", lang))
-                                .font(.caption2).foregroundStyle(.secondary)
-                        }
-                        if Api.deviceToken != nil && !rec.uploading {
-                            Button(WLoc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
-                                .font(.caption2).buttonStyle(.borderless)
-                        }
-                    }
-                    // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das
-                    // Pairing erst, wenn ein neues tatsächlich durchläuft). Bei "auth" zeigt
-                    // der Block oben schon „Neu verbinden" -> hier nicht doppeln.
-                    if Api.deviceToken != nil && rec.uploadError != "auth" {
-                        Button(WLoc.t("rec.switch", lang)) { onWantPair() }
-                            .font(.caption2).buttonStyle(.borderless).tint(.secondary)
-                    }
-                    }
-                }.padding()
-                // Auto-Start-Monitor wird NICHT hier gearmt, sondern erst nach dem Countdown
-                // (tickAutoStart, autoTimer). Beim Verlassen des Idle sicher aufräumen.
-                .onDisappear { autoMon.disarm(); autoArmed = false }
+                idleScreen
             }
         }
         .task {
@@ -345,6 +179,280 @@ struct RecordView: View {
         // Frisches Token eingetroffen -> sofort erneut hochladen (statt 5 s zu warten).
         .onReceive(NotificationCenter.default.publisher(for: .pumpfoilTokenUpdated)) { _ in
             Task { await rec.drain() }
+        }
+    }
+
+    // MARK: - Aufnahme
+
+    // Pager: Verwerfen(0) | Stop(1) | Daten 2..n+1 | Übersicht(n+2) | Stop(n+3) | Verwerfen(n+4).
+    // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts. Die Übersicht
+    // ist eine wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" (+kurze Vibration).
+    // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des TabView — nur so findet die
+    // Auswahl ihre Seiten.
+    private var recordingPager: some View {
+        TabView(selection: $page) {
+            discardPage().tag(0)
+            stopPage(WLoc.t("rec.toData", lang)).tag(1)
+            ForEach(Array(dataPages.enumerated()), id: \.offset) { idx, ref in
+                dataPageView(ref, idx: idx)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tag(idx + 2)
+            }
+            summaryPage.tag(dataPages.count + 2)
+            stopPage(WLoc.t("rec.toSummary", lang)).tag(dataPages.count + 3)
+            discardPage().tag(dataPages.count + 4)
+        }
+        // Der System-Indikator wird auf eigenen Layout-Seiten ausgeblendet: dort bringt das
+        // Layout seine eigenen Punkte mit (Element typ 6). Garmin macht es genauso
+        // (_drawLayoutPage kehrt vor _drawPageDots zurueck, RecordView.mc:98-115). Sonst
+        // liegen zwei Punktreihen mit verschiedener Anzahl uebereinander.
+        .tabViewStyle(.page(indexDisplayMode: currentPageIsLayout ? .never : .automatic))
+        .onChange(of: rec.isRecording) { r in if r { page = 2 } }
+        .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
+        .onChange(of: rec.isFoiling) { foiling in onFoilingChanged(foiling) }
+        .overlay(alignment: .top) { uploadBadge }
+    }
+
+    // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls).
+    private var summaryPage: some View {
+        let fields: [Int] = activeFields(showRunEnd ? offFoil : pauseView)
+        return VStack(spacing: 10) {
+            ForEach(fields, id: \.self) { fid in fieldView(fid) }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // Upload-Indikator: kleines Wolken-Symbol, wenn gerade Chunks hochgeladen werden.
+    @ViewBuilder private var uploadBadge: some View {
+        if rec.uploading {
+            Image(systemName: "icloud.and.arrow.up")
+                .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
+        }
+    }
+
+    // Lauf beendet -> Übersicht: erst kurz Lauf-Ende, nach 8 s Pausen-Ansicht. KEIN Rücksprung zur
+    // Datenansicht mehr — die bleibt bis zum nächsten Lauf. Als Methode statt als Closure im Body:
+    // Ablauflogik kostet den Type-Checker im ViewBuilder unnötig viel.
+    private func onFoilingChanged(_ foiling: Bool) {
+        let summaryIdx: Int = views.count + 2
+        if !foiling {
+            page = summaryIdx
+            showRunEnd = true
+            WKInterfaceDevice.current().play(.click)
+            Task {
+                try? await Task.sleep(nanoseconds: 8_000_000_000)
+                if !rec.isFoiling { showRunEnd = false }
+            }
+        } else if page == summaryIdx {
+            page = lastDataPage
+        }
+    }
+
+    // MARK: - Startbildschirm
+
+    private var idleScreen: some View {
+        VStack(spacing: 8) {
+            idleHeader
+            if rec.starting {
+                // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
+                ProgressView().scaleEffect(0.8)
+                Text(startingText)
+                    .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            } else {
+                idleControls
+            }
+        }
+        .padding()
+        // Auto-Start-Monitor wird NICHT hier gearmt, sondern erst nach dem Countdown
+        // (tickAutoStart, autoTimer). Beim Verlassen des Idle sicher aufräumen.
+        .onDisappear { autoMon.disarm(); autoArmed = false }
+    }
+
+    private var startingText: String {
+        rec.status.isEmpty ? WLoc.t("rec.starting", lang) : rec.status
+    }
+
+    // Titel + Version (+ Auto-Start-Zeile) eng zusammen. Der ganze Block ist ein großer
+    // Tap-Bereich (dicke Finger) -> öffnet die Einstellungen.
+    private var idleHeader: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Image("Logo").resizable().frame(width: 22, height: 22)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                Text("Pumpfoil").font(.title3)
+            }
+            .padding(.top, 6)   // nicht in die Uhrzeit-Anzeige oben laufen
+            versionLine
+            autoStartLine
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { showFoilPicker = true }   // ganzer Kopfbereich -> Einstellungen
+    }
+
+    @ViewBuilder private var versionLine: some View {
+        let v: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        if let v {
+            Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln (z. B. im
+    // Auto). Erst wenn scharf -> cyan. Eng unter der Version.
+    @ViewBuilder private var autoStartLine: some View {
+        if autoStart && !rec.starting {
+            if autoArmed {
+                Text(WLoc.t("rec.autoStart", lang))
+                    .font(.caption2).foregroundStyle(.cyan).padding(.top, 2)
+            } else {
+                Text(autoStartCountdownText)
+                    .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
+            }
+        }
+    }
+
+    private var autoStartCountdownText: String {
+        let base: String = WLoc.t("rec.autoStart", lang)
+        return "\(base) in \(autoCountdown)s"
+    }
+
+    @ViewBuilder private var idleControls: some View {
+        foilPreselectButton
+        startButton
+        syncOrStatusLine
+        notLinkedBlock
+        pendingUploadBlock
+        switchAccountButton
+    }
+
+    // Foil-Vorwahl: nur der Foil-Name (klein, lange Namen skalieren herunter); antippen zum
+    // Ändern. Standard ist gesetzt -> kein Zwangs-Sheet beim Start.
+    @ViewBuilder private var foilPreselectButton: some View {
+        if manualAlarm || !foils.isEmpty {
+            Button { showFoilPicker = true } label: {
+                HStack(spacing: 3) {
+                    Text(foilButtonText).lineLimit(1).minimumScaleFactor(0.6)
+                    if alarm.enabled { Image(systemName: "bell.fill").foregroundStyle(.yellow) }
+                }
+                .font(.caption2)
+            }
+            .buttonStyle(.bordered)
+            .tint(.secondary)
+        }
+    }
+
+    private var foilButtonText: String {
+        let prefix: String = WLoc.t("foil.prefix", lang)
+        return prefix + foilLabel
+    }
+
+    private var startButton: some View {
+        Button(WLoc.t("rec.start", lang)) {
+            skipSync()
+            Task { await rec.start(foilId: selectedFoilId) }   // Foil = Metadaten, unabhängig vom Alarm
+        }
+        .tint(.green)
+        .sheet(isPresented: $showFoilPicker) { alarmSheet }
+    }
+
+    private var alarmSheet: some View {
+        AlarmPickerSheet(
+            foils: foils,
+            alarm: $alarm, alarmSource: $alarmSource, selectedFoilId: $selectedFoilId,
+            autoStart: $autoStart,
+            layoutsPrefRaw: $layoutsPrefRaw,
+            hasLayoutPages: hasLayoutPages,
+            onPick: { showFoilPicker = false },
+            onCancel: { showFoilPicker = false })
+    }
+
+    private var hasLayoutPages: Bool {
+        dataPages.contains { if case .layout = $0 { return true } else { return false } }
+    }
+
+    // Sync-Banner: läuft nur, wenn online. „Jetzt nicht" überspringt sofort.
+    @ViewBuilder private var syncOrStatusLine: some View {
+        if syncing {
+            HStack(spacing: 6) {
+                ProgressView().scaleEffect(0.6)
+                Text(WLoc.t("rec.sync", lang)).font(.caption2).foregroundStyle(.secondary)
+                Button(WLoc.t("rec.notNow", lang)) { skipSync() }
+                    .font(.caption2).buttonStyle(.borderless).tint(.secondary)
+            }
+        } else if !rec.status.isEmpty {
+            Text(rec.status).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        }
+    }
+
+    // Nicht verbunden: Hinweis + Verbinden (Aufnahme geht trotzdem, lokal).
+    @ViewBuilder private var notLinkedBlock: some View {
+        if Api.deviceToken == nil {
+            Text(WLoc.t("rec.notLinked", lang))
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+            Button(WLoc.t("rec.connect", lang)) { onWantPair() }
+                .font(.caption2).buttonStyle(.borderless)
+        }
+    }
+
+    // Lokal wartende Sessions: Fortschritt + Verbindungsstatus statt nur „X warten".
+    @ViewBuilder private var pendingUploadBlock: some View {
+        if rec.pendingCount > 0 {
+            pendingStateLine
+            if Api.deviceToken != nil && !rec.uploading {
+                Button(WLoc.t("rec.uploadNow", lang)) { Task { await rec.drain() } }
+                    .font(.caption2).buttonStyle(.borderless)
+            }
+        }
+    }
+
+    @ViewBuilder private var pendingStateLine: some View {
+        if rec.uploading {
+            HStack(spacing: 6) {
+                ProgressView().scaleEffect(0.6)
+                Text(uploadProgressText).font(.caption2).foregroundStyle(.secondary)
+            }
+        } else if rec.uploadError == "offline" {
+            Text(WLoc.t("rec.waitConn", lang))
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+            Text(pendingResumeText)
+                .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        } else if rec.uploadError == "auth" {
+            // Token ungültig/abgelaufen -> neu pairen (Aufnahmen bleiben lokal).
+            Text(WLoc.t("rec.authErr", lang))
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+            Button(WLoc.t("rec.repair", lang)) { onWantPair() }
+                .font(.caption2).buttonStyle(.borderless)
+        } else if rec.uploadError == "server" {
+            Text(WLoc.t("rec.serverErr", lang))
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+        } else {
+            Text(pendingCountText).font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    // Texte vorab als typisierte Strings: Verkettungen und Interpolationen im ViewBuilder sind
+    // teuer fuer den Type-Checker (jede Ueberladung von + muss geprueft werden).
+    private var uploadProgressText: String {
+        let base: String = WLoc.t("rec.uploading", lang)
+        guard rec.uploadTotal > 0 else { return base }
+        return base + " \(rec.uploadSent)/\(rec.uploadTotal)"
+    }
+
+    private var pendingCountText: String {
+        let unit: String = WLoc.t("rec.pendingUpload", lang)
+        return "\(rec.pendingCount) " + unit
+    }
+
+    private var pendingResumeText: String {
+        let resume: String = WLoc.t("rec.willResume", lang)
+        return pendingCountText + " — " + resume
+    }
+
+    // Verbunden: jederzeit neu verbinden / Konto wechseln (überschreibt das Pairing erst, wenn ein
+    // neues tatsächlich durchläuft). Bei "auth" zeigt der Block oben schon „Neu verbinden".
+    @ViewBuilder private var switchAccountButton: some View {
+        if Api.deviceToken != nil && rec.uploadError != "auth" {
+            Button(WLoc.t("rec.switch", lang)) { onWantPair() }
+                .font(.caption2).buttonStyle(.borderless).tint(.secondary)
         }
     }
 
