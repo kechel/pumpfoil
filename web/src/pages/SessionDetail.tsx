@@ -280,9 +280,9 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
               „unangemessen" gibt es dafür nur bei FREMDEN Sessions — sich selbst zu melden ist
               sinnlos (Jan). Reihenfolge bei fremden = Schwere: „nicht Pumpfoil" ist die harmloseste
               Meldung (nur eine Bitte um Zuordnung), deshalb links. */}
-          {/* Die MELDE-Knöpfe fremder Sessions stehen nicht mehr hier oben, sondern ganz unten
-              unter den Lauf-Statistiken (ReportButtons) — erst ansehen, dann urteilen (Jan). */}
-          {owned && !isPublic && <ClassPickers sessionId={sessionId} compact />}
+          {/* Weder die Klassifikations-Anpassungen der EIGENEN Session noch die Melde-Knoepfe
+              fremder stehen hier oben: beides sitzt ganz unten unter den Lauf-Statistiken
+              (ClassPickers bzw. ReportButtons) — selten gebraucht, und erst ansehen, dann urteilen. */}
         </div>
       </div>
       {owned && ytOpen && (
@@ -1607,6 +1607,13 @@ export default function SessionDetail() {
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} />
 
       {!owned && <ReportButtons sessionId={session.id} />}
+      {owned && (
+        <div className="mt-8 border-t border-slate-800 pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <ClassPickers sessionId={session.id} compact />
+          </div>
+        </div>
+      )}
 
       {/* Session-Chats vorerst ausgeblendet — wir nutzen nur Spot-Chats. */}
 

@@ -536,7 +536,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
 
         // Sportart-Klassifikation (docs/sport-classification.md): der Besitzer ordnet selbst zu,
         // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
-        if (s.owned) ClassificationPanel(s, scope, onReload)
+        if (s.owned) ClassificationNotice(s, scope, onReload)
 
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
         // (mehrere, wie PWA). Tippen -> Vollbild/Video.
@@ -763,12 +763,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen,
         // dann urteilen — oben stand es im Weg. Nur bei FREMDEN Sessions; bei eigenen sitzen an
         // dieser Stelle im Ablauf die Klassifikations-Felder (oben im Inhalt).
-        if (!s.owned) {
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(8.dp))
-            ReportRow(s.id)
-        }
+        // Ganz unten, weil selten gebraucht: bei EIGENEN Sessions die beiden Klassifikations-
+        // Anpassungen, bei FREMDEN die Melde-Knoepfe — erst ansehen, dann urteilen.
+        Spacer(Modifier.height(12.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(8.dp))
+        if (s.owned) ClassificationPickers(s, scope, onReload) else ReportRow(s.id)
 
         // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
         if (s.owned && s.mergedCount > 0) {
@@ -1498,7 +1498,7 @@ private fun ReportRow(sessionId: Int) {
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun ClassificationPanel(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
+private fun ClassificationNotice(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
     var appealDraft by remember(s.id) { mutableStateOf("") }
     var appealOpen by remember(s.id) { mutableStateOf(false) }
     var msg by remember(s.id) { mutableStateOf<String?>(null) }
@@ -1535,9 +1535,23 @@ private fun ClassificationPanel(s: SessionDetail, scope: kotlinx.coroutines.Coro
                 }
             }
         }
-        Text(I18n.t("cls.choose"), style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    }
+}
+
+// Die beiden Anpassungen (Sportart, Datenqualitaet) sitzen GANZ UNTEN: man braucht sie selten, und
+// oben nahmen sie mit Label zwei Zeilen weg (Jan, 29.07.). Der Hinweis „bitte einordnen" bleibt dagegen
+// oben — als Aufforderung waere er unten wirkungslos.
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun ClassificationPickers(s: SessionDetail, scope: kotlinx.coroutines.CoroutineScope, onReload: () -> Unit) {
+    var msg by remember(s.id) { mutableStateOf<String?>(null) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Ohne Label und umbrechend — wie die Setup-Zeile darueber (Jan: die Labels brauchten viel
+        // zu viel Platz). Was die beiden Auswahlen bedeuten, steht im gewaehlten Wert selbst.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
             ClassDropdown(
                 options = SPORTS, selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
                 onPick = { v ->

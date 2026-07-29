@@ -258,8 +258,10 @@ struct SessionDetailView: View {
     // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen, dann
     // urteilen — oben stand es im Weg. Nur bei FREMDEN Sessions; sich selbst zu melden ist sinnlos.
     @ViewBuilder private func reportSection(_ s: SessionDetail) -> some View {
-        if s.owned != true {
-            Divider()
+        Divider()
+        if s.owned == true {
+            classificationPickers(s)
+        } else {
             SessionReportRow(sessionId: s.id, lang: lang)
         }
     }
@@ -272,7 +274,7 @@ struct SessionDetailView: View {
             if s.owned == true { setupPickers(s) }
             // Eigene Session: Klassifikation bleibt oben (man ordnet die eigene Fahrt gleich ein).
             // Fremde Session: die MELDE-Knöpfe stehen ganz unten, s. reportSection.
-            if s.owned == true { classificationPanel(s) }
+            if s.owned == true { classificationNotice(s) }
             mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
@@ -857,21 +859,27 @@ struct SessionDetailView: View {
     // amber Kasten nur solange eine Bitte offen ist, darunter die zwei Auswahlfelder. Zurueck auf
     // "Pumpfoil" geht NUR ueber den Widerspruch -- der Server lehnt das direkte Zuruecksetzen mit 409 ab.
     // Bewusst in kleine Teil-Views zerlegt ([[ios-swift-typecheck-hang]]).
-    @ViewBuilder private func classificationPanel(_ s: SessionDetail) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if s.needs_classification == true { appealBox(s) }
-            Text(Loc.t("cls.choose", lang)).font(.caption).foregroundStyle(.secondary)
-            HStack(spacing: 10) {
-                classPicker(current: s.sport_class ?? "pumpfoil", options: SPORTS, prefix: "cls.sport.") { v in
-                    Task { await applyClass(sport: v) }
-                }
-                classPicker(current: s.data_quality ?? "ok", options: DATA_QUALITY, prefix: "cls.dq.") { v in
-                    Task { await applyClass(dq: v) }
-                }
-            }
-            if let e = classErr { Text(e).font(.callout).foregroundStyle(.red) }
+    // Nur der HINWEIS „bitte einordnen" (samt Widerspruch) bleibt oben — als Aufforderung waere er
+    // unten wirkungslos.
+    @ViewBuilder private func classificationNotice(_ s: SessionDetail) -> some View {
+        if s.needs_classification == true {
+            appealBox(s).padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
+    }
+
+    // Die beiden ANPASSUNGEN (Sportart, Datenqualitaet) sitzen ganz unten: selten gebraucht, und das
+    // Label darueber nahm nur Platz (Jan, 29.07.). Ohne Label, umbrechend wie die Setup-Zeile.
+    @ViewBuilder private func classificationPickers(_ s: SessionDetail) -> some View {
+        let cols = [GridItem(.adaptive(minimum: 130), spacing: 12, alignment: .leading)]
+        LazyVGrid(columns: cols, alignment: .leading, spacing: 6) {
+            classPicker(current: s.sport_class ?? "pumpfoil", options: SPORTS, prefix: "cls.sport.") { v in
+                Task { await applyClass(sport: v) }
+            }
+            classPicker(current: s.data_quality ?? "ok", options: DATA_QUALITY, prefix: "cls.dq.") { v in
+                Task { await applyClass(dq: v) }
+            }
+        }
+        if let e = classErr { Text(e).font(.callout).foregroundStyle(.red) }
     }
 
     @ViewBuilder private func appealBox(_ s: SessionDetail) -> some View {
