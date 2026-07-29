@@ -7,6 +7,7 @@ import Foundation
 
 // Portugiesisch-Overlay (532 Keys). Fallback: Englisch.
 let ptOverlay: [String: String] = [
+    "setup.inherit": "Usar o padrão",
     "nav.home": "Início",
     "nav.community": "Comunidade",
     "nav.sessions": "Sessões",
@@ -554,6 +555,7 @@ let ptOverlay: [String: String] = [
 
 // Japanisch-Overlay (532 Keys). Fallback: Englisch.
 let jaOverlay: [String: String] = [
+    "setup.inherit": "デフォルトを使用",
     "nav.home": "ホーム",
     "nav.community": "コミュニティ",
     "nav.sessions": "セッション",
@@ -1101,6 +1103,7 @@ let jaOverlay: [String: String] = [
 
 // Chinesisch (vereinfacht)-Overlay (532 Keys). Fallback: Englisch.
 let zhOverlay: [String: String] = [
+    "setup.inherit": "使用默认值",
     "nav.home": "主页",
     "nav.community": "社区",
     "nav.sessions": "记录",
@@ -1648,6 +1651,7 @@ let zhOverlay: [String: String] = [
 
 // Russisch-Overlay (532 Keys). Fallback: Englisch.
 let ruOverlay: [String: String] = [
+    "setup.inherit": "По умолчанию",
     "nav.home": "Главная",
     "nav.community": "Сообщество",
     "nav.sessions": "Сессии",
@@ -2195,6 +2199,7 @@ let ruOverlay: [String: String] = [
 
 // Indonesisch-Overlay (532 Keys). Fallback: Englisch.
 let idOverlay: [String: String] = [
+    "setup.inherit": "Gunakan default",
     "nav.home": "Beranda",
     "nav.community": "Komunitas",
     "nav.sessions": "Sesi",

@@ -735,18 +735,46 @@ struct SessionDetailView: View {
     // Restliches Setup je Session: Stab, Mastlaenge, Shim, Board. "Standard verwenden" = Override
     // loeschen (der Server braucht dafuer ein explizit gesendetes null). Jedes Feld erscheint nur,
     // wenn es etwas zu waehlen gibt. Bewusst vier kleine Teil-Views ([[ios-swift-typecheck-hang]]).
+    // Setup wie in der PWA (web/src/components/FoilSelect.tsx): KEINE Labels, alles hintereinander
+    // in einer umbrechenden Zeile — genauso wie der Foil-Picker darueber. Und: ein Eintrag erscheint
+    // nur, wenn dafuer ueberhaupt ein Wert gesetzt ist. Vorher stand dort der Platzhalter
+    // „Standard verwenden" bzw. — weil der Key in Loc.swift fehlte — der rohe Text „setup.inherit".
+    //
+    // Folge, bewusst: fuer eine Kategorie ohne jeden Wert (auch ohne Profil-Standard) gibt es hier
+    // keinen Knopf mehr. Den Standard setzt man im Profil; per Session aendert man, was schon da ist.
     @ViewBuilder private func setupPickers(_ s: SessionDetail) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if !allStabs.isEmpty { stabPicker(s) }
-            if !myMasts.isEmpty { mastPicker(s) }
-            if !myShims.isEmpty { shimPicker(s) }
-            if !myBoards.isEmpty { boardPicker(s) }
+        let cols = [GridItem(.adaptive(minimum: 110), spacing: 12, alignment: .leading)]
+        LazyVGrid(columns: cols, alignment: .leading, spacing: 6) {
+            if !allStabs.isEmpty, let v = stabValue(s) { stabPicker(s, value: v) }
+            if !myMasts.isEmpty, let v = mastValue(s) { mastPicker(s, value: v) }
+            if !myShims.isEmpty, let v = shimValue(s) { shimPicker(s, value: v) }
+            if !myBoards.isEmpty, let v = boardValue(s) { boardPicker(s, value: v) }
         }
     }
 
-    @ViewBuilder private func stabPicker(_ s: SessionDetail) -> some View {
-        let explicit = s.setup?.stab?.is_default == false
-        let label = explicit ? stabLabel(s.setup?.stab) : Loc.t("setup.inherit", lang)
+    // Anzeigewert je Kategorie — nil heisst „nichts gesetzt" und damit „nicht anzeigen". Dieselbe
+    // Bedingung wie in der PWA (`setup?.stab ? … : Titel`), nur ohne den Titel als Rueckfall.
+    private func stabValue(_ s: SessionDetail) -> String? {
+        guard let st = s.setup?.stab else { return nil }
+        return stabLabel(st)
+    }
+
+    private func mastValue(_ s: SessionDetail) -> String? {
+        guard let cm = s.setup?.mast_len_cm else { return nil }
+        return "\(cm) cm"
+    }
+
+    private func shimValue(_ s: SessionDetail) -> String? {
+        guard let d = s.setup?.shim_deg else { return nil }
+        return fmtShim(d)
+    }
+
+    private func boardValue(_ s: SessionDetail) -> String? {
+        guard let b = s.setup?.board else { return nil }
+        return b.name
+    }
+
+    @ViewBuilder private func stabPicker(_ s: SessionDetail, value: String) -> some View {
         Menu {
             Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(stab: nil, setStab: true) } }
             // Eigene zuerst, dann der Rest des Katalogs -- wie die Gruppen in FoilSelect.tsx.
@@ -757,51 +785,43 @@ struct SessionDetailView: View {
             ForEach(allStabs.filter { !myStabIds.contains($0.id) }) { st in
                 Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
             }
-        } label: { setupRow(Loc.t("setup.stabTitle", lang), label) }
+        } label: { setupChip(value) }
     }
 
-    @ViewBuilder private func mastPicker(_ s: SessionDetail) -> some View {
-        let explicit = s.setup?.mast_is_default == false
-        let label = explicit || s.setup?.mast_len_cm != nil
-            ? "\(s.setup?.mast_len_cm ?? 0) cm" : Loc.t("setup.inherit", lang)
+    @ViewBuilder private func mastPicker(_ s: SessionDetail, value: String) -> some View {
         Menu {
             Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(mast: nil, setMast: true) } }
             ForEach(myMasts, id: \.self) { m in
                 Button("\(m) cm") { Task { await applySetup(mast: m, setMast: true) } }
             }
-        } label: { setupRow(Loc.t("setup.mastTitle", lang), label) }
+        } label: { setupChip(value) }
     }
 
-    @ViewBuilder private func shimPicker(_ s: SessionDetail) -> some View {
-        let explicit = s.setup?.shim_is_default == false
-        let label = explicit || s.setup?.shim_deg != nil
-            ? fmtShim(s.setup?.shim_deg) : Loc.t("setup.inherit", lang)
+    @ViewBuilder private func shimPicker(_ s: SessionDetail, value: String) -> some View {
         Menu {
             Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(shim: nil, setShim: true) } }
             ForEach(myShims, id: \.self) { v in
                 Button(fmtShim(v)) { Task { await applySetup(shim: v, setShim: true) } }
             }
-        } label: { setupRow(Loc.t("setup.shimTitle", lang), label) }
+        } label: { setupChip(value) }
     }
 
-    @ViewBuilder private func boardPicker(_ s: SessionDetail) -> some View {
-        let explicit = s.setup?.board?.is_default == false
-        let label = explicit ? (s.setup?.board?.name ?? "") : Loc.t("setup.inherit", lang)
+    @ViewBuilder private func boardPicker(_ s: SessionDetail, value: String) -> some View {
         Menu {
             Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(board: nil, setBoard: true) } }
             ForEach(myBoards) { b in
                 Button(b.name) { Task { await applySetup(board: b.id, setBoard: true) } }
             }
-        } label: { setupRow(Loc.t("setup.boardTitle", lang), label) }
+        } label: { setupChip(value) }
     }
 
-    @ViewBuilder private func setupRow(_ title: String, _ value: String) -> some View {
-        HStack {
-            Text(title).font(.callout).foregroundStyle(.secondary)
-            Spacer()
-            Text(value).font(.callout)
-            Image(systemName: "chevron.down").font(.caption2).foregroundStyle(.secondary)
+    // Sieht aus wie der Foil-Picker: nur der Wert plus Doppel-Chevron, in Akzentfarbe.
+    private func setupChip(_ value: String) -> some View {
+        HStack(spacing: 3) {
+            Text(value).font(.callout).lineLimit(1)
+            Image(systemName: "chevron.up.chevron.down").font(.caption2)
         }
+        .foregroundStyle(Color.accentColor)
     }
 
     private func stabLabel(_ st: StabBrief?) -> String {

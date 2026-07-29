@@ -7,6 +7,7 @@ enum Loc {
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
     static let csOverlay: [String: String] = [
+        "setup.inherit": "Použít výchozí",
         "nav.home": "Domů",
         "nav.community": "Komunita",
         "nav.sessions": "Relace",
@@ -555,6 +556,7 @@ enum Loc {
 
     // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
     static let nlOverlay: [String: String] = [
+        "setup.inherit": "Standaard gebruiken",
         "nav.home": "Home",
         "nav.community": "Community",
         "nav.sessions": "Sessies",
@@ -1119,6 +1121,7 @@ enum Loc {
 
     // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts). App-eigene Keys ohne fi -> Englisch.
     static let fiOverlay: [String: String] = [
+        "setup.inherit": "Käytä oletusta",
         "nav.community": "Yhteisö",
         "common.saved": "Tallennettu",
         "common.noData": "Ei vielä tietoja",
@@ -1654,6 +1657,7 @@ enum Loc {
         "setup.hint": r("Stab, Mastlänge, Shim und Boards — genau wie bei den Foils: markieren, was du besitzt, einen Standard setzen (Stern), und je Session umstellen. Rein informativ, es wird nichts damit gerechnet.", "Stab, Mastlänge, Shim und Boards — genau wie bei den Foils: markieren, was du besitzt, einen Standard setzen (Stern), und je Session umstellen. Rein informativ, es wird nichts damit gerechnet.", "Stab, Mastlänge, Shim und Boards — genau wie bei den Foils: markieren, was du besitzt, einen Standard setzen (Stern), und je Session umstellen. Rein informativ, es wird nichts damit gerechnet.", "Stab, mast length, shim and boards — just like your foils: mark what you own, set one as default (star), and switch per session. Informational only, nothing is calculated from it.", "Stab, mast length, shim and boards — just like your foils: mark what you own, set one as default (star), and switch per session. Informational only, nothing is calculated from it.", "Stab, mast length, shim and boards — just like your foils: mark what you own, set one as default (star), and switch per session. Informational only, nothing is calculated from it.", "Stab, mast length, shim and boards — just like your foils: mark what you own, set one as default (star), and switch per session. Informational only, nothing is calculated from it."),
         "setup.mastDesc": r("Deine Mastlängen in cm. Der Stern markiert den Standard für neue Sessions.", "Deine Mastlängen in cm. Der Stern markiert den Standard für neue Sessions.", "Deine Mastlängen in cm. Der Stern markiert den Standard für neue Sessions.", "Your mast lengths in cm. The star marks the default for new sessions.", "Your mast lengths in cm. The star marks the default for new sessions.", "Your mast lengths in cm. The star marks the default for new sessions.", "Your mast lengths in cm. The star marks the default for new sessions."),
         "setup.mastPlaceholder": r("z. B. 85", "z. B. 85", "z. B. 85", "e.g. 85", "e.g. 85", "e.g. 85", "e.g. 85"),
+        "setup.inherit": r("Standard verwenden", "Standard verwende", "Standard verwenden", "Use default", "Utiliser la valeur par défaut", "Usa il valore predefinito", "Usar el valor predeterminado"),
         "setup.mastTitle": r("Mastlänge", "Mastlänge", "Mastlänge", "Mast length", "Mast length", "Mast length", "Mast length"),
         "setup.myStabs": r("Meine Stabs", "Meine Stabs", "Meine Stabs", "My stabs", "My stabs", "My stabs", "My stabs"),
         "setup.noSpecs": r("keine Maße veröffentlicht", "keine Maße veröffentlicht", "keine Maße veröffentlicht", "no dimensions published", "no dimensions published", "no dimensions published", "no dimensions published"),
