@@ -168,7 +168,12 @@ struct RecordView: View {
                     stopPage(WLoc.t("rec.toSummary", lang)).tag(dataPages.count + 3)
                     discardPage().tag(dataPages.count + 4)
                 }
-                .tabViewStyle(.page)
+                // Der System-Indikator wird auf eigenen Layout-Seiten ausgeblendet: dort bringt das
+                // Layout seine eigenen Punkte mit (Element typ 6). Garmin macht es genauso
+                // (_drawLayoutPage kehrt vor _drawPageDots zurueck, RecordView.mc:98-115). Sonst
+                // liegen zwei Punktreihen mit verschiedener Anzahl uebereinander — am Wear-Emulator
+                // reproduziert und in Jans Apple-Screenshot ebenfalls zu sehen.
+                .tabViewStyle(.page(indexDisplayMode: currentPageIsLayout ? .never : .automatic))
                 .onChange(of: rec.isRecording) { r in if r { page = 2 } }
                 .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
                 .onChange(of: rec.isFoiling) { foiling in
@@ -393,6 +398,15 @@ struct RecordView: View {
         }
     }
     private var layoutsEffective: Bool { layoutsPref ?? layoutsServerDefault }
+
+    /// Zeigt die gerade sichtbare Seite ein eigenes Layout? (Datenseiten beginnen bei Tag 2.)
+    private var currentPageIsLayout: Bool {
+        guard layoutsEffective else { return false }
+        let idx = page - 2
+        guard idx >= 0, idx < dataPages.count else { return false }
+        if case .layout = dataPages[idx] { return true }
+        return false
+    }
 
     @ViewBuilder private func dataPageView(_ ref: WatchPageRef, idx: Int) -> some View {
         switch ref {
@@ -704,17 +718,22 @@ private func distLabeled(_ m: Double) -> String {
     }
 }
 
+// Geschwindigkeitsfarbe in VIER STUFEN wie Garmin (_speedColor: 12/16/20 km/h) und die
+// PWA-Vorschau (watchLayout.ts watchSpeedColor) — vorher stufenloser HSV-Verlauf 8…25 km/h, der bei
+// jedem Wert anders aussah als Vorschau und Garmin-Uhr. Hex-Werte = die der Vorschau.
 private func speedColor(_ kmh: Double) -> Color {
-    let t = min(max((kmh - 8) / (25 - 8), 0), 1)
-    return Color(hue: (1 - t) * 240 / 360, saturation: 0.85, brightness: 0.95)
+    if kmh < 12 { return Color(red: 0.23, green: 0.51, blue: 0.96) }
+    if kmh < 16 { return Color(red: 0.13, green: 0.77, blue: 0.37) }
+    if kmh < 20 { return Color(red: 0.92, green: 0.70, blue: 0.03) }
+    return Color(red: 0.94, green: 0.27, blue: 0.27)
 }
 // Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
 private func hrColor(_ bpm: Int) -> Color {
     switch bpm {
     case ..<1: return .primary
-    case ..<120: return Color(red: 0.29, green: 0.87, blue: 0.50)
-    case ..<150: return Color(red: 0.98, green: 0.80, blue: 0.08)
-    case ..<170: return Color(red: 0.98, green: 0.57, blue: 0.24)
-    default: return Color(red: 0.97, green: 0.44, blue: 0.44)
+    case ..<120: return Color(red: 0.13, green: 0.77, blue: 0.37)
+    case ..<150: return Color(red: 0.92, green: 0.70, blue: 0.03)
+    case ..<170: return Color(red: 0.98, green: 0.45, blue: 0.09)
+    default: return Color(red: 0.94, green: 0.27, blue: 0.27)
     }
 }

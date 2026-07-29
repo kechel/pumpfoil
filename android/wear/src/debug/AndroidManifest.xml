@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- NUR Debug-Builds: erlaubt Klartext-HTTP (Emulator gegen lokalen Server 10.0.2.2:8090).
+     Gegenstueck zu app/src/debug/AndroidManifest.xml. Gradle merged das ausschliesslich in den
+     Debug-Build; das Release-Manifest (src/main) bleibt HTTPS-only. Die Server-Adresse selbst
+     kommt aus den SharedPrefs (Api.baseUrl), muss also nicht im Code stehen. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
+</manifest>

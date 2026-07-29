@@ -320,18 +320,30 @@ class MainActivity : ComponentActivity() {
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+                    // Eigene Layouts nur, wenn der Schalter an ist (null = Server-Vorgabe).
+                    val useLayouts = layoutsPref ?: layoutsServerDefault
+                    val pageLayout = if (!useLayouts) null else when {
+                        page in firstData..lastData ->
+                            (onFoilPages.getOrNull(page - firstData) as? WatchPageRef.Layout)?.def
+                        page == summaryPage && showRunEnd ->
+                            (offFoilPages.firstOrNull() as? WatchPageRef.Layout)?.def
+                        else -> null
+                    }
                     Column(
-                        Modifier.fillMaxSize().padding(8.dp),
+                        // Layout-Seiten zeichnen RANDLOS über das ganze Display — genau wie Garmin
+                        // (dc.getWidth/getHeight). Die 8.dp gelten nur für die klassischen Feldseiten,
+                        // wo Text sonst am Rand klebt. Mit Rand war die Zeichenfläche 420 statt 454 px
+                        // breit (am Emulator nachgemessen): alles 7 % zu klein UND nach innen versetzt,
+                        // obwohl die Promille-Koordinaten sich auf das ganze Display beziehen.
+                        Modifier.fillMaxSize().then(if (pageLayout != null) Modifier else Modifier.padding(8.dp)),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         when {
                             page in firstData..lastData -> {
-                                // Eigene Layouts nur, wenn der Schalter an ist (null = Server-Vorgabe).
-                                val useLayouts = layoutsPref ?: layoutsServerDefault
                                 val ref = onFoilPages.getOrNull(page - firstData)
-                                val def = (ref as? WatchPageRef.Layout)?.def
-                                if (useLayouts && def != null) {
+                                val def = pageLayout
+                                if (def != null) {
                                     LayoutPageView(
                                         page = def, pageIndex = page - firstData, pageCount = dataCount,
                                         recording = true, pausedText = I18n.t("rec.paused"),
@@ -348,10 +360,9 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
-                                val useLayouts = layoutsPref ?: layoutsServerDefault
                                 val ref = if (showRunEnd) offFoilPages.firstOrNull() else null
-                                val def = (ref as? WatchPageRef.Layout)?.def
-                                if (useLayouts && def != null) {
+                                val def = pageLayout
+                                if (def != null) {
                                     LayoutPageView(
                                         page = def, pageIndex = 0, pageCount = 1,
                                         recording = true, pausedText = I18n.t("rec.paused"),
@@ -386,12 +397,26 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                // Seiten-Punkte unten.
-                Row(Modifier.padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    repeat(pageCount) { i ->
-                        Box(Modifier.size(5.dp).background(
-                            if (i == pager.currentPage) Color(0xFF22D3EE) else Color(0xFF475569),
-                            CircleShape))
+                // Zeigt die aktuelle Seite ein eigenes Layout? (fuer die Punkte-Unterdrueckung unten)
+                val currentIsLayoutPage = (layoutsPref ?: layoutsServerDefault) && when {
+                    pager.currentPage in firstData until (firstData + dataCount) ->
+                        onFoilPages.getOrNull(pager.currentPage - firstData) is WatchPageRef.Layout
+                    pager.currentPage == summaryPage && showRunEnd ->
+                        offFoilPages.firstOrNull() is WatchPageRef.Layout
+                    else -> false
+                }
+                // Seiten-Punkte unten — NICHT auf einer eigenen Layout-Seite. Dort bringt das Layout
+                // seinen eigenen Punkte-Indikator mit (Element typ 6), und Garmin macht es genauso:
+                // _drawLayoutPage kehrt vor _drawPageDots zurueck (RecordView.mc:98-115). Ohne das
+                // standen zwei Punktreihen mit verschiedener Anzahl uebereinander (am Emulator
+                // gesehen: 3 Punkte aus dem Layout, 8 aus dem Ring).
+                if (!currentIsLayoutPage) {
+                    Row(Modifier.padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        repeat(pageCount) { i ->
+                            Box(Modifier.size(5.dp).background(
+                                if (i == pager.currentPage) Color(0xFF22D3EE) else Color(0xFF475569),
+                                CircleShape))
+                        }
                     }
                 }
                 // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
@@ -814,15 +839,20 @@ private fun fieldColor(id: Int, s: Recorder.State): Color = when (id) {
 // Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
 private fun hrColor(bpm: Int): Color = when {
     bpm <= 0 -> Color.Unspecified
-    bpm < 120 -> Color(0xFF4ADE80)
-    bpm < 150 -> Color(0xFFFACC15)
-    bpm < 170 -> Color(0xFFFB923C)
-    else -> Color(0xFFF87171)
+    bpm < 120 -> Color(0xFF22C55E)
+    bpm < 150 -> Color(0xFFEAB308)
+    bpm < 170 -> Color(0xFFF97316)
+    else -> Color(0xFFEF4444)
 }
-private fun speedColor(kmh: Double): Color {
-    val tcl = ((kmh - 8) / (25 - 8)).coerceIn(0.0, 1.0)   // blau(langsam) -> rot(schnell)
-    val hue = ((1 - tcl) * 240).toFloat()
-    return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f)))
+// Geschwindigkeitsfarbe in VIER STUFEN wie Garmin (_speedColor: 12/16/20 km/h) und die
+// PWA-Vorschau (watchLayout.ts watchSpeedColor) — vorher war es hier ein stufenloser HSV-Verlauf
+// von 8 bis 25 km/h. Der sah bei jedem Wert anders aus als die Vorschau und als die Garmin-Uhr;
+// die Stufen sind der Vertrag, an dem "Farbe nach Wert" gemessen wird. Hex-Werte = die der Vorschau.
+private fun speedColor(kmh: Double): Color = when {
+    kmh < 12 -> Color(0xFF3B82F6)
+    kmh < 16 -> Color(0xFF22C55E)
+    kmh < 20 -> Color(0xFFEAB308)
+    else -> Color(0xFFEF4444)
 }
 
 data class WatchAlarm(
