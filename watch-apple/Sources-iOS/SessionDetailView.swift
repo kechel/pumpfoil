@@ -243,7 +243,7 @@ struct SessionDetailView: View {
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
             if s.owned == true { setupPickers(s) }
-            if s.owned { classificationPanel(s) }
+            if s.owned == true { classificationPanel(s) }
             mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
