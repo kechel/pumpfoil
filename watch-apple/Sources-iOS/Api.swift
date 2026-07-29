@@ -380,13 +380,25 @@ enum Api {
         try await sendVoid("/api/sessions/\(id)/appeal", method: "POST", body: ["text": text])
     }
 
-    static func vote(_ id: Int, kind: String) async throws {
-        guard let url = URL(string: baseURL + "/api/community/sessions/\(id)/vote?kind=\(kind)") else { throw ApiError.badURL }
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
-        let (_, resp) = try await URLSession.shared.data(for: req)
-        guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
+    // Melde-Zähler + eigene Stimmen einer Session. GET .../social und POST .../vote liefern
+    // dieselben Felder (Server: _vote_counts), deshalb ein gemeinsamer Typ; die Extras von
+    // /social (photos/videos) ignoriert der Decoder. Felder optional = defensiv.
+    struct VoteState: Decodable {
+        let fake_count: Int?
+        let my_fake: Bool?
+        let inappropriate_count: Int?
+        let my_inappropriate: Bool?
+    }
+
+    static func sessionVotes(_ id: Int) async throws -> VoteState {
+        try await request("/api/community/sessions/\(id)/social", method: "GET", body: nil, auth: true)
+    }
+
+    // Umschalten (nochmal senden = Stimme zurückziehen). Antwort = neuer Zähler-Stand, damit die
+    // Knöpfe ohne zweiten Request aktuell sind.
+    @discardableResult
+    static func vote(_ id: Int, kind: String) async throws -> VoteState {
+        try await request("/api/community/sessions/\(id)/vote?kind=\(kind)", method: "POST", body: nil, auth: true)
     }
 
     static func labels(_ id: Int) async throws -> [SessionLabel] {

@@ -21,9 +21,8 @@ struct SessionDetailView: View {
     @State private var myMasts: [Int] = []
     @State private var myShims: [Double] = []
     @State private var myBoards: [BoardBrief] = []
-    // Sportart-Klassifikation (docs/sport-classification.md)
-    @State private var askNotPumpfoil = false
-    @State private var flagDone = false
+    // Sportart-Klassifikation (docs/sport-classification.md). Die Melde-Zustände (nicht Pumpfoil /
+    // unecht / unangemessen) liegen in SessionReportRow — die zeigt nur fremde Sessions.
     @State private var appealOpen = false
     @State private var appealDraft = ""
     @State private var classErr: String?
@@ -101,41 +100,16 @@ struct SessionDetailView: View {
                     }
                 }
                 // Trimmen/Löschen sind selten gebraucht -> nicht mehr oben, sondern unten im Body.
-            } else if session != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        // Zuerst der harmloseste Weg: Bitte um Zuordnung statt Vorwurf. In der PWA
-                        // steht er links neben "wirkt unecht"/"unangemessen" -- im Menue also oben.
-                        Button { askNotPumpfoil = true } label: {
-                            Label(Loc.t("cls.notPumpfoil", lang), systemImage: "questionmark.circle")
-                        }
-                        Divider()
-                        Button { Task { try? await Api.vote(id, kind: "fake") } } label: {
-                            Label(Loc.t("sd.reportFake", lang), systemImage: "flag")
-                        }
-                        Button(role: .destructive) { Task { try? await Api.vote(id, kind: "inappropriate") } } label: {
-                            Label(Loc.t("sd.reportInappropriate", lang), systemImage: "exclamationmark.octagon")
-                        }
-                    } label: { Image(systemName: "flag") }
-                }
             }
+            // Die Melde-Aktionen standen früher hier in einem Menü hinter einem Flaggen-Symbol —
+            // praktisch unsichtbar. Sie stehen jetzt sichtbar im Inhalt (SessionReportRow), an
+            // derselben Stelle wie die Klassifikations-Felder eigener Sessions (wie in der PWA).
         }
         .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
             Button(Loc.t("common.delete", lang), role: .destructive) {
                 Task { try? await Api.deleteSession(id); dismiss() }
             }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
-        }
-        .confirmationDialog(Loc.t("cls.notPumpfoil", lang), isPresented: $askNotPumpfoil, titleVisibility: .visible) {
-            Button(Loc.t("chat.send", lang)) {
-                Task {
-                    do { try await Api.flagNotPumpfoil(id); flagDone = true } catch {}
-                }
-            }
-            Button(Loc.t("common.cancel", lang), role: .cancel) {}
-        } message: { Text(Loc.t("cls.confirmFlag", lang)) }
-        .alert(Loc.t("cls.thanks", lang), isPresented: $flagDone) {
-            Button(Loc.t("common.close", lang)) {}
         }
         .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) {
             TextField(Loc.t("sd.caption", lang), text: $draftCaption)
@@ -243,7 +217,13 @@ struct SessionDetailView: View {
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
             if s.owned == true { setupPickers(s) }
-            if s.owned == true { classificationPanel(s) }
+            // Eigene Session: Klassifikation. Fremde: die Melde-Knöpfe an genau derselben Stelle
+            // (sich selbst zu melden ist sinnlos) — wie in der PWA.
+            if s.owned == true {
+                classificationPanel(s)
+            } else {
+                SessionReportRow(sessionId: s.id, lang: lang)
+            }
             mediaSection(s)
             trackSection(s)
             if let a = s.analysis, let foil = s.foil, weightKg > 0 {
@@ -874,6 +854,119 @@ struct SessionDetailView: View {
             }
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+// Melde-Knöpfe für FREMDE Sessions — an derselben Stelle, an der bei eigenen Sessions die
+// Klassifikations-Felder stehen (wie web/src/pages/SessionDetail.tsx). Reihenfolge nach Schwere,
+// mildestes zuerst: „nicht Pumpfoil" ist nur eine Bitte um Zuordnung, „wirkt unecht" zweifelt die
+// Daten an, „unangemessen" ist die Beschwerde. Waren vorher in einem Toolbar-Menü versteckt.
+private struct SessionReportRow: View {
+    let sessionId: Int
+    let lang: String
+    @Environment(\.colorScheme) private var scheme
+    @State private var votes: Api.VoteState?
+    @State private var flagDone = false
+    @State private var askNotPumpfoil = false
+    @State private var askInappropriate = false
+
+    // Beide Farben in Hell UND Dunkel lesbar (gleiche Werte wie Android: 92400E/FDE68A, B91C1C/FCA5A5).
+    private var amber: Color {
+        scheme == .dark ? Color(red: 0.992, green: 0.902, blue: 0.541) : Color(red: 0.573, green: 0.251, blue: 0.055)
+    }
+    private var red: Color {
+        scheme == .dark ? Color(red: 0.988, green: 0.647, blue: 0.647) : Color(red: 0.725, green: 0.110, blue: 0.110)
+    }
+    private var fakeOn: Bool { votes?.my_fake == true }
+    private var inappOn: Bool { votes?.my_inappropriate == true }
+    private var fakeCount: Int { votes?.fake_count ?? 0 }
+    private var inappCount: Int { votes?.inappropriate_count ?? 0 }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            firstRow
+            HStack(spacing: 8) {
+                fakeButton
+                inappButton
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.vertical, 4)
+        .task { votes = try? await Api.sessionVotes(sessionId) }
+        .confirmationDialog(Loc.t("cls.notPumpfoil", lang), isPresented: $askNotPumpfoil, titleVisibility: .visible) {
+            Button(Loc.t("sd.report", lang)) { sendNotPumpfoil() }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        } message: { Text(Loc.t("cls.confirmFlag", lang)) }
+        .confirmationDialog(Loc.t("vote.reportConfirm", lang), isPresented: $askInappropriate, titleVisibility: .visible) {
+            Button(Loc.t("sd.report", lang), role: .destructive) { toggleVote("inappropriate") }
+            Button(Loc.t("common.cancel", lang), role: .cancel) {}
+        }
+    }
+
+    // Erste Zeile: „nicht Pumpfoil" bzw. nach dem Melden nur noch der Dank.
+    @ViewBuilder private var firstRow: some View {
+        if flagDone {
+            Text(Loc.t("cls.thanks", lang)).font(.subheadline).foregroundStyle(.secondary)
+        } else {
+            Button { askNotPumpfoil = true } label: {
+                pill(Loc.t("cls.notPumpfoil", lang), icon: "questionmark.circle",
+                     iconColor: Color.accentColor, active: false, tint: Color.secondary, count: 0)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder private var fakeButton: some View {
+        Button { toggleVote("fake") } label: {
+            pill(Loc.t("sd.fake", lang), icon: "flag", iconColor: amber,
+                 active: fakeOn, tint: amber, count: fakeCount)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder private var inappButton: some View {
+        Button {
+            // Vor dem Melden fragen — beim Zurückziehen der eigenen Meldung nicht.
+            if inappOn { toggleVote("inappropriate") } else { askInappropriate = true }
+        } label: {
+            pill(inappOn ? Loc.t("sd.reported", lang) : Loc.t("sd.inappropriate", lang),
+                 icon: "exclamationmark.octagon", iconColor: red,
+                 active: inappOn, tint: red, count: inappCount)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // Ein Melde-Knopf. Farben/Größen als explizit typisierte Konstanten (Type-Checker).
+    @ViewBuilder private func pill(_ text: String, icon: String, iconColor: Color,
+                                   active: Bool, tint: Color, count: Int) -> some View {
+        let fg: Color = active ? tint : Color.secondary
+        let bg: Color = active ? tint.opacity(0.18) : Color.secondary.opacity(0.15)
+        let r: CGFloat = 8
+        HStack(spacing: 5) {
+            Image(systemName: icon).font(.caption).foregroundStyle(iconColor)
+            Text(text)
+            if count > 0 { Text("\(count)").monospacedDigit() }
+        }
+        .font(.subheadline)
+        .foregroundStyle(fg)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(bg)
+        .clipShape(RoundedRectangle(cornerRadius: r))
+    }
+
+    // Bewusst OHNE Rückmeldung, ob die Meldung „gezählt" hat (wie PWA): sonst wird das Nachzählen
+    // zum Spiel. Der Knopf weicht einfach dem Dank.
+    private func sendNotPumpfoil() {
+        flagDone = true
+        Task { try? await Api.flagNotPumpfoil(sessionId) }
+    }
+
+    // Fehler lassen den bisherigen Stand stehen (nicht auf nil zurückfallen).
+    private func toggleVote(_ kind: String) {
+        Task {
+            if let v = try? await Api.vote(sessionId, kind: kind) { votes = v }
+        }
     }
 }
 
