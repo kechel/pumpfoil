@@ -22,7 +22,11 @@ const GPS_HZ = 1, ACCEL_HZ = 0, ACCEL_SCALE = 0;
 const GPS_CHUNK = 10;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
-const APP_VERSION = "1.0.3";
+// MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
+// aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
+// können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
+// app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
+const APP_VERSION = "1.0.4";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
@@ -550,7 +554,9 @@ Page(
     uploadSession(sess, onProg) {
       const tok = getTok();
       if (!tok) return Promise.reject(new Error("not paired"));
-      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE };
+      // app_version: dieselbe Konstante, die der Update-Hinweis vergleicht -> der Server haengt
+      // die Version an die Session (bisher kannte er sie nur vom Geraet, aus dem CONFIG-Abruf).
+      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
       const chunks = [];
       for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });

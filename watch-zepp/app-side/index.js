@@ -82,7 +82,13 @@ async function handle(req) {
   // --- Ingest-Upload (Token pro Request) ---
   if (req.method === "START") {
     const m = req.meta;
-    const r = await authPost(req.token, "/api/ingest/session", { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale });
+    // Diese Whitelist ist die einzige Stelle, die den Body baut -> neue Felder muessen hier
+    // durchgelassen werden, sonst kommen sie beim Server nie an (app_version = App-Version
+    // der Uhr-App, foil_id = gewaehltes Foil).
+    const body = { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale };
+    if (m.app_version) body.app_version = m.app_version;
+    if (m.foil_id != null) body.foil_id = m.foil_id;
+    const r = await authPost(req.token, "/api/ingest/session", body);
     return { ok: true, http: r.status, url: BASE + "/api/ingest/session", body: (typeof r.body === "string" ? r.body.slice(0, 50) : JSON.stringify(r.body).slice(0, 50)) };
   }
   if (req.method === "CHUNK") {
