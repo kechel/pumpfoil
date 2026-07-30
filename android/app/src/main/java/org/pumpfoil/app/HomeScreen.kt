@@ -207,8 +207,24 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 UpdateBanner(
                     version = uv,
                     onUpdate = {
-                        val url = updateUrl.ifBlank { "https://play.google.com/store/apps/details?id=${ctx.packageName}" }
-                        try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (_: Exception) {}
+                        // ZUERST market:// -> landet direkt in der Play-App auf der Detailseite (dort
+                        // steht "Aktualisieren", wenn Play die neue Version fuer dieses Geraet schon
+                        // ausliefert). Die https-Adresse kann im BROWSER aufgehen, und da laesst sich
+                        // gar nichts aktualisieren. Gleiche Reihenfolge wie in RatingDialog.kt.
+                        // ACHTUNG, bekannte Grenze: dieser Knopf kann ein Update nicht ANSTOSSEN und
+                        // nicht wissen, ob Play es ueberhaupt schon anbietet — der Hinweis kommt aus
+                        // unserem manuell gepflegten appmeta. Steht die Play-Freigabe noch aus oder
+                        // laeuft sie gestaffelt, zeigt Play nur "Oeffnen" (Nutzerbefund 30.07.).
+                        // Sauber loest das nur die Play-In-App-Update-API (siehe docs/TODO.md).
+                        val pkg = ctx.packageName
+                        val web = updateUrl.ifBlank { "https://play.google.com/store/apps/details?id=$pkg" }
+                        val go = { u: String ->
+                            ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse(u)))
+                        }
+                        try { go("market://details?id=$pkg") } catch (_: Exception) {
+                            try { go(web) } catch (_: Exception) {}
+                        }
                     },
                     onDismiss = { updateDismissed = true },
                 )
