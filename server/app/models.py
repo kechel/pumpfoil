@@ -159,6 +159,10 @@ class Foil(Base):
     thickness_mm: Mapped[float] = mapped_column(Float)
     # Dicke nicht aus Quelle, sondern geschätzt (t/c-Annahme) -> in der UI markieren.
     thickness_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Auch GEOMETRIE abgeleitet (Hersteller veröffentlicht nur eines von Fläche/Spannweite, der Rest
+    # folgt aus der Streckung der Baureihe). Strenger als thickness_estimated: hier hängt die ganze
+    # Leistungsrechnung dran. Gleiche Bedeutung wie das Feld bei Stab.
+    specs_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
