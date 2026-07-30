@@ -488,7 +488,30 @@ def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:
     Ø-Kriterien sind es nicht (#367: 5.000-km-Positions-Sprung blähte die Distanz
     eines ECHTEN Laufs auf -> so etwas darf das Gate nie treffen)."""
     def plausible(seg: dict) -> bool:
-        return (seg.get("max_speed_mps") or 0.0) * 3.6 <= RUN_MAX_PLAUSIBLE_KMH
+        if (seg.get("max_speed_mps") or 0.0) * 3.6 > RUN_MAX_PLAUSIBLE_KMH:
+            return False
+        # Obergrenze fuer den DURCHSCHNITT (2026-07-30). MAX_FOIL_SPEED ist die Bandgrenze, unter
+        # der ein Sample ueberhaupt als Foil-Kandidat zugelassen wird (25 km/h). Ein Lauf, dessen
+        # MITTEL darueber liegt, widerspricht damit seiner eigenen Zulassungsbedingung — er lebt nur,
+        # weil die Austritts-Hysterese (EXIT_DWELL_S) ueber die Tempo-Dips hinweghaelt. Das ist
+        # Motor/Auto/Schleppen, kein Pumpen. Gegenstueck zur bereits vorhandenen UNTERgrenze
+        # MIN_SEG_AVG_SPEED (~10 km/h).
+        #
+        # Anlass: eine vergessene Stopp-Taste. Drei Minuten Autofahrt MITTEN in einer Session
+        # (26 km/h Ø, 9,6 s "Gleiten", roh bis 45 km/h) hielten Top-Speed- und Gleit-Rekord der
+        # Community, weil sie mit 36 km/h Spitze unter dem 40er-Gate blieben. Trimmen half nicht:
+        # es kennt nur EIN Fenster, die Fahrt lag in der Mitte.
+        #
+        # Warum der Ø hier erlaubt ist, obwohl der Docstring Ø-Kriterien ausschliesst: dieser Wert
+        # kommt aus dem geglaetteten DOPPLER-Speed (speeds["3"], gps.py:344), NICHT aus der
+        # Positions-Distanz. Fall #367 (Positions-Sprung blaeht die Distanz eines echten Laufs auf)
+        # trifft ihn also nicht — nachgeprueft, nicht angenommen.
+        #
+        # Messung vor der Einfuehrung, ueber ALLE 6474 gespeicherten Laeufe: 75 Treffer (1,16 %),
+        # davon nur 2 rekord-relevant (genau die Autosegmente). Die 14 Laeufe mit Spitzen >= 30 km/h
+        # bei Ø < 20 km/h bleiben erhalten — Spitzen um 30 km/h sind echt (Jan), ein MITTEL von 26
+        # ueber Minuten ist es nicht. Deshalb Ø und nicht die Spitze.
+        return (seg.get("avg_speed_mps") or 0.0) <= MAX_FOIL_SPEED
 
     kept = [s for s in segments if plausible(s)]
     return kept, len(segments) - len(kept)
