@@ -546,6 +546,14 @@ struct SessionDetail: Codable, Identifiable {
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start, gleiche Basis wie
+    // trim_*). Optional, damit ältere Server-Antworten ohne das Feld weiter dekodieren.
+    let excluded_ranges: [[Int]]?
+    // Aktueller Zuschnitt (ms ab Session-Start), null = kein Zuschnitt. Nötig, damit die Regler im
+    // Zuschnitt-Blatt den gespeicherten Bereich zeigen statt immer 0…Dauer — sonst schlägt
+    // "Bereich aussortieren" ungezogen die GANZE Session vor.
+    let trim_start_ms: Int?
+    let trim_end_ms: Int?
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

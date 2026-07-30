@@ -436,6 +436,27 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
+    // Einen Lauf aus der Auswertung nehmen. runIndex = Position in der Lauf-Tabelle, die DIESER
+    // Nutzer sieht (der Server rechnet sie in ein Zeitfenster um). Antwort = frische Session mit
+    // neuer Analyse; Rohdaten bleiben, umkehrbar.
+    static func excludeRun(_ id: Int, runIndex: Int) async throws -> SessionDetail {
+        try await request("/api/sessions/\(id)/runs/exclude", method: "POST",
+                          body: ["run_index": runIndex], auth: true)
+    }
+
+    // Freies Zeitfenster aussortieren (ms ab Session-Start, gleiche Basis wie trim_*) — für
+    // Störteile mitten in der Aufnahme, die der Zuschnitt nicht wegschneiden kann.
+    static func excludeRange(_ id: Int, startMs: Int, endMs: Int) async throws -> SessionDetail {
+        try await request("/api/sessions/\(id)/runs/exclude", method: "POST",
+                          body: ["start_ms": startMs, "end_ms": endMs], auth: true)
+    }
+
+    // Aussortiertes Fenster wieder aufnehmen. rangeIndex = Position in excluded_ranges.
+    static func includeRange(_ id: Int, rangeIndex: Int) async throws -> SessionDetail {
+        try await request("/api/sessions/\(id)/runs/include", method: "POST",
+                          body: ["range_index": rangeIndex], auth: true)
+    }
+
     // foilId nil -> Standard-Foil (foil_id: null), sonst konkretes Foil.
     static func setSessionFoil(_ id: Int, foilId: Int?) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/meta") else { throw ApiError.badURL }

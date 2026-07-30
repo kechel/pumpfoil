@@ -61,12 +61,26 @@ struct SessionDetailView: View {
     @State private var trimStart = 0.0
     @State private var trimEnd = 0.0
     @State private var weightKg = 0.0
+    // Lauf/Zeitbereich aussortieren (POST /runs/exclude, umkehrbar): Bestätigung, Sperre während
+    // des Serverlaufs (der rechnet die Session neu) und Fehlertext direkt bei der Lauf-Tabelle.
+    @State private var pendingExcludeRun = -1
+    @State private var confirmExcludeRun = false
+    @State private var confirmExcludeRange = false
+    @State private var excludeBusy = false
+    @State private var excludeErr: String?
     @State private var confirmDelete = false
     @State private var caption = ""
     @State private var editingCaption = false
     @State private var draftCaption = ""
     @State private var neighbors: Api.Neighbors?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+
+    // Warnfarbe des Hinweises „N Läufe aussortiert" — dieselben Werte wie SessionReportRow/Android
+    // (92400E hell / FDE68A dunkel), damit der Text in BEIDEN Modi lesbar bleibt.
+    private var amber: Color {
+        scheme == .dark ? Color(red: 0.992, green: 0.902, blue: 0.541) : Color(red: 0.573, green: 0.251, blue: 0.055)
+    }
 
     // Der Body war EIN Ausdruck von 88 Zeilen (Toolbar mit vier Zweigen, zwei Dialoge mit Aktionen,
     // Poll-Task, drei Sheets) und stand mit >500 ms im Build-Log — Swifts Type-Checker loest einen
@@ -79,6 +93,11 @@ struct SessionDetailView: View {
             .toolbar { toolbarItems }
             .confirmationDialog(Loc.t("sd.deleteTitle", lang), isPresented: $confirmDelete, titleVisibility: .visible) {
                 deleteDialogActions
+            }
+            .confirmationDialog(Loc.t("sd.excludeRun", lang), isPresented: $confirmExcludeRun, titleVisibility: .visible) {
+                excludeRunDialogActions
+            } message: {
+                Text(Loc.t("sd.excludeConfirm", lang))
             }
             .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) { captionAlertActions }
             .task(id: sid) { await load() }
@@ -244,11 +263,110 @@ struct SessionDetailView: View {
                         Task { try? await Api.setTrim(sid, startMs: nil, endMs: nil); await load() }
                     }
                 }
+                excludeRangeSection
             }
             .navigationTitle(Loc.t("sd.trim", lang))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { showTrim = false } } }
+            .confirmationDialog(Loc.t("sd.excludeRange", lang), isPresented: $confirmExcludeRange, titleVisibility: .visible) {
+                excludeRangeDialogActions
+            } message: {
+                Text(excludeRangeConfirmText)
+            }
         }
+    }
+
+    // Denselben Bereich AUSSORTIEREN statt zuschneiden (wie TrimPanel in der PWA): nötig, wenn der
+    // Störteil mitten in der Aufnahme liegt — der Zuschnitt kann nur Anfang/Ende wegnehmen.
+    @ViewBuilder private var excludeRangeSection: some View {
+        Section {
+            Button(Loc.t("sd.excludeRange", lang)) { confirmExcludeRange = true }
+                .disabled(excludeBusy)
+            Text(Loc.t("sd.excludeRangeHint", lang)).font(.body).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var excludeRangeDialogActions: some View {
+        Button(Loc.t("sd.excludeRange", lang), role: .destructive) { excludeRangeConfirmed() }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
+    private var excludeRangeConfirmText: String {
+        let a: Double = min(trimStart, trimEnd)
+        let b: Double = max(trimStart, trimEnd)
+        let raw: String = Loc.t("sd.excludeRangeConfirm", lang)
+        return raw
+            .replacingOccurrences(of: "{from}", with: mmss(a))
+            .replacingOccurrences(of: "{to}", with: mmss(b))
+    }
+
+    private func excludeRangeConfirmed() {
+        let a: Double = min(trimStart, trimEnd)
+        let b: Double = max(trimStart, trimEnd)
+        guard b - a >= 1 else { return }   // Server verlangt >= 1 s
+        showTrim = false
+        excludeBusy = true
+        let startMs: Int = Int(a * 1000)
+        let endMs: Int = Int(b * 1000)
+        Task {
+            do {
+                let fresh = try await Api.excludeRange(sid, startMs: startMs, endMs: endMs)
+                await applyExcludeResult(fresh)
+            } catch {
+                await showExcludeError(error)
+            }
+        }
+    }
+
+    private func askExcludeRun(_ i: Int) {
+        pendingExcludeRun = i
+        confirmExcludeRun = true
+    }
+
+    @ViewBuilder private var excludeRunDialogActions: some View {
+        Button(Loc.t("sd.excludeRun", lang), role: .destructive) { excludeRunConfirmed() }
+        Button(Loc.t("common.cancel", lang), role: .cancel) {}
+    }
+
+    private func excludeRunConfirmed() {
+        let idx: Int = pendingExcludeRun
+        guard idx >= 0 else { return }
+        excludeBusy = true
+        Task {
+            do {
+                let fresh = try await Api.excludeRun(sid, runIndex: idx)
+                await applyExcludeResult(fresh)
+            } catch {
+                await showExcludeError(error)
+            }
+        }
+    }
+
+    private func includeExcludedRange(_ i: Int) {
+        excludeBusy = true
+        Task {
+            do {
+                let fresh = try await Api.includeRange(sid, rangeIndex: i)
+                await applyExcludeResult(fresh)
+            } catch {
+                await showExcludeError(error)
+            }
+        }
+    }
+
+    /// Antwort der Exclude/Include-Aufrufe ist die KOMPLETTE Session mit frischer Analyse ->
+    /// direkt übernehmen (kein zweiter Fetch). Die Lauf-Auswahl passt danach nicht mehr.
+    @MainActor private func applyExcludeResult(_ fresh: SessionDetail) {
+        session = fresh
+        SessionCache.store(fresh)
+        selectedRun = nil
+        excludeErr = nil
+        excludeBusy = false
+    }
+
+    @MainActor private func showExcludeError(_ e: Error) {
+        excludeErr = Loc.t("sd.excludeFail", lang) + e.localizedDescription
+        excludeBusy = false
     }
 
     private func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
@@ -294,6 +412,14 @@ struct SessionDetailView: View {
     }
 
     // Selten gebrauchte Aktionen ganz unten (wie PWA): Übertragen · Trimmen · Löschen.
+    // Regler auf den gespeicherten Zuschnitt setzen (wie die PWA), sonst auf die volle Dauer.
+    private func presetTrimSliders(_ s: SessionDetail) {
+        let a: Double = Double(s.trim_start_ms ?? 0) / 1000.0
+        let b: Double = Double(s.trim_end_ms ?? Int(durSec * 1000)) / 1000.0
+        trimStart = min(max(a, 0), durSec)
+        trimEnd = min(max(b, 0), durSec)
+    }
+
     @ViewBuilder private func bottomActions(_ s: SessionDetail) -> some View {
         if s.owned == true {
             VStack(alignment: .leading, spacing: 10) {
@@ -301,7 +427,7 @@ struct SessionDetailView: View {
                 TransferPickerView(sessionId: s.id)
                 HStack(spacing: 10) {
                     if durSec > 1 {
-                        Button { trimStart = 0; trimEnd = durSec; showTrim = true } label: {
+                        Button { presetTrimSliders(s); showTrim = true } label: {
                             Label(Loc.t("sd.trim", lang), systemImage: "scissors")
                         }.buttonStyle(.bordered)
                     }
@@ -970,14 +1096,88 @@ struct SessionDetailView: View {
                     }
                 }
             }
+            excludedSection(s)
+            excludeErrorRow
             if let segs = a.segments, !segs.isEmpty {
-                RunsTable(segments: segs, selected: selectedRun, lang: lang) {
-                    selectedRun = (selectedRun == $0) ? nil : $0
-                }
+                runsTable(segs, s)
             }
         } else {
             Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
         }
+    }
+
+    private func runsTable(_ segs: [Segment], _ s: SessionDetail) -> some View {
+        RunsTable(segments: segs, selected: selectedRun, lang: lang,
+                  canEdit: s.owned == true, busy: excludeBusy,
+                  onExclude: { askExcludeRun($0) },
+                  onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
+    }
+
+    @ViewBuilder private var excludeErrorRow: some View {
+        if let e = excludeErr {
+            Text(e).font(.body).foregroundStyle(.red)
+        }
+    }
+
+    // Aussortierte Zeitfenster (excluded_ranges): Hinweis + je Fenster „wieder aufnehmen".
+    // Auch bei 0 Läufen zeigen (es können alle aussortiert sein) — genau wie in der PWA.
+    @ViewBuilder private func excludedSection(_ s: SessionDetail) -> some View {
+        let wins: [[Int]] = s.excluded_ranges ?? []
+        if !wins.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                excludedHeader(wins.count)
+                Text(Loc.t("sd.excludedHint", lang)).font(.body).foregroundStyle(.secondary)
+                ForEach(Array(wins.enumerated()), id: \.offset) { i, w in
+                    excludedRow(s, index: i, window: w)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.orange.opacity(0.14))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func excludedHeader(_ n: Int) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "nosign").foregroundStyle(amber)
+            Text(excludedTitleText(n)).font(.body).bold().foregroundStyle(amber)
+        }
+    }
+
+    private func excludedTitleText(_ n: Int) -> String {
+        if n == 1 { return Loc.t("sd.excludedTitleOne", lang) }
+        return Loc.t("sd.excludedTitle", lang).replacingOccurrences(of: "{n}", with: "\(n)")
+    }
+
+    @ViewBuilder private func excludedRow(_ s: SessionDetail, index: Int, window: [Int]) -> some View {
+        HStack(spacing: 10) {
+            Text(excludedRangeText(s, window)).font(.body).monospacedDigit()
+            Spacer()
+            if s.owned == true {
+                Button(Loc.t("sd.includeRun", lang)) { includeExcludedRange(index) }
+                    .font(.body)
+                    .buttonStyle(.bordered)
+                    .disabled(excludeBusy)
+            }
+        }
+    }
+
+    /// „09:42:31 · 1:20" — Uhrzeit des Fenster-Starts (Spot-Ortszeit) + Länge des Fensters.
+    private func excludedRangeText(_ s: SessionDetail, _ w: [Int]) -> String {
+        guard w.count >= 2, let start = s.startedDate else { return "–" }
+        let from: Double = Double(w[0]) / 1000.0
+        let to: Double = Double(w[1]) / 1000.0
+        let clock: String = hhmmss(start.addingTimeInterval(from), s.tz)
+        let len: String = mmss(max(0, to - from))
+        return "\(clock) · \(len)"
+    }
+
+    private func hhmmss(_ d: Date, _ tz: String?) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss"
+        f.timeZone = TimeFmt.zone(tz)
+        return f.string(from: d)
     }
 
     // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).
@@ -1454,6 +1654,10 @@ private struct RunsTable: View {
     let segments: [Segment]
     let selected: Int?
     let lang: String
+    // Eigene Session -> je Zeile ein Knopf „Lauf aussortieren" (wie in der PWA-Lauf-Tabelle).
+    var canEdit: Bool = false
+    var busy: Bool = false
+    var onExclude: ((Int) -> Void)? = nil
     let onSelect: (Int) -> Void
 
     var body: some View {
@@ -1463,6 +1667,7 @@ private struct RunsTable: View {
                 ForEach(["#", Loc.t("sd.hDist", lang), Loc.t("field.3", lang), "Ø", "Top", Loc.t("home.pumps", lang)], id: \.self) { h in
                     Text(h).font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 }
+                if canEdit { Spacer().frame(width: 30) }
             }
             ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
                 let sel = selected == i
@@ -1473,6 +1678,7 @@ private struct RunsTable: View {
                     cell(String(format: "%.0f", (seg.avg_speed_mps ?? 0) * 3.6), sel)
                     cell(String(format: "%.0f", (seg.max_speed_mps ?? 0) * 3.6), sel)
                     cell((seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–", sel)
+                    excludeButton(i)
                 }
                 .padding(.vertical, 4).padding(.horizontal, 4)
                 .background(sel ? Color.accentColor.opacity(0.16) : .clear)
@@ -1490,6 +1696,20 @@ private struct RunsTable: View {
     private func cell(_ s: String, _ sel: Bool) -> some View {
         Text(s).font(.caption).foregroundStyle(sel ? Color.accentColor : Color.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // Eigene Zelle statt Zeilen-Tap: der Knopf schluckt den Tap, die Zeilen-Auswahl bleibt.
+    @ViewBuilder private func excludeButton(_ i: Int) -> some View {
+        if canEdit {
+            Button { onExclude?(i) } label: {
+                Image(systemName: "nosign").font(.footnote).foregroundStyle(.secondary)
+            }
+            .buttonStyle(.borderless)
+            .tint(.secondary)   // inaktiv grau (nicht cyan) — der Knopf ist eine Nebenaktion
+            .disabled(busy)
+            .frame(width: 30)
+            .accessibilityLabel(Loc.t("sd.excludeRun", lang))
+        }
     }
     private func dist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
     private func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }

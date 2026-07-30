@@ -2454,6 +2454,47 @@ enum Loc {
     ]
 
     private static let __t3P3: [String: [String: String]] = [
+        // Lauf / Zeitbereich aussortieren (POST /runs/exclude). Wortlaut wörtlich aus der PWA
+        // (web/src/i18n/locales/de.ts + en.ts); fr/it/es haben dort noch keine Übersetzung und
+        // fallen dort wie hier auf Englisch.
+        "sd.excludeRun": r("Lauf aussortieren", "Lauf aussortieren", "Lauf aussortieren", "Drop run", "Drop run", "Drop run", "Drop run"),
+        "sd.excludeConfirm": r(
+            "Diesen Lauf aus der Auswertung nehmen?\n\nEr zählt dann nicht mehr bei Läufen, Foil-Zeit, Distanz, Pumps und Rekorden. Die Aufnahme selbst bleibt vollständig gespeichert — du kannst den Lauf jederzeit wieder aufnehmen.",
+            "Diesen Lauf aus der Auswertung nehmen?\n\nEr zählt dann nicht mehr bei Läufen, Foil-Zeit, Distanz, Pumps und Rekorden. Die Aufnahme selbst bleibt vollständig gespeichert — du kannst den Lauf jederzeit wieder aufnehmen.",
+            "Diesen Lauf aus der Auswertung nehmen?\n\nEr zählt dann nicht mehr bei Läufen, Foil-Zeit, Distanz, Pumps und Rekorden. Die Aufnahme selbst bleibt vollständig gespeichert — du kannst den Lauf jederzeit wieder aufnehmen.",
+            "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time.",
+            "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time.",
+            "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time.",
+            "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time."),
+        "sd.excludedTitle": r("{n} Läufe aussortiert", "{n} Läufe aussortiert", "{n} Läufe aussortiert", "{n} runs dropped", "{n} runs dropped", "{n} runs dropped", "{n} runs dropped"),
+        "sd.excludedTitleOne": r("1 Lauf aussortiert", "1 Lauf aussortiert", "1 Lauf aussortiert", "1 run dropped", "1 run dropped", "1 run dropped", "1 run dropped"),
+        "sd.excludedHint": r(
+            "Diese Zeitabschnitte zählen nicht in die Auswertung (Läufe, Foil-Zeit, Distanz, Pumps, Rekorde). Die Aufnahme bleibt vollständig gespeichert — jederzeit umkehrbar.",
+            "Diese Zeitabschnitte zählen nicht in die Auswertung (Läufe, Foil-Zeit, Distanz, Pumps, Rekorde). Die Aufnahme bleibt vollständig gespeichert — jederzeit umkehrbar.",
+            "Diese Zeitabschnitte zählen nicht in die Auswertung (Läufe, Foil-Zeit, Distanz, Pumps, Rekorde). Die Aufnahme bleibt vollständig gespeichert — jederzeit umkehrbar.",
+            "These time ranges do not count towards the evaluation (runs, foiling time, distance, pumps, records). The recording stays fully stored — reversible at any time.",
+            "These time ranges do not count towards the evaluation (runs, foiling time, distance, pumps, records). The recording stays fully stored — reversible at any time.",
+            "These time ranges do not count towards the evaluation (runs, foiling time, distance, pumps, records). The recording stays fully stored — reversible at any time.",
+            "These time ranges do not count towards the evaluation (runs, foiling time, distance, pumps, records). The recording stays fully stored — reversible at any time."),
+        "sd.includeRun": r("wieder aufnehmen", "wieder aufnehmen", "wieder aufnehmen", "bring back", "bring back", "bring back", "bring back"),
+        "sd.excludeFail": r("Konnte nicht gespeichert werden: ", "Konnte nicht gespeichert werden: ", "Konnte nicht gespeichert werden: ", "Could not be saved: ", "Could not be saved: ", "Could not be saved: ", "Could not be saved: "),
+        "sd.excludeRange": r("Bereich aussortieren", "Bereich aussortieren", "Bereich aussortieren", "Exclude range", "Exclude range", "Exclude range", "Exclude range"),
+        "sd.excludeRangeConfirm": r(
+            "Zeitbereich {from}–{to} aus der Auswertung nehmen? Die Aufnahme bleibt gespeichert, umkehrbar.",
+            "Zeitbereich {from}–{to} aus der Auswertung nehmen? Die Aufnahme bleibt gespeichert, umkehrbar.",
+            "Zeitbereich {from}–{to} aus der Auswertung nehmen? Die Aufnahme bleibt gespeichert, umkehrbar.",
+            "Exclude {from}–{to} from the analysis? The recording is kept, this is reversible.",
+            "Exclude {from}–{to} from the analysis? The recording is kept, this is reversible.",
+            "Exclude {from}–{to} from the analysis? The recording is kept, this is reversible.",
+            "Exclude {from}–{to} from the analysis? The recording is kept, this is reversible."),
+        "sd.excludeRangeHint": r(
+            "Liegt der Störteil mitten in der Aufnahme (z. B. Autofahrt zwischen zwei Spots), kannst du den gewählten Bereich stattdessen aussortieren — der Rest davor und danach bleibt in der Auswertung.",
+            "Liegt der Störteil mitten in der Aufnahme (z. B. Autofahrt zwischen zwei Spots), kannst du den gewählten Bereich stattdessen aussortieren — der Rest davor und danach bleibt in der Auswertung.",
+            "Liegt der Störteil mitten in der Aufnahme (z. B. Autofahrt zwischen zwei Spots), kannst du den gewählten Bereich stattdessen aussortieren — der Rest davor und danach bleibt in der Auswertung.",
+            "If the part to remove sits in the middle of the recording (e.g. driving between two spots), exclude the selected range instead — everything before and after stays in the analysis.",
+            "If the part to remove sits in the middle of the recording (e.g. driving between two spots), exclude the selected range instead — everything before and after stays in the analysis.",
+            "If the part to remove sits in the middle of the recording (e.g. driving between two spots), exclude the selected range instead — everything before and after stays in the analysis.",
+            "If the part to remove sits in the middle of the recording (e.g. driving between two spots), exclude the selected range instead — everything before and after stays in the analysis."),
         "sd.power": r("Leistung", "Leischtig", "Leistung", "Power", "Puissance", "Potenza", "Potencia"),
         "sd.atAvg": r("bei Ø-Speed", "bi Ø-Speed", "bei Ø-Speed", "at avg speed", "à vit. moy.", "a vel. media", "a vel. med."),
         "sd.atTop": r("bei Top-Speed", "bi Top-Speed", "bei Top-Speed", "at top speed", "à vit. max", "a vel. max", "a vel. máx"),
