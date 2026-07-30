@@ -1804,6 +1804,13 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   );
   const [a, setA] = useState(Math.round((session.trim_start_ms ?? 0) / 1000));
   const [b, setB] = useState(Math.round((session.trim_end_ms ?? totalSec * 1000) / 1000));
+  // Nutzer-Feedback: die Lauf-Tabelle zeigt Ortszeit, das Zuschneiden zeigte nur Sekunden ab
+  // Sessionbeginn -> man konnte nicht sehen, WO man schneidet. Beides nebeneinander schlägt die
+  // Brücke (gleiche Formatierung wie die Lauf-Zeilen, Ortszeit des Spots).
+  const startMs = new Date(session.started_at).getTime();
+  const clock = (sec: number) =>
+    fmtTime(new Date(startMs + sec * 1000).toISOString(), session.tz,
+            { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const [saving, setSaving] = useState(false);
   const trimmed = session.trim_start_ms != null || session.trim_end_ms != null;
 
@@ -1823,7 +1830,7 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   // Denselben Bereich AUSSORTIEREN statt zuschneiden: nötig, wenn der Störteil mitten in der
   // Aufnahme liegt (Fahrt zwischen zwei Spots) — der Trim kann nur Anfang/Ende abschneiden.
   async function excludeRange() {
-    if (!confirm(t("sd.excludeRangeConfirm", { from: fmtMMSS(a), to: fmtMMSS(Math.min(b, totalSec)) }))) return;
+    if (!confirm(t("sd.excludeRangeConfirm", { from: clock(a), to: clock(Math.min(b, totalSec)) }))) return;
     setSaving(true);
     try {
       onSaved(await api.excludeRange(session.id, a * 1000, Math.min(b, totalSec) * 1000));
@@ -1841,12 +1848,14 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
       <p className="text-sm text-slate-300">{t("sd.excludeRangeHint")}</p>
       <label className="block text-sm text-slate-200">
         {t("sd.start")} <span className="tabular-nums text-slate-100">{fmtMMSS(a)}</span>
+        <span className="ml-2 tabular-nums text-slate-300">{clock(a)}</span>
         <input type="range" min={0} max={totalSec} value={a}
           onChange={(e) => setA(Math.min(Number(e.target.value), b - 1))}
           className="mt-1 w-full accent-brand-500" />
       </label>
       <label className="block text-sm text-slate-200">
         {t("sd.end")} <span className="tabular-nums text-slate-100">{fmtMMSS(b)}</span>
+        <span className="ml-2 tabular-nums text-slate-300">{clock(b)}</span>
         <input type="range" min={0} max={totalSec} value={b}
           onChange={(e) => setB(Math.max(Number(e.target.value), a + 1))}
           className="mt-1 w-full accent-brand-500" />

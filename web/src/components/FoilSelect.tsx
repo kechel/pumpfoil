@@ -64,10 +64,19 @@ export function FoilSelect({ session, owned, onMeta }: {
     );
   }
 
-  const mineFoils = foils.filter((f) => mine.includes(f.id));
-  const others = foils.filter((f) => !mine.includes(f.id));
-  const mineStabs = stabs.filter((s) => myStabs.includes(s.id));
-  const otherStabs = stabs.filter((s) => !myStabs.includes(s.id));
+  // Nutzer-Feedback: „Änderung von Sirus XXL auf Sirus XL — es muss nach oben gescrollt werden,
+  // obwohl der XL auch in den Favoriten ist." Ursache: das Auswahlfeld klappt beim AUSGEWÄHLTEN
+  // Eintrag auf. Steht der im langen Katalog-Block, liegen die Favoriten außerhalb des Sichtfelds.
+  // Deshalb das aktuell gewählte Foil MIT in die Favoriten-Gruppe nehmen (und aus dem Katalog
+  // lassen, damit es nicht doppelt erscheint) -> die Favoriten sind immer direkt sichtbar.
+  const selId = session.foil_id ?? null;
+  const quick = foils.filter((f) => mine.includes(f.id) || f.id === selId);
+  const mineFoils = quick;
+  const others = foils.filter((f) => !quick.some((q) => q.id === f.id));
+  // Gleiche Logik für den Stabilizer (identische Falle, identische Lösung).
+  const selStab = setup?.stab && setup.stab.is_default === false ? setup.stab.id : null;
+  const mineStabs = stabs.filter((s) => myStabs.includes(s.id) || s.id === selStab);
+  const otherStabs = stabs.filter((s) => !mineStabs.some((q) => q.id === s.id));
 
   const patch = (p: Parameters<typeof api.updateSessionMeta>[1]) =>
     api.updateSessionMeta(session.id, p).then(onMeta).catch(() => {});
