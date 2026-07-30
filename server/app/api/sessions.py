@@ -17,12 +17,15 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, object_session
 
 from .. import media, models, storage
-from ..analysis import maybe_auto_trim, run_analysis
+from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
 from ..ml.features import bandpass_fft, magnitude_g
-from ..schemas import AnalysisOut, LabelIn, LabelOut, PumpTruthIn, RawDataOut, SessionMetaIn, SessionOut, SessionVideoIn, TrimIn
+from ..schemas import (
+    AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
+    SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
+)
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
 from .deps import current_user, require_social
@@ -152,6 +155,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         status=s.status,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
+        excluded_ranges=[[a, b] for a, b in excluded_windows(s)],
         data_version=int((getattr(s, "updated_at", None) or s.created_at).timestamp())
                      if (getattr(s, "updated_at", None) or s.created_at) else None,
         owned=owned,
@@ -1344,6 +1348,84 @@ def set_trim(
     run_analysis(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
+
+
+# --- Läufe aussortieren (Zeitfenster, nicht Index) -------------------------------------
+def _shown_runs(s: models.Session) -> list[dict]:
+    """Die Lauf-Liste, die der Besitzer in der Tabelle sieht — gleiche Auflösung wie
+    _analysis_out: persönliches Empfindlichkeits-Preset (falls gecacht), sonst die
+    kanonischen Segmente. Nur so trifft die vom Client geschickte Lauf-NUMMER denselben Lauf."""
+    res = s.result
+    if res is None:
+        return []
+    sens = (getattr(s.user, "foil_sensitivity", None) or "normal") if s.user else "normal"
+    if sens != "normal" and res.sensitivity_json:
+        try:
+            p = (json.loads(res.sensitivity_json) or {}).get(sens)
+        except ValueError:
+            p = None
+        if p and p.get("segments"):
+            return p["segments"]
+    return json.loads(res.segments_json) if res.segments_json else []
+
+
+def _add_window(wins: list[tuple[int, int]], a: int, b: int) -> list[tuple[int, int]]:
+    """Fenster [a, b] zur Liste hinzufügen und mit überlappenden/berührenden verschmelzen.
+    Damit ist zweimal dasselbe Fenster ausschließen idempotent (und ein durch eine Neuanalyse
+    zerteilter Lauf ergibt am Ende EIN Fenster, keine Schnipsel-Liste)."""
+    keep = [(x, y) for (x, y) in wins if y < a or x > b]
+    for (x, y) in wins:
+        if not (y < a or x > b):
+            a, b = min(a, x), max(b, y)
+    return sorted(keep + [(a, b)])
+
+
+def _save_excluded(db: Session, s: models.Session, wins: list[tuple[int, int]]) -> SessionOut:
+    """Fenster speichern + dieselbe Session neu analysieren (wie beim Trim)."""
+    s.excluded_ranges = dump_excluded_windows(wins)
+    db.commit()
+    run_analysis(db, s)
+    db.refresh(s)
+    return _session_out(s, with_analysis=True)
+
+
+@router.post("/{session_id}/runs/exclude", response_model=SessionOut)
+def exclude_run(
+    session_id: int,
+    body: ExcludeRunIn,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> SessionOut:
+    """Einen Lauf dauerhaft aus der Auswertung nehmen (Besitzer ODER Admin). Der Client
+    schickt die Lauf-NUMMER, gespeichert wird deren ZEITFENSTER — ein Index wäre nach der
+    nächsten Neuanalyse ein anderer Lauf. Danach wird neu analysiert, damit Läufe/Foil-Zeit/
+    Distanz/Pumps/Rekorde stimmen. Kein Datenverlust: die Rohdaten bleiben, umkehrbar."""
+    s = _owned_or_admin(db, user, session_id)
+    runs = _shown_runs(s)
+    if body.run_index < 0 or body.run_index >= len(runs):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found")
+    seg = runs[body.run_index]
+    off = s.trim_start_ms or 0   # Segment-Zeiten sind auf den Trim-Beginn re-based
+    a = max(int(seg["t_start_ms"]) + off - EXCLUDE_MARGIN_MS, 0)
+    b = int(seg["t_end_ms"]) + off + EXCLUDE_MARGIN_MS
+    return _save_excluded(db, s, _add_window(excluded_windows(s), a, b))
+
+
+@router.post("/{session_id}/runs/include", response_model=SessionOut)
+def include_run(
+    session_id: int,
+    body: IncludeRangeIn,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> SessionOut:
+    """Ein aussortiertes Zeitfenster wieder in die Auswertung aufnehmen (Besitzer ODER Admin).
+    range_index = Position in excluded_ranges. Danach wird neu analysiert."""
+    s = _owned_or_admin(db, user, session_id)
+    wins = excluded_windows(s)
+    if body.range_index < 0 or body.range_index >= len(wins):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Excluded range not found")
+    del wins[body.range_index]
+    return _save_excluded(db, s, wins)
 
 
 CAPTION_MAX = 30

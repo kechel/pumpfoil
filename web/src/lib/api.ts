@@ -90,7 +90,7 @@ export interface ActiveRoom {
 
 export interface Foil {
   id: number; brand: string; model: string; size: string;
-  span_cm: number; area_cm2: number; thickness_mm: number; thickness_estimated?: boolean;
+  span_cm: number; area_cm2: number; thickness_mm: number; thickness_estimated?: boolean; specs_estimated?: boolean;
   aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
 }
 
@@ -183,6 +183,9 @@ export interface SessionSummary {
   status: string;
   trim_start_ms?: number | null;
   trim_end_ms?: number | null;
+  // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
+  // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
+  excluded_ranges?: number[][];
   owned?: boolean;
   // Menschliche Sportart-Klassifikation (docs/sport-classification.md). ACHTUNG: `sport` oben ist
   // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
@@ -865,6 +868,18 @@ export const api = {
     req<SessionSummary>(`/api/sessions/${id}/trim`, {
       method: "PATCH",
       body: JSON.stringify({ trim_start_ms, trim_end_ms }),
+    }),
+  // Lauf aussortieren / wieder aufnehmen. Der Server nimmt die Lauf-NUMMER und speichert
+  // deren ZEITFENSTER (Index wäre nach der nächsten Neuanalyse ein anderer Lauf).
+  excludeRun: (id: number, run_index: number) =>
+    req<SessionSummary>(`/api/sessions/${id}/runs/exclude`, {
+      method: "POST",
+      body: JSON.stringify({ run_index }),
+    }),
+  includeRun: (id: number, range_index: number) =>
+    req<SessionSummary>(`/api/sessions/${id}/runs/include`, {
+      method: "POST",
+      body: JSON.stringify({ range_index }),
     }),
   session: (id: number) => req<SessionSummary>(`/api/sessions/${id}`),
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.

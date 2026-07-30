@@ -18,6 +18,7 @@ def _out(f: models.Foil) -> dict:
         "id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
         "span_cm": f.span_cm, "area_cm2": f.area_cm2, "thickness_mm": f.thickness_mm,
         "thickness_estimated": bool(f.thickness_estimated),
+        "specs_estimated": bool(f.specs_estimated),
         "aspect_ratio": ar, "mean_chord_cm": chord, "is_baseline": f.is_baseline,
     }
 

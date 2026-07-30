@@ -28,6 +28,12 @@ def main() -> None:
                 ok += 1
                 print(f"  #{s.id} {s.sport or '?'} -> ok")
             except Exception as e:  # noqa: BLE001
+                # WICHTIG: zurueckrollen, sonst steckt die Session in einer abgebrochenen
+                # Transaktion und JEDE folgende Session scheitert mit "current transaction is
+                # aborted" — aus einem Fehler werden dann hunderte. Genau so passiert am
+                # 2026-07-30: ein Deadlock (paralleles ALTER TABLE durch einen Server-Neustart)
+                # bei einer Session riss die restlichen 250 mit.
+                db.rollback()
                 print(f"  #{s.id} FEHLER: {e}")
         print(f"Fertig: {ok}/{len(sessions)} erfolgreich.")
     finally:

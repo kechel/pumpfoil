@@ -111,6 +111,39 @@ def _fill_pump_hz(
         pump_hz[idx] = round(cnt / span_s, 3)
 
 
+# --- Aussortierte Läufe: Zeitfenster statt Lauf-Index ---------------------------------
+# Ein Lauf-Index taugt nicht als Anker: jede Neuanalyse nummeriert die Läufe neu (Detektor-
+# Update -> „Lauf 18" ist plötzlich ein anderer). Gespeichert wird deshalb das ZEITFENSTER
+# des Laufs (ms ab Session-Start, gleiche Basis wie trim_*).
+EXCLUDE_MARGIN_MS = 1000  # Sicherheitsrand je Seite: Rand-Samples des Laufs sicher mit raus
+
+
+def excluded_windows(session: "models.Session") -> list[tuple[int, int]]:
+    """Aussortierte Zeitfenster der Session als [(start_ms, end_ms), …] (ms ab Session-Start).
+    Kaputtes/leeres JSON -> keine Fenster (die Analyse darf daran nie scheitern)."""
+    raw = getattr(session, "excluded_ranges", None)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return []
+    out: list[tuple[int, int]] = []
+    for item in data if isinstance(data, list) else []:
+        try:
+            a, b = int(item[0]), int(item[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if b > a:
+            out.append((max(a, 0), b))
+    return sorted(out)
+
+
+def dump_excluded_windows(wins: list[tuple[int, int]]) -> str | None:
+    """Fensterliste -> JSON-Text für sessions.excluded_ranges (leer -> NULL)."""
+    return json.dumps([[int(a), int(b)] for a, b in sorted(wins)]) if wins else None
+
+
 AUTO_TRIM_MARGIN_MS = 15000  # 15 s Puffer vor erstem Start / nach letztem Ende
 
 
@@ -196,6 +229,20 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             a_lo = max(int(round(lo / 1000.0 * accel_hz)), 0)
             a_hi = min(int(round(hi / 1000.0 * accel_hz)), accel.shape[0])
             accel = accel[a_lo:a_hi] if a_hi > a_lo else accel[0:0]
+
+    # Aussortierte Läufe (excluded_ranges): dieselbe Mechanik wie der Trim, nur mehrere
+    # Fenster — und auch MITTEN in der Session (vergessene Stopp-Taste: Autofahrt zwischen
+    # zwei Spots, Schleppen durch ein Boot, Kind auf dem Board). Die GPS-Punkte im Fenster
+    # fallen weg; die entstehende Zeitlücke wirkt wie ein GPS-Dropout, deshalb trennt sie
+    # (GAP_SPLIT_S) die Läufe davor/danach sauber, statt sie zu verbinden. Accel bleibt
+    # unangetastet: ihr Index IST die Zeit (index = t * accel_hz), sie bleibt also zu den
+    # verbleibenden GPS-Punkten synchron. Kein Detektor-Parameter wird angefasst.
+    _excl = excluded_windows(session)
+    if _excl and gps_samples:
+        _off = (ts0 or 0) if (ts0 is not None or ts1 is not None) else 0  # GPS ist beim Trim auf 0 re-based
+        _wins = [(a - _off, b - _off) for a, b in _excl]
+        gps_samples = [s for s in gps_samples
+                       if not any(a <= s[0] <= b for a, b in _wins)]
 
     # Accel nur nutzen, wenn die (effektive) Rate hoch genug fürs Modell ist — sonst wie gps_only.
     accel_usable = accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ

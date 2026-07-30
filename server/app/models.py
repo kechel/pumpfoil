@@ -368,6 +368,13 @@ class Session(Base):
     # [trim_start_ms, trim_end_ms] (z. B. Auto-Heimfahrt nach dem Foilen abschneiden).
     trim_start_ms: Mapped[int | None] = mapped_column(Integer)
     trim_end_ms: Mapped[int | None] = mapped_column(Integer)
+    # Aussortierte Läufe als ZEITFENSTER (JSON-Liste von [start_ms, end_ms], ms ab
+    # Session-Start wie trim_*). Bewusst Zeit statt Lauf-Index: Läufe werden bei jeder
+    # Neuanalyse neu durchnummeriert, ein gespeicherter Index würde nach dem nächsten
+    # Detektor-Update auf einen anderen Lauf zeigen. Wirkung: die Fenster fallen in der
+    # Analyse aus den GPS-Daten (genau wie der Trim) -> Läufe/Zeit/Distanz/Pumps/Rekorde
+    # stimmen automatisch. Kein Datenverlust: die Rohdaten bleiben, jederzeit umkehrbar.
+    excluded_ranges: Mapped[str | None] = mapped_column(Text)
     # Spot-Name (per OSM/Overpass, gecacht). "" = nachgeschlagen, nichts gefunden.
     # Bevorzugt ein Ufer-/Venue-Name (leisure=sports_centre/marina/beach…), sonst der Gewässername.
     place_name: Mapped[str | None] = mapped_column(String(120))

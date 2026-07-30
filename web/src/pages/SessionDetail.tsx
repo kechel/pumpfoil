@@ -1604,7 +1604,8 @@ export default function SessionDetail() {
         </div>
       </div>
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} />
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
+        excluded={session.excluded_ranges ?? []} canEdit={owned && !isPublic} onSaved={setSession} />
 
       {/* In der oeffentlichen Teilen-Ansicht KEINES von beiden: dort ist man evtl. nicht angemeldet,
           und beide Aktionen brauchen ein Konto (der Not-Pumpfoil-Knopf war schon vorher so gegated). */}
@@ -1862,6 +1863,9 @@ function RunsTable({
   compareRefs,
   startedAt,
   tz,
+  excluded = [],
+  canEdit = false,
+  onSaved,
 }: {
   segments: any[];
   selected: number | null;
@@ -1872,10 +1876,17 @@ function RunsTable({
   compareRefs: { sessionId: number; runIdx: number | null }[];
   startedAt: string;
   tz?: string | null;
+  // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start) + Rechte/Callback.
+  excluded?: number[][];
+  canEdit?: boolean;
+  onSaved?: (s: SessionSummary) => void;
 }) {
   const t = useT();
   const pf = usePumpFmt();
-  if (!segments.length) return null;
+  const [busy, setBusy] = useState(false);
+  // Aussortierte Läufe stehen nicht mehr in den Segmenten — der Hinweis oben ist die einzige
+  // Spur davon, deshalb auch bei 0 Läufen rendern (alle ausgesortiert).
+  if (!segments.length && !excluded.length) return null;
   // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start), in Spot-Ortszeit.
   const sessionStartMs = new Date(startedAt).getTime();
   const runClock = (s: any): string =>
@@ -1891,12 +1902,53 @@ function RunsTable({
     const v = s[`${kind}_${win}s`] ?? (kind === "avg" ? s.avg_speed_mps : kind === "max" ? s.max_speed_mps : s.min_speed_mps);
     return v != null ? (v * 3.6).toFixed(1) : "–";
   };
+  // Lauf aussortieren / wieder aufnehmen: der Server rechnet die Session danach neu und
+  // liefert die frischen Kennzahlen zurück -> Seite und Listen-Cache aktualisieren.
+  const after = (s: SessionSummary) => { invalidateSessionListCache(); onSelect(null); onSaved?.(s); };
+  const doExclude = (i: number) => {
+    if (!confirm(t("sd.excludeConfirm"))) return;
+    setBusy(true);
+    api.excludeRun(sessionId, i).then(after).catch((e) => alert(t("sd.excludeFail") + e)).finally(() => setBusy(false));
+  };
+  const doInclude = (i: number) => {
+    setBusy(true);
+    api.includeRun(sessionId, i).then(after).catch((e) => alert(t("sd.excludeFail") + e)).finally(() => setBusy(false));
+  };
   return (
     <div className="mt-8">
       <div className="mb-3 flex items-center gap-2">
         <h3 className="text-sm font-semibold text-slate-200">{t("sd.runsTitle", { count: segments.length })}</h3>
         <span className="ml-auto text-xs text-slate-400">{t("sd.smoothToggle", { win })}</span>
       </div>
+      {excluded.length > 0 && (
+        <div className="mb-3 rounded-xl border border-amber-300 bg-amber-500/10 p-3 dark:border-amber-900/60 dark:bg-amber-950/30">
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
+            <FoilOffIcon className="h-4 w-4" />
+            {excluded.length === 1 ? t("sd.excludedTitleOne") : t("sd.excludedTitle", { n: excluded.length })}
+          </div>
+          <p className="mt-1 text-sm leading-relaxed text-amber-700 dark:text-amber-200">{t("sd.excludedHint")}</p>
+          <ul className="mt-2 space-y-1">
+            {excluded.map(([from, to], i) => (
+              <li key={`${from}-${to}`} className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                <span className="tabular-nums">
+                  {fmtTime(new Date(sessionStartMs + from).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
+                </span>
+                {canEdit && (
+                  <button
+                    onClick={() => doInclude(i)}
+                    disabled={busy}
+                    className="rounded-lg bg-slate-800 px-2 py-0.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                  >
+                    {t("sd.includeRun")}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {segments.length > 0 && (
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[820px] text-sm">
           <thead>
@@ -1915,6 +1967,7 @@ function RunsTable({
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: pf.suffix })}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin", { unit: pf.suffix })}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
+              {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
           </thead>
           <tbody>
@@ -1960,15 +2013,31 @@ function RunsTable({
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
+                  {canEdit && (
+                    <td className="px-3 py-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); doExclude(i); }}
+                        disabled={busy}
+                        title={t("sd.excludeRun")}
+                        aria-label={t("sd.excludeRun")}
+                        className="text-slate-400 hover:text-amber-700 disabled:opacity-50 dark:hover:text-amber-300"
+                      >
+                        <FoilOffIcon className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
           </tbody>
         </table>
       </Card>
-      <p className="mt-2 px-1 text-xs text-slate-400">
-        {t("sd.tableFooter")}
-      </p>
+      )}
+      {segments.length > 0 && (
+        <p className="mt-2 px-1 text-xs text-slate-400">
+          {t("sd.tableFooter")}
+        </p>
+      )}
     </div>
   );
 }

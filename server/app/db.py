@@ -60,6 +60,7 @@ def _migrate_add_indexes() -> None:
         # JSON-Feld (sensitivity_json); die früheren Einzel-*_personal-Spalten wieder entfernen.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pump_unit VARCHAR(8) DEFAULT 'hz'",
+        "ALTER TABLE foils ADD COLUMN IF NOT EXISTS specs_estimated BOOLEAN DEFAULT false",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS age_bracket VARCHAR(16)",
         # App-Caching: „zuletzt geändert" je Session (Backfill = created_at für Altbestand).
@@ -231,6 +232,7 @@ def _migrate_add_columns() -> None:
         "sessions": {
             "trim_start_ms": "INTEGER",
             "trim_end_ms": "INTEGER",
+            "excluded_ranges": "TEXT",
             "place_name": "VARCHAR(120)",
             "place_water": "VARCHAR(120)",
             "deleted": "BOOLEAN DEFAULT 0",

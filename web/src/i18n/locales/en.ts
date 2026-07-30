@@ -602,6 +602,14 @@ const en: Record<string, string> = {
   "sd.colGlide": "longest glide",
   "sd.farthestRunTitle": "farthest run",
   "sd.tableFooter": "Speeds in km/h. Smoothing switchable above (1/3/5 s). Click a row = show only that run on the map. ★ = farthest run.",
+  // Drop a run from the evaluation (e.g. forgot to stop and drove a stretch by car)
+  "sd.excludeRun": "Drop run",
+  "sd.excludeConfirm": "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time.",
+  "sd.excludedTitle": "{n} runs dropped",
+  "sd.excludedTitleOne": "1 run dropped",
+  "sd.excludedHint": "These time ranges do not count towards the evaluation (runs, foiling time, distance, pumps, records). The recording stays fully stored — reversible at any time.",
+  "sd.includeRun": "bring back",
+  "sd.excludeFail": "Could not be saved: ",
 
   "adm.title": "Admin",
   "adm.subtitle": "Moderation & management.",

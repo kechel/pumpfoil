@@ -172,6 +172,9 @@ class SessionOut(BaseModel):
     status: str
     trim_start_ms: int | None = None
     trim_end_ms: int | None = None
+    # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
+    # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.
+    excluded_ranges: list[list[int]] = []
     data_version: int | None = None   # epoch(s) „zuletzt geändert" — App-Caching (additiv)
     owned: bool = True   # gehört die Session dem aktuellen Nutzer? (Community = read-only)
     owner_name: str | None = None  # Anzeigename des Besitzers (für Community-Ansicht)
@@ -212,6 +215,17 @@ class SessionOut(BaseModel):
 class TrimIn(BaseModel):
     trim_start_ms: int | None = None
     trim_end_ms: int | None = None
+
+
+class ExcludeRunIn(BaseModel):
+    # Lauf-NUMMER (0-basiert, Index in der Lauf-Tabelle). Der Server schlägt daraus das
+    # Zeitfenster im gespeicherten Ergebnis nach und speichert das FENSTER — nie den Index.
+    run_index: int
+
+
+class IncludeRangeIn(BaseModel):
+    # Index in excluded_ranges (aus SessionOut) — dieses Fenster wieder aufnehmen.
+    range_index: int
 
 
 class SessionMetaIn(BaseModel):

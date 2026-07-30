@@ -626,6 +626,14 @@ const de: Record<string, string> = {
   "sd.colGlide": "längste Gleitphase",
   "sd.farthestRunTitle": "weitester Lauf",
   "sd.tableFooter": "Speeds in km/h. Glättung oben umschaltbar (1/3/5 s). Zeile anklicken = nur diesen Lauf auf der Karte. ★ = weitester Lauf.",
+  // Lauf aussortieren (z. B. Stoppen vergessen und ein Stück Auto gefahren)
+  "sd.excludeRun": "Lauf aussortieren",
+  "sd.excludeConfirm": "Diesen Lauf aus der Auswertung nehmen?\n\nEr zählt dann nicht mehr bei Läufen, Foil-Zeit, Distanz, Pumps und Rekorden. Die Aufnahme selbst bleibt vollständig gespeichert — du kannst den Lauf jederzeit wieder aufnehmen.",
+  "sd.excludedTitle": "{n} Läufe aussortiert",
+  "sd.excludedTitleOne": "1 Lauf aussortiert",
+  "sd.excludedHint": "Diese Zeitabschnitte zählen nicht in die Auswertung (Läufe, Foil-Zeit, Distanz, Pumps, Rekorde). Die Aufnahme bleibt vollständig gespeichert — jederzeit umkehrbar.",
+  "sd.includeRun": "wieder aufnehmen",
+  "sd.excludeFail": "Konnte nicht gespeichert werden: ",
 
   // Admin (nur de + en gepflegt; übrige Sprachen erben de)
   "adm.title": "Admin",

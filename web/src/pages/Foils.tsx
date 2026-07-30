@@ -73,6 +73,7 @@ export default function Foils() {
           <div className="text-xs text-slate-400">
             {f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_estimated ? "≈ " : ""}{f.thickness_mm} mm
             {f.thickness_estimated && <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-700 dark:text-amber-300" title={t("foils.estimatedHint")}>{t("foils.estimated")}</span>}
+            {f.specs_estimated && <span className="ml-1 rounded bg-orange-500/15 px-1 text-[10px] text-orange-700 dark:text-orange-300" title={t("foils.specsEstHint")}>{t("foils.specsEst")}</span>}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
