@@ -9,7 +9,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **VORBEREITET 2026-07-28 — gemeinsames Release aller Apps, wartet auf Jan (signieren + hochladen).**
+- **LIVE-STAND 2026-07-30** (loest die frueheren Stand-Zeilen weiter unten ab; `appmeta` ist auf
+  genau diese Werte gesetzt): **Garmin 1.0.69** im CIQ-Store freigegeben (29.7., auf Jans Uhr aus dem
+  Store getestet), **iOS + Apple Watch 1.1.18** von Apple freigegeben (29.7.), **Android Phone 1.1.17/31
+  + Wear 1.2.17/1027** im Play-Roll-out (29.7.). **Zepp 1.0.4/7 fehlt noch** — Build nur auf Jans Mac,
+  danach `appmeta`-Eintrag `zepp` setzen (ist absichtlich leer, solange nichts freigegeben ist, sonst
+  zeigt der Update-Hinweis auf eine Store-Seite ohne die Version).
+
+- **Naechste App-Runde: Aussortieren nachziehen.** In der PWA live seit 30.7.: einzelne Laeufe und
+  freie Zeitbereiche aus der Auswertung nehmen (`excluded_ranges`, `POST …/runs/exclude` mit
+  `run_index` ODER `start_ms`+`end_ms`, `POST …/runs/include`). Fehlt in Android + iOS; auf den Uhren
+  bewusst nicht (Korrektur der Auswertung im Nachhinein). Ebenfalls offen fuer beide Apps: das
+  Katalog-Kennzeichen „Masse abgeleitet" und der „Fehlt im Katalog?"-Weg zum Feedback. Tabelle:
+  `docs/PARITY-AUDIT.md`, Abschnitt „Stand 2026-07-30".
+
+- **ERLEDIGT 2026-07-28 — gemeinsames Release aller Apps (Historie).**
   Versionen im Repo gesetzt: **Android Phone 1.1.17/31**, **Wear 1.2.17/1027**, **iOS + Apple Watch
   1.1.18/22**, **Zepp 1.0.4/7**. Garmin bleibt bei 1.0.68 (unberührt).
   Dabei Phone und Wear auf dasselbe `x` (17) gebracht — das Schema will das (Memory
@@ -165,7 +179,40 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+
+### Stand 30.07.2026 — Aussortieren, Katalog, Detektor
+
+- [x] **Ø-Regel gegen Autofahrten**: ein Lauf muss auch im DURCHSCHNITT unter der Foil-Grenze
+      bleiben, nicht nur in der Spitze (`_gate_implausible_runs` in `analysis/gps.py`). Befund war
+      eine Session mit vergessener Stopp-Taste (Fahrt zwischen zwei Spots als „sehr guter Lauf").
+      Alle Sessions neu analysiert; Bestenlisten vorher/nachher verglichen (kein Rekord ist
+      unberechtigt weggefallen, nur der Gleit-Rekord hat gewechselt).
+- [x] **Laeufe und freie Zeitbereiche aussortieren** (`excluded_ranges`): Lauf-Tabelle + Zuschnitt-
+      Panel in der PWA, Besitzer oder Admin, Neuanalyse, umkehrbar. Der Fenster-Weg war noetig, weil
+      eine Autofahrt nach der Ø-Regel gar kein Lauf mehr ist und es sonst keinen Griff dafuer gaebe.
+- [x] **Lauf-Nummer traf beim Admin den falschen Lauf** (`_shown_runs` nahm immer das
+      Empfindlichkeits-Preset des Besitzers, der Admin sieht aber die kanonischen Laeufe).
+- [x] **Ketos im Foil-Katalog** (16 Eintraege) + zweites Kennzeichen „Masse abgeleitet"
+      (`specs_estimated`), wenn der Hersteller nur einen Teil der Zahlen veroeffentlicht.
+- [x] **„Fehlt im Katalog?" -> Feedback mit einem Klick** unter Foil- und Stab-Liste. Zweimal musste
+      ein Nutzer deswegen schreiben; die Liste sagte nirgends, dass man nachtragen lassen kann.
+
+Offen daraus:
+- [ ] **Aussortieren in Android + iOS nachziehen** (Vertrag siehe `docs/PARITY-AUDIT.md`,
+      Abschnitt „Stand 2026-07-30").
+- [ ] **Ketos KOBUN + Karve Freefly: Spannweite/Flaeche sind abgeleitet**, nicht vom Hersteller.
+      Beim Hersteller nachfragen und die Kennzeichnung dann entfernen.
+- [ ] **Kennzeichen „Masse abgeleitet" auch in Android + iOS** anzeigen (PWA hat es).
+
 - **FIT-Import: `accel_hz` behauptet 25 Hz, obwohl keine Accel-Daten dabei sind.** In
+  `sessions.py:317` steht `accel_hz = parsed["accel_hz"] or 25`; Suunto-FITs (und andere ohne
+  Rohbeschleunigung) liefern 0, gespeichert wird dann 25. Die Auswertung macht es richtig
+  (`detection=gps_only`, keine Pumps — sie bestimmt die echte Rate aus den Daten), nur der
+  gespeicherte Wert lügt und führt bei späteren Auswertungen „welche Plattform liefert Accel?"
+  in die Irre. Vorschlag: `NULL` statt 25, vorher prüfen, wo auf `accel_hz` verlassen wird.
+  Betrifft alle FIT-Wege (manueller Upload, Suunto, Polar), nicht nur Suunto. Befund 2026-07-28
+  an den ersten echten Suunto-Importen (#1007–#1009).
+
 ### Stand 29.07.2026 — Uhr-Layouts, Kadenz-Einheit, Type-Checker
 
 - [x] **Layout-Renderer Wear + Apple Watch**: Seiten-Drahtformat (getaggte Listen, nicht IDs),

@@ -2,7 +2,7 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-07-28** (gegen den Code abgeglichen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-07-30** (gegen den Code abgeglichen; der Abschnitt 07-28 bleibt als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
@@ -10,6 +10,25 @@ Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo
 Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
 Off-Foil, Einstellungen, i18n 10 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
 FIT-Import und die „Optimal"-Färbung.
+
+## Stand 2026-07-30 — neue Rueckstaende NACH dem Release
+
+Diese Punkte sind erst nach dem 07-28-Release entstanden, sind in der PWA live und in den Apps
+(noch) nicht — sie gehen also in die naechste Runde:
+
+| Feature | PWA | Android | iOS | Wear/Apple/Zepp |
+|---|---|---|---|---|
+| Lauf aussortieren (Lauf-Tabelle) | ✅ | ❌ | ❌ | 🌐 (Auswertung, nicht Aufnahme) |
+| Zeitbereich aussortieren (Zuschnitt-Panel) | ✅ | ❌ | ❌ | 🌐 |
+| Pump-Kadenz als Pumps/Minute (Konto-Einstellung) | ✅ | ✅ | ✅ | 🌐 |
+| Melde-/Klassifikations-Knoepfe ganz unten | ✅ | ✅ | ✅ | — |
+| Katalog-Kennzeichen „Masse abgeleitet" | ✅ | ❌ | ❌ | — |
+| „Fehlt im Katalog?" -> Feedback mit einem Klick | ✅ | ❌ | ❌ | — |
+
+Vertrag fuer das Aussortieren: `excluded_ranges` in `SessionOut` (`[[start_ms, end_ms], …]`, Basis wie
+`trim_*`), `POST /api/sessions/{id}/runs/exclude` mit `run_index` ODER `start_ms`+`end_ms`,
+`POST …/runs/include` mit `range_index`; Besitzer oder Admin, Server rechnet danach neu, umkehrbar.
+Auf den Uhren hat das nichts zu suchen: es ist eine Korrektur der AUSWERTUNG im Nachhinein.
 
 ## Stand 2026-07-28 — grosse Paritaets-Runde (Vorbereitung eines gemeinsamen Releases)
 
