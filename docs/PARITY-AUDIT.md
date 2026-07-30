@@ -18,8 +18,8 @@ Diese Punkte sind erst nach dem 07-28-Release entstanden, sind in der PWA live u
 
 | Feature | PWA | Android | iOS | Wear/Apple/Zepp |
 |---|---|---|---|---|
-| Lauf aussortieren (Lauf-Tabelle) | ✅ | ❌ | ❌ | 🌐 (Auswertung, nicht Aufnahme) |
-| Zeitbereich aussortieren (Zuschnitt-Panel) | ✅ | ❌ | ❌ | 🌐 |
+| Lauf aussortieren (Lauf-Tabelle) | ✅ | ✅ `2483c3a` | ✅ `0698b3c` | 🌐 (Auswertung, nicht Aufnahme) |
+| Zeitbereich aussortieren (Zuschnitt-Panel) | ✅ | ✅ `2483c3a` | ✅ `0698b3c` | 🌐 |
 | Pump-Kadenz als Pumps/Minute (Konto-Einstellung) | ✅ | ✅ | ✅ | 🌐 |
 | Melde-/Klassifikations-Knoepfe ganz unten | ✅ | ✅ | ✅ | — |
 | Katalog-Kennzeichen „Masse abgeleitet" | ✅ | ❌ | ❌ | — |

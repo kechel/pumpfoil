@@ -198,8 +198,10 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       ein Nutzer deswegen schreiben; die Liste sagte nirgends, dass man nachtragen lassen kann.
 
 Offen daraus:
-- [ ] **Aussortieren in Android + iOS nachziehen** (Vertrag siehe `docs/PARITY-AUDIT.md`,
-      Abschnitt „Stand 2026-07-30").
+- [x] **Aussortieren in Android + iOS nachgezogen** (`2483c3a` / `0698b3c`) — Android kompiliert,
+      iOS nur syntaxgeprueft, Jans Xcode-Build ist das Gate. Nebenbei gefixt: die Zuschnitt-Regler
+      starteten in beiden Apps immer bei 0…Dauer (in der PWA beim gespeicherten Zuschnitt), womit
+      "Bereich aussortieren" ungezogen die ganze Session vorgeschlagen haette.
 - [ ] **Ketos KOBUN + Karve Freefly: Spannweite/Flaeche sind abgeleitet**, nicht vom Hersteller.
       Beim Hersteller nachfragen und die Kennzeichnung dann entfernen.
 - [ ] **Kennzeichen „Masse abgeleitet" auch in Android + iOS** anzeigen (PWA hat es).
