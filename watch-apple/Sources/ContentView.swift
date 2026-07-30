@@ -116,6 +116,9 @@ struct RecordView: View {
     @State private var onFoilPages: [WatchPageRef] = []
     @State private var offFoilPages: [WatchPageRef] = []
     @State private var layoutsServerDefault = false
+    // Neueste im Store freigegebene Version (Server: appmeta._APP_META["apple"]). Das Feld kam schon
+    // in der Config an, wurde aber nirgends angezeigt — der Nutzer erfuhr nie von einem Update.
+    @State private var storeVersion = ""
     @AppStorage("layoutsPref") private var layoutsPrefRaw = 0   // 0 = auto, 1 = an, 2 = aus
     @State private var colorBy = false
     @State private var alarm = WatchAlarm()
@@ -289,11 +292,30 @@ struct RecordView: View {
         .onTapGesture { showFoilPicker = true }   // ganzer Kopfbereich -> Einstellungen
     }
 
+    // Update-Hinweis sprachneutral wie bei Zepp und Wear: "v1.1.18 → 1.1.19" in Cyan. Kein eigener
+    // Text, also keine 15 Uebersetzungen.
     @ViewBuilder private var versionLine: some View {
         let v: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         if let v {
-            Text("v\(v)").font(.caption2).foregroundStyle(.secondary)
+            let neuer: Bool = istNeuer(storeVersion, v)
+            Text(neuer ? "v\(v) → \(storeVersion)" : "v\(v)")
+                .font(.caption2)
+                .foregroundStyle(neuer ? Color.cyan : Color.secondary)
         }
+    }
+
+    /// Ist die Store-Version echt neuer? Zahlenweise, damit ein Entwicklungs-Build keinen
+    /// Rueckschritt anzeigt.
+    private func istNeuer(_ store: String, _ lokal: String) -> Bool {
+        guard !store.isEmpty, !lokal.isEmpty else { return false }
+        let a: [Int] = store.split(separator: ".").compactMap { Int($0) }
+        let b: [Int] = lokal.split(separator: ".").compactMap { Int($0) }
+        for i in 0..<max(a.count, b.count) {
+            let x: Int = i < a.count ? a[i] : 0
+            let y: Int = i < b.count ? b[i] : 0
+            if x != y { return x > y }
+        }
+        return false
     }
 
     // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln (z. B. im
@@ -583,6 +605,7 @@ struct RecordView: View {
         // Layout-Paket. Die Seiten tragen ihre Definition INLINE (Tag-Byte, s. WatchLayoutRender);
         // fehlt das Paket, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
         layoutsServerDefault = c.layoutsOn ?? false
+        storeVersion = c.latestVersion ?? ""
         onFoilPages = (c.pages?.compactMap { WatchPageRef($0) }) ?? views.map { WatchPageRef.classic($0) }
         offFoilPages = (c.offFoilPages?.compactMap { WatchPageRef($0) })
             ?? [WatchPageRef.classic(c.offFoilView ?? offFoil)]

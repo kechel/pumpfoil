@@ -182,9 +182,14 @@ class MainActivity : ComponentActivity() {
         var offFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
         var layoutsPref by remember { mutableStateOf(LocalStore.layoutsPref(ctx)) }   // null = automatisch
         var layoutsServerDefault by remember { mutableStateOf(false) }
+        // Neueste im Store freigegebene Version (Server: appmeta._APP_META["wear"]). Leer = kein
+        // Hinweis. Bis 2026-07-30 fragte die Wear-App das Feld gar nicht ab, obwohl der Server es
+        // mitschickt — der Nutzer erfuhr also nie von einem Update.
+        var storeVersion by remember { mutableStateOf("") }
 
         fun applyConfig(c: JSONObject) {
             if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
+            storeVersion = c.optString("latestVersion", "")
             val vs = c.optJSONArray("views")
             if (vs != null && vs.length() > 0) {
                 views = (0 until vs.length()).map { i ->
@@ -530,7 +535,14 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text("Pumpfoil", style = MaterialTheme.typography.title3)
-                    Text("v" + appVersion(ctx), style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                    // Update-Hinweis sprachneutral wie bei Zepp: "v1.2.17 → 1.2.18" in Cyan.
+                    // Kein eigener Text, also auch keine 15 Uebersetzungen.
+                    val neuer = istNeuer(storeVersion, appVersion(ctx))
+                    Text(
+                        if (neuer) "v" + appVersion(ctx) + " → " + storeVersion else "v" + appVersion(ctx),
+                        style = MaterialTheme.typography.caption2,
+                        color = if (neuer) Color(0xFF22D3EE) else Color(0xFF94A3B8),
+                    )
                     // Vorlauf: grau + Countdown, damit man Zeit hat, in die Einstellungen zu wechseln.
                     // Erst wenn scharf -> cyan „Auto-Start aktiv".
                     if (autoStart && !s.starting) {
@@ -1032,6 +1044,19 @@ private fun vibrator(ctx: Context): android.os.Vibrator =
     if (Build.VERSION.SDK_INT >= 31)
         (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
     else @Suppress("DEPRECATION") (ctx.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator)
+
+// Ist `store` echt neuer als `lokal`? Zahlenweise, damit ein Entwicklungs-Build (hoehere Version
+// als der Store) keinen Rueckschritt anzeigt — Zepp vergleicht nur auf Ungleichheit.
+private fun istNeuer(store: String, lokal: String): Boolean {
+    if (store.isBlank() || lokal.isBlank()) return false
+    val a = store.split(".").mapNotNull { it.toIntOrNull() }
+    val b = lokal.split(".").mapNotNull { it.toIntOrNull() }
+    for (i in 0 until maxOf(a.size, b.size)) {
+        val x = a.getOrElse(i) { 0 }; val y = b.getOrElse(i) { 0 }
+        if (x != y) return x > y
+    }
+    return false
+}
 
 private fun appVersion(ctx: Context): String =
     try { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "" } catch (_: Exception) { "" }
