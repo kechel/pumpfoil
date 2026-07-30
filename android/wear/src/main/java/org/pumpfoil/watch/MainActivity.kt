@@ -1058,7 +1058,9 @@ private fun istNeuer(store: String, lokal: String): Boolean {
     return false
 }
 
-private fun appVersion(ctx: Context): String =
+// internal (nicht private): auch der Recorder braucht die Version fürs Session-Meta.
+// Einzige Quelle bleibt versionName aus dem Manifest/Gradle — nie hart schreiben.
+internal fun appVersion(ctx: Context): String =
     try { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "" } catch (_: Exception) { "" }
 
 private fun vibrate(ctx: Context, ms: Long) {

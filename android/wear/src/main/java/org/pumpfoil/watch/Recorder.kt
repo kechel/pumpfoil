@@ -179,6 +179,11 @@ object Recorder {
             .put("gps_hz", 1)
             .put("accel_hz", accelHzActual)
             .put("accel_scale", ACCEL_SCALE.toInt())
+        // Eigene App-Version zur Session (Server: sessions.app_version). Zum Aufnahmezeitpunkt in
+        // meta.json festgeschrieben -> ein spät hochgeladener Alt-Mitschnitt behält die Version, mit
+        // der er aufgenommen wurde (der Fallback über DeviceToken.app_version wäre dann schon weiter).
+        // Leerer Wert würde die Server-Prüfung verletzen -> weglassen.
+        appVersion(ctx).takeIf { it.isNotBlank() }?.let { meta.put("app_version", it) }
         sessionFoilId?.let { meta.put("foil_id", it) }   // gewählte Foil (Metadaten), unabhängig vom Alarm
         LocalStore.writeMeta(ctx, uuid, meta)
         running = true

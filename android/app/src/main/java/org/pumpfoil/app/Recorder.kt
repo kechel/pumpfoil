@@ -176,6 +176,10 @@ object Recorder {
             .put("accel_scale", ACCEL_SCALE.toInt())
             .put("placement", "phone")          // für spätere Handy-spezifische Analyse (Hüfte/Tasche)
             .put("device_model", deviceModel())  // Modell + OS — nur zur Fehlersuche
+        // Eigene App-Version zur Session (Server: sessions.app_version). Wird zum Aufnahmezeitpunkt
+        // in meta.json festgeschrieben -> ein spät hochgeladener Alt-Mitschnitt behält die Version,
+        // mit der er aufgenommen wurde. Leerer Wert würde die Server-Prüfung verletzen -> weglassen.
+        BuildConfig.VERSION_NAME.takeIf { it.isNotBlank() }?.let { meta.put("app_version", it) }
         sessionFoilId?.let { meta.put("foil_id", it) }
         RecStore.writeMeta(ctx, uuid, meta)
         running = true

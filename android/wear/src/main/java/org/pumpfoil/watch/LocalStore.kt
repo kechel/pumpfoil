@@ -10,7 +10,7 @@ import java.io.File
 // Pairing aufnehmen und die Sessions nachträglich synchronisieren.
 //
 // Layout:  filesDir/sessions/<uuid>/
-//            meta.json        {session_uuid, started_at, sport, gps_hz, accel_hz, accel_scale}
+//            meta.json        {session_uuid, started_at, sport, gps_hz, accel_hz, accel_scale, app_version}
 //            chunk-000000.json  {index, kind, encoding, t0_ms, count, data}
 //            ...
 //            complete.json    {ended_at, total_chunks}   (erst beim Stop -> "fertig aufgezeichnet")
