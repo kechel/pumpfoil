@@ -22,8 +22,13 @@ DEFAULTS = {
     "auto_start": True,
     # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
     "record_mode": "full",
-    # Aktivitätstyp der Garmin-FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
-    "activity_type": "surfing",
+    # Aktivitätstyp der Garmin-FIT-Session (Garmin-Connect-Kategorie): pumpfoil | surfing | openwater.
+    # Default "pumpfoil" (generic + Freiwasser-SubSport + Name "Pumpfoil") — so steht es seit dem
+    # 20.07.2026 auch im Changelog ("set as the default for everyone"). Der Default hier war aber
+    # weiter "surfing": die 103 bestehenden Nutzer bekamen den Wert per Backfill gesetzt, alle
+    # OHNE Eintrag (44, u. a. alle neu registrierten) fielen weiter auf Surfen zurück. Genau das
+    # hat ein Nutzer gemeldet ("your app says surfing ... could you change it to pumpfoil?").
+    "activity_type": "pumpfoil",
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,

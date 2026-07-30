@@ -159,7 +159,7 @@ def device_config(
         # explizites 'gps' bleibt) — verhindert den Absturz. Kein Uhr-Update nötig.
         "recordMode": _effective_record_mode(device, settings),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
-        "activityType": settings.get("activity_type", "surfing"),
+        "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
         # Ist KEINE Profil-Sprache gesetzt, "" senden (nicht hart "de") → die Uhr weicht auf ihre
         # GERÄTE-Systemsprache aus (Strings.setLang("")→_systemIdx, Fallback EN). Wunsch: engl. Uhr = engl. App.
