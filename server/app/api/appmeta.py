@@ -35,23 +35,55 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
     }
 
 # ---- MANUELL PFLEGEN nach jedem Store-Release (siehe Modul-Docstring) ----
+#
+# WICHTIG — die Schluessel sind die Plattform-Strings, mit denen die Clients anfragen:
+#   Handy-Apps: GET /api/app/latest?platform=ios|android
+#   Uhr-Apps:   GET /api/devices/config?p=garmin|wear|apple|zepp  -> devices.py:190 liest
+#               _APP_META[p]["latest"] und schickt es als "latestVersion" mit.
+# Fehlt ein Schluessel, liefert der Server "" = KEIN Hinweis. Genau das war bis 2026-07-29 der
+# Fall fuer wear, apple und zepp: die drei Uhren fragten an, bekamen aber immer leer zurueck.
+#
+# REGEL: `latest` NUR auf eine im jeweiligen Store WIRKLICH FREIGEGEBENE Version setzen. Sonst
+# schickt der Hinweis Nutzer auf eine Store-Seite, die die Version noch nicht ausliefert.
 _APP_META: dict[str, dict[str, str]] = {
+    # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.17",    # FREIGEGEBEN 2026-07-25 (Apple-Watch Upload-Fix; Submission d81673ce, propagiert bis 24 h)
+        "latest": "1.1.18",   # FREIGEGEBEN 2026-07-29 (Apple: "ready for distribution"); Propagation bis 24 h
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "android": {
-        "latest": "1.1.14",    # LIVE im Play Store 2026-07-25 (Produktion; Phone vc30). Wear 1.2.16/vc1026 separat live.
+        "latest": "1.1.17",   # Play-Roll-out 2026-07-29 (Phone, versionCode 31)
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
+    # --- Uhr-Apps (fragen ueber /api/devices/config an, s. oben) ---
     "garmin": {
-        # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Prüfung durch)!
-        # Leer = kein Update-Hinweis auf der Uhr. Die Garmin-App vergleicht das mit Config.VERSION.
-        "latest": "1.0.68",   # LIVE im CIQ-Store 2026-07-27 (Halten zum Stoppen: 2 s statt 3 s)
+        # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
+        # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
+        "latest": "1.0.69",   # LIVE im CIQ-Store 2026-07-29 (Pausiert-Hinweis nur bei echter Pause)
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
+    },
+    "wear": {
+        # EIGENE Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x, s. android/wear/build.gradle.kts).
+        # Vorher fehlte dieser Schluessel -> die Wear-Uhr bekam nie einen Hinweis.
+        "latest": "1.2.17",   # Play-Roll-out 2026-07-29 (Wear, versionCode 1027)
+        "min_supported": "",
+        "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
+    },
+    "apple": {
+        # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
+        "latest": "1.1.18",   # FREIGEGEBEN 2026-07-29 mit der iOS-App
+        "min_supported": "",
+        "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
+    },
+    "zepp": {
+        # BEWUSST LEER: 1.0.4 (code 7) liegt bei Zepp noch in der Pruefung. Erst nach Freigabe
+        # setzen — sonst zeigt die Uhr ein Update an, das im Store nicht abrufbar ist.
+        "latest": "",
+        "min_supported": "",
+        "store_url": "",
     },
 }
 
