@@ -778,7 +778,10 @@ enum Api {
 
     // Client-Kennung: Plattform/Version -> Server gated Video-Plattformen (IG/TikTok erst ab
     // App-Version mit Anzeige; bis dahin nur YouTube). Siehe server/app/videos.py.
-    static let clientId: String = "ios/" + ((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "0")
+    /// Eigene App-Version (CFBundleShortVersionString aus dem Bundle) — EINE Quelle für
+    /// Client-Kennung, Session-Start (app_version) und Versions-Meldung am Device-Token.
+    static let appVersion: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
+    static let clientId: String = "ios/" + (appVersion.isEmpty ? "0" : appVersion)
 
     /// Aufruf ohne Rueckgabewert (JSON-Body optional). Die Datei baut solche Requests bisher
     /// jedes Mal von Hand -- dieser Helfer fasst das zusammen, damit neue Aufrufe kurz bleiben.

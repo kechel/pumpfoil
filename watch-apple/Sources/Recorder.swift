@@ -128,6 +128,10 @@ final class Recorder: NSObject, ObservableObject {
             "accel_scale": Int(Self.accelScale),
         ]
         if let foilId { meta["foil_id"] = foilId }   // für diese Session gewähltes Foil (Server-Override)
+        // Version, mit der aufgenommen wurde (wandert mit der Session, auch wenn der Upload
+        // erst nach einem App-Update passiert). Leerer Wert würde die Server-Validierung
+        // verletzen -> nur setzen, wenn das Bundle sie liefert.
+        if !Api.appVersion.isEmpty { meta["app_version"] = Api.appVersion }
         LocalStore.writeMeta(uuid, meta)
         startWorkout()
         startSensors()

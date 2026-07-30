@@ -91,8 +91,34 @@ enum PhoneIngest {
         return nil
     }
 
+    // Version + Plattform am Device-Token melden — dasselbe `?v=…&p=…` wie die Uhr-Recorder.
+    // Der Handy-Recorder braucht die Uhr-Config nicht (Antwort wird verworfen); es geht nur
+    // darum, dass der Server die Version des Geräts kennt (Geräteliste + Fallback, falls eine
+    // Session ohne app_version ankommt). Einmal pro App-Lauf, Fehler sind egal.
+    private static var versionReported = false
+    static func reportVersion() async {
+        if versionReported { return }
+        guard let t = deviceToken else { return }
+        let v: String = Api.appVersion
+        if v.isEmpty { return }
+        let enc: String = v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v
+        let path: String = "/api/devices/config?p=ios&v=" + enc
+        guard let url = URL(string: Api.baseURL + path) else { return }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 10
+        req.setValue(t, forHTTPHeaderField: "X-Device-Token")
+        versionReported = true
+        _ = try? await URLSession.shared.data(for: req)
+    }
+
     static func startSession(_ meta: [String: Any]) async throws -> [String: Any] {
-        try await post("/api/ingest/session", meta)
+        // App-Version DIESER Aufnahme mitschicken. Neue Aufnahmen haben sie schon in meta.json;
+        // für Aufnahmen aus älteren Builds hier nachgezogen.
+        var m: [String: Any] = meta
+        if m["app_version"] == nil, !Api.appVersion.isEmpty {
+            m["app_version"] = Api.appVersion
+        }
+        return try await post("/api/ingest/session", m)
     }
     static func uploadChunk(_ uuid: String, _ chunk: [String: Any]) async throws {
         _ = try await post("/api/ingest/session/\(uuid)/chunk", chunk)

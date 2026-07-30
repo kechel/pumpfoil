@@ -103,6 +103,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             "device_model": Self.deviceModel(),
         ]
         if let f = sessionFoilId { meta["foil_id"] = f }
+        // Version, mit der aufgenommen wurde (bleibt an der Session, auch wenn der Upload erst
+        // nach einem App-Update läuft). Leerer Wert würde die Server-Validierung verletzen.
+        if !Api.appVersion.isEmpty { meta["app_version"] = Api.appVersion }
         Store.writeMeta(uuid, meta)
         recording = true; status = "Aufnahme läuft"; pendingCount = Store.pendingCount()
         elapsedSec = 0; speedKmh = 0; distanceM = 0; runCount = 0; isFoiling = false; track = []
@@ -288,6 +291,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         pendingCount = Store.pendingCount()
         guard pendingCount > 0 else { return }
         guard let _ = await PhoneIngest.ensureToken() else { uploadError = "offline"; return }
+        await PhoneIngest.reportVersion()   // Version/Plattform am Device-Token melden (einmal pro Lauf)
         uploadError = ""
         for dir in Store.completedSessions() {
             do { try await uploadSession(dir) }

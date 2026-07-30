@@ -31,6 +31,9 @@ enum Api {
         get { UserDefaults.standard.string(forKey: "deviceToken") }
         set { UserDefaults.standard.setValue(newValue, forKey: "deviceToken") }
     }
+    /// Eigene App-Version (CFBundleShortVersionString aus dem Bundle) — EINE Quelle für
+    /// Config-Abruf (v=) und Session-Start (app_version). Leer, falls im Bundle nicht gesetzt.
+    static let appVersion: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
 
     struct PairResponse: Decodable { let device_token: String; let user_id: Int }
     struct StartResponse: Decodable { let session_id: Int; let received_chunks: [Int] }
@@ -108,7 +111,7 @@ enum Api {
     /// (derselbe Parameter wie bei Garmin; auf watchOS gibt es keine Speichergrenze).
     static func deviceConfig(wantLayouts: Bool = true) async throws -> DeviceConfig {
         // Version + Plattform melden -> Update-Hinweis im Web.
-        let v = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
+        let v: String = appVersion
         let lay = wantLayouts ? "&lay=1" : ""
         let q = (v.isEmpty ? "?p=apple"
             : "?v=\(v.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? v)&p=apple") + lay
@@ -125,7 +128,13 @@ enum Api {
     }
 
     static func startSession(_ body: [String: Any]) async throws -> StartResponse {
-        try await post("/api/ingest/session", body)
+        // App-Version DIESER Aufnahme mitschicken. Neue Aufnahmen haben sie schon in meta.json
+        // (Version zum Aufnahmezeitpunkt); für Aufnahmen aus älteren Builds hier nachgezogen.
+        var b: [String: Any] = body
+        if b["app_version"] == nil, !appVersion.isEmpty {
+            b["app_version"] = appVersion
+        }
+        return try await post("/api/ingest/session", b)
     }
 
     static func uploadChunk(_ uuid: String, _ body: [String: Any]) async throws {
