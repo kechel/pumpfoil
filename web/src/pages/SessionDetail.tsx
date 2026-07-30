@@ -1820,11 +1820,25 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
     }
   }
 
+  // Denselben Bereich AUSSORTIEREN statt zuschneiden: nötig, wenn der Störteil mitten in der
+  // Aufnahme liegt (Fahrt zwischen zwei Spots) — der Trim kann nur Anfang/Ende abschneiden.
+  async function excludeRange() {
+    if (!confirm(t("sd.excludeRangeConfirm", { from: fmtMMSS(a), to: fmtMMSS(Math.min(b, totalSec)) }))) return;
+    setSaving(true);
+    try {
+      onSaved(await api.excludeRange(session.id, a * 1000, Math.min(b, totalSec) * 1000));
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Card className="space-y-4 p-4">
-      <p className="text-xs text-slate-300">
+      <p className="text-sm text-slate-300">
         {t("sd.trimHint", { total: fmtMMSS(totalSec) })}
       </p>
+      <p className="text-sm text-slate-300">{t("sd.excludeRangeHint")}</p>
       <label className="block text-sm text-slate-200">
         {t("sd.start")} <span className="tabular-nums text-slate-100">{fmtMMSS(a)}</span>
         <input type="range" min={0} max={totalSec} value={a}
@@ -1841,6 +1855,10 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
         <button disabled={saving} onClick={() => apply(false)}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {saving ? "…" : t("sd.saveReanalyze")}
+        </button>
+        <button disabled={saving} onClick={excludeRange}
+          className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+          {t("sd.excludeRange")}
         </button>
         {trimmed && (
           <button disabled={saving} onClick={() => apply(true)}

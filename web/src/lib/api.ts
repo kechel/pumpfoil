@@ -876,6 +876,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ run_index }),
     }),
+  // Freies Zeitfenster aussortieren (ms ab Session-Start, gleiche Basis wie der Trim). Für
+  // Abschnitte, die KEIN Lauf sind — eine Autofahrt zwischen zwei Spots zählt der Detektor
+  // nicht als Lauf, verfälscht aber Gesamtstrecke/Höchstgeschwindigkeit/Karte.
+  excludeRange: (id: number, start_ms: number, end_ms: number) =>
+    req<SessionSummary>(`/api/sessions/${id}/runs/exclude`, {
+      method: "POST",
+      body: JSON.stringify({ start_ms, end_ms }),
+    }),
   includeRun: (id: number, range_index: number) =>
     req<SessionSummary>(`/api/sessions/${id}/runs/include`, {
       method: "POST",

@@ -603,6 +603,9 @@ const en: Record<string, string> = {
   "sd.farthestRunTitle": "farthest run",
   "sd.tableFooter": "Speeds in km/h. Smoothing switchable above (1/3/5 s). Click a row = show only that run on the map. ★ = farthest run.",
   // Drop a run from the evaluation (e.g. forgot to stop and drove a stretch by car)
+  "sd.excludeRange": "Exclude range",
+  "sd.excludeRangeConfirm": "Exclude {from}–{to} from the analysis? The recording is kept, this is reversible.",
+  "sd.excludeRangeHint": "If the part to remove sits in the middle of the recording (e.g. driving between two spots), exclude the selected range instead — everything before and after stays in the analysis.",
   "sd.excludeRun": "Drop run",
   "sd.excludeConfirm": "Drop this run from the evaluation?\n\nIt will no longer count towards runs, foiling time, distance, pumps and records. The recording itself stays fully stored — you can bring the run back at any time.",
   "sd.excludedTitle": "{n} runs dropped",

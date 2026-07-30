@@ -218,9 +218,17 @@ class TrimIn(BaseModel):
 
 
 class ExcludeRunIn(BaseModel):
-    # Lauf-NUMMER (0-basiert, Index in der Lauf-Tabelle). Der Server schlägt daraus das
-    # Zeitfenster im gespeicherten Ergebnis nach und speichert das FENSTER — nie den Index.
-    run_index: int
+    # Zwei Wege, genau einer muss gesetzt sein:
+    # a) Lauf-NUMMER (0-basiert, Index in der Lauf-Tabelle). Der Server schlägt daraus das
+    #    Zeitfenster im gespeicherten Ergebnis nach und speichert das FENSTER — nie den Index.
+    # b) freies Zeitfenster [start_ms, end_ms] (ms ab Session-Start, gleiche Basis wie trim_*).
+    #    Nötig, weil der zu entfernende Teil KEIN Lauf sein muss: eine Autofahrt zwischen zwei
+    #    Spots wird vom Detektor (Ø-/Max-Grenze) gar nicht als Lauf gezählt, verfälscht aber
+    #    weiterhin Gesamtstrecke, Höchstgeschwindigkeit und Karte. Ohne diesen Weg gäbe es für
+    #    genau den Fall, für den das Aussortieren gebaut wurde, keinen Griff.
+    run_index: int | None = None
+    start_ms: int | None = None
+    end_ms: int | None = None
 
 
 class IncludeRangeIn(BaseModel):

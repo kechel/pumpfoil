@@ -1396,18 +1396,30 @@ def exclude_run(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
-    """Einen Lauf dauerhaft aus der Auswertung nehmen (Besitzer ODER Admin). Der Client
-    schickt die Lauf-NUMMER, gespeichert wird deren ZEITFENSTER — ein Index wäre nach der
-    nächsten Neuanalyse ein anderer Lauf. Danach wird neu analysiert, damit Läufe/Foil-Zeit/
-    Distanz/Pumps/Rekorde stimmen. Kein Datenverlust: die Rohdaten bleiben, umkehrbar."""
+    """Einen Lauf ODER ein freies Zeitfenster dauerhaft aus der Auswertung nehmen (Besitzer
+    ODER Admin). Beim Lauf schickt der Client die Lauf-NUMMER, gespeichert wird deren
+    ZEITFENSTER — ein Index wäre nach der nächsten Neuanalyse ein anderer Lauf. Danach wird
+    neu analysiert, damit Läufe/Foil-Zeit/Distanz/Pumps/Rekorde stimmen. Kein Datenverlust:
+    die Rohdaten bleiben, umkehrbar."""
     s = _owned_or_admin(db, user, session_id)
-    runs = _shown_runs(s)
-    if body.run_index < 0 or body.run_index >= len(runs):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found")
-    seg = runs[body.run_index]
-    off = s.trim_start_ms or 0   # Segment-Zeiten sind auf den Trim-Beginn re-based
-    a = max(int(seg["t_start_ms"]) + off - EXCLUDE_MARGIN_MS, 0)
-    b = int(seg["t_end_ms"]) + off + EXCLUDE_MARGIN_MS
+    if (body.run_index is None) == (body.start_ms is None and body.end_ms is None):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Either run_index or start_ms+end_ms")
+
+    if body.run_index is not None:
+        runs = _shown_runs(s)
+        if body.run_index < 0 or body.run_index >= len(runs):
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found")
+        seg = runs[body.run_index]
+        off = s.trim_start_ms or 0   # Segment-Zeiten sind auf den Trim-Beginn re-based
+        a = max(int(seg["t_start_ms"]) + off - EXCLUDE_MARGIN_MS, 0)
+        b = int(seg["t_end_ms"]) + off + EXCLUDE_MARGIN_MS
+    else:
+        # Freies Fenster: kommt schon in Session-Koordinaten (wie trim_*), also KEIN Offset.
+        if body.start_ms is None or body.end_ms is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "start_ms and end_ms required")
+        a, b = max(int(body.start_ms), 0), int(body.end_ms)
+        if b - a < 1000:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Range too short")
     return _save_excluded(db, s, _add_window(excluded_windows(s), a, b))
 
 

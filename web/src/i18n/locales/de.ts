@@ -627,6 +627,9 @@ const de: Record<string, string> = {
   "sd.farthestRunTitle": "weitester Lauf",
   "sd.tableFooter": "Speeds in km/h. Glättung oben umschaltbar (1/3/5 s). Zeile anklicken = nur diesen Lauf auf der Karte. ★ = weitester Lauf.",
   // Lauf aussortieren (z. B. Stoppen vergessen und ein Stück Auto gefahren)
+  "sd.excludeRange": "Bereich aussortieren",
+  "sd.excludeRangeConfirm": "Zeitbereich {from}–{to} aus der Auswertung nehmen? Die Aufnahme bleibt gespeichert, umkehrbar.",
+  "sd.excludeRangeHint": "Liegt der Störteil mitten in der Aufnahme (z. B. Autofahrt zwischen zwei Spots), kannst du den gewählten Bereich stattdessen aussortieren — der Rest davor und danach bleibt in der Auswertung.",
   "sd.excludeRun": "Lauf aussortieren",
   "sd.excludeConfirm": "Diesen Lauf aus der Auswertung nehmen?\n\nEr zählt dann nicht mehr bei Läufen, Foil-Zeit, Distanz, Pumps und Rekorden. Die Aufnahme selbst bleibt vollständig gespeichert — du kannst den Lauf jederzeit wieder aufnehmen.",
   "sd.excludedTitle": "{n} Läufe aussortiert",
