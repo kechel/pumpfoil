@@ -53,7 +53,12 @@ _APP_META: dict[str, dict[str, str]] = {
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "android": {
-        "latest": "1.1.17",   # Play-Roll-out 2026-07-29 (Phone, versionCode 31)
+        # LIVE im Play Store 2026-07-25 (Produktion; Phone versionCode 30).
+        # 1.1.17/vc31 ist am 29.07. EINGEREICHT und noch in Pruefung -> hier erst eintragen, wenn die
+        # Freigabe da UND der Roll-out bei 100 % ist. Warum das strikt gilt: am 29.07. stand hier
+        # schon 1.1.17, und ein Nutzer mit 1.1.14 bekam den Hinweis auf ein Update, das Play ihm gar
+        # nicht anbot ("update button just opens google play and does not offer nor start update").
+        "latest": "1.1.14",
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
@@ -68,7 +73,9 @@ _APP_META: dict[str, dict[str, str]] = {
     "wear": {
         # EIGENE Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x, s. android/wear/build.gradle.kts).
         # Vorher fehlte dieser Schluessel -> die Wear-Uhr bekam nie einen Hinweis.
-        "latest": "1.2.17",   # Play-Roll-out 2026-07-29 (Wear, versionCode 1027)
+        # LIVE im Play Store (Wear, versionCode 1026 = 1.2.16; gegen build.gradle.kts geprueft).
+        # 1.2.17/vc1027 am 29.07. eingereicht, noch in Pruefung -> s. Kommentar bei "android".
+        "latest": "1.2.16",
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
