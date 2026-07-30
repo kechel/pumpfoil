@@ -442,6 +442,33 @@ object Api {
         http("PUT", "/api/sessions/$id/trim", body, auth = true)
     }
 
+    // ---- Lauf / Zeitbereich aussortieren (Besitzer oder Admin) -------------------------------
+    // Der Server speichert das ZEITFENSTER (nicht den Index) und rechnet die Session danach neu;
+    // die Antwort ist die komplette, frische Session (wie GET /api/sessions/{id}). Rohdaten
+    // bleiben liegen, alles umkehrbar (includeRange).
+
+    /** Einen Lauf aus der Auswertung nehmen. runIndex = 0-basierte Zeile der Lauf-Tabelle,
+     *  die DIESER Nutzer sieht. */
+    suspend fun excludeRun(id: Int, runIndex: Int): SessionDetail = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("run_index", runIndex) }.toString()
+        json.decodeFromString(SessionDetail.serializer(),
+            http("POST", "/api/sessions/$id/runs/exclude", body, auth = true))
+    }
+
+    /** Freies Zeitfenster aussortieren; startMs/endMs sind ms ab Session-Start (wie trim_*). */
+    suspend fun excludeRange(id: Int, startMs: Long, endMs: Long): SessionDetail = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("start_ms", startMs); put("end_ms", endMs) }.toString()
+        json.decodeFromString(SessionDetail.serializer(),
+            http("POST", "/api/sessions/$id/runs/exclude", body, auth = true))
+    }
+
+    /** Aussortiertes Fenster wieder aufnehmen; rangeIndex = Position in excluded_ranges. */
+    suspend fun includeRange(id: Int, rangeIndex: Int): SessionDetail = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("range_index", rangeIndex) }.toString()
+        json.decodeFromString(SessionDetail.serializer(),
+            http("POST", "/api/sessions/$id/runs/include", body, auth = true))
+    }
+
     suspend fun spots(accelOnly: Boolean = true): SpotsList = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly", null, auth = true))
     }

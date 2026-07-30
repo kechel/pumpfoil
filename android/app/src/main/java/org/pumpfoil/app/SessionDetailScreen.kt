@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Share
@@ -132,6 +133,9 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var linkCopied by remember { mutableStateOf(false) }
     var trimStart by remember { mutableStateOf(0f) }
     var trimEnd by remember { mutableStateOf(0f) }
+    // Zeitbereich aussortieren (dieselben zwei Regler wie der Zuschnitt) — Rückfrage vor dem Senden.
+    var askExcludeRange by remember { mutableStateOf(false) }
+    var excludeErr by remember { mutableStateOf<String?>(null) }
     var reloadTick by remember { mutableStateOf(0) }
     // In der Detailansicht ausgewählter Lauf -> Teilen-Dialog übernimmt ihn als Vorauswahl (#37).
     var shareRun by remember(id) { mutableStateOf<Int?>(null) }
@@ -187,11 +191,19 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             onDismissRequest = { showTrim = false },
             title = { Text(I18n.t("sd.trim")) },
             text = {
-                Column {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
                     Text("${I18n.t("common.start")}: ${mmss(trimStart)}")
                     Slider(value = trimStart, onValueChange = { trimStart = it.coerceIn(0f, (trimEnd - 1).coerceAtLeast(0f)) }, valueRange = 0f..durSec)
                     Text("${I18n.t("common.end")}: ${mmss(trimEnd)}")
                     Slider(value = trimEnd, onValueChange = { trimEnd = it.coerceIn(trimStart + 1, durSec) }, valueRange = 0f..durSec)
+                    // Denselben Bereich AUSSORTIEREN statt zuschneiden (wie PWA TrimPanel): nötig,
+                    // wenn der Störteil mitten in der Aufnahme liegt — der Trim kann nur vorne/hinten weg.
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("sd.excludeRangeHint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { showTrim = false; askExcludeRange = true }) {
+                        Text(I18n.t("sd.excludeRange"))
+                    }
                     TextButton(onClick = {
                         showTrim = false
                         scope.launch { try { Api.setTrim(id, null, null); reloadTick++ } catch (_: Exception) {} }
@@ -207,6 +219,38 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 }) { Text(I18n.t("sd.apply")) }
             },
             dismissButton = { TextButton(onClick = { showTrim = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    // Rückfrage „Bereich aussortieren" — der Bereich steht in trimStart/trimEnd (Regler bleiben stehen).
+    if (askExcludeRange) {
+        AlertDialog(
+            onDismissRequest = { askExcludeRange = false },
+            title = { Text(I18n.t("sd.excludeRange")) },
+            text = {
+                Text(I18n.t("sd.excludeRangeConfirm")
+                    .replace("{from}", mmss(trimStart))
+                    .replace("{to}", mmss(trimEnd)),
+                    style = MaterialTheme.typography.bodyMedium)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    askExcludeRange = false
+                    scope.launch {
+                        try {
+                            val fresh = Api.excludeRange(id, (trimStart * 1000).toLong(), (trimEnd * 1000).toLong())
+                            SessionCache.store(fresh); reloadTick++
+                        } catch (e: Exception) { excludeErr = I18n.t("sd.excludeFail") + (e.message ?: "") }
+                    }
+                }) { Text(I18n.t("sd.excludeRange")) }
+            },
+            dismissButton = { TextButton(onClick = { askExcludeRange = false }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    excludeErr?.let { msg ->
+        AlertDialog(
+            onDismissRequest = { excludeErr = null },
+            text = { Text(msg, style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = { TextButton(onClick = { excludeErr = null }) { Text(I18n.t("common.close")) } },
         )
     }
 
@@ -302,7 +346,12 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ },
                     social = social,
                     canTrim = (s.owned && durSec > 1f),
-                    onTrim = { trimStart = 0f; trimEnd = durSec; showTrim = true },
+                    onTrim = {
+                        // Regler auf den gespeicherten Zuschnitt setzen (wie die PWA), sonst volle Dauer.
+                        trimStart = ((s.trimStartMs ?: 0L) / 1000f).coerceIn(0f, durSec)
+                        trimEnd = ((s.trimEndMs?.let { e -> e / 1000f }) ?: durSec).coerceIn(0f, durSec)
+                        showTrim = true
+                    },
                     onDelete = { confirmDelete = true },
                     onRunSelected = { shareRun = it })
             }
@@ -758,7 +807,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 bestGlideIdx?.let { if (segList[it].longestGlideS > 0) add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(segList[it].longestGlideS), it)) }
             }
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
-            if (segList.isNotEmpty()) RunsTable(segList, selectedRun) { selectedRun = if (selectedRun == it) null else it }
+            // Aussortierte Läufe stehen nicht mehr in den Segmenten — der Hinweis über der Tabelle
+            // ist die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
+            val excluded = s.excludedRanges.orEmpty()
+            if (segList.isNotEmpty() || excluded.isNotEmpty()) RunsTable(
+                segments = segList, selected = selectedRun, sessionId = s.id,
+                excluded = excluded, canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
+                onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
+            ) { selectedRun = if (selectedRun == it) null else it }
         }
 
         // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen,
@@ -1116,8 +1172,94 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
 
 // Läufe-Tabelle: je Foiling-Lauf Distanz/Dauer/Ø-/Top-Speed/Pumps. Zeile antippen -> Lauf auswählen
 // (Karte zeigt dann nur diesen farbig); ausgewählte Zeile ist hervorgehoben.
+// Beim Besitzer zusätzlich je Zeile „Lauf aussortieren" (Rückfrage) und über der Tabelle der
+// Hinweis-Block mit den aussortierten Fenstern + „wieder aufnehmen" — wie PWA (RunsTable).
 @Composable
-private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -> Unit) {
+private fun RunsTable(
+    segments: List<Segment>,
+    selected: Int?,
+    sessionId: Int = 0,
+    excluded: List<List<Long>> = emptyList(),
+    canEdit: Boolean = false,
+    startedAt: String = "",
+    tz: String? = null,
+    onSaved: (SessionDetail) -> Unit = {},
+    onSelect: (Int) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    // NICHT isSystemInDarkTheme(): ThemeState kann Hell/Dunkel erzwingen (Theme.kt:57-60).
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val amber = if (dark) AmberOnDark else AmberOnLight
+    var busy by remember(sessionId) { mutableStateOf(false) }
+    var askExclude by remember(sessionId) { mutableStateOf<Int?>(null) }
+    var err by remember(sessionId) { mutableStateOf<String?>(null) }
+
+    askExclude?.let { runIdx ->
+        AlertDialog(
+            onDismissRequest = { askExclude = null },
+            title = { Text(I18n.t("sd.excludeRun")) },
+            text = { Text(I18n.t("sd.excludeConfirm"), style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askExclude = null; busy = true
+                    scope.launch {
+                        try { onSaved(Api.excludeRun(sessionId, runIdx)) }
+                        catch (e: Exception) { err = I18n.t("sd.excludeFail") + (e.message ?: "") }
+                        finally { busy = false }
+                    }
+                }) { Text(I18n.t("sd.excludeRun")) }
+            },
+            dismissButton = { TextButton(onClick = { askExclude = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
+    err?.let { msg ->
+        AlertDialog(
+            onDismissRequest = { err = null },
+            text = { Text(msg, style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = { TextButton(onClick = { err = null }) { Text(I18n.t("common.close")) } },
+        )
+    }
+
+    if (excluded.isNotEmpty()) {
+        Column(
+            Modifier.fillMaxWidth()
+                .background(AmberReport.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null, tint = amber, modifier = Modifier.size(18.dp))
+                Text(
+                    if (excluded.size == 1) I18n.t("sd.excludedTitleOne")
+                    else I18n.t("sd.excludedTitle").replace("{n}", excluded.size.toString()),
+                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = amber,
+                )
+            }
+            Text(I18n.t("sd.excludedHint"), style = MaterialTheme.typography.bodyMedium, color = amber)
+            excluded.forEachIndexed { i, win ->
+                val from = win.getOrNull(0) ?: 0L
+                val to = win.getOrNull(1) ?: from
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("${clockAt(startedAt, tz, from)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (canEdit) {
+                        Spacer(Modifier.width(4.dp))
+                        TextButton(enabled = !busy, onClick = {
+                            busy = true
+                            scope.launch {
+                                try { onSaved(Api.includeRange(sessionId, i)) }
+                                catch (e: Exception) { err = I18n.t("sd.excludeFail") + (e.message ?: "") }
+                                finally { busy = false }
+                            }
+                        }) { Text(I18n.t("sd.includeRun")) }
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+    if (segments.isEmpty()) return
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
@@ -1128,6 +1270,8 @@ private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -
                     Text(it, style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                 }
+                // Kopf der Aussortier-Spalte: nur Platzhalter, damit die Zellen darunter passen.
+                if (canEdit) Spacer(Modifier.width(36.dp))
             }
             segments.forEachIndexed { i, seg ->
                 val sel = selected == i
@@ -1138,6 +1282,7 @@ private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -
                         .clickable { onSelect(i) }
                         .padding(vertical = 4.dp, horizontal = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val cells = listOf(
                         "${i + 1}",
@@ -1151,10 +1296,26 @@ private fun RunsTable(segments: List<Segment>, selected: Int?, onSelect: (Int) -
                         Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f),
                             color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified)
                     }
+                    if (canEdit) {
+                        IconButton(enabled = !busy, onClick = { askExclude = i }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Filled.RemoveCircleOutline, contentDescription = I18n.t("sd.excludeRun"),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+// Uhrzeit (HH:mm:ss) in der Ortszeit des Spots für einen Zeitpunkt „ms ab Session-Start".
+// Fallback ohne tz: der Offset aus dem ISO-String der Startzeit (wie TimeFmt/web).
+private val CLOCK_HMS = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
+    val start = try { java.time.OffsetDateTime.parse(startedAt) } catch (_: Exception) { return "–" }
+    val zone: java.time.ZoneId =
+        (if (!tz.isNullOrBlank()) try { java.time.ZoneId.of(tz) } catch (_: Exception) { null } else null) ?: start.offset
+    return start.toInstant().plusMillis(offsetMs).atZone(zone).format(CLOCK_HMS)
 }
 
 // Eine Kennzahl-Kachel; runIdx != null => an einen Lauf gebunden (anklickbar -> Lauf auswählen).

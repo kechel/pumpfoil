@@ -590,6 +590,14 @@ data class SessionDetail(
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    // Aus der Auswertung genommene Zeitfenster [[start_ms, end_ms], …], ms ab Session-Start
+    // (dieselbe Basis wie trim_start_ms). Nullable + Default leer: alte Server kennen das Feld nicht.
+    @SerialName("excluded_ranges") val excludedRanges: List<List<Long>>? = emptyList(),
+    // Aktueller Zuschnitt (ms ab Session-Start), null = kein Zuschnitt. Nötig, damit die Regler im
+    // Zuschnitt-Dialog den gespeicherten Bereich zeigen statt immer 0…Dauer — sonst schlägt
+    // "Bereich aussortieren" ungezogen die GANZE Session vor.
+    @SerialName("trim_start_ms") val trimStartMs: Long? = null,
+    @SerialName("trim_end_ms") val trimEndMs: Long? = null,
 )
 
 @Serializable
