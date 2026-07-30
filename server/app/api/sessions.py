@@ -1351,14 +1351,20 @@ def set_trim(
 
 
 # --- Läufe aussortieren (Zeitfenster, nicht Index) -------------------------------------
-def _shown_runs(s: models.Session) -> list[dict]:
-    """Die Lauf-Liste, die der Besitzer in der Tabelle sieht — gleiche Auflösung wie
+def _shown_runs(s: models.Session, viewer: models.User | None) -> list[dict]:
+    """Die Lauf-Liste, die DIESER Aufrufer in der Tabelle sieht — gleiche Auflösung wie
     _analysis_out: persönliches Empfindlichkeits-Preset (falls gecacht), sonst die
-    kanonischen Segmente. Nur so trifft die vom Client geschickte Lauf-NUMMER denselben Lauf."""
+    kanonischen Segmente. Nur so trifft die vom Client geschickte Lauf-NUMMER denselben Lauf.
+
+    `viewer` ist zwingend, weil das Preset nur in EIGENEN Ansichten überlagert wird
+    (_session_out: `sens=… if owned else "normal"`). Ein Admin, der eine fremde Session
+    aufräumt, sieht also die kanonischen Läufe — nähme man hier trotzdem das Preset des
+    Besitzers, träfe sein Klick bei Preset light/attempts einen ANDEREN Lauf."""
     res = s.result
     if res is None:
         return []
-    sens = (getattr(s.user, "foil_sensitivity", None) or "normal") if s.user else "normal"
+    owned = viewer is not None and viewer.id == s.user_id
+    sens = ((getattr(s.user, "foil_sensitivity", None) or "normal") if (owned and s.user) else "normal")
     if sens != "normal" and res.sensitivity_json:
         try:
             p = (json.loads(res.sensitivity_json) or {}).get(sens)
@@ -1406,7 +1412,7 @@ def exclude_run(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Either run_index or start_ms+end_ms")
 
     if body.run_index is not None:
-        runs = _shown_runs(s)
+        runs = _shown_runs(s, user)
         if body.run_index < 0 or body.run_index >= len(runs):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found")
         seg = runs[body.run_index]
