@@ -183,6 +183,7 @@ export interface SessionSummary {
   status: string;
   trim_start_ms?: number | null;
   trim_end_ms?: number | null;
+  app_version?: string | null;   // App-Version der Aufnahme (nur Besitzer/Admin sichtbar)
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
   excluded_ranges?: number[][];

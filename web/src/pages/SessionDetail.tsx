@@ -1222,7 +1222,18 @@ export default function SessionDetail() {
       <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
         {session.place_name && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><LocationIcon className="h-3.5 w-3.5" /> {session.place_name}</span>}
         {session.sport && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WaveIcon className="h-3.5 w-3.5" /> {session.sport}</span>}
-        {session.device_label && <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"><WatchIcon className="h-3.5 w-3.5" /> {session.device_label}</span>}
+        {session.device_label && (
+          // App-Version der Aufnahme nur dem Besitzer zeigen (Fehlersuche: „mit welcher Version
+          // war das?" liess sich vorher nicht beantworten). Fremde brauchen das nicht.
+          <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"
+                title={[session.device_model, session.app_version && `App ${session.app_version}`]
+                  .filter(Boolean).join(" · ") || undefined}>
+            <WatchIcon className="h-3.5 w-3.5" /> {session.device_label}
+            {session.owned && session.app_version && (
+              <span className="text-slate-400">· {session.app_version}</span>
+            )}
+          </span>
+        )}
         <FoilSelect session={session} owned={owned} onMeta={setSession} />
         {!owned && !isPublic && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>

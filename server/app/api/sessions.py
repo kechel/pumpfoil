@@ -1086,6 +1086,7 @@ def get_session(
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
+    out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
     if s.user_id == user.id:
         out.share_token = s.share_token  # nur der Besitzer sieht den (ggf. gesetzten) Teilen-Token
     # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
@@ -1153,6 +1154,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
         dev = db.get(models.DeviceToken, s.device_id)
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
     out.device_model = s.device_model
+    out.app_version = s.app_version
     if out.ended_at is None and s.started_at is not None:
         gps = storage.load_gps(s.session_uuid)
         if gps and gps[-1] and gps[-1][0]:

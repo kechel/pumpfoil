@@ -353,6 +353,13 @@ class Session(Base):
     # Aufnahme-Gerät (Modell + OS), von der App gemeldet — z. B. "Pixel 7 · Android 14" oder
     # "iPhone15,2 · iOS 17.5". Rein zur gezielten Fehlersuche (welches Telefon/OS).
     device_model: Mapped[str | None] = mapped_column(String(80))
+    # App-Version, mit der DIESE Session aufgenommen wurde (z. B. "1.1.18", "1.0.69"). Bewusst auf
+    # der Session und nicht nur am Gerät: DeviceToken.app_version wandert mit jedem Update weiter,
+    # die Frage bei einer Fehlermeldung ist aber immer "welche Version war es DAMALS?". Anlass: ein
+    # Nutzer meldete eine 25 h verzögerte Übertragung, und es war nicht feststellbar, ob er den
+    # Apple-Watch-Upload-Fix aus 1.1.17 schon hatte. Quelle: Angabe des Clients beim Start, sonst
+    # die letzte vom Gerät gemeldete Version (Uhren melden sie bei jedem Config-Abruf).
+    app_version: Mapped[str | None] = mapped_column(String(20))
     # Öffentlicher Teilen-Token (unguessbar): gesetzt = jeder mit dem Link sieht die Session read-only
     # (ohne Login). Nur vom Besitzer erzeugbar/widerrufbar. None = nicht öffentlich geteilt.
     share_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)

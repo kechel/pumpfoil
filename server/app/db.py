@@ -233,6 +233,7 @@ def _migrate_add_columns() -> None:
             "trim_start_ms": "INTEGER",
             "trim_end_ms": "INTEGER",
             "excluded_ranges": "TEXT",
+            "app_version": "VARCHAR(20)",
             "place_name": "VARCHAR(120)",
             "place_water": "VARCHAR(120)",
             "deleted": "BOOLEAN DEFAULT 0",

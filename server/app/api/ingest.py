@@ -77,6 +77,9 @@ def start_session(
             sport_class=_sport_class,
             placement=(body.placement or None),
             device_model=(body.device_model or None),
+            # Angabe des Clients, sonst die letzte vom Gerät gemeldete Version (Uhren schicken sie
+            # bei jedem /devices/config mit) -> Garmin & Co. brauchen dafür kein Update.
+            app_version=(body.app_version or device.app_version or None),
             expected_chunks=body.expected_chunks,
         )
         db.add(s)

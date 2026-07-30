@@ -122,6 +122,9 @@ class SessionStartIn(BaseModel):
     placement: str | None = None  # "phone" = Handy-Recorder (Tasche/Hüfte); sonst Uhr am Handgelenk
     device_model: str | None = None  # Modell + OS (z. B. "Pixel 7 · Android 14") — nur zur Fehlersuche
     expected_chunks: int | None = None  # erwartete Gesamt-Chunk-Zahl (gps+accel) für Upload-Fortschritt
+    # Eigene App-Version (z. B. "1.1.19"). Optional: Uhren melden sie schon beim Config-Abruf, der
+    # Server fällt darauf zurück. Zeichen bewusst eng begrenzt (fließt in Anzeigen/Filter).
+    app_version: str | None = Field(default=None, pattern=r"^[0-9A-Za-z.+-]{1,20}$")
 
 
 class SessionStartOut(BaseModel):
@@ -172,6 +175,7 @@ class SessionOut(BaseModel):
     status: str
     trim_start_ms: int | None = None
     trim_end_ms: int | None = None
+    app_version: str | None = None   # Version, mit der aufgenommen wurde (Fehlersuche)
     # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
     # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: list[list[int]] = []
