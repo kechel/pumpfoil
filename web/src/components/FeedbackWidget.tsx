@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { MailIcon, CloseIcon } from "./Icons";
@@ -10,6 +10,12 @@ const MAX = 500;
 
 // Global sichtbares Feedback-Widget: kleiner Tab am rechten Rand (vertikal zentriert),
 // öffnet ein Panel mit Textfeld. Speichert die aktuelle URL mit.
+//
+// Von überall öffnen (optional mit vorbelegtem Text):
+//   window.dispatchEvent(new CustomEvent("open-feedback", { detail: "Ketos KOBUN 111 fehlt" }))
+// Grund für den Umweg über ein Event: das Widget hängt global in App.tsx, Seiten haben keine
+// Referenz darauf. Gebraucht wird das da, wo eine Lücke auffällt (fehlende Marke im Katalog) —
+// sonst schreiben Nutzer erst nach Tagen per Mail, wie es zweimal passiert ist.
 export function FeedbackWidget() {
   const t = useT();
   const loc = useLocation();
@@ -18,6 +24,16 @@ export function FeedbackWidget() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   useCloseOnBack(open, () => setOpen(false));   // Swipe/Zurück schließt das Panel (wie Abbrechen)
+
+  useEffect(() => {
+    function onOpen(e: Event) {
+      const pre = (e as CustomEvent<string | undefined>).detail;
+      if (pre) setText((t0) => (t0.trim() ? t0 : pre.slice(0, MAX)));
+      setOpen(true);
+    }
+    window.addEventListener("open-feedback", onOpen);
+    return () => window.removeEventListener("open-feedback", onOpen);
+  }, []);
 
   function send() { submitText(text); }
   function submitText(raw: string) {

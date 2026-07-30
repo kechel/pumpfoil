@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Board, Stab } from "../lib/api";
 import { Button, Card, Spinner } from "../components/ui";
+import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
 
@@ -309,6 +310,7 @@ export default function Setup() {
         {restList.map(stabCard)}
         {restList.length === 0 && <p className="text-sm text-slate-500">{t("setup.stabCatalogEmpty")}</p>}
         {restList.length > 0 && <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: restList.length })}</p>}
+        <MissingHint what={t("setup.missingStab")} />
       </div>
     </div>
   );

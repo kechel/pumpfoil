@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 30, 2026",
+    items: [
+      "Forgot to stop the recording and drove home? You can now take single runs — or any stretch of time — out of a session. Open a session you own, and each run in the run table has a button to set it aside; for a part that isn’t a run at all, use “Exclude range” in the Trim panel and pick the two times. Excluded parts stop counting towards runs, foiling time, distance, pumps and records, and disappear from the totals and the map. Nothing is deleted: the recording stays complete and you can put any part back with one click.",
+      "Drives between two spots no longer count as runs. A run is now also checked against its average speed, not just its top speed, so a car ride at a steady 70 km/h can’t pass as a very good ride any more. Every session was re-analysed with the stricter check.",
+      "Ketos foils are now in the foil list: KOBUN, Karve Freefly, SPLIT, EVO, LD and Dock Start. Where the manufacturer publishes only part of the numbers, the missing ones are worked out from the rest of the range and the entry says so, so you can tell which figures are exact.",
+    ],
+  },
+  {
     date: "July 29, 2026",
     items: [
       "Pump cadence can now be shown as pumps per minute instead of Hz. “1.43 Hz” is hard to picture, “86/min” is not. Choose it once in your profile under Pump cadence and it applies everywhere: session pages and run tables, your history, comparisons and the community tables. Tapping the cadence tile on a session still flips it, and the choice now follows your account instead of only this device. Nothing is recalculated — it is only how the number is written.",

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
+import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
 import { SPORTS } from "../lib/sportClass";
@@ -136,6 +137,7 @@ export default function Foils() {
       <div className="space-y-2">
         {restList.map(card)}
         <p className="pt-2 text-xs text-slate-500">{t("foils.count", { n: restList.length })}</p>
+        <MissingHint what={t("foils.missingFoil")} />
       </div>
     </div>
   );
