@@ -98,6 +98,8 @@ export interface Foil {
 // es rechnet nichts damit. is_own = eigener, privater Eintrag (nicht im globalen Katalog).
 export interface Stab {
   id: number; brand: string; model: string; size: string; is_own?: boolean;
+  // Maße, sofern gepflegt (null = Hersteller/Katalog liefert keine).
+  span_cm?: number | null; area_cm2?: number | null; specs_estimated?: boolean;
 }
 
 // Ein frei gestaltetes Uhr-Layout (= EINE Seite). Element-Format kompakt/positionell:

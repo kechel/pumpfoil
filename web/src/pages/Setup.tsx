@@ -155,6 +155,9 @@ export default function Setup() {
       <Card key={s.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isDef ? "border-brand-500" : isMine ? "border-slate-600" : ""}`}>
         <div className="min-w-0">
           <div className="font-semibold">{s.brand} {s.model} <span className="text-slate-400">{s.size}</span></div>
+          {s.area_cm2 && s.span_cm
+            ? <div className="text-sm text-slate-400">{s.span_cm} cm · {s.area_cm2} cm²</div>
+            : null}
           {s.is_own && <div className="text-sm text-slate-400">{t("setup.ownStab")}</div>}
         </div>
         <div className="flex shrink-0 items-center gap-2">

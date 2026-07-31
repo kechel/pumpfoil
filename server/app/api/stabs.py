@@ -34,6 +34,12 @@ def _out(s: models.Stab) -> dict:
     return {
         "id": s.id, "brand": s.brand, "model": s.model, "size": s.size,
         "is_own": s.user_id is not None,
+        # Maße nur mitschicken, wenn sie wirklich gepflegt sind (0 = nie eingetragen). Bis 2026-07-31
+        # standen sie bei ALLEN Katalog-Stabs auf 0 und fehlten deshalb hier ganz — beim Nachtragen
+        # der Gong-Tabellen fiel auf, dass die Zahlen dadurch nirgends ankamen.
+        "span_cm": s.span_cm or None,
+        "area_cm2": s.area_cm2 or None,
+        "specs_estimated": bool(getattr(s, "specs_estimated", False)),
     }
 
 
