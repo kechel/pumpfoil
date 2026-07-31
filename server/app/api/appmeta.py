@@ -88,10 +88,16 @@ _APP_META: dict[str, dict[str, str]] = {
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "zepp": {
-        # BEWUSST LEER: 1.0.4 (code 7) liegt bei Zepp noch in der Pruefung. Erst nach Freigabe
-        # setzen — sonst zeigt die Uhr ein Update an, das im Store nicht abrufbar ist.
-        "latest": "",
+        # FREIGEGEBEN 2026-07-31: "Pumpfoil (1.0.3) has been approved and added to the ZEPP app
+        # store". ACHTUNG, die Nummer ist 1.0.3 und nicht 1.0.4: eingereicht war der Stand VOR dem
+        # Release-Bump vom 28.07., der app.json im Repo auf 1.0.4/code 7 gezogen hat. Die Uhren aus
+        # dem Store melden also 1.0.3 (APP_VERSION im damaligen Build) -> genau das gehoert hier hin,
+        # sonst zeigt jede installierte Uhr sofort einen Update-Hinweis ins Leere. 1.0.4 erst
+        # eintragen, wenn Jan es gebaut, eingereicht und die Freigabe bekommen hat.
+        "latest": "1.0.3",
         "min_supported": "",
+        # Zepp-Store-Adresse ist mir nicht bekannt (die App ist im Zepp-Telefon-Store, nicht im Web).
+        # Leer lassen statt raten — der Hinweis auf der Uhr braucht keinen Link.
         "store_url": "",
     },
 }
