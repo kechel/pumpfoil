@@ -30,6 +30,13 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "July 31, 2026",
+    items: [
+      "Gong's new Atmo range is in the foil list — all 41 variants: Sirus and Trail (both Perf and Team), Hyper Trail, Supra Trail, Ultra Trail, Veloce DW and Veloce XTR. Four of those models were missing from the catalogue entirely, Atmo or not. Every figure is the manufacturer's own, and each row was checked against the published aspect ratio before it went in.",
+      "Gong Trail stabilizers now carry their span and area (40/43/46 cm), so the power calculation works with them too.",
+    ],
+  },
+  {
     date: "July 30, 2026",
     items: [
       "Forgot to stop the recording and drove home? You can now take single runs — or any stretch of time — out of a session. Open a session you own, and each run in the run table has a button to set it aside; for a part that isn’t a run at all, use “Exclude range” in the Trim panel and pick the two times. Excluded parts stop counting towards runs, foiling time, distance, pumps and records, and disappear from the totals and the map. Nothing is deleted: the recording stays complete and you can put any part back with one click.",
