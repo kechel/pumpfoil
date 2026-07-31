@@ -59,6 +59,55 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 3. `fetch`-Response-Shape (`response.status`, `response.body` String vs. JSON).
 4. Pairing-Flow: Code auf der Uhr sichtbar → auf pumpfoil.org/Konto eintragen → Uhr pollt → „verbunden ✓".
 
+## Sprachen (i18n)
+
+Die Uhr-UI war komplett hartcodiert **deutsch**, obwohl der Server die Profil-Sprache längst
+mitschickt (`GET /api/devices/config` → `language`, im `app-side` durchgelassen) — sie wurde in
+`page/index.js` nur nie ausgewertet. Seit 1.0.4 gibt es dort ein **Wörterbuch im Code**
+(`LANGS`/`S`/`t()`), gespeist aus genau dieser Profil-Sprache und in `@zos/storage` gecacht
+(Key `lang`), damit der nächste App-Start auch offline/ungepairt richtig lokalisiert ist.
+
+- **Spalten:** `de gsw de-AT en fr it es pt id ru nl fi cs ja zh` (15). Fallback pro String:
+  Sprache → **en** → de. Reine Einheiten (`km/h`, `bpm`, `m`) bleiben unlokalisiert.
+- **Wortlaut ist nicht neu erfunden**, sondern 1:1 aus den anderen Uhr-Apps übernommen:
+  `watch/source/Strings.mc` (Hauptquelle, 13 Sprachen), `android/wear/…/I18n.kt` (ja/zh + Keys,
+  die Garmin nicht hat), `web/src/i18n/locales/*.ts` (`f.dist`=`field.4`, `f.dur`=`sd.duration`,
+  `rec.noData`=`watchStats.none`). Wo keine belegte Übersetzung existierte, ist die Spalte leer
+  → Englisch (statt geraten).
+- **Bewusst KEIN `@zos/i18n`/`.po`:** `getText()` lokalisiert nach **Geräte**-Sprache, wir wollen
+  wie alle anderen Uhren die **Profil**-Sprache. Und ein fehlschlagender Modul-Import nimmt beim
+  Laden die ganze App mit (derselbe Grund, warum im `app-side` kein `@zos/settings` steht) — ein
+  Objekt-Literal kann nicht fehlschlagen. Die Beispiel-`.po`-Dateien unter `page/i18n/` bzw.
+  `app-side/i18n/` sind **unbenutztes Template-Gerüst**.
+- **Default ist Englisch**, nicht Deutsch: die App liegt international im Store, und die
+  Geräte-Systemsprache ist ohne zusätzlichen `@zos`-Import nicht lesbar (Garmin/Wear weichen an
+  dieser Stelle auf die Systemsprache aus, Zepp kann das nicht). Gepairte Uhren bekommen die
+  Profil-Sprache beim ersten `CONFIG` und behalten sie.
+- Offen: `setting/index.js` (Einstellungs-Seite **in der Zepp-Handy-App**) ist weiter deutsch —
+  dort gibt es keine belegbare Sprachquelle (stateless, kein `@zos/settings`, kein Profil-Abruf).
+
+## Echte Zepp-Aktivität aufzeichnen — geprüft, **nicht möglich** (Stand Zepp OS 3.x)
+
+Wunsch (Nutzer-Anfrage): parallel zu unserer Rohdaten-Aufnahme eine **echte Zepp-Aktivität**
+anlegen, damit die Session in der Zepp-App landet und von dort z. B. nach Strava fließt — so wie
+es die Garmin-App macht (`watch/source/SessionRecorder.mc:800-830` legt eine FIT-Session
+„Pumpfoil" an). Recherche in der offiziellen Doku (kein SDK auf der Build-VM):
+
+| Kandidat | Befund |
+|---|---|
+| `@zos/sensor` **`Workout`** (API 3.0, Permission `data:user.hd.workout`) | **read-only**: `getStatus()`, `getHistory()`, `getUserHrZoneSettings()`, `getWorkoutTrackNavInfo()`. Kein Anlegen/Starten. |
+| `app.json` **`appType`** | nur `"app"` (Mini Program) und `"watchface"`. Es gibt **keinen** Sport-/Workout-App-Typ, den man beantragen könnte. |
+| **Workout Extension** (`data-widget`, Zepp OS **3.5+**) | Plug-in **innerhalb** der System-Workout-App: der Nutzer startet dort die Aktivität, die System-App besitzt den Datensatz — die Extension liefert nur zusätzliche Screens/Datenfelder. Eigene App-ID + eigenes Review, und nur auf T-Rex 3, Cheetah Pro, Cheetah (Round), Cheetah Square, T-Rex Ultra, Falcon (**Balance 2 nicht dabei**). |
+| `@zos/app-access` **`getSportData()`** (API **3.6**) | *liest* Live-Werte der System-Sport-App, schreibt nichts. |
+| `@zos/router` **`launchApp({ appId: SYSTEM_APP_SPORT, native: true })`** (API 3.0) | kann die System-Workout-App **starten** — dann ist unsere App aber nicht mehr im Vordergrund, unser 1-Hz-Sampler läuft nicht weiter. |
+
+→ **Kein Code dafür geschrieben** (API-Namen zu erfinden wäre in einer Store-App das falsche
+Risiko). Wenn es kommen soll, ist der einzige belegbare Weg eine **Architektur-Änderung**:
+System-Workout-App im Vordergrund (sie erzeugt die echte Aktivität) + unser Recorder als
+`app-service` (Background Service) für die Rohdaten — ungeprüft, ob ein Background Service
+dauerhaft GPS halten darf. Zweite Option: **Workout Extension** als separate App (setzt 3.5+ und
+die 6 Geräte oben voraus, Balance 2 müsste Amazfit erst nachziehen).
+
 ## TODO
 - Accel (25 Hz) erfassen, falls Zepp OS eine API bietet → int16-base64-Chunks (Pump/Gleit).
 - Offline-Queue liegt aktuell in `@zos/storage` (JSON). Für lange Sessions besser auf `@zos/fs`

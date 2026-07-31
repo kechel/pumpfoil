@@ -51,6 +51,108 @@ function distM(a, b, c, d) {
 // Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls API fehlt.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
 
+// ---- i18n -------------------------------------------------------------------------------------
+// Die UI war komplett hartcodiert deutsch, obwohl der Server die Profil-Sprache seit langem
+// mitschickt (/api/devices/config -> `language`, im app-side durchgelassen) — sie wurde hier nur
+// nie ausgewertet. Jetzt: kleines Woerterbuch im Code, gespeist aus genau dieser Sprache.
+//
+// BEWUSST KEIN @zos/i18n / kein .po: die App ist auf echter Hardware kaum getestet, und ein
+// fehlschlagender Modul-Import nimmt beim Laden die ganze App mit (genau der Grund, warum im
+// app-side kein @zos/settings steht). Ein Objekt-Literal kann nicht fehlschlagen. Ausserdem
+// braeuchte der .po-Weg die GERAETE-Sprache; wir wollen die PROFIL-Sprache wie alle anderen Uhren.
+//
+// WORTLAUT NICHT NEU ERFUNDEN — 1:1 uebernommen aus:
+//   watch/source/Strings.mc                            (13 Spalten: de..cs — Hauptquelle)
+//   android/wear/.../I18n.kt                           (ja/zh-Overlays + Keys, die Garmin nicht hat)
+//   web/src/i18n/locales/*.ts                          (f.dist=field.4, f.dur=sd.duration,
+//                                                       rec.noData=watchStats.none)
+// Spalten: 0 de|1 gsw|2 de-AT|3 en|4 fr|5 it|6 es|7 pt|8 id|9 ru|10 nl|11 fi|12 cs|13 ja|14 zh
+// Fehlende/leere Spalte faellt auf en (3), dann de (0) zurueck — dieselbe Kette wie in den
+// anderen Apps. Ein reiner String statt Array = in allen Sprachen identisch (reine Einheiten).
+// ja/zh sind hier drin (anders als bei Garmin, wo die Fonts keine CJK-Glyphen haben): Zepp OS ist
+// eine chinesische Plattform, die Systemfonts haben CJK. Im Simulator gegenpruefen.
+const LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs", "ja", "zh"];
+const S = {
+  // -- Verbindung / Pairing (Garmin _a4/_a5/_a6/_a8) --
+  "menu.connect":    ["Verbinden", "Verbinde", "Verbinden", "Connect", "Se connecter", "Connetti", "Conectar", "Conectar", "Hubungkan", "Подключить", "Verbinden", "Yhdistä", "Připojit", "接続", "连接"],
+  "menu.connected":  ["Verbunden", "Verbunde", "Verbunden", "Connected", "Connecté", "Connesso", "Conectado", "Conectado", "Terhubung", "Подключено", "Verbonden", "Yhdistetty", "Připojeno", "接続済み", "已连接"],
+  "menu.linked":     ["Konto verknüpft", "Konto verchnüpft", "Konto verknüpft", "Account linked", "Compte lié", "Account collegato", "Cuenta vinculada", "Conta vinculada", "Akun tertaut", "Аккаунт привязан", "Account gekoppeld", "Tili linkitetty", "Účet propojen"],
+  "up.notLinked":    ["Nicht verbunden", "Nöd verbunde", "Nicht verbunden", "Not linked", "Non lié", "Non collegato", "No vinculado", "Não vinculado", "Tidak tertaut", "Не привязано", "Niet gekoppeld", "Ei linkitetty", "Nepropojeno", "未接続", "未连接"],
+  "pair.noConn":     ["Keine Verbindung", "Kei Verbindig", "Keine Verbindung", "No connection", "Pas de connexion", "Nessuna connessione", "Sin conexión", "Sem conexão", "Tidak ada koneksi", "Нет связи", "Geen verbinding", "Ei yhteyttä", "Bez připojení"],
+  "up.noPhone":      ["Kein Telefon", "Kei Telefon", "Kein Telefon", "No phone", "Pas de téléphone", "Nessun telefono", "Sin teléfono", "Sem telefone", "Tanpa HP", "Нет телефона", "Geen telefoon", "Ei puhelinta", "Bez telefonu"],
+  "up.waiting":      ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…", "Aguardando…", "Menunggu…", "Ожидание…", "Wachten…", "Odotetaan…", "Čekání…"],
+  // Button + Slot-Label fuer den Pairing-Code. nl/fi/cs bleiben leer (Garmins Wortlaut dort ist
+  // fuer den 300-px-Button zu lang) -> englisch.
+  "pair.gen":        ["Code erzeugen", "Code erzüge", "Code erzeugen", "Generate code", "Générer un code", "Genera codice", "Generar código", "Gerar código", "Buat kode", "Создать код", "", "", "", "コードを生成", "生成代码"],
+  "pair.code":       ["Pairing-Code", "Pairing-Code", "Pairing-Code", "Pairing code", "Code", "Codice", "Código", "Código", "Kode", "Код", "Koppelcode", "Koodi", "Párovací kód", "コード", "代码"],
+  "pair.enterThere": ["eingeben", "yygeh", "eingeben", "enter it there", "à saisir ici", "inseriscilo", "introdúcelo", "insira aqui", "masukkan", "введите", "daar invoeren", "syötä se siellä", "zadejte tam"],
+  "rec.repair":      ["Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar", "Reconectar", "Hubungkan ulang", "Переподключить", "Opnieuw koppelen", "", "Spárovat znovu", "再接続", "重新连接"],
+
+  // -- Aufnahme / Tasten --
+  // START/STOPP sind Grossbuchstaben-Buttons; Wortlaut = Wear rec.start/rec.stop, nur gross.
+  "btn.start":       ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "", "", "", "スタート", "开始"],
+  "btn.stop":        ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "", "", "", "ストップ", "停止"],
+  "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
+  "rec.noData":      ["Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Pas encore de données", "Ancora nessun dato", "Aún no hay datos", "Ainda sem dados", "Belum ada data", "Пока нет данных", "Nog geen gegevens", "Ei vielä dataa", "Zatím žádná data", "まだデータがありません", "暂无数据"],
+  "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
+
+  // -- Upload / Warteschlange (Garmin _a5/_a6) --
+  "up.open":         ["offen", "offe", "offen", "pending", "en attente", "in sospeso", "pendientes", "pendente", "tertunda", "в очереди", "openstaand", "odottaa", "čeká"],
+  "up.nothing":      ["Nichts offen", "Nüt offe", "Nichts offen", "Nothing pending", "Rien en attente", "Niente in sospeso", "Nada pendiente", "Nada pendente", "Tidak ada", "Очередь пуста", "Niets openstaand", "Ei odottavia", "Nic nečeká"],
+  "up.waitConn":     ["Wartet auf Verbindung", "Wartet uf Verbindig", "Wartet auf Verbindung", "Waiting for connection", "Attente de connexion", "Attesa connessione", "Esperando conexión", "Aguardando conexão", "Menunggu koneksi", "Ожидание связи", "Wacht op verbinding", "Odottaa yhteyttä", "Čeká na spojení"],
+  "up.running":      ["Upload läuft…", "Upload lauft…", "Upload läuft…", "Uploading…", "Envoi…", "Caricamento…", "Subiendo…", "Enviando…", "Mengunggah…", "Загрузка…", "Uploaden…", "Lähetetään…", "Nahrávání…", "アップロード中…", "上传中…"],
+  "up.done":         ["Upload fertig", "Upload fertig", "Upload fertig", "Upload done", "Upload terminé", "Upload completato", "Subida lista", "Envio concluído", "Unggah selesai", "Загрузка готова", "Upload klaar", "Lähetys valmis", "Nahrání hotovo", "アップロード完了", "上传完成"],
+  "up.later":        ["später erneut", "spöter nomal", "später erneut", "retry later", "réessai plus tard", "riprova più tardi", "reintento más tarde", "tentar depois", "coba nanti", "повтор позже", "later opnieuw", "yritä myöhemmin", "zkusit později"],
+  "up.serverUnreach": ["Server nicht erreichbar", "Server nöd erreichbar", "Server nicht erreichbar", "Server unreachable", "Serveur injoignable", "Server irraggiungibile", "Servidor no disponible", "Servidor indisponível", "Server tak terjangkau", "Сервер недоступен", "Server onbereikbaar", "Palvelin ei tavoitettavissa", "Server nedostupný"],
+  "rec.uploadNow":   ["Jetzt hochladen", "Jetz ueglade", "Jetzt hochladen", "Upload now", "Envoyer maintenant", "Carica ora", "Subir ahora", "Enviar agora", "Unggah sekarang", "Загрузить сейчас", "", "", "", "今すぐアップロード", "立即上传"],
+
+  // -- Foil & Alarm (Garmin _a0/_a7/_a8) --
+  "fm.title":        ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал", "Foil & alarm", "Foil & hälytys", "Foil & alarm", "フォイル & アラーム", "水翼 & 提醒"],
+  "fm.alarm":        ["Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma", "Alarme", "Alarm", "Сигнал", "Alarm", "Hälytys", "Alarm", "アラーム", "提醒"],
+  "fm.thresholds":   ["Schwellen", "Schwelle", "Schwellen", "Thresholds", "Seuils", "Soglie", "Umbrales", "Limites", "Ambang", "Пороги", "Drempels", "Kynnykset", "Prahy", "しきい値", "阈值"],
+  "fm.autoFoil":     ["Auto (Foil)", "Auto (Foil)", "Auto (Foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "Авто (фойл)", "Auto (foil)", "Auto (foil)", "Auto (foil)", "自動(フォイル)", "自动(水翼)"],
+  "fm.manual":       ["Manuell", "Manuell", "Manuell", "Manual", "Manuel", "Manuale", "Manual", "Manual", "Manual", "Вручную", "Handmatig", "Manuaalinen", "Ručně", "手動", "手动"],
+  "foil.prefix":     ["Foil: ", "Foil: ", "Foil: ", "Foil: ", "Foil : ", "Foil: ", "Foil: ", "Foil: ", "Foil: ", "Фойл: ", "Foil: ", "Foil: ", "Foil: ", "フォイル: ", "水翼: "],
+  // Kurzform von menu.layouts ("Eigene Layouts" waere auf dem 300-px-Button zu lang).
+  "lay.short":       ["Layouts", "Layouts", "Layouts", "Layouts", "Layouts", "Layout", "Diseños", "Layouts", "Tata letak", "Макеты", "Layouts", "Asettelut", "Rozvržení"],
+  "common.on":       ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл", "Aan", "Päällä", "Zap", "オン", "开"],
+  "common.off":      ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл", "Uit", "Pois", "Vyp", "オフ", "关"],
+  "common.auto":     ["Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Авто", "Auto", "Auto", "Auto", "自動", "自动"],
+  "common.done":     ["Fertig", "Fertig", "Fertig", "Done", "Terminé", "Fatto", "Listo", "Concluído", "Selesai", "Готово", "", "", "", "完了", "完成"],
+  "common.error":    ["Fehler", "Fähler", "Fehler", "Error", "Erreur", "Errore", "Error", "Erro", "Kesalahan", "Ошибка", "Fout", "Virhe", "Chyba", "エラー", "错误"],
+
+  // -- Datenfeld-Labels (Garmin _a2/_a3; Einheiten bleiben unlokalisiert) --
+  "f.kmh": "km/h",
+  "f.bpm": "bpm",
+  "f.kmhAvg":        ["km/h Ø", "km/h Ø", "km/h Ø", "km/h avg", "km/h moy", "km/h media", "km/h med", "km/h méd", "km/h rata", "km/h ср", "km/h gem", "km/h ka", "km/h prům", "平均 km/h", "平均 km/h"],
+  "f.kmhMax":        ["km/h max", "km/h max", "km/h max", "km/h max", "km/h max", "km/h max", "km/h máx", "km/h máx", "km/h maks", "km/h макс", "km/h max", "km/h maks", "km/h max", "最大 km/h", "最高 km/h"],
+  "f.bpmAvg":        ["bpm Ø", "bpm Ø", "bpm Ø", "bpm avg", "bpm moy", "bpm media", "bpm med", "bpm méd", "bpm rata", "bpm ср", "bpm gem", "bpm ka", "bpm prům", "平均 bpm", "平均 bpm"],
+  "f.bpmMax":        ["bpm max", "bpm max", "bpm max", "bpm max", "bpm max", "bpm max", "bpm máx", "bpm máx", "bpm maks", "bpm макс", "bpm max", "bpm maks", "bpm max", "最大 bpm", "最高 bpm"],
+  "f.time":          ["Zeit", "Ziit", "Zeit", "Time", "Temps", "Tempo", "Tiempo", "Tempo", "Waktu", "Время", "Tijd", "Aika", "Čas", "時間", "时间"],
+  "f.clock":         ["Uhr", "Uhr", "Uhr", "Clock", "Heure", "Ora", "Hora", "Hora", "Jam", "Часы", "Klok", "Kello", "Hodiny", "時計", "时钟"],
+  "f.dist":          ["Distanz", "Distanz", "Distanz", "Distance", "Distance", "Distanza", "Distancia", "Distância", "Jarak", "Дистанция", "Afstand", "Matka", "Vzdálenost", "距離", "距离"],
+  "f.dur":           ["Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración", "Duração", "Durasi", "Длительность", "Duur", "Kesto", "Doba", "継続時間", "时长"],
+  "f.runs":          ["Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos", "Runs", "Run", "Заезды", "Runs", "Vedot", "Jízdy", "ラン", "航段"],
+  "f.lastRunTime":   ["letzte Zeit", "letschti Ziit", "letzte Zeit", "last time", "dern. temps", "ult. tempo", "últ. tiempo", "último tempo", "waktu terakhir", "посл время", "", "", "", "前回の時間", "上次时间"],
+  "f.lastRunDist":   ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "", "", "", "前回の距離", "上次距离"],
+  "f.lastRunAvg":    ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "", "", "", "前回の平均", "上次平均"],
+  "f.lastRunMax":    ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "", "", "", "前回の最大", "上次最高"],
+};
+// Aktive Spalte. Default ENGLISCH (3), nicht Deutsch: die App liegt international im Store, und
+// die Geraete-Systemsprache ist ohne zusaetzlichen (riskanten) @zos-Import nicht lesbar. Sobald
+// die Uhr gepairt ist, kommt die Profil-Sprache vom Server und wird persistiert.
+let LI = 3;
+const setLang = (code) => {
+  const i = code ? LANGS.indexOf(code) : -1;
+  LI = i >= 0 ? i : 3;
+};
+const t = (k) => {
+  const row = S[k];
+  if (row == null) { return k; }
+  if (typeof row === "string") { return row; }
+  return row[LI] || row[3] || row[0] || k;
+};
+
 // Recorder wie Garmin. Wischbare Seiten:
 //   Ruhe:     0 Daten(+START) · 1 Verbindung/Code · 2 Upload-Queue
 //   Aufnahme: 0..N-1 Datenseiten (kein Button) · N Stopp-Screen(+STOPP)
@@ -88,6 +190,10 @@ Page(
 
     build() {
       const s = this.state, w = s.w;
+      // Sprache aus der letzten Sitzung (vom Server geliefert, s. connect()) — VOR dem ersten
+      // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
+      // startet. Leer/unbekannt -> Englisch.
+      setLang(store.getItem("lang", ""));
       w.title = hmUI.createWidget(hmUI.widget.TEXT, { ...TITLE });
       w.page = hmUI.createWidget(hmUI.widget.TEXT, { ...PAGE });
       w.f = [
@@ -204,7 +310,7 @@ Page(
     connect() {
       const s = this.state;
       if (!bleOk()) { this.rerender(); return; }
-      if (!getTok()) { this.rerender(); return; }   // kein Auto-Pairing — nur per "Neuer Code"
+      if (!getTok()) { this.rerender(); return; }   // kein Auto-Pairing — nur per Button t("pair.gen")
       // Version melden (Update-Hinweis) und Layouts anfordern, solange der Nutzer sie nicht
       // abgeschaltet hat. layoutsPref: null = automatisch (Server entscheidet), true/false = Wahl
       // auf der Uhr -- dieselbe Dreistufigkeit wie bei Garmin.
@@ -213,6 +319,10 @@ Page(
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
         if (r && r.latestVersion && r.latestVersion !== APP_VERSION) s.updateVersion = r.latestVersion;
+        // Profil-Sprache (kam schon immer mit, wurde nur nie ausgewertet). Persistieren, damit der
+        // naechste App-Start auch ohne Verbindung sofort richtig lokalisiert ist. Server schickt ""
+        // wenn im Profil keine Sprache steht -> setLang() faellt dann auf Englisch.
+        if (r && typeof r.language !== "undefined") { store.setItem("lang", r.language || ""); setLang(r.language); }
         if (r && typeof r.layoutsOn !== "undefined") s.layoutsServerDefault = !!r.layoutsOn;
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
@@ -288,17 +398,17 @@ Page(
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === 0 || s.page === s.views.length + 1) this.setButton("STOPP", RED, RED_P, WHITE, () => this.stop());
+        if (s.page === 0 || s.page === s.views.length + 1) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
-        this.setButton("Fertig", CYAN, CYAN_P, INK, () => this.done());
+        this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
       } else if (s.idlePage === 0) {
-        this.setButton("START", CYAN, CYAN_P, INK, () => this.start());
+        this.setButton(t("btn.start"), CYAN, CYAN_P, INK, () => this.start());
       } else if (s.idlePage === 1) {
-        if (s.paired) this.setButton("Neu verbinden", CYAN, CYAN_P, INK, () => this.repair());
-        else this.setButton("Neuer Code", CYAN, CYAN_P, INK, () => this.beginPairing());
+        if (s.paired) this.setButton(t("rec.repair"), CYAN, CYAN_P, INK, () => this.repair());
+        else this.setButton(t("pair.gen"), CYAN, CYAN_P, INK, () => this.beginPairing());
       } else if (s.idlePage === 2 && loadPending().length && getTok()) {
-        this.setButton("Jetzt senden", CYAN, CYAN_P, INK, () => this.flushPending());
+        this.setButton(t("rec.uploadNow"), CYAN, CYAN_P, INK, () => this.flushPending());
       } else this.hideButton();
     },
 
@@ -340,27 +450,30 @@ Page(
         });
       }
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
-      const gps = "GPS " + (s.fix ? "●" : "suche…");
-      const conn = !bleOk() ? "kein Handy" : (s.paired ? "verbunden ✓" : "verbinde…");
+      const gps = s.fix ? "GPS ●" : t("gps.searching");
+      const conn = !bleOk() ? t("up.noPhone") : (s.paired ? t("menu.connected") + " ✓" : t("up.waiting"));
       if (s.idlePage === 0) {
         this.renderFields(s.offFoil);
+        // Der Alarm-Hinweis war ein Glocken-Emoji — Standard-Emojis sind in der UI verboten
+        // (Projektregel), also das lokalisierte Wort. "→ Verbinden" statt "wische weiter":
+        // der Pfeil braucht keine Uebersetzung.
         const hint = (bleOk() && !getTok())
-          ? "nicht gepaart · wische weiter → ›Verbinden‹"
-          : (s.upStatus || gps) + (s.almOn ? " · 🔔" : "") + " · " + conn;
+          ? t("up.notLinked") + " · → " + t("menu.connect")
+          : (s.upStatus || gps) + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn;
         w.status.setProperty(hmUI.prop.TEXT, hint);
       } else if (s.idlePage === 3) {
         this.hideBig();
         this.setSlots(["", ""], ["", ""], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, "Foil & Alarm · tippen");
+        w.status.setProperty(hmUI.prop.TEXT, t("fm.title"));
         this._buildFoilBtns();
       } else if (s.idlePage === 1) {
-        if (!bleOk()) { this.setSlots(["—", "kein Handy"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Handy/Zepp-App nötig"); }
-        else if (s.paired) { this.setSlots(["✓", "verbunden"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "Uhr verbunden"); }
-        else { this.setSlots([s.code || "—", "Pairing-Code"], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "auf pumpfoil.org eintragen"); }
+        if (!bleOk()) { this.setSlots(["—", t("up.noPhone")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("pair.noConn")); }
+        else if (s.paired) { this.setSlots(["✓", t("menu.connected")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("menu.linked")); }
+        else { this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "pumpfoil.org → " + t("pair.enterThere")); }
       } else {
         const n = loadPending().length;
-        this.setSlots(["" + n, "in Warteschlange"], ["", ""], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (n ? "warten auf Verbindung" : "nichts offen"));
+        this.setSlots(["" + n, t("up.open")], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (n ? t("up.waitConn") : t("up.nothing")));
       }
     },
     // Foil-/Alarm-Seite: drei Tap-Buttons (Alarm An/Aus, Schwellen Auto/Manuell, Foil zyklisch).
@@ -374,14 +487,15 @@ Page(
       // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
       // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
       // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
+      const onOff = (v) => t(v ? "common.on" : "common.off");
       const layTxt = s.layoutsPref === null
-        ? "Auto (" + (s.layoutsServerDefault ? "An" : "Aus") + ")"
-        : (s.layoutsPref ? "An" : "Aus");
+        ? t("common.auto") + " (" + onOff(s.layoutsServerDefault) + ")"
+        : onOff(s.layoutsPref);
       w.foilBtns = [
-        mk(Math.round(DH * 0.14), "Alarm: " + (s.almOn ? "An" : "Aus"), () => { s.almOn = !s.almOn; this.renderIdle(); }),
-        mk(Math.round(DH * 0.33), "Schwellen: " + (s.almSrc === "foil" ? "Auto" : "Manuell"), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
-        mk(Math.round(DH * 0.52), "Foil: " + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
-        mk(Math.round(DH * 0.71), "Layouts: " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
+        mk(Math.round(DH * 0.14), t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
+        mk(Math.round(DH * 0.33), t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
+        mk(Math.round(DH * 0.52), t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
+        mk(Math.round(DH * 0.71), t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
       ];
     },
     _clearFoilBtns() {
@@ -431,39 +545,42 @@ Page(
       if (s.page === 0 || s.page === s.views.length + 1) {
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
-        this.setSlots([mmss(el), "Zeit"], [fmtDist(s.dist), "Distanz"], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, "Taste halten = Stopp · kurz = Seite");
+        this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")], ["", ""]);
+        // Tasten-Hinweis: "Halten = STOPP". Das frueher angehaengte "kurz = Seite" ist entfallen —
+        // fuer "Seite" gibt es in den anderen Uhr-Apps keinen Wortlaut, und die Seitenanzeige
+        // (n/N) steht ohnehin oben rechts. Keinen Text erfinden.
+        w.status.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " = " + t("btn.stop"));
         return;
       }
       const pg = s.page - 1;
       w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
       this.renderFields(s.views[pg]);
-      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : "GPS suche…") + " · Taste halten = Stopp");
+      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching")) + " · " + t("rec.stopHold") + " = " + t("btn.stop"));
     },
     renderSummary() {
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
       w.page.setProperty(hmUI.prop.TEXT, "");
-      this.setSlots([fmtDist(last.dist), "Distanz"], [mmss(last.dur), "Dauer"], [last.avg.toFixed(1), "Ø km/h"]);
+      this.setSlots([fmtDist(last.dist), t("f.dist")], [mmss(last.dur), t("f.dur")], [last.avg.toFixed(1), t("f.kmhAvg")]);
       w.status.setProperty(hmUI.prop.TEXT, s.upStatus);
     },
     fieldValue(id) {
       const s = this.state, last = s.last;
       const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
       switch (id) {
-        case 1: case 5: return [(s.cur * 3.6).toFixed(1), "km/h"];
-        case 6: return [(s.recording ? (el > 0 ? s.dist / el * 3.6 : 0) : (last ? last.avg : 0)).toFixed(1), "Ø km/h"];
-        case 7: return [(s.recording ? s.max * 3.6 : (last ? last.max : 0)).toFixed(1), "max km/h"];
-        case 2: return [s.hr ? "" + s.hr : "–", "bpm"];
-        case 8: return [s.hrN ? "" + Math.round(s.hrSum / s.hrN) : "–", "Ø bpm"];
-        case 9: return [s.hrMax ? "" + s.hrMax : "–", "max bpm"];
-        case 3: case 14: return [mmss(el), "Zeit"];
-        case 4: case 15: return [fmtDist(s.dist), "Distanz"];
-        case 12: { const d = new Date(); return [pad(d.getHours()) + ":" + pad(d.getMinutes()), "Uhr"]; }
-        case 16: return [last ? mmss(last.dur) : "–", "letzt. Dauer"];
-        case 17: return [last ? fmtDist(last.dist) : "–", "letzt. Strecke"];
-        case 18: return [last ? last.avg.toFixed(1) : "–", "letzt. Ø"];
-        case 19: return [last ? last.max.toFixed(1) : "–", "letzt. max"];
-        case 20: return ["–", "Läufe"];
+        case 1: case 5: return [(s.cur * 3.6).toFixed(1), t("f.kmh")];
+        case 6: return [(s.recording ? (el > 0 ? s.dist / el * 3.6 : 0) : (last ? last.avg : 0)).toFixed(1), t("f.kmhAvg")];
+        case 7: return [(s.recording ? s.max * 3.6 : (last ? last.max : 0)).toFixed(1), t("f.kmhMax")];
+        case 2: return [s.hr ? "" + s.hr : "–", t("f.bpm")];
+        case 8: return [s.hrN ? "" + Math.round(s.hrSum / s.hrN) : "–", t("f.bpmAvg")];
+        case 9: return [s.hrMax ? "" + s.hrMax : "–", t("f.bpmMax")];
+        case 3: case 14: return [mmss(el), t("f.time")];
+        case 4: case 15: return [fmtDist(s.dist), t("f.dist")];
+        case 12: { const d = new Date(); return [pad(d.getHours()) + ":" + pad(d.getMinutes()), t("f.clock")]; }
+        case 16: return [last ? mmss(last.dur) : "–", t("f.lastRunTime")];
+        case 17: return [last ? fmtDist(last.dist) : "–", t("f.lastRunDist")];
+        case 18: return [last ? last.avg.toFixed(1) : "–", t("f.lastRunAvg")];
+        case 19: return [last ? last.max.toFixed(1) : "–", t("f.lastRunMax")];
+        case 20: return ["–", t("f.runs")];
         default: return ["–", ""];
       }
     },
@@ -536,13 +653,13 @@ Page(
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
-        s.screen = "summary"; s.upPct = 0; s.upStatus = "Lädt hoch… 0%";
+        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0%";
         const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice(), foilId: s.foilId }); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
       } else {
-        s.screen = "idle"; s.idlePage = 0; s.upStatus = "nichts aufgezeichnet";
+        s.screen = "idle"; s.idlePage = 0; s.upStatus = t("rec.noData");
         store.setItem("active", "");
         this.applyButton(); this.renderIdle();
       }
@@ -566,7 +683,7 @@ Page(
       // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
       const req = (p) => this.reqQ(p).then((r) => {
         if (r && r.error) throw new Error(r.error);
-        if (!r || r.ok !== true) throw new Error("keine Antwort");
+        if (!r || r.ok !== true) throw new Error(t("up.serverUnreach"));
         return r;
       });
       return req({ method: "START", token: tok, meta }).then(bump)
@@ -577,15 +694,15 @@ Page(
       const s = this.state;
       const inSummary = s.screen === "summary";
       const list = loadPending();
-      if (!getTok()) { if (list.length) { s.upStatus = "Upload später (" + list.length + ")"; this.rerender(); } return; }
-      if (!list.length) { if (inSummary) { s.upStatus = "Hochgeladen ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
-      const onProg = (pct) => { s.upPct = pct; s.upStatus = "Lädt hoch… " + pct + "%"; if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
+      if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
+      if (!list.length) { if (inSummary) { s.upStatus = t("up.done") + " ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
+      const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "%"; if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
-        if (i >= list.length) { s.upStatus = "Hochgeladen ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return; }
+        if (i >= list.length) { s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return; }
         const sess = list[i];
         this.uploadSession(sess, onProg)
           .then(() => { removePending(sess.uuid); step(i + 1); })
-          .catch((err) => { s.upStatus = "Upload: " + ((err && err.message) || "?"); this.rerender(); this.applyButton(); });
+          .catch((err) => { s.upStatus = t("common.error") + ": " + ((err && err.message) || "?"); this.rerender(); this.applyButton(); });
       };
       step(0);
     },
