@@ -23,10 +23,10 @@ für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `dete
   verschluckte Antworten (Worker nach Spawn noch nicht bereit) erneut sendet.
 
 ## Aufbau (auf dem „Fetch Api"-Template, `@zeppos/zml`)
-- `page/index.js` — State-Machine (Ruhe/Aufnahme), Rendering der **konfigurierten Datenfelder**
-  (`views` = wischbare Seiten, `offFoilView` = Ruhe; Feld-IDs wie web/`fields.ts`/Garmin), Sampling,
-  Auto-Start, Offline-Queue. Titel antippen: in Aufnahme = Seite wechseln, in Ruhe = neuer Code
-  (unverbunden) bzw. jetzt nachschicken (verbunden).
+- `page/index.js` — State-Machine (Ruhe/Aufnahme), **Lauf-Erkennung** (on-foil/off-foil, s. u.),
+  Rendering der **konfigurierten Datenfelder** und der **eigenen Layouts** (Feld-IDs wie
+  web/`fields.ts`/Garmin), Sampling, Auto-Start, Offline-Queue. Titel antippen: in Aufnahme =
+  Seite wechseln, in Ruhe = neuer Code (unverbunden) bzw. jetzt nachschicken (verbunden).
 - `page/index.[r|s].layout.js` — Widget-Geometrie rund/eckig.
 - `app-side/index.js` — App-Side-Service (Handy): `onRequest` → `fetch`. **Reverse-Pairing** wie
   bei allen Uhren: `PAIR_INIT` (`POST /api/devices/pair-init` → `{code, claim_token}`), `PAIR_POLL`
@@ -58,6 +58,63 @@ zeus preview        # QR für echte Uhr (Zepp-App)
    und bekommt Token/Claim pro Request mitgeschickt (`@zos/settings` ist im App-Side NICHT auflösbar).
 3. `fetch`-Response-Shape (`response.status`, `response.body` String vs. JSON).
 4. Pairing-Flow: Code auf der Uhr sichtbar → auf pumpfoil.org/Konto eintragen → Uhr pollt → „verbunden ✓".
+
+## Lauf-Erkennung auf der Uhr (on-foil / off-foil)
+
+Die App kannte lange nur `screen: idle|recording|summary` — kein „ich foile gerade". Damit fehlten
+Lauf-Zähler, „letzter Lauf" und zustandsabhängige Seiten. Jetzt läuft derselbe Automat wie auf
+Garmin (`watch/source/SessionRecorder.mc:_updateRun`) und Wear (`Recorder.kt:updateFoilingRun`),
+**mit den dort abgestimmten Parametern** (nicht neu erfunden):
+
+| | Wert |
+|---|---|
+| rein | Speed ≥ **2,8 m/s** (~10 km/h), **4 s** anhaltend |
+| raus | Speed < **2,5 m/s** (~9 km/h), **3 s** anhaltend |
+| Re-Arm-Sperre nach Lauf-Ende | **25 s** (Zurückschwimmen/Waten soll keinen Phantom-Lauf starten) |
+| Start/Ende | auf den Dwell-Beginn **zurückdatiert** |
+
+Entschieden wird auf einem **gleitenden 3-s-Median** der Geschwindigkeit, nicht auf `s.cur`: Zepp
+liefert nur den Momentanwert, ein einzelner Doppler-Ausreißer würde sonst einen Lauf starten. Fenster
+und Verfahren wie beim Server (`SMOOTH_WINDOW_S = 3` + `_running_median` in
+`server/app/analysis/gps.py`) und wie Garmins `speed3sMed`. Fällt der GPS-Fix aus, altert das Fenster
+binnen 3 s leer → ein laufender Lauf endet regulär statt am letzten Speed zu kleben.
+
+Damit füllen sich die Feld-IDs, die es dafür längst gibt: **14/15** aktueller Lauf (Zeit/Distanz,
+Label wechselt auf „Lauf läuft"), **16–19** letzter Lauf (Zeit/Distanz/Ø/Max), **20** Lauf-Zähler.
+Bis dahin zeigten 14/15 die Gesamt-Session und 16–19 die letzte **Session** statt des letzten Laufs.
+Nebenbei getrennt: **Feld 1** = 3-s-Median („km/h (3s)"), **Feld 5** = Momentanwert — vorher beides
+derselbe Rohwert.
+
+**Seiten-Ring je Zustand** (portiert von `RecordView.mc:_state/_setFor/_ring`): der Server liefert
+`pages` (on-foil), `offFoilPages` und `browseAll`. Geblättert wird im Satz des aktuellen Zustands;
+steht `browseAll`, hängen im Off-Foil-Zustand die On-Foil-Seiten hinten dran. Zustandswechsel setzt
+den Ring auf die erste Seite und vibriert kurz. **`pausePages` bleibt ungenutzt** — die Zepp-App hat
+kein manuelles Pausieren (Taste halten = Stopp), der Zustand kann nie eintreten.
+
+## Eigene Layouts zeichnen (Web-Editor → Uhr)
+
+Wie Garmin/Wear/Apple Watch. Der Server schickt Seiten **immer als getaggte Liste inline** — es gibt
+keine Layout-IDs und kein `layouts`-Wörterbuch (`server/app/api/devices.py:_layouts_for_watch`):
+`[0,a,b,c]` = klassische 3-Feld-Seite, `[1,bg,[elemente]]` = eigenes Layout. Element =
+`[typ,x,y,size,color,flags,extra…]`, Koordinaten in **Promille** der Display-Breite/-Höhe.
+
+- **Größenstufen** aus der Simulator-Messung (`web/src/lib/watchLayout.ts`): Schriftgröße =
+  Tintenbreite / 1,973 / 280 × Displaybreite. Ergebnis sind echte Pixel → **kein `px()`** darauf
+  (das skaliert von der 480er-Designbasis und würde doppelt umrechnen).
+- **Palette** exakt aus `server/app/api/layouts.py PALETTE`; „auto" = Werte `#ffffff`, Labels
+  `#d0d0d0`, Linien `#808080`. Farbe-nach-Wert in **vier Stufen** (12/16/20 km/h), kein Verlauf.
+- **Randlos** über das ganze Display; **REC = Punkt und „REC"-Text**; Seiten-Punkte bringt das
+  Layout selbst mit (typ 6), die App zeichnet auf Layout-Seiten keinen eigenen Indikator.
+- Zepp ist **widget-basiert**: Widgets werden pro Seite erzeugt, in einer Liste gehalten und beim
+  Seitenwechsel gelöscht (`_renderLayoutPage`/`_clearLayout`, Muster wie `showBar`/`hideBar`). Pro
+  Sekunde werden **nur die Wert-Elemente** per `setProperty` nachgezogen, nicht alles neu erzeugt.
+- Bekannte Grenzen: **schräge Linien** werden auf die dominante Achse gelegt (Zepp kann nur
+  Rechtecke; Editor-Linien sind praktisch immer Trenner). Die Breite des „REC"-Textes ist geschätzt
+  (nur die Gruppen-Ausrichtung hängt daran). **typ 7 („Pausiert") wird nie gezeichnet** — ohne
+  Pause-Funktion wäre der Hinweis immer falsch (Wear macht es genauso).
+- Scheitert das Zeichnen (unbekannte Widget-Property o. ä.), räumt die App die Widgets weg, schaltet
+  Layouts **für diese Sitzung** ab und zeichnet klassisch weiter — die Aufnahme läuft durch.
+  Sinngleich mit Garmins Canary, aber ohne dessen Speicher-Maschinerie (die gehört zu den 96-KB-Uhren).
 
 ## Sprachen (i18n)
 

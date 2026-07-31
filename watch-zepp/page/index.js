@@ -21,6 +21,22 @@ const GPS_HZ = 1, ACCEL_HZ = 0, ACCEL_SCALE = 0;
 // (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
 const GPS_CHUNK = 10;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
+// ---- Lauf-/Foil-Erkennung auf der Uhr ----------------------------------------------------------
+// WORTGLEICH übernommen von den beiden Uhren, die das schon gelöst haben — NICHT neu erfunden:
+//   watch/source/SessionRecorder.mc:150-158 (_updateRun, Referenz-Implementierung)
+//   android/wear/.../Recorder.kt:70-121     (derselbe Automat in Kotlin)
+// Hysterese: rein ab ~10 km/h (4 s anhaltend), raus unter ~9 km/h (3 s anhaltend); danach 25 s
+// Sperre, bevor ein neuer Lauf beginnen darf (Zurückschwimmen/Waten erzeugt sonst Phantom-Läufe).
+// Die Schwellen sind am Server-Detektor abgestimmt — hier nichts nachjustieren.
+const RUN_ENTER_MPS = 2.8, RUN_EXIT_MPS = 2.5;
+const RUN_ENTER_DWELL = 4, RUN_EXIT_DWELL = 3, RUN_REARM_COOLDOWN_MS = 25000;
+// Entschieden wird auf der GEGLÄTTETEN Geschwindigkeit, nie auf dem Rohwert: Zepp liefert nur den
+// aktuellen Wert (`s.cur`), ein einzelner Doppler-Ausreißer würde sonst einen Lauf starten. 3 s
+// gleitender MEDIAN — dieselbe Fensterbreite und dasselbe Verfahren wie der Server
+// (SMOOTH_WINDOW_S = 3 + _running_median in server/app/analysis/gps.py) und wie Garmin
+// (SessionRecorder.speed3sMed). Ohne GPS-Fix läuft das Fenster nach 3 s leer -> sp3 = 0 -> ein
+// laufender Lauf endet regulär über den Exit-Dwell (statt bei stehengebliebenem Speed weiterzulaufen).
+const SPEED_WIN_S = 3;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
@@ -123,6 +139,9 @@ const S = {
 
   // -- Datenfeld-Labels (Garmin _a2/_a3; Einheiten bleiben unlokalisiert) --
   "f.kmh": "km/h",
+  // Feld 1 = geglättete Geschwindigkeit (3-s-Median), Feld 5 = Momentanwert — bis 1.0.4 zeigten
+  // beide denselben Rohwert. Wortlaut = web fw.1 ("km/h (3s)"), in allen Sprachen identisch.
+  "f.kmh3s": "km/h (3s)",
   "f.bpm": "bpm",
   "f.kmhAvg":        ["km/h Ø", "km/h Ø", "km/h Ø", "km/h avg", "km/h moy", "km/h media", "km/h med", "km/h méd", "km/h rata", "km/h ср", "km/h gem", "km/h ka", "km/h prům", "平均 km/h", "平均 km/h"],
   "f.kmhMax":        ["km/h max", "km/h max", "km/h max", "km/h max", "km/h max", "km/h max", "km/h máx", "km/h máx", "km/h maks", "km/h макс", "km/h max", "km/h maks", "km/h max", "最大 km/h", "最高 km/h"],
@@ -133,6 +152,13 @@ const S = {
   "f.dist":          ["Distanz", "Distanz", "Distanz", "Distance", "Distance", "Distanza", "Distancia", "Distância", "Jarak", "Дистанция", "Afstand", "Matka", "Vzdálenost", "距離", "距离"],
   "f.dur":           ["Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración", "Duração", "Durasi", "Длительность", "Duur", "Kesto", "Doba", "継続時間", "时长"],
   "f.runs":          ["Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos", "Runs", "Run", "Заезды", "Runs", "Vedot", "Jízdy", "ラン", "航段"],
+  // Aktueller Lauf (Feld 14/15). Wortlaut 1:1 aus android/wear/.../I18n.kt (f.runTime/f.runDist,
+  // inkl. der pt/id/ru/ja/zh-Overlays); nl/fi/cs hat Wear dort nicht -> leer = Englisch.
+  "f.runTime":       ["Lauf-Zeit", "Lauf-Ziit", "Lauf-Zeit", "Run time", "Temps run", "Tempo run", "Tiempo run", "Tempo run", "Waktu run", "Время заезда", "", "", "", "ラン時間", "航段时间"],
+  "f.runDist":       ["Lauf-Dist", "Lauf-Dist", "Lauf-Dist", "Run dist", "Dist run", "Dist run", "Dist run", "Dist run", "Jarak run", "Дист заезда", "", "", "", "ラン距離", "航段距离"],
+  // „Lauf läuft" — Garmin-Wortlaut (watch/source/Strings.mc f.runActive, 13 Spalten); ja/zh gibt es
+  // dort nicht und Wear kennt den Key gar nicht -> leer = Englisch, statt zu raten.
+  "f.runActive":     ["Lauf läuft", "Lauf lauft", "Lauf läuft", "run active", "run actif", "run attivo", "run activo", "run ativo", "run aktif", "заезд идёт", "run actief", "veto käynnissä", "jízda aktivní"],
   "f.lastRunTime":   ["letzte Zeit", "letschti Ziit", "letzte Zeit", "last time", "dern. temps", "ult. tempo", "últ. tiempo", "último tempo", "waktu terakhir", "посл время", "", "", "", "前回の時間", "上次时间"],
   "f.lastRunDist":   ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "", "", "", "前回の距離", "上次距离"],
   "f.lastRunAvg":    ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "", "", "", "前回の平均", "上次平均"],
@@ -153,6 +179,56 @@ const t = (k) => {
   return row[LI] || row[3] || row[0] || k;
 };
 
+// ---- Layout-Renderer: Konstanten ---------------------------------------------------------------
+// Eigene Datenseiten aus dem Web-Editor auf der Uhr zeichnen. Element:
+//   [typ, x, y, size, color, flags, extra…]   Koordinaten in PROMILLE der Display-Breite/-Höhe
+//   typ 1 = Wert eines Datenfelds   (extra = Feld-ID; flags Bit2 = Farbe nach Wert)
+//   typ 2 = ÜBERSETZTES Feld-Label  (extra = Feld-ID -> t())
+//   typ 3 = Freitext                (extra = Text, nie übersetzt)
+//   typ 4 = Trennlinie              (extra = x2,y2; size = Strichbreite)
+//   typ 5 = REC-Indikator           (Punkt UND "REC"-Text)
+//   typ 6 = Seiten-Punkte           (Anzahl dynamisch)
+//   typ 7 = "Pausiert"-Hinweis      (auf Zepp nie sichtbar, s. _renderLayoutPage)
+//   flags Bit0 = links, Bit1 = rechts, sonst zentriert
+// Vorlagen: android/wear/.../WatchLayout.kt und watch-apple/Sources/WatchLayoutRender.swift.
+//
+// Palette EXAKT wie server/app/api/layouts.py PALETTE (Index 1…15; 0 = "auto" -> Rolle entscheidet).
+// Garmin rundet auf seine Hardware-Farben, Zepp kann die echten Hex-Werte zeichnen.
+const LAY_PALETTE = [
+  0xffffff, 0xd0d0d0, 0x808080, 0x000000,
+  0xff0000, 0xff5500, 0xffaa00, 0xffff00,
+  0x00ff00, 0x00aa00, 0x00ffff, 0x22d3ee,
+  0x0055ff, 0xaa00ff, 0xff00aa,
+];
+const layColor = (idx, fb) => ((idx | 0) >= 1 && (idx | 0) <= LAY_PALETTE.length) ? LAY_PALETTE[(idx | 0) - 1] : fb;
+// Rollen-Vorgaben für "auto" — identisch mit paletteColor() in der Web-Vorschau.
+const AUTO_VALUE = 0xffffff, AUTO_LABEL = 0xd0d0d0, AUTO_LINE = 0x808080;
+// Größenstufen: NICHT geschätzt. Tintenbreite von "18.5" je Stufe bei 280 px Displaybreite,
+// gemessen im Connect-IQ-Simulator (web/src/lib/watchLayout.ts FONT_MEASURED, Spalte 2);
+// Schriftgröße = Breite / Vorschub-pro-px / 280 × Displaybreite. Ergebnis sind ECHTE PIXEL —
+// deshalb hier KEIN px() (das skaliert von der 480er-Designbasis und würde doppelt umrechnen;
+// die vorhandenen Größen in showBig() rechnen aus demselben Grund direkt mit DH).
+const FONT_INK_W_280 = [29, 46, 50, 61, 64, 82, 99, 146, 166];
+const FONT_REF_W = 280, SAMPLE_ADV = 1.973;
+const laySize = (step) => {
+  let i = step | 0;
+  if (i < 0) i = 0;
+  if (i > FONT_INK_W_280.length - 1) i = FONT_INK_W_280.length - 1;
+  return Math.max(7, Math.round(DW * FONT_INK_W_280[i] / SAMPLE_ADV / FONT_REF_W));
+};
+// Blasse Variante einer Farbe: Zepp-FILL_RECT hat keine verlässliche Alpha-Stütze, also gegen den
+// Seiten-Hintergrund mischen (Web-Vorschau: inaktive Seiten-Punkte 35 % Deckkraft).
+const layMix = (c, bg, f) => {
+  const r = Math.round(((c >> 16) & 255) * f + ((bg >> 16) & 255) * (1 - f));
+  const g = Math.round(((c >> 8) & 255) * f + ((bg >> 8) & 255) * (1 - f));
+  const b = Math.round((c & 255) * f + (bg & 255) * (1 - f));
+  return (r << 16) | (g << 8) | b;
+};
+// Farbe nach Wert in VIER STUFEN (Garmin _speedColor 12/16/20 km/h, Web-Vorschau, Wear) —
+// kein stufenloser Verlauf. Puls-Buckets 120/150/170 wie Wear hrColor.
+const laySpeedColor = (kmh) => (kmh < 12 ? 0x3b82f6 : kmh < 16 ? 0x22c55e : kmh < 20 ? 0xeab308 : 0xef4444);
+const layHrColor = (bpm) => (bpm <= 0 ? null : bpm < 120 ? 0x22c55e : bpm < 150 ? 0xeab308 : bpm < 170 ? 0xf97316 : 0xef4444);
+
 // Recorder wie Garmin. Wischbare Seiten:
 //   Ruhe:     0 Daten(+START) · 1 Verbindung/Code · 2 Upload-Queue
 //   Aufnahme: 0..N-1 Datenseiten (kein Button) · N Stopp-Screen(+STOPP)
@@ -167,7 +243,16 @@ Page(
       fix: false, autoTicks: 0,
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
+      // Lauf-/Foil-Erkennung (Paket 1). sp3 = 3-s-Median in m/s, spWin = [[tMs, mps], …].
+      sp3: 0, spWin: [], foiling: false, _prevFoil: false,
+      enterStreak: 0, exitStreak: 0, runEndedMs: -100000,
+      runStartMs: 0, runStartDist: 0, runMaxMps: 0, runCount: 0,
+      lastRunDurMs: 0, lastRunDistM: 0, lastRunAvgMps: 0, lastRunMaxMps: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
+      // Seiten-Sätze je Zustand (Server, getaggte Listen: [0,a,b,c] klassisch | [1,bg,[el…]] Layout).
+      // browseAll = im Off-Foil-Zustand auch durch die On-Foil-Seiten blättern. _ringKey cached den
+      // zuletzt gebauten Ring (Zustand + Layout-Schalter) — bei Config-Änderung auf null setzen.
+      pages: [], offFoilPages: [], browseAll: true, _ringCache: null, _ringKey: null,
       // Update-Hinweis + Layout-Zustand. layoutsPref wird aus LocalStorage geladen (siehe init),
       // null = automatisch; layoutsServerDefault ist nur die Vorbelegung vom Server.
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
@@ -232,7 +317,9 @@ Page(
             if (!long && !click) return false;      // PRESS/RELEASE ignorieren (sonst doppelt)
             if (s.recording) {
               if (long) { this.stop(); return true; }
-              const last = s.views.length + 1;
+              // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
+              // s.views — die Sätze sind unterschiedlich lang (s. _ring).
+              const last = this._ringLen() + 1;
               s.page = s.page >= last ? 0 : s.page + 1;   // hier MIT Wrap: eine Taste, eine Richtung
               this.applyButton(); this.renderRecording();
               return true;
@@ -256,8 +343,8 @@ Page(
                     : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
           if (dir === 0) return false;
           if (s.recording) {
-            // Seiten: [STOPP] + Ansichten + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
-            const last = s.views.length + 1;
+            // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
+            const last = this._ringLen() + 1;
             s.page = Math.max(0, Math.min(last, s.page + dir));
             this.applyButton(); this.renderRecording();
             return true;
@@ -327,6 +414,17 @@ Page(
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
         if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
+        // Seiten-Sätze (F3). Der Server liefert getaggte Listen INLINE — es gibt keine Layout-IDs
+        // und kein `layouts`-Wörterbuch (server/app/api/devices.py:_layouts_for_watch):
+        //   [0,a,b,c]         klassische Seite mit drei Feld-IDs
+        //   [1,bg,[elemente]] eigenes Layout, Hintergrund + Elemente inline
+        // `pausePages` wird BEWUSST nicht gelesen: die Zepp-App hat kein manuelles Pausieren
+        // (Taste halten = Stopp), der Zustand kann also nie eintreten.
+        if (r && Array.isArray(r.pages) && r.pages.length) s.pages = r.pages;
+        if (r && Array.isArray(r.offFoilPages) && r.offFoilPages.length) s.offFoilPages = r.offFoilPages;
+        if (r && typeof r.browseAll !== "undefined") s.browseAll = !!r.browseAll;
+        // Ring + gezeichnete Layout-Widgets neu aufbauen lassen (Inhalt kann sich geändert haben).
+        s._ringKey = null; s.w.layKey = null;
         // Foil-/Alarm-Config übernehmen; Default-Auswahl einmalig (bis App-Ende).
         if (r && Array.isArray(r.foils)) s.foils = r.foils.map((f) => ({ id: f.id, label: f.label, min: f.min, max: f.max }));
         if (r) { s.almLow = r.speedLow || 0; s.almHigh = r.speedHigh || 0; }
@@ -398,7 +496,7 @@ Page(
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === 0 || s.page === s.views.length + 1) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+        if (s.page === 0 || s.page >= this._ringLen() + 1) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
         this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
@@ -438,17 +536,21 @@ Page(
         else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
       }
     },
+    // Update-Hinweis (Audit-Rückstand): im vorhandenen Versions-Widget, bewusst OHNE Worte —
+    // "v1.0.3 → 1.0.4" braucht keine Übersetzung und passt in die schmale Zeile.
+    _verText() {
+      const s = this.state, w = s.w;
+      if (!w.ver) return;
+      w.ver.setProperty(hmUI.prop.MORE, {
+        text: s.updateVersion ? "v" + APP_VERSION + " → " + s.updateVersion : "v" + APP_VERSION,
+        color: s.updateVersion ? 0x22d3ee : 0x64748b,
+      });
+    },
     renderIdle() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
-      // Update-Hinweis (Audit-Rückstand): im vorhandenen Versions-Widget, bewusst OHNE Worte —
-      // "v1.0.3 → 1.0.4" braucht keine Übersetzung und passt in die schmale Zeile.
-      if (w.ver) {
-        w.ver.setProperty(hmUI.prop.MORE, {
-          text: s.updateVersion ? "v" + APP_VERSION + " → " + s.updateVersion : "v" + APP_VERSION,
-          color: s.updateVersion ? 0x22d3ee : 0x64748b,
-        });
-      }
+      this._clearLayout();
+      this._verText();
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
       const gps = s.fix ? "GPS ●" : t("gps.searching");
       const conn = !bleOk() ? t("up.noPhone") : (s.paired ? t("menu.connected") + " ✓" : t("up.waiting"));
@@ -508,6 +610,7 @@ Page(
       const s = this.state;
       s.layoutsPref = s.layoutsPref === null ? true : (s.layoutsPref ? false : null);
       store.setItem("layoutsPref", s.layoutsPref === null ? "" : (s.layoutsPref ? "1" : "0"));
+      s._ringKey = null; s.w.layKey = null;   // Ring + gezeichnete Layout-Widgets neu aufbauen
     },
     _cycleFoil() {
       const s = this.state;
@@ -516,6 +619,104 @@ Page(
       if (idx >= s.foils.length) { s.foilId = null; s.foilLabel = "—"; }
       else { s.foilId = s.foils[idx].id; s.foilLabel = s.foils[idx].label; }
     },
+    // ---- Lauf-/Foil-Erkennung (Paket 1) --------------------------------------------------------
+    // 3-s-Fenster pflegen und den Median bilden. IMMER pro Tick aufrufen (auch ohne Fix): dann
+    // altert das Fenster weg und ein laufender Lauf endet regulär, statt am letzten Speed zu kleben.
+    _pushSpeed(mps, tMs, hasFix) {
+      const s = this.state;
+      if (hasFix) s.spWin.push([tMs, mps]);
+      while (s.spWin.length && tMs - s.spWin[0][0] > SPEED_WIN_S * 1000) s.spWin.shift();
+      const v = [];
+      for (let i = 0; i < s.spWin.length; i++) v.push(s.spWin[i][1]);
+      if (!v.length) { s.sp3 = 0; return; }
+      v.sort((a, b) => a - b);
+      const h = v.length >> 1;
+      s.sp3 = (v.length % 2) ? v[h] : (v[h - 1] + v[h]) / 2;
+    },
+    // Zustands-Automat, 1:1 aus SessionRecorder.mc:_updateRun / Recorder.kt:updateFoilingRun.
+    // tMs = verstrichene Aufnahmezeit (nicht Wall-Clock), v3 = geglättete m/s, vInst = Rohwert.
+    // Gibt true zurück, wenn in diesem Tick ein Lauf zu Ende gegangen ist.
+    _updateRun(v3, vInst, dist, tMs) {
+      const s = this.state;
+      if (!s.foiling) {
+        if (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) {
+          s.enterStreak = 0;
+        } else {
+          s.enterStreak = (v3 >= RUN_ENTER_MPS) ? s.enterStreak + 1 : 0;
+          if (s.enterStreak >= RUN_ENTER_DWELL) {
+            s.foiling = true; s.exitStreak = 0;
+            // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
+            s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
+            s.runStartDist = dist;
+            s.runMaxMps = vInst;
+          }
+        }
+      } else {
+        if (vInst > s.runMaxMps) s.runMaxMps = vInst;
+        s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
+        if (s.exitStreak >= RUN_EXIT_DWELL) {
+          s.foiling = false; s.enterStreak = 0;
+          // Ende auf den ersten langsamen Tick zurückdatieren; Kennzahlen festhalten.
+          let durMs = tMs - RUN_EXIT_DWELL * 1000 - s.runStartMs;
+          if (durMs < 0) durMs = 0;
+          s.lastRunDurMs = durMs;
+          s.lastRunDistM = Math.max(0, dist - s.runStartDist);
+          s.lastRunAvgMps = durMs > 0 ? s.lastRunDistM / (durMs / 1000) : 0;
+          s.lastRunMaxMps = s.runMaxMps;
+          s.runCount++;
+          s.runEndedMs = tMs;   // Re-Arm-Sperre starten
+          return true;
+        }
+      }
+      return false;
+    },
+    _resetRun() {
+      const s = this.state;
+      s.spWin = []; s.sp3 = 0;
+      s.foiling = false; s._prevFoil = false;
+      s.enterStreak = 0; s.exitStreak = 0; s.runEndedMs = -100000;
+      s.runStartMs = 0; s.runStartDist = 0; s.runMaxMps = 0; s.runCount = 0;
+      s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
+      s._ringKey = null;
+    },
+
+    // ---- Seiten-Ring je Zustand (F3) -----------------------------------------------------------
+    // Portiert von watch/source/RecordView.mc:_state/_setFor/_ring. Zepp kennt nur zwei Zustände
+    // (onFoil/offFoil) — ein manuelles Pausieren gibt es hier nicht, also auch kein :paused.
+    _useLayouts() { const s = this.state; return s.layoutsPref === null ? !!s.layoutsServerDefault : !!s.layoutsPref; },
+    _setFor(onFoil) {
+      const s = this.state, dyn = this._useLayouts();
+      if (onFoil) {
+        if (dyn && s.pages.length) return s.pages;
+        const out = [];
+        for (let i = 0; i < s.views.length; i++) { const v = s.views[i] || []; out.push([0, v[0] | 0, v[1] | 0, v[2] | 0]); }
+        return out.length ? out : [[0, 1, 0, 0]];
+      }
+      if (dyn && s.offFoilPages.length) return s.offFoilPages;
+      const f = s.offFoil || [];
+      return [[0, f[0] | 0, f[1] | 0, f[2] | 0]];
+    },
+    _ring(onFoil) {
+      const s = this.state;
+      const key = (onFoil ? "1" : "0") + (this._useLayouts() ? "1" : "0");
+      if (s._ringCache && s._ringKey === key) return s._ringCache;
+      let out = this._setFor(onFoil);
+      // „Auch die übrigen Seiten": im Off-Foil-Zustand hängen die On-Foil-Seiten hinten dran —
+      // feste Reihenfolge, vorhersehbar statt clever (RecordView.mc:150-162).
+      if (!onFoil && s.browseAll) out = out.concat(this._setFor(true));
+      if (!out.length) out = [[0, 1, 0, 0]];
+      s._ringCache = out; s._ringKey = key;
+      return out;
+    },
+    _ringLen() { const n = this._ring(this.state.foiling).length; return n > 0 ? n : 1; },
+    // Seite in den gültigen Bereich holen (Ring kann durch Zustands-/Config-Wechsel schrumpfen).
+    _clampPage() {
+      const s = this.state;
+      if (!s.recording) return;
+      const last = this._ringLen() + 1;
+      if (s.page > last) { s.page = last; this.applyButton(); }
+    },
+
     // Vibrationsalarm: effektive Schwellen (Foil oder manuell) gegen die aktuelle km/h.
     _checkAlarm(kmh) {
       const s = this.state;
@@ -539,10 +740,179 @@ Page(
       } catch (e) {}
     },
 
+    // ---- Layout-Renderer (Paket 2) --------------------------------------------------------------
+    // Zepp ist widget-basiert (createWidget/deleteWidget/setProperty) — es gibt kein dc/onUpdate.
+    // Muster wie _buildFoilBtns/_clearFoilBtns bzw. showBar/hideBar: Widgets in einer Liste halten
+    // und beim Verlassen der Seite ALLE löschen, sonst wachsen sie sich zu.
+    _clearLayout() {
+      const w = this.state.w;
+      if (!w.layW) return;
+      for (let i = 0; i < w.layW.length; i++) { try { hmUI.deleteWidget(w.layW[i]); } catch (e) {} }
+      w.layW = null; w.layKey = null; w.layDyn = null;
+      // Chrome zurückholen, das die Layout-Seite geleert hatte (die Renderer setzen Seite/Status
+      // selbst; Titel + Versionszeile nicht).
+      try { if (w.title) w.title.setProperty(hmUI.prop.TEXT, TITLE.text); } catch (e) {}
+      this._verText();
+    },
+    // Farbe nach Wert für ein Feld; null = keine (Aufrufer nimmt die Palette-/auto-Farbe).
+    _fieldColor(id) {
+      const s = this.state, last = s.last;
+      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      switch (id) {
+        case 1: return laySpeedColor(s.sp3 * 3.6);
+        case 5: return laySpeedColor(s.cur * 3.6);
+        case 6: return laySpeedColor(s.recording ? (el > 0 ? s.dist / el * 3.6 : 0) : (last ? last.avg : 0));
+        case 7: return laySpeedColor(s.recording ? s.max * 3.6 : (last ? last.max : 0));
+        case 18: return s.runCount ? laySpeedColor(s.lastRunAvgMps * 3.6) : null;
+        case 19: return s.runCount ? laySpeedColor(s.lastRunMaxMps * 3.6) : null;
+        case 2: return layHrColor(s.hr);
+        case 8: return layHrColor(s.hrN ? Math.round(s.hrSum / s.hrN) : 0);
+        case 9: return layHrColor(s.hrMax);
+        default: return null;
+      }
+    },
+    // Text-Widget an (ax, ay) verankern. Zepp-TEXT kennt nur ein Rechteck + align_h, also wird die
+    // Ausrichtung über die Box gebaut: links = Box ab ax, rechts = Box bis ax, zentriert = Box
+    // symmetrisch um ax. Vertikal immer mittig (wie TEXT_JUSTIFY_VCENTER bei Garmin).
+    _layText(ax, ay, flags, size, color, txt) {
+      let gx, gw, ah;
+      if (flags & 1) { gx = ax; gw = Math.max(1, DW - ax); ah = hmUI.align.LEFT; }
+      else if (flags & 2) { gx = 0; gw = Math.max(1, ax); ah = hmUI.align.RIGHT; }
+      else { const half = Math.min(ax, DW - ax); gx = ax - half; gw = Math.max(1, 2 * half); ah = hmUI.align.CENTER_H; }
+      const h = Math.round(size * 1.7);
+      return hmUI.createWidget(hmUI.widget.TEXT, {
+        x: gx, y: ay - Math.round(h / 2), w: gw, h: h,
+        color: color, text_size: size, align_h: ah, align_v: hmUI.align.CENTER_V, text: txt,
+      });
+    },
+    // Eine Layout-Seite zeichnen. Bei gleichem Schlüssel werden nur die Wert-Widgets aktualisiert
+    // (1×/s) — jede Sekunde alles neu zu erzeugen wäre auf der Uhr nicht tragbar.
+    _renderLayoutPage(entry, idx, count, recording) {
+      const s = this.state, w = s.w;
+      const els = (entry && Array.isArray(entry[2])) ? entry[2] : [];
+      const key = idx + "/" + count + "/" + (recording ? 1 : 0) + "/" + els.length + "/" + (entry[1] | 0);
+      if (w.layKey === key && w.layDyn) { this._updateLayoutDyn(); return; }
+      this._clearLayout();
+      // Klassische Widgets leeren. Der Layout-Hintergrund deckt sie zwar ab (Zepp zeichnet in
+      // Erzeugungsreihenfolge, das Layout entsteht später), aber leer ist leer.
+      this.hideBig();
+      for (let i = 0; i < 3; i++) { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      w.status.setProperty(hmUI.prop.TEXT, "");
+      try { if (w.title) w.title.setProperty(hmUI.prop.TEXT, ""); } catch (e) {}
+      try { if (w.ver) w.ver.setProperty(hmUI.prop.MORE, { text: "", color: 0x000000 }); } catch (e) {}
+
+      const list = [], dyn = [];
+      const bg = layColor(entry[1] | 0, 0x000000);
+      // RANDLOS über das ganze Display: die Promille-Koordinaten beziehen sich aufs ganze Display,
+      // ein Innenabstand würde alles verkleinern und nach innen versetzen (der Wear-Fehler).
+      list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: 0, w: DW, h: DH, color: bg }));
+      // Linien zuerst, danach alles andere — sonst liegen Striche über den Werten (wie Garmin/Wear).
+      const sorted = els.slice().sort((a, b) => ((a && a[0] === 4) ? 0 : 1) - ((b && b[0] === 4) ? 0 : 1));
+      for (let i = 0; i < sorted.length; i++) {
+        const e = sorted[i];
+        if (!e || e.length < 6) continue;
+        const typ = e[0] | 0;
+        const ax = Math.round(DW * (e[1] | 0) / 1000), ay = Math.round(DH * (e[2] | 0) / 1000);
+        const step = e[3] | 0, ci = e[4] | 0, fl = e[5] | 0;
+        if (typ === 4) {
+          // Trennlinie. Zepp kann nur Rechtecke zeichnen: achsparallele Linien werden exakt,
+          // SCHRÄGE legen wir auf die dominante Achse (Editor-Linien sind praktisch immer
+          // Trenner). Bewusste, dokumentierte Abweichung von Garmin/Wear (dort echte drawLine).
+          const bx = Math.round(DW * (e.length > 6 ? (e[6] | 0) : (e[1] | 0)) / 1000);
+          const by = Math.round(DH * (e.length > 7 ? (e[7] | 0) : (e[2] | 0)) / 1000);
+          const th = step < 1 ? 1 : step;
+          const col = layColor(ci, AUTO_LINE);
+          if (Math.abs(bx - ax) >= Math.abs(by - ay)) {
+            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+              x: Math.min(ax, bx), y: Math.round((ay + by) / 2 - th / 2),
+              w: Math.max(1, Math.abs(bx - ax)), h: th, color: col }));
+          } else {
+            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+              x: Math.round((ax + bx) / 2 - th / 2), y: Math.min(ay, by),
+              w: th, h: Math.max(1, Math.abs(by - ay)), color: col }));
+          }
+          continue;
+        }
+        if (typ === 5) {
+          // REC = Punkt UND "REC"-Text (Garmin _drawRec, Vorschau EL_REC): Punkt 3 % der Breite,
+          // Schrift 5,5 %, Abstand halber Punkt. Die Textbreite wird geschätzt (Zepp hat hier keine
+          // verlässliche Messung) — nur die Gruppen-Ausrichtung hängt davon ab.
+          if (!recording) continue;
+          const d = Math.max(4, Math.round(DW * 0.03)), fs = Math.max(7, Math.round(DW * 0.055));
+          const gap = Math.round(d / 2), tw = Math.round(fs * 0.62 * 3);
+          const total = d + gap + tw;
+          const left = (fl & 1) ? ax : ((fl & 2) ? ax - total : ax - Math.round(total / 2));
+          const col = layColor(ci, 0xff0000);
+          list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: left, y: ay - Math.round(d / 2), w: d, h: d, radius: Math.round(d / 2), color: col }));
+          list.push(hmUI.createWidget(hmUI.widget.TEXT, {
+            x: left + d + gap, y: ay - fs, w: Math.max(1, DW - (left + d + gap)), h: 2 * fs,
+            color: col, text_size: fs, align_h: hmUI.align.LEFT, align_v: hmUI.align.CENTER_V, text: "REC" }));
+          continue;
+        }
+        if (typ === 6) {
+          // Seiten-Punkte AN DER ELEMENT-POSITION (Vorschau: Durchmesser 2,2 % der Breite, Abstand
+          // = Durchmesser, inaktiv 35 %). Garmin ignoriert x/y und zeichnet fest unten mittig —
+          // fürs Standard-Element (500/920) kommt dasselbe heraus, verschoben stimmt nur das hier.
+          const nn = Math.max(1, Math.min(12, count | 0));
+          if (nn <= 1) continue;
+          const d = Math.max(3, Math.round(DW * 0.022)), stp = d * 2, total = (nn - 1) * stp;
+          const startX = (fl & 1) ? ax + Math.round(d / 2)
+                       : (fl & 2) ? ax - total - Math.round(d / 2)
+                       : ax - Math.round(total / 2);
+          const col = layColor(ci, AUTO_LABEL), dim = layMix(col, bg, 0.35);
+          for (let k = 0; k < nn; k++) {
+            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+              x: startX + k * stp - Math.round(d / 2), y: ay - Math.round(d / 2),
+              w: d, h: d, radius: Math.round(d / 2), color: k === idx ? col : dim }));
+          }
+          continue;
+        }
+        // typ 7 ("Pausiert") wird auf Zepp NIE gezeichnet: es gibt kein manuelles Pausieren, der
+        // Hinweis wäre also immer falsch. Genau wie Wear (paused = hart false), bis es eine Pause gibt.
+        if (typ === 7) continue;
+        if (typ !== 1 && typ !== 2 && typ !== 3) continue;
+        const fid = (e.length > 6) ? (e[6] | 0) : 0;
+        const txt = typ === 1 ? this.fieldValue(fid)[0]
+                  : typ === 2 ? this.fieldValue(fid)[1]
+                  : ((e.length > 6 && e[6] != null) ? "" + e[6] : "");
+        // Freitext/Label ohne Inhalt braucht kein Widget; Werte schon (sie ändern sich noch).
+        if (typ !== 1 && !txt) continue;
+        const byVal = (typ === 1 && (fl & 4)) ? 1 : 0;
+        const base = layColor(ci, typ === 1 ? AUTO_VALUE : AUTO_LABEL);
+        let col = base;
+        if (byVal) { const c2 = this._fieldColor(fid); if (c2 != null) col = c2; }
+        const wg = this._layText(ax, ay, fl, laySize(step), col, txt);
+        list.push(wg);
+        if (typ === 1) dyn.push([wg, fid, byVal, base]);
+      }
+      w.layW = list; w.layDyn = dyn; w.layKey = key;
+    },
+    // 1×/s: nur die Wert-Elemente nachziehen (Labels/Freitext/Linien/Punkte sind statisch).
+    _updateLayoutDyn() {
+      const dyn = this.state.w.layDyn || [];
+      for (let i = 0; i < dyn.length; i++) {
+        const d = dyn[i];
+        const v = this.fieldValue(d[1])[0];
+        try {
+          if (d[2]) {
+            const c = this._fieldColor(d[1]);
+            d[0].setProperty(hmUI.prop.MORE, { text: v, color: c == null ? d[3] : c });
+          } else {
+            d[0].setProperty(hmUI.prop.TEXT, v);
+          }
+        } catch (e) {}
+      }
+    },
+
     renderRecording() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();
-      if (s.page === 0 || s.page === s.views.length + 1) {
+      this._clampPage();
+      const ring = this._ring(s.foiling), n = ring.length;
+      if (s.page === 0 || s.page >= n + 1) {
+        this._clearLayout();
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
         this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")], ["", ""]);
@@ -552,13 +922,34 @@ Page(
         w.status.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " = " + t("btn.stop"));
         return;
       }
-      const pg = s.page - 1;
-      w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + s.views.length);
-      this.renderFields(s.views[pg]);
-      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching")) + " · " + t("rec.stopHold") + " = " + t("btn.stop"));
+      const pg = s.page - 1, entry = ring[pg] || ring[0];
+      // Tag-Byte entscheidet: 1 = eigenes Layout (Hintergrund + Elemente inline), sonst klassische
+      // Seite mit Feld-IDs AB INDEX 1 (das Tag gehört nicht dazu).
+      if (entry && entry[0] === 1) {
+        try {
+          this._renderLayoutPage(entry, pg, n, true);
+          return;
+        } catch (err) {
+          // Selbstheilung: scheitert das Zeichnen (unbekannte Widget-Property, kaputtes Element),
+          // darf das NIE die laufende Aufnahme mitnehmen — Widgets wegräumen, Layouts für DIESE
+          // Sitzung abschalten (nicht persistieren) und klassisch weiterzeichnen. Sinngleich mit
+          // Garmins Canary, aber ohne dessen Speicher-Maschinerie (die gehört zu den 96-KB-Uhren).
+          try { this._clearLayout(); } catch (e2) {}
+          s.layoutsPref = false; s._ringKey = null;
+          this.renderRecording();   // einmalige Rekursion: der neue Eintrag ist garantiert klassisch
+          return;
+        }
+      }
+      this._clearLayout();
+      w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + n);
+      this.renderFields([entry[1], entry[2], entry[3]]);
+      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching"))
+        + (s.foiling ? " · " + t("f.runActive") : "")
+        + " · " + t("rec.stopHold") + " = " + t("btn.stop"));
     },
     renderSummary() {
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
+      this._clearLayout();
       w.page.setProperty(hmUI.prop.TEXT, "");
       this.setSlots([fmtDist(last.dist), t("f.dist")], [mmss(last.dur), t("f.dur")], [last.avg.toFixed(1), t("f.kmhAvg")]);
       w.status.setProperty(hmUI.prop.TEXT, s.upStatus);
@@ -566,21 +957,35 @@ Page(
     fieldValue(id) {
       const s = this.state, last = s.last;
       const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      // Lauf-Kennzahlen: läuft gerade ein Lauf -> dessen Live-Werte, sonst die des letzten
+      // (identisch mit _rec.runDurationMs()/runDistanceM() bei Garmin und Recorder.kt:393-395).
+      const runDurMs = s.foiling ? Math.max(0, el * 1000 - s.runStartMs) : s.lastRunDurMs;
+      const runDistM = s.foiling ? Math.max(0, s.dist - s.runStartDist) : s.lastRunDistM;
+      const hasRun = s.runCount > 0;
       switch (id) {
-        case 1: case 5: return [(s.cur * 3.6).toFixed(1), t("f.kmh")];
+        // Feld 1 = 3-s-Median (der Wert, auf dem auch die Lauf-Erkennung entscheidet),
+        // Feld 5 = Momentanwert. Vorher lieferten beide s.cur.
+        case 1: return [(s.sp3 * 3.6).toFixed(1), t("f.kmh3s")];
+        case 5: return [(s.cur * 3.6).toFixed(1), t("f.kmh")];
         case 6: return [(s.recording ? (el > 0 ? s.dist / el * 3.6 : 0) : (last ? last.avg : 0)).toFixed(1), t("f.kmhAvg")];
         case 7: return [(s.recording ? s.max * 3.6 : (last ? last.max : 0)).toFixed(1), t("f.kmhMax")];
         case 2: return [s.hr ? "" + s.hr : "–", t("f.bpm")];
         case 8: return [s.hrN ? "" + Math.round(s.hrSum / s.hrN) : "–", t("f.bpmAvg")];
         case 9: return [s.hrMax ? "" + s.hrMax : "–", t("f.bpmMax")];
-        case 3: case 14: return [mmss(el), t("f.time")];
-        case 4: case 15: return [fmtDist(s.dist), t("f.dist")];
+        case 3: return [mmss(el), t("f.time")];
+        case 4: return [fmtDist(s.dist), t("f.dist")];
         case 12: { const d = new Date(); return [pad(d.getHours()) + ":" + pad(d.getMinutes()), t("f.clock")]; }
-        case 16: return [last ? mmss(last.dur) : "–", t("f.lastRunTime")];
-        case 17: return [last ? fmtDist(last.dist) : "–", t("f.lastRunDist")];
-        case 18: return [last ? last.avg.toFixed(1) : "–", t("f.lastRunAvg")];
-        case 19: return [last ? last.max.toFixed(1) : "–", t("f.lastRunMax")];
-        case 20: return ["–", t("f.runs")];
+        // 14/15 = AKTUELLER Lauf, 16-19 = LETZTER Lauf, 20 = Lauf-Zähler. Bis 1.0.4 zeigte 14/15
+        // die Gesamt-Session (= dasselbe wie 3/4) und 16-19 die letzte SESSION statt des letzten
+        // Laufs — die Feld-IDs bedeuten aber Läufe (web fw.14…fw.20), und ohne On-Watch-Erkennung
+        // gab es keine Lauf-Daten. Jetzt liefert Paket 1 sie.
+        case 14: return [mmss(runDurMs / 1000), s.foiling ? t("f.runActive") : t("f.runTime")];
+        case 15: return [fmtDist(runDistM), t("f.runDist")];
+        case 16: return [hasRun ? mmss(s.lastRunDurMs / 1000) : "–", t("f.lastRunTime")];
+        case 17: return [hasRun ? fmtDist(s.lastRunDistM) : "–", t("f.lastRunDist")];
+        case 18: return [hasRun ? (s.lastRunAvgMps * 3.6).toFixed(1) : "–", t("f.lastRunAvg")];
+        case 19: return [hasRun ? (s.lastRunMaxMps * 3.6).toFixed(1) : "–", t("f.lastRunMax")];
+        case 20: return ["" + s.runCount, t("f.runs")];
         default: return ["–", ""];
       }
     },
@@ -609,13 +1014,27 @@ Page(
       if (fix) s.cur = speed;
 
       if (s.recording) {
+        const el = Date.now() - s.startedAtMs;
         if (fix) {
-          s.gps.push([Date.now() - s.startedAtMs, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speed * 100) / 100, hr, 0]);
+          s.gps.push([el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speed * 100) / 100, hr, 0]);
           if (s.prev) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
           if (speed > s.max) s.max = speed;
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
           if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
+        }
+        // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
+        this._pushSpeed(s.cur, el, fix);
+        this._updateRun(s.sp3, s.cur, s.dist, el);
+        // Zustandswechsel: Ring des neuen Zustands von vorne (erste Datenseite = 1, Seite 0 ist der
+        // Stopp-Screen) + eine kurze Vibration als Rückmeldung — wie RecordView._vibeSwitch bzw.
+        // die Wear-Flanke. Es gibt auf Zepp nur den einen Vibrator (auch fürs Alarm-Signal).
+        if (s.foiling !== s._prevFoil) {
+          s._prevFoil = s.foiling;
+          s._ringKey = null; s.w.layKey = null;
+          s.page = 1;
+          this._vibrate();
+          this.applyButton();
         }
         this.renderRecording();
       } else if (s.screen === "idle") {
@@ -642,6 +1061,7 @@ Page(
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
+      this._resetRun();   // Lauf-Zähler/-Kennzahlen gehören zur Session (wie Garmin/Wear)
       this.persistActive();
       this.hideBar();
       this.applyButton();
