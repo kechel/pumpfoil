@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 
 private val FMT_PRETTY = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
 private val FMT_HHMM = DateTimeFormatter.ofPattern("HH:mm")
+private val FMT_HHMMSS = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 private fun zoned(iso: String, tz: String?): ZonedDateTime? = try {
     val odt = OffsetDateTime.parse(iso)
@@ -31,6 +32,18 @@ fun prettyDate(iso: String, tz: String? = null): String =
 // Nur "HH:mm" (Bis-Zeit, Start–Ende-Zeile).
 fun hhmm(iso: String?, tz: String? = null): String? =
     iso?.let { zoned(it, tz)?.format(FMT_HHMM) }
+
+// "HH:mm:ss" in Spot-Ortszeit — gleiche Formatierung wie die Lauf-Tabelle. Gebraucht beim
+// Zuschneiden/Aussortieren: mm:ss ab Sessionbeginn sagt einem nicht, WO man schneidet, die
+// Lauf-Zeilen nennen aber Uhrzeiten (Nutzer-Feedback, in der PWA seit 2026-07-30 gelöst).
+fun hhmmss(iso: String?, tz: String? = null): String? =
+    iso?.let { zoned(it, tz)?.format(FMT_HHMMSS) }
+
+// Dasselbe für einen Offset in Sekunden ab Session-Start (so rechnen die Zuschnitt-Regler).
+// Bewusst über zoned(): identische Zeitzonen-Logik wie alle anderen Anzeigen (Spot-tz, sonst
+// der Offset aus dem ISO-String) — kein zweiter, abweichender Fallback.
+fun hhmmssOffset(startIso: String?, tz: String?, seconds: Long): String? =
+    startIso?.let { zoned(it, tz)?.plusSeconds(seconds)?.format(FMT_HHMMSS) }
 
 // Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock). Für die Listen-Zeilen.
 fun dateTimeRange(startIso: String, endIso: String?, tz: String? = null): String {

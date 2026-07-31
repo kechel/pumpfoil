@@ -373,6 +373,8 @@ fun SetupScreen(onBack: () -> Unit) {
                     onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
                 )
             }
+            // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
+            item { MissingHint(I18n.t("setup.missingStab")) }
             // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
             item {
                 Column(Modifier.padding(vertical = 8.dp)) {
@@ -446,8 +448,20 @@ private fun StabRow(
                 tint = if (isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text("${st.brand} ${st.model} ${st.size}".trim(), Modifier.weight(1f),
-            fontWeight = if (isDefault) FontWeight.SemiBold else FontWeight.Normal)
+        Column(Modifier.weight(1f)) {
+            Text("${st.brand} ${st.model} ${st.size}".trim(),
+                fontWeight = if (isDefault) FontWeight.SemiBold else FontWeight.Normal)
+            // Maße unter dem Namen, sofern gepflegt (die API schickt 0 als null — „nicht gepflegt"
+            // und „0 cm²" bleiben damit unterscheidbar). Bis 2026-07-31 gab /api/stabs sie nie aus.
+            if (st.spanCm != null && st.areaCm2 != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("${fmtNum(st.spanCm)} cm · ${fmtNum(st.areaCm2)} cm²",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (st.specsEstimated) EstimateBadge(I18n.t("foils.specsEst"), I18n.t("foils.specsEstHint"), specs = true)
+                }
+            }
+        }
         if (isMine) {
             IconButton(onClick = onToggleMine) {
                 Icon(Icons.Filled.Close, contentDescription = I18n.t("foils.remove"),

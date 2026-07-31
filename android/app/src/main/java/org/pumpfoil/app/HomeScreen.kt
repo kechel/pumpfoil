@@ -652,10 +652,13 @@ private fun versionNewer(latest: String, current: String): Boolean {
 }
 
 // Feedback-Dialog (wie das PWA-Feedback-Widget): kurzer Text an POST /api/feedback.
+// `prefill` belegt das Feld vor — genutzt von MissingHint („fehlt im Katalog?"), damit der Nutzer
+// nicht selbst formulieren muss. In der PWA macht das das Event „open-feedback" mit detail-Text.
+// internal, weil der Dialog von den Katalog-Listen (Foils/Setup) aus geöffnet wird.
 @Composable
-private fun FeedbackDialog(onDismiss: () -> Unit) {
+internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
     val scope = rememberCoroutineScope()
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(prefill) }
     var busy by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf(false) }
     AlertDialog(

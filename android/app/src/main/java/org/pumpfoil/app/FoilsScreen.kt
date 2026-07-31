@@ -177,6 +177,8 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                     onToggleMine = { persist(mine + f.id, def) },
                     onSetDefault = { persist(mine + f.id, f.id) })
             }
+            // „Marke/Größe fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Liste).
+            item { MissingHint(I18n.t("foils.missingFoil")) }
         }
     }
 }
@@ -196,8 +198,21 @@ private fun foilRow(
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text("${f.brand} ${f.model} ${f.size}", style = MaterialTheme.typography.bodyMedium)
-            Text("${f.areaCm2.roundToInt()} cm²  ·  AR ${f.aspectRatio?.let { "%.1f".format(it) } ?: "–"}",
+            // Neu erschienene Modelle stehen mit 0 im Katalog, solange der Hersteller keine Maße
+            // veröffentlicht hat — auswählbar, aber „0 cm² · AR –" wäre eine Falschaussage (wie PWA).
+            Text(
+                if (!f.hasSpecs) I18n.t("foils.noSpecs")
+                else "${f.areaCm2.roundToInt()} cm²  ·  AR ${f.aspectRatio?.let { "%.1f".format(it) } ?: "–"}",
                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Zwei Katalog-Kennzeichen: „Dicke geschätzt" (harmloser) und „Maße abgeleitet"
+            // (Fläche/Spannweite nicht vollständig veröffentlicht — daran hängt die ganze
+            // Leistungsrechnung). Antippen erklärt es; in der PWA ist das der Tooltip.
+            if (f.thicknessEstimated || f.specsEstimated) {
+                Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (f.thicknessEstimated) EstimateBadge(I18n.t("foils.estimated"), I18n.t("foils.estimatedHint"))
+                    if (f.specsEstimated) EstimateBadge(I18n.t("foils.specsEst"), I18n.t("foils.specsEstHint"), specs = true)
+                }
+            }
         }
         IconButton(onClick = onSetDefault) {
             Icon(if (isDefault) Icons.Filled.Star else Icons.Filled.StarBorder,

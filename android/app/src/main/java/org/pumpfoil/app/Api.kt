@@ -258,8 +258,14 @@ object Api {
             }
         }
 
-    suspend fun communitySessions(limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true): List<CommunityItem> = withContext(Dispatchers.IO) {
-        val qs = "?limit=$limit&offset=$offset" + if (!accelOnly) "&accel_only=false" else ""
+    // sport: der Endpunkt filtert per Default auf "pumpfoil". "all" hebt AUSSCHLIESSLICH die
+    // Sport-Bedingung auf (alle anderen Filter bleiben) — das braucht die Liste „was ist neu",
+    // damit dort auch eFoil/Wake/… auftauchen. Sportgetrennte Ansichten (Community-Seite,
+    // Bestenlisten, Rekorde) fragen weiterhin genau EINE Sportart ab.
+    suspend fun communitySessions(limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true,
+                                  sport: String? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
+        val qs = "?limit=$limit&offset=$offset" + (if (!accelOnly) "&accel_only=false" else "") +
+            (if (sport != null) "&sport=$sport" else "")
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
             http("GET", "/api/community/sessions$qs", null, auth = true),
@@ -267,9 +273,10 @@ object Api {
     }
 
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
-    suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true): List<CommunityGroup> = withContext(Dispatchers.IO) {
+    suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0,
+                                         accelOnly: Boolean = true, sport: String? = null): List<CommunityGroup> = withContext(Dispatchers.IO) {
         val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
-        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp"
+        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "")
         json.decodeFromString(
             ListSerializer(CommunityGroup.serializer()),
             http("GET", "/api/community/sessions-grouped$qs", null, auth = true),

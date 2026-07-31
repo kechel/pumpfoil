@@ -8,6 +8,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -78,6 +80,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -134,8 +137,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         try {
             when (scope) {
                 Scope.MINE -> own = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
-                Scope.ALL -> groups = Api.communitySessionsGrouped(null, accelOnly = accelOnly)
-                Scope.SPOT -> groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly) else emptyList()
+                // sport="all": die Liste „was ist neu" zeigt ALLE Sportarten (wie die PWA seit
+                // 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil" und eFoil/Wake/…
+                // fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Die sportgetrennten
+                // Ansichten (Community-Seite, Bestenlisten) bleiben bei genau einer Sportart.
+                Scope.ALL -> groups = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = "all")
+                Scope.SPOT -> groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
             }
             error = null
         } catch (e: Exception) { error = e.message }
@@ -352,12 +359,10 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                     Text(dateTimeRange(s.startedAt, s.endedAt, s.tz), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
-                    val chips = listOfNotNull(s.placeName?.takeIf { it.isNotBlank() }, foilLabel, s.deviceLabel?.takeIf { it.isNotBlank() })
-                    if (chips.isNotEmpty()) {
-                        Row(Modifier.padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            chips.forEach { Pill(it) }
-                        }
-                    }
+                    // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
+                    // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
+                    SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
+                        setup = s.setup, deviceLabel = s.deviceLabel)
                     s.caption?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -460,13 +465,80 @@ private fun LikeToggle(sessionId: Int, liked0: Boolean, count0: Int) {
     }
 }
 
+// Farbtöne der Chip-Hervorhebungen, wie in der PWA (SessionCard.tsx): amber-500/15 hinter dem
+// Sportart-Kennzeichen, brand-500/20 hinter dem Skateboard. Vordergrund ist beim Sportart-Chip
+// je Farbmodus getrennt (amber-800 auf Hell, amber-200 auf Dunkel — dieselben Werte wie im
+// Session-Detail), beim Marken-Cyan liefert das Theme schon die modusrichtige Variante.
+private val Amber500 = Color(0xFFF59E0B)
+private val Brand500 = Color(0xFF06B6D4)
+
+// NORMAL = grauer Standard-Chip · AMBER = Sportart (kein Pumpfoilen) · BRAND = Skateboard.
+private enum class ChipAccent { NORMAL, AMBER, BRAND }
+
+private data class ChipSpec(val text: String, val accent: ChipAccent = ChipAccent.NORMAL)
+
 @Composable
-private fun Pill(text: String) {
+private fun Pill(text: String, accent: ChipAccent = ChipAccent.NORMAL) {
+    // NICHT isSystemInDarkTheme(): ThemeState kann Hell/Dunkel erzwingen (Theme.kt:57-60).
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val fg = when (accent) {
+        ChipAccent.AMBER -> if (dark) AmberOnDark else AmberOnLight
+        ChipAccent.BRAND -> MaterialTheme.colorScheme.primary
+        ChipAccent.NORMAL -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val bg = when (accent) {
+        ChipAccent.AMBER -> Amber500.copy(alpha = 0.15f)
+        ChipAccent.BRAND -> Brand500.copy(alpha = 0.20f)
+        ChipAccent.NORMAL -> MaterialTheme.colorScheme.surfaceVariant
+    }
     Text(text, style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        fontWeight = if (accent == ChipAccent.BRAND) FontWeight.SemiBold else FontWeight.Normal,
+        color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
         modifier = Modifier.clip(RoundedCornerShape(6.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(bg)
             .padding(horizontal = 6.dp, vertical = 2.dp))
+}
+
+// Chip-Zeile der Session-Karten: Sportart (nur wenn KEIN Pumpfoilen), Spot, Foil, Stab,
+// Mastlänge, Board, Uhr — dieselbe Reihenfolge wie die PWA (SessionCard.tsx). Jeder Teil
+// erscheint nur, wenn er hinterlegt ist; fehlt er, fällt der Chip weg statt leer dazustehen.
+// FlowRow statt Row, weil sieben Chips nicht in eine Zeile passen.
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SessionChips(
+    sportClass: String?,
+    spot: String?,
+    foil: String?,
+    setup: SessionSetup?,
+    deviceLabel: String?,
+) {
+    val chips = buildList {
+        // Sportart-Kennzeichen: die Liste „was ist neu" zeigt seit 2026-07-31 alle Sportarten,
+        // deshalb steht auf der Karte, wenn es KEIN Pumpfoilen war. null/"pumpfoil" = kein Hinweis.
+        sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let {
+            add(ChipSpec(I18n.t("cls.sport.$it"), ChipAccent.AMBER))
+        }
+        spot?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+        foil?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+        setup?.stab?.let { st -> listOf(st.brand, st.model, st.size).filter { it.isNotBlank() }.joinToString(" ") }
+            ?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+        setup?.mastLenCm?.let { add(ChipSpec("$it cm")) }
+        setup?.board?.name?.takeIf { it.isNotBlank() }?.let { name ->
+            // Sonderfall Skateboard: Pumpen auf dem Skateboard ist kein Tippfehler, sondern
+            // Trockentraining — das darf in Marken-Cyan auffallen (wie PWA, Vergleich ohne
+            // Groß-/Kleinschreibung).
+            add(ChipSpec(name, if (name.contains("skateboard", ignoreCase = true)) ChipAccent.BRAND else ChipAccent.NORMAL))
+        }
+        deviceLabel?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+    }
+    if (chips.isEmpty()) return
+    FlowRow(
+        Modifier.padding(top = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        chips.forEach { Pill(it.text, it.accent) }
+    }
 }
 
 @Composable
@@ -583,10 +655,9 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                         Text(dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    val cchips = listOfNotNull(c.spot?.takeIf { it.isNotBlank() }, c.deviceLabel?.takeIf { it.isNotBlank() })
-                    if (cchips.isNotEmpty()) {
-                        Row(Modifier.padding(top = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) { cchips.forEach { Pill(it) } }
-                    }
+                    val cFoil = c.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
+                    SessionChips(sportClass = c.sportClass, spot = c.spot, foil = cFoil,
+                        setup = c.setup, deviceLabel = c.deviceLabel)
                     c.caption?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

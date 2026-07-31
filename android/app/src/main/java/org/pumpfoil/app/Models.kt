@@ -104,6 +104,9 @@ data class SessionSummary(
     @SerialName("sport_class") val sportClass: String? = null,
     @SerialName("data_quality") val dataQuality: String? = null,
     @SerialName("needs_classification") val needsClassification: Boolean = false,
+    // Restliches Setup (Stab/Mast/Board) — die Liste liefert es seit 2026-07-31 mit, damit die
+    // Karten dieselben Chips zeigen wie die PWA. null = für diese Session ist nichts hinterlegt.
+    val setup: SessionSetup? = null,
     val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
 )
 
@@ -145,6 +148,13 @@ data class CommunityItem(
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Karte
+    // Restliches Setup der Aufnahme (Session-Wert, sonst Standard des Besitzers; community.py
+    // löst es im Batch auf). null = nichts hinterlegt -> Karte zeigt keinen Chip.
+    val setup: SessionSetup? = null,
+    // Sportart der Session. Die Liste „was ist neu" zeigt ALLE Sportarten (sport=all), deshalb
+    // kennzeichnet die Karte, wenn es KEIN Pumpfoilen war. null/"pumpfoil" = kein Hinweis.
+    @SerialName("sport_class") val sportClass: String? = null,
 )
 
 // Tages-Gruppe (ein Nutzer, ein Tag) aus /api/community/sessions-grouped. count==1 -> als
@@ -486,8 +496,17 @@ data class Foil(
     @SerialName("area_cm2") val areaCm2: Double = 0.0,
     @SerialName("thickness_mm") val thicknessMm: Double = 0.0,
     @SerialName("thickness_estimated") val thicknessEstimated: Boolean = false,
+    // Fläche/Spannweite sind ABGELEITET (Hersteller veröffentlicht nur eines von beiden plus die
+    // Streckung der Baureihe) — schwerer wiegend als „Dicke geschätzt", weil an ihnen die ganze
+    // Leistungsrechnung hängt. Eigenes Kennzeichen im Katalog, wie in der PWA.
+    @SerialName("specs_estimated") val specsEstimated: Boolean = false,
     @SerialName("aspect_ratio") val aspectRatio: Double? = null,
-)
+) {
+    // Neu erschienene Modelle stehen mit 0 im Katalog, solange der Hersteller keine Maße
+    // veröffentlicht hat (die Spalten sind NOT NULL). Auswählbar bleiben sie überall — aber
+    // „0 cm² · AR –" wäre eine Falschaussage, und jede Rechnung teilt durch die Fläche.
+    val hasSpecs: Boolean get() = areaCm2 > 0 && spanCm > 0
+}
 
 @Serializable
 data class SessionPhoto(val id: Int, val url: String = "")
@@ -540,6 +559,11 @@ data class StabBrief(
     val size: String = "",
     @SerialName("is_default") val isDefault: Boolean = true,
     @SerialName("is_own") val isOwn: Boolean = false,
+    // Maße, sofern gepflegt (null = Hersteller/Katalog liefert keine). Der Server schickt 0 als
+    // null, damit „nicht gepflegt" und „0 cm²" unterscheidbar bleiben (stabs.py:_out).
+    @SerialName("span_cm") val spanCm: Double? = null,
+    @SerialName("area_cm2") val areaCm2: Double? = null,
+    @SerialName("specs_estimated") val specsEstimated: Boolean = false,
 )
 
 @Serializable

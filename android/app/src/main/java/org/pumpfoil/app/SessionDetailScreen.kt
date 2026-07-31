@@ -186,15 +186,23 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
+    // Nutzer-Feedback (PWA 2026-07-30): die Lauf-Tabelle zeigt Ortszeit, das Zuschneiden zeigte nur
+    // Sekunden ab Sessionbeginn -> man konnte nicht sehen, WO man schneidet. Beides nebeneinander
+    // schlägt die Brücke; die Rückfrage beim Aussortieren nennt ebenfalls Uhrzeiten.
+    val clockAt: (Float) -> String? = { sec ->
+        hhmmssOffset(session?.startedAt, session?.tz, sec.toLong())
+    }
+    fun withClock(label: String, sec: Float): String =
+        label + (clockAt(sec)?.let { "   $it" } ?: "")
     if (showTrim) {
         AlertDialog(
             onDismissRequest = { showTrim = false },
             title = { Text(I18n.t("sd.trim")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text("${I18n.t("common.start")}: ${mmss(trimStart)}")
+                    Text(withClock("${I18n.t("common.start")}: ${mmss(trimStart)}", trimStart))
                     Slider(value = trimStart, onValueChange = { trimStart = it.coerceIn(0f, (trimEnd - 1).coerceAtLeast(0f)) }, valueRange = 0f..durSec)
-                    Text("${I18n.t("common.end")}: ${mmss(trimEnd)}")
+                    Text(withClock("${I18n.t("common.end")}: ${mmss(trimEnd)}", trimEnd))
                     Slider(value = trimEnd, onValueChange = { trimEnd = it.coerceIn(trimStart + 1, durSec) }, valueRange = 0f..durSec)
                     // Denselben Bereich AUSSORTIEREN statt zuschneiden (wie PWA TrimPanel): nötig,
                     // wenn der Störteil mitten in der Aufnahme liegt — der Trim kann nur vorne/hinten weg.
@@ -227,9 +235,11 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             onDismissRequest = { askExcludeRange = false },
             title = { Text(I18n.t("sd.excludeRange")) },
             text = {
+                // Uhrzeiten statt mm:ss: „von 12:47:10 bis 12:53:02" sagt einem im Zweifelsfall
+                // etwas, „von 07:10 bis 13:02" (ab Sessionbeginn) gar nichts. Wie PWA.
                 Text(I18n.t("sd.excludeRangeConfirm")
-                    .replace("{from}", mmss(trimStart))
-                    .replace("{to}", mmss(trimEnd)),
+                    .replace("{from}", clockAt(trimStart) ?: mmss(trimStart))
+                    .replace("{to}", clockAt(trimEnd) ?: mmss(trimEnd)),
                     style = MaterialTheme.typography.bodyMedium)
             },
             confirmButton = {
@@ -772,8 +782,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
             }
         }
-        // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed).
-        if (a != null && s.foil != null && weightKg > 0) {
+        // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed). hasSpecs: Katalog-Einträge
+        // ohne Herstellermaße stehen mit 0 in Fläche/Spannweite -> die Rechnung teilt durch 0 und
+        // käme auf Unsinn. Solche Foils bleiben wählbar, die Leistungs-Karte fällt nur weg.
+        if (a != null && s.foil != null && s.foil.hasSpecs && s.foil.thicknessMm > 0 && weightKg > 0) {
             PowerCard(a, s.foil, weightKg)
         }
         if (a == null) {
@@ -1554,8 +1566,10 @@ private fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85
 // offen ist, darunter/immer die zwei Auswahlfelder. Widerspruch ist der EINZIGE Weg zurück auf
 // „Pumpfoil" — der Server lehnt das direkte Zurücksetzen nach einer Meldung mit 409 ab.
 // Farben in beiden Modi lesbar (amber-800 auf hell, amber-200 auf dunkel).
-private val AmberOnLight = Color(0xFF92400E)
-private val AmberOnDark = Color(0xFFFDE68A)
+// internal, weil die Session-Karten (SessionsScreen.Pill) dasselbe Amber für das
+// Sportart-Kennzeichen nutzen — eine Definition, damit es überall gleich aussieht.
+internal val AmberOnLight = Color(0xFF92400E)
+internal val AmberOnDark = Color(0xFFFDE68A)
 
 // ---------------------------------------------------------------------------------------------
 // Melde-Knöpfe für FREMDE Sessions — an derselben Stelle, an der bei eigenen Sessions die

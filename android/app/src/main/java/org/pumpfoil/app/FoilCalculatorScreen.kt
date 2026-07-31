@@ -76,7 +76,11 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
 
     LaunchedEffect(Unit) {
         try {
-            foils = Api.foils()
+            // NUR Foils mit vollständigen Zahlen: der Rechner teilt durch die Fläche
+            // (AR = Spannweite²/Fläche) und braucht die Dicke. Katalog-Einträge, bei denen der
+            // Hersteller (noch) keine Maße veröffentlicht hat, stehen mit 0 drin — die ergäben
+            // hier AR ∞ und leere Spalten. Auswählbar bleiben sie überall sonst (wie PWA).
+            foils = Api.foils().filter { it.hasSpecs && it.thicknessMm > 0 }
             brands = try { Api.foilBrands() } catch (_: Exception) { emptyList() }
             try {
                 val s = Api.settings()
