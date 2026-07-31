@@ -190,6 +190,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ### Stand 31.07.2026 — Detektor-Korrekturen (angewendet) + neuer Befund
 
+- [ ] **Zepp: echte Aktivitaet aufzeichnen (Nutzer ZUGESAGT, 31.07.).** Unsere Amazfit-App bindet nur
+      UI/Storage/Device/Interaction/BLE/Sensoren ein und laeuft als `appType: "app"` — sie erzeugt
+      also KEINE Zepp-Aktivitaet, damit landet auch nichts in Zepp und nichts bei Strava. Ein Nutzer
+      hat genau danach gefragt ("est-ce que ça va quand même enregistrer une session normale qui se
+      synchronisera avec Strava"), Jan hat es fuer das naechste Release zugesagt. Bei Garmin machen
+      wir es richtig (`ActivityRecording.createSession` mit Name "Pumpfoil", s.
+      `watch/source/SessionRecorder.mc:812`) — auf Zepp braucht es das Gegenstueck:
+      `appType: "workout"` bzw. die Workout-API, plus Pruefung, ob parallel zu unserer eigenen
+      Aufzeichnung moeglich. Nur auf Jans Mac testbar (Zeus-Simulator).
+
 - [x] **Drei Fehlerklassen an den Lauf-Grenzen behoben** (Commit `7b8da61`, alle 1261 Sessions neu
       analysiert, 0 Fehler): Drift-Kappung traf die Rueckfahrt zum Steg (jetzt Form-Kriterium:
       Drift ist gerade + konstant, Geradheit >= 0,97 und Streuung <= 0,25 m/s); kurzer Einbruch der
