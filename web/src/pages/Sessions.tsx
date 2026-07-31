@@ -172,6 +172,12 @@ function ScrollTopFab() {
   );
 }
 
+const setupLabels = (s: SessionSummary) => ({
+  stab: s.setup?.stab ? `${s.setup.stab.brand} ${s.setup.stab.model} ${s.setup.stab.size}`.trim() : null,
+  mast: s.setup?.mast_len_cm ? `${s.setup.mast_len_cm} cm` : null,
+  board: s.setup?.board?.name || null,
+});
+
 export default function Sessions() {
   const t = useT();
   const [sp, setSp] = useSearchParams();
@@ -483,6 +489,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              {...setupLabels(s)}
               deviceLabel={s.device_label}
               caption={s.caption}
               avatarName={myName}
@@ -535,6 +542,9 @@ function renderCommunitySession(s: CommunitySession, t: (k: string) => string, l
   return (
     <SessionCard
       key={s.session_id}
+      // Setup (Stab/Mast/Board) fehlt hier bewusst: die Community-Liste liefert es serverseitig
+      // nicht mit — dafuer muessten die Standard-Setups aller Besitzer nachgeladen werden, und
+      // das gehoert in den Endpunkt (community.py) statt hier improvisiert.
       sessionId={s.session_id}
       startedAt={s.started_at}
       tz={s.tz}

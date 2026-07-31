@@ -2,7 +2,7 @@ import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
-import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon, InstagramIcon, TikTokIcon } from "./Icons";
+import { ChevronIcon, HeartIcon, LocationIcon, FoilIcon, CompareIcon, WatchIcon, PlayIcon, InstagramIcon, TikTokIcon, StabIcon, MastIcon, BoardIcon } from "./Icons";
 import { TrackPreview } from "./TrackPreview";
 import { VideoModal, ytId, videoPlatform } from "./VideoModal";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
@@ -20,7 +20,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, tz, spot, foil, deviceLabel, caption,
+  sessionId, startedAt, endedAt, tz, spot, foil, stab, mast, board, deviceLabel, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
   sportClass, dataQuality, needsClassification = false,
@@ -32,6 +32,11 @@ export function SessionCard({
   tz?: string | null;   // Spot-Zeitzone -> Uhrzeiten in Ortszeit
   spot?: string | null;
   foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
+  // Restliches Setup als fertige Labels — je Teil nur, wenn hinterlegt (sonst weglassen, nicht leer
+  // anzeigen). Bewusst Strings statt Objekte: die Karte formatiert nichts, sie zeigt nur.
+  stab?: string | null;
+  mast?: string | null;
+  board?: string | null;
   deviceLabel?: string | null;   // Uhr-/Geräte-Bezeichnung der Aufnahme
   caption?: string | null;
   avatarName?: string | null;
@@ -202,6 +207,9 @@ export function SessionCard({
               {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
               {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
+              {stab && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><StabIcon className="h-3.5 w-3.5" /> {stab}</span>}
+              {mast && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><MastIcon className="h-3.5 w-3.5" /> {mast}</span>}
+              {board && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><BoardIcon className="h-3.5 w-3.5" /> {board}</span>}
               {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {deviceLabel}</span>}
             </div>
             {stats}

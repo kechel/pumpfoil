@@ -125,6 +125,31 @@ export const LocationIcon = ({ className = base }: P) => (
 );
 
 // Foil (Hydrofoil): Frontflügel + Mast + Stabilisator.
+// Setup-Teile fuer die Session-Karten. Bewusst reduziert und untereinander unterscheidbar:
+// der Stabilizer ist der kleine Fluegel HINTEN (schmaler als das Frontwing im FoilIcon), der Mast
+// ein senkrechter Traeger mit Fussplatte, das Board ein Brett-Umriss von oben.
+export const StabIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M4 11c4-2 12-2 16 0-4 1.8-12 1.8-16 0Z" />
+    <path d="M12 11v6" />
+  </svg>
+);
+
+export const MastIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 3v14" />
+    <path d="M7 20h10" />
+    <path d="M9.5 17h5" />
+  </svg>
+);
+
+export const BoardIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 2.5c3 3.5 4.5 7 4.5 10.5 0 4-1.8 7-4.5 8.5-2.7-1.5-4.5-4.5-4.5-8.5C7.5 9.5 9 6 12 2.5Z" />
+    <path d="M12 8v8" />
+  </svg>
+);
+
 export const FoilIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M2 7c6-3 14-3 20 0-6 2.5-14 2.5-20 0Z" />

@@ -132,6 +132,12 @@ function CarveStatsSection() {
   );
 }
 
+const setupLabels = (s: SessionSummary) => ({
+  stab: s.setup?.stab ? `${s.setup.stab.brand} ${s.setup.stab.model} ${s.setup.stab.size}`.trim() : null,
+  mast: s.setup?.mast_len_cm ? `${s.setup.mast_len_cm} cm` : null,
+  board: s.setup?.board?.name || null,
+});
+
 export default function PersonalHome() {
   const t = useT();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -232,6 +238,7 @@ export default function PersonalHome() {
               endedAt={s.ended_at}
               spot={s.place_name}
               foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              {...setupLabels(s)}
               deviceLabel={s.device_label}
               caption={s.caption}
               avatarName={profile?.display_name}

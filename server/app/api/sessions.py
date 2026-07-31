@@ -528,6 +528,43 @@ def list_sessions(
             if f:
                 o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
                           "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None}
+    # Restliches Setup (Stab/Mast/Shim/Board) je Session — die Karten in Liste und auf der
+    # Startseite zeigen es an, wenn es hinterlegt ist. Batch statt _resolve_setup je Session:
+    # das sind alles eigene Sessions, die Standards kommen also aus EINEM settings_json.
+    _st: dict = {}
+    if user.settings_json:
+        try:
+            _st = json.loads(user.settings_json) or {}
+        except ValueError:
+            _st = {}
+    _sids = {s.stab_id if s.stab_id is not None else _st.get("stab_id") for s in rows}
+    _bids = {s.board_id if s.board_id is not None else _st.get("board_id") for s in rows}
+    _smap = {x.id: x for x in db.query(models.Stab).filter(
+        models.Stab.id.in_([int(i) for i in _sids if i])).all()} if any(_sids) else {}
+    _bmap = {x.id: x for x in db.query(models.Board).filter(
+        models.Board.id.in_([int(i) for i in _bids if i])).all()} if any(_bids) else {}
+    for o, s in zip(outs, rows):
+        setup: dict = {}
+        sid = s.stab_id if s.stab_id is not None else _st.get("stab_id")
+        st_obj = _smap.get(int(sid)) if sid else None
+        if st_obj is not None:
+            setup["stab"] = {"id": st_obj.id, "brand": st_obj.brand, "model": st_obj.model,
+                             "size": st_obj.size, "is_default": s.stab_id is None}
+        mast = s.mast_len_cm if s.mast_len_cm is not None else _st.get("mast_len_cm")
+        if mast:
+            setup["mast_len_cm"] = int(mast)
+            setup["mast_is_default"] = s.mast_len_cm is None
+        shim = s.shim_deg if s.shim_deg is not None else _st.get("shim_deg")
+        if shim is not None:
+            setup["shim_deg"] = round(float(shim), 1)
+            setup["shim_is_default"] = s.shim_deg is None
+        bid = s.board_id if s.board_id is not None else _st.get("board_id")
+        b_obj = _bmap.get(int(bid)) if bid else None
+        if b_obj is not None:
+            setup["board"] = {"id": b_obj.id, "name": b_obj.name, "volume_l": b_obj.volume_l,
+                              "length_cm": b_obj.length_cm, "is_default": s.board_id is None}
+        o.setup = setup or None
+
     # Uhr-/Geräte-Bezeichnung je Session im Batch (kein N+1); nur erster Teil vor "/".
     dids = {s.device_id for s in rows if s.device_id}
     if dids:
