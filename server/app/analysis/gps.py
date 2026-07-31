@@ -336,6 +336,12 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # Physischer Floor: unter EXIT_SPEED (~9 km/h) trägt kein Foil -> nie foilend,
     # auch wenn das Modell so sagt (entfernt Slow-Ränder/Near-Stops aus Läufen).
     mask = mask & (speed_s >= exit_speed)
+    # GPS-Genauigkeit: bisher wurde quality_ok NUR in der Heuristik geprüft (_heuristic_mask), im
+    # Modell-Pfad also nie — dabei ist eine unbrauchbare Position dort genauso wertlos. Befund
+    # (Nutzer-Meldung, Session 1020): nach einem Sturz sprang die Position bei 20-24 m Ungenauigkeit,
+    # ergab einen 9-Sekunden-"Lauf" mit 28,2 km/h und hielt damit den Community-Rekord. Über alle
+    # 7246 Läufe betrifft die Grenze 6 Läufe in 5 Sessions, ALLE im Modell-Pfad.
+    mask = mask & quality_ok
     # Echte Positionsbewegung verlangen (auch bei Accel): kein Vortrieb über Wasser =
     # nicht auf Foil. Schließt Phasen aus, in denen das Speed-Feld foilt, die GPS-Position
     # aber steht (Zurückschwimmen, Dropout, Pumpen auf der Stelle).
@@ -345,7 +351,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     segments = _segments_from_mask(mask, t_ms, gps_hz, step, speeds, min_segment_s, min_seg_avg_speed)
     # Läufe ohne echten Stopp dazwischen zusammenführen (kein Fake-Start bei
     # kurzen Modell-Aussetzern mitten im Lauf).
-    segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz)
+    segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
 
     # Lauf-Start exakt auf den Aufsprung-Accel-Impuls snappen (sub-sekundengenau,
     # generisch/ortsunabhängig). impulse_times_ms relativ zum Session-Start.
@@ -357,6 +363,12 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # der Speed im Foil-Band bleibt (das Modell verliert bei langsamen/leichten Fahrern das
     # gleichmäßige On-Foil-Cruisen — #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
     segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
+    # ZWEITER Merge-Durchgang: der erste lief VOR dem Verlängern der Ränder, da war die Lücke
+    # zwischen zwei Läufen noch groß. Nach dem Verlängern stehen sie oft nur noch Sekunden
+    # auseinander und sind in Wahrheit ein Lauf (#1311: 191 s + 81 s mit 4 s Aufsetzen dazwischen,
+    # vom Fahrer und von Garmin Connect als EIN Lauf gesehen). Mergen ist idempotent, ein zweiter
+    # Durchgang kann nichts kaputtmachen, was der erste schon entschieden hat.
+    segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     # Dead-Reckoning-Drift am Ende verwerfen (Uhr untergetaucht) -> echtes Ende.
     segments = _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     # Ground Truth: End-/Start-Marker müssen im Wasser liegen (OSM-Wasserfläche). Fängt
@@ -394,7 +406,14 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     total_distance = float(step.sum())
     foiling_distance = float(step[mask].sum())
     foiling_time = float(sum(seg["t_end_ms"] - seg["t_start_ms"] for seg in segments) / 1000.0)
-    max_speed = float(np.nanmax(speed_s)) if speed_s.size else 0.0
+    # Hoechstgeschwindigkeit der Session ohne Samples mit unbrauchbarer GPS-Genauigkeit — sonst
+    # setzt ein Positionssprung den Wert (Nutzer-Meldung #1020: 33,8 km/h nach einem Sturz, waehrend
+    # der beste echte Lauf 22 km/h hatte). Gleiche Grenze wie fuer die Laufe-Maske; fehlt hAcc,
+    # gilt der Punkt wie bisher als brauchbar.
+    _sp_ok = np.where(quality_ok, speed_s, np.nan) if speed_s.size else speed_s
+    max_speed = 0.0
+    if _sp_ok.size and not bool(np.all(np.isnan(_sp_ok))):
+        max_speed = float(np.nanmax(_sp_ok))
 
     # speed5 (5-s-geglättet) wurde oben bereits berechnet (für Segment- + Metrik-Stats).
     def _stat(arr, fn, scale=1.0, nd=2):
@@ -569,6 +588,31 @@ def _snap_starts_to_impulses(segments, t_ms, step, speeds, impulses) -> list[dic
 # Richtung "an Land" = vom Median des Laufs zum Startpunkt. End-Samples, die weiter
 # landwärts als der Start liegen, sind Drift -> wegtrimmen.
 DRIFT_LAND_MARGIN_M = 8   # Toleranz über den Start hinaus, bevor getrimmt wird
+# Das Land-Kriterium allein trifft auch ECHTE Läufe: wer zum Steg zurückkommt (Dock-Start, hin und
+# zurück), liegt am Ende zwangsläufig landwärtiger als beim Start. Deshalb wird nur noch gekappt,
+# wenn das Schwanzstück auch wie eine EXTRAPOLATION aussieht — das ist Dead Reckoning ja:
+# geradlinige Fortschreibung der letzten Geschwindigkeit. Gemessen über alle 7288 Läufe (747 Enden,
+# an denen die Regel etwas abschneiden würde): Fälle mit Speed-Streuung < 0,5 km/h haben Geradheit
+# 1,00 und dauern im Median 4 s (= Drift), alle übrigen Gruppen haben Geradheit 0,20-0,51 bei 20-106 s
+# Dauer (= echtes Fahren, gekrümmte Spur, schwankendes Tempo). hAcc taugt NICHT als Kriterium:
+# 506 der 747 Fälle haben gar keinen Wert. Befund: Nutzer-Meldung zu Session 1311, letzter Lauf
+# 16 s zu früh beendet bei 12-17 km/h und hAcc 4 m.
+DRIFT_MIN_STRAIGHTNESS = 0.97   # Luftlinie/Weg des Schwanzstücks (1,0 = perfekt gerade)
+DRIFT_MAX_SPEED_STD_MPS = 0.25  # ~0,9 km/h: darüber schwankt das Tempo -> keine Extrapolation
+
+
+def _looks_extrapolated(x: np.ndarray, y: np.ndarray, v: np.ndarray) -> bool:
+    """Sieht dieses Schwanzstück nach GPS-Extrapolation aus (gerade Linie, konstantes Tempo)?
+    Unter 3 Punkten nicht beurteilbar -> wie früher behandeln (kappen)."""
+    if x.size < 3:
+        return True
+    weg = float(np.sum(np.hypot(np.diff(x), np.diff(y))))
+    if weg <= 0:
+        return True
+    gerade = float(np.hypot(x[-1] - x[0], y[-1] - y[0])) / weg
+    with np.errstate(invalid="ignore"):
+        streuung = float(np.nanstd(v)) if v.size else 0.0
+    return gerade >= DRIFT_MIN_STRAIGHTNESS and streuung <= DRIFT_MAX_SPEED_STD_MPS
 
 
 def _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz) -> list[dict]:
@@ -594,8 +638,11 @@ def _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz) -> lis
         ni = i1
         while ni > i0 and ((X[ni] - cx) * ux + (Y[ni] - cy) * uy) > proj_start + DRIFT_LAND_MARGIN_M:
             ni -= 1
-        if ni < i1:
+        # Nur kappen, wenn das Schwanzstück wie Extrapolation aussieht (s. Konstanten oben) —
+        # sonst ist es die Rückfahrt zum Steg und gehört zum Lauf.
+        if ni < i1 and _looks_extrapolated(X[ni + 1:i1 + 1], Y[ni + 1:i1 + 1], speeds["1"][ni + 1:i1 + 1]):
             seg = _seg_fields(i0, ni + 1, t_ms, step, speeds)
+            seg["drift_cut_s"] = round(float(t_ms[i1] - t_ms[ni]) / 1000.0, 1)   # mitschreiben, nicht still verwerfen
         out.append(seg)
     return out
 
@@ -689,7 +736,20 @@ def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: floa
     return out
 
 
-def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz) -> list[dict]:
+# Ein Einbruch der UHR-Geschwindigkeit ist kein Stopp, wenn die POSITION widerspricht: bewegt sich
+# der Fahrer laut GPS-Spur weiter mit Foil-Tempo, war der Einbruch Messrauschen (Doppler-Glitch).
+# Befund #1232: drei Samples 3,3/16,8/4,9 km/h in drei Sekunden, Position durchgehend 6-14 km/h ->
+# aus einem 17-Minuten-Stück wurden 129 s + 907 s. Zweiter Fall (#1311, Nutzer-Meldung): 3 s
+# Touchdown, Position nie unter 6 km/h -> unser erster Lauf endete 85 s zu früh, Garmin Connect
+# zeigt durchgehend Tempo. Deshalb zwei Wege, beide eng:
+NOSTOP_POS_SPEED = EXIT_SPEED   # Position bleibt im Foil-Band (>=9 km/h) -> sicher kein Stopp
+NOSTOP_TOUCHDOWN_S = 5          # ... oder: kurzer Einbruch, Position bleibt über NOSTOP_SPEED.
+# 5 s, weil die POSITION die eigentliche Arbeit macht: nach einem echten Sturz steht man, statt
+# sich weiter mit >5,4 km/h zu bewegen, und ein Wasserstart dauert deutlich länger als 5 s. Ein
+# Aufsetzen mit sofortigem Weiterpumpen dauert 1-4 s (#1311: 4 s, Position 6,7-9,5 km/h).
+
+
+def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=None) -> list[dict]:
     """Führt aufeinanderfolgende Läufe zusammen, zwischen denen NIE ein echter Stopp
     lag (Speed fiel nie unter NOSTOP_SPEED). Ein Start setzt voraus, dass man davor
     langsam/stehend war — sonst ist es derselbe Lauf (z. B. Modell-Aussetzer)."""
@@ -698,8 +758,19 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz) -> list[dict]:
     out = [segments[0]]
     for seg in segments[1:]:
         prev = out[-1]
-        gap = speed_s[prev["i_end"] + 1 : seg["i_start"]]
+        i_a, i_b = prev["i_end"] + 1, seg["i_start"]
+        gap = speed_s[i_a:i_b]
         no_stop = gap.size == 0 or float(np.nanmin(gap)) >= NOSTOP_SPEED
+        if not no_stop and pos_speed_s is not None and gap.size:
+            pg = pos_speed_s[i_a:i_b]
+            if pg.size:
+                pos_min = float(np.nanmin(pg))
+                luecke_s = float(t_ms[i_b] - t_ms[i_a - 1]) / 1000.0 if i_b < t_ms.size else 0.0
+                # (a) Position bleibt im Foil-Band -> der Einbruch war Messrauschen.
+                # (b) sehr kurzer Einbruch UND Position nie im Stillstand -> Touchdown, ein Lauf.
+                if pos_min >= NOSTOP_POS_SPEED or (luecke_s <= NOSTOP_TOUCHDOWN_S and pos_min >= NOSTOP_SPEED):
+                    no_stop = True
+                    seg = {**seg, "merged_dip_s": round(luecke_s, 1)}   # Grund mitschreiben
         # Ein echter GPS-Dropout (Uhr unter Wasser/Sturz) trennt -> nicht drüber mergen.
         # Dropout = eine große SAMPLE-Lücke (>GAP_SPLIT_S zwischen zwei Punkten), NICHT
         # die Wanduhr-Dauer: ein durchgehender Cruise, den das Accel-Modell kurz verliert
