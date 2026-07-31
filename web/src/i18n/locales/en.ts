@@ -520,6 +520,8 @@ const en: Record<string, string> = {
   "land.f12Body": "Discover foil spots on the map, find sessions near you and connect with locals.",
   "foils.estimated": "≈ est. thickness",
   "foils.estimatedHint": "Thickness not published by the maker — estimated from aspect/chord; calculator values approximate.",
+  "foils.specsEst": "≈ derived specs",
+  "foils.specsEstHint": "Area or span not fully published by the maker — derived from the aspect ratio of the range; calculator values approximate.",
   "power.estimated": "thickness estimated (values approximate)",
   "theme.label": "Appearance",
   "theme.hint": "Light, dark or automatic (follows your system setting).",

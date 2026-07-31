@@ -544,6 +544,8 @@ const de: Record<string, string> = {
   "land.f12Body": "Entdecke Foil-Spots auf der Karte, finde Sessions in deiner Nähe und tausch dich mit Locals aus.",
   "foils.estimated": "≈ Dicke geschätzt",
   "foils.estimatedHint": "Dicke nicht vom Hersteller angegeben — aus Streckung/Chord geschätzt; Rechnerwerte mit Vorbehalt.",
+  "foils.specsEst": "≈ Maße abgeleitet",
+  "foils.specsEstHint": "Fläche oder Spannweite nicht vollständig vom Hersteller angegeben — aus der Streckung der Baureihe abgeleitet; Rechnerwerte mit Vorbehalt.",
   "power.estimated": "Dicke geschätzt (Rechnerwerte mit Vorbehalt)",
   "theme.label": "Design",
   "theme.hint": "Hell, dunkel oder automatisch (nach Systemeinstellung).",
