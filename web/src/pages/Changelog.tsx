@@ -32,6 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "July 31, 2026",
     items: [
+      "If you added the site to your iPhone home screen, the login button at the top right is reachable again. In that mode iOS lays its translucent status bar over the top of the page, and the button sat underneath it — the only way in was to scroll all the way down to the second login button. Thanks to the rider who reported it. Same fix on the imprint, the changelog and the login screen.",
       "Sessions lists every session again, whatever sport it is. Since sports could be labelled, that list had quietly narrowed to pumpfoiling only — so a wingfoil, eFoil or wake session you recorded stopped showing up there. It is back to being the plain “what’s new” list, and anything that isn’t pumpfoiling now carries a small label so you can tell at a glance. The separate per-sport views and all the records are unchanged: those still each cover exactly one sport.",
       "Open a spot where nobody has recorded with a motion sensor and you no longer get an empty list — the view switches itself to “all” for that spot. It is not remembered: leave the spot and the setting goes back to what your own watch delivers, and if you flip the switch yourself your choice stays.",
       "Session cards now show your stabilizer, mast length and board next to the foil, wherever they are known — on your home page, in Sessions and in the community list. Parts you haven’t set simply don’t appear.",
@@ -249,7 +250,8 @@ export default function Changelog() {
     try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ }
   }, []);
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto max-w-2xl p-6"
+         style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
       <h1 className="mb-4 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>

@@ -63,7 +63,8 @@ export default function Login() {
       </video>
       {/* Abdunkelung für Lesbarkeit der Card. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/60 to-slate-950/90" />
-      <div className="absolute right-4 top-4 z-10"><ThemeToggle /></div>
+      {/* wie in Landing: unter der iPhone-Statusleiste waere der Schalter nicht erreichbar */}
+      <div className="absolute right-4 z-10" style={{ top: "calc(1rem + env(safe-area-inset-top))" }}><ThemeToggle /></div>
       <Card className="relative z-10 w-full max-w-sm p-7">
         <div className="mb-6 flex flex-col items-center text-center">
           <h1>

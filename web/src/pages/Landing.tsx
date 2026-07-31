@@ -122,7 +122,11 @@ export default function Landing() {
 
         {/* Kein Wortmark-Link links: der große Hero-PNG-Titel direkt darunter wäre sonst
             doppelt. Nur Sprachwahl + Login rechts. */}
-        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-end px-5 py-3">
+        {/* Safe-Area oben: als PWA auf dem iPhone-Startbildschirm liegt die durchsichtige
+            Statusleiste ueber dem Seitenanfang (viewport-fit=cover + black-translucent).
+            Ohne das ist der Login-Knopf hier nicht antippbar — Nutzerbefund 30.07. */}
+        <header className="relative z-10 mx-auto flex max-w-5xl items-center justify-end px-5 pb-3"
+                style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}>
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <LanguageFlags />

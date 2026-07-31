@@ -7,7 +7,8 @@ export default function Impressum() {
   // Hilfs-Render für Listenpunkte mit Inline-Markup (<b>/<u>) aus den Übersetzungen.
   const li = (key: string) => <li dangerouslySetInnerHTML={{ __html: t(key) }} />;
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto max-w-2xl p-6"
+         style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
       <h1 className="mb-4 mt-4 text-xl font-bold">{t("imp.title")}</h1>
