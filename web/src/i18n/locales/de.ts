@@ -1064,6 +1064,7 @@ const de: Record<string, string> = {
   "foils.missingFoil": "Deine Marke oder Größe fehlt im Katalog?",
   "foils.missingCta": "Nachtragen lassen",
   "setup.missingStab": "Dein Stabilizer fehlt im Katalog?",
+  "foils.noSpecs": "Maße vom Hersteller noch nicht veröffentlicht",
   "foils.catalog": "Katalog",
   "foils.choose": "Wählen",
   "foils.mine": "Mein Foil",

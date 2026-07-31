@@ -970,6 +970,7 @@ const en: Record<string, string> = {
   "foils.missingFoil": "Your brand or size missing from the list?",
   "foils.missingCta": "Ask us to add it",
   "setup.missingStab": "Your stabilizer missing from the list?",
+  "foils.noSpecs": "Manufacturer has not published the measurements yet",
   "foils.catalog": "Catalog",
   "foils.choose": "Choose",
   "foils.mine": "My foil",

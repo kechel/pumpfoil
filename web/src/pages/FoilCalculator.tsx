@@ -29,7 +29,13 @@ export default function FoilCalculator() {
   const [pump, setPump] = useState<PumpParams>(DEFAULT_PUMP);
 
   useEffect(() => {
-    api.foils().then(setFoils).catch(() => setFoils([]));
+    // NUR Foils mit vollständigen Zahlen: der Rechner teilt durch Fläche (AR = Spannweite²/Fläche)
+    // und braucht die Dicke. Katalog-Einträge, bei denen der Hersteller (noch) keine Maße
+    // veröffentlicht hat, stehen mit 0 drin — die ergäben hier AR ∞ und NaN-Spalten. Auswählbar
+    // sind sie trotzdem überall sonst; hier haben sie nur nichts zu suchen.
+    api.foils()
+      .then((all) => setFoils(all.filter((f) => (f.area_cm2 ?? 0) > 0 && (f.span_cm ?? 0) > 0 && (f.thickness_mm ?? 0) > 0)))
+      .catch(() => setFoils([]));
     api.foilBrands().then(setBrands).catch(() => {});
     api.getSettings().then((s) => {
       const my = (s.my_foils as number[]) ?? [];
