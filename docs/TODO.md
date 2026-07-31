@@ -12,10 +12,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 - **LIVE-STAND 2026-07-30** (loest die frueheren Stand-Zeilen weiter unten ab; `appmeta` ist auf
   genau diese Werte gesetzt): **Garmin 1.0.69** im CIQ-Store freigegeben (29.7., auf Jans Uhr aus dem
   Store getestet), **iOS + Apple Watch 1.1.18** von Apple freigegeben (29.7.), **Android Phone 1.1.17/31
-  + Wear 1.2.17/1027** am 29.7. EINGEREICHT, noch in Pruefung — deshalb steht in `appmeta` weiter
-  Phone **1.1.14**/vc30 und Wear **1.2.16**/vc1026 (die freigegebenen Versionen). Erst nach Freigabe
-  UND 100 % Roll-out hochsetzen; sonst zeigt die App einen Hinweis auf ein Update, das Play nicht
-  ausliefert (genau so am 30.7. passiert). **Zepp 1.0.4/7 fehlt noch** — Build nur auf Jans Mac,
+  + Wear 1.2.17/1027** seit 31.7. im Play Store live (beide Tracks „Aktiv", 177 Laender, kein
+  gestaffelter Roll-out) — `appmeta` steht jetzt auf diesen Werten.
+  **Lehre daraus, gilt weiter:** vom 29. bis 31.7. stand in `appmeta` schon die EINGEREICHTE Version.
+  Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte. Also:
+  erst hochsetzen, wenn die Freigabe da ist UND der Roll-out nicht gestaffelt laeuft. **Zepp 1.0.4/7 fehlt noch** — Build nur auf Jans Mac,
   danach `appmeta`-Eintrag `zepp` setzen (ist absichtlich leer, solange nichts freigegeben ist, sonst
   zeigt der Update-Hinweis auf eine Store-Seite ohne die Version).
 
