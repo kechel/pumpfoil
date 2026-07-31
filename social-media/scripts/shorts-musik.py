@@ -205,9 +205,10 @@ def _vol_expr(windows, key, offset, dur, fade=0.5):
     for w in windows or []:
         try:
             db = float(w.get(key, 0) or 0)
-            a = float(w["start"]) - offset
-            b = float(w["end"]) - offset
-        except (KeyError, TypeError, ValueError):
+            # offene Grenzen: ohne Start ab 0, ohne Ende bis zum Videoende
+            a = (float(w["start"]) - offset) if w.get("start") is not None else 0.0
+            b = (float(w["end"]) - offset) if w.get("end") is not None else dur + fade
+        except (TypeError, ValueError):
             continue
         if db == 0 or b <= a or b <= 0 or a >= dur:
             continue

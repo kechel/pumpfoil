@@ -248,11 +248,13 @@ function Studio() {
         const duckF = (key: "music" | "oton") => {
           let f = 1;
           for (const d of ducks) {
-            if (d.start == null || d.end == null || d.end <= d.start) continue;
+            if (d.start == null && d.end == null) continue;
+            const s = d.start ?? 0; // offene Grenzen wie im Render: ab 0 bzw. bis Videoende
+            if (d.end != null && d.end <= s) continue;
             const db = key === "music" ? d.music : d.oton;
             if (!db) continue;
-            const r = Math.min(Math.max((t - d.start) / DUCK_FADE, 0), 1) *
-                      Math.min(Math.max((d.end + DUCK_FADE - t) / DUCK_FADE, 0), 1);
+            const r = Math.min(Math.max((t - s) / DUCK_FADE, 0), 1) *
+                      (d.end == null ? 1 : Math.min(Math.max((d.end + DUCK_FADE - t) / DUCK_FADE, 0), 1));
             f *= 1 + (Math.pow(10, db / 20) - 1) * r;
           }
           return f;
@@ -532,7 +534,8 @@ function Studio() {
         gain_db: gain,
         oton_gain_db: otonGain,
         ducks: ducks
-          .filter((d) => d.start != null && d.end != null && d.end > d.start && (d.music !== 0 || d.oton !== 0))
+          .filter((d) => (d.start != null || d.end != null) && (d.music !== 0 || d.oton !== 0)
+            && (d.start == null || d.end == null || d.end > d.start))
           .map((d) => ({ start: d.start, end: d.end, music_db: d.music, oton_db: d.oton })),
         fade_out: fade,
         overlay: (ovOn && ovSel) || null,
@@ -789,7 +792,7 @@ function Studio() {
                       const s = vidRef.current?.currentTime ?? 0;
                       return { ...x, start: s, end: x.end != null && x.end <= s ? null : x.end };
                     }))}>
-                    [ {d.start == null ? "–" : d.start.toFixed(1) + "s"}
+                    [ {d.start != null ? d.start.toFixed(1) + "s" : d.end != null ? "0s" : "–"}
                   </button>
                   <button className="mini" title="Ende = aktuelle Videoposition" onClick={() =>
                     setDucks((ds) => ds.map((x, j) => {
@@ -797,7 +800,7 @@ function Studio() {
                       const e = vidRef.current?.currentTime ?? 0;
                       return { ...x, end: e, start: x.start != null && x.start >= e ? null : x.start };
                     }))}>
-                    {d.end == null ? "–" : d.end.toFixed(1) + "s"} ]
+                    {d.end != null ? d.end.toFixed(1) + "s" : d.start != null ? "Ende" : "–"} ]
                   </button>
                   <label title="Musik-Änderung in diesem Abschnitt (−60 = stumm)">
                     🎵 <input type="number" min={-60} max={12} step={3} value={d.music}
