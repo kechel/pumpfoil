@@ -2,7 +2,7 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-07-30** (gegen den Code abgeglichen; der Abschnitt 07-28 bleibt als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-07-31** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
@@ -10,6 +10,38 @@ Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo
 Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
 Off-Foil, Einstellungen, i18n 10 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
 FIT-Import und die „Optimal"-Färbung.
+
+## Stand 2026-07-31 — alles seit dem 07-29-Release in die Apps gezogen
+
+Nach dem gemeinsamen Release (Android 1.1.17, iOS/Apple 1.1.18, Wear 1.2.17, Zepp 1.0.3) lief die PWA
+zwei Tage weiter. Diese Runde holt beide Handy-Apps auf denselben Stand — je einzeln verifiziert
+(Android kompiliert, iOS syntaxgeprueft PLUS Modelle/Chip-Logik/Sprachdateien wirklich kompiliert und
+gegen echte Server-Antworten laufen gelassen).
+
+| Feature | PWA | Android | iOS | Anmerkung |
+|---|---|---|---|---|
+| Lauf/Zeitbereich aussortieren | ✅ | ✅ `2483c3a` | ✅ `0698b3c` | schon am 30.7. |
+| App-Version pro Session | ✅ | ✅ `e36232c` | ✅ `e0468a0` | Uhren ueber Config-Abruf |
+| Setup-Chips (Stab/Mast/Board) auf den Karten | ✅ | ✅ `ee70549` | ✅ `17b914c` | inkl. Skateboard in Cyan |
+| Sportart-Kennzeichen auf Community-Karten | ✅ | ✅ | ✅ | eigene Sessions haben schon das Klassifikations-Badge |
+| „was ist neu"-Liste sportartunabhaengig (`sport=all`) | ✅ | ✅ | ✅ | Rekorde/Bestenlisten bleiben einsportig |
+| Katalog-Kennzeichen „Masse abgeleitet" | ✅ | ✅ | ✅ | PWA-Keys fehlten, `13f2458` |
+| Katalog ohne Herstellermasse (0 cm²) | ✅ | ✅ | ✅ | Hinweistext statt Null, raus aus Rechnern |
+| Stab-Maasse anzeigen | ✅ | ✅ | ✅ | API liefert sie seit `97db339` |
+| „Fehlt im Katalog?" -> Feedback | ✅ | ✅ | ✅ | mit vorbelegtem Text |
+| Foil-Favoriten ohne Scrollen | ✅ | — | ✅ | Android: Problem existiert nicht (DropdownMenu startet oben) |
+| Zuschnitt zeigt Uhrzeit | ✅ | ✅ | ✅ | |
+| Zepp: i18n (41 Strings, 15 Sprachen) | — | — | — | ✅ `38eadc2`, Wortlaut aus Garmin/Wear |
+
+Zwei Fehler in den Apps fielen dabei auf und sind mitgefixt: **beide** Apps dekodierten das vom Server
+gelieferte `foil` in Community-Karten nicht (Foil-Chip fehlte dort), und iOS quetschte bis zu sieben
+Chips in eine Zeile (jetzt Umbruch in Dreier-Zeilen).
+
+**Zepp: echte Aktivitaet ist NICHT machbar** (Recherche mit Quellen in `watch-zepp/README.md`):
+`@zos/sensor Workout` ist read-only, `appType` kennt nur `app`/`watchface`, die Workout Extension ist
+ein Plug-in IN der System-Sport-App (eigene App-ID, Zepp OS 3.5+, 6 Geraete, Balance 2 nicht dabei).
+Einziger belegbarer Weg waere ein Architektur-Umbau (System-Workout vorn + unser Recorder als
+Background Service) — offen ist, ob ein Background Service dauerhaft GPS halten darf.
 
 ## Stand 2026-07-30 — neue Rueckstaende NACH dem Release
 
