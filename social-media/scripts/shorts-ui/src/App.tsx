@@ -20,6 +20,18 @@ interface TextSlot {
 const emptyTexts = (): TextSlot[] =>
   Array.from({ length: TXN }, () => ({ start: null, text: "", hold: TXH }));
 
+// Pegel-Abschnitte: Musik/O-Ton in Zeitfenstern um ±dB anheben/absenken (0,5-s-Rampen)
+interface DuckSlot {
+  start: number | null;
+  end: number | null;
+  music: number;
+  oton: number;
+}
+const DUCK_N = 3;
+const DUCK_FADE = 0.5;
+const emptyDucks = (): DuckSlot[] =>
+  Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
+
 type Sel = { youtube: string | null; instagram: string | null; tiktok: string | null };
 type PvPlatform = "youtube" | "instagram" | "tiktok";
 const PF_SHORT: Record<PvPlatform, string> = { youtube: "YT", instagram: "IG", tiktok: "TT" };
@@ -92,6 +104,8 @@ function Studio() {
   const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
   const [texts, setTexts] = useState<TextSlot[]>(sv("texts", emptyTexts()));
   const [gain, setGain] = useState(sv("gain", -12));
+  const [otonGain, setOtonGain] = useState(sv("otonGain", 0));
+  const [ducks, setDucks] = useState<DuckSlot[]>(sv("ducks", emptyDucks()));
   const [fade, setFade] = useState(sv("fade", 2));
   const [outName, setOutName] = useState(sv("outName", ""));
   const [ovOn, setOvOn] = useState(sv("ovOn", true));
@@ -106,10 +120,10 @@ function Studio() {
   // bei jeder Änderung speichern
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      curVideo, sel, pvPlatform, trim, texts, gain, fade,
+      curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
       outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -127,8 +141,8 @@ function Studio() {
   const outroCacheRef = useRef<{ key: string; url: string }>({ key: "", url: "" });
 
   // Live-Werte für den rAF-Loop (State-Snapshot ohne Re-Subscribe)
-  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay });
-  live.current = { trim, texts, outroOn, pvPlatform, curPlay };
+  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain });
+  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain };
 
   const load = useCallback(async () => {
     const s = await api.list();
@@ -222,13 +236,30 @@ function Studio() {
     const loop = () => {
       const vid = vidRef.current;
       if (vid) {
-        const { trim, texts, outroOn, pvPlatform } = live.current;
+        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain } = live.current;
         const t = vid.currentTime;
         if (!vid.paused) {
           if (trim.end != null && t >= trim.end) vid.currentTime = trim.start ?? 0;
           else if (trim.start && t < trim.start && lastTRef.current > t + 1) vid.currentTime = trim.start;
         }
         lastTRef.current = t;
+        // Pegel-Vorschau: Musik/O-Ton-Lautstärke inkl. Pegel-Abschnitten
+        // (Browser kann nicht über 100 % — O-Ton-Boost hört man erst im Render voll)
+        const duckF = (key: "music" | "oton") => {
+          let f = 1;
+          for (const d of ducks) {
+            if (d.start == null || d.end == null || d.end <= d.start) continue;
+            const db = key === "music" ? d.music : d.oton;
+            if (!db) continue;
+            const r = Math.min(Math.max((t - d.start) / DUCK_FADE, 0), 1) *
+                      Math.min(Math.max((d.end + DUCK_FADE - t) / DUCK_FADE, 0), 1);
+            f *= 1 + (Math.pow(10, db / 20) - 1) * r;
+          }
+          return f;
+        };
+        vid.volume = Math.min(1, Math.pow(10, otonGain / 20) * duckF("oton"));
+        if (musicRef.current)
+          musicRef.current.volume = Math.min(1, Math.pow(10, gain / 20) * duckF("music"));
         const scale = vid.videoWidth ? vid.clientWidth / vid.videoWidth : 1;
         texts.forEach((tx, i) => {
           const el = txovRefs.current[i];
@@ -461,6 +492,8 @@ function Studio() {
     setTrim({ start: null, end: null });
     setTexts(emptyTexts());
     setGain(-12);
+    setOtonGain(0);
+    setDucks(emptyDucks());
     setFade(2);
     setOutName("");
     setOvOn(true);
@@ -497,6 +530,10 @@ function Studio() {
         video: curVideo,
         tracks: sel,
         gain_db: gain,
+        oton_gain_db: otonGain,
+        ducks: ducks
+          .filter((d) => d.start != null && d.end != null && d.end > d.start && (d.music !== 0 || d.oton !== 0))
+          .map((d) => ({ start: d.start, end: d.end, music_db: d.music, oton_db: d.oton })),
         fade_out: fade,
         overlay: (ovOn && ovSel) || null,
         overlay_alpha: ovAlpha,
@@ -527,7 +564,7 @@ function Studio() {
     setRenderingVideo(null);
     setRendering(false);
     void load();
-  }, [ready, curVideo, sel, gain, fade, ovOn, ovSel, trim, outName, texts, outroOn, stopMusic, load]);
+  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, stopMusic, load]);
 
   if (!state) return <div style={{ padding: 20, opacity: 0.6 }}>lade …</div>;
 
@@ -765,6 +802,11 @@ function Studio() {
             <input type="range" min={-30} max={0} step={1} value={gain} onChange={(e) => setGain(+e.target.value)} />
             <span>{gain} dB</span>
           </div>
+          <div className="row" title="Lautstärke des Original-Tons (Vorschau kann Verstärkung nur bis 0 dB wiedergeben — der Render macht's richtig)">
+            O-Ton-Pegel
+            <input type="range" min={-30} max={12} step={1} value={otonGain} onChange={(e) => setOtonGain(+e.target.value)} />
+            <span>{otonGain > 0 ? "+" : ""}{otonGain} dB</span>
+          </div>
           <div className="row">
             Fade-out
             <input type="number" min={0} max={15} step={0.5} value={fade} onChange={(e) => setFade(+e.target.value)} /> s
@@ -822,6 +864,47 @@ function Studio() {
                 : `${trim.start != null ? trim.start.toFixed(1) + "s" : "0s"} → ${trim.end != null ? trim.end.toFixed(1) + "s" : "Ende"}`}
             </span>
           </div>
+          <div className="row" style={{ opacity: 0.8 }}
+            title="Zeitfenster, in denen Musik bzw. O-Ton um ±dB angehoben/abgesenkt werden (weich über 0,5 s). Musik −60 dB = praktisch stumm.">
+            Pegel-Abschnitte
+          </div>
+          {ducks.map((d, i) => (
+            <div className="row" key={i} style={{ paddingLeft: 12, flexWrap: "wrap" }}>
+              <button className="mini" onClick={() =>
+                setDucks((ds) => ds.map((x, j) => {
+                  if (j !== i) return x;
+                  const s = vidRef.current?.currentTime ?? 0;
+                  return { ...x, start: s, end: x.end != null && x.end <= s ? null : x.end };
+                }))}>
+                [ Start
+              </button>
+              <button className="mini" onClick={() =>
+                setDucks((ds) => ds.map((x, j) => {
+                  if (j !== i) return x;
+                  const e = vidRef.current?.currentTime ?? 0;
+                  return { ...x, end: e, start: x.start != null && x.start >= e ? null : x.start };
+                }))}>
+                Ende ]
+              </button>
+              <span style={{ opacity: 0.7, minWidth: 86 }}>
+                {d.start == null && d.end == null
+                  ? "–"
+                  : `${d.start != null ? d.start.toFixed(1) : "?"}s → ${d.end != null ? d.end.toFixed(1) : "?"}s`}
+              </span>
+              <label title="Musik-Änderung in diesem Abschnitt (−60 = stumm)">
+                🎵 <input type="number" style={{ width: 52 }} min={-60} max={12} step={3} value={d.music}
+                  onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, music: +e.target.value } : x)))} /> dB
+              </label>
+              <label title="O-Ton-Änderung in diesem Abschnitt">
+                🎙 <input type="number" style={{ width: 52 }} min={-60} max={12} step={3} value={d.oton}
+                  onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, oton: +e.target.value } : x)))} /> dB
+              </label>
+              <button className="mini" title="Abschnitt löschen" onClick={() =>
+                setDucks((ds) => ds.map((x, j) => (j === i ? { start: null, end: null, music: -12, oton: 0 } : x)))}>
+                <Icon name="x" size={11} />
+              </button>
+            </div>
+          ))}
           <div className="row">
             Name <span style={{ opacity: 0.6 }}>{String(state.next_number).padStart(3, "0")}-{state.name_prefix}</span>
             <input

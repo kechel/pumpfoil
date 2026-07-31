@@ -197,11 +197,32 @@ def video_dims(path):
     return w, h
 
 
+def _vol_expr(windows, key, offset, dur, fade=0.5):
+    """ffmpeg-volume-Ausdruck für Pegel-Abschnitte: je Fenster ±dB, weich mit
+    0,5-s-Rampen ein-/ausgeblendet. Zeiten beziehen sich aufs Original;
+    offset = Trim-Start. Leerer String = keine wirksamen Fenster."""
+    parts = []
+    for w in windows or []:
+        try:
+            db = float(w.get(key, 0) or 0)
+            a = float(w["start"]) - offset
+            b = float(w["end"]) - offset
+        except (KeyError, TypeError, ValueError):
+            continue
+        if db == 0 or b <= a or b <= 0 or a >= dur:
+            continue
+        g = 10 ** (db / 20)
+        parts.append(f"(1+({g - 1:.6f})*min(max((t-{a:.3f})/{fade},0),1)"
+                     f"*min(max(({b:.3f}+{fade}-t)/{fade},0),1))")
+    return "*".join(parts)
+
+
 def render(video: Path, track: Path, out: Path, gain_db: float,
            fade_out: float = FADE_OUT, overlay: Path = None,
            trim_start: float = 0.0, trim_end: float = None,
            texts: list = None, outro: Path = None,
-           overlay_alpha: float = 1.0):
+           overlay_alpha: float = 1.0,
+           oton_gain_db: float = 0.0, ducks: list = None):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -217,24 +238,44 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     n_inputs = 1
     fc_parts = []
     # Audio: mit Track → Musik über O-Ton mischen; ohne Track (TikTok) → O-Ton pur
+    # Pegel-Abschnitte (ducks) senken/heben Musik bzw. O-Ton zeitweise um ±dB
+    duck_music = _vol_expr(ducks, "music_db", start, dur)
+    duck_oton = _vol_expr(ducks, "oton_db", start, dur)
+    oton_parts = []
+    if abs(oton_gain_db) >= 0.01:
+        oton_parts.append(f"volume={oton_gain_db}dB")
+    if duck_oton:
+        oton_parts.append(f"volume=volume='{duck_oton}':eval=frame")
+    oton = ",".join(oton_parts)
     if track is not None:
         inputs += ["-stream_loop", "-1", "-i", str(track)]
         n_inputs += 1
-        music = (
-            f"volume={gain_db}dB,"
+        music = f"volume={gain_db}dB,"
+        if duck_music:
+            music += f"volume=volume='{duck_music}':eval=frame,"
+        music += (
             f"afade=t=in:d={min(FADE_IN, dur / 4):.3f},"
             f"afade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
         )
         if has_audio(video):
+            osrc = "[0:a]"
+            if oton:
+                fc_parts.append(f"[0:a]{oton}[oa]")
+                osrc = "[oa]"
             fc_parts.append(f"[1:a]{music}[m];"
-                            "[0:a][m]amix=inputs=2:duration=first:normalize=0[a]")
+                            f"{osrc}[m]amix=inputs=2:duration=first:normalize=0[a]")
         else:
             fc_parts.append(f"[1:a]{music}[a]")
         amap = ["-map", "[a]"]
         acodec = ["-c:a", "aac", "-b:a", "192k"]
     elif has_audio(video):
-        amap = ["-map", "0:a"]
-        acodec = ["-c:a", "copy"] if not trimmed else ["-c:a", "aac", "-b:a", "192k"]
+        if oton:
+            fc_parts.append(f"[0:a]{oton}[a]")
+            amap = ["-map", "[a]"]
+            acodec = ["-c:a", "aac", "-b:a", "192k"]
+        else:
+            amap = ["-map", "0:a"]
+            acodec = ["-c:a", "copy"] if not trimmed else ["-c:a", "aac", "-b:a", "192k"]
     else:
         amap, acodec = [], []
     vsrc = "[0:v]"
@@ -859,6 +900,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "Video nicht gefunden"}, 400)
         gain = float(req.get("gain_db", -12))
         fade_out = float(req.get("fade_out", FADE_OUT))
+        oton_gain = float(req.get("oton_gain_db", 0) or 0)
+        ducks = [d for d in (req.get("ducks") or []) if isinstance(d, dict)]
         trim_start = float(req.get("trim_start") or 0)
         trim_end = float(req["trim_end"]) if req.get("trim_end") else None
         # Text-PNGs (Base64 vom Browser-Canvas) in Temp-Dateien auspacken
@@ -916,7 +959,8 @@ class Handler(BaseHTTPRequestHandler):
                 out = OUT_DIR / pf / out_name
                 render(video, track, out, gain, fade_out, overlay,
                        trim_start, trim_end, texts, outros.get(pf),
-                       float(req.get("overlay_alpha", 1.0)))
+                       float(req.get("overlay_alpha", 1.0)),
+                       oton_gain_db=oton_gain, ducks=ducks)
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
