@@ -312,6 +312,10 @@ export interface SpotAgg {
 }
 
 export interface CommunitySession {
+  // Setup der Aufnahme (Session-Wert, sonst Standard des Besitzers). Je Teil optional —
+  // fehlt es, zeigt die Karte den Chip gar nicht.
+  setup?: { stab?: { brand: string; model: string; size: string }; mast_len_cm?: number;
+            board?: { name: string } } | null;
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   session_id: number;
   started_at: string | null;

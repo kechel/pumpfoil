@@ -7,6 +7,7 @@ detection) -> reines SQL, keine Full-Scans/JSON-Parsing.
 """
 from __future__ import annotations
 
+import json
 import logging
 import threading
 import time
@@ -70,6 +71,10 @@ TIME_METRICS = ("early_bird", "night_owl")
 BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
               S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url,
+              # Restliches Setup + Besitzer, in _attach_social zu Labels aufgeloest (Batch).
+              S.stab_id, S.board_id, S.mast_len_cm, S.user_id,
+              # place_lat/place_lon MUESSEN die letzten beiden bleiben: sessions-grouped greift
+              # positionsbasiert darauf zu (r[nb-2], r[nb-1]).
               S.place_lat, S.place_lon)
 
 
@@ -123,6 +128,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
 
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
            foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
+           stab_id=None, board_id=None, mast_len_cm=None, owner_id=None,
            lat=None, lon=None) -> dict:
     return {
         "session_id": sid,
@@ -143,6 +149,10 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
         "device_id": device_id,
         "device_label": None,  # in _attach_social aufgelöst (Uhr-Bezeichnung)
+        # Setup der Session; None-Werte heissen "nicht gesetzt" -> dann greift der Standard des
+        # BESITZERS, den _attach_social nachlaedt. Ergebnis steht in "setup" (None = nichts da).
+        "stab_id": stab_id, "board_id": board_id, "mast_len_cm": mast_len_cm, "owner_id": owner_id,
+        "setup": None,
         "video_url": None,     # erstes Video jeder Plattform (nur anzeige-fähige Clients, _attach_first_video)
     }
 
@@ -950,6 +960,45 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     if fids:
         fmap = {f.id: {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size}
                 for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
+    # Restliches Setup (Stab/Mast/Board) im Batch. Anders als bei den eigenen Sessions gehoeren die
+    # Sessions hier VERSCHIEDENEN Nutzern -> die Standards kommen aus mehreren settings_json, also
+    # eine Abfrage ueber die Besitzer und dann zwei ueber Stabs/Boards. Kein N+1.
+    oids = {b.get("owner_id") for b in briefs if b.get("owner_id")}
+    defaults: dict[int, dict] = {}
+    if oids:
+        for uid, sj in db.query(models.User.id, models.User.settings_json).filter(
+                models.User.id.in_(oids)).all():
+            try:
+                defaults[uid] = (json.loads(sj) or {}) if sj else {}
+            except ValueError:
+                defaults[uid] = {}
+
+    def _eff(b: dict, key: str):
+        """Wert der Session, sonst Standard des Besitzers."""
+        v = b.get(key)
+        return v if v is not None else (defaults.get(b.get("owner_id")) or {}).get(key)
+
+    sids2 = {_eff(b, "stab_id") for b in briefs}
+    bids2 = {_eff(b, "board_id") for b in briefs}
+    smap = {x.id: x for x in db.query(models.Stab).filter(
+        models.Stab.id.in_([int(i) for i in sids2 if i])).all()} if any(sids2) else {}
+    bmap = {x.id: x for x in db.query(models.Board).filter(
+        models.Board.id.in_([int(i) for i in bids2 if i])).all()} if any(bids2) else {}
+    for b in briefs:
+        setup: dict = {}
+        sid2 = _eff(b, "stab_id")
+        st = smap.get(int(sid2)) if sid2 else None
+        if st is not None:
+            setup["stab"] = {"id": st.id, "brand": st.brand, "model": st.model, "size": st.size}
+        mast = _eff(b, "mast_len_cm")
+        if mast:
+            setup["mast_len_cm"] = int(mast)
+        bid2 = _eff(b, "board_id")
+        bo = bmap.get(int(bid2)) if bid2 else None
+        if bo is not None:
+            setup["board"] = {"id": bo.id, "name": bo.name}
+        b["setup"] = setup or None
+
     # Uhr-/Geräte-Bezeichnung im Batch (nur erster Teil vor "/").
     dids = {b.get("device_id") for b in briefs if b.get("device_id")}
     dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)

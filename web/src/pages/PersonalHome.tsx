@@ -132,7 +132,10 @@ function CarveStatsSection() {
   );
 }
 
-const setupLabels = (s: SessionSummary) => ({
+// Nimmt beide Session-Formen (eigene Liste und Community-Brief) — nur die Felder, die beide haben.
+const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size: string } | null;
+                                   mast_len_cm?: number | null;
+                                   board?: { name: string } | null } | null }) => ({
   stab: s.setup?.stab ? `${s.setup.stab.brand} ${s.setup.stab.model} ${s.setup.stab.size}`.trim() : null,
   mast: s.setup?.mast_len_cm ? `${s.setup.mast_len_cm} cm` : null,
   board: s.setup?.board?.name || null,
