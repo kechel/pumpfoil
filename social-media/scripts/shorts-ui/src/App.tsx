@@ -719,21 +719,23 @@ function Studio() {
             ))}
           </div>
           <div className="actions">
-            <button className={`abtn ${isStarred ? "starred" : ""}`} onClick={() => curVideo && void toggleStar(curVideo, !isStarred)}>
-              <Icon name="star" filled={isStarred} size={18} /> {isStarred ? "gemerkt" : "merken"}
-            </button>
-            <button className="abtn" onClick={() => curVideo && void discard(curVideo, "privat")}>
-              <Icon name="lock" size={18} /> privat
-            </button>
-            <button className="abtn" onClick={() => curVideo && void discard(curVideo, "never-give-up")}>
-              <Icon name="dumbbell" size={18} /> never-give-up
-            </button>
-            <button className="abtn" onClick={() => curVideo && void discard(curVideo, "aussortiert")}>
-              <Icon name="trash" size={18} /> aussortieren
-            </button>
-            <button className="abtn" onClick={() => void undo()}>
-              <Icon name="undo" size={18} /> rückgängig
-            </button>
+            <div className="abtns">
+              <button className={`abtn ${isStarred ? "starred" : ""}`} onClick={() => curVideo && void toggleStar(curVideo, !isStarred)}>
+                <Icon name="star" filled={isStarred} size={14} /> {isStarred ? "gemerkt" : "merken"}
+              </button>
+              <button className="abtn" onClick={() => curVideo && void discard(curVideo, "privat")}>
+                <Icon name="lock" size={14} /> privat
+              </button>
+              <button className="abtn" onClick={() => curVideo && void discard(curVideo, "never-give-up")}>
+                <Icon name="dumbbell" size={14} /> never-give-up
+              </button>
+              <button className="abtn" onClick={() => curVideo && void discard(curVideo, "aussortiert")}>
+                <Icon name="trash" size={14} /> aussortieren
+              </button>
+              <button className="abtn" onClick={() => void undo()}>
+                <Icon name="undo" size={14} /> rückgängig
+              </button>
+            </div>
             <div className="texts">
               {texts.map((tx, i) => (
                 <div key={i} className="txrow">
@@ -771,6 +773,42 @@ function Studio() {
                     title="löschen"
                     onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH } : t)))}
                   >
+                    <Icon name="x" size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="ducks"
+              title="Pegel-Abschnitte: Musik/O-Ton in Zeitfenstern um ±dB anheben oder absenken (weich über 0,5 s). Musik −60 dB = kurz ausgeblendet.">
+              <div className="duckhead">Pegel-Abschnitte 🎵/🎙 ±dB</div>
+              {ducks.map((d, i) => (
+                <div className="duckrow" key={i}>
+                  <button className="mini" title="Start = aktuelle Videoposition" onClick={() =>
+                    setDucks((ds) => ds.map((x, j) => {
+                      if (j !== i) return x;
+                      const s = vidRef.current?.currentTime ?? 0;
+                      return { ...x, start: s, end: x.end != null && x.end <= s ? null : x.end };
+                    }))}>
+                    [ {d.start == null ? "–" : d.start.toFixed(1) + "s"}
+                  </button>
+                  <button className="mini" title="Ende = aktuelle Videoposition" onClick={() =>
+                    setDucks((ds) => ds.map((x, j) => {
+                      if (j !== i) return x;
+                      const e = vidRef.current?.currentTime ?? 0;
+                      return { ...x, end: e, start: x.start != null && x.start >= e ? null : x.start };
+                    }))}>
+                    {d.end == null ? "–" : d.end.toFixed(1) + "s"} ]
+                  </button>
+                  <label title="Musik-Änderung in diesem Abschnitt (−60 = stumm)">
+                    🎵 <input type="number" min={-60} max={12} step={3} value={d.music}
+                      onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, music: +e.target.value } : x)))} />
+                  </label>
+                  <label title="O-Ton-Änderung in diesem Abschnitt">
+                    🎙 <input type="number" min={-60} max={12} step={3} value={d.oton}
+                      onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, oton: +e.target.value } : x)))} />
+                  </label>
+                  <button className="mini" title="Abschnitt löschen" onClick={() =>
+                    setDucks((ds) => ds.map((x, j) => (j === i ? { start: null, end: null, music: -12, oton: 0 } : x)))}>
                     <Icon name="x" size={11} />
                   </button>
                 </div>
@@ -864,47 +902,6 @@ function Studio() {
                 : `${trim.start != null ? trim.start.toFixed(1) + "s" : "0s"} → ${trim.end != null ? trim.end.toFixed(1) + "s" : "Ende"}`}
             </span>
           </div>
-          <div className="row" style={{ opacity: 0.8 }}
-            title="Zeitfenster, in denen Musik bzw. O-Ton um ±dB angehoben/abgesenkt werden (weich über 0,5 s). Musik −60 dB = praktisch stumm.">
-            Pegel-Abschnitte
-          </div>
-          {ducks.map((d, i) => (
-            <div className="row" key={i} style={{ paddingLeft: 12, flexWrap: "wrap" }}>
-              <button className="mini" onClick={() =>
-                setDucks((ds) => ds.map((x, j) => {
-                  if (j !== i) return x;
-                  const s = vidRef.current?.currentTime ?? 0;
-                  return { ...x, start: s, end: x.end != null && x.end <= s ? null : x.end };
-                }))}>
-                [ Start
-              </button>
-              <button className="mini" onClick={() =>
-                setDucks((ds) => ds.map((x, j) => {
-                  if (j !== i) return x;
-                  const e = vidRef.current?.currentTime ?? 0;
-                  return { ...x, end: e, start: x.start != null && x.start >= e ? null : x.start };
-                }))}>
-                Ende ]
-              </button>
-              <span style={{ opacity: 0.7, minWidth: 86 }}>
-                {d.start == null && d.end == null
-                  ? "–"
-                  : `${d.start != null ? d.start.toFixed(1) : "?"}s → ${d.end != null ? d.end.toFixed(1) : "?"}s`}
-              </span>
-              <label title="Musik-Änderung in diesem Abschnitt (−60 = stumm)">
-                🎵 <input type="number" style={{ width: 52 }} min={-60} max={12} step={3} value={d.music}
-                  onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, music: +e.target.value } : x)))} /> dB
-              </label>
-              <label title="O-Ton-Änderung in diesem Abschnitt">
-                🎙 <input type="number" style={{ width: 52 }} min={-60} max={12} step={3} value={d.oton}
-                  onChange={(e) => setDucks((ds) => ds.map((x, j) => (j === i ? { ...x, oton: +e.target.value } : x)))} /> dB
-              </label>
-              <button className="mini" title="Abschnitt löschen" onClick={() =>
-                setDucks((ds) => ds.map((x, j) => (j === i ? { start: null, end: null, music: -12, oton: 0 } : x)))}>
-                <Icon name="x" size={11} />
-              </button>
-            </div>
-          ))}
           <div className="row">
             Name <span style={{ opacity: 0.6 }}>{String(state.next_number).padStart(3, "0")}-{state.name_prefix}</span>
             <input
