@@ -197,6 +197,33 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
+### Stand 01.08.2026 — Transport im Lauf (Zug/Auto) automatisch erkennen?
+
+- [ ] **Wasserflaeche wird am FALSCHEN Ort nachgeschlagen (Fehler, einfacher Fix).**
+      `_water_rings_cached` (`analysis/__init__.py:54`) waehlt den Nachschlage-Punkt ueber den
+      **Median ALLER GPS-Punkte**. Liegt die Uhr nach der Session lange still (Heimfahrt, Uhr am
+      Bahnhof/zu Hause), wandert der Median dorthin — Befund #1328: Polygon bei 47.531,9.743, der
+      Spot aber bei 47.510,9.752, Ergebnis **0 % Wasseranteil fuer ALLE sechs Laeufe**, auch die
+      echten. Schaden entsteht nicht (`_clip_ends_to_water` fasst Laeufe ohne Wasser-Sample nicht
+      an), aber die Korrektur laeuft ins Leere. Fix: Ort aus den FOIL-LAEUFEN bestimmen statt aus
+      allen Samples. Danach ist „Lauf verlaesst das Wasser" ein belastbares Signal.
+- [ ] **Transport-Abschnitte erkennen und VORSCHLAGEN (nicht automatisch trimmen).** Befund #1328:
+      Zugfahrt als Lauf gezaehlt (414 s, 2812 m, Ø 23,3 km/h) — der Ø-Gate entgangen, weil die Grenze
+      bei 25,2 km/h liegt. Drei Erkennungswege gemessen und VERWORFEN:
+      (a) Tempo allein — echte Pumpfoil-Laeufe erreichen 25,1 km/h;
+      (b) gerade Linie + Tempo (Ø>18, Geradheit>0,7) — trifft **210 Laeufe in 85 Sessions**,
+          darunter als `surf_downwind` klassifizierte: ein Downwinder IST schnell und gerade;
+      (c) Armbewegung (bei Auto/Wake das gute Signal) — in #1328 hat der Transport 0,291 g, ein
+          echter 644-s-Pump-Lauf nur 0,185 g, ein weiterer 0,082 g. Trennt nicht.
+      Vorschlag deshalb: verdaechtige Fenster markieren (schnell + gerade + endet weit weg vom Spot,
+      kommt nicht zurueck) und dem Besitzer einen Ein-Tipp-Vorschlag zum Aussortieren zeigen — der
+      Mechanismus (`excluded_ranges`) existiert. Entscheidung beim Menschen, funktioniert fuer Zug,
+      Auto, Bus und Faehre gleich. **Braucht Jans OK.**
+- [x] **#1328 manuell erledigt (01.08.):** Lauf 3 ausgesortiert (Fenster 6094184-6510069 ms) und
+      wieder als `pumpfoil` zugeordnet (`sport_source=admin`, `pumpfoil_override=True`).
+      6 -> 5 Laeufe, Foil 1226 -> 812 s, Strecke 9471 -> 6655 m, bester Lauf 2812 -> 2344 m (damit
+      unter dem Rekord von 2626 m), Session-Max 29,8 -> 25,5 km/h.
+
 ### Stand 31.07.2026 — Detektor-Korrekturen (angewendet) + neuer Befund
 
 - [ ] **Zepp: echte Aktivitaet aufzeichnen (Nutzer ZUGESAGT, 31.07.).** Unsere Amazfit-App bindet nur
