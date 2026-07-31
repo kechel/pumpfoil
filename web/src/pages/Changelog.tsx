@@ -32,6 +32,8 @@ const ENTRIES: Entry[] = [
   {
     date: "July 31, 2026",
     items: [
+      "Runs are no longer cut short at the end, and no longer split in two. Two riders reported it and both were right. First: when you ride back towards the dock, the end of the run was being discarded — that check exists to throw away the fake positions a watch produces when it goes under water, but it was catching real riding as well. It now looks at the shape of the track: an underwater watch draws a dead-straight line at a constant speed, while real riding curves and varies. Second: if the watch briefly reported a much lower speed than the GPS track shows, or if you touched down and pumped straight back up, the run was ended and a new one started. Both now stay one run. Across all sessions this returned about an hour of foiling time that had been dropped, and merged 45 runs back together.",
+      "Speeds measured while the GPS had lost its bearings no longer count. After a crash a watch can report a jump of 30 km/h with 20+ metres of position error — one of those was holding the top-speed record. There was already a limit for GPS accuracy, but it only applied to sessions recorded without a motion sensor. It now applies everywhere, for the top speed of a session as well.",
       "Gong's new Atmo range is in the foil list — all 41 variants: Sirus and Trail (both Perf and Team), Hyper Trail, Supra Trail, Ultra Trail, Veloce DW and Veloce XTR. Four of those models were missing from the catalogue entirely, Atmo or not. Every figure is the manufacturer's own, and each row was checked against the published aspect ratio before it went in.",
       "Gong Trail stabilizers now carry their span and area (40/43/46 cm), so the power calculation works with them too.",
     ],
