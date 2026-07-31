@@ -195,7 +195,10 @@ export default function Sessions() {
   const [myName, setMyName] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);   // bump nach angenommener Übertragung → Liste neu laden
   // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
-  const [accelOnly, setAccelOnly] = useAccelDefault();
+  const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault();
+  // Spot gewechselt oder verlassen: eine vorherige Automatik ("Spot ohne Accel-Sessions")
+  // wieder verwerfen, damit wieder der Default aus der eigenen Uhr gilt.
+  useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api.getSettings().then((s) => { setHomespot((s.homespot as string) ?? ""); setHomespotId((s.homespot_id as number | null) ?? null); }).catch(() => {});
@@ -263,7 +266,7 @@ export default function Sessions() {
       <CompareTip />
 
       {spot && <SpotWeather spot={spot} />}
-      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} />}
+      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} onShowAll={() => setAccelAuto(false)} />}
     </div>
   );
 }
@@ -551,6 +554,7 @@ function renderCommunitySession(s: CommunitySession, t: (k: string) => string, l
       endedAt={s.ended_at}
       spot={s.spot}
       foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+      sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(`cls.sport.${s.sport_class}`) : null}
       {...setupLabels(s)}
       deviceLabel={s.device_label}
       caption={s.caption}
@@ -641,7 +645,8 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   );
 }
 
-function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; accelOnly: boolean }) {
+function CommunityList({ name, spot, accelOnly, onShowAll }:
+    { name: string; spot: string; accelOnly: boolean; onShowAll?: () => void }) {
   const t = useT();
   const [items, setItems] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -653,15 +658,29 @@ function CommunityList({ name, spot, accelOnly }: { name: string; spot: string; 
   const itemsRef = useRef<CommunityGroup[]>([]);
   const lastViewed = getLastSession();
 
+  // Spot ohne eine einzige Session mit Beschleunigungsdaten: statt einer leeren Liste automatisch
+  // auf "alle" umschalten. Nur beim ersten Laden eines Spots, nur wenn der Nutzer den Umschalter
+  // nicht selbst angefasst hat, und NICHT gemerkt — beim Verlassen greift wieder der Default aus
+  // der eigenen Uhr (resetAuto beim Spot-Wechsel).
+  const autoTried = useRef<string | null>(null);
+  const maybeShowAll = (rows: CommunityGroup[], off: number) => {
+    if (!spot || !accelOnly || off !== 0 || rows.length || autoTried.current === spot) return;
+    autoTried.current = spot;
+    api.communitySessionsGrouped(1, 0, { name: name || undefined, spot, accelOnly: false, sport: "all" })
+      .then((probe) => { if (probe.length) onShowAll?.(); })
+      .catch(() => {});
+  };
+
   const load = (reset: boolean) => {
     if (loadingRef.current || (!reset && !moreRef.current)) return;
     loadingRef.current = true; setLoading(true);
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly })
+    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all" })
       .then((rows) => {
         offsetRef.current = off + rows.length;
         moreRef.current = rows.length === PAGE;
         setItems((prev) => (reset ? rows : [...prev, ...rows]));
+        maybeShowAll(rows, off);
       })
       .catch(() => {})
       .finally(() => { loadingRef.current = false; setLoading(false); });

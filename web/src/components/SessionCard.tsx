@@ -20,7 +20,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, tz, spot, foil, stab, mast, board, deviceLabel, caption,
+  sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
   sportClass, dataQuality, needsClassification = false,
@@ -34,6 +34,8 @@ export function SessionCard({
   foil?: string | null;   // Foil-Label (nur wenn explizit gewählt)
   // Restliches Setup als fertige Labels — je Teil nur, wenn hinterlegt (sonst weglassen, nicht leer
   // anzeigen). Bewusst Strings statt Objekte: die Karte formatiert nichts, sie zeigt nur.
+  // Sportart, wenn es KEIN Pumpfoilen war (die Liste "was ist neu" zeigt alle Sportarten).
+  sportLabel?: string | null;
   stab?: string | null;
   mast?: string | null;
   board?: string | null;
@@ -205,11 +207,22 @@ export function SessionCard({
               {startedAt && endedAt && <>{` ${t("sessions.timeTo")} `}{fmtTime(endedAt, tz)}</>}
               {startedAt && t("sessions.oclock") && ` ${t("sessions.oclock")}`}
               {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
+              {sportLabel && <span className="ml-2 inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{sportLabel}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
               {foil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}
               {stab && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><StabIcon className="h-3.5 w-3.5" /> {stab}</span>}
               {mast && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><MastIcon className="h-3.5 w-3.5" /> {mast}</span>}
-              {board && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><BoardIcon className="h-3.5 w-3.5" /> {board}</span>}
+              {board && (
+                // Sonderbehandlung fuer das Skateboard: Pumpen auf dem Skateboard ist kein
+                // Tippfehler, sondern Trockentraining — das darf in Marken-Cyan auffallen.
+                // Bewusst beide Farbmodi (Nicht-Slate braucht das), Vergleich ohne Gross-/Kleinschreibung.
+                <span className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs ${
+                  /skateboard/i.test(board)
+                    ? "bg-brand-500/20 font-semibold text-brand-700 dark:text-brand-300"
+                    : "bg-slate-800 text-slate-300"}`}>
+                  <BoardIcon className="h-3.5 w-3.5" /> {board}
+                </span>
+              )}
               {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {deviceLabel}</span>}
             </div>
             {stats}

@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import Float, cast, func, literal, or_
+from sqlalchemy import Float, cast, func, literal, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
@@ -72,7 +72,7 @@ BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.id, S.started_at, NAME, S.place_name, U.avatar_url, S.caption, AR.track_preview,
               S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url,
               # Restliches Setup + Besitzer, in _attach_social zu Labels aufgeloest (Batch).
-              S.stab_id, S.board_id, S.mast_len_cm, S.user_id,
+              S.stab_id, S.board_id, S.mast_len_cm, S.user_id, S.sport_class,
               # place_lat/place_lon MUESSEN die letzten beiden bleiben: sessions-grouped greift
               # positionsbasiert darauf zu (r[nb-2], r[nb-1]).
               S.place_lat, S.place_lon)
@@ -113,8 +113,14 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                 # Sportart: für „pumpfoil" zählen auch Altbestände mit NULL mit (die Spalte kam erst
                 # 2026-07-27); für jede ANDERE Sportart muss sie ausdrücklich gesetzt sein, sonst
                 # rutschten unklassifizierte Sessions in fremde Rekorde.
-                (or_(S.sport_class.is_(None), S.sport_class == "pumpfoil")
-                 if sport == "pumpfoil" else (S.sport_class == sport)),
+                # sport="all" = KEINE Einschränkung auf die Sportart. Das ist die Liste „was ist neu"
+                # (Sessions-Seite): dort sollen alle Aufnahmen auftauchen, egal welcher Sport. Die
+                # sportgetrennten Ansichten und alle Rekorde/Bestenlisten fragen weiterhin EINE
+                # Sportart ab — hier faellt also nur die Sport-Bedingung weg, alle anderen Filter
+                # (gelöscht, gemeldet, unklassifiziert, Datenmüll, laufende Aufnahme) bleiben.
+                (true() if sport == "all" else
+                 (or_(S.sport_class.is_(None), S.sport_class == "pumpfoil")
+                  if sport == "pumpfoil" else (S.sport_class == sport))),
                 or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
     if accel_only:
@@ -128,7 +134,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
 
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
            foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
-           stab_id=None, board_id=None, mast_len_cm=None, owner_id=None,
+           stab_id=None, board_id=None, mast_len_cm=None, owner_id=None, sport_class=None,
            lat=None, lon=None) -> dict:
     return {
         "session_id": sid,
@@ -152,6 +158,9 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         # Setup der Session; None-Werte heissen "nicht gesetzt" -> dann greift der Standard des
         # BESITZERS, den _attach_social nachlaedt. Ergebnis steht in "setup" (None = nichts da).
         "stab_id": stab_id, "board_id": board_id, "mast_len_cm": mast_len_cm, "owner_id": owner_id,
+        # Sportart der Session — die Liste "was ist neu" zeigt alle Sportarten, die Karte
+        # kennzeichnet daher, wenn es KEIN Pumpfoilen war. None/pumpfoil = kein Hinweis.
+        "sport_class": sport_class,
         "setup": None,
         "video_url": None,     # erstes Video jeder Plattform (nur anzeige-fähige Clients, _attach_first_video)
     }

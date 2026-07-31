@@ -312,6 +312,7 @@ export interface SpotAgg {
 }
 
 export interface CommunitySession {
+  sport_class?: string | null;   // null/"pumpfoil" = Pumpfoilen; sonst kennzeichnet die Karte es
   // Setup der Aufnahme (Session-Wert, sonst Standard des Besitzers). Je Teil optional —
   // fehlt es, zeigt die Karte den Chip gar nicht.
   setup?: { stab?: { brand: string; model: string; size: string }; mast_len_cm?: number;
@@ -826,18 +827,24 @@ export const api = {
     req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
-  communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
+  communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
+      // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
+      sport?: string } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);
     if (opts.accelOnly === false) p.set("accel_only", "false");
+    if (opts.sport) p.set("sport", opts.sport);
     return req<CommunitySession[]>(`/api/community/sessions?${p}`);
   },
-  communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean } = {}) => {
+  communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
+      // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
+      sport?: string } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);
     if (opts.accelOnly === false) p.set("accel_only", "false");
+    if (opts.sport) p.set("sport", opts.sport);
     return req<CommunityGroup[]>(`/api/community/sessions-grouped?${p}`);
   },
   spotSessions: (spot: string, accelOnly = true) =>
