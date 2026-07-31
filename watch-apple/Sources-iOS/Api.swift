@@ -241,6 +241,14 @@ enum Api {
         try await request("/api/sessions/stats?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
+    // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des
+    // „nur Accel | alle"-Umschalters (siehe AccelDefault.swift / web useAccelDefault.ts).
+    struct HasAccelResponse: Decodable { let has_accel: Bool }
+    static func hasAccel() async throws -> Bool {
+        let r: HasAccelResponse = try await request("/api/sessions/has-accel", method: "GET", body: nil, auth: true)
+        return r.has_accel
+    }
+
     static func spots(accelOnly: Bool = true) async throws -> SpotsList {
         try await request("/api/community/spots?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }

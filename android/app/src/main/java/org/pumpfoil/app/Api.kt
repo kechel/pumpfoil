@@ -308,6 +308,13 @@ object Api {
         json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=$accelOnly", null, auth = true))
     }
 
+    // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des
+    // „nur Accel | alle"-Umschalters (siehe AccelDefault.kt / web useAccelDefault.ts).
+    suspend fun hasAccel(): Boolean = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("GET", "/api/sessions/has-accel", null, auth = true))
+        r.jsonObject["has_accel"]?.jsonPrimitive?.booleanOrNull ?: false
+    }
+
     // Alle eigenen AUSSORTIERTEN Sessions löschen (Server erzwingt owner+other). -> Anzahl.
     suspend fun deleteAllOtherSessions(): Int = withContext(Dispatchers.IO) {
         val r = json.parseToJsonElement(http("DELETE", "/api/sessions/other/all", null, auth = true))

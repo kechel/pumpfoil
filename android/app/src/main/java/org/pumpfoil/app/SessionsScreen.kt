@@ -103,7 +103,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var accelOnly by remember { mutableStateOf(false) }   // wie PWA-Umschalter (Default: alle)
+    // accel|alle-Umschalter mit smartem Default wie die PWA (useAccelDefault): „nur Accel", wenn
+    // der Nutzer selbst Accel-Läufe hat, sonst „alle". Eine eigene Umschaltung hat Vorrang.
+    val accel = rememberAccelDefault()
+    val accelOnly = accel.value
+    // Spot ohne eine einzige Session mit Beschleunigungsdaten: nur EINMAL je Spot nachfragen.
+    var accelAutoSpot by remember { mutableStateOf<String?>(null) }
     var filter by remember { mutableStateOf("pump") }      // pump | other (nur eigene)
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
@@ -131,6 +136,21 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     LaunchedEffect(spot) {
         weather = if (spot.isNotBlank()) try { Api.spotWeather(spot).weather } catch (_: Exception) { null } else null
     }
+    // Spot gewechselt oder verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
+    // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
+    LaunchedEffect(spot) { accel.resetAuto() }
+
+    // Kommt die erste Seite eines Spots leer zurück, EINMAL mit accel_only=false nachfragen: gibt es
+    // dort etwas, auf „alle" umschalten (sonst stünde man vor einer leeren Liste). setAuto = gilt
+    // nicht als Nutzer-Wahl; wer selbst umgeschaltet hat, behält seine Wahl.
+    suspend fun maybeShowAll(rows: List<CommunityGroup>) {
+        if (spot.isBlank() || !accelOnly || accel.userChose || rows.isNotEmpty() || accelAutoSpot == spot) return
+        accelAutoSpot = spot
+        val probe = try {
+            Api.communitySessionsGrouped(spot, limit = 1, accelOnly = false, sport = "all")
+        } catch (_: Exception) { emptyList() }
+        if (probe.isNotEmpty()) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
+    }
 
     suspend fun load() {
         loading = true
@@ -142,7 +162,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Die sportgetrennten
                 // Ansichten (Community-Seite, Bestenlisten) bleiben bei genau einer Sportart.
                 Scope.ALL -> groups = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = "all")
-                Scope.SPOT -> groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
+                Scope.SPOT -> {
+                    groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
+                    maybeShowAll(groups)
+                }
             }
             error = null
         } catch (e: Exception) { error = e.message }
@@ -198,7 +221,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
                 }
                 Spacer(Modifier.width(8.dp))
-                AccelSeg(accelOnly) { accelOnly = it }
+                AccelSeg(accelOnly) { accel.set(it) }
             }
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte).
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {

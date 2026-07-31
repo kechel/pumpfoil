@@ -8,6 +8,11 @@ struct SpotSessionsView: View {
     @State private var items: [CommunityItem] = []
     @State private var loading = false
     @State private var error: String?
+    // Automatik „Spot ohne eine einzige Session mit Beschleunigungsdaten": statt einer leeren Liste
+    // einmal mit accel_only=false nachfragen und dann alle zeigen. Beides ist View-State dieses
+    // Spots -> beim Verlassen/Wechseln wieder weg (NICHT gemerkt), es gilt wieder der Default.
+    @State private var showAll = false
+    @State private var autoTried = false
 
     var body: some View {
         List {
@@ -38,7 +43,18 @@ struct SpotSessionsView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        do { items = try await Api.spotSessions(spot); error = nil }
-        catch { self.error = error.localizedDescription }
+        do {
+            // Default wie die PWA (useAccelDefault): „nur Accel", wenn der Nutzer selbst
+            // Accel-Läufe hat, sonst „alle".
+            let only = showAll ? false : await AccelDefault.preferred()
+            var rows = try await Api.spotSessions(spot, accelOnly: only)
+            if only, rows.isEmpty, !autoTried {
+                autoTried = true
+                let all = try await Api.spotSessions(spot, accelOnly: false)
+                if !all.isEmpty { showAll = true; rows = all }
+            }
+            items = rows
+            error = nil
+        } catch { self.error = error.localizedDescription }
     }
 }

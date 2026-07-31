@@ -35,11 +35,27 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     var items by remember(spot) { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // Automatik „Spot ohne eine einzige Session mit Beschleunigungsdaten": statt einer leeren Liste
+    // einmal mit accel_only=false nachfragen und dann alle zeigen. Beide Werte hängen an `spot` ->
+    // beim Spot-Wechsel/Verlassen ist das wieder weg (NICHT gemerkt), es gilt wieder der Default.
+    var showAll by remember(spot) { mutableStateOf(false) }
+    var autoTried by remember(spot) { mutableStateOf(false) }
 
     suspend fun load() {
         loading = true
-        try { items = Api.spotSessions(spot); error = null }
-        catch (e: Exception) { error = e.message }
+        try {
+            // Default wie die PWA (useAccelDefault): „nur Accel", wenn der Nutzer selbst
+            // Accel-Läufe hat, sonst „alle".
+            val only = if (showAll) false else AccelDefault.preferred()
+            var rows = Api.spotSessions(spot, accelOnly = only)
+            if (only && rows.isEmpty() && !autoTried) {
+                autoTried = true
+                val all = Api.spotSessions(spot, accelOnly = false)
+                if (all.isNotEmpty()) { showAll = true; rows = all }
+            }
+            items = rows
+            error = null
+        } catch (e: Exception) { error = e.message }
         loading = false
     }
     LaunchedEffect(spot) { load() }

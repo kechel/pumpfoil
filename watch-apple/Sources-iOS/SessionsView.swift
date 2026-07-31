@@ -18,7 +18,11 @@ struct SessionsView: View {
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
     @State private var incoming: [Transfer] = []
-    @State private var accelOnly = false      // wie PWA-Umschalter (Default: alle)
+    // accel|alle-Umschalter mit smartem Default wie die PWA (useAccelDefault): „nur Accel", wenn
+    // der Nutzer selbst Accel-Läufe hat, sonst „alle" — gesetzt in applyAccelDefault().
+    @State private var accelOnly = true
+    @State private var accelTouched = false        // Nutzer hat selbst umgeschaltet -> Automatik aus
+    @State private var accelAutoSpot: String?      // Spot, für den schon nachgefragt wurde (1×)
     @State private var filter = "pump"         // pump | other (nur eigene)
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
     @State private var months: [MonthCount] = []
@@ -44,7 +48,9 @@ struct SessionsView: View {
                 // die Liste nicht, aktualisiert nur im Hintergrund.
                 .onAppear { Task { await load() } }
                 .onChange(of: scope) { _ in Task { await load() } }
-                .onChange(of: spot) { _ in Task { await loadWeather(); await load() } }
+                // Spot gewechselt/verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
+                // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
+                .onChange(of: spot) { _ in resetAccelAuto(); Task { await loadWeather(); await load() } }
                 .onChange(of: accelOnly) { _ in Task { await load() } }
                 .onChange(of: filter) { _ in Task { await loadMonths(); await load() } }
                 .onChange(of: month) { _ in Task { await load() } }
@@ -106,6 +112,7 @@ struct SessionsView: View {
         }
         suggestions = (try? await Api.mergeSuggestions()) ?? []
         spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
+        await applyAccelDefault()
         await reloadIncoming()
         await load()
     }
@@ -136,8 +143,8 @@ struct SessionsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 ScrollView(.horizontal, showsIndicators: false) { scopeChips }
                 HStack {
-                    chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
-                    chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
+                    chip(Loc.t("side.onlyAccel", lang), accelOnly) { chooseAccel(true) }
+                    chip(Loc.t("side.all", lang), !accelOnly) { chooseAccel(false) }
                     Spacer()
                     Menu {
                         Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
@@ -254,6 +261,28 @@ struct SessionsView: View {
             .tint(active ? .accentColor : .secondary)
     }
 
+    // Die drei Setzer der PWA-Hook (useAccelDefault), hier als kleine typisierte Helfer:
+    // chooseAccel = Nutzer-Wahl (hat Vorrang, Automatik danach aus), setAccelAuto = die Ansicht
+    // schaltet selbst um (NICHT als Wahl gemerkt), resetAccelAuto = Default wiederherstellen.
+    private func chooseAccel(_ v: Bool) { accelTouched = true; accelOnly = v }
+    private func setAccelAuto(_ v: Bool) { if !accelTouched { accelOnly = v } }
+    private func resetAccelAuto() { if !accelTouched { accelOnly = AccelDefault.cached } }
+
+    private func applyAccelDefault() async {
+        let v = await AccelDefault.preferred()
+        setAccelAuto(v)
+    }
+
+    // Spot ohne eine einzige Session mit Beschleunigungsdaten: kommt die erste Seite leer zurück,
+    // EINMAL mit accel_only=false nachfragen — gibt es dort etwas, auf „alle" umschalten, statt eine
+    // leere Liste zu zeigen. Nur einmal je Spot (accelAutoSpot), sonst hagelt es Anfragen.
+    private func maybeShowAllForSpot() async {
+        guard !spot.isEmpty, accelOnly, !accelTouched, groups.isEmpty, accelAutoSpot != spot else { return }
+        accelAutoSpot = spot
+        let probe = (try? await Api.communitySessionsGrouped(spot: spot, limit: 1, accelOnly: false, sport: "all")) ?? []
+        if !probe.isEmpty { setAccelAuto(false) }   // onChange(of: accelOnly) lädt neu
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         do {
@@ -263,7 +292,9 @@ struct SessionsView: View {
             // (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte kennzeichnet
             // alles, was kein Pumpfoilen ist. Rekorde/Bestenlisten fragen weiter genau eine Sportart.
             case .all: groups = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: "all")
-            case .spot: groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
+            case .spot:
+                groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
+                await maybeShowAllForSpot()
             }
             error = nil
         } catch { self.error = error.localizedDescription }
