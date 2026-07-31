@@ -210,6 +210,13 @@ struct SessionDetailView: View {
         Task { try? await Api.setSessionFoil(sid, foilId: fid == 0 ? nil : fid); await load() }
     }
 
+    /// Hat der Katalog-Eintrag echte Herstellermaße? Einträge ohne stehen mit 0 in Fläche und
+    /// Spannweite — die Leistungsrechnung teilt durch die Fläche, das ergäbe NaN-Zahlen. Dann
+    /// lieber keine Leistungs-Karte als erfundene Werte.
+    private func hasSpecs(_ f: Foil) -> Bool {
+        f.area_cm2 > 0 && f.span_cm > 0 && f.thickness_mm > 0
+    }
+
     private var durSec: Double {
         guard let a = session?.startedDate, let b = session?.endedDate, b > a else { return 0 }
         return b.timeIntervalSince(a)
@@ -250,8 +257,8 @@ struct SessionDetailView: View {
     private var trimSheet: some View {
         NavigationStack {
             Form {
-                Section("\(Loc.t("common.start", lang)): \(mmss(trimStart))") { Slider(value: $trimStart, in: 0...max(durSec, 1)) }
-                Section("\(Loc.t("common.end", lang)): \(mmss(trimEnd))") { Slider(value: $trimEnd, in: 0...max(durSec, 1)) }
+                Section(trimLabel("common.start", trimStart)) { Slider(value: $trimStart, in: 0...max(durSec, 1)) }
+                Section(trimLabel("common.end", trimEnd)) { Slider(value: $trimEnd, in: 0...max(durSec, 1)) }
                 Section {
                     Button(Loc.t("sd.apply", lang)) {
                         let a = min(trimStart, trimEnd), b = max(trimStart, trimEnd)
@@ -276,6 +283,21 @@ struct SessionDetailView: View {
         }
     }
 
+    // Nutzerbefund: „Beim Trimmen fehlt ein Feedback, bis wohin getrimmt wird — bei den Läufen
+    // steht die Ortszeit, beim Trimmen die Zeit ab Sessionbeginn." Deshalb beides nebeneinander:
+    // Sekunden ab Start UND die Uhrzeit in der Ortszeit des Spots (wie die Lauf-Zeilen).
+    private func trimLabel(_ key: String, _ sec: Double) -> String {
+        let base: String = Loc.t(key, lang) + ": " + mmss(sec)
+        guard let clock = clockAt(sec) else { return base }
+        return base + " · " + clock
+    }
+
+    /// Uhrzeit (Spot-Ortszeit) an Sekunde `sec` ab Sessionbeginn; nil, solange nichts geladen ist.
+    private func clockAt(_ sec: Double) -> String? {
+        guard let s = session, let start = s.startedDate else { return nil }
+        return hhmmss(start.addingTimeInterval(sec), s.tz)
+    }
+
     // Denselben Bereich AUSSORTIEREN statt zuschneiden (wie TrimPanel in der PWA): nötig, wenn der
     // Störteil mitten in der Aufnahme liegt — der Zuschnitt kann nur Anfang/Ende wegnehmen.
     @ViewBuilder private var excludeRangeSection: some View {
@@ -295,9 +317,12 @@ struct SessionDetailView: View {
         let a: Double = min(trimStart, trimEnd)
         let b: Double = max(trimStart, trimEnd)
         let raw: String = Loc.t("sd.excludeRangeConfirm", lang)
+        // Uhrzeiten statt mm:ss — „3:41 bis 7:12" sagt einem im Zweifelsfall gar nichts (wie PWA).
+        let from: String = clockAt(a) ?? mmss(a)
+        let to: String = clockAt(b) ?? mmss(b)
         return raw
-            .replacingOccurrences(of: "{from}", with: mmss(a))
-            .replacingOccurrences(of: "{to}", with: mmss(b))
+            .replacingOccurrences(of: "{from}", with: from)
+            .replacingOccurrences(of: "{to}", with: to)
     }
 
     private func excludeRangeConfirmed() {
@@ -400,7 +425,7 @@ struct SessionDetailView: View {
             if s.owned == true { classificationNotice(s) }
             mediaSection(s)
             trackSection(s)
-            if let a = s.analysis, let foil = s.foil, weightKg > 0 {
+            if let a = s.analysis, let foil = s.foil, hasSpecs(foil), weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
             statsSection(s)
@@ -917,14 +942,27 @@ struct SessionDetailView: View {
         Menu {
             Button(Loc.t("setup.inherit", lang)) { Task { await applySetup(stab: nil, setStab: true) } }
             // Eigene zuerst, dann der Rest des Katalogs -- wie die Gruppen in FoilSelect.tsx.
-            ForEach(allStabs.filter { myStabIds.contains($0.id) }) { st in
+            ForEach(quickStabs(s)) { st in
                 Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
             }
             Divider()
-            ForEach(allStabs.filter { !myStabIds.contains($0.id) }) { st in
+            ForEach(otherStabs(s)) { st in
                 Button(stabLabel(st)) { Task { await applySetup(stab: st.id, setStab: true) } }
             }
         } label: { setupChip(value) }
+    }
+
+    // Gleiche Falle wie beim Foil: der fuer DIESE Session gesetzte Stab steht mit in der
+    // Favoriten-Gruppe (und nicht doppelt im Katalog), damit die Favoriten sichtbar bleiben.
+    // Ein geerbter Standard (is_default) ist ohnehin schon in „meine Stabs".
+    private func quickStabs(_ s: SessionDetail) -> [StabBrief] {
+        let sel: Int? = (s.setup?.stab?.is_default == false) ? s.setup?.stab?.id : nil
+        return allStabs.filter { myStabIds.contains($0.id) || $0.id == sel }
+    }
+
+    private func otherStabs(_ s: SessionDetail) -> [StabBrief] {
+        let ids: Set<Int> = Set(quickStabs(s).map(\.id))
+        return allStabs.filter { !ids.contains($0.id) }
     }
 
     @ViewBuilder private func mastPicker(_ s: SessionDetail, value: String) -> some View {
@@ -1075,15 +1113,30 @@ struct SessionDetailView: View {
             // .menu zeigt nur den gewählten Foil (nicht alle auf einmal).
             Picker(Loc.t("sd.foilOfSession", lang), selection: $selectedFoilId) {
                 Text(Loc.t("foil.useDefault", lang)).tag(0)
-                ForEach(allFoils.filter { mineIds.contains($0.id) }) { f in
+                ForEach(quickFoils) { f in
                     Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
                 }
-                ForEach(allFoils.filter { !mineIds.contains($0.id) }) { f in
+                ForEach(otherFoils) { f in
                     Text("\(f.brand) \(f.model) \(f.size)").tag(f.id)
                 }
             }
             .pickerStyle(.menu)
         }
+    }
+
+    // Nutzerbefund (PWA, FoilSelect.tsx): „Wechsel von Sirus XXL auf Sirus XL — man muss nach oben
+    // scrollen, obwohl der XL auch in den Favoriten ist." Ursache: die Auswahl klappt beim
+    // GEWÄHLTEN Eintrag auf; steht der im langen Katalog-Block, liegen die Favoriten außerhalb des
+    // Sichtfelds. Deshalb das gewählte Foil MIT in die Favoriten-Gruppe — und aus dem Katalog
+    // lassen, damit es nicht doppelt erscheint.
+    private var quickFoils: [Foil] {
+        let sel: Int = selectedFoilId
+        return allFoils.filter { mineIds.contains($0.id) || $0.id == sel }
+    }
+
+    private var otherFoils: [Foil] {
+        let ids: Set<Int> = Set(quickFoils.map(\.id))
+        return allFoils.filter { !ids.contains($0.id) }
     }
 
     @ViewBuilder private func statsSection(_ s: SessionDetail) -> some View {

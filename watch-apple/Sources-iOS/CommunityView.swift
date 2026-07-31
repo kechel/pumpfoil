@@ -460,11 +460,30 @@ struct CommunityRow: View {
         }
     }
 
+    // Spot · Stab · Mastlänge · Board · Uhr, davor das Sportart-Kennzeichen (nur wenn es KEIN
+    // Pumpfoilen war). Je Teil nur, wenn hinterlegt — wie web/src/components/SessionCard.tsx.
+    private var chipItems: [SessionChipItem] {
+        sessionChipItems(sport: sportLabel, spot: item.spot, foil: foilChipText,
+                         setup: item.setup, device: item.device_label)
+    }
+
+    private var foilChipText: String {
+        guard let f = item.foil else { return "" }
+        let parts: [String] = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.joined(separator: " ")
+    }
+
+    /// Anzeige-Name der Sportart, wenn die Session nicht als Pumpfoilen eingeordnet ist.
+    private var sportLabel: String? {
+        guard let sc = item.sport_class, !sc.isEmpty, sc != "pumpfoil" else { return nil }
+        return Loc.t("cls.sport." + sc, lang)
+    }
+
     @ViewBuilder private var pillRow: some View {
-        if (item.spot?.isEmpty == false) || (item.device_label?.isEmpty == false) {
-            HStack(spacing: 6) {
-                if let spot = item.spot, !spot.isEmpty { sessionPill(spot) }
-                if let dl = item.device_label, !dl.isEmpty { sessionPill(dl) }
+        let lines: [[SessionChipItem]] = sessionChipLines(chipItems)
+        if !lines.isEmpty {
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(lines.indices, id: \.self) { i in sessionChipLine(lines[i]) }
             }
         }
     }

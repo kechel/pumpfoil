@@ -3,6 +3,9 @@ import SwiftUI
 // Feedback-Sheet (wie das PWA-Feedback-Widget): kurzer Text an POST /api/feedback.
 struct FeedbackView: View {
     let lang: String
+    // Vorbelegter Text, z. B. „Deine Marke oder Größe fehlt im Katalog?" von den Katalog-Listen
+    // (MissingHintRow) — wie das PWA-Widget, das per Event einen vorbelegten Text bekommt.
+    var prefill: String = ""
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var busy = false
@@ -29,6 +32,7 @@ struct FeedbackView: View {
                 }
             }
             .padding()
+            .onAppear { if text.isEmpty { text = prefill } }
             .navigationTitle(Loc.t("feedback.title", lang))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

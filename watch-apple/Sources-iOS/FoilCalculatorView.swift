@@ -236,7 +236,12 @@ struct FoilCalculatorView: View {
     private func load() async {
         loading = true; defer { loading = false }
         do {
-            foils = try await Api.foils()
+            // NUR Foils mit vollständigen Zahlen: der Rechner teilt durch die Fläche
+            // (AR = Spannweite²/Fläche) und braucht die Dicke. Katalog-Einträge, bei denen der
+            // Hersteller noch keine Maße veröffentlicht hat, stehen mit 0 drin — die ergäben hier
+            // AR unendlich und NaN-Spalten. Überall sonst bleiben sie auswählbar (wie die PWA).
+            let all: [Foil] = try await Api.foils()
+            foils = all.filter { $0.area_cm2 > 0 && $0.span_cm > 0 && $0.thickness_mm > 0 }
             brands = (try? await Api.foilBrands()) ?? []
             if let s = try? await Api.settings() {
                 if let w = (s["weight_kg"] as? Double) ?? (s["weight_kg"] as? NSNumber)?.doubleValue

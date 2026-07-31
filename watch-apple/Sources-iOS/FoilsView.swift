@@ -57,11 +57,29 @@ struct FoilsView: View {
                     Section(Loc.t("foils.mine", lang)) { ForEach(mineList) { row($0) } }
                 }
                 Section(mineList.isEmpty ? Loc.t("foils.all", lang) : Loc.t("foils.more", lang)) { ForEach(restList) { row($0) } }
+                specsEstFooter
+                Section { MissingHintRow(question: Loc.t("foils.missingFoil", lang), lang: lang) }
             }
         }
         .brandToolbar(Loc.t("profile.foils", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
+    }
+
+    // Erklärung zum Kennzeichen „Maße abgeleitet" — nur, wenn in der gefilterten Liste wirklich
+    // ein solcher Eintrag steht. Normale Schriftgröße (Hinweise nie kleiner).
+    @ViewBuilder private var specsEstFooter: some View {
+        if filtered.contains(where: { $0.specs_estimated == true }) {
+            Section { Text(Loc.t("foils.specsEstHint", lang)).foregroundStyle(.secondary) }
+        }
+    }
+
+    // „0 cm² · AR –" wäre eine Falschaussage: neu erschienene Modelle stehen mit 0 im Katalog,
+    // solange der Hersteller keine Maße veröffentlicht hat (auswählbar bleiben sie).
+    private func subline(_ f: Foil) -> String {
+        guard f.area_cm2 > 0, f.span_cm > 0 else { return Loc.t("foils.noSpecs", lang) }
+        let ar: String = f.aspect_ratio.map { String(format: "%.1f", $0) } ?? "–"
+        return "\(Int(f.area_cm2)) cm²  ·  AR \(ar)"
     }
 
     @ViewBuilder private func row(_ f: Foil) -> some View {
@@ -70,8 +88,10 @@ struct FoilsView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(f.brand) \(f.model) \(f.size)")
-                Text("\(Int(f.area_cm2)) cm²  ·  AR \(f.aspect_ratio.map { String(format: "%.1f", $0) } ?? "–")")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text(subline(f)).font(.caption).foregroundStyle(.secondary)
+                if f.specs_estimated == true {
+                    Text(Loc.t("foils.specsEst", lang)).font(.caption).foregroundStyle(Color.orange)
+                }
             }
             Spacer()
             Button { setDefault(f.id) } label: {
@@ -111,5 +131,30 @@ struct FoilsView: View {
             }
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+// „Fehlt im Katalog?" — Frage plus ein Knopf, der das Feedback-Blatt mit genau dieser Frage als
+// vorbelegtem Text öffnet (wie web/src/components/MissingHint.tsx). Steht unter Katalog-Listen,
+// die naturgemäß unvollständig sind (Foils, Stabs): ohne diesen Weg war die Lücke eine Sackgasse,
+// und Nutzer schrieben erst Tage später per Mail.
+struct MissingHintRow: View {
+    let question: String
+    let lang: String
+    @State private var show = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(question).foregroundStyle(.secondary)
+            Button {
+                show = true
+            } label: {
+                Label(Loc.t("foils.missingCta", lang), systemImage: "envelope")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
+            .fontWeight(.semibold)
+        }
+        .sheet(isPresented: $show) { FeedbackView(lang: lang, prefill: question) }
     }
 }

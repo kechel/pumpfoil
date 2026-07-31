@@ -89,6 +89,7 @@ struct SetupView: View {
                           || nsModel.trimmingCharacters(in: .whitespaces).isEmpty)
             if !stabErr.isEmpty { Text(stabErr).foregroundStyle(.red) }
         }
+        Section { MissingHintRow(question: Loc.t("setup.missingStab", lang), lang: lang) }
     }
 
     @ViewBuilder private func stabRow(_ st: StabBrief, isMine: Bool) -> some View {
@@ -100,8 +101,13 @@ struct SetupView: View {
                     .foregroundStyle(stabId == st.id ? Color.accentColor : Color.secondary)
             }
             .buttonStyle(.plain)
-            Text("\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces))
-                .fontWeight(stabId == st.id ? .semibold : .regular)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(st.brand) \(st.model) \(st.size)".trimmingCharacters(in: .whitespaces))
+                    .fontWeight(stabId == st.id ? .semibold : .regular)
+                if let specs = stabSpecs(st) {
+                    Text(specs).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             Button {
                 Task { await toggleStabMine(st, isMine: isMine) }
@@ -117,6 +123,16 @@ struct SetupView: View {
                     .buttonStyle(.plain)
             }
         }
+    }
+
+    // Spannweite und Fläche unter dem Namen — nur, wenn im Katalog gepflegt (der Server schickt
+    // 0 als null, damit „nicht gepflegt" und „0 cm²" unterscheidbar bleiben). Wie web Setup.tsx;
+    // gerechnet wird damit nichts.
+    private func stabSpecs(_ st: StabBrief) -> String? {
+        guard let span = st.span_cm, let area = st.area_cm2, span > 0, area > 0 else { return nil }
+        let base: String = "\(fmtNum(span)) cm · \(fmtNum(area)) cm²"
+        guard st.specs_estimated == true else { return base }
+        return base + " · " + Loc.t("foils.specsEst", lang)
     }
 
     // MARK: - Werte-Abschnitte (Mast, Shim)

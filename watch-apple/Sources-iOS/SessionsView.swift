@@ -259,8 +259,11 @@ struct SessionsView: View {
         do {
             switch scope {
             case .mine: own = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
-            case .all: groups = try await Api.communitySessionsGrouped(accelOnly: accelOnly)
-            case .spot: groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly))
+            // sport: "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten zeigen
+            // (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte kennzeichnet
+            // alles, was kein Pumpfoilen ist. Rekorde/Bestenlisten fragen weiter genau eine Sportart.
+            case .all: groups = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: "all")
+            case .spot: groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
             }
             error = nil
         } catch { self.error = error.localizedDescription }
@@ -324,9 +327,11 @@ struct SessionRow: View {
     }
 
     @ViewBuilder private var chipRow: some View {
-        let chips: [String] = chipLabels
-        if !chips.isEmpty {
-            HStack(spacing: 6) { ForEach(chips, id: \.self) { pill($0) } }
+        let lines: [[SessionChipItem]] = sessionChipLines(chipItems)
+        if !lines.isEmpty {
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(lines.indices, id: \.self) { i in sessionChipLine(lines[i]) }
+            }
         }
     }
 
@@ -436,26 +441,22 @@ struct SessionRow: View {
         }
     }
 
-    private func pill(_ text: String) -> some View {
-        Text(text).font(.caption2).lineLimit(1)
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(Color.secondary.opacity(0.15), in: Capsule())
-    }
-
     private var headline: String {
         if showOwner, let owner = session.owner_name, !owner.isEmpty { return owner }
         return dateText
     }
 
-    private var chipLabels: [String] {
-        var c: [String] = []
-        if let p = session.place_name, !p.isEmpty { c.append(p) }
-        if let f = session.foil {
-            let label = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
-            if !label.isEmpty { c.append(label) }
-        }
-        if let dl = session.device_label, !dl.isEmpty { c.append(dl) }
-        return c
+    // Spot · Foil · Stab · Mastlänge · Board · Uhr — je Teil nur, wenn hinterlegt. Die Sportart
+    // steht bei eigenen Sessions schon als Abzeichen unten (classBadge) und fehlt hier absichtlich.
+    private var chipItems: [SessionChipItem] {
+        sessionChipItems(spot: session.place_name, foil: foilChipText,
+                         setup: session.setup, device: session.device_label)
+    }
+
+    private var foilChipText: String {
+        guard let f = session.foil else { return "" }
+        let parts: [String] = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.joined(separator: " ")
     }
 
     private var statsText: String? {
@@ -580,11 +581,94 @@ struct TrackPreviewView: View {
     }
 }
 
-// Wiederverwendbarer Chip (Spot/Foil) — auch von CommunityRow genutzt.
-@ViewBuilder func sessionPill(_ text: String) -> some View {
-    Text(text).font(.caption2).lineLimit(1)
+// Wiederverwendbarer Chip (Spot/Foil/Setup) — auch von CommunityRow genutzt. highlight = in
+// Marken-Cyan (Akzentfarbe passt sich beiden Farbmodi an), sonst grau wie bisher.
+@ViewBuilder func sessionPill(_ text: String, highlight: Bool = false) -> some View {
+    let fg: Color = highlight ? Color.accentColor : Color.primary
+    let bg: Color = highlight ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.15)
+    let weight: Font.Weight = highlight ? .semibold : .regular
+    Text(text).font(.caption2).fontWeight(weight).lineLimit(1)
+        .foregroundStyle(fg)
         .padding(.horizontal, 6).padding(.vertical, 2)
-        .background(Color.secondary.opacity(0.15), in: Capsule())
+        .background(bg, in: Capsule())
+}
+
+// Sportart-Kennzeichen: nur wenn die Session KEIN Pumpfoilen ist (die allgemeine Sessions-Liste
+// zeigt alle Sportarten). Amber in beiden Farbmodi — Color.orange ist eine dynamische Systemfarbe.
+@ViewBuilder func sportClassPill(_ text: String) -> some View {
+    Text(text).font(.caption2).lineLimit(1)
+        .foregroundStyle(Color.orange)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(Color.orange.opacity(0.18), in: Capsule())
+}
+
+// Ein Chip einer Listenkarte: fertiger Text plus Darstellung.
+// plain = grau (Spot/Foil/Setup/Uhr) · brand = Marken-Cyan · sport = amber (Sportart-Kennzeichen).
+enum SessionChipStyle { case plain, brand, sport }
+
+struct SessionChipItem: Identifiable {
+    let id: Int
+    let text: String
+    let style: SessionChipStyle
+}
+
+@ViewBuilder func sessionChipView(_ c: SessionChipItem) -> some View {
+    switch c.style {
+    case .plain: sessionPill(c.text)
+    case .brand: sessionPill(c.text, highlight: true)
+    case .sport: sportClassPill(c.text)
+    }
+}
+
+/// Chips einer Listenkarte in fester Reihenfolge: Sportart · Spot · Foil · Stab · Mastlänge ·
+/// Board · Uhr. Je Teil nur, wenn hinterlegt — fehlt eines, fällt es weg (wie SessionCard.tsx).
+/// Das Board „Skateboard" wird hervorgehoben: Pumpen auf dem Skateboard ist kein Tippfehler,
+/// sondern Trockentraining, und das darf auffallen.
+func sessionChipItems(sport: String? = nil, spot: String?, foil: String? = nil,
+                      setup: SessionSetup?, device: String?) -> [SessionChipItem] {
+    var out: [SessionChipItem] = []
+    func add(_ raw: String, _ style: SessionChipStyle = .plain) {
+        let t: String = raw.trimmingCharacters(in: .whitespaces)
+        if t.isEmpty { return }
+        out.append(SessionChipItem(id: out.count, text: t, style: style))
+    }
+    add(sport ?? "", .sport)
+    add(spot ?? "")
+    add(foil ?? "")
+    if let s = setup {
+        add(stabChipText(s.stab))
+        if let m = s.mast_len_cm, m > 0 { add("\(m) cm") }
+        if let b = s.board { add(b.name, isDrylandBoard(b.name) ? .brand : .plain) }
+    }
+    add(device ?? "")
+    return out
+}
+
+/// Chips auf Zeilen à 3 verteilen. Mit Setup sind es bis zu sieben Stück — in EINER HStack
+/// quetscht die schmale Karte sie zu Auslassungspunkten zusammen. Die PWA lässt sie umbrechen,
+/// hier tut es die feste Dreiergruppe. Bewusst kein horizontales Scrollen: das verschluckt in
+/// einem NavigationLink die Tipp-Geste.
+func sessionChipLines(_ chips: [SessionChipItem]) -> [[SessionChipItem]] {
+    stride(from: 0, to: chips.count, by: 3).map { i in
+        Array(chips[i..<min(i + 3, chips.count)])
+    }
+}
+
+/// Eine Zeile Chips (Zeilen kommen aus sessionChipLines).
+func sessionChipLine(_ line: [SessionChipItem]) -> some View {
+    HStack(spacing: 6) { ForEach(line) { c in sessionChipView(c) } }
+}
+
+/// Stab-Bezeichnung für die Chips („Gong Stab Trail L"); leer, wenn kein Stab hinterlegt ist.
+func stabChipText(_ st: StabBrief?) -> String {
+    guard let st else { return "" }
+    let raw: String = "\(st.brand) \(st.model) \(st.size)"
+    return raw.trimmingCharacters(in: .whitespaces)
+}
+
+/// Trockentraining an Land (Groß-/Kleinschreibung egal) — bekommt den Marken-Cyan-Chip.
+func isDrylandBoard(_ name: String) -> Bool {
+    name.range(of: "skateboard", options: .caseInsensitive) != nil
 }
 
 func fmtDur(_ s: Double) -> String { let t = Int(s); return String(format: "%d:%02d", t / 60, t % 60) }

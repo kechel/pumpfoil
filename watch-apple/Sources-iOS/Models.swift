@@ -85,6 +85,9 @@ struct SessionSummary: Codable, Identifiable {
     let data_quality: String?
     let needs_classification: Bool?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    // Restliches Setup (Stab/Mastlänge/Board) — der Server löst es für die Liste im Batch auf
+    // (sessions.py). Je Teil optional; fehlt eines, zeigt die Karte den Chip gar nicht.
+    let setup: SessionSetup?
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -116,6 +119,14 @@ struct CommunityItem: Codable, Identifiable {
     let liked: Bool?
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    // Menschliche Sportart-Klassifikation (docs/sport-classification.md): null/"pumpfoil" =
+    // Pumpfoilen, sonst kennzeichnet die Karte es — die allgemeine Liste zeigt alle Sportarten.
+    let sport_class: String?
+    // Restliches Setup (Stab/Mastlänge/Board), vom Server im Batch aufgelöst (community.py).
+    let setup: SessionSetup?
+    // Aufgelöstes Foil (Marke/Modell/Größe) — der Brief liefert es seit je, die App zeigte es in
+    // den Community-Zeilen bisher nicht (die PWA-Karte tut es).
+    let foil: FoilBrief?
     var id: Int { session_id }
 
     var startedDate: Date? {
@@ -351,6 +362,9 @@ struct Foil: Codable, Identifiable {
     let area_cm2: Double
     let thickness_mm: Double
     let thickness_estimated: Bool?
+    // Fläche/Spannweite sind ABGELEITET, nicht vom Hersteller abgeschrieben (Katalog-Kennzeichen).
+    // Wiegt schwerer als die geschätzte Dicke: an beiden hängt die ganze Leistungsrechnung.
+    let specs_estimated: Bool?
     let aspect_ratio: Double?
 }
 
@@ -582,6 +596,11 @@ struct StabBrief: Codable, Identifiable {
     let size: String
     let is_default: Bool?
     let is_own: Bool?
+    // Maße, sofern gepflegt (null = Katalog/Hersteller liefert keine). Es wird nichts damit
+    // gerechnet — reine Anzeige unter dem Namen, wie web/src/pages/Setup.tsx.
+    let span_cm: Double?
+    let area_cm2: Double?
+    let specs_estimated: Bool?
 }
 
 struct BoardBrief: Codable, Identifiable {

@@ -229,9 +229,12 @@ enum Api {
     }
 
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
-    static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0, accelOnly: Bool = true) async throws -> [CommunityGroup] {
+    // sport: "all" = alle Sportarten (die allgemeine Sessions-Liste „was ist neu"), sonst genau
+    // eine. Der Endpunkt-Default ist "pumpfoil"; Rekorde/Bestenlisten bleiben dabei.
+    static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0,
+                                         accelOnly: Bool = true, sport: String = "pumpfoil") async throws -> [CommunityGroup] {
         let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
-        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)\(sp)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)", method: "GET", body: nil, auth: true)
     }
 
     static func stats(accelOnly: Bool = true) async throws -> OverallStats {
