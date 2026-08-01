@@ -35,15 +35,16 @@ struct WavesLogo: View {
     }
 }
 
-// Branded Splash beim App-Start (dunkel + Logo), kurz eingeblendet.
+// Branded Splash beim App-Start — bewusst PIXELGLEICH mit dem System-Launchscreen
+// (project.yml UILaunchScreen: UIColorName LaunchBackground + UIImageName LaunchLogo, beide
+// zentriert in Originalgroesse). Der Splash verlaengert den Launchscreen nur, bis RootView
+// bereit ist. Vorher zeichnete er das ALTE Logo selbst (Wellen + "Pumpfoil"-Schriftzug) ->
+// beim Start blitzte erst die neue Wortmarke auf, dann die alte (Jans Emulator-Befund 01.08.).
 struct SplashView: View {
     var body: some View {
         ZStack {
-            Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255).ignoresSafeArea()
-            VStack(spacing: 18) {
-                WavesLogo(lineWidth: 1.8).frame(width: 120, height: 120)
-                Text("Pumpfoil").font(.largeTitle).bold().foregroundStyle(.white)
-            }
+            Color("LaunchBackground").ignoresSafeArea()
+            Image("LaunchLogo")
         }
     }
 }
