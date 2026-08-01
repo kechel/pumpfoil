@@ -1460,6 +1460,13 @@ const en: Record<string, string> = {
   "guide.sync.laterTitle": "Later:",
   "guide.sync.later": "If the app is closed (watch shows the watch face), the session stays safely stored on the watch. It is sent automatically the next time you open the app — or right away via menu → “Upload / Sync”.",
   "guide.sync.note": "Nothing gets lost: if a session is missing here, it is almost always still on the watch, just waiting for the next app start.",
+  "v2.sepTitle": "Powered ride? Runs set aside",
+  "v2.sepIntro": "These stretches look like outside power — a boat, car or motor — so they don't count as pumpfoil runs. If that's wrong, one tap brings the run back.",
+  "v2.sepWhyPulse": "{dur} s non-stop at {kmh} km/h average, heart-rate response only {hr} bpm",
+  "v2.sepWhy": "{dur} s non-stop at {kmh} km/h average",
+  "v2.keep": "It counts — bring it back",
+  "v2.keptLabel": "restored run",
+  "v2.unkeep": "set aside again",
 };
 
 export default en;

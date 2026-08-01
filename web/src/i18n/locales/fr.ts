@@ -1035,6 +1035,13 @@ const fr: Record<string, string> = {
   "guide.sync.laterTitle": "Plus tard :",
   "guide.sync.later": "Si l’app est fermée (la montre affiche le cadran), la session reste enregistrée en sécurité sur la montre. Elle est envoyée automatiquement à la prochaine ouverture de l’app — ou tout de suite via menu → « Upload / Sync ».",
   "guide.sync.note": "Rien n’est perdu : s’il manque une session ici, elle est presque toujours encore sur la montre, en attente du prochain démarrage de l’app.",
+  "v2.sepTitle": "Propulsion extérieure ? Runs mis de côté",
+  "v2.sepIntro": "Ces passages ressemblent à une propulsion extérieure — bateau, voiture ou moteur — et ne comptent donc pas comme runs de pumpfoil. Si c'est faux, un appui suffit pour récupérer le run.",
+  "v2.sepWhyPulse": "{dur} s d'affilée à {kmh} km/h de moyenne, réponse cardiaque de seulement {hr} bpm",
+  "v2.sepWhy": "{dur} s d'affilée à {kmh} km/h de moyenne",
+  "v2.keep": "Ça compte — récupérer",
+  "v2.keptLabel": "run récupéré",
+  "v2.unkeep": "mettre de côté à nouveau",
 };
 
 export default fr;

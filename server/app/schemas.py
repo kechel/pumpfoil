@@ -179,6 +179,9 @@ class SessionOut(BaseModel):
     # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
     # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: list[list[int]] = []
+    # Zurückgeholte Fremdkraft-Läufe (Erkennung v2): Zeitfenster in Session-ms. Die UI zeigt
+    # dafür „wieder abtrennen" an; die VORSCHLÄGE selbst stehen in analysis.metrics["fremdkraft_laeufe"].
+    fremdkraft_keep: list[list[int]] = []
     data_version: int | None = None   # epoch(s) „zuletzt geändert" — App-Caching (additiv)
     owned: bool = True   # gehört die Session dem aktuellen Nutzer? (Community = read-only)
     owner_name: str | None = None  # Anzeigename des Besitzers (für Community-Ansicht)

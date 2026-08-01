@@ -1176,6 +1176,13 @@ const ja: Record<string, string> = {
   "guide.sync.laterTitle": "あとで：",
   "guide.sync.later": "アプリが閉じている場合（文字盤表示）、セッションはウォッチに安全に保存されたままです。次にアプリを開いたときに自動送信されます — またはメニュー →「Upload / Sync」ですぐに送れます。",
   "guide.sync.note": "何も失われません：ここにセッションが見当たらなくても、ほぼ確実にまだウォッチの中にあり、次のアプリ起動を待っているだけです。",
+  "v2.sepTitle": "外部動力？ 除外されたラン",
+  "v2.sepIntro": "この区間はボート・車・モーターなどの外部動力に見えるため、パンプフォイルのランとして数えていません。違う場合はワンタップで戻せます。",
+  "v2.sepWhyPulse": "平均 {kmh} km/h で {dur} 秒連続、心拍反応はわずか {hr} bpm",
+  "v2.sepWhy": "平均 {kmh} km/h で {dur} 秒連続",
+  "v2.keep": "カウントする — 戻す",
+  "v2.keptLabel": "戻したラン",
+  "v2.unkeep": "再び除外する",
 };
 
 export default ja;

@@ -121,6 +121,14 @@ def _list_ended_at(s: models.Session):
     return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
 
 
+def _fremdkraft_keep(s: models.Session) -> list[list[int]]:
+    """Zurückgeholte Fremdkraft-Fenster (Session-ms) — kaputtes JSON darf die Ausgabe nie brechen."""
+    try:
+        return [[int(x[0]), int(x[1])] for x in json.loads(s.fremdkraft_keep or "[]")]
+    except (ValueError, TypeError, IndexError):
+        return []
+
+
 def _sport_auto(s: models.Session) -> dict | None:
     """Begründung der automatischen Sportart-Erkennung — nur, solange sie auch gilt.
 
@@ -170,6 +178,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
         excluded_ranges=[[a, b] for a, b in excluded_windows(s)],
+        fremdkraft_keep=_fremdkraft_keep(s),
         data_version=int((getattr(s, "updated_at", None) or s.created_at).timestamp())
                      if (getattr(s, "updated_at", None) or s.created_at) else None,
         owned=owned,
@@ -1480,6 +1489,43 @@ def exclude_run(
         if b - a < 1000:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Range too short")
     return _save_excluded(db, s, _add_window(excluded_windows(s), a, b))
+
+
+class PoweredKeepIn(BaseModel):
+    start_ms: int          # Session-Koordinaten, wie sie in metrics["fremdkraft_laeufe"] stehen
+    end_ms: int
+    keep: bool = True      # True = „der zählt doch" · False = Rücknahme (wieder beurteilen lassen)
+
+
+@router.post("/{session_id}/powered-runs/keep", response_model=SessionOut)
+def keep_powered_run(
+    session_id: int,
+    body: PoweredKeepIn,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> SessionOut:
+    """Einen von der Fremdkraft-Erkennung (v2) abgetrennten Lauf zurückholen — oder das wieder
+    rückgängig machen (Besitzer ODER Admin, Jans Vorgabe: der Nutzer kann die Maschine immer
+    überstimmen). Gespeichert wird das ZEITFENSTER des Laufs (Session-ms, wie excluded_ranges);
+    danach Neuanalyse, damit Läufe/Foil-Zeit/Rekorde stimmen. Kein Datenverlust, umkehrbar."""
+    s = _owned_or_admin(db, user, session_id)
+    a, b = max(int(body.start_ms), 0), int(body.end_ms)
+    if b - a < 1000:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Range too short")
+    try:
+        wins = [(int(x[0]), int(x[1])) for x in json.loads(s.fremdkraft_keep or "[]")]
+    except (ValueError, TypeError, IndexError):
+        wins = []
+    if body.keep:
+        if not any(ka < b and kb > a for ka, kb in wins):
+            wins.append((a, b))
+    else:
+        wins = [(ka, kb) for ka, kb in wins if not (ka < b and kb > a)]
+    s.fremdkraft_keep = json.dumps(sorted(wins)) if wins else None
+    db.commit()
+    run_analysis(db, s)
+    db.refresh(s)
+    return _session_out(s, with_analysis=True)
 
 
 @router.post("/{session_id}/runs/include", response_model=SessionOut)

@@ -1258,6 +1258,13 @@ const cs: Record<string, string> = {
   "guide.sync.laterTitle": "Později:",
   "guide.sync.later": "Pokud je aplikace zavřená (hodinky ukazují ciferník), session zůstane bezpečně uložená v hodinkách. Odešle se automaticky při příštím otevření aplikace — nebo hned přes menu → „Upload / Sync“.",
   "guide.sync.note": "Nic se neztratí: pokud tady session chybí, skoro vždycky je ještě v hodinkách a čeká jen na příští spuštění aplikace.",
+  "v2.sepTitle": "Cizí pohon? Odložené jízdy",
+  "v2.sepIntro": "Tyto úseky vypadají na cizí pohon — loď, auto nebo motor — a proto se nepočítají jako pumpfoil jízdy. Pokud je to omyl, jedno ťuknutí jízdu vrátí.",
+  "v2.sepWhyPulse": "{dur} s v kuse při průměru {kmh} km/h, odezva tepu jen {hr} bpm",
+  "v2.sepWhy": "{dur} s v kuse při průměru {kmh} km/h",
+  "v2.keep": "Počítá se — vrátit",
+  "v2.keptLabel": "vrácená jízda",
+  "v2.unkeep": "znovu odložit",
 };
 
 export default cs;

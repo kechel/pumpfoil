@@ -386,7 +386,11 @@ class Session(Base):
     # Analyse aus den GPS-Daten (genau wie der Trim) -> Läufe/Zeit/Distanz/Pumps/Rekorde
     # stimmen automatisch. Kein Datenverlust: die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: Mapped[str | None] = mapped_column(Text)
-    # Spot-Name (per OSM/Overpass, gecacht). "" = nachgeschlagen, nichts gefunden.
+    # Zurückgeholte Fremdkraft-Läufe (Erkennung v2): ZEITFENSTER wie excluded_ranges (JSON-Liste
+    # von [start_ms, end_ms], ms ab Session-Start). Läufe in diesen Fenstern beurteilt die
+    # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe
+    # Zeit-statt-Index-Mechanik wie oben (Läufe werden bei jeder Neuanalyse neu nummeriert).
+    fremdkraft_keep: Mapped[str | None] = mapped_column(Text)
     # Bevorzugt ein Ufer-/Venue-Name (leisure=sports_centre/marina/beach…), sonst der Gewässername.
     place_name: Mapped[str | None] = mapped_column(String(120))
     # Gewässername als Zusatz-Label (immer mitgenommen, wenn gefunden) — z. B. wenn place_name

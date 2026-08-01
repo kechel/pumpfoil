@@ -1224,6 +1224,13 @@ const fi: Record<string, string> = {
   "guide.sync.laterTitle": "Myöhemmin:",
   "guide.sync.later": "Jos sovellus on kiinni (kello näyttää kellotaulun), sessio pysyy turvassa kellon muistissa. Se lähetetään automaattisesti, kun avaat sovelluksen seuraavan kerran — tai heti valikosta → „Upload / Sync“.",
   "guide.sync.note": "Mitään ei katoa: jos sessio puuttuu täältä, se on lähes aina yhä kellossa odottamassa seuraavaa sovelluksen käynnistystä.",
+  "v2.sepTitle": "Ulkoinen voima? Sivuun siirretyt vedot",
+  "v2.sepIntro": "Nämä osuudet näyttävät ulkoiselta voimalta — vene, auto tai moottori — eivätkä siksi laske pumpfoil-vetoina. Jos se on väärin, yksi napautus palauttaa vedon.",
+  "v2.sepWhyPulse": "{dur} s putkeen keskinopeudella {kmh} km/h, sykevaste vain {hr} bpm",
+  "v2.sepWhy": "{dur} s putkeen keskinopeudella {kmh} km/h",
+  "v2.keep": "Kyllä se lasketaan — palauta",
+  "v2.keptLabel": "palautettu veto",
+  "v2.unkeep": "siirrä taas sivuun",
 };
 
 export default fi;

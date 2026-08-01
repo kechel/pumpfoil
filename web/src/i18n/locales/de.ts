@@ -1517,6 +1517,13 @@ const de: Record<string, string> = {
   "guide.sync.laterTitle": "Später:",
   "guide.sync.later": "Ist die App zu (Uhr zeigt das Zifferblatt), bleibt die Session sicher auf der Uhr gespeichert. Beim nächsten Öffnen der App wird sie automatisch nachgeschickt — oder sofort per Menü → „Upload / Sync“.",
   "guide.sync.note": "Es geht nichts verloren: Fehlt eine Session hier auf der Seite, liegt sie fast immer noch auf der Uhr und wartet nur auf den nächsten App-Start.",
+  "v2.sepTitle": "Ohne eigene Kraft unterwegs? Abgetrennte Läufe",
+  "v2.sepIntro": "Diese Abschnitte sehen nach Fremdkraft aus — Boot, Auto oder Motor — und zählen deshalb nicht als Pumpfoil-Läufe. Falls das falsch ist: ein Tipp holt den Lauf zurück.",
+  "v2.sepWhyPulse": "{dur} s am Stück bei Ø {kmh} km/h, Puls-Antwort nur {hr} bpm",
+  "v2.sepWhy": "{dur} s am Stück bei Ø {kmh} km/h",
+  "v2.keep": "Zählt doch — zurückholen",
+  "v2.keptLabel": "zurückgeholter Lauf",
+  "v2.unkeep": "wieder abtrennen",
 };
 
 export default de;

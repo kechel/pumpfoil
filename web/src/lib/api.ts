@@ -189,6 +189,10 @@ export interface SessionSummary {
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
   excluded_ranges?: number[][];
+  // Zurückgeholte Fremdkraft-Läufe (Erkennung v2), Zeitfenster in Session-ms. Die noch offenen
+  // VORSCHLÄGE stehen in analysis.metrics.fremdkraft_laeufe (t_start_ms/t_end_ms/dauer_s/kmh/
+  // puls_antwort_bpm/grund).
+  fremdkraft_keep?: number[][];
   owned?: boolean;
   // Menschliche Sportart-Klassifikation (docs/sport-classification.md). ACHTUNG: `sport` oben ist
   // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
@@ -915,6 +919,13 @@ export const api = {
     req<SessionSummary>(`/api/sessions/${id}/runs/include`, {
       method: "POST",
       body: JSON.stringify({ range_index }),
+    }),
+  // Fremdkraft-Lauf (Erkennung v2) zurückholen bzw. wieder abtrennen. Zeiten in Session-ms,
+  // genau wie sie in analysis.metrics.fremdkraft_laeufe stehen.
+  keepPoweredRun: (id: number, start_ms: number, end_ms: number, keep: boolean) =>
+    req<SessionSummary>(`/api/sessions/${id}/powered-runs/keep`, {
+      method: "POST",
+      body: JSON.stringify({ start_ms, end_ms, keep }),
     }),
   session: (id: number) => req<SessionSummary>(`/api/sessions/${id}`),
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.

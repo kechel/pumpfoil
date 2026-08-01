@@ -18,6 +18,7 @@ werden nur als Felder mitgeliefert.
 """
 from __future__ import annotations
 
+import json
 import os
 
 import numpy as np
@@ -229,7 +230,7 @@ def gerade_je_sample(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
 
 
 def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
-                       gerade: np.ndarray) -> tuple[list, list]:
+                       gerade: np.ndarray, keep: list | None = None) -> tuple[list, list]:
     """Trennt Läufe ab, die keine eigene Kraft gekostet haben (Auto, Zug, Schleppen, Motor).
 
     WARUM JE LAUF und nicht je Fenster: der Puls ist das einzige Signal, das in allen geprüften
@@ -272,6 +273,12 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
         sel = (t_ms >= a) & (t_ms <= b)
         q["gerade_anteil"] = round(float(gerade[sel].mean()), 3) if sel.any() else None
         if q["duration_s"] < MIN_LANGER_LAUF_S:
+            behalten.append(q)
+            continue
+        # Vom Besitzer zurückgeholt („der zählt doch") -> nicht mehr beurteilen. Fenster in
+        # Session-ms, gleiche Basis wie t_ms hier; Überlappung genügt (die Lauf-Grenzen können
+        # sich durch eine Neuanalyse leicht verschieben, das Fenster stammt vom alten Lauf).
+        if keep and any(ka < b and kb > a for ka, kb in keep):
             behalten.append(q)
             continue
         # Grundlinie: die 90 s vor dem Lauf, aber NUR Samples außerhalb aller Läufe. Fehlt das,
@@ -331,7 +338,7 @@ def detect_v2(
     tb: TimeBase, gps_hz: int = 1,
     enter_speed: float = v1.ENTER_SPEED, exit_speed: float = v1.EXIT_SPEED,
     min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
-    use_model: bool = True,
+    use_model: bool = True, keep_windows: list | None = None,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -427,7 +434,8 @@ def detect_v2(
     # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in
     # `_fremdkraft_laeufe`). Vorgeschlagen, nicht verhängt: die betroffenen Läufe verlassen die
     # Auswertung, stehen aber vollständig in `metrics["fremdkraft_laeufe"]` samt Messwerten.
-    segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon))
+    segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon),
+                                                keep=keep_windows)
 
     mask = np.zeros(t_ms.size, dtype=bool)
     for seg in segments:
@@ -553,7 +561,17 @@ def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True, **
     Der Vergleichs-Harness ruft mit `rebase=False` auf und bleibt damit durchgehend in
     Session-Koordinaten."""
     tb = build_timebase_for_session(session, gps=gps, accel=accel)
-    res = detect_v2(tb, gps_hz=session.gps_hz or 1, **preset)
+    # Zurückgeholte Fremdkraft-Läufe (Session-ms, wie excluded_ranges): kaputtes JSON darf die
+    # Analyse nie scheitern lassen -> defensiv parsen.
+    keep = []
+    try:
+        for item in (json.loads(session.fremdkraft_keep) if getattr(session, "fremdkraft_keep", None) else []):
+            a, b = int(item[0]), int(item[1])
+            if b > a:
+                keep.append((a, b))
+    except (ValueError, TypeError, IndexError):
+        keep = []
+    res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None, **preset)
     for seg in res["segments"]:
         seg["t_start_session_ms"] = int(seg["t_start_ms"])
         seg["t_end_session_ms"] = int(seg["t_end_ms"])

@@ -1616,7 +1616,10 @@ export default function SessionDetail() {
       </div>
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
-        excluded={session.excluded_ranges ?? []} canEdit={owned && !isPublic} onSaved={setSession} />
+        excluded={session.excluded_ranges ?? []}
+        poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
+        keptWindows={session.fremdkraft_keep ?? []}
+        canEdit={owned && !isPublic} onSaved={setSession} />
 
       {/* In der oeffentlichen Teilen-Ansicht KEINES von beiden: dort ist man evtl. nicht angemeldet,
           und beide Aktionen brauchen ein Konto (der Not-Pumpfoil-Knopf war schon vorher so gegated). */}
@@ -1902,6 +1905,8 @@ function RunsTable({
   startedAt,
   tz,
   excluded = [],
+  poweredRuns = [],
+  keptWindows = [],
   canEdit = false,
   onSaved,
 }: {
@@ -1916,15 +1921,19 @@ function RunsTable({
   tz?: string | null;
   // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start) + Rechte/Callback.
   excluded?: number[][];
+  // Fremdkraft-Vorschläge der Erkennung (analysis.metrics.fremdkraft_laeufe) + bereits
+  // zurückgeholte Fenster (session.fremdkraft_keep). Beides Session-ms.
+  poweredRuns?: any[];
+  keptWindows?: number[][];
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
 }) {
   const t = useT();
   const pf = usePumpFmt();
   const [busy, setBusy] = useState(false);
-  // Aussortierte Läufe stehen nicht mehr in den Segmenten — der Hinweis oben ist die einzige
-  // Spur davon, deshalb auch bei 0 Läufen rendern (alle ausgesortiert).
-  if (!segments.length && !excluded.length) return null;
+  // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise oben sind
+  // die einzige Spur davon, deshalb auch bei 0 Läufen rendern (alle aussortiert/abgetrennt).
+  if (!segments.length && !excluded.length && !poweredRuns.length && !keptWindows.length) return null;
   // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start), in Spot-Ortszeit.
   const sessionStartMs = new Date(startedAt).getTime();
   const runClock = (s: any): string =>
@@ -1951,6 +1960,20 @@ function RunsTable({
   const doInclude = (i: number) => {
     setBusy(true);
     api.includeRun(sessionId, i).then(after).catch((e) => alert(t("sd.excludeFail") + e)).finally(() => setBusy(false));
+  };
+  // Fremdkraft-Vorschlag zurückholen / wieder abtrennen (Erkennung v2). Der Grund-Text wird
+  // HIER gebaut (lokalisiert aus den Messwerten) — metrics.grund ist deutscher Admin-Klartext.
+  const doKeep = (r: any, keep: boolean) => {
+    setBusy(true);
+    api.keepPoweredRun(sessionId, r.t_start_ms ?? r[0], r.t_end_ms ?? r[1], keep)
+      .then(after).catch((e) => alert(t("sd.excludeFail") + e)).finally(() => setBusy(false));
+  };
+  const poweredWhy = (r: any): string => {
+    const dur = Math.round(r.dauer_s ?? 0);
+    const kmh = (r.kmh ?? 0).toFixed(1);
+    return r.puls_antwort_bpm != null
+      ? t("v2.sepWhyPulse", { dur, kmh, hr: (r.puls_antwort_bpm > 0 ? "+" : "") + Math.round(r.puls_antwort_bpm) })
+      : t("v2.sepWhy", { dur, kmh });
   };
   return (
     <div className="mt-8">
@@ -1979,6 +2002,51 @@ function RunsTable({
                     className="rounded-lg bg-slate-800 px-2 py-0.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
                   >
                     {t("sd.includeRun")}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {/* Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
+          Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
+          (Transparenz, warum die Zahlen so sind), Knöpfe nur mit Bearbeitungsrecht. */}
+      {(poweredRuns.length > 0 || keptWindows.length > 0) && (
+        <div className="mb-3 rounded-xl border border-sky-300 bg-sky-500/10 p-3 dark:border-sky-900/60 dark:bg-sky-950/30">
+          <div className="flex items-center gap-2 font-semibold text-sky-700 dark:text-sky-300">
+            <FoilOffIcon className="h-4 w-4" />
+            {t("v2.sepTitle")}
+          </div>
+          {poweredRuns.length > 0 && (
+            <p className="mt-1 leading-relaxed text-sky-800 dark:text-sky-200">{t("v2.sepIntro")}</p>
+          )}
+          <ul className="mt-2 space-y-1.5">
+            {poweredRuns.map((r: any) => (
+              <li key={`${r.t_start_ms}`} className="flex flex-wrap items-center gap-2 text-slate-300">
+                <span className="tabular-nums">
+                  {fmtTime(new Date(sessionStartMs + r.t_start_ms).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                </span>
+                <span>{poweredWhy(r)}</span>
+                {canEdit && (
+                  <button onClick={() => doKeep(r, true)} disabled={busy}
+                    className="rounded-lg bg-brand-500 px-2.5 py-0.5 font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+                    {t("v2.keep")}
+                  </button>
+                )}
+              </li>
+            ))}
+            {keptWindows.map(([from, to]) => (
+              <li key={`kept-${from}`} className="flex flex-wrap items-center gap-2 text-slate-300">
+                <span className="tabular-nums">
+                  {fmtTime(new Date(sessionStartMs + from).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
+                </span>
+                <span>{t("v2.keptLabel")}</span>
+                {canEdit && (
+                  <button onClick={() => doKeep([from, to], false)} disabled={busy}
+                    className="rounded-lg bg-slate-800 px-2 py-0.5 text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+                    {t("v2.unkeep")}
                   </button>
                 )}
               </li>

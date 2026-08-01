@@ -1259,6 +1259,13 @@ const nl: Record<string, string> = {
   "guide.sync.laterTitle": "Later:",
   "guide.sync.later": "Is de app dicht (horloge toont de wijzerplaat), dan blijft de sessie veilig op het horloge opgeslagen. Hij wordt automatisch verstuurd zodra je de app weer opent — of meteen via menu → ‘Upload / Sync’.",
   "guide.sync.note": "Er gaat niets verloren: mist hier een sessie, dan staat hij bijna altijd nog op het horloge te wachten op de volgende app-start.",
+  "v2.sepTitle": "Externe aandrijving? Apart gezette runs",
+  "v2.sepIntro": "Deze stukken lijken op externe aandrijving — boot, auto of motor — en tellen daarom niet als pumpfoil-runs. Klopt dat niet, dan haalt één tik de run terug.",
+  "v2.sepWhyPulse": "{dur} s aan één stuk met gemiddeld {kmh} km/h, hartslagreactie van maar {hr} bpm",
+  "v2.sepWhy": "{dur} s aan één stuk met gemiddeld {kmh} km/h",
+  "v2.keep": "Telt wél — terughalen",
+  "v2.keptLabel": "teruggehaalde run",
+  "v2.unkeep": "weer apart zetten",
 };
 
 export default nl;

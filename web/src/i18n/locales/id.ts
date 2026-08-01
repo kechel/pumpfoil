@@ -1202,6 +1202,13 @@ const id: Record<string, string> = {
   "guide.sync.laterTitle": "Nanti:",
   "guide.sync.later": "Jika aplikasi tertutup (jam menampilkan tampilan jam), sesi tetap tersimpan aman di jam. Sesi dikirim otomatis saat aplikasi dibuka lagi — atau langsung lewat menu → “Upload / Sync”.",
   "guide.sync.note": "Tidak ada yang hilang: kalau ada sesi yang belum muncul di sini, hampir pasti masih ada di jam, menunggu aplikasi dibuka berikutnya.",
+  "v2.sepTitle": "Tenaga luar? Run yang dipisahkan",
+  "v2.sepIntro": "Bagian ini terlihat seperti tenaga luar — perahu, mobil, atau motor — jadi tidak dihitung sebagai run pumpfoil. Kalau keliru, satu ketukan mengembalikan run itu.",
+  "v2.sepWhyPulse": "{dur} dtk nonstop dengan rata-rata {kmh} km/h, respons detak jantung hanya {hr} bpm",
+  "v2.sepWhy": "{dur} dtk nonstop dengan rata-rata {kmh} km/h",
+  "v2.keep": "Tetap dihitung — kembalikan",
+  "v2.keptLabel": "run yang dikembalikan",
+  "v2.unkeep": "pisahkan lagi",
 };
 
 export default id;

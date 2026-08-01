@@ -1033,6 +1033,13 @@ const it: Record<string, string> = {
   "guide.sync.laterTitle": "Più tardi:",
   "guide.sync.later": "Se l’app è chiusa (l’orologio mostra il quadrante), la sessione resta salvata al sicuro sull’orologio. Viene inviata automaticamente alla prossima apertura dell’app — o subito via menu → « Upload / Sync ».",
   "guide.sync.note": "Non si perde nulla: se qui manca una sessione, quasi sempre è ancora sull’orologio e aspetta solo il prossimo avvio dell’app.",
+  "v2.sepTitle": "Spinta esterna? Run messi da parte",
+  "v2.sepIntro": "Questi tratti sembrano spinta esterna — barca, auto o motore — e quindi non contano come run di pumpfoil. Se è sbagliato, un tocco riporta il run.",
+  "v2.sepWhyPulse": "{dur} s di fila a {kmh} km/h di media, risposta cardiaca di soli {hr} bpm",
+  "v2.sepWhy": "{dur} s di fila a {kmh} km/h di media",
+  "v2.keep": "Conta — riprendilo",
+  "v2.keptLabel": "run recuperato",
+  "v2.unkeep": "metti di nuovo da parte",
 };
 
 export default it;

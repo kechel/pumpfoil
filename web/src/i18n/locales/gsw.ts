@@ -1033,6 +1033,13 @@ const gsw: Record<string, string> = {
   "guide.sync.laterTitle": "Spöter:",
   "guide.sync.later": "Isch d App zue (Uhr zeigt s Zifferblatt), bliibt d Session sicher uf de Uhr gspeicheret. Bim nächste Öffne vo de App wird si automatisch nochegschickt — oder sofort übers Menü → „Upload / Sync“.",
   "guide.sync.note": "Es gaht nüt verlore: Fählt e Session da uf de Siite, liit si fascht immer no uf de Uhr und wartet nur uf de nächst App-Start.",
+  "v2.sepTitle": "Ohni eigeni Chraft ungerwägs? Abtrennti Läuf",
+  "v2.sepIntro": "Die Abschnitt gsehnd nach Frömdchraft us — Boot, Auto oder Motor — und zelled drum nöd als Pumpfoil-Läuf. Wenn das falsch isch: ei Tipp holt de Lauf zrugg.",
+  "v2.sepWhyPulse": "{dur} s am Stuck bi Ø {kmh} km/h, Puls-Antwort nume {hr} bpm",
+  "v2.sepWhy": "{dur} s am Stuck bi Ø {kmh} km/h",
+  "v2.keep": "Zellt doch — zrugghole",
+  "v2.keptLabel": "zrugggholte Lauf",
+  "v2.unkeep": "wieder abtrenne",
 };
 
 export default gsw

@@ -1179,6 +1179,13 @@ const zh: Record<string, string> = {
   "guide.sync.laterTitle": "之后：",
   "guide.sync.later": "如果应用已关闭（手表显示表盘），session 会安全保存在手表里。下次打开应用时自动补传 —— 或通过菜单 →“Upload / Sync”立即上传。",
   "guide.sync.note": "什么都不会丢：如果这里少了一次 session，它几乎肯定还在手表里，只等下次打开应用。",
+  "v2.sepTitle": "外部动力？已分离的段",
+  "v2.sepIntro": "这些片段看起来像外部动力 —— 船、车或马达 —— 因此不计为 pumpfoil 段。如果判断有误，点一下即可恢复。",
+  "v2.sepWhyPulse": "以平均 {kmh} km/h 连续 {dur} 秒，心率反应仅 {hr} bpm",
+  "v2.sepWhy": "以平均 {kmh} km/h 连续 {dur} 秒",
+  "v2.keep": "算数的 —— 恢复",
+  "v2.keptLabel": "已恢复的段",
+  "v2.unkeep": "重新分离",
 };
 
 export default zh;
