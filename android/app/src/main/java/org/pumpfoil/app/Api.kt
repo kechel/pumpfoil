@@ -483,6 +483,15 @@ object Api {
             http("POST", "/api/sessions/$id/runs/include", body, auth = true))
     }
 
+    /** Fremdkraft-Lauf (Erkennung v2) zurückholen bzw. wieder abtrennen. Zeiten in Session-ms,
+     *  genau wie sie in analysis.metrics.fremdkraft_laeufe stehen; Antwort = frische Session. */
+    suspend fun keepPoweredRun(id: Int, startMs: Long, endMs: Long, keep: Boolean): SessionDetail =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject { put("start_ms", startMs); put("end_ms", endMs); put("keep", keep) }.toString()
+            json.decodeFromString(SessionDetail.serializer(),
+                http("POST", "/api/sessions/$id/powered-runs/keep", body, auth = true))
+        }
+
     suspend fun spots(accelOnly: Boolean = true): SpotsList = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly", null, auth = true))
     }

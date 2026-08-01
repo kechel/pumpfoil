@@ -215,6 +215,21 @@ data class Metrics(
     @SerialName("max_hr") val maxHr: Int? = null,
     @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,
     @SerialName("longest_segment_s") val longestSegmentS: Double? = null,
+    // Fremdkraft-Vorschläge der Erkennung v2 (Boot/Auto/Motor-Verdacht): abgetrennte Läufe mit
+    // Messwerten für die lokalisierte Begründung. `grund` (deutscher Klartext) wird bewusst NICHT
+    // geparst — der Anzeigetext entsteht in der App aus den Messwerten (wie PWA RunsTable).
+    @SerialName("fremdkraft_laeufe") val fremdkraftLaeufe: List<FremdkraftLauf>? = null,
+)
+
+// Ein abgetrennter Fremdkraft-Lauf (analysis.metrics.fremdkraft_laeufe); Zeiten in Session-ms
+// (gleiche Basis wie trim_start_ms). puls_antwort_bpm nullable: ohne Pulsdaten fehlt es.
+@Serializable
+data class FremdkraftLauf(
+    @SerialName("t_start_ms") val tStartMs: Long = 0,
+    @SerialName("t_end_ms") val tEndMs: Long = 0,
+    @SerialName("dauer_s") val dauerS: Double = 0.0,
+    val kmh: Double = 0.0,
+    @SerialName("puls_antwort_bpm") val pulsAntwortBpm: Double? = null,
 )
 
 @Serializable
@@ -609,6 +624,17 @@ data class SessionDetail(
     @SerialName("data_quality") val dataQuality: String? = null,
     @SerialName("needs_classification") val needsClassification: Boolean = false,
     @SerialName("appeal_text") val appealText: String? = null,
+    // Wer hat die Sportart gesetzt: default | auto | owner | admin. Bei "auto" erklärt die
+    // Detailansicht das Maschinen-Urteil (sport_auto) und der Besitzer kann direkt überstimmen.
+    @SerialName("sport_source") val sportSource: String? = null,
+    // Begründung der automatischen Erkennung (nur Besitzer/Admin, nur solange sie gilt).
+    @SerialName("sport_auto") val sportAuto: SportAuto? = null,
+    // Anzahl menschlicher Meldungen (nur Besitzer/Admin) — steuert, ob der Widerspruchs-Knopf
+    // erscheint: beim reinen Maschinen-Urteil (flag_count == 0) wählt man einfach „Pumpfoil".
+    @SerialName("flag_count") val flagCount: Int = 0,
+    // Zurückgeholte Fremdkraft-Läufe (Erkennung v2), Zeitfenster in Session-ms. Die noch offenen
+    // VORSCHLÄGE stehen in analysis.metrics.fremdkraft_laeufe.
+    @SerialName("fremdkraft_keep") val fremdkraftKeep: List<List<Long>>? = emptyList(),
     val setup: SessionSetup? = null,   // Stab/Mast/Shim/Board (geerbt oder je Session gesetzt)
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
     val analysis: Analysis? = null,
@@ -622,6 +648,24 @@ data class SessionDetail(
     // "Bereich aussortieren" ungezogen die GANZE Session vor.
     @SerialName("trim_start_ms") val trimStartMs: Long? = null,
     @SerialName("trim_end_ms") val trimEndMs: Long? = null,
+)
+
+// Maschinen-Urteil der Sportart-Erkennung (docs/sport-classification.md, Stufe 1b). Der Text
+// wird in der APP gebaut (cls.autoWhy/cls.autoWhyPulse aus den Merkmalen) — `grund` ist
+// deutscher Admin-Klartext und wird deshalb bewusst nicht geparst.
+@Serializable
+data class SportAuto(
+    val hinweis: String? = null,          // auto.motor | auto.unklar
+    val merkmale: SportAutoMerkmale? = null,
+)
+
+@Serializable
+data class SportAutoMerkmale(
+    @SerialName("laengster_lauf_s") val laengsterLaufS: Double? = null,
+    @SerialName("tempo_median_kmh") val tempoMedianKmh: Double? = null,
+    @SerialName("spitze_kmh") val spitzeKmh: Double? = null,
+    @SerialName("puls_antwort_bpm") val pulsAntwortBpm: Double? = null,
+    val laeufe: Int? = null,
 )
 
 @Serializable

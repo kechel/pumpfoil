@@ -566,6 +566,18 @@ val PT: Map<String, String> = mapOf(
     "account.activitySurfing" to "Surfe",
     "account.activityOpenWater" to "Águas abertas",
     "account.activityTypeHint" to "Define como qual atividade a gravação do Garmin aparece no Garmin Connect.",
+    // Auto-Sportart-Kasten + Fremdkraft-Kasten (aus web pt.ts).
+    "cls.autoAsk" to "Esta sessão não nos parece pumpfoil — por enquanto ela não conta em nenhuma estatística. Quer classificá-la corretamente? Se foi mesmo pumpfoil, basta escolher “Pumpfoil”.",
+    "cls.autoSetAs" to "Classificada automaticamente como {sport}. Se não estiver certo, altere aqui.",
+    "cls.autoWhy" to "O que decidiu: run mais longo {dur} s a {kmh} km/h em média — um run de pumping dura 27 s em média.",
+    "cls.autoWhyPulse" to "O que decidiu: run mais longo {dur} s a {kmh} km/h em média, e a frequência cardíaca quase não reagiu ({hr} bpm).",
+    "v2.sepTitle" to "Propulsão externa? Runs separados",
+    "v2.sepIntro" to "Estes trechos parecem propulsão externa — barco, carro ou motor — e por isso não contam como runs de pumpfoil. Se estiver errado, um toque traz o run de volta.",
+    "v2.sepWhy" to "{dur} s seguidos a {kmh} km/h de média",
+    "v2.sepWhyPulse" to "{dur} s seguidos a {kmh} km/h de média, resposta cardíaca de só {hr} bpm",
+    "v2.keep" to "Conta sim — recuperar",
+    "v2.keptLabel" to "run recuperado",
+    "v2.unkeep" to "separar de novo",
 )
 
 val JA: Map<String, String> = mapOf(
@@ -1130,6 +1142,18 @@ val JA: Map<String, String> = mapOf(
     "account.activitySurfing" to "サーフィン",
     "account.activityOpenWater" to "オープンウォーター",
     "account.activityTypeHint" to "Garminの記録がGarmin Connectでどのアクティビティとして表示されるかを設定します。",
+    // Auto-Sportart-Kasten + Fremdkraft-Kasten (aus web ja.ts).
+    "cls.autoAsk" to "このセッションはパンプフォイルには見えません。そのため当面はどの統計にも入りません。正しく分類してもらえますか？ 本当にパンプフォイルだった場合は「Pumpfoil」を選んでください。",
+    "cls.autoSetAs" to "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",
+    "cls.autoWhy" to "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
+    "cls.autoWhyPulse" to "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
+    "v2.sepTitle" to "外部動力？ 除外されたラン",
+    "v2.sepIntro" to "この区間はボート・車・モーターなどの外部動力に見えるため、パンプフォイルのランとして数えていません。違う場合はワンタップで戻せます。",
+    "v2.sepWhy" to "平均 {kmh} km/h で {dur} 秒連続",
+    "v2.sepWhyPulse" to "平均 {kmh} km/h で {dur} 秒連続、心拍反応はわずか {hr} bpm",
+    "v2.keep" to "カウントする — 戻す",
+    "v2.keptLabel" to "戻したラン",
+    "v2.unkeep" to "再び除外する",
 )
 
 val ZH: Map<String, String> = mapOf(
@@ -1694,6 +1718,18 @@ val ZH: Map<String, String> = mapOf(
     "account.activitySurfing" to "冲浪",
     "account.activityOpenWater" to "开放水域",
     "account.activityTypeHint" to "设置 Garmin 记录在 Garmin Connect 中显示为哪种活动。",
+    // Auto-Sportart-Kasten + Fremdkraft-Kasten (aus web zh.ts).
+    "cls.autoAsk" to "这次记录在我们看来不像是 pumpfoil，因此暂时不计入任何统计。可以帮忙正确归类吗？如果确实是 pumpfoil，选择“Pumpfoil”即可。",
+    "cls.autoSetAs" to "已自动归类为 {sport}。如果不对，在这里改即可。",
+    "cls.autoWhy" to "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h —— 泵动的一段平均只有 27 秒。",
+    "cls.autoWhyPulse" to "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h，而心率几乎没有反应（{hr} bpm）。",
+    "v2.sepTitle" to "外部动力？已分离的段",
+    "v2.sepIntro" to "这些片段看起来像外部动力 —— 船、车或马达 —— 因此不计为 pumpfoil 段。如果判断有误，点一下即可恢复。",
+    "v2.sepWhy" to "以平均 {kmh} km/h 连续 {dur} 秒",
+    "v2.sepWhyPulse" to "以平均 {kmh} km/h 连续 {dur} 秒，心率反应仅 {hr} bpm",
+    "v2.keep" to "算数的 —— 恢复",
+    "v2.keptLabel" to "已恢复的段",
+    "v2.unkeep" to "重新分离",
 )
 
 val RU: Map<String, String> = mapOf(
@@ -2258,6 +2294,18 @@ val RU: Map<String, String> = mapOf(
     "account.activitySurfing" to "Сёрфинг",
     "account.activityOpenWater" to "Открытая вода",
     "account.activityTypeHint" to "Задаёт, каким видом активности запись Garmin отображается в Garmin Connect.",
+    // Auto-Sportart-Kasten + Fremdkraft-Kasten (aus web ru.ts).
+    "cls.autoAsk" to "Эта сессия не похожа на пампфойл — поэтому пока она не учитывается ни в одной статистике. Не хочешь отнести её к нужной категории? Если это всё же был пампфойл, просто выбери «Pumpfoil».",
+    "cls.autoSetAs" to "Автоматически отнесено к категории {sport}. Если это неверно, просто измени здесь.",
+    "cls.autoWhy" to "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч — заезд с пампингом длится в среднем 27 с.",
+    "cls.autoWhyPulse" to "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч, а пульс почти не отреагировал ({hr} уд/мин).",
+    "v2.sepTitle" to "Внешняя тяга? Отделённые заезды",
+    "v2.sepIntro" to "Эти участки похожи на внешнюю тягу — лодка, машина или мотор — поэтому они не считаются заездами пампфойла. Если это ошибка, одно нажатие вернёт заезд.",
+    "v2.sepWhy" to "{dur} с подряд при средней {kmh} км/ч",
+    "v2.sepWhyPulse" to "{dur} с подряд при средней {kmh} км/ч, реакция пульса всего {hr} уд/мин",
+    "v2.keep" to "Считается — вернуть",
+    "v2.keptLabel" to "возвращённый заезд",
+    "v2.unkeep" to "снова отделить",
 )
 
 val ID: Map<String, String> = mapOf(
@@ -2822,4 +2870,16 @@ val ID: Map<String, String> = mapOf(
     "account.activitySurfing" to "Selancar",
     "account.activityOpenWater" to "Perairan terbuka",
     "account.activityTypeHint" to "Menentukan sebagai aktivitas apa rekaman Garmin muncul di Garmin Connect.",
+    // Auto-Sportart-Kasten + Fremdkraft-Kasten (aus web id.ts).
+    "cls.autoAsk" to "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
+    "cls.autoSetAs" to "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
+    "cls.autoWhy" to "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
+    "cls.autoWhyPulse" to "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
+    "v2.sepTitle" to "Tenaga luar? Run yang dipisahkan",
+    "v2.sepIntro" to "Bagian ini terlihat seperti tenaga luar — perahu, mobil, atau motor — jadi tidak dihitung sebagai run pumpfoil. Kalau keliru, satu ketukan mengembalikan run itu.",
+    "v2.sepWhy" to "{dur} dtk nonstop dengan rata-rata {kmh} km/h",
+    "v2.sepWhyPulse" to "{dur} dtk nonstop dengan rata-rata {kmh} km/h, respons detak jantung hanya {hr} bpm",
+    "v2.keep" to "Tetap dihitung — kembalikan",
+    "v2.keptLabel" to "run yang dikembalikan",
+    "v2.unkeep" to "pisahkan lagi",
 )

@@ -118,6 +118,11 @@ import kotlinx.serialization.json.jsonPrimitive
 // Amber für „Fake melden" (wie im Web); Rot kommt aus dem Theme (error).
 private val AmberReport = Color(0xFFF59E0B)
 
+// Sky-Blau für den Fremdkraft-Kasten (wie PWA: bg-sky-500/10, Text sky-700 hell / sky-300 dunkel).
+private val SkyReport = Color(0xFF0EA5E9)
+private val SkyOnLight = Color(0xFF0369A1)
+private val SkyOnDark = Color(0xFF7DD3FC)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true) {
@@ -819,12 +824,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 bestGlideIdx?.let { if (segList[it].longestGlideS > 0) add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(segList[it].longestGlideS), it)) }
             }
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
-            // Aussortierte Läufe stehen nicht mehr in den Segmenten — der Hinweis über der Tabelle
-            // ist die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
+            // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
+            // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
             val excluded = s.excludedRanges.orEmpty()
-            if (segList.isNotEmpty() || excluded.isNotEmpty()) RunsTable(
+            val powered = m?.fremdkraftLaeufe.orEmpty()
+            val kept = s.fremdkraftKeep.orEmpty()
+            if (segList.isNotEmpty() || excluded.isNotEmpty() || powered.isNotEmpty() || kept.isNotEmpty()) RunsTable(
                 segments = segList, selected = selectedRun, sessionId = s.id,
-                excluded = excluded, canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
+                excluded = excluded, poweredRuns = powered, keptWindows = kept,
+                canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
         }
@@ -1192,6 +1200,10 @@ private fun RunsTable(
     selected: Int?,
     sessionId: Int = 0,
     excluded: List<List<Long>> = emptyList(),
+    // Fremdkraft-Vorschläge der Erkennung v2 (analysis.metrics.fremdkraft_laeufe) + bereits
+    // zurückgeholte Fenster (session.fremdkraft_keep). Beides Session-ms.
+    poweredRuns: List<FremdkraftLauf> = emptyList(),
+    keptWindows: List<List<Long>> = emptyList(),
     canEdit: Boolean = false,
     startedAt: String = "",
     tz: String? = null,
@@ -1265,6 +1277,76 @@ private fun RunsTable(
                                 finally { busy = false }
                             }
                         }) { Text(I18n.t("sd.includeRun")) }
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+    // Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
+    // Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
+    // (Transparenz, warum die Zahlen so sind), Knöpfe nur mit Bearbeitungsrecht. Wie PWA RunsTable.
+    if (poweredRuns.isNotEmpty() || keptWindows.isNotEmpty()) {
+        val sky = if (dark) SkyOnDark else SkyOnLight
+        // Grund-Text HIER bauen (lokalisiert aus den Messwerten) — metrics.grund ist deutscher
+        // Admin-Klartext und erscheint nie in der UI.
+        fun poweredWhy(r: FremdkraftLauf): String {
+            val dur = Math.round(r.dauerS).toString()
+            val kmh = "%.1f".format(r.kmh)
+            val hr = r.pulsAntwortBpm
+            return if (hr != null)
+                I18n.t("v2.sepWhyPulse").replace("{dur}", dur).replace("{kmh}", kmh)
+                    .replace("{hr}", (if (hr > 0) "+" else "") + Math.round(hr))
+            else I18n.t("v2.sepWhy").replace("{dur}", dur).replace("{kmh}", kmh)
+        }
+        Column(
+            Modifier.fillMaxWidth()
+                .background(SkyReport.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null, tint = sky, modifier = Modifier.size(18.dp))
+                Text(I18n.t("v2.sepTitle"), style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold, color = sky)
+            }
+            if (poweredRuns.isNotEmpty()) {
+                Text(I18n.t("v2.sepIntro"), style = MaterialTheme.typography.bodyMedium, color = sky)
+            }
+            poweredRuns.forEach { r ->
+                Column {
+                    Text("${clockAt(startedAt, tz, r.tStartMs)} · ${poweredWhy(r)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (canEdit) {
+                        TextButton(enabled = !busy, onClick = {
+                            busy = true
+                            scope.launch {
+                                try { onSaved(Api.keepPoweredRun(sessionId, r.tStartMs, r.tEndMs, keep = true)) }
+                                catch (e: Exception) { err = I18n.t("sd.excludeFail") + (e.message ?: "") }
+                                finally { busy = false }
+                            }
+                        }) { Text(I18n.t("v2.keep")) }
+                    }
+                }
+            }
+            keptWindows.forEach { win ->
+                val from = win.getOrNull(0) ?: 0L
+                val to = win.getOrNull(1) ?: from
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("${clockAt(startedAt, tz, from)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())} · ${I18n.t("v2.keptLabel")}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (canEdit) {
+                        Spacer(Modifier.width(4.dp))
+                        TextButton(enabled = !busy, onClick = {
+                            busy = true
+                            scope.launch {
+                                try { onSaved(Api.keepPoweredRun(sessionId, from, to, keep = false)) }
+                                catch (e: Exception) { err = I18n.t("sd.excludeFail") + (e.message ?: "") }
+                                finally { busy = false }
+                            }
+                        }) { Text(I18n.t("v2.unkeep")) }
                     }
                 }
             }
@@ -1686,16 +1768,58 @@ private fun ClassificationNotice(s: SessionDetail, scope: kotlinx.coroutines.Cor
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val amber = if (dark) AmberOnDark else AmberOnLight
 
+    // Hat die automatische Erkennung geurteilt (sport_source == "auto"), erklären wir das auch
+    // dann, wenn nichts mehr „offen" ist: der Nutzer soll wissen, dass eine Maschine das war und
+    // dass er sie hier direkt überstimmen kann (wie PWA ClassificationPanel).
+    val isAuto = s.sportSource == "auto"
+    if (!s.needsClassification && !isAuto) return
+
+    // Begründungszeile aus den MESSWERTEN bauen — sport_auto.grund ist deutscher Admin-Klartext
+    // und darf nie in der UI erscheinen (die Sprache macht die App, nicht der Server).
+    val m = if (isAuto) s.sportAuto?.merkmale else null
+    val warum = if (m == null) null else {
+        val dur = Math.round(m.laengsterLaufS ?: 0.0).toString()
+        val kmh = "%.1f".format(m.tempoMedianKmh ?: 0.0)
+        val hr = m.pulsAntwortBpm
+        if (hr != null)
+            I18n.t("cls.autoWhyPulse").replace("{dur}", dur).replace("{kmh}", kmh)
+                .replace("{hr}", (if (hr > 0) "+" else "") + Math.round(hr))
+        else I18n.t("cls.autoWhy").replace("{dur}", dur).replace("{kmh}", kmh)
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (s.needsClassification) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .background(AmberReport.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(I18n.t("cls.ownerAsk"), color = amber)
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(AmberReport.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                if (isAuto) {
+                    if (s.needsClassification) I18n.t("cls.autoAsk")
+                    else I18n.t("cls.autoSetAs")
+                        .replace("{sport}", I18n.t("cls.sport.${s.sportClass ?: "other"}"))
+                } else I18n.t("cls.ownerAsk"),
+                color = amber,
+            )
+            warum?.let { Text(it, color = amber.copy(alpha = 0.85f)) }
+            // Der Besitzer ordnet die Sportart direkt hier zu (dasselbe Dropdown wie unten in
+            // ClassificationPickers); solange die Bitte offen ist, steht ein Platzhalter drin.
+            ClassDropdown(
+                options = SPORTS, selected = s.sportClass ?: "pumpfoil", keyPrefix = "cls.sport.",
+                placeholder = if (s.needsClassification) I18n.t("cls.choose") else null,
+                onPick = { v ->
+                    scope.launch {
+                        try { Api.setClassification(s.id, sport = v); msg = null; onReload() }
+                        catch (_: Exception) { msg = I18n.t("cls.pickErr") }
+                    }
+                },
+            )
+            // Widerspruch geht an den Admin und ist NUR nötig, wenn ein Mensch gemeldet hat. Beim
+            // reinen Maschinen-Urteil (flag_count == 0) wählt der Besitzer einfach „Pumpfoil" —
+            // der Server lässt das direkt zu; der Umweg würde nur die Warteschlange füllen (PWA).
+            if (!isAuto || s.flagCount > 0) {
                 if (s.appealText != null) {
                     Text(I18n.t("cls.appealPending"), color = amber, fontWeight = FontWeight.SemiBold)
                 } else if (!appealOpen) {
@@ -1714,6 +1838,7 @@ private fun ClassificationNotice(s: SessionDetail, scope: kotlinx.coroutines.Cor
                     }) { Text(I18n.t("cls.appealSend")) }
                 }
             }
+            msg?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
 }
@@ -1755,12 +1880,14 @@ private fun ClassificationPickers(s: SessionDetail, scope: kotlinx.coroutines.Co
     }
 }
 
+// placeholder: statt des gewählten Werts anzeigen, solange noch nichts zugeordnet ist
+// (offene Bitte im Auto-Kasten — wie die leere <option> „Sportart wählen …" der PWA).
 @Composable
-private fun ClassDropdown(options: List<String>, selected: String, keyPrefix: String, onPick: (String) -> Unit) {
+private fun ClassDropdown(options: List<String>, selected: String, keyPrefix: String, placeholder: String? = null, onPick: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { open = true }) {
-            Text(I18n.t("$keyPrefix$selected"), maxLines = 1)
+            Text(placeholder ?: I18n.t("$keyPrefix$selected"), maxLines = 1)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
