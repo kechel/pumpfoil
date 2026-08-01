@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.70";  // Ungepairt-/Upload-Hinweise (App offen lassen, N warten)
+    const VERSION = "1.0.71";  // t0_ms je Accel-Chunk (exakte Zeitachse) + Ungepairt-/Upload-Hinweise
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

@@ -44,6 +44,13 @@ class SessionRecorder {
     hidden var _startedAt;
     hidden var _chunkIndex = 0;      // fortlaufender Chunk-Index (gps & accel getrennt gezählt)
     hidden var _accelChunkIndex = 0;
+    // Startzeit je Accel-Chunk (Index -> ms seit Session-Start, gleiche Basis wie GPS-t_ms).
+    // Grundlage der EXAKTEN Accel-Zeitachse am Server (timebase.py, "exact_chunks") — bisher
+    // musste er die Rate schaetzen, bei abweichender Realrate driftete die Achse um Minuten
+    // (#1328: 6 min bei 5,7 % Abweichung). EIN Woerterbuch im state_-Dict, KEIN Extra-Key je
+    // Chunk (Object-Store auf 96-KB-Uhren ist knapp). Deckel s. _flushAccel.
+    hidden var _accelT0 = {};
+    hidden var _accelBufT0 = null;   // ms-Zeit des ERSTEN Samples im aktuellen Puffer
     hidden var _gpsChunkIndex = 0;
 
     // Roh-Puffer
@@ -761,6 +768,8 @@ class SessionRecorder {
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
+        _accelT0 = {};
+        _accelBufT0 = null;
         _gpsChunkIndex = 0;
         _accelBuf = new [0]b;
         _accelCount = 0;
@@ -986,6 +995,7 @@ class SessionRecorder {
             "uuid" => _sessionUuid,
             "started_at" => _startedAt.value(),
             "accel_chunks" => _accelChunkIndex,
+            "accel_t0" => _accelT0,
             "gps_chunks" => _gpsChunkIndex,
             "completed" => completed
         });
@@ -1200,6 +1210,7 @@ class SessionRecorder {
             if (sensorData == null || sensorData.accelerometerData == null) { return; }
             var a = sensorData.accelerometerData;
             var n = a.x.size();
+            if (_accelCount == 0 && n > 0) { _accelBufT0 = _elapsedMs(); }
             for (var i = 0; i < n; i++) {
                 _appendI16(a.x[i]);
                 _appendI16(a.y[i]);
@@ -1370,6 +1381,14 @@ class SessionRecorder {
             _accelCount = 0;
             return;
         }
+        // Startzeit des Chunks festhalten. Deckel 600 Eintraege (~10 h bei 60-s-Chunks):
+        // laeuft eine Session laenger, fehlen den spaeten Chunks die Zeiten und der Server
+        // faellt fuer sie auf die gemessene Rate zurueck — besser als ein wachsendes Dict,
+        // das auf 96-KB-Uhren den Object-Store sprengt.
+        if (_accelBufT0 != null && _accelT0.size() < 600) {
+            _accelT0[_accelChunkIndex] = _accelBufT0;
+        }
+        _accelBufT0 = null;
         _accelChunkIndex++;
         _accelBuf = new [0]b;
         _accelCount = 0;

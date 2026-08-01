@@ -136,7 +136,11 @@ class ChunkIn(BaseModel):
     index: int
     kind: str  # "gps" | "accel"
     encoding: str  # "json" | "int16-b64"
-    t0_ms: int = 0
+    # Startzeit des Chunks in ms seit Session-Start. None = Client sendet es nicht (Garmin bis
+    # 1.0.70) -> es wird KEIN .t0-Sidecar geschrieben. Der fruehere Default 0 hat Sidecars mit
+    # Wert 0 fuer alle Nicht-Sender erzeugt und damit die exakte Zeitachse (timebase.py,
+    # exact_chunks) fuer den gesamten Bestand unbrauchbar gemacht.
+    t0_ms: int | None = None
     count: int = 0
     data: object  # list (gps) oder str (accel-base64)
 

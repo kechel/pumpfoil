@@ -149,6 +149,7 @@ class SessionSyncJob {
     hidden var _token as Lang.String;
     hidden var _meta;
     hidden var _accelTotal as Lang.Number = 0;
+    hidden var _accelT0 = {};   // Chunk-Index -> ms seit Session-Start (s. SessionRecorder)
     hidden var _gpsTotal as Lang.Number = 0;
     hidden var _completed as Lang.Boolean = false;
     hidden var _sa as Lang.Number = 0;   // bestätigte Accel-Chunks
@@ -167,6 +168,7 @@ class SessionSyncJob {
             // Robust gegen fehlende/null Keys (z. B. GPS-only-Session ohne accel_chunks):
             // sonst null-Arithmetik in begin() -> Crash schon beim App-Start (Sync).
             _accelTotal = (st["accel_chunks"] instanceof Lang.Number) ? st["accel_chunks"] : 0;
+            _accelT0 = (st["accel_t0"] instanceof Lang.Dictionary) ? st["accel_t0"] : {};
             _gpsTotal = (st["gps_chunks"] instanceof Lang.Number) ? st["gps_chunks"] : 0;
             _completed = (st["completed"] == true);
         }
@@ -350,9 +352,14 @@ class SessionSyncJob {
             :fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY,
             :toRepresentation => StringUtil.REPRESENTATION_STRING_BASE64
         });
+        // Chunk-Startzeit mitschicken, wo bekannt -> exakte Accel-Zeitachse am Server
+        // (Sessions von vor dem Update haben kein accel_t0 im State -> Feld fehlt, Server
+        // schaetzt wie bisher).
+        var body = { "index" => i, "kind" => "accel", "encoding" => "int16-b64", "data" => b64 };
+        if (_accelT0.hasKey(i)) { body["t0_ms"] = _accelT0[i]; }
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/chunk",
-            { "index" => i, "kind" => "accel", "encoding" => "int16-b64", "data" => b64 },
+            body,
             _opts(),
             method(:onStep)
         );
