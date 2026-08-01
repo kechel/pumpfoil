@@ -199,6 +199,15 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ### Stand 01.08.2026 — Transport im Lauf (Zug/Auto) automatisch erkennen?
 
+- [ ] **ERKENNUNG v2: Physik abbilden statt annehmen — Entwurf liegt in
+      [`docs/detector-v2.md`](detector-v2.md), wartet auf Abnahme.** Jans Vorgabe: nichts annehmen,
+      alles messen oder nachrechnen (Session-Start ist bekannt, Raten aus den Daten, Nutzer-Setting
+      beachten, Offsets richtig), ueberlappende Zeitfenster mit mehreren Medianen, Puls als langsamer
+      Bestaetiger, Wasser als Ground Truth wo moeglich — und das Ganze **hinter einem Schalter mit
+      Regressionsvergleich**, bevor entschieden wird.
+      Erledigt als Grundlage (01.08., `8b6e38f`): Accel-`t0_ms` wird serverseitig gesichert
+      (`load_accel_t0()`), Overpass ueber Spiegel mit Trennung „Fehlschlag" / „nichts gefunden".
+
 - [ ] **Wasserflaeche wird am FALSCHEN Ort nachgeschlagen (Fehler, einfacher Fix).**
       `_water_rings_cached` (`analysis/__init__.py:54`) waehlt den Nachschlage-Punkt ueber den
       **Median ALLER GPS-Punkte**. Liegt die Uhr nach der Session lange still (Heimfahrt, Uhr am
