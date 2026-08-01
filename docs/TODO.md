@@ -197,6 +197,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
+- [ ] **Ungepairt-Hinweis auf allen 4 Uhr-Plattformen** (Jan, 01.08.): Aufnehmen geht bewusst auch
+      unverbunden — aber der Nutzer muss UNÜBERSEHBAR wissen, dass seine Sessions erst nach dem
+      Verbinden in seinem Konto erscheinen. Heute: Garmin/Wear/Apple zeigen es dezent, Zepp zeigt
+      auf Seite 1 nur „Nicht verbunden · → Verbinden" und erzeugt den Code erst auf Seite 2/4.
+      Gewünscht je Plattform: ungepairt einen deutlichen Hinweis (+ bei Zepp den Code direkt auf
+      Seite 1), zusammen mit dem Nach-Session-Hinweis aus dem Vordergrund-Upload-Punkt unten.
+
 - [ ] **Auto-Sportart-Hinweis in Android + iOS nachziehen** (seit 01.08. live in der PWA, Jan:
       „für die nativen Apps mit aufnehmen in die To-do-Liste, aber jetzt erst mal in der PWA").
       Server liefert das Nötige schon: `sport_source == "auto"` und `sport_auto`
