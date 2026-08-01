@@ -5,6 +5,7 @@ import Foundation
 
 // Portugiesisch-Overlay (71 Keys). Fallback: Englisch.
 let wPtOverlay: [String: String] = [
+    "rec.keepOpen": "mantenha o app aberto!",
     "pair.title": "Conectar relógio",
     "pair.howto": "Gere um código de pareamento e digite-o no pumpfoil.org (Conta).",
     "pair.gen": "Gerar código de pareamento",
@@ -82,6 +83,7 @@ let wPtOverlay: [String: String] = [
 
 // Japanisch-Overlay (71 Keys). Fallback: Englisch.
 let wJaOverlay: [String: String] = [
+    "rec.keepOpen": "アプリを開いたままに",
     "pair.title": "ウォッチを接続",
     "pair.howto": "ペアリングコードを生成し、pumpfoil.org(アカウント)で入力します。",
     "pair.gen": "ペアリングコードを生成",
@@ -159,6 +161,7 @@ let wJaOverlay: [String: String] = [
 
 // Chinesisch (vereinfacht)-Overlay (71 Keys). Fallback: Englisch.
 let wZhOverlay: [String: String] = [
+    "rec.keepOpen": "请保持应用打开",
     "pair.title": "连接手表",
     "pair.howto": "生成配对码，在 pumpfoil.org（账户）中输入。",
     "pair.gen": "生成配对码",
@@ -236,6 +239,7 @@ let wZhOverlay: [String: String] = [
 
 // Russisch-Overlay (71 Keys). Fallback: Englisch.
 let wRuOverlay: [String: String] = [
+    "rec.keepOpen": "не закрывайте приложение!",
     "pair.title": "Подключить часы",
     "pair.howto": "Сгенерируйте код сопряжения и введите его на pumpfoil.org (Аккаунт).",
     "pair.gen": "Сгенерировать код",
@@ -313,6 +317,7 @@ let wRuOverlay: [String: String] = [
 
 // Indonesisch-Overlay (71 Keys). Fallback: Englisch.
 let wIdOverlay: [String: String] = [
+    "rec.keepOpen": "biarkan aplikasi terbuka!",
     "pair.title": "Hubungkan jam",
     "pair.howto": "Buat kode pairing dan masukkan di pumpfoil.org (Akun).",
     "pair.gen": "Buat kode pairing",

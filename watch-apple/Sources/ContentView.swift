@@ -432,6 +432,10 @@ struct RecordView: View {
                 ProgressView().scaleEffect(0.6)
                 Text(uploadProgressText).font(.caption2).foregroundStyle(.secondary)
             }
+            // Upload laeuft im App-Prozess: verlaesst der Nutzer die App, pausiert er bis zum
+            // naechsten Oeffnen (drei Support-Faelle: Session "fehlt", kam Stunden spaeter).
+            Text(keepOpenText)
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
         } else if rec.uploadError == "offline" {
             Text(WLoc.t("rec.waitConn", lang))
                 .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
@@ -462,6 +466,10 @@ struct RecordView: View {
     private var pendingCountText: String {
         let unit: String = WLoc.t("rec.pendingUpload", lang)
         return "\(rec.pendingCount) " + unit
+    }
+
+    private var keepOpenText: String {
+        WLoc.t("rec.keepOpen", lang)
     }
 
     private var pendingResumeText: String {
