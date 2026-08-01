@@ -207,6 +207,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       echten. Schaden entsteht nicht (`_clip_ends_to_water` fasst Laeufe ohne Wasser-Sample nicht
       an), aber die Korrektur laeuft ins Leere. Fix: Ort aus den FOIL-LAEUFEN bestimmen statt aus
       allen Samples. Danach ist „Lauf verlaesst das Wasser" ein belastbares Signal.
+- [ ] **OVERPASS IST GESPERRT — Wasserflaechen und Ufer-Namen kommen seit unbekannter Zeit nicht mehr
+      an.** Von dieser VM: `overpass-api.de` IPv4 -> **Connection refused** (unsere IP ist dort
+      offenbar gesperrt, wir haben pro Session angefragt), IPv6 -> keine Route (VM hat kein IPv6).
+      Nominatim, Google, Suunto, COROS und GitHub sind erreichbar, der Spiegel
+      `overpass.kumi.systems` antwortet per IPv4 normal. Folgen:
+      1. `lookup_water_rings` liefert immer None -> `_clip_ends_to_water` hat fuer neue Spots nie
+         Daten, das Wasser-Kriterium ist toter Code.
+      2. **Fehlversuche werden als „kein Wasser" gecacht**: `_water_rings_cached` schreibt bei
+         Fehlschlag `rings_json=""`, und das heisst dauerhaft „hier ist kein Wasser". Cache-Stand:
+         **443 Eintraege, 384 davon als „kein Wasser"**.
+      3. `lookup_shore_name` nutzt denselben Dienst -> neue Spots bekommen schlechtere/keine Namen.
+      Fix: Spiegel-Liste der Reihe nach probieren; Fehlschlag NICHT als „kein Wasser" cachen
+      („nachgeschaut, nichts gefunden" von „Abruf fehlgeschlagen" trennen); Abrufe entzerren.
+      Danach die vergifteten Eintraege loeschen (384 Zeilen, **braucht Jans OK**) und erst DANN
+      „ist der Lauf auf dem Wasser?" als Signal testen — es ist das einzige, das den von Jan
+      bestaetigten Fall #890 (echter Lauf, Puls-Anstieg -5) richtig einordnen kann.
 - [ ] **Puls-Anstieg als Signal — gemessen, taugt NUR in Kombination.** Pumpen kostet Puls,
       Transport nicht. Metrik: Ø-Puls im Lauf minus Median-Puls AUSSERHALB aller Laeufe derselben
       Session (absolute Werte sind individuell). Messung ueber 5701 Laeufe mit brauchbarem Puls
@@ -222,6 +238,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       * Grenzen: **83 Sessions haben gar keinen Puls** (v. a. FIT-Importe) -> Regel greift dort nie;
         sie trennt Transport nicht von Wing/Kite/Tow, sagt nur „keine Pump-Anstrengung".
       Vorschlag: als Kennzeichnung + Ein-Tipp-Angebot an den Besitzer, nicht als stiller Schnitt.
+      **Von Jan gepruefte Stichprobe (01.08.):** von 5 Kandidaten (ohne user 135) waren 4 echte
+      Autofahrten und **1 Fehltreffer** — #890 Lauf 0 (133 s, 509 m, Ø 14,0, gerade 0,81, Puls 116 bei
+      Ruhe 121): eine echte Fahrt „einmal in die andere Richtung". Auch eine Normierung auf den
+      eigenen Pulsbereich der Session hilft dort NICHT (#890 liegt bei 0,19 im Bereich, eine
+      Autofahrt bei 0,51 — die Reihenfolge kippt). Damit ist belegt: **Puls kann diese Entscheidung
+      nicht tragen**, in keiner Normierung.
+      Ausserdem: **13 der 17 Kandidaten-Sessions gehoeren user 135**, dessen Profil auf Wingfoil steht,
+      waehrend 172 von 186 Sessions noch als pumpfoil klassifiziert sind — die Regel findet dort keine
+      Transporte, sondern eine bekannte, offene Klassifikations-Baustelle. Vor der naechsten Messung
+      also erst user 135 umstellen.
 - [ ] **Groesserer Befund aus derselben Messung: die langen Laeufe im Bestand sind ueberwiegend kein
       Pumpen.** Median-Puls-Anstieg bei Laeufen > 300 s: **+3 bpm** bei Ø 21,5 km/h; bei 30-120 s
       dagegen +7 bis +11 bei Ø 14,7 km/h. Der aktuelle Rekord „laengster Lauf" (#622, 648 s,
