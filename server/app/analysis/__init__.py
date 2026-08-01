@@ -504,7 +504,13 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # NUR in der finalen Analyse und NUR, solange kein Mensch geurteilt hat. Die Maschine ist die
     # schwaechste Quelle: sie faellt kein Urteil ueber `owner`/`admin`, und wo sie unsicher ist,
     # behauptet sie keine Sportart, sondern stellt die Frage (needs_classification).
-    if final and (session.sport_source or "default") == "default":
+    # UND NUR, wo ueberhaupt Pumpfoil behauptet wird: der Profil-Standard (default_sport_class,
+    # api/ingest.py) setzt die Klasse mit Quelle "default" — wer sein Profil auf Wingfoil/Efoil
+    # gestellt hat, dessen Sessions sind schon richtig einsortiert, und ein "sieht nicht nach
+    # Pumpfoil aus"-Hinweis waere dort Unsinn (Jan, 01.08.). Die Erkennung prueft die Behauptung
+    # Pumpfoil, sie zweifelt keine anderslautende Einstellung an.
+    if (final and (session.sport_source or "default") == "default"
+            and (session.sport_class or "pumpfoil") == "pumpfoil"):
         from .sportauto import einordnen
 
         urteil = einordnen(res["segments"], gps_samples)
