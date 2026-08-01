@@ -947,11 +947,9 @@ class Handler(BaseHTTPRequestHandler):
         results = {}
         for pf in (*PLATFORMS, "tiktok"):
             rel = (req.get("tracks") or {}).get(pf)
-            if not rel and pf != "tiktok":
-                continue
             PROGRESS.update(active=True, label=pf, pct=0.0)
             try:
-                track = None  # tiktok: ohne Musik, O-Ton pur
+                track = None  # ohne Track: keine Musik, O-Ton pur (jede Plattform)
                 if rel:
                     track = safe_child(MUSIC_DIR, rel)
                     if pf not in track_platforms(Path(rel)):

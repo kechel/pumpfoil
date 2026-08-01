@@ -446,8 +446,8 @@ function Studio() {
       const rel = sel[pf];
       if (!rel) {
         stopMusic();
-        // TikTok ohne Track = O-Ton pur → Video trotzdem abspielen
-        if (pf === "tiktok" && vid?.src) {
+        // ohne Track = O-Ton pur → Video trotzdem abspielen
+        if (vid?.src) {
           allowPlayRef.current = 0;
           window.clearTimeout(playTimerRef.current);
           vid.currentTime = trim.start ?? 0;
@@ -509,10 +509,14 @@ function Studio() {
     if (state?.videos.length) pickVideo(state.videos[0]);
   }, [state, pickVideo]);
 
-  const ready = !!(curVideo && sel.youtube && sel.instagram && outName.trim());
+  const ready = !!(curVideo && outName.trim());
 
   const doRender = useCallback(async () => {
     if (!ready || !curVideo) return;
+    // Ohne Track = O-Ton pur — bei YT/IG kurz rückfragen (nicht versehentlich ohne Musik)
+    const noMusic = (["youtube", "instagram"] as PvPlatform[]).filter((pf) => !sel[pf]);
+    if (noMusic.length && !window.confirm(
+      `Ohne Musik (nur O-Ton) rendern für: ${noMusic.map((pf) => PF_SHORT[pf]).join(" + ")} — ok?`)) return;
     setRendering(true);
     setLog("");
     stopMusic();
@@ -592,7 +596,7 @@ function Studio() {
   const isStarred = !!(curVideo && starred.has(curVideo));
   const pvTrackName =
     sel[pvPlatform]?.split("/").pop()?.replace(/\.[^.]+$/, "")
-    ?? (pvPlatform === "tiktok" ? "O-Ton, ohne Musik" : "–");
+    ?? "O-Ton, ohne Musik";
 
   const trackRow = (t: Track) => (
     <div key={t.rel} className={`item trk ${curPlay === t.rel ? "playing" : ""}`}>
@@ -918,7 +922,7 @@ function Studio() {
           <button
             className="renderbtn"
             disabled={!ready || rendering}
-            title={ready ? "" : "Erst Name eintragen und für YouTube und Instagram je einen Track wählen"}
+            title={ready ? "" : "Erst einen Namen eintragen"}
             onClick={() => void doRender()}
           >
             {rendering ? "Rendere …" : "Rendern → shorts-mit-musik/"}
