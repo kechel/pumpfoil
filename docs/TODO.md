@@ -197,14 +197,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
-- [ ] **Ungepairt-Hinweis auf allen 4 Uhr-Plattformen** (Jan, 01.08.): Aufnehmen geht bewusst auch
-      unverbunden — aber der Nutzer muss UNÜBERSEHBAR wissen, dass seine Sessions erst nach dem
-      Verbinden in seinem Konto erscheinen. Heute: Garmin/Wear/Apple zeigen es dezent, Zepp zeigt
-      auf Seite 1 nur „Nicht verbunden · → Verbinden" und erzeugt den Code erst auf Seite 2/4.
-      Gewünscht je Plattform: ungepairt einen deutlichen Hinweis (+ bei Zepp den Code direkt auf
-      Seite 1), zusammen mit dem Nach-Session-Hinweis aus dem Vordergrund-Upload-Punkt unten.
+- [x] **ERLEDIGT 01.08. — Ungepairt-/Upload-Hinweise auf allen 4 Uhr-Plattformen.**
+      Garmin 1.0.71 (gebaut, Website liefert es; CIQ-Store-Einreichung offen -> appmeta bleibt
+      1.0.69): Start-Screen orange „Nicht verbunden · MENU" bzw. „N warten auf Upload",
+      Gespeichert-Screen „App offen lassen!" solange Uebertragung laeuft. Wear + Apple Watch:
+      „App offen lassen!" unter dem Upload-Fortschritt (Rest existierte). Zepp (fuer 1.0.4,
+      Jans Mac-Build): Code direkt auf Seite 1, setWakeUpRelaunch gegen das Beenden bei
+      Display-Aus, Upload-Hinweis + „N offen" auf dem Start-Screen.
+      NEU dazu: Garmin sendet t0_ms je Accel-Chunk (exakte Zeitachse, docs/detector-v2.md
+      Schritt 2 erledigt); Server-Ingest nimmt t0_ms nur noch an, wenn wirklich gesendet.
+      **Noch offen aus diesem Komplex:** Update-Hinweis fuer UNGEPAIRTE Apps (oeffentlicher
+      Versions-Check, naechste Garmin-Runde — alten Apps kann keine neue Version helfen).
 
-- [ ] **Auto-Sportart-Hinweis in Android + iOS nachziehen** (seit 01.08. live in der PWA, Jan:
+- [x] **ERLEDIGT 01.08. — Auto-Sportart-Hinweis + Fremdkraft-Rueckholung in Android + iOS**
+      (beide kompiliert bzw. geparst + Member-verifiziert; Release/Store wie immer Jan).
+      Urspruenglicher Eintrag:
+- [ ] ~~**Auto-Sportart-Hinweis in Android + iOS nachziehen**~~ (seit 01.08. live in der PWA, Jan:
       „für die nativen Apps mit aufnehmen in die To-do-Liste, aber jetzt erst mal in der PWA").
       Server liefert das Nötige schon: `sport_source == "auto"` und `sport_auto`
       (`{hinweis, grund, merkmale}`) in jeder Session-Ausgabe für Besitzer/Admin. Zu bauen ist nur
