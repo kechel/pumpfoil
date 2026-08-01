@@ -468,6 +468,14 @@ enum Api {
                           body: ["range_index": rangeIndex], auth: true)
     }
 
+    // Fremdkraft-Lauf (Erkennung v2) zurückholen bzw. wieder abtrennen. Zeiten in Session-ms,
+    // genau wie sie in analysis.metrics["fremdkraft_laeufe"] stehen. Antwort = frische Session
+    // mit neuer Analyse (wie exclude/include) — direkt übernehmen, kein zweiter Fetch.
+    static func keepPoweredRun(_ id: Int, startMs: Int, endMs: Int, keep: Bool) async throws -> SessionDetail {
+        try await request("/api/sessions/\(id)/powered-runs/keep", method: "POST",
+                          body: ["start_ms": startMs, "end_ms": endMs, "keep": keep], auth: true)
+    }
+
     // foilId nil -> Standard-Foil (foil_id: null), sonst konkretes Foil.
     static func setSessionFoil(_ id: Int, foilId: Int?) async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/meta") else { throw ApiError.badURL }

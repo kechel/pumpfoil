@@ -587,6 +587,18 @@ enum Loc {
         "calc.optimal": "Optimum",
         "calc.powerRow": "Pumpovací výkon (W) na km/h",
         "calc.disclaimer": "Modelový výpočet — přibližné hodnoty, ne měření. Nejlepší (nejnižší) výkon v každém sloupci je zvýrazněn.",
+        // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web cs.ts).
+        "cls.autoAsk": "Tato session nám nevypadá jako pumpfoil — proto se zatím nezapočítává do žádných statistik. Zařadíš ji správně? Pokud to pumpfoil přece jen byl, vyber prostě „Pumpfoil“.",
+        "cls.autoSetAs": "Automaticky zařazeno jako {sport}. Pokud to nesedí, změň to tady.",
+        "cls.autoWhy": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h — pumpovací jízda trvá v průměru 27 s.",
+        "cls.autoWhyPulse": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h a tep skoro nereagoval ({hr} bpm).",
+        "v2.sepTitle": "Cizí pohon? Odložené jízdy",
+        "v2.sepIntro": "Tyto úseky vypadají na cizí pohon — loď, auto nebo motor — a proto se nepočítají jako pumpfoil jízdy. Pokud je to omyl, jedno ťuknutí jízdu vrátí.",
+        "v2.sepWhyPulse": "{dur} s v kuse při průměru {kmh} km/h, odezva tepu jen {hr} bpm",
+        "v2.sepWhy": "{dur} s v kuse při průměru {kmh} km/h",
+        "v2.keep": "Počítá se — vrátit",
+        "v2.keptLabel": "vrácená jízda",
+        "v2.unkeep": "znovu odložit",
     ]
 
 
@@ -1173,6 +1185,18 @@ enum Loc {
         "calc.optimal": "Optimaal",
         "calc.powerRow": "Pompvermogen (W) per km/h",
         "calc.disclaimer": "Modelberekening — benaderingen, geen meting. Beste (laagste) vermogen per kolom uitgelicht.",
+        // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web nl.ts).
+        "cls.autoAsk": "Deze sessie lijkt ons geen pumpfoilen — daarom telt hij voorlopig in geen enkele statistiek mee. Wil je hem juist indelen? Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
+        "cls.autoSetAs": "Automatisch ingedeeld als {sport}. Klopt dat niet, verander het hier.",
+        "cls.autoWhy": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h — een pumping-run duurt gemiddeld 27 s.",
+        "cls.autoWhyPulse": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h, en de hartslag reageerde nauwelijks ({hr} bpm).",
+        "v2.sepTitle": "Externe aandrijving? Apart gezette runs",
+        "v2.sepIntro": "Deze stukken lijken op externe aandrijving — boot, auto of motor — en tellen daarom niet als pumpfoil-runs. Klopt dat niet, dan haalt één tik de run terug.",
+        "v2.sepWhyPulse": "{dur} s aan één stuk met gemiddeld {kmh} km/h, hartslagreactie van maar {hr} bpm",
+        "v2.sepWhy": "{dur} s aan één stuk met gemiddeld {kmh} km/h",
+        "v2.keep": "Telt wél — terughalen",
+        "v2.keptLabel": "teruggehaalde run",
+        "v2.unkeep": "weer apart zetten",
     ]
 
 
@@ -1741,6 +1765,18 @@ enum Loc {
         "calc.minViable": "Min. nopeus",
         "calc.optimal": "Optimaalinen",
         "calc.disclaimer": "Mallilaskelma — likiarvoja, ei mittaus. Paras (pienin) teho kussakin sarakkeessa korostettu.",
+        // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web fi.ts).
+        "cls.autoAsk": "Tämä sessio ei näytä meistä pumpfoilaukselta — siksi se ei toistaiseksi näy missään tilastossa. Haluatko luokitella sen oikein? Jos se sittenkin oli pumpfoilausta, valitse vain „Pumpfoil“.",
+        "cls.autoSetAs": "Luokiteltu automaattisesti: {sport}. Jos se ei pidä paikkaansa, vaihda se tästä.",
+        "cls.autoWhy": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h — pumppausveto kestää keskimäärin 27 s.",
+        "cls.autoWhyPulse": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h, eikä syke juuri reagoinut ({hr} bpm).",
+        "v2.sepTitle": "Ulkoinen voima? Sivuun siirretyt vedot",
+        "v2.sepIntro": "Nämä osuudet näyttävät ulkoiselta voimalta — vene, auto tai moottori — eivätkä siksi laske pumpfoil-vetoina. Jos se on väärin, yksi napautus palauttaa vedon.",
+        "v2.sepWhyPulse": "{dur} s putkeen keskinopeudella {kmh} km/h, sykevaste vain {hr} bpm",
+        "v2.sepWhy": "{dur} s putkeen keskinopeudella {kmh} km/h",
+        "v2.keep": "Kyllä se lasketaan — palauta",
+        "v2.keptLabel": "palautettu veto",
+        "v2.unkeep": "siirrä taas sivuun",
     ]
 
 
@@ -2518,6 +2554,98 @@ enum Loc {
         "calc.optimal": r("Optimal", "Optimal", "Optimal", "Optimal", "Optimal", "Ottimale", "Óptima"),
         "calc.powerRow": r("Pump-Leistung (W) je km/h", "Pump-Leischtig (W) pro km/h", "Pump-Leistung (W) je km/h", "Pump power (W) per km/h", "Puissance de pump (W) par km/h", "Potenza di pump (W) per km/h", "Potencia de pump (W) por km/h"),
         "calc.disclaimer": r("Modellrechnung — Näherungswerte, keine Messung. Beste (niedrigste) Leistung je Spalte hervorgehoben.", "Modällrächnig — Näherigswärt, kei Mässig. Beschti (niedrigschti) Leischtig je Spalte hervorghobe.", "Modellrechnung — Näherungswerte, keine Messung. Beste (niedrigste) Leistung je Spalte hervorgehoben.", "Model estimate — approximate, not measured. Best (lowest) power per column highlighted.", "Estimation au modèle — approximative, non mesurée. Meilleure (plus basse) puissance par colonne mise en évidence.", "Stima del modello — approssimativa, non misurata. Migliore (più bassa) potenza per colonna evidenziata.", "Estimación del modelo — aproximada, no medida. Mejor (menor) potencia por columna resaltada."),
+        // Automatische Sportart-Erkennung (docs/sport-classification.md, Stufe 1b) — Wortlaut
+        // wörtlich aus web/src/i18n/locales/*.ts. Der Warum-Text wird in der App aus den
+        // Merkmalen gebaut (SessionDetailView.classWhyText), nie das Server-Feld `grund`.
+        "cls.autoAsk": r(
+            "Diese Session sieht für uns nicht nach Pumpfoiling aus — deshalb zählt sie vorerst in keiner Auswertung mit. Magst du sie richtig zuordnen? War es doch Pumpfoiling, wähle einfach „Pumpfoil“.",
+            "Die Session gseht für üs nöd nach Pumpfoile us — drum zellt si vorerst i kener Uswertig mit. Magsch si richtig zuordne? Wenn s doch Pumpfoile gsi isch, nimm eifach „Pumpfoil“.",
+            "Diese Session sieht für uns nicht nach Pumpfoiling aus — deshalb zählt sie vorerst in keiner Auswertung mit. Magst du sie richtig zuordnen? War es doch Pumpfoiling, wähl einfach „Pumpfoil“.",
+            "This session doesn’t look like pumpfoiling to us — so for now it won’t count in any stats. Could you classify it? If it really was pumpfoiling, just pick “Pumpfoil”.",
+            "Cette session ne ressemble pas à du pumpfoil selon nous — elle ne compte donc pour aucune statistique pour l’instant. Peux-tu la classer correctement ? Si c’était bien du pumpfoil, choisis simplement « Pumpfoil ».",
+            "Questa sessione non ci sembra pumpfoil — per ora non conta in nessuna statistica. Vuoi classificarla correttamente? Se era davvero pumpfoil, scegli semplicemente « Pumpfoil ».",
+            "Esta sesión no nos parece pumpfoil — por ahora no cuenta en ninguna estadística. ¿Quieres clasificarla correctamente? Si de verdad fue pumpfoil, elige simplemente « Pumpfoil »."),
+        "cls.autoSetAs": r(
+            "Automatisch eingeordnet als {sport}. Stimmt das nicht, ändere es einfach hier.",
+            "Automatisch iigordnet als {sport}. Wenn das nöd stimmt, änder s eifach da.",
+            "Automatisch eingeordnet als {sport}. Stimmt das nicht, änder es einfach hier.",
+            "Automatically classified as {sport}. If that’s wrong, just change it here.",
+            "Classée automatiquement comme {sport}. Si ce n’est pas correct, change-le ici.",
+            "Classificata automaticamente come {sport}. Se non è corretto, cambialo qui.",
+            "Clasificada automáticamente como {sport}. Si no es correcto, cámbialo aquí."),
+        "cls.autoWhy": r(
+            "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h — beim Pumpen dauert ein Lauf im Mittel 27 s.",
+            "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h — bim Pumpe duuret en Lauf im Schnitt 27 s.",
+            "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h — beim Pumpen dauert ein Lauf im Mittel 27 s.",
+            "What decided it: longest run {dur} s at {kmh} km/h on average — a pumping run lasts 27 s on average.",
+            "Ce qui a décidé : run le plus long {dur} s à {kmh} km/h de moyenne — un run de pumping dure 27 s en moyenne.",
+            "Elemento decisivo: run più lungo {dur} s a {kmh} km/h di media — un run di pumping dura in media 27 s.",
+            "Lo decisivo: run más largo {dur} s a {kmh} km/h de media — un run de pumping dura 27 s de media."),
+        "cls.autoWhyPulse": r(
+            "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls reagierte kaum ({hr} bpm).",
+            "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h, und de Puls het chuum reagiert ({hr} bpm).",
+            "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls hat kaum reagiert ({hr} bpm).",
+            "What decided it: longest run {dur} s at {kmh} km/h on average, and your heart rate barely responded ({hr} bpm).",
+            "Ce qui a décidé : run le plus long {dur} s à {kmh} km/h de moyenne, et la fréquence cardiaque n’a presque pas réagi ({hr} bpm).",
+            "Elemento decisivo: run più lungo {dur} s a {kmh} km/h di media, e la frequenza cardiaca non ha quasi reagito ({hr} bpm).",
+            "Lo decisivo: run más largo {dur} s a {kmh} km/h de media, y la frecuencia cardíaca apenas reaccionó ({hr} bpm)."),
+        // Fremdkraft-Kasten (Erkennung v2, abgetrennte Läufe) — Wortlaut wörtlich aus der PWA.
+        "v2.sepTitle": r(
+            "Ohne eigene Kraft unterwegs? Abgetrennte Läufe",
+            "Ohni eigeni Chraft ungerwägs? Abtrennti Läuf",
+            "Ohne eigene Kraft unterwegs? Abgetrennte Läufe",
+            "Powered ride? Runs set aside",
+            "Propulsion extérieure ? Runs mis de côté",
+            "Spinta esterna? Run messi da parte",
+            "¿Propulsión externa? Runs apartados"),
+        "v2.sepIntro": r(
+            "Diese Abschnitte sehen nach Fremdkraft aus — Boot, Auto oder Motor — und zählen deshalb nicht als Pumpfoil-Läufe. Falls das falsch ist: ein Tipp holt den Lauf zurück.",
+            "Die Abschnitt gsehnd nach Frömdchraft us — Boot, Auto oder Motor — und zelled drum nöd als Pumpfoil-Läuf. Wenn das falsch isch: ei Tipp holt de Lauf zrugg.",
+            "Diese Abschnitte sehen nach Fremdkraft aus — Boot, Auto oder Motor — und zählen deshalb nicht als Pumpfoil-Läufe. Falls das falsch ist: ein Tipp holt den Lauf zurück.",
+            "These stretches look like outside power — a boat, car or motor — so they don't count as pumpfoil runs. If that's wrong, one tap brings the run back.",
+            "Ces passages ressemblent à une propulsion extérieure — bateau, voiture ou moteur — et ne comptent donc pas comme runs de pumpfoil. Si c'est faux, un appui suffit pour récupérer le run.",
+            "Questi tratti sembrano spinta esterna — barca, auto o motore — e quindi non contano come run di pumpfoil. Se è sbagliato, un tocco riporta il run.",
+            "Estos tramos parecen propulsión externa — barco, coche o motor — y por eso no cuentan como runs de pumpfoil. Si es un error, un toque recupera el run."),
+        "v2.sepWhyPulse": r(
+            "{dur} s am Stück bei Ø {kmh} km/h, Puls-Antwort nur {hr} bpm",
+            "{dur} s am Stuck bi Ø {kmh} km/h, Puls-Antwort nume {hr} bpm",
+            "{dur} s am Stück bei Ø {kmh} km/h, Puls-Antwort nur {hr} bpm",
+            "{dur} s non-stop at {kmh} km/h average, heart-rate response only {hr} bpm",
+            "{dur} s d'affilée à {kmh} km/h de moyenne, réponse cardiaque de seulement {hr} bpm",
+            "{dur} s di fila a {kmh} km/h di media, risposta cardiaca di soli {hr} bpm",
+            "{dur} s seguidos a {kmh} km/h de media, respuesta cardíaca de solo {hr} bpm"),
+        "v2.sepWhy": r(
+            "{dur} s am Stück bei Ø {kmh} km/h",
+            "{dur} s am Stuck bi Ø {kmh} km/h",
+            "{dur} s am Stück bei Ø {kmh} km/h",
+            "{dur} s non-stop at {kmh} km/h average",
+            "{dur} s d'affilée à {kmh} km/h de moyenne",
+            "{dur} s di fila a {kmh} km/h di media",
+            "{dur} s seguidos a {kmh} km/h de media"),
+        "v2.keep": r(
+            "Zählt doch — zurückholen",
+            "Zellt doch — zrugghole",
+            "Zählt doch — zurückholen",
+            "It counts — bring it back",
+            "Ça compte — récupérer",
+            "Conta — riprendilo",
+            "Sí cuenta — recuperar"),
+        "v2.keptLabel": r(
+            "zurückgeholter Lauf",
+            "zrugggholte Lauf",
+            "zurückgeholter Lauf",
+            "restored run",
+            "run récupéré",
+            "run recuperato",
+            "run recuperado"),
+        "v2.unkeep": r(
+            "wieder abtrennen",
+            "wieder abtrenne",
+            "wieder abtrennen",
+            "set aside again",
+            "mettre de côté à nouveau",
+            "metti di nuovo da parte",
+            "apartar de nuevo"),
     ]
 
 

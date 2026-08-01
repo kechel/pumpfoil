@@ -587,6 +587,18 @@ private let _ptOverlayP10: [String: String] = [
     "calc.optimal": "Ideal",
     "calc.powerRow": "Potência de pump (W) por km/h",
     "calc.disclaimer": "Estimativa do modelo — aproximada, não medida. Melhor (menor) potência por coluna destacada.",
+    // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web pt.ts).
+    "cls.autoAsk": "Esta sessão não nos parece pumpfoil — por enquanto ela não conta em nenhuma estatística. Quer classificá-la corretamente? Se foi mesmo pumpfoil, basta escolher “Pumpfoil”.",
+    "cls.autoSetAs": "Classificada automaticamente como {sport}. Se não estiver certo, altere aqui.",
+    "cls.autoWhy": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média — um run de pumping dura 27 s em média.",
+    "cls.autoWhyPulse": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média, e a frequência cardíaca quase não reagiu ({hr} bpm).",
+    "v2.sepTitle": "Propulsão externa? Runs separados",
+    "v2.sepIntro": "Estes trechos parecem propulsão externa — barco, carro ou motor — e por isso não contam como runs de pumpfoil. Se estiver errado, um toque traz o run de volta.",
+    "v2.sepWhyPulse": "{dur} s seguidos a {kmh} km/h de média, resposta cardíaca de só {hr} bpm",
+    "v2.sepWhy": "{dur} s seguidos a {kmh} km/h de média",
+    "v2.keep": "Conta sim — recuperar",
+    "v2.keptLabel": "run recuperado",
+    "v2.unkeep": "separar de novo",
 ]
 
 
@@ -1172,6 +1184,18 @@ private let _jaOverlayP10: [String: String] = [
     "calc.optimal": "最適",
     "calc.powerRow": "km/hごとのポンプ出力(W)",
     "calc.disclaimer": "モデル推定値—おおよその値で、実測ではありません。列ごとに最良(最小)の出力をハイライトしています。",
+    // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web ja.ts).
+    "cls.autoAsk": "このセッションはパンプフォイルには見えません。そのため当面はどの統計にも入りません。正しく分類してもらえますか？ 本当にパンプフォイルだった場合は「Pumpfoil」を選んでください。",
+    "cls.autoSetAs": "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",
+    "cls.autoWhy": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
+    "cls.autoWhyPulse": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
+    "v2.sepTitle": "外部動力？ 除外されたラン",
+    "v2.sepIntro": "この区間はボート・車・モーターなどの外部動力に見えるため、パンプフォイルのランとして数えていません。違う場合はワンタップで戻せます。",
+    "v2.sepWhyPulse": "平均 {kmh} km/h で {dur} 秒連続、心拍反応はわずか {hr} bpm",
+    "v2.sepWhy": "平均 {kmh} km/h で {dur} 秒連続",
+    "v2.keep": "カウントする — 戻す",
+    "v2.keptLabel": "戻したラン",
+    "v2.unkeep": "再び除外する",
 ]
 
 
@@ -1757,6 +1781,18 @@ private let _zhOverlayP10: [String: String] = [
     "calc.optimal": "最佳",
     "calc.powerRow": "各 km/h 下的泵动功率（W）",
     "calc.disclaimer": "模型估算 — 为近似值，非实测。每列最佳（最低）功率已高亮。",
+    // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web zh.ts).
+    "cls.autoAsk": "这次记录在我们看来不像是 pumpfoil，因此暂时不计入任何统计。可以帮忙正确归类吗？如果确实是 pumpfoil，选择“Pumpfoil”即可。",
+    "cls.autoSetAs": "已自动归类为 {sport}。如果不对，在这里改即可。",
+    "cls.autoWhy": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h —— 泵动的一段平均只有 27 秒。",
+    "cls.autoWhyPulse": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h，而心率几乎没有反应（{hr} bpm）。",
+    "v2.sepTitle": "外部动力？已分离的段",
+    "v2.sepIntro": "这些片段看起来像外部动力 —— 船、车或马达 —— 因此不计为 pumpfoil 段。如果判断有误，点一下即可恢复。",
+    "v2.sepWhyPulse": "以平均 {kmh} km/h 连续 {dur} 秒，心率反应仅 {hr} bpm",
+    "v2.sepWhy": "以平均 {kmh} km/h 连续 {dur} 秒",
+    "v2.keep": "算数的 —— 恢复",
+    "v2.keptLabel": "已恢复的段",
+    "v2.unkeep": "重新分离",
 ]
 
 
@@ -2342,6 +2378,18 @@ private let _ruOverlayP10: [String: String] = [
     "calc.optimal": "Оптимум",
     "calc.powerRow": "Мощность пампа (Вт) на км/ч",
     "calc.disclaimer": "Оценка модели — приблизительная, не измеренная. Лучшая (наименьшая) мощность в столбце выделена.",
+    // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web ru.ts).
+    "cls.autoAsk": "Эта сессия не похожа на пампфойл — поэтому пока она не учитывается ни в одной статистике. Не хочешь отнести её к нужной категории? Если это всё же был пампфойл, просто выбери «Pumpfoil».",
+    "cls.autoSetAs": "Автоматически отнесено к категории {sport}. Если это неверно, просто измени здесь.",
+    "cls.autoWhy": "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч — заезд с пампингом длится в среднем 27 с.",
+    "cls.autoWhyPulse": "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч, а пульс почти не отреагировал ({hr} уд/мин).",
+    "v2.sepTitle": "Внешняя тяга? Отделённые заезды",
+    "v2.sepIntro": "Эти участки похожи на внешнюю тягу — лодка, машина или мотор — поэтому они не считаются заездами пампфойла. Если это ошибка, одно нажатие вернёт заезд.",
+    "v2.sepWhyPulse": "{dur} с подряд при средней {kmh} км/ч, реакция пульса всего {hr} уд/мин",
+    "v2.sepWhy": "{dur} с подряд при средней {kmh} км/ч",
+    "v2.keep": "Считается — вернуть",
+    "v2.keptLabel": "возвращённый заезд",
+    "v2.unkeep": "снова отделить",
 ]
 
 
@@ -2927,5 +2975,17 @@ private let _idOverlayP10: [String: String] = [
     "calc.optimal": "Optimal",
     "calc.powerRow": "Tenaga pump (W) per km/h",
     "calc.disclaimer": "Perkiraan model — kira-kira, bukan hasil ukur. Tenaga terbaik (terendah) per kolom disorot.",
+    // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web id.ts).
+    "cls.autoAsk": "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
+    "cls.autoSetAs": "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
+    "cls.autoWhy": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
+    "cls.autoWhyPulse": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
+    "v2.sepTitle": "Tenaga luar? Run yang dipisahkan",
+    "v2.sepIntro": "Bagian ini terlihat seperti tenaga luar — perahu, mobil, atau motor — jadi tidak dihitung sebagai run pumpfoil. Kalau keliru, satu ketukan mengembalikan run itu.",
+    "v2.sepWhyPulse": "{dur} dtk nonstop dengan rata-rata {kmh} km/h, respons detak jantung hanya {hr} bpm",
+    "v2.sepWhy": "{dur} dtk nonstop dengan rata-rata {kmh} km/h",
+    "v2.keep": "Tetap dihitung — kembalikan",
+    "v2.keptLabel": "run yang dikembalikan",
+    "v2.unkeep": "pisahkan lagi",
 ]
 

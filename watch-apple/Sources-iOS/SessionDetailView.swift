@@ -82,6 +82,12 @@ struct SessionDetailView: View {
         scheme == .dark ? Color(red: 0.992, green: 0.902, blue: 0.541) : Color(red: 0.573, green: 0.251, blue: 0.055)
     }
 
+    // Hinweisfarbe des Fremdkraft-Kastens — sky-700 hell / sky-300 dunkel, wie die PWA
+    // (Kasten dort sky statt amber: Vorschlag der Erkennung, keine Warnung). Beide Modi lesbar.
+    private var sky: Color {
+        scheme == .dark ? Color(red: 0.490, green: 0.827, blue: 0.988) : Color(red: 0.012, green: 0.412, blue: 0.631)
+    }
+
     // Der Body war EIN Ausdruck von 88 Zeilen (Toolbar mit vier Zweigen, zwei Dialoge mit Aktionen,
     // Poll-Task, drei Sheets) und stand mit >500 ms im Build-Log — Swifts Type-Checker loest einen
     // ViewBuilder als einen einzigen Ausdruck auf. Jeder Teil unten ist eigenstaendig typisiert;
@@ -1026,16 +1032,46 @@ struct SessionDetailView: View {
         await load()
     }
 
-    // Sportart-Klassifikation, Besitzer-Sicht (docs/sport-classification.md). Aufbau wie in der PWA:
-    // amber Kasten nur solange eine Bitte offen ist, darunter die zwei Auswahlfelder. Zurueck auf
-    // "Pumpfoil" geht NUR ueber den Widerspruch -- der Server lehnt das direkte Zuruecksetzen mit 409 ab.
+    // Sportart-Klassifikation, Besitzer-Sicht (docs/sport-classification.md). Aufbau wie in der PWA
+    // (ClassificationPanel): amber Kasten, solange eine Bitte offen ist ODER die Maschine geurteilt
+    // hat (sport_auto) — der Nutzer soll wissen, dass eine Maschine das war und dass er sie mit
+    // einem Tipp überstimmen kann. Zurueck auf "Pumpfoil" geht bei menschlichen Meldungen NUR ueber
+    // den Widerspruch -- der Server lehnt das direkte Zuruecksetzen mit 409 ab; beim reinen
+    // Maschinen-Urteil laesst der Server die direkte Wahl zu (kein Widerspruch noetig).
     // Bewusst in kleine Teil-Views zerlegt ([[ios-swift-typecheck-hang]]).
     // Nur der HINWEIS „bitte einordnen" (samt Widerspruch) bleibt oben — als Aufforderung waere er
     // unten wirkungslos.
     @ViewBuilder private func classificationNotice(_ s: SessionDetail) -> some View {
-        if s.needs_classification == true {
+        if s.needs_classification == true || s.sport_auto != nil {
             appealBox(s).padding(.vertical, 4)
         }
+    }
+
+    // Kopfzeile des Kastens: Maschinen-Urteil erklaeren (offen -> Bitte, sonst „eingeordnet als X"),
+    // ohne Maschinen-Urteil die allgemeine Besitzer-Bitte. Vorab gebauter String (Type-Checker).
+    private func classNoticeText(_ s: SessionDetail) -> String {
+        guard s.sport_auto != nil else { return Loc.t("cls.ownerAsk", lang) }
+        if s.needs_classification == true { return Loc.t("cls.autoAsk", lang) }
+        let sport: String = Loc.t("cls.sport.\(s.sport_class ?? "other")", lang)
+        return Loc.t("cls.autoSetAs", lang).replacingOccurrences(of: "{sport}", with: sport)
+    }
+
+    // Begruendungszeile aus den MESSWERTEN, lokalisiert IN DER APP gebaut — das Server-Feld `grund`
+    // ist deutscher Admin-Klartext und wird nie angezeigt (deshalb auch nicht dekodiert, Models.swift).
+    private func classWhyText(_ s: SessionDetail) -> String? {
+        guard let m = s.sport_auto?.merkmale else { return nil }
+        let dur: String = String(Int((m.laengster_lauf_s ?? 0).rounded()))
+        let kmh: String = String(format: "%.1f", m.tempo_median_kmh ?? 0)
+        if let hr = m.puls_antwort_bpm {
+            let hrTxt: String = (hr > 0 ? "+" : "") + String(Int(hr.rounded()))
+            return Loc.t("cls.autoWhyPulse", lang)
+                .replacingOccurrences(of: "{dur}", with: dur)
+                .replacingOccurrences(of: "{kmh}", with: kmh)
+                .replacingOccurrences(of: "{hr}", with: hrTxt)
+        }
+        return Loc.t("cls.autoWhy", lang)
+            .replacingOccurrences(of: "{dur}", with: dur)
+            .replacingOccurrences(of: "{kmh}", with: kmh)
     }
 
     // Die beiden ANPASSUNGEN (Sportart, Datenqualitaet) sitzen ganz unten: selten gebraucht, und das
@@ -1055,7 +1091,26 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func appealBox(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(Loc.t("cls.ownerAsk", lang)).font(.callout)
+            Text(classNoticeText(s)).font(.callout)
+            if let why = classWhyText(s) {
+                Text(why).font(.callout).foregroundStyle(.secondary)
+            }
+            // Zum Umstellen dieselben Auswahlfelder wie unten in der Aktionszeile (wie die PWA,
+            // die den Picker ebenfalls im Kasten UND unten zeigt).
+            classificationPickers(s)
+            appealControls(s)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // Widerspruch geht an den Admin und ist NUR noetig, wenn ein MENSCH gemeldet hat. Beim reinen
+    // Maschinen-Urteil (sport_auto ohne flag_count) waehlt der Besitzer einfach „Pumpfoil" — der
+    // Server laesst das direkt zu; der Umweg wuerde nur Jans Warteschlange fuellen (wie PWA).
+    @ViewBuilder private func appealControls(_ s: SessionDetail) -> some View {
+        if s.sport_auto == nil || (s.flag_count ?? 0) > 0 {
             if s.appeal_text != nil {
                 Text(Loc.t("cls.appealPending", lang)).font(.callout).fontWeight(.semibold)
             } else if appealOpen {
@@ -1075,10 +1130,6 @@ struct SessionDetailView: View {
                 Button(Loc.t("cls.wasPumpfoil", lang)) { appealOpen = true }
             }
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     @ViewBuilder private func classPicker(
@@ -1150,6 +1201,7 @@ struct SessionDetailView: View {
                 }
             }
             excludedSection(s)
+            poweredSection(s)
             excludeErrorRow
             if let segs = a.segments, !segs.isEmpty {
                 runsTable(segs, s)
@@ -1231,6 +1283,118 @@ struct SessionDetailView: View {
         f.dateFormat = "HH:mm:ss"
         f.timeZone = TimeFmt.zone(tz)
         return f.string(from: d)
+    }
+
+    // Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
+    // Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
+    // (Transparenz, warum die Zahlen so sind), Knöpfe nur beim Besitzer. Wie PWA (RunsTable).
+    @ViewBuilder private func poweredSection(_ s: SessionDetail) -> some View {
+        let runs: [PoweredRun] = s.analysis?.metrics?.fremdkraft_laeufe ?? []
+        let kept: [[Int]] = s.fremdkraft_keep ?? []
+        if !runs.isEmpty || !kept.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                poweredHeader
+                if !runs.isEmpty {
+                    Text(Loc.t("v2.sepIntro", lang)).font(.body).foregroundStyle(.secondary)
+                }
+                ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
+                    poweredRow(s, run: r)
+                }
+                ForEach(Array(kept.enumerated()), id: \.offset) { _, w in
+                    keptRow(s, window: w)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.blue.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private var poweredHeader: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "nosign").foregroundStyle(sky)
+            Text(Loc.t("v2.sepTitle", lang)).font(.body).bold().foregroundStyle(sky)
+        }
+    }
+
+    // Ein Vorschlag: Uhrzeit (Spot-Ortszeit) + lokalisierte Begründung, darunter der Rückhol-Knopf.
+    @ViewBuilder private func poweredRow(_ s: SessionDetail, run r: PoweredRun) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(poweredRowText(s, r)).font(.body)
+            if s.owned == true {
+                Button(Loc.t("v2.keep", lang)) {
+                    keepPoweredRun(startMs: r.t_start_ms ?? 0, endMs: r.t_end_ms ?? 0, keep: true)
+                }
+                .font(.body)
+                .buttonStyle(.borderedProminent)
+                .disabled(excludeBusy)
+            }
+        }
+    }
+
+    private func poweredRowText(_ s: SessionDetail, _ r: PoweredRun) -> String {
+        let clock: String = poweredClock(s, r.t_start_ms)
+        let why: String = poweredWhyText(r)
+        return clock + " · " + why
+    }
+
+    private func poweredClock(_ s: SessionDetail, _ ms: Int?) -> String {
+        guard let ms, let start = s.startedDate else { return "–" }
+        return hhmmss(start.addingTimeInterval(Double(ms) / 1000.0), s.tz)
+    }
+
+    // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext
+    // und wird nie angezeigt (wie PWA poweredWhy).
+    private func poweredWhyText(_ r: PoweredRun) -> String {
+        let dur: String = String(Int((r.dauer_s ?? 0).rounded()))
+        let kmh: String = String(format: "%.1f", r.kmh ?? 0)
+        if let hr = r.puls_antwort_bpm {
+            let hrTxt: String = (hr > 0 ? "+" : "") + String(Int(hr.rounded()))
+            return Loc.t("v2.sepWhyPulse", lang)
+                .replacingOccurrences(of: "{dur}", with: dur)
+                .replacingOccurrences(of: "{kmh}", with: kmh)
+                .replacingOccurrences(of: "{hr}", with: hrTxt)
+        }
+        return Loc.t("v2.sepWhy", lang)
+            .replacingOccurrences(of: "{dur}", with: dur)
+            .replacingOccurrences(of: "{kmh}", with: kmh)
+    }
+
+    // Zurückgeholtes Fenster: Uhrzeit + Länge + Label, daneben „wieder abtrennen" (nur Besitzer).
+    @ViewBuilder private func keptRow(_ s: SessionDetail, window w: [Int]) -> some View {
+        HStack(spacing: 10) {
+            Text(keptRowText(s, w)).font(.body).monospacedDigit()
+            Spacer()
+            if s.owned == true, w.count >= 2 {
+                Button(Loc.t("v2.unkeep", lang)) {
+                    keepPoweredRun(startMs: w[0], endMs: w[1], keep: false)
+                }
+                .font(.body)
+                .buttonStyle(.bordered)
+                .disabled(excludeBusy)
+            }
+        }
+    }
+
+    private func keptRowText(_ s: SessionDetail, _ w: [Int]) -> String {
+        // excludedRangeText liefert dasselbe Format „09:42:31 · 1:20" — gleiche Fenster-Basis.
+        excludedRangeText(s, w) + " · " + Loc.t("v2.keptLabel", lang)
+    }
+
+    // Zurückholen/wieder abtrennen: Antwort ist wie bei exclude/include die KOMPLETTE Session mit
+    // frischer Analyse -> direkt übernehmen (applyExcludeResult), gleiche Sperre/Fehleranzeige.
+    private func keepPoweredRun(startMs: Int, endMs: Int, keep: Bool) {
+        guard endMs > startMs else { return }
+        excludeBusy = true
+        Task {
+            do {
+                let fresh = try await Api.keepPoweredRun(sid, startMs: startMs, endMs: endMs, keep: keep)
+                await applyExcludeResult(fresh)
+            } catch {
+                await showExcludeError(error)
+            }
+        }
     }
 
     // Zusammenführung wieder auflösen (nur Besitzer, ganz am Ende).

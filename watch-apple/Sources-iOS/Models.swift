@@ -502,6 +502,36 @@ struct Metrics: Codable {
     let max_hr: Double?
     let farthest_segment_m: Double?
     let longest_segment_s: Double?
+    // Fremdkraft-Vorschläge der Erkennung v2 (Server: detect_v2._fremdkraft_laeufe) — abgetrennte
+    // Läufe mit Boot/Auto/Motor-Verdacht. Optional, damit alte Antworten weiter dekodieren.
+    let fremdkraft_laeufe: [PoweredRun]?
+}
+
+// Ein Fremdkraft-Vorschlag (analysis.metrics["fremdkraft_laeufe"]): langer Lauf ohne Puls-Antwort.
+// Das Server-Feld `grund` (deutscher Admin-Klartext) wird bewusst NICHT dekodiert — der
+// Anzeigetext wird lokalisiert aus den Messwerten gebaut (v2.sepWhy*), genau wie in der PWA.
+struct PoweredRun: Codable {
+    let t_start_ms: Int?
+    let t_end_ms: Int?
+    let dauer_s: Double?
+    let kmh: Double?
+    let puls_antwort_bpm: Double?
+}
+
+// Begründung der automatischen Sportart-Erkennung (Server: sessions._sport_auto, nur Besitzer und
+// nur solange sport_source == "auto" gilt). `grund` ist deutscher Admin-Klartext und wird deshalb
+// gar nicht erst dekodiert — der Warum-Text entsteht IN DER APP aus den Merkmalen (cls.autoWhy*).
+struct SportAuto: Codable {
+    let hinweis: String?           // auto.motor | auto.unklar
+    let merkmale: SportAutoMerkmale?
+}
+
+struct SportAutoMerkmale: Codable {
+    let laengster_lauf_s: Double?
+    let tempo_median_kmh: Double?
+    let spitze_kmh: Double?
+    let puls_antwort_bpm: Double?
+    let laeufe: Int?
 }
 
 // Kompakte Foil-Info (Server liefert ein dict mit u.a. brand/model/size) — alles optional,
@@ -541,6 +571,13 @@ struct SessionDetail: Codable, Identifiable {
     let data_quality: String?
     let needs_classification: Bool?
     let appeal_text: String?
+    // Woher die Klassifikation stammt: default | auto | owner | admin. "auto" = die Maschine hat
+    // geurteilt — dann erklärt sport_auto warum (nur Besitzer, nur solange das Urteil gilt).
+    let sport_source: String?
+    let sport_auto: SportAuto?
+    // Anzahl menschlicher „nicht Pumpfoil"-Meldungen (nur Besitzer; Melder bleiben anonym).
+    // 0 + sport_auto = reines Maschinen-Urteil -> Widerspruch unnötig (einfach Sportart wählen).
+    let flag_count: Int?
     let started_at: String
     let ended_at: String?
     let status: String
@@ -563,6 +600,9 @@ struct SessionDetail: Codable, Identifiable {
     // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start, gleiche Basis wie
     // trim_*). Optional, damit ältere Server-Antworten ohne das Feld weiter dekodieren.
     let excluded_ranges: [[Int]]?
+    // Zurückgeholte Fremdkraft-Läufe („zählt doch"), Zeitfenster in Session-ms. Die noch offenen
+    // VORSCHLÄGE stehen in analysis.metrics.fremdkraft_laeufe.
+    let fremdkraft_keep: [[Int]]?
     // Aktueller Zuschnitt (ms ab Session-Start), null = kein Zuschnitt. Nötig, damit die Regler im
     // Zuschnitt-Blatt den gespeicherten Bereich zeigen statt immer 0…Dauer — sonst schlägt
     // "Bereich aussortieren" ungezogen die GANZE Session vor.
