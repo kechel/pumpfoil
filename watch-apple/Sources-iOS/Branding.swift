@@ -1,7 +1,5 @@
 import SwiftUI
 
-// Markenlogo: drei cyan Wellen (identisch zu web/oauth-logo + Android logo_waves).
-// Als Path gezeichnet -> auflösungsunabhängig, kein Bild-Asset nötig.
 // Branded Splash beim App-Start — bewusst PIXELGLEICH mit dem System-Launchscreen
 // (project.yml UILaunchScreen: UIColorName LaunchBackground + UIImageName LaunchLogo, beide
 // zentriert in Originalgroesse). Der Splash verlaengert den Launchscreen nur, bis RootView
