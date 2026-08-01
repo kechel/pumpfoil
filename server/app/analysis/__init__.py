@@ -298,7 +298,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     if detector_v2_enabled():
         from .detect_v2 import analyze_session_v2
 
-        res = analyze_session_v2(session, **(_preset_kw or {}))
+        # Fremdkraft nur beurteilen, wo PUMPFOIL behauptet wird. Eine vom Menschen als Wingfoil/
+        # Efoil/Wake klassifizierte Session hat die Frage schon beantwortet — ihre Laeufe sind
+        # gueltige Laeufe IHRER Sportart und gehoeren in die eigenen Statistiken. Befund bei der
+        # v2-Einfuehrung: #1175 (owner-klassifiziert wingfoil) verlor sonst alle 4 Laeufe.
+        _judge = (session.sport_class or "pumpfoil") == "pumpfoil"
+        res = analyze_session_v2(session, judge_fremdkraft=_judge, **(_preset_kw or {}))
         res.pop("windows", None)
         res.pop("timebase", None)
         if detection == "none":

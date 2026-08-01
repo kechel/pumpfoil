@@ -338,7 +338,7 @@ def detect_v2(
     tb: TimeBase, gps_hz: int = 1,
     enter_speed: float = v1.ENTER_SPEED, exit_speed: float = v1.EXIT_SPEED,
     min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
-    use_model: bool = True, keep_windows: list | None = None,
+    use_model: bool = True, keep_windows: list | None = None, judge_fremdkraft: bool = True,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -434,8 +434,13 @@ def detect_v2(
     # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in
     # `_fremdkraft_laeufe`). Vorgeschlagen, nicht verhängt: die betroffenen Läufe verlassen die
     # Auswertung, stehen aber vollständig in `metrics["fremdkraft_laeufe"]` samt Messwerten.
-    segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon),
-                                                keep=keep_windows)
+    if judge_fremdkraft:
+        segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon),
+                                                    keep=keep_windows)
+    else:
+        # Session ist menschlich einer anderen Sportart zugeordnet -> Fremdkraft-Frage ist
+        # beantwortet, alle Laeufe zaehlen fuer IHRE Sportart.
+        fremd_laeufe = []
 
     mask = np.zeros(t_ms.size, dtype=bool)
     for seg in segments:
@@ -550,7 +555,8 @@ def _leeres_ergebnis(tb: TimeBase) -> dict:
 
 # --- Einstieg für die Analyse-Pipeline ---------------------------------------------------
 
-def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True, **preset) -> dict:
+def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True,
+                       judge_fremdkraft: bool = True, **preset) -> dict:
     """v2 für eine DB-Session: baut die Zeitachse selbst (Trim + Ausschluss inklusive) und
     liefert das Ergebnis im Format von `analyze_gps`.
 
@@ -571,7 +577,8 @@ def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True, **
                 keep.append((a, b))
     except (ValueError, TypeError, IndexError):
         keep = []
-    res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None, **preset)
+    res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None,
+                    judge_fremdkraft=judge_fremdkraft, **preset)
     for seg in res["segments"]:
         seg["t_start_session_ms"] = int(seg["t_start_ms"])
         seg["t_end_session_ms"] = int(seg["t_end_ms"])
