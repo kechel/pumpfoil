@@ -5,6 +5,11 @@ import { getDeviceInfo } from "@zos/device";
 import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN, GESTURE_LEFT, GESTURE_RIGHT,
          onKey, KEY_BACK, KEY_EVENT_CLICK, KEY_EVENT_LONG_PRESS } from "@zos/interaction";
 import { getConnectStatus } from "@zos/ble";
+// Els Feldtest (T-Rex 3, 01.08.): "App verlaesst sich waehrend der Aufnahme" — Zepp beendet
+// Mini-Apps beim Bildschirm-Aus, und wir haben den Gegen-Mechanismus nie aktiviert.
+// setWakeUpRelaunch(true) laesst das System beim Aufwachen UNSERE App wieder oeffnen statt
+// des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
+import { setWakeUpRelaunch } from "@zos/display";
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
@@ -116,6 +121,7 @@ const S = {
   "up.open":         ["offen", "offe", "offen", "pending", "en attente", "in sospeso", "pendientes", "pendente", "tertunda", "в очереди", "openstaand", "odottaa", "čeká"],
   "up.nothing":      ["Nichts offen", "Nüt offe", "Nichts offen", "Nothing pending", "Rien en attente", "Niente in sospeso", "Nada pendiente", "Nada pendente", "Tidak ada", "Очередь пуста", "Niets openstaand", "Ei odottavia", "Nic nečeká"],
   "up.waitConn":     ["Wartet auf Verbindung", "Wartet uf Verbindig", "Wartet auf Verbindung", "Waiting for connection", "Attente de connexion", "Attesa connessione", "Esperando conexión", "Aguardando conexão", "Menunggu koneksi", "Ожидание связи", "Wacht op verbinding", "Odottaa yhteyttä", "Čeká na spojení"],
+  "up.keepOpen":     ["App offen lassen!", "App offe lah!", "App offen lassen!", "keep the app open", "garde l'app ouverte", "tieni aperta l'app", "mantén la app abierta", "mantenha o app aberto", "biarkan aplikasi terbuka", "не закрывайте приложение", "houd de app open", "pidä sovellus auki", "nech aplikaci otevřenou", "アプリを開いたままに", "请保持应用打开"],
   "up.running":      ["Upload läuft…", "Upload lauft…", "Upload läuft…", "Uploading…", "Envoi…", "Caricamento…", "Subiendo…", "Enviando…", "Mengunggah…", "Загрузка…", "Uploaden…", "Lähetetään…", "Nahrávání…", "アップロード中…", "上传中…"],
   "up.done":         ["Upload fertig", "Upload fertig", "Upload fertig", "Upload done", "Upload terminé", "Upload completato", "Subida lista", "Envio concluído", "Unggah selesai", "Загрузка готова", "Upload klaar", "Lähetys valmis", "Nahrání hotovo", "アップロード完了", "上传完成"],
   "up.later":        ["später erneut", "spöter nomal", "später erneut", "retry later", "réessai plus tard", "riprova più tardi", "reintento más tarde", "tentar depois", "coba nanti", "повтор позже", "later opnieuw", "yritä myöhemmin", "zkusit později"],
@@ -367,7 +373,7 @@ Page(
               else if (!s.pollTimer) this.startPoll();
             }
             // Beim Verlassen der Verbindungs-Seite den Poll stoppen.
-            if (s.idlePage !== 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+            if (s.idlePage > 1 && s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
             return true;
           }
           return true;
@@ -386,11 +392,13 @@ Page(
       const lp = store.getItem("layoutsPref", "");
       s.layoutsPref = lp === "1" ? true : (lp === "0" ? false : null);
       // Local-first: App startet ganz normal auf dem START-Screen (auch ungepaart aufnehmbar).
-      // Ungepaart weist der Screen nur auf ›Verbinden‹ hin; der Code erzeugt sich automatisch,
-      // sobald man tatsächlich zur Verbindungs-Seite wischt (siehe Gesten-Handler).
+      // Ungepaart wird der Pairing-Code SOFORT erzeugt und direkt auf dem Start-Screen gezeigt
+      // (Els Feldtest: der Code auf Seite 2/4 war nicht auffindbar). Der Poll laeuft auf den
+      // Seiten 1+2, solange nicht aufgenommen wird.
       this.applyButton();
       this.renderIdle();
       this.connect();
+      if (!getTok() && bleOk()) this.beginPairing();
     },
 
     // ---- Verbindung / Pairing (Hintergrund) ----
@@ -454,7 +462,7 @@ Page(
       if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
       const tick = () => {
         // Nur pollen, solange die Verbindungs-Seite offen ist (nicht gepairt, keine Aufnahme).
-        if (s.paired || s.recording || s.idlePage !== 1) { s.pollTimer = null; return; }
+        if (s.paired || s.recording || s.idlePage > 1) { s.pollTimer = null; return; }
         this.reqQ({ method: "PAIR_POLL", claimToken: getClaim() }).then((r) => {
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
@@ -559,9 +567,14 @@ Page(
         // Der Alarm-Hinweis war ein Glocken-Emoji — Standard-Emojis sind in der UI verboten
         // (Projektregel), also das lokalisierte Wort. "→ Verbinden" statt "wische weiter":
         // der Pfeil braucht keine Uebersetzung.
-        const hint = (bleOk() && !getTok())
-          ? t("up.notLinked") + " · → " + t("menu.connect")
-          : (s.upStatus || gps) + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn;
+        // Ungepairt steht der CODE direkt hier (kein Suchen mehr); solange er noch vom Server
+        // kommt, der bisherige Verweis. Und: warten Aufnahmen, steht deren Zahl immer dabei —
+        // die Session "fehlt" sonst aus Nutzersicht kommentarlos (drittes Support-Muster).
+        const pend = loadPending().length;
+        const hint = ((bleOk() && !getTok())
+          ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
+          : (s.upStatus || gps) + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
+          + (pend ? " · " + pend + " " + t("up.open") : "");
         w.status.setProperty(hmUI.prop.TEXT, hint);
       } else if (s.idlePage === 3) {
         this.hideBig();
@@ -1061,6 +1074,9 @@ Page(
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
+      // Ueberleben bei Bildschirm-Aus: beim Aufwachen wieder DIESE App oeffnen. In try/catch wie
+      // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
+      try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
       this._resetRun();   // Lauf-Zähler/-Kennzahlen gehören zur Session (wie Garmin/Wear)
       this.persistActive();
       this.hideBar();
@@ -1073,7 +1089,7 @@ Page(
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
-        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0%";
+        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
         const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice(), foilId: s.foilId }); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
@@ -1084,7 +1100,7 @@ Page(
         this.applyButton(); this.renderIdle();
       }
     },
-    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this.hideBar(); this.applyButton(); this.renderIdle(); },
+    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
     repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
@@ -1116,7 +1132,7 @@ Page(
       const list = loadPending();
       if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
       if (!list.length) { if (inSummary) { s.upStatus = t("up.done") + " ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
-      const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "%"; if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
+      const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "% · " + t("up.keepOpen"); if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
         if (i >= list.length) { s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return; }
         const sess = list[i];

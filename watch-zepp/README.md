@@ -171,6 +171,23 @@ die 6 Geräte oben voraus, Balance 2 müsste Amazfit erst nachziehen).
   (Datei) umstellen — LocalStorage-Größe ist begrenzt.
 - Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.
 
+## Feldtest-Fixes (fuer 1.0.4, 2026-08-01 — auf Hardware ungetestet)
+
+Anlass: erster echter Feldtest (T-Rex 3, Nutzer-Meldung per DM, 01.08.). Drei Aenderungen:
+
+1. **Pairing-Code direkt auf dem Start-Screen.** Der Code entstand erst beim Wischen auf Seite 2/4
+   — der Tester fand ihn nicht. Jetzt: ungepairt wird der Code beim App-Start erzeugt und in der
+   Statuszeile von Seite 1 angezeigt (`CODE → pumpfoil.org`); der Poll laeuft auf Seite 1+2.
+2. **Bildschirm-Aus ueberleben:** `setWakeUpRelaunch({relaunch:true})` bei Aufnahme-Start (aus bei
+   `done()`). Der Tester kam zum Steg zurueck und die Uhr zeigte das Zifferblatt — Zepp beendet
+   Mini-Apps beim Display-Aus, und wir hatten den Gegen-Mechanismus nie aktiviert. Mit Relaunch
+   oeffnet das Aufwachen wieder unsere App; `recoverActive()` sichert die Aufnahme in die Queue.
+   ACHTUNG: ob der Langzeit-GPS-Betrieb damit durchlaeuft, kann nur Hardware zeigen (Balance 2).
+3. **Vordergrund-Upload sichtbar gemacht:** Der Upload-Status sagt jetzt „… · App offen lassen!"
+   (Schluessel `up.keepOpen`), und auf dem Start-Screen steht dauerhaft `· N offen`, solange
+   Aufnahmen auf die Uebertragung warten — dieselbe Produktluecke wie bei Garmin/Apple (drei
+   Support-Faelle: Session „fehlt", lag aber nur auf der Uhr).
+
 ## Tastenbedienung (1.0.3, 2026-07-27)
 
 Anlass: Nutzer-Meldung per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
