@@ -13,7 +13,23 @@ import urllib.request
 
 from .config import get_settings
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# Mehrere Overpass-Instanzen, der Reihe nach. Grund: die Haupt-Instanz weist uns seit unbekannter
+# Zeit ab (01.08.2026 gemessen: overpass-api.de IPv4 -> Connection refused, sehr wahrscheinlich
+# unsere IP gesperrt, weil pro Session angefragt wurde). Folge war, dass Wasserflaechen UND
+# Ufer-Namen gar nicht mehr ankamen — unbemerkt, weil der Aufrufer bei None einfach weitermacht.
+# kumi.systems antwortet normal. Reihenfolge = Vorliebe; bei Erfolg wird die Instanz gemerkt,
+# damit nicht jeder Abruf erneut in den gesperrten Host laeuft.
+# (URL, global?) — REGIONALE Instanzen sind gefaehrlich: overpass.osm.ch antwortet fuer Frankreich
+# brav mit "nichts gefunden" statt mit einem Fehler. Ein leeres Ergebnis von dort ist deshalb KEIN
+# Beweis, dass es kein Wasser gibt (siehe _overpass_empty_is_truth).
+OVERPASS_URLS = [
+    ("https://overpass.kumi.systems/api/interpreter", True),
+    ("https://overpass-api.de/api/interpreter", True),
+    ("https://overpass.private.coffee/api/interpreter", True),
+    ("https://overpass.osm.ch/api/interpreter", False),   # nur Schweiz + Grenzregion
+]
+OVERPASS_URL = OVERPASS_URLS[0][0]   # Rueckwaertskompatibel (falls jemand direkt darauf zeigt)
+_last_good: str | None = None
 
 # Land-Features, nach denen man einen Launch-Spot benennt (konservative Whitelist —
 # nur eindeutige „Venue"-artige Tags, KEINE Restaurants/Schulen/Regionen).
@@ -35,19 +51,32 @@ def _ua() -> str:
     return get_settings().osm_user_agent
 
 
-def _overpass(q: str, timeout: float, tries: int = 3):
-    """Overpass-Request mit Retry/Backoff (die API ist flaky). -> payload | None."""
+def _overpass(q: str, timeout: float, tries: int = 2):
+    """Overpass-Request ueber mehrere Instanzen mit Retry/Backoff. -> payload | None.
+    Die zuletzt erfolgreiche Instanz wird bevorzugt (siehe OVERPASS_URLS)."""
     import time
-    for attempt in range(tries):
-        try:
-            data = urllib.parse.urlencode({"data": q}).encode()
-            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.loads(resp.read().decode())
-        except Exception:  # noqa: BLE001
-            if attempt < tries - 1:
-                time.sleep(2 * (attempt + 1))
+    global _last_good
+    urls = list(OVERPASS_URLS)
+    if _last_good:                              # zuletzt erfolgreiche zuerst
+        urls.sort(key=lambda u: u[0] != _last_good)
+    data = urllib.parse.urlencode({"data": q}).encode()
+    for url, ist_global in urls:
+        for attempt in range(tries):
+            try:
+                req = urllib.request.Request(url, data=data, headers={"User-Agent": _ua()})
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    payload = json.loads(resp.read().decode())
+                _last_good = url
+                payload["_global"] = ist_global   # der Aufrufer muss ein leeres Ergebnis einordnen
+                return payload
+            except Exception:  # noqa: BLE001
+                if attempt < tries - 1:
+                    time.sleep(2 * (attempt + 1))
     return None
+
+
+class OverpassUnavailable(RuntimeError):
+    """Abruf fehlgeschlagen (Netz/Instanz) — NICHT „kein Wasser gefunden"."""
 
 
 def lookup_water_rings(lat: float, lon: float, timeout: float = 12.0) -> list | None:
@@ -59,15 +88,16 @@ def lookup_water_rings(lat: float, lon: float, timeout: float = 12.0) -> list | 
             f'way(around:{radius},{lat},{lon})["natural"="water"];'
             ");out geom;"
         )
-        try:
-            data = urllib.parse.urlencode({"data": q}).encode()
-            req = urllib.request.Request(OVERPASS_URL, data=data, headers={"User-Agent": _ua()})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                payload = json.loads(resp.read().decode())
-        except Exception:  # noqa: BLE001
-            return None
+        payload = _overpass(q, timeout)
+        if payload is None:
+            # Unterschied zu „nichts gefunden" ist wichtig: der Aufrufer darf einen FEHLSCHLAG
+            # nicht als „hier ist kein Wasser" in den Cache schreiben (siehe _water_rings_cached).
+            raise OverpassUnavailable("Overpass nicht erreichbar")
         ways = [e for e in payload.get("elements", []) if e.get("type") == "way" and e.get("geometry")]
         if not ways:
+            if not payload.get("_global", True):
+                # Regionale Instanz kennt die Gegend evtl. gar nicht -> kein Beweis fuer "kein Wasser"
+                raise OverpassUnavailable("nur regionale Instanz erreichbar, Ergebnis nicht belastbar")
             continue
         # größten Ring (meiste Punkte) nehmen — der See, nicht ein kleiner Tümpel.
         ways.sort(key=lambda w: len(w["geometry"]), reverse=True)

@@ -122,7 +122,7 @@ def upload_chunk(
     elif body.kind == "accel":
         if not isinstance(body.data, str):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "accel data must be base64 string")
-        n = storage.save_accel_chunk(session_uuid, body.index, body.data)
+        n = storage.save_accel_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
     else:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"unknown kind {body.kind!r}")
 

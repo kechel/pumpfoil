@@ -51,10 +51,19 @@ def save_gps_chunk(session_uuid: str, index: int, data: list) -> int:
     return len(data)
 
 
-def save_accel_chunk(session_uuid: str, index: int, b64: str) -> int:
+def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None) -> int:
     d = ensure_session_dir(session_uuid)
     raw = base64.b64decode(b64)
     (d / "accel" / f"{index}.bin").write_bytes(raw)
+    # Startzeit des Chunks mitschreiben, wenn die Uhr sie liefert. Wear und Apple Watch schicken
+    # t0_ms seit immer mit, der Server hat es bis 2026-08-01 weggeworfen — und die Analyse musste
+    # die Zeitachse aus samples/Dauer RATEN. Das geht schief, sobald die echte Sensorrate von der
+    # angekuendigten abweicht: bei #1328 (getaggt 25, aus den Daten 23,57 Hz) waeren das 6 Minuten
+    # Versatz bei Minute 100 — und es ist nicht entscheidbar, welche der beiden Raten stimmt.
+    # Mit den echten Chunk-Startzeiten ist die Zuordnung exakt statt geschaetzt.
+    # Sidecar statt Dateiname, damit alte Sessions unveraendert lesbar bleiben.
+    if t0_ms is not None:
+        (d / "accel" / f"{index}.t0").write_text(str(int(t0_ms)))
     # int16, 3 Achsen pro Sample
     return len(raw) // 2 // 3
 
@@ -64,6 +73,22 @@ def save_accel_raw(session_uuid: str, index: int, raw: bytes) -> int:
     d = ensure_session_dir(session_uuid)
     (d / "accel" / f"{index}.bin").write_bytes(raw)
     return len(raw) // 2 // 3
+
+
+def load_accel_t0(session_uuid: str) -> dict[int, int]:
+    """Chunk-Index -> Startzeit in ms, soweit die Uhr sie mitgeschickt hat (leer bei Altbestand
+    und bei Garmin, das t0_ms bisher nicht sendet). Grundlage fuer eine EXAKTE Accel-Zeitachse
+    statt der geschaetzten Rate — siehe Kommentar in save_accel_chunk."""
+    d = session_dir(session_uuid) / "accel"
+    if not d.exists():
+        return {}
+    out: dict[int, int] = {}
+    for f in d.glob("*.t0"):
+        try:
+            out[int(f.stem)] = int(f.read_text().strip())
+        except (ValueError, OSError):
+            continue
+    return out
 
 
 def save_foil_status(session_uuid: str, foil_status: list) -> None:

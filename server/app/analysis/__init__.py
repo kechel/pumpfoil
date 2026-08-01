@@ -62,9 +62,16 @@ def _water_rings_cached(db: DbSession, gps_samples: list):
     row = db.query(models.WaterPolygon).filter_by(grid_key=key).first()
     if row is not None:
         return json.loads(row.rings_json) if row.rings_json else None
-    from ..places import lookup_water_rings
+    from ..places import OverpassUnavailable, lookup_water_rings
 
-    rings = lookup_water_rings(lat, lon)
+    try:
+        rings = lookup_water_rings(lat, lon)
+    except OverpassUnavailable:
+        # NICHT cachen: ein fehlgeschlagener Abruf ist keine Aussage ueber Wasser. Bis 01.08.2026
+        # wurde er als rings_json="" gespeichert und hiess damit fuer immer „hier ist kein Wasser" —
+        # bei gesperrter Overpass-Instanz hat sich so jede Stoerung dauerhaft eingebrannt
+        # (Cache-Stand damals: 384 von 443 Eintraegen als „kein Wasser").
+        return None
     db.add(models.WaterPolygon(grid_key=key, rings_json=json.dumps(rings) if rings else ""))
     db.commit()
     return rings
