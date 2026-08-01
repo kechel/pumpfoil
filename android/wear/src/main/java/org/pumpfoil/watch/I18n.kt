@@ -101,6 +101,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.waitConn" to row("wartet auf Verbindung", "wartet uf Verbindig", "wartet auf Verbindung", "waiting for connection", "attente de connexion", "attesa connessione", "esperando conexión"),
     "rec.willResume" to row("wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"),
     "rec.uploading" to row("lädt hoch", "ladt ufe", "lädt hoch", "uploading", "envoi", "caricamento", "subiendo"),
+    "rec.keepOpen" to row("App offen lassen!", "App offe lah!", "App offen lassen!", "keep app open!", "garde l'app ouverte !", "tieni aperta l'app!", "¡mantén la app abierta!"),
     "rec.serverErr" to row("Server-Fehler – später erneut", "Server-Fähler – spöter nomal", "Server-Fehler – später erneut", "Server error – retry later", "Erreur serveur – réessai", "Errore server – riprova", "Error de servidor – reintento"),
     "rec.authErr" to row("Verbindung ungültig – neu verbinden", "Verbindig ungültig – neu verbinde", "Verbindung ungültig – neu verbinden", "Link invalid – reconnect", "Lien invalide – reconnecter", "Collegamento non valido – ricollega", "Vínculo no válido – reconectar"),
     "rec.repair" to row("Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar"),
@@ -176,6 +177,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
+    "rec.keepOpen" to "mantenha o app aberto!",
     "menu.layouts" to "Layouts próprios",
     "common.auto" to "Automático",
     "lay.none" to "sem páginas",
@@ -260,6 +262,7 @@ private val PT: Map<String, String> = mapOf(
     "f.lastRunMax" to "último máx",
 )
 private val JA: Map<String, String> = mapOf(
+    "rec.keepOpen" to "アプリを開いたままに",
     "pair.title" to "ウォッチを接続",
     "pair.howto" to "ペアリングコードを生成し、pumpfoil.org(アカウント)で入力してください。",
     "pair.gen" to "コードを生成",
@@ -340,6 +343,7 @@ private val JA: Map<String, String> = mapOf(
     "f.lastRunMax" to "前回の最大",
 )
 private val ZH: Map<String, String> = mapOf(
+    "rec.keepOpen" to "请保持应用打开",
     "pair.title" to "连接手表",
     "pair.howto" to "生成配对代码并在 pumpfoil.org(账户)中输入。",
     "pair.gen" to "生成代码",
@@ -420,6 +424,7 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunMax" to "上次最高",
 )
 private val RU: Map<String, String> = mapOf(
+    "rec.keepOpen" to "не закрывайте приложение!",
     "menu.layouts" to "Свои макеты",
     "common.auto" to "Авто",
     "lay.none" to "нет страниц",
@@ -504,6 +509,7 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunMax" to "посл макс",
 )
 private val ID: Map<String, String> = mapOf(
+    "rec.keepOpen" to "biarkan aplikasi terbuka!",
     "menu.layouts" to "Tata letak sendiri",
     "common.auto" to "Otomatis",
     "lay.none" to "tidak ada",

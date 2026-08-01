@@ -631,6 +631,12 @@ class MainActivity : ComponentActivity() {
                             Text(I18n.t("rec.uploading") + prog,
                                 style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
                         }
+                        // Der Upload laeuft im App-Prozess: verlaesst der Nutzer die App, pausiert
+                        // er bis zum naechsten Oeffnen. Drei Support-Faelle ("Session fehlt", kam
+                        // Stunden spaeter) hatten genau diese Wissensluecke -> deutlich sagen.
+                        Text(I18n.t("rec.keepOpen"),
+                            style = MaterialTheme.typography.caption2,
+                            color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
                     } else if (s.uploadError == "offline" || !Api.isOnline(ctx)) {
                         Text(I18n.t("rec.waitConn"),
                             style = MaterialTheme.typography.caption2,
