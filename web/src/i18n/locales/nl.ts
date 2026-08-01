@@ -1243,6 +1243,10 @@ const nl: Record<string, string> = {
   "fw.18": "km/h gem laatst",
   "fw.19": "km/h max laatst",
   "fw.20": "Runs",
+  "cls.autoAsk": "Deze sessie lijkt ons geen pumpfoilen — daarom telt hij voorlopig in geen enkele statistiek mee. Wil je hem juist indelen? Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
+  "cls.autoSetAs": "Automatisch ingedeeld als {sport}. Klopt dat niet, verander het hier.",
+  "cls.autoWhy": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h — een pumping-run duurt gemiddeld 27 s.",
+  "cls.autoWhyPulse": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h, en de hartslag reageerde nauwelijks ({hr} bpm).",
 };
 
 export default nl;

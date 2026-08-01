@@ -194,8 +194,21 @@ export interface SessionSummary {
   // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
   sport_class?: string | null;          // pumpfoil (Default) | wingfoil | foildrive | …
   data_quality?: string | null;        // ok | false_data | duplicate | test
-  sport_source?: string | null;        // default | owner | admin
+  sport_source?: string | null;        // default | auto | owner | admin
   needs_classification?: boolean;      // 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
+  // Begründung der automatischen Erkennung (nur Besitzer/Admin, nur solange sie gilt). Der Text
+  // wird HIER gebaut, nicht am Server: der Server schickt die Messwerte, die Sprache macht die App.
+  sport_auto?: {
+    hinweis?: string;                  // auto.motor | auto.unklar
+    grund?: string;                    // Klartext (deutsch) — nur für Admin/Support, nicht für die UI
+    merkmale?: {
+      laengster_lauf_s?: number;
+      tempo_median_kmh?: number;
+      spitze_kmh?: number;
+      puls_antwort_bpm?: number | null;
+      laeufe?: number;
+    };
+  } | null;
   flag_count?: number;                 // nur Besitzer/Admin (Melder bleiben anonym)
   appeal_text?: string | null;         // eigener Widerspruch
   merged_count?: number;   // >0 = zusammengeführt (auflösbar)

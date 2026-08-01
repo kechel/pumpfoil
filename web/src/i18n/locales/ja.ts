@@ -1160,6 +1160,10 @@ const ja: Record<string, string> = {
   "imp.ytNote": "提供元：Google Ireland Ltd. 詳細は <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google のプライバシーポリシー</a> をご覧ください。",
   "imp.ytTitle": "埋め込まれた YouTube 動画",
   "metric.metersPerPump": "メートル / ポンプ",
+  "cls.autoAsk": "このセッションはパンプフォイルには見えません。そのため当面はどの統計にも入りません。正しく分類してもらえますか？ 本当にパンプフォイルだった場合は「Pumpfoil」を選んでください。",
+  "cls.autoSetAs": "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",
+  "cls.autoWhy": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
+  "cls.autoWhyPulse": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
 };
 
 export default ja;

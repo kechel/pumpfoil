@@ -1001,6 +1001,10 @@ const deAT: Record<string, string> = {
   "fw.18": "km/h Ø letzt.",
   "fw.19": "km/h max letzt.",
   "fw.20": "Läufe",
+  "cls.autoAsk": "Diese Session sieht für uns nicht nach Pumpfoiling aus — deshalb zählt sie vorerst in keiner Auswertung mit. Magst du sie richtig zuordnen? War es doch Pumpfoiling, wähl einfach „Pumpfoil“.",
+  "cls.autoSetAs": "Automatisch eingeordnet als {sport}. Stimmt das nicht, änder es einfach hier.",
+  "cls.autoWhy": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h — beim Pumpen dauert ein Lauf im Mittel 27 s.",
+  "cls.autoWhyPulse": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls hat kaum reagiert ({hr} bpm).",
 };
 
 export default deAT

@@ -1208,6 +1208,10 @@ const fi: Record<string, string> = {
   "fw.18": "km/h ka viim",
   "fw.19": "km/h maks viim",
   "fw.20": "Vedot",
+  "cls.autoAsk": "Tämä sessio ei näytä meistä pumpfoilaukselta — siksi se ei toistaiseksi näy missään tilastossa. Haluatko luokitella sen oikein? Jos se sittenkin oli pumpfoilausta, valitse vain „Pumpfoil“.",
+  "cls.autoSetAs": "Luokiteltu automaattisesti: {sport}. Jos se ei pidä paikkaansa, vaihda se tästä.",
+  "cls.autoWhy": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h — pumppausveto kestää keskimäärin 27 s.",
+  "cls.autoWhyPulse": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h, eikä syke juuri reagoinut ({hr} bpm).",
 };
 
 export default fi;

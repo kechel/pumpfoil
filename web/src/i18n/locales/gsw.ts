@@ -1017,6 +1017,10 @@ const gsw: Record<string, string> = {
   "fw.18": "km/h Ø letscht.",
   "fw.19": "km/h max letscht.",
   "fw.20": "Läuf",
+  "cls.autoAsk": "Die Session gseht für üs nöd nach Pumpfoile us — drum zellt si vorerst i kener Uswertig mit. Magsch si richtig zuordne? Wenn s doch Pumpfoile gsi isch, nimm eifach „Pumpfoil“.",
+  "cls.autoSetAs": "Automatisch iigordnet als {sport}. Wenn das nöd stimmt, änder s eifach da.",
+  "cls.autoWhy": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h — bim Pumpe duuret en Lauf im Schnitt 27 s.",
+  "cls.autoWhyPulse": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h, und de Puls het chuum reagiert ({hr} bpm).",
 };
 
 export default gsw

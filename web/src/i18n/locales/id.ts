@@ -1186,6 +1186,10 @@ const id: Record<string, string> = {
   "fw.18": "km/h rata akhir",
   "fw.19": "km/h maks akhir",
   "fw.20": "Run",
+  "cls.autoAsk": "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
+  "cls.autoSetAs": "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
+  "cls.autoWhy": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
+  "cls.autoWhyPulse": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
 };
 
 export default id;

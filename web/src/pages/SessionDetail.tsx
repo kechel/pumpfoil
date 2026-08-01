@@ -2123,13 +2123,37 @@ function ClassificationPanel({ session, owned, onChange }: {
     </div>
   );
 
-  // Nichts offen -> kein Kasten. Die Kategorie ändert man in der Aktionszeile (ClassPickers).
-  if (!needs) return null;
+  // Hat die automatische Erkennung geurteilt (docs/sport-classification.md, Stufe 1b), erklären wir
+  // das hier — auch dann, wenn sie eine Sportart gesetzt hat und nichts mehr „offen" ist. Der Nutzer
+  // soll wissen, dass eine Maschine das war und dass er sie mit einem Klick überstimmen kann.
+  const auto = session.sport_auto || null;
+  const m = auto?.merkmale;
+  const warum = !m ? null
+    : m.puls_antwort_bpm != null
+      ? t("cls.autoWhyPulse", { dur: Math.round(m.laengster_lauf_s ?? 0),
+                                kmh: (m.tempo_median_kmh ?? 0).toFixed(1),
+                                hr: (m.puls_antwort_bpm > 0 ? "+" : "") + Math.round(m.puls_antwort_bpm) })
+      : t("cls.autoWhy", { dur: Math.round(m.laengster_lauf_s ?? 0),
+                           kmh: (m.tempo_median_kmh ?? 0).toFixed(1) });
+
+  // Nichts offen und kein Maschinen-Urteil -> kein Kasten. Die Kategorie ändert man dann in der
+  // Aktionszeile (ClassPickers).
+  if (!needs && !auto) return null;
   return (
     <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 p-3">
-      <p className="mb-2 text-sm text-amber-800 dark:text-amber-200">{t("cls.ownerAsk")}</p>
+      <p className="mb-2 text-amber-800 dark:text-amber-200">
+        {auto
+          ? (needs ? t("cls.autoAsk")
+                   : t("cls.autoSetAs", { sport: t(`cls.sport.${session.sport_class ?? "other"}`) }))
+          : t("cls.ownerAsk")}
+      </p>
+      {warum && <p className="mb-2 text-amber-800/80 dark:text-amber-200/80">{warum}</p>}
       {picker}
-      <div className="mt-2">
+      {/* Widerspruch geht an den Admin und ist NUR nötig, wenn ein Mensch gemeldet hat. Beim reinen
+          Maschinen-Urteil wählt der Besitzer einfach „Pumpfoil" — der Server laesst das seit heute
+          direkt zu (sessions.set_classification). Den Umweg hier trotzdem anzubieten wuerde Jans
+          Warteschlange mit Faellen fuellen, die niemand entscheiden muss. */}
+      <div className="mt-2" hidden={!!auto && (session.flag_count ?? 0) === 0}>
         {appealOpen ? (
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={appealText} onChange={(e) => setAppealText(e.target.value)}

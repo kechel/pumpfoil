@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 1, 2026",
+    items: [
+      "New sessions are now checked automatically for whether they look like pumpfoiling at all. If one doesn’t, you get a friendly note asking you to file it correctly, and until you do it stays out of every ranking — yours and everyone else’s. Where the evidence is clear the sport is filled in for you (a motor leaves an unmistakable trace: ten minutes at a steady speed while your heart rate goes down); where it isn’t, nothing is claimed and the session simply waits for your answer. You can always overrule it in one click, and the note tells you exactly which numbers led to it. The check is deliberately shy: it only speaks up for runs longer than four minutes where the effort doesn’t show, because a pumping run lasts 27 seconds on average across 5658 recorded runs.",
+      "The same check was applied to older sessions once: 39 of 827 were marked, and the community records lost several entries that were wing or transport rides — the longest genuine pumpfoil run, 42 minutes, is untouched at the top.",
+      "Connecting a watch: the help text described the Garmin way only (“hold MENU”), for all four watch brands. On an Amazfit there is neither that button nor that menu — you swipe left from the start screen instead — and on Wear OS and Apple Watch the pairing screen appears by itself. All four are now described, in every language.",
+    ],
+  },
+  {
     date: "July 31, 2026",
     items: [
       "If you added the site to your iPhone home screen, the login button at the top right is reachable again. In that mode iOS lays its translucent status bar over the top of the page, and the button sat underneath it — the only way in was to scroll all the way down to the second login button. Thanks to the rider who reported it. Same fix on the imprint, the changelog and the login screen.",

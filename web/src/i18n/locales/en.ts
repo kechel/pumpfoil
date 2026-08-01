@@ -1444,6 +1444,10 @@ const en: Record<string, string> = {
   "account.layoutState.off_nolayout": "You haven’t added a custom layout as a page yet — create one under “Watch layouts” and put it into your views.",
   "account.layoutCanary": "This watch reported a crash with a custom layout ({n}\u00d7) \u2014 it shows the classic views for now. Your other watches are unaffected.",
   "account.layoutCanaryReset": "Try again",
+  "cls.autoAsk": "This session doesn’t look like pumpfoiling to us — so for now it won’t count in any stats. Could you classify it? If it really was pumpfoiling, just pick “Pumpfoil”.",
+  "cls.autoSetAs": "Automatically classified as {sport}. If that’s wrong, just change it here.",
+  "cls.autoWhy": "What decided it: longest run {dur} s at {kmh} km/h on average — a pumping run lasts 27 s on average.",
+  "cls.autoWhyPulse": "What decided it: longest run {dur} s at {kmh} km/h on average, and your heart rate barely responded ({hr} bpm).",
 };
 
 export default en;

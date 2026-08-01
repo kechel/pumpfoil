@@ -1163,6 +1163,10 @@ const zh: Record<string, string> = {
   "imp.ytNote": "提供方：Google Ireland Ltd。详见 <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google 的隐私政策</a>。",
   "imp.ytTitle": "嵌入的 YouTube 视频",
   "metric.metersPerPump": "米 / 泵动",
+  "cls.autoAsk": "这次记录在我们看来不像是 pumpfoil，因此暂时不计入任何统计。可以帮忙正确归类吗？如果确实是 pumpfoil，选择“Pumpfoil”即可。",
+  "cls.autoSetAs": "已自动归类为 {sport}。如果不对，在这里改即可。",
+  "cls.autoWhy": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h —— 泵动的一段平均只有 27 秒。",
+  "cls.autoWhyPulse": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h，而心率几乎没有反应（{hr} bpm）。",
 };
 
 export default zh;

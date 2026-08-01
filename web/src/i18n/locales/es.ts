@@ -1017,6 +1017,10 @@ const es: Record<string, string> = {
   "fw.18": "km/h med últ.",
   "fw.19": "km/h máx últ.",
   "fw.20": "Tramos",
+  "cls.autoAsk": "Esta sesión no nos parece pumpfoil — por ahora no cuenta en ninguna estadística. ¿Quieres clasificarla correctamente? Si de verdad fue pumpfoil, elige simplemente « Pumpfoil ».",
+  "cls.autoSetAs": "Clasificada automáticamente como {sport}. Si no es correcto, cámbialo aquí.",
+  "cls.autoWhy": "Lo decisivo: run más largo {dur} s a {kmh} km/h de media — un run de pumping dura 27 s de media.",
+  "cls.autoWhyPulse": "Lo decisivo: run más largo {dur} s a {kmh} km/h de media, y la frecuencia cardíaca apenas reaccionó ({hr} bpm).",
 };
 
 export default es;

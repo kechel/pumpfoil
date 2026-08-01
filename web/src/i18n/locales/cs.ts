@@ -1242,6 +1242,10 @@ const cs: Record<string, string> = {
   "fw.18": "km/h prům posl.",
   "fw.19": "km/h max posl.",
   "fw.20": "Jízdy",
+  "cls.autoAsk": "Tato session nám nevypadá jako pumpfoil — proto se zatím nezapočítává do žádných statistik. Zařadíš ji správně? Pokud to pumpfoil přece jen byl, vyber prostě „Pumpfoil“.",
+  "cls.autoSetAs": "Automaticky zařazeno jako {sport}. Pokud to nesedí, změň to tady.",
+  "cls.autoWhy": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h — pumpovací jízda trvá v průměru 27 s.",
+  "cls.autoWhyPulse": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h a tep skoro nereagoval ({hr} bpm).",
 };
 
 export default cs;
