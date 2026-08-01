@@ -1047,8 +1047,8 @@ const ja: Record<string, string> = {
   "field.20": "ラン（数）",
 
   "account.claimTitle": "ウォッチのコードを入力",
-  "account.claimHelp": "ウォッチで Pumpfoil を開き（開始しない）→ MENU（左中央のボタン）を長押し →「設定」→「接続」。表示されたコード（6文字、英数字）をここに入力します。ウォッチがコードを生成できるよう、スマホが近くにあるか Wi-Fi が必要です。",
-  "account.claimReq": "重要：スマホの Garmin Connect アプリが開いていてウォッチに接続され、スマホがインターネットにつながっている必要があります — ウォッチはスマホ経由でオンラインになります。コードは15分以内に入力してください。ウォッチにコードが表示されない場合はアプリを更新してください。",
+  "account.claimHelp": "ウォッチで Pumpfoil を開き「接続」へ — Garmin: MENU（左中央のボタン）を長押し →「設定」→「接続」。Amazfit: 開始画面から左にスワイプ。Wear OS と Apple Watch は初回起動時にこの画面が表示されます。表示されたコード（6文字、英数字）をここに入力します。",
+  "account.claimReq": "重要：ウォッチのコンパニオンアプリ（Garmin Connect、Zepp、Wear OS、Apple Watch）がスマホで開いていてウォッチに接続され、スマホがインターネットにつながっている必要があります — ウォッチはスマホ経由でオンラインになります。コードは15分以内に入力してください。ウォッチにコードが表示されない場合はアプリを更新してください。",
   "account.claimPlaceholder": "例：VURWGG",
   "account.claimBtn": "接続",
   "account.claimAlready": "このウォッチはすでに接続されています。",

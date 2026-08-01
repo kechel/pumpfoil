@@ -1094,8 +1094,8 @@ const fi: Record<string, string> = {
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Syötä koodi kellosta",
-  "account.claimHelp": "Avaa Pumpfoil kellossa (älä käynnistä) → pidä MENU pohjassa (nappi keskellä vasemmalla) → „Asetukset“ → „Yhdistä“. Syötä näkyvä koodi (6 merkkiä, kirjaimia ja numeroita) tähän. Puhelin lähellä tai WLAN tarvitaan, jotta kello voi luoda koodin.",
-  "account.claimReq": "Tärkeää: tällöin Garmin Connect -sovelluksen on oltava puhelimessa auki ja yhdistettynä kelloon, ja puhelin tarvitsee internetin — kello menee verkkoon puhelimen kautta. Syötä koodi 15 min sisällä; jos kello ei luo koodia, päivitä sovellus.",
+  "account.claimHelp": "Avaa Pumpfoil kellossa ja mene kohtaan „Yhdistä“ — Garmin: pidä MENU pohjassa (nappi keskellä vasemmalla) → „Asetukset“ → „Yhdistä“; Amazfit: pyyhkäise aloitusnäytöstä vasemmalle; Wear OS ja Apple Watch näyttävät tämän näytön ensimmäisellä käynnistyksellä. Syötä näkyvä koodi (6 merkkiä, kirjaimia ja numeroita) tähän.",
+  "account.claimReq": "Tärkeää: kellosi oheissovelluksen on oltava puhelimessa auki ja yhdistettynä kelloon (Garmin Connect, Zepp, Wear OS tai Apple Watch), ja puhelin tarvitsee internetin — kello menee verkkoon puhelimen kautta. Syötä koodi 15 min sisällä; jos kello ei näytä koodia, päivitä sovellus.",
   "account.claimPlaceholder": "esim. VURWGG",
   "account.claimBtn": "Yhdistä",
   "account.claimAlready": "Tämä kello on jo yhdistetty.",

@@ -1129,8 +1129,8 @@ const nl: Record<string, string> = {
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code van het horloge invoeren",
-  "account.claimHelp": "Pumpfoil op het horloge openen (niet starten) → MENU ingedrukt houden (knop midden-links) → ‘Instellingen' → ‘Verbinden'. De getoonde code (6 tekens, letters & cijfers) hier invoeren. Telefoon in de buurt of wifi nodig, zodat het horloge de code kan aanmaken.",
-  "account.claimReq": "Belangrijk: daarbij moet de Garmin-Connect-app op de telefoon open en met het horloge verbonden zijn, en de telefoon heeft internet nodig — het horloge gaat via de telefoon online. Code binnen 15 min invoeren; maakt het horloge geen code aan, dan de app bijwerken.",
+  "account.claimHelp": "Open Pumpfoil op het horloge en ga naar ‘Verbinden' — Garmin: MENU ingedrukt houden (knop midden-links) → ‘Instellingen' → ‘Verbinden'; Amazfit: veeg vanaf het startscherm naar links; Wear OS en Apple Watch tonen dat scherm bij de eerste start. De getoonde code (6 tekens, letters & cijfers) hier invoeren.",
+  "account.claimReq": "Belangrijk: de begeleidende app van je horloge moet op de telefoon open en met het horloge verbonden zijn (Garmin Connect, Zepp, Wear OS of Apple Watch), en de telefoon heeft internet nodig — het horloge gaat via de telefoon online. Code binnen 15 min invoeren; toont het horloge geen code, werk dan de app bij.",
   "account.claimPlaceholder": "bijv. VURWGG",
   "account.claimBtn": "Verbinden",
   "account.claimAlready": "Dit horloge is al verbonden.",

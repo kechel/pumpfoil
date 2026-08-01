@@ -1049,8 +1049,8 @@ const pt: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Digite o código do relógio",
-  "account.claimHelp": "Abra o Pumpfoil no relógio (não inicie) → segure MENU (botão do meio à esquerda) → “Configurações” → “Conectar”. Digite aqui o código exibido (6 caracteres, letras e números). Celular por perto ou Wi-Fi necessários para o relógio gerar o código.",
-  "account.claimReq": "Importante: o app Garmin Connect no seu celular precisa estar aberto e conectado ao relógio, e o celular precisa de internet — o relógio vai à internet pelo celular. Digite o código em até 15 min; se o relógio não mostrar nenhum código, atualize o app.",
+  "account.claimHelp": "Abra o Pumpfoil no relógio e vá em “Conectar” — Garmin: segure MENU (botão do meio à esquerda) → “Configurações” → “Conectar”; Amazfit: deslize para a esquerda a partir da tela inicial; Wear OS e Apple Watch mostram essa tela no primeiro início. Digite aqui o código exibido (6 caracteres, letras e números).",
+  "account.claimReq": "Importante: o app complementar do seu relógio precisa estar aberto no celular e conectado ao relógio (Garmin Connect, Zepp, Wear OS ou Apple Watch), e o celular precisa de internet — o relógio vai à internet pelo celular. Digite o código em até 15 min; se o relógio não mostrar nenhum código, atualize o app.",
   "account.claimPlaceholder": "ex.: VURWGG",
   "account.claimBtn": "Conectar",
   "account.claimAlready": "Este relógio já está conectado.",

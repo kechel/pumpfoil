@@ -1049,8 +1049,8 @@ const id: Record<string, string> = {
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Masukkan kode dari jam",
-  "account.claimHelp": "Buka Pumpfoil di jam (jangan mulai) → tahan MENU (tombol tengah-kiri) → “Pengaturan” → “Hubungkan”. Masukkan kode yang ditampilkan (6 karakter, huruf & angka) di sini. Ponsel di dekatnya atau Wi-Fi diperlukan agar jam bisa membuat kode.",
-  "account.claimReq": "Penting: aplikasi Garmin Connect di ponselmu harus terbuka dan terhubung ke jam, dan ponsel butuh internet — jam terhubung online lewat ponsel. Masukkan kode dalam 15 menit; jika jam tidak menampilkan kode, perbarui aplikasinya.",
+  "account.claimHelp": "Buka Pumpfoil di jam lalu ke “Hubungkan” — Garmin: tahan MENU (tombol tengah-kiri) → “Pengaturan” → “Hubungkan”; Amazfit: geser ke kiri dari layar awal; Wear OS dan Apple Watch menampilkan layar itu saat pertama kali dibuka. Masukkan kode yang ditampilkan (6 karakter, huruf & angka) di sini.",
+  "account.claimReq": "Penting: aplikasi pendamping jam tanganmu harus terbuka di ponsel dan terhubung ke jam (Garmin Connect, Zepp, Wear OS atau Apple Watch), dan ponsel butuh internet — jam terhubung online lewat ponsel. Masukkan kode dalam 15 menit; jika jam tidak menampilkan kode, perbarui aplikasinya.",
   "account.claimPlaceholder": "mis. VURWGG",
   "account.claimBtn": "Hubungkan",
   "account.claimAlready": "Jam ini sudah terhubung.",
