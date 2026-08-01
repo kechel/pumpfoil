@@ -61,10 +61,12 @@ FOIL_LABELS = (PUMPEN, GLEITEN)
 #    Urteil): der von Jan als echt bestätigte Lauf #658 fährt 132 / 106 / 98 s geradeaus, die
 #    bestätigte Autofahrt #1255 nur 35 / 33 / 32 s. Auf einem Ruderbecken ist die lange Gerade
 #    der Normalfall. Die Zahlen oben stammten aus einer Handvoll ausgewählter Abschnitte.
-#    Die Geometrie ist deshalb nur noch der VERDACHT; entschieden wird mit dem Puls-Veto in
-#    _mark_powered_straights (dieselbe Schwelle wie in sportauto, dort belegt).
-STRAIGHT_MAX_DEG = 4.0     # mittlere |Kursänderung| je GPS-Schritt im Fenster
-STRAIGHT_MIN_S = 30        # so lange muss die Gerade am Stück halten (Lücke 15 s … 40 s)
+#    Die Geometrie entscheidet deshalb NICHTS mehr — sie wird nur je Lauf als `gerade_anteil`
+#    mitgeschrieben. Fremdkraft entscheidet `_fremdkraft_laeufe` je LAUF über die Puls-Antwort
+#    gegen eine echte Ruhe-Grundlinie (dort die vollständige Messung: 55 von 73 belegten
+#    Fremdkraft-Läufen erkannt, und die Geometrie zusätzlich zu fordern macht es schlechter).
+STRAIGHT_MAX_DEG = 4.0     # mittlere |Kursänderung| je GPS-Schritt — nur noch beschreibend
+STRAIGHT_MIN_S = 30        # historisch (die widerlegte Regel); bleibt für die Nachvollziehbarkeit
 #
 # 2) Pumpen gegen Gleiten. Beides sind On-Foil-Zustände und beide tragen einen Lauf — die
 #    Unterscheidung ist beschreibend, nicht entscheidend. Deshalb bewusst die schon bestehenden,
@@ -139,7 +141,11 @@ def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=
             why.append(f"Rhythmus {dom:.2f} Hz, RMS {rms:.3f} g, Bandanteil {ratio:.2f}")
         w["label"] = PUMPEN if rhythmisch else GLEITEN
         w["why"] = why
-    _mark_powered_straights(wins, puls)
+    # _mark_powered_straights wird NICHT mehr aufgerufen: die Geraden-Regel ist widerlegt
+    # (s. dort — der echte Lauf #658 faehrt laenger geradeaus als die bestaetigte Autofahrt
+    # #1255, und sie zusaetzlich zu fordern verschlechtert das Ergebnis messbar). Fremdkraft
+    # entscheidet jetzt `_fremdkraft_laeufe` je LAUF. Was hier bleibt, ist die Physik-Schranke
+    # aus v1: ueber MAX_FOIL_SPEED traegt kein Foil mehr, das ist Antrieb.
     return wins
 
 
@@ -204,6 +210,94 @@ def _mark_powered_straights(wins: list[dict], puls=None) -> None:
 
 
 # --- Läufe aus der Label-Folge ----------------------------------------------------------
+
+def gerade_je_sample(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+    """Pro GPS-Sample: liegt es auf einer Geraden (|Kursänderung| <= STRAIGHT_MAX_DEG)?
+
+    Nur noch BESCHREIBEND — die Geometrie entscheidet nichts mehr (s. `_fremdkraft_laeufe`)."""
+    n = lat.size
+    out = np.zeros(n, dtype=bool)
+    ok = ~np.isnan(lat) & ~np.isnan(lon)
+    if ok.sum() < 6 or n < 4:
+        return out
+    mx = 111320.0 * np.cos(np.radians(float(np.nanmedian(lat))))
+    X, Y = lon * mx, lat * 111320.0
+    kurs = np.degrees(np.arctan2(np.diff(Y), np.diff(X)))
+    d = np.abs((np.diff(kurs) + 180) % 360 - 180)
+    out[2:] = d <= STRAIGHT_MAX_DEG
+    return out
+
+
+def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
+                       gerade: np.ndarray) -> tuple[list, list]:
+    """Trennt Läufe ab, die keine eigene Kraft gekostet haben (Auto, Zug, Schleppen, Motor).
+
+    WARUM JE LAUF und nicht je Fenster: der Puls ist das einzige Signal, das in allen geprüften
+    Fällen getrennt hat — aber nur mit einer echten Ruhe-Grundlinie. Auf Fenster-Ebene gibt es die
+    nicht (das Vorlauf-Fenster liegt selbst im Lauf, und der absolute Pegel hängt nach dem Foilen
+    noch nach: in den bestätigten Autofahrten bis +43 über der Ruhe). Ein Lauf hat dagegen ein
+    Davor, das außerhalb aller Läufe liegt — dort ist die Grundlinie belastbar.
+
+    Gemessen (01.08., 218 belegte Fremdkraft-Läufe gegen 1879 Pumpfoil-Läufe; Labels aus den 28
+    menschlich eingeordneten Nicht-Pumpfoil-Sessions, den 11 Einzel-Urteilen in
+    `data/ground-truth/runs.json` und einer Kontrollgruppe ohne user 135 und ohne die
+    Simulator-Sessions). Nur bei LANGEN Läufen (>= 240 s) fällt überhaupt eine Entscheidung; dort:
+
+        Merkmal            Fremdkraft (73)   Pumpfoil (7)
+        Geraden-Anteil          0,4              0,3       -> trennt NICHT
+        Ø-Tempo                19,6             18,0       -> trennt kaum
+        Puls-Antwort           +5              +27         -> trennt
+
+    Regel `Puls-Antwort < MAX_PULS_ANTWORT`: **55 von 73** Fremdkraft-Läufen erkannt, 2 von 7
+    Pumpfoil-Läufen getroffen — und diese zwei sind beide aus #251, einer Session, die selbst nicht
+    nach Pumpfoil aussieht (Ø 18,3 km/h, Spitze 36,5, Puls −3/−7). Die Geometrie zusätzlich zu
+    fordern macht es messbar SCHLECHTER (54 statt 55 Treffer bei gleichen Fehlern) — deshalb ist
+    `gerade` hier nur noch eine mitgeschriebene Kennzahl.
+
+    Ohne brauchbaren Puls wird NICHT geurteilt: dann fehlt das einzige belastbare Signal.
+    """
+    from .sportauto import MAX_PULS_ANTWORT, MIN_LANGER_LAUF_S, NACHLAUF_MS, VORLAUF_MS
+
+    if not segments:
+        return segments, []
+    drin = np.zeros(t_ms.size, dtype=bool)
+    for q in segments:
+        drin |= (t_ms >= q["t_start_ms"]) & (t_ms <= q["t_end_ms"])
+    ruhe_pool = hr[~drin & ~np.isnan(hr)]
+    ruhe = float(np.median(ruhe_pool)) if ruhe_pool.size >= 10 else None
+
+    behalten, fremd = [], []
+    for q in segments:
+        a, b = float(q["t_start_ms"]), float(q["t_end_ms"])
+        sel = (t_ms >= a) & (t_ms <= b)
+        q["gerade_anteil"] = round(float(gerade[sel].mean()), 3) if sel.any() else None
+        if q["duration_s"] < MIN_LANGER_LAUF_S:
+            behalten.append(q)
+            continue
+        # Grundlinie: die 90 s vor dem Lauf, aber NUR Samples außerhalb aller Läufe. Fehlt das,
+        # nimmt die Ruhe der ganzen Session ihren Platz ein.
+        vor = hr[(t_ms >= a - VORLAUF_MS) & (t_ms < a) & ~drin]
+        vor = vor[~np.isnan(vor)]
+        basis = float(np.median(vor)) if vor.size >= 5 else ruhe
+        nach = hr[(t_ms >= a + (b - a) / 2) & (t_ms <= b + NACHLAUF_MS)]
+        nach = nach[~np.isnan(nach)]
+        antwort = (float(np.median(nach)) - basis) if (nach.size >= 5 and basis is not None) else None
+        q["puls_antwort_bpm"] = None if antwort is None else round(antwort, 1)
+        if antwort is not None and antwort < MAX_PULS_ANTWORT:
+            fremd.append({
+                "t_start_ms": int(a), "t_end_ms": int(b),
+                "dauer_s": round(float(q["duration_s"]), 1),
+                "kmh": round(float((q.get("avg_speed_mps") or 0) * 3.6), 1),
+                "gerade_anteil": q["gerade_anteil"],
+                "puls_antwort_bpm": round(antwort, 1),
+                "grund": (f"{q['duration_s']:.0f} s am Stück bei "
+                          f"{(q.get('avg_speed_mps') or 0) * 3.6:.1f} km/h, Puls-Antwort nur "
+                          f"{antwort:+.0f} bpm gegen die Ruhe davor"),
+            })
+        else:
+            behalten.append(q)
+    return behalten, fremd
+
 
 def model_mask_on_timebase(tb: TimeBase):
     """Die trainierte On-Foil-Maske (`foil_rf.pkl`), aber auf DIESER Zeitachse ausgerichtet.
@@ -278,13 +372,15 @@ def detect_v2(
     # Fenster-Label -> Sample-Maske. Ein Sample gehört zu einem Lauf, wenn es in mindestens
     # einem Foil-Fenster liegt; die Überlappung von 50 % macht die Ränder weich statt hart.
     mask = np.zeros(t_ms.size, dtype=bool)
-    veto = np.zeros(t_ms.size, dtype=bool)     # Fremdkraft: hier darf kein Lauf hineinwachsen
     for w in wins:
-        sel = (t_ms >= w["t_start_ms"]) & (t_ms <= w["t_end_ms"])
         if w["label"] in FOIL_LABELS:
-            mask |= sel
-        elif w["label"] == FREMDKRAFT:
-            veto |= sel
+            mask |= (t_ms >= w["t_start_ms"]) & (t_ms <= w["t_end_ms"])
+    # Veto PRO SAMPLE, nicht pro Fenster: über der Bandgrenze trägt kein Foil (v1: MAX_FOIL_SPEED).
+    # Aus dem Fenster-Label übernommen war das viel zu grob — ein einzelner Wert über der Grenze
+    # schlug ein ganzes 10-s-Fenster (plus Überlappung) heraus und zerlegte damit schnelle Sessions:
+    # #1196 (Wing, bis 36 km/h) fiel so von 11 auf 89 Läufe, der längste von 1226 s auf 133 s.
+    # v1 prüft dieselbe Grenze sample-weise; genau das tut v2 jetzt auch.
+    veto = speed_s > v1.MAX_FOIL_SPEED
     # Wo es Accel gibt, ist das trainierte On-Foil-Modell die QUELLE der Maske — die Fenster sind
     # nur die Schranke (Fremdkraft-Veto). Genau so steht es im Entwurf: „Physik als Schranke, nicht
     # als Detektor" (docs/detector-v2.md, Abschnitt 3). Der erste v2-Bau hat das Modell ganz
@@ -298,6 +394,16 @@ def detect_v2(
         # Lauf. Ohne das zerfällt die Maske und die Bruchstücke fallen unter MIN_SEGMENT_S:
         # gemessen an #1310 kostet das allein 11 Läufe -> 4 und 113 s -> 46 s.
         mask = v1._close_gaps(modell, max(int(round(v1.GAP_FILL_S * gps_hz)), 1))
+    else:
+        # OHNE Accel (gps_only) nimmt v2 dieselbe Heuristik wie v1 statt der Fenster-Labels.
+        # Grund, gemessen über den Bestand: die Fenster-Maske zerlegt genau diese Sessions
+        # systematisch — #1196 ging von 11 auf 89 Läufe, der längste Lauf von 1226 s auf 133 s.
+        # Für die Fenster-Maske gibt es kein einziges Label als Beleg, für v1s Automaten (Speed-Band
+        # + Glätte + Dwell) die gesamte bisherige Praxis. v2 ändert damit bei gps_only NICHT mehr,
+        # WIE on-foil erkannt wird, sondern nur, was danach als Fremdkraft abgetrennt wird — und
+        # genau das war der Auftrag. Die Fenster bleiben als Merkmale und für das Veto erhalten.
+        cv = v1._running_cv(speed_s, win)
+        mask = v1._heuristic_mask(speed_s, cv, quality_ok, gps_hz, enter_speed, exit_speed)
     mask &= ~veto
     # Dieselben physischen Böden wie v1 (gps.py): unter EXIT_SPEED trägt kein Foil, eine
     # unbrauchbare Position ist wertlos, und ohne echte Positionsbewegung gibt es keinen Vortrieb.
@@ -306,18 +412,22 @@ def detect_v2(
     speeds = {"1": speed, "3": speed_s, "5": speed5}
     segments = v1._segments_from_mask(mask, t_ms, gps_hz, step, speeds,
                                       min_segment_s, min_seg_avg_speed)
-    # Nachbearbeitung von v1 wiederverwenden. Der Fremdkraft-Veto wird eingeschleust, indem die
-    # betroffenen Samples für die Verlängerer/den Merge als Stillstand aussehen (Speed 0) — so
-    # kann kein Lauf über eine Autofahrt hinweg wachsen oder mit ihr verschmelzen, ohne dass die
-    # bewährte Logik selbst angefasst werden muss.
-    speed_veto = np.where(veto, 0.0, speed_s)
-    pos_veto = np.where(veto, 0.0, pos_speed_s)
-    segments = v1._merge_no_stop(segments, speed_veto, t_ms, step, speeds, gps_hz, pos_speed_s=pos_veto)
-    segments = v1._extend_starts_back(segments, speed_veto, t_ms, step, speeds, enter_speed)
-    segments = v1._extend_ends_forward(segments, speed_veto, t_ms, step, speeds, exit_speed)
-    segments = v1._merge_no_stop(segments, speed_veto, t_ms, step, speeds, gps_hz, pos_speed_s=pos_veto)
+    # Nachbearbeitung WORTGLEICH wie v1 — mit den echten Geschwindigkeiten.
+    # Ursprünglich standen hier künstlich auf 0 gesetzte Werte an den Veto-Stellen, damit kein Lauf
+    # über eine Autofahrt hinwegwächst. Das ist überflüssig, seit die Fremdkraft je LAUF entschieden
+    # wird — und es war schädlich: die Nullen verhinderten das Zusammenführen an jeder Stelle über
+    # der Bandgrenze und zerlegten schnelle Sessions noch weiter (#1196: 89 -> 207 Läufe).
+    segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
+    segments = v1._extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
+    segments = v1._extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
+    segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
     segments, n_gated = v1._gate_implausible_runs(segments)
+
+    # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in
+    # `_fremdkraft_laeufe`). Vorgeschlagen, nicht verhängt: die betroffenen Läufe verlassen die
+    # Auswertung, stehen aber vollständig in `metrics["fremdkraft_laeufe"]` samt Messwerten.
+    segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon))
 
     mask = np.zeros(t_ms.size, dtype=bool)
     for seg in segments:
@@ -363,10 +473,13 @@ def detect_v2(
         # trennt aber auf dem beschrifteten Material die transport-lastigen Sessions sauber von
         # den echten: gemessen 48 % / 49 % / 40 % (Autofahrt bzw. Zug) gegen 0-12 % bei den
         # echten Sessions. Taugt als Kandidat für die Admin-Verdachtsliste.
-        "powered_share": _powered_share(wins),
+        "powered_share": _powered_share(segments, fremd_laeufe),
         # Vorschlag, keine Entscheidung: was v2 für Fremdkraft hält, wandert NICHT still in die
         # Daten (Entwurf, „Was NICHT gemacht wird"), sondern wird als Fenster angeboten.
-        "powered_ranges_ms": _powered_ranges(wins),
+        "powered_ranges_ms": [[f["t_start_ms"], f["t_end_ms"]] for f in fremd_laeufe],
+        # Die abgetrennten Laeufe vollstaendig mit Messwerten und Begruendung — Grundlage
+        # fuer einen Vorschlag an den Nutzer und fuer die Admin-Sicht.
+        "fremdkraft_laeufe": fremd_laeufe,
     }
     metrics.update(tb.provenance())
 
@@ -403,23 +516,17 @@ def _annotate_run(seg: dict, wins: list[dict]) -> None:
     seg["v2_course_rate_deg"] = round(float(np.median(crs)), 2) if crs else None
 
 
-def _powered_share(wins: list[dict]) -> float | None:
-    bewegt = [w for w in wins if w["label"] in FOIL_LABELS or w["label"] == FREMDKRAFT]
-    if not bewegt:
+def _powered_share(segments: list, fremd: list) -> float | None:
+    """Anteil der Fremdkraft an der gesamten Fahrzeit (behaltene Laeufe + abgetrennte).
+
+    Rein beschreibend, entscheidet nichts — taugt aber als Verdachtsmass fuer die Admin-Sicht.
+    Seit dem Umbau auf die Lauf-Ebene zaehlt SEKUNDEN, nicht Fenster: eine Zahl, die sich mit der
+    angezeigten Foil-Zeit deckt, ist nachvollziehbarer als eine Fensterquote."""
+    fremd_s = sum(f["dauer_s"] for f in fremd)
+    gesamt = sum(float(q.get("duration_s") or 0.0) for q in segments) + fremd_s
+    if gesamt <= 0:
         return None
-    return round(sum(1 for w in bewegt if w["label"] == FREMDKRAFT) / len(bewegt), 3)
-
-
-def _powered_ranges(wins: list[dict]) -> list[list[int]]:
-    out: list[list[int]] = []
-    for w in wins:
-        if w["label"] != FREMDKRAFT:
-            continue
-        if out and w["t_start_ms"] <= out[-1][1]:
-            out[-1][1] = max(out[-1][1], int(w["t_end_ms"]))
-        else:
-            out.append([int(w["t_start_ms"]), int(w["t_end_ms"])])
-    return out
+    return round(fremd_s / gesamt, 3)
 
 
 def _leeres_ergebnis(tb: TimeBase) -> dict:
