@@ -9,6 +9,9 @@ struct HomeView: View {
     @EnvironmentObject var session: SessionStore
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
+    // Programmatische Navigation fuer die Rekord-Kacheln (LazyVGrid) — s. CommunityView.
+    @State private var navPath = NavigationPath()
+
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
     @State private var weather: WeatherBlock?
@@ -48,7 +51,7 @@ struct HomeView: View {
     // >500 ms im Build-Log — Swifts Type-Checker loest einen ViewBuilder als einen einzigen Ausdruck
     // auf. Jeder Abschnitt ist jetzt ein eigener, typisierter Teil; Ablauflogik steckt in Methoden.
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPath) {
             ScrollView { homeStack }
                 // Wert-basiertes Session-Ziel (s. SessionDest in Models.swift) — die
                 // Rekord-Kacheln unten sind ein LazyVGrid, closure-Links pushten dort doppelt.
@@ -338,7 +341,7 @@ struct HomeView: View {
     @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?, _ startedAt: String? = nil, _ tz: String? = nil) -> some View {
         let date = startedAt.flatMap { TimeFmt.dateNumeric($0, tz) }
         if let sessionId {
-            NavigationLink(value: SessionDest(id: sessionId)) { tile(value, label, date) }
+            Button { navPath.append(SessionDest(id: sessionId)) } label: { tile(value, label, date) }
                 .buttonStyle(.plain)
         } else {
             tile(value, label, date)

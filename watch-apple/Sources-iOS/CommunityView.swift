@@ -5,6 +5,12 @@ import SwiftUI
 struct CommunityView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
+    // Programmatische Navigation: die Rekord-/Medien-Kacheln sind MEHRERE Links in EINER
+    // List-Zeile — dort aktiviert die Zeile zusaetzlich einen Link und es liegen ZWEI Ziele
+    // auf dem Stapel (Jans "Zurueck geht eine Session zurueck", nur aus Rekorden). Buttons,
+    // die selbst GENAU EIN SessionDest anhaengen, machen den Push eindeutig.
+    @State private var navPath = NavigationPath()
+
     @State private var records: [String: PeriodRecords]?
     @State private var leaders: Leaders?
     @State private var media: [MediaItem] = []
@@ -50,7 +56,7 @@ struct CommunityView: View {
     // Ausdruck aus acht Abschnitten, drei Toolbar-Items und fünf Closures mit je derselben
     // dreiteiligen Ladefolge. Reihenfolge und Ladereihenfolge sind unverändert.
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPath) {
             List {
                 errorRow
                 statsHeader
@@ -152,7 +158,7 @@ struct CommunityView: View {
             LazyVGrid(columns: gridCols, spacing: 8) {
                 ForEach(rows) { t in
                     if let sid = t.entry?.session_id {
-                        NavigationLink(value: SessionDest(id: sid)) { recordCell(t, showSpot: showSpot) }
+                        Button { navPath.append(SessionDest(id: sid)) } label: { recordCell(t, showSpot: showSpot) }
                             .buttonStyle(.plain)
                     } else {
                         recordCell(t, showSpot: showSpot)
@@ -256,7 +262,7 @@ struct CommunityView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(media) { m in
-                            NavigationLink(value: SessionDest(id: m.session_id)) { mediaThumb(m) }
+                            Button { navPath.append(SessionDest(id: m.session_id)) } label: { mediaThumb(m) }
                                 .buttonStyle(.plain)
                         }
                     }
