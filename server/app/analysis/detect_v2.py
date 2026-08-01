@@ -1,0 +1,459 @@
+"""Erkennung v2 — Schritt 3: Label je Fenster, Läufe aus der Label-Folge.
+
+docs/detector-v2.md, Abschnitte 2 + 3. Aufbau:
+
+  Zeitachse (timebase) -> Fenster-Merkmale (windows) -> Label je Fenster (hier)
+  -> Läufe durch Segmentieren der Label-Folge.
+
+Was v2 gegenüber v1 wirklich ändert, ist die HERKUNFT der Maske: v1 setzt sie sample-weise
+aus dem ML-Modell bzw. der Speed-State-Machine, v2 aus einer Fenster-Label-Folge in
+Session-Koordinaten. Die bewährte Nachbearbeitung von v1 (Segmentieren an GPS-Lücken,
+Mindestdauer, Ø-Untergrenze, Zusammenführen ohne echten Stopp, Ränder verlängern,
+Drift-Reparatur, Physik-Gate) wird BEWUSST wiederverwendet statt nachgebaut — sonst
+vergleicht der Regressionslauf zwei Signalaufbereitungen statt zweier Erkennungen, und
+jede Abweichung wäre nicht mehr zuordenbar.
+
+Puls und Wasser entscheiden hier NICHT mit (Entwurf: erst später als Bestätigung). Beide
+werden nur als Felder mitgeliefert.
+"""
+from __future__ import annotations
+
+import os
+
+import numpy as np
+
+from ..ml.pumps import MIN_RMS as PUMP_MIN_RMS_G   # 0,05 g — Begründung unten bei den Schwellen
+from ..ml.pumps import PUMP_BAND_RATIO             # 0,45  — dito
+from . import gps as v1
+from .geo import step_distances_m
+from .timebase import TimeBase, build_timebase_for_session
+from .windows import HOP_MS, WINDOW_MS, window_grid
+
+ALGO_VERSION = "v2-windows-1"
+
+PUMPEN, GLEITEN, RUHE, FREMDKRAFT = "pumpen", "gleiten", "ruhe", "fremdkraft"
+FOIL_LABELS = (PUMPEN, GLEITEN)
+
+
+# --- Schwellen ------------------------------------------------------------------------
+# Grundsatz aus dem Auftrag: jede Zahl hat entweder einen v1-Vorgänger oder eine Messung.
+#
+# Aus v1 unverändert übernommen (gps.py): ENTER_SPEED 2,8 / EXIT_SPEED 2,5 / MAX_FOIL_SPEED 7,0 /
+# MOVE_FLOOR_MPS 2,0 / MAX_HACC 15 / GAP_SPLIT_S 15 / MIN_SEGMENT_S 5 / MIN_SEG_AVG_SPEED 2,8 /
+# NOSTOP_SPEED 1,5 / RUN_MAX_PLAUSIBLE_KMH 40. Sie werden weiter unten direkt aus gps.py gelesen,
+# damit es sie nur EINMAL im Baum gibt.
+#
+# Die Dwell-Zeiten von v1 (ENTER_DWELL_S / EXIT_DWELL_S, je 3 s) haben in v2 keine Entsprechung
+# mehr: das kleinste Entscheidungsobjekt ist ein 10-s-Fenster, ein Zustandswechsel setzt also
+# ohnehin ≥ 10 s Evidenz voraus — mehr als v1 verlangt.
+#
+# NEU in v2, jeweils gemessen (Messungen im Bericht, alle read-only über den Bestand):
+#
+# 1) Gerade-Fahrt als Fremdkraft-Kriterium. Die im Entwurf genannte „Wucht" (Accel-RMS) trennt
+#    auf dem beschrifteten Material NICHT: der Zug in #1328 liegt bei 0,29 g / 0,13 g, ein
+#    echter Lauf derselben Session bei 0,05 g — Gipfeligkeit ebenso überlappend (Zug 13,3 gegen
+#    echter Lauf 6,0). Was trennt, ist die Spurgeometrie: ein Fahrzeug hält minutenlang Kurs,
+#    ein Foil-Fahrer nicht. Gemessen als längste zusammenhängende Strecke mit einer mittleren
+#    Kursänderung unter STRAIGHT_MAX_DEG je GPS-Schritt:
+#       Transport (6 beschriftete Abschnitte): 40 / 75 / 100 / 115 / 125 / 175 s
+#       echte Läufe (8 beschriftete Abschnitte):  5 / 5 / 10 / 10 / 10 / 10 / 15 / 15 s
+#    ACHTUNG — DIESE TRENNUNG HÄLT NICHT (nachgemessen 01.08. an weiteren Fällen mit bekanntem
+#    Urteil): der von Jan als echt bestätigte Lauf #658 fährt 132 / 106 / 98 s geradeaus, die
+#    bestätigte Autofahrt #1255 nur 35 / 33 / 32 s. Auf einem Ruderbecken ist die lange Gerade
+#    der Normalfall. Die Zahlen oben stammten aus einer Handvoll ausgewählter Abschnitte.
+#    Die Geometrie ist deshalb nur noch der VERDACHT; entschieden wird mit dem Puls-Veto in
+#    _mark_powered_straights (dieselbe Schwelle wie in sportauto, dort belegt).
+STRAIGHT_MAX_DEG = 4.0     # mittlere |Kursänderung| je GPS-Schritt im Fenster
+STRAIGHT_MIN_S = 30        # so lange muss die Gerade am Stück halten (Lücke 15 s … 40 s)
+#
+# 2) Pumpen gegen Gleiten. Beides sind On-Foil-Zustände und beide tragen einen Lauf — die
+#    Unterscheidung ist beschreibend, nicht entscheidend. Deshalb bewusst die schon bestehenden,
+#    an echten Pump-Daten kalibrierten Werte aus ml/pumps.py (classify_windows) statt neuer:
+#    PUMP_BAND_RATIO 0,45 und MIN_RMS 0,05 g (oben importiert).
+
+
+def detector_v2_enabled() -> bool:
+    """Schalter aus der Umgebung. Default AUS — v1 bleibt Standard, bis der Vergleich vorliegt."""
+    return os.environ.get("DETECTOR_V2", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+# --- Signalaufbereitung ----------------------------------------------------------------
+
+def _clean_speed(speed: np.ndarray, gps_hz: int) -> np.ndarray:
+    """Dieselben GEMESSENEN Glitch-Regeln wie v1 (gps.py), damit sich v1 und v2 nur in der
+    Erkennung unterscheiden und nicht schon in der Signalaufbereitung: unmögliche Werte gegen
+    den 15-s-Median, mehrsekündige Doppler-Bursts (relativ UND absolut) ebenso, danach
+    Einzel-Sekunden-Ausreißer gegen den 5-s-Median. Begründung + Beispielsessions stehen bei
+    den Konstanten in gps.py."""
+    s = np.array(speed, dtype=float)
+    if s.size == 0:
+        return s
+    over = s > v1.GLITCH_SPEED_MPS
+    if over.any():
+        med = v1._running_median(np.where(over, 0.0, s), max(int(round(15 * gps_hz)), 1))
+        s = np.where(over, med, s)
+    med_burst = v1._running_median(s, max(int(round(v1.BURST_MEDIAN_WIN_S * gps_hz)), 1))
+    burst = (s > med_burst + v1.BURST_MARGIN_MPS) & (s > v1.BURST_ABS_MIN_MPS)
+    if burst.any():
+        s = np.where(burst, med_burst, s)
+    med5 = v1._running_median(s, max(int(round(5 * gps_hz)), 1))
+    spike = np.abs(s - med5) > v1.SPEED_SPIKE_MPS
+    return np.where(spike, med5, s)
+
+
+# --- Label je Fenster ------------------------------------------------------------------
+
+def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=None) -> list[dict]:
+    """Vergibt `label` je Fenster und schreibt in `why` mit, welche Signale es getragen haben.
+
+    Physik als Schranke (Entwurf Abschnitt 3):
+      • Vortrieb heißt Speed IM Band UND echte Positionsbewegung — ein Speed-Feld allein
+        genügt nicht (Zurückschwimmen, Dropout, Pumpen auf der Stelle melden Tempo).
+      • Über der Bandgrenze (MAX_FOIL_SPEED) ist es kein Pumpfoilen mehr, sondern Antrieb.
+      • Pumpen ist ein Rhythmus: Gipfel im Pump-Band mit genug Bandanteil und Amplitude.
+    """
+    for w in wins:
+        vd, vp = w.get("v_dop_mps"), w.get("v_pos_mps")
+        why: list[str] = []
+        if vd is None or vp is None:
+            w["label"], w["why"] = RUHE, ["kein GPS"]
+            continue
+        if vd > v1.MAX_FOIL_SPEED:
+            w["label"], w["why"] = FREMDKRAFT, [f"v={vd * 3.6:.1f} km/h über der Bandgrenze"]
+            continue
+        # Genauigkeit: eine unbrauchbare Position ist kein Vortriebs-Beleg (v1: MAX_HACC).
+        hacc = w.get("hacc_m")
+        if hacc is not None and hacc > v1.MAX_HACC:
+            w["label"], w["why"] = RUHE, [f"hAcc {hacc:.0f} m"]
+            continue
+        if vd < exit_speed or vp < v1.MOVE_FLOOR_MPS:
+            w["label"], w["why"] = RUHE, [f"v={vd * 3.6:.1f}/{vp * 3.6:.1f} km/h unter dem Floor"]
+            continue
+        why.append(f"Vortrieb {vd * 3.6:.1f} km/h (Position {vp * 3.6:.1f})")
+        rms, ratio, dom = w.get("rms_g"), w.get("band_ratio"), w.get("dom_hz")
+        rhythmisch = (
+            rms is not None and ratio is not None and dom is not None
+            and rms >= PUMP_MIN_RMS_G and ratio >= PUMP_BAND_RATIO
+        )
+        if rhythmisch:
+            why.append(f"Rhythmus {dom:.2f} Hz, RMS {rms:.3f} g, Bandanteil {ratio:.2f}")
+        w["label"] = PUMPEN if rhythmisch else GLEITEN
+        w["why"] = why
+    _mark_powered_straights(wins, puls)
+    return wins
+
+
+def _mark_powered_straights(wins: list[dict], puls=None) -> None:
+    """Minutenlange Geradeausfahrt = Fremdkraft (Auto/Zug/Schleppen) — ABER nur, wenn der Puls
+    nicht widerspricht.
+
+    Warum der Vorbehalt: die Geraden-Länge allein trennt NICHT. Gemessen an vier Fällen mit
+    bekanntem Urteil (01.08.):
+
+        #658  echter Lauf (Jans Urteil)   Geraden 132 / 106 / 98 s
+        #1328 Zug (belegt)                Geraden 269 / 197 / 133 s
+        #1255 Autofahrt (belegt)          Geraden  35 /  33 /  32 s
+        #622  echter Rekordlauf           Geraden  72 /  46 /  35 s
+
+    Der echte Lauf fährt länger geradeaus als die bestätigte Autofahrt — auf einem Ruderbecken
+    (Vaires-sur-Marne) ist eine 2-km-Gerade eben der Normalfall. Die ursprüngliche Messung, die
+    diese Schwelle trug („Transport 40–175 s, echte Läufe 5–15 s"), stammte aus einer Handvoll
+    ausgewählter Abschnitte und hält über die breitere Menge nicht.
+
+    Der Puls trennt zuverlässig — aber NUR auf Lauf-/Session-Ebene (`sportauto`: Fremdkraft
+    −1…+13 bpm, echte Arbeit +26…+70), nicht auf der Ebene eines 30-s-Abschnitts. Zwei Gründe,
+    beide gemessen: innerhalb eines laufenden Laufs vergleicht die Antwort erhöht mit erhöht
+    (Vorlauf-Fenster liegt selbst im Lauf), und der ABSOLUTE Pegel taugt auch nicht — in den
+    bestätigten Autofahrten liegt der Puls in den Geraden bis zu +43 über der Ruhe-Grundlinie,
+    weil er nach dem Foilen noch erhöht ist (#1255: −12/+2/+26/+43/+37 gegen Grundlinie 60).
+
+    Das Veto unten ist deshalb nur eine TEIL-Lösung: es holt den klaren Fall zurück (#658
+    powered_share 0,197 -> 0,091), ohne die Autofahrten nennenswert zu entlasten (#1255 0,477 ->
+    0,426). Die saubere Lösung ist, die Fremdkraft-Entscheidung NACH der Segmentierung je LAUF zu
+    treffen — dort ist die Vorlauf-Grundlinie echte Ruhe und die Messung belastbar. Das ist der
+    nächste Umbau an v2; solange er aussteht, bleibt die Geometrie beschreibend (powered_share)
+    und v2 abgeschaltet.
+
+    `puls(t_start_ms, t_end_ms) -> float | None` liefert die Antwort für einen Zeitraum.
+    Wirkt nur auf Fenster, die überhaupt Vortrieb tragen — eine Gerade im Stillstand ist
+    keine Fahrt, sondern GPS-Rauschen."""
+    from .sportauto import MAX_PULS_ANTWORT
+    n = len(wins)
+    i = 0
+    while i < n:
+        cr = wins[i].get("course_rate_deg")
+        if wins[i].get("label") not in FOIL_LABELS or cr is None or cr >= STRAIGHT_MAX_DEG:
+            i += 1
+            continue
+        j = i
+        while (j < n and wins[j].get("label") in FOIL_LABELS
+               and wins[j].get("course_rate_deg") is not None
+               and wins[j]["course_rate_deg"] < STRAIGHT_MAX_DEG):
+            j += 1
+        dauer_ms = wins[j - 1]["t_end_ms"] - wins[i]["t_start_ms"]
+        if dauer_ms >= STRAIGHT_MIN_S * 1000:
+            pa = puls(wins[i]["t_start_ms"], wins[j - 1]["t_end_ms"]) if puls else None
+            if pa is not None and pa >= MAX_PULS_ANTWORT:
+                i = j                       # Puls ist mitgegangen -> das war Arbeit, kein Motor
+                continue
+            for k in range(i, j):
+                wins[k]["label"] = FREMDKRAFT
+                wins[k]["why"] = [f"{dauer_ms / 1000:.0f} s geradeaus "
+                                  f"(<{STRAIGHT_MAX_DEG:.0f}°/Schritt)"]
+        i = j
+
+
+# --- Läufe aus der Label-Folge ----------------------------------------------------------
+
+def model_mask_on_timebase(tb: TimeBase):
+    """Die trainierte On-Foil-Maske (`foil_rf.pkl`), aber auf DIESER Zeitachse ausgerichtet.
+
+    Warum das hier stehen muss: `extract_features` greift pro GPS-Sample per
+    `index = t_ms/1000 * accel_hz` in die Accel-Spur — die Annahme „gleichmässige Rate ab t=0"
+    ist genau die, die v2 abschaffen soll. Statt das Modell neu zu bauen, bekommt es eine Spur,
+    für die die Annahme WAHR ist: die echten Sample-Zeiten (`tb.t_accel_ms`) werden auf ein
+    gleichmässiges Raster der Achsen-Rate abgetastet. Fehlt Accel, gibt es keine Maske (None) —
+    dann entscheidet v2 wie bisher allein aus den Fenstern.
+    """
+    if not tb.has_accel or not tb.accel_hz:
+        return None
+    from .foil_model import predict_foiling_mask
+
+    off = float(tb.window_start_ms)
+    n = int(round((tb.window_end_ms - off) / 1000.0 * tb.accel_hz)) + 1
+    if n < 2:
+        return None
+    ziel = off + np.arange(n, dtype=float) / tb.accel_hz * 1000.0
+    idx = np.clip(np.searchsorted(tb.t_accel_ms, ziel), 0, tb.accel.shape[0] - 1)
+    raster = tb.accel[idx]
+    # GPS auf denselben Nullpunkt, damit t_ms und Raster-Index dieselbe Achse meinen. Lücken aus
+    # ausgeschlossenen Bereichen bleiben Lücken — die Zuordnung stimmt trotzdem, weil die Zeiten
+    # echt sind (in v1 war das nur zufällig richtig, solange nichts ausgeschlossen war).
+    gps0 = [[g[0] - off] + list(g[1:]) for g in tb.gps]
+    return predict_foiling_mask(gps0, raster, tb.accel_hz, tb.accel_scale)
+
+
+def detect_v2(
+    tb: TimeBase, gps_hz: int = 1,
+    enter_speed: float = v1.ENTER_SPEED, exit_speed: float = v1.EXIT_SPEED,
+    min_segment_s: float = v1.MIN_SEGMENT_S, min_seg_avg_speed: float = v1.MIN_SEG_AVG_SPEED,
+    use_model: bool = True,
+) -> dict:
+    """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
+    SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
+    gps = tb.gps
+    if len(gps) < 2:
+        return _leeres_ergebnis(tb)
+
+    t_ms = tb.t_gps_ms.astype(float)
+    lat = np.array([float(s[1]) for s in gps])
+    lon = np.array([float(s[2]) for s in gps])
+    hr = np.array([float(s[4]) if len(s) > 4 and s[4] is not None else np.nan for s in gps])
+    hacc = np.array([float(s[5]) if len(s) > 5 and s[5] is not None else np.nan for s in gps])
+    speed_raw = np.array([float(s[3]) if len(s) > 3 and s[3] is not None else np.nan for s in gps])
+
+    lat, lon = v1._fill_invalid_coords(lat, lon)
+    lat, lon = v1._repair_spikes(lat, lon)
+    step = step_distances_m(lat, lon)
+    step = np.where(step > v1.OUTLIER_STEP_M, 0.0, step)
+
+    dt = np.diff(t_ms, prepend=t_ms[0]) / 1000.0
+    dt = np.where(dt <= 0, 1.0 / max(gps_hz, 1), dt)
+    speed_from_pos = step / dt
+    speed = _clean_speed(np.where(np.isnan(speed_raw), speed_from_pos, speed_raw), gps_hz)
+
+    win = max(int(round(v1.SMOOTH_WINDOW_S * gps_hz)), 1)
+    speed_s = v1._running_median(speed, win)
+    speed5 = v1._running_median(speed, max(int(round(5 * gps_hz)), 1))
+    pos_speed_s = v1._running_median(speed_from_pos, win)
+    quality_ok = np.isnan(hacc) | (hacc <= v1.MAX_HACC)
+
+    # Puls-Veto gegen die Geraden-Regel (s. _mark_powered_straights): dieselbe Messung wie in
+    # `sportauto`, auf derselben Achse — tb.gps traegt Session-ms, die Fenster ebenso.
+    from .sportauto import puls_antwort
+
+    wins = label_windows(window_grid(tb), enter_speed, exit_speed,
+                         puls=lambda a, b: puls_antwort(tb.gps, a, b))
+
+    # Fenster-Label -> Sample-Maske. Ein Sample gehört zu einem Lauf, wenn es in mindestens
+    # einem Foil-Fenster liegt; die Überlappung von 50 % macht die Ränder weich statt hart.
+    mask = np.zeros(t_ms.size, dtype=bool)
+    veto = np.zeros(t_ms.size, dtype=bool)     # Fremdkraft: hier darf kein Lauf hineinwachsen
+    for w in wins:
+        sel = (t_ms >= w["t_start_ms"]) & (t_ms <= w["t_end_ms"])
+        if w["label"] in FOIL_LABELS:
+            mask |= sel
+        elif w["label"] == FREMDKRAFT:
+            veto |= sel
+    # Wo es Accel gibt, ist das trainierte On-Foil-Modell die QUELLE der Maske — die Fenster sind
+    # nur die Schranke (Fremdkraft-Veto). Genau so steht es im Entwurf: „Physik als Schranke, nicht
+    # als Detektor" (docs/detector-v2.md, Abschnitt 3). Der erste v2-Bau hat das Modell ganz
+    # weggelassen und allein aus Fenstern entschieden; über den Bestand gemessen hat das die
+    # Laufzahl systematisch aufgebläht und `model`-Sessions Foil-Zeit geschenkt.
+    # Verundet man beides (Fenster UND Modell), wird es zu streng — zwei Detektoren zu schneiden
+    # verliert jeden Lauf, über den sie uneins sind (gemessen an #1310: 113 s -> 46 s).
+    modell = model_mask_on_timebase(tb) if use_model else None
+    if modell is not None and modell.size == mask.size:
+        # Kurze Modell-Lücken schließen wie in v1 (gps.py:331) — eine Gleitpause zerteilt keinen
+        # Lauf. Ohne das zerfällt die Maske und die Bruchstücke fallen unter MIN_SEGMENT_S:
+        # gemessen an #1310 kostet das allein 11 Läufe -> 4 und 113 s -> 46 s.
+        mask = v1._close_gaps(modell, max(int(round(v1.GAP_FILL_S * gps_hz)), 1))
+    mask &= ~veto
+    # Dieselben physischen Böden wie v1 (gps.py): unter EXIT_SPEED trägt kein Foil, eine
+    # unbrauchbare Position ist wertlos, und ohne echte Positionsbewegung gibt es keinen Vortrieb.
+    mask &= (speed_s >= exit_speed) & quality_ok & (pos_speed_s >= v1.MOVE_FLOOR_MPS)
+
+    speeds = {"1": speed, "3": speed_s, "5": speed5}
+    segments = v1._segments_from_mask(mask, t_ms, gps_hz, step, speeds,
+                                      min_segment_s, min_seg_avg_speed)
+    # Nachbearbeitung von v1 wiederverwenden. Der Fremdkraft-Veto wird eingeschleust, indem die
+    # betroffenen Samples für die Verlängerer/den Merge als Stillstand aussehen (Speed 0) — so
+    # kann kein Lauf über eine Autofahrt hinweg wachsen oder mit ihr verschmelzen, ohne dass die
+    # bewährte Logik selbst angefasst werden muss.
+    speed_veto = np.where(veto, 0.0, speed_s)
+    pos_veto = np.where(veto, 0.0, pos_speed_s)
+    segments = v1._merge_no_stop(segments, speed_veto, t_ms, step, speeds, gps_hz, pos_speed_s=pos_veto)
+    segments = v1._extend_starts_back(segments, speed_veto, t_ms, step, speeds, enter_speed)
+    segments = v1._extend_ends_forward(segments, speed_veto, t_ms, step, speeds, exit_speed)
+    segments = v1._merge_no_stop(segments, speed_veto, t_ms, step, speeds, gps_hz, pos_speed_s=pos_veto)
+    segments = v1._repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
+    segments, n_gated = v1._gate_implausible_runs(segments)
+
+    mask = np.zeros(t_ms.size, dtype=bool)
+    for seg in segments:
+        mask[seg["i_start"]: seg["i_end"] + 1] = True
+
+    for seg in segments:
+        seg["end_type"], seg["end_decel_mps2"] = v1._classify_end(seg["i_end"], speed_s, step, gps_hz)
+        st = seg.pop("_start_t_exact", None)
+        st = float(t_ms[seg["i_start"]]) if st is None else st
+        seg["start_pt"] = v1._interp_lonlat(t_ms, lat, lon, st)
+        ie = seg["i_end"]
+        seg["end_pt"] = [round(float(lon[ie]), 6), round(float(lat[ie]), 6)]
+        _annotate_run(seg, wins)
+
+    total_distance = float(step.sum())
+    foiling_distance = float(step[mask].sum())
+    foiling_time = float(sum(s["t_end_ms"] - s["t_start_ms"] for s in segments) / 1000.0)
+    _sp_ok = np.where(quality_ok, speed_s, np.nan) if speed_s.size else speed_s
+    max_speed = 0.0
+    if _sp_ok.size and not bool(np.all(np.isnan(_sp_ok))):
+        max_speed = float(np.nanmax(_sp_ok))
+
+    def _stat(arr, fn, nd=2):
+        a = arr[mask]
+        a = a[~np.isnan(a)]
+        return round(float(fn(a)), nd) if a.size else None
+
+    hr_valid = hr[~np.isnan(hr)]
+    metrics = {
+        "num_segments": len(segments),
+        "gated_runs": n_gated,
+        "avg_hr": int(round(float(hr_valid.mean()))) if hr_valid.size else None,
+        "max_hr": int(np.nanmax(hr)) if hr_valid.size else None,
+        "avg_speed_mps": _stat(speed_s, np.mean),
+        "max_speed_5s_mps": _stat(speed5, np.max),
+        "min_speed_5s_mps": _stat(speed5, np.min),
+        "longest_segment_s": round(max((s["duration_s"] for s in segments), default=0.0), 1),
+        "farthest_segment_m": round(max((s["distance_m"] for s in segments), default=0.0), 1),
+        "num_windows": len(wins),
+        "window_labels": {k: sum(1 for w in wins if w["label"] == k)
+                          for k in (PUMPEN, GLEITEN, RUHE, FREMDKRAFT)},
+        # Anteil Fremdkraft an allen Fenstern MIT Vortrieb. Rein beschreibend (entscheidet nichts),
+        # trennt aber auf dem beschrifteten Material die transport-lastigen Sessions sauber von
+        # den echten: gemessen 48 % / 49 % / 40 % (Autofahrt bzw. Zug) gegen 0-12 % bei den
+        # echten Sessions. Taugt als Kandidat für die Admin-Verdachtsliste.
+        "powered_share": _powered_share(wins),
+        # Vorschlag, keine Entscheidung: was v2 für Fremdkraft hält, wandert NICHT still in die
+        # Daten (Entwurf, „Was NICHT gemacht wird"), sondern wird als Fenster angeboten.
+        "powered_ranges_ms": _powered_ranges(wins),
+    }
+    metrics.update(tb.provenance())
+
+    coords = [[float(lo), float(la)] for la, lo in zip(lat, lon)]
+    speeds_by_win = {w: [round(float(v), 2) for v in np.nan_to_num(speeds[w])] for w in ("1", "3", "5")}
+    hrs = [int(v) if not np.isnan(v) else None for v in hr]
+    return {
+        "algo_version": ALGO_VERSION,
+        "total_distance_m": round(total_distance, 1),
+        "foiling_distance_m": round(foiling_distance, 1),
+        "foiling_time_s": round(foiling_time, 1),
+        "max_speed_mps": round(max_speed, 2),
+        "track_geojson": v1._track_geojson(coords, speeds_by_win, hrs),
+        "segments": segments,
+        "metrics": metrics,
+        "windows": wins,
+    }
+
+
+def _annotate_run(seg: dict, wins: list[dict]) -> None:
+    """Je Lauf mitschreiben, welche Fenster ihn tragen und welche Signale ausschlaggebend
+    waren — das ist der Punkt der Fenster-Architektur: die Entscheidung bleibt nachvollziehbar."""
+    tragend = [w for w in wins
+               if w["label"] in FOIL_LABELS
+               and w["t_end_ms"] > seg["t_start_ms"] and w["t_start_ms"] < seg["t_end_ms"]]
+    seg["v2_windows"] = [w["i"] for w in tragend]
+    seg["v2_labels"] = {PUMPEN: sum(1 for w in tragend if w["label"] == PUMPEN),
+                        GLEITEN: sum(1 for w in tragend if w["label"] == GLEITEN)}
+    seg["v2_why"] = sorted({g for w in tragend for g in (w.get("why") or [])})[:4]
+    # Beifang, nicht Entscheider (Entwurf Abschnitt 3): Puls + Kursänderung je Lauf.
+    hrs = [w["hr_bpm"] for w in tragend if w.get("hr_bpm") is not None]
+    crs = [w["course_rate_deg"] for w in tragend if w.get("course_rate_deg") is not None]
+    seg["v2_hr_bpm"] = round(float(np.median(hrs)), 1) if hrs else None
+    seg["v2_course_rate_deg"] = round(float(np.median(crs)), 2) if crs else None
+
+
+def _powered_share(wins: list[dict]) -> float | None:
+    bewegt = [w for w in wins if w["label"] in FOIL_LABELS or w["label"] == FREMDKRAFT]
+    if not bewegt:
+        return None
+    return round(sum(1 for w in bewegt if w["label"] == FREMDKRAFT) / len(bewegt), 3)
+
+
+def _powered_ranges(wins: list[dict]) -> list[list[int]]:
+    out: list[list[int]] = []
+    for w in wins:
+        if w["label"] != FREMDKRAFT:
+            continue
+        if out and w["t_start_ms"] <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], int(w["t_end_ms"]))
+        else:
+            out.append([int(w["t_start_ms"]), int(w["t_end_ms"])])
+    return out
+
+
+def _leeres_ergebnis(tb: TimeBase) -> dict:
+    m = {"num_segments": 0, "gated_runs": 0, "num_windows": 0,
+         "window_labels": {}, "powered_ranges_ms": []}
+    m.update(tb.provenance())
+    return {
+        "algo_version": ALGO_VERSION, "total_distance_m": 0.0, "foiling_distance_m": 0.0,
+        "foiling_time_s": 0.0, "max_speed_mps": 0.0, "track_geojson": v1._track_geojson([]),
+        "segments": [], "metrics": m, "windows": [],
+    }
+
+
+# --- Einstieg für die Analyse-Pipeline ---------------------------------------------------
+
+def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True, **preset) -> dict:
+    """v2 für eine DB-Session: baut die Zeitachse selbst (Trim + Ausschluss inklusive) und
+    liefert das Ergebnis im Format von `analyze_gps`.
+
+    `rebase=True` verschiebt die Segment-Zeiten am Schluss auf die v1-Konvention (0 = Trim-Start),
+    weil alles Nachgelagerte in der Pipeline (Pump-Fenster, gespeicherte Segmente, Anzeige) diese
+    Basis erwartet. Das ist das EINZIGE Zugeständnis an die alte Rechnung — die Wahrheit in
+    Session-Koordinaten bleibt je Lauf als `t_start_session_ms`/`t_end_session_ms` erhalten.
+    Der Vergleichs-Harness ruft mit `rebase=False` auf und bleibt damit durchgehend in
+    Session-Koordinaten."""
+    tb = build_timebase_for_session(session, gps=gps, accel=accel)
+    res = detect_v2(tb, gps_hz=session.gps_hz or 1, **preset)
+    for seg in res["segments"]:
+        seg["t_start_session_ms"] = int(seg["t_start_ms"])
+        seg["t_end_session_ms"] = int(seg["t_end_ms"])
+    if rebase and tb.window_start_ms:
+        off = int(tb.window_start_ms)
+        for seg in res["segments"]:
+            seg["t_start_ms"] = int(seg["t_start_ms"]) - off
+            seg["t_end_ms"] = int(seg["t_end_ms"]) - off
+    res["timebase"] = tb
+    return res
