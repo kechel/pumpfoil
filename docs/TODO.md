@@ -223,6 +223,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       Danach die vergifteten Eintraege loeschen (384 Zeilen, **braucht Jans OK**) und erst DANN
       „ist der Lauf auf dem Wasser?" als Signal testen — es ist das einzige, das den von Jan
       bestaetigten Fall #890 (echter Lauf, Puls-Anstieg -5) richtig einordnen kann.
+- [ ] **RAHMENDATEN PRO NUTZER (Jans Richtung, 01.08.) — gemessen, tragfaehig aber nur mit
+      gepruefter Referenz.** Idee: Ruhepuls und Pump-Puls sind individuell, also die Schwelle pro
+      Nutzer aus seiner Historie lernen (Puls zwischen den Laeufen = Erholung, Puls in kurzen Laeufen
+      = Pumpen). Messung (`<scratchpad>/rahmendaten.py`, 48 Nutzer mit Puls, 5819 Laeufe):
+      * Schwelle = Ruhe + 40 % der persoenlichen Spanne ordnet die 4 bestaetigten Autofahrten richtig
+        ein und die Rekord-Laeufe (#622/#1031, Puls 148/166 gegen Schwelle 116) auch.
+      * ABER: bei user 95 ist die Spanne **negativ** (Ruhe 133, „Pump" 120) — seine 46 Sessions sind
+        alle unbestaetigt als pumpfoil geführt, die Grundlinie lernt also von Fremdsportarten und
+        Autofahrten. Die 4 Treffer waren Zufall, nicht Koennen.
+      * user 133 (#890, von Jan als ECHT bestaetigt): Spanne **-1** -> Schwelle 121, sein echter Lauf
+        mit Puls 116 waere FALSCH als Transport markiert.
+      * Kern: **nur 7 von 34 Nutzern zeigen ueberhaupt >= 15 bpm Spanne.** Grund ist Physiologie, nicht
+        Datenqualitaet — der Median-Lauf dauert 44 s, in 44 s zieht der Puls kaum an.
+      Konsequenzen fuer den Bau: (1) Referenz NUR aus unabhaengig belegten Pump-Laeufen (Accel-Kadenz
+      plausibel, Hin-und-Zurueck-Geometrie, Session von einem MENSCHEN als pumpfoil bestaetigt, nicht
+      `sport_source=default`); (2) **Brauchbarkeits-Test pro Nutzer**: keine Spanne -> kein Urteil
+      (statt selbstbewussten Unsinns); (3) Puls nur fuer Laeufe ab ~2-3 min — kurze kann er nicht
+      bewerten, was passt, weil der Transport-Fall der lange ist.
+      Zweiter Teil von Jans Idee, unabhaengig und robuster (kein Sensor noetig): **Start-Region pro
+      Nutzer lernen** — Orte seiner bestaetigten Sessions; ein Lauf, der den gewohnten Bereich
+      verlaesst, ist auffaellig. Jans Warnung mit aufnehmen: wer wirklich woanders pumpt, muss ohne
+      Reibung durchkommen -> vorschlagen, nie entscheiden.
 - [ ] **Puls-Anstieg als Signal — gemessen, taugt NUR in Kombination.** Pumpen kostet Puls,
       Transport nicht. Metrik: Ø-Puls im Lauf minus Median-Puls AUSSERHALB aller Laeufe derselben
       Session (absolute Werte sind individuell). Messung ueber 5701 Laeufe mit brauchbarem Puls
