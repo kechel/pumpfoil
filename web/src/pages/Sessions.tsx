@@ -5,6 +5,7 @@ import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon } from "../components/Icons";
+import { StartHelp } from "../components/StartHelp";
 import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
 import { usePumpFmt } from "../lib/pumpRate";
@@ -478,11 +479,16 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
 
       {items.length === 0 && !loading ? (
-        <Card className="flex flex-col items-center gap-3 p-10 text-center text-slate-300">
-          <WaveIcon className="h-10 w-10 text-slate-400" />
-          <p>{month ? t("sessions.noneMonth") : t("sessions.none")}</p>
-          {!month && <p className="text-sm">{t("sessions.uploadHint")}</p>}
-        </Card>
+        month ? (
+          <Card className="flex flex-col items-center gap-3 p-10 text-center text-slate-300">
+            <WaveIcon className="h-10 w-10 text-slate-400" />
+            <p>{t("sessions.noneMonth")}</p>
+          </Card>
+        ) : (
+          /* Ohne Monatsfilter ist "leer" der Erstnutzer-Fall -> dieselbe Starthilfe wie im
+             Homebereich (StartHelp), statt des frueheren Ein-Satz-Hinweises ohne Links. */
+          <StartHelp />
+        )
       ) : (
         <div className="space-y-3">
           {items.map((s) => (
