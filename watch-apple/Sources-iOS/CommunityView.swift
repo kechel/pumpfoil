@@ -62,6 +62,11 @@ struct CommunityView: View {
                 spotsSection
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
+            // EIN Ziel fuer alle Session-Links dieses Stapels (Rekorde, Medien, Zeilen) —
+            // wert-basiert statt closure-basiert, s. SessionDest in Models.swift.
+            .navigationDestination(for: SessionDest.self) { d in
+                SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+            }
             .navigationTitle(Loc.t("nav.community", lang))
             .brandToolbar(Loc.t("nav.community", lang))
             .toolbar { communityToolbar }
@@ -147,7 +152,7 @@ struct CommunityView: View {
             LazyVGrid(columns: gridCols, spacing: 8) {
                 ForEach(rows) { t in
                     if let sid = t.entry?.session_id {
-                        NavigationLink { SessionDetailView(id: sid) } label: { recordCell(t, showSpot: showSpot) }
+                        NavigationLink(value: SessionDest(id: sid)) { recordCell(t, showSpot: showSpot) }
                             .buttonStyle(.plain)
                     } else {
                         recordCell(t, showSpot: showSpot)
@@ -251,7 +256,7 @@ struct CommunityView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(media) { m in
-                            NavigationLink { SessionDetailView(id: m.session_id) } label: { mediaThumb(m) }
+                            NavigationLink(value: SessionDest(id: m.session_id)) { mediaThumb(m) }
                                 .buttonStyle(.plain)
                         }
                     }
@@ -295,7 +300,7 @@ struct CommunityView: View {
         if !topLiked.isEmpty {
             Section("\(Loc.t("community.topRated", lang)) · \(periodLabel)") {
                 ForEach(topLiked) { s in
-                    NavigationLink { SessionDetailView(id: s.id) } label: { CommunityRow(item: s) }
+                    NavigationLink(value: SessionDest(id: s.id)) { CommunityRow(item: s) }
                 }
             }
         }

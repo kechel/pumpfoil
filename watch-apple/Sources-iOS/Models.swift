@@ -666,3 +666,14 @@ struct WatchLayoutBrief: Codable, Identifiable {
     let name: String
     let category: String?
 }
+
+
+// Wert-basiertes Navigationsziel fuer Session-Details. Closure-basierte NavigationLinks in
+// Lazy-Containern (LazyVGrid der Rekord-Kacheln) koennen in SwiftUI DOPPELT pushen — dann liegt
+// dieselbe Session zweimal auf dem Stapel, "Aelter" tauscht nur die oberste aus und der
+// Zurueck-Button "geht eine Session zurueck" (Jans Befund 01.08., nur aus Rekorden
+// reproduzierbar, Listen-Zeilen waren nie betroffen). Wert-Navigation dedupliziert Pushes.
+struct SessionDest: Hashable {
+    let id: Int
+    var dataVersion: Int? = nil
+}

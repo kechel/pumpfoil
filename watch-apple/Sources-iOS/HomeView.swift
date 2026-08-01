@@ -50,6 +50,11 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView { homeStack }
+                // Wert-basiertes Session-Ziel (s. SessionDest in Models.swift) — die
+                // Rekord-Kacheln unten sind ein LazyVGrid, closure-Links pushten dort doppelt.
+                .navigationDestination(for: SessionDest.self) { d in
+                    SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+                }
                 .navigationTitle(Loc.t("nav.home", lang))
                 .brandToolbar(Loc.t("nav.home", lang))
                 .toolbar {
@@ -202,7 +207,7 @@ struct HomeView: View {
         } else {
             VStack(spacing: 0) {
                 ForEach(latest) { s in
-                    NavigationLink { SessionDetailView(id: s.id, dataVersion: s.data_version) } label: { SessionRow(session: s) }
+                    NavigationLink(value: SessionDest(id: s.id, dataVersion: s.data_version)) { SessionRow(session: s) }
                         .buttonStyle(.plain)
                     Divider()
                 }
@@ -333,7 +338,7 @@ struct HomeView: View {
     @ViewBuilder private func recordTile(_ value: String, _ label: String, _ sessionId: Int?, _ startedAt: String? = nil, _ tz: String? = nil) -> some View {
         let date = startedAt.flatMap { TimeFmt.dateNumeric($0, tz) }
         if let sessionId {
-            NavigationLink { SessionDetailView(id: sessionId) } label: { tile(value, label, date) }
+            NavigationLink(value: SessionDest(id: sessionId)) { tile(value, label, date) }
                 .buttonStyle(.plain)
         } else {
             tile(value, label, date)
