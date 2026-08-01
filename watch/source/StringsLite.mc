@@ -114,6 +114,8 @@ module Strings {
         if (key.equals("up.retryIn"))   { return "Retry in"; }
         if (key.equals("up.later"))     { return "retry later"; }
         if (key.equals("up.notLinked")) { return "Not linked"; }
+        if (key.equals("up.keepOpen")) { return "keep app open!"; }
+        if (key.equals("up.pendingN")) { return "waiting for upload"; }
         if (key.equals("up.pairAction")) { return "START: get code"; }
         if (key.equals("up.linkHint"))  { return "or MENU → Connect"; }
         if (key.equals("up.waiting"))   { return "Waiting…"; }

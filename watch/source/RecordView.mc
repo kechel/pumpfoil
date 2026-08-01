@@ -290,10 +290,23 @@ class RecordView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching") + " · " + rl, Graphics.TEXT_JUSTIFY_CENTER);
         }
-        // Object-Store voll (Aufnahme konnte nicht starten/sichern) -> klarer Hinweis statt Crash.
+        // Hinweiszeile bei h*0.50, EINE nach Dringlichkeit (Jan, 01.08.): Object-Store voll >
+        // ungepairt (Sessions erreichen das Konto nicht — Aufnehmen geht trotzdem) > wartende
+        // Uploads (drittes Support-Muster: Session "fehlt", lag aber nur auf der Uhr).
         if (_rec.storageFull) {
             dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, Strings.s("err.storageFull"), Graphics.TEXT_JUSTIFY_CENTER);
+        } else if (!_rec.isPaired()) {
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY,
+                Strings.s("up.notLinked") + " · " + Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
+        } else {
+            var pn = Uploader.pendingCount();
+            if (pn > 0) {
+                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY,
+                    pn + " " + Strings.s("up.pendingN"), Graphics.TEXT_JUSTIFY_CENTER);
+            }
         }
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
         if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
@@ -331,6 +344,13 @@ class RecordView extends WatchUi.View {
         dc.drawLine(w / 2 - 14, h * 0.46, w / 2 - 4, h * 0.50);
         dc.drawLine(w / 2 - 4, h * 0.50, w / 2 + 16, h * 0.42);
         dc.setPenWidth(1);
+        // Solange die Uebertragung laeuft/wartet: DEUTLICH sagen, dass die App offen bleiben muss —
+        // Connect IQ laedt nur im Vordergrund. Drei Support-Faelle ("Session fehlt", kam Stunden
+        // spaeter) hatten genau diese Wissensluecke. Orange, damit es nicht im Grau untergeht.
+        if (Uploader.isBusy() || Uploader.pendingCount() > 0) {
+            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * 0.545, Graphics.FONT_XTINY, Strings.s("up.keepOpen"), Graphics.TEXT_JUSTIFY_CENTER);
+        }
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("saved.upload"), Graphics.TEXT_JUSTIFY_CENTER);
         dc.drawText(w / 2, h * 0.72, Graphics.FONT_XTINY, Strings.s("saved.newRec"), Graphics.TEXT_JUSTIFY_CENTER);
