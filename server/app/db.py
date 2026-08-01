@@ -106,6 +106,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS data_quality VARCHAR(16) DEFAULT 'ok'",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS sport_source VARCHAR(10) DEFAULT 'default'",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS needs_classification BOOLEAN DEFAULT FALSE",
+        # Begruendung der automatischen Sportart-Erkennung (app/analysis/sportauto.py).
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS sport_auto_json TEXT",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_text TEXT",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS appeal_at TIMESTAMPTZ",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS flag_blocked BOOLEAN DEFAULT FALSE",

@@ -121,6 +121,19 @@ def _list_ended_at(s: models.Session):
     return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
 
 
+def _sport_auto(s: models.Session) -> dict | None:
+    """Begründung der automatischen Sportart-Erkennung — nur, solange sie auch gilt.
+
+    Sobald ein Mensch geurteilt hat (`sport_source` = owner/admin), ist die Frage beantwortet und
+    der Hinweis verschwindet; gespeichert bleibt er trotzdem (Historie, Admin-Sicht)."""
+    if (getattr(s, "sport_source", None) or "default") != "auto":
+        return None
+    try:
+        return json.loads(s.sport_auto_json) if s.sport_auto_json else None
+    except (ValueError, TypeError):
+        return None
+
+
 def _flag_count(s: models.Session) -> int:
     """Wie viele Nutzer haben „sieht nicht nach Pumpfoil aus" gemeldet? Nur die ZAHL verlässt den
     Server Richtung Besitzer — wer gemeldet hat, sieht ausschließlich der Admin."""
@@ -148,6 +161,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         data_quality=getattr(s, "data_quality", None) or "ok",
         sport_source=getattr(s, "sport_source", None) or "default",
         needs_classification=bool(getattr(s, "needs_classification", False)),
+        sport_auto=(_sport_auto(s) if owned else None),
         flag_count=(_flag_count(s) if owned else 0),
         appeal_text=(s.appeal_text if owned else None),
         started_at=s.started_at,
@@ -2217,7 +2231,13 @@ def set_classification(
     # Meldungen einfach „pumpfoil" wählen und die Meldungen damit aushebeln. Zurück auf Pumpfoil
     # führt deshalb NUR über den Widerspruch, den der Admin entscheidet (Jans Ablauf). In jede
     # ANDERE Kategorie darf er frei zuordnen — das ist ja der Sinn der Bitte.
-    if (not is_admin and s.needs_classification
+    # ABER: diese Sperre gilt nur gegen MENSCHLICHE Meldungen. Hat die automatische Erkennung die
+    # Frage gestellt (sport_source „auto", keine Meldung), darf der Besitzer direkt widersprechen —
+    # die Maschine ist die schwaechste Quelle, und einen Admin-Umweg fuer ihren Irrtum zu verlangen
+    # waere gegenueber dem Nutzer unverschaemt.
+    _gemeldet = bool(db.query(models.SessionFlag)
+                     .filter(models.SessionFlag.session_id == s.id).first())
+    if (not is_admin and s.needs_classification and _gemeldet
             and (sport in (None, "pumpfoil")) and (dq in (None, "ok"))):
         raise HTTPException(status.HTTP_409_CONFLICT,
                             "Bitte Widerspruch einlegen — das entscheidet ein Admin")

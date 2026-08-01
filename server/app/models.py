@@ -437,9 +437,15 @@ class Session(Base):
     # während die Session tatsächlich Wingfoil war.
     sport_class: Mapped[str] = mapped_column(String(16), default="pumpfoil", server_default="pumpfoil")
     data_quality: Mapped[str] = mapped_column(String(16), default="ok", server_default="ok")
-    # Wer hat den Wert gesetzt: default (Analyse) | owner | admin. „community" gibt es NICHT —
-    # eine Fremdmeldung setzt keine Kategorie, sie stellt nur eine Frage (Jans Vorgabe).
+    # Wer hat den Wert gesetzt: default (Import) | auto (Erkennung) | owner | admin. „community"
+    # gibt es NICHT — eine Fremdmeldung setzt keine Kategorie, sie stellt nur eine Frage (Jans
+    # Vorgabe). „auto" ist die SCHWÄCHSTE Quelle: sie greift nur, solange kein Mensch geurteilt hat,
+    # und jeder Mensch überstimmt sie ohne Umweg (siehe sessions.set_classification).
     sport_source: Mapped[str] = mapped_column(String(10), default="default", server_default="default")
+    # Begründung der automatischen Einordnung (JSON: grund, hinweis, merkmale) — für den Hinweis an
+    # den Nutzer, den Admin-Bereich und die Nachvollziehbarkeit. Nur gesetzt, wenn sport_source
+    # jemals „auto" war; ein menschliches Urteil löscht es nicht (Historie).
+    sport_auto_json: Mapped[str | None] = mapped_column(Text)
     # Zwei unabhängige Melder (oder der Besitzer selbst) -> unklassifiziert: erscheint in KEINER
     # Kategorie, bis Besitzer oder Admin zuordnet.
     needs_classification: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")

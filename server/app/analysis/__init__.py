@@ -289,11 +289,31 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     _owner = db.get(models.User, session.user_id)
     _sens = (getattr(_owner, "foil_sensitivity", None) or "normal")
     _preset_kw = SENSITIVITY_PRESETS.get(_sens) if _sens != "normal" else None
-    res = analyze_gps(
-        gps_samples, gps_hz=session.gps_hz,
-        mask_override=mask_override, impulse_times_ms=impulses,
-        water_rings=water_rings, **(_preset_kw or {}),
-    )
+    # --- Schalter Erkennung v2 (docs/detector-v2.md) ---------------------------------------
+    # ADDITIV: ohne DETECTOR_V2 laeuft exakt der bisherige Pfad. v2 baut Zeitachse, Zuschnitt und
+    # Ausschluss selbst (Session-Koordinaten) und liefert das Ergebnis in der v1-Konvention
+    # zurueck, damit alles Nachgelagerte unveraendert bleibt.
+    from .detect_v2 import detector_v2_enabled
+
+    if detector_v2_enabled():
+        from .detect_v2 import analyze_session_v2
+
+        res = analyze_session_v2(session, **(_preset_kw or {}))
+        res.pop("windows", None)
+        res.pop("timebase", None)
+        if detection == "none":
+            # Gleiche Schranke wie v1: ohne Accel laesst sich Foilen nicht von Rad/Ski/Laufen
+            # trennen -> keine Laeufe, egal was die Fenster sagen.
+            res["segments"] = []
+            res["foiling_time_s"] = 0.0
+            res["foiling_distance_m"] = 0.0
+            res["metrics"]["num_segments"] = 0
+    else:
+        res = analyze_gps(
+            gps_samples, gps_hz=session.gps_hz,
+            mask_override=mask_override, impulse_times_ms=impulses,
+            water_rings=water_rings, **(_preset_kw or {}),
+        )
     # Cache der aktiven Preset-Auswertung unter ihrem Schlüssel (für Detail-Overlay/Settings-
     # Vorschau); identisch zu den kanonischen Spalten oben.
     res_personal = res if _sens != "normal" else None
@@ -474,6 +494,23 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         result.pump_count = None
         result.avg_cadence_hz = None
         result.accel_windows_json = None
+
+    # --- Automatische Sportart-Einordnung (docs/sport-classification.md) -------------------------
+    # NUR in der finalen Analyse und NUR, solange kein Mensch geurteilt hat. Die Maschine ist die
+    # schwaechste Quelle: sie faellt kein Urteil ueber `owner`/`admin`, und wo sie unsicher ist,
+    # behauptet sie keine Sportart, sondern stellt die Frage (needs_classification).
+    if final and (session.sport_source or "default") == "default":
+        from .sportauto import einordnen
+
+        urteil = einordnen(res["segments"], gps_samples)
+        if urteil is not None:
+            session.sport_auto_json = json.dumps(urteil, ensure_ascii=False)
+            session.sport_source = "auto"
+            if urteil["sport_class"]:
+                session.sport_class = urteil["sport_class"]
+            else:
+                # Keine belegbare Klasse -> in KEINER Auswertung, bis der Besitzer zuordnet.
+                session.needs_classification = True
 
     session.status = "analyzed" if final else "live"
     db.commit()

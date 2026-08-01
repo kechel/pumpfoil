@@ -191,8 +191,11 @@ class SessionOut(BaseModel):
     # Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
     sport_class: str | None = None          # pumpfoil (Default) | wingfoil | foildrive | …
     data_quality: str | None = None         # ok | false_data | duplicate | test
-    sport_source: str | None = None         # default | owner | admin
+    sport_source: str | None = None         # default | auto | owner | admin
     needs_classification: bool = False      # 2 Melder, noch nicht zugeordnet -> in keiner Auswertung
+    # Begründung der automatischen Erkennung, nur für Besitzer/Admin: {hinweis, grund, merkmale}.
+    # Der Hinweis-Schlüssel steuert den Text in der App, `grund` ist die Klartext-Begründung.
+    sport_auto: dict | None = None
     flag_count: int = 0                     # nur für Besitzer/Admin sichtbar (Melder bleiben anonym)
     appeal_text: str | None = None           # Widerspruch des Besitzers (Besitzer/Admin)
     tz: str | None = None           # IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen

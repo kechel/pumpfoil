@@ -154,6 +154,37 @@ Session  + sport               VARCHAR default 'pumpfoil'   # WIRKSAMER Wert (Me
   ([[detector-negative-examples]]) — sie gehören in die Label-Ablage, nicht nur in die DB.
   Eine Meldung darf aber **keine Reanalyse** auslösen.
 
+## Stufe 1b — die Maschine als vierte Quelle (`sport_source = "auto"`, 2026-08-01)
+
+Jans Wunsch: „direkt beim Import generell eine Art Auto-Erkennung der Sportart mit einführen … und
+wenn es unsicher ist, dann halt nicht klassifizieren, sondern nur ‚nicht Pumpfoil' zuordnen."
+
+Umgesetzt in `server/app/analysis/sportauto.py`, aufgerufen am Ende von `run_analysis` — **nur bei
+`final=True` und nur, solange `sport_source == "default"`**. Die Maschine ist die **schwächste**
+Quelle: sie urteilt nie über einen Menschen, und der Besitzer überstimmt sie **ohne Admin-Umweg**
+(die 409-Sperre in `set_classification` greift jetzt nur noch, wenn es echte Meldungen gibt —
+vorher hätte ein Maschinen-Irrtum den Nutzer in Jans Warteschlange geschickt).
+
+Drei Ausgänge: **Pumpfoil** (nichts passiert) · **`efoil`** (einzige Klasse, die die Maschine
+behauptet — die Signatur ist eindeutig belegt) · **unklassifiziert** (`needs_classification`,
+erscheint in keiner Auswertung, bis der Besitzer zuordnet). Die Begründung samt Messwerten steht in
+`Session.sport_auto_json` und geht als `sport_auto` an Besitzer und Admin.
+
+**Grundlage der Grenzwerte:** die 32 menschlich beurteilten Sessions gegen eine Kontrollgruppe
+unbeurteilter Sessions **derselben Nutzer** (wer seine Wing-Session markiert hat, dessen Rest ist
+glaubwürdig Pumpfoil). Zwei Gruppen mussten heraus, beide eigene Befunde: **user 135** (die
+Kontrolle war mit genau dem verseucht, wonach gesucht wird) und **41 iOS-Simulator-Sessions** im
+Raum Cupertino. Ergebnis: **17 von 28** belegten Nicht-Pumpfoil-Sessions erkannt bei **1 Fehlalarm
+unter 526** (0,19 %); die 4 bestätigten Pumpfoil-Sessions bleiben unberührt. Die schärfere Variante
+(Dauer allein ab 300 s) hätte 93 % erkannt, aber 2,1 % Fehlalarm — bewusst verworfen: eine falsch
+markierte echte Rekordfahrt ärgert mehr, als eine übersehene Wing-Session schadet.
+
+Trockenlauf über den Bestand: **39 von 827** unbeurteilten Sessions (4,7 %) würden markiert,
+davon 30 bei user 135. Alle Zahlen und ihre Herkunft stehen im Modul-Kopf von `sportauto.py`.
+
+**Offen:** der Hinweistext in PWA und Apps (Schlüssel `auto.motor` / `auto.unklar`) und die
+rückwirkende Anwendung auf die 39 Sessions — beides wartet auf Jans Freigabe.
+
 ## Vorgeschlagene Reihenfolge
 
 - **Stufe 1 (Kern):** Spalten + `session_flags`, Melden (fremd: nur die freundliche Bitte, KEINE
