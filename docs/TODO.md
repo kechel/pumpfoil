@@ -13,9 +13,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `appmeta` bleibt bis zur FREIGABE auf garmin 1.0.69 / zepp 1.0.3 (Tom-Petr-Lehre: nie die
   eingereichte Version hinterlegen). Nach Freigabe: `appmeta.garmin` -> 1.0.71,
   `appmeta.zepp` -> 1.0.4 (Store-URL fuer Zepp weiterhin unbekannt/leer). Die Website liefert
-  Garmin 1.0.71 als Direkt-Download schon seit dem Build. **iOS/Watch 1.1.19/23 ebenfalls
-  EINGEREICHT (01.08. abend, Zurueck-Button-Fix von Jan im Simulator verifiziert).** Noch offen
-  bei Jan: Android 1.1.18/32 + Wear 1.2.18/1028 (Play) testen/einreichen.
+  Garmin 1.0.71 als Direkt-Download schon seit dem Build. **ALLE Plattformen eingereicht
+  (01.08. abend):** iOS/Watch 1.1.19/23 (Zurueck-Fix verifiziert), Android 1.1.18/32 +
+  Wear 1.2.18/1028 (Play Produktion, voller Roll-out, in Pruefung). Nach den Freigaben je
+  Plattform `appmeta` bumpen: garmin 1.0.71 · zepp 1.0.4 · ios 1.1.19 · android 1.1.18 ·
+  wear 1.2.18.
 
 - **LIVE-STAND 2026-07-30** (loest die frueheren Stand-Zeilen weiter unten ab; `appmeta` ist auf
   genau diese Werte gesetzt): **Garmin 1.0.69** im CIQ-Store freigegeben (29.7., auf Jans Uhr aus dem
