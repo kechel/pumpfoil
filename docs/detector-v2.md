@@ -84,6 +84,11 @@ Schwellen; Community und Rekorde rechnen immer mit `normal`. v2 darf das nicht u
   Lauf gegenüber: hinzugekommen, entfallen, zusammengeführt, geteilt; dazu Foil-Zeit, Distanz und
   die Auswirkung auf die Bestenlisten. Vorbild: `<scratchpad>/nachher.py`, das dasselbe gegen den
   Snapshot macht.
+- **Die beschrifteten Fälle liegen als Datei vor:** `server/data/ground-truth/runs.json` — von
+  Menschen bestätigte Urteile über einzelne Läufe (Jans Sichtung vom 01.08., dazu die Wakethief- und
+  Rekord-Fälle), mit Merkmalen und Quelle je Eintrag. Bewusst **nicht im Repo** (das ist öffentlich,
+  die Datei verweist auf Nutzer-Sessions), aber unter `server/data/` und damit im täglichen Backup.
+  Ohne diese Urteile ist ein Regressionsvergleich nur ein Zahlen-Diff — mit ihnen ist er eine Note.
 - **Erst an den beschrifteten Fällen** prüfen, dann über den Bestand:
   Autofahrten #1255/2, #1255/0, #1254/2, #1281/17 · echter Lauf #890/0 (Jans Gegenbeispiel) ·
   Transport #1328 · Wakethief #1232 · Rekord-Läufe #622/7, #1031/2.
