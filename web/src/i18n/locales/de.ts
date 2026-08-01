@@ -1505,6 +1505,10 @@ const de: Record<string, string> = {
   "account.layoutState.off_nolayout": "Du hast noch kein eigenes Layout als Seite eingebunden — unter „Uhr-Layouts“ anlegen und in den Ansichten einsetzen.",
   "account.layoutCanary": "Diese Uhr hat einen Absturz mit eigenem Layout gemeldet ({n}×) — sie zeigt vorläufig die klassischen Ansichten. Andere Uhren sind nicht betroffen.",
   "account.layoutCanaryReset": "Wieder versuchen",
+  "phome.emptyTitle": "Willkommen! So kommt deine erste Session hierher",
+  "phome.emptyBody": "Verbinde deine Uhr und nimm eine Session auf — sie lädt automatisch hoch und wird hier ausgewertet. Eine vorhandene Aufnahme (FIT-Datei) kannst du auch direkt importieren.",
+  "phome.emptyCtaWatch": "Uhr einrichten",
+  "phome.emptyCtaImport": "Datei importieren",
 };
 
 export default de;

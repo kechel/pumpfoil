@@ -229,7 +229,23 @@ export default function PersonalHome() {
         </Link>
       )}
       {!latest ? <Spinner /> : latest.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-slate-300">{t("sessions.none")}</Card>
+        /* Leerzustand = Starthilfe, nicht nur "keine Sessions": wer angemeldet ist und noch nichts
+           hochgeladen hat, braucht genau HIER den Weg zur ersten Session (Jan, 01.08.). Normale
+           Schriftgroesse — wichtige Hinweise nie kleiner als der Fliesstext. */
+        <Card className="p-6">
+          <p className="mb-1 font-semibold">{t("phome.emptyTitle")}</p>
+          <p className="mb-4 text-slate-300">{t("phome.emptyBody")}</p>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/account"
+              className="rounded-xl bg-brand-500 px-4 py-2 font-medium text-slate-950 hover:bg-brand-400">
+              {t("phome.emptyCtaWatch")}
+            </Link>
+            <Link to="/import"
+              className="rounded-xl border border-slate-700 px-4 py-2 text-slate-200 hover:bg-slate-800">
+              {t("phome.emptyCtaImport")}
+            </Link>
+          </div>
+        </Card>
       ) : (
         <div className="mb-6 space-y-3">
           {latest.map((s) => (

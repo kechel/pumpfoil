@@ -1247,6 +1247,10 @@ const nl: Record<string, string> = {
   "cls.autoSetAs": "Automatisch ingedeeld als {sport}. Klopt dat niet, verander het hier.",
   "cls.autoWhy": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h — een pumping-run duurt gemiddeld 27 s.",
   "cls.autoWhyPulse": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h, en de hartslag reageerde nauwelijks ({hr} bpm).",
+  "phome.emptyTitle": "Welkom! Zo komt je eerste sessie hier terecht",
+  "phome.emptyBody": "Verbind je horloge en neem een sessie op — hij wordt automatisch geüpload en verschijnt hier, geanalyseerd. Je kunt ook direct een bestaande opname (FIT-bestand) importeren.",
+  "phome.emptyCtaWatch": "Horloge instellen",
+  "phome.emptyCtaImport": "Bestand importeren",
 };
 
 export default nl;

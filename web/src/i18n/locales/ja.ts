@@ -1164,6 +1164,10 @@ const ja: Record<string, string> = {
   "cls.autoSetAs": "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",
   "cls.autoWhy": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
   "cls.autoWhyPulse": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
+  "phome.emptyTitle": "ようこそ！最初のセッションはこうしてここに届きます",
+  "phome.emptyBody": "ウォッチを接続してセッションを記録すると、自動的にアップロードされ、解析されてここに表示されます。既存の記録（FITファイル）を直接インポートすることもできます。",
+  "phome.emptyCtaWatch": "ウォッチを設定",
+  "phome.emptyCtaImport": "ファイルをインポート",
 };
 
 export default ja;

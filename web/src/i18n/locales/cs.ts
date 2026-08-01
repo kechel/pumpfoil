@@ -1246,6 +1246,10 @@ const cs: Record<string, string> = {
   "cls.autoSetAs": "Automaticky zařazeno jako {sport}. Pokud to nesedí, změň to tady.",
   "cls.autoWhy": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h — pumpovací jízda trvá v průměru 27 s.",
   "cls.autoWhyPulse": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h a tep skoro nereagoval ({hr} bpm).",
+  "phome.emptyTitle": "Vítej! Takhle se sem dostane tvoje první session",
+  "phome.emptyBody": "Propoj hodinky a nahraj session — nahraje se automaticky a objeví se tady, vyhodnocená. Existující záznam (soubor FIT) můžeš také importovat přímo.",
+  "phome.emptyCtaWatch": "Nastavit hodinky",
+  "phome.emptyCtaImport": "Importovat soubor",
 };
 
 export default cs;

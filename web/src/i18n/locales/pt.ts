@@ -1190,6 +1190,10 @@ const pt: Record<string, string> = {
   "cls.autoSetAs": "Classificada automaticamente como {sport}. Se não estiver certo, altere aqui.",
   "cls.autoWhy": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média — um run de pumping dura 27 s em média.",
   "cls.autoWhyPulse": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média, e a frequência cardíaca quase não reagiu ({hr} bpm).",
+  "phome.emptyTitle": "Bem-vindo! É assim que a sua primeira sessão chega aqui",
+  "phome.emptyBody": "Conecte o relógio e grave uma sessão — ela sobe automaticamente e aparece aqui, analisada. Também pode importar diretamente uma gravação existente (arquivo FIT).",
+  "phome.emptyCtaWatch": "Configurar o relógio",
+  "phome.emptyCtaImport": "Importar um arquivo",
 };
 
 export default pt;

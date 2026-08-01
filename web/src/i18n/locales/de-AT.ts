@@ -1005,6 +1005,10 @@ const deAT: Record<string, string> = {
   "cls.autoSetAs": "Automatisch eingeordnet als {sport}. Stimmt das nicht, änder es einfach hier.",
   "cls.autoWhy": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h — beim Pumpen dauert ein Lauf im Mittel 27 s.",
   "cls.autoWhyPulse": "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls hat kaum reagiert ({hr} bpm).",
+  "phome.emptyTitle": "Willkommen! So kommt deine erste Session hierher",
+  "phome.emptyBody": "Verbinde deine Uhr und nimm eine Session auf — sie lädt automatisch hoch und wird hier ausgewertet. Eine vorhandene Aufnahme (FIT-Datei) kannst du auch direkt importieren.",
+  "phome.emptyCtaWatch": "Uhr einrichten",
+  "phome.emptyCtaImport": "Datei importieren",
 };
 
 export default deAT

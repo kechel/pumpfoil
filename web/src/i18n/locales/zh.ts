@@ -1167,6 +1167,10 @@ const zh: Record<string, string> = {
   "cls.autoSetAs": "已自动归类为 {sport}。如果不对，在这里改即可。",
   "cls.autoWhy": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h —— 泵动的一段平均只有 27 秒。",
   "cls.autoWhyPulse": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h，而心率几乎没有反应（{hr} bpm）。",
+  "phome.emptyTitle": "欢迎！你的第一次记录会这样出现在这里",
+  "phome.emptyBody": "连接手表并记录一次 session——它会自动上传并在此显示分析结果。也可以直接导入已有的记录（FIT 文件）。",
+  "phome.emptyCtaWatch": "设置手表",
+  "phome.emptyCtaImport": "导入文件",
 };
 
 export default zh;

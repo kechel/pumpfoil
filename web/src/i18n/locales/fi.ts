@@ -1212,6 +1212,10 @@ const fi: Record<string, string> = {
   "cls.autoSetAs": "Luokiteltu automaattisesti: {sport}. Jos se ei pidä paikkaansa, vaihda se tästä.",
   "cls.autoWhy": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h — pumppausveto kestää keskimäärin 27 s.",
   "cls.autoWhyPulse": "Ratkaisevaa: pisin veto {dur} s keskinopeudella {kmh} km/h, eikä syke juuri reagoinut ({hr} bpm).",
+  "phome.emptyTitle": "Tervetuloa! Näin ensimmäinen sessiosi päätyy tänne",
+  "phome.emptyBody": "Yhdistä kellosi ja tallenna sessio — se latautuu automaattisesti ja näkyy täällä analysoituna. Voit myös tuoda olemassa olevan tallenteen (FIT-tiedosto) suoraan.",
+  "phome.emptyCtaWatch": "Ota kello käyttöön",
+  "phome.emptyCtaImport": "Tuo tiedosto",
 };
 
 export default fi;

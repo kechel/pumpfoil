@@ -1448,6 +1448,10 @@ const en: Record<string, string> = {
   "cls.autoSetAs": "Automatically classified as {sport}. If that’s wrong, just change it here.",
   "cls.autoWhy": "What decided it: longest run {dur} s at {kmh} km/h on average — a pumping run lasts 27 s on average.",
   "cls.autoWhyPulse": "What decided it: longest run {dur} s at {kmh} km/h on average, and your heart rate barely responded ({hr} bpm).",
+  "phome.emptyTitle": "Welcome! Here's how your first session gets here",
+  "phome.emptyBody": "Connect your watch and record a session — it uploads automatically and shows up here, fully analysed. You can also import an existing recording (FIT file) directly.",
+  "phome.emptyCtaWatch": "Set up your watch",
+  "phome.emptyCtaImport": "Import a file",
 };
 
 export default en;

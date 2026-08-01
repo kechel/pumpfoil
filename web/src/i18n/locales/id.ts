@@ -1190,6 +1190,10 @@ const id: Record<string, string> = {
   "cls.autoSetAs": "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
   "cls.autoWhy": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
   "cls.autoWhyPulse": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
+  "phome.emptyTitle": "Selamat datang! Begini cara sesi pertamamu sampai ke sini",
+  "phome.emptyBody": "Hubungkan jam tanganmu dan rekam satu sesi — terunggah otomatis dan muncul di sini, sudah dianalisis. Rekaman yang sudah ada (file FIT) juga bisa diimpor langsung.",
+  "phome.emptyCtaWatch": "Siapkan jam",
+  "phome.emptyCtaImport": "Impor file",
 };
 
 export default id;

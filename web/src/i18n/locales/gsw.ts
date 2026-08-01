@@ -1021,6 +1021,10 @@ const gsw: Record<string, string> = {
   "cls.autoSetAs": "Automatisch iigordnet als {sport}. Wenn das nöd stimmt, änder s eifach da.",
   "cls.autoWhy": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h — bim Pumpe duuret en Lauf im Schnitt 27 s.",
   "cls.autoWhyPulse": "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h, und de Puls het chuum reagiert ({hr} bpm).",
+  "phome.emptyTitle": "Willkomme! So chunnt dini ersti Session da ane",
+  "phome.emptyBody": "Verbind dini Uhr und nimm e Session uf — si ladt automatisch ufe und wird da usgwertet. E bestehendi Ufnahm (FIT-Datei) chasch au direkt importiere.",
+  "phome.emptyCtaWatch": "Uhr iirichte",
+  "phome.emptyCtaImport": "Datei importiere",
 };
 
 export default gsw
