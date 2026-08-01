@@ -13,7 +13,9 @@ export function StartHelp() {
       <p className="mb-1 font-semibold">{t("phome.emptyTitle")}</p>
       <p className="mb-4 text-slate-300">{t("phome.emptyBody")}</p>
       <div className="flex flex-wrap gap-2">
-        <Link to="/account"
+        {/* Explizit ?tab=guide: /account ohne Parameter springt auf „Datenfelder", sobald ein
+            verbundenes Geraet existiert (Account.tsx) — hier soll aber IMMER die Anleitung auf. */}
+        <Link to="/account?tab=guide"
           className="rounded-xl bg-brand-500 px-4 py-2 font-medium text-slate-950 hover:bg-brand-400">
           {t("phome.emptyCtaWatch")}
         </Link>
