@@ -234,8 +234,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
         Autofahrten. Die 4 Treffer waren Zufall, nicht Koennen.
       * user 133 (#890, von Jan als ECHT bestaetigt): Spanne **-1** -> Schwelle 121, sein echter Lauf
         mit Puls 116 waere FALSCH als Transport markiert.
-      * Kern: **nur 7 von 34 Nutzern zeigen ueberhaupt >= 15 bpm Spanne.** Grund ist Physiologie, nicht
-        Datenqualitaet — der Median-Lauf dauert 44 s, in 44 s zieht der Puls kaum an.
+      * ~~Kern: nur 7 von 34 Nutzern zeigen >= 15 bpm Spanne~~ — **ZURUECKGEZOGEN 01.08., war ein
+        Artefakt meiner Metrik** (Jans Einwand: „das muesste bei allen hochgehen"). Er hatte recht.
+        Drei Fehler: (1) die Pulsspitze kommt NACH dem Lauf und wurde als „Ruhe" gezaehlt;
+        (2) Mittelwert UEBER den Lauf statt der Antwort danach; (3) die Ruhe-Menge enthielt die
+        Erholungsphase. Gemessener Verlauf um kurze Laeufe (25-70 s): u2 119 -> **137 bei +60 s**
+        (252 Laeufe), u73 107 -> **159 bei +40 s** (41 Laeufe), u135 102 -> 114 bei +50 s.
+      * **Richtige Metrik (7 von 7 beschrifteten Faellen korrekt):** Median(2. Laufhaelfte bis
+        Ende+30 s) minus Median(90 s davor), Werte <= 40 bpm als Sensor-Aussetzer verwerfen.
+        Ergebnis: Autofahrten -1 / +4 / +13, echte Laeufe +26 / +35 / +57 / +70 — Schwelle um +20.
+        **Auch #890 (Jans Gegenbeispiel) ist damit richtig** (+26), woran alle frueheren Varianten
+        scheiterten. Extremwerte (Spitze minus Minimum) taugen NICHT: Sensor-Aussetzer liefern
+        50-bpm-Minima, dann wird jede Autofahrt zur „Anstrengung".
+      * Bewegungskurve (Jans zweiter Gedanke, Radfahren gegen Pumpen): mit diesen Daten NICHT
+        belegbar. #1328 Transport 62 % Energie im Pump-Band bei RMS 0,28, echte Laeufe 37-41 % bei
+        RMS 0,08 bzw. 1,34 — die Streuung zwischen echten Laeufen ist groesser als der Abstand zum
+        Transport. Braeuchte eine Session, von der bekannt ist, dass Rad gefahren wurde.
       Konsequenzen fuer den Bau: (1) Referenz NUR aus unabhaengig belegten Pump-Laeufen (Accel-Kadenz
       plausibel, Hin-und-Zurueck-Geometrie, Session von einem MENSCHEN als pumpfoil bestaetigt, nicht
       `sport_source=default`); (2) **Brauchbarkeits-Test pro Nutzer**: keine Spanne -> kein Urteil
