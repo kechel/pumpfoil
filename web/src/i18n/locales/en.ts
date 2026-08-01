@@ -1452,6 +1452,14 @@ const en: Record<string, string> = {
   "phome.emptyBody": "Connect your watch and record a session — it uploads automatically and shows up here, fully analysed. You can also import an existing recording (FIT file) directly.",
   "phome.emptyCtaWatch": "Set up your watch",
   "phome.emptyCtaImport": "Import a file",
+  "guide.sync.title": "After the session: when does the watch upload?",
+  "guide.sync.nowTitle": "Right away:",
+  "guide.sync.now": "If the watch is connected the moment you stop (phone nearby or Wi-Fi), the upload starts by itself.",
+  "guide.sync.retryTitle": "Shortly after:",
+  "guide.sync.retry": "If it doesn’t work right away, the watch keeps retrying automatically — but only while the Pumpfoil app stays open on the watch.",
+  "guide.sync.laterTitle": "Later:",
+  "guide.sync.later": "If the app is closed (watch shows the watch face), the session stays safely stored on the watch. It is sent automatically the next time you open the app — or right away via menu → “Upload / Sync”.",
+  "guide.sync.note": "Nothing gets lost: if a session is missing here, it is almost always still on the watch, just waiting for the next app start.",
 };
 
 export default en;

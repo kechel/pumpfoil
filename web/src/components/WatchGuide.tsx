@@ -212,6 +212,19 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         <p className="mt-3 text-xs text-slate-400">{t("guide.pair.note")}</p>
       </Card>
 
+      {/* Nach der Session: WANN laedt die Uhr hoch — der Schritt, den die meisten nicht verstehen
+          (Jan, 01.08.; drei Nutzer-Meldungen mit demselben Muster: Session "fehlt", lag aber nur
+          noch auf der Uhr, weil der Upload nur im Vordergrund laeuft). Plattformuebergreifend. */}
+      <Card id="guide-sync" className="scroll-mt-20 p-5">
+        <h3 className="text-lg font-bold text-brand-400">{t("guide.sync.title")}</h3>
+        <ul className="mt-4 space-y-3 text-slate-200">
+          <li><b>{t("guide.sync.nowTitle")}</b> {t("guide.sync.now")}</li>
+          <li><b>{t("guide.sync.retryTitle")}</b> {t("guide.sync.retry")}</li>
+          <li><b>{t("guide.sync.laterTitle")}</b> {t("guide.sync.later")}</li>
+        </ul>
+        <p className="mt-3 text-slate-300">{t("guide.sync.note")}</p>
+      </Card>
+
       {/* Demo-Clip ganz unten, rund (passt zur runden Uhr). */}
       <Card className="p-5">
         <WatchDemoVideo title={t("watch.demoTitle")} round />

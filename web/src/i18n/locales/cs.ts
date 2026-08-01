@@ -1250,6 +1250,14 @@ const cs: Record<string, string> = {
   "phome.emptyBody": "Propoj hodinky a nahraj session — nahraje se automaticky a objeví se tady, vyhodnocená. Existující záznam (soubor FIT) můžeš také importovat přímo.",
   "phome.emptyCtaWatch": "Nastavit hodinky",
   "phome.emptyCtaImport": "Importovat soubor",
+  "guide.sync.title": "Po session: kdy hodinky nahrávají?",
+  "guide.sync.nowTitle": "Hned:",
+  "guide.sync.now": "Pokud jsou hodinky ve chvíli zastavení připojené (telefon poblíž nebo Wi-Fi), upload se spustí sám.",
+  "guide.sync.retryTitle": "Krátce poté:",
+  "guide.sync.retry": "Pokud to hned nevyjde, hodinky to zkoušejí automaticky dál — ale jen dokud aplikace Pumpfoil zůstane na hodinkách otevřená.",
+  "guide.sync.laterTitle": "Později:",
+  "guide.sync.later": "Pokud je aplikace zavřená (hodinky ukazují ciferník), session zůstane bezpečně uložená v hodinkách. Odešle se automaticky při příštím otevření aplikace — nebo hned přes menu → „Upload / Sync“.",
+  "guide.sync.note": "Nic se neztratí: pokud tady session chybí, skoro vždycky je ještě v hodinkách a čeká jen na příští spuštění aplikace.",
 };
 
 export default cs;

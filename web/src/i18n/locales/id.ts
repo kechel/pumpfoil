@@ -1194,6 +1194,14 @@ const id: Record<string, string> = {
   "phome.emptyBody": "Hubungkan jam tanganmu dan rekam satu sesi — terunggah otomatis dan muncul di sini, sudah dianalisis. Rekaman yang sudah ada (file FIT) juga bisa diimpor langsung.",
   "phome.emptyCtaWatch": "Siapkan jam",
   "phome.emptyCtaImport": "Impor file",
+  "guide.sync.title": "Setelah sesi: kapan jam mengunggah?",
+  "guide.sync.nowTitle": "Langsung:",
+  "guide.sync.now": "Jika jam terhubung tepat saat berhenti (ponsel di dekatnya atau Wi-Fi), unggahan mulai dengan sendirinya.",
+  "guide.sync.retryTitle": "Sesaat kemudian:",
+  "guide.sync.retry": "Jika tidak langsung berhasil, jam terus mencoba otomatis — tapi hanya selama aplikasi Pumpfoil tetap terbuka di jam.",
+  "guide.sync.laterTitle": "Nanti:",
+  "guide.sync.later": "Jika aplikasi tertutup (jam menampilkan tampilan jam), sesi tetap tersimpan aman di jam. Sesi dikirim otomatis saat aplikasi dibuka lagi — atau langsung lewat menu → “Upload / Sync”.",
+  "guide.sync.note": "Tidak ada yang hilang: kalau ada sesi yang belum muncul di sini, hampir pasti masih ada di jam, menunggu aplikasi dibuka berikutnya.",
 };
 
 export default id;

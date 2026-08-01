@@ -1509,6 +1509,14 @@ const de: Record<string, string> = {
   "phome.emptyBody": "Verbinde deine Uhr und nimm eine Session auf — sie lädt automatisch hoch und wird hier ausgewertet. Eine vorhandene Aufnahme (FIT-Datei) kannst du auch direkt importieren.",
   "phome.emptyCtaWatch": "Uhr einrichten",
   "phome.emptyCtaImport": "Datei importieren",
+  "guide.sync.title": "Nach der Session: Wann lädt die Uhr hoch?",
+  "guide.sync.nowTitle": "Sofort:",
+  "guide.sync.now": "Ist die Uhr beim Stoppen gerade verbunden (Handy in der Nähe oder WLAN), startet der Upload in dem Moment von selbst.",
+  "guide.sync.retryTitle": "Kurz danach:",
+  "guide.sync.retry": "Klappt es nicht sofort, versucht es die Uhr automatisch weiter — aber nur, solange die Pumpfoil-App auf der Uhr geöffnet bleibt.",
+  "guide.sync.laterTitle": "Später:",
+  "guide.sync.later": "Ist die App zu (Uhr zeigt das Zifferblatt), bleibt die Session sicher auf der Uhr gespeichert. Beim nächsten Öffnen der App wird sie automatisch nachgeschickt — oder sofort per Menü → „Upload / Sync“.",
+  "guide.sync.note": "Es geht nichts verloren: Fehlt eine Session hier auf der Seite, liegt sie fast immer noch auf der Uhr und wartet nur auf den nächsten App-Start.",
 };
 
 export default de;

@@ -1171,6 +1171,14 @@ const zh: Record<string, string> = {
   "phome.emptyBody": "连接手表并记录一次 session——它会自动上传并在此显示分析结果。也可以直接导入已有的记录（FIT 文件）。",
   "phome.emptyCtaWatch": "设置手表",
   "phome.emptyCtaImport": "导入文件",
+  "guide.sync.title": "记录结束后：手表什么时候上传？",
+  "guide.sync.nowTitle": "立刻：",
+  "guide.sync.now": "如果停止记录的那一刻手表正好在线（手机在附近或有 Wi-Fi），上传会自动开始。",
+  "guide.sync.retryTitle": "稍后：",
+  "guide.sync.retry": "如果没能马上成功，手表会自动重试 —— 但仅在 Pumpfoil 应用还在手表上打开时。",
+  "guide.sync.laterTitle": "之后：",
+  "guide.sync.later": "如果应用已关闭（手表显示表盘），session 会安全保存在手表里。下次打开应用时自动补传 —— 或通过菜单 →“Upload / Sync”立即上传。",
+  "guide.sync.note": "什么都不会丢：如果这里少了一次 session，它几乎肯定还在手表里，只等下次打开应用。",
 };
 
 export default zh;

@@ -1194,6 +1194,14 @@ const pt: Record<string, string> = {
   "phome.emptyBody": "Conecte o relógio e grave uma sessão — ela sobe automaticamente e aparece aqui, analisada. Também pode importar diretamente uma gravação existente (arquivo FIT).",
   "phome.emptyCtaWatch": "Configurar o relógio",
   "phome.emptyCtaImport": "Importar um arquivo",
+  "guide.sync.title": "Depois da sessão: quando o relógio faz o upload?",
+  "guide.sync.nowTitle": "Na hora:",
+  "guide.sync.now": "Se o relógio estiver conectado no momento em que você para (celular por perto ou Wi-Fi), o upload começa sozinho.",
+  "guide.sync.retryTitle": "Logo depois:",
+  "guide.sync.retry": "Se não funcionar de imediato, o relógio tenta de novo automaticamente — mas só enquanto o app Pumpfoil ficar aberto no relógio.",
+  "guide.sync.laterTitle": "Mais tarde:",
+  "guide.sync.later": "Se o app estiver fechado (o relógio mostra o mostrador), a sessão fica guardada em segurança no relógio. Ela é enviada automaticamente na próxima vez que você abrir o app — ou na hora via menu → “Upload / Sync”.",
+  "guide.sync.note": "Nada se perde: se uma sessão está faltando aqui, quase sempre ela ainda está no relógio, só esperando o próximo início do app.",
 };
 
 export default pt;

@@ -1216,6 +1216,14 @@ const fi: Record<string, string> = {
   "phome.emptyBody": "Yhdistä kellosi ja tallenna sessio — se latautuu automaattisesti ja näkyy täällä analysoituna. Voit myös tuoda olemassa olevan tallenteen (FIT-tiedosto) suoraan.",
   "phome.emptyCtaWatch": "Ota kello käyttöön",
   "phome.emptyCtaImport": "Tuo tiedosto",
+  "guide.sync.title": "Session jälkeen: milloin kello lataa tiedot?",
+  "guide.sync.nowTitle": "Heti:",
+  "guide.sync.now": "Jos kello on pysäytyshetkellä yhteydessä (puhelin lähellä tai WLAN), lataus käynnistyy itsestään.",
+  "guide.sync.retryTitle": "Hetken päästä:",
+  "guide.sync.retry": "Jos se ei onnistu heti, kello yrittää automaattisesti uudelleen — mutta vain niin kauan kuin Pumpfoil-sovellus pysyy auki kellossa.",
+  "guide.sync.laterTitle": "Myöhemmin:",
+  "guide.sync.later": "Jos sovellus on kiinni (kello näyttää kellotaulun), sessio pysyy turvassa kellon muistissa. Se lähetetään automaattisesti, kun avaat sovelluksen seuraavan kerran — tai heti valikosta → „Upload / Sync“.",
+  "guide.sync.note": "Mitään ei katoa: jos sessio puuttuu täältä, se on lähes aina yhä kellossa odottamassa seuraavaa sovelluksen käynnistystä.",
 };
 
 export default fi;

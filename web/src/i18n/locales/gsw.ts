@@ -1025,6 +1025,14 @@ const gsw: Record<string, string> = {
   "phome.emptyBody": "Verbind dini Uhr und nimm e Session uf — si ladt automatisch ufe und wird da usgwertet. E bestehendi Ufnahm (FIT-Datei) chasch au direkt importiere.",
   "phome.emptyCtaWatch": "Uhr iirichte",
   "phome.emptyCtaImport": "Datei importiere",
+  "guide.sync.title": "Nach de Session: Wänn ladet d Uhr ufe?",
+  "guide.sync.nowTitle": "Sofort:",
+  "guide.sync.now": "Isch d Uhr bim Stoppe grad verbunde (Händy i de Nöchi oder WLAN), startet de Upload i däm Momänt vo sälber.",
+  "guide.sync.retryTitle": "Churz dänoch:",
+  "guide.sync.retry": "Klappts nöd sofort, probierts d Uhr automatisch wiiter — aber nur, solang d Pumpfoil-App uf de Uhr offe bliibt.",
+  "guide.sync.laterTitle": "Spöter:",
+  "guide.sync.later": "Isch d App zue (Uhr zeigt s Zifferblatt), bliibt d Session sicher uf de Uhr gspeicheret. Bim nächste Öffne vo de App wird si automatisch nochegschickt — oder sofort übers Menü → „Upload / Sync“.",
+  "guide.sync.note": "Es gaht nüt verlore: Fählt e Session da uf de Siite, liit si fascht immer no uf de Uhr und wartet nur uf de nächst App-Start.",
 };
 
 export default gsw

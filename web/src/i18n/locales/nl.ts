@@ -1251,6 +1251,14 @@ const nl: Record<string, string> = {
   "phome.emptyBody": "Verbind je horloge en neem een sessie op — hij wordt automatisch geüpload en verschijnt hier, geanalyseerd. Je kunt ook direct een bestaande opname (FIT-bestand) importeren.",
   "phome.emptyCtaWatch": "Horloge instellen",
   "phome.emptyCtaImport": "Bestand importeren",
+  "guide.sync.title": "Na de sessie: wanneer uploadt het horloge?",
+  "guide.sync.nowTitle": "Meteen:",
+  "guide.sync.now": "Is het horloge op het moment van stoppen verbonden (telefoon in de buurt of wifi), dan start de upload vanzelf.",
+  "guide.sync.retryTitle": "Kort daarna:",
+  "guide.sync.retry": "Lukt het niet meteen, dan blijft het horloge het automatisch proberen — maar alleen zolang de Pumpfoil-app op het horloge open blijft.",
+  "guide.sync.laterTitle": "Later:",
+  "guide.sync.later": "Is de app dicht (horloge toont de wijzerplaat), dan blijft de sessie veilig op het horloge opgeslagen. Hij wordt automatisch verstuurd zodra je de app weer opent — of meteen via menu → ‘Upload / Sync’.",
+  "guide.sync.note": "Er gaat niets verloren: mist hier een sessie, dan staat hij bijna altijd nog op het horloge te wachten op de volgende app-start.",
 };
 
 export default nl;

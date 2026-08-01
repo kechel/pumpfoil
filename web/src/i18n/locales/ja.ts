@@ -1168,6 +1168,14 @@ const ja: Record<string, string> = {
   "phome.emptyBody": "ウォッチを接続してセッションを記録すると、自動的にアップロードされ、解析されてここに表示されます。既存の記録（FITファイル）を直接インポートすることもできます。",
   "phome.emptyCtaWatch": "ウォッチを設定",
   "phome.emptyCtaImport": "ファイルをインポート",
+  "guide.sync.title": "セッションの後：ウォッチはいつアップロードする？",
+  "guide.sync.nowTitle": "すぐに：",
+  "guide.sync.now": "停止した瞬間にウォッチが接続されていれば（スマホが近くにある、または Wi-Fi）、アップロードは自動で始まります。",
+  "guide.sync.retryTitle": "その直後：",
+  "guide.sync.retry": "すぐに成功しない場合、ウォッチは自動で再試行します — ただし Pumpfoil アプリがウォッチで開いている間だけです。",
+  "guide.sync.laterTitle": "あとで：",
+  "guide.sync.later": "アプリが閉じている場合（文字盤表示）、セッションはウォッチに安全に保存されたままです。次にアプリを開いたときに自動送信されます — またはメニュー →「Upload / Sync」ですぐに送れます。",
+  "guide.sync.note": "何も失われません：ここにセッションが見当たらなくても、ほぼ確実にまだウォッチの中にあり、次のアプリ起動を待っているだけです。",
 };
 
 export default ja;

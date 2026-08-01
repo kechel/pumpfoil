@@ -1027,6 +1027,14 @@ const fr: Record<string, string> = {
   "phome.emptyBody": "Connecte ta montre et enregistre une session — elle se télécharge automatiquement et apparaît ici, analysée. Tu peux aussi importer directement un enregistrement existant (fichier FIT).",
   "phome.emptyCtaWatch": "Configurer la montre",
   "phome.emptyCtaImport": "Importer un fichier",
+  "guide.sync.title": "Après la session : quand la montre téléverse-t-elle ?",
+  "guide.sync.nowTitle": "Tout de suite :",
+  "guide.sync.now": "Si la montre est connectée au moment de l’arrêt (téléphone à proximité ou Wi-Fi), le téléversement démarre tout seul.",
+  "guide.sync.retryTitle": "Peu après :",
+  "guide.sync.retry": "Si ça ne marche pas tout de suite, la montre réessaie automatiquement — mais seulement tant que l’app Pumpfoil reste ouverte sur la montre.",
+  "guide.sync.laterTitle": "Plus tard :",
+  "guide.sync.later": "Si l’app est fermée (la montre affiche le cadran), la session reste enregistrée en sécurité sur la montre. Elle est envoyée automatiquement à la prochaine ouverture de l’app — ou tout de suite via menu → « Upload / Sync ».",
+  "guide.sync.note": "Rien n’est perdu : s’il manque une session ici, elle est presque toujours encore sur la montre, en attente du prochain démarrage de l’app.",
 };
 
 export default fr;
