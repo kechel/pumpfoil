@@ -604,7 +604,8 @@ def save_upload_state(name: str, platform: str, info: dict):
 
 
 def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
-              publish_at: str = "", fallback_title: str = ""):
+              publish_at: str = "", fallback_title: str = "",
+              privacy: str = "private"):
     """Video zu YouTube hochladen: privat + publishAt = geplantes Video,
     Titel/Beschreibungen aller Sprachen kommen direkt mit."""
     boiler = _load_json(YT_BOILERPLATE_FILE, {})
@@ -614,7 +615,7 @@ def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
     snippet = {"title": main_title, "defaultLanguage": "de",
                "description": yt_compose_description("de", descriptions,
                                                      hashtags, boiler=boiler)}
-    status = {"privacyStatus": "private", "selfDeclaredMadeForKids": False}
+    status = {"privacyStatus": privacy, "selfDeclaredMadeForKids": False}
     if publish_at:
         status["publishAt"] = publish_at
     loc = {}
