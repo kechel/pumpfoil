@@ -745,14 +745,18 @@ def exports_state():
         if not d.is_dir():
             continue
         for p in d.glob("*.mp4"):
-            g = groups.setdefault(p.name, {"name": p.name, "platforms": [], "mtime": 0})
+            g = groups.setdefault(p.name, {"name": p.name, "platforms": [],
+                                           "mtime": 0, "sizes": {}})
             g["platforms"].append(pf)
             g["mtime"] = max(g["mtime"], p.stat().st_mtime)
+            g["sizes"][pf] = p.stat().st_size
     result = sorted(groups.values(), key=lambda g: -g["mtime"])[:100]
     for g in result:
         stem = Path(g["name"]).stem
         src = next(PROCESSED_DIR.glob(f"*-{stem}.mp4"), None)
         g["source"] = src.name if src else None
+        first = OUT_DIR / g["platforms"][0] / g["name"]
+        g["duration"] = track_duration(first)
     return result
 
 

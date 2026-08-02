@@ -36,6 +36,8 @@ export interface ExportItem {
   platforms: string[];
   mtime: number;
   source: string | null;
+  duration?: number | null;
+  sizes?: Record<string, number>;
 }
 
 export interface Captions {

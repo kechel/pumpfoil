@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, ExportItem } from "./api";
+import { api, ExportItem, fmtDur } from "./api";
 import { Icon } from "./icons";
 
 // Upload-Tab: fertige Renders je Plattform sichten und koordiniert hochladen.
@@ -127,7 +127,10 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
     <div className="exp">
       <div className="body">
         <div className="title">{exp.name.replace(/\.mp4$/, "")}</div>
-        <div className="meta">{new Date(exp.mtime * 1000).toLocaleString("de-DE")}</div>
+        <div className="meta">
+          {new Date(exp.mtime * 1000).toLocaleString("de-DE")}
+          {exp.duration ? ` · ${fmtDur(exp.duration)}` : ""}
+        </div>
         <div className="pubvids">
           {(["youtube", "instagram", "tiktok"] as const).map((pf) =>
             exp.platforms.includes(pf) ? (
@@ -138,7 +141,10 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
                   poster={`/thumb/${encodeURIComponent(exp.name)}?t=1&base=out:${pf}`}
                   src={`/media/out/${pf}/${encodeURIComponent(exp.name)}`}
                 />
-                <figcaption>{PF_LABEL[pf]}</figcaption>
+                <figcaption>
+                  {PF_LABEL[pf]}
+                  {exp.sizes?.[pf] ? ` · ${(exp.sizes[pf] / 1048576).toFixed(1).replace(".", ",")} MB` : ""}
+                </figcaption>
               </figure>
             ) : null,
           )}
