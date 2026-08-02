@@ -18,6 +18,24 @@ type UpState = Record<string, Record<string, UpInfo>>;
 
 const PF_LABEL: Record<string, string> = { youtube: "YouTube", instagram: "Instagram", tiktok: "TikTok" };
 
+interface UpProg { active: boolean; label: string; sent: number; total: number }
+
+const mb = (n: number) => (n / 1048576).toFixed(1).replace(".", ",");
+
+function ProgBar({ p }: { p: UpProg | null }) {
+  if (!p?.active || !p.total) return null;
+  return (
+    <div className="prog" style={{ display: "block" }}>
+      <div className="track">
+        <div className="fill" style={{ width: `${((p.sent / p.total) * 100).toFixed(0)}%` }} />
+      </div>
+      <div className="txt">
+        {PF_LABEL[p.label] ?? p.label}: {mb(p.sent)} / {mb(p.total)} MB
+      </div>
+    </div>
+  );
+}
+
 function TtBanner({ status, refresh }: { status: { configured: boolean; authorized: boolean }; refresh: () => void }) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
@@ -77,13 +95,26 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
   const [busy, setBusy] = useState(false);
   const [ttBusy, setTtBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [prog, setProg] = useState<UpProg | null>(null);
   const yt = up?.youtube;
   const tt = up?.tiktok;
+
+  const pollProgress = useCallback(() => {
+    return window.setInterval(async () => {
+      try {
+        const p = (await (await fetch("/api/upload/progress")).json()) as UpProg;
+        setProg(p.active ? p : null);
+      } catch {
+        /* ignore */
+      }
+    }, 400);
+  }, []);
 
   const uploadTt = useCallback(async () => {
     if (!confirm(`"${exp.name}" (TikTok-Variante) als Entwurf in deine TikTok-Inbox laden?`)) return;
     setTtBusy(true);
     setMsg("");
+    const iv = pollProgress();
     try {
       const r = await api.post<{ ok?: boolean; error?: string }>("/api/upload/tiktok", { name: exp.name });
       setMsg(r.error ? `❌ ${r.error}` : "✅ in deiner TikTok-Inbox — in der App finalisieren");
@@ -91,8 +122,10 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
     } catch (e) {
       setMsg(`❌ ${e}`);
     }
+    window.clearInterval(iv);
+    setProg(null);
     setTtBusy(false);
-  }, [exp.name, refresh]);
+  }, [exp.name, refresh, pollProgress]);
 
   const uploadYt = useCallback(async () => {
     if (!when) {
@@ -107,6 +140,7 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
     if (!confirm(`"${exp.name}" zu YouTube hochladen?\nGeplante Veröffentlichung: ${local.toLocaleString("de-DE")}`)) return;
     setBusy(true);
     setMsg("");
+    const iv = pollProgress();
     try {
       const r = await api.post<UpInfo & { ok?: boolean; error?: string }>(
         "/api/upload/youtube",
@@ -120,8 +154,10 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
     } catch (e) {
       setMsg(`❌ ${e}`);
     }
+    window.clearInterval(iv);
+    setProg(null);
     setBusy(false);
-  }, [when, exp.name, refresh]);
+  }, [when, exp.name, refresh, pollProgress]);
 
   return (
     <div className="exp">
@@ -193,6 +229,7 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
             </button>
           )}
         </div>
+        <ProgBar p={prog} />
         {msg && <div style={{ fontSize: 12 }}>{msg}</div>}
       </div>
     </div>

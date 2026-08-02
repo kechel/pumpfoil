@@ -30,6 +30,7 @@ Musik wird bei Bedarf geloopt und auf Videolänge geschnitten.
 import base64
 import datetime
 import hashlib
+import http.client
 import json
 import os
 import re
@@ -591,6 +592,35 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
 # API-Audit nicht bestanden hat, sperrt YouTube API-Uploads auf "privat".
 
 UPLOADS_STATE_FILE = BASE / ".uploads-state.json"  # Upload-Status je Export/Plattform
+UPLOAD_PROGRESS = {"active": False, "label": "", "sent": 0, "total": 0}
+
+
+def _put_with_progress(url: str, path: Path, headers: dict, label: str) -> str:
+    """Datei per PUT hochladen, blockweise, mit Fortschritt in UPLOAD_PROGRESS."""
+    u = urllib.parse.urlparse(url)
+    cls = http.client.HTTPSConnection if u.scheme == "https" else http.client.HTTPConnection
+    conn = cls(u.netloc, timeout=600)
+    size = path.stat().st_size
+    try:
+        conn.putrequest("PUT", u.path + (f"?{u.query}" if u.query else ""))
+        for k, v in {**headers, "Content-Length": str(size)}.items():
+            conn.putheader(k, v)
+        conn.endheaders()
+        sent = 0
+        with path.open("rb") as f:
+            while chunk := f.read(1024 * 1024):
+                conn.send(chunk)
+                sent += len(chunk)
+                UPLOAD_PROGRESS.update(active=True, label=label,
+                                       sent=sent, total=size)
+        resp = conn.getresponse()
+        body = resp.read().decode()
+        if resp.status >= 300:
+            raise RuntimeError(f"HTTP {resp.status}: {body[:400]}")
+        return body
+    finally:
+        conn.close()
+        UPLOAD_PROGRESS.update(active=False, label="", sent=0, total=0)
 
 
 def uploads_state() -> dict:
@@ -643,14 +673,8 @@ def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
             upload_url = r.headers["Location"]
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:400]}")
-    put = urllib.request.Request(upload_url, data=path.read_bytes(),
-                                 method="PUT",
-                                 headers={**auth, "Content-Type": "video/mp4"})
-    try:
-        with urllib.request.urlopen(put, timeout=600) as r:
-            d = json.loads(r.read().decode())
-    except urllib.error.HTTPError as e:
-        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:400]}")
+    d = json.loads(_put_with_progress(
+        upload_url, path, {**auth, "Content-Type": "video/mp4"}, "youtube"))
     return {"video_id": d["id"], "yt_status": d.get("status", {}),
             "written": sorted(loc)}
 
@@ -725,15 +749,10 @@ def tt_upload_draft(path: Path):
         raise RuntimeError(f"TikTok init: {err.get('code')} — "
                            f"{str(err.get('message', ''))[:200]}")
     data = init.get("data") or {}
-    req = urllib.request.Request(
-        data["upload_url"], data=path.read_bytes(), method="PUT",
-        headers={"Content-Type": "video/mp4",
-                 "Content-Range": f"bytes 0-{size - 1}/{size}"})
-    try:
-        with urllib.request.urlopen(req, timeout=600) as r:
-            r.read()
-    except urllib.error.HTTPError as e:
-        raise RuntimeError(f"TikTok-Upload HTTP {e.code}: {e.read().decode()[:300]}")
+    _put_with_progress(data["upload_url"], path,
+                       {"Content-Type": "video/mp4",
+                        "Content-Range": f"bytes 0-{size - 1}/{size}"},
+                       "tiktok")
     return {"publish_id": data.get("publish_id")}
 
 
@@ -894,6 +913,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/tiktok/status":
                 self._json({"configured": TT_CLIENT_FILE.is_file(),
                             "authorized": TT_TOKEN_FILE.is_file()})
+            elif path == "/api/upload/progress":
+                self._json(UPLOAD_PROGRESS)
             elif path == "/api/yt/status":
                 self._json({"configured": YT_CLIENT_SECRET_FILE.is_file(),
                             "authorized": YT_TOKEN_FILE.is_file()})
