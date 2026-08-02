@@ -24,4 +24,8 @@ mv -f "$LATEST/db.dump.tmp" "$LATEST/db.dump"
 rsync -a --delete --link-dest="$PROJECT/data/"  "$PROJECT/data/"  "$LATEST/data/"
 rsync -a --delete --link-dest="$PROJECT/media/" "$PROJECT/media/" "$LATEST/media/"
 
+# 3) Geheimnisse verschlüsselt dazulegen (GPG an Jans Key, s. backup-secrets.sh) — Fehler
+#    dort dürfen das DB-Backup nicht verhindern.
+"$HERE/backup-secrets.sh" || echo "WARNUNG: secrets-backup fehlgeschlagen" >&2
+
 echo "latest-backup ok: db.dump $(du -h "$LATEST/db.dump" | cut -f1), gesamt $(du -sh "$LATEST" | cut -f1)"

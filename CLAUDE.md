@@ -35,6 +35,10 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   (Pull-Quelle für externen Backup-Server). `BASE` per `BACKUP_BASE` überschreibbar.
 - `foil-backup-snapshot.timer` → Mi 04:00 → `backup-snapshot.sh`: `cp -al` → permanenter
   Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
+- `backup-secrets.sh` (von `backup-latest.sh` mit aufgerufen): `server/.env` +
+  `vapid_private.pem` + Garmin-`developer_key.der` **GPG-verschlüsselt an Jans Key**
+  (Fingerprint im Skript gepinnt; nur Public-Key auf der VM) → `latest-backup/secrets.tar.gz.gpg`,
+  wandert durch die Pull-Kette mit. Entschlüsselungs-Test 2026-08-02 durch Jan bestätigt.
 
 ## Netz / Deployment (WICHTIG für Tests)
 
