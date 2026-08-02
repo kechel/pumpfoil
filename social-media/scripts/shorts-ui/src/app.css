@@ -106,6 +106,13 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .exp .meta { font-size: 11px; opacity: .6; margin: 3px 0 8px; }
 .exp .btns { display: flex; flex-wrap: wrap; gap: 6px; }
 .caps { margin-top: 10px; border-top: 1px solid #8883; padding-top: 10px; }
+.pubvids { display: flex; gap: 12px; margin: 8px 0; flex-wrap: wrap; }
+.pubvids figure { margin: 0; text-align: center; }
+.pubvids video { width: 150px; aspect-ratio: 9/16; border-radius: 8px; background: #000; display: block; }
+.pubvids figcaption { font-size: 11px; opacity: .6; margin-top: 3px; }
+.exp .genrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.exp .genrow input[type="datetime-local"] { font-size: 12px; padding: 5px 6px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 .caps .genrow { display: flex; gap: 6px; margin-bottom: 10px; }
 .caps .genrow input { flex: 1; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .capblock { margin-bottom: 10px; }

@@ -530,22 +530,27 @@ def yt_access_token():
     return tok["access_token"]
 
 
+def yt_compose_description(lang: str, descriptions: dict, hashtags: str = "",
+                           fallback: str = "", boiler: dict = None) -> str:
+    """Video-Beschreibung je Sprache: Kurztext + Hashtags + Standard-Block."""
+    if boiler is None:
+        boiler = _load_json(YT_BOILERPLATE_FILE, {})
+    parts = [p.strip() for p in ((descriptions or {}).get(lang) or fallback,
+                                 hashtags, boiler.get(lang, "")) if p and p.strip()]
+    return "\n\n".join(parts)
+
+
 def yt_localize(video_url: str, titles: dict, descriptions: dict,
                 hashtags: str = "", fallback_description: str = ""):
     m = YT_ID_RE.search(video_url.strip())
     if not m:
         raise RuntimeError("Keine Video-ID im Link gefunden")
     vid = m.group(1)
-    try:
-        boiler = json.loads(YT_BOILERPLATE_FILE.read_text())
-    except (OSError, ValueError):
-        boiler = {}
+    boiler = _load_json(YT_BOILERPLATE_FILE, {})
 
     def compose(lang: str) -> str:
-        parts = [p.strip() for p in (
-            (descriptions or {}).get(lang) or fallback_description,
-            hashtags, boiler.get(lang, "")) if p and p.strip()]
-        return "\n\n".join(parts)
+        return yt_compose_description(lang, descriptions, hashtags,
+                                      fallback_description, boiler)
 
     auth = {"Authorization": f"Bearer {yt_access_token()}"}
     data = _http_json(
@@ -578,6 +583,75 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
                method="PUT", headers=auth)
     return {"ok": True, "video_id": vid, "written": written,
             "default": snippet["defaultLanguage"]}
+
+
+# --------------------------------------------------- Upload (Stufe B) -------
+# YouTube: Upload als geplantes Video (privat + publishAt) über die
+# Resumable-Upload-API. Achtung: solange das Google-Cloud-Projekt den
+# API-Audit nicht bestanden hat, sperrt YouTube API-Uploads auf "privat".
+
+UPLOADS_STATE_FILE = BASE / ".uploads-state.json"  # Upload-Status je Export/Plattform
+
+
+def uploads_state() -> dict:
+    return _load_json(UPLOADS_STATE_FILE, {})
+
+
+def save_upload_state(name: str, platform: str, info: dict):
+    st = uploads_state()
+    st.setdefault(name, {})[platform] = info
+    UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
+
+
+def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
+              publish_at: str = "", fallback_title: str = ""):
+    """Video zu YouTube hochladen: privat + publishAt = geplantes Video,
+    Titel/Beschreibungen aller Sprachen kommen direkt mit."""
+    boiler = _load_json(YT_BOILERPLATE_FILE, {})
+    main_title = str((titles or {}).get("de") or fallback_title).strip()[:100]
+    if not main_title:
+        raise RuntimeError("Kein Titel vorhanden — erst Captions generieren")
+    snippet = {"title": main_title, "defaultLanguage": "de",
+               "description": yt_compose_description("de", descriptions,
+                                                     hashtags, boiler=boiler)}
+    status = {"privacyStatus": "private", "selfDeclaredMadeForKids": False}
+    if publish_at:
+        status["publishAt"] = publish_at
+    loc = {}
+    for lang, title in (titles or {}).items():
+        code = YT_LANG.get(lang)
+        if not code or code == "de" or not str(title).strip():
+            continue
+        loc[code] = {"title": str(title)[:100],
+                     "description": yt_compose_description(
+                         lang, descriptions, hashtags, boiler=boiler)}
+    meta = {"snippet": snippet, "status": status}
+    if loc:
+        meta["localizations"] = loc
+    auth = {"Authorization": f"Bearer {yt_access_token()}"}
+    body = json.dumps(meta).encode()
+    req = urllib.request.Request(
+        "https://www.googleapis.com/upload/youtube/v3/videos"
+        "?uploadType=resumable&part=snippet,status,localizations",
+        data=body, method="POST",
+        headers={**auth, "Content-Type": "application/json; charset=UTF-8",
+                 "X-Upload-Content-Type": "video/mp4",
+                 "X-Upload-Content-Length": str(path.stat().st_size)})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            upload_url = r.headers["Location"]
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:400]}")
+    put = urllib.request.Request(upload_url, data=path.read_bytes(),
+                                 method="PUT",
+                                 headers={**auth, "Content-Type": "video/mp4"})
+    try:
+        with urllib.request.urlopen(put, timeout=600) as r:
+            d = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:400]}")
+    return {"video_id": d["id"], "yt_status": d.get("status", {}),
+            "written": sorted(loc)}
 
 
 def exports_state():
@@ -719,6 +793,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"exports": exports_state()})
             elif path == "/api/captions_cache":
                 self._json(cached_captions(query.get("name", [""])[0]))
+            elif path == "/api/uploads":
+                self._json({"state": uploads_state()})
             elif path == "/api/yt/status":
                 self._json({"configured": YT_CLIENT_SECRET_FILE.is_file(),
                             "authorized": YT_TOKEN_FILE.is_file()})
@@ -787,6 +863,27 @@ class Handler(BaseHTTPRequestHandler):
                     str(req.get("description", ""))))
             except (RuntimeError, ValueError, OSError) as e:
                 return self._json({"error": str(e)}, 500)
+        if self.path == "/api/upload/youtube":
+            name = Path(str(req.get("name", ""))).name
+            path = OUT_DIR / "youtube" / name
+            if not path.is_file():
+                return self._json({"error": f"Datei nicht gefunden: youtube/{name}"}, 400)
+            caps = cached_captions(name).get("cached") or {}
+            if not caps.get("titles"):
+                return self._json({"error": "Keine Captions im Cache — erst im "
+                                   "Texte-Tab generieren"}, 400)
+            publish_at = str(req.get("publish_at", "")).strip()
+            try:
+                r = yt_upload(path, caps.get("titles") or {},
+                              caps.get("descriptions") or {},
+                              str(caps.get("hashtags", "")), publish_at)
+            except (RuntimeError, OSError, ValueError) as e:
+                return self._json({"error": str(e)}, 500)
+            info = {"video_id": r["video_id"], "publish_at": publish_at,
+                    "uploaded_at": time.time(), "languages": len(r["written"]),
+                    "privacy": r["yt_status"].get("privacyStatus", "?")}
+            save_upload_state(name, "youtube", info)
+            return self._json({"ok": True, **info, "state": uploads_state()})
         if self.path == "/api/redo_last":
             try:
                 info = json.loads(LAST_RENDER_FILE.read_text())

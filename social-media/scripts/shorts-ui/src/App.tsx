@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, AppState, encPath, fmtDur, RenderResult, Track } from "./api";
 import { Icon } from "./icons";
 import Uploads from "./Uploads";
+import Publish from "./Publish";
 
 // Muss zu den Server-Konstanten passen (TEXT_FADE/TEXT_HOLD/OUTRO_*)
 const TXN = 6;
@@ -63,7 +64,7 @@ function drawIconPath(g: CanvasRenderingContext2D, d: string, x: number, y: numb
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"studio" | "uploads">("studio");
+  const [tab, setTab] = useState<"studio" | "texte" | "upload">("studio");
   return (
     <>
       <div className="tabbar">
@@ -71,11 +72,14 @@ export default function App() {
         <button className={`tab ${tab === "studio" ? "on" : ""}`} onClick={() => setTab("studio")}>
           <Icon name="film" /> Studio
         </button>
-        <button className={`tab ${tab === "uploads" ? "on" : ""}`} onClick={() => setTab("uploads")}>
-          <Icon name="upload" /> Uploads
+        <button className={`tab ${tab === "texte" ? "on" : ""}`} onClick={() => setTab("texte")}>
+          <Icon name="wand" /> Texte
+        </button>
+        <button className={`tab ${tab === "upload" ? "on" : ""}`} onClick={() => setTab("upload")}>
+          <Icon name="upload" /> Upload
         </button>
       </div>
-      {tab === "studio" ? <Studio /> : <Uploads />}
+      {tab === "studio" ? <Studio /> : tab === "texte" ? <Uploads /> : <Publish />}
     </>
   );
 }
