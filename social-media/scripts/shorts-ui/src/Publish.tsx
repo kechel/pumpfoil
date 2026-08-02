@@ -8,6 +8,7 @@ import { Icon } from "./icons";
 
 interface UpInfo {
   video_id?: string;
+  publish_id?: string;
   publish_at?: string;
   uploaded_at?: number;
   languages?: number;
@@ -17,16 +18,81 @@ type UpState = Record<string, Record<string, UpInfo>>;
 
 const PF_LABEL: Record<string, string> = { youtube: "YouTube", instagram: "Instagram", tiktok: "TikTok" };
 
-function PublishCard({ exp, up, ytReady, refresh }: {
+function TtBanner({ status, refresh }: { status: { configured: boolean; authorized: boolean }; refresh: () => void }) {
+  const [code, setCode] = useState("");
+  const [msg, setMsg] = useState("");
+  if (status.authorized) return null;
+  return (
+    <div className="exp" style={{ borderColor: "#f59e0b88" }}>
+      <div className="body">
+        <div className="title">TikTok-Verbindung</div>
+        {!status.configured ? (
+          <div className="meta" style={{ fontSize: 12 }}>
+            Client-Datei fehlt: <code>social-media/.tiktok-client.json</code> mit client_key + client_secret anlegen.
+          </div>
+        ) : (
+          <>
+            <div className="meta" style={{ fontSize: 12 }}>
+              1. „Verbinden" öffnet den TikTok-Login. 2. Nach dem Bestätigen landest du auf pumpfoil.org/tiktok-oauth —
+              die komplette Adresse aus der Browserzeile (oder nur den Code) hier einfügen.
+            </div>
+            <div className="genrow">
+              <button className="btn primary" onClick={() => void api.post("/api/tiktok/login", {})}>
+                Mit TikTok verbinden
+              </button>
+              <input
+                value={code}
+                spellCheck={false}
+                placeholder="Redirect-URL oder Code hier einfügen"
+                onChange={(e) => setCode(e.target.value)}
+              />
+              <button
+                className="btn"
+                disabled={!code.trim()}
+                onClick={async () => {
+                  const r = await api.post<{ ok?: boolean; error?: string }>("/api/tiktok/code", { code });
+                  setMsg(r.error ? `❌ ${r.error}` : "✅ verbunden");
+                  if (!r.error) refresh();
+                }}
+              >
+                Code einlösen
+              </button>
+            </div>
+            {msg && <div style={{ fontSize: 12 }}>{msg}</div>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
   exp: ExportItem;
   up: Record<string, UpInfo> | undefined;
   ytReady: boolean;
+  ttReady: boolean;
   refresh: () => void;
 }) {
   const [when, setWhen] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ttBusy, setTtBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const yt = up?.youtube;
+  const tt = up?.tiktok;
+
+  const uploadTt = useCallback(async () => {
+    if (!confirm(`"${exp.name}" (TikTok-Variante) als Entwurf in deine TikTok-Inbox laden?`)) return;
+    setTtBusy(true);
+    setMsg("");
+    try {
+      const r = await api.post<{ ok?: boolean; error?: string }>("/api/upload/tiktok", { name: exp.name });
+      setMsg(r.error ? `❌ ${r.error}` : "✅ in deiner TikTok-Inbox — in der App finalisieren");
+      if (!r.error) refresh();
+    } catch (e) {
+      setMsg(`❌ ${e}`);
+    }
+    setTtBusy(false);
+  }, [exp.name, refresh]);
 
   const uploadYt = useCallback(async () => {
     if (!when) {
@@ -105,9 +171,21 @@ function PublishCard({ exp, up, ytReady, refresh }: {
           <button className="btn" disabled title="Kommt als Nächstes — braucht eine Meta-Developer-App (Business-Konto). Cross-Post zu Facebook dann automatisch.">
             → Instagram
           </button>
-          <button className="btn" disabled title="Kommt als Nächstes — braucht eine TikTok-Developer-App (Upload als Entwurf in die Inbox).">
-            → TikTok
-          </button>
+          {tt?.publish_id ? (
+            <span className="btn" style={{ cursor: "default" }}>
+              ✅ TT-Entwurf in der Inbox
+              {tt.uploaded_at ? ` (${new Date(tt.uploaded_at * 1000).toLocaleString("de-DE")})` : ""}
+            </span>
+          ) : (
+            <button
+              className="btn"
+              disabled={!ttReady || ttBusy || !exp.platforms.includes("tiktok")}
+              title={ttReady ? "Als Entwurf in deine TikTok-Inbox (Feinschliff + Posten in der App)" : "Erst oben mit TikTok verbinden"}
+              onClick={() => void uploadTt()}
+            >
+              {ttBusy ? <span className="spin" /> : "→ TikTok (Entwurf)"}
+            </button>
+          )}
         </div>
         {msg && <div style={{ fontSize: 12 }}>{msg}</div>}
       </div>
@@ -119,11 +197,13 @@ export default function Publish() {
   const [exports, setExports] = useState<ExportItem[] | null>(null);
   const [up, setUp] = useState<UpState>({});
   const [ytReady, setYtReady] = useState(false);
+  const [tt, setTt] = useState({ configured: false, authorized: false });
 
   const refresh = useCallback(() => {
     void fetch("/api/exports").then(async (r) => setExports((await r.json()).exports));
     void fetch("/api/uploads").then(async (r) => setUp((await r.json()).state ?? {}));
     void fetch("/api/yt/status").then(async (r) => setYtReady((await r.json()).authorized));
+    void fetch("/api/tiktok/status").then(async (r) => setTt(await r.json()));
   }, []);
 
   useEffect(() => refresh(), [refresh]);
@@ -137,13 +217,15 @@ export default function Publish() {
           <b>YouTube</b> lädt als <b>geplantes Video</b> hoch (privat, wird zum Termin veröffentlicht) — Titel,
           Beschreibung und alle 13 Sprachen kommen automatisch aus dem Caption-Cache (Texte-Tab).
           ⚠️ Solange das Google-Cloud-Projekt den API-Audit nicht bestanden hat, sperrt YouTube API-Uploads auf
-          „privat" — den ersten Upload danach im Studio kontrollieren. <b>Instagram/TikTok</b> folgen, sobald die
-          Developer-Apps eingerichtet sind.
+          „privat" — zum Termin dann einmal manuell auf öffentlich stellen. <b>TikTok</b> lädt die TT-Variante als
+          <b> Entwurf in deine Inbox</b> (Feinschliff + Posten in der App). <b>Instagram/Facebook</b> folgen,
+          sobald die Meta-App freigeschaltet ist.
         </div>
       </div>
+      <TtBanner status={tt} refresh={refresh} />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
       {exports.map((e) => (
-        <PublishCard key={e.name} exp={e} up={up[e.name]} ytReady={ytReady} refresh={refresh} />
+        <PublishCard key={e.name} exp={e} up={up[e.name]} ytReady={ytReady} ttReady={tt.authorized} refresh={refresh} />
       ))}
     </div>
   );

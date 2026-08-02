@@ -655,6 +655,88 @@ def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
             "written": sorted(loc)}
 
 
+# ------------------------------------------------------------- TikTok -------
+# Content Posting API, Modus "Upload in die Inbox": das Video landet als
+# Entwurf in Jans TikTok-App (Benachrichtigung), Feinschliff + Posten manuell.
+# OAuth: TikTok verlangt eine HTTPS-Redirect-URI → pumpfoil.org/tiktok-oauth
+# reicht den Code an das lokale Studio weiter (bzw. Jan kopiert die URL).
+
+TT_CLIENT_FILE = BASE / ".tiktok-client.json"
+TT_TOKEN_FILE = BASE / ".tiktok-token.json"
+TT_REDIRECT = "https://pumpfoil.org/tiktok-oauth"
+TT_SCOPES = "user.info.basic,video.upload"
+
+
+def tt_client():
+    return json.loads(TT_CLIENT_FILE.read_text())
+
+
+def tt_save_token(tok: dict):
+    tok["expires_at"] = time.time() + tok.get("expires_in", 86400)
+    TT_TOKEN_FILE.write_text(json.dumps(tok))
+
+
+def tt_login_start():
+    url = "https://www.tiktok.com/v2/auth/authorize/?" + urllib.parse.urlencode({
+        "client_key": tt_client()["client_key"], "response_type": "code",
+        "scope": TT_SCOPES, "redirect_uri": TT_REDIRECT,
+        "state": secrets.token_urlsafe(16)})
+    subprocess.run(["open", url], check=False)
+
+
+def tt_exchange_code(code: str):
+    c = tt_client()
+    tok = _http_json("https://open.tiktokapis.com/v2/oauth/token/", {
+        "client_key": c["client_key"], "client_secret": c["client_secret"],
+        "code": code, "grant_type": "authorization_code",
+        "redirect_uri": TT_REDIRECT}, form=True)
+    if "access_token" not in tok:
+        raise RuntimeError(f"TikTok-Login fehlgeschlagen: {json.dumps(tok)[:300]}")
+    tt_save_token(tok)
+
+
+def tt_access_token():
+    tok = json.loads(TT_TOKEN_FILE.read_text())
+    if tok.get("expires_at", 0) < time.time() + 60:
+        c = tt_client()
+        new = _http_json("https://open.tiktokapis.com/v2/oauth/token/", {
+            "client_key": c["client_key"], "client_secret": c["client_secret"],
+            "grant_type": "refresh_token",
+            "refresh_token": tok["refresh_token"]}, form=True)
+        if "access_token" not in new:
+            raise RuntimeError("TikTok-Token abgelaufen — bitte neu verbinden "
+                               f"({json.dumps(new)[:200]})")
+        tok.update(new)
+        tt_save_token(tok)
+    return tok["access_token"]
+
+
+def tt_upload_draft(path: Path):
+    """Video als Entwurf in die TikTok-Inbox laden (ein Chunk, Dateien < 64 MB)."""
+    size = path.stat().st_size
+    auth = {"Authorization": f"Bearer {tt_access_token()}"}
+    init = _http_json(
+        "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/",
+        {"source_info": {"source": "FILE_UPLOAD", "video_size": size,
+                         "chunk_size": size, "total_chunk_count": 1}},
+        headers=auth)
+    err = init.get("error") or {}
+    if err.get("code") not in (None, "", "ok"):
+        raise RuntimeError(f"TikTok init: {err.get('code')} — "
+                           f"{str(err.get('message', ''))[:200]}")
+    data = init.get("data") or {}
+    req = urllib.request.Request(
+        data["upload_url"], data=path.read_bytes(), method="PUT",
+        headers={"Content-Type": "video/mp4",
+                 "Content-Range": f"bytes 0-{size - 1}/{size}"})
+    try:
+        with urllib.request.urlopen(req, timeout=600) as r:
+            r.read()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"TikTok-Upload HTTP {e.code}: {e.read().decode()[:300]}")
+    return {"publish_id": data.get("publish_id")}
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -734,8 +816,17 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
+        # pumpfoil.org/tiktok-oauth darf den Login-Code direkt herreichen
+        self.send_header("Access-Control-Allow-Origin", "https://pumpfoil.org")
         self.end_headers()
         self.wfile.write(body)
+
+    def do_OPTIONS(self):  # CORS-Preflight für die tiktok-oauth-Weiterleitung
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "https://pumpfoil.org")
+        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
     def _file(self, path: Path):
         """Datei mit Range-Support ausliefern (Safari braucht das für <video>)."""
@@ -796,6 +887,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(cached_captions(query.get("name", [""])[0]))
             elif path == "/api/uploads":
                 self._json({"state": uploads_state()})
+            elif path == "/api/tiktok/status":
+                self._json({"configured": TT_CLIENT_FILE.is_file(),
+                            "authorized": TT_TOKEN_FILE.is_file()})
             elif path == "/api/yt/status":
                 self._json({"configured": YT_CLIENT_SECRET_FILE.is_file(),
                             "authorized": YT_TOKEN_FILE.is_file()})
@@ -864,6 +958,36 @@ class Handler(BaseHTTPRequestHandler):
                     str(req.get("description", ""))))
             except (RuntimeError, ValueError, OSError) as e:
                 return self._json({"error": str(e)}, 500)
+        if self.path == "/api/tiktok/login":
+            if not TT_CLIENT_FILE.is_file():
+                return self._json({"error": f"Client-Datei fehlt ({TT_CLIENT_FILE})"}, 400)
+            tt_login_start()
+            return self._json({"ok": True})
+        if self.path == "/api/tiktok/code":
+            raw = str(req.get("code", "")).strip()
+            # ganze Redirect-URL eingefügt? → code-Parameter herausziehen
+            if "code=" in raw:
+                qs = urllib.parse.urlparse(raw).query or raw.split("?", 1)[-1]
+                raw = urllib.parse.parse_qs(qs).get("code", [""])[0]
+            if not raw:
+                return self._json({"error": "Kein Code gefunden"}, 400)
+            try:
+                tt_exchange_code(raw)
+            except (RuntimeError, OSError, ValueError) as e:
+                return self._json({"error": str(e)}, 500)
+            return self._json({"ok": True})
+        if self.path == "/api/upload/tiktok":
+            name = Path(str(req.get("name", ""))).name
+            path = OUT_DIR / "tiktok" / name
+            if not path.is_file():
+                return self._json({"error": f"Datei nicht gefunden: tiktok/{name}"}, 400)
+            try:
+                r = tt_upload_draft(path)
+            except (RuntimeError, OSError, ValueError) as e:
+                return self._json({"error": str(e)}, 500)
+            info = {"publish_id": r["publish_id"], "uploaded_at": time.time()}
+            save_upload_state(name, "tiktok", info)
+            return self._json({"ok": True, **info, "state": uploads_state()})
         if self.path == "/api/upload/youtube":
             name = Path(str(req.get("name", ""))).name
             path = OUT_DIR / "youtube" / name
