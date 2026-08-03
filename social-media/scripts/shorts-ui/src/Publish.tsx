@@ -255,17 +255,7 @@ export default function Publish() {
   return (
     <div className="uploads">
       <h1>Upload ({exports.length})</h1>
-      <div className="exp" style={{ borderColor: "#3b82f688" }}>
-        <div className="body" style={{ fontSize: 12, opacity: 0.85 }}>
-          <b>YouTube</b> lädt als <b>geplantes Video</b> hoch (privat, wird zum Termin veröffentlicht) — Titel,
-          Beschreibung und alle 13 Sprachen kommen automatisch aus dem Caption-Cache (Texte-Tab).
-          ⚠️ Solange das Google-Cloud-Projekt den API-Audit nicht bestanden hat, sperrt YouTube API-Uploads auf
-          „privat" — zum Termin dann einmal manuell auf öffentlich stellen. <b>TikTok</b> lädt die TT-Variante als
-          <b> Entwurf in deine Inbox</b> (Feinschliff + Posten in der App). <b>Instagram/Facebook</b> folgen,
-          sobald die Meta-App freigeschaltet ist.
-        </div>
-      </div>
-      <TtBanner status={tt} refresh={refresh} />
+<TtBanner status={tt} refresh={refresh} />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
       {exports.map((e) => (
         <PublishCard key={e.name} exp={e} up={up[e.name]} ytReady={ytReady} ttReady={tt.authorized} refresh={refresh} />
