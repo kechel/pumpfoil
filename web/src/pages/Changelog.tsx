@@ -30,6 +30,17 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 3, 2026",
+    items: [
+      "A crash no longer paints “the hardest carve of all time”. When you fall, the watch keeps seeing movement — you paddling back — and if that’s faster than walking pace the run kept growing into it, drawing a sharp hook at the end of the track. The detector now recognises the crash signature (the track reverses direction within seconds while the speed collapses) and ends the run right at the turn. Measured against all 4,855 recorded runs, this corrected 59 run endings — and deliberately left every real hairpin turn alone: a genuine 180° carve keeps its speed, a crash doesn’t. Thanks to the rider whose precise report caught this, his third confirmed find.",
+      "The Early Bird and Night Owl records now use your time on the foil, not the recording. A session where the recorder kept running on the train home held “Night Owl” with a time long after the last real run — both records are now taken from the first run’s start and the last run’s end.",
+      "Spot names are back. The service that turns coordinates into place names had silently stopped answering us, so more than half of recent sessions showed no spot — which is also why several of you looked for a “create spot” button. All missing names have been filled in, a second naming service now steps in when the first fails, and the Spots page finally says how spots work: they appear automatically when someone uploads a session at a new location, named from OpenStreetMap.",
+      "In the catalogue: the complete AXIS Fireball line (880–1350), the F-One JAM pump foils (1400/1600/1900) and all ten AXIS Skinny stabilizers — every figure from the manufacturers’ own spec sheets. Thanks for the requests!",
+      "Fixed: the threshold dropdown next to your start-success rate always snapped back to 0. It was a leftover from an older design — the rate has long been counted from start attempts versus completed runs, so the dropdown had no effect and is gone now.",
+      "iPhone and Apple Watch 1.1.19 is in the App Store: session views opened from a record now go back to the records list instead of stepping through previously viewed sessions, the old logo no longer flashes at launch, and the watch reminds you to keep the app open while a session uploads.",
+    ],
+  },
+  {
     date: "August 1, 2026",
     items: [
       "Runs that were clearly not ridden under your own power — being towed by a boat, sitting in a car or train with the recorder still running, or riding with a motor — are now set aside automatically. The detector compares your heart rate during the run against your resting level right before it: pumping is hard work, a ride on outside power isn't. Each set-aside run is shown under the session with the exact numbers that led to the decision, and one tap brings it back if the detector got it wrong — nothing is deleted, ever. Measured against every confirmed case we have: not a single genuine run was touched, including the longest recorded pumpfoil runs.",
