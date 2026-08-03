@@ -37,31 +37,21 @@ function fmtDur(min: number): string {
 }
 
 // Persönliche Startseite: Begrüßung, Kacheln (Rekorde + Gesamt-Stats), letzte Sessions.
-// Start-Erfolgsquote (persönlich): erkannter Lauf < Schwelle = Startversuch, >= Schwelle = Erfolg.
-// Ganz unten auf der eigenen Home, 5 Zeitfenster, Schwelle einstellbar (Nutzer-Settings).
+// Start-Erfolgsquote (persönlich): Startversuche (attempts-Preset) gegen echte Läufe.
+// Ganz unten auf der eigenen Home, 5 Zeitfenster.
 function StartSuccessSection() {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.startSuccess>> | null>(null);
-  const [thr, setThr] = useState<number>(20);
-  const load = () => api.startSuccess().then((d) => { setData(d); setThr(d.threshold_m); }).catch(() => {});
-  useEffect(() => { load(); }, []);
+  useEffect(() => { api.startSuccess().then(setData).catch(() => {}); }, []);
   if (!data || (data.windows.all?.total ?? 0) === 0) return null;   // ohne Läufe: nichts zeigen
-  function commit(v: number) {
-    setThr(v);
-    api.saveSettings({ start_threshold_m: v }).then(load).catch(() => {});
-  }
-  const opts = Array.from(new Set([20, 30, 40, 50, 75, 100, thr])).sort((a, b) => a - b);
+  // KEIN Schwellen-Dropdown mehr: die Quote ist seit dem Umbau versuchsbasiert (attempts-Preset
+  // gegen echte Laeufe), die Distanz-Schwelle ist wirkungslos — der Server liefert threshold_m
+  // nur noch als Kompat-Konstante 0 zurueck. Das Dropdown sprang deshalb immer auf 0 zurueck
+  // (Jans Bug-Report 02.08.): speichern -> neu laden -> Server sagt wieder 0.
   return (
     <div className="mt-8">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <h2 className="text-xl font-bold">{t("home.startSuccess")}</h2>
-        <span className="ml-auto flex items-center gap-1.5 text-sm text-slate-400">
-          {t("home.startThreshold")}
-          <select value={thr} onChange={(e) => commit(Number(e.target.value))}
-            className="rounded bg-slate-800 px-2 py-1 text-slate-100">
-            {opts.map((o) => <option key={o} value={o}>{o} m</option>)}
-          </select>
-        </span>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {PERIODS.map(([k, lbl]) => {
