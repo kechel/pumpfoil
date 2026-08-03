@@ -191,3 +191,57 @@ def lookup_water_name(lat: float, lon: float, timeout: float = 7.0) -> str | Non
                 return name[:120]
     # "" nur cachen, wenn der is_in-Test lief (sonst könnte er den großen See noch finden -> None = retry).
     return "" if isin_ok else None
+
+
+# --- Nominatim-Fallback (ebenfalls OpenStreetMap) --------------------------------------------
+# Overpass ist fuer diese VM seit laengerem gesperrt (Haupt-Instanz lehnt die IP ab, die
+# erreichbaren Spiegel sind regional) -> 231 von 402 Sessions seit dem 25.07. blieben ohne
+# Spot-Namen, und Nutzer dachten, sie muessten Spots selbst anlegen (3 Meldungen).
+# Nominatim (nominatim.openstreetmap.org) ist von hier erreichbar und fuer Reverse-Geocoding
+# gedacht. Usage-Policy: max. 1 Request/s, aussagekraeftiger User-Agent — beides eingehalten
+# (die Benennung laeuft als Hintergrund-Task mit kleinem Volumen, _ua() nennt die Domain).
+
+def _nominatim(params: dict, timeout: float = 8.0):
+    import json as _json
+    import urllib.parse
+    import urllib.request
+
+    url = "https://nominatim.openstreetmap.org/reverse?" + urllib.parse.urlencode(
+        {**params, "format": "jsonv2"})
+    req = urllib.request.Request(url, headers={"User-Agent": _ua()})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return _json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def lookup_place_nominatim(lat: float, lon: float) -> tuple[str | None, str | None]:
+    """(ortsname, gewaessername) via Nominatim — der Fallback, wenn Overpass nichts liefert.
+
+    Zwei Abfragen mit 1,1 s Abstand (Policy):
+      1. zoom=18 direkt am Punkt: liegt er AUF einem benannten Gewaesser, kommt genau das
+         zurueck (category natural / type water|bay) -> Gewaessername.
+      2. zoom=14: Ortslage. Wie beim Overpass-Pendant BEWUSST nur village/town/city (+municipality
+         als Rettung) — suburb/neighbourhood liefert bei Staedten Mikro-Viertel-Muell (Paris-Lektion).
+    """
+    import time as _time
+
+    water = None
+    d = _nominatim({"lat": lat, "lon": lon, "zoom": 18})
+    if d and d.get("name") and (
+            d.get("category") in ("natural", "water", "waterway")
+            or d.get("type") in ("water", "bay", "reservoir", "lake")):
+        water = str(d["name"])[:120]
+    _time.sleep(1.1)
+    d = _nominatim({"lat": lat, "lon": lon, "zoom": 14})
+    ort = None
+    if d:
+        adr = d.get("address") or {}
+        for k in ("village", "town", "city", "municipality"):
+            if adr.get(k):
+                ort = str(adr[k])[:120]
+                break
+        if not ort and d.get("addresstype") in ("village", "town", "city") and d.get("name"):
+            ort = str(d["name"])[:120]
+    return ort, water

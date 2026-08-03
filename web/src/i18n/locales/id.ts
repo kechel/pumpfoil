@@ -1209,6 +1209,7 @@ const id: Record<string, string> = {
   "v2.keep": "Tetap dihitung — kembalikan",
   "v2.keptLabel": "run yang dikembalikan",
   "v2.unkeep": "pisahkan lagi",
+  "spots.autoHint": "Kamu tidak perlu membuat spot: spot muncul otomatis begitu seseorang mengunggah sesi di tempat baru. Nama tempat dan perairan berasal dari OpenStreetMap — sesaat setelah unggahan, namanya bisa butuh beberapa menit.",
 };
 
 export default id;

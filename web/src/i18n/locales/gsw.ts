@@ -1040,6 +1040,7 @@ const gsw: Record<string, string> = {
   "v2.keep": "Zellt doch — zrugghole",
   "v2.keptLabel": "zrugggholte Lauf",
   "v2.unkeep": "wieder abtrenne",
+  "spots.autoHint": "Spots muesch nöd aalegge: Die entstönd automatisch, sobald öpper an eme neue Ort e Session ueladt. Orts- und Gwässernäme chömed us OpenStreetMap — grad nach em Upload cha de Name na es paar Minute fähle.",
 };
 
 export default gsw

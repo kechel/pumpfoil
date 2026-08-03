@@ -67,6 +67,9 @@ export default function Spots() {
           {(spots?.length ?? 0) > 0 && <span className="ml-2 text-lg font-normal text-slate-400">({spots!.length})</span>}
         </h2>
       </div>
+      {/* Dritter Nutzer in Folge suchte einen "Spot anlegen"-Knopf — den es bewusst nicht
+          gibt. Einmal erklaeren, wie Spots entstehen (und warum ein Name kurz fehlen kann). */}
+      <p className="mb-4 text-slate-400">{t("spots.autoHint")}</p>
       {!spots ? (
         <Spinner />
       ) : spots.length === 0 ? (

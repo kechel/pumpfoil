@@ -1042,6 +1042,7 @@ const fr: Record<string, string> = {
   "v2.keep": "Ça compte — récupérer",
   "v2.keptLabel": "run récupéré",
   "v2.unkeep": "mettre de côté à nouveau",
+  "spots.autoHint": "Tu n'as pas à créer de spots : ils apparaissent automatiquement dès que quelqu'un téléverse une session à un nouvel endroit. Les noms de lieux et de plans d'eau viennent d'OpenStreetMap — juste après un envoi, le nom peut mettre quelques minutes à apparaître.",
 };
 
 export default fr;

@@ -1265,6 +1265,7 @@ const cs: Record<string, string> = {
   "v2.keep": "Počítá se — vrátit",
   "v2.keptLabel": "vrácená jízda",
   "v2.unkeep": "znovu odložit",
+  "spots.autoHint": "Spoty nemusíš zakládat: vznikají automaticky, jakmile někdo nahraje session z nového místa. Názvy míst a vod pocházejí z OpenStreetMap — těsně po nahrání může název pár minut chybět.",
 };
 
 export default cs;

@@ -1186,6 +1186,7 @@ const zh: Record<string, string> = {
   "v2.keep": "算数的 —— 恢复",
   "v2.keptLabel": "已恢复的段",
   "v2.unkeep": "重新分离",
+  "spots.autoHint": "无需自己创建 spot：只要有人在新地点上传 session，spot 就会自动出现。地名和水域名称来自 OpenStreetMap——上传后名称可能需要几分钟才会显示。",
 };
 
 export default zh;

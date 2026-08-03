@@ -1040,6 +1040,7 @@ const it: Record<string, string> = {
   "v2.keep": "Conta — riprendilo",
   "v2.keptLabel": "run recuperato",
   "v2.unkeep": "metti di nuovo da parte",
+  "spots.autoHint": "Non devi creare gli spot: compaiono automaticamente appena qualcuno carica una sessione in un posto nuovo. I nomi di luoghi e specchi d'acqua vengono da OpenStreetMap — subito dopo l'upload il nome può tardare qualche minuto.",
 };
 
 export default it;

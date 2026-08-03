@@ -1209,6 +1209,7 @@ const pt: Record<string, string> = {
   "v2.keep": "Conta sim — recuperar",
   "v2.keptLabel": "run recuperado",
   "v2.unkeep": "separar de novo",
+  "spots.autoHint": "Você não precisa criar spots: eles aparecem automaticamente assim que alguém envia uma sessão em um lugar novo. Os nomes de lugares e águas vêm do OpenStreetMap — logo após o envio, o nome pode demorar alguns minutos.",
 };
 
 export default pt;

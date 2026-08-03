@@ -1231,6 +1231,7 @@ const fi: Record<string, string> = {
   "v2.keep": "Kyllä se lasketaan — palauta",
   "v2.keptLabel": "palautettu veto",
   "v2.unkeep": "siirrä taas sivuun",
+  "spots.autoHint": "Spotteja ei tarvitse luoda itse: ne syntyvät automaattisesti heti, kun joku lataa session uudesta paikasta. Paikkojen ja vesistöjen nimet tulevat OpenStreetMapista — heti latauksen jälkeen nimi voi puuttua muutaman minuutin.",
 };
 
 export default fi;

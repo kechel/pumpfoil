@@ -140,7 +140,16 @@ def name_for(lat, lon):
         return shore, "venue", (water or None)
     if water:
         return water, "water", water
-    return None, None, (water or None)
+    # Overpass hat NICHTS geliefert (gesperrt/Timeout/wirklich nichts) -> Nominatim-Fallback
+    # (gleiche Datenbasis OpenStreetMap, anderer Dienst). Ohne ihn blieben Spots dauerhaft
+    # namenlos, solange Overpass diese VM aussperrt.
+    from .places import lookup_place_nominatim
+    ort, nm_water = lookup_place_nominatim(lat, lon)
+    if ort:
+        return ort, "town", (nm_water or None)
+    if nm_water:
+        return nm_water, "water", nm_water
+    return None, None, None
 
 
 def rebuild_all(db, apply: bool = False):

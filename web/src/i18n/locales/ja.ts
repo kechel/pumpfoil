@@ -1183,6 +1183,7 @@ const ja: Record<string, string> = {
   "v2.keep": "カウントする — 戻す",
   "v2.keptLabel": "戻したラン",
   "v2.unkeep": "再び除外する",
+  "spots.autoHint": "スポットを自分で作る必要はありません。誰かが新しい場所でセッションをアップロードすると自動的に作成されます。地名や水域名は OpenStreetMap から取得され、アップロード直後は表示まで数分かかることがあります。",
 };
 
 export default ja;

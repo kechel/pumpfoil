@@ -1266,6 +1266,7 @@ const nl: Record<string, string> = {
   "v2.keep": "Telt wél — terughalen",
   "v2.keptLabel": "teruggehaalde run",
   "v2.unkeep": "weer apart zetten",
+  "spots.autoHint": "Spots hoef je niet aan te maken: ze verschijnen automatisch zodra iemand op een nieuwe plek een sessie uploadt. Plaats- en waternamen komen uit OpenStreetMap — direct na een upload kan de naam nog een paar minuten ontbreken.",
 };
 
 export default nl;

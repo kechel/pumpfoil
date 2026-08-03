@@ -1467,6 +1467,7 @@ const en: Record<string, string> = {
   "v2.keep": "It counts — bring it back",
   "v2.keptLabel": "restored run",
   "v2.unkeep": "set aside again",
+  "spots.autoHint": "You never create spots yourself: they appear automatically as soon as someone uploads a session at a new location. Place and water names come from OpenStreetMap — right after an upload the name can take a few minutes to show up.",
 };
 
 export default en;
