@@ -429,6 +429,7 @@ def detect_v2(
     segments = v1._extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
     segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
+    segments = v1._trim_fall_tail(segments, lat, lon, t_ms, step, speeds, gps_hz)
     segments, n_gated = v1._gate_implausible_runs(segments)
 
     # Fremdkraft-Entscheidung JE LAUF — erst hier, nicht im Fenster-Raster (Begründung in

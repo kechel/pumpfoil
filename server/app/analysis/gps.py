@@ -371,6 +371,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     # Dead-Reckoning-Drift am Ende verwerfen (Uhr untergetaucht) -> echtes Ende.
     segments = _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz)
+    segments = _trim_fall_tail(segments, lat, lon, t_ms, step, speeds, gps_hz)
     # Ground Truth: End-/Start-Marker müssen im Wasser liegen (OSM-Wasserfläche). Fängt
     # Drift ab, die der ortsunabhängige Prior nicht erwischt (Drift schräg zur Start-Achse).
     if water_rings:
@@ -644,6 +645,69 @@ def _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz) -> lis
             seg = _seg_fields(i0, ni + 1, t_ms, step, speeds)
             seg["drift_cut_s"] = round(float(t_ms[i1] - t_ms[ni]) / 1000.0, 1)   # mitschreiben, nicht still verwerfen
         out.append(seg)
+    return out
+
+
+# Sturz-Kehrtwende am Lauf-Ende. Befund Tom, #1303 Lauf 9 (03.08.): nach dem Sturz dreht die
+# Spur in ~2 s um ~170 Grad und laeuft mit 8-11 km/h zurueck Richtung Start (Brett-Paddeln) —
+# das liegt UEBER der Exit-Schwelle (2,5 m/s), also verlaengerte _extend_ends_forward den Lauf
+# sechs Sekunden in den Rueckweg hinein und malte einen Haken ("der haerteste Carve aller
+# Zeiten", Jan). Die Signatur, gemessen ueber 4855 Laeufe des Bestands:
+#   - die 4-s-Fenster-Richtung dreht um > 135 Grad (FALL_FLIP_DEG), UND
+#   - der Doppler-Schnitt danach faellt auf <= 0,65x davor (FALL_SPEED_COLLAPSE)
+#   - innerhalb der letzten 8 s des Laufs (FALL_TAIL_MAX_S)
+# trifft 59 Laeufe in 51 Sessions (1,2 %) — inkl. Toms Fall (exakt die 6 s) — und KEINEN der
+# echten engen Turns (Gegenprobe #983/1: 180-Grad-Carve bei konstant 17 km/h, bleibt dran,
+# weil das Tempo dort NICHT kollabiert). Eine reine Kurs-Regel ohne die Kollaps-Bedingung
+# haette 268 Laeufe getroffen, darunter echte Carves.
+FALL_FLIP_DEG = 135.0
+FALL_SPEED_COLLAPSE = 0.65
+FALL_TAIL_MAX_S = 8
+FALL_HEAD_WIN_S = 4
+
+
+def _trim_fall_tail(segments, lat, lon, t_ms, step, speeds, gps_hz) -> list[dict]:
+    """Kappt den Rueckweg-Schwanz nach einem Sturz (s. Konstanten oben). Laeuft NACH den
+    Verlaengerern/Merges — genau die haben den Schwanz hereingeholt. Kappt nur, wenn der
+    Lauf danach noch MIN_SEGMENT_S traegt; die Kappung steht als fall_cut_s im Segment."""
+    lat0 = float(np.median(lat[np.isfinite(lat)])) if np.isfinite(lat).any() else 0.0
+    mx = 111320.0 * np.cos(np.radians(lat0))
+    X = lon * mx
+    Y = lat * 111320.0
+    win = max(int(round(FALL_HEAD_WIN_S * gps_hz)), 2)
+    v = speeds["1"]
+
+    def kurs(a: int, b: int):
+        if b - a < 2:
+            return None
+        dx, dy = float(X[b] - X[a]), float(Y[b] - Y[a])
+        if (dx * dx + dy * dy) ** 0.5 < 3.0:
+            return None
+        return np.degrees(np.arctan2(dy, dx))
+
+    out = []
+    for seg in segments:
+        i0, i1 = seg["i_start"], seg["i_end"]
+        cut = None
+        lo_k = max(i0 + win, i1 - int(round(FALL_TAIL_MAX_S * gps_hz)))
+        for k in range(lo_k, i1):
+            h1 = kurs(max(i0, k - win), k)
+            h2 = kurs(k, min(i1, k + win))
+            if h1 is None or h2 is None:
+                continue
+            if abs((h2 - h1 + 180.0) % 360.0 - 180.0) < FALL_FLIP_DEG:
+                continue
+            v_vor = float(np.mean(v[max(i0, k - win):k])) if k > max(i0, k - win) else 0.0
+            v_nach = float(np.mean(v[k:min(i1, k + win) + 1]))
+            if v_vor > EXIT_SPEED and v_nach <= FALL_SPEED_COLLAPSE * v_vor:
+                cut = k
+                break
+        if cut is not None and (t_ms[cut] - t_ms[i0]) >= MIN_SEGMENT_S * 1000:
+            neu = _seg_fields(i0, cut, t_ms, step, speeds)
+            neu["fall_cut_s"] = round(float(t_ms[i1] - t_ms[cut]) / 1000.0, 1)
+            out.append(neu)
+        else:
+            out.append(seg)
     return out
 
 
