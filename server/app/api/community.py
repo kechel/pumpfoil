@@ -379,24 +379,43 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
 def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
     """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
 
-    Wert = Sekunden seit lokaler Mitternacht des Starts. Night Owl zählt das Session-ENDE
-    als Start-Tageszeit + Dauer: eine Über-Mitternacht-Session ergibt >24 h (27:04 schlägt
-    23:30), zählt via started_at zum Vortag; Anzeige rechnet mod 24 h. Kaputte ended_at
-    werden auf [0, 24 h] geklemmt."""
-    q = _community(db.query(S.id, S.started_at, S.ended_at, S.place_lat, S.place_lon,
-                            NAME, S.place_name, U.avatar_url, AR.track_preview), viewer_id, accel_only, sport)
+    Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
+    (erster Lauf-Start bzw. letztes Lauf-Ende), NICHT auf started_at/ended_at der Aufnahme:
+    die Rohzeiten enthalten Anfahrt/Heimweg und ignorieren Trim, ausgeschlossene Fenster und
+    die Fremdkraft-Abtrennung — #1328 stand als "Nachteule" da, weil die Aufnahme bis in die
+    Nacht lief, obwohl der letzte echte Lauf Stunden frueher endete (Befund Jan, 03.08.).
+    Night Owl ueber Mitternacht bleibt >24 h (27:04 schlaegt 23:30, zaehlt zum Vortag);
+    Sessions ohne Laeufe halten keinen Zeit-Rekord."""
+    import json as _json
+    q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
+                            NAME, S.place_name, U.avatar_url, AR.track_preview,
+                            AR.segments_json), viewer_id, accel_only, sport)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
     best: tuple | None = None
-    for sid, st, en, lat, lon, name, place, avatar, preview in q.all():
-        if st is None:
+    for sid, st, trim0, lat, lon, name, place, avatar, preview, segs_json in q.all():
+        if st is None or not segs_json:
             continue
-        loc = st.astimezone(tz_of(lat, lon))
-        val = float(loc.hour * 3600 + loc.minute * 60 + loc.second)
-        if metric == "night_owl" and en is not None:
-            val += min(max((en - st).total_seconds(), 0.0), 86400.0)
+        try:
+            segs = _json.loads(segs_json)
+        except (ValueError, TypeError):
+            continue
+        if not segs:
+            continue
+        # Segment-Zeiten sind auf den Trim-Beginn re-based -> Offset zurueckrechnen.
+        off_ms = (trim0 or 0)
+        first_ms = min(float(x.get("t_start_ms") or 0) for x in segs)
+        last_ms = max(float(x.get("t_end_ms") or 0) for x in segs)
+        tz = tz_of(lat, lon)
+        start_loc = (st + timedelta(milliseconds=off_ms + first_ms)).astimezone(tz)
+        mitternacht = start_loc.replace(hour=0, minute=0, second=0, microsecond=0)
+        if metric == "early_bird":
+            val = (start_loc - mitternacht).total_seconds()
+        else:
+            end_loc = (st + timedelta(milliseconds=off_ms + last_ms)).astimezone(tz)
+            val = min(max((end_loc - mitternacht).total_seconds(), 0.0), 2 * 86400.0)
         better = best is None or (val < best[0] if metric == "early_bird" else val > best[0])
         if better:
             best = (val, sid, st, name, place, avatar, preview, tz_name(lat, lon))
