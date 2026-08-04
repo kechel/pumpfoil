@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 4, 2026",
+    items: [
+      "Android 1.1.18 is live in the Play Store. The phone app now shows the same notices the website got last week: when a session was classified automatically (with the exact numbers behind the call, and a one-tap override), and when runs were set aside as ridden under outside power — with a “bring it back” button. If your app offers an update, this time the button in Play will actually deliver it.",
+    ],
+  },
+  {
     date: "August 3, 2026",
     items: [
       "A crash no longer paints “the hardest carve of all time”. When you fall, the watch keeps seeing movement — you paddling back — and if that’s faster than walking pace the run kept growing into it, drawing a sharp hook at the end of the track. The detector now recognises the crash signature (the track reverses direction within seconds while the speed collapses) and ends the run right at the turn. Measured against all 4,855 recorded runs, this corrected 59 run endings — and deliberately left every real hairpin turn alone: a genuine 180° carve keeps its speed, a crash doesn’t. Thanks to the rider whose precise report caught this, his third confirmed find.",
