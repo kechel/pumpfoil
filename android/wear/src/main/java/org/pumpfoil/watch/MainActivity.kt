@@ -5,7 +5,10 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -293,6 +296,20 @@ class MainActivity : ComponentActivity() {
             wasRecording = s.recording
         }
 
+        // Puls-Berechtigung (BODY_SENSORS): wurde der Erst-Dialog beim allerersten App-Start
+        // weggewischt, blieb der Puls bisher STILL leer (Xiaomi-Feldbefund 03.08., Session mit
+        // 9447 GPS-Punkten und 0 Puls-Werten). Jetzt: Zustand beobachten, vor dem Start erneut
+        // fragen, und solange sie fehlt einen sichtbaren Hinweis zeigen.
+        var hrMissing by remember {
+            mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.BODY_SENSORS)
+                != PackageManager.PERMISSION_GRANTED)
+        }
+        var startNachHrFrage by remember { mutableStateOf(false) }
+        val hrPermLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()) { granted ->
+            hrMissing = !granted
+            if (startNachHrFrage) { startNachHrFrage = false; RecorderService.start(ctx.applicationContext) }
+        }
         if (s.recording) {
             // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
             // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
@@ -564,11 +581,32 @@ class MainActivity : ComponentActivity() {
                 // Start-Button OBEN, prominent (grün wie iOS, breit). Nimmt direkt mit der
                 // aktuellen Auswahl auf — KEINE Foil-Abfrage erzwingen.
                 Button(
-                    onClick = { skipSync(); RecorderService.start(applicationContext) },
+                    onClick = {
+                        skipSync()
+                        if (hrMissing) {
+                            // Puls-Berechtigung fehlt (Erst-Dialog weggewischt, PeterH-Fall):
+                            // VOR dem Start erneut fragen und im Callback starten — dann
+                            // registriert der RecorderService den Sensor bereits MIT Erlaubnis.
+                            // Bei endgueltigem "Nein" kommt der Callback sofort -> Start ohne Puls.
+                            startNachHrFrage = true
+                            hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                        } else RecorderService.start(applicationContext)
+                    },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF34C759), contentColor = Color.White),
                     modifier = Modifier.fillMaxWidth(0.72f).height(42.dp),
                 ) { Text(I18n.t("rec.start")) }
+                // Kein Puls moeglich: sichtbar sagen statt still ohne aufzuzeichnen (der
+                // Sensor liefert ohne BODY_SENSORS kommentarlos nichts). Tipp = nochmal fragen.
+                if (hrMissing) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("rec.hrPerm"),
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFFF59E0B), textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable {
+                            hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                        })
+                }
                 // Foil DARUNTER: sitzt so mittig auf der breitesten Stelle der runden Uhr
                 // (Platz für lange Namen). Tap -> Einstellungen (wie „Foil wählen").
                 if (foilLabel.isNotEmpty()) {
