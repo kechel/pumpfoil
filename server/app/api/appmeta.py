@@ -75,9 +75,9 @@ _APP_META: dict[str, dict[str, str]] = {
     "wear": {
         # EIGENE Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x, s. android/wear/build.gradle.kts).
         # Vorher fehlte dieser Schluessel -> die Wear-Uhr bekam nie einen Hinweis.
-        # LIVE im Play Store 2026-07-31 (Track-Zusammenfassung Wear OS: "Aktiv, neuester Release
-        # 1027 (1.2.17), 177 Laender"). Eigene Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x).
-        "latest": "1.2.17",
+        # LIVE im Play Store 2026-08-04 (Track-Zusammenfassung Wear OS: "Aktiv, neuester Release
+        # 1028 (1.2.18), 177 Laender"). Eigene Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x).
+        "latest": "1.2.18",
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
