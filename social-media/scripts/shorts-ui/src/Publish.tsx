@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ExportItem, fmtDur } from "./api";
 import { Icon } from "./icons";
 
@@ -241,6 +241,24 @@ export default function Publish() {
   const [up, setUp] = useState<UpState>({});
   const [ytReady, setYtReady] = useState(false);
   const [tt, setTt] = useState({ configured: false, authorized: false });
+  // Knoten merken (nie auf null zurücksetzen — beim Unmount brauchen wir ihn noch)
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const setRoot = useCallback((el: HTMLDivElement | null) => {
+    if (el) rootRef.current = el;
+  }, []);
+
+  // Tab verlassen → laufende Vorschauen stoppen (sonst spielen sie
+  // aus dem DOM entfernt unsichtbar weiter)
+  useEffect(
+    () => () => {
+      rootRef.current?.querySelectorAll("video").forEach((v) => {
+        v.pause();
+        v.removeAttribute("src");
+        v.load();
+      });
+    },
+    [],
+  );
 
   const refresh = useCallback(() => {
     void fetch("/api/exports").then(async (r) => setExports((await r.json()).exports));
@@ -253,7 +271,7 @@ export default function Publish() {
 
   if (!exports) return <div className="uploads">lade …</div>;
   return (
-    <div className="uploads">
+    <div className="uploads" ref={setRoot}>
       <h1>Upload ({exports.length})</h1>
 <TtBanner status={tt} refresh={refresh} />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}

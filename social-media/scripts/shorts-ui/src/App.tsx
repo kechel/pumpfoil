@@ -186,6 +186,22 @@ function Studio() {
     setCurPlay(null);
   }, []);
 
+  // Studio verlassen (Tab-Wechsel) → Wiedergabe hart beenden. Ein aus dem DOM
+  // genommenes <video>/<audio> läuft sonst unsichtbar weiter.
+  useEffect(() => {
+    const els = [vidRef.current, musicRef.current];
+    return () => {
+      window.clearTimeout(playTimerRef.current);
+      allowPlayRef.current = Infinity;  // späte Play-Versuche abwürgen
+      for (const el of els) {
+        if (!el) continue;
+        el.pause();
+        el.removeAttribute("src");
+        el.load();
+      }
+    };
+  }, []);
+
   const pickVideo = useCallback(
     (v: string) => {
       const vid = vidRef.current;
@@ -198,7 +214,10 @@ function Studio() {
         allowPlayRef.current = performance.now() + 950;
         playTimerRef.current = window.setTimeout(() => {
           allowPlayRef.current = 0;
-          vid.play().catch(() => {});
+          // nur starten, wenn der Player noch im DOM hängt (Tab-Wechsel!) und
+          // die Seite sichtbar ist — sonst spielt es unbemerkt im Hintergrund
+          const cur = vidRef.current;
+          if (cur && cur.isConnected && !document.hidden) cur.play().catch(() => {});
         }, 1000);
       }
       stopMusic();
