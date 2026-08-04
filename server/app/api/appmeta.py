@@ -60,7 +60,7 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.17",
+        "latest": "1.1.18",   # LIVE im Play Store 2026-08-04 (Mail "is live", org.pumpfoil.app)
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
