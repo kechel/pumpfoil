@@ -56,6 +56,7 @@ PROCESSED_DIR = BASE / "videos-verarbeitet"  # Quellvideos nach erfolgreichem Re
 INBOX_DIR = BASE / "neue-videos-ungesichtet"  # Ziel beim Verwerfen eines Exports
 DIST = Path(__file__).resolve().parent / "shorts-ui" / "dist"  # React-Build
 CLAUDE_BIN = shutil.which("claude") or str(Path.home() / ".local/bin/claude")
+CLAUDE_MODEL = "claude-opus-5"  # Modell für Titel/Captions (statt CLI-Default)
 CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
                  "pt", "ja", "zh", "ru", "id"]
 PORT = 8765
@@ -809,7 +810,8 @@ def generate_captions(title: str, prefix: str = "") -> dict:
     env = {"HOME": str(Path.home()),
            "USER": Path.home().name,  # ohne USER findet die CLI ihre Keychain-Anmeldung nicht
            "PATH": "/opt/homebrew/bin:/usr/bin:/bin:" + str(Path.home() / ".local/bin")}
-    proc = subprocess.run([CLAUDE_BIN, "-p", caption_prompt(title, prefix)],
+    proc = subprocess.run([CLAUDE_BIN, "--model", CLAUDE_MODEL, "-p",
+                           caption_prompt(title, prefix)],
                           capture_output=True, text=True, timeout=300, env=env)
     if proc.returncode != 0:
         raise RuntimeError(f"claude-CLI fehlgeschlagen: {(proc.stderr or proc.stdout)[-300:]}")
