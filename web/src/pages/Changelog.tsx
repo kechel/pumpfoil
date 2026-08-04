@@ -33,6 +33,7 @@ const ENTRIES: Entry[] = [
     date: "August 4, 2026",
     items: [
       "Android 1.1.18 is live in the Play Store. The phone app now shows the same notices the website got last week: when a session was classified automatically (with the exact numbers behind the call, and a one-tap override), and when runs were set aside as ridden under outside power — with a “bring it back” button. If your app offers an update, this time the button in Play will actually deliver it.",
+      "Wear OS 1.2.18 is live too: while a session uploads, the watch now says “keep the app open!” — closing the app early was the main reason sessions seemed to be missing for hours.",
     ],
   },
   {
