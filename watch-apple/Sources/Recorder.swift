@@ -22,6 +22,11 @@ final class Recorder: NSObject, ObservableObject {
     @Published var elapsed: TimeInterval = 0
     @Published var speedKmh: Double = 0
     @Published var speed3sKmh: Double = 0
+    // Schlechtes GPS (hAcc > 20 m oder ungueltiger Speed): Live-Anzeige zeigt "--" statt
+    // Phantom-Tempo. Nutzer-Video 05.08.: 100 km/h im Stehen am Steg (Cold-Start/Multipath) —
+    // betraf Garmin UND Apple Watch. Rohdaten bleiben ungefiltert (Server filtert selbst,
+    // hAcc wird mitgesendet); der Gate wirkt nur auf Anzeige + On-Watch-Lauf-Erkennung.
+    @Published var gpsPoor: Bool = false
     @Published var avgSpeedKmh: Double = 0
     @Published var maxSpeedKmh: Double = 0
     @Published var distanceM: Double = 0
@@ -467,11 +472,16 @@ extension Recorder: CLLocationManagerDelegate {
         guard let loc = locs.last else { return }
         Task { @MainActor in
             let t = self.elapsedMs()
-            let sp = max(0, loc.speed)
+            let spRaw = max(0, loc.speed)
             self.lock.withLock {
                 self.gps.append([Double(t), loc.coordinate.latitude, loc.coordinate.longitude,
-                                 sp, Double(self.lastHR), loc.horizontalAccuracy])
+                                 spRaw, Double(self.lastHR), loc.horizontalAccuracy])
             }
+            // Qualitaets-Gate fuer alles LIVE (Anzeige, Max, Lauf-Erkennung): unbrauchbare
+            // Position (hAcc > 20 m) oder ungueltiger Speed (loc.speed < 0) -> 0 + "--".
+            let poor = loc.horizontalAccuracy > 20 || loc.speed < 0
+            self.gpsPoor = poor
+            let sp = poor ? 0 : spRaw
             // Live-Kennzahlen
             if let p = self.prevLoc { self.distAccum += max(0, loc.distance(from: p)) }
             self.prevLoc = loc

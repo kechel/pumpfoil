@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.71";  // t0_ms je Accel-Chunk (exakte Zeitachse) + Ungepairt-/Upload-Hinweise
+    const VERSION = "1.0.72";  // GPS-Qualitaets-Gate: kein Phantom-Tempo bei schlechtem GPS
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

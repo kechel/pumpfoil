@@ -42,6 +42,10 @@ object Recorder {
         val starting: Boolean = false,    // Startphase (GPS/Session) — Start-Button ausblenden
         val elapsedSec: Long = 0,
         val speedKmh: Double = 0.0,       // aktuell
+        // Schlechtes GPS (hAcc > 20 m): Anzeige zeigt "--" statt Phantom-Tempo (Nutzer-Video
+        // 05.08.: 100 km/h im Stehen am Steg). Rohdaten bleiben ungefiltert (Server filtert,
+        // hAcc geht mit); der Gate wirkt nur auf Live-Anzeige + On-Watch-Lauf-Erkennung.
+        val gpsPoor: Boolean = false,
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
         val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
         val maxSpeedKmh: Double = 0.0,
@@ -375,9 +379,12 @@ object Recorder {
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
         val tMs = elapsedMs()
-        val sp = maxOf(0.0, speedMps)
+        val spRaw = maxOf(0.0, speedMps)
+        // Qualitaets-Gate fuer alles Live (Anzeige, Max, Lauf-Erkennung): hAcc > 20 m -> 0.
+        val poor = accuracyM > 20.0
+        val sp = if (poor) 0.0 else spRaw
         synchronized(lock) {
-            gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, sp, lastHr.toDouble(), accuracyM))
+            gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, spRaw, lastHr.toDouble(), accuracyM))
             // Distanz aufsummieren (Haversine zwischen Punkten).
             if (!prevLat.isNaN()) distM += haversine(prevLat, prevLon, lat, lon)
             prevLat = lat; prevLon = lon
@@ -394,6 +401,7 @@ object Recorder {
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM
         val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
         _state.value = _state.value.copy(
+            gpsPoor = poor,
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
             maxSpeedKmh = maxMps * 3.6,

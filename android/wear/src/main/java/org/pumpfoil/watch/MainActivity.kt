@@ -881,8 +881,9 @@ private val DEFAULT_VIEWS = listOf(
 
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 21 Felder).
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
-    1 -> String.format("%.1f", s.speed3sKmh) to I18n.t("f.kmh3s")
-    5 -> String.format("%.1f", s.speedKmh) to I18n.t("f.kmh")
+    // Schlechtes GPS -> "--" statt Phantom-Tempo (100 km/h am Steg, Nutzer-Video 05.08.).
+    1 -> (if (s.gpsPoor) "--" else String.format("%.1f", s.speed3sKmh)) to I18n.t("f.kmh3s")
+    5 -> (if (s.gpsPoor) "--" else String.format("%.1f", s.speedKmh)) to I18n.t("f.kmh")
     6 -> String.format("%.1f", s.avgSpeedKmh) to I18n.t("f.kmhAvg")
     7 -> String.format("%.1f", s.maxSpeedKmh) to I18n.t("f.kmhMax")
     2 -> (if (s.hr > 0) s.hr.toString() else "–") to I18n.t("f.bpm")

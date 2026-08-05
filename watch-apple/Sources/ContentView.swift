@@ -868,8 +868,9 @@ struct HoldToStopButton: View {
 // Kernfeldsatz (IDs wie web/src/lib/fields.ts); Rest "—".
 @MainActor private func fieldValue(_ id: Int, _ r: Recorder, _ lang: String) -> (String, String) {
     switch id {
-    case 1: return (String(format: "%.1f", r.speed3sKmh), WLoc.t("f.kmh3s", lang))
-    case 5: return (String(format: "%.1f", r.speedKmh), WLoc.t("f.kmh", lang))
+    // Schlechtes GPS -> "--" statt Phantom-Tempo (100 km/h am Steg, Nutzer-Video 05.08.).
+    case 1: return (r.gpsPoor ? "--" : String(format: "%.1f", r.speed3sKmh), WLoc.t("f.kmh3s", lang))
+    case 5: return (r.gpsPoor ? "--" : String(format: "%.1f", r.speedKmh), WLoc.t("f.kmh", lang))
     case 6: return (String(format: "%.1f", r.avgSpeedKmh), WLoc.t("f.kmhAvg", lang))
     case 7: return (String(format: "%.1f", r.maxSpeedKmh), WLoc.t("f.kmhMax", lang))
     case 2: return (r.hr > 0 ? "\(r.hr)" : "–", WLoc.t("f.bpm", lang))

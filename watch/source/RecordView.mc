@@ -386,9 +386,10 @@ class RecordView extends WatchUi.View {
         var color = Graphics.COLOR_WHITE;
         if (type == Config.FIELD_SPEED3S) {
             var kmh = _rec.speed3s() * 3.6;
-            value = kmh.format("%.1f");
+            // Schlechtes GPS: "--" statt Phantom-Tempo (100 km/h im Stehen am Steg, 05.08.).
+            value = _rec.gpsPoor() ? "--" : kmh.format("%.1f");
             label = Strings.s("f.kmh3s");
-            if (_rec.colorByValue) { color = _speedColor(kmh); }
+            if (_rec.colorByValue && !_rec.gpsPoor()) { color = _speedColor(kmh); }
         } else if (type == Config.FIELD_HR) {
             var hr = _rec.currentHr();
             value = hr == null ? "--" : hr.toString();
@@ -402,8 +403,8 @@ class RecordView extends WatchUi.View {
             label = _distUnit(_rec.distanceM());
         } else if (type == Config.FIELD_SPEED) {
             var kmh = _rec.currentSpeed() * 3.6;
-            value = kmh.format("%.1f"); label = Strings.s("f.kmh");
-            if (_rec.colorByValue) { color = _speedColor(kmh); }
+            value = _rec.gpsPoor() ? "--" : kmh.format("%.1f"); label = Strings.s("f.kmh");
+            if (_rec.colorByValue && !_rec.gpsPoor()) { color = _speedColor(kmh); }
         } else if (type == Config.FIELD_AVG_SPEED) {
             var kmh = _rec.avgSpeed() * 3.6;
             value = kmh.format("%.1f"); label = Strings.s("f.kmhAvg");

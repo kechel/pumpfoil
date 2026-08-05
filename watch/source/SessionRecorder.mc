@@ -64,6 +64,13 @@ class SessionRecorder {
     hidden var _speedRingPos as Lang.Number = 0;
     hidden var _currentHr as Lang.Number or Null = null;
     hidden var _hasGpsFix = false;          // erst Ansichten zeigen, wenn GPS-Fix da ist
+    // Live-GPS-Qualitaet (Position.QUALITY_*). Nutzer-Video 05.08.: Uhr zeigt 100,1 km/h (3s)
+    // im STEHEN am Steg — Cold-Start-/Multipath-Doppler. Unter QUALITY_USABLE gelten Speeds
+    // als unglaubwuerdig: Anzeige "--", Lauf-Erkennung/Alarm bekommen 0. Die ROHDATEN bleiben
+    // ungefiltert (der Server hat eigene, gemessene Glitch-Filter — hAcc wird ja mitgesendet).
+    hidden var _gpsQuality = 0;
+    hidden var _maxSpdSeen = 0.0;           // eigener Max ueber die GEGATETEN Werte — Garmins
+                                            // act.maxSpeed behielte den 100er-Glitch die ganze Session
     hidden var _syncTickCounter = 0;        // periodischer Live-Sync während der Aufnahme
     const SYNC_INTERVAL_S = 120;            // alle 2 min versuchen (wenn WLAN da)
 
@@ -768,6 +775,7 @@ class SessionRecorder {
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
+        _maxSpdSeen = 0.0;
         _accelT0 = {};
         _accelBufT0 = null;
         _gpsChunkIndex = 0;
@@ -1018,6 +1026,8 @@ class SessionRecorder {
             var act = Activity.getActivityInfo();
             if (act == null) { return; }
             var spd = _saneSpeed(act.currentSpeed);
+            if (gpsPoor()) { spd = 0.0; }   // s. _gpsQuality: kein Vertrauen -> keine Phantom-Laeufe
+            if (spd > _maxSpdSeen) { _maxSpdSeen = spd; }
             _currentHr = act.currentHeartRate;
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
@@ -1187,6 +1197,7 @@ class SessionRecorder {
             if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
                 _hasGpsFix = true;
             }
+            _gpsQuality = info.accuracy == null ? 0 : info.accuracy;
             // Aktuelle GPS-Geschwindigkeit immer merken (auch im Idle) -> Auto-Start.
             _idleSpeed = info.speed == null ? 0.0 : info.speed;
             // Im Idle nur den Fix vorwärmen/anzeigen, aber nichts in die Session puffern.
@@ -1274,7 +1285,11 @@ class SessionRecorder {
     }
 
     // Weitere Live-Felder aus Activity.Info (alle null-sicher + Speed-Sanity).
+    function gpsPoor() {
+        return _gpsQuality < Position.QUALITY_USABLE;
+    }
     function currentSpeed() {
+        if (gpsPoor()) { return 0.0; }
         var act = Activity.getActivityInfo();
         return _saneSpeed(act != null ? act.currentSpeed : null);
     }
@@ -1283,8 +1298,9 @@ class SessionRecorder {
         return _saneSpeed(act != null ? act.averageSpeed : null);
     }
     function maxSpeed() {
-        var act = Activity.getActivityInfo();
-        return _saneSpeed(act != null ? act.maxSpeed : null);
+        // Eigener Hoechstwert ueber die qualitaets-gegateten Ticks — act.maxSpeed wuerde einen
+        // einzigen Cold-Start-Glitch (100 km/h am Steg) die ganze Session lang anzeigen.
+        return _maxSpdSeen;
     }
     function avgHr() {
         var act = Activity.getActivityInfo();
