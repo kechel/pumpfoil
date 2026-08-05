@@ -257,6 +257,27 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
+- [ ] **Eigener Bereich fürs Wellen-Abfahren („chasing cruise boats", Nutzerwunsch 05.08.).**
+      Anlass: eine Session wurde als Fremdkraft aussortiert, und der Fahrer erklaerte selbst,
+      dass er die Welle eines Ausflugsschiffs mitgenommen hat. Der Detektor lag damit RICHTIG
+      (Puls-Antwort +13 bpm, Kurve flach ~105 auf der Welle, erst am Ende 160 beim Pumpen) —
+      **kein Erkennungsfehler.** Die Session ist jetzt als `wake` („Wake / boat", Admin)
+      klassifiziert und neu gerechnet: 1 Lauf, 358 s, 1783 m; erscheint unter `sport=wake` und
+      in „was ist neu", **nicht** in Pumpfoil-Rekorden/Vergleichen. Genau das wollte der Fahrer
+      („feel bad to share it in pumpfoiling because then the comparison is not correct").
+      Offen als Produktidee: In der Schweiz faehrt das laut ihm zunehmend jemand
+      („more and more people capable of doing it") -> eigener Bereich/Filter mit eigenen
+      Bestenlisten fuer Wake/Boot-Wellen waere fuer diese Gruppe interessant. Die Sportklasse
+      dafuer gibt es schon; es fehlt die Sichtbarkeit (eigene Ansicht statt nur Filterwert).
+- [ ] **Fremdkraft-Regel: Median der zweiten Laufhaelfte ist empfindlich gegen traege
+      Handgelenk-Pulsmessung.** Bei gemischten Laeufen (erst Welle, dann selbst pumpen) druecken
+      die flachen Minuten den Median unter die Schwelle (Fall oben: +13 gegen MAX_PULS_ANTWORT 15,
+      obwohl der Puls am Ende auf 160 ging). Ein robusteres Maß (max. Anstieg oder hohes
+      Perzentil im Lauf) waere zu pruefen — ABER erst gegen die 218 belegten Fremdkraft-Laeufe
+      messen, mit denen die Regel kalibriert ist (heute 55/73 Treffer bei 2 Fehlern): ein
+      Perzentil-Maß koennte echte Schleppfahrten durchlassen, bei denen der Puls am Ende kurz
+      hochgeht. Nur mit Jans OK + Regressionslauf.
+
 - [ ] **Foil-Katalog: offene Punkte aus der AFS-/Duotone-Runde (05.08., LIVE ergaenzt: +35).**
       Eingetragen: Duotone `WHIZZ SLS` 850/1000/1200/1450 (Nutzerwunsch 1200+1450) und die
       Marke `AFS` mit ULTRA, ENDURO (+GLT 1600), EVO, EVO HA, SILK, SILK V2, PURE, PURE HA,
