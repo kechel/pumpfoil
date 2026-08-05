@@ -340,6 +340,7 @@ struct RecordView: View {
     @ViewBuilder private var idleControls: some View {
         foilPreselectButton
         startButton
+        locationBlock
         syncOrStatusLine
         notLinkedBlock
         pendingUploadBlock
@@ -370,10 +371,26 @@ struct RecordView: View {
     private var startButton: some View {
         Button(WLoc.t("rec.start", lang)) {
             skipSync()
+            // Ohne Standort-Freigabe gar nicht starten: es kaeme eine Aufnahme ohne einen
+            // einzigen Punkt heraus (keine Strecke, keine Laeufe). Der Hinweis darunter sagt es.
+            guard !rec.locDenied else { return }
             Task { await rec.start(foilId: selectedFoilId) }   // Foil = Metadaten, unabhängig vom Alarm
         }
         .tint(.green)
+        .disabled(rec.locDenied)
         .sheet(isPresented: $showFoilPicker) { alarmSheet }
+    }
+
+    // Standort-Zustand: fehlende Freigabe verhindert die Aufnahme (rot), „nur ungefähr" macht
+    // sie unbrauchbar (Warnung). Beides war vorher unsichtbar.
+    @ViewBuilder private var locationBlock: some View {
+        if rec.locDenied {
+            Text(WLoc.t("rec.locPerm", lang))
+                .font(.caption2).foregroundStyle(.red).multilineTextAlignment(.center)
+        } else if rec.locReduced {
+            Text(WLoc.t("rec.locCoarse", lang))
+                .font(.caption2).foregroundStyle(.orange).multilineTextAlignment(.center)
+        }
     }
 
     private var alarmSheet: some View {

@@ -2,8 +2,12 @@ package org.pumpfoil.watch
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -61,12 +65,23 @@ class MainActivity : ComponentActivity() {
         setContent { AppUi() }
     }
 
+    // Ortung systemweit aus? Dann ist die Berechtigung da, es kommen aber trotzdem nie Fixes.
+    // Im Zweifel (Exception) true zurueckgeben — lieber nicht warnen als falsch warnen.
+    private fun locationEnabled(ctx: Context): Boolean =
+        try { (ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager).isLocationEnabled }
+        catch (_: Exception) { true }
+
     private fun requestPerms() {
         val p = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.BODY_SENSORS,
         )
         if (Build.VERSION.SDK_INT >= 33) p.add(Manifest.permission.POST_NOTIFICATIONS)
+        // Merken, dass der Standort schon einmal abgefragt wurde: sagt shouldShowRequestPermission-
+        // Rationale spaeter „nein", ist es ein endgueltiges Ablehnen -> direkt in die Einstellungen
+        // fuehren statt einen Dialog zu starten, der sofort wieder mit „denied" zurueckkommt.
+        getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .edit().putBoolean("locAsked", true).apply()
         perms.launch(p.toTypedArray())
     }
 
@@ -171,6 +186,9 @@ class MainActivity : ComponentActivity() {
         var alarmDefault by remember { mutableStateOf("foil") }   // Vorwahl: "foil" | "fixed"
         var foils by remember { mutableStateOf<List<FoilOpt>>(emptyList()) }
         var showSaved by remember { mutableStateOf(false) }   // Post-Stop-Screen (wie Garmin)
+        // Nach VERWERFEN gehoert kein „Gespeichert"-Screen (und schon gar kein Hinweis ueber die
+        // gespeicherte Aufnahme) — beides kommt sonst, weil Verwerfen genauso recording=false setzt.
+        var verworfen by remember { mutableStateOf(false) }
         var wasRecording by remember { mutableStateOf(false) }
         var showFoilPicker by remember { mutableStateOf(false) }
         var foilLabel by remember { mutableStateOf("") }        // gewählte Foil (Anzeige "Foil: <name>")
@@ -295,7 +313,7 @@ class MainActivity : ComponentActivity() {
         // Post-Stop-Screen einblenden, sobald die Aufnahme endet (Flanke recording true->false).
         // Verhindert, dass man direkt versehentlich wieder auf Start tippt (wie Garmin).
         LaunchedEffect(s.recording) {
-            if (wasRecording && !s.recording) showSaved = true
+            if (wasRecording && !s.recording) { showSaved = !verworfen; verworfen = false }
             wasRecording = s.recording
         }
 
@@ -308,6 +326,22 @@ class MainActivity : ComponentActivity() {
                 != PackageManager.PERMISSION_GRANTED)
         }
         var startNachHrFrage by remember { mutableStateOf(false) }
+        // Standort-Berechtigung (ACCESS_FINE_LOCATION): OHNE sie zeichnet die Uhr keine Strecke
+        // auf — requestLocationUpdates wirft dann nur eine SecurityException. Feldbefund 05.08.:
+        // vier Sessions ueber Stunden, 1000+ Accel-Chunks, 0 GPS-Punkte; der Nutzer hielt seine
+        // Uhr fuer zu alt und kaufte eine neue. Deshalb hier HARTE Voraussetzung statt Hinweis:
+        // ohne Standort wird nicht gestartet. Wichtig ist FINE: erlaubt der Nutzer auf Android 12+
+        // nur „ungefaehr" (COARSE), liefert Fused grobe Netz-Fixes ohne Geschwindigkeit — fuer
+        // Pumpfoil unbrauchbar. Die FINE-Pruefung faengt genau diesen Fall mit.
+        var locMissing by remember {
+            mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+        }
+        var startNachLocFrage by remember { mutableStateOf(false) }
+        // Zweiter Fall: Berechtigung erteilt, aber Ortung systemweit aus -> es kommen nie Fixes.
+        // Hier nur WARNEN (Start bleibt erlaubt): anders als die fehlende Berechtigung ist das
+        // kein sicheres Scheitern, und wer trotzdem aufnehmen will, soll nicht ausgesperrt sein.
+        var locOff by remember { mutableStateOf(!locationEnabled(ctx)) }
         // Beim Zurueckkommen (z. B. aus den System-Einstellungen, wo die Berechtigung erteilt
         // wurde) neu pruefen — sonst bliebe der Hinweis bis zum App-Neustart stehen.
         val lifecycleOwner = LocalLifecycleOwner.current
@@ -316,6 +350,9 @@ class MainActivity : ComponentActivity() {
                 if (event == Lifecycle.Event.ON_RESUME) {
                     hrMissing = ContextCompat.checkSelfPermission(
                         ctx, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED
+                    locMissing = ContextCompat.checkSelfPermission(
+                        ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    locOff = !locationEnabled(ctx)
                 }
             }
             lifecycleOwner.lifecycle.addObserver(obs)
@@ -325,6 +362,39 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.RequestPermission()) { granted ->
             hrMissing = !granted
             if (startNachHrFrage) { startNachHrFrage = false; RecorderService.start(ctx.applicationContext) }
+        }
+        // Standort: nur bei Erteilung starten. Beim endgueltigen „Nein" NICHT starten — ein
+        // Mitschnitt ohne Position ist fuer die Auswertung wertlos; der Hinweis bleibt stehen.
+        val locPermLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()) { granted ->
+            locMissing = !granted
+            if (startNachLocFrage) {
+                startNachLocFrage = false
+                if (granted) {
+                    // Standort da — Puls ist optional, aber wenn er auch fehlt, gleich mitfragen.
+                    if (hrMissing) { startNachHrFrage = true; hrPermLauncher.launch(Manifest.permission.BODY_SENSORS) }
+                    else RecorderService.start(ctx.applicationContext)
+                }
+            }
+        }
+        // Nach zweimaligem Ablehnen zeigt Android keinen Dialog mehr (der Launcher kommt sofort
+        // mit „denied" zurueck) -> dann in die System-Einstellungen der App fuehren.
+        fun askLocation(startDanach: Boolean) {
+            startNachLocFrage = startDanach
+            val p = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) ||
+                !p.getBoolean("locAsked", false)) {
+                p.edit().putBoolean("locAsked", true).apply()
+                locPermLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            } else {
+                startNachLocFrage = false
+                try {
+                    startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", packageName, null)))
+                } catch (_: Exception) {
+                    locPermLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            }
         }
         if (s.recording) {
             // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
@@ -439,6 +509,7 @@ class MainActivity : ComponentActivity() {
                             }
                             else -> {  // Verwerfen-Seiten (ganz außen): 2 s halten -> Aufnahme löschen (kein Upload)
                                 HoldButton(I18n.t("rec.discardHold"), Color(0xFF92400E), Color(0xFFFBBF24)) {
+                                    verworfen = true
                                     RecorderService.discard(applicationContext)
                                 }
                             }
@@ -599,7 +670,10 @@ class MainActivity : ComponentActivity() {
                 Button(
                     onClick = {
                         skipSync()
-                        if (hrMissing) {
+                        if (locMissing) {
+                            // Standort fehlt: fragen und NUR bei Erteilung starten (siehe oben).
+                            askLocation(startDanach = true)
+                        } else if (hrMissing) {
                             // Puls-Berechtigung fehlt (Erst-Dialog weggewischt, PeterH-Fall):
                             // VOR dem Start erneut fragen und im Callback starten — dann
                             // registriert der RecorderService den Sensor bereits MIT Erlaubnis.
@@ -612,6 +686,24 @@ class MainActivity : ComponentActivity() {
                         backgroundColor = Color(0xFF34C759), contentColor = Color.White),
                     modifier = Modifier.fillMaxWidth(0.72f).height(42.dp),
                 ) { Text(I18n.t("rec.start")) }
+                // Kein Standort = keine Strecke: das ist kein Nebenaspekt, sondern verhindert die
+                // Aufnahme. Deshalb zuerst und in Rot (der Puls-Hinweis darunter bleibt amber).
+                if (locMissing) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("rec.locPerm"),
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFFEF4444), textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable { askLocation(startDanach = false) })
+                } else if (locOff) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("rec.locOff"),
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFFEF4444), textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable {
+                            try { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
+                            catch (_: Exception) {}
+                        })
+                }
                 // Kein Puls moeglich: sichtbar sagen statt still ohne aufzuzeichnen (der
                 // Sensor liefert ohne BODY_SENSORS kommentarlos nichts). Tipp = nochmal fragen.
                 if (hrMissing) {
@@ -797,6 +889,14 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(4.dp))
                             Text(I18n.t("saved.upload"), style = MaterialTheme.typography.caption2,
                                 color = Color(0xFF94A3B8), textAlign = TextAlign.Center)
+                        }
+                        // Ohne eine einzige Position ist der Mitschnitt nicht auswertbar (keine
+                        // Strecke, keine Laeufe). Das gehoert hierhin gesagt, nicht erst wenn der
+                        // Nutzer sich Tage spaeter wundert, warum die Session leer aussieht.
+                        if (s.gpsFixes == 0) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(I18n.t("rec.noGpsSaved"), style = MaterialTheme.typography.caption2,
+                                color = Color(0xFFEF4444), textAlign = TextAlign.Center)
                         }
                         Spacer(Modifier.height(12.dp))
                         CompactChip(onClick = onDone,

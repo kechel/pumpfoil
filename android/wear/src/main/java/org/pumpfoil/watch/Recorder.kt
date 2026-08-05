@@ -46,6 +46,11 @@ object Recorder {
         // 05.08.: 100 km/h im Stehen am Steg). Rohdaten bleiben ungefiltert (Server filtert,
         // hAcc geht mit); der Gate wirkt nur auf Live-Anzeige + On-Watch-Lauf-Erkennung.
         val gpsPoor: Boolean = false,
+        // Standort-Berechtigung fehlt -> der Service bekommt GAR KEINE Fixes. Feldbefund
+        // 05.08.: vier Sessions ueber Stunden mit 1000+ Accel-Chunks und 0 GPS-Punkten, weil
+        // die SecurityException still verschluckt wurde. Jetzt sichtbar statt stumm.
+        val gpsDenied: Boolean = false,
+        val gpsFixes: Int = 0,            // Anzahl empfangener Positionen (0 = kein Signal)
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
         val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
         val maxSpeedKmh: Double = 0.0,
@@ -376,6 +381,13 @@ object Recorder {
             accel.add(toI16(z / G * ACCEL_SCALE))
         }
     }
+    // Vom RecorderService gesetzt, wenn requestLocationUpdates an der fehlenden Berechtigung
+    // scheitert (SecurityException). Ohne Positionen ist der Mitschnitt fuer die Auswertung
+    // wertlos -> die UI sagt es, statt stumm Accel zu sammeln.
+    fun setGpsDenied(v: Boolean) {
+        _state.value = _state.value.copy(gpsDenied = v)
+    }
+
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
         val tMs = elapsedMs()
@@ -402,6 +414,7 @@ object Recorder {
         val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
         _state.value = _state.value.copy(
             gpsPoor = poor,
+            gpsFixes = _state.value.gpsFixes + 1,
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
             maxSpeedKmh = maxMps * 3.6,

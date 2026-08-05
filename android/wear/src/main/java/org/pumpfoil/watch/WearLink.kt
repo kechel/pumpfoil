@@ -15,11 +15,21 @@ object WearLink {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile private var lastRequest = 0L
 
+    // „Ich WILL ein neues Token" — nur dann darf ein vom Phone geschobenes Token ein
+    // vorhandenes ueberschreiben (siehe WearPairingService). Persistent, weil der
+    // WearableListenerService in einem eigenen/neu gestarteten Prozess laufen kann.
+    private fun prefs(ctx: Context) =
+        ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+
+    fun wantsToken(ctx: Context): Boolean = prefs(ctx).getBoolean("wantToken", false)
+    fun clearWantToken(ctx: Context) = prefs(ctx).edit().putBoolean("wantToken", false).apply()
+
     fun requestToken(ctx: Context) {
         val now = System.currentTimeMillis()
         if (now - lastRequest < 30_000) return
         lastRequest = now
         val app = ctx.applicationContext
+        prefs(app).edit().putBoolean("wantToken", true).apply()
         scope.launch {
             try {
                 val nodes = Tasks.await(Wearable.getNodeClient(app).connectedNodes)

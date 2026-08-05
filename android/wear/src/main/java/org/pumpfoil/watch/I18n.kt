@@ -102,6 +102,31 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.willResume" to row("wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"),
     "rec.uploading" to row("lädt hoch", "ladt ufe", "lädt hoch", "uploading", "envoi", "caricamento", "subiendo"),
     "rec.hrPerm" to row("Kein Puls: Berechtigung fehlt – tippen", "Kei Puls: Berechtigung fehlt – tippe", "Kein Puls: Berechtigung fehlt – tippen", "No heart rate: permission missing – tap", "Pas de pouls : autorisation manquante – toucher", "Niente battito: manca il permesso – tocca", "Sin pulso: falta el permiso – toca"),
+    // Standort: ohne Berechtigung KEINE Strecke -> die Aufnahme startet nicht (Feldbefund 05.08.).
+    "rec.locPerm" to row(
+        "Standort fehlt – ohne ihn keine Aufnahme. Tippen",
+        "Standort fählt – ohni ihn kei Ufnahm. Tippe",
+        "Standort fehlt – ohne ihn keine Aufnahme. Tippen",
+        "Location permission missing – no recording without it. Tap",
+        "Autorisation de localisation manquante – pas d'enregistrement sans elle. Toucher",
+        "Manca il permesso di posizione – senza non si registra. Tocca",
+        "Falta el permiso de ubicación – sin él no se graba. Toca"),
+    "rec.locOff" to row(
+        "Standort ist ausgeschaltet – tippen",
+        "Standort isch us – tippe",
+        "Standort ist ausgeschaltet – tippen",
+        "Location is switched off – tap",
+        "La localisation est désactivée – toucher",
+        "La posizione è disattivata – tocca",
+        "La ubicación está desactivada – toca"),
+    "rec.noGpsSaved" to row(
+        "Ohne GPS gespeichert – Standort prüfen",
+        "Ohni GPS gspeicheret – Standort prüefe",
+        "Ohne GPS gespeichert – Standort prüfen",
+        "Saved without GPS – check location",
+        "Enregistré sans GPS – vérifie la localisation",
+        "Salvato senza GPS – controlla la posizione",
+        "Guardado sin GPS – revisa la ubicación"),
     "rec.keepOpen" to row("App offen lassen!", "App offe lah!", "App offen lassen!", "keep app open!", "garde l'app ouverte !", "tieni aperta l'app!", "¡mantén la app abierta!"),
     "rec.serverErr" to row("Server-Fehler – später erneut", "Server-Fähler – spöter nomal", "Server-Fehler – später erneut", "Server error – retry later", "Erreur serveur – réessai", "Errore server – riprova", "Error de servidor – reintento"),
     "rec.authErr" to row("Verbindung ungültig – neu verbinden", "Verbindig ungültig – neu verbinde", "Verbindung ungültig – neu verbinden", "Link invalid – reconnect", "Lien invalide – reconnecter", "Collegamento non valido – ricollega", "Vínculo no válido – reconectar"),
@@ -179,6 +204,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
     "rec.hrPerm" to "Sem batimentos: falta a permissão – toque",
+    "rec.locPerm" to "Falta a permissão de localização – sem ela não grava. Toque",
+    "rec.locOff" to "A localização está desligada – toque",
+    "rec.noGpsSaved" to "Salvo sem GPS – verifique a localização",
     "rec.keepOpen" to "mantenha o app aberto!",
     "menu.layouts" to "Layouts próprios",
     "common.auto" to "Automático",
@@ -265,6 +293,9 @@ private val PT: Map<String, String> = mapOf(
 )
 private val JA: Map<String, String> = mapOf(
     "rec.hrPerm" to "心拍なし：権限がありません – タップ",
+    "rec.locPerm" to "位置情報の権限がありません – ないと記録できません。タップ",
+    "rec.locOff" to "位置情報がオフです – タップ",
+    "rec.noGpsSaved" to "GPSなしで保存 – 位置情報を確認",
     "rec.keepOpen" to "アプリを開いたままに",
     "pair.title" to "ウォッチを接続",
     "pair.howto" to "ペアリングコードを生成し、pumpfoil.org(アカウント)で入力してください。",
@@ -347,6 +378,9 @@ private val JA: Map<String, String> = mapOf(
 )
 private val ZH: Map<String, String> = mapOf(
     "rec.hrPerm" to "无心率：缺少权限 – 点按",
+    "rec.locPerm" to "缺少位置权限 – 没有它无法记录。点按",
+    "rec.locOff" to "位置服务已关闭 – 点按",
+    "rec.noGpsSaved" to "已保存但无 GPS – 请检查位置权限",
     "rec.keepOpen" to "请保持应用打开",
     "pair.title" to "连接手表",
     "pair.howto" to "生成配对代码并在 pumpfoil.org(账户)中输入。",
@@ -429,6 +463,9 @@ private val ZH: Map<String, String> = mapOf(
 )
 private val RU: Map<String, String> = mapOf(
     "rec.hrPerm" to "Нет пульса: нет разрешения – нажмите",
+    "rec.locPerm" to "Нет разрешения на геолокацию – без него запись невозможна. Нажмите",
+    "rec.locOff" to "Геолокация выключена – нажмите",
+    "rec.noGpsSaved" to "Сохранено без GPS – проверьте геолокацию",
     "rec.keepOpen" to "не закрывайте приложение!",
     "menu.layouts" to "Свои макеты",
     "common.auto" to "Авто",
@@ -515,6 +552,9 @@ private val RU: Map<String, String> = mapOf(
 )
 private val ID: Map<String, String> = mapOf(
     "rec.hrPerm" to "Tanpa detak jantung: izin belum ada – ketuk",
+    "rec.locPerm" to "Izin lokasi belum ada – tanpa itu tidak merekam. Ketuk",
+    "rec.locOff" to "Lokasi dimatikan – ketuk",
+    "rec.noGpsSaved" to "Disimpan tanpa GPS – periksa lokasi",
     "rec.keepOpen" to "biarkan aplikasi terbuka!",
     "menu.layouts" to "Tata letak sendiri",
     "common.auto" to "Otomatis",

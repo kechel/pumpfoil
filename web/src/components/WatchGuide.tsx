@@ -156,7 +156,12 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         <p className="mt-1 text-sm text-slate-300">{t("guide.wearSub")}</p>
         <PlayBadge className="mt-3" />
         <ol className="mt-4 space-y-3 text-sm text-slate-200">
-          <li><b>{t("guide.w.s1Title")}</b> {t("guide.w.s1")}</li>
+          <li>
+            <b>{t("guide.w.s1Title")}</b> {t("guide.w.s1")}
+            {/* Phone- und Wear-App teilen die applicationId -> wer am Handy installiert, bekommt
+                die Handy-App und wartet vergeblich auf die Uhr. Feedback 05.08. */}
+            <div className="mt-1 text-sm text-amber-700 dark:text-amber-300">{t("guide.w.s1Note")}</div>
+          </li>
           <li><b>{t("guide.w.s2Title")}</b> {t("guide.w.s2a")}{connectLink}{t("guide.w.s2b")}</li>
           <li><b>{t("guide.w.s3Title")}</b> {t("guide.w.s3")}</li>
           <li><b>{t("guide.w.s4Title")}</b> {t("guide.w.s4")}</li>

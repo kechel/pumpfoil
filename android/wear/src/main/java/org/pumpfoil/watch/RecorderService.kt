@@ -61,8 +61,15 @@ class RecorderService : Service(), SensorEventListener {
 
     private fun startLocation() {
         val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
-        try { fused.requestLocationUpdates(req, locCb, Looper.getMainLooper()) }
-        catch (_: SecurityException) { /* Permission fehlt – UI fordert sie an */ }
+        try {
+            fused.requestLocationUpdates(req, locCb, Looper.getMainLooper())
+            Recorder.setGpsDenied(false)
+        } catch (_: SecurityException) {
+            // Fehlende Standort-Berechtigung: NICHT stumm weiterlaufen. Feldbefund 05.08.:
+            // vier Wear-Sessions ueber Stunden mit 1000+ Accel-Chunks und 0 GPS-Punkten —
+            // der Nutzer hielt die Uhr fuer inkompatibel. Jetzt sagt die Aufnahme es.
+            Recorder.setGpsDenied(true)
+        }
     }
 
     private fun stopEverything(save: Boolean = true) {

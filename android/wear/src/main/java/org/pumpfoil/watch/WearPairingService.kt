@@ -16,11 +16,18 @@ class WearPairingService : WearableListenerService() {
                 val token = DataMapItem.fromDataItem(e.dataItem).dataMap.getString("device_token")
                 if (!token.isNullOrEmpty()) {
                     Api.load(applicationContext)
-                    // Die Phone-App ist die Quelle der Wahrheit fürs Companion-Pairing: ein vom
-                    // (eingeloggten) Phone geschobenes Token überschreibt ein vorhandenes
-                    // (z. B. abgelaufenes). Danach sofort versuchen hochzuladen.
-                    if (Api.deviceToken != token) {
+                    val cur = Api.deviceToken
+                    // Companion-Pairing ist eine BEQUEMLICHKEIT, keine Autorität: ein geschobenes
+                    // Token wird nur uebernommen, wenn die Uhr keines hat oder selbst eines
+                    // angefordert hat (401-Recovery, s. WearLink). Frueher gewann der Push immer —
+                    // damit ueberschrieb das (gecachte, evtl. alte) Phone-Token ein frisches
+                    // Code-Pairing Sekunden spaeter wieder (Feldbefund 05.08.: zwei Pairings
+                    // um 14:00 und 14:15 lebten je 3 Sekunden, danach lief alles ueber das alte
+                    // Token vom 12.07.) -> „Neu verbinden"/Konto wechseln wirkte wirkungslos.
+                    val darfUeberschreiben = cur == null || WearLink.wantsToken(applicationContext)
+                    if (darfUeberschreiben && cur != token) {
                         Api.saveToken(applicationContext, token)
+                        WearLink.clearWantToken(applicationContext)
                         Recorder.drain(applicationContext)
                     }
                 }

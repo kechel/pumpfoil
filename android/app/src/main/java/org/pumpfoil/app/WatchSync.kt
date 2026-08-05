@@ -56,7 +56,12 @@ object WatchSync {
                 }
                 val req = PutDataMapRequest.create("/pairing").apply {
                     dataMap.putString("device_token", token)
-                    dataMap.putLong("ts", System.currentTimeMillis())
+                    // ts NUR bei force (Recovery nach 401): ein DataItem mit unveraendertem
+                    // Inhalt loest auf der Uhr KEIN onDataChanged aus — genau richtig, denn der
+                    // proaktive Push bei jedem App-Vordergrund soll kein Pairing-Ereignis sein.
+                    // Vorher wanderte hier immer ein frischer Zeitstempel mit, wodurch jeder
+                    // Push als Aenderung ankam und das Token der Uhr ueberschrieb.
+                    if (force) dataMap.putLong("ts", System.currentTimeMillis())
                 }
                 Wearable.getDataClient(app).putDataItem(req.asPutDataRequest().setUrgent()).await()
             } catch (_: Exception) { /* keine Uhr / offline -> später erneut */ }

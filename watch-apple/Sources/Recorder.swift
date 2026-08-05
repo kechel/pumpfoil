@@ -27,6 +27,13 @@ final class Recorder: NSObject, ObservableObject {
     // betraf Garmin UND Apple Watch. Rohdaten bleiben ungefiltert (Server filtert selbst,
     // hAcc wird mitgesendet); der Gate wirkt nur auf Anzeige + On-Watch-Lauf-Erkennung.
     @Published var gpsPoor: Bool = false
+    // Standort-Freigabe verweigert -> startUpdatingLocation liefert schweigend nichts. Ohne
+    // Positionen ist der Mitschnitt wertlos (Wear-Feldbefund 05.08.: vier Sessions ueber
+    // Stunden mit Accel, 0 GPS-Punkten). Deshalb sichtbar machen statt stumm aufzeichnen.
+    @Published var locDenied = false
+    // Nur „ungefaehrer" Standort erlaubt: es kommen grobe Fixes ohne brauchbare
+    // Geschwindigkeit — fuer Pumpfoil unbrauchbar, aber kein sicheres Scheitern -> nur warnen.
+    @Published var locReduced = false
     @Published var avgSpeedKmh: Double = 0
     @Published var maxSpeedKmh: Double = 0
     @Published var distanceM: Double = 0
@@ -99,9 +106,18 @@ final class Recorder: NSObject, ObservableObject {
     private var maxHRv = 0
     private var spWin: [(t: Double, mps: Double)] = []
 
+    // Status der Standort-Freigabe in die UI spiegeln (siehe locDenied/locReduced).
+    private func refreshLocAuth() {
+        let st = location.authorizationStatus
+        locDenied = (st == .denied || st == .restricted)
+        locReduced = (st == .authorizedWhenInUse || st == .authorizedAlways)
+            && location.accuracyAuthorization == .reducedAccuracy
+    }
+
     func requestAuth() {
         location.delegate = self
         location.requestWhenInUseAuthorization()
+        refreshLocAuth()
         let share: Set = [HKObjectType.workoutType()]
         let read: Set = [HKQuantityType(.heartRate)]
         store.requestAuthorization(toShare: share, read: read) { _, _ in }
@@ -468,6 +484,11 @@ final class Recorder: NSObject, ObservableObject {
 // MARK: - Location
 
 extension Recorder: CLLocationManagerDelegate {
+    // Freigabe nachtraeglich erteilt oder entzogen (Einstellungen) -> Hinweis mitziehen.
+    nonisolated func locationManagerDidChangeAuthorization(_ m: CLLocationManager) {
+        Task { @MainActor in self.refreshLocAuth() }
+    }
+
     nonisolated func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) {
         guard let loc = locs.last else { return }
         Task { @MainActor in
