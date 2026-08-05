@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -305,6 +308,19 @@ class MainActivity : ComponentActivity() {
                 != PackageManager.PERMISSION_GRANTED)
         }
         var startNachHrFrage by remember { mutableStateOf(false) }
+        // Beim Zurueckkommen (z. B. aus den System-Einstellungen, wo die Berechtigung erteilt
+        // wurde) neu pruefen — sonst bliebe der Hinweis bis zum App-Neustart stehen.
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val obs = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    hrMissing = ContextCompat.checkSelfPermission(
+                        ctx, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(obs)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+        }
         val hrPermLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()) { granted ->
             hrMissing = !granted
