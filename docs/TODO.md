@@ -9,6 +9,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **Stand 05.08.: Garmin 1.0.72 EINGEREICHT** (GPS-Qualitaets-Gate; Website liefert es schon,
+  appmeta bleibt 1.0.71 bis zur Freigabe). **Wear 1.2.19/1029 + Phone 1.1.19/33 vorbereitet**
+  (Puls-Fix + GPS-Gate bzw. Dropdown-Fix) — Wear kann allein releasen. **Zepp 1.0.4 weiter
+  in Pruefung.** Live: Garmin 1.0.71 · iOS/Watch 1.1.19 · Android 1.1.18 · Wear 1.2.18.
+  Historie:
 - **EINGEREICHT 01.08. (Jan): Garmin 1.0.71 (CIQ-Store) + Zepp 1.0.4 (Zepp-Konsole).**
   `appmeta` bleibt bis zur FREIGABE auf garmin 1.0.69 / zepp 1.0.3 (Tom-Petr-Lehre: nie die
   eingereichte Version hinterlegen). Nach Freigabe: `appmeta.garmin` -> 1.0.71,
