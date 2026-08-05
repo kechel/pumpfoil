@@ -2187,8 +2187,14 @@ def delete_video(
 # Wirkung erst beim ZWEITEN unabhängigen Melder: eine einzelne anonyme Meldung wäre sonst eine Waffe
 # gegen den Führenden in der Rangliste.
 
-SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "sup_paddle", "wake",
-          "efoil", "foildrive", "other")
+# „wake" ist am 05.08. in DREI Kategorien aufgeteilt worden, weil es beim Pumpen verschiedene
+# Dinge sind (Jans Vorgabe): `wakethief` = die Welle eines FREMDEN Boots mitnehmen (Fähre,
+# Motorboot — man nutzt die Kraft der Welle, pumpt aber selbst raus und dazwischen), `towed` =
+# am Seil hinter einem Boot geschleppt (keine Eigenleistung), `surf_wave` = Ozeanwelle am Strand.
+# `wake` ist damit NICHT mehr auswählbar; die drei Altbestände behalten den Wert und ihr Label,
+# damit nichts unbeschriftet dasteht (Umsortieren ist eine Einzelfall-Entscheidung des Besitzers).
+SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave", "sup_paddle",
+          "wakethief", "towed", "efoil", "foildrive", "other")
 DATA_QUALITY = ("ok", "false_data", "duplicate", "test")
 # Ab wie vielen Meldern eine Session unklassifiziert wird. Seit 2026-07-27 **1** (Jan): „mach mal das
 # bereits eine meldung 'nicht pumpfoil' ausreicht zum melden, ausblenden und im admin-bereich mir

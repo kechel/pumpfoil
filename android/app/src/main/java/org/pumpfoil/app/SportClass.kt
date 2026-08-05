@@ -7,8 +7,11 @@ package org.pumpfoil.app
 // ACHTUNG: `SessionSummary.sport` ist etwas ANDERES — der Aktivitätstyp aus der Aufnahmedatei.
 
 /** Auswählbare Sportarten — gültige Messungen, dürfen später eigene Rekorde begründen. */
-val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "sup_paddle",
-                    "wake", "efoil", "foildrive", "other")
+// „wake" seit 05.08. in drei Kategorien aufgeteilt (beim Pumpen verschiedene Dinge):
+// wakethief = Welle eines FREMDEN Boots mitnehmen · towed = am Seil hinterm Boot · surf_wave =
+// Ozeanwelle am Strand. `wake` bleibt nur als Label fuer Altbestaende (nicht mehr auswaehlbar).
+val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave",
+                    "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "other")
 
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 val DATA_QUALITY = listOf("ok", "false_data", "duplicate", "test")
@@ -17,9 +20,15 @@ val DATA_QUALITY = listOf("ok", "false_data", "duplicate", "test")
 fun isClassified(sportClass: String?, dataQuality: String?): Boolean =
     (sportClass ?: "pumpfoil") != "pumpfoil" || (dataQuality ?: "ok") != "ok"
 
+/** Beschriftbare Werte: auswaehlbare Sportarten + stillgelegte Altwerte. Der Server kann Kategorien
+ *  hinzufuegen, bevor diese App das Update hat — was hier NICHT drinsteht, bekommt das Label von
+ *  „andere Sportart" statt eines rohen i18n-Keys auf dem Bildschirm. */
+private val LABELED_SPORTS = SPORTS + listOf("wake")
+
 /** i18n-Key des Anzeige-Labels; Datenqualität schlägt die Sportart, weil sie mehr aussagt. */
 fun classLabelKey(sportClass: String?, dataQuality: String?): String {
     val dq = dataQuality ?: "ok"
     if (dq != "ok") return "cls.dq.$dq"
-    return "cls.sport.${sportClass ?: "pumpfoil"}"
+    val sport = sportClass ?: "pumpfoil"
+    return "cls.sport.${if (sport in LABELED_SPORTS) sport else "other"}"
 }

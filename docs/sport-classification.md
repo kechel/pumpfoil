@@ -13,7 +13,31 @@ sich unterschiedlich verhalten müssen:
 
 | Achse | Werte | Bedeutung | Wirkung |
 |---|---|---|---|
-| **`sport`** | `pumpfoil` (Default), `wingfoil`, `kitefoil`, `surf_downwind`, `sup_paddle`, `wake`, `efoil`, `foildrive`, `other` | **echte Daten einer anderen Sportart** | raus aus den Pumpfoil-Rekorden, aber **eigene Rekorde/Stats/Spots je Sportart** möglich (Jans Wunsch: „stats und rekorde fuer die anderen kategorien anzeigbar machen", „spots dann auch je nach kategorie") |
+| **`sport`** | `pumpfoil` (Default), `wingfoil`, `kitefoil`, `surf_downwind`, `surf_wave`, `sup_paddle`, `wakethief`, `towed`, `efoil`, `foildrive`, `other` | **echte Daten einer anderen Sportart** | raus aus den Pumpfoil-Rekorden, aber **eigene Rekorde/Stats/Spots je Sportart** möglich (Jans Wunsch: „stats und rekorde fuer die anderen kategorien anzeigbar machen", „spots dann auch je nach kategorie") |
+
+**Fremde Wellenkraft: drei Kategorien statt einer** (05.08.2026). Bis dahin gab es das Sammelbecken
+`wake` („Wake / Boot"). Beim Pumpen sind das aber verschiedene Dinge, und genau die Unterscheidung
+ist für die Vergleichbarkeit wichtig:
+
+| Kategorie | Was | Eigenleistung |
+|---|---|---|
+| `wakethief` | Die Welle eines **fremden** Boots mitnehmen — Fähre, Motorboot, Sportboot. Man pumpt selbst raus, schließt an und pumpt zwischen den Wellen. | teilweise |
+| `towed` | Am **Seil** hinter einem Boot geschleppt. | keine |
+| `surf_wave` | **Ozeanwelle** am Strand, wie beim Surfen. | teilweise (Welle trägt) |
+
+Auslöser war ein Nutzer, dessen Session die Fremdkraft-Prüfung aussortierte — er hatte die Welle
+eines Ausflugsschiffs mitgenommen und **wollte den Lauf selbst nicht in der Pumpfoil-Wertung**
+haben („feel bad to share it in pumpfoiling because then the comparison is not correct"), aber
+teilen können. Genau dafür sind die Kategorien da: die Läufe zählen in ihrer eigenen Kategorie und
+bleiben aus den Pumpfoil-Rekorden heraus.
+
+`wake` ist damit **nicht mehr auswählbar**, behält aber sein Label („alte Kategorie"), damit
+Altbestände beschriftet bleiben; Umsortieren ist eine Einzelfall-Entscheidung. Die Liste steht an
+vier Orten synchron: `server/app/api/sessions.py` (`SPORTS`), `web/src/lib/sportClass.ts`,
+`android/…/SportClass.kt`, `watch-apple/Sources-iOS/SportClass.swift`. **Neu dabei:** alle drei
+Plattformen bilden den Label-Key dynamisch (`cls.sport.<wert>`) und fallen für UNBEKANNTE Werte
+jetzt auf „andere Sportart" zurück, statt einen rohen Key anzuzeigen — der Server darf damit
+Kategorien ergänzen, bevor die Apps ihr Update haben.
 | **`data_quality`** | `ok` (Default), `false_data`, `duplicate`, `test` | **Müll oder Dopplung** | zählt NIRGENDS — auch nicht in einer anderen Kategorie, auch nicht für Spots |
 
 Warum die Trennung wichtig ist: eine Wingfoil-Session ist **gültige Messung** einer anderen Sportart
