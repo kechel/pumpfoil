@@ -48,7 +48,9 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.19",   # FREIGEGEBEN 2026-08-02 (Apple: "ready for distribution"); Propagation bis 24 h
+        "latest": "1.1.21",   # FREIGEGEBEN 2026-08-05 (Apple: "eligible for distribution", Submission
+        # 2e0f43f1); Propagation bis 24 h. 1.1.20 wurde nie ausgeliefert -- durch 1.1.21 ersetzt,
+        # das den Standort-Fix zusaetzlich enthaelt.
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
@@ -83,7 +85,7 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.19",   # FREIGEGEBEN 2026-08-02 mit der iOS-App
+        "latest": "1.1.21",   # FREIGEGEBEN 2026-08-05 mit der iOS-App (gleiches Bundle)
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },

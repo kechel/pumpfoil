@@ -30,10 +30,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     die Ortung systemweit aus ist (Start bleibt erlaubt), „Ohne GPS gespeichert"-Hinweis im
     Post-Stop-Screen, und dort kein „Gespeichert" mehr nach *Verwerfen*. Ausserdem:
     Companion-Pairing ueberschreibt kein funktionierendes Token mehr (s. u.).
-  - **EINGEREICHT 05.08. 17:07 (Jan): iOS/Watch 1.1.21/25** (App Store, „Warten auf Pruefung";
-    ersetzt die um 11:17 eingereichte 1.1.20/24). `appmeta` bleibt bis zur Freigabe auf
-    ios/apple 1.1.19; danach -> 1.1.21. Damit sind ALLE drei Plattformen mit dem Standort-Fix
-    unterwegs (Wear 1.2.20, Phone 1.1.20, iOS/Watch 1.1.21).
+  - **iOS/Watch 1.1.21 FREIGEGEBEN 05.08.** (Apple: „eligible for distribution", Submission
+    2e0f43f1, eingereicht 17:07 — Pruefung an EINEM Abend durch). `appmeta.ios` + `appmeta.apple`
+    stehen auf 1.1.21, per `/api/app/latest` verifiziert; Store-Propagation bis 24 h. Die um
+    11:17 eingereichte 1.1.20/24 wurde nie ausgeliefert (durch 1.1.21 ersetzt, das den
+    Standort-Fix zusaetzlich enthaelt). Changelog-Eintrag steht. **Offen:** Wear 1.2.20/1030 +
+    Phone 1.1.20/34 in der Play-Pruefung, Zepp 1.0.4 weiter in Pruefung, und der gebaute
+    Wear-Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) wartet auf Jans Einreichung.
   - **iOS/Watch 1.1.21/25 gebaut (nur Code, Jans Xcode):** Apple Watch hatte dieselbe Luecke —
     Freigabe wurde angefragt, der Status aber nie geprueft. Jetzt `locDenied` (Start gesperrt,
     roter Hinweis) + `locReduced` („nur ungefaehr" -> Warnung). **Offen:** derselbe Fix fehlt
