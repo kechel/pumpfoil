@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 5, 2026",
+    items: [
+      "No more 100 km/h while standing on the dock. Right after starting, a GPS chip can report garbage speeds for a few seconds, and the watches displayed them unfiltered — one rider filmed his watch showing 100.1 km/h while standing still. The watch now checks the GPS quality for every reading and shows “--” while it’s poor, and the on-watch run detection ignores those values too. Your recorded sessions were never affected — the analysis has always filtered these spikes. Garmin 1.0.72 is on the website now; Apple Watch and Wear OS follow with their next updates. Thanks for the video!",
+    ],
+  },
+  {
     date: "August 4, 2026",
     items: [
       "Android 1.1.18 is live in the Play Store. The phone app now shows the same notices the website got last week: when a session was classified automatically (with the exact numbers behind the call, and a one-tap override), and when runs were set aside as ridden under outside power — with a “bring it back” button. If your app offers an update, this time the button in Play will actually deliver it.",
