@@ -441,9 +441,12 @@ def community_sports(
     Gezählt wird über denselben Community-Filter wie die Rekorde, damit die Auswahl nicht Sportarten
     anbietet, deren Sessions gar nicht sichtbar sind (versteckte Konten, unklassifiziert, Datenmüll).
     """
-    from .sessions import SPORTS
+    # Stillgelegte Kategorien mitzaehlen: sonst verschwinden deren Altbestaende aus jeder
+    # Kategorie-Ansicht, sobald eine Kategorie umbenannt/aufgeteilt wird (05.08.: wake ->
+    # wakethief/towed/surf_wave). Sie stehen weiter zur Auswahl, solange es dort Laeufe gibt.
+    from .sessions import SPORTS, SPORTS_LEGACY
     out = []
-    for sp in SPORTS:
+    for sp in (*SPORTS, *SPORTS_LEGACY):
         n = (_community(db.query(func.coalesce(func.sum(AR.num_runs), 0)), user.id, accel_only, sp)
              .scalar() or 0)
         if int(n) > 0:

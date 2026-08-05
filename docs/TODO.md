@@ -270,12 +270,15 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       Eigenleistung), `towed` (am Seil geschleppt, keine) und `surf_wave` (Ozeanwelle am Strand).
       Server + PWA live, Labels in 15 Sprachen, Android/iOS im Code (kommen mit dem naechsten
       Release), #1571 auf `wakethief` migriert.
-      Offen als Produktidee: In der Schweiz faehrt das laut ihm zunehmend jemand
-      („more and more people capable of doing it") -> eigener **Bereich/Filter mit eigenen
-      Bestenlisten** je Kategorie waere fuer diese Gruppe interessant. Heute sind die Kategorien
-      nur Filterwerte, es fehlt die Sichtbarkeit (eigene Ansicht + Rekorde).
-      Ebenfalls offen: drei Altbestand-Sessions eines Nutzers (Boergerbruecke, Senden x2) stehen
-      noch auf der stillgelegten `wake` und brauchen ein Urteil, welche der drei nun passt.
+      Eigene Rekorde/Ranglisten/Spots je Kategorie gibt es **schon** (Jans Hinweis, geprueft):
+      Sportart-Auswahl in `/community` (`Home.tsx`), gefuettert von `GET /api/community/sports`,
+      die nur Kategorien mit mindestens einem Lauf anbietet — `wakethief` steht dort seit der
+      Migration automatisch drin. Es fehlt also NICHTS an Sichtbarkeit; frueher stand hier
+      faelschlich das Gegenteil.
+      Offen: drei Altbestand-Sessions eines Nutzers (Boergerbruecke, Senden x2) stehen noch auf
+      der stillgelegten `wake` und brauchen ein Urteil, welche der drei nun passt. Damit sie
+      dabei nicht stumm aus den Kategorie-Ansichten fallen, zaehlt `community_sports` jetzt
+      `SPORTS_LEGACY` mit.
 - [ ] **Fremdkraft-Regel: Median der zweiten Laufhaelfte ist empfindlich gegen traege
       Handgelenk-Pulsmessung.** Bei gemischten Laeufen (erst Welle, dann selbst pumpen) druecken
       die flachen Minuten den Median unter die Schwelle (Fall oben: +13 gegen MAX_PULS_ANTWORT 15,

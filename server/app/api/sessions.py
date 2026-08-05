@@ -2195,6 +2195,10 @@ def delete_video(
 # damit nichts unbeschriftet dasteht (Umsortieren ist eine Einzelfall-Entscheidung des Besitzers).
 SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave", "sup_paddle",
           "wakethief", "towed", "efoil", "foildrive", "other")
+# Stillgelegte Werte: NICHT mehr zuordenbar (die Validierung prüft nur SPORTS), aber ihre
+# Altbestände bleiben sichtbar — Kategorie-Ansichten iterieren SPORTS + SPORTS_LEGACY, sonst
+# fielen bestehende Sessions bei einer Umbenennung stumm aus jeder Kategorie heraus.
+SPORTS_LEGACY = ("wake",)
 DATA_QUALITY = ("ok", "false_data", "duplicate", "test")
 # Ab wie vielen Meldern eine Session unklassifiziert wird. Seit 2026-07-27 **1** (Jan): „mach mal das
 # bereits eine meldung 'nicht pumpfoil' ausreicht zum melden, ausblenden und im admin-bereich mir
