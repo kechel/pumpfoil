@@ -21,8 +21,8 @@ object WearLink {
     private fun prefs(ctx: Context) =
         ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
 
+    // Zurueckgesetzt wird das Flag in Api.saveToken (einziger Trichter fuer Token-Wechsel).
     fun wantsToken(ctx: Context): Boolean = prefs(ctx).getBoolean("wantToken", false)
-    fun clearWantToken(ctx: Context) = prefs(ctx).edit().putBoolean("wantToken", false).apply()
 
     fun requestToken(ctx: Context) {
         val now = System.currentTimeMillis()

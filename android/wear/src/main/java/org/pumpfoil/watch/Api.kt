@@ -27,7 +27,12 @@ object Api {
     fun saveToken(ctx: Context, token: String) {
         deviceToken = token
         ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-            .edit().putString("deviceToken", token).apply()
+            .edit().putString("deviceToken", token)
+            // Ein neu gespeichertes Token beendet die Anforderung ans Phone (WearLink.wantToken).
+            // Sonst bliebe das Flag stehen und der naechste Push duerfte ein frisch getipptes
+            // Code-Pairing doch wieder ueberschreiben — genau der Fehler, gegen den die Sperre
+            // in WearPairingService gebaut ist. Einziger Trichter fuer Token-Wechsel: hier.
+            .putBoolean("wantToken", false).apply()
     }
 
     suspend fun pair(code: String, label: String): String = withContext(Dispatchers.IO) {

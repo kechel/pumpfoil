@@ -284,6 +284,13 @@ class MainActivity : ComponentActivity() {
                         val c = Api.deviceConfig(appVersion(ctx), wantLayouts = layoutsPref != false)
                         applyConfig(c)
                         Api.cacheConfig(ctx, c)
+                    } catch (e: ApiException) {
+                        // 401 = Token serverseitig ungueltig. Auch HIER ein frisches vom Phone
+                        // anfordern, nicht nur bei fehlgeschlagenem Upload: seit die Uhr fremde
+                        // Pushes nicht mehr blind uebernimmt (WearPairingService), waere ein
+                        // ungueltiges Token sonst erst beim naechsten Upload-Versuch geheilt
+                        // worden — wer nie aufnimmt, haette dauerhaft eine stille Fehlanzeige.
+                        if (e.status == 401) WearLink.requestToken(ctx)
                     } catch (_: Exception) {}
                     syncing = false
                 }

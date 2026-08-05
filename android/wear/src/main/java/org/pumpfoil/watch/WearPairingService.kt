@@ -26,8 +26,7 @@ class WearPairingService : WearableListenerService() {
                     // Token vom 12.07.) -> „Neu verbinden"/Konto wechseln wirkte wirkungslos.
                     val darfUeberschreiben = cur == null || WearLink.wantsToken(applicationContext)
                     if (darfUeberschreiben && cur != token) {
-                        Api.saveToken(applicationContext, token)
-                        WearLink.clearWantToken(applicationContext)
+                        Api.saveToken(applicationContext, token)   // loescht wantToken selbst
                         Recorder.drain(applicationContext)
                     }
                 }
