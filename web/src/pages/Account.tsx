@@ -58,7 +58,7 @@ export default function Account() {
       {tab === "connect" && (
       <>
       <ClaimFromWatch />
-      <GenerateCode />
+      {FORWARD_PAIRING_SICHTBAR && <GenerateCode />}
       <PairedDevices onDownload={() => setTab("app")} />
       </>
       )}
@@ -119,6 +119,13 @@ function ClaimFromWatch() {
     </Card>
   );
 }
+
+// AUSGEBLENDET (Jan, 05.08.2026): „Code von der Uhr" funktioniert auf ALLEN Uhren gleich, dieser
+// Weg dagegen nur bei Garmin — Wear OS, Apple Watch und Amazfit haben keine Code-Eingabe in ihren
+// Companion-Apps (Zepp ausdrücklich: `watch-zepp/setting/index.js` „PAIRING = REVERSE"). Zwei Wege
+// nebeneinander stiften mehr Verwirrung als sie helfen. Komponente, Server-Route und Texte bleiben
+// absichtlich stehen: Wiedereinschalten ist damit dieses eine Flag.
+const FORWARD_PAIRING_SICHTBAR = false;
 
 // Forward-Pairing: Code hier erzeugen und in den Garmin-Connect-App-Einstellungen
 // (Pumpfoil → Einstellungen → Pairing-Code) eintragen. Alternative zum Code von der Uhr.
