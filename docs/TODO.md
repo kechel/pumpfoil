@@ -275,10 +275,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       die nur Kategorien mit mindestens einem Lauf anbietet — `wakethief` steht dort seit der
       Migration automatisch drin. Es fehlt also NICHTS an Sichtbarkeit; frueher stand hier
       faelschlich das Gegenteil.
-      Offen: drei Altbestand-Sessions eines Nutzers (Boergerbruecke, Senden x2) stehen noch auf
-      der stillgelegten `wake` und brauchen ein Urteil, welche der drei nun passt. Damit sie
-      dabei nicht stumm aus den Kategorie-Ansichten fallen, zaehlt `community_sports` jetzt
-      `SPORTS_LEGACY` mit.
+      Drei Altbestand-Sessions eines Nutzers bleiben auf der stillgelegten `wake` — **bewusst
+      nichts tun** (Jan 05.08.: „lass einfach so, das koennen die User selber machen oder sonst
+      halt egal"), weil niemand mehr weiss, was sie waren, und Raten hier nichts bringt. Der
+      Besitzer kann sie jederzeit selbst umstellen (geprueft: keine Meldung, keine offene
+      Zuordnungsfrage -> freie Wahl trotz `sport_source=admin`). Damit sie in der Zwischenzeit
+      nicht stumm aus den Kategorie-Ansichten fallen, zaehlt `community_sports` jetzt
+      `SPORTS_LEGACY` mit; die Alt-Kategorie verschwindet von selbst, sobald die letzte Session
+      umsortiert ist.
 - [ ] **Fremdkraft-Regel: Median der zweiten Laufhaelfte ist empfindlich gegen traege
       Handgelenk-Pulsmessung.** Bei gemischten Laeufen (erst Welle, dann selbst pumpen) druecken
       die flachen Minuten den Median unter die Schwelle (Fall oben: +13 gegen MAX_PULS_ANTWORT 15,
