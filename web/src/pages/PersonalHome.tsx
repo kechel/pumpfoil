@@ -219,6 +219,17 @@ export default function PersonalHome() {
             : t("home.needsClassificationN", { n: profile?.needs_classification ?? 0 })} →
         </Link>
       )}
+      {/* Aussortierte: nur ein Einzeiler, und nur solange etwas FRISCHES dabei ist (letzte 7 Tage,
+          Server: sorted_out_new) -> verfaellt von selbst, kein Wegklicken. Die Erklaerung steht
+          absichtlich erst in der Aussortiert-Ansicht, hier soll kein Absatz stehen. */}
+      {(profile?.sorted_out_new ?? 0) > 0 && (
+        <Link to="/sessions?filter=other"
+          className="mb-4 block rounded-xl border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-800 hover:bg-amber-500/15 dark:text-amber-200">
+          {(profile?.sorted_out_new ?? 0) === 1
+            ? t("home.sortedOut")
+            : t("home.sortedOutN", { n: profile?.sorted_out_new ?? 0 })} →
+        </Link>
+      )}
       {!latest ? <Spinner /> : latest.length === 0 ? (
         <StartHelp />
       ) : (

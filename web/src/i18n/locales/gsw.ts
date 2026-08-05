@@ -140,6 +140,8 @@ const gsw: Record<string, string> = {
   "home.installIos": "📲 Zum Startbildschirm",
   "home.installIosHint": "Im Safari: <b>Teile</b>-Symbol ⬆ → <b>„Zum Home-Bildschirm“</b>.",
   "home.noSessions": "No kei Sessions.",
+  "home.sortedOut": "En neui Ufnahm isch nöd als Pumpfoile zählt worde",
+  "home.sortedOutN": "{n} neui Ufnahme sind nöd als Pumpfoile zählt worde",
   "home.uploadFit": "FIT ufelade →",
   "home.community": "Community",
   "home.latestPhotos": "Nöischti Föteli",

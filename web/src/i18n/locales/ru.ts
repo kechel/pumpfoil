@@ -159,6 +159,8 @@ const ru: Record<string, string> = {
   "home.installIos": "📲 Добавить на главный экран",
   "home.installIosHint": "В Safari: значок <b>Поделиться</b> ⬆ → <b>«На экран “Домой”»</b>.",
   "home.noSessions": "Пока нет сессий.",
+  "home.sortedOut": "Одна новая запись не учтена как pumpfoil",
+  "home.sortedOutN": "Записей не учтено как pumpfoil: {n}",
   "home.uploadFit": "Загрузить FIT →",
   "home.community": "Сообщество",
   "home.latestMedia": "Последние медиа",

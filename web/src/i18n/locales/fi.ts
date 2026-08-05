@@ -157,6 +157,8 @@ const fi: Record<string, string> = {
   "home.installIos": "📲 Aloitusnäyttöön",
   "home.installIosHint": "Safarissa: <b>Jaa</b>-kuvake ⬆ → <b>„Lisää Koti-valikkoon“</b>.",
   "home.noSessions": "Ei vielä sessioita.",
+  "home.sortedOut": "Yhtä uutta tallennetta ei laskettu pumpfoilaukseksi",
+  "home.sortedOutN": "{n} uutta tallennetta ei laskettu pumpfoilaukseksi",
   "home.uploadFit": "Lataa FIT →",
   "home.community": "Yhteisö",
   "home.latestMedia": "Uusimmat mediat",

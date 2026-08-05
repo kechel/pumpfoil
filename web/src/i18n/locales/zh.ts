@@ -159,6 +159,8 @@ const zh: Record<string, string> = {
   "home.installIos": "📲 添加到主屏幕",
   "home.installIosHint": "在 Safari 中：<b>分享</b>图标 ⬆ → <b>“添加到主屏幕”</b>。",
   "home.noSessions": "暂无记录。",
+  "home.sortedOut": "有 1 条新记录未计入 pumpfoil",
+  "home.sortedOutN": "有 {n} 条新记录未计入 pumpfoil",
   "home.uploadFit": "上传 FIT →",
   "home.community": "社区",
   "home.latestMedia": "最新媒体",

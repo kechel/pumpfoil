@@ -159,6 +159,8 @@ const ja: Record<string, string> = {
   "home.installIos": "📲 ホーム画面に追加",
   "home.installIosHint": "Safari で：<b>共有</b>アイコン ⬆ →<b>「ホーム画面に追加」</b>。",
   "home.noSessions": "まだセッションがありません。",
+  "home.sortedOut": "新しい記録が1件、パンプフォイルとして集計されませんでした",
+  "home.sortedOutN": "新しい記録が{n}件、パンプフォイルとして集計されませんでした",
   "home.uploadFit": "FIT をアップロード →",
   "home.community": "コミュニティ",
   "home.latestMedia": "最新のメディア",

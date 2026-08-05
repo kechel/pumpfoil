@@ -139,6 +139,8 @@ const es: Record<string, string> = {
   "home.installIos": "📲 Añadir a la pantalla de inicio",
   "home.installIosHint": "En Safari: icono <b>Compartir</b> ⬆ → <b>«Añadir a pantalla de inicio»</b>.",
   "home.noSessions": "Aún no hay sesiones.",
+  "home.sortedOut": "Una grabación nueva no se contó como pumpfoil",
+  "home.sortedOutN": "{n} grabaciones nuevas no se contaron como pumpfoil",
   "home.uploadFit": "Subir FIT →",
   "home.community": "Comunidad",
   "home.latestMedia": "Últimos medios",

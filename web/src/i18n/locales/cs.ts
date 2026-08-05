@@ -170,6 +170,8 @@ const cs: Record<string, string> = {
   "home.installIos": "📲 Na plochu",
   "home.installIosHint": "V Safari: ikona <b>Sdílet</b> ⬆ → <b>„Přidat na plochu“</b>.",
   "home.noSessions": "Zatím žádné relace.",
+  "home.sortedOut": "Jedna nová nahrávka se nepočítala jako pumpfoiling",
+  "home.sortedOutN": "{n} nových nahrávek se nepočítalo jako pumpfoiling",
   "home.uploadFit": "Nahrát FIT →",
   "home.community": "Komunita",
   "home.latestMedia": "Nejnovější média",

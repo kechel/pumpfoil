@@ -191,6 +191,8 @@ const de: Record<string, string> = {
   "home.uploadFit": "FIT hochladen →",
   "home.needsClassification": "Eine deiner Sessions wartet auf eine Zuordnung — sie erscheint bis dahin in keiner Auswertung",
   "home.needsClassificationN": "{n} deiner Sessions warten auf eine Zuordnung — sie erscheinen bis dahin in keiner Auswertung",
+  "home.sortedOut": "Eine neue Aufnahme wurde nicht als Pumpfoilen gezählt",
+  "home.sortedOutN": "{n} neue Aufnahmen wurden nicht als Pumpfoilen gezählt",
   "home.layouts": "Uhr-Layouts der Community",
   "home.layoutsAll": "Alle ansehen",
   "home.layoutsHint": "Fertige Aufnahme-Screens von anderen Foilern — ansehen, in dein Profil übernehmen, auf deiner Uhr anzeigen.",

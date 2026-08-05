@@ -159,6 +159,8 @@ const id: Record<string, string> = {
   "home.installIos": "📲 Tambahkan ke layar utama",
   "home.installIosHint": "Di Safari: ikon <b>Bagikan</b> ⬆ → <b>“Tambahkan ke Layar Utama”</b>.",
   "home.noSessions": "Belum ada sesi.",
+  "home.sortedOut": "Satu rekaman baru tidak dihitung sebagai pumpfoil",
+  "home.sortedOutN": "{n} rekaman baru tidak dihitung sebagai pumpfoil",
   "home.uploadFit": "Unggah FIT →",
   "home.community": "Komunitas",
   "home.latestMedia": "Media terbaru",

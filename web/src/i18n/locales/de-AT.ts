@@ -136,6 +136,8 @@ const deAT: Record<string, string> = {
   "home.installIos": "📲 Auf'n Startbildschirm",
   "home.installIosHint": "In Safari: <b>Teilen</b>-Symbol ⬆ → <b>„Zum Home-Bildschirm“</b>.",
   "home.noSessions": "No kane Sessions.",
+  "home.sortedOut": "Eine neue Aufnahme wurde nicht als Pumpfoilen gezählt",
+  "home.sortedOutN": "{n} neue Aufnahmen wurden nicht als Pumpfoilen gezählt",
   "home.uploadFit": "FIT hochladn →",
   "home.community": "Community",
   "home.latestPhotos": "Neieste Fotos",

@@ -139,6 +139,8 @@ const it: Record<string, string> = {
   "home.installIos": "📲 Aggiungi alla schermata Home",
   "home.installIosHint": "In Safari: icona <b>Condividi</b> ⬆ → <b>«Aggiungi a Home»</b>.",
   "home.noSessions": "Ancora nessuna sessione.",
+  "home.sortedOut": "Una nuova registrazione non è stata conteggiata come pumpfoil",
+  "home.sortedOutN": "{n} nuove registrazioni non sono state conteggiate come pumpfoil",
   "home.uploadFit": "Carica FIT →",
   "home.community": "Community",
   "home.latestMedia": "Ultimi media",

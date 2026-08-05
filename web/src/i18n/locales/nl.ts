@@ -170,6 +170,8 @@ const nl: Record<string, string> = {
   "home.installIos": "📲 Zet op beginscherm",
   "home.installIosHint": "In Safari: <b>Delen</b>-symbool ⬆ → <b>‘Zet op beginscherm’</b>.",
   "home.noSessions": "Nog geen sessies.",
+  "home.sortedOut": "Eén nieuwe opname is niet als pumpfoilen geteld",
+  "home.sortedOutN": "{n} nieuwe opnames zijn niet als pumpfoilen geteld",
   "home.uploadFit": "FIT uploaden →",
   "home.community": "Community",
   "home.latestMedia": "Nieuwste media",

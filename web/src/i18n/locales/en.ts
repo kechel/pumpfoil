@@ -180,6 +180,8 @@ const en: Record<string, string> = {
   "home.uploadFit": "Upload FIT →",
   "home.needsClassification": "One of your sessions is waiting to be classified — until then it won’t appear in any stats",
   "home.needsClassificationN": "{n} of your sessions are waiting to be classified — until then they won’t appear in any stats",
+  "home.sortedOut": "One new recording wasn't counted as pumpfoiling",
+  "home.sortedOutN": "{n} new recordings weren't counted as pumpfoiling",
   "home.layouts": "Watch layouts from the community",
   "home.layoutsAll": "See all",
   "home.layoutsHint": "Ready-made recording screens from other riders — have a look, copy one into your profile, show it on your watch.",
