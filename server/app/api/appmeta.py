@@ -68,7 +68,7 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.71",   # LIVE im CIQ-Store 2026-08-01 (Ungepairt-/Upload-Hinweise + t0_ms)
+        "latest": "1.0.72",   # LIVE im CIQ-Store 2026-08-05 (GPS-Qualitaets-Gate)
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
