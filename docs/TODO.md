@@ -257,6 +257,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
+- [ ] **Foil-Katalog: offene Punkte aus der AFS-/Duotone-Runde (05.08., LIVE ergaenzt: +35).**
+      Eingetragen: Duotone `WHIZZ SLS` 850/1000/1200/1450 (Nutzerwunsch 1200+1450) und die
+      Marke `AFS` mit ULTRA, ENDURO (+GLT 1600), EVO, EVO HA, SILK, SILK V2, PURE, PURE HA,
+      FLYER. Bewusst offen geblieben:
+      - **Duotone veroeffentlicht keine Profildicke** fuer Whizz -> aus mittlerer Fluegeltiefe
+        mit t/c 17,2 % geschaetzt (genau die Streckung der vorhandenen Duotone-SLS-Zeilen) und
+        `thickness_estimated` gesetzt. Falls Duotone je Zahlen nennt: ersetzen + Flag entfernen.
+      - **AFS PURE / PURE HA: zwei widersprechende offizielle Generationen** (Fuselink vs.
+        Performer, z. B. PURE 700 span 820 vs. 750 mm). Eingetragen sind die **Fuselink**-Werte
+        (aktuelle Seite); wer ein aelteres Performer hat, bekommt eine zu grosse Spannweite.
+      - **AFS EVO: Label vs. Flaeche** — Einzelkarten nennen 1240/1440/1640 cm², die
+        Sammeltabelle 1250/1450/1650. Eingetragen sind die Tabellenwerte (passen zum Namen).
+      - **AFS ULTRA 750** hat zwei offizielle Geometrien (Front-Wing-Seite span 106 cm / AR 15
+        vs. Fuselink-Seite 102,4 cm / AR 14) — eingetragen ist die Front-Wing-Seite.
+      - **AFS PURE RACE 560 nicht eingetragen**: Dicke unveroeffentlicht („–", nur T/C 10–12 %),
+        Race-Fluegel, fuer Pumpfoil kaum relevant. AFS **PERFORMER**-Frontfluegel ebenfalls nicht:
+        nicht mehr im offiziellen Katalog (durch EVO ersetzt).
+      - Kein Hersteller (weder AFS noch Duotone) sagt, ob die Flaechen **projiziert oder
+        abgewickelt** gemessen sind — gilt fuer den ganzen Katalog, nicht nur diese Zeilen.
+      - Nutzerhinweis „AFS Blackbird" waere falsch: `Blackbird` ist bei AFS eine **Board**-Linie,
+        der Blackbird-Frontfluegel ist **Sabfoil**. Nicht anlegen.
+
 - [ ] **Wear/Android: BODY_SENSORS wird ab SDK 36 ersetzt** (Android 16: granulare
       `android.permission.health.READ_HEART_RATE`). Beim naechsten Pflicht-targetSdk-Bump der
       Play-Vorgaben MUSS die Puls-Berechtigung mit umgestellt werden (Manifest + Runtime-Anfrage
