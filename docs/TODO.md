@@ -20,12 +20,20 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Galaxy Watch 4 haette laufen muessen — der Neukauf war unnoetig; unsere Angabe
   („Wear OS 3+") war korrekt, die Anleitung sagte aber nicht, dass die Uhren-App **auf der
   Uhr** installiert wird (Phone+Wear teilen die applicationId).
+  - **EINGEREICHT 05.08. abend (Jan): Wear 1.2.20/1030 + Phone Android 1.1.20/34** (Play,
+    beide Formfaktor-Tracks, Vorabpruefungen liefen). Ueberholen die eingereichten 1.2.19/1029
+    bzw. 1.1.19/33. `appmeta` bleibt bis zur FREIGABE auf wear 1.2.18 / android 1.1.18; danach
+    -> wear 1.2.20, android 1.1.20.
   - **Wear 1.2.20/1030 + Phone 1.1.20/34 gebaut** (beide kompiliert): Standort ist harte
     Startvoraussetzung (fehlt sie -> fragen, bei „Nein" NICHT starten, roter Hinweis mit
     Tipp-Aktion; nach endgueltigem Ablehnen direkt in die System-Einstellungen), Warnung wenn
     die Ortung systemweit aus ist (Start bleibt erlaubt), „Ohne GPS gespeichert"-Hinweis im
     Post-Stop-Screen, und dort kein „Gespeichert" mehr nach *Verwerfen*. Ausserdem:
     Companion-Pairing ueberschreibt kein funktionierendes Token mehr (s. u.).
+  - **EINGEREICHT 05.08. 17:07 (Jan): iOS/Watch 1.1.21/25** (App Store, „Warten auf Pruefung";
+    ersetzt die um 11:17 eingereichte 1.1.20/24). `appmeta` bleibt bis zur Freigabe auf
+    ios/apple 1.1.19; danach -> 1.1.21. Damit sind ALLE drei Plattformen mit dem Standort-Fix
+    unterwegs (Wear 1.2.20, Phone 1.1.20, iOS/Watch 1.1.21).
   - **iOS/Watch 1.1.21/25 gebaut (nur Code, Jans Xcode):** Apple Watch hatte dieselbe Luecke —
     Freigabe wurde angefragt, der Status aber nie geprueft. Jetzt `locDenied` (Start gesperrt,
     roter Hinweis) + `locReduced` („nur ungefaehr" -> Warnung). **Offen:** derselbe Fix fehlt
