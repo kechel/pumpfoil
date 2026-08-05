@@ -59,6 +59,14 @@ class ProfileOut(BaseModel):
     # Neueste betroffene Session — damit der Hinweis auf der Startseite DIREKT dorthin verlinkt
     # statt in eine Liste, in der man dann sucht.
     needs_classification_id: int | None = None
+    # Eigene Aufnahmen, die NICHT als Pumpfoilen gezaehlt wurden und noch niemandem zugeordnet
+    # sind. Ohne Hinweis verschwinden sie stillschweigend in den „Aussortiert"-Tab — ein Nutzer
+    # suchte am 05.08. selbst danach und fand sie nur, weil er gefragt hat. Die Zuordnung ist der
+    # Ausweg: einmal die Sportart setzen, dann erscheint die Aufnahme in ihrer Kategorie.
+    sorted_out: int = 0
+    # Davon aus den letzten 7 Tagen. NUR diese heben den „Aussortiert"-Tab hervor: alte Aussortierte
+    # sind kein Anlass mehr anzustupsen, und so verfaellt die Hervorhebung ohne Wegklicken.
+    sorted_out_new: int = 0
 
 
 class LoginIn(BaseModel):

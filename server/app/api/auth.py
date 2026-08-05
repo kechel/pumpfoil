@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -108,6 +108,64 @@ def _needs_classification(db: Session, user_id: int) -> int:
         return 0
 
 
+SORTED_OUT_NEU_TAGE = 7   # so lange gilt eine aussortierte Aufnahme als „frisch" (Hervorhebung)
+
+
+def _sorted_out(db: Session, user_id: int) -> tuple[int, int]:
+    """Aussortierte eigene Aufnahmen, die noch niemandem zugeordnet sind: (Anzahl, davon frisch).
+
+    „Frisch" = in den letzten `SORTED_OUT_NEU_TAGE` Tagen aufgenommen. Nur diese heben den Tab
+    hervor (Jans Vorgabe 05.08.): zehn Aussortierte von vor drei Monaten sind kein Anlass mehr,
+    jemanden anzustupsen — die Hervorhebung verfaellt dadurch von selbst und braucht kein
+    Wegklicken.
+
+    Dieselbe Bedingung wie der „Aussortiert"-Tab (`sessions.py:_apply_pump_filter`, filter=other):
+    `is_pumpfoil` NICHT true. Bewusst ausgenommen, damit der Hinweis nur zeigt, wo Zuordnen noch
+    etwas AENDERT:
+      • `is_pumpfoil IS NULL` -> noch nicht analysiert, da steht das Urteil gar nicht fest.
+      • `needs_classification` -> hat schon seinen eigenen, deutlicheren Hinweis (kein Doppel-Nerven).
+      • `sport_source` owner/admin -> ein Mensch hat die Frage bereits beantwortet.
+      • `data_quality` != ok -> als Test/Datenmuell/Duplikat abgehakt, das ist gewollt aussortiert.
+      • laufende Aufnahmen (recording/live).
+    Die persoenliche Empfindlichkeit bleibt hier aussen vor: sie kann Laeufe nur ZUSAETZLICH finden,
+    und dann steht die Aufnahme ohnehin nicht mehr im Tab.
+    """
+    try:
+        q = (db.query(models.Session.started_at)
+             .filter(models.Session.user_id == user_id,
+                     models.Session.deleted.isnot(True),
+                     models.Session.is_pumpfoil.is_(False),
+                     models.Session.needs_classification.isnot(True),
+                     or_(models.Session.sport_source.is_(None),
+                         models.Session.sport_source.in_(("default", "auto"))),
+                     or_(models.Session.data_quality.is_(None),
+                         models.Session.data_quality == "ok"),
+                     models.Session.status.notin_(("recording", "live"))))
+        grenze = datetime.now(timezone.utc) - timedelta(days=SORTED_OUT_NEU_TAGE)
+        alle = [r[0] for r in q.all()]
+        neu = 0
+        for ts in alle:
+            if ts is None:
+                continue
+            # Naive Zeitstempel als UTC lesen, sonst schlaegt der Vergleich fehl.
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            if ts >= grenze:
+                neu += 1
+        return len(alle), neu
+    except Exception:  # noqa: BLE001 – darf das Profil nie brechen
+        return 0, 0
+
+
+def _profile_hinweise(db: Session, user_id: int) -> dict:
+    """Die Hinweis-Zahlen fuer die Startseite, an EINER Stelle gebuendelt — vier Endpunkte geben
+    ProfileOut zurueck, und die Felder sollen nie zwischen ihnen auseinanderlaufen."""
+    anzahl, neu = _sorted_out(db, user_id)
+    return {"needs_classification": _needs_classification(db, user_id),
+            "needs_classification_id": _needs_classification_id(db, user_id),
+            "sorted_out": anzahl, "sorted_out_new": neu}
+
+
 @router.post("/register", response_model=TokenOut)
 def register(
     body: RegisterIn, db: Session = Depends(get_db),
@@ -130,8 +188,7 @@ def register(
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      needs_classification=_needs_classification(db, user.id),
-                      needs_classification_id=_needs_classification_id(db, user.id))
+                      **_profile_hinweise(db, user.id))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -166,8 +223,7 @@ def update_me(
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      needs_classification=_needs_classification(db, user.id),
-                      needs_classification_id=_needs_classification_id(db, user.id))
+                      **_profile_hinweise(db, user.id))
 
 
 @router.put("/me/age-range", response_model=ProfileOut)
@@ -186,8 +242,7 @@ def set_age_range(
                       beta=True,
                       foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"),
                       social_allowed=(user.social_allowed is not False),
-                      needs_classification=_needs_classification(db, user.id),
-                      needs_classification_id=_needs_classification_id(db, user.id))
+                      **_profile_hinweise(db, user.id))
 
 
 @router.get("/me/reanalysis")
@@ -326,8 +381,7 @@ async def upload_avatar(
     db.commit()
     db.refresh(user)
     return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      needs_classification=_needs_classification(db, user.id),
-                      needs_classification_id=_needs_classification_id(db, user.id))
+                      **_profile_hinweise(db, user.id))
 
 
 @router.post("/login", response_model=TokenOut)

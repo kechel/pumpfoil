@@ -442,6 +442,10 @@ export interface Profile {
   // davon, damit der Hinweis direkt dorthin verlinkt.
   needs_classification?: number;
   needs_classification_id?: number | null;
+  // Aussortierte eigene Aufnahmen (nicht als Pumpfoilen gezählt, noch keiner Sportart zugeordnet):
+  // Anzahl am Tab, und wie viele davon frisch sind (letzte 7 Tage) — nur die heben den Tab hervor.
+  sorted_out?: number;
+  sorted_out_new?: number;
 }
 
 export interface AdminUser {

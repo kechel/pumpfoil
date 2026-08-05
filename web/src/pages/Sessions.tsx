@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
@@ -312,6 +312,10 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
   const [month, setMonth] = useState(sp.get("month") || "");
   const [filter, setFilter] = useState<"pump" | "other">(initFilter);
   const [avatar, setAvatar] = useState<string | null>(null);
+  // Aussortierte: Anzahl am Tab, und wie viele frisch sind (letzte 7 Tage) -> nur die heben hervor.
+  // So verfällt die Hervorhebung von selbst; alte Aussortierte stupsen niemanden mehr an.
+  const [sortedOut, setSortedOut] = useState(0);
+  const [sortedOutNew, setSortedOutNew] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -372,7 +376,11 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
 
   useEffect(() => {
     api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
-    api.getProfile().then((p) => setAvatar(p.avatar_url)).catch(() => {});
+    api.getProfile().then((p) => {
+      setAvatar(p.avatar_url);
+      setSortedOut(p.sorted_out ?? 0);
+      setSortedOutNew(p.sorted_out_new ?? 0);
+    }).catch(() => {});
     const cached = listCache.get(cacheKey());
     if (!listDirty && cached && cached.items.length) {
       setItems(cached.items);
@@ -454,7 +462,17 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
           <button onClick={() => changeFilter("pump")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "pump" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>{t("sessions.filterPump")}</button>
-          <button onClick={() => changeFilter("other")} className={`rounded-lg px-2.5 py-1.5 text-xs ${filter === "other" ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`} title={t("sessions.filterOtherHint")}>{t("sessions.filterOther")}</button>
+          {/* Aussortiert: Anzahl direkt am Tab, und amber hervorgehoben, solange etwas FRISCHES
+              (letzte 7 Tage) darin liegt. Der Erklärungstext steht bewusst erst in der Ansicht
+              selbst — auf der Übersicht soll kein Absatz stehen (Jan, 05.08.). */}
+          <button onClick={() => changeFilter("other")}
+            className={`rounded-lg px-2.5 py-1.5 text-xs ${
+              filter === "other" ? "bg-brand-500 font-semibold text-slate-950"
+              : sortedOutNew > 0 ? "border border-amber-500/60 bg-amber-500/15 font-semibold text-amber-800 dark:text-amber-200"
+              : "bg-slate-800 text-slate-200"}`}
+            title={t("sessions.filterOtherHint")}>
+            {t("sessions.filterOther")}{sortedOut > 0 ? ` (${sortedOut})` : ""}
+          </button>
         </div>
         <select value={month} onChange={(e) => changeMonth(e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-100">
           <option value="">{t("sessions.allMonths")}</option>
@@ -477,6 +495,23 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       </div>
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
+
+      {/* Hier — und nur hier — die Erklärung: warum eine Aufnahme aussortiert wurde, dass man sie
+          selbst zuordnen kann, und der Tipp mit der Standard-Sportart im Profil. Auslöser war ein
+          Nutzer, dessen Session (Schiffswelle mitgenommen) stillschweigend hier landete und der
+          nur durch Nachfragen erfuhr, wo sie steckt und dass er sie selbst einordnen darf. */}
+      {filter === "other" && (
+        <Card className="mb-4 space-y-2 p-4 text-sm">
+          <p className="text-slate-300">{t("sessions.otherWhy")}</p>
+          <p className="text-slate-300">{t("sessions.otherAssign")}</p>
+          <p className="text-slate-300">
+            {t("sessions.otherDefault")}{" "}
+            <Link to="/foils" className="text-brand-700 underline hover:no-underline dark:text-brand-300">
+              {t("sessions.otherDefaultLink")}
+            </Link>
+          </p>
+        </Card>
+      )}
 
       {items.length === 0 && !loading ? (
         month ? (
