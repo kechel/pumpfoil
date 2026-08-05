@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -241,6 +244,18 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        // Bei usePlatformDefaultWidth=false bestimmt der Inhalt selbst seine Hoehe. Die scrollbare
+        // Column war damit UNBEGRENZT hoch: das Fenster wuchs ueber den Bildschirm hinaus, die
+        // Teilen-Schaltflaeche lag darunter — und Scrollen half nicht, weil der Scroll-Container
+        // genauso hoch war wie sein Inhalt (Feldbefund 04.08. Samsung: „cannot scroll down to
+        // press share"; reproduziert: nur der obere Rand des Knopfes sichtbar). Dieser Box ist auf
+        // die Fenstergroesse begrenzt und gibt der Column damit eine Maximalhoehe -> es scrollt.
+        // systemBarsPadding haelt die Karte aus Status-/Navigationsleiste heraus, imePadding
+        // schiebt sie hoch, wenn fuer den Titel die Tastatur aufgeht.
+        Box(
+            Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -372,6 +387,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                 Spacer(Modifier.width(8.dp))
                 Text(I18n.t("sd.share"))
             }
+        }
         }
     }
 }

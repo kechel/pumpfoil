@@ -17,9 +17,8 @@ android {
         // applicationId): WEAR = versionName 1.2.x + versionCode 1xxx; PHONE = 1.1.x + kleiner Code.
         // Das „x" (letzte Ziffer) ist bei Phone und Wear IMMER gleich -> beide je Release-Runde
         // gemeinsam hochzählen. -> „1.2." / 1xxx = Wear, „1.1." / kleine Zahl = Phone.
-        // AUSNAHME vom „x ist bei Phone und Wear gleich": 1.2.21 ist ein Wear-only-Nachzug
-        // (Token-Selbstheilung bei Config-401). Das Phone bleibt bei 1.1.20/34 — dort aendert
-        // sich nichts, und die Version ist bereits bei Play eingereicht.
+        // 1.2.21 war zuerst ein Wear-only-Nachzug (Token-Selbstheilung bei Config-401); mit dem
+        // Teilen-Dialog-Fix ist das Phone auf 1.1.21/35 nachgezogen -> „x gleich" gilt wieder.
         versionCode = 1031
         versionName = "1.2.21"
     }
