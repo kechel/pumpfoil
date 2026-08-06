@@ -145,7 +145,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
   return (
     <div className="exp">
       <img className="thumb" alt="" loading="lazy"
-        src={`/thumb/${encodeURIComponent(exp.name)}?t=1&base=out:${thumbPf}`}
+        src={`/thumb/${encodeURIComponent(exp.files?.[thumbPf] ?? exp.name)}?t=1&base=out:${thumbPf}`}
         onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
       />
       <div className="body">

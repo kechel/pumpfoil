@@ -777,6 +777,29 @@ def tt_upload_draft(path: Path):
     return {"publish_id": data.get("publish_id")}
 
 
+# Die Pixabay-ID hängt am Dateinamen je Plattform (nur die dort verwendete),
+# die Dateien eines Renders heißen also nicht überall gleich. Für Gruppierung
+# und alle Endpunkte zählt der Name OHNE Lizenz-Suffix.
+PIXABAY_SUFFIX_RE = re.compile(r"(?:-pixabay-\d+)+$")
+
+
+def export_key(name: str) -> str:
+    return PIXABAY_SUFFIX_RE.sub("", Path(name).stem)
+
+
+def export_file(pf: str, name: str):
+    """Datei einer Plattform zu einem (Basis-)Namen finden."""
+    d = OUT_DIR / pf
+    p = d / Path(name).name
+    if p.is_file():
+        return p
+    key = export_key(name)
+    for q in d.glob(f"{key}*.mp4"):
+        if export_key(q.name) == key:
+            return q
+    return None
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -785,9 +808,11 @@ def exports_state():
         if not d.is_dir():
             continue
         for p in d.glob("*.mp4"):
-            g = groups.setdefault(p.name, {"name": p.name, "platforms": [],
-                                           "mtime": 0, "sizes": {}})
+            key = export_key(p.name)
+            g = groups.setdefault(key, {"name": key + ".mp4", "platforms": [],
+                                        "mtime": 0, "sizes": {}, "files": {}})
             g["platforms"].append(pf)
+            g["files"][pf] = p.name
             g["mtime"] = max(g["mtime"], p.stat().st_mtime)
             g["sizes"][pf] = p.stat().st_size
     result = sorted(groups.values(), key=lambda g: -g["mtime"])[:100]
@@ -795,7 +820,7 @@ def exports_state():
         stem = Path(g["name"]).stem
         src = next(PROCESSED_DIR.glob(f"*-{stem}.mp4"), None)
         g["source"] = src.name if src else None
-        first = OUT_DIR / g["platforms"][0] / g["name"]
+        first = OUT_DIR / g["platforms"][0] / g["files"][g["platforms"][0]]
         g["duration"] = track_duration(first)
     return result
 
@@ -966,7 +991,9 @@ class Handler(BaseHTTPRequestHandler):
                 name = path[len("/thumb/"):]
                 base_q = query.get("base", [""])[0]
                 if base_q.startswith("out:") and base_q[4:] in (*PLATFORMS, "tiktok"):
-                    video = safe_child(OUT_DIR / base_q[4:], name)
+                    video = export_file(base_q[4:], Path(name).name)
+                    if video is None:
+                        raise FileNotFoundError(name)
                 else:
                     video = safe_child(VIDEO_DIR, name)
                 t = float(query.get("t", ["1"])[0])
@@ -1025,8 +1052,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True})
         if self.path == "/api/upload/tiktok":
             name = Path(str(req.get("name", ""))).name
-            path = OUT_DIR / "tiktok" / name
-            if not path.is_file():
+            path = export_file("tiktok", name)
+            if path is None:
                 return self._json({"error": f"Datei nicht gefunden: tiktok/{name}"}, 400)
             try:
                 r = tt_upload_draft(path)
@@ -1037,8 +1064,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, **info, "state": uploads_state()})
         if self.path == "/api/upload/youtube":
             name = Path(str(req.get("name", ""))).name
-            path = OUT_DIR / "youtube" / name
-            if not path.is_file():
+            path = export_file("youtube", name)
+            if path is None:
                 return self._json({"error": f"Datei nicht gefunden: youtube/{name}"}, 400)
             caps = cached_captions(name).get("cached") or {}
             if not caps.get("titles"):
@@ -1066,8 +1093,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Quellvideo nicht mehr in "
                                    f"videos-verarbeitet ({moved.name})"}, 404)
             for pf in (*PLATFORMS, "tiktok"):
-                p = OUT_DIR / pf / info["out_name"]
-                if p.is_file():
+                p = export_file(pf, info["out_name"])
+                if p is not None:
                     p.unlink()
             target = src
             n = 1
@@ -1086,12 +1113,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Ungültiger Name"}, 400)
             removed = 0
             for pf in (*PLATFORMS, "tiktok"):
-                p = OUT_DIR / pf / name
-                if p.is_file():
+                p = export_file(pf, name)
+                if p is not None:
                     p.unlink()
                     removed += 1
             # Quellvideo zurück in den Ungesichtet-Ordner (Original-Name wiederherstellen)
-            stem = Path(name).stem
+            stem = export_key(name)
             src = next(PROCESSED_DIR.glob(f"*-{stem}.mp4"), None)
             if src is not None:
                 orig = src.name[:-len(f"-{stem}.mp4")] + ".mp4"
@@ -1108,8 +1135,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/reveal":
             name = Path(str(req.get("name", ""))).name
             for pf in ("tiktok", *PLATFORMS):
-                p = OUT_DIR / pf / name
-                if p.is_file():
+                p = export_file(pf, name)
+                if p is not None:
                     subprocess.run(["open", "-R", str(p)], check=False)
                     return self._json({"ok": True})
             return self._json({"error": "Datei nicht gefunden"}, 404)
@@ -1206,10 +1233,9 @@ class Handler(BaseHTTPRequestHandler):
             num, base = f"{next_number():03d}-", out_name or video.stem
         if not base.lower().startswith("pumpfoil-"):
             base = name_prefix() + base
-        # Lizenznachweis: Pixabay-Track-IDs anhängen (idempotent bei Re-Render)
-        for pid in pixabay_ids((req.get("tracks") or {}).values()):
-            if f"-pixabay-{pid}" not in base:
-                base += f"-pixabay-{pid}"
+        # aus einem früheren Render mitgeschlepptes Lizenz-Suffix abstreifen —
+        # es wird gleich je Plattform aus dem dort gewählten Track neu gebildet
+        base = PIXABAY_SUFFIX_RE.sub("", base)
         out_name = num + base + ".mp4"
         overlay = None
         if req.get("overlay"):
@@ -1228,7 +1254,13 @@ class Handler(BaseHTTPRequestHandler):
                     if pf not in track_platforms(Path(rel)):
                         raise ValueError(f"Track liegt nicht in einem für {pf} "
                                          "erlaubten Ordner")
-                out = OUT_DIR / pf / out_name
+                # Lizenznachweis: nur die auf DIESER Plattform genutzte Pixabay-ID
+                pf_suffix = "".join(f"-pixabay-{i}" for i in pixabay_ids([rel]))
+                out = OUT_DIR / pf / (num + base + pf_suffix + ".mp4")
+                # Altbestand mit abweichendem Suffix ersetzen statt doppeln
+                old = export_file(pf, out.name)
+                if old is not None and old != out:
+                    old.unlink()
                 render(video, track, out, gain, fade_out, overlay,
                        trim_start, trim_end, texts, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),

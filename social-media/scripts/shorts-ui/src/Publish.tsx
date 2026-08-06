@@ -174,12 +174,16 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
                 <video
                   controls
                   preload="none"
-                  poster={`/thumb/${encodeURIComponent(exp.name)}?t=1&base=out:${pf}`}
-                  src={`/media/out/${pf}/${encodeURIComponent(exp.name)}`}
+                  poster={`/thumb/${encodeURIComponent(exp.files?.[pf] ?? exp.name)}?t=1&base=out:${pf}`}
+                  src={`/media/out/${pf}/${encodeURIComponent(exp.files?.[pf] ?? exp.name)}`}
                 />
-                <figcaption>
+                <figcaption title={exp.files?.[pf] ?? ""}>
                   {PF_LABEL[pf]}
                   {exp.sizes?.[pf] ? ` · ${(exp.sizes[pf] / 1048576).toFixed(1).replace(".", ",")} MB` : ""}
+                  {(() => {
+                    const m = (exp.files?.[pf] ?? "").match(/-pixabay-(\d+)/);
+                    return m ? ` · pixabay ${m[1]}` : "";
+                  })()}
                 </figcaption>
               </figure>
             ) : null,

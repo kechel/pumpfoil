@@ -38,6 +38,7 @@ export interface ExportItem {
   source: string | null;
   duration?: number | null;
   sizes?: Record<string, number>;
+  files?: Record<string, string>; // echte Dateinamen je Plattform (Pixabay-ID kann abweichen)
 }
 
 export interface Captions {

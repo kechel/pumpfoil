@@ -532,16 +532,17 @@ function Studio() {
     if (state?.videos.length) pickVideo(state.videos[0]);
   }, [state, pickVideo]);
 
-  // Pixabay-Track-IDs, die der Server an den Dateinamen hängt (Lizenznachweis)
-  const pxSuffix = useMemo(() => {
-    const ids: string[] = [];
-    for (const rel of [sel.youtube, sel.instagram, sel.tiktok]) {
-      if (!rel || !/(^|\/)pixabay\//i.test(rel)) continue;
-      const m = rel.replace(/\.[^./]+$/, "").match(/-(\d{4,})$/);
-      if (m && !ids.includes(m[1])) ids.push(m[1]);
-    }
-    return ids.filter((i) => !outName.includes(`-pixabay-${i}`)).map((i) => `-pixabay-${i}`).join("");
-  }, [sel, outName]);
+  // Pixabay-Track-IDs, die der Render je Plattform anhängt (Lizenznachweis)
+  const pxSuffix = useMemo(
+    () =>
+      (["youtube", "instagram", "tiktok"] as PvPlatform[]).flatMap((pf) => {
+        const rel = sel[pf];
+        if (!rel || !/(^|\/)pixabay\//i.test(rel)) return [];
+        const m = rel.replace(/\.[^./]+$/, "").match(/-(\d{4,})$/);
+        return m ? [{ pf, id: m[1] }] : [];
+      }),
+    [sel],
+  );
 
   const ready = !!(curVideo && outName.trim());
 
@@ -943,8 +944,10 @@ function Studio() {
                 : `${trim.start != null ? trim.start.toFixed(1) + "s" : "0s"} → ${trim.end != null ? trim.end.toFixed(1) + "s" : "Ende"}`}
             </span>
           </div>
-          <div className="row">
-            Name <span style={{ opacity: 0.6 }}>{String(state.next_number).padStart(3, "0")}-{state.name_prefix}</span>
+          <div className="namebox">
+            <div className="nfix">
+              Name <span>{String(state.next_number).padStart(3, "0")}-{state.name_prefix}</span>
+            </div>
             <input
               type="text"
               placeholder="z.B. sunset-carving"
@@ -952,10 +955,12 @@ function Studio() {
               value={outName}
               onChange={(e) => setOutName(e.target.value)}
             />
-            {pxSuffix && (
-              <span style={{ opacity: 0.6 }} title="Pixabay-Track-ID — wird automatisch angehängt (Lizenznachweis bei Content-ID-Claims)">
-                {pxSuffix}
-              </span>
+            {pxSuffix.length > 0 && (
+              <div className="nfix" title="Pixabay-Track-ID — hängt der Render je Plattform automatisch an (Lizenznachweis bei Content-ID-Claims)">
+                {pxSuffix.map(({ pf, id }) => (
+                  <span key={pf}>{PF_SHORT[pf]}: -pixabay-{id}</span>
+                ))}
+              </div>
             )}
           </div>
           <button
