@@ -68,7 +68,8 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
                 var pv = new SessionActionView();
                 pv.setKeys(["rec.resume", "rec.cancel", "rec.endSave"]);
                 pv.setCountdown(false);
-                pv.setSel(0);   // Vorwahl Fortsetzen -> START, START fährt weiter wie bisher
+                // KEINE Vorauswahl (wie das Stop-Menü): man MUSS bewusst wählen. Zweimal START
+                // tut deshalb nichts — START öffnet, DOWN wählt „Fortsetzen", START bestätigt.
                 WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
             }
             WatchUi.requestUpdate();

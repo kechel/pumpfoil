@@ -89,8 +89,13 @@ class PauseActionDelegate extends WatchUi.BehaviorDelegate {
 
     function onKeyPressed(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER) {
+            // Ohne Auswahl passiert NICHTS (Jan 06.08.): der Screen soll eine bewusste
+            // Entscheidung erzwingen, zweimal START darf die Pause nicht beenden. Anders als
+            // im Stop-Menü gibt es hier also keine sichere Vorauswahl — in der Pause ist
+            // „aus Versehen weiterfahren" schlimmer als „nichts passiert".
             var s = _view.sel();
-            _perform(s < 0 ? 0 : s);   // nichts gewählt -> Fortsetzen (Vorwahl)
+            if (s < 0) { return true; }
+            _perform(s);
             return true;
         }
         return false;
