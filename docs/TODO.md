@@ -260,6 +260,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
 
+- [ ] **Höchstgeschwindigkeit als Rekord ist durch Autofahrt-Reste verfälscht** (Befund 06.08.,
+      Jan: „muss ich mir im Detail später anschauen"). Die Bestenliste führt aktuell:
+      #1619 mit **73,0 km/h** (Химки; die Uhr lief während 209 km Autofahrt mit — der Auto-Trim hat
+      das Wasser-Fenster korrekt gefunden, aber IM Fenster stehen noch 214 Punkte über 30 km/h)
+      und #913 mit **61,6 km/h** (gleiches Muster, 94 Punkte). Realistisch geht es ab Platz 3 mit
+      34,1 km/h weiter. Ursache: `max_speed_mps` wird über ALLE Samples im Trim-Fenster gebildet;
+      die Physik-Schranke `MAX_FOIL_SPEED` wirkt nur auf die Lauf-Erkennung, nicht auf diese
+      Kennzahl. **Vorschlag:** Höchstgeschwindigkeit nur aus Samples INNERHALB erkannter Läufe
+      bilden — das ist auch inhaltlich, was der Rekord behauptet („schnellster Moment auf dem
+      Foil"), und immun gegen Fahrt-Reste, ohne an der Erkennung zu drehen. Vor jeder Umstellung:
+      über alle Sessions read-only durchrechnen, wie viele Werte sich ändern und um wie viel, und
+      die größten Abweichungen vorlegen (Detektor-Änderung -> nur mit Jans OK, s.
+      [[never-touch-db-unasked]]-Regel im CLAUDE.md). Sofort-Abhilfe ohne Code: den Fahrt-Teil per
+      `excluded_ranges` aus den beiden Sessions nehmen (Besitzer oder Admin).
+
 - [ ] **Eigener Bereich fürs Wellen-Abfahren („chasing cruise boats", Nutzerwunsch 05.08.).**
       Anlass: eine Session wurde als Fremdkraft aussortiert, und der Fahrer erklaerte selbst,
       dass er die Welle eines Ausflugsschiffs mitgenommen hat. Der Detektor lag damit RICHTIG

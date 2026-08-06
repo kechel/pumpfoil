@@ -56,6 +56,29 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Loslassen:
     //   < 2 s  -> nichts (Schutz gegen versehentliches Stoppen); PAUSIERT + kurzer Druck = Fortsetzen
     //   >= 2 s -> das Aktions-Menü ist beim Halten (onHoldTick) schon aufgegangen -> hier nichts mehr
+    // (:full) — volle App: kurzer START in der PAUSE öffnet das Pausen-Menü (Fortsetzen /
+    // Abbrechen / Ende & speichern) statt die Pause sofort zu beenden. Grund: aus der Pause
+    // heraus war „Schluss machen" nur über Fortsetzen + 3 s Halten erreichbar.
+    (:full)
+    function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
+        if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
+            var held = System.getTimer() - _rec.stopHoldStartMs;
+            _cancelHold();
+            if (held < _rec.STOP_HOLD_MS && _rec.isPaused()) {
+                var pv = new SessionActionView();
+                pv.setKeys(["rec.resume", "rec.cancel", "rec.endSave"]);
+                pv.setCountdown(false);
+                pv.setSel(0);   // Vorwahl Fortsetzen -> START, START fährt weiter wie bisher
+                WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
+            }
+            WatchUi.requestUpdate();
+            return true;
+        }
+        return false;
+    }
+
+    // (:lite) — 96-KB-Uhren: kein Menü (spart Code+Heap), kurzer START setzt direkt fort.
+    (:lite)
     function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
             var held = System.getTimer() - _rec.stopHoldStartMs;
