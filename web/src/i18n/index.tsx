@@ -18,9 +18,10 @@ import ja from "./locales/ja";
 import zh from "./locales/zh";
 import ru from "./locales/ru";
 import id from "./locales/id";
+import nb from "./locales/nb";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
-  | "pt" | "ja" | "zh" | "ru" | "id";
+  | "pt" | "ja" | "zh" | "ru" | "id" | "nb";
 
 export type Dict = Record<string, string>;
 
@@ -41,9 +42,10 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "zh", flag: "🇨🇳", native: "中文" },
   { code: "ru", flag: "🇷🇺", native: "Русский" },
   { code: "id", flag: "🇮🇩", native: "Bahasa Indonesia" },
+  { code: "nb", flag: "🇳🇴", native: "Norsk" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pt, ja, zh, ru, id };
+const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pt, ja, zh, ru, id, nb };
 
 const LS_KEY = "foil_lang";
 
@@ -75,6 +77,10 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("zh")) return "zh";
   if (nav.startsWith("ru")) return "ru";
   if (nav.startsWith("id")) return "id";
+  // Norwegisch: Geraete melden nb-NO (Bokmaal), nn-NO (Nynorsk) oder das generische "no".
+  // Alle drei landen auf unserer Bokmaal-Uebersetzung — Nynorsk-Leser sind Bokmaal gewohnt,
+  // und eine zweite norwegische Norm zu pflegen waere fuer den Nutzen zu viel.
+  if (nav.startsWith("nb") || nav.startsWith("nn") || nav.startsWith("no")) return "nb";
   if (nav.startsWith("en")) return "en";
   return "en";   // unbekannte Browsersprache -> Englisch (nicht Deutsch)
 }
