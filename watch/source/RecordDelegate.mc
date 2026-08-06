@@ -32,6 +32,14 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Tastendruck: START kurz = starten; START gedrückt halten (im Betrieb) = Stop-Halten.
     function onKeyPressed(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER) {
+            // PAUSE zuerst und OHNE Halte-Mechanik: sonst laeuft parallel der rote Stop-Ring an
+            // (er haengt an stopHoldStartMs, s. SessionRecorder.stopHoldProgress) und man saehe
+            // beides gleichzeitig. In der Pause macht START nur eines: das Pausen-Menue.
+            if (_rec.isPaused()) {
+                _pauseAction();
+                WatchUi.requestUpdate();
+                return true;
+            }
             if (_rec.isRecording()) {
                 _rec.stopHoldStartMs = System.getTimer();
                 if (_holdTimer == null) { _holdTimer = new Timer.Timer(); }
@@ -56,35 +64,31 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Loslassen:
     //   < 2 s  -> nichts (Schutz gegen versehentliches Stoppen); PAUSIERT + kurzer Druck = Fortsetzen
     //   >= 2 s -> das Aktions-Menü ist beim Halten (onHoldTick) schon aufgegangen -> hier nichts mehr
-    // (:full) — volle App: kurzer START in der PAUSE öffnet das Pausen-Menü (Fortsetzen /
-    // Abbrechen / Ende & speichern) statt die Pause sofort zu beenden. Grund: aus der Pause
-    // heraus war „Schluss machen" nur über Fortsetzen + 3 s Halten erreichbar.
+    // (:full) — volle App: START in der PAUSE öffnet das Pausen-Menü (Fortsetzen / Abbrechen /
+    // Ende & speichern) statt die Pause sofort zu beenden. Grund: aus der Pause heraus war
+    // „Schluss machen" nur über Fortsetzen + 3 s Halten erreichbar. Kein Halten, kein Ring.
     (:full)
-    function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
-        if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
-            var held = System.getTimer() - _rec.stopHoldStartMs;
-            _cancelHold();
-            if (held < _rec.STOP_HOLD_MS && _rec.isPaused()) {
-                var pv = new SessionActionView();
-                pv.setKeys(["rec.resume", "rec.cancel", "rec.endSave"]);
-                pv.setCountdown(false);
-                // KEINE Vorauswahl (wie das Stop-Menü): man MUSS bewusst wählen. Zweimal START
-                // tut deshalb nichts — START öffnet, DOWN wählt „Fortsetzen", START bestätigt.
-                WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
-            }
-            WatchUi.requestUpdate();
-            return true;
-        }
-        return false;
+    hidden function _pauseAction() as Void {
+        var pv = new SessionActionView();
+        pv.setKeys(["rec.resume", "rec.cancel", "rec.endSave"]);
+        pv.setCountdown(false);
+        // KEINE Vorauswahl (wie das Stop-Menü): man MUSS bewusst wählen. Zweimal START tut
+        // deshalb nichts — START öffnet, DOWN wählt „Fortsetzen", START bestätigt.
+        WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
     }
 
-    // (:lite) — 96-KB-Uhren: kein Menü (spart Code+Heap), kurzer START setzt direkt fort.
+    // (:lite) — 96-KB-Uhren: kein Menü (spart Code+Heap), START setzt direkt fort wie bisher.
     (:lite)
+    hidden function _pauseAction() as Void {
+        _rec.resume();
+    }
+
+    // Loslassen: das Halten war der Weg zum Stop-Menü. Kürzer als STOP_HOLD_MS -> nichts
+    // (Schutz gegen versehentliches Stoppen). Die Pause kommt hier nicht mehr vor, die wird
+    // schon beim DRÜCKEN behandelt (oben) — deshalb setzt sie stopHoldStartMs auch nie.
     function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
-            var held = System.getTimer() - _rec.stopHoldStartMs;
             _cancelHold();
-            if (held < _rec.STOP_HOLD_MS && _rec.isPaused()) { _rec.resume(); }
             WatchUi.requestUpdate();
             return true;
         }
