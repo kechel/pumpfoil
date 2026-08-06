@@ -82,7 +82,12 @@ function YtBanner({ status, refresh }: { status: YtStatus; refresh: () => void }
 function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (list: ExportItem[]) => void; ytReady: boolean }) {
   const [showCaps, setShowCaps] = useState(false);
   const [title, setTitle] = useState(() =>
-    exp.name.replace(/\.mp4$/, "").replace(/^\d+-/, "").replace(/^Pumpfoil-\d+-/i, "").replace(/-/g, " "),
+    exp.name
+      .replace(/\.mp4$/, "")
+      .replace(/^\d+-/, "")
+      .replace(/^Pumpfoil-\d+-/i, "")
+      .replace(/-pixabay-\d+/gi, "") // Lizenz-ID gehört nicht in den Arbeitstitel
+      .replace(/-/g, " "),
   );
   const [caps, setCaps] = useState<Captions | null>(null);
   const [capsSource, setCapsSource] = useState("");

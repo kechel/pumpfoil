@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, AppState, encPath, fmtDur, RenderResult, Track } from "./api";
 import { Icon } from "./icons";
 import Uploads from "./Uploads";
@@ -532,6 +532,17 @@ function Studio() {
     if (state?.videos.length) pickVideo(state.videos[0]);
   }, [state, pickVideo]);
 
+  // Pixabay-Track-IDs, die der Server an den Dateinamen hängt (Lizenznachweis)
+  const pxSuffix = useMemo(() => {
+    const ids: string[] = [];
+    for (const rel of [sel.youtube, sel.instagram, sel.tiktok]) {
+      if (!rel || !/(^|\/)pixabay\//i.test(rel)) continue;
+      const m = rel.replace(/\.[^./]+$/, "").match(/-(\d{4,})$/);
+      if (m && !ids.includes(m[1])) ids.push(m[1]);
+    }
+    return ids.filter((i) => !outName.includes(`-pixabay-${i}`)).map((i) => `-pixabay-${i}`).join("");
+  }, [sel, outName]);
+
   const ready = !!(curVideo && outName.trim());
 
   const doRender = useCallback(async () => {
@@ -941,6 +952,11 @@ function Studio() {
               value={outName}
               onChange={(e) => setOutName(e.target.value)}
             />
+            {pxSuffix && (
+              <span style={{ opacity: 0.6 }} title="Pixabay-Track-ID — wird automatisch angehängt (Lizenznachweis bei Content-ID-Claims)">
+                {pxSuffix}
+              </span>
+            )}
           </div>
           <button
             className="renderbtn"

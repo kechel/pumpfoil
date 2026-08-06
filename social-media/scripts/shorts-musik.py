@@ -365,6 +365,26 @@ def name_prefix():
     return f"Pumpfoil-{datetime.date.today().year}-"
 
 
+# Pixabay-Dateinamen enden auf die Track-ID ("…-bang-a-bop-298556.mp3").
+# Die hängen wir an den Videonamen → bei Content-ID-Claims steht der
+# Lizenznachweis direkt im Dateinamen (und damit in jedem Upload).
+PIXABAY_ID_RE = re.compile(r"-(\d{4,})$")
+
+
+def pixabay_ids(rels) -> list:
+    ids = []
+    for rel in rels:
+        if not rel:
+            continue
+        p = Path(str(rel))
+        if not any(part.lower() == "pixabay" for part in p.parts[:-1]):
+            continue
+        m = PIXABAY_ID_RE.search(p.stem)
+        if m and m.group(1) not in ids:
+            ids.append(m.group(1))
+    return ids
+
+
 def next_number():
     """Höchste Short-Nummer über alle relevanten Ordner + 1 (fortlaufend)."""
     n = 0
@@ -1186,6 +1206,10 @@ class Handler(BaseHTTPRequestHandler):
             num, base = f"{next_number():03d}-", out_name or video.stem
         if not base.lower().startswith("pumpfoil-"):
             base = name_prefix() + base
+        # Lizenznachweis: Pixabay-Track-IDs anhängen (idempotent bei Re-Render)
+        for pid in pixabay_ids((req.get("tracks") or {}).values()):
+            if f"-pixabay-{pid}" not in base:
+                base += f"-pixabay-{pid}"
         out_name = num + base + ".mp4"
         overlay = None
         if req.get("overlay"):
