@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 // /api/devices/config geliefert, in SharedPrefs gecacht). Fallback: de. Reine
 // Einheiten (km/h, bpm, m) bleiben unlokalisiert.
 object I18n {
-    private val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "ja", "zh", "ru", "id")
+    private val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "ja", "zh", "ru", "id", "nb")
     var lang by mutableStateOf("de")
         private set
 
@@ -41,13 +41,109 @@ object I18n {
             "zh" -> ZH[key]?.let { return it }
             "ru" -> RU[key]?.let { return it }
             "id" -> ID[key]?.let { return it }
+            "nb" -> NB[key]?.let { return it }
         }
         val row = S[key] ?: return key
-        val overlay = lang == "pt" || lang == "ja" || lang == "zh" || lang == "ru" || lang == "id"
+        val overlay = lang == "pt" || lang == "ja" || lang == "zh" || lang == "ru" || lang == "id" || lang == "nb"
         if (overlay) return row["en"] ?: row["de"] ?: key
         return row[lang] ?: row["de"] ?: key
     }
 }
+
+
+// Norwegisch (Bokmaal) — Overlay wie die anderen Zusatzsprachen: Overlay -> Englisch -> Deutsch.
+// Norwegen kam mit dem ersten Nutzer aus Sogndal (05.08.2026) dazu; Bokmaal deckt auch
+// nn-/no-Geraete ab (s. web/src/i18n/index.tsx).
+private val NB: Map<String, String> = mapOf(
+    "menu.layouts" to "Egne oppsett",
+    "common.auto" to "Automatisk",
+    "lay.none" to "ingen sider",
+    "lay.fallback" to "Oppsett av (krasj)",
+    "pair.title" to "Koble til klokke",
+    "pair.howto" to "Lag en koblingskode og skriv den inn på pumpfoil.org (Konto).",
+    "pair.gen" to "Lag kode",
+    "pair.enterOn" to "Skriv på pumpfoil.org:",
+    "pair.waiting" to "venter på bekreftelse…",
+    "pair.later" to "Avbryt",
+    "rec.start" to "Start",
+    "rec.stop" to "Stopp",
+    "rec.stopHold" to "Hold",
+    "rec.discardHold" to "Forkast",
+    "rec.starting" to "starter…",
+    "rec.recording" to "Opptak",
+    "rec.saving" to "lagrer…",
+    "rec.autoStart" to "Auto-start på",
+    "rec.autoStartIn" to "Auto-start om",
+    "rec.autoStartToggle" to "Auto-start",
+    "rec.autoStartHelp" to "Starter selv ved 10 km/h – hvis du glemmer det.",
+    "rec.sync" to "Synk…",
+    "rec.notNow" to "Ikke nå",
+    "rec.toData" to "Datafelt →",
+    "rec.toSummary" to "← Oversikt",
+    "rec.notLinked" to "Ikke koblet – økter lokalt",
+    "rec.connect" to "Koble til",
+    "rec.pendingUpload" to "skal lastes opp",
+    "rec.uploadNow" to "Last opp nå",
+    "rec.chooseFoil" to "Velg foil",
+    "rec.syncNow" to "Synk",
+    "foil.website" to "Faste verdier",
+    "rec.waitConn" to "venter på tilkobling",
+    "rec.willResume" to "fortsetter",
+    "rec.uploading" to "laster opp",
+    "rec.hrPerm" to "Ingen puls: tillatelse mangler – trykk",
+    "rec.locPerm" to "Posisjonstillatelse mangler – ingen opptak uten den. Trykk",
+    "rec.locOff" to "Posisjon er slått av – trykk",
+    "rec.noGpsSaved" to "Lagret uten GPS – sjekk posisjon",
+    "rec.keepOpen" to "hold appen åpen!",
+    "rec.serverErr" to "Serverfeil – prøv senere",
+    "rec.authErr" to "Ugyldig kobling – koble igjen",
+    "rec.repair" to "Koble igjen",
+    "rec.switch" to "Bytt konto",
+    "foil.choose" to "Foil & alarm",
+    "foil.prefix" to "Foil: ",
+    "foil.alarm" to "Alarm",
+    "foil.alarmHelp" to "Vibrerer når du går over eller under foilens optimale fartsområde.",
+    "foil.chooseHelp" to "Lagrer foilen din i denne økta og setter alarmgrensene når kilden er satt til Foil.",
+    "foil.thresholds" to "Grenser",
+    "foil.auto" to "Auto (foil)",
+    "foil.manual" to "Manuell",
+    "foil.min" to "Min",
+    "foil.max" to "Maks",
+    "foil.noFoil" to "Ingen foil",
+    "common.on" to "På",
+    "common.off" to "Av",
+    "common.done" to "Ferdig",
+    "saved.title" to "Lagret",
+    "saved.upload" to "Last opp via Wi-Fi/mobil",
+    "saved.uploadDone" to "Lastet opp",
+    "saved.uploading" to "laster opp…",
+    "foil.fixed" to "Faste verdier",
+    "foil.none" to "Ingen alarm",
+    "foil.triggerPrefix" to "Utløser: ",
+    "foil.continuous" to "gjentatt",
+    "foil.once" to "én gang",
+    "common.back" to "← tilbake",
+    "common.error" to "Feil",
+    "f.kmh3s" to "km/h (3s)",
+    "f.kmh" to "km/h",
+    "f.kmhAvg" to "snitt km/h",
+    "f.kmhMax" to "maks km/h",
+    "f.bpm" to "bpm",
+    "f.bpmAvg" to "snitt bpm",
+    "f.bpmMax" to "maks bpm",
+    "f.time" to "Tid",
+    "f.clock" to "Klokke",
+    "f.alt" to "Høyde",
+    "f.temp" to "Temp",
+    "f.ascent" to "Stigning",
+    "f.runTime" to "Run-tid",
+    "f.runDist" to "Run dist",
+    "f.runs" to "Runs",
+    "f.lastRunTime" to "siste tid",
+    "f.lastRunDist" to "siste dist",
+    "f.lastRunAvg" to "siste snitt",
+    "f.lastRunMax" to "siste maks",
+)
 
 private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, it: String, es: String) =
     mapOf("de" to de, "gsw" to gsw, "de-AT" to deAT, "en" to en, "fr" to fr, "it" to it, "es" to es)

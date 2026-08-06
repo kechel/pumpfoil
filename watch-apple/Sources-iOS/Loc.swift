@@ -1210,9 +1210,10 @@ enum Loc {
         if lang == "zh", let v = zhOverlay[key] { return v }   // zh-Overlay (LocExtra.swift); sonst Englisch
         if lang == "ru", let v = ruOverlay[key] { return v }   // ru-Overlay (LocExtra.swift); sonst Englisch
         if lang == "id", let v = idOverlay[key] { return v }   // id-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "nb", let v = nbOverlay[key] { return v }   // nb-Overlay (LocExtra.swift); sonst Englisch
         guard let row = table[key] else { return key }
         // Overlay-Sprachen fallen auf Englisch zurück (nicht Deutsch), wenn ein Key im Overlay fehlt.
-        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id"]
+        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb"]
         let fallback = overlayLangs.contains(lang) ? (row["en"] ?? row["de"]) : row["de"]
         return row[lang] ?? fallback ?? row["en"] ?? key
     }

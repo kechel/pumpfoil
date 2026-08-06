@@ -12,11 +12,12 @@ enum WLoc {
         case "zh": if let v = wZhOverlay[key] { return v }
         case "ru": if let v = wRuOverlay[key] { return v }
         case "id": if let v = wIdOverlay[key] { return v }
+        case "nb": if let v = wNbOverlay[key] { return v }
         default: break
         }
         guard let row = table[key] else { return key }
         if let v = row[lang] { return v }
-        if ["pt", "ja", "zh", "ru", "id"].contains(lang) { return row["en"] ?? row["de"] ?? key }
+        if ["pt", "ja", "zh", "ru", "id", "nb"].contains(lang) { return row["en"] ?? row["de"] ?? key }
         // Profil-Sprache kann die Uhr nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die
         // GERÄTE-SYSTEMSPRACHE; sonst Englisch.
         return row[sysLang()] ?? row["en"] ?? row["de"] ?? key

@@ -92,7 +92,7 @@ const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { r
 // anderen Apps. Ein reiner String statt Array = in allen Sprachen identisch (reine Einheiten).
 // ja/zh sind hier drin (anders als bei Garmin, wo die Fonts keine CJK-Glyphen haben): Zepp OS ist
 // eine chinesische Plattform, die Systemfonts haben CJK. Im Simulator gegenpruefen.
-const LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs", "ja", "zh"];
+const LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs", "ja", "zh", "nb"];
 const S = {
   // -- Verbindung / Pairing (Garmin _a4/_a5/_a6/_a8) --
   "menu.connect":    ["Verbinden", "Verbinde", "Verbinden", "Connect", "Se connecter", "Connetti", "Conectar", "Conectar", "Hubungkan", "Подключить", "Verbinden", "Yhdistä", "Připojit", "接続", "连接"],
@@ -170,6 +170,64 @@ const S = {
   "f.lastRunAvg":    ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "", "", "", "前回の平均", "上次平均"],
   "f.lastRunMax":    ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "", "", "", "前回の最大", "上次最高"],
 };
+// Norwegisch (Bokmål) als OVERLAY statt 16. Spalte: die Zeilen oben haben teils weniger
+// Eintraege (fehlende Sprache = Englisch), ein Anhaengen waere dort ins Leere gelaufen.
+// Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026); nn/no landen ebenfalls hier.
+const NB = {
+  "menu.connect": "Koble til",
+  "menu.connected": "Tilkoblet",
+  "menu.linked": "Konto tilkoblet",
+  "up.notLinked": "Ikke koblet",
+  "pair.noConn": "Ikke tilkoblet",
+  "up.noPhone": "Ingen mobil",
+  "up.waiting": "Venter…",
+  "pair.gen": "Lag kode",
+  "pair.code": "Koblingskode",
+  "pair.enterThere": "tast den inn der",
+  "rec.repair": "Koble igjen",
+  "btn.start": "START",
+  "btn.stop": "STOP",
+  "rec.stopHold": "Hold",
+  "rec.noData": "Ingen data ennå",
+  "gps.searching": "GPS søker…",
+  "up.open": "i kø",
+  "up.nothing": "Ingenting i kø",
+  "up.waitConn": "Venter på forbindelse",
+  "up.keepOpen": "hold appen åpen",
+  "up.running": "Laster opp…",
+  "up.done": "Lastet opp",
+  "up.later": "prøv senere",
+  "up.serverUnreach": "Server utilgjengelig",
+  "rec.uploadNow": "Last opp nå",
+  "fm.title": "Foil & alarm",
+  "fm.alarm": "Alarm",
+  "fm.thresholds": "Grenser",
+  "fm.autoFoil": "Auto (foil)",
+  "fm.manual": "Manuell",
+  "foil.prefix": "Foil: ",
+  "lay.short": "Oppsett",
+  "common.on": "På",
+  "common.off": "Av",
+  "common.auto": "Automatisk",
+  "common.done": "Ferdig",
+  "common.error": "Feil",
+  "f.kmhAvg": "km/h snitt",
+  "f.kmhMax": "km/h maks",
+  "f.bpmAvg": "bpm snitt",
+  "f.bpmMax": "bpm maks",
+  "f.time": "Tid",
+  "f.clock": "Klokke",
+  "f.dist": "Distanse",
+  "f.dur": "Varighet",
+  "f.runs": "Runs",
+  "f.runTime": "Run-tid",
+  "f.runDist": "Run dist",
+  "f.runActive": "run aktivt",
+  "f.lastRunTime": "siste tid",
+  "f.lastRunDist": "siste dist",
+  "f.lastRunAvg": "siste snitt",
+  "f.lastRunMax": "siste maks",
+};
 // Aktive Spalte. Default ENGLISCH (3), nicht Deutsch: die App liegt international im Store, und
 // die Geraete-Systemsprache ist ohne zusaetzlichen (riskanten) @zos-Import nicht lesbar. Sobald
 // die Uhr gepairt ist, kommt die Profil-Sprache vom Server und wird persistiert.
@@ -179,10 +237,16 @@ const setLang = (code) => {
   LI = i >= 0 ? i : 3;
 };
 const t = (k) => {
+  // Norwegisch kommt aus dem Overlay (die Zeilen oben haben keine Spalte 15) -> sonst Englisch.
+  if (LI === 15) {
+    const v = NB[k];
+    if (v) { return v; }
+  }
   const row = S[k];
   if (row == null) { return k; }
   if (typeof row === "string") { return row; }
-  return row[LI] || row[3] || row[0] || k;
+  const sp = LI === 15 ? 3 : LI;
+  return row[sp] || row[3] || row[0] || k;
 };
 
 // ---- Layout-Renderer: Konstanten ---------------------------------------------------------------
