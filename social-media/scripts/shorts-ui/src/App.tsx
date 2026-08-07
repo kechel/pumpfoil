@@ -783,13 +783,39 @@ function Studio() {
                 <div key={i} className="txrow">
                   <button
                     className="mini"
-                    title="Startzeit = aktuelle Videoposition"
+                    title="Startzeit = aktuelle Videoposition übernehmen"
                     onClick={() =>
-                      setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, start: vidRef.current?.currentTime ?? 0 } : t)))
+                      setTexts((ts) =>
+                        ts.map((t, j) =>
+                          j === i ? { ...t, start: Math.round((vidRef.current?.currentTime ?? 0) * 10) / 10 } : t,
+                        ),
+                      )
                     }
                   >
-                    @ {tx.start == null ? "–" : tx.start.toFixed(1) + "s"}
+                    @
                   </button>
+                  <input
+                    type="number"
+                    className="tstart"
+                    min={0}
+                    step={0.1}
+                    placeholder="–"
+                    title="Startzeit in Sekunden — frei eintippbar; Doppelklick springt im Video dorthin"
+                    value={tx.start ?? ""}
+                    onChange={(e) =>
+                      setTexts((ts) =>
+                        ts.map((t, j) =>
+                          j === i
+                            ? { ...t, start: e.target.value === "" ? null : Math.max(0, +e.target.value) }
+                            : t,
+                        ),
+                      )
+                    }
+                    onDoubleClick={() => {
+                      const vid = vidRef.current;
+                      if (vid && tx.start != null) vid.currentTime = tx.start;
+                    }}
+                  />
                   <textarea
                     className="txt"
                     rows={2}

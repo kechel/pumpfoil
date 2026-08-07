@@ -61,6 +61,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .txrow { display: flex; align-items: flex-start; gap: 5px; }
 .txrow textarea { width: 110px; font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
 .txrow .thold { width: 42px; font-size: 12px; padding: 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow .tstart { width: 54px; font-size: 12px; padding: 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox { display: flex; flex-direction: column; gap: 3px; padding: 6px 0; }
 .namebox input { width: 100%; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox .nfix { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; opacity: .6; }
