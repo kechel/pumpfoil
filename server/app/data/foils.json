@@ -3947,5 +3947,175 @@
     "span_cm": 105.0,
     "area_cm2": 1800,
     "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "XS",
+    "span_cm": 68.0,
+    "area_cm2": 552.0,
+    "thickness_mm": 13.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "S",
+    "span_cm": 77.0,
+    "area_cm2": 702.0,
+    "thickness_mm": 15.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "M",
+    "span_cm": 86.0,
+    "area_cm2": 875.0,
+    "thickness_mm": 16.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "L",
+    "span_cm": 95.0,
+    "area_cm2": 1068.0,
+    "thickness_mm": 18.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "XL",
+    "span_cm": 105.0,
+    "area_cm2": 1305.0,
+    "thickness_mm": 20.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "XXL",
+    "span_cm": 115.0,
+    "area_cm2": 1566.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "3XL",
+    "span_cm": 125.0,
+    "area_cm2": 1850.0,
+    "thickness_mm": 23.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "4XL",
+    "span_cm": 145.0,
+    "area_cm2": 2146.0,
+    "thickness_mm": 24.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "5XL",
+    "span_cm": 165.0,
+    "area_cm2": 2442.0,
+    "thickness_mm": 24.0
+  },
+  {
+    "brand": "Gong",
+    "model": "Curve H V2",
+    "size": "6XL",
+    "span_cm": 185.0,
+    "area_cm2": 3070.0,
+    "thickness_mm": 26.0
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "115",
+    "span_cm": 83.1,
+    "area_cm2": 740.0,
+    "thickness_mm": 15.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "135",
+    "span_cm": 90.3,
+    "area_cm2": 871.0,
+    "thickness_mm": 16.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "155",
+    "span_cm": 96.8,
+    "area_cm2": 1000.0,
+    "thickness_mm": 17.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "175",
+    "span_cm": 102.8,
+    "area_cm2": 1129.0,
+    "thickness_mm": 18.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "205",
+    "span_cm": 111.3,
+    "area_cm2": 1323.0,
+    "thickness_mm": 20.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Evolution",
+    "size": "235",
+    "span_cm": 119.1,
+    "area_cm2": 1516.0,
+    "thickness_mm": 21.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Front Foil",
+    "size": "930",
+    "span_cm": 93.0,
+    "area_cm2": 1179.0,
+    "thickness_mm": 21.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Front Foil",
+    "size": "1060",
+    "span_cm": 106.0,
+    "area_cm2": 1726.0,
+    "thickness_mm": 27.9,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Front Foil",
+    "size": "1414",
+    "span_cm": 141.4,
+    "area_cm2": 2080.0,
+    "thickness_mm": 25.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Front Foil",
+    "size": "1700",
+    "span_cm": 170.0,
+    "area_cm2": 2800.0,
+    "thickness_mm": 28.2,
+    "thickness_estimated": true
   }
 ]

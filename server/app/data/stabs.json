@@ -1,1192 +1,1242 @@
 [
- {
-  "brand": "Gong",
-  "model": "Stab Trail",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Trail",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Trail",
-  "size": "XXL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "XS"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "XXL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Fluid H",
-  "size": "3XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "38 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "42 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "45 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "47 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "49 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Fluid",
-  "size": "52 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Veloce H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Veloce H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Veloce H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Veloce H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Veloce H",
-  "size": "36 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Veloce H",
-  "size": "40 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Veloce H",
-  "size": "44 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Pro Veloce H",
-  "size": "47 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Curve H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Curve H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Curve H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Curve H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "XS"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "XXL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Fluid H",
-  "size": "3XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Veloce H",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Veloce H",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Veloce H",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Veloce H",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Hyper Trail",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Hyper Trail",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Hyper Trail",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Hyper Trail",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Supra Trail",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Supra Trail",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Supra Trail",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Supra Trail",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Ultra Trail",
-  "size": "S"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Ultra Trail",
-  "size": "M"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Ultra Trail",
-  "size": "L"
- },
- {
-  "brand": "Gong",
-  "model": "Tail Wing Ultra Trail",
-  "size": "XL"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "35 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "37 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "39 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "41 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "44 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Freestyle H",
-  "size": "46 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Sirus",
-  "size": "40 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Sirus",
-  "size": "45 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Sirus",
-  "size": "50 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Sirus",
-  "size": "56 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Sirus",
-  "size": "63 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "36 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "39 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "43 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "46 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "49 cm"
- },
- {
-  "brand": "Gong",
-  "model": "Stab Curve",
-  "size": "53 cm"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Flat",
-  "size": "325"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Flat",
-  "size": "370"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Flat",
-  "size": "425"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Reverse",
-  "size": "355"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Reverse",
-  "size": "375"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Reverse",
-  "size": "395"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Gullwing",
-  "size": "380"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Gullwing",
-  "size": "430"
- },
- {
-  "brand": "Sabfoil",
-  "model": "Gullwing",
-  "size": "480"
- },
- {
-  "brand": "AXIS",
-  "model": "Freeride",
-  "size": "400/90"
- },
- {
-  "brand": "AXIS",
-  "model": "Freeride",
-  "size": "500/90"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S178"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S208"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S210"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S215"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S270"
- },
- {
-  "brand": "North",
-  "model": "Sonar",
-  "size": "S320"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "142AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "150AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "158AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "166AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "175AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "AR Series",
-  "size": "188AR"
- },
- {
-  "brand": "Code Foils",
-  "model": "R Series",
-  "size": "110R"
- },
- {
-  "brand": "Code Foils",
-  "model": "R Series",
-  "size": "120R"
- },
- {
-  "brand": "Code Foils",
-  "model": "R Series",
-  "size": "135R"
- },
- {
-  "brand": "Code Foils",
-  "model": "R Series",
-  "size": "151R"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide HA",
-  "size": "100"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide HA",
-  "size": "130"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide HA",
-  "size": "150"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide HA",
-  "size": "170"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide HA",
-  "size": "190"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Flash",
-  "size": "150"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Flash",
-  "size": "170"
- },
- {
-  "brand": "TAKOON",
-  "model": "Foil Stab Glide",
-  "size": "220"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C275 SURF"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "R275 SURF"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "IC6 300"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C250 SURF HM"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C250 FENCE HM"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "DW 210 HM"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C200 CARVING"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C195 SURF"
- },
- {
-  "brand": "F-One",
-  "model": "Stab",
-  "size": "C220 SURF"
- },
- {
-  "brand": "F-One",
-  "model": "Monobloc Tail DW",
-  "size": "XXXS 190"
- },
- {
-  "brand": "F-One",
-  "model": "Monobloc Tail DW",
-  "size": "XXS 210"
- },
- {
-  "brand": "F-One",
-  "model": "Monobloc Tail Carving",
-  "size": "XXXS 160"
- },
- {
-  "brand": "F-One",
-  "model": "Monobloc Tail Carving",
-  "size": "XXXS 180"
- },
- {
-  "brand": "F-One",
-  "model": "Monobloc Tail Carving",
-  "size": "XXS 200"
- },
- {
-  "brand": "KT Foils",
-  "model": "Pulse Back Wing",
-  "size": "95"
- },
- {
-  "brand": "KT Foils",
-  "model": "Pulse Back Wing",
-  "size": "115"
- },
- {
-  "brand": "KT Foils",
-  "model": "Pulse Back Wing",
-  "size": "135"
- },
- {
-  "brand": "KT Foils",
-  "model": "Phantom Back Wing",
-  "size": "121"
- },
- {
-  "brand": "KT Foils",
-  "model": "Phantom Back Wing",
-  "size": "141"
- },
- {
-  "brand": "KT Foils",
-  "model": "Phantom Back Wing",
-  "size": "161"
- },
- {
-  "brand": "KT Foils",
-  "model": "Phantom Back Wing",
-  "size": "181"
- },
- {
-  "brand": "KT Foils",
-  "model": "Soar Back Wing",
-  "size": "145"
- },
- {
-  "brand": "KT Foils",
-  "model": "Soar Back Wing",
-  "size": "170"
- },
- {
-  "brand": "KT Foils",
-  "model": "Soar Back Wing",
-  "size": "205"
- },
- {
-  "brand": "KT Foils",
-  "model": "Nomad Back Wing",
-  "size": "155"
- },
- {
-  "brand": "KT Foils",
-  "model": "Nomad Back Wing",
-  "size": "190"
- },
- {
-  "brand": "KT Foils",
-  "model": "Nomad Back Wing",
-  "size": "250"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil Stabilizer",
-  "size": "420"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil Stabilizer",
-  "size": "550"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "336X-AR"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "420"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "Manta L"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer PX",
-  "size": "160"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer PX",
-  "size": "175"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer PX",
-  "size": "195"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer S",
-  "size": "145"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer S",
-  "size": "165"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer S",
-  "size": "185"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer S",
-  "size": "210"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "125"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "145"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "165"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "185"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "210"
- },
- {
-  "brand": "Duotone",
-  "model": "Back Wing Stabilizer H",
-  "size": "235"
- },
- {
-  "brand": "Fanatic",
-  "model": "GL Stabilizer",
-  "size": "165"
- },
- {
-  "brand": "Fanatic",
-  "model": "GL Stabilizer",
-  "size": "180"
- },
- {
-  "brand": "Fanatic",
-  "model": "GL Stabilizer",
-  "size": "200"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "HS232"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "HA195"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "CF300"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "Dart 140"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "Speed 180"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "Flow 235"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "Surf 205"
- },
- {
-  "brand": "Armstrong",
-  "model": "Tail Wing",
-  "size": "Flying V 200"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "21 Flow"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "31 Flow"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "26 Carve"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "33 Carve"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "34 Surf"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "38 Surf V2"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "48 Surf V2"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "25 Glide V2"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "32 Glide V2"
- },
- {
-  "brand": "Lift Foils",
-  "model": "Tail Wing",
-  "size": "38 Glide V2"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "325"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "330"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "370"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "376"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "380"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "399"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "420"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "425"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "430"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "450"
- },
- {
-  "brand": "Moses",
-  "model": "Stabilizer",
-  "size": "483"
- },
- {
-  "brand": "Slingshot",
-  "model": "Hover Glide Rear Wing",
-  "size": "42cm"
- },
- {
-  "brand": "Slingshot",
-  "model": "Hover Glide Rear Wing",
-  "size": "48cm"
- },
- {
-  "brand": "Naish",
-  "model": "Jet Stabilizer",
-  "size": "215"
- },
- {
-  "brand": "Naish",
-  "model": "Jet Stabilizer",
-  "size": "320"
- },
- {
-  "brand": "Naish",
-  "model": "Jet Stabilizer",
-  "size": "450"
- },
- {
-  "brand": "Naish",
-  "model": "Jet HA Stabilizer",
-  "size": "220"
- },
- {
-  "brand": "Naish",
-  "model": "Jet HA Stabilizer",
-  "size": "280"
- },
- {
-  "brand": "Naish",
-  "model": "Jet HA Stabilizer",
-  "size": "310"
- },
- {
-  "brand": "Takuma",
-  "model": "Kujira Stabilizer",
-  "size": "178"
- },
- {
-  "brand": "Takuma",
-  "model": "Kujira Stabilizer",
-  "size": "220"
- },
- {
-  "brand": "Cabrinha",
-  "model": "Fusion H-Series Tail Stabilizer",
-  "size": "74cm"
- },
- {
-  "brand": "Cabrinha",
-  "model": "Fusion H-Series Tail Stabilizer",
-  "size": "84cm"
- },
- {
-  "brand": "Cabrinha",
-  "model": "Fusion H-Series Tail Stabilizer",
-  "size": "94cm"
- },
- {
-  "brand": "Cabrinha",
-  "model": "V-Series Stabilizer",
-  "size": "180"
- },
- {
-  "brand": "Cabrinha",
-  "model": "V-Series Stabilizer",
-  "size": "200"
- },
- {
-  "brand": "Cabrinha",
-  "model": "V-Series Stabilizer",
-  "size": "230"
- },
- {
-  "brand": "Cabrinha",
-  "model": "V-Series Stabilizer",
-  "size": "285"
- },
- {
-  "brand": "Starboard",
-  "model": "RAZR",
-  "size": "220"
- },
- {
-  "brand": "Starboard",
-  "model": "RAZR",
-  "size": "250"
- },
- {
-  "brand": "Unifoil",
-  "model": "Progression Tail",
-  "size": "13.5\""
- },
- {
-  "brand": "Unifoil",
-  "model": "Progression Tail",
-  "size": "14.5\""
- },
- {
-  "brand": "GoFoil",
-  "model": "FT-SHORT Tail",
-  "size": "12.5\""
- },
- {
-  "brand": "GoFoil",
-  "model": "FT-SHORT Tail",
-  "size": "14.5\""
- },
- {
-  "brand": "GoFoil",
-  "model": "FT-SHORT Tail",
-  "size": "17\""
- },
- {
-  "brand": "GoFoil",
-  "model": "FT-SHORT Tail",
-  "size": "20\""
- },
- {
-  "brand": "GoFoil",
-  "model": "ONO Tail",
-  "size": "120"
- },
- {
-  "brand": "GoFoil",
-  "model": "ONO Tail",
-  "size": "140"
- },
- {
-  "brand": "GoFoil",
-  "model": "ONO Tail",
-  "size": "165"
- },
- {
-  "brand": "Levitaz",
-  "model": "Rearwing",
-  "size": "RW250"
- },
- {
-  "brand": "Levitaz",
-  "model": "Rearwing",
-  "size": "RW300"
- },
- {
-  "brand": "Reedin",
-  "model": "Stabilizer",
-  "size": "33cm"
- },
- {
-  "brand": "Reedin",
-  "model": "Stabilizer",
-  "size": "38cm"
- },
- {
-  "brand": "Reedin",
-  "model": "Stabilizer",
-  "size": "46cm"
- },
- {
-  "brand": "Omen",
-  "model": "Fix Stabilizer",
-  "size": "580"
- },
- {
-  "brand": "Omen",
-  "model": "Fix Stabilizer",
-  "size": "700"
- },
- {
-  "brand": "Omen",
-  "model": "Fix Stabilizer",
-  "size": "900"
- },
- {
-  "brand": "Omen",
-  "model": "Fix Stabilizer",
-  "size": "1100"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil Stabilizer",
-  "size": "370"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "370"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "520"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "Barracuda S"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "Barracuda L"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "Condor XS"
- },
- {
-  "brand": "Indiana",
-  "model": "Foil HP Stabilizer",
-  "size": "Condor M"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "365/55"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "362/50"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "360/45"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "359/40"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "358/35"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "358/30"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "358/25"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "280/43"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "300/45"
- },
- {
-  "brand": "AXIS",
-  "model": "Skinny",
-  "size": "320/48"
- }
+  {
+    "brand": "Gong",
+    "model": "Stab Trail",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Trail",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Trail",
+    "size": "XXL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "XS"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "XXL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Fluid H",
+    "size": "3XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "38 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "42 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "45 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "47 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "49 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Fluid",
+    "size": "52 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Veloce H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Veloce H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Veloce H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Veloce H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Veloce H",
+    "size": "36 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Veloce H",
+    "size": "40 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Veloce H",
+    "size": "44 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Pro Veloce H",
+    "size": "47 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Curve H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Curve H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Curve H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Curve H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "XS"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "XXL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Fluid H",
+    "size": "3XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Veloce H",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Veloce H",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Veloce H",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Veloce H",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Hyper Trail",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Hyper Trail",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Hyper Trail",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Hyper Trail",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Supra Trail",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Supra Trail",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Supra Trail",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Supra Trail",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Ultra Trail",
+    "size": "S"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Ultra Trail",
+    "size": "M"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Ultra Trail",
+    "size": "L"
+  },
+  {
+    "brand": "Gong",
+    "model": "Tail Wing Ultra Trail",
+    "size": "XL"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "35 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "37 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "39 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "41 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "44 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Freestyle H",
+    "size": "46 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Sirus",
+    "size": "40 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Sirus",
+    "size": "45 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Sirus",
+    "size": "50 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Sirus",
+    "size": "56 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Sirus",
+    "size": "63 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "36 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "39 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "43 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "46 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "49 cm"
+  },
+  {
+    "brand": "Gong",
+    "model": "Stab Curve",
+    "size": "53 cm"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Flat",
+    "size": "325"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Flat",
+    "size": "370"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Flat",
+    "size": "425"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Reverse",
+    "size": "355"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Reverse",
+    "size": "375"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Reverse",
+    "size": "395"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Gullwing",
+    "size": "380"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Gullwing",
+    "size": "430"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Gullwing",
+    "size": "480"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Freeride",
+    "size": "400/90"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Freeride",
+    "size": "500/90"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S178"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S208"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S210"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S215"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S270"
+  },
+  {
+    "brand": "North",
+    "model": "Sonar",
+    "size": "S320"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "142AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "150AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "158AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "166AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "175AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "AR Series",
+    "size": "188AR"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R Series",
+    "size": "110R"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R Series",
+    "size": "120R"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R Series",
+    "size": "135R"
+  },
+  {
+    "brand": "Code Foils",
+    "model": "R Series",
+    "size": "151R"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide HA",
+    "size": "100"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide HA",
+    "size": "130"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide HA",
+    "size": "150"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide HA",
+    "size": "170"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide HA",
+    "size": "190"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Flash",
+    "size": "150"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Flash",
+    "size": "170"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Glide",
+    "size": "220"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C275 SURF"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "R275 SURF"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "IC6 300"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C250 SURF HM"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C250 FENCE HM"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "DW 210 HM"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C200 CARVING"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C195 SURF"
+  },
+  {
+    "brand": "F-One",
+    "model": "Stab",
+    "size": "C220 SURF"
+  },
+  {
+    "brand": "F-One",
+    "model": "Monobloc Tail DW",
+    "size": "XXXS 190"
+  },
+  {
+    "brand": "F-One",
+    "model": "Monobloc Tail DW",
+    "size": "XXS 210"
+  },
+  {
+    "brand": "F-One",
+    "model": "Monobloc Tail Carving",
+    "size": "XXXS 160"
+  },
+  {
+    "brand": "F-One",
+    "model": "Monobloc Tail Carving",
+    "size": "XXXS 180"
+  },
+  {
+    "brand": "F-One",
+    "model": "Monobloc Tail Carving",
+    "size": "XXS 200"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Pulse Back Wing",
+    "size": "95"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Pulse Back Wing",
+    "size": "115"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Pulse Back Wing",
+    "size": "135"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Phantom Back Wing",
+    "size": "121"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Phantom Back Wing",
+    "size": "141"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Phantom Back Wing",
+    "size": "161"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Phantom Back Wing",
+    "size": "181"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Soar Back Wing",
+    "size": "145"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Soar Back Wing",
+    "size": "170"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Soar Back Wing",
+    "size": "205"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad Back Wing",
+    "size": "155"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad Back Wing",
+    "size": "190"
+  },
+  {
+    "brand": "KT Foils",
+    "model": "Nomad Back Wing",
+    "size": "250"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil Stabilizer",
+    "size": "420"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil Stabilizer",
+    "size": "550"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "336X-AR"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "420"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Manta L"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer PX",
+    "size": "160"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer PX",
+    "size": "175"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer PX",
+    "size": "195"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer S",
+    "size": "145"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer S",
+    "size": "165"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer S",
+    "size": "185"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer S",
+    "size": "210"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "125"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "145"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "165"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "185"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "210"
+  },
+  {
+    "brand": "Duotone",
+    "model": "Back Wing Stabilizer H",
+    "size": "235"
+  },
+  {
+    "brand": "Fanatic",
+    "model": "GL Stabilizer",
+    "size": "165"
+  },
+  {
+    "brand": "Fanatic",
+    "model": "GL Stabilizer",
+    "size": "180"
+  },
+  {
+    "brand": "Fanatic",
+    "model": "GL Stabilizer",
+    "size": "200"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "HS232"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "HA195"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "CF300"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Dart 140"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Speed 180"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Flow 235"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Surf 205"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Flying V 200"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "21 Flow"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "31 Flow"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "26 Carve"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "33 Carve"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "34 Surf"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "38 Surf V2"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "48 Surf V2"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "25 Glide V2"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "32 Glide V2"
+  },
+  {
+    "brand": "Lift Foils",
+    "model": "Tail Wing",
+    "size": "38 Glide V2"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "325"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "330"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "370"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "376"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "380"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "399"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "420"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "425"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "430"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "450"
+  },
+  {
+    "brand": "Moses",
+    "model": "Stabilizer",
+    "size": "483"
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Hover Glide Rear Wing",
+    "size": "42cm"
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Hover Glide Rear Wing",
+    "size": "48cm"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet Stabilizer",
+    "size": "215"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet Stabilizer",
+    "size": "320"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet Stabilizer",
+    "size": "450"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA Stabilizer",
+    "size": "220"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA Stabilizer",
+    "size": "280"
+  },
+  {
+    "brand": "Naish",
+    "model": "Jet HA Stabilizer",
+    "size": "310"
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira Stabilizer",
+    "size": "178"
+  },
+  {
+    "brand": "Takuma",
+    "model": "Kujira Stabilizer",
+    "size": "220"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series Tail Stabilizer",
+    "size": "74cm"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series Tail Stabilizer",
+    "size": "84cm"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "Fusion H-Series Tail Stabilizer",
+    "size": "94cm"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "V-Series Stabilizer",
+    "size": "180"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "V-Series Stabilizer",
+    "size": "200"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "V-Series Stabilizer",
+    "size": "230"
+  },
+  {
+    "brand": "Cabrinha",
+    "model": "V-Series Stabilizer",
+    "size": "285"
+  },
+  {
+    "brand": "Starboard",
+    "model": "RAZR",
+    "size": "220"
+  },
+  {
+    "brand": "Starboard",
+    "model": "RAZR",
+    "size": "250"
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Progression Tail",
+    "size": "13.5\""
+  },
+  {
+    "brand": "Unifoil",
+    "model": "Progression Tail",
+    "size": "14.5\""
+  },
+  {
+    "brand": "GoFoil",
+    "model": "FT-SHORT Tail",
+    "size": "12.5\""
+  },
+  {
+    "brand": "GoFoil",
+    "model": "FT-SHORT Tail",
+    "size": "14.5\""
+  },
+  {
+    "brand": "GoFoil",
+    "model": "FT-SHORT Tail",
+    "size": "17\""
+  },
+  {
+    "brand": "GoFoil",
+    "model": "FT-SHORT Tail",
+    "size": "20\""
+  },
+  {
+    "brand": "GoFoil",
+    "model": "ONO Tail",
+    "size": "120"
+  },
+  {
+    "brand": "GoFoil",
+    "model": "ONO Tail",
+    "size": "140"
+  },
+  {
+    "brand": "GoFoil",
+    "model": "ONO Tail",
+    "size": "165"
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Rearwing",
+    "size": "RW250"
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Rearwing",
+    "size": "RW300"
+  },
+  {
+    "brand": "Reedin",
+    "model": "Stabilizer",
+    "size": "33cm"
+  },
+  {
+    "brand": "Reedin",
+    "model": "Stabilizer",
+    "size": "38cm"
+  },
+  {
+    "brand": "Reedin",
+    "model": "Stabilizer",
+    "size": "46cm"
+  },
+  {
+    "brand": "Omen",
+    "model": "Fix Stabilizer",
+    "size": "580"
+  },
+  {
+    "brand": "Omen",
+    "model": "Fix Stabilizer",
+    "size": "700"
+  },
+  {
+    "brand": "Omen",
+    "model": "Fix Stabilizer",
+    "size": "900"
+  },
+  {
+    "brand": "Omen",
+    "model": "Fix Stabilizer",
+    "size": "1100"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil Stabilizer",
+    "size": "370"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "370"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "520"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Barracuda S"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Barracuda L"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Condor XS"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Condor M"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "365/55"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "362/50"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "360/45"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "359/40"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "358/35"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "358/30"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "358/25"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "280/43"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "300/45"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "320/48"
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Carve",
+    "size": "340"
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Micro",
+    "size": "356"
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Flow",
+    "size": "361"
+  },
+  {
+    "brand": "Roam Foils",
+    "model": "Pump",
+    "size": "460"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Downwind Kraken",
+    "size": "360"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Downwind Kraken",
+    "size": "375"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Blade",
+    "size": "377"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Seadevil",
+    "size": "245"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Seadevil",
+    "size": "305"
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "Seadevil",
+    "size": "365"
+  }
 ]
