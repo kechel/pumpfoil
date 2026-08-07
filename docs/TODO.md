@@ -16,11 +16,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `build-all.sh` gelaufen, alle **121 Direkt-Downloads** liefern 1.0.73 (Katalog geprueft).
   Speicher gemessen: engstes Geraet Venu Sq 77,9 % (28,3 KB Luft), Lite-Uhren ±0 Bytes.
   Changelog-Eintrag steht (Pausen-Menue + Norwegisch).
-  **Weiter offen:** Wear 1.2.20/1030 + Phone 1.1.20/34 in der Play-Pruefung; Zepp 1.0.4 in
-  Pruefung; gebaut und wartend: Wear 1.2.21/1031 (Token-Heilung) und Phone 1.1.21/35
-  (Teilen-Dialog-Scroll) — beide wuerden die norwegischen App-Texte mitnehmen. iOS/Watch
-  brauchen fuer Norwegisch noch einen Bump (1.1.22), Zepp ebenso (1.0.5, dort auch das
-  GPS-Gate).
+- **Zepp 1.0.4 FREIGEGEBEN 06.08.** („The application Pumpfoil (1.0.4) … approved and added to
+  the ZEPP app store"). `appmeta.zepp` = 1.0.4, per `/api/app/latest` geprueft; Changelog-Eintrag
+  steht (eigene Datenseiten, „App offen lassen", Anzahl wartender Sessions, Foil je Session).
+  Diesmal nannte die Mail wirklich 1.0.4 — **Regel bleibt: immer die Nummer AUS DER MAIL nehmen**,
+  bei 1.0.3 war es die Version vor dem Release-Bump.
+  **ERLEDIGT/ENTFAELLT: Store-Adresse fuer Zepp** — es gibt keine (Jan, 07.08.). Die App ist nur
+  ueber die Zepp-Handy-App erreichbar, die auf `/uhr` verlinkt ist; `store_url` bleibt daher
+  dauerhaft leer, der Uhr-Hinweis nennt nur die Version.
+  **Weiter offen:** Wear 1.2.20/1030 + Phone 1.1.20/34 in der Play-Pruefung; gebaut und wartend:
+  Wear 1.2.21/1031 (Token-Heilung) und Phone 1.1.21/35 (Teilen-Dialog-Scroll) — beide wuerden die
+  norwegischen App-Texte mitnehmen. iOS/Watch brauchen fuer Norwegisch noch einen Bump (1.1.22),
+  Zepp ebenso (1.0.5 — dort fehlen noch das GPS-Qualitaets-Gate UND Norwegisch).
 - **Stand 05.08. abend — Befund „Standort-Berechtigung scheitert stumm" (Wear + Apple).**
   Nutzerfeedback („works with my phone, not with my watch", Galaxy Watch 7): Uhr war
   installiert, gepairt, lud hoch — aber **4 von 6 Wear-Sessions hatten 0 GPS-Punkte** bei

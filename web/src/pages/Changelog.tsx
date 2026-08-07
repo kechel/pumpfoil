@@ -34,6 +34,7 @@ const ENTRIES: Entry[] = [
     items: [
       "Pausing on a Garmin watch got a proper way out. Until now a short press of START simply ended the pause, and if you wanted to finish the session from there you had to resume first and then hold the button. Now START opens a small menu — resume, cancel, or end and save — with nothing preselected, so pressing START twice does nothing and the choice is always deliberate. Everything else about pausing is unchanged, including your own data pages for the paused state. Garmin 1.0.73 is in the Connect IQ store and on the website.",
       "The site is now available in Norwegian, in full — every text, not just the important ones. It arrived because of the first session ever recorded in Norway, at Sogndal. The watch and phone apps follow with their next updates. If you read Norwegian and something sounds off, please tell us: the translation is careful but it hasn’t been reviewed by a native speaker yet.",
+      "Amazfit 1.0.4 is in the Zepp App Store. The watch now draws your own data pages — the same ones you build on the website for the other watches — instead of one fixed screen. It also tells you to keep the app open while a session is uploading, shows how many sessions are still waiting to be sent, and keeps the foil you picked with the session.",
     ],
   },
   {
