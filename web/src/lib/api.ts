@@ -788,6 +788,8 @@ export const api = {
       method: "POST",
     }),
   myDevices: () => req<PairedDevice[]>("/api/devices/list"),
+  forgetDevice: (id: number) =>
+    req<{ ok: boolean; deleted: boolean }>(`/api/devices/${id}/forget`, { method: "POST" }),
   revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
   // Absturz-Zähler dieser Uhr zurücksetzen -> sie bekommt wieder eigene Layouts.
   resetLayoutCanary: (id: number) =>
@@ -1095,6 +1097,8 @@ export interface OverallStats {
 }
 
 export interface PairedDevice {
+  /** Wie viele Sessions haengen dran? 0 = fehlgeschlagener Pairing-Versuch, darf ganz weg. */
+  sessions?: number;
   id: number;
   label: string | null;
   created_at: string | null;

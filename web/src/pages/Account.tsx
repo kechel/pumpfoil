@@ -100,6 +100,10 @@ function ClaimFromWatch() {
   return (
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">{t("account.claimTitle")}</h3>
+      {/* Erst installieren, dann verbinden: ein Nutzer scheiterte am fehlenden Wear-OS-App auf
+          der Uhr und suchte den Fehler beim Pairing (07.08.). Der Hinweis gehoert genau hierhin,
+          wo man die Uhr registriert — nicht nur in die Anleitung. */}
+      <p className="mb-2 text-slate-300">{t("account.claimInstallFirst")}</p>
       <p className="mb-2 text-slate-300">{t("account.claimHelp")}</p>
       <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-amber-700 dark:text-amber-300">{t("account.claimReq")}</p>
       <div className="flex flex-wrap gap-2">
@@ -176,6 +180,13 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   const revoke = (id: number, label: string | null) => {
     if (!confirm(t("account.revokeConfirm", { name: label || t("account.deviceUnnamed") }))) return;
     api.revokeDevice(id).then(load).catch(() => {});
+  };
+  // „Entfernen" gibt es NUR fuer Geraete ohne Session: fehlgeschlagene Pairing-Versuche sammeln
+  // sich sonst als Karteileichen an, die niemand loswird (Nutzerfeedback 07.08.). Haengt eine
+  // Session dran, bleibt es beim Widerruf — sonst verliert die Session ihre Geraete-Zuordnung.
+  const forget = (id: number, label: string | null) => {
+    if (!confirm(t("account.deviceForgetConfirm", { name: label || t("account.deviceUnnamed") }))) return;
+    api.forgetDevice(id).then(load).catch(() => {});
   };
   const resetCanary = (id: number) => {
     api.resetLayoutCanary(id).then(load).catch(() => {});
@@ -259,6 +270,12 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                   </div>
                 )}
               </div>
+              {(d.sessions ?? 1) === 0 && (
+                <button onClick={() => forget(d.id, d.label)}
+                  className="shrink-0 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-700">
+                  {t("account.deviceForget")}
+                </button>
+              )}
               {!d.revoked_at && (
                 <button onClick={() => revoke(d.id, d.label)}
                   className="btn-danger shrink-0 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">

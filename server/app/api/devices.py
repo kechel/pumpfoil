@@ -250,6 +250,8 @@ def list_devices(
         except Exception:  # noqa: BLE001
             ustored = {}
     out = []
+    sess_n = {i: n for i, n in db.query(models.Session.device_id, func.count(models.Session.id))
+             .filter(models.Session.device_id.isnot(None)).group_by(models.Session.device_id).all()}
     for d in rows:
         # Update-Hinweis nur für Garmin (Sideload). Wear/Apple aktualisieren über ihre Stores.
         latest = latest_garmin if (d.platform == "garmin") else None
@@ -258,6 +260,9 @@ def list_devices(
         model = pm.get(d.part_number) if d.part_number else None
         out.append({
             "id": d.id,
+            # Wie viele Sessions haengen dran? Entscheidet, ob die Oberflaeche „entfernen" anbieten
+            # darf (0 = fehlgeschlagener Pairing-Versuch, s. /forget) oder nur „widerrufen".
+            "sessions": int(sess_n.get(d.id, 0)),
             "label": d.label,
             "created_at": d.created_at.isoformat() if d.created_at else None,
             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
@@ -553,6 +558,30 @@ def _version_lt(a: str, b: str) -> bool:
     pa += [0] * (n - len(pa))
     pb += [0] * (n - len(pb))
     return pa < pb
+
+
+@router.post("/{device_id}/forget")
+def forget_device(
+    device_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Geraet WIRKLICH aus der Liste entfernen — nur wenn keine Session daran haengt.
+
+    Warum es beides braucht (Nutzerfeedback 07.08.: „I have multiple watches recorded, one for
+    each attempt of pairing, and I can't remove any from the list"): der Widerruf ist absichtlich
+    ein Soft-Revoke, damit alte Sessions ihre Geraete-Zuordnung behalten. Fehlgeschlagene
+    Pairing-Versuche haben aber NIE eine Session getragen — die duerfen ganz weg, sonst sammelt
+    die Liste Karteileichen, die niemand loswird. Haengt eine Session dran, bleibt es beim
+    Widerruf (409), damit die Zuordnung nicht verlorengeht.
+    """
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    n = db.query(func.count(models.Session.id)).filter(models.Session.device_id == device_id).scalar() or 0
+    if n:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"{n} Sessions haengen an diesem Geraet")
+    db.delete(d)
+    db.commit()
+    return {"ok": True, "deleted": True}
 
 
 @router.delete("/{device_id}")
