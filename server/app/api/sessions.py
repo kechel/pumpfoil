@@ -319,7 +319,8 @@ _WATER_SPORTS = {
 }
 
 
-def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str):
+def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str,
+                          filename: str | None = None):
     """Geparsten Track (aus FIT/TCX/GPX) als Session anlegen: Dup-Check (Hash ODER Startzeit,
     pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
     UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht)."""
@@ -380,6 +381,10 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     storage.save_gps_chunk(session_uuid, 0, samples)
     if accel_bytes:
         storage.save_accel_raw(session_uuid, 0, accel_bytes)
+    # Originaldatei unveraendert danebenlegen: ohne sie liesse sich eine importierte Session nach
+    # einem Backup-Ruecklauf nicht wiederherstellen (Jan, 07.08.). Kostet ein paar hundert kB und
+    # wandert ueber data/ automatisch in die Backup-Kette.
+    storage.save_original_upload(session_uuid, raw, filename)
     foil = parsed.get("foil_status") or []
     if any(v is not None for v in foil):
         storage.save_foil_status(session_uuid, foil)
@@ -469,7 +474,8 @@ async def upload_fit(
     if water_only and sport not in _WATER_SPORTS:
         return {"skipped": "not_water", "sport": sport, "started_at": started_at.isoformat()}
 
-    s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix)
+    s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix,
+                              filename=getattr(file, "filename", None))
     if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren
         return {"skipped": "deleted", "sport": sport, "started_at": started_at.isoformat()}
     return _session_out(s, with_analysis=True)

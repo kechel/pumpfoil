@@ -35,9 +35,13 @@ def list_foils(
     if q:
         like = f"%{q.lower()}%"
         from sqlalchemy import func, or_
+        # Groesse MIT durchsuchen: Nutzer suchen zuerst nach der Zahl auf ihrem Material
+        # („375", „1450"), nicht nach dem Modellnamen. Fehlte bis 07.08. — die Weboberflaeche
+        # filtert lokal (dort war die Groesse dabei), jeder API-Nutzer fand aber nichts.
         query = query.filter(or_(
             func.lower(models.Foil.brand).like(like),
             func.lower(models.Foil.model).like(like),
+            func.lower(models.Foil.size).like(like),
         ))
     rows = query.order_by(models.Foil.brand, models.Foil.model, models.Foil.area_cm2).all()
     return [_out(f) for f in rows]

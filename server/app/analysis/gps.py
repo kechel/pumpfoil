@@ -411,10 +411,15 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # setzt ein Positionssprung den Wert (Nutzer-Meldung #1020: 33,8 km/h nach einem Sturz, waehrend
     # der beste echte Lauf 22 km/h hatte). Gleiche Grenze wie fuer die Laufe-Maske; fehlt hAcc,
     # gilt der Punkt wie bisher als brauchbar.
-    _sp_ok = np.where(quality_ok, speed_s, np.nan) if speed_s.size else speed_s
-    max_speed = 0.0
-    if _sp_ok.size and not bool(np.all(np.isnan(_sp_ok))):
-        max_speed = float(np.nanmax(_sp_ok))
+    # Hoechstgeschwindigkeit NUR aus den erkannten LAEUFEN: der 3-s-Wert je Lauf, der ohnehin
+    # schon berechnet und in der Lauf-Liste angezeigt wird. Vorher war es das schnellste
+    # Einzel-Sample im ganzen Trim-Fenster — damit standen Autofahrt-Reste in der Bestenliste
+    # (gemessen 07.08.: #1619 mit 73 km/h und #913 mit 61,6, waehrend der schnellste ECHTE Lauf
+    # im gesamten Bestand bei 28,9 km/h liegt). Die Kennzahl bedeutet jetzt „schnellste drei
+    # Sekunden auf dem Foil": robust gegen Einzel-Spitzen und immun gegen alles ausserhalb der
+    # Laeufe. Die Segmente sind hier bereits durch _gate_implausible_runs gelaufen — ein
+    # verworfener Lauf kann das Maximum also nicht mehr setzen.
+    max_speed = max((float(s.get("max_speed_mps") or 0.0) for s in segments), default=0.0)
 
     # speed5 (5-s-geglättet) wurde oben bereits berechnet (für Segment- + Metrik-Stats).
     def _stat(arr, fn, scale=1.0, nd=2):
@@ -498,7 +503,10 @@ def _classify_end(i_end: int, speed_s: np.ndarray, step: np.ndarray, gps_hz: int
 
 
 # Physik-Gate-Grenze: kein echter Pumpfoil-Lauf erreicht 40 km/h (DB-Maximum: 28,6).
-RUN_MAX_PLAUSIBLE_KMH = 40.0
+# 07.08.: von 40 auf 32 gesenkt. Gemessen ueber 6941 sichtbare Laeufe liegt GENAU EINER
+# darueber — die Autofahrt in #1619 (39,1 km/h), die in einen erkannten Lauf hineinragte.
+# Der schnellste ECHTE Lauf im Bestand hat 28,9 km/h, es bleiben also ~3 km/h Luft.
+RUN_MAX_PLAUSIBLE_KMH = 32.0
 
 
 def _gate_implausible_runs(segments: list[dict]) -> tuple[list[dict], int]:

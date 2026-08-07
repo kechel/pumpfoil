@@ -459,10 +459,15 @@ def detect_v2(
     total_distance = float(step.sum())
     foiling_distance = float(step[mask].sum())
     foiling_time = float(sum(s["t_end_ms"] - s["t_start_ms"] for s in segments) / 1000.0)
-    _sp_ok = np.where(quality_ok, speed_s, np.nan) if speed_s.size else speed_s
-    max_speed = 0.0
-    if _sp_ok.size and not bool(np.all(np.isnan(_sp_ok))):
-        max_speed = float(np.nanmax(_sp_ok))
+    # Hoechstgeschwindigkeit NUR aus den erkannten LAEUFEN: der 3-s-Wert je Lauf, der ohnehin
+    # schon berechnet und in der Lauf-Liste angezeigt wird. Vorher war es das schnellste
+    # Einzel-Sample im ganzen Trim-Fenster — damit standen Autofahrt-Reste in der Bestenliste
+    # (gemessen 07.08.: #1619 mit 73 km/h und #913 mit 61,6, waehrend der schnellste ECHTE Lauf
+    # im gesamten Bestand bei 28,9 km/h liegt). Die Kennzahl bedeutet jetzt „schnellste drei
+    # Sekunden auf dem Foil": robust gegen Einzel-Spitzen und immun gegen alles ausserhalb der
+    # Laeufe. Die Segmente sind hier bereits durch _gate_implausible_runs gelaufen — ein
+    # verworfener Lauf kann das Maximum also nicht mehr setzen.
+    max_speed = max((float(s.get("max_speed_mps") or 0.0) for s in segments), default=0.0)
 
     def _stat(arr, fn, nd=2):
         a = arr[mask]

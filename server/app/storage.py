@@ -68,6 +68,32 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     return len(raw) // 2 // 3
 
 
+def save_original_upload(session_uuid: str, raw: bytes, filename: str | None) -> str | None:
+    """Die HOCHGELADENE Originaldatei (FIT/ZIP/GPX/TCX) unveraendert neben der Session ablegen.
+
+    Warum (Jan, 07.08.): bis hierher haben wir bei Importen nur das GEPARSTE Ergebnis behalten und
+    die Originaldatei nach dem Hash verworfen. Muss man je ein Backup zurueckspielen, sind alle
+    Sessions weg, die seither hochgeladen wurden — und ohne Originaldatei kann sie niemand erneut
+    einlesen. Uhr-Uploads sind davon nicht betroffen (dort SIND die Chunks das Original).
+
+    Der Ordner `data/<uuid>/` liegt in der Backup-Kette (Hardlink-Spiegel, s. deploy/backup-latest.sh),
+    die Datei wandert also automatisch mit. Endung aus dem Dateinamen, sonst `.bin`; alles andere am
+    Namen wird verworfen (keine Nutzereingabe im Pfad).
+    """
+    d = ensure_session_dir(session_uuid)
+    endung = ""
+    if filename and "." in filename:
+        roh = filename.rsplit(".", 1)[-1].lower()
+        if roh.isalnum() and len(roh) <= 5:
+            endung = "." + roh
+    ziel = d / f"original{endung or '.bin'}"
+    try:
+        ziel.write_bytes(raw)
+    except OSError:      # Platte voll o. ae. darf einen Import nie scheitern lassen
+        return None
+    return ziel.name
+
+
 def save_accel_raw(session_uuid: str, index: int, raw: bytes) -> int:
     """Wie save_accel_chunk, aber für bereits dekodierte int16-LE-Bytes (z. B. FIT-Import)."""
     d = ensure_session_dir(session_uuid)

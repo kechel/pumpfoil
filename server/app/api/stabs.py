@@ -61,9 +61,13 @@ def list_stabs(
     if q:
         like = f"%{q.lower()}%"
         from sqlalchemy import func
+        # Groesse MIT durchsuchen: Nutzer suchen zuerst nach der Zahl auf ihrem Material
+        # („375", „1450"), nicht nach dem Modellnamen. Fehlte bis 07.08. — die Weboberflaeche
+        # filtert lokal (dort war die Groesse dabei), jeder API-Nutzer fand aber nichts.
         query = query.filter(or_(
             func.lower(models.Stab.brand).like(like),
             func.lower(models.Stab.model).like(like),
+            func.lower(models.Stab.size).like(like),
         ))
     rows = query.order_by(models.Stab.brand, models.Stab.model, models.Stab.size).all()
     return [_out(s) for s in rows]
