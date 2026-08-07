@@ -9,6 +9,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **Stand 06.08.: Garmin 1.0.73 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
+  „Latest Release August 6, 2026, Version 1.0.73, 98 KB"). Inhalt: Pausen-Menue (START in der
+  Pause oeffnet Fortsetzen/Abbrechen/Ende & speichern, ohne Vorauswahl und ohne Stop-Ring) +
+  Norwegisch als 14. Sprachspalte. `appmeta.garmin` gesetzt und per `/api/app/latest` geprueft;
+  `build-all.sh` gelaufen, alle **121 Direkt-Downloads** liefern 1.0.73 (Katalog geprueft).
+  Speicher gemessen: engstes Geraet Venu Sq 77,9 % (28,3 KB Luft), Lite-Uhren ±0 Bytes.
+  Changelog-Eintrag steht (Pausen-Menue + Norwegisch).
+  **Weiter offen:** Wear 1.2.20/1030 + Phone 1.1.20/34 in der Play-Pruefung; Zepp 1.0.4 in
+  Pruefung; gebaut und wartend: Wear 1.2.21/1031 (Token-Heilung) und Phone 1.1.21/35
+  (Teilen-Dialog-Scroll) — beide wuerden die norwegischen App-Texte mitnehmen. iOS/Watch
+  brauchen fuer Norwegisch noch einen Bump (1.1.22), Zepp ebenso (1.0.5, dort auch das
+  GPS-Gate).
 - **Stand 05.08. abend — Befund „Standort-Berechtigung scheitert stumm" (Wear + Apple).**
   Nutzerfeedback („works with my phone, not with my watch", Galaxy Watch 7): Uhr war
   installiert, gepairt, lud hoch — aber **4 von 6 Wear-Sessions hatten 0 GPS-Punkte** bei

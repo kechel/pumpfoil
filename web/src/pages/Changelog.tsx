@@ -30,6 +30,13 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 6, 2026",
+    items: [
+      "Pausing on a Garmin watch got a proper way out. Until now a short press of START simply ended the pause, and if you wanted to finish the session from there you had to resume first and then hold the button. Now START opens a small menu — resume, cancel, or end and save — with nothing preselected, so pressing START twice does nothing and the choice is always deliberate. Everything else about pausing is unchanged, including your own data pages for the paused state. Garmin 1.0.73 is in the Connect IQ store and on the website.",
+      "The site is now available in Norwegian, in full — every text, not just the important ones. It arrived because of the first session ever recorded in Norway, at Sogndal. The watch and phone apps follow with their next updates. If you read Norwegian and something sounds off, please tell us: the translation is careful but it hasn’t been reviewed by a native speaker yet.",
+    ],
+  },
+  {
     date: "August 5, 2026",
     items: [
       "No more 100 km/h while standing on the dock. Right after starting, a GPS chip can report garbage speeds for a few seconds, and the watches displayed them unfiltered — one rider filmed his watch showing 100.1 km/h while standing still. The watch now checks the GPS quality for every reading and shows “--” while it’s poor, and the on-watch run detection ignores those values too. Your recorded sessions were never affected — the analysis has always filtered these spikes. Garmin 1.0.72 is on the website now; Apple Watch and Wear OS follow with their next updates. Thanks for the video!",
