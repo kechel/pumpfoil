@@ -4117,5 +4117,15 @@
     "area_cm2": 2800.0,
     "thickness_mm": 28.2,
     "thickness_estimated": true
+  },
+  {
+    "brand": "Beta Foils",
+    "model": "Freefoil",
+    "size": "2100",
+    "span_cm": 210,
+    "area_cm2": 2100,
+    "thickness_mm": 14,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
