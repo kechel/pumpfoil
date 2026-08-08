@@ -1238,5 +1238,20 @@
     "brand": "Sabfoil",
     "model": "Seadevil",
     "size": "365"
+  },
+  {
+    "brand": "Beta Foils",
+    "model": "Freefoil Tail",
+    "size": "Short"
+  },
+  {
+    "brand": "Beta Foils",
+    "model": "Freefoil Tail",
+    "size": "Medium"
+  },
+  {
+    "brand": "Beta Foils",
+    "model": "Freefoil Tail",
+    "size": "Long"
   }
 ]
