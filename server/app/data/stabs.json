@@ -1253,5 +1253,155 @@
     "brand": "Beta Foils",
     "model": "Freefoil Tail",
     "size": "Long"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Barracuda XS Tail S"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Condor M Tail XS"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Condor S Tail XXS"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Dolphin M Tail M"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Dolphin S Tail M"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Dolphin S Tail XS"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil MB Stabilizer",
+    "size": "Marlin S Tail M"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Barracuda M"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Condor L"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Condor S"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Marlin M"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Marlin S"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Marlin XS"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Foil HP Stabilizer",
+    "size": "Ride XL"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Pump 202"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Dart 120"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Glide 220"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "S1 300"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Surf Mk II 130"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Surf Mk II 170"
+  },
+  {
+    "brand": "Armstrong",
+    "model": "Tail Wing",
+    "size": "Surf Mk II 200"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Carve",
+    "size": "130"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Carve",
+    "size": "145"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Carve",
+    "size": "160"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Carve",
+    "size": "190"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Monobloc Carve",
+    "size": "160"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Pump HA",
+    "size": "50"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Pump HA",
+    "size": "75"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Pump HA",
+    "size": "100"
+  },
+  {
+    "brand": "TAKOON",
+    "model": "Foil Stab Pump HA",
+    "size": "140"
   }
 ]
