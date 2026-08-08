@@ -4127,5 +4127,25 @@
     "thickness_mm": 14,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "Fireball",
+    "size": "1500",
+    "span_cm": 150.0,
+    "area_cm2": 1313.0,
+    "thickness_mm": 20.4,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "Fireball",
+    "size": "1750",
+    "span_cm": 175.0,
+    "area_cm2": 1525.0,
+    "thickness_mm": 20.3,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
