@@ -15,7 +15,7 @@ from ..db import get_db
 from ..naming import owner_label, owner_label_sql
 from ..push import send_push, wants
 from ..ratelimit import enforce_user_tiers
-from .deps import current_user
+from .deps import current_admin, current_user
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -652,6 +652,112 @@ def my_rooms(
             "last_at": glast.created_at.isoformat() if glast and glast.created_at else None,
         })
     return out
+
+
+def _bot_user(db: Session) -> models.User:
+    """Der Bot-Account (KI-Assistent), der unter eigenem Namen antwortet.
+
+    Auflösung über die E-Mail aus der Konfiguration — bewusst NICHT über eine
+    hartkodierte ID, damit Dev/Prod und ein späterer Account-Wechsel gleich laufen.
+    """
+    from sqlalchemy import func as _f
+
+    from ..config import get_settings
+
+    email = (getattr(get_settings(), "bot_email", "") or "").strip()
+    u = None
+    if email:
+        u = db.query(models.User).filter(_f.lower(models.User.email) == email.lower()).first()
+    if u is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein Bot-Account konfiguriert")
+    return u
+
+
+@router.get("/bot/rooms")
+def bot_rooms(
+    _admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Nur Admin: alle Räume, in denen der Bot geschrieben hat — Audit-Sicht.
+
+    Absichtlich NUR die Räume des Bots: `_require_access` bleibt unangetastet, ein Admin
+    bekommt hierüber keinen Zugang zu fremden DMs untereinander.
+    """
+    from sqlalchemy import func
+
+    bot = _bot_user(db)
+    rows = (
+        db.query(models.ChatMessage.scope,
+                 func.count(models.ChatMessage.id).label("n"),
+                 func.max(models.ChatMessage.id).label("last_id"))
+        .filter(models.ChatMessage.user_id == bot.id)
+        .group_by(models.ChatMessage.scope)
+        .all()
+    )
+    out = []
+    for scope, n, last_id in rows:
+        last = db.get(models.ChatMessage, last_id)
+        # Gesamtzahl im Raum (beide Seiten), damit man Verhältnis Bot/Nutzer sieht.
+        total = (
+            db.query(func.count(models.ChatMessage.id))
+            .filter(models.ChatMessage.scope == scope).scalar()
+        ) or 0
+        row = {
+            "scope": scope,
+            "kind": scope.split(":", 1)[0],
+            "label": _scope_label_db(db, scope, bot.id),
+            "url": _scope_url(scope),
+            "bot_count": int(n),
+            "total_count": int(total),
+            "last_text": (last.text or "")[:120] if last else "",
+            "last_at": last.created_at.isoformat() if last and last.created_at else None,
+        }
+        parts = _dm_parts(scope)
+        if parts is not None:
+            oid = parts[1] if bot.id == parts[0] else parts[0]
+            ou = db.get(models.User, oid)
+            row["other"] = {"id": oid,
+                            "name": owner_label(ou.display_name, ou.id) if ou else None,
+                            "avatar_url": ou.avatar_url if ou else None}
+        out.append(row)
+    out.sort(key=lambda r: r["last_at"] or "", reverse=True)
+    return {"bot": {"id": bot.id, "name": owner_label(bot.display_name, bot.id)},
+            "rooms": out}
+
+
+@router.get("/bot/messages")
+def bot_messages(
+    scope: str = Query(...), limit: int = 200,
+    _admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> list[dict]:
+    """Nur Admin: der Verlauf EINES Bot-Raums, beide Seiten, rein lesend.
+
+    Ein DM-Scope wird nur herausgegeben, wenn der Bot selbst daran beteiligt ist —
+    sonst wäre das eine Hintertür in fremde Privatchats.
+    """
+    _check_scope(scope)
+    scope = _canon_scope(db, scope)
+    bot = _bot_user(db)
+    parts = _dm_parts(scope)
+    if parts is not None and bot.id not in parts:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Kein Bot-Chat")
+    if parts is None:
+        # Öffentlicher Raum: nur zeigen, wenn der Bot dort überhaupt geschrieben hat.
+        wrote = (db.query(models.ChatMessage.id)
+                 .filter(models.ChatMessage.scope == scope,
+                         models.ChatMessage.user_id == bot.id).first())
+        if wrote is None:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Kein Bot-Chat")
+    lim = min(max(limit, 1), 500)
+    rows = (
+        db.query(models.ChatMessage, owner_label_sql(models.User), models.User.avatar_url)
+        .join(models.User, models.ChatMessage.user_id == models.User.id)
+        .filter(models.ChatMessage.scope == scope)
+        .order_by(models.ChatMessage.id.desc()).limit(lim).all()
+    )
+    return [{"id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
+             "text": m.text, "hidden": bool(m.hidden), "is_bot": m.user_id == bot.id,
+             "created_at": m.created_at.isoformat() if m.created_at else None}
+            for m, name, avatar in reversed(rows)]
 
 
 @router.get("/active")

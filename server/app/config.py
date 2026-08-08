@@ -16,6 +16,10 @@ class Settings:
         # JWT-Secret — in Prod MUSS dies gesetzt werden.
         self.jwt_secret: str = os.environ.get("JWT_SECRET", "dev-insecure-change-me")
         self.jwt_algorithm: str = "HS256"
+
+        # Account, unter dem der KI-Assistent selbst im Chat antwortet (Audit-Sicht im
+        # DM-Widget, nur fuer Admins). Leer -> Bot-Ansicht deaktiviert.
+        self.bot_email: str = os.environ.get("BOT_EMAIL", "claude@kechel.de")
         self.jwt_expire_hours: int = int(os.environ.get("JWT_EXPIRE_HOURS", "168"))
 
         # Verzeichnis für unveränderliche Roh-Session-Daten (ML-Enabler).

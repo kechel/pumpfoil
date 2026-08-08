@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, ChatRoom, DmUser } from "../lib/api";
+import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { Avatar } from "./ui";
 import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
 import { Chat } from "./Chat";
@@ -22,8 +22,15 @@ export function openChatOverlay(scope: string, label: string) {
 export function DmWidget() {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"mine" | "spots">("mine");
+  const [tab, setTab] = useState<"mine" | "spots" | "bot">("mine");
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  // Bot-Audit: drittes Tab, NUR für Admins. Rein lesend — hier wird nichts gepostet, damit
+  // niemand versehentlich unter dem Namen des Assistenten schreibt.
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [botRooms, setBotRooms] = useState<BotRoom[] | null>(null);
+  const [botName, setBotName] = useState<string>("");
+  const [botOpen, setBotOpen] = useState<BotRoom | null>(null);
+  const [botMsgs, setBotMsgs] = useState<BotMsg[] | null>(null);
   const [allSpots, setAllSpots] = useState<SpotRow[]>([]);
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
@@ -58,6 +65,20 @@ export function DmWidget() {
 
   const loadRooms = () => api.chatRooms().then(setRooms).catch(() => {});
   useEffect(() => { loadRooms(); const iv = setInterval(loadRooms, 15000); return () => clearInterval(iv); }, []);
+
+  // Admin-Flag einmalig holen; nur dann existiert das Bot-Tab überhaupt.
+  useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
+  // Bot-Räume erst laden, wenn das Tab wirklich geöffnet wird (kein Pollen im Hintergrund).
+  useEffect(() => {
+    if (tab !== "bot" || !isAdmin) return;
+    api.chatBotRooms()
+      .then((d) => { setBotRooms(d.rooms); setBotName(d.bot.name || ""); })
+      .catch(() => { setBotRooms([]); });
+  }, [tab, isAdmin]);
+  const openBotRoom = (r: BotRoom) => {
+    setBotOpen(r); setBotMsgs(null);
+    api.chatBotMessages(r.scope).then(setBotMsgs).catch(() => setBotMsgs([]));
+  };
   useEffect(() => {
     if (!open) return;
     loadRooms();
@@ -98,7 +119,10 @@ export function DmWidget() {
   const openScope = (scope: string, label: string) =>
     setActive({ scope, name: label, otherId: 0, avatar: null, blocked: false });
 
-  const switchTab = (tb: "mine" | "spots") => { setTab(tb); setQ(""); setResults([]); };
+  const switchTab = (tb: "mine" | "spots" | "bot") => {
+    setTab(tb); setQ(""); setResults([]);
+    if (tb !== "bot") { setBotOpen(null); setBotMsgs(null); }
+  };
 
   // Mobile: Zurück-/Swipe-Geste schließt das Overlay wie ein Popup — erst den offenen Chat
   // (zurück zur Liste), dann das Panel; erst danach verlässt man die Seite.
@@ -253,6 +277,10 @@ export function DmWidget() {
                   className={`flex-1 rounded-md px-2 py-1 ${tab === "mine" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabMine")}</button>
                 <button onClick={() => switchTab("spots")}
                   className={`flex-1 rounded-md px-2 py-1 ${tab === "spots" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabSpots")}</button>
+                {isAdmin && (
+                  <button onClick={() => switchTab("bot")}
+                    className={`flex-1 rounded-md px-2 py-1 ${tab === "bot" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"}`}>{t("dm.tabBot")}</button>
+                )}
               </div>
             )}
             <button onClick={closeOverlay} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
@@ -334,6 +362,63 @@ export function DmWidget() {
                       </div>
                     )}
                   </>
+                ) : tab === "bot" ? (
+                  // Audit-Sicht auf den KI-Assistenten: welche Räume, welcher Verlauf. Rein lesend,
+                  // bewusst OHNE Eingabefeld — von hier aus soll niemand unter seinem Namen posten.
+                  botOpen ? (
+                    <div className="flex min-h-0 flex-1 flex-col">
+                      <div className="flex items-center gap-2 border-b border-slate-800 px-3 py-2">
+                        <button onClick={() => { setBotOpen(null); setBotMsgs(null); }}
+                          className="shrink-0 text-slate-400 hover:text-slate-200" aria-label={t("dm.back")}>←</button>
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-100">
+                          {botOpen.other?.name || botOpen.label}
+                        </span>
+                        <span className="shrink-0 text-[11px] text-slate-500">
+                          {botOpen.bot_count}/{botOpen.total_count}
+                        </span>
+                      </div>
+                      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+                        {botMsgs === null && <p className="text-center text-sm text-slate-400">…</p>}
+                        {botMsgs?.length === 0 && <p className="text-center text-sm text-slate-400">{t("dm.botEmpty")}</p>}
+                        {botMsgs?.map((m) => (
+                          <div key={m.id} className={m.is_bot ? "flex justify-end" : "flex justify-start"}>
+                            <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-sm ${
+                              m.is_bot ? "bg-brand-500/20 text-slate-100" : "bg-slate-800 text-slate-200"}`}>
+                              <div className="mb-0.5 flex items-center gap-2 text-[11px] text-slate-400">
+                                <span className="truncate font-medium">{m.name}</span>
+                                <span className="shrink-0">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
+                                {m.hidden && <span className="shrink-0 rounded bg-slate-700/60 px-1">{t("adm.chat.hidden")}</span>}
+                              </div>
+                              <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="border-b border-slate-800 px-3 py-2 text-xs text-slate-400">
+                        {t("dm.botNote", { name: botName || "—" })}
+                      </p>
+                      {botRooms === null && <p className="p-6 text-center text-sm text-slate-400">…</p>}
+                      {botRooms?.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.botNone")}</p>}
+                      {botRooms?.map((r) => (
+                        <button key={r.scope} onClick={() => openBotRoom(r)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
+                          {r.kind === "dm"
+                            ? <Avatar name={r.other?.name} url={r.other?.avatar_url} size={36} />
+                            : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>
+                              <span className="ml-auto shrink-0 text-[11px] text-slate-500">{r.bot_count}/{r.total_count}</span>
+                            </div>
+                            <div className="truncate text-xs text-slate-400">{r.last_text}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )
                 ) : (
                   <>
                     {/* Globaler Community-Chat: fester Eintrag ganz oben — Einstieg & Wieder-Beitritt. */}
