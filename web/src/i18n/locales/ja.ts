@@ -702,6 +702,13 @@ const ja: Record<string, string> = {
   "imp.operator2": "パスワードはソルト付きハッシュ（PBKDF2）としてのみ保存されます — 私でも平文では見られません。",
   "imp.privacyTitle": "データの削除",
   "imp.privacyText": "アップロードされたすべてのデータは永続的に保存されます。削除するには、プロフィールの「アカウントを削除」ボタン（ウェブアプリまたは iOS/Android アプリ）を使用してください — アカウントとすべてのセッション、生データ、写真が完全に削除されます。通信は暗号化されています（HTTPS）。",
+  "imp.aiTitle": "AI の利用（Anthropic Claude）",
+  "imp.aiIntro": "分析および開発のため、Anthropic の AI アシスタント Claude を利用しています。セッションデータや生データ、フィードバック、チャットのメッセージ（ダイレクトメッセージを含む）が Anthropic に送信され、次の目的で処理される場合があります。",
+  "imp.ai1": "個々のセッションの分析（不具合の調査、妥当性の確認）",
+  "imp.ai2": "当方の検出モデルの改善（ポンプおよびオンフォイルの検出）",
+  "imp.ai3": "アプリの改良",
+  "imp.ai4": "カタログに不足しているフォイルおよびスタビライザーの調査",
+  "imp.aiNote": "Anthropic は当方の委託に基づき内容を処理します。適用される API 規約により、同社の言語モデルの学習には使用されません。処理は米国で行われる場合があります。アシスタントはチャットで自身の名前（アカウント「Claude Code AI」）で返信することがあります。詳細は Anthropic の <a href=\"https://www.anthropic.com/legal/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">プライバシーポリシー</a>.",
 
   "meta.captionPlaceholder": "2〜3語の説明",
   "meta.youtubePlaceholder": "YouTube、Instagram、TikTok のリンク",

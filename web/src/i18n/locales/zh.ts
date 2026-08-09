@@ -702,6 +702,13 @@ const zh: Record<string, string> = {
   "imp.operator2": "密码仅以加盐哈希（PBKDF2）形式存储 —— 连我也看不到明文。",
   "imp.privacyTitle": "数据删除",
   "imp.privacyText": "所有上传的数据将永久存储。要删除它们，请使用个人资料中的“删除账号”按钮（网页应用或 iOS/Android 应用）—— 它会永久移除你的账号及所有记录、原始数据和照片。传输经过加密（HTTPS）。",
+  "imp.aiTitle": "AI 支持（Anthropic Claude）",
+  "imp.aiIntro": "为进行分析与开发，我们使用 Anthropic 的 AI 助手 Claude。会话数据与原始数据、反馈以及聊天消息（包括私信）可能会传输至 Anthropic 并在该处处理，用于以下目的：",
+  "imp.ai1": "分析单次会话（排查故障、合理性检查）",
+  "imp.ai2": "改进我们的识别模型（打水与在板识别）",
+  "imp.ai3": "继续开发应用",
+  "imp.ai4": "查找目录中缺失的前翼与稳定翼",
+  "imp.aiNote": "Anthropic 受我们委托处理相关内容；依据适用的 API 条款，这些内容不会用于训练其语言模型。处理可能在美国进行。助手可能以自己的名义在聊天中回复（账号“Claude Code AI”）。详见 Anthropic 的 <a href=\"https://www.anthropic.com/legal/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">隐私政策</a>.",
 
   "meta.captionPlaceholder": "我的 2–3 个词描述",
   "meta.youtubePlaceholder": "YouTube、Instagram 或 TikTok 链接",

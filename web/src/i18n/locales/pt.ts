@@ -702,6 +702,13 @@ const pt: Record<string, string> = {
   "imp.operator2": "As senhas são guardadas só como hash com sal (PBKDF2) — nem eu consigo vê-las em texto puro.",
   "imp.privacyTitle": "Exclusão de dados",
   "imp.privacyText": "Todos os dados enviados são armazenados permanentemente. Para excluí-los, use o botão “Excluir conta” no seu perfil (web app ou app iOS/Android) — ele remove permanentemente sua conta com todas as sessões, dados brutos e fotos. A transmissão é criptografada (HTTPS).",
+  "imp.aiTitle": "Apoio de IA (Anthropic Claude)",
+  "imp.aiIntro": "Para análise e desenvolvimento usamos o assistente de IA Claude da Anthropic. Dados de sessão e brutos, feedback e mensagens de chat — incluindo mensagens diretas — podem ser transmitidos à Anthropic e processados lá, para estas finalidades:",
+  "imp.ai1": "análise de sessões individuais (deteção de erros, verificação de plausibilidade)",
+  "imp.ai2": "melhoria dos nossos modelos de deteção (pump e on-foil)",
+  "imp.ai3": "desenvolvimento da aplicação",
+  "imp.ai4": "pesquisa de foils e estabilizadores em falta no catálogo",
+  "imp.aiNote": "A Anthropic processa os conteúdos por nossa conta; segundo os termos de API aplicáveis, não são usados para treinar os seus modelos de linguagem. O processamento pode ocorrer nos EUA. O assistente pode responder no chat com nome próprio (conta «Claude Code AI»). Ver a <a href=\"https://www.anthropic.com/legal/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">política de privacidade da Anthropic</a>.",
 
   "meta.captionPlaceholder": "minha descrição de 2–3 palavras",
   "meta.youtubePlaceholder": "Link do YouTube, Instagram ou TikTok",

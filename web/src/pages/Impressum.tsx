@@ -94,6 +94,21 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* KI-Unterstuetzung: Auswertung, Modellverbesserung und Katalogrecherche laufen mit
+            Claude, dabei koennen Inhalte an Anthropic uebertragen werden. Gehoert offengelegt
+            wie die anderen Dritten (Google/Apple/verknuepfte Konten). */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.aiTitle")}</h3>
+          <p className="mb-2 text-slate-300">{t("imp.aiIntro")}</p>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.ai1")}
+            {li("imp.ai2")}
+            {li("imp.ai3")}
+            {li("imp.ai4")}
+          </ul>
+          <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.aiNote") }} />
+        </section>
+
         <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
           <h3 className="mb-2 font-semibold text-slate-200">{t("imp.ytTitle")}</h3>
           <ul className="list-disc space-y-1 pl-5 text-slate-200">

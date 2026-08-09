@@ -778,6 +778,13 @@ const en: Record<string, string> = {
   "imp.operator2": "Passwords are stored only as a salted hash (PBKDF2) — even I can't see them in plain text.",
   "imp.privacyTitle": "Data deletion",
   "imp.privacyText": "All uploaded data is stored permanently. To delete it, use the “Delete account” button in your profile (web app or iOS/Android app) — it permanently removes your account with all sessions, raw data and photos. Transmission is encrypted (HTTPS).",
+  "imp.aiTitle": "AI assistance (Anthropic Claude)",
+  "imp.aiIntro": "We use Anthropic's AI assistant Claude for analysis and development. Session and raw data, feedback and chat messages — including direct messages — may be transmitted to Anthropic and processed there for these purposes:",
+  "imp.ai1": "Analysing individual sessions (troubleshooting, plausibility checks)",
+  "imp.ai2": "Improving our detection models (pump and on-foil detection)",
+  "imp.ai3": "Developing the app further",
+  "imp.ai4": "Researching missing foils and stabilizers for the catalogue",
+  "imp.aiNote": "Anthropic processes the content on our behalf; under the applicable API terms it is not used to train their language models. Processing may take place in the USA. The assistant may reply in the chat under its own name (account “Claude Code AI”). See Anthropic's <a href=\"https://www.anthropic.com/legal/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">privacy policy</a>.",
 
   "meta.captionPlaceholder": "my 2–3 word description",
   "meta.youtubePlaceholder": "YouTube, Instagram or TikTok link",

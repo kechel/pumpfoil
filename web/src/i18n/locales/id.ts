@@ -702,6 +702,13 @@ const id: Record<string, string> = {
   "imp.operator2": "Kata sandi disimpan hanya sebagai hash bergaram (PBKDF2) — bahkan aku tidak bisa melihatnya dalam teks biasa.",
   "imp.privacyTitle": "Penghapusan data",
   "imp.privacyText": "Semua data yang diunggah disimpan secara permanen. Untuk menghapusnya, gunakan tombol “Hapus akun” di profilmu (aplikasi web atau aplikasi iOS/Android) — ini menghapus permanen akunmu beserta semua sesi, data mentah dan foto. Transmisi terenkripsi (HTTPS).",
+  "imp.aiTitle": "Bantuan AI (Anthropic Claude)",
+  "imp.aiIntro": "Untuk analisis dan pengembangan kami memakai asisten AI Claude dari Anthropic. Data sesi dan data mentah, masukan, serta pesan obrolan — termasuk pesan langsung — dapat dikirim ke Anthropic dan diproses di sana, untuk tujuan berikut:",
+  "imp.ai1": "analisis sesi tertentu (pelacakan galat, pemeriksaan kewajaran)",
+  "imp.ai2": "peningkatan model deteksi kami (deteksi pump dan on-foil)",
+  "imp.ai3": "pengembangan aplikasi",
+  "imp.ai4": "penelusuran foil dan stabilizer yang belum ada di katalog",
+  "imp.aiNote": "Anthropic memproses konten atas perintah kami; menurut ketentuan API yang berlaku, konten itu tidak dipakai untuk melatih model bahasa mereka. Pemrosesan dapat terjadi di AS. Asisten dapat menjawab di obrolan dengan namanya sendiri (akun “Claude Code AI”). Lihat <a href=\"https://www.anthropic.com/legal/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">kebijakan privasi Anthropic</a>.",
 
   "meta.captionPlaceholder": "deskripsi 2–3 kata milikku",
   "meta.youtubePlaceholder": "Tautan YouTube, Instagram atau TikTok",
