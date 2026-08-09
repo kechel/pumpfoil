@@ -1428,5 +1428,60 @@
     "brand": "Sabfoil",
     "model": "Blade Blackbird",
     "size": "377"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "40"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "55"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "65 UHA"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "85"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "95 UHA"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "105"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "135"
+  },
+  {
+    "brand": "Ketos",
+    "model": "Pump Knife",
+    "size": "165"
+  },
+  {
+    "brand": "Ketos",
+    "model": "KODEBA",
+    "size": "125"
+  },
+  {
+    "brand": "Ketos",
+    "model": "KODEBA",
+    "size": "155"
+  },
+  {
+    "brand": "Ketos",
+    "model": "KODEBA",
+    "size": "185"
   }
 ]
