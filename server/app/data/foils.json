@@ -1437,123 +1437,6 @@
     "thickness_estimated": true
   },
   {
-    "brand": "Slingshot",
-    "model": "Phantasm PTM 684",
-    "size": "684",
-    "span_cm": 68.4,
-    "area_cm2": 952,
-    "thickness_mm": 15,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PTM 825",
-    "size": "825",
-    "span_cm": 82.5,
-    "area_cm2": 758,
-    "thickness_mm": 10,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PTM 899",
-    "size": "899",
-    "span_cm": 89.9,
-    "area_cm2": 925,
-    "thickness_mm": 14,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PTM 930",
-    "size": "930",
-    "span_cm": 93.0,
-    "area_cm2": 950,
-    "thickness_mm": 14,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PFI 633",
-    "size": "633",
-    "span_cm": 63.3,
-    "area_cm2": 1270,
-    "thickness_mm": 34,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PFI 730",
-    "size": "730",
-    "span_cm": 73.0,
-    "area_cm2": 1456,
-    "thickness_mm": 26,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm PFI 928",
-    "size": "928",
-    "span_cm": 92.8,
-    "area_cm2": 2389,
-    "thickness_mm": 42,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm E 866",
-    "size": "866",
-    "span_cm": 86.6,
-    "area_cm2": 1550,
-    "thickness_mm": 32,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm E 990",
-    "size": "990",
-    "span_cm": 99.0,
-    "area_cm2": 1800,
-    "thickness_mm": 34,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm G 700",
-    "size": "700",
-    "span_cm": 70.0,
-    "area_cm2": 900,
-    "thickness_mm": 21,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm G 800",
-    "size": "800",
-    "span_cm": 80.0,
-    "area_cm2": 1173,
-    "thickness_mm": 24,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm G 900",
-    "size": "900",
-    "span_cm": 90.0,
-    "area_cm2": 1263,
-    "thickness_mm": 23,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Slingshot",
-    "model": "Phantasm G 1000",
-    "size": "1000",
-    "span_cm": 100.0,
-    "area_cm2": 1355,
-    "thickness_mm": 22,
-    "thickness_estimated": true
-  },
-  {
     "brand": "Lift Foils",
     "model": "Lift 90 High Aspect",
     "size": "90",
@@ -2347,123 +2230,6 @@
   },
   {
     "brand": "Moses",
-    "model": "Onda 633",
-    "size": "633",
-    "span_cm": 63.3,
-    "area_cm2": 1250,
-    "thickness_mm": 34,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Moses",
-    "model": "Medusa 790",
-    "size": "790",
-    "span_cm": 79.0,
-    "area_cm2": 1529,
-    "thickness_mm": 21.6,
-    "thickness_estimated": true
-  },
-  {
-    "brand": "Moses",
-    "model": "Medusa 899",
-    "size": "899",
-    "span_cm": 89.9,
-    "area_cm2": 1383,
-    "thickness_mm": 21.6,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Razor 820",
-    "size": "820",
-    "span_cm": 82.0,
-    "area_cm2": 746,
-    "thickness_mm": 15.3,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Razor 880",
-    "size": "880",
-    "span_cm": 88.0,
-    "area_cm2": 843,
-    "thickness_mm": 17.8,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Razor Pro 975",
-    "size": "975",
-    "span_cm": 98.0,
-    "area_cm2": 942,
-    "thickness_mm": 16.77,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Razor Pro 1075",
-    "size": "1075",
-    "span_cm": 107.5,
-    "area_cm2": 1061,
-    "thickness_mm": 17,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Blade 700",
-    "size": "700",
-    "span_cm": 70.0,
-    "area_cm2": 552,
-    "thickness_mm": 13.1,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Leviathan 950",
-    "size": "950",
-    "span_cm": 95.0,
-    "area_cm2": 1300,
-    "thickness_mm": 22.9,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Leviathan 1150",
-    "size": "1150",
-    "span_cm": 115.0,
-    "area_cm2": 1580,
-    "thickness_mm": 22.9,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Leviathan 1350",
-    "size": "1350",
-    "span_cm": 135.0,
-    "area_cm2": 1870,
-    "thickness_mm": 22.9,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Leviathan 1550",
-    "size": "1550",
-    "span_cm": 155.0,
-    "area_cm2": 2140,
-    "thickness_mm": 22.9,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
-    "model": "Leviathan 1750",
-    "size": "1750",
-    "span_cm": 175.0,
-    "area_cm2": 2400,
-    "thickness_mm": 22.9,
-    "thickness_estimated": false
-  },
-  {
-    "brand": "Moses",
     "model": "Onda 1000 HA",
     "size": "1000",
     "span_cm": 100.0,
@@ -3103,137 +2869,11 @@
   },
   {
     "brand": "Sabfoil",
-    "model": "LEVIATHAN BLACKBIRD 1400",
-    "size": "1400",
-    "span_cm": 138,
-    "area_cm2": 1549,
-    "thickness_mm": 18,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "LEVIATHAN BLACKBIRD 1300",
-    "size": "1300",
-    "span_cm": 128,
-    "area_cm2": 1330,
-    "thickness_mm": 16.7,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD RAZOR 1077",
-    "size": "1077",
-    "span_cm": 107.7,
-    "area_cm2": 1069,
-    "thickness_mm": 17,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD RAZOR 977",
-    "size": "977",
-    "span_cm": 97.7,
-    "area_cm2": 953,
-    "thickness_mm": 16.7,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD RAZOR 847",
-    "size": "847",
-    "span_cm": 84.7,
-    "area_cm2": 784,
-    "thickness_mm": 16,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD RAZOR 737",
-    "size": "737",
-    "span_cm": 73.7,
-    "area_cm2": 648,
-    "thickness_mm": 14.7,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
     "model": "SEA DEVIL 780 BLACKBIRD",
     "size": "780",
     "span_cm": 78,
     "area_cm2": 950,
     "thickness_mm": 18.2,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD BLADE 700",
-    "size": "700",
-    "span_cm": 70,
-    "area_cm2": 557,
-    "thickness_mm": 13.15,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD BALZ MULLER 965",
-    "size": "965",
-    "span_cm": 96.5,
-    "area_cm2": 1210,
-    "thickness_mm": 19,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD BALZ MULLER 905",
-    "size": "905",
-    "span_cm": 90.5,
-    "area_cm2": 998,
-    "thickness_mm": 17,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "BLACKBIRD BALZ MULLER 805",
-    "size": "805",
-    "span_cm": 80.5,
-    "area_cm2": 792,
-    "thickness_mm": 15.3,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "MEDUSA 699",
-    "size": "699",
-    "span_cm": 69.9,
-    "area_cm2": 880,
-    "thickness_mm": 19.5,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "MEDUSA 799",
-    "size": "799",
-    "span_cm": 79.9,
-    "area_cm2": 1100,
-    "thickness_mm": 21.6,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "MEDUSA 899",
-    "size": "899",
-    "span_cm": 89.9,
-    "area_cm2": 1383,
-    "thickness_mm": 24,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
-    "model": "MEDUSA 999",
-    "size": "999",
-    "span_cm": 99.9,
-    "area_cm2": 1747,
-    "thickness_mm": 25.9,
     "is_baseline": false
   },
   {
@@ -4177,5 +3817,819 @@
     "thickness_mm": 24.7,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM",
+    "size": "684",
+    "span_cm": 68.4,
+    "area_cm2": 952.0,
+    "thickness_mm": 15.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM",
+    "size": "825",
+    "span_cm": 82.5,
+    "area_cm2": 758.0,
+    "thickness_mm": 10.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 925.0,
+    "thickness_mm": 14.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PTM",
+    "size": "930",
+    "span_cm": 93.0,
+    "area_cm2": 950.0,
+    "thickness_mm": 14.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI",
+    "size": "633",
+    "span_cm": 63.3,
+    "area_cm2": 1270.0,
+    "thickness_mm": 34.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI",
+    "size": "730",
+    "span_cm": 73.0,
+    "area_cm2": 1456.0,
+    "thickness_mm": 26.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm PFI",
+    "size": "928",
+    "span_cm": 92.8,
+    "area_cm2": 2389.0,
+    "thickness_mm": 42.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm E",
+    "size": "866",
+    "span_cm": 86.6,
+    "area_cm2": 1550.0,
+    "thickness_mm": 32.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm E",
+    "size": "990",
+    "span_cm": 99.0,
+    "area_cm2": 1800.0,
+    "thickness_mm": 34.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G",
+    "size": "700",
+    "span_cm": 70.0,
+    "area_cm2": 900.0,
+    "thickness_mm": 21.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G",
+    "size": "800",
+    "span_cm": 80.0,
+    "area_cm2": 1173.0,
+    "thickness_mm": 24.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G",
+    "size": "900",
+    "span_cm": 90.0,
+    "area_cm2": 1263.0,
+    "thickness_mm": 23.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Slingshot",
+    "model": "Phantasm G",
+    "size": "1000",
+    "span_cm": 100.0,
+    "area_cm2": 1355.0,
+    "thickness_mm": 22.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Onda",
+    "size": "633",
+    "span_cm": 63.3,
+    "area_cm2": 1250.0,
+    "thickness_mm": 34.0,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Medusa",
+    "size": "790",
+    "span_cm": 79.0,
+    "area_cm2": 1529.0,
+    "thickness_mm": 21.6,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Moses",
+    "model": "Medusa",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 1383.0,
+    "thickness_mm": 21.6
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor",
+    "size": "820",
+    "span_cm": 82.0,
+    "area_cm2": 746.0,
+    "thickness_mm": 15.3
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor",
+    "size": "880",
+    "span_cm": 88.0,
+    "area_cm2": 843.0,
+    "thickness_mm": 17.8
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor Pro",
+    "size": "975",
+    "span_cm": 98.0,
+    "area_cm2": 942.0,
+    "thickness_mm": 16.77
+  },
+  {
+    "brand": "Moses",
+    "model": "Razor Pro",
+    "size": "1075",
+    "span_cm": 107.5,
+    "area_cm2": 1061.0,
+    "thickness_mm": 17.0
+  },
+  {
+    "brand": "Moses",
+    "model": "Blade",
+    "size": "700",
+    "span_cm": 70.0,
+    "area_cm2": 552.0,
+    "thickness_mm": 13.1
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan",
+    "size": "950",
+    "span_cm": 95.0,
+    "area_cm2": 1300.0,
+    "thickness_mm": 22.9
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan",
+    "size": "1150",
+    "span_cm": 115.0,
+    "area_cm2": 1580.0,
+    "thickness_mm": 22.9
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan",
+    "size": "1350",
+    "span_cm": 135.0,
+    "area_cm2": 1870.0,
+    "thickness_mm": 22.9
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan",
+    "size": "1550",
+    "span_cm": 155.0,
+    "area_cm2": 2140.0,
+    "thickness_mm": 22.9
+  },
+  {
+    "brand": "Moses",
+    "model": "Leviathan",
+    "size": "1750",
+    "span_cm": 175.0,
+    "area_cm2": 2400.0,
+    "thickness_mm": 22.9
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD",
+    "size": "1350",
+    "span_cm": 135.0,
+    "area_cm2": 1864.0,
+    "thickness_mm": 21.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD",
+    "size": "1400",
+    "span_cm": 138.0,
+    "area_cm2": 1549.0,
+    "thickness_mm": 18.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "LEVIATHAN BLACKBIRD",
+    "size": "1300",
+    "span_cm": 128.0,
+    "area_cm2": 1330.0,
+    "thickness_mm": 16.7
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR",
+    "size": "1077",
+    "span_cm": 107.7,
+    "area_cm2": 1069.0,
+    "thickness_mm": 17.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR",
+    "size": "977",
+    "span_cm": 97.7,
+    "area_cm2": 953.0,
+    "thickness_mm": 16.7
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR",
+    "size": "847",
+    "span_cm": 84.7,
+    "area_cm2": 784.0,
+    "thickness_mm": 16.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD RAZOR",
+    "size": "737",
+    "span_cm": 73.7,
+    "area_cm2": 648.0,
+    "thickness_mm": 14.7
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BLADE",
+    "size": "700",
+    "span_cm": 70.0,
+    "area_cm2": 557.0,
+    "thickness_mm": 13.15
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER",
+    "size": "965",
+    "span_cm": 96.5,
+    "area_cm2": 1210.0,
+    "thickness_mm": 19.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER",
+    "size": "905",
+    "span_cm": 90.5,
+    "area_cm2": 998.0,
+    "thickness_mm": 17.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "BLACKBIRD BALZ MULLER",
+    "size": "805",
+    "span_cm": 80.5,
+    "area_cm2": 792.0,
+    "thickness_mm": 15.3
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA",
+    "size": "699",
+    "span_cm": 69.9,
+    "area_cm2": 880.0,
+    "thickness_mm": 19.5
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA",
+    "size": "799",
+    "span_cm": 79.9,
+    "area_cm2": 1100.0,
+    "thickness_mm": 21.6
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA",
+    "size": "899",
+    "span_cm": 89.9,
+    "area_cm2": 1383.0,
+    "thickness_mm": 24.0
+  },
+  {
+    "brand": "Sabfoil",
+    "model": "MEDUSA",
+    "size": "999",
+    "span_cm": 99.9,
+    "area_cm2": 1747.0,
+    "thickness_mm": 25.9
+  },
+  {
+    "brand": "Ketos",
+    "model": "LD",
+    "size": "166",
+    "span_cm": 166.0,
+    "area_cm2": 1466.0,
+    "thickness_mm": 15.1,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "LD",
+    "size": "1570",
+    "span_cm": 138.0,
+    "area_cm2": 1570.0,
+    "thickness_mm": 19.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "EVO",
+    "size": "133",
+    "span_cm": 133.0,
+    "area_cm2": 1770.0,
+    "thickness_mm": 22.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "EVO",
+    "size": "133 Lite",
+    "span_cm": 133.0,
+    "area_cm2": 1770.0,
+    "thickness_mm": 22.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "Dock Start LR",
+    "size": "155",
+    "span_cm": 155.0,
+    "area_cm2": 1770.0,
+    "thickness_mm": 19.5
+  },
+  {
+    "brand": "Ketos",
+    "model": "SPLIT",
+    "size": "150",
+    "span_cm": 151.1,
+    "area_cm2": 1630.0,
+    "thickness_mm": 18.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "SPLIT",
+    "size": "135",
+    "span_cm": 135.1,
+    "area_cm2": 1460.0,
+    "thickness_mm": 18.5,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "SPLIT",
+    "size": "120",
+    "span_cm": 120.5,
+    "area_cm2": 1320.0,
+    "thickness_mm": 18.7,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "KOBUN",
+    "size": "99",
+    "span_cm": 99.0,
+    "area_cm2": 742.0,
+    "thickness_mm": 12.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "KOBUN",
+    "size": "111",
+    "span_cm": 111.0,
+    "area_cm2": 933.0,
+    "thickness_mm": 14.4,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "KOBUN",
+    "size": "122",
+    "span_cm": 122.0,
+    "area_cm2": 1128.0,
+    "thickness_mm": 15.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "KOBUN",
+    "size": "133",
+    "span_cm": 133.0,
+    "area_cm2": 1340.0,
+    "thickness_mm": 17.2,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "Karve Freefly",
+    "size": "750",
+    "span_cm": 83.5,
+    "area_cm2": 750.0,
+    "thickness_mm": 15.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "Karve Freefly",
+    "size": "950",
+    "span_cm": 94.0,
+    "area_cm2": 950.0,
+    "thickness_mm": 17.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "Karve Freefly",
+    "size": "1250",
+    "span_cm": 107.8,
+    "area_cm2": 1250.0,
+    "thickness_mm": 19.8,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Ketos",
+    "model": "Karve Freefly",
+    "size": "1450",
+    "span_cm": 116.1,
+    "area_cm2": 1450.0,
+    "thickness_mm": 21.3,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "S",
+    "span_cm": 89.0,
+    "area_cm2": 700.0,
+    "thickness_mm": 16.2
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "M",
+    "span_cm": 98.0,
+    "area_cm2": 850.0,
+    "thickness_mm": 17.8
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "L",
+    "span_cm": 107.0,
+    "area_cm2": 1000.0,
+    "thickness_mm": 19.4
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "XL",
+    "span_cm": 119.0,
+    "area_cm2": 1250.0,
+    "thickness_mm": 21.6
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "XXL",
+    "span_cm": 131.0,
+    "area_cm2": 1500.0,
+    "thickness_mm": 23.7
+  },
+  {
+    "brand": "Gong",
+    "model": "HYPER TRAIL V3 ATMO",
+    "size": "3XL",
+    "span_cm": 141.0,
+    "area_cm2": 1750.0,
+    "thickness_mm": 25.6
+  },
+  {
+    "brand": "Gong",
+    "model": "SUPRA TRAIL V3 ATMO",
+    "size": "XL",
+    "span_cm": 135.0,
+    "area_cm2": 1250.0,
+    "thickness_mm": 20.0
+  },
+  {
+    "brand": "Gong",
+    "model": "SUPRA TRAIL V3 ATMO",
+    "size": "XXL",
+    "span_cm": 148.0,
+    "area_cm2": 1500.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "SUPRA TRAIL V3 ATMO",
+    "size": "3XL",
+    "span_cm": 160.0,
+    "area_cm2": 1750.0,
+    "thickness_mm": 23.7
+  },
+  {
+    "brand": "Gong",
+    "model": "SUPRA TRAIL V3 ATMO",
+    "size": "4XL",
+    "span_cm": 171.0,
+    "area_cm2": 2000.0,
+    "thickness_mm": 25.3
+  },
+  {
+    "brand": "Gong",
+    "model": "SUPRA TRAIL V3 ATMO",
+    "size": "5XL",
+    "span_cm": 181.0,
+    "area_cm2": 2250.0,
+    "thickness_mm": 26.9
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL V3 ATMO",
+    "size": "XL",
+    "span_cm": 149.0,
+    "area_cm2": 1250.0,
+    "thickness_mm": 20.3
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL V3 ATMO",
+    "size": "XXL",
+    "span_cm": 163.0,
+    "area_cm2": 1500.0,
+    "thickness_mm": 22.3
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL V3 ATMO",
+    "size": "3XL",
+    "span_cm": 176.0,
+    "area_cm2": 1750.0,
+    "thickness_mm": 24.1
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL V3 ATMO",
+    "size": "4XL",
+    "span_cm": 188.0,
+    "area_cm2": 2000.0,
+    "thickness_mm": 25.7
+  },
+  {
+    "brand": "Gong",
+    "model": "ULTRA TRAIL V3 ATMO",
+    "size": "5XL",
+    "span_cm": 200.0,
+    "area_cm2": 2250.0,
+    "thickness_mm": 27.3
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO PERF",
+    "size": "L",
+    "span_cm": 116.0,
+    "area_cm2": 1442.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO PERF",
+    "size": "XL",
+    "span_cm": 136.0,
+    "area_cm2": 1691.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO PERF",
+    "size": "XXL",
+    "span_cm": 156.0,
+    "area_cm2": 1940.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO PERF",
+    "size": "3XL",
+    "span_cm": 186.0,
+    "area_cm2": 2313.0,
+    "thickness_mm": 22.0
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO PERF",
+    "size": "L",
+    "span_cm": 125.0,
+    "area_cm2": 1660.0,
+    "thickness_mm": 26.1
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO PERF",
+    "size": "XL",
+    "span_cm": 135.0,
+    "area_cm2": 1940.0,
+    "thickness_mm": 28.2
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO PERF",
+    "size": "XXL",
+    "span_cm": 145.0,
+    "area_cm2": 2240.0,
+    "thickness_mm": 30.3
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO TEAM",
+    "size": "M",
+    "span_cm": 112.0,
+    "area_cm2": 1150.0,
+    "thickness_mm": 19.7
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO TEAM",
+    "size": "L",
+    "span_cm": 124.0,
+    "area_cm2": 1400.0,
+    "thickness_mm": 21.8
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO TEAM",
+    "size": "XL",
+    "span_cm": 135.0,
+    "area_cm2": 1650.0,
+    "thickness_mm": 23.9
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO TEAM",
+    "size": "XXL",
+    "span_cm": 146.0,
+    "area_cm2": 1950.0,
+    "thickness_mm": 25.8
+  },
+  {
+    "brand": "Gong",
+    "model": "SIRUS V3 ATMO TEAM",
+    "size": "3XL",
+    "span_cm": 161.0,
+    "area_cm2": 2350.0,
+    "thickness_mm": 28.3
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO TEAM",
+    "size": "L",
+    "span_cm": 117.0,
+    "area_cm2": 1350.0,
+    "thickness_mm": 21.9
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO TEAM",
+    "size": "XL",
+    "span_cm": 129.0,
+    "area_cm2": 1650.0,
+    "thickness_mm": 24.2
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO TEAM",
+    "size": "XXL",
+    "span_cm": 140.0,
+    "area_cm2": 1950.0,
+    "thickness_mm": 26.3
+  },
+  {
+    "brand": "Gong",
+    "model": "TRAIL V3 ATMO TEAM",
+    "size": "3XL",
+    "span_cm": 151.0,
+    "area_cm2": 2250.0,
+    "thickness_mm": 28.3
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE DW V3 ATMO",
+    "size": "XS",
+    "span_cm": 92.0,
+    "area_cm2": 600.0,
+    "thickness_mm": 11.5
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE DW V3 ATMO",
+    "size": "S",
+    "span_cm": 103.0,
+    "area_cm2": 750.0,
+    "thickness_mm": 12.9
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE DW V3 ATMO",
+    "size": "M",
+    "span_cm": 113.0,
+    "area_cm2": 900.0,
+    "thickness_mm": 14.1
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE DW V3 ATMO",
+    "size": "L",
+    "span_cm": 122.0,
+    "area_cm2": 1050.0,
+    "thickness_mm": 15.3
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE DW V3 ATMO",
+    "size": "XL",
+    "span_cm": 130.0,
+    "area_cm2": 1200.0,
+    "thickness_mm": 16.3
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE XTR V3 ATMO",
+    "size": "XS",
+    "span_cm": 101.0,
+    "area_cm2": 600.0,
+    "thickness_mm": 15.4
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE XTR V3 ATMO",
+    "size": "S",
+    "span_cm": 109.0,
+    "area_cm2": 700.0,
+    "thickness_mm": 16.6
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE XTR V3 ATMO",
+    "size": "M",
+    "span_cm": 116.0,
+    "area_cm2": 800.0,
+    "thickness_mm": 17.8
+  },
+  {
+    "brand": "Gong",
+    "model": "VELOCE XTR V3 ATMO",
+    "size": "L",
+    "span_cm": 123.0,
+    "area_cm2": 900.0,
+    "thickness_mm": 18.9
   }
 ]
