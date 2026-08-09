@@ -147,6 +147,13 @@ class SessionRecorder {
     var layoutCrash = false;          // letzte Session ist abgestürzt -> jetzt statisch
     var canaryPending = false;        // dem Server noch zu melden (?canary=1)
     var layoutHintUntilMs = 0;        // Start-Screen-Hinweis bis zu dieser Timer-Zeit
+    // ZWEITE Marke, für den APP-START. Der Canary oben wird erst beim Aufnahme-Start scharf
+    // gemacht — stirbt die App schon beim Start (Layout aus dem Cache anwenden oder erstes Bild
+    // zeichnen), konnte sich das nie melden: die Uhr kam nie dazu, etwas zu setzen, und der
+    // Server lieferte unbeirrt dasselbe Layout weiter. Für den Nutzer heißt das „IQ!" beim
+    // Öffnen, und Löschen samt Neuinstallation hilft nicht, weil die Konfiguration vom Server
+    // kommt. Diese Marke liegt vom Anwenden bis zum ersten fertigen Bild.
+    var bootCanaryOpen = false;
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
@@ -349,15 +356,36 @@ class SessionRecorder {
         // abschalten (das entscheidet der Server je Modell) — nur diese Sitzung statisch fahren,
         // Hinweis zeigen und die Meldung fürs nächste /config vormerken. Flag danach löschen,
         // damit ein einzelner Absturz nicht ewig nachhallt.
-        if (Storage.getValue("layout_canary") == true) {
+        // Beide Marken prüfen: die Aufnahme-Marke (letzte Fahrt) UND die Start-Marke (letzter
+        // App-Start). Bei der Start-Marke ist das Anwenden selbst der Verdächtige, deshalb wird
+        // das Layout diesmal gar nicht erst angewendet — sonst stürzt die App genauso wieder ab.
+        var recCrash = (Storage.getValue("layout_canary") == true);
+        var bootCrash = (Storage.getValue("layout_boot_canary") == true);
+        if (recCrash || bootCrash) {
             layoutCrash = true;
             canaryPending = true;
             layoutHintUntilMs = System.getTimer() + 6000;
-            _store("layout_canary", false);
+            if (recCrash) { _store("layout_canary", false); }
+            if (bootCrash) { _store("layout_boot_canary", false); }
         }
         var lc = Storage.getValue("layouts_config");
-        if (lc instanceof Lang.Dictionary) { _applyLayouts(lc); }
+        if (lc instanceof Lang.Dictionary && !layoutCrash) {
+            // Ab hier gilt der Start als „offen": bleibt die Marke liegen, war es ein Absturz.
+            bootCanaryOpen = true;
+            _store("layout_boot_canary", true);
+            _applyLayouts(lc);
+        }
     }
+
+    // Start als geglückt verbuchen — gerufen, sobald das erste Bild nachweislich stand
+    // (RecordView.onUpdate ein zweites Mal). Ein Storage-Write pro App-Start, nicht pro Frame.
+    (:full) function bootCanaryClear() {
+        if (bootCanaryOpen) {
+            bootCanaryOpen = false;
+            if (Storage.getValue("layout_boot_canary") == true) { _store("layout_boot_canary", false); }
+        }
+    }
+    (:lite) function bootCanaryClear() { }
 
     (:lite) hidden function _layoutsFromConfig(data) { }
     (:lite) hidden function _layoutsFromCache() { }

@@ -18,6 +18,8 @@ class RecordView extends WatchUi.View {
     // ersten Sekunden — man braucht ihn genau dann, und danach bleibt das Layout frei.
     hidden var _pausedAtMs = null;
     const PAUSE_HINT_MS = 6000;
+    // Hat schon einmal ein Bild fertig gezeichnet? Loescht die Start-Marke (s. onUpdate).
+    hidden var _drewOnce = false;
 
     function initialize(recorder) {
         View.initialize();
@@ -42,6 +44,12 @@ class RecordView extends WatchUi.View {
     function prevScreen() { screenIdx = (screenIdx + _pageCount() - 1) % _pageCount(); }
 
     function onUpdate(dc) {
+        // Start-Marke loeschen, sobald ein Bild nachweislich fertig geworden ist: wir sind ein
+        // ZWEITES Mal hier, also hat der erste Durchlauf ueberlebt. Absichtlich nicht am Ende von
+        // onUpdate — der Weg dorthin hat mehrere fruehe returns, und ein Absturz mitten im
+        // Zeichnen soll die Marke gerade NICHT loeschen. Kostet einen Storage-Write pro App-Start.
+        if (_drewOnce) { _rec.bootCanaryClear(); } else { _drewOnce = true; }
+
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 

@@ -126,6 +126,10 @@ def device_config(
         # das nur ein manueller Reset im Profil aufhebt. Genau darin lief Jan fest: Uhr meldet den
         # Absturz -> Zähler zurück auf 1 -> Server liefert nie wieder Layouts.
         and (int(device.layout_canary_count or 0) < CANARY_BLOCK_AT or user_opted_in or not is_garmin)
+        # ... aber ab CANARY_HARD_BLOCK_AT ist Schluss, auch fuer Opt-in-Nutzer: haeufen sich die
+        # Meldungen, ist die App womoeglich schon beim Start unbedienbar und der Schalter an der
+        # Uhr unerreichbar. Zuruecksetzen geht dann nur noch im Profil.
+        and (int(device.layout_canary_count or 0) < CANARY_HARD_BLOCK_AT or not is_garmin)
         and (_model_layouts_allowed(db, _model_id(pn or device.part_number), user_opted_in) or not is_garmin)
     )
     # Ausgeliefert wird das Layout-Paket, sobald die Uhr GENUG SPEICHER hat — unabhängig davon, ob
@@ -419,6 +423,12 @@ LAYOUT_MIN_MEMORY = 524288      # Bytes watchApp-Budget
 # die Uhr heilt einen Einzelfall selbst (eine Sitzung statisch), und ihre Meldung würde sie dann
 # dauerhaft aussperren. Ab 2 (Wiederholung) sieht es nach echtem Problem aus.
 CANARY_BLOCK_AT = 2
+# HARTES Limit, das auch einen ausdruecklichen Opt-in ueberstimmt. Grund: `user_opted_in` hebt die
+# Sperre oben komplett auf ("Testen erlaubt") — bei einem Absturz BEIM APP-START ist das eine Falle,
+# denn dann ist die App gar nicht mehr bedienbar, der Schalter an der Uhr also unerreichbar, und
+# Loeschen samt Neuinstallation hilft nicht, weil die Konfiguration vom Server kommt. Ab hier
+# liefern wir keine Layouts mehr, bis der Nutzer den Zaehler im Profil zuruecksetzt.
+CANARY_HARD_BLOCK_AT = 5
 # Ab diesem Budget darf eine Uhr Layouts ANFORDERN (`lay=1`), auch wenn wir sie nicht von selbst
 # ausliefern. 128 KB = die Klasse, in der der Renderer im Build steckt (kein Lite), aber der
 # Speicher knapp ist. Darunter (96 KB, Lite) existiert der Renderer nicht -> nichts anzufordern.
