@@ -4147,5 +4147,35 @@
     "thickness_mm": 20.3,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "APF",
+    "size": "1350",
+    "span_cm": 120.2,
+    "area_cm2": 1350.0,
+    "thickness_mm": 19.2,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "APF",
+    "size": "1675",
+    "span_cm": 120.2,
+    "area_cm2": 1675.0,
+    "thickness_mm": 23.8,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "APF",
+    "size": "1880",
+    "span_cm": 130.2,
+    "area_cm2": 1880.0,
+    "thickness_mm": 24.7,
+    "thickness_estimated": true,
+    "is_baseline": false
   }
 ]
