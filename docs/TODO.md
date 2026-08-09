@@ -39,10 +39,12 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Galaxy Watch 4 haette laufen muessen — der Neukauf war unnoetig; unsere Angabe
   („Wear OS 3+") war korrekt, die Anleitung sagte aber nicht, dass die Uhren-App **auf der
   Uhr** installiert wird (Phone+Wear teilen die applicationId).
-  - **EINGEREICHT 05.08. abend (Jan): Wear 1.2.20/1030 + Phone Android 1.1.20/34** (Play,
-    beide Formfaktor-Tracks, Vorabpruefungen liefen). Ueberholen die eingereichten 1.2.19/1029
-    bzw. 1.1.19/33. `appmeta` bleibt bis zur FREIGABE auf wear 1.2.18 / android 1.1.18; danach
-    -> wear 1.2.20, android 1.1.20.
+  - **FREIGEGEBEN 09.08. (Play-Mail "is live in the store"): Wear 1.2.20/1030 + Phone Android
+    1.1.20/34.** Eingereicht 05.08. abend, Release im Console am 05.08. 15:06 GMT erstellt.
+    `appmeta` gesetzt: android 1.1.20, wear 1.2.20 (per `/api/app/latest?platform=android`
+    verifiziert; die Uhr-Endpunkte brauchen ein Geraetetoken, Wert direkt aus `_APP_META`
+    geprueft). Changelog-Eintrag steht. **Nicht** die 1.1.21/35 bzw. 1.2.21/1031 eintragen —
+    die sind danach gebaut und noch nicht eingereicht.
   - **Wear 1.2.20/1030 + Phone 1.1.20/34 gebaut** (beide kompiliert): Standort ist harte
     Startvoraussetzung (fehlt sie -> fragen, bei „Nein" NICHT starten, roter Hinweis mit
     Tipp-Aktion; nach endgueltigem Ablehnen direkt in die System-Einstellungen), Warnung wenn

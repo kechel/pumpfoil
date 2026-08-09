@@ -62,7 +62,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.18",   # LIVE im Play Store 2026-08-04 (Mail "is live", org.pumpfoil.app)
+        "latest": "1.1.20",   # LIVE im Play Store 2026-08-09 (Play-Mail "is live in the store",
+        # org.pumpfoil.app, Release erstellt 05.08. 15:06 GMT). Eingereicht war 1.1.20/34, siehe
+        # docs/TODO.md — NICHT die 1.1.21/35, die danach gebaut wurde und noch nicht eingereicht ist.
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
@@ -78,9 +80,11 @@ _APP_META: dict[str, dict[str, str]] = {
     "wear": {
         # EIGENE Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x, s. android/wear/build.gradle.kts).
         # Vorher fehlte dieser Schluessel -> die Wear-Uhr bekam nie einen Hinweis.
-        # LIVE im Play Store 2026-08-04 (Track-Zusammenfassung Wear OS: "Aktiv, neuester Release
-        # 1028 (1.2.18), 177 Laender"). Eigene Zaehlung: Wear = 1.2.x, Phone = 1.1.x (gleiches x).
-        "latest": "1.2.18",
+        # LIVE im Play Store 2026-08-09 (Play-Mail "is live in the store"; Release erstellt
+        # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
+        # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
+        # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
+        "latest": "1.2.20",
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
