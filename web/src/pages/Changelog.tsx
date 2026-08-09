@@ -30,6 +30,22 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 9, 2026",
+    items: [
+      "The gear catalogue grew a lot, and nearly all of it came from riders telling us what was missing. New: Beta Foils — the Freefoil wing and its three tails, a brand that wasn’t in the list at all — the two new AXIS Fireballs (1500 and 1750), Armstrong’s APF front wings, Indiana’s monobloc and flat-mount stabilizers, Takoon’s Carve and Pump ranges, Sabfoil’s Blackbird stabilizers, and the first Ketos stabilizers we have ever had: there were sixteen Ketos front wings in the list but not a single tail. Every entry was checked against the manufacturer’s own page. Where a maker doesn’t publish a profile thickness, ours is marked as an estimate — and it isn’t used in any calculation.",
+      "If you couldn’t find your gear before, it may have been in the list under a different name. Several riders had created their own private entries because they searched for the code printed on the part — SDW/375, 150AR — while the list shows the name the maker advertises, like “Downwind Kraken 375”. Those cases are cleared up: you can pick the catalogue entry now and delete your private one. Forty front wings that appeared twice have been removed as well.",
+      "A question about missing gear now gets answered in the chat, and the answer may come from an AI assistant writing under its own name (“Claude Code AI”). It looks up the manufacturer’s specifications, adds what’s missing and tells you what it found — including when the thing you asked for doesn’t exist, or turns out to be a front wing rather than a stabilizer. The [imprint](/impressum) explains what that means for your data: sessions, feedback and chat messages can be sent to Anthropic for analysis, for improving our detection models, for developing the app, and for this catalogue research.",
+    ],
+  },
+  {
+    date: "August 7, 2026",
+    items: [
+      "Failed pairing attempts can be removed. If pairing a watch didn’t work the first time, every attempt stayed in your profile as a watch of its own, with no way to clear them — one rider ended up with a whole list of them and told us he couldn’t get rid of any. Profile → Watch lets you remove them now, and it says to start the app on the watch first, which was the missing step in most failed attempts.",
+      "Your top speed now comes only from your runs. Until now the fastest reading of the entire session counted, so a boat transfer, a tow back to the start or a GPS glitch could set your record. It is now taken from the runs the analysis actually recognises, and the speed a run has to reach was lowered from 40 to 32 km/h so that lighter riders and slower foils aren’t left out. All existing sessions were recalculated, so the number you see is the corrected one.",
+      "GONG Curve H V2 arrived in full (XS through 6XL), together with the Unifoil Evolution series, Roam Foils and ten stabilizers — four riders had asked for these.",
+    ],
+  },
+  {
     date: "August 6, 2026",
     items: [
       "Pausing on a Garmin watch got a proper way out. Until now a short press of START simply ended the pause, and if you wanted to finish the session from there you had to resume first and then hold the button. Now START opens a small menu — resume, cancel, or end and save — with nothing preselected, so pressing START twice does nothing and the choice is always deliberate. Everything else about pausing is unchanged, including your own data pages for the paused state. Garmin 1.0.73 is in the Connect IQ store and on the website.",
