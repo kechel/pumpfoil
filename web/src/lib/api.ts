@@ -848,7 +848,9 @@ export const api = {
   sessionMonths: (filter?: string) =>
     req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
   hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
-  stats: (accelOnly = true) => req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}`),
+  // period: today|10d|30d|365d|all — dieselben Fenster wie die Community-Ranglisten (PERIODS).
+  stats: (accelOnly = true, period = "all") =>
+    req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`),
   // `sport` = Sportart-Filter der Community-Seite (docs/sport-classification.md). Default pumpfoil,
   // damit Aufrufer ohne Filter unverändert weiterlaufen.
   communityRecords: (accelOnly = true, sport = "pumpfoil") =>

@@ -141,6 +141,9 @@ export default function PersonalHome() {
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
   const [accelOnly, setAccelOnly] = useState(false);
+  // Zeitraum der Rekorde/Kacheln — gleiche Fenster wie die Community-Ranglisten (PERIODS).
+  // Default "all" = bisheriges Verhalten (Allzeit), damit niemand plötzlich leere Kacheln sieht.
+  const [period, setPeriod] = useState("all");
   const decidedRef = useRef(false);
 
   useEffect(() => {
@@ -149,8 +152,11 @@ export default function PersonalHome() {
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
-    api.stats(accelOnly).then((s) => {
-      if (!decidedRef.current) {
+    api.stats(accelOnly, period).then((s) => {
+      // Der Accel-Default wird NUR beim ersten Laden entschieden, und nur auf "Allzeit":
+      // in einem kurzen Fenster (z. B. „Heute") sind leere Rekorde normal und wuerden den
+      // Umschalter sonst grundlos auf „alle" zwingen.
+      if (!decidedRef.current && period === "all") {
         decidedRef.current = true;
         const noAccel = !s.records || (["distance", "duration", "speed"] as const)
           .every((k) => (s.records?.[k]?.value ?? 0) === 0);
@@ -158,7 +164,7 @@ export default function PersonalHome() {
       }
       setStats(s);
     }).catch(() => {});
-  }, [accelOnly]);
+  }, [accelOnly, period]);
 
   const recs = stats?.records;
   // Rekord-Kacheln (klickbar -> Session) + Gesamt-Stat-Kacheln, alle zusammen oben.
@@ -266,7 +272,7 @@ export default function PersonalHome() {
       )}
 
       {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
         <div className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-[11px] font-medium" title={t("side.recordsHint")}>
           <button onClick={() => setAccelOnly(true)}
@@ -278,6 +284,21 @@ export default function PersonalHome() {
             {t("side.all")}
           </button>
         </div>
+      </div>
+
+      {/* Zeitraum — dieselben Fenster wie in der Community (PERIODS, ein Ort fuer beides).
+          Wirkt auf die Rekorde UND die Gesamt-Kacheln darunter, weil beides aus derselben
+          Abfrage kommt: „30 Tage" heisst dann auch Foiling/Pumps der letzten 30 Tage. */}
+      <div className="mb-2 flex flex-wrap items-center gap-1">
+        {PERIODS.map(([k, labelKey]) => (
+          <button
+            key={k}
+            onClick={() => setPeriod(k)}
+            className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+          >
+            {t(labelKey)}
+          </button>
+        ))}
       </div>
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}

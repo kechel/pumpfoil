@@ -718,12 +718,21 @@ def list_in_progress(
     return out
 
 
-def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal") -> dict:
+def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal",
+                          period: str = "all") -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
     sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
-    Preset (sensitivity_json). Admin/Community rufen mit "normal" -> Standard (unberührt)."""
+    Preset (sensitivity_json). Admin/Community rufen mit "normal" -> Standard (unberührt).
+
+    `period`: today | 10d | 30d | 365d | all — GENAU dieselben Fenster und dieselbe Grenzberechnung
+    wie die Community-Ranglisten (`community.PERIODS` / `community._cutoff`), damit „30 Tage" auf
+    der Startseite und in der Community dasselbe heißt. Default `all` = das bisherige Verhalten.
+    """
+    from .community import _cutoff        # lokal: vermeidet einen Import-Zirkel beim Laden
+
+    grenze = _cutoff(period)
     # Nur benötigte Spalten — KEIN track_geojson/accel_windows_json (große TEXT-Spalten).
-    rows = (
+    q = (
         db.query(
             models.AnalysisResult.foiling_distance_m, models.AnalysisResult.foiling_time_s,
             models.AnalysisResult.pump_count, models.AnalysisResult.metrics_json,
@@ -733,8 +742,10 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
         )
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True))
-        .all()
     )
+    if grenze is not None:
+        q = q.filter(models.Session.started_at >= grenze)
+    rows = q.all()
     tot_dist = tot_time = tot_pumps = tot_runs = 0.0
     n_sessions = 0  # nur Pumpfoil-Sessions zählen
     rec = {k: {"session_id": None, "value": 0.0, "started_at": None, "run_idx": None, "tz": None} for k in ("distance", "duration", "speed", "runs", "glide")}
@@ -815,8 +826,12 @@ def overall_stats(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
     accel_only: bool = True,
+    period: str = "all",
 ) -> dict:
-    return compute_overall_stats(db, user.id, accel_only, sens=(user.foil_sensitivity or "normal"))
+    """`period`: today | 10d | 30d | 365d | all (dieselben Fenster wie die Community-Ranglisten).
+    Unbekannte Werte behandelt `_cutoff` wie `all` — ein Tippfehler blendet also nichts aus."""
+    return compute_overall_stats(db, user.id, accel_only,
+                                 sens=(user.foil_sensitivity or "normal"), period=period)
 
 
 @router.get("/has-accel")
