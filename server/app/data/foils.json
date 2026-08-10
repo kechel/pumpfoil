@@ -4631,5 +4631,96 @@
     "span_cm": 123.0,
     "area_cm2": 900.0,
     "thickness_mm": 18.9
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "570",
+    "span_cm": 84.7,
+    "area_cm2": 570.0,
+    "thickness_mm": 11.1,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "670",
+    "span_cm": 91.9,
+    "area_cm2": 670.0,
+    "thickness_mm": 12.0,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "770",
+    "span_cm": 98.5,
+    "area_cm2": 770.0,
+    "thickness_mm": 12.9,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "870",
+    "span_cm": 104.7,
+    "area_cm2": 870.0,
+    "thickness_mm": 13.7,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "970",
+    "span_cm": 110.6,
+    "area_cm2": 970.0,
+    "thickness_mm": 14.5,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "1070",
+    "span_cm": 116.1,
+    "area_cm2": 1070.0,
+    "thickness_mm": 15.2,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Armstrong",
+    "model": "UHA",
+    "size": "1270",
+    "span_cm": 126.5,
+    "area_cm2": 1270.0,
+    "thickness_mm": 16.6,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "Rise",
+    "size": "XL",
+    "span_cm": 90.0,
+    "area_cm2": 1844.0,
+    "thickness_mm": 35.0,
+    "thickness_estimated": true,
+    "is_baseline": false
+  },
+  {
+    "brand": "North",
+    "model": "Sonar P",
+    "size": "P2050",
+    "span_cm": 99.0,
+    "area_cm2": 2050.0,
+    "thickness_mm": 33.1,
+    "thickness_estimated": true,
+    "specs_estimated": true,
+    "is_baseline": false
   }
 ]
