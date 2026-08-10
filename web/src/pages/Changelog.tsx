@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 10, 2026",
+    items: [
+      "Garmin 1.0.74 is in the Connect IQ store, and it fixes a crash that was hard to escape. When the watch’s own storage filled up — which happens when recordings pile up unsent, for example while you are away from your phone — the app quit with “IQ!” the moment you opened it. Deleting and reinstalling appeared to help, because that empties the storage, so the real cause stayed hidden. The app now keeps running and says on the start screen that the storage is full. One rider on a Forerunner 970 reported this with fifteen recordings waiting; his log made it possible to reproduce it exactly.",
+      "Recordings waiting to upload now show how much data they are, not just how many there are: “15 waiting for upload · 4 MB”. Twenty short sessions are far less data than three long ones, so a count on its own told you nothing about whether the watch was about to run out of room.",
+      "And if the app ever crashes while starting, the next launch falls back to the fixed data screens by itself instead of crashing again — your own data pages come back as soon as it starts cleanly.",
+    ],
+  },
+  {
     date: "August 9, 2026",
     items: [
       "Android and Wear OS are updated in the Play Store: phone 1.1.20 and watch 1.2.20. This is the update that makes location a real requirement before recording — if the permission is missing the app now asks, and if you decline it says so instead of saving a session with no track. It also warns you when location is only “approximate”, tells you when a session was saved without GPS, and no longer overwrites a working watch connection when you pair again. Wear OS was the last platform still waiting for these fixes.",

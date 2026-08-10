@@ -72,8 +72,11 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.73",   # LIVE im CIQ-Store 2026-08-06 (Pausen-Menue + Norwegisch);
-        # Store-Seite bestaetigt: "Latest Release August 6, 2026, Version 1.0.73, Size 98 KB"
+        "latest": "1.0.74",   # LIVE im CIQ-Store 2026-08-10; Store-Seite bestaetigt:
+        # "Latest Release August 10, 2026, Version 1.0.74, Size 100 KB". Inhalt: voller Uhr-Speicher
+        # beendet die App nicht mehr mit "IQ!" (jeder Storage-Write ueber geschuetzte Helfer),
+        # Upload-Rueckstau als Volumen statt Anzahl, Start-Canary + Speicher-Meldung an den Server.
+        # Vorher 1.0.73, live seit 06.08.
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
