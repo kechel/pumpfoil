@@ -290,7 +290,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - **`watch/bin` steht bewusst auf 1.0.73**, die 121 fertigen 1.0.74-Builds liegen unter
     `/home/jan/release-staging/garmin-1.0.74/`. NACH der Freigabe: zurueckkopieren, dann
     `appmeta.garmin` = 1.0.74 + Changelog. Reihenfolge siehe Memory `watch-bin-is-live`.
-- **Android Phone 1.1.21/35 + Wear 1.2.21/1031 releasebar (10.08. geprueft).** Baum clean, kein
+- **Android Phone 1.1.21/35 + Wear 1.2.21/1031 EINGEREICHT 10.08. (Jan).** Play-Konsole:
+  Produktion **35 (1.1.21)** und Produktion (Wear OS) **1031 (1.2.21)**, beide mit
+  „Vollstaendigen Roll-out starten" — also 100 %, kein Staffeln. Vorabpruefungen liefen.
+  NACH der „is live"-Mail ohne Rueckfrage setzen: `appmeta android` = 1.1.21, `wear` = 1.2.21,
+  danach Changelog. (Die Zahlen sind hier festgehalten, damit die Freigabe kein Nachfragen
+  braucht — Anlass: die appmeta-Regel „nur eintragen was FREIGEGEBEN ist und 100 % Roll-out".)
+  Vorher geprueft: Baum clean, kein
   Cleartext-Hack in den Manifesten, Versionscodes ueber dem Live-Stand (34->35, 1030->1031), beide
   Module frisch kompiliert (33/33 Tasks, BUILD SUCCESSFUL). Inhalt gegenueber 1.1.20/1.2.20:
   Teilen-Dialog scrollt wieder bis zur Schaltflaeche, Wear-Token heilt bei Config-401, NORWEGISCH
