@@ -279,7 +279,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
-## 📥 Inbox (spontane TODOs — hier anhängen, später einsortieren)
+## 📥 Inbox
+- **Garmin 1.0.74 EINGEREICHT-BEREIT (10.08.).** Inhalt: voller Uhr-Speicher beendet die App nicht
+  mehr mit „IQ!" (jeder Storage-Write ueber geschuetzte Helfer, auch Uploader + Config.setString),
+  Grund im Start-Screen sichtbar, Upload-Rueckstau als VOLUMEN statt Anzahl (`15 warten auf Upload ·
+  4 MB`), Start-Canary fuer Abstuerze beim App-Start, Meldung „Store voll" mit Volumen an den Server
+  (lernt die echte Grenze je Modell). Im Emulator von Jan verifiziert: 5 erzwungene Fehlschlaege in
+  Folge, kein Absturz, Hinweis sichtbar, eine Meldung mit kb=5035.
+  - `.iq` gebaut (210/210 Geraete, 11,2 MB) und an Jan uebergeben -> Upload apps-developer.garmin.com
+  - **`watch/bin` steht bewusst auf 1.0.73**, die 121 fertigen 1.0.74-Builds liegen unter
+    `/home/jan/release-staging/garmin-1.0.74/`. NACH der Freigabe: zurueckkopieren, dann
+    `appmeta.garmin` = 1.0.74 + Changelog. Reihenfolge siehe Memory `watch-bin-is-live`.
+- **Android Phone 1.1.21/35 + Wear 1.2.21/1031 releasebar (10.08. geprueft).** Baum clean, kein
+  Cleartext-Hack in den Manifesten, Versionscodes ueber dem Live-Stand (34->35, 1030->1031), beide
+  Module frisch kompiliert (33/33 Tasks, BUILD SUCCESSFUL). Inhalt gegenueber 1.1.20/1.2.20:
+  Teilen-Dialog scrollt wieder bis zur Schaltflaeche, Wear-Token heilt bei Config-401, NORWEGISCH
+  erstmals in den Apps, Aktivitaetsarten wakethief/towed/surf_wave getrennt. Signiertes AAB +
+  Play-Upload: nur Jan.
+ (spontane TODOs — hier anhängen, später einsortieren)
 
 - [ ] **Höchstgeschwindigkeit als Rekord ist durch Autofahrt-Reste verfälscht** (Befund 06.08.,
       Jan: „muss ich mir im Detail später anschauen"). Die Bestenliste führt aktuell:
