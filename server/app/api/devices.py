@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import func
+from sqlalchemy import func, text as sa_text
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -87,19 +87,36 @@ def device_config(
             device.label = model["name"][:120]
     # Canary-Meldung der Uhr: die letzte Aufnahme mit dynamischem Layout ist nicht sauber
     # beendet worden. Zählen (nicht überschreiben) — daraus lernt der Modell-Kill-Switch.
+    # Zaehler ATOMAR in SQL hochsetzen, nicht in Python. Mit 4 uvicorn-Workern gehen sonst
+    # Meldungen verloren: die Uhr schickt beim Start zwei Abrufe in derselben Sekunde (der
+    # Sofortversuch und der regulaere, der das Flag noch mittraegt), beide lesen denselben
+    # Ausgangswert und schreiben +1 — gemessen am 10.08. im Emulator: zwei Abrufe, Zaehler 1.
     if canary:
-        device.layout_canary_count = int(device.layout_canary_count or 0) + 1
-        device.layout_canary_at = datetime.now(timezone.utc)
-        dirty = True
+        db.execute(sa_text(
+            "UPDATE device_tokens SET layout_canary_count = COALESCE(layout_canary_count,0) + 1,"
+            " layout_canary_at = now() WHERE id = :i"), {"i": device.id})
+        db.commit()
+        db.refresh(device)
     # Voller Object Store der Uhr. Zaehlen und das GROESSTE gemeldete Volumen behalten: daraus
     # lernen wir, wieviel eine Uhr dieses Modells wirklich puffern kann, statt eine Warnschwelle
     # zu raten. Die Uhr faengt den Fehlschlag seit 1.0.74 ab (vorher starb sie mit „IQ!").
+    #
+    # ENTPRELLT auf SF_DEBOUNCE_S: ein App-Start schickt zwei Abrufe mit `sf=1` (den Sofortversuch
+    # aus _noteStorageFull und den regulaeren, der das Flag noch mittraegt, weil die erste Antwort
+    # noch nicht da war). Gezaehlt werden soll das EREIGNIS „Store war voll", nicht der Abruf.
+    # Das Volumen wird trotzdem immer mitgenommen — es kostet nichts und kann nur wachsen.
     if sf:
-        device.storage_full_count = int(device.storage_full_count or 0) + 1
-        device.storage_full_at = datetime.now(timezone.utc)
-        if kb and int(kb) > int(device.storage_full_kb or 0):
-            device.storage_full_kb = int(kb)
-        dirty = True
+        db.execute(sa_text(
+            "UPDATE device_tokens SET"
+            "   storage_full_count = COALESCE(storage_full_count,0)"
+            "     + CASE WHEN storage_full_at IS NULL OR storage_full_at < now() - make_interval(secs => :deb)"
+            "            THEN 1 ELSE 0 END,"
+            "   storage_full_kb = GREATEST(COALESCE(storage_full_kb,0), :kb),"
+            "   storage_full_at = now()"
+            " WHERE id = :i"),
+            {"i": device.id, "kb": int(kb or 0), "deb": SF_DEBOUNCE_S})
+        db.commit()
+        db.refresh(device)
     if dirty:
         db.commit()
     user = db.get(models.User, device.user_id)
@@ -445,6 +462,9 @@ CANARY_BLOCK_AT = 2
 # Loeschen samt Neuinstallation hilft nicht, weil die Konfiguration vom Server kommt. Ab hier
 # liefern wir keine Layouts mehr, bis der Nutzer den Zaehler im Profil zuruecksetzt.
 CANARY_HARD_BLOCK_AT = 5
+# Ein App-Start meldet „Store voll" zweimal (Sofortversuch + regulaerer Abruf). Innerhalb
+# dieses Fensters zaehlt das als EIN Ereignis; das Volumen wird trotzdem uebernommen.
+SF_DEBOUNCE_S = 60
 # Ab diesem Budget darf eine Uhr Layouts ANFORDERN (`lay=1`), auch wenn wir sie nicht von selbst
 # ausliefern. 128 KB = die Klasse, in der der Renderer im Build steckt (kein Lite), aber der
 # Speicher knapp ist. Darunter (96 KB, Lite) existiert der Renderer nicht -> nichts anzufordern.
