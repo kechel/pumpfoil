@@ -94,10 +94,17 @@ def save_original_upload(session_uuid: str, raw: bytes, filename: str | None) ->
     return ziel.name
 
 
-def save_accel_raw(session_uuid: str, index: int, raw: bytes) -> int:
-    """Wie save_accel_chunk, aber für bereits dekodierte int16-LE-Bytes (z. B. FIT-Import)."""
+def save_accel_raw(session_uuid: str, index: int, raw: bytes, t0_ms: int | None = None) -> int:
+    """Wie save_accel_chunk, aber für bereits dekodierte int16-LE-Bytes (z. B. FIT-Import).
+
+    `t0_ms` mitgeben, wenn die Startzeit des Chunks BEKANNT ist — dann kann die Analyse eine
+    exakte Zeitachse bauen statt sie aus samples/Dauer zu raten (s. save_accel_chunk). Beim
+    Zusammenführen (merge.py) ist sie bekannt: die Startzeit des Teils in der neuen Zeitachse.
+    """
     d = ensure_session_dir(session_uuid)
     (d / "accel" / f"{index}.bin").write_bytes(raw)
+    if t0_ms is not None:
+        (d / "accel" / f"{index}.t0").write_text(str(int(t0_ms)))
     return len(raw) // 2 // 3
 
 

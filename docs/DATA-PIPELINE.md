@@ -549,7 +549,7 @@ verteilt statt an ihren Anfang gelegt. Bei #1579 (Chunk-Rate 5,87 Hz gegen getag
 Deshalb bleibt die untere Bandgrenze bei 0,5 (§9.1). Saubere Lösung wäre, die Chunk-Dauer aus
 `counts / nominaler Rate` zu schätzen und die Lücke als Lücke stehen zu lassen.
 
-### 9.5 Zusammenführen zerstört die Accel-Zeitanker  🔴 offen
+### 9.5 Zusammenführen zerstörte die Accel-Zeitanker  🟢 behoben 2026-08-10
 
 `merge.py:157–177` baut beim Zusammenführen zweier Sessions ein gemeinsames Accel-Array, indem es
 jeden Teil an den Index `off_ms / 1000 · hz` legt — mit **`hz = first.accel_hz`, also der GETAGGTEN
@@ -562,9 +562,20 @@ Belegt an #1596 (aus #1593 + #1595 zusammengeführt): ein einziger Chunk, keine 
 Rate 25,019 Hz — und eine Gleitphase von **14,35 s**, die nach der Reanalyse unverändert bleibt,
 während die drei nicht zusammengeführten Sessions derselben Uhr auf 1,59–1,91 s fallen.
 
-Ein Fix müsste die Offsets aus der echten Rate je Teil rechnen und die `t0`-Ketten der Teile
-mitschreiben statt sie wegzuwerfen. Betrifft nur zusammengeführte Sessions — Zahl im Bestand noch
-nicht erhoben.
+**Behoben:** `_trimmed_mit_achse` schneidet den Accel jetzt über die echte Zeitachse zu, und
+`_save_accel_mit_ankern` schreibt die Teile als Chunks **mit `t0_ms`** — jeder mit seiner wahren
+Startzeit in der neuen Achse. Damit rekonstruiert `timebase.py` die Achse einer zusammengeführten
+Session genauso exakt wie die einer direkt aufgezeichneten.
+
+Der Bestand ist mit `scripts/repariere-merges.py` nachgezogen: **30 von 33** nicht gelöschten
+Zusammenführungen repariert, 3 übersprungen (den Teilen fehlen die Accel-Rohdaten). Fast alle kippen
+von `measured_rate` auf `exact_chunks`, die Laufzahl bleibt überall gleich. Bei #1596 kamen dabei
+584.544 Accel-Samples zusammen — vorher landeten davon nur rund 200.000 im Ergebnis, der Rest war
+durch die falschen Offsets überschrieben. Die Gleitphase fiel von 14,35 s auf 1,85 s.
+
+Zwei Sicherheitsnetze im Reparatur-Skript: die rekonstruierte GPS-Spur muss zeichengleich zur
+gespeicherten sein (sonst wird die Session nicht angefasst), und der alte `accel/`-Ordner wird nach
+`accel.vor-reparatur/` kopiert.
 
 ### 9.4 `hz_measured` und der GPS-Vorlauf — **kein** Defekt (geprüft)
 

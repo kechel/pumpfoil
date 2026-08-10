@@ -116,17 +116,68 @@ def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
 
 
 def _trimmed(session) -> tuple[list, np.ndarray]:
-    """GPS+Accel einer Session auf ihren Trim zugeschnitten, GPS auf 0 rebased."""
+    """GPS+Accel einer Session auf ihren Trim zugeschnitten, GPS auf 0 rebased.
+
+    Der Accel wird über die ECHTE Zeitachse zugeschnitten (timebase.py: t0_ms je Chunk >
+    gemessene Rate > getaggte), nicht über `index = t · accel_hz` mit der getaggten Rate.
+    Warum: liefert die Uhr das Doppelte der angekündigten Rate (Wear/Apple, s.
+    docs/DATA-PIPELINE.md §3), schnitt der alte Weg an der falschen Stelle — und beim
+    Zusammenführen kam der Fehler ein zweites Mal dazu (§9.5).
+
+    Zurückgegeben wird zusätzlich die Achse, damit der Aufrufer die Samples zeitrichtig
+    einsortieren kann.
+    """
+    gps, accel, _t = _trimmed_mit_achse(session)
+    return gps, accel
+
+
+def _trimmed_mit_achse(session) -> tuple[list, np.ndarray, np.ndarray]:
+    """Wie `_trimmed`, liefert zusätzlich die Session-ms je Accel-Sample (auf den Trim rebased)."""
+    from .analysis.timebase import _accel_chunk_counts, build_timebase
+
     gps = storage.load_gps(session.session_uuid)
     accel = storage.load_accel(session.session_uuid)
     lo = session.trim_start_ms if session.trim_start_ms is not None else 0
     hi = session.trim_end_ms if session.trim_end_ms is not None else (gps[-1][0] if gps else 0)
-    gps = [[p[0] - lo] + list(p[1:]) for p in gps if lo <= p[0] <= hi]
-    if accel is not None and accel.shape[0]:
-        a0 = max(int(round(lo / 1000.0 * session.accel_hz)), 0)
-        a1 = min(int(round(hi / 1000.0 * session.accel_hz)), accel.shape[0])
-        accel = accel[a0:a1] if a1 > a0 else accel[0:0]
-    return gps, accel
+    gps_out = [[p[0] - lo] + list(p[1:]) for p in gps if lo <= p[0] <= hi]
+    if accel is None or not accel.shape[0]:
+        return gps_out, (accel if accel is not None else np.zeros((0, 3), dtype="<i2")), np.empty(0)
+    tb = build_timebase(
+        gps, accel, session.accel_scale, session.accel_hz,
+        chunk_counts=_accel_chunk_counts(session.session_uuid),
+        t0_by_index=storage.load_accel_t0(session.session_uuid),
+        trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
+    )
+    return gps_out, tb.accel, (tb.t_accel_ms - float(lo) if tb.t_accel_ms.size else np.empty(0))
+
+
+CHUNK_SAMPLES = 500      # Chunk-Groesse beim Schreiben der zusammengefuehrten Accel-Spur
+
+
+def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarray]]) -> int:
+    """Schreibt die Accel-Teile als Chunks MIT `t0_ms`-Sidecar in die neue Session.
+
+    Bis 2026-08-10 wurde daraus EIN Block, dessen Teile an `off_ms/1000 · getaggte_Rate` gelegt
+    wurden. Liefert die Uhr das Doppelte der angekündigten Rate, sind diese Offsets um Faktor 2
+    falsch — die Teile überschrieben sich gegenseitig. Und ohne `t0`-Sidecar konnte die Analyse für
+    eine zusammengeführte Session nie mehr eine exakte Zeitachse bauen (docs/DATA-PIPELINE.md §9.5).
+
+    Jetzt behält jeder Chunk seine WAHRE Startzeit in der neuen Zeitachse. Damit rekonstruiert
+    `timebase.py` die Achse einer zusammengeführten Session genauso exakt wie die einer direkt
+    aufgezeichneten — die Rate muss nirgends geraten werden.
+    """
+    index = 0
+    for arr, t_ms in teile:
+        n = int(arr.shape[0])
+        for start in range(0, n, CHUNK_SAMPLES):
+            stop = min(start + CHUNK_SAMPLES, n)
+            storage.save_accel_raw(
+                new_uuid, index,
+                np.ascontiguousarray(arr[start:stop], dtype="<i2").tobytes(),
+                t0_ms=int(round(float(t_ms[start]))),
+            )
+            index += 1
+    return index
 
 
 def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Session:
@@ -154,27 +205,23 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     last_end = max(ends) if ends else None
 
     combined_gps: list = []
-    accel_parts: list[tuple[int, np.ndarray]] = []
+    # Accel-Teile MIT ihrer echten Zeitachse einsammeln (Session-ms in der neuen Achse).
+    accel_parts: list[tuple[np.ndarray, np.ndarray]] = []
     off_ms = 0
     for s in sessions:
-        g, a = _trimmed(s)
+        g, a, t = _trimmed_mit_achse(s)
         if not g:
             continue
         for row in g:
             combined_gps.append([row[0] + off_ms] + list(row[1:]))
-        accel_parts.append((int(round(off_ms / 1000.0 * hz)), a))
+        if a is not None and a.shape[0] and t.size == a.shape[0]:
+            accel_parts.append((a, t + float(off_ms)))
         off_ms += int(g[-1][0]) + GAP_MS
-
-    total = max((st + (a.shape[0] if a is not None else 0) for st, a in accel_parts), default=0)
-    combined_accel = np.zeros((total, 3), dtype="<i2")
-    for st, a in accel_parts:
-        if a is not None and a.shape[0]:
-            combined_accel[st:st + a.shape[0]] = a
 
     new_uuid = "merge-" + _uuid.uuid4().hex
     storage.ensure_session_dir(new_uuid)
     storage.save_gps_chunk(new_uuid, 0, combined_gps)
-    storage.save_accel_raw(new_uuid, 0, combined_accel.tobytes())
+    _save_accel_mit_ankern(new_uuid, accel_parts)
 
     ns = models.Session(
         session_uuid=new_uuid, user_id=first.user_id, device_id=first.device_id,
