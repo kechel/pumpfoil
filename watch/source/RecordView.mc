@@ -20,6 +20,9 @@ class RecordView extends WatchUi.View {
     const PAUSE_HINT_MS = 6000;
     // Hat schon einmal ein Bild fertig gezeichnet? Loescht die Start-Marke (s. onUpdate).
     hidden var _drewOnce = false;
+    // Gepuffertes Volumen, gecacht je Session-Anzahl (s. Upload-Hinweis im Start-Screen).
+    hidden var _pendKbFor = -1;
+    hidden var _pendKb = 0;
 
     function initialize(recorder) {
         View.initialize();
@@ -314,9 +317,15 @@ class RecordView extends WatchUi.View {
         } else {
             var pn = Uploader.pendingCount();
             if (pn > 0) {
+                // Volumen dazu, nicht nur die Anzahl: 20 kurze Sessions sind weniger Daten als
+                // 3 lange (0,6 MB gegen 13 MB). Nur bei nennenswerter Menge, damit die Zeile auf
+                // kleinen Displays kurz bleibt. Cache: neu rechnen erst, wenn sich die Anzahl
+                // aendert — pendingKb() liest je Session ein state_ und soll nicht pro Bild laufen.
+                if (_pendKbFor != pn) { _pendKb = Uploader.pendingKb(); _pendKbFor = pn; }
+                var txt = pn + " " + Strings.s("up.pendingN");
+                if (_pendKb >= 1024) { txt += " · " + (_pendKb / 1024) + " MB"; }
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY,
-                    pn + " " + Strings.s("up.pendingN"), Graphics.TEXT_JUSTIFY_CENTER);
+                dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, txt, Graphics.TEXT_JUSTIFY_CENTER);
             }
         }
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.

@@ -92,6 +92,38 @@ module Uploader {
         return (s instanceof Lang.Array) ? s.size() : 0;
     }
 
+    // Gepuffertes VOLUMEN in KB — die Anzahl allein ist als Warnsignal unbrauchbar:
+    // 20 Sessions à 2 min sind ~0,6 MB, 3 Sessions à 5 h sind ~13 MB (Faktor 22 bei umgekehrter
+    // Anzahl). Gerechnet statt gemessen, weil Connect IQ keine Auskunft über den freien Object
+    // Store gibt (`System.getSystemStats()` liefert nur RAM, ein `freeStorage` existiert nicht).
+    //
+    // Grundlage sind die Zähler, die in `state_<uuid>` ohnehin stehen, und die Chunk-Geometrie:
+    //   Accel: ACCEL_CHUNK_SAMPLES(1500) × 3 Achsen × 2 B (int16 LE interleaved) = 9000 B ≈ 9 KB
+    //   GPS:   GPS_CHUNK_SAMPLES(120) × ~40 B JSON pro Sample                    ≈ 5 KB
+    // NICHT die 12 KB aus dem Kommentar im Recorder — das ist die base64-Größe beim SENDEN, im
+    // Object Store liegt das rohe ByteArray.
+    // Bewusst OHNE eigene Byte-Buchhaltung: die bräuchte zusätzliche Schreibzugriffe, und genau
+    // Schreiben ist das, was bei vollem Speicher scheitert. Die Zahl ist damit eine Schätzung
+    // (~±30 %) — sie soll 0,6 MB von 13 MB unterscheiden, nicht eine Tankuhr sein.
+    const KB_PER_ACCEL_CHUNK = 9;
+    const KB_PER_GPS_CHUNK = 5;
+
+    function pendingKb() as Lang.Number {
+        var s = Storage.getValue("sessions");
+        if (!(s instanceof Lang.Array)) { return 0; }
+        var kb = 0;
+        for (var i = 0; i < s.size(); i++) {
+            var st = Storage.getValue("state_" + s[i]);
+            if (!(st instanceof Lang.Dictionary)) { continue; }
+            var a = st.hasKey("accel_chunks") ? st["accel_chunks"] : 0;
+            var g = st.hasKey("gps_chunks") ? st["gps_chunks"] : 0;
+            // Die Zähler sind Indizes des LETZTEN Chunks -> +1 ergibt die Anzahl.
+            if (a instanceof Lang.Number && a >= 0) { kb += (a + 1) * KB_PER_ACCEL_CHUNK; }
+            if (g instanceof Lang.Number && g >= 0) { kb += (g + 1) * KB_PER_GPS_CHUNK; }
+        }
+        return kb;
+    }
+
     function isBusy() as Lang.Boolean {
         return _busy;
     }
