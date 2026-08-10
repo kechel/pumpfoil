@@ -30,8 +30,30 @@ module Uploader {
     // Fortschritt/Status für die UI (UploadView). Werden vom Job gepflegt.
     var _curSent = 0;            // bestätigte Chunks der aktuellen Session
     var _curTotal = 0;          // Gesamt-Chunks der aktuellen Session
-    var _lastError = :none;     // :none | :offline | :auth | :server
+    var _lastError = :none;     // :none | :offline | :auth | :server | :storage
     var _sentAny = false;       // mind. ein Chunk in diesem Lauf bestätigt (Aktivitätsnachweis)
+    var _storageFull = false;   // ein Storage-Write ist gescheitert -> Object Store voll
+
+    function storageFull() as Lang.Boolean { return _storageFull; }
+
+    // Geschützter Storage-Write. Der Recorder hat das seit Langem (SessionRecorder._store), der
+    // Uploader hatte es NICHT — obwohl hier nach JEDEM bestätigten Chunk geschrieben wird (die
+    // Wasserstände sa_/sg_). Ist der Object Store der Uhr voll, wirft `setValue`, und ohne Fang
+    // stirbt die App mit „IQ!". Besonders bitter beim App-Start: `syncAll()` läuft dort
+    // automatisch, also crasht die App bei jedem Öffnen, sobald genug Sessions gepuffert sind.
+    // Weiterlaufen ist richtig: der Chunk ist vom Server bestätigt und wurde gelöscht, nur der
+    // Wasserstand fehlt — beim nächsten Lauf wird er erneut geschickt, und das ist idempotent
+    // (gleiche session_uuid => eine Session am Server).
+    function _set(key, value) as Lang.Boolean {
+        try {
+            Storage.setValue(key, value);
+            return true;
+        } catch (e) {
+            _storageFull = true;
+            _lastError = :storage;
+            return false;
+        }
+    }
 
     // --- Auto-Retry-Watchdog (nur solange die App offen ist) --------------------
     // Nach einem abgebrochenen/fehlgeschlagenen Upload NICHT bis zum nächsten App-Start
@@ -303,10 +325,10 @@ class SessionSyncJob {
         if (_pendingKind != null) {
             if (_pendingKind.equals("accel")) {
                 Storage.deleteValue("ca_" + _uuid + "_" + _pendingIdx);
-                _sa = _pendingIdx + 1; Storage.setValue("sa_" + _uuid, _sa);
+                _sa = _pendingIdx + 1; Uploader._set("sa_" + _uuid, _sa);
             } else {
                 Storage.deleteValue("cg_" + _uuid + "_" + _pendingIdx);
-                _sg = _pendingIdx + 1; Storage.setValue("sg_" + _uuid, _sg);
+                _sg = _pendingIdx + 1; Uploader._set("sg_" + _uuid, _sg);
             }
             _pendingKind = null;
             Uploader._curSent = _sa + _sg;   // Fortschritt für die UI
@@ -327,7 +349,7 @@ class SessionSyncJob {
             while (_idx < _gpsTotal) {
                 var gdata = Storage.getValue("cg_" + _uuid + "_" + _idx);
                 if (gdata == null) {
-                    _sg = _idx + 1; Storage.setValue("sg_" + _uuid, _sg); _idx++; continue;
+                    _sg = _idx + 1; Uploader._set("sg_" + _uuid, _sg); _idx++; continue;
                 }
                 _sendGps(_idx, gdata); return;
             }
@@ -337,7 +359,7 @@ class SessionSyncJob {
             while (_idx < _accelTotal) {
                 var bytes = Storage.getValue("ca_" + _uuid + "_" + _idx);
                 if (bytes == null) {
-                    _sa = _idx + 1; Storage.setValue("sa_" + _uuid, _sa); _idx++; continue;
+                    _sa = _idx + 1; Uploader._set("sa_" + _uuid, _sa); _idx++; continue;
                 }
                 _sendAccel(_idx, bytes); return;
             }
@@ -411,7 +433,7 @@ class SessionSyncJob {
         var arr = Storage.getValue("sessions");
         if (arr instanceof Lang.Array) {
             arr.remove(_uuid);
-            Storage.setValue("sessions", arr);
+            Uploader._set("sessions", arr);
         }
     }
 }

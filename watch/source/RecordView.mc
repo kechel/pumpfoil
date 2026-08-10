@@ -301,7 +301,10 @@ class RecordView extends WatchUi.View {
         // Hinweiszeile bei h*0.50, EINE nach Dringlichkeit (Jan, 01.08.): Object-Store voll >
         // ungepairt (Sessions erreichen das Konto nicht — Aufnehmen geht trotzdem) > wartende
         // Uploads (drittes Support-Muster: Session "fehlt", lag aber nur auf der Uhr).
-        if (_rec.storageFull) {
+        // Speicher voll: bisher zeigte das NUR der Recorder an. Der Uploader schreibt aber nach
+        // jedem bestaetigten Chunk (sa_/sg_) und das Pairing schreibt das Token — scheitert das,
+        // erfuhr der Nutzer nichts, obwohl genau das die Ursache ist.
+        if (_rec.storageFull || Uploader.storageFull() || Config.storeFailed) {
             dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, Strings.s("err.storageFull"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (!_rec.isPaired()) {

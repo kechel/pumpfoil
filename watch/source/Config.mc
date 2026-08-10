@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.74";  // Start-Canary: Absturz BEIM START heilt sich jetzt selbst
+    const VERSION = "1.0.74";  // Start-Canary + jeder Storage-Write abgesichert (kein IQ! bei vollem Speicher)
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
@@ -31,8 +31,20 @@ module Config {
         return v == null ? dflt : v;
     }
 
+    // Ist der Speicher der Uhr voll, wirft `setValue` — und ein ungefangener Wurf beendet die App
+    // mit „IQ!". Genau hier ist das besonders heikel: `setString("deviceToken", …)` steht im
+    // Pairing- UND im 401-Pfad, und der 401-Pfad wird beim App-Start durchlaufen, sobald gepufferte
+    // Sessions hochgehen. Lieber das Token nicht speichern (der Nutzer koppelt neu) als abstuerzen.
+    var storeFailed = false;   // ein Properties-Write ist gescheitert -> UI zeigt „Speicher voll"
+
     function setString(key, value) {
-        Application.Properties.setValue(key, value);
+        try {
+            Application.Properties.setValue(key, value);
+            return true;
+        } catch (e) {
+            storeFailed = true;
+            return false;
+        }
     }
 
     // Datenfeld-Typen (IDs identisch mit web/src/lib/fields.ts)
