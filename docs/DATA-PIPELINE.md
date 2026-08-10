@@ -22,7 +22,8 @@ Stand: 2026-08-10, **1224 analysierte Sessions**; Detailmessungen an Session #18
 **Abgedeckt:** Upload-Vertrag (§2) · alle Recorder — Garmin, Wear, Apple, Zepp, Handy — plus
 FIT-Import und `record_mode` (§3) · Speicherformate (§4) · Bau der Accel-Zeitachse (§5) ·
 GPS-Auswertung und wann der Accel überhaupt zählt (§6) · Accel-Fenster (§7) · DB und
-Anzeigeschicht (§8) · vier belegte Defekte bzw. widerlegte Vermutungen (§9) · Prüf-Rezepte (§10).
+Anzeigeschicht (§8) · **fünf** belegte Defekte bzw. widerlegte Vermutungen (§9: drei behoben, einer
+offen, eine Vermutung widerlegt) · Prüf-Rezepte (§10).
 
 ## Der Weg im Überblick
 
@@ -42,13 +43,14 @@ flowchart TD
     FIT --> ST
     ST["2 · Speicher<br/>gps/&lt;i&gt;.json · accel/&lt;i&gt;.bin · accel/&lt;i&gt;.t0"]
 
-    ST --> TB["3a · timebase.py<br/>baut EINE Achse in Session-ms"]
+    ST --> TB["3 · timebase.py<br/>baut EINE Achse in Session-ms"]
     TB --> EX{"t0_ms brauchbar?"}
-    EX -->|ja| EXACT["exact_chunks — gemessen<br/>201 Sessions"]
-    EX -->|nein| MEAS["measured_rate — EINE Durchschnittsrate,<br/>Sample 0 bei t=0<br/>453 Sessions"]
+    EX -->|ja| EXACT["exact_chunks — gemessen<br/>aus t0_ms je Chunk"]
+    EX -->|nein| MEAS["measured_rate — EINE Durchschnittsrate,<br/>Sample 0 bei t=0<br/>Annahme: konstant + lückenlos"]
 
-    ST --> RA["3b · run_analysis<br/>rechnet sich eine ZWEITE Rate<br/>accel.len / gps_end + Index-Arithmetik"]
-    RA -.->|"benutzt timebase.py NICHT<br/>= Defekt §9.2"| MEAS
+    EXACT --> RA
+    MEAS --> RA
+    RA["run_analysis legt den Accel auf ein<br/>GLEICHMÄSSIGES Raster dieser Achse<br/>-> index = t · hz gilt wirklich"]
 
     RA --> TRIM["4 · Trim + aussortierte Bereiche<br/>GPS auf 0 re-basiert"]
     TRIM --> GATE{"Rate ≥ 15 Hz?"}
@@ -63,15 +65,18 @@ flowchart TD
     API --> UI["8 · Web / Android / iOS<br/>nutzen nur t_start_ms<br/>rechnen selbst um (× 3,6)"]
 
     style MEAS fill:#fee2e2,stroke:#dc2626
-    style RA fill:#fee2e2,stroke:#dc2626
     style EXACT fill:#dcfce7,stroke:#16a34a
     style SEG fill:#e0f2fe,stroke:#0284c7
 ```
 
-**Die zwei Stellen, an denen es schiefgeht,** sind rot: `run_analysis` baut eine zweite Zeitachse
-(§9.2), und die Ersatzachse `measured_rate` unterstellt eine konstante, lückenlose Spur ab t = 0
-(§5). Blau ist die Stelle, an der zwei Zeitbegriffe nebeneinander in dieselbe JSON-Struktur
-geschrieben werden (§1).
+**Grün ist der belastbare Weg** (`t0_ms` je Chunk = gemessene Achse), **rot der Notbehelf**: eine
+einzige Durchschnittsrate, die eine konstante, lückenlose Spur ab t = 0 unterstellt — beides ist bei
+wechselnder Sensorrate falsch (§5). Blau markiert die Stelle, an der zwei Zeitbegriffe nebeneinander
+in dieselbe JSON-Struktur geschrieben werden (§1) — die häufigste Verwechslung.
+
+Historie: bis 2026-08-10 baute `run_analysis` an dieser Stelle eine **zweite, eigene** Zeitachse und
+benutzte `timebase.py` gar nicht (§9.2), und das Zusammenführen zweier Sessions warf die Zeitanker
+weg (§9.5). Beides ist behoben, der Bestand nachgezogen.
 
 ---
 
