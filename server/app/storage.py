@@ -102,9 +102,12 @@ def save_accel_raw(session_uuid: str, index: int, raw: bytes) -> int:
 
 
 def load_accel_t0(session_uuid: str) -> dict[int, int]:
-    """Chunk-Index -> Startzeit in ms, soweit die Uhr sie mitgeschickt hat (leer bei Altbestand
-    und bei Garmin, das t0_ms bisher nicht sendet). Grundlage fuer eine EXAKTE Accel-Zeitachse
-    statt der geschaetzten Rate — siehe Kommentar in save_accel_chunk."""
+    """Chunk-Index -> Startzeit in ms, soweit die Uhr sie mitgeschickt hat. Grundlage fuer eine
+    EXAKTE Accel-Zeitachse statt der geschaetzten Rate — siehe Kommentar in save_accel_chunk.
+
+    Leer bei: Altbestand, FIT-Import (save_accel_raw legt kein Sidecar an) und Zepp (kein Accel).
+    NICHT mehr leer bei Garmin — das sendet t0_ms seit 1.0.71/72 (der frühere Hinweis hier war
+    veraltet; Stand 2026-08-10 haben 222 Sessions Sidecars, davon 115 garmin)."""
     d = session_dir(session_uuid) / "accel"
     if not d.exists():
         return {}

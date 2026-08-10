@@ -91,9 +91,29 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 **Verträge & Datenformat**
 - [`docs/data-format.md`](docs/data-format.md) — Upload-Vertrag Watch↔Server (GPS + int16-Accel-Chunks).
 - [`docs/ingest-contract.md`](docs/ingest-contract.md) — wie eine beliebige Watch-Plattform zum Recorder wird (2 Upload-Wege).
-- [`docs/DATA-PIPELINE.md`](docs/DATA-PIPELINE.md) — **Datenweg Upload → Anzeige, belegt**: die drei Zeitachsen
-  (Session-ms / trim-re-basiert / Sample-Index), echte vs. getaggte Raten, Sample-Formate, Prüf-Rezepte,
-  bekannte Defekte. **Vor jeder Untersuchung an Zeitachsen/Raten zuerst hier lesen** — nicht raten.
+- [`docs/DATA-PIPELINE.md`](docs/DATA-PIPELINE.md) — **Datenweg Upload → Anzeige, belegt** (mit
+  Flussdiagramm). **Vor jeder Untersuchung an Zeitachsen/Raten/Sample-Daten zuerst hier lesen** —
+  nicht raten. Das Wichtigste in Kurzform:
+  - **Drei Zeitbegriffe, die dauernd verwechselt werden.** `t_*_session_ms` = Session-ms ·
+    `segments_json.t_start_ms` + `accel_windows_json.t_center_ms` = **auf den Trim re-basiert**
+    (`+ sessions.trim_start_ms` ergibt Session-ms) · `i_start`/`i_end` = Sample-Index.
+    `excluded_ranges`/`fremdkraft_keep` sind wieder Session-ms. Alle Clients nutzen nur `t_start_ms`.
+  - **`sessions.accel_hz` ist eine ANFORDERUNG, keine Messung.** Connect IQ hält 25 Hz ein,
+    Wear/Apple liefern gerätespezifisch auch 50 Hz, Handys 100–125 Hz. Echte Rate:
+    `metrics_json.accel_hz_measured`. `gps_hz` ist immer 1 und nur eine Rechengröße.
+  - **Accel-Samples haben keine Zeitstempel** — die Achse wird gebaut. `metrics_json.time_base`
+    sagt wie: `exact_chunks` (aus `t0_ms`, gemessen) vs. `measured_rate` (eine Durchschnittsrate,
+    Sample 0 bei t=0). **Diese Felder zuerst lesen, bevor man eine Accel-Zahl glaubt.**
+  - **Achse repariert (§9.1/§9.2, 10.08.):** `run_analysis` baute bis dahin eine ZWEITE eigene Achse
+    und ignorierte `timebase.py` — ein belegter Fall lag 124 s daneben („Pumps hören mitten im Lauf
+    auf", 45 s Gleitphase → nach dem Fix 1,57 s). Jetzt kommt die Achse aus `timebase.py` und der
+    Accel liegt auf einem gleichmäßigen Raster, damit `index = t · hz` wirklich gilt.
+    `metrics_json.accel_axis` belegt es je Session. **🔴 Reanalyse des Bestands noch offen** —
+    ohne sie zeigen alte Sessions weiter die alten Zahlen (docs/TODO.md).
+  - **`longest_glide_s` ist die längste Lücke zwischen zwei ERKANNTEN Pumps**, keine gemessene
+    Gleitphase → ein hoher Wert heißt meist „Pumps nicht erkannt".
+  - **Zahlen nachmessen statt glauben:** `cd server && .venv/bin/python ../scripts/pipeline-check.py`
+    (rein lesend, prüft seine Quersummen selbst).
 
 **Produkt & Planung**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.

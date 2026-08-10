@@ -280,6 +280,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+- **🟢 Accel-Zeitachse repariert (§9.1 + §9.2) — 🔴 REANALYSE DES BESTANDS OFFEN.**
+  Belegt in [`docs/DATA-PIPELINE.md`](DATA-PIPELINE.md) §9.1/§9.2. Zwei Fixes:
+  1. `timebase.py`: die Bandpruefung verwarf eine KORREKTE `t0_ms`-Achse, weil sie sie mit der
+     GETAGGTEN Rate verglich (50,19/25 = 2,0076, 0,4 % ueber der Schranke 2.0). Jetzt 4.0 + absolute
+     Plausibilitaet. A/B ueber 222 Sessions mit `t0`-Sidecars: 200 unveraendert, 7 kippen zur exakten
+     Achse, keine verliert sie.
+  2. `analysis/__init__.py`: `run_analysis` baute sich eine ZWEITE Achse (Durchschnittsrate +
+     Index-Arithmetik) und ignorierte `timebase.py`. Jetzt kommt die Achse von dort und der Accel
+     liegt auf einem exakt gleichmaessigen Raster -> die Annahme `index = t · hz`, auf der VIER
+     Stellen beruhen (Foiling-Maske, Pump-Fenster, ML-Features, Impulse), ist wahr statt geflickt.
+     `metrics_json.accel_axis` schreibt je Session mit, worauf wirklich gerechnet wurde.
+  - Wirkung an #1814 (der Auslöser): Lauf 9 `longest_glide_s` **45,04 s -> 1,57 s**, Pumps 42 -> 120,
+    Kadenz 0,545 -> 1,558 Hz. Ueber alle 16 Laeufe max. 1,1–1,9 s Gleitphase = plausibel.
+  - Regression (100 Sessions, je 25 pro Achsen-Sorte): `none` 25/25 unveraendert, `measured_rate`
+    20/25, `uncertain` 23/25 (Reste = Raster-Rundung, ±0…3 Pumps), `exact_chunks` 13/25 geaendert
+    (echte Korrektur). **Nirgends aendert sich die Zahl der Laeufe oder die Pumpfoil-Einstufung.**
+  - **NOCH ZU TUN:** (a) Server-Restart, damit neue Uploads den Fix nutzen; (b) **Reanalyse des
+    Bestands** — vorher `analysis_results` sichern (`pg_dump -t analysis_results`); Pump-Zahlen
+    steigen dabei sichtbar (bei betroffenen Sessions +10…20 %), Bestenlisten/Rekorde koennen sich
+    verschieben -> Changelog-Eintrag sinnvoll; (c) dem Nutzer antworten, der es gemeldet hat.
+  - Offen bleibt §9.3: Chunk-Dauer wird ueber Pausen geschmiert (deshalb bleibt die untere
+    Bandgrenze bei 0,5; #1579 liegt 203 s daneben).
 - **Garmin 1.0.74 LIVE im CIQ-Store 10.08.** Store-Seite: „Latest Release August 10, 2026,
   Version 1.0.74, Size 100 KB". Release-Kette ERLEDIGT: `watch/bin` auf 1.0.74 (121/121,
   ueber /api/app/devices verifiziert), `appmeta.garmin` = 1.0.74, Changelog-Eintrag steht. Inhalt: voller Uhr-Speicher beendet die App nicht

@@ -25,13 +25,32 @@ import numpy as np
 # --- Plausibilitätsschranken für die Chunk-Startzeiten ---------------------------------
 # Der Ingest-Vertrag hat `t0_ms` als int mit Default 0 (schemas.py) und der Speicher legt die
 # Sidecar-Datei an, sobald der Wert nicht None ist (storage.py). Ein Client, der t0_ms gar nicht
-# schickt (Garmin), erzeugt damit für JEDEN Chunk eine "0" — nachgeprüft an der einzigen Session
-# im Bestand, die überhaupt .t0-Dateien hat: 29 Chunks, alle 0. Die Sidecars sind also NICHT
-# blind belastbar. Deshalb hier drei Prüfungen, bevor die Achse als exakt gilt:
+# schickt, erzeugt damit für JEDEN Chunk eine "0". Die Sidecars sind also NICHT blind belastbar.
+# Deshalb hier drei Prüfungen, bevor die Achse als exakt gilt:
 #   (a) jeder Accel-Chunk hat eine Startzeit,
 #   (b) die Startzeiten wachsen streng (lauter Nullen fällt damit raus),
-#   (c) die daraus folgende Rate liegt im Plausibilitätsband um die getaggte Rate.
-T0_RATE_BAND = (0.5, 2.0)      # gemessene Chunk-Rate / getaggte Rate muss hier hineinfallen
+#   (c) die daraus folgende Rate ist überhaupt plausibel.
+#
+# ACHTUNG bei (c) — hier stand bis 2026-08-10 ein Band von (0.5, 2.0) um die GETAGGTE Rate, und
+# das hat eine korrekte Achse verworfen: Wear/Apple fordern 25 Hz an und bekommen 50 Hz, also
+# 50.19/25 = 2.0076 — 0.4 % über der Schranke. Ergebnis war der Rückfall auf eine einzige
+# Durchschnittsrate, deren Zeitversatz auf +171 s wuchs (Session #1814: mitten im Lauf hörten die
+# erkannten Pumps auf, weil 124 s daneben gelesen wurde; 10 Sessions betroffen). Die getaggte Rate
+# ist laut Docstring oben NIE Wahrheit — sie darf die gemessene Achse also nicht kippen. Was hier
+# wirklich abzufangen ist, ist Unsinn, und dafür gibt es die spezifischeren Prüfungen: Default-
+# Nullen fallen bei (b) durch, eine fremde Zeitbasis (Uhrzeit statt Laufzeit) an
+# T0_OVERRUN_TOLERANCE_MS. Bleibt eine absolute Plausibilität plus ein sehr weites Verhältnis-Band.
+#
+# Die OBERE Grenze wandert deshalb von 2.0 auf 4.0 — gedeckt durch die Messung: alle Sessions, bei
+# denen die Bandprüfung eine brauchbare Achse verworfen hat, liegen beim Verhältnis 2.01…2.54
+# (50/25 bzw. 126/50). Die UNTERE bleibt bei 0.5, und das ist Absicht: eine Chunk-Rate weit UNTER
+# der getaggten heißt lange Pausen zwischen den Chunks, und dort verteilt `_accel_chunk_axis` die
+# Samples eines Chunks über die ganze Lücke bis zum nächsten (Rate = counts/Abstand). Nachgeprüft an
+# #1579 (5.87 Hz): die exakte Achse liegt dort 203 s neben den Läufen, ist also NICHT besser als die
+# Durchschnittsrate. Solange die Chunk-Dauer nicht getrennt geschätzt wird, bleiben diese Fälle
+# draußen. -> siehe docs/DATA-PIPELINE.md §9.3
+T0_RATE_ABS_HZ = (1.0, 400.0)  # absolute Plausibilität der aus t0_ms folgenden Chunk-Rate
+T0_RATE_BAND = (0.5, 4.0)      # Chunk-Rate / getaggte Rate; oben gelockert, unten bewusst nicht
 # Die Chunk-Kette darf das GPS-Ende nicht deutlich überragen — sonst zeigen die Startzeiten auf
 # eine andere Zeitbasis (z. B. Uhrzeit statt Laufzeit) und sind als Session-Offset unbrauchbar.
 T0_OVERRUN_TOLERANCE_MS = 60_000
@@ -103,10 +122,12 @@ def _accel_chunk_axis(
     if not np.isfinite(raten).all():
         return None, None, "Chunk-Raten nicht berechenbar"
     mittel = float(np.nanmedian(raten))
+    if not (T0_RATE_ABS_HZ[0] <= mittel <= T0_RATE_ABS_HZ[1]):
+        return None, None, f"Chunk-Rate {mittel:.2f} Hz unplausibel"
     if tagged_hz:
         q = mittel / tagged_hz
         if not (T0_RATE_BAND[0] <= q <= T0_RATE_BAND[1]):
-            return None, None, f"Chunk-Rate {mittel:.2f} Hz außerhalb des Bandes um {tagged_hz} Hz"
+            return None, None, f"Chunk-Rate {mittel:.2f} Hz weit außerhalb des Bandes um {tagged_hz} Hz"
     ende = t0[-1] + counts[-1] / max(raten[-1], 1e-6) * 1000.0
     if gps_end_ms > 0 and ende > gps_end_ms + T0_OVERRUN_TOLERANCE_MS:
         return None, None, "Chunk-Kette reicht über das GPS-Ende hinaus (fremde Zeitbasis?)"

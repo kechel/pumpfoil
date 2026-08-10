@@ -213,29 +213,55 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Accel-Spur die ganze Session abdeckt. Ist sie deutlich zu kurz bei EIGENTLICH modellfähiger
     # Rate (abgebrochene Aufzeichnung), NICHT strecken -> getaggte Rate behalten, Accel deckt nur
     # den Anfang ab (Rest via Accel-Abdeckungs-Cap bei den Gleitphasen).
-    accel_hz = float(session.accel_hz)
-    if accel.shape[0] > 0 and gps_samples and gps_samples[-1][0] > 0 and session.accel_hz:
-        real_hz = accel.shape[0] / (gps_samples[-1][0] / 1000.0)
-        # Nur strecken, wenn die Accel-Spur die ganze Session abdeckt (Aktivität bis zum
-        # Schluss der auf GPS gestreckten Zeitachse). Bricht sie vorher ab (echte abgebrochene
-        # Aufzeichnung), NICHT strecken -> getaggte Rate behalten (Accel deckt nur den Anfang ab,
-        # Rest via Accel-Abdeckungs-Cap). Unterscheidet niedrige-aber-volle Rate (FR55 2,5 Hz)
-        # von echtem Abbruch.
-        if _accel_spans_session(accel, session.accel_scale):
-            accel_hz = round(real_hz, 3)
+    # --- EINE Accel-Zeitachse, dann auf ein GLEICHMÄSSIGES Raster ---------------------------
+    # Alles Nachgelagerte rechnet `index = t * accel_hz`: die Foiling-Maske
+    # (_foiling_mask_for_accel), die Pump-Fenster je Lauf (unten), die ML-Features
+    # (foil_model.extract_features) und die Impuls-Erkennung (detect_jumps). Diese Annahme war
+    # FALSCH, sobald die echte Rate von einer Durchschnittsrate abweicht — und sie tut das, sobald
+    # die Uhr ihre Rate wechselt. Belegt an #1814 (Wear, docs/DATA-PIPELINE.md §9.1/§9.2): echte
+    # 50,19 Hz gegen eine Durchschnittsrate von 49,041 Hz ergaben mitten in der Session **124 s**
+    # Versatz -> der Detektor las Stillstand zwischen zwei Läufen, dadurch „die Pumps hören mitten
+    # im Lauf auf" und eine 45-s-Gleitphase, die es nie gab.
+    #
+    # Statt die vier Umrechnungsstellen einzeln zu flicken, wird die Annahme hier WAHR gemacht:
+    # timebase.py liefert die belastbarste Achse (t0_ms je Chunk > gemessene Rate > getaggte), und
+    # der Accel wird auf ein exakt gleichmäßiges Raster dieser Rate gelegt. Wo die Achse schon
+    # gleichmäßig war (measured_rate/uncertain — arange(n)/hz), ist das Raster identisch und die
+    # Umsetzung ein No-Op; Zahlen ändern sich nur dort, wo die Wahrheit vorher verfehlt wurde.
+    #
+    # Der Ausschluss (excluded_ranges) wird hier bewusst NICHT an die Achse gegeben: er wirkt
+    # weiter nur auf die GPS-Punkte (s. unten), damit der Accel das Trim-Fenster lückenlos
+    # abdeckt und `index = t * accel_hz` gilt. Das ist die bisherige Semantik.
+    from .timebase import _accel_chunk_counts, build_timebase
 
-    # Optionaler Zuschnitt: nur [trim_start_ms, trim_end_ms] auswerten (ms ab Start).
-    # GPS aufs Fenster filtern + auf 0 re-basen, Accel index-gleich zuschneiden
-    # (gleiche Zeitbasis, accel_hz) -> alle nachfolgenden Berechnungen sehen nur den Teil.
     ts0, ts1 = session.trim_start_ms, session.trim_end_ms
+    lo = ts0 if ts0 is not None else 0
+    hi = ts1 if ts1 is not None else (gps_samples[-1][0] if gps_samples else 0)
+
+    accel_hz = float(session.accel_hz or 0.0)
+    timebase_source = "none"
+    if accel.shape[0] > 0 and gps_samples:
+        _tb = build_timebase(
+            gps_samples, accel, session.accel_scale, session.accel_hz,
+            chunk_counts=_accel_chunk_counts(session.session_uuid),
+            t0_by_index=storage.load_accel_t0(session.session_uuid),
+            trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
+        )
+        timebase_source = _tb.source
+        if _tb.has_accel and _tb.accel_hz and _tb.accel_hz > 0:
+            accel_hz = round(float(_tb.accel_hz), 3)
+            # Raster ab dem Trim-Beginn (= re-basierte Zeit 0), Schritt 1/accel_hz.
+            src_ms = _tb.t_accel_ms - float(lo)
+            n_grid = int(max(hi - lo, 0) / 1000.0 * accel_hz) + 1
+            grid_ms = np.arange(n_grid) / accel_hz * 1000.0
+            pick = np.clip(np.searchsorted(src_ms, grid_ms), 0, src_ms.size - 1)
+            accel = _tb.accel[pick]
+        else:
+            accel = accel[0:0]
+
+    # GPS aufs Fenster filtern + auf 0 re-basen -> alle nachfolgenden Berechnungen sehen nur den Teil.
     if (ts0 is not None or ts1 is not None) and gps_samples:
-        lo = ts0 if ts0 is not None else 0
-        hi = ts1 if ts1 is not None else gps_samples[-1][0]
         gps_samples = [[s[0] - lo] + list(s[1:]) for s in gps_samples if lo <= s[0] <= hi]
-        if accel.shape[0] > 0:
-            a_lo = max(int(round(lo / 1000.0 * accel_hz)), 0)
-            a_hi = min(int(round(hi / 1000.0 * accel_hz)), accel.shape[0])
-            accel = accel[a_lo:a_hi] if a_hi > a_lo else accel[0:0]
 
     # Aussortierte Läufe (excluded_ranges): dieselbe Mechanik wie der Trim, nur mehrere
     # Fenster — und auch MITTEN in der Session (vergessene Stopp-Taste: Autofahrt zwischen
@@ -325,6 +351,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     res.setdefault("metrics", {})["detection"] = detection
     if accel.shape[0] > 0:
         res["metrics"]["accel_hz_effective"] = round(accel_hz, 2)   # tatsächliche Rate (kann != getaggt)
+        # Herkunft der Achse, auf der Pumps/Gleitphasen WIRKLICH gerechnet wurden. Vorher log das
+        # `time_base` aus dem v2-Block hier daneben (docs/DATA-PIPELINE.md §9.2) — jetzt ist es
+        # dieselbe Achse, und dieses Feld belegt es je Session.
+        res["metrics"]["accel_axis"] = timebase_source
     # Pumpfoil-Klassifikation:
     #  - mit Accel (model): der Pump/On-Foil-Erkennung vertrauen -> Foil-Läufe genügen.
     #  - ohne Accel (gps_only): zusätzlich Speed-Gate (<=30 km/h), da GPS allein unsicherer;
