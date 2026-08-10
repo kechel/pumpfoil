@@ -91,6 +91,9 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 **Verträge & Datenformat**
 - [`docs/data-format.md`](docs/data-format.md) — Upload-Vertrag Watch↔Server (GPS + int16-Accel-Chunks).
 - [`docs/ingest-contract.md`](docs/ingest-contract.md) — wie eine beliebige Watch-Plattform zum Recorder wird (2 Upload-Wege).
+- [`docs/DATA-PIPELINE.md`](docs/DATA-PIPELINE.md) — **Datenweg Upload → Anzeige, belegt**: die drei Zeitachsen
+  (Session-ms / trim-re-basiert / Sample-Index), echte vs. getaggte Raten, Sample-Formate, Prüf-Rezepte,
+  bekannte Defekte. **Vor jeder Untersuchung an Zeitachsen/Raten zuerst hier lesen** — nicht raten.
 
 **Produkt & Planung**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.
