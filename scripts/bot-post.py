@@ -61,6 +61,8 @@ def main() -> None:
     inhalt.add_argument("--text")
     inhalt.add_argument("--file", help="Textdatei (UTF-8), Inhalt wird gesendet")
     ap.add_argument("--lesen", action="store_true", help="nur den Verlauf zeigen, nichts senden")
+    ap.add_argument("--nochmal", action="store_true",
+                    help="auch senden, wenn dieses Konto im Scope schon geschrieben hat")
     args = ap.parse_args()
 
     email, pw = lade_zugang()
@@ -91,6 +93,19 @@ def main() -> None:
 
     if args.lesen:
         return
+
+    # SPERRE gegen Doppel-Antworten. Am 2026-08-10 habe ich jemandem zwei Tage nach der ersten
+    # Antwort dieselbe Auskunft ein zweites Mal geschickt, weil der Verlauf erst NACH dem Senden
+    # ausgegeben wurde. Jetzt bricht das Skript ab, wenn dieses Konto in dem Scope schon geschrieben
+    # hat — bewusst uebersteuerbar, aber nicht mehr aus Versehen.
+    eigene = [m for m in nachrichten if (m.get("name") or "") == ich.get("display_name")]
+    if eigene and not args.nochmal:
+        letzte = eigene[-1]
+        sys.exit(
+            f"ABBRUCH: hier wurde schon geantwortet ({len(eigene)} eigene Nachricht(en), "
+            f"letzte am {str(letzte.get('created_at'))[:16]}):\n"
+            f"   {(letzte.get('text') or '')[:300]}\n"
+            f"Wenn es trotzdem raus soll: --nochmal anhaengen.")
     text = args.text if args.text else (open(args.file, encoding="utf-8").read() if args.file else None)
     if not text or not text.strip():
         sys.exit("Kein Text — --text oder --file angeben (oder --lesen).")
