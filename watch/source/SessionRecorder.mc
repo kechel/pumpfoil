@@ -162,6 +162,7 @@ class SessionRecorder {
     // beim naechsten Start meldbar) und erst nach bestaetigter Antwort geloescht.
     var storageFullPending = false;
     var storageFullKb = 0;
+    hidden var _sfNoted = false;      // in diesem App-Lauf schon gemeldet (Bremse, s. _noteStorageFull)
 
     // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
     var pairCode = "";                // auf der Uhr angezeigter Code
@@ -1064,6 +1065,12 @@ class SessionRecorder {
         try { kb = Uploader.pendingKb(); } catch (e) { }
         storageFullKb = kb;
         storageFullPending = true;
+        // NUR EINMAL pro App-Start melden. Ist der Store wirklich voll, scheitert JEDER Write —
+        // beim Aufnehmen im Sekundentakt. Ohne diese Bremse schickt die Uhr pro Fehlschlag einen
+        // Config-Abruf; im Test mit fuenf erzwungenen Fehlschlaegen kamen prompt fuenf Meldungen
+        // beim Server an. Gezaehlt werden soll das Ereignis „Store war voll", nicht jeder Write.
+        if (_sfNoted) { return; }
+        _sfNoted = true;
         try { Storage.setValue("storage_full_kb", kb); } catch (e) {
             try { Storage.deleteValue("layouts_config"); } catch (e2) { }
             try { Storage.setValue("storage_full_kb", kb); } catch (e3) { }
