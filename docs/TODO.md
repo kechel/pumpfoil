@@ -280,13 +280,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
-- **Garmin 1.0.74 EINGEREICHT-BEREIT (10.08.).** Inhalt: voller Uhr-Speicher beendet die App nicht
+- **Garmin 1.0.74 EINGEREICHT 10.08. (Jan) — wartet auf CIQ-Freigabe.** Inhalt: voller Uhr-Speicher beendet die App nicht
   mehr mit „IQ!" (jeder Storage-Write ueber geschuetzte Helfer, auch Uploader + Config.setString),
   Grund im Start-Screen sichtbar, Upload-Rueckstau als VOLUMEN statt Anzahl (`15 warten auf Upload ·
   4 MB`), Start-Canary fuer Abstuerze beim App-Start, Meldung „Store voll" mit Volumen an den Server
   (lernt die echte Grenze je Modell). Im Emulator von Jan verifiziert: 5 erzwungene Fehlschlaege in
   Folge, kein Absturz, Hinweis sichtbar, eine Meldung mit kb=5035.
-  - `.iq` gebaut (210/210 Geraete, 11,2 MB) und an Jan uebergeben -> Upload apps-developer.garmin.com
+  - `.iq` gebaut (210/210 Geraete, 11,2 MB), von Jan hochgeladen; Store-Notizen (deu/eng) geliefert
   - **`watch/bin` steht bewusst auf 1.0.73**, die 121 fertigen 1.0.74-Builds liegen unter
     `/home/jan/release-staging/garmin-1.0.74/`. NACH der Freigabe: zurueckkopieren, dann
     `appmeta.garmin` = 1.0.74 + Changelog. Reihenfolge siehe Memory `watch-bin-is-live`.
