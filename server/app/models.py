@@ -140,6 +140,14 @@ class DeviceToken(Base):
     # Layouts für dieses Modell dann per Default nicht mehr aus.
     layout_canary_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     layout_canary_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Voller Object Store der Uhr: seit 1.0.74 faengt die Uhr den fehlgeschlagenen Storage-Write
+    # ab (vorher starb die App mit „IQ!") und meldet ihn beim naechsten Config-Abruf — MIT dem
+    # gepufferten Volumen. Damit lernen wir die echte Store-Groesse je Modell, statt eine
+    # Warnschwelle zu raten: eine Anzahl Sessions ist unbrauchbar (20 x 2 min = 0,7 MB gegen
+    # 3 x 5 h = 10 MB). `storage_full_kb` ist das GROESSTE gemeldete Volumen dieser Uhr.
+    storage_full_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    storage_full_kb: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    storage_full_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="devices")
 

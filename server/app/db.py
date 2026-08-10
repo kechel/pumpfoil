@@ -78,6 +78,11 @@ def _migrate_add_indexes() -> None:
         # Canary-Meldung der dynamischen Layouts je Uhr (selbstlernender Kill-Switch je Modell).
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS layout_canary_count INTEGER DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS layout_canary_at TIMESTAMPTZ",
+        # Voller Object Store der Uhr, gemeldet MIT gepuffertem Volumen -> echte Store-Groesse je
+        # Modell lernen, statt eine Warnschwelle zu raten (s. models.DeviceToken).
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_count INTEGER DEFAULT 0",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_kb INTEGER DEFAULT 0",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_at TIMESTAMPTZ",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",

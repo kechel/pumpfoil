@@ -157,6 +157,11 @@ class SessionRecorder {
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
+    // Dem Server noch zu melden: Store war voll, bei diesem gepufferten Volumen. Wird beim
+    // App-Start aus dem Storage gelesen (der Fehlschlag passiert NACH dem Config-Abruf, also erst
+    // beim naechsten Start meldbar) und erst nach bestaetigter Antwort geloescht.
+    var storageFullPending = false;
+    var storageFullKb = 0;
 
     // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
     var pairCode = "";                // auf der Uhr angezeigter Code
@@ -232,6 +237,16 @@ class SessionRecorder {
     function reloadConfig() {
         // Profil-Sprache (vom Server gecacht) anwenden — auch offline verfügbar.
         Strings.setLang(Storage.getValue("lang"));
+        // Offene Speicher-Meldung? Der Fehlschlag passiert NACH dem Config-Abruf (syncAll laeuft
+        // erst danach), also ist er immer erst beim naechsten Start meldbar. Der Hinweis im
+        // Start-Screen kommt hier gleich mit, damit der Nutzer den Grund sieht und nicht nur
+        // „hängt".
+        var sfkb = Storage.getValue("storage_full_kb");
+        if (sfkb instanceof Lang.Number && sfkb >= 0) {
+            storageFullPending = true;
+            storageFullKb = sfkb;
+            storageFull = true;
+        }
         // Bevorzugt die zuletzt von der Website geladene Konfiguration (Cache),
         // sonst die nativen Garmin-App-Settings (Offline-Fallback).
         var cached = Storage.getValue("views_config");
@@ -580,6 +595,14 @@ class SessionRecorder {
             // Layouts dort ab, sobald zwei verschiedene Uhren desselben Modells gemeldet haben.
             var params = { "v" => Config.VERSION, "p" => "garmin", "pn" => pn };
             if (canaryPending) { params["canary"] = "1"; }
+            // Voller Object Store: mit dem gepufferten VOLUMEN melden. Der Server lernt daraus,
+            // wieviel eine Uhr dieses Modells wirklich puffern kann — eine Warnschwelle nach
+            // Anzahl waere unbrauchbar (20 Sessions à 2 min = 0,7 MB, 3 à 5 h = 10 MB), und
+            // Connect IQ verrät den freien Store nicht.
+            if (storageFullPending) {
+                params["sf"] = "1";
+                params["kb"] = storageFullKb.toString();
+            }
             // Hat der Nutzer eigene Layouts am Handgelenk EINGESCHALTET, das mitsagen: bei knappen
             // Uhren (128-KB-Klasse, z. B. fēnix 5) liefert der Server sie nur auf Anfrage aus.
             // Ohne das zeigte die fēnix 5 trotz Umschalten nichts — das Paket kam nie an.
@@ -676,6 +699,12 @@ class SessionRecorder {
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
             canaryPending = false;
+            // Dasselbe fuer die Speicher-Meldung. deleteValue braucht keinen Platz, geht also
+            // auch bei vollem Store; trotzdem in try, damit ein Fehlschlag nichts beendet.
+            if (storageFullPending) {
+                storageFullPending = false;
+                try { Storage.deleteValue("storage_full_kb"); } catch (e3) { }
+            }
             // Update-Hinweis: neuere im IQ-Store freigegebene Version als unsere? -> kurz einblenden.
             if (data.hasKey("latestVersion") && data["latestVersion"] != null) {
                 if (_versionNewer(data["latestVersion"], Config.VERSION)) {
@@ -1013,8 +1042,37 @@ class SessionRecorder {
             return true;
         } catch (e) {
             storageFull = true;
+            _noteStorageFull();
             return false;
         }
+    }
+
+    // Speicher ist voll — das dem Server melden, obwohl wir gerade nicht schreiben koennen.
+    //
+    // Der Knackpunkt: der ERSTE Schreibzugriff beim Start ist die Boot-Marke selbst
+    // (`layout_boot_canary`). Ist der Store voll, scheitert schon die, und eine Diagnose-Notiz
+    // liesse sich genauso wenig ablegen — die Meldung waere nie zustande gekommen. Deshalb zwei
+    // Wege, in dieser Reihenfolge:
+    //   1. PLATZ SCHAFFEN und notieren. `layouts_config` ist ein reiner Cache und kommt beim
+    //      naechsten Config-Abruf wieder — den opfern wir fuer die Diagnose. Danach passt die
+    //      kleine Zahl fast sicher.
+    //   2. SOFORT senden, wenn das Telefon dran ist. Ohne Verbindung bleibt es bei 1, und die
+    //      Meldung geht beim naechsten Start mit dem Config-Abruf raus (sie bleibt dank
+    //      `storage_full_kb` liegen, bis der Server sie bestaetigt hat).
+    hidden function _noteStorageFull() {
+        var kb = 0;
+        try { kb = Uploader.pendingKb(); } catch (e) { }
+        storageFullKb = kb;
+        storageFullPending = true;
+        try { Storage.setValue("storage_full_kb", kb); } catch (e) {
+            try { Storage.deleteValue("layouts_config"); } catch (e2) { }
+            try { Storage.setValue("storage_full_kb", kb); } catch (e3) { }
+        }
+        // Sofortversuch nur, wenn eine Verbindung besteht und keine Aufnahme laeuft (Garmin
+        // blockt das Netz waehrend der Aktivitaet ohnehin).
+        try {
+            if (!isRecording() && System.getDeviceSettings().phoneConnected) { fetchConfig(); }
+        } catch (e) { }
     }
 
     hidden function _registerSession() {

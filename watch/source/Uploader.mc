@@ -51,6 +51,14 @@ module Uploader {
         } catch (e) {
             _storageFull = true;
             _lastError = :storage;
+            // Notieren, damit die Meldung spaetestens beim naechsten Start rausgeht. Erst Platz
+            // schaffen (layouts_config ist ein nachladbarer Cache), dann die kleine Zahl — sonst
+            // scheitert auch die Notiz. Eigener try: wir sind gerade an einem Write gescheitert.
+            // Der Sofortversuch laeuft im Recorder (_noteStorageFull), der die Verbindung kennt.
+            try { Storage.setValue("storage_full_kb", pendingKb()); } catch (e2) {
+                try { Storage.deleteValue("layouts_config"); } catch (e3) { }
+                try { Storage.setValue("storage_full_kb", pendingKb()); } catch (e4) { }
+            }
             return false;
         }
     }

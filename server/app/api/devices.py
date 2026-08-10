@@ -68,6 +68,8 @@ def device_config(
     pn: str | None = Query(None),  # Geräte-Part-Number (Garmin) -> später Modell-Zuordnung
     canary: int | None = Query(None),  # 1 = letzte Session mit dynamischem Layout ist abgestürzt
     lay: int | None = Query(None),  # 1 = der Nutzer hat eigene Layouts AUF DER UHR eingeschaltet
+    sf: int | None = Query(None),   # 1 = ein Storage-Write der Uhr ist gescheitert (Store voll)
+    kb: int | None = Query(None),   # dabei gepuffertes Volumen in KB (Schaetzung der Uhr)
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -88,6 +90,15 @@ def device_config(
     if canary:
         device.layout_canary_count = int(device.layout_canary_count or 0) + 1
         device.layout_canary_at = datetime.now(timezone.utc)
+        dirty = True
+    # Voller Object Store der Uhr. Zaehlen und das GROESSTE gemeldete Volumen behalten: daraus
+    # lernen wir, wieviel eine Uhr dieses Modells wirklich puffern kann, statt eine Warnschwelle
+    # zu raten. Die Uhr faengt den Fehlschlag seit 1.0.74 ab (vorher starb sie mit „IQ!").
+    if sf:
+        device.storage_full_count = int(device.storage_full_count or 0) + 1
+        device.storage_full_at = datetime.now(timezone.utc)
+        if kb and int(kb) > int(device.storage_full_kb or 0):
+            device.storage_full_kb = int(kb)
         dirty = True
     if dirty:
         db.commit()
@@ -291,6 +302,11 @@ def list_devices(
             "layout_capable": bool(((cat.get(model["id"]) or {}).get("mem") or 0) >= LAYOUT_MIN_MEMORY) if model else False,
             "layout_canary_count": int(d.layout_canary_count or 0),
             "layout_canary_at": d.layout_canary_at.isoformat() if d.layout_canary_at else None,
+            # Voller Uhr-Speicher: wie oft gemeldet und bei welchem gepufferten Volumen. Das ist
+            # die Datengrundlage fuer eine spaetere Warnschwelle je Modell (statt geraten).
+            "storage_full_count": int(d.storage_full_count or 0),
+            "storage_full_kb": int(d.storage_full_kb or 0),
+            "storage_full_at": d.storage_full_at.isoformat() if d.storage_full_at else None,
             # WARUM liefert der Server dieser Uhr (keine) Layouts? Ohne das bleibt nur Raten —
             # genau daran hing eine ganze Testrunde („steht auf an, zeigt sie aber nicht").
             # on | off_user | off_memory | off_canary | off_model | off_nolayout
