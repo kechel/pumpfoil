@@ -49,23 +49,38 @@ def main() -> None:
 
     from sqlalchemy import create_engine, text
     from sqlalchemy.orm import Session as OrmSession
-    from app import models
+    from app import models, storage
     from app.analysis import run_analysis
 
     eng = create_engine(os.environ["DATABASE_URL"])
     with eng.connect() as c:
-        ids = [r[0] for r in c.execute(text(
-            "select id from sessions where deleted = false order by id"))]
+        paare = list(c.execute(text(
+            "select id, session_uuid from sessions where deleted = false order by id")))
         vorher = {}
         for sid, mj, sj in c.execute(text(
                 "select a.session_id, a.metrics_json, a.segments_json from analysis_results a "
                 "join sessions s on s.id = a.session_id where s.deleted = false")):
             vorher[sid] = kennzahlen(json.loads(mj), json.loads(sj))
+    # HARTE SPERRE: Sessions ohne GPS-Rohdaten NIE reanalysieren. Sie liefern zwangslaeufig ein
+    # leeres Ergebnis und ueberschreiben damit einen gueltigen alten Stand — genau das ist am
+    # 2026-08-10 passiert: 6 Sessions (Verzeichnis fehlt, total_chunks=1) verloren dadurch alle
+    # Laeufe und kippten von „Pumpfoil" auf „nein"; nur die pg_dump-Sicherung hat sie gerettet.
+    # Ein leeres Ergebnis ist hier NIE eine Verbesserung, also lieber gar nicht rechnen.
+    ids, ohne_daten = [], []
+    for sid, uuid in paare:
+        d = storage.session_dir(uuid) / "gps"
+        if d.is_dir() and any(d.iterdir()):
+            ids.append(sid)
+        else:
+            ohne_daten.append(sid)
     if args.limit:
         ids = ids[: args.limit]
 
     print(f"{len(ids)} Sessions, {len(vorher)} mit gespeichertem Stand"
           f"{'  [TROCKENLAUF]' if args.dry else ''}", flush=True)
+    if ohne_daten:
+        print(f"UEBERSPRUNGEN (keine GPS-Rohdaten auf der Platte): {len(ohne_daten)}"
+              f" -> {ohne_daten[:20]}{' …' if len(ohne_daten) > 20 else ''}", flush=True)
     t0 = time.time()
     log = open(LOG, "a")
     geaendert = fehler = 0

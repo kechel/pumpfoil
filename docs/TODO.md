@@ -296,12 +296,30 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - Regression (100 Sessions, je 25 pro Achsen-Sorte): `none` 25/25 unveraendert, `measured_rate`
     20/25, `uncertain` 23/25 (Reste = Raster-Rundung, ±0…3 Pumps), `exact_chunks` 13/25 geaendert
     (echte Korrektur). **Nirgends aendert sich die Zahl der Laeufe oder die Pumpfoil-Einstufung.**
-  - **NOCH ZU TUN:** (a) Server-Restart, damit neue Uploads den Fix nutzen; (b) **Reanalyse des
-    Bestands** — vorher `analysis_results` sichern (`pg_dump -t analysis_results`); Pump-Zahlen
-    steigen dabei sichtbar (bei betroffenen Sessions +10…20 %), Bestenlisten/Rekorde koennen sich
-    verschieben -> Changelog-Eintrag sinnvoll; (c) dem Nutzer antworten, der es gemeldet hat.
+  - **ERLEDIGT 10.08.:** Server neu gestartet · Bestand reanalysiert (1219 bewertet, 241 geaendert,
+    0 Fehler; `exact_chunks` median +2 Pumps, `measured_rate` nur ±5 = Raster-Rundung, `none`
+    unberuehrt; NIRGENDS aendern sich Laufzahl oder Pumpfoil-Einstufung) · Changelog-Eintrag steht.
+    Sicherung: `foil-analysis-backups/analysis_results-vor-achsen-fix-2026-08-10.dump` (65 MB).
+    Unmoegliche Gleitphasen (>=5 s) im Bestand: 8 -> 6; behoben genau dort, wo `t0_ms` vorlag.
+  - **PANNE dabei, behoben:** der erste Reanalyse-Lauf hat 6 Sessions ohne Rohdaten auf der Platte
+    (Verzeichnis fehlt, `total_chunks=1`, alle Nutzer 159) mit leeren Ergebnissen ueberschrieben ->
+    11/5/9/17/24/11 Laeufe weg, `is_pumpfoil` auf false. Aus dem pg_dump zurueckgestellt und Feld
+    fuer Feld verifiziert. `scripts/reanalyse-alle.py` ueberspringt jetzt Sessions ohne
+    GPS-Rohdaten (103 im Bestand) — ein leeres Ergebnis ist NIE eine Verbesserung.
+  - **OFFEN: dem Nutzer antworten** (Text liegt bereit). Haken: von seinen 4 Sessions sind 3
+    korrigiert (Gleitphase 1,59–1,91 s), aber #1596 vom 05.08. bleibt bei 14,35 s — sie ist
+    zusammengefuehrt, siehe naechster Punkt.
   - Offen bleibt §9.3: Chunk-Dauer wird ueber Pausen geschmiert (deshalb bleibt die untere
     Bandgrenze bei 0,5; #1579 liegt 203 s daneben).
+- **🔴 NEU: Zusammenfuehren zerstoert die Accel-Zeitanker** (`docs/DATA-PIPELINE.md` §9.5, braucht
+  Jans OK). `merge.py:157–177` legt die Teile an `off_ms/1000 · hz` mit `hz = accel_hz` = der
+  GETAGGTEN Rate. Liefert die Uhr das Doppelte (Wear/Apple), sind die Offsets um Faktor 2 falsch und
+  die Teile ueberschreiben sich; danach wird alles als EIN Chunk ohne `t0`-Sidecar geschrieben.
+  -> zusammengefuehrte Sessions koennen `exact_chunks` nie erreichen, die §9.2-Reparatur greift bei
+  ihnen nicht. Belegt an #1596 (aus #1593+#1595): ein Chunk, keine Sidecars, 25,019 Hz gemessen,
+  14,35 s Gleitphase bleibt — waehrend die drei nicht zusammengefuehrten Sessions derselben Uhr auf
+  1,59–1,91 s fallen. Fix: Offsets aus der ECHTEN Rate je Teil, `t0`-Ketten der Teile mitschreiben.
+  Zahl der betroffenen Sessions im Bestand noch nicht erhoben.
 - **Garmin 1.0.74 LIVE im CIQ-Store 10.08.** Store-Seite: „Latest Release August 10, 2026,
   Version 1.0.74, Size 100 KB". Release-Kette ERLEDIGT: `watch/bin` auf 1.0.74 (121/121,
   ueber /api/app/devices verifiziert), `appmeta.garmin` = 1.0.74, Changelog-Eintrag steht. Inhalt: voller Uhr-Speicher beendet die App nicht

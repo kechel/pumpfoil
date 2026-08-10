@@ -549,6 +549,23 @@ verteilt statt an ihren Anfang gelegt. Bei #1579 (Chunk-Rate 5,87 Hz gegen getag
 Deshalb bleibt die untere Bandgrenze bei 0,5 (§9.1). Saubere Lösung wäre, die Chunk-Dauer aus
 `counts / nominaler Rate` zu schätzen und die Lücke als Lücke stehen zu lassen.
 
+### 9.5 Zusammenführen zerstört die Accel-Zeitanker  🔴 offen
+
+`merge.py:157–177` baut beim Zusammenführen zweier Sessions ein gemeinsames Accel-Array, indem es
+jeden Teil an den Index `off_ms / 1000 · hz` legt — mit **`hz = first.accel_hz`, also der GETAGGTEN
+Rate**. Liefert die Uhr das Doppelte (Wear/Apple, §3), sind die Offsets damit um den Faktor 2 falsch
+und die Teile überschreiben sich. Anschließend wird alles als **ein** Chunk über
+`storage.save_accel_raw` geschrieben — **ohne `t0`-Sidecar**. Folge: eine zusammengeführte Session
+kann nie mehr `exact_chunks` erreichen, und die §9.2-Reparatur greift bei ihr nicht.
+
+Belegt an #1596 (aus #1593 + #1595 zusammengeführt): ein einziger Chunk, keine Sidecars, gemessene
+Rate 25,019 Hz — und eine Gleitphase von **14,35 s**, die nach der Reanalyse unverändert bleibt,
+während die drei nicht zusammengeführten Sessions derselben Uhr auf 1,59–1,91 s fallen.
+
+Ein Fix müsste die Offsets aus der echten Rate je Teil rechnen und die `t0`-Ketten der Teile
+mitschreiben statt sie wegzuwerfen. Betrifft nur zusammengeführte Sessions — Zahl im Bestand noch
+nicht erhoben.
+
 ### 9.4 `hz_measured` und der GPS-Vorlauf — **kein** Defekt (geprüft)
 
 Naheliegende Vermutung: `timebase.py:144` `hz_measured = n / (gps_end_ms/1000)` benutze den
