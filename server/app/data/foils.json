@@ -4716,11 +4716,10 @@
     "brand": "North",
     "model": "Sonar P",
     "size": "P2050",
-    "span_cm": 99.0,
+    "span_cm": 140.0,
     "area_cm2": 2050.0,
-    "thickness_mm": 33.1,
+    "thickness_mm": 23.4,
     "thickness_estimated": true,
-    "specs_estimated": true,
     "is_baseline": false
   }
 ]
