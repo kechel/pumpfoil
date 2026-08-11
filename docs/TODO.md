@@ -280,7 +280,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
-- **🟢 Accel-Zeitachse repariert (§9.1 + §9.2) — 🔴 REANALYSE DES BESTANDS OFFEN.**
+- **🟢 Accel-Zeitachse repariert (§9.1 + §9.2), Bestand reanalysiert — ERLEDIGT 10.08.**
   Belegt in [`docs/DATA-PIPELINE.md`](DATA-PIPELINE.md) §9.1/§9.2. Zwei Fixes:
   1. `timebase.py`: die Bandpruefung verwarf eine KORREKTE `t0_ms`-Achse, weil sie sie mit der
      GETAGGTEN Rate verglich (50,19/25 = 2,0076, 0,4 % ueber der Schranke 2.0). Jetzt 4.0 + absolute
@@ -306,20 +306,26 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     11/5/9/17/24/11 Laeufe weg, `is_pumpfoil` auf false. Aus dem pg_dump zurueckgestellt und Feld
     fuer Feld verifiziert. `scripts/reanalyse-alle.py` ueberspringt jetzt Sessions ohne
     GPS-Rohdaten (103 im Bestand) — ein leeres Ergebnis ist NIE eine Verbesserung.
-  - **OFFEN: dem Nutzer antworten** (Text liegt bereit). Haken: von seinen 4 Sessions sind 3
-    korrigiert (Gleitphase 1,59–1,91 s), aber #1596 vom 05.08. bleibt bei 14,35 s — sie ist
-    zusammengefuehrt, siehe naechster Punkt.
+  - **ERLEDIGT 10.08.: dem Melder geantwortet** (aus dem Assistenten-Konto, eigener 1:1-Thread).
+    Alle vier seiner Sessions liegen jetzt unter 2 s Gleitphase. Er hat am 10.08. 21:41 bestaetigt
+    und einen nuetzlichen Nebenbefund geliefert: nach einer Reanalyse zeigt der BROWSER-CACHE noch
+    die alten Werte, erst Shift+F5 raeumt auf -> bei der naechsten Massen-Reanalyse in den
+    Changelog-Eintrag schreiben.
   - Offen bleibt §9.3: Chunk-Dauer wird ueber Pausen geschmiert (deshalb bleibt die untere
     Bandgrenze bei 0,5; #1579 liegt 203 s daneben).
-- **🔴 NEU: Zusammenfuehren zerstoert die Accel-Zeitanker** (`docs/DATA-PIPELINE.md` §9.5, braucht
-  Jans OK). `merge.py:157–177` legt die Teile an `off_ms/1000 · hz` mit `hz = accel_hz` = der
+- **🟢 Zusammenfuehren zerstoerte die Accel-Zeitanker — BEHOBEN 10.08.** (`docs/DATA-PIPELINE.md`
+  §9.5). `merge.py` legte die Teile an `off_ms/1000 · hz` mit `hz = accel_hz` = der
   GETAGGTEN Rate. Liefert die Uhr das Doppelte (Wear/Apple), sind die Offsets um Faktor 2 falsch und
   die Teile ueberschreiben sich; danach wird alles als EIN Chunk ohne `t0`-Sidecar geschrieben.
   -> zusammengefuehrte Sessions koennen `exact_chunks` nie erreichen, die §9.2-Reparatur greift bei
   ihnen nicht. Belegt an #1596 (aus #1593+#1595): ein Chunk, keine Sidecars, 25,019 Hz gemessen,
   14,35 s Gleitphase bleibt — waehrend die drei nicht zusammengefuehrten Sessions derselben Uhr auf
-  1,59–1,91 s fallen. Fix: Offsets aus der ECHTEN Rate je Teil, `t0`-Ketten der Teile mitschreiben.
-  Zahl der betroffenen Sessions im Bestand noch nicht erhoben.
+  1,59–1,91 s fielen. Fix: `_trimmed_mit_achse` schneidet ueber die echte Achse zu,
+  `_save_accel_mit_ankern` schreibt Chunks MIT `t0_ms`. Bestand mit
+  `scripts/repariere-merges.py` nachgezogen: **30 von 33 repariert**, 3 uebersprungen (den Teilen
+  fehlen die Accel-Rohdaten: #590, #684, #716). #1596 danach 14,35 s -> 1,85 s, Pumps 1019 -> 1257.
+  Bei #1596 kamen 584.544 Samples zusammen — vorher landeten davon nur ~200.000 im Ergebnis.
+  OFFEN dazu: die 3 nicht reparierbaren Sessions bleiben, wie sie sind.
 - **Garmin 1.0.74 LIVE im CIQ-Store 10.08.** Store-Seite: „Latest Release August 10, 2026,
   Version 1.0.74, Size 100 KB". Release-Kette ERLEDIGT: `watch/bin` auf 1.0.74 (121/121,
   ueber /api/app/devices verifiziert), `appmeta.garmin` = 1.0.74, Changelog-Eintrag steht. Inhalt: voller Uhr-Speicher beendet die App nicht
