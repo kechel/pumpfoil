@@ -718,6 +718,62 @@ def list_in_progress(
     return out
 
 
+WASSER_MIN_UEBERDECKUNG = 0.20   # Anteil der Trackpunkte, der im Polygon liegen muss
+
+
+def _wasser_silhouette(db: Session, ar) -> list | None:
+    """Wasserfläche für das Teilen-Bild — aus dem Cache, ohne Netz.
+
+    Bis 2026-08-11 wurde der Rasterschlüssel aus dem Median ALLER Trackpunkte gebildet und das
+    Ergebnis ungeprüft gezeichnet. Beides ging schief: liegt die Uhr nach der Session lange still,
+    wandert der Median dorthin, und bei grossen Seen liefert Overpass ohnehin nur einen kleinen
+    Nachbar-Way (Hafenbecken). Gemessen an 509 gezeichneten Bildern: bei **122** lag der Track zu
+    praktisch 0 % im blauen Bereich — die Silhouette gehoerte gar nicht zu der Fahrt.
+
+    Statt den Nachschlagepunkt weiter zu raten wird hier GEPRUEFT: beide Kandidaten (bewegter
+    Median wie in der Analyse, plus der alte Median) werden gegen den Track gehalten, der bessere
+    gewinnt, und unter WASSER_MIN_UEBERDECKUNG wird NICHTS gezeichnet. Die Verteilung ist
+    zweigipfelig (133 Bilder unter 5 %, dann eine Luecke, ab 20 % die brauchbaren) — die Schwelle
+    trennt also an der Luecke, nicht an einem gewuenschten Ergebnis.
+    """
+    try:
+        gj = json.loads(ar.track_geojson or "{}")
+        co = (gj.get("geometry") or {}).get("coordinates") or []
+        if len(co) < 5:
+            return None
+        import numpy as _np
+
+        from ..analysis import _water_lookup_point
+        from ..analysis.gps import _in_water
+
+        props = gj.get("properties") or {}
+        spd = (props.get("speeds") or {}).get("3") or props.get("speeds_mps") or []
+        keys: list[str] = []
+        if len(spd) == len(co):
+            p = _water_lookup_point([[0, q[1], q[0], v] for q, v in zip(co, spd)])
+            if p:
+                keys.append(f"{round(p[0], 3)},{round(p[1], 3)}")
+        alt = (f"{round(float(_np.median([q[1] for q in co])), 3)},"
+               f"{round(float(_np.median([q[0] for q in co])), 3)}")
+        if alt not in keys:
+            keys.append(alt)
+
+        probe = co[:: max(len(co) // 40, 1)][:40]      # Stichprobe genuegt fuer den Anteil
+        best, best_anteil = None, 0.0
+        for key in keys:
+            wp = db.query(models.WaterPolygon).filter_by(grid_key=key).first()
+            if not (wp and wp.rings_json):
+                continue
+            ringe = json.loads(wp.rings_json)
+            drin = sum(1 for q in probe if _in_water(q[1], q[0], ringe))
+            anteil = drin / len(probe)
+            if anteil > best_anteil:
+                best, best_anteil = ringe, anteil
+        return best if best_anteil >= WASSER_MIN_UEBERDECKUNG else None
+    except Exception:
+        return None
+
+
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal",
                           period: str = "all") -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
@@ -1284,17 +1340,7 @@ def share_card(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Track-Daten")
     # "none" = bewusst KEINE Stat-Boxen (leer/None hieße Default=alle) — Fix „alle abgewählt → alle sichtbar".
     stat_keys = [] if stats == "none" else ([k for k in (stats.split(",") if stats else []) if k] or None)
-    # Wasser-Silhouette aus dem Cache (kein Netz): grid_key aus Track-Median
-    rings = None
-    try:
-        gj = json.loads(ar.track_geojson); c = (gj.get("geometry") or {}).get("coordinates") or []
-        if c:
-            import numpy as _np
-            la = float(_np.median([p[1] for p in c])); lo = float(_np.median([p[0] for p in c]))
-            wp = db.query(models.WaterPolygon).filter_by(grid_key=f"{round(la,3)},{round(lo,3)}").first()
-            rings = json.loads(wp.rings_json) if (wp and wp.rings_json) else None
-    except Exception:
-        rings = None
+    rings = _wasser_silhouette(db, ar)
     ttl = (title or "").strip()[:40] or None
     sh = shade if shade in ("light", "dark") else "light"
     png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg,
