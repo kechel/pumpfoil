@@ -180,6 +180,12 @@ Zwei Konsequenzen, die man kennen muss:
   (= 120 s). `t0_ms` je Accel-Chunk in `_accelT0`, **gedeckelt auf 600 Einträge** (~10 h) — danach
   fehlen den späten Chunks die Zeiten und der Server fällt für die Session auf `measured_rate`
   zurück (bewusst so, ein wachsendes Dict sprengt den Object-Store kleiner Uhren).
+- **Kein Hintergrund-Upload.** Connect IQ lässt die App nicht im Hintergrund laufen: die
+  Warteschlange wird abgearbeitet, solange die App offen ist, und läuft sonst erst **beim nächsten
+  App-Start** weiter (`Uploader.mc:70`). Aus Nutzersicht sieht das aus wie „ich muss die App öffnen,
+  damit jeder Lauf hochgeht" — es ist eine Plattform-Grenze, kein Fehler. Auf speicherarmen Uhren
+  (GPS-only, ~5 KB je 120-s-Chunk) geht es dabei um sehr wenig Daten: eine 79-Minuten-Session sind
+  24 Chunks, also gut 120 KB. Ein langsamer Upload liegt dort also nicht am Volumen.
 
 **Wear OS** (`android/wear/.../Recorder.kt`, `RecorderService.kt`)
 - `registerListener(…, 1_000_000 / accelHzActual)` — das ist ein **Hinweis** in µs; Android liefert
