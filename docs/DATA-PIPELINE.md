@@ -588,6 +588,46 @@ Zwei Sicherheitsnetze im Reparatur-Skript: die rekonstruierte GPS-Spur muss zeic
 gespeicherten sein (sonst wird die Session nicht angefasst), und der alte `accel/`-Ordner wird nach
 `accel.vor-reparatur/` kopiert.
 
+### 9.6 Wasserflächen: große Seen fehlen — **bewusst** so (Entscheidung 2026-08-11)
+
+Zwei Stellen benutzen eine OSM-Wasserfläche: `_clip_ends_to_water` (`gps.py`, setzt ein an Land
+gedriftetes Lauf-Ende auf das letzte Sample im Wasser zurück) und das **Teilen-Bild**
+(`sharecard.py`, zeichnet den See hinter dem Track). Geholt wird sie über
+`places.lookup_water_rings` und gecacht in `water_polygons` (Rasterschlüssel ~111 m).
+
+**Große Seen kommen dort nie an.** Die Abfrage sucht `way(around:R)["natural"="water"]` — OSM führt
+große Seen aber als **Relation** (Multipolygon), weil ein einzelner Umriss mit Inseln und
+Flussmündungen nicht abbildbar ist. Belegt an einem Lauf-Punkt von #1328 (Bregenz): `is_in` liefert
+genau eine Fläche, die den Punkt enthält — **Relation 1156846 „Bodensee"**, `natural=water`,
+`water=lake`. Die Way-Abfrage kann sie nicht finden und liefert stattdessen den nächsten kleinen
+Way: zurück kam ein Ring von **65 × 280 m** (ein Hafenbecken), in dem **0 von 82** Lauf-Samples
+liegen — nicht einmal der Abfragepunkt selbst.
+
+**Warum das so bleibt:** die Relation hat 84 Mitglieder (43 outer, 41 inner) mit 16.396
+Geometriepunkten, der Abruf dauerte **über zwei Minuten**. Aus 84 unsortierten Teilstücken
+geschlossene Ringe zu nähen (Enden zusammenpassen, Inseln als Löcher, unvollständige Relationen)
+ist Geometriearbeit mit vielen Sonderfällen — für einen Gewinn von Sekundenbruchteilen an
+Lauf-Enden (das machen `_trim_fall_tail` und `_extend_ends_forward` heute schon heuristisch) plus
+einer Silhouette auf dem Teilen-Bild. Wenn die Silhouette an den großen Seen je wichtig wird, ist
+der ehrlichere Weg nicht Overpass, sondern eine fertige vereinfachte Seen-Geometrie für die ~20
+Seen, an denen wirklich Sessions entstehen.
+
+**Was dagegen behoben ist** (2026-08-10/11):
+- Der **Nachschlagepunkt** kam aus dem Median ALLER GPS-Punkte und wanderte dorthin, wo die Uhr nach
+  der Session lag (Heimweg, Parkplatz). Jetzt Median nur der Samples im Band 1–8 m/s
+  (`_water_lookup_point`). Bei #1328: alter Punkt 2290 m vom Spot, neuer 458 m; bei 13 weiteren
+  Sessions wandert er nur 0–50 m, bleibt also in derselben Rasterzelle.
+- **Cache-Narben**: bis zum 01.08. wurde ein *fehlgeschlagener* Abruf als „kein Wasser" gecacht
+  (384 Zeilen). Die werden jetzt einmal neu nachgeschlagen und überschrieben, echte „kein
+  Wasser"-Einträge bleiben respektiert. Es wird nichts gelöscht.
+- **Teilen-Bild**: die Silhouette wird nicht mehr geraten, sondern **geprüft** — beide
+  Punkt-Kandidaten werden gegen den Track gehalten, der bessere gewinnt, unter 20 % Überdeckung
+  wird nichts gezeichnet (`_wasser_silhouette`, `WASSER_MIN_UEBERDECKUNG`). Vorher lag bei **122 von
+  509** Bildern der Track zu praktisch 0 % im blauen Bereich. Jetzt 371 Bilder, jedes belegt.
+
+Overpass selbst ist übrigens wieder erreichbar (über die Spiegel in `places.OVERPASS_URLS`,
+17–27 s je Abruf) — die frühere IP-Sperre ist kein Thema mehr.
+
 ### 9.4 `hz_measured` und der GPS-Vorlauf — **kein** Defekt (geprüft)
 
 Naheliegende Vermutung: `timebase.py:144` `hz_measured = n / (gps_end_ms/1000)` benutze den

@@ -511,14 +511,14 @@ noch deutsch — dort gibt es keine belegbare Sprachquelle.
       Erledigt als Grundlage (01.08., `8b6e38f`): Accel-`t0_ms` wird serverseitig gesichert
       (`load_accel_t0()`), Overpass ueber Spiegel mit Trennung „Fehlschlag" / „nichts gefunden".
 
-- [ ] **Wasserflaeche wird am FALSCHEN Ort nachgeschlagen (Fehler, einfacher Fix).**
-      `_water_rings_cached` (`analysis/__init__.py:54`) waehlt den Nachschlage-Punkt ueber den
-      **Median ALLER GPS-Punkte**. Liegt die Uhr nach der Session lange still (Heimfahrt, Uhr am
-      Bahnhof/zu Hause), wandert der Median dorthin — Befund #1328: Polygon bei 47.531,9.743, der
-      Spot aber bei 47.510,9.752, Ergebnis **0 % Wasseranteil fuer ALLE sechs Laeufe**, auch die
-      echten. Schaden entsteht nicht (`_clip_ends_to_water` fasst Laeufe ohne Wasser-Sample nicht
-      an), aber die Korrektur laeuft ins Leere. Fix: Ort aus den FOIL-LAEUFEN bestimmen statt aus
-      allen Samples. Danach ist „Lauf verlaesst das Wasser" ein belastbares Signal.
+- [x] **Wasserflaeche wird am FALSCHEN Ort nachgeschlagen — BEHOBEN 10./11.08.**
+      Nachschlagepunkt jetzt aus den bewegten Samples (Band 1–8 m/s, `_water_lookup_point`) statt
+      dem Median ALLER Punkte. Bei #1328: 2290 m vom Spot -> 458 m; bei 13 weiteren Sessions
+      wandert der Punkt nur 0–50 m (gleiche Rasterzelle, kein Kollateralschaden). Das Teilen-Bild
+      hatte denselben Fehler mit eigener Logik — dort wird die Silhouette jetzt GEPRUEFT statt
+      geraten (`_wasser_silhouette`, unter 20 % Track-Ueberdeckung wird nichts gezeichnet): vorher
+      lag bei 122 von 509 Bildern der Track zu ~0 % im blauen Bereich, jetzt 371 belegte Bilder.
+      Details + Belege: [`docs/DATA-PIPELINE.md`](DATA-PIPELINE.md) §9.6.
 - [ ] **OVERPASS IST GESPERRT — Wasserflaechen und Ufer-Namen kommen seit unbekannter Zeit nicht mehr
       an.** Von dieser VM: `overpass-api.de` IPv4 -> **Connection refused** (unsere IP ist dort
       offenbar gesperrt, wir haben pro Session angefragt), IPv6 -> keine Route (VM hat kein IPv6).
@@ -530,9 +530,16 @@ noch deutsch — dort gibt es keine belegbare Sprachquelle.
          Fehlschlag `rings_json=""`, und das heisst dauerhaft „hier ist kein Wasser". Cache-Stand:
          **443 Eintraege, 384 davon als „kein Wasser"**.
       3. `lookup_shore_name` nutzt denselben Dienst -> neue Spots bekommen schlechtere/keine Namen.
-      Fix: Spiegel-Liste der Reihe nach probieren; Fehlschlag NICHT als „kein Wasser" cachen
-      („nachgeschaut, nichts gefunden" von „Abruf fehlgeschlagen" trennen); Abrufe entzerren.
-      Danach die vergifteten Eintraege loeschen (384 Zeilen, **braucht Jans OK**) und erst DANN
+      ERLEDIGT: Spiegel-Liste (01.08., `8b6e38f`) — Overpass ist darueber wieder erreichbar
+      (17–27 s je Abruf), die IP-Sperre ist kein Thema mehr. Fehlschlaege werden nicht mehr als
+      „kein Wasser" gecacht, und die 384 vergifteten Zeilen werden beim naechsten Zugriff EINMAL neu
+      nachgeschlagen und ueberschrieben — **ohne Loeschen**, das OK brauchte es dadurch nicht.
+      OFFEN und BEWUSST SO (Entscheidung Jan, 11.08.): grosse Seen bleiben aussen vor, weil OSM sie
+      als Relation fuehrt und die Way-Abfrage sie nie findet (Bodensee = Relation 1156846, 84
+      Mitglieder, 16.396 Punkte, >2 min Abruf). Begruendung + Belege in
+      [`docs/DATA-PIPELINE.md`](DATA-PIPELINE.md) §9.6. Falls es je wichtig wird: nicht Overpass,
+      sondern eine fertige vereinfachte Geometrie fuer die ~20 relevanten Seen.
+      Alter Plan (nicht mehr verfolgt):
       „ist der Lauf auf dem Wasser?" als Signal testen — es ist das einzige, das den von Jan
       bestaetigten Fall #890 (echter Lauf, Puls-Anstieg -5) richtig einordnen kann.
 - [ ] **RAHMENDATEN PRO NUTZER (Jans Richtung, 01.08.) — gemessen, tragfaehig aber nur mit
