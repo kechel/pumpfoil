@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import numpy as np
 from sqlalchemy.orm import Session as DbSession
@@ -51,28 +52,70 @@ def _gps_only_ok(sport) -> bool:
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
 
+# Bis zu diesem Zeitpunkt wurde ein FEHLGESCHLAGENER Overpass-Abruf als rings_json="" gecacht und
+# hiess damit dauerhaft „hier ist kein Wasser" (Fix in 8b6e38f, 2026-08-01 08:34 +02). Solche
+# Zeilen sind keine Aussage, sondern Narben einer Stoerung — sie werden EINMAL neu nachgeschlagen
+# und dann ueberschrieben. Nichts wird geloescht: die Zeile wird aktualisiert und traegt danach ein
+# frisches Datum, wird also nicht wieder angefasst. Stand 11.08.: 384 solche Zeilen, dazu 28 echte
+# „kein Wasser" von nach dem Fix und 120 mit Ringen.
+_CACHE_NARBEN_BIS = datetime(2026, 8, 1, 6, 34, tzinfo=timezone.utc)
+
+# Nachschlagepunkt: nur Samples in Foil-/Paddel-Geschwindigkeit zaehlen. Darunter steht die Uhr
+# (Pause, Auto-Parkplatz, Zuhause), darueber faehrt sie (Auto/Zug auf dem Heimweg).
+WATER_POINT_SPEED_MPS = (1.0, 8.0)
+WATER_POINT_MIN_SAMPLES = 20
+
+
+def _water_lookup_point(gps_samples: list) -> tuple[float, float] | None:
+    """Ort fuer die Wasser-Abfrage. Median NUR der bewegten Samples statt aller.
+
+    Warum: der Median ALLER Punkte wandert dorthin, wo die Uhr am laengsten lag — nach der Session
+    also nach Hause oder auf den Parkplatz. Befund #1328: Polygon bei 47.531,9.743 abgefragt, der
+    Spot lag bei 47.510,9.752 -> 0 % Wasseranteil fuer ALLE sechs Laeufe, auch die echten. Die
+    Korrektur `_clip_ends_to_water` lief damit ins Leere, ohne Schaden anzurichten, aber auch ohne
+    Wirkung. Ein Geschwindigkeitsband trifft den Ort, an dem wirklich gefoilt/gepaddelt wurde, und
+    braucht die Segmente noch nicht (die entstehen erst spaeter — Henne-Ei).
+    """
+    if not gps_samples:
+        return None
+    lo, hi = WATER_POINT_SPEED_MPS
+    bewegt = [g for g in gps_samples
+              if len(g) > 3 and g[3] is not None and lo <= float(g[3]) <= hi]
+    quelle = bewegt if len(bewegt) >= WATER_POINT_MIN_SAMPLES else gps_samples
+    return (float(np.median([g[1] for g in quelle])),
+            float(np.median([g[2] for g in quelle])))
+
+
 def _water_rings_cached(db: DbSession, gps_samples: list):
     """OSM-Wasserfläche (Polygon-Ringe) am Ort der Session, gecacht je ~111-m-Raster.
     rings_json="" = nachgeschlagen, kein Wasser. Netz-/Parse-Fehler -> None."""
-    if not gps_samples:
+    punkt = _water_lookup_point(gps_samples)
+    if punkt is None:
         return None
-    lat = float(np.median([g[1] for g in gps_samples]))
-    lon = float(np.median([g[2] for g in gps_samples]))
+    lat, lon = punkt
     key = f"{round(lat, 3)},{round(lon, 3)}"
     row = db.query(models.WaterPolygon).filter_by(grid_key=key).first()
     if row is not None:
-        return json.loads(row.rings_json) if row.rings_json else None
+        if row.rings_json:
+            return json.loads(row.rings_json)
+        erstellt = row.created_at
+        if erstellt is not None and erstellt.tzinfo is None:
+            erstellt = erstellt.replace(tzinfo=timezone.utc)
+        if erstellt is None or erstellt >= _CACHE_NARBEN_BIS:
+            return None            # echtes „nachgeschaut, kein Wasser"
+        # sonst: Narbe aus der Stoerungszeit -> einmal neu nachschlagen (s. _CACHE_NARBEN_BIS)
     from ..places import OverpassUnavailable, lookup_water_rings
 
     try:
         rings = lookup_water_rings(lat, lon)
     except OverpassUnavailable:
-        # NICHT cachen: ein fehlgeschlagener Abruf ist keine Aussage ueber Wasser. Bis 01.08.2026
-        # wurde er als rings_json="" gespeichert und hiess damit fuer immer „hier ist kein Wasser" —
-        # bei gesperrter Overpass-Instanz hat sich so jede Stoerung dauerhaft eingebrannt
-        # (Cache-Stand damals: 384 von 443 Eintraegen als „kein Wasser").
+        # NICHT cachen: ein fehlgeschlagener Abruf ist keine Aussage ueber Wasser.
         return None
-    db.add(models.WaterPolygon(grid_key=key, rings_json=json.dumps(rings) if rings else ""))
+    if row is not None:
+        row.rings_json = json.dumps(rings) if rings else ""
+        row.created_at = datetime.now(timezone.utc)   # frisches Datum -> gilt ab jetzt als Aussage
+    else:
+        db.add(models.WaterPolygon(grid_key=key, rings_json=json.dumps(rings) if rings else ""))
     db.commit()
     return rings
 
