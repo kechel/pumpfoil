@@ -148,6 +148,12 @@ class DeviceToken(Base):
     storage_full_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     storage_full_kb: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     storage_full_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Vom Nutzer ausgeblendet: rein kosmetisch. Erneutes Pairing legt IMMER eine neue Zeile
+    # an (devices.py), und Zeilen mit Sessions duerfen nicht weg (sonst verlieren die
+    # Sessions ihre Geraete-Zuordnung). Ein Nutzer hatte dadurch 5 Eintraege fuer EINE Uhr
+    # (Feedback 07.08. + 11.08.). Ausblenden loest das ohne Datenwanderung: die Uhr
+    # funktioniert weiter, sie steht nur nicht mehr in der Liste.
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="devices")
 

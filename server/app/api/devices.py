@@ -261,13 +261,21 @@ def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
 @router.get("/list")
 def list_devices(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
+    include_hidden: bool = False,
 ) -> list[dict]:
-    """Mit dem Account verknüpfte Uhren/Geräte (ohne Token-Geheimnis)."""
+    """Mit dem Account verknüpfte Uhren/Geräte (ohne Token-Geheimnis).
+
+    Ausgeblendete Eintraege (`hidden_at`, s. /hide) fehlen standardmaessig. Jeder gelieferte
+    Eintrag traegt `hidden_total` — die Zahl der ausgeblendeten desselben Nutzers, damit die
+    Oberflaeche „N ausgeblendete anzeigen" anbieten kann, ohne einen zweiten Aufruf.
+    """
+    q = db.query(models.DeviceToken).filter(models.DeviceToken.user_id == user.id)
+    hidden_total = int(q.filter(models.DeviceToken.hidden_at.isnot(None)).count())
+    if not include_hidden:
+        q = q.filter(models.DeviceToken.hidden_at.is_(None))
     rows = (
-        db.query(models.DeviceToken)
-        .filter(models.DeviceToken.user_id == user.id)
-        .order_by(models.DeviceToken.last_seen_at.desc().nullslast(),
-                  models.DeviceToken.created_at.desc())
+        q.order_by(models.DeviceToken.last_seen_at.desc().nullslast(),
+                   models.DeviceToken.created_at.desc())
         .all()
     )
     latest_garmin = _latest_garmin_version()
@@ -299,6 +307,8 @@ def list_devices(
             "created_at": d.created_at.isoformat() if d.created_at else None,
             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
             "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None,
+            "hidden_at": d.hidden_at.isoformat() if d.hidden_at else None,
+            "hidden_total": hidden_total,
             "app_version": d.app_version,
             "platform": d.platform,
             "latest_version": latest,
@@ -628,6 +638,30 @@ def forget_device(
     db.delete(d)
     db.commit()
     return {"ok": True, "deleted": True}
+
+
+@router.post("/{device_id}/hide")
+def hide_device(
+    device_id: int, hidden: bool = True,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Geraet aus der eigenen Liste ausblenden (oder wieder einblenden) — rein kosmetisch.
+
+    Warum das neben `forget` und `revoke` noch gebraucht wird (Nutzerfeedback 07.08. + 11.08.,
+    zwei verschiedene Melder): jedes erneute Pairing legt eine NEUE Zeile an, und Zeilen mit
+    Sessions duerfen nicht geloescht werden, sonst verlieren die Sessions ihre Geraete-Zuordnung
+    (Plattform-Statistiken). Ein Nutzer hatte dadurch 5 Eintraege fuer EINE Instinct 2, drei davon
+    unloeschbar. Ausblenden loest genau das, ohne Daten zu verschieben.
+
+    Bewusst KEIN Nebeneffekt auf die Funktion: die Uhr laedt weiter hoch, der Token bleibt gueltig.
+    Wer eine Uhr wirklich abkoppeln will, widerruft sie (DELETE) — das ist eine andere Frage.
+    """
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    d.hidden_at = datetime.now(timezone.utc) if hidden else None
+    db.commit()
+    return {"ok": True, "hidden": bool(d.hidden_at)}
 
 
 @router.delete("/{device_id}")

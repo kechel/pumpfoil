@@ -802,7 +802,11 @@ export const api = {
     req<{ code: string; expires_at: string }>("/api/devices/pairing-code", {
       method: "POST",
     }),
-  myDevices: () => req<PairedDevice[]>("/api/devices/list"),
+  myDevices: (includeHidden = false) =>
+    req<PairedDevice[]>(`/api/devices/list?include_hidden=${includeHidden}`),
+  // Ausblenden ist rein kosmetisch — die Uhr laedt weiter hoch (s. devices.py /hide).
+  hideDevice: (id: number, hidden = true) =>
+    req<{ ok: boolean; hidden: boolean }>(`/api/devices/${id}/hide?hidden=${hidden}`, { method: "POST" }),
   forgetDevice: (id: number) =>
     req<{ ok: boolean; deleted: boolean }>(`/api/devices/${id}/forget`, { method: "POST" }),
   revokeDevice: (id: number) => req<{ ok: boolean }>(`/api/devices/${id}`, { method: "DELETE" }),
@@ -1121,6 +1125,8 @@ export interface PairedDevice {
   created_at: string | null;
   last_seen_at: string | null;
   revoked_at: string | null;
+  hidden_at?: string | null;
+  hidden_total?: number;
   app_version: string | null;
   platform: string | null;
   latest_version: string | null;

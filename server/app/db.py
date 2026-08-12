@@ -83,6 +83,7 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_count INTEGER DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_kb INTEGER DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS storage_full_at TIMESTAMPTZ",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS hidden_at TIMESTAMPTZ",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",

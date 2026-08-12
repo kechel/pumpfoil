@@ -174,22 +174,41 @@ function GenerateCode() {
 function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   const t = useT();
   const [devices, setDevices] = useState<import("../lib/api").PairedDevice[] | null>(null);
-  const load = () => api.myDevices().then(setDevices).catch(() => setDevices([]));
-  useEffect(() => { load(); }, []);
+  // Ausgeblendete Uhren: erneutes Pairing legt jedes Mal eine neue Zeile an, und Zeilen mit
+  // Sessions duerfen nicht geloescht werden (sonst verlieren die Sessions ihre Zuordnung).
+  // Ein Nutzer hatte 5 Eintraege fuer EINE Uhr — Ausblenden loest das ohne Datenwanderung.
+  const [showHidden, setShowHidden] = useState(false);
+  // Anzahl der Ausgeblendeten getrennt halten: sie kommt normalerweise an jedem Eintrag mit
+  // (hidden_total), aber wer seine EINZIGE Uhr ausblendet, hat eine leere Liste — dann gaebe es
+  // nichts, woran die Zahl haengt, und der Einblenden-Knopf waere weg. In dem Fall einmal
+  // gezielt mit include_hidden nachfragen.
+  const [hiddenTotal, setHiddenTotal] = useState(0);
+  const load = (mitVersteckten = showHidden) =>
+    api.myDevices(mitVersteckten).then((ds) => {
+      setDevices(ds);
+      if (ds.length > 0) setHiddenTotal(ds[0].hidden_total ?? 0);
+      else if (!mitVersteckten) api.myDevices(true).then((alle) => setHiddenTotal(alle.length)).catch(() => {});
+      else setHiddenTotal(0);
+    }).catch(() => setDevices([]));
+  useEffect(() => { load(showHidden); }, [showHidden]);
 
   const revoke = (id: number, label: string | null) => {
     if (!confirm(t("account.revokeConfirm", { name: label || t("account.deviceUnnamed") }))) return;
-    api.revokeDevice(id).then(load).catch(() => {});
+    api.revokeDevice(id).then(() => load()).catch(() => {});
   };
   // „Entfernen" gibt es NUR fuer Geraete ohne Session: fehlgeschlagene Pairing-Versuche sammeln
   // sich sonst als Karteileichen an, die niemand loswird (Nutzerfeedback 07.08.). Haengt eine
   // Session dran, bleibt es beim Widerruf — sonst verliert die Session ihre Geraete-Zuordnung.
   const forget = (id: number, label: string | null) => {
     if (!confirm(t("account.deviceForgetConfirm", { name: label || t("account.deviceUnnamed") }))) return;
-    api.forgetDevice(id).then(load).catch(() => {});
+    api.forgetDevice(id).then(() => load()).catch(() => {});
   };
   const resetCanary = (id: number) => {
-    api.resetLayoutCanary(id).then(load).catch(() => {});
+    api.resetLayoutCanary(id).then(() => load()).catch(() => {});
+  };
+  // Ausblenden/Einblenden — rein kosmetisch, die Uhr laedt weiter hoch.
+  const hide = (id: number, hidden: boolean) => {
+    api.hideDevice(id, hidden).then(() => load()).catch(() => {});
   };
   const setMode = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, record_mode: mode } : x)) : ds));
@@ -276,6 +295,12 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                   {t("account.deviceForget")}
                 </button>
               )}
+              {/* Ausblenden: fuer Eintraege, die man nicht loeschen darf (Sessions haengen dran) */}
+              <button onClick={() => hide(d.id, !d.hidden_at)}
+                title={t("account.deviceHideHint")}
+                className="shrink-0 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-700">
+                {d.hidden_at ? t("account.deviceUnhide") : t("account.deviceHide")}
+              </button>
               {!d.revoked_at && (
                 <button onClick={() => revoke(d.id, d.label)}
                   className="btn-danger shrink-0 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70">
@@ -285,6 +310,16 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
             </div>
           ))}
         </div>
+      )}
+      {/* „N ausgeblendete anzeigen" — hidden_total kommt aus derselben Antwort (kein 2. Aufruf).
+          Erscheint nur, wenn es welche gibt, bzw. um wieder einzuklappen. */}
+      {(showHidden || hiddenTotal > 0) && (
+        <button onClick={() => setShowHidden((v) => !v)}
+          className="mt-3 text-sm text-slate-400 underline hover:text-slate-200">
+          {showHidden
+            ? t("account.devicesHideHidden")
+            : t("account.devicesShowHidden", { n: String(hiddenTotal) })}
+        </button>
       )}
     </Card>
   );
