@@ -280,6 +280,25 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+- **🔴 Erneutes Pairing legt jedes Mal einen NEUEN Geraete-Eintrag an — alte lassen sich nicht
+  entfernen** (Nutzerfeedback 11./12.08., zweiter Melder nach Eric am 07.08.). `devices.py:680`
+  erzeugt beim Einloesen des Codes immer eine neue `DeviceToken`-Zeile; der „Remove"-Knopf
+  (`Account.tsx:274`) erscheint nur bei `sessions === 0`. Ein Nutzer hat dadurch **5 Eintraege fuer
+  EINE physische Instinct 2**: zwei leere (loeschbar) und drei mit 6/4/11 Sessions (blockiert, fuer
+  immer in der Liste).
+  Beim Pairing ist die Part-Number noch nicht bekannt (`PairIn` hat nur code+label), ein Abgleich
+  geht also erst beim ersten `/devices/config`. Zwei denkbare Wege: (a) wenn dieselbe Part-Number
+  beim selben Nutzer schon existiert, die alte Zeile als ersetzt markieren/zusammenfuehren;
+  (b) „Remove" auch mit Sessions erlauben und diese auf den aktuellen Eintrag desselben Modells
+  umhaengen (nicht auf NULL, sonst geht die Plattform-Zuordnung fuer Statistiken verloren).
+  Braucht Jans Entscheidung.
+- **Upload-Verhalten auf Garmin ist erklaert, kein Fehler** (gemessen an `ingest_chunks.received_at`,
+  Nutzer 125): erster Chunk kam **19,5 h** nach Aufnahme-Ende, dann 26 Chunks in 24 min; eine andere
+  Session brauchte 116 min mit einer 56-min-Luecke. Ursachen: (1) Connect IQ hat keinen
+  Hintergrund-Upload, die Warteschlange laeuft nur bei offener App (`Uploader.mc:70`); (2) nach
+  `BACKOFF = [3, 10, 30]` Sekunden wartet die Uhr nur noch auf eine neue Verbindung, kein Timer mehr
+  — daher „ein Lauf auf einmal". Nutzer ist informiert; in `docs/DATA-PIPELINE.md` §3.1 steht es.
+  KEIN Handlungsbedarf, ausser man wollte das Warten sichtbarer machen.
 - **🟢 Accel-Zeitachse repariert (§9.1 + §9.2), Bestand reanalysiert — ERLEDIGT 10.08.**
   Belegt in [`docs/DATA-PIPELINE.md`](DATA-PIPELINE.md) §9.1/§9.2. Zwei Fixes:
   1. `timebase.py`: die Bandpruefung verwarf eine KORREKTE `t0_ms`-Achse, weil sie sie mit der
