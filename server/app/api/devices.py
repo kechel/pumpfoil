@@ -49,6 +49,37 @@ def _is_low_accel_model(part_number: str | None) -> bool:
     return any(h in name for h in _LOW_ACCEL_MODEL_HINTS)
 
 
+def _hide_replaced_siblings(db: Session, device: models.DeviceToken) -> int:
+    """Beim Pairing ersetzte Eintraege DESSELBEN Geraets ausblenden (nicht loeschen).
+
+    Warum es das braucht: das Einloesen eines Pairing-Codes legt immer eine NEUE Zeile an — die
+    Part-Number kennt der Server dort noch nicht (`PairIn` hat nur Code + Label). Wer seine Uhr
+    mehrfach neu koppelt, sammelt also Zeilen, und loeschen darf man sie nicht: an ihnen haengen
+    Sessions, die ihre Geraete-Zuordnung behalten muessen (Plattform-Statistiken). Gemeldet von
+    zwei Nutzern (07.08. und 11.08.), einer hatte 5 Eintraege fuer EINE Instinct 2.
+
+    Ausgeblendet wird nur der EINDEUTIGE Fall: gleicher Nutzer, gleiche Part-Number, und der alte
+    Eintrag wurde seit dem Pairing DIESES Eintrags nicht mehr gesehen. Damit kann der alte Token
+    ohnehin nicht mehr benutzt werden (eine Uhr haelt genau einen), waehrend zwei baugleiche Uhren
+    im Wechselbetrieb geschuetzt bleiben: die zweite meldet sich nach dem Pairing der ersten weiter
+    und faellt aus der Bedingung. Im Bestand am 12.08. betraf das 21 Zeilen bei 9 Nutzern — und
+    genau ein aktiv genutzter Eintrag blieb dadurch korrekt stehen.
+
+    Ausblenden ist reversibel (POST /hide?hidden=false) und aendert nichts an der Funktion.
+    """
+    if not device.part_number or device.created_at is None:
+        return 0
+    res = db.execute(sa_text(
+        "UPDATE device_tokens SET hidden_at = now()"
+        " WHERE user_id = :u AND part_number = :pn AND id <> :id"
+        "   AND hidden_at IS NULL"
+        "   AND (last_seen_at IS NULL OR last_seen_at <= :seit)"),
+        {"u": device.user_id, "pn": device.part_number, "id": device.id, "seit": device.created_at})
+    if res.rowcount:
+        db.commit()
+    return int(res.rowcount or 0)
+
+
 def _effective_record_mode(device: models.DeviceToken, settings: dict) -> str:
     """Wirksamer Aufzeichnungsmodus einer Uhr: Geräte-Override (device.record_mode)
     vor User-Default; danach FR55-Kappung full->lite (nur runter, 'gps' bleibt)."""
@@ -85,6 +116,7 @@ def device_config(
         model = _partmap().get(pn)
         if model and (not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch")):
             device.label = model["name"][:120]
+        _hide_replaced_siblings(db, device)
     # Canary-Meldung der Uhr: die letzte Aufnahme mit dynamischem Layout ist nicht sauber
     # beendet worden. Zählen (nicht überschreiben) — daraus lernt der Modell-Kill-Switch.
     # Zaehler ATOMAR in SQL hochsetzen, nicht in Python. Mit 4 uvicorn-Workern gehen sonst

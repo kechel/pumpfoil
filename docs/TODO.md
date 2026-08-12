@@ -280,8 +280,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
-- **🔴 Erneutes Pairing legt jedes Mal einen NEUEN Geraete-Eintrag an — alte lassen sich nicht
-  entfernen** (Nutzerfeedback 11./12.08., zweiter Melder nach Eric am 07.08.). `devices.py:680`
+- **🟢 Erneutes Pairing legte Geraete-Duplikate an — BEHOBEN 12.08.** (Ausblenden + automatisches
+  Aufraeumen). Zwei Stufen: `POST /api/devices/{id}/hide` (Nutzer kann jeden Eintrag ausblenden,
+  reversibel, 16 Sprachen) und `_hide_replaced_siblings` im Config-Aufruf, das den EINDEUTIGEN Fall
+  selbst aufraeumt: gleicher Nutzer, gleiche Part-Number, alter Eintrag seit dem Pairing des neuen
+  nicht mehr gesehen. Im Bestand betraf das 21 Zeilen bei 9 Nutzern; sie werden ausgeblendet, sobald
+  die jeweilige Uhr das naechste Mal die App startet — kein Massen-Schreibvorgang noetig. Genau ein
+  aktiv genutzter Eintrag (#297) blieb dabei korrekt stehen, weil er nach dem neueren Pairing noch
+  gesehen wurde. Auf dem Bot-Konto ende-zu-ende getestet (Ausblenden, Schutzfall, Aufraeumen).
+  OFFEN bleibt nur der Grenzfall: zwei BAUGLEICHE Uhren, von denen eine lange nicht benutzt wird —
+  die wird ausgeblendet und muss von Hand wieder eingeblendet werden. Bewusst so: reversibel, und
+  ohne Geraete-Seriennummer (die Connect IQ nicht liefert) nicht unterscheidbar.
+  Alter Stand: (Nutzerfeedback 11./12.08., zweiter Melder nach Eric am 07.08.). `devices.py:680`
   erzeugt beim Einloesen des Codes immer eine neue `DeviceToken`-Zeile; der „Remove"-Knopf
   (`Account.tsx:274`) erscheint nur bei `sessions === 0`. Ein Nutzer hat dadurch **5 Eintraege fuer
   EINE physische Instinct 2**: zwei leere (loeschbar) und drei mit 6/4/11 Sessions (blockiert, fuer
