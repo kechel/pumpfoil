@@ -298,6 +298,35 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+- **🔴 STILLER DATENVERLUST bei vollem Uhr-Speicher (Instinct 2) — belegt 13.08., ZWEI Nutzer.**
+  Meldung Nathan: „session on August 11th, all the data were uploaded but only one of the runs is
+  being displayed". Stimmt beides — die Uhr hat alles hochgeladen, was sie noch HATTE, der Rest war
+  vorher auf der Uhr verloren. Kette, Schritt fuer Schritt belegt:
+  1. Session #1917 (54 min) hat auf dem Server **einen** Chunk mit 65 GPS-Samples = die letzten 74 s.
+     Die Uhr selbst meldete beim Abschluss `total_chunks=1` — sie hatte nicht mehr.
+  2. Warum: die VORIGE Session #1916 (52 min, 26 Chunks) lag noch unhochgeladen auf der Uhr.
+     Aufnahme #1916 endete 11.08. 06:13, ihre Chunks kamen erst **12.08. 01:49-02:13** an — 19,6 h
+     spaeter. #1917 wurde dazwischen aufgenommen (00:37-01:31), also in einen belegten Speicher.
+  3. `_flushGps` verwirft bei vollem Store den Puffer (`_gpsBuf = []`) und erhoeht den Chunk-Index
+     NICHT — deshalb hat der einzige ueberlebende Chunk Index 0 und traegt die letzten Sekunden.
+     Der Nutzer erfaehrt davon waehrend der Aufnahme **nichts**.
+  4. Die Uhr hat es gemeldet: `device_tokens#462` hat **2x storage_full, max 158 KB**, letzte
+     12.08. 02:03 — genau im Fenster. Ein zweiter Instinct-2-Nutzer (u264, schon auf 1.0.75) hat
+     heute 20:19 dasselbe gemeldet. Kein Einzelfall.
+  5. Sein Upload-Muster erklaert den Rueckstau: Verzug bis zum ersten Chunk 1005 und 1176 Minuten,
+     dann 24 Chunks in 116 min mit 9 Pausen > 60 s (max 56 min). Die Uhr laedt nur bei offener App.
+  **Nicht rettbar** — die Daten sind nie auf der Uhr gelandet.
+  **Was wir aendern sollten (Uhr, waere 1.0.76):**
+  - Beim START einer Aufnahme warnen, wenn Sessions warten UND der Store knapp ist: „erst
+    hochladen, sonst gehen Daten verloren". Lieber eine Warnung als eine halbe Session.
+  - Waehrend der Aufnahme sichtbar machen, WENN verworfen wird (heute stumm) — der `storageFull`-
+    Weg samt Server-Meldung existiert schon, es fehlt die Anzeige im Aufnahme-Screen.
+  - Zusammen denken mit „Upload in der Pause" (s. u.): das ist derselbe Engpass.
+  **Sofort-Rat an Nathan (ohne Update):** nach der Session die App oeffnen und warten, bis die Zeile
+  „x wartet auf Upload" verschwunden ist, BEVOR die naechste Aufnahme startet.
+  Nebenbefund, damit es keine Verwirrung gibt: seine Session #1916 (52 min, 0 Laeufe, 79 m) ist
+  KEIN Verlust — GPS-Qualitaet durchgehend 4, aber 12x14 m Bewegung und 0 km/h. Eine vergessene
+  laufende Aufnahme.
 - **🟢 Der 10-Hz-Modus kostete die Pump-Statistik — BEHOBEN 13.08. (`5cd77bd`, live).** Meldung Roman 13.08.: 10-Hz-Modus
   gewaehlt, danach "no pump count or the other derived data". Ursache: `MODEL_MIN_ACCEL_HZ = 15.0`
   in `analysis/__init__.py` -> `detection = gps_only`, also kein Pump-Zaehler, keine Kadenz, keine
