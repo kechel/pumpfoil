@@ -280,6 +280,35 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+- **🔴 „Mir fehlen Laeufe" ist FAST IMMER fehlendes GPS, nicht der Detektor** (belegt 13.08. an zwei
+  unabhaengigen Meldungen). Korpus: von **1090 h aufgezeichneter Zeit haben 271 h (25 %) keine
+  Position** — Abdeckung im Median: Garmin 79 %, Wear 87 %, Apple 93 %. In den Luecken kann kein Lauf
+  entstehen, weil Laufe/Distanz/Tempo aus GPS kommen; der Accel laeuft dabei nachweislich lueckenlos
+  weiter (Session #1968: 95 375 Samples = exakt 25 Hz, Anker alle 60 s ohne Jitter, aber 15,9 von
+  63,6 min ohne Position in 17 Aussetzern, 8 davon mit Pump-Aktivitaet im Accel). Gegenbeweis zum
+  Detektor: die Reanalyse vom 10.08. liess die Lauf-Zahl in **1224 von 1238** Sessions unveraendert
+  (nur die 6 Sessions ohne Rohdaten fielen auf 0 und sind restauriert), und in #1968 wurde **jede**
+  Episode >= 12 km/h zu einem Lauf (11 von 12 ab 10 km/h). Drei Ansaetze, Reihenfolge = Nutzen:
+  - **(a) Ehrlich anzeigen** statt raten lassen: GPS-Abdeckung je Session („74 % · 16 min ohne
+    Position") mit Hinweis, dass Laeufe in diesen Luecken nicht zaehlen. Spalte `data_quality` ist da.
+  - **(b) Garmin: GNSS-Konfiguration anfordern.** `Position.enableLocationEvents` bekommt bei uns nur
+    `LOCATION_CONTINUOUS` -> laut SDK ist der Standard **CONSTELLATION_GPS, also GPS allein**, obwohl
+    fēnix 7X Pro & Co. Mehrband/Alle-Systeme koennen. Umstellen auf die beste unterstuetzte Stufe
+    (`hasConfigurationSupport`: SAT_IQ / GPS_GLONASS_GALILEO_BEIDOU_L1_L5 / …_L1 / GPS) mit
+    Rueckfall. Erklaert, warum die Apple Watch am selben Handgelenk 93 % schafft. Kostet Akku ->
+    Jans Entscheidung, evtl. als Einstellung.
+  - **(c) Handy-Recorder:** roher `GPS_PROVIDER` -> `FusedLocationProviderClient`. Betroffener
+    Nutzer: 32 % ohne Position, Genauigkeit im Median 12 m (bis 50 m), Doppler-Spitzen bis 116 km/h;
+    ein anderes Handy im Korpus schafft 100 %. Ohne Messung nicht sicher besser — erst pruefen.
+  - **(d) R&D:** Pumpen in GPS-Luecken separat und klar benannt ausgeben (Fenster liegen vor), aber
+    NICHT als Lauf mit Distanz/Tempo.
+- **🟢 Paralleles Zusammenfuehren baute mehrere Kopien — BEHOBEN 13.08.** (`e7c02f4`). Der Merge
+  dauert wie die Reanalyse (~100 s bei 3 h); kam dieselbe Anfrage in dieser Zeit erneut, sah sie die
+  Quellen als „noch nicht gemergt" (offene Transaktion) und rechnete alles ein zweites Mal. Ein
+  Nutzer hat so am 11.08. drei identische 20-MB-Sessions erzeugt (Anfragen 20:08:18/20:08:44/20:09:39,
+  erster Commit 20:09:57). Jetzt werden die Quellzeilen gesperrt und DANACH neu bewertet -> die
+  zweite Anfrage liefert das Ergebnis der ersten. **OFFEN:** die 2 Waisen-Sessions (#1908, #1909)
+  zaehlen bei diesem Nutzer doppelt in Statistik/Rekorden und muessen weg — Rueckfrage an Jan laeuft.
 - **🟢 Erneutes Pairing legte Geraete-Duplikate an — BEHOBEN 12.08.** (Ausblenden + automatisches
   Aufraeumen). Zwei Stufen: `POST /api/devices/{id}/hide` (Nutzer kann jeden Eintrag ausblenden,
   reversibel, 16 Sprachen) und `_hide_replaced_siblings` im Config-Aufruf, das den EINDEUTIGEN Fall
