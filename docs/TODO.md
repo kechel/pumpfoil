@@ -280,8 +280,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
-- **🟡 Der 10-Hz-Modus („Sparsam") nimmt dem Nutzer stillschweigend die Pump-Statistik — und
-  das ist NICHT noetig. WARTET AUF JANS OK** (Analyse-Pipeline). Meldung Roman 13.08.: 10-Hz-Modus
+- **🟢 Der 10-Hz-Modus kostete die Pump-Statistik — BEHOBEN 13.08. (`5cd77bd`, live).** Meldung Roman 13.08.: 10-Hz-Modus
   gewaehlt, danach "no pump count or the other derived data". Ursache: `MODEL_MIN_ACCEL_HZ = 15.0`
   in `analysis/__init__.py` -> `detection = gps_only`, also kein Pump-Zaehler, keine Kadenz, keine
   Gleitphasen, kein On-Foil-Modell. Die Schwelle wurde wegen der FR55 gesetzt, die 25 Hz meldet und
@@ -292,11 +291,23 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   schlechteste 25 %; 2,5 Hz: -14 %, schlechteste 36 % — dort liegt Nyquist bei 1,25 Hz, mitten im
   Pump-Band 0,8-2,0 Hz). Gegenprobe an ECHTEN 10-Hz-Daten: Romans #1929 (gemessen 9,68 Hz) ergibt
   137 Pumps = **83 Pumps/min**, genau im ueblichen Band (80-100).
-  **Vorschlag: `MODEL_MIN_ACCEL_HZ` 15.0 -> 8.0.** Wirkt nur nach unten, aendert also an keiner
-  Session >= 15 Hz etwas; die 21 FR55-Sessions mit 2,5 Hz bleiben draussen, weil die Schwelle auf
-  der GEMESSENEN Rate arbeitet. Danach die betroffenen Sessions neu analysieren.
-  **Solange die Schwelle steht, muss die Auswahl es sagen** — „Sparsam · 10 Hz" und „Nur GPS"
-  stehen ohne Hinweis in `Account.tsx`, obwohl beide die Pump-Statistik abschalten.
+  Die Schwelle arbeitet auf der GEMESSENEN Rate, deshalb bleiben die 21 FR55-Sessions mit real
+  2,5 Hz weiter draussen. Regressions-Check: 9 von 580 Kandidaten aendern sich, 3 wie gewollt.
+  Umgesetzt: Schwelle 8.0, betroffene Sessions neu gerechnet, Rekord-Schnappschuss nachgezogen
+  (gps_only fiel wegen `accel_only` aus Rekorden/Bestenlisten — seine Sessions zaehlen jetzt mit).
+  „Nur GPS" sagt jetzt an der Auswahl, was es kostet (16 Sprachen); bei 10 Hz eruebrigt sich der
+  Hinweis, weil dort nichts mehr verloren geht.
+- **🔴 FALLE, WICHTIG: `run_analysis` committet SELBST (Zeile 618).** Ein `db.rollback()` nach
+  dem Aufruf ist wirkungslos. Mein "Trockenlauf" zur 8-Hz-Schwelle hat dadurch 580 Sessions auf
+  `status='live'` gekippt (aus Listen/Community gefallen) und die 6 Sessions ohne Rohdaten erneut
+  ueberschrieben. Beides aus dem 03:30-Backup repariert, id-genau protokolliert
+  (`scratchpad/ids-live.txt`), Vollabgleich gegen das Backup danach sauber.
+  **Konsequenz: es gibt keinen lesenden Trockenlauf ueber `run_analysis`.** Entweder die Funktion
+  aufteilen (rechnen / persistieren) oder gegen eine Kopie der DB pruefen.
+- **🟡 Verschluckte Rekord-Benachrichtigung.** `run_record_snapshot(do_push=False)` zieht den
+  Snapshot-Stand hoch, pusht aber nur die Events des EIGENEN Laufs -> die 12 Events von Session
+  #1967 (echte Spot-Rekorde von heute) werden sonst nie gemeldet. Nachsende-Skript liegt bereit
+  (`scratchpad/r28.py`), braucht Jans OK (verschickt eine Nutzer-Benachrichtigung).
 - **🟡 Langer Aufenthalt am Steg fuellt den Uhr-Speicher (Roman, 13.08.).** Er war 2/3 der Session
   nicht selbst am Foilen, nach ~2 h fiel die App auf „IQ!" und meldete spaeter voll gelaufenen
   Speicher. Bestaetigt: `pause()` schaltet GPS UND Accel-Listener ab und flusht die Puffer, die
