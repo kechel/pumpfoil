@@ -180,10 +180,41 @@ def _save_accel_mit_ankern(new_uuid: str, teile: list[tuple[np.ndarray, np.ndarr
     return index
 
 
+def _schon_zusammengefuehrt(db: DbSession, sessions: list[models.Session]) -> models.Session | None:
+    """Sperrt die Quellzeilen und prueft DANACH, ob sie inzwischen schon zusammengefuehrt sind.
+
+    Ein Merge dauert so lange wie die Reanalyse (bei einer 3-h-Session ~100 s). Kommt in dieser
+    Zeit dieselbe Anfrage noch einmal (zweiter Tab, Neuladen, Ungeduld), sah der zweite Aufruf die
+    Quellen bisher als "nicht zusammengefuehrt" — die erste Transaktion war ja noch offen — und
+    baute eine ZWEITE vollstaendige Kopie. Belegt am 11.08. bei einem Nutzer: drei Anfragen
+    innerhalb von 81 s (20:08:18 / 20:08:44 / 20:09:39, erste Transaktion committete 20:09:57)
+    -> drei identische 20-MB-Sessions, zwei davon ohne Quellen und damit doppelt in Statistik
+    und Rekorden.
+
+    Mit `FOR UPDATE` wartet der zweite Aufruf auf den ersten und liefert dessen Ergebnis. Kein
+    Zeitfenster mehr, in dem beide "noch nicht gemergt" sehen. Schlaegt der erste Merge fehl
+    (Rollback), sind die Quellen unberuehrt und der zweite laeuft normal durch.
+    """
+    ids = [s.id for s in sessions]
+    (db.query(models.Session).filter(models.Session.id.in_(ids))
+       .with_for_update().populate_existing().all())
+    ziele = {s.merged_into for s in sessions if s.deleted and s.merged_into}
+    if not ziele:
+        return None
+    if len(ziele) == 1:
+        ziel = db.get(models.Session, ziele.pop())
+        if ziel is not None and not ziel.deleted:
+            return ziel
+    raise ValueError("Diese Sessions wurden gerade schon zusammengefuehrt")
+
+
 def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Session:
     ok, why = can_merge(sessions)
     if not ok:
         raise ValueError(why)
+    schon = _schon_zusammengefuehrt(db, sessions)
+    if schon is not None:
+        return schon
     from datetime import timedelta
     sessions = sorted(sessions, key=lambda s: s.started_at)
     first, last = sessions[0], sessions[-1]

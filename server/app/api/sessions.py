@@ -1116,7 +1116,11 @@ def merge_own_sessions(
     ok, why = merge.can_merge(ss)
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, why)
-    ns = merge.merge_sessions(db, ss)
+    try:
+        ns = merge.merge_sessions(db, ss)
+    except ValueError as e:
+        # z. B. dieselbe Zusammenfuehrung lief parallel schon und ist nicht mehr eindeutig
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
     return {"id": ns.id}
 
 
