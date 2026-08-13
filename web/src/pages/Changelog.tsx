@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 14, 2026",
+    items: [
+      "Your watch no longer loses data in silence. A rider reported a 54-minute session where only one run showed up — and he was right twice over: the watch had uploaded everything it still had, but almost all of it was already gone before the upload started. His previous session was still sitting on the watch, unsent, and once the watch's own storage is full our app throws the new data away rather than crash. It did that without a word, so the session simply looked short. An Instinct 2 fills up at around one longer recording. Now the watch says “upload first” before you start when something is still waiting, and if data is being dropped during a recording you see it in red while it happens — early enough to do something about it. A second rider hit the same thing the same day.",
+      "And pausing now uploads. While a recording is paused the watch sends the sessions that are waiting, which frees space for the one you are recording. That is aimed at the days when you spend more time on the dock than on the water — helping friends get started, waiting for wind — which is exactly when the storage used to fill up. The recording you are in is never touched, only the ones already finished. Garmin 1.0.76 is in the Connect IQ store and in the website download.",
+      "One piece of bad advice is gone, too: when the storage was full the watch used to suggest reinstalling the app. That would have deleted precisely the recordings that were still waiting to be sent. It now says to upload first.",
+    ],
+  },
+  {
     date: "August 13, 2026",
     items: [
       "Two riders said runs were missing from their sessions, and both were right — but not for the reason we expected. It is not the detection being too strict: it finds every run the track shows. The runs are missing because there was no position at all for part of the session. In one one-hour recording on a Garmin watch, 16 minutes had no position, in 17 dropouts between 12 seconds and three and a half minutes, while the movement sensor kept recording without a single gap. A run needs the track to exist — distance, speed and duration all come from it — so whatever happened in those minutes cannot be counted. Across all sessions ever recorded here, a quarter of the time has no position. That is the real problem, and it was invisible until now.",

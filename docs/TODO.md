@@ -9,6 +9,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **Stand 13.08. abends: Garmin 1.0.76 LIVE** (CIQ-Store, Store-Seite „Latest Release August 13,
+  2026, Version 1.0.76, Size 102 KB"). **Garmin gibt inzwischen automatisch frei** (Jan) — die
+  Freigabe kam Minuten nach dem Upload, es lohnt also nicht mehr, auf eine Pruefung zu warten.
+  Inhalt: voller Uhr-Speicher nicht mehr stumm (`storageDropped`-Zaehler, Warnung vor dem Start
+  „erst hochladen!", rote Warnung waehrend der Aufnahme) + Upload waehrend der PAUSE
+  (`Uploader.setActiveSession` haelt die laufende Session draussen). `appmeta.garmin` = 1.0.76,
+  per `/api/app/latest` geprueft; 121 Direkt-Downloads auf 1.0.76. Changelog-Eintrag steht.
+  **OFFEN: der Pausen-Upload ist ungetestet** — ob Garmin in der Pause ueberhaupt sendet, steht in
+  keiner Doku. Scheitert es, scheitert es still (Backoff). Ein kurzer Test auf Jans Uhr wuerde die
+  Frage beantworten: Wegwerf-Session aufnehmen, nicht hochladen, zweite starten, pausieren.
 - **Stand 13.08.: Garmin 1.0.75 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
   „Latest Release August 13, 2026, Version 1.0.75, Size 100 KB"). Inhalt: beste vom Geraet
   unterstuetzte GNSS-Stufe statt des SDK-Standards GPS-allein (`enableGps()` mit Rueckfallkette +
