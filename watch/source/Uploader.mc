@@ -71,6 +71,10 @@ module Uploader {
     var BACKOFF = [3, 10, 30];   // Sekunden zwischen den ersten Wiederholungen
     var WATCH_SECS = 30;         // danach: nur noch alle 30 s auf Reconnect prüfen
     var _recordingActive = false;
+    // UUID der Session, die GERADE aufgezeichnet wird (oder null). In der PAUSE darf gesynct
+    // werden, aber diese eine Session muss draussen bleiben: syncAll wuerde sie mit /complete
+    // abschliessen, waehrend die Uhr noch weiter puffert -> halbe Session ausgewertet.
+    var _activeUuid = null;
     var _watch = null;
 
     function isRecordingActive() as Lang.Boolean { return _recordingActive; }
@@ -81,6 +85,10 @@ module Uploader {
         _recordingActive = active;
         if (active && _watch != null) { _watch.stop(); }   // laufenden Retry-Timer stoppen
     }
+
+    // Vom Recorder gesetzt: welche Session laeuft gerade (null = keine). Nur zum AUSSCHLIESSEN
+    // in syncAll — s. _activeUuid.
+    function setActiveSession(uuid) as Void { _activeUuid = uuid; }
 
     // Watchdog-Singleton (lazy).
     function watch() as RetryWatch {
@@ -173,7 +181,12 @@ module Uploader {
         var sessions = Storage.getValue("sessions");
         if (!(sessions instanceof Lang.Array) || sessions.size() == 0) { return; }
         _queue = [];
-        for (var i = 0; i < sessions.size(); i++) { _queue.add(sessions[i]); }
+        for (var i = 0; i < sessions.size(); i++) {
+            // Die laufende Aufnahme NIE mitschicken (auch nicht in der Pause) — sie waechst noch.
+            if (_activeUuid != null && sessions[i].equals(_activeUuid)) { continue; }
+            _queue.add(sessions[i]);
+        }
+        if (_queue.size() == 0) { _queue = null; return; }
         _busy = true;
         _lastError = :none;
         _sentAny = false;

@@ -160,6 +160,12 @@ class SessionRecorder {
 
     var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
+    // Verworfene ROHDATEN-Chunks dieser Aufnahme. Bis 1.0.75 passierte das STUMM: bei vollem
+    // Store wirft _flushGps/_flushAccel den Puffer weg, damit der Speicher nicht ueberlaeuft —
+    // der Nutzer sah davon nichts und hatte hinterher eine Session mit einem einzigen Lauf
+    // (belegt 13.08. bei zwei Instinct-2-Nutzern: 54-min-Session, ein Chunk mit 74 s uebrig).
+    // Jetzt sichtbar im Aufnahme-Screen, damit man noch reagieren kann.
+    var storageDropped = 0;
     // Dem Server noch zu melden: Store war voll, bei diesem gepufferten Volumen. Wird beim
     // App-Start aus dem Storage gelesen (der Fehlschlag passiert NACH dem Config-Abruf, also erst
     // beim naechsten Start meldbar) und erst nach bestaetigter Antwort geloescht.
@@ -836,6 +842,7 @@ class SessionRecorder {
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
+        storageDropped = 0;
         _maxSpdSeen = 0.0;
         _accelT0 = {};
         _accelBufT0 = null;
@@ -932,6 +939,7 @@ class SessionRecorder {
         }
         _recording = true;
         Uploader.setRecording(true);   // Auto-Retry pausieren: kein Sync während der Aufnahme
+        Uploader.setActiveSession(_sessionUuid);   // diese eine Session bleibt beim Sync draussen
     }
 
     function stop() {
@@ -947,6 +955,7 @@ class SessionRecorder {
         _recording = false;
         _clearCanary();                 // sauber beendet -> kein Absturz-Verdacht
         Uploader.setRecording(false);   // Aufnahme vorbei -> Auto-Retry wieder erlaubt
+        Uploader.setActiveSession(null);
         stopped = true;   // -> Erfolgs-/Upload-Screen
         // Session als abgeschlossen markieren und SICHER in Storage persistieren.
         // Bleibt im sessions-Index, bis vollständig hochgeladen+bestätigt.
@@ -971,6 +980,7 @@ class SessionRecorder {
         _recording = false;
         _clearCanary();                 // bewusst verworfen ist auch „sauber beendet"
         Uploader.setRecording(false);
+        Uploader.setActiveSession(null);
         _purgeCurrent();
         // FIT verwerfen statt speichern (fällt bei fehlendem discard auf save+ignorieren zurück).
         if (_fitSession != null) {
@@ -999,6 +1009,19 @@ class SessionRecorder {
         _flushGps(true);
         if (_fitSession != null) { try { _fitSession.stop(); } catch (e) {} }
         _saveState(false);
+        // PAUSE = Gelegenheit zum Hochladen. Der FIT-Timer ist gestoppt, aus Garmins Sicht laeuft
+        // keine Aktivitaet mehr — die Uebertragung ist hier also moeglicherweise erlaubt (waehrend
+        // der Aufnahme lehnt die Uhr sie ab). Wenn nicht, scheitert der Versuch still und der
+        // Backoff greift; nichts geht kaputt.
+        // WARUM das wichtig ist (13.08., zwei Instinct-2-Nutzer): der Uhr-Speicher ist bei ~158 KB
+        // voll. Liegt eine alte Session noch drauf, verwirft _flushGps die Puffer der NEUEN und der
+        // Nutzer verliert die Session bis auf den letzten Chunk. Wer am Steg pausiert, verschafft
+        // sich damit selbst Platz. Die LAUFENDE Session bleibt ausgeschlossen (setActiveSession).
+        Uploader.setRecording(false);
+        try {
+            Uploader.watch().reset();
+            Uploader.syncAll();
+        } catch (e) { }
     }
 
     // Aufnahme FORTSETZEN: Pausendauer aufaddieren (Stream bleibt lückenlos), Sensoren + FIT-Timer
@@ -1007,6 +1030,7 @@ class SessionRecorder {
         if (!_recording || !_paused) { return; }
         _pausedMs += System.getTimer() - _pauseStartedMs;
         _paused = false;
+        Uploader.setRecording(true);   // Aufnahme laeuft wieder -> kein Sync (s. pause())
         enableGps();
         if (_accelOn) {
             try {
@@ -1394,6 +1418,10 @@ class SessionRecorder {
 
     function hasGpsFix() { return _hasGpsFix; }
 
+    // Fuer die Warnung im Start-Screen: auf speicherarmen Uhren (~96 KB, z. B. Instinct 2)
+    // reicht schon EINE wartende Session, um die naechste Aufnahme zu beschaedigen.
+    function isLowMemWatch() { return _isLowMem(); }
+
     function onAccel(sensorData as Sensor.SensorData) as Void {
         // Abgesichert: ein fehlerhaftes Accel-Paket darf die Aufnahme nicht beenden.
         try {
@@ -1575,6 +1603,7 @@ class SessionRecorder {
             // wieder frei (nach Sync), läuft die Aufnahme normal weiter.
             _accelBuf = new [0]b;
             _accelCount = 0;
+            storageDropped++;
             return;
         }
         // Startzeit des Chunks festhalten. Deckel 600 Eintraege (~10 h bei 60-s-Chunks):
@@ -1596,6 +1625,7 @@ class SessionRecorder {
         if (!force && _gpsBuf.size() < GPS_CHUNK_SAMPLES) { return; }
         if (!_store("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf)) {
             _gpsBuf = [];   // Store voll: Chunk verwerfen (kein unbegrenztes Wachsen), s. _flushAccel
+            storageDropped++;
             return;
         }
         _gpsChunkIndex++;

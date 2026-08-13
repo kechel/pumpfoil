@@ -116,6 +116,7 @@ class RecordView extends WatchUi.View {
                 // Hinweis nur, wenn das Layout ihn nicht selbst hat; der Fortsetzen-Tipp kurz.
                 _drawPausedChrome(dc, w, h, false, !_hasPausedHint(entry), _pauseHintDue());
             }
+            _drawDataLossWarn(dc, w, h);
             return;
         }
         var fields = [
@@ -129,6 +130,19 @@ class RecordView extends WatchUi.View {
         } else {
             _drawRec(dc, w / 2, h * 0.085, Graphics.COLOR_RED);
         }
+        _drawDataLossWarn(dc, w, h);
+    }
+
+    // Rohdaten gehen JETZT verloren: der Uhr-Speicher ist voll, _flushGps/_flushAccel verwerfen die
+    // Puffer. Bis 1.0.75 passierte das stumm — ein Nutzer hatte danach eine 54-min-Session mit
+    // einem einzigen Lauf und konnte sich das nicht erklaeren (13.08., Instinct 2, zweiter Melder
+    // am selben Tag). Deshalb hier, ueber ALLEN Aufnahme-Ansichten, in Rot: solange die Aufnahme
+    // laeuft, kann man noch reagieren (pausieren -> dann laedt die Uhr hoch und schafft Platz).
+    hidden function _drawDataLossWarn(dc, w, h) {
+        if (_rec.storageDropped <= 0) { return; }
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h * 0.90, Graphics.FONT_XTINY, Strings.s("err.dataLost"),
+            Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Welcher Zustand gilt gerade? Reihenfolge ist wichtig: manuell pausiert sticht alles.
@@ -326,6 +340,14 @@ class RecordView extends WatchUi.View {
                 if (_pendKb >= 1024) { txt += " · " + (_pendKb / 1024) + " MB"; }
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, txt, Graphics.TEXT_JUSTIFY_CENTER);
+                // Auf speicherarmen Uhren (~96 KB) beschaedigt schon EINE wartende Session die
+                // naechste Aufnahme: der Store ist voll, die neuen Chunks werden verworfen. Also
+                // hier sagen, was zu tun ist, BEVOR er startet — nicht hinterher erklaeren muessen.
+                if (_rec.isLowMemWatch() || _pendKb >= 200) {
+                    dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+                    dc.drawText(w / 2, h * 0.565, Graphics.FONT_XTINY, Strings.s("up.uploadFirst"),
+                        Graphics.TEXT_JUSTIFY_CENTER);
+                }
             }
         }
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
