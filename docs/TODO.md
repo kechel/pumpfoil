@@ -16,17 +16,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `build-all.sh` gelaufen, alle 121 Direkt-Downloads liefern 1.0.75; Store-Paket
   `bin/pumpfoil-1.0.75.iq` (210 Geraete-Builds) an Jan geliefert. Changelog-Eintrag steht.
   **OFFEN: Wirkung messen** — GPS-Abdeckung derselben Nutzer/Spots vor/nach 1.0.75.
-- **Apple 1.1.22 (26) EINGEREICHT 13.08. 18:55, „Warten auf Pruefung"** (Uebermittlungskennung
-  `b4f15707-ca03-4b84-affe-d25248342ca1`, eingereicht von Jan). Inhalt: CoreLocation-Umstellung
-  (`BestForNavigation` + `activityType = .fitness`) in `Sources/Recorder.swift` und
-  `Sources-iOS/PhoneRecorder.swift`.
-  **`appmeta.apple` bleibt bis zur FREIGABE auf 1.1.21** — „eingereicht" genuegt nie (die Falle vom
-  29.07.: verfrueht eingetragene Play-Version schickte Nutzer zu einem Update, das es nicht gab).
-  Sobald die Freigabe-Mail da ist: `appmeta.apple` -> 1.1.22, Server neu starten,
-  `/api/app/latest?platform=apple` pruefen, Changelog-Satz von „arrives with the next app update"
-  auf „ist da" aendern. Das mache ich dann ohne Rueckfrage, wie vereinbart.
-  Android/Wear brauchen fuer die GNSS-Sache KEIN Release (Wear nutzt schon FusedLocation/HIGH_ACCURACY).
-
+- **Apple 1.1.22 (26) LIVE im App Store 13.08.** (Freigabe-Mail "eligible for distribution",
+  Submission `b4f15707-ca03-4b84-affe-d25248342ca1`). Die Mail sagt selbst "up to 24 hours",
+  deshalb GEGENGEPRUEFT statt geglaubt: `itunes.apple.com/lookup?id=6783975714` in de/us/nl/no/fi
+  liefert ueberall 1.1.22, `currentVersionReleaseDate` 2026-08-13T19:38:52Z. Danach `appmeta`
+  gesetzt — **BEIDE Schluessel**, `ios` (iPhone-App) und `apple` (Watch-App): eine Einreichung, ein
+  Bundle, eine MARKETING_VERSION. Per `/api/app/latest` fuer beide geprueft. Changelog sagt jetzt
+  "in the App Store today" statt "arrives with the next app update".
+  Inhalt: `BestForNavigation` + `activityType = .fitness` auf Watch und iPhone.
 - **Stand 06.08.: Garmin 1.0.73 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
   „Latest Release August 6, 2026, Version 1.0.73, 98 KB"). Inhalt: Pausen-Menue (START in der
   Pause oeffnet Fortsetzen/Abbrechen/Ende & speichern, ohne Vorauswahl und ohne Stop-Ring) +

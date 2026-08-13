@@ -48,9 +48,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.21",   # FREIGEGEBEN 2026-08-05 (Apple: "eligible for distribution", Submission
-        # 2e0f43f1); Propagation bis 24 h. 1.1.20 wurde nie ausgeliefert -- durch 1.1.21 ersetzt,
-        # das den Standort-Fix zusaetzlich enthaelt.
+        "latest": "1.1.22",   # LIVE im App Store 2026-08-13, gegengeprueft ueber
+        # itunes.apple.com/lookup (de/us/nl/no/fi -> 1.1.22, Release 19:38 UTC). DASSELBE Bundle wie
+        # die Watch-App ("apple" unten) — eine Einreichung, eine MARKETING_VERSION (project.yml),
+        # also immer BEIDE Schluessel zusammen setzen. Vorher 1.1.21, live seit 05.08.
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
@@ -94,7 +95,13 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.21",   # FREIGEGEBEN 2026-08-05 mit der iOS-App (gleiches Bundle)
+        "latest": "1.1.22",   # LIVE im App Store 2026-08-13 (Freigabe-Mail "eligible for
+        # distribution", Submission b4f15707-ca03-4b84-affe-d25248342ca1). NICHT auf die Mail
+        # allein verlassen — sie sagt selbst "can take up to 24 hours": gegengeprueft ueber
+        # itunes.apple.com/lookup?id=6783975714 in de/us/nl/no/fi, alle liefern 1.1.22
+        # (currentVersionReleaseDate 2026-08-13T19:38:52Z). Inhalt: hoechste CoreLocation-
+        # Genauigkeitsstufe (BestForNavigation) auf Watch + iPhone, s. docs/TODO.md 13.08.
+        # Vorher 1.1.21, live seit 05.08.
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
