@@ -9,6 +9,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **Stand 13.08.: Garmin 1.0.75 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
+  „Latest Release August 13, 2026, Version 1.0.75, Size 100 KB"). Inhalt: beste vom Geraet
+  unterstuetzte GNSS-Stufe statt des SDK-Standards GPS-allein (`enableGps()` mit Rueckfallkette +
+  2-Minuten-Wachhund). `appmeta.garmin` gesetzt und per `/api/app/latest?platform=garmin` geprueft;
+  `build-all.sh` gelaufen, alle 121 Direkt-Downloads liefern 1.0.75; Store-Paket
+  `bin/pumpfoil-1.0.75.iq` (210 Geraete-Builds) an Jan geliefert. Changelog-Eintrag steht.
+  **OFFEN: Wirkung messen** — GPS-Abdeckung derselben Nutzer/Spots vor/nach 1.0.75.
+- **Apple 1.1.22 (26) VORBEREITET, nicht eingereicht:** `project.yml` gebumpt, Inhalt ist die
+  CoreLocation-Umstellung (`BestForNavigation` + `activityType = .fitness`) in `Sources/Recorder.swift`
+  und `Sources-iOS/PhoneRecorder.swift`. Build/Signieren/Einreichen nur Jan (Xcode).
+  Android/Wear brauchen dafuer KEIN Release (Wear nutzt schon FusedLocation/HIGH_ACCURACY).
+
 - **Stand 06.08.: Garmin 1.0.73 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
   „Latest Release August 6, 2026, Version 1.0.73, 98 KB"). Inhalt: Pausen-Menue (START in der
   Pause oeffnet Fortsetzen/Abbrechen/Ende & speichern, ohne Vorauswahl und ohne Stop-Ring) +
