@@ -16,10 +16,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `build-all.sh` gelaufen, alle 121 Direkt-Downloads liefern 1.0.75; Store-Paket
   `bin/pumpfoil-1.0.75.iq` (210 Geraete-Builds) an Jan geliefert. Changelog-Eintrag steht.
   **OFFEN: Wirkung messen** — GPS-Abdeckung derselben Nutzer/Spots vor/nach 1.0.75.
-- **Apple 1.1.22 (26) VORBEREITET, nicht eingereicht:** `project.yml` gebumpt, Inhalt ist die
-  CoreLocation-Umstellung (`BestForNavigation` + `activityType = .fitness`) in `Sources/Recorder.swift`
-  und `Sources-iOS/PhoneRecorder.swift`. Build/Signieren/Einreichen nur Jan (Xcode).
-  Android/Wear brauchen dafuer KEIN Release (Wear nutzt schon FusedLocation/HIGH_ACCURACY).
+- **Apple 1.1.22 (26) EINGEREICHT 13.08. 18:55, „Warten auf Pruefung"** (Uebermittlungskennung
+  `b4f15707-ca03-4b84-affe-d25248342ca1`, eingereicht von Jan). Inhalt: CoreLocation-Umstellung
+  (`BestForNavigation` + `activityType = .fitness`) in `Sources/Recorder.swift` und
+  `Sources-iOS/PhoneRecorder.swift`.
+  **`appmeta.apple` bleibt bis zur FREIGABE auf 1.1.21** — „eingereicht" genuegt nie (die Falle vom
+  29.07.: verfrueht eingetragene Play-Version schickte Nutzer zu einem Update, das es nicht gab).
+  Sobald die Freigabe-Mail da ist: `appmeta.apple` -> 1.1.22, Server neu starten,
+  `/api/app/latest?platform=apple` pruefen, Changelog-Satz von „arrives with the next app update"
+  auf „ist da" aendern. Das mache ich dann ohne Rueckfrage, wie vereinbart.
+  Android/Wear brauchen fuer die GNSS-Sache KEIN Release (Wear nutzt schon FusedLocation/HIGH_ACCURACY).
 
 - **Stand 06.08.: Garmin 1.0.73 LIVE** (CIQ-Store, gleicher Tag freigegeben — Store-Seite
   „Latest Release August 6, 2026, Version 1.0.73, 98 KB"). Inhalt: Pausen-Menue (START in der
