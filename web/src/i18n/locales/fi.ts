@@ -300,6 +300,7 @@ const fi: Record<string, string> = {
   "account.recordModeFull": "Täysi · 25 Hz",
   "account.recordModeLite": "Säästö · 10 Hz",
   "account.recordModeGps": "Vain GPS",
+  "account.recordModeGpsHint": "Tässä tilassa puuttuvat pumppausten määrä, kadenssi ja liukuvaiheet — ne lasketaan liikeanturista.",
   "account.recordModeHint": "Jos tallennus katkeaa vähämuistisessa kellossa (esim. Forerunner 55), valitse „Säästö“ tai „Vain GPS“. Vain GPS antaa matkan/nopeuden/foiling-vaiheet, mutta ei pump-tunnistusta.",
   "account.recordModeMoved": "Tallennustaajuus asetetaan nyt kellokohtaisesti liitettyjen kellojesi kohdalla.",
   "account.recordModeAutoLite": "Tämä kello rajoitetaan automaattisesti tilasta ”Täysi” tilaan ”Säästö” (vähän muistia).",

@@ -898,6 +898,7 @@ const fr: Record<string, string> = {
   "account.recordMode": "Mode d'enregistrement",
   "account.recordModeFull": "Complet · 25 Hz",
   "account.recordModeGps": "GPS seul",
+  "account.recordModeGpsHint": "Le nombre de pumps, la cadence et les phases de glisse manquent dans ce mode — ils sont calculés à partir du capteur de mouvement.",
   "account.recordModeHint": "Si l'enregistrement s'interrompt sur une montre à faible mémoire (p. ex. Forerunner 55), choisis « Économe » ou « GPS seul ». GPS seul fournit trajet/vitesse/phases de foil, mais pas de détection de pump.",
   "account.recordModeMoved": "Le taux d'enregistrement se règle désormais par montre, dans tes montres liées.",
   "account.recordModeAutoLite": "Cette montre est limitée automatiquement de « Complet » à « Économe » (mémoire limitée).",

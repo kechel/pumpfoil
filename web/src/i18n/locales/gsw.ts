@@ -820,6 +820,7 @@ const gsw: Record<string, string> = {
   "account.recordMode": "Ufzeichnigs-Modus",
   "account.recordModeFull": "Voll · 25 Hz",
   "account.recordModeGps": "Nur GPS",
+  "account.recordModeGpsHint": "Pump-Zahl, Kadenz und Gleitphase fehle i dem Modus — si werde us em Bewegigssensor grechnet.",
   "account.recordModeHint": "Bricht d Ufnahm uf ere spycherarme Uhr (z. B. Forerunner 55) ab, wähl „Sparsam“ oder „Nur GPS“. Nur-GPS liferet Strecki/Speed/Foiling-Phase, aber kei Pump-Erkennig.",
   "account.recordModeMoved": "D Ufzeichnigsrate stellsch jetz pro Uhr bi dine verbundene Uhre ii.",
   "account.recordModeAutoLite": "Die Uhr wird bi „Voll“ automatisch uf „Sparsam“ begränzt (z wenig Spycher).",

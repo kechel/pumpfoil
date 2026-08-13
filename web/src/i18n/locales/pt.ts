@@ -295,6 +295,7 @@ const pt: Record<string, string> = {
   "account.recordModeFull": "Completo · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
   "account.recordModeGps": "Só GPS",
+  "account.recordModeGpsHint": "Neste modo faltam a contagem de pumps, a cadência e as fases de planeio — são calculadas a partir do sensor de movimento.",
   "account.recordModeHint": "Se a gravação abortar em um relógio com pouca memória (ex.: Forerunner 55), escolha “Lite” ou “Só GPS”. Só GPS dá distância/velocidade/fases de foil, mas sem detecção de pump.",
   "account.recordModeMoved": "A taxa de gravação agora é definida por relógio, junto com seus relógios vinculados.",
   "account.recordModeAutoLite": "Este relógio é limitado automaticamente de “Completo” para “Lite” (memória limitada).",

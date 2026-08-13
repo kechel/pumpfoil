@@ -974,6 +974,7 @@ const it: Record<string, string> = {
   "field.20": "Run (numero)",
   "imp.appleTitle": "Accesso Apple (« Accedi con Apple »)",
   "account.recordModeGps": "Solo GPS",
+  "account.recordModeGpsHint": "In questa modalità mancano numero di pump, cadenza e fasi di planata: vengono calcolati dal sensore di movimento.",
   "imp.privacyTitle": "Eliminazione dei dati",
   "account.offFoilDesc": "Viene mostrato automaticamente sull'orologio finché non sei in foil (predefinito: ora + ultimo run). Durante il foil l'orologio torna alla tua ultima vista scelta.",
   "imp.publicTitle": "🌍 Pubblico (chiunque su Internet, senza login)",

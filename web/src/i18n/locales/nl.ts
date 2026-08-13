@@ -317,6 +317,7 @@ const nl: Record<string, string> = {
   "account.recordModeFull": "Volledig · 25 Hz",
   "account.recordModeLite": "Zuinig · 10 Hz",
   "account.recordModeGps": "Alleen GPS",
+  "account.recordModeGpsHint": "Pompaantal, cadans en glijfases ontbreken in deze modus — ze worden uit de bewegingssensor berekend.",
   "account.recordModeHint": "Breekt de opname af op een horloge met weinig geheugen (bijv. Forerunner 55), kies dan ‘Zuinig’ of ‘Alleen GPS’. Alleen-GPS levert afstand/snelheid/foiling-fases, maar geen pump-detectie.",
   "account.recordModeMoved": "De opnamefrequentie stel je nu per horloge in bij je verbonden horloges.",
   "account.recordModeAutoLite": "Dit horloge wordt bij ‘Volledig’ automatisch beperkt tot ‘Zuinig’ (te weinig geheugen).",

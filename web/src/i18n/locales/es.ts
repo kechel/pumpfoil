@@ -989,6 +989,7 @@ const es: Record<string, string> = {
   "field.6": "Velocidad media",
   "wx.water": "Agua",
   "account.recordModeGps": "Solo GPS",
+  "account.recordModeGpsHint": "En este modo faltan el número de pumps, la cadencia y las fases de planeo: se calculan a partir del sensor de movimiento.",
   "imp.community3": "<b>Récords y clasificaciones</b> (nombre, valor, spot, número de sesiones/runs/spots).",
   "field.1": "Velocidad (3 s)",
   "imp.community2": "<b>Todas las sesiones con foil detectado</b>: fecha/hora, <b>spot</b> (nombre de la masa de agua de OpenStreetMap), el <b>mapa/traza GPS</b> (es decir, <u>dónde</u> has foileado), número de runs, distancia, velocidad, pulso, valores de pump/planeo y las <b>fotos</b> subidas.",

@@ -307,6 +307,7 @@ const nb: Record<string, string> = {
   "account.recordModeFull": "Full · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
   "account.recordModeGps": "Bare GPS",
+  "account.recordModeGpsHint": "Antall pump, kadens og glidefaser mangler i denne modusen — de regnes ut fra bevegelsessensoren.",
   "account.recordModeHint": "Hvis opptaket avbrytes på en klokke med lite minne (f.eks. Forerunner 55), velg «Lite» eller «Bare GPS». Bare GPS gir distanse/fart og foiling-faser, men ingen pumpe-gjenkjenning.",
   "account.recordModeMoved": "Opptaksraten settes nå per klokke, sammen med klokkene du har koblet til.",
   "account.recordModeAutoLite": "Denne klokka settes automatisk ned fra «Full» til «Lite» (lite minne).",

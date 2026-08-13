@@ -27,9 +27,27 @@ GPS_ONLY_SPORTS = {
 }
 
 
-# Accel-Modell ist auf ~25 Hz trainiert; darunter (z. B. FR55 real ~2,5 Hz) sind die
-# frequenzbasierten Features + Pump-Kadenz unbrauchbar -> als gps_only auswerten.
-MODEL_MIN_ACCEL_HZ = 15.0
+# Untergrenze für die Accel-Auswertung, GEMESSEN (nicht geschätzt). Darunter: gps_only.
+#
+# Die Schwelle stand bis 13.08. bei 15 Hz — gesetzt wegen der FR55, die 25 Hz meldet und real
+# 2,5 Hz liefert. Sie traf damit aber auch SAUBERE 10-Hz-Aufnahmen: der Sparsam-Modus („lite",
+# 10 Hz) verlor stillschweigend Pump-Zähler, Kadenz, Gleitphasen und das On-Foil-Modell. Ein
+# Nutzer hat genau das gemeldet ("no pump count or the other derived data").
+#
+# Nachgemessen an 20 Sessions mit >50 Pumps, auf niedrigere Raten heruntergerechnet und durch
+# DIESELBE Code-Strecke geschickt (Pumps je Lauf über find_pumps_cadence, On-Foil-Maske über
+# predict_foiling_mask):
+#     10,0 Hz -> Pumps -0,4 % (schlechteste Session 5 %), Maske 99,9 % identisch
+#      8,0 Hz -> Pumps +2,5 % (schlechteste 13 %),        Maske 99,9 %
+#      5,0 Hz -> Pumps +9,1 % (schlechteste 25 %),        Maske 99,6 %
+#      2,5 Hz -> Pumps -14,3 % (schlechteste 36 %),       Maske 99,5 %
+# Bei 2,5 Hz liegt Nyquist bei 1,25 Hz und damit MITTEN im Pump-Band (0,8-2,0 Hz) — dort ist die
+# Kadenz physikalisch nicht mehr rekonstruierbar. Bei 8-10 Hz ist sie es. Gegenprobe an echten
+# 10-Hz-Daten (nicht simuliert): 9,68 Hz gemessen -> 83 Pumps/min, genau im üblichen Band 80-100.
+#
+# Die Schwelle arbeitet auf der GEMESSENEN Rate (aus timebase), nicht auf der getaggten. Deshalb
+# bleiben die FR55-Sessions mit real 2,5 Hz weiter draußen, obwohl sie 10 oder 25 Hz melden.
+MODEL_MIN_ACCEL_HZ = 8.0
 
 
 def _accel_spans_session(accel, scale) -> bool:

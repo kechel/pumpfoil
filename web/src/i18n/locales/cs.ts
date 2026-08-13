@@ -317,6 +317,7 @@ const cs: Record<string, string> = {
   "account.recordModeFull": "Plný · 25 Hz",
   "account.recordModeLite": "Úsporný · 10 Hz",
   "account.recordModeGps": "Jen GPS",
+  "account.recordModeGpsHint": "V tomto režimu chybí počet pumpů, kadence a fáze klouzání — počítají se z pohybového senzoru.",
   "account.recordModeHint": "Pokud nahrávání na hodinkách s málo pamětí (např. Forerunner 55) padá, vyber „Úsporný“ nebo „Jen GPS“. Jen-GPS dodá vzdálenost/rychlost/foilingové fáze, ale žádnou detekci pumpnutí.",
   "account.recordModeMoved": "Frekvenci nahrávání teď nastavuješ pro každé hodinky zvlášť u svých připojených hodinek.",
   "account.recordModeAutoLite": "Tyto hodinky se při „Plném“ automaticky omezí na „Úsporný“ (málo paměti).",

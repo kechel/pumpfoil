@@ -681,6 +681,7 @@ const deAT: Record<string, string> = {
   "account.recordMode": "Aufzeichnungsmodus",
   "account.recordModeFull": "Voll · 25 Hz",
   "account.recordModeGps": "Nur GPS",
+  "account.recordModeGpsHint": "Pump-Zahl, Kadenz und Gleitphasen fehlen in diesem Modus — sie werden aus dem Bewegungssensor berechnet.",
   "account.recordModeHint": "Bricht die Aufnahme auf einer speicherarmen Uhr (z. B. Forerunner 55) ab, wähle „Sparsam“ oder „Nur GPS“. Nur-GPS liefert Strecke/Speed/Foiling-Phasen, aber keine Pump-Erkennung.",
   "account.recordModeMoved": "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
   "account.recordModeAutoLite": "Diese Uhr wird bei „Voll“ automatisch auf „Sparsam“ begrenzt (zu wenig Speicher).",

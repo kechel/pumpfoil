@@ -265,6 +265,13 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     {d.low_accel && d.record_mode === "full" && (
                       <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
                     )}
+                    {/* „Nur GPS" schaltet alles ab, was aus der Bewegung kommt — das muss dranstehen.
+                        Anlass: ein Nutzer waehlte „Sparsam" und wunderte sich, dass Pumps fehlten
+                        (dort lag es an einer zu hohen Server-Schwelle, seit 13.08. behoben). Bei
+                        „Nur GPS" ist der Verlust echt und unvermeidbar. */}
+                    {d.record_mode === "gps" && (
+                      <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">{t("account.recordModeGpsHint")}</p>
+                    )}
                     {d.platform === "garmin" && (
                       <p className="mt-1 text-[11px] text-slate-400">{t("account.recordModeGarminHint")}</p>
                     )}

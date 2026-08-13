@@ -324,6 +324,7 @@ const en: Record<string, string> = {
   "account.recordModeFull": "Full · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
   "account.recordModeGps": "GPS only",
+  "account.recordModeGpsHint": "Pump count, cadence and glide phases are missing in this mode — they are calculated from the movement sensor.",
   "account.recordModeHint": "If recording aborts on a low-memory watch (e.g. Forerunner 55), pick “Lite” or “GPS only”. GPS-only gives distance/speed/foiling phases but no pump detection.",
   "account.recordModeMoved": "Recording rate is now set per watch, with your linked watches.",
   "account.recordModeAutoLite": "This watch is auto-capped from “Full” to “Lite” (limited memory).",

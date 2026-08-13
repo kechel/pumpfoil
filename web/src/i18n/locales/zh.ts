@@ -295,6 +295,7 @@ const zh: Record<string, string> = {
   "account.recordModeFull": "完整 · 25 Hz",
   "account.recordModeLite": "精简 · 10 Hz",
   "account.recordModeGps": "仅 GPS",
+  "account.recordModeGpsHint": "此模式下没有 pump 次数、频率和滑行时间——它们由运动传感器计算得出。",
   "account.recordModeHint": "如果在低内存手表上记录中断（例如 Forerunner 55），请选择“精简”或“仅 GPS”。仅 GPS 可提供距离/速度/水翼滑行阶段，但没有泵动识别。",
   "account.recordModeMoved": "记录频率现在按每块手表设置，与你已关联的手表一起。",
   "account.recordModeAutoLite": "此手表已从“完整”自动降为“精简”（内存有限）。",

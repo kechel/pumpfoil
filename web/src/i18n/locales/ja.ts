@@ -295,6 +295,7 @@ const ja: Record<string, string> = {
   "account.recordModeFull": "フル · 25 Hz",
   "account.recordModeLite": "ライト · 10 Hz",
   "account.recordModeGps": "GPS のみ",
+  "account.recordModeGpsHint": "このモードではパンプ数・ケイデンス・グライド時間が出ません。これらは加速度センサーから計算されます。",
   "account.recordModeHint": "メモリの少ないウォッチ（例：Forerunner 55）で記録が中断する場合は「ライト」または「GPS のみ」を選んでください。GPS のみでは距離／速度／フォイリング区間は得られますが、ポンプ検出はできません。",
   "account.recordModeMoved": "記録レートはウォッチごとに、連携したウォッチと一緒に設定するようになりました。",
   "account.recordModeAutoLite": "このウォッチは自動的に「フル」から「ライト」に制限されます（メモリ制限）。",

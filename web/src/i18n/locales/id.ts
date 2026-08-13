@@ -295,6 +295,7 @@ const id: Record<string, string> = {
   "account.recordModeFull": "Penuh · 25 Hz",
   "account.recordModeLite": "Lite · 10 Hz",
   "account.recordModeGps": "Hanya GPS",
+  "account.recordModeGpsHint": "Dalam mode ini jumlah pump, kadensi, dan fase melayang tidak ada — semuanya dihitung dari sensor gerak.",
   "account.recordModeHint": "Jika perekaman terhenti di jam dengan memori kecil (mis. Forerunner 55), pilih “Lite” atau “Hanya GPS”. Hanya GPS memberi jarak/kecepatan/fase foiling tapi tanpa deteksi pump.",
   "account.recordModeMoved": "Laju rekam sekarang diatur per jam, bersama jam yang terhubung.",
   "account.recordModeAutoLite": "Jam ini otomatis dibatasi dari “Penuh” ke “Lite” (memori terbatas).",
