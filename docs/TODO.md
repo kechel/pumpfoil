@@ -291,7 +291,15 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Episode >= 12 km/h zu einem Lauf (11 von 12 ab 10 km/h). Drei Ansaetze, Reihenfolge = Nutzen:
   - **(a) Ehrlich anzeigen** statt raten lassen: GPS-Abdeckung je Session („74 % · 16 min ohne
     Position") mit Hinweis, dass Laeufe in diesen Luecken nicht zaehlen. Spalte `data_quality` ist da.
-  - **(b) Garmin: GNSS-Konfiguration anfordern.** `Position.enableLocationEvents` bekommt bei uns nur
+  - **🟢 (b) ERLEDIGT 13.08. (`3a528f8`, Garmin 1.0.75 live, Apple im Code): beste GNSS-Stufe.**
+    Rueckfallkette ueber `hasConfigurationSupport` (L1+L5-Alle-Systeme -> L1-Alle-Systeme ->
+    Zwei-System -> Standard), SAT_IQ bewusst nicht (Sparmodus). Wachhund: kommt binnen 2 min kein
+    Positions-Event, zurueck auf den Standardaufruf. Apple: `BestForNavigation` + `.fitness`.
+    Wear nutzt schon FusedLocation/HIGH_ACCURACY, Zepp bietet keine Optionen.
+    **OFFEN: Wirkung messen** — GPS-Abdeckung derselben Nutzer/Spots vor/nach 1.0.75 vergleichen
+    (Skript-Muster in der Untersuchung vom 13.08.: Samples je eigener GPS-Zeitspanne). Erst danach
+    ueber den CIQ-Store-Submit entscheiden.
+  - ~~**(b) Garmin: GNSS-Konfiguration anfordern.**~~ `Position.enableLocationEvents` bekommt bei uns nur
     `LOCATION_CONTINUOUS` -> laut SDK ist der Standard **CONSTELLATION_GPS, also GPS allein**, obwohl
     fēnix 7X Pro & Co. Mehrband/Alle-Systeme koennen. Umstellen auf die beste unterstuetzte Stufe
     (`hasConfigurationSupport`: SAT_IQ / GPS_GLONASS_GALILEO_BEIDOU_L1_L5 / …_L1 / GPS) mit
