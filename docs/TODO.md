@@ -334,9 +334,27 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Abbruch-Serie vom 10.08. (vier Sessions mit 0 Chunks in 25 min) war die Speicher-voll-Falle,
   die 1.0.74 behoben hat — die URSACHE bleibt: Garmin verbietet Uebertragung *waehrend* der
   Aktivitaet, also sammelt sich alles an (25 Hz = ~210 B/s = 1,4 MB in 2 h; 10 Hz = ~120 B/s).
-  **Idee, ungetestet:** waehrend der PAUSE hochladen — der FIT-Timer ist dann gestoppt, womoeglich
-  erlaubt Garmin die Uebertragung. Waere die eigentliche Loesung fuer lange Sessions. Braucht
-  einen Feldtest auf Jans Uhr.
+  **💡 IDEE (Jan 13.08.: „ist aber ne gute idee"), ungebaut: in der PAUSE hochladen.** `pause()` ruft
+  schon `_fitSession.stop()`, die Aktivitaet laeuft also nicht mehr — womoeglich erlaubt Garmin die
+  Uebertragung dann. Waere die eigentliche Loesung fuer lange Sessions mit viel Steg-Zeit.
+  Was heute im Weg steht (nachgelesen, nicht geraten): Aufnahme-Start ruft
+  `Uploader.setRecording(true)` (`SessionRecorder.mc:934`) -> Retry-Timer gestoppt und `syncAll()`
+  steigt sofort aus (`Uploader.mc:172`). Freigegeben wird nur bei Stopp (949) und Verwerfen (973),
+  **`pause()` gibt es nicht frei**. `_registerSession()` schreibt nur lokal, kein Netz.
+  Zwei Stufen:
+  1. **Billig (3 Zeilen, klaert die offene Frage):** in `pause()` `setRecording(false)` +
+     `watch().reset()` + `syncAll()`, in `resume()` wieder `setRecording(true)`. Damit gehen die
+     ANDEREN wartenden Sessions raus -> beantwortet „sendet die Uhr in der Pause ueberhaupt?".
+     **Sperre noetig:** die laufende Session steht ab dem Start im `sessions`-Index; ein Upload
+     wuerde sie mit `/complete` abschliessen -> halbe Session analysiert + „Session ausgewertet"-Push
+     mitten in der Pause.
+  2. **Der eigentliche Nutzen (echte Arbeit):** die LAUFENDE Session teilweise leeren — Chunks
+     senden, NICHT abschliessen, bestaetigte lokal loeschen. Erst das schafft Platz fuer die Session,
+     die gerade laeuft. Server kann das schon (Registrieren/Chunks/Abschliessen sind getrennt), der
+     Uhr fehlt der Modus.
+  Ablauf, wenn es gebaut wird: Test-`.prg` fuer die fēnix 7X Pro an Jan, Wegwerf-Session, erst danach
+  eine neue `.iq` (waere 1.0.76). Ohne Feldtest kein Release — ob Garmin in der Pause sendet, steht
+  in keiner Doku.
   Nebenbefund: **Instinct 3 Solar 45/50mm hat nur 128 KB RAM** (die AMOLED-Variante 768 KB) und
   bekommt trotzdem den vollen Build (47 KB Luft). 18 Geraete haben unter 40 KB Luft, die engsten
   (Venu Sq, Enduro, fēnix 6/6S, FR245/645/935) nur 25-27 KB.
