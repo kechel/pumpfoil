@@ -280,6 +280,37 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+- **🟡 Der 10-Hz-Modus („Sparsam") nimmt dem Nutzer stillschweigend die Pump-Statistik — und
+  das ist NICHT noetig. WARTET AUF JANS OK** (Analyse-Pipeline). Meldung Roman 13.08.: 10-Hz-Modus
+  gewaehlt, danach "no pump count or the other derived data". Ursache: `MODEL_MIN_ACCEL_HZ = 15.0`
+  in `analysis/__init__.py` -> `detection = gps_only`, also kein Pump-Zaehler, keine Kadenz, keine
+  Gleitphasen, kein On-Foil-Modell. Die Schwelle wurde wegen der FR55 gesetzt, die 25 Hz meldet und
+  real 2,5 Hz liefert — sie trifft aber auch saubere 10-Hz-Aufnahmen.
+  **Gemessen (rein lesend, 20 Sessions mit >50 Pumps, dieselbe Code-Strecke):** auf 10 Hz
+  heruntergerechnet weicht der Pump-Zaehler um **-0,4 % in der Summe** ab (schlechteste Session
+  5 %), die On-Foil-Maske ist zu **99,9 %** identisch. Unter 8 Hz wird es schlechter (5 Hz: +9 %,
+  schlechteste 25 %; 2,5 Hz: -14 %, schlechteste 36 % — dort liegt Nyquist bei 1,25 Hz, mitten im
+  Pump-Band 0,8-2,0 Hz). Gegenprobe an ECHTEN 10-Hz-Daten: Romans #1929 (gemessen 9,68 Hz) ergibt
+  137 Pumps = **83 Pumps/min**, genau im ueblichen Band (80-100).
+  **Vorschlag: `MODEL_MIN_ACCEL_HZ` 15.0 -> 8.0.** Wirkt nur nach unten, aendert also an keiner
+  Session >= 15 Hz etwas; die 21 FR55-Sessions mit 2,5 Hz bleiben draussen, weil die Schwelle auf
+  der GEMESSENEN Rate arbeitet. Danach die betroffenen Sessions neu analysieren.
+  **Solange die Schwelle steht, muss die Auswahl es sagen** — „Sparsam · 10 Hz" und „Nur GPS"
+  stehen ohne Hinweis in `Account.tsx`, obwohl beide die Pump-Statistik abschalten.
+- **🟡 Langer Aufenthalt am Steg fuellt den Uhr-Speicher (Roman, 13.08.).** Er war 2/3 der Session
+  nicht selbst am Foilen, nach ~2 h fiel die App auf „IQ!" und meldete spaeter voll gelaufenen
+  Speicher. Bestaetigt: `pause()` schaltet GPS UND Accel-Listener ab und flusht die Puffer, die
+  Zeitbasis ueberspringt die Pause — seine Strategie (nur fuer eigene Starts fortsetzen) ist also
+  genau richtig und spart 1:1. Seine Rohdaten kamen vollstaendig an (100 % / 96,8 %). Die
+  Abbruch-Serie vom 10.08. (vier Sessions mit 0 Chunks in 25 min) war die Speicher-voll-Falle,
+  die 1.0.74 behoben hat — die URSACHE bleibt: Garmin verbietet Uebertragung *waehrend* der
+  Aktivitaet, also sammelt sich alles an (25 Hz = ~210 B/s = 1,4 MB in 2 h; 10 Hz = ~120 B/s).
+  **Idee, ungetestet:** waehrend der PAUSE hochladen — der FIT-Timer ist dann gestoppt, womoeglich
+  erlaubt Garmin die Uebertragung. Waere die eigentliche Loesung fuer lange Sessions. Braucht
+  einen Feldtest auf Jans Uhr.
+  Nebenbefund: **Instinct 3 Solar 45/50mm hat nur 128 KB RAM** (die AMOLED-Variante 768 KB) und
+  bekommt trotzdem den vollen Build (47 KB Luft). 18 Geraete haben unter 40 KB Luft, die engsten
+  (Venu Sq, Enduro, fēnix 6/6S, FR245/645/935) nur 25-27 KB.
 - **🔴 „Mir fehlen Laeufe" ist FAST IMMER fehlendes GPS, nicht der Detektor** (belegt 13.08. an zwei
   unabhaengigen Meldungen). Korpus: von **1090 h aufgezeichneter Zeit haben 271 h (25 %) keine
   Position** — Abdeckung im Median: Garmin 79 %, Wear 87 %, Apple 93 %. In den Luecken kann kein Lauf
