@@ -381,8 +381,16 @@ final class Recorder: NSObject, ObservableObject {
     // MARK: - Sensors
 
     private func startSensors() {
-        location.desiredAccuracy = kCLLocationAccuracyBest
+        // Hoechste Stufe, die CoreLocation anbietet — eine Stufe ueber kCLLocationAccuracyBest:
+        // BestForNavigation zieht zusaetzliche Sensordaten hinzu und haelt den Fix zaeher.
+        // Grund (13.08.): "mir fehlen Laeufe" ist fast immer fehlende Position, nicht die
+        // Erkennung — im Bestand haben 25 % der aufgezeichneten Zeit keine. Kostet Akku, das ist
+        // bewusst in Kauf genommen (Jan: beste GPS-Erkennung auf jeder Uhr, die sie bietet).
+        location.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         location.distanceFilter = kCLDistanceFilterNone
+        // Sagt CoreLocation, wie es filtern soll: Wassersport ist Fitness, nicht Autofahrt
+        // (ohne das nimmt es .other an und glaettet Bewegungsmuster falsch).
+        location.activityType = .fitness
         // allowsBackgroundLocationUpdates NICHT setzen: ohne "location"-Background-Mode
         // führt das zum Crash (CLClientIsBackgroundable-Assertion). Im Hintergrund hält
         // die HKWorkoutSession die App + Standortupdates am Leben.

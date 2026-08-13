@@ -76,7 +76,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     override init() {
         super.init()
         loc.delegate = self
-        loc.desiredAccuracy = kCLLocationAccuracyBest
+        // Hoechste Stufe von CoreLocation (s. Recorder.swift, 13.08.): fehlende Position ist der
+        // Hauptgrund fuer "mir fehlen Laeufe". Akku ist bewusst kein Kriterium.
+        loc.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         loc.activityType = .fitness
         loc.allowsBackgroundLocationUpdates = true
         loc.pausesLocationUpdatesAutomatically = false

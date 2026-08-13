@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.74";  // Start-Canary + jeder Storage-Write abgesichert (kein IQ! bei vollem Speicher)
+    const VERSION = "1.0.75";  // beste vom Geraet unterstuetzte GNSS-Stufe statt GPS allein
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

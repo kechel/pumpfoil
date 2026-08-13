@@ -69,6 +69,9 @@ class SessionRecorder {
     // als unglaubwuerdig: Anzeige "--", Lauf-Erkennung/Alarm bekommen 0. Die ROHDATEN bleiben
     // ungefiltert (der Server hat eigene, gemessene Glitch-Filter — hAcc wird ja mitgesendet).
     hidden var _gpsQuality = 0;
+    hidden var _gnssStufe = -1;             // aktive GNSS-Stufe (s. enableGps)
+    hidden var _gnssBei = 0;                // Timer-ms beim Einschalten einer Stufe
+    hidden var _gnssOk = false;             // schon ein Positions-Event bekommen?
     hidden var _maxSpdSeen = 0.0;           // eigener Max ueber die GEGATETEN Werte — Garmins
                                             // act.maxSpeed behielte den 100er-Glitch die ganze Session
     hidden var _syncTickCounter = 0;        // periodischer Live-Sync während der Aufnahme
@@ -904,8 +907,7 @@ class SessionRecorder {
         }
 
         // GPS kontinuierlich.
-        Position.enableLocationEvents(
-            Position.LOCATION_CONTINUOUS, method(:onPosition));
+        enableGps();
 
         // Roh-Accel-Stream (falls das Gerät es bietet + nicht GPS-only). period<=4 s.
         // Rate je Modus (full=25, lite=10). Kann ein Gerät es nicht, bleibt es GPS-only.
@@ -1005,7 +1007,7 @@ class SessionRecorder {
         if (!_recording || !_paused) { return; }
         _pausedMs += System.getTimer() - _pauseStartedMs;
         _paused = false;
-        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+        enableGps();
         if (_accelOn) {
             try {
                 Sensor.registerSensorDataListener(method(:onAccel), {
@@ -1109,6 +1111,7 @@ class SessionRecorder {
         // Komplett abgesichert: ein Fehler im 1-Hz-Tick darf weder die laufende
         // Aufnahme noch die App beenden (Aufzeichnung läuft im Hintergrund weiter).
         try {
+            _gnssWachhund();
             // Reverse-Pairing pollt auch im Idle (alle ~3 s), solange ein Code aktiv ist.
             if (!_claimToken.equals("") && !isPaired()) {
                 _pairPollCtr++;
@@ -1279,12 +1282,96 @@ class SessionRecorder {
     // GPS schon beim App-Start vorwärmen (nicht-blockierend) -> beim Drücken von
     // START ist der Fix meist schon da. Im Idle wird NICHT gepuffert (s. onPosition).
     function startGps() as Void {
+        enableGps();
+    }
+
+    // Beste vom Gerät unterstützte GNSS-Stufe anfordern.
+    //
+    // WARUM: ohne die Option `:configuration` nimmt Connect IQ laut SDK `CONSTELLATION_GPS` —
+    // also GPS ALLEIN, single-band, obwohl fast jede aktuelle Uhr alle Systeme und teils zwei
+    // Bänder kann. Belegt am 13.08. an zwei unabhängigen Nutzermeldungen "mir fehlen Läufe":
+    // die Läufe fehlten nicht wegen der Erkennung, sondern weil keine Position da war. Im ganzen
+    // Bestand haben 271 von 1090 aufgezeichneten Stunden (25 %) keine Position; Garmin liegt im
+    // Median bei 79 % Abdeckung, eine Apple Watch am selben Handgelenk bei 93 %. In einer
+    // 64-min-Session fehlten 16 min in 17 Aussetzern (12–216 s) — jeder eingerahmt von
+    // Qualität "brauchbar" statt "gut", während der Accel lückenlos weiterlief. Genau das
+    // Bild, das zu wenig sichtbaren Satelliten erzeugt: Handgelenk im Wasser, Körper dazwischen.
+    //
+    // Reihenfolge = beste Abdeckung zuerst. Akku ist bewusst KEIN Kriterium (Jan, 13.08.:
+    // "wir wollen auf jeden Fall die best mögliche GPS-Erkennung"). Deshalb steht SAT_IQ NICHT
+    // in der Liste: das ist Garmins automatisch umschaltender Sparmodus, nicht das Maximum.
+    //
+    // Rückfallkette, weil wir bis minApiLevel 2.4.0 bauen: das Options-Wörterbuch gibt es erst
+    // ab CIQ 3.2.0, `:configuration` erst ab 3.3.6, und eine nicht unterstützte Kombination
+    // wirft InvalidValueException. Am Ende steht immer der alte, überall gültige Aufruf.
+    function enableGps() as Void {
+        if (Position has :hasConfigurationSupport) {
+            var stufen = [];
+            if (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1_L5) {
+                stufen.add(Position.CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1_L5);
+            }
+            if (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1) {
+                stufen.add(Position.CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1);
+            }
+            if (Position has :CONFIGURATION_GPS_GALILEO) { stufen.add(Position.CONFIGURATION_GPS_GALILEO); }
+            if (Position has :CONFIGURATION_GPS_GLONASS) { stufen.add(Position.CONFIGURATION_GPS_GLONASS); }
+            if (Position has :CONFIGURATION_GPS_BEIDOU) { stufen.add(Position.CONFIGURATION_GPS_BEIDOU); }
+            for (var i = 0; i < stufen.size(); i++) {
+                try {
+                    if (!Position.hasConfigurationSupport(stufen[i])) { continue; }
+                    Position.enableLocationEvents(
+                        { :acquisitionType => Position.LOCATION_CONTINUOUS, :configuration => stufen[i] },
+                        method(:onPosition));
+                    _gnssStufe = i + 1;
+                    _gnssBei = System.getTimer();
+                    return;
+                } catch (e) {
+                    // Stufe vom Gerät abgelehnt -> nächste probieren.
+                }
+            }
+        } else if (Position has :CONSTELLATION_GLONASS) {
+            // Ältere Uhren ohne hasConfigurationSupport: wenigstens ein zweites System dazu.
+            try {
+                Position.enableLocationEvents(
+                    { :acquisitionType => Position.LOCATION_CONTINUOUS,
+                      :constellations => [Position.CONSTELLATION_GPS, Position.CONSTELLATION_GLONASS] },
+                    method(:onPosition));
+                _gnssStufe = 90;
+                _gnssBei = System.getTimer();
+                return;
+            } catch (e) {
+                // Kombination nicht unterstützt -> unten der Standardweg.
+            }
+        }
         Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+        _gnssStufe = 0;
+    }
+
+    // Welche Stufe tatsächlich aktiv wurde (0 = Geräte-Standard/GPS allein). Nur zur Diagnose
+    // im Simulator/Feldtest — die Wirkung messen wir serverseitig an der GPS-Abdeckung.
+    function gnssStufe() { return _gnssStufe; }
+
+    // Sicherheitsnetz: nimmt ein Gerät eine Konfiguration ENTGEGEN, liefert danach aber keine
+    // Positions-Events (kein Fehler, nur Stille), stünde der Nutzer ohne GPS da — schlimmer als
+    // der alte Zustand. Kommt binnen 2 min nach dem Einschalten kein einziges Event, fallen wir
+    // auf den überall funktionierenden Standardaufruf zurück. 2 min sind bewusst großzügig: ein
+    // echter Cold-Start darf so lange dauern, ohne dass wir ihn für einen Defekt halten.
+    hidden function _gnssWachhund() as Void {
+        if (_gnssStufe <= 0 || _gnssOk || _gnssBei == 0) { return; }
+        var seit = System.getTimer() - _gnssBei;
+        if (seit < 0) { _gnssBei = System.getTimer(); return; }   // Timer-Überlauf
+        if (seit < 120000) { return; }
+        try {
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+        } catch (e) {}
+        _gnssStufe = 0;
+        _gnssBei = 0;
     }
 
     function onPosition(info as Position.Info) as Void {
         // Abgesichert: ein fehlerhafter Positions-Callback darf die Aufnahme nicht beenden.
         try {
+            _gnssOk = true;          // Events kommen an -> Wachhund entwarnen
             if (info == null || info.position == null) { return; }
             // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
             if (info.accuracy != null && info.accuracy >= Position.QUALITY_USABLE) {
