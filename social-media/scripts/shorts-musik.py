@@ -808,6 +808,11 @@ def export_file(pf: str, name: str):
 META_CLIENT_FILE = BASE / ".meta-client.json"
 META_TOKEN_FILE = BASE / ".meta-token.json"
 META_REDIRECT = "https://pumpfoil.org/meta-oauth"
+GRAPH = "https://graph.facebook.com/v25.0"
+# Facebook-Login: erreicht Seite UND das damit verknüpfte Instagram-Konto.
+FB_SCOPES = ("pages_show_list,pages_read_engagement,pages_manage_posts,"
+             "instagram_basic,instagram_content_publish")
+# Instagram-Login (Fallback, nur IG — braucht eine Instagram-Tester-Rolle)
 IG_SCOPES = "instagram_business_basic,instagram_business_content_publish"
 
 
@@ -815,40 +820,65 @@ def meta_client():
     return _load_json(META_CLIENT_FILE, {})
 
 
+def meta_mode() -> str:
+    """'fb' = Facebook-Login (Seite + Instagram), 'ig' = nur Instagram."""
+    return "fb" if meta_client().get("app_id") else "ig"
+
+
 def meta_login_start():
     c = meta_client()
-    url = "https://www.instagram.com/oauth/authorize?" + urllib.parse.urlencode({
-        "force_reauth": "true", "client_id": c["ig_app_id"],
-        "redirect_uri": META_REDIRECT, "response_type": "code",
-        "scope": IG_SCOPES})
+    if meta_mode() == "fb":
+        url = f"https://www.facebook.com/v25.0/dialog/oauth?" + urllib.parse.urlencode({
+            "client_id": c["app_id"], "redirect_uri": META_REDIRECT,
+            "response_type": "code", "scope": FB_SCOPES})
+    else:
+        url = "https://www.instagram.com/oauth/authorize?" + urllib.parse.urlencode({
+            "force_reauth": "true", "client_id": c["ig_app_id"],
+            "redirect_uri": META_REDIRECT, "response_type": "code",
+            "scope": IG_SCOPES})
     subprocess.run(["open", url], check=False)
 
 
 def meta_exchange_code(code: str):
     c = meta_client()
-    short = _http_json("https://api.instagram.com/oauth/access_token", {
-        "client_id": c["ig_app_id"], "client_secret": c["ig_app_secret"],
-        "grant_type": "authorization_code", "redirect_uri": META_REDIRECT,
-        "code": code}, form=True)
-    if "access_token" not in short:
-        raise RuntimeError(f"Instagram-Login fehlgeschlagen: {json.dumps(short)[:300]}")
-    # kurzlebig (1 h) → langlebig (60 Tage)
-    long = _http_json("https://graph.instagram.com/access_token?"
-                      + urllib.parse.urlencode({
-                          "grant_type": "ig_exchange_token",
-                          "client_secret": c["ig_app_secret"],
-                          "access_token": short["access_token"]}))
-    tok = {"access_token": long.get("access_token", short["access_token"]),
-           "user_id": short.get("user_id"),
-           "expires_at": time.time() + long.get("expires_in", 3600)}
+    if meta_mode() == "fb":
+        short = _http_json(f"{GRAPH}/oauth/access_token?" + urllib.parse.urlencode({
+            "client_id": c["app_id"], "client_secret": c["app_secret"],
+            "redirect_uri": META_REDIRECT, "code": code}))
+        if "access_token" not in short:
+            raise RuntimeError(f"Facebook-Login fehlgeschlagen: {json.dumps(short)[:300]}")
+        # kurzlebig → langlebig (60 Tage)
+        long = _http_json(f"{GRAPH}/oauth/access_token?" + urllib.parse.urlencode({
+            "grant_type": "fb_exchange_token", "client_id": c["app_id"],
+            "client_secret": c["app_secret"],
+            "fb_exchange_token": short["access_token"]}))
+        tok = {"mode": "fb",
+               "access_token": long.get("access_token", short["access_token"]),
+               "expires_at": time.time() + long.get("expires_in", 5184000)}
+    else:
+        short = _http_json("https://api.instagram.com/oauth/access_token", {
+            "client_id": c["ig_app_id"], "client_secret": c["ig_app_secret"],
+            "grant_type": "authorization_code", "redirect_uri": META_REDIRECT,
+            "code": code}, form=True)
+        if "access_token" not in short:
+            raise RuntimeError(f"Instagram-Login fehlgeschlagen: {json.dumps(short)[:300]}")
+        long = _http_json("https://graph.instagram.com/access_token?"
+                          + urllib.parse.urlencode({
+                              "grant_type": "ig_exchange_token",
+                              "client_secret": c["ig_app_secret"],
+                              "access_token": short["access_token"]}))
+        tok = {"mode": "ig",
+               "access_token": long.get("access_token", short["access_token"]),
+               "user_id": short.get("user_id"),
+               "expires_at": time.time() + long.get("expires_in", 3600)}
     META_TOKEN_FILE.write_text(json.dumps(tok))
     return tok
 
 
 def meta_access_token():
     tok = json.loads(META_TOKEN_FILE.read_text())
-    # langlebige Tokens lassen sich ab Tag 1 verlängern; kurz vor Ablauf erneuern
-    if tok.get("expires_at", 0) < time.time() + 7 * 86400:
+    # IG-Tokens lassen sich verlängern; FB-Langzeit-Tokens hält Meta selbst frisch
+    if tok.get("mode") != "fb" and tok.get("expires_at", 0) < time.time() + 7 * 86400:
         try:
             new = _http_json("https://graph.instagram.com/refresh_access_token?"
                              + urllib.parse.urlencode({
@@ -863,17 +893,49 @@ def meta_access_token():
     return tok["access_token"]
 
 
-def ig_media(limit: int = 200) -> list:
-    """Bereits gepostete Instagram-Medien (für den Abgleich mit den Renders)."""
-    url = ("https://graph.instagram.com/me/media?fields="
-           "id,caption,media_type,timestamp,permalink&limit=100"
-           f"&access_token={meta_access_token()}")
+def _graph_all(url: str, limit: int) -> list:
     out = []
     while url and len(out) < limit:
         d = _http_json(url)
         out += d.get("data") or []
         url = (d.get("paging") or {}).get("next")
     return out[:limit]
+
+
+def fb_page():
+    """Erste Facebook-Seite des Kontos inkl. Seiten-Token + IG-Konto-ID."""
+    tok = meta_access_token()
+    pages = _http_json(f"{GRAPH}/me/accounts?fields=id,name,access_token,"
+                       f"instagram_business_account&access_token={tok}")
+    items = pages.get("data") or []
+    if not items:
+        raise RuntimeError("Keine Facebook-Seite gefunden — hat der Login "
+                           "pages_show_list bekommen?")
+    return items[0]
+
+
+def ig_media(limit: int = 200) -> list:
+    """Bereits gepostete Instagram-Medien (für den Abgleich mit den Renders)."""
+    fields = "id,caption,media_type,timestamp,permalink"
+    if meta_mode() == "fb":
+        page = fb_page()
+        ig = (page.get("instagram_business_account") or {}).get("id")
+        if not ig:
+            raise RuntimeError(f"Seite {page.get('name')!r} ist mit keinem "
+                               "Instagram-Business-Konto verknüpft")
+        return _graph_all(f"{GRAPH}/{ig}/media?fields={fields}&limit=100"
+                          f"&access_token={page['access_token']}", limit)
+    return _graph_all("https://graph.instagram.com/me/media"
+                      f"?fields={fields}&limit=100"
+                      f"&access_token={meta_access_token()}", limit)
+
+
+def fb_videos(limit: int = 200) -> list:
+    """Bereits gepostete Videos/Reels der Facebook-Seite."""
+    page = fb_page()
+    return _graph_all(f"{GRAPH}/{page['id']}/videos?fields="
+                      "id,title,description,created_time,permalink_url"
+                      f"&limit=100&access_token={page['access_token']}", limit)
 
 
 def exports_state():
@@ -1037,11 +1099,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"configured": TT_CLIENT_FILE.is_file(),
                             "authorized": TT_TOKEN_FILE.is_file()})
             elif path == "/api/meta/status":
-                self._json({"configured": bool(meta_client().get("ig_app_id")),
-                            "authorized": META_TOKEN_FILE.is_file()})
+                c = meta_client()
+                self._json({"configured": bool(c.get("app_id") or c.get("ig_app_id")),
+                            "authorized": META_TOKEN_FILE.is_file(),
+                            "mode": meta_mode()})
             elif path == "/api/meta/media":
                 try:
-                    self._json({"media": ig_media()})
+                    self._json({"instagram": ig_media(),
+                                "facebook": fb_videos() if meta_mode() == "fb" else []})
                 except (RuntimeError, OSError, ValueError, KeyError) as e:
                     self._json({"error": str(e)}, 500)
             elif path == "/api/upload/progress":
