@@ -47,7 +47,9 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api/, /^\/media/],
+        // /demo + die OAuth-Brücken (…-oauth) liefert der Server selbst aus —
+        // ohne Ausnahme zeigt der SW dafür die gecachte SPA-Shell (= 404 im Router)
+        navigateFallbackDenylist: [/^\/api/, /^\/media/, /^\/demo/, /-oauth(\?|$)/],
         runtimeCaching: [
           {
             // Likes offline -> in Background-Sync-Queue, Versand sobald wieder online
