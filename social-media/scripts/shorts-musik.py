@@ -809,9 +809,11 @@ META_CLIENT_FILE = BASE / ".meta-client.json"
 META_TOKEN_FILE = BASE / ".meta-token.json"
 META_REDIRECT = "https://pumpfoil.org/meta-oauth"
 GRAPH = "https://graph.facebook.com/v25.0"
-# Facebook-Login: erreicht Seite UND das damit verknüpfte Instagram-Konto.
-FB_SCOPES = ("pages_show_list,pages_read_engagement,pages_manage_posts,"
-             "instagram_basic,instagram_content_publish")
+# Facebook-Login: Seiten-Scopes. Die Instagram-Scopes (instagram_basic,
+# instagram_content_publish) kennt die App erst, wenn der Instagram-Teil auf
+# „API-Setup mit Facebook-Login" umgestellt ist — sonst lehnt Meta den ganzen
+# Login mit „Invalid Scopes" ab. Über "scopes" in .meta-client.json ergänzbar.
+FB_SCOPES = "pages_show_list,pages_read_engagement,pages_manage_posts"
 # Instagram-Login (Fallback, nur IG — braucht eine Instagram-Tester-Rolle)
 IG_SCOPES = "instagram_business_basic,instagram_business_content_publish"
 
@@ -828,9 +830,9 @@ def meta_mode() -> str:
 def meta_login_start():
     c = meta_client()
     if meta_mode() == "fb":
-        url = f"https://www.facebook.com/v25.0/dialog/oauth?" + urllib.parse.urlencode({
+        url = "https://www.facebook.com/v25.0/dialog/oauth?" + urllib.parse.urlencode({
             "client_id": c["app_id"], "redirect_uri": META_REDIRECT,
-            "response_type": "code", "scope": FB_SCOPES})
+            "response_type": "code", "scope": c.get("scopes") or FB_SCOPES})
     else:
         url = "https://www.instagram.com/oauth/authorize?" + urllib.parse.urlencode({
             "force_reauth": "true", "client_id": c["ig_app_id"],
@@ -876,6 +878,11 @@ def meta_exchange_code(code: str):
 
 
 def meta_access_token():
+    # System-User-Token (aus den Unternehmenseinstellungen) hat Vorrang: läuft
+    # nicht ab und braucht keinen Login-Dialog
+    sys_token = meta_client().get("system_user_token")
+    if sys_token:
+        return sys_token
     tok = json.loads(META_TOKEN_FILE.read_text())
     # IG-Tokens lassen sich verlängern; FB-Langzeit-Tokens hält Meta selbst frisch
     if tok.get("mode") != "fb" and tok.get("expires_at", 0) < time.time() + 7 * 86400:
@@ -1101,7 +1108,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/meta/status":
                 c = meta_client()
                 self._json({"configured": bool(c.get("app_id") or c.get("ig_app_id")),
-                            "authorized": META_TOKEN_FILE.is_file(),
+                            "authorized": bool(c.get("system_user_token"))
+                            or META_TOKEN_FILE.is_file(),
                             "mode": meta_mode()})
             elif path == "/api/meta/media":
                 try:
