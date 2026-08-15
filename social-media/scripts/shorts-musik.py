@@ -945,6 +945,141 @@ def fb_videos(limit: int = 200) -> list:
                       f"&limit=100&access_token={page['access_token']}", limit)
 
 
+# ------------------------------------------------- Reichweite & Lücken -----
+# „Was lief gut und fehlt noch auf Facebook/Instagram?" — YouTube liefert die
+# Abrufzahlen, Meta die schon geposteten Beiträge. Zuordnung über die laufende
+# Nummer im Titel bzw. Textähnlichkeit zu den gecachten Captions.
+
+COVERAGE_CACHE = {"at": 0.0, "data": None}
+NUM_TITLE_RE = re.compile(r"^(\d{1,3})\s+[Pp]umpfoil")
+
+
+def _caption_words() -> dict:
+    """Nummer → Wortmenge aus YT-Titel und gecachten Captions."""
+    def words(s):
+        return {w for w in re.sub(r"[^a-zäöüß0-9]+", " ", (s or "").lower()).split()
+                if len(w) > 3}
+
+    batch = _load_json(YT_BATCH_CACHE_FILE, {})
+    out = {}
+    for vid, e in _load_json(YT_BATCH_PROGRESS_FILE, {}).items():
+        m = NUM_TITLE_RE.match(str(e.get("title", "")))
+        if m:
+            c = batch.get(vid) or {}
+            out.setdefault(int(m.group(1)), set()).update(
+                words(e["title"]) | words(c.get("instagram")))
+    for name, c in _load_json(CAPTIONS_CACHE_FILE, {}).items():
+        m = NUM_RE.match(name)
+        if m:
+            out.setdefault(int(m.group(1)), set()).update(words(c.get("instagram")))
+    return out
+
+
+def _posted_numbers(items, key, texts) -> dict:
+    """Video-Nummer → Beitrag (Zuordnung über Nummer im Text oder Ähnlichkeit)."""
+    def words(s):
+        return {w for w in re.sub(r"[^a-zäöüß0-9]+", " ", (s or "").lower()).split()
+                if len(w) > 3}
+
+    found = {}
+    for it in items:
+        t = (it.get(key) or "").strip()
+        m = NUM_TITLE_RE.match(t)
+        if m:
+            found.setdefault(int(m.group(1)), it)
+            continue
+        w = words(t)
+        best, score = None, 0.0
+        for n, cw in texts.items():
+            if w and cw:
+                s = len(w & cw) / min(len(w), len(cw))
+                if s > score:
+                    best, score = n, s
+        if score >= 0.35:
+            found.setdefault(best, it)
+    return found
+
+
+def yt_numbered_stats() -> dict:
+    """Nummer → Titel/Views/Likes aller Kanalvideos im Nummernschema."""
+    auth = {"Authorization": f"Bearer {yt_access_token()}"}
+    ch = _http_json("https://www.googleapis.com/youtube/v3/channels"
+                    "?part=contentDetails&mine=true", headers=auth)
+    up = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    ids, page = {}, ""
+    while True:
+        d = _http_json("https://www.googleapis.com/youtube/v3/playlistItems"
+                       f"?part=snippet&maxResults=50&playlistId={up}"
+                       + (f"&pageToken={page}" if page else ""), headers=auth)
+        for it in d["items"]:
+            m = NUM_TITLE_RE.match(it["snippet"]["title"])
+            if m:
+                ids[it["snippet"]["resourceId"]["videoId"]] = (int(m.group(1)),
+                                                               it["snippet"]["title"])
+        page = d.get("nextPageToken", "")
+        if not page:
+            break
+    out, keys = {}, list(ids)
+    for i in range(0, len(keys), 50):
+        d = _http_json("https://www.googleapis.com/youtube/v3/videos?part=statistics&id="
+                       + ",".join(keys[i:i + 50]), headers=auth)
+        for it in d["items"]:
+            n, title = ids[it["id"]]
+            s = it["statistics"]
+            out[n] = {"n": n, "title": title, "video_id": it["id"],
+                      "views": int(s.get("viewCount", 0)),
+                      "likes": int(s.get("likeCount", 0))}
+    return out
+
+
+def coverage(force: bool = False) -> dict:
+    if not force and COVERAGE_CACHE["data"] and time.time() - COVERAGE_CACHE["at"] < 900:
+        return COVERAGE_CACHE["data"]
+    videos = yt_numbered_stats()
+    texts = _caption_words()
+    on_fb, on_ig, note = {}, {}, ""
+    try:
+        tok = meta_access_token()
+        pid = meta_client().get("page_id")
+        pg = _http_json(f"{GRAPH}/{pid}?fields=access_token,instagram_business_account"
+                        f"&access_token={tok}")
+        pt = pg["access_token"]
+        # "views" gibt es ohne read_insights, "post_views" ebenfalls
+        on_fb = _posted_numbers(
+            _graph_all(f"{GRAPH}/{pid}/video_reels?fields=id,description,views"
+                       f"&limit=100&access_token={pt}", 500), "description", texts)
+        ig = (pg.get("instagram_business_account") or {}).get("id")
+        if ig:
+            media = _graph_all(f"{GRAPH}/{ig}/media?fields=id,caption,like_count,"
+                               f"comments_count&limit=100&access_token={pt}", 500)
+            on_ig = _posted_numbers(media, "caption", texts)
+            blank = sum(1 for m in media if not (m.get("caption") or "").strip())
+            if blank:
+                note = (f"{blank} der {len(media)} Instagram-Posts haben keine Caption "
+                        "(aus der Zeit vor dem Tool) → für die kann die IG-Spalte "
+                        "nichts erkennen; sie sind vermutlich trotzdem gepostet. "
+                        "Instagram-Views braucht die Insights-Berechtigung.")
+    except (RuntimeError, OSError, ValueError, KeyError) as e:
+        note = f"Meta nicht erreichbar: {str(e)[:120]}"
+    rows = sorted(videos.values(), key=lambda v: -v["views"])
+    for v in rows:
+        fb, ig_post = on_fb.get(v["n"]), on_ig.get(v["n"])
+        v["fb"] = bool(fb)
+        v["ig"] = bool(ig_post)
+        v["fb_views"] = int(fb.get("views") or 0) if fb else None
+        v["ig_likes"] = int(ig_post.get("like_count") or 0) if ig_post else None
+    views = sorted(v["views"] for v in rows) or [0]
+    fbv = [v["fb_views"] for v in rows if v.get("fb_views")]
+    data = {"videos": rows, "median": views[len(views) // 2], "note": note,
+            "counts": {"total": len(rows), "fb": len(on_fb), "ig": len(on_ig),
+                       "fb_views_total": sum(fbv),
+                       "fb_views_median": sorted(fbv)[len(fbv) // 2] if fbv else 0,
+                       "yt_views_total": sum(v["views"] for v in rows)},
+            "at": time.time()}
+    COVERAGE_CACHE.update(at=time.time(), data=data)
+    return data
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -1111,6 +1246,11 @@ class Handler(BaseHTTPRequestHandler):
                             "authorized": bool(c.get("system_user_token"))
                             or META_TOKEN_FILE.is_file(),
                             "mode": meta_mode()})
+            elif path == "/api/coverage":
+                try:
+                    self._json(coverage(force=query.get("refresh", [""])[0] == "1"))
+                except (RuntimeError, OSError, ValueError, KeyError) as e:
+                    self._json({"error": str(e)}, 500)
             elif path == "/api/meta/media":
                 try:
                     self._json({"instagram": ig_media(),

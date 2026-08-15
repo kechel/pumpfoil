@@ -36,6 +36,118 @@ function ProgBar({ p }: { p: UpProg | null }) {
   );
 }
 
+// Reichweite & Lücken: was lief auf YouTube gut und fehlt noch auf FB/IG?
+interface CovVideo {
+  n: number;
+  title: string;
+  video_id: string;
+  views: number;
+  likes: number;
+  fb: boolean;
+  ig: boolean;
+  fb_views: number | null;
+  ig_likes: number | null;
+}
+interface Coverage {
+  videos: CovVideo[];
+  median: number;
+  note?: string;
+  counts: {
+    total: number; fb: number; ig: number;
+    yt_views_total: number; fb_views_total: number; fb_views_median: number;
+  };
+  error?: string;
+}
+const de = (n: number) => n.toLocaleString("de-DE");
+
+function CoveragePanel() {
+  const [cov, setCov] = useState<Coverage | null>(null);
+  const [open, setOpen] = useState(false);
+  const [onlyGaps, setOnlyGaps] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async (refresh = false) => {
+    setBusy(true);
+    try {
+      setCov(await (await fetch(`/api/coverage${refresh ? "?refresh=1" : ""}`)).json());
+    } catch (e) {
+      setCov({
+        videos: [], median: 0, error: String(e),
+        counts: { total: 0, fb: 0, ig: 0, yt_views_total: 0, fb_views_total: 0, fb_views_median: 0 },
+      });
+    }
+    setBusy(false);
+  }, []);
+
+  useEffect(() => {
+    if (open && !cov) void load();
+  }, [open, cov, load]);
+
+  const rows = (cov?.videos ?? []).filter((v) => (onlyGaps ? !v.fb : true));
+  const c = cov?.counts;
+  return (
+    <div className="exp" style={{ borderColor: "#3b82f688", display: "block" }}>
+      <div className="body">
+        <div className="genrow" style={{ marginBottom: open ? 8 : 0 }}>
+          <button className="btn" onClick={() => setOpen((o) => !o)}>
+            📊 Reichweite &amp; Lücken {open ? "▲" : "▼"}
+          </button>
+          {open && (
+            <>
+              <label style={{ fontSize: 12 }}>
+                <input type="checkbox" checked={onlyGaps} onChange={(e) => setOnlyGaps(e.target.checked)} />{" "}
+                nur was auf Facebook fehlt
+              </label>
+              <button className="btn" disabled={busy} onClick={() => void load(true)}>
+                {busy ? <span className="spin" /> : "neu laden"}
+              </button>
+              {c && (
+                <span style={{ fontSize: 12, opacity: 0.75 }}>
+                  {c.total} Videos · YT {de(c.yt_views_total)} Views · FB {de(c.fb_views_total)} Views aus nur{" "}
+                  {c.fb} Videos · Median YT {de(cov!.median)} / FB {de(c.fb_views_median)}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+        {open && cov?.error && <div className="log">{cov.error}</div>}
+        {open && cov?.note && <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 6 }}>ℹ️ {cov.note}</div>}
+        {open && !cov && <div style={{ fontSize: 12, opacity: 0.6 }}>lade Zahlen von YouTube und Meta …</div>}
+        {open && cov && (
+          <table className="cov">
+            <thead>
+              <tr>
+                <th title="YouTube-Aufrufe">YT</th>
+                <th title="Likes auf YouTube">♥</th>
+                <th title="Facebook-Aufrufe (— = dort nicht gepostet)">FB</th>
+                <th title="Facebook im Verhältnis zu YouTube">FB/YT</th>
+                <th title="auf Instagram gepostet">IG</th>
+                <th>Titel</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.slice(0, 40).map((v) => (
+                <tr key={v.n} className={v.views >= cov.median * 2 ? "top" : ""}>
+                  <td>{de(v.views)}</td>
+                  <td>{v.likes}</td>
+                  <td>{v.fb_views ? de(v.fb_views) : v.fb ? "✅" : "—"}</td>
+                  <td>{v.fb_views && v.views ? `${(v.fb_views / v.views).toFixed(1)}×` : ""}</td>
+                  <td>{v.ig ? "✅" : "—"}</td>
+                  <td>
+                    <a href={`https://youtu.be/${v.video_id}`} target="_blank" rel="noreferrer">
+                      {v.title}
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Verbindungs-Banner für Plattformen mit HTTPS-Redirect (TikTok, Instagram):
 // Login öffnet sich im Browser, der Code kommt über pumpfoil.org zurück.
 function ConnectBanner({ name, slug, hint, status, refresh }: {
@@ -285,6 +397,7 @@ export default function Publish() {
   return (
     <div className="uploads" ref={setRoot}>
       <h1>Upload ({exports.length})</h1>
+      <CoveragePanel />
       <ConnectBanner
         name="TikTok"
         slug="tiktok"
