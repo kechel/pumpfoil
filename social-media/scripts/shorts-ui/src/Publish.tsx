@@ -36,27 +36,33 @@ function ProgBar({ p }: { p: UpProg | null }) {
   );
 }
 
-function TtBanner({ status, refresh }: { status: { configured: boolean; authorized: boolean }; refresh: () => void }) {
+// Verbindungs-Banner für Plattformen mit HTTPS-Redirect (TikTok, Instagram):
+// Login öffnet sich im Browser, der Code kommt über pumpfoil.org zurück.
+function ConnectBanner({ name, slug, hint, status, refresh }: {
+  name: string;
+  slug: string;
+  hint: string;
+  status: { configured: boolean; authorized: boolean };
+  refresh: () => void;
+}) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
   if (status.authorized) return null;
   return (
     <div className="exp" style={{ borderColor: "#f59e0b88" }}>
       <div className="body">
-        <div className="title">TikTok-Verbindung</div>
+        <div className="title">{name}-Verbindung</div>
         {!status.configured ? (
-          <div className="meta" style={{ fontSize: 12 }}>
-            Client-Datei fehlt: <code>social-media/.tiktok-client.json</code> mit client_key + client_secret anlegen.
-          </div>
+          <div className="meta" style={{ fontSize: 12 }}>{hint}</div>
         ) : (
           <>
             <div className="meta" style={{ fontSize: 12 }}>
-              1. „Verbinden" öffnet den TikTok-Login. 2. Nach dem Bestätigen landest du auf pumpfoil.org/tiktok-oauth —
-              die komplette Adresse aus der Browserzeile (oder nur den Code) hier einfügen.
+              1. „Verbinden" öffnet den {name}-Login. 2. Nach dem Bestätigen landest du auf pumpfoil.org — die
+              komplette Adresse aus der Browserzeile (oder nur den Code) hier einfügen.
             </div>
             <div className="genrow">
-              <button className="btn primary" onClick={() => void api.post("/api/tiktok/login", {})}>
-                Mit TikTok verbinden
+              <button className="btn primary" onClick={() => void api.post(`/api/${slug}/login`, {})}>
+                Mit {name} verbinden
               </button>
               <input
                 value={code}
@@ -68,7 +74,7 @@ function TtBanner({ status, refresh }: { status: { configured: boolean; authoriz
                 className="btn"
                 disabled={!code.trim()}
                 onClick={async () => {
-                  const r = await api.post<{ ok?: boolean; error?: string }>("/api/tiktok/code", { code });
+                  const r = await api.post<{ ok?: boolean; error?: string }>(`/api/${slug}/code`, { code });
                   setMsg(r.error ? `❌ ${r.error}` : "✅ verbunden");
                   if (!r.error) refresh();
                 }}
@@ -245,6 +251,7 @@ export default function Publish() {
   const [up, setUp] = useState<UpState>({});
   const [ytReady, setYtReady] = useState(false);
   const [tt, setTt] = useState({ configured: false, authorized: false });
+  const [meta, setMeta] = useState({ configured: false, authorized: false });
   // Knoten merken (nie auf null zurücksetzen — beim Unmount brauchen wir ihn noch)
   const rootRef = useRef<HTMLDivElement | null>(null);
   const setRoot = useCallback((el: HTMLDivElement | null) => {
@@ -269,6 +276,7 @@ export default function Publish() {
     void fetch("/api/uploads").then(async (r) => setUp((await r.json()).state ?? {}));
     void fetch("/api/yt/status").then(async (r) => setYtReady((await r.json()).authorized));
     void fetch("/api/tiktok/status").then(async (r) => setTt(await r.json()));
+    void fetch("/api/meta/status").then(async (r) => setMeta(await r.json()));
   }, []);
 
   useEffect(() => refresh(), [refresh]);
@@ -277,7 +285,20 @@ export default function Publish() {
   return (
     <div className="uploads" ref={setRoot}>
       <h1>Upload ({exports.length})</h1>
-<TtBanner status={tt} refresh={refresh} />
+      <ConnectBanner
+        name="TikTok"
+        slug="tiktok"
+        hint="Client-Datei fehlt: social-media/.tiktok-client.json mit client_key + client_secret anlegen."
+        status={tt}
+        refresh={refresh}
+      />
+      <ConnectBanner
+        name="Instagram"
+        slug="meta"
+        hint="Client-Datei fehlt: social-media/.meta-client.json mit ig_app_id + ig_app_secret anlegen."
+        status={meta}
+        refresh={refresh}
+      />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
       {exports.map((e) => (
         <PublishCard key={e.name} exp={e} up={up[e.name]} ytReady={ytReady} ttReady={tt.authorized} refresh={refresh} />

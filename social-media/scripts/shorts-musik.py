@@ -800,6 +800,82 @@ def export_file(pf: str, name: str):
     return None
 
 
+# ---------------------------------------------------------- Instagram ------
+# Instagram-Business-Login (eigene App, Entwicklungsmodus reicht für eigene
+# Konten). Redirect läuft über pumpfoil.org/meta-oauth, weil Meta HTTPS
+# verlangt. Kurzlebiges Token wird direkt gegen ein 60-Tage-Token getauscht.
+
+META_CLIENT_FILE = BASE / ".meta-client.json"
+META_TOKEN_FILE = BASE / ".meta-token.json"
+META_REDIRECT = "https://pumpfoil.org/meta-oauth"
+IG_SCOPES = "instagram_business_basic,instagram_business_content_publish"
+
+
+def meta_client():
+    return _load_json(META_CLIENT_FILE, {})
+
+
+def meta_login_start():
+    c = meta_client()
+    url = "https://www.instagram.com/oauth/authorize?" + urllib.parse.urlencode({
+        "force_reauth": "true", "client_id": c["ig_app_id"],
+        "redirect_uri": META_REDIRECT, "response_type": "code",
+        "scope": IG_SCOPES})
+    subprocess.run(["open", url], check=False)
+
+
+def meta_exchange_code(code: str):
+    c = meta_client()
+    short = _http_json("https://api.instagram.com/oauth/access_token", {
+        "client_id": c["ig_app_id"], "client_secret": c["ig_app_secret"],
+        "grant_type": "authorization_code", "redirect_uri": META_REDIRECT,
+        "code": code}, form=True)
+    if "access_token" not in short:
+        raise RuntimeError(f"Instagram-Login fehlgeschlagen: {json.dumps(short)[:300]}")
+    # kurzlebig (1 h) → langlebig (60 Tage)
+    long = _http_json("https://graph.instagram.com/access_token?"
+                      + urllib.parse.urlencode({
+                          "grant_type": "ig_exchange_token",
+                          "client_secret": c["ig_app_secret"],
+                          "access_token": short["access_token"]}))
+    tok = {"access_token": long.get("access_token", short["access_token"]),
+           "user_id": short.get("user_id"),
+           "expires_at": time.time() + long.get("expires_in", 3600)}
+    META_TOKEN_FILE.write_text(json.dumps(tok))
+    return tok
+
+
+def meta_access_token():
+    tok = json.loads(META_TOKEN_FILE.read_text())
+    # langlebige Tokens lassen sich ab Tag 1 verlängern; kurz vor Ablauf erneuern
+    if tok.get("expires_at", 0) < time.time() + 7 * 86400:
+        try:
+            new = _http_json("https://graph.instagram.com/refresh_access_token?"
+                             + urllib.parse.urlencode({
+                                 "grant_type": "ig_refresh_token",
+                                 "access_token": tok["access_token"]}))
+            if new.get("access_token"):
+                tok.update(access_token=new["access_token"],
+                           expires_at=time.time() + new.get("expires_in", 5184000))
+                META_TOKEN_FILE.write_text(json.dumps(tok))
+        except RuntimeError:
+            pass  # abgelaufen → der eigentliche Call meldet es
+    return tok["access_token"]
+
+
+def ig_media(limit: int = 200) -> list:
+    """Bereits gepostete Instagram-Medien (für den Abgleich mit den Renders)."""
+    url = ("https://graph.instagram.com/me/media?fields="
+           "id,caption,media_type,timestamp,permalink&limit=100"
+           f"&access_token={meta_access_token()}")
+    out = []
+    while url and len(out) < limit:
+        d = _http_json(url)
+        out += d.get("data") or []
+        url = (d.get("paging") or {}).get("next")
+    return out[:limit]
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -960,6 +1036,14 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/tiktok/status":
                 self._json({"configured": TT_CLIENT_FILE.is_file(),
                             "authorized": TT_TOKEN_FILE.is_file()})
+            elif path == "/api/meta/status":
+                self._json({"configured": bool(meta_client().get("ig_app_id")),
+                            "authorized": META_TOKEN_FILE.is_file()})
+            elif path == "/api/meta/media":
+                try:
+                    self._json({"media": ig_media()})
+                except (RuntimeError, OSError, ValueError, KeyError) as e:
+                    self._json({"error": str(e)}, 500)
             elif path == "/api/upload/progress":
                 self._json(UPLOAD_PROGRESS)
             elif path == "/api/yt/status":
@@ -1048,6 +1132,24 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 tt_exchange_code(raw)
             except (RuntimeError, OSError, ValueError) as e:
+                return self._json({"error": str(e)}, 500)
+            return self._json({"ok": True})
+        if self.path == "/api/meta/login":
+            if not meta_client().get("ig_app_id"):
+                return self._json({"error": f"Client-Datei fehlt ({META_CLIENT_FILE})"}, 400)
+            meta_login_start()
+            return self._json({"ok": True})
+        if self.path == "/api/meta/code":
+            raw = str(req.get("code", "")).strip()
+            if "code=" in raw:
+                qs = urllib.parse.urlparse(raw).query or raw.split("?", 1)[-1]
+                raw = urllib.parse.parse_qs(qs).get("code", [""])[0]
+            raw = raw.split("#")[0]  # Instagram hängt "#_" an den Code
+            if not raw:
+                return self._json({"error": "Kein Code gefunden"}, 400)
+            try:
+                meta_exchange_code(raw)
+            except (RuntimeError, OSError, ValueError, KeyError) as e:
                 return self._json({"error": str(e)}, 500)
             return self._json({"ok": True})
         if self.path == "/api/upload/tiktok":

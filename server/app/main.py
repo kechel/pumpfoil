@@ -143,25 +143,24 @@ def download_app_device(device_id: str) -> FileResponse:
     )
 
 
-@app.get("/tiktok-oauth")
-def tiktok_oauth(code: str = "", state: str = ""):
-    """OAuth-Redirect für Jans lokales Shorts-Studio (TikTok verlangt eine
-    HTTPS-Redirect-URI, das Studio läuft aber auf localhost). Zeigt den Code an
-    und versucht, ihn direkt an das lokale Studio weiterzureichen. Bewusst
-    nicht verlinkt; ohne Code-Parameter harmlos."""
+def _oauth_bridge(platform: str, api_path: str, code: str):
+    """OAuth-Redirect-Brücke für Jans lokales Shorts-Studio: TikTok und Meta
+    verlangen eine HTTPS-Redirect-URI, das Studio läuft aber auf localhost.
+    Zeigt den Code an und reicht ihn per JS ans Studio weiter. Bewusst nicht
+    verlinkt; ohne Code-Parameter harmlos."""
     from fastapi.responses import HTMLResponse
 
-    safe = "".join(ch for ch in code if ch.isalnum() or ch in "._-*!")
+    safe = "".join(ch for ch in code if ch.isalnum() or ch in "._-*!#")
     return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8">
-<title>TikTok-Login</title></head>
+<title>{platform}-Login</title></head>
 <body style="font-family:sans-serif;padding:40px;max-width:640px">
-<h2>TikTok-Login {"erfolgreich" if safe else "— kein Code"}</h2>
+<h2>{platform}-Login {"erfolgreich" if safe else "— kein Code"}</h2>
 <p>Falls sich das Shorts-Studio nicht von selbst meldet: diesen Code (oder die
-komplette Adresszeile) im Studio unter „TikTok-Verbindung" einfügen.</p>
+komplette Adresszeile) im Studio unter „{platform}-Verbindung" einfügen.</p>
 <p><code style="word-break:break-all">{safe or "—"}</code></p>
 <script>
   var c = {safe!r};
-  if (c) fetch("http://localhost:8765/api/tiktok/code", {{
+  if (c) fetch("http://localhost:8765{api_path}", {{
     method: "POST", headers: {{"Content-Type": "application/json"}},
     body: JSON.stringify({{code: c}})
   }}).then(function (r) {{ if (r.ok) document.querySelector("p").textContent =
@@ -169,6 +168,16 @@ komplette Adresszeile) im Studio unter „TikTok-Verbindung" einfügen.</p>
     .catch(function () {{}});
 </script>
 </body></html>""")
+
+
+@app.get("/tiktok-oauth")
+def tiktok_oauth(code: str = "", state: str = ""):
+    return _oauth_bridge("TikTok", "/api/tiktok/code", code)
+
+
+@app.get("/meta-oauth")
+def meta_oauth(code: str = "", state: str = ""):
+    return _oauth_bridge("Instagram", "/api/meta/code", code)
 
 
 @app.get("/demo/wear-fgs.webm")
