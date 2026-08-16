@@ -101,6 +101,7 @@ const id: Record<string, string> = {
   "rec.maxHr": "Detak jantung maks",
   "rec.earlyBird": "Bangun pagi",
   "rec.nightOwl": "Burung hantu malam",
+  "rec.carves180": "Carve >180° terbanyak",
 
   "login.createAccount": "Buat akun",
   "login.welcomeBack": "Selamat datang kembali",

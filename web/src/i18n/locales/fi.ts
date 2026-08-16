@@ -94,6 +94,7 @@ const fi: Record<string, string> = {
   "rec.maxHr": "Max. syke",
   "rec.earlyBird": "Aamuvirkku",
   "rec.nightOwl": "Yökyöpeli",
+  "rec.carves180": "Eniten carveja >180°",
 
   // Login / Registrierung
   "login.createAccount": "Luo tili",

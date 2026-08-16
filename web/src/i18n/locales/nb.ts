@@ -117,6 +117,7 @@ const nb: Record<string, string> = {
   "rec.maxHr": "Maks puls",
   "rec.earlyBird": "Morgenfugl",
   "rec.nightOwl": "Nattugle",
+  "rec.carves180": "Flest carver >180°",
   "login.createAccount": "Opprett konto",
   "login.welcomeBack": "Velkommen tilbake",
   "login.email": "E-post",

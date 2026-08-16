@@ -101,6 +101,7 @@ const ru: Record<string, string> = {
   "rec.maxHr": "Макс. пульс",
   "rec.earlyBird": "Ранняя пташка",
   "rec.nightOwl": "Полуночник",
+  "rec.carves180": "Больше всего карвов >180°",
 
   "login.createAccount": "Создать аккаунт",
   "login.welcomeBack": "С возвращением",

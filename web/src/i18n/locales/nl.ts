@@ -107,6 +107,7 @@ const nl: Record<string, string> = {
   "rec.maxHr": "Max. hartslag",
   "rec.earlyBird": "Vroege vogel",
   "rec.nightOwl": "Nachtuil",
+  "rec.carves180": "Meeste carves >180°",
 
   // Login / Registrierung
   "login.createAccount": "Account aanmaken",

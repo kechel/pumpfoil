@@ -101,6 +101,7 @@ const ja: Record<string, string> = {
   "rec.maxHr": "最大心拍数",
   "rec.earlyBird": "早起き",
   "rec.nightOwl": "夜更かし",
+  "rec.carves180": "カーブ >180° 最多",
 
   "login.createAccount": "アカウントを作成",
   "login.welcomeBack": "おかえりなさい",

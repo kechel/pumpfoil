@@ -125,6 +125,7 @@ const de: Record<string, string> = {
   "rec.maxHr": "Max. Puls",
   "rec.earlyBird": "Early Bird",
   "rec.nightOwl": "Nachteule",
+  "rec.carves180": "Meiste Carves >180°",
 
   // Login / Registrierung
   "login.createAccount": "Account erstellen",

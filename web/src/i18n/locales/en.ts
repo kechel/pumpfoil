@@ -119,6 +119,7 @@ const en: Record<string, string> = {
   "rec.maxHr": "Max heart rate",
   "rec.earlyBird": "Early bird",
   "rec.nightOwl": "Night owl",
+  "rec.carves180": "Most carves >180°",
 
   "login.createAccount": "Create account",
   "login.welcomeBack": "Welcome back",

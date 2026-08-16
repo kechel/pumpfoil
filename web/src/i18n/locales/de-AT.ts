@@ -81,6 +81,7 @@ const deAT: Record<string, string> = {
   "rec.maxHr": "Max. Puls",
   "rec.earlyBird": "Early Bird",
   "rec.nightOwl": "Nachteule",
+  "rec.carves180": "Meiste Carves >180°",
   "login.createAccount": "Account erstelln",
   "login.welcomeBack": "Schee, dass'd wieder do bist",
   "login.email": "E-Mail",

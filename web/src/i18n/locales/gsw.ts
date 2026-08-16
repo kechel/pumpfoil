@@ -82,6 +82,7 @@ const gsw: Record<string, string> = {
   "rec.maxHr": "Max. Puls",
   "rec.earlyBird": "Early Bird",
   "rec.nightOwl": "Nachtüüle",
+  "rec.carves180": "Meischti Carves >180°",
 
   "login.createAccount": "Account erstelle",
   "login.welcomeBack": "Willkomme zrugg",

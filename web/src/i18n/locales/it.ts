@@ -81,6 +81,7 @@ const it: Record<string, string> = {
   "rec.maxHr": "FC max",
   "rec.earlyBird": "Mattiniero",
   "rec.nightOwl": "Nottambulo",
+  "rec.carves180": "Più carve >180°",
 
   "login.createAccount": "Crea account",
   "login.welcomeBack": "Bentornato",

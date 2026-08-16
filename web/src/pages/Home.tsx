@@ -104,6 +104,8 @@ const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: number) => s
   { key: "early_bird", labelKey: "rec.earlyBird", fmt: hhmm },
   // Ende nach Mitternacht kommt als >24 h (z. B. 27:04) -> mod 24 h anzeigen (03:04).
   { key: "night_owl", labelKey: "rec.nightOwl", fmt: (v) => hhmm(v % 86400) },
+  // Gehört einem NUTZER, nicht einer Session (Summe im Zeitraum) -> ohne Datum/Spot/Link.
+  { key: "carves180", labelKey: "rec.carves180", fmt: (v) => `${Math.round(v)}` },
 ];
 
 function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
@@ -112,7 +114,8 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {REC_ITEMS.map((it) => {
         const r = rec?.[it.key];
-        const has = !!(r && r.session_id && r.value);
+        // Der Carve-Rekord hängt an keiner Session (session_id ist null) — für ihn reicht ein Wert.
+        const has = !!(r && r.value && (r.session_id || it.key === "carves180"));
         const inner = (
           <Card className="relative h-full overflow-hidden p-3">
             {has && r!.track_preview && (
@@ -139,7 +142,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
             )}
           </Card>
         );
-        return has ? (
+        return has && r!.session_id ? (
           <Link
             key={it.key}
             to={`/sessions/${r!.session_id}${r!.run_idx != null ? `?run=${r!.run_idx}` : ""}`}

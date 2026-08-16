@@ -107,6 +107,7 @@ const cs: Record<string, string> = {
   "rec.maxHr": "Max. tep",
   "rec.earlyBird": "Ranní ptáče",
   "rec.nightOwl": "Noční sova",
+  "rec.carves180": "Nejvíce carvů >180°",
 
   // Login / Registrierung
   "login.createAccount": "Vytvořit účet",

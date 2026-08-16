@@ -303,6 +303,9 @@ export interface RecordSet {
   max_hr?: StatRecord;
   early_bird?: StatRecord;   // Wert = Sekunden seit Mitternacht (Sonnenzeit)
   night_owl?: StatRecord;
+  // Einziger Rekord OHNE Session: Summe der Carves > 180° eines NUTZERS im Zeitraum.
+  // session_id/started_at/spot/track_preview sind hier immer null -> Kachel verlinkt nicht.
+  carves180?: StatRecord;
 }
 
 export type CommunityRecords = Record<string, RecordSet>;

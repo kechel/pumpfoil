@@ -36,7 +36,10 @@ spot_router = APIRouter(prefix="/api/community", tags=["community"])
 
 PERIODS = {"today": 1, "10d": 10, "30d": 30, "365d": 365, "all": None}
 METRICS = ("distance", "duration", "speed", "runs", "glide",
-           "session_distance", "session_time", "session_pumps", "max_hr", "early_bird", "night_owl")
+           "session_distance", "session_time", "session_pumps", "max_hr", "early_bird", "night_owl",
+           # Einziger Rekord, der einem NUTZER gehört statt einer Session: Summe der Carves > 180°
+           # im Zeitraum (s. _carve_record).
+           "carves180")
 VOTE_KINDS = ("fake", "inappropriate")
 
 AR = models.AnalysisResult
@@ -355,6 +358,8 @@ _EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": N
 def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
     if metric in TIME_METRICS:
         return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
+    if metric == "carves180":
+        return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
@@ -430,6 +435,59 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     }
 
 
+def _fill_carve_cache(db: Session) -> None:
+    """Fehlende `AnalysisResult.carve_*` einmalig nachrechnen — Voraussetzung für den Carve-Rekord.
+
+    Der Cache wurde bisher NUR gefüllt, wenn der Besitzer seine eigene Startseite öffnete
+    (`/carve-stats`). Für einen Community-Rekord reicht das nicht: er zählte sonst nur die Nutzer,
+    die zufällig eingeloggt waren, und läge systematisch zu niedrig. Gemessen 16.08.: 628 von 1453
+    community-sichtbaren Sessions ohne Cache, Nachrechnen 2,3 s für alle 628 (3,6 ms/Session).
+    Danach bleibt nur der Zuwachs — `run_analysis` setzt den Cache bei Reanalyse/Trim auf NULL.
+
+    Absichtlich NICHT nach Sportart/Zeitraum gefiltert: der Cache gehört zur Session, nicht zur
+    Abfrage, sonst rechnet jede Filterkombination ihren eigenen Teil nach.
+    """
+    rows = (db.query(S.session_uuid, S.trim_start_ms, S.trim_end_ms, AR)
+            .join(AR, AR.session_id == S.id)
+            .filter(AR.carve_s.is_(None), S.deleted.isnot(True), S.flagged.isnot(True))
+            .all())
+    if not rows:
+        return
+    dirty = False
+    for uuid, tstart, tend, ar in rows:
+        counts = _count_carves(uuid, tstart, tend, ar.segments_json)
+        if counts is None:
+            continue
+        ar.carve_s, ar.carve_m, ar.carve_l = counts
+        dirty = True
+    if dirty:
+        db.commit()
+
+
+def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None,
+                  accel_only: bool = True, sport: str = "pumpfoil") -> dict:
+    """Meiste Carves über 180° im Zeitraum — je NUTZER, nicht je Session (Jans Vorgabe 16.08.).
+
+    „Über 180°" = die gespeicherten Kategorien m (180–360°) + l (>360°); s (90–180°) bleibt draußen.
+    Anders als alle übrigen Rekorde ist das eine Summe über den Zeitraum und hängt an keiner
+    einzelnen Session — deshalb ohne `session_id`, Datum, Spot und Streckenvorschau. Die Kachel
+    zeigt nur Zahl und Nutzer; ohne `session_id` verlinkt sie auch nicht.
+    """
+    _fill_carve_cache(db)
+    total = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
+    q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport)
+    q = q.filter(AR.carve_m.isnot(None))
+    if cut is not None:
+        q = q.filter(S.started_at >= cut)
+    if spot is not None:
+        q = q.filter(_spot_cond(spot))
+    row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc()).first()
+    if row is None or not row[2]:
+        return dict(_EMPTY_REC)
+    name, avatar, val = row
+    return {**_EMPTY_REC, "value": float(int(val)), "name": name, "avatar_url": avatar}
+
+
 @router.get("/sports")
 def community_sports(
     accel_only: bool = False, user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -503,19 +561,25 @@ def start_success(user: models.User = Depends(current_user), db: Session = Depen
 def _count_carves(uuid: str, tstart, tend, segs_json) -> tuple[int, int, int] | None:
     """Carves einer Session je Kategorie (s=90–180°, m=180–360°, l=>360°) aus GPS zählen.
     Gleiche Erkennung wie /sessions/{id}/carves (getrimmt + Segment-gebunden + Speed-Gate 2,2 m/s).
-    None = keine Segmente/kein GPS (nicht cachebar)."""
+
+    `(0, 0, 0)` = sicher keine Carves, `None` = nicht ermittelbar (nicht cachebar). Der Unterschied
+    zählt: OHNE SEGMENTE gibt es definitionsgemäß keine Carves — die Erkennung läuft ausschließlich
+    innerhalb der Läufe. Das ist kein fehlender Wert, sondern eine 0, und sie gehört in den Cache.
+    Gemessen 16.08. über den Bestand: von 628 ungecachten Community-Sessions sind 337 genau dieser
+    Fall (0 Segmente), 291 zählbar, KEINE mit fehlendem GPS. Gäbe man dafür None zurück, würden
+    diese 337 bei jedem Aufruf neu geprüft und blieben ewig ungecacht."""
     import json as _json
     import numpy as np
     from .. import storage
     from .sessions import _turn_events, _hav_m
     if not segs_json:
-        return None
+        return (0, 0, 0)
     try:
         segs = _json.loads(segs_json)
     except Exception:
         return None
     if not segs:
-        return None
+        return (0, 0, 0)
     try:
         gps = storage.load_gps(uuid)
     except Exception:

@@ -101,6 +101,7 @@ const pt: Record<string, string> = {
   "rec.maxHr": "FC máxima",
   "rec.earlyBird": "Madrugador",
   "rec.nightOwl": "Notívago",
+  "rec.carves180": "Mais carves >180°",
 
   "login.createAccount": "Criar conta",
   "login.welcomeBack": "Bem-vindo de volta",

@@ -101,6 +101,7 @@ const zh: Record<string, string> = {
   "rec.maxHr": "最高心率",
   "rec.earlyBird": "早起鸟",
   "rec.nightOwl": "夜猫子",
+  "rec.carves180": "最多 >180° 转向",
 
   "login.createAccount": "创建账号",
   "login.welcomeBack": "欢迎回来",
