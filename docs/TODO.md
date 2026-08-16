@@ -1397,3 +1397,39 @@ Offen daraus:
   an den Nutzer, ob sein Absturz auf der alten 1.0.60 passierte: der Low-Memory-Fix fuer genau diese
   Geraeteklasse (FR55/245/645/935, fenix 5/6, Instinct 3/E) kam mit **1.0.65**, seine Session davor
   lief auf **1.0.60** — dann waere „nur GPS" gar nicht noetig gewesen.
+
+- **🔴 VERDACHT: speicherarme Garmin-Uhren liefern seit Mitte August nichts Brauchbares mehr.**
+  Aufgefallen 16.08. beim Nachgehen der FR55-Absturzmeldung. Anteil brauchbarer Sessions (>100 m)
+  je Modell, **ab 13.08.**, nur Modelle mit mindestens 3 Sessions:
+  | Modell | brauchbar |
+  |---|---|
+  | Instinct 2 / Solar / Dual Power | **0 / 5 (0 %)** |
+  | Forerunner 55 | **1 / 9 (11 %)** |
+  | Instinct 3 Solar | 2 / 6 (33 %) |
+  | Forerunner 945 | 3 / 6 (50 %) |
+  | Forerunner 265 | 5 / 8 (62 %) |
+  | Forerunner 745 | 2 / 3 (67 %) |
+  | fenix 7X Pro | 6 / 8 (75 %) |
+  | fenix 7X / tactix 7 | 12 / 15 (80 %) |
+  | fenix 7 / quatix 7 | 8 / 9 (89 %) |
+  | fenix 6X Pro · 6S Pro · FR970 · fenix 8 | **je 100 %** |
+  Ein sauberer Verlauf entlang der Geraeteklasse — unten 0 %, oben 100 %.
+  **Dieselben Geraete liefen VORHER:** Philipps FR55 13 von 16 brauchbar (Ø 645 m, 14.-29.07.),
+  Tatus FR55 5 von 6 (Ø 1276 m), Nathans Instinct 2 4 von 8 (10.-12.08.). Es ist also kein
+  „die Uhren koennen das noch nie", sondern eine Verschlechterung.
+  **Symptom:** Session wird am Server registriert, dann kommt nichts mehr — 0 bis 1 Chunk, keine
+  Abschlussmeldung, und der Nutzer startet kurz darauf erneut (Philipp 15.08.: fuenf Starts in
+  einer Stunde, alle leer). Das passt zu einem Absturz UNMITTELBAR nach dem Start und deckt sich
+  mit dem, was Philipp am Spot erzaehlt hat („IQ!").
+  **Was NICHT die Ursache ist:** der Aufnahmemodus. Die beiden auffaelligsten Geraete stehen auf
+  „nur GPS", die beiden anderen auf „full" — es trifft alle vier. Die Umstellung auf GPS-only war
+  die Reaktion der Nutzer auf das Problem, nicht sein Ausloeser.
+  **Offen — Ursache NICHT belegt.** Naheliegender Verdaechtiger ist 1.0.75 (13.08., beste
+  unterstuetzte GNSS-Stufe statt GPS allein — mehr Konstellationen koennten auf 96-128-KB-Geraeten
+  Speicher kosten), das Datum passt. ABER: Tatus FR55 steht noch auf **1.0.60** und faellt
+  trotzdem aus. Also entweder zwei Ursachen oder eine ganz andere. Nicht raten — messen.
+  **Naechster Schritt:** der Lauf-Canary aus 1.0.77 (Punkt oben) ist genau dafuer gebaut und nennt
+  die PHASE. Sobald die betroffenen Uhren auf 1.0.77 sind, sagt `crash_phase`, ob es im App-Start
+  (1) oder in der Aufnahme (3) stirbt. Bis dahin: nicht auf gut Glueck am GNSS-Code drehen.
+  Betroffene Nutzer sind bekannt (4 Geraete) — eine gezielte Nachfrage bringt schneller Klarheit
+  als jede Statistik.
