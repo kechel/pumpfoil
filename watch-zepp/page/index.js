@@ -3,28 +3,36 @@ import { px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
 import { onGesture, offGesture, GESTURE_UP, GESTURE_DOWN, GESTURE_LEFT, GESTURE_RIGHT,
-         onKey, KEY_BACK, KEY_EVENT_CLICK, KEY_EVENT_LONG_PRESS } from "@zos/interaction";
+         onKey, KEY_BACK, KEY_SELECT, KEY_UP, KEY_DOWN,
+         KEY_EVENT_CLICK, KEY_EVENT_LONG_PRESS } from "@zos/interaction";
 import { getConnectStatus } from "@zos/ble";
 // Els Feldtest (T-Rex 3, 01.08.): "App verlaesst sich waehrend der Aufnahme" — Zepp beendet
 // Mini-Apps beim Bildschirm-Aus, und wir haben den Gegen-Mechanismus nie aktiviert.
 // setWakeUpRelaunch(true) laesst das System beim Aufwachen UNSERE App wieder oeffnen statt
 // des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
-import { setWakeUpRelaunch } from "@zos/display";
+import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime } from "@zos/display";
 import { BasePage } from "@zeppos/zml/base-page";
-import { Geolocation, HeartRate, Vibrator } from "@zos/sensor";
+import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH } from "@zos/sensor";
+import { openSync, closeSync, writeSync, readSync, statSync, rmSync,
+         O_RDONLY, O_RDWR, O_CREAT, O_TRUNC } from "@zos/fs";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
-// ACHTUNG: diese App bindet KEINEN Beschleunigungssensor ein (Sensor-Imports unten: nur
-// Geolocation/HeartRate/Vibrator, und app.json fordert die Berechtigung nicht an). Bis 1.0.3 wurden
-// dem Server trotzdem 25 Hz / Scale 2048 gemeldet -- eine Ankuendigung, zu der nie ein Chunk kam.
-// Der Server bestimmt die echte Rate ohnehin aus den Daten und stuft solche Sessions auf gps_only;
-// die falsche Zahl blieb aber in den Metadaten stehen und macht Auswertungen der Art "welche
-// Plattform liefert Accel?" unbrauchbar. Jetzt ehrlich 0. Sobald der Sensor angebunden ist
-// (eigenes Feature, nicht Paritaet), hier wieder auf 25/2048 setzen.
-const GPS_HZ = 1, ACCEL_HZ = 0, ACCEL_SCALE = 0;
+// Zepp reports acceleration in cm/s²; the ingest format uses signed little-endian int16 values
+// with 2048 units per g, matching Garmin, Wear OS, and Apple Watch recordings.
+const GPS_HZ = 1, ACCEL_DEFAULT_HZ = 25, ACCEL_SCALE = 2048, STANDARD_GRAVITY_CM_S2 = 980.665;
 // Kleine CHUNKs: 10 Punkte/Nachricht (~500 B) statt 60 (~3,3 KB) -> passt zuverlässig durch BLE
 // (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
 const GPS_CHUNK = 10;
+// Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
+// seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
+const ACCEL_CHUNK_SAMPLES = 128;
+// Navigation, pairing, and upload: keep the screen on for five minutes instead of the ~38 seconds
+// observed on the T-Rex 3. Restore the system timeout when the user actually leaves the app.
+const IDLE_BRIGHT_MS = 5 * 60 * 1000;
+// Zepp destroys a Device App roughly 10 seconds after the screen turns off. An App Service cannot
+// use Geolocation, so recording must keep this page active. Use Zepp's documented maximum value
+// (~24 days), then explicitly restore the system timeout when the session stops.
+const RECORDING_BRIGHT_MS = 2147483000;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 // ---- Lauf-/Foil-Erkennung auf der Uhr ----------------------------------------------------------
 // WORTGLEICH übernommen von den beiden Uhren, die das schon gelöst haben — NICHT neu erfunden:
@@ -47,11 +55,12 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.4";
+const APP_VERSION = "1.0.5";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
 const CYAN = 0x22d3ee, CYAN_P = 0x0891b2, INK = 0x083344, RED = 0xdc2626, RED_P = 0xb91c1c, WHITE = 0xffffff;
+const GPS_READY = 0x22c55e, GPS_READY_P = 0x16a34a, GPS_WAIT = 0x334155, GPS_WAIT_P = 0x334155, MUTED = 0x94a3b8;
 
 const store = new LocalStorage();
 const getTok = () => store.getItem("deviceToken", "") || "";
@@ -71,6 +80,20 @@ function distM(a, b, c, d) {
 }
 // Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls API fehlt.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
+const accelPath = (uuid) => "accel-" + uuid + ".bin";
+const clampI16 = (v) => Math.max(-32768, Math.min(32767, Math.round(v)));
+const bytesToBase64 = (bytes, length) => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let out = "";
+  for (let i = 0; i < length; i += 3) {
+    const a = bytes[i], b = i + 1 < length ? bytes[i + 1] : 0, c = i + 2 < length ? bytes[i + 2] : 0;
+    const n = (a << 16) | (b << 8) | c;
+    out += chars[(n >> 18) & 63] + chars[(n >> 12) & 63]
+      + (i + 1 < length ? chars[(n >> 6) & 63] : "=")
+      + (i + 2 < length ? chars[n & 63] : "=");
+  }
+  return out;
+};
 
 // ---- i18n -------------------------------------------------------------------------------------
 // Die UI war komplett hartcodiert deutsch, obwohl der Server die Profil-Sprache seit langem
@@ -233,7 +256,18 @@ const NB = {
 // die Uhr gepairt ist, kommt die Profil-Sprache vom Server und wird persistiert.
 let LI = 3;
 const setLang = (code) => {
-  const i = code ? LANGS.indexOf(code) : -1;
+  // The server normally sends short profile language codes (`fr`, `en`, etc.). Also accept BCP-47
+  // variants from an old cache or another source (`fr-FR`, `nb-NO`) without ever making French
+  // fall back to an unrelated language.
+  const raw = String(code || "").trim().replace(/_/g, "-");
+  const low = raw.toLowerCase();
+  let normalized = raw;
+  if (low === "de-at" || low.startsWith("de-at-")) normalized = "de-AT";
+  else if (low === "de-ch" || low.startsWith("de-ch-") || low.startsWith("gsw")) normalized = "gsw";
+  else if (low.startsWith("nb") || low.startsWith("nn") || low === "no" || low.startsWith("no-")) normalized = "nb";
+  else if (low.indexOf("-") > 0) normalized = low.split("-")[0];
+  else normalized = low;
+  const i = normalized ? LANGS.indexOf(normalized) : -1;
   LI = i >= 0 ? i : 3;
 };
 const t = (k) => {
@@ -313,6 +347,7 @@ Page(
       fix: false, autoTicks: 0,
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
       last: null, upStatus: "", upPct: 0,
+      uploading: false,
       // Lauf-/Foil-Erkennung (Paket 1). sp3 = 3-s-Median in m/s, spWin = [[tMs, mps], …].
       sp3: 0, spWin: [], foiling: false, _prevFoil: false,
       enterStreak: 0, exitStreak: 0, runEndedMs: -100000,
@@ -328,8 +363,12 @@ Page(
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
-      vibrator: null, _almActive: false, _foilInit: false,
-      timer: null, pollTimer: null, hbTimer: null, geo: null, hrSensor: null, w: {},
+      vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
+      timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
+      touchLocked: false, brightMode: "system", brightUntilMs: 0,
+      geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
+      accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
+      accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       _fi: 0, _flat: null, _flon: null,
     },
 
@@ -343,12 +382,119 @@ Page(
       return p;
     },
 
+    _accelHz() {
+      const s = this.state;
+      const span = s.accelLastMs - s.accelFirstMs;
+      return s.accelSamples > 1 && span > 0
+        ? Math.max(1, Math.round((s.accelSamples - 1) * 1000 / span))
+        : ACCEL_DEFAULT_HZ;
+    },
+
+    _flushAccelBuffer() {
+      const s = this.state;
+      if (s.accelFd < 0 || !s.accelBuffer.length) return;
+      const values = s.accelBuffer;
+      const buffer = new ArrayBuffer(values.length * 2);
+      const view = new DataView(buffer);
+      for (let i = 0; i < values.length; i++) view.setInt16(i * 2, values[i], true);
+      try {
+        const written = writeSync({ fd: s.accelFd, buffer });
+        if (written !== buffer.byteLength) throw new Error("short accelerometer write");
+        s.accelBuffer = [];
+      } catch (e) {
+        console.log("[pumpfoil] accelerometer write failed " + ((e && e.message) || e));
+      }
+    },
+
+    _startAccel() {
+      const s = this.state;
+      s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0;
+      s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
+      try {
+        s.accelFd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        s.accelSensor = new Accelerometer();
+        s.accelCallback = () => {
+          if (!s.recording) return;
+          try {
+            const a = s.accelSensor.getCurrent();
+            if (!a) return;
+            const now = Date.now();
+            if (!s.accelFirstMs) s.accelFirstMs = now;
+            if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) {
+              s.accelChunkT0.push(Math.max(0, now - s.startedAtMs));
+            }
+            const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
+            s.accelBuffer.push(clampI16(a.x * scale), clampI16(a.y * scale), clampI16(a.z * scale));
+            s.accelSamples++; s.accelLastMs = now;
+            if (s.accelBuffer.length >= ACCEL_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
+            if (!s._accelLogged) {
+              s._accelLogged = true;
+              console.log("[pumpfoil] accelerometer active");
+            }
+          } catch (e) {}
+        };
+        s.accelSensor.onChange(s.accelCallback);
+        s.accelSensor.setFreqMode(FREQ_MODE_HIGH);
+        s.accelSensor.start();
+      } catch (e) {
+        console.log("[pumpfoil] accelerometer unavailable " + ((e && e.message) || e));
+        this._stopAccel();
+      }
+    },
+
+    _stopAccel() {
+      const s = this.state;
+      try { s.accelSensor && s.accelCallback && s.accelSensor.offChange(s.accelCallback); } catch (e) {}
+      try { s.accelSensor && s.accelSensor.stop(); } catch (e) {}
+      this._flushAccelBuffer();
+      try { if (s.accelFd >= 0) closeSync({ fd: s.accelFd }); } catch (e) {}
+      s.accelFd = -1; s.accelSensor = null; s.accelCallback = null;
+      // The file is authoritative. If a storage write failed, never advertise samples that are not
+      // actually recoverable; otherwise every retry would end in a short-read failure.
+      try {
+        const info = s.accelFile ? statSync({ path: s.accelFile }) : null;
+        if (info) s.accelSamples = Math.floor(info.size / 6);
+      } catch (e) {}
+      s.accelChunkT0 = s.accelChunkT0.slice(0, Math.ceil(s.accelSamples / ACCEL_CHUNK_SAMPLES));
+      if (s.accelSamples) console.log("[pumpfoil] accelerometer samples=" + s.accelSamples + " hz=" + this._accelHz());
+    },
+
+    _setBrightMode(mode, restartIdle) {
+      const s = this.state;
+      try {
+        let result;
+        if (mode === "recording" || mode === "uploading") {
+          s.brightUntilMs = 0;
+          result = setPageBrightTime({ brightTime: RECORDING_BRIGHT_MS });
+        } else if (mode === "idle") {
+          const now = Date.now();
+          if (restartIdle || s.brightMode !== "idle" || !s.brightUntilMs) s.brightUntilMs = now + IDLE_BRIGHT_MS;
+          const remaining = s.brightUntilMs - now;
+          if (remaining <= 0) {
+            result = resetPageBrightTime(); mode = "system"; s.brightUntilMs = 0;
+          } else {
+            // T-Rex 3: the five-minute value appears to be lost or capped after certain events
+            // (pairing completes -> app destroyed about 62 seconds later). Reapply the REMAINING
+            // TIME every 20 seconds without extending the absolute deadline.
+            result = setPageBrightTime({ brightTime: Math.max(1000, remaining) });
+          }
+        } else {
+          s.brightUntilMs = 0;
+          result = resetPageBrightTime();
+        }
+        s.brightMode = mode;
+        console.log("[pumpfoil] bright mode=" + mode + " result=" + result
+          + " remaining=" + Math.max(0, s.brightUntilMs - Date.now()));
+      } catch (e) {}
+    },
+
     build() {
       const s = this.state, w = s.w;
       // Sprache aus der letzten Sitzung (vom Server geliefert, s. connect()) — VOR dem ersten
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
       // startet. Leer/unbekannt -> Englisch.
       setLang(store.getItem("lang", ""));
+      this._setBrightMode("idle", true);
       w.title = hmUI.createWidget(hmUI.widget.TEXT, { ...TITLE });
       w.page = hmUI.createWidget(hmUI.widget.TEXT, { ...PAGE });
       w.f = [
@@ -357,7 +503,7 @@ Page(
         [hmUI.createWidget(hmUI.widget.TEXT, { ...F2V }), hmUI.createWidget(hmUI.widget.TEXT, { ...F2L })],
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
-      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: TITLE.y + TITLE.h, w: DW, h: px(16), color: 0x64748b, text_size: px(14), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "v" + APP_VERSION });
+      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: TITLE.y + TITLE.h, w: DW, h: px(22), color: 0x64748b, text_size: px(18), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "v" + APP_VERSION });
 
       // Alle Wisch-Gesten konsumieren (return true) → kein versehentliches Verlassen der App
       // (Zepp deutet den Horizontal-Wisch sonst als Zurück/Exit). Richtung egal: hoch=links (vor),
@@ -365,13 +511,8 @@ Page(
       // HARDWARE-TASTE (Nutzer-Meldung per Instagram, 2026-07-27): „Stoppen geht leider nur über wischen und
       // nicht über eine taste. Das funktioniert nicht wenn das display nass ist mit nassen Fingern."
       // Genau der Fall, für den es Tasten gibt — nass ist der Normalzustand beim Pumpfoilen. Deshalb
-      // ist die App jetzt OHNE Berührung bedienbar:
-      //   Aufnahme: Taste kurz = nächste Seite · Taste HALTEN = stoppen & speichern
-      //   Start-Screen: Taste HALTEN = Aufnahme starten (kurz = Seite blättern)
-      //   Zusammenfassung: Taste kurz oder lang = fertig
-      // Halten (nicht kurz) für Start/Stopp, damit ein versehentlicher Druck in der Tasche nichts
-      // auslöst — dieselbe Logik wie auf der Garmin (3 s halten).
-      // KEY_BACK bleibt unangetastet (System-Zurück), sonst sitzt man in der App fest.
+      // Recording controls remain usable in water: short UP/DOWN navigates, long SELECT stops and
+      // saves, and long UP/DOWN temporarily unlocks touch. BACK is consumed while recording.
       // Zepp erlaubt nur EINE onKey-Registrierung — deshalb ein Callback für alle Tasten.
       try {
         onKey({
@@ -381,23 +522,45 @@ Page(
             // sonst die laufende Aufnahme mitnehmen — lieber tut die Taste nichts, als dass die
             // App abstürzt und die Session verloren geht.
             try {
-            if (key === KEY_BACK) return false;
             const long = (event === KEY_EVENT_LONG_PRESS);
             const click = (event === KEY_EVENT_CLICK);
+            if (key === KEY_BACK) {
+              if (s.recording) {
+                if (long || click) this._showTouchLock();
+                return true;
+              }
+              return false;
+            }
             if (!long && !click) return false;      // PRESS/RELEASE ignorieren (sonst doppelt)
             if (s.recording) {
-              if (long) { this.stop(); return true; }
+              if (key === KEY_SELECT && long) { this.stop(); return true; }
+              if ((key === KEY_UP || key === KEY_DOWN) && long) {
+                this._unlockTouchTemporarily();
+                return true;
+              }
+              if (key === KEY_SELECT && click) { if (s.touchLocked) this._showTouchLock(); return true; }
+              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) return false;
+              if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
               const last = this._ringLen() + 1;
-              s.page = s.page >= last ? 0 : s.page + 1;   // hier MIT Wrap: eine Taste, eine Richtung
+              if (key === KEY_UP) s.page = s.page <= 0 ? last : s.page - 1;
+              else s.page = s.page >= last ? 0 : s.page + 1;
               this.applyButton(); this.renderRecording();
               return true;
             }
-            if (s.screen === "summary") { this.done(); return true; }
+            if (s.screen === "summary") {
+              if (key === KEY_SELECT) { this.done(); return true; }
+              return false;
+            }
             if (s.screen === "idle") {
-              if (long) { if (s.idlePage === 0) { this.start(); } return true; }
-              s.idlePage = s.idlePage >= 3 ? 0 : s.idlePage + 1;
+              if (key === KEY_SELECT) {
+                if (s.idlePage === 0) this.start();
+                return true;
+              }
+              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) return false;
+              if (key === KEY_UP) s.idlePage = s.idlePage <= 0 ? 3 : s.idlePage - 1;
+              else s.idlePage = s.idlePage >= 3 ? 0 : s.idlePage + 1;
               this.applyButton(); this.renderIdle();
               return true;
             }
@@ -409,6 +572,7 @@ Page(
 
       onGesture({
         callback: (e) => {
+          if (s.recording && s.touchLocked) { this._showTouchLock(); return true; }
           const dir = (e === GESTURE_LEFT || e === GESTURE_UP) ? 1
                     : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
           if (dir === 0) return false;
@@ -447,7 +611,21 @@ Page(
       this.recoverActive();   // unbeendete Aufnahme aus letztem Lauf in die Queue übernehmen
 
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) {}
-      try { s.hrSensor = new HeartRate(); } catch (e) { s.hrSensor = null; }
+      // Zepp's getCurrent() is valid only inside an onCurrentChange callback. Registering the
+      // callback also starts continuous heart-rate measurement (API 2.1+).
+      try {
+        s.hrSensor = new HeartRate();
+        s.hrCallback = () => {
+          try {
+            const value = s.hrSensor.getCurrent() || 0;
+            if (value > 0) {
+              s.hr = value; s.hrUpdatedMs = Date.now();
+              if (!s._hrLogged) { s._hrLogged = true; console.log("[pumpfoil] heart-rate active"); }
+            }
+          } catch (e) {}
+        };
+        s.hrSensor.onCurrentChange(s.hrCallback);
+      } catch (e) { s.hrSensor = null; s.hrCallback = null; }
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
       s.hbTimer = setInterval(() => this.heartbeat(), 20000);
 
@@ -507,6 +685,7 @@ Page(
           else { s.foilId = null; s.foilLabel = "—"; s.almSrc = "manual"; }
         }
         s.paired = true;
+        if (s.brightMode === "idle") this._setBrightMode("idle");
         this.applyButton(); this.rerender();
         this.flushPending();
       }).catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
@@ -516,6 +695,7 @@ Page(
     beginPairing() {
       const s = this.state;
       s.paired = false;
+      this._setBrightMode("idle", true);
       this.reqQ({ method: "PAIR_INIT" }).then((r) => {
         if (!r || !r.code) { this.rerender(); return; }
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
@@ -531,6 +711,7 @@ Page(
           if (r && r.paired && r.device_token) {
             store.setItem("deviceToken", r.device_token); store.setItem("claimToken", "");
             s.pollTimer = null; s.paired = true; s.code = "";
+            this._setBrightMode("idle", true);
             this.connect();
             return;
           }
@@ -543,6 +724,9 @@ Page(
     heartbeat() {
       const s = this.state;
       if (s.recording) return;
+      if (s.brightMode === "idle") this._setBrightMode("idle");
+      // Do not enqueue CONFIG requests while the single upload worker owns the BLE request queue.
+      if (s.uploading) return;
       if (!bleOk()) { this.rerender(); return; }
       if (getTok()) this.connect();
       // Kein Auto-Pairing im Hintergrund — Pairing/Poll passiert nur auf der Verbindungs-Seite.
@@ -565,6 +749,61 @@ Page(
     // ---- Button pro Screen/Seite ----
     setButton(text, nc, pc, ink, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
     hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
+    _showTouchLock() {
+      const s = this.state, w = s.w;
+      if (!s.recording || !s.touchLocked || !w.touchShield) return;
+      if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
+      if (!w.lockIcon) {
+        w.lockIcon = w.touchShield.createWidget(hmUI.widget.TEXT, {
+          x: 0, y: Math.round(DH * 0.32), w: DW, h: Math.round(DH * 0.28),
+          text: "🔒", text_size: Math.round(DH * 0.16), color: WHITE,
+          align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        try { w.lockIcon.setEnable(false); } catch (e) {}
+      }
+      s.lockTimer = setTimeout(() => {
+        try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
+        w.lockIcon = null; s.lockTimer = null;
+      }, 1200);
+    },
+    _lockTouch() {
+      const s = this.state, w = s.w;
+      if (!s.recording) return;
+      if (s.unlockTimer) { clearTimeout(s.unlockTimer); s.unlockTimer = null; }
+      s.touchLocked = true;
+      if (w.touchShield) return;
+      console.log("[pumpfoil] touch locked");
+      // A transparent modal container stays above the recording widgets and absorbs water taps.
+      w.touchShield = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER, {
+        x: 0, y: 0, w: DW, h: DH, z_index: 6, modal: 1, scroll_enable: 0,
+      });
+      w.touchCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
+      w.touchCanvas.addEventListener(hmUI.event.CLICK_DOWN, () => this._showTouchLock());
+    },
+    _removeTouchShield() {
+      const s = this.state, w = s.w;
+      if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
+      try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
+      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null;
+    },
+    _unlockTouchTemporarily() {
+      const s = this.state;
+      if (!s.recording) return;
+      s.touchLocked = false;
+      this._removeTouchShield();
+      console.log("[pumpfoil] touch unlocked for 10s");
+      if (s.unlockTimer) clearTimeout(s.unlockTimer);
+      s.unlockTimer = setTimeout(() => {
+        s.unlockTimer = null;
+        if (s.recording) { this._lockTouch(); this._showTouchLock(); }
+      }, 10000);
+    },
+    _disableTouchLock() {
+      const s = this.state;
+      s.touchLocked = false;
+      if (s.unlockTimer) { clearTimeout(s.unlockTimer); s.unlockTimer = null; }
+      this._removeTouchShield();
+    },
     applyButton() {
       const s = this.state;
       if (s.recording) {
@@ -573,7 +812,8 @@ Page(
       } else if (s.screen === "summary") {
         this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
       } else if (s.idlePage === 0) {
-        this.setButton(t("btn.start"), CYAN, CYAN_P, INK, () => this.start());
+        if (s.fix && !s.uploading) this.setButton(t("btn.start"), GPS_READY, GPS_READY_P, INK, () => this.start());
+        else this.setButton(t("btn.start"), GPS_WAIT, GPS_WAIT_P, MUTED, () => {});
       } else if (s.idlePage === 1) {
         if (s.paired) this.setButton(t("rec.repair"), CYAN, CYAN_P, INK, () => this.repair());
         else this.setButton(t("pair.gen"), CYAN, CYAN_P, INK, () => this.beginPairing());
@@ -590,7 +830,7 @@ Page(
     showBig(v, l) {
       const w = this.state.w;
       if (!w.bigV) w.bigV = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: Math.round(DH * 0.30), w: DW, h: Math.round(DH * 0.26), color: 0x22d3ee, text_size: Math.round(DH * 0.19), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "" });
-      if (!w.bigL) w.bigL = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: Math.round(DH * 0.57), w: DW, h: Math.round(DH * 0.08), color: 0x9aa4b2, text_size: Math.round(DH * 0.045), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "" });
+      if (!w.bigL) w.bigL = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: Math.round(DH * 0.57), w: DW, h: Math.round(DH * 0.09), color: 0x9aa4b2, text_size: Math.round(DH * 0.06), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "" });
       w.bigV.setProperty(hmUI.prop.TEXT, v); w.bigL.setProperty(hmUI.prop.TEXT, l);
     },
     hideBig() { const w = this.state.w; if (w.bigV) { hmUI.deleteWidget(w.bigV); w.bigV = null; } if (w.bigL) { hmUI.deleteWidget(w.bigL); w.bigL = null; } },
@@ -660,9 +900,14 @@ Page(
     _buildFoilBtns() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();
+      const round = DW >= 450;
+      const ys = round
+        ? [px(104), px(188), px(272), px(356)]
+        : [Math.round(DH * 0.14), Math.round(DH * 0.33), Math.round(DH * 0.52), Math.round(DH * 0.71)];
       const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
-        x: px(30), y: y, w: DW - px(60), h: px(46), radius: px(23),
-        text: text, text_size: px(20), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
+        x: round ? px(80) : px(24), y: y, w: round ? DW - px(160) : DW - px(48),
+        h: round ? px(60) : px(56), radius: round ? px(30) : px(28),
+        text: text, text_size: px(27), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
       // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
       // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
       // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
@@ -671,10 +916,10 @@ Page(
         ? t("common.auto") + " (" + onOff(s.layoutsServerDefault) + ")"
         : onOff(s.layoutsPref);
       w.foilBtns = [
-        mk(Math.round(DH * 0.14), t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
-        mk(Math.round(DH * 0.33), t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
-        mk(Math.round(DH * 0.52), t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
-        mk(Math.round(DH * 0.71), t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
+        mk(ys[0], t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
+        mk(ys[1], t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
+        mk(ys[2], t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
+        mk(ys[3], t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
       ];
     },
     _clearFoilBtns() {
@@ -726,6 +971,7 @@ Page(
             s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
             s.runStartDist = dist;
             s.runMaxMps = vInst;
+            console.log("[pumpfoil] run start speed=" + (v3 * 3.6).toFixed(1));
           }
         }
       } else {
@@ -742,6 +988,8 @@ Page(
           s.lastRunMaxMps = s.runMaxMps;
           s.runCount++;
           s.runEndedMs = tMs;   // Re-Arm-Sperre starten
+          console.log("[pumpfoil] run end count=" + s.runCount
+            + " duration=" + Math.round(durMs / 1000) + " distance=" + Math.round(s.lastRunDistM));
           return true;
         }
       }
@@ -814,6 +1062,19 @@ Page(
         if (!s.vibrator) s.vibrator = new Vibrator();
         s.vibrator.stop();
         s.vibrator.start();
+      } catch (e) {}
+    },
+    _gpsReadyFeedback() {
+      const s = this.state;
+      this._vibrate();
+      // Buzzer is available from API 3.6 (T-Rex 3: API 4.0). Play the sound only when the user has
+      // enabled the "Other" buzzer scene in the watch settings.
+      try {
+        if (!s.buzzer) s.buzzer = new Buzzer();
+        if (s.buzzer.isEnabled()) {
+          const types = s.buzzer.getSourceType();
+          s.buzzer.start(types.SUCCESS);
+        }
       } catch (e) {}
     },
 
@@ -1070,6 +1331,7 @@ Page(
     // ---- Sampling ----
     sample() {
       const s = this.state;
+      const sampleNow = Date.now();
       let fix = false, lat = null, lon = null, speed = 0;
       if (DEV_FAKE_GPS) {
         fix = true;
@@ -1080,15 +1342,30 @@ Page(
         try {
           const st = s.geo.getStatus ? s.geo.getStatus() : "A";
           lat = s.geo.getLatitude(); lon = s.geo.getLongitude();
-          speed = s.geo.getSpeed ? (s.geo.getSpeed() || 0) : 0;
           fix = st === "A" && lat != null && lon != null;
         } catch (e) {}
       }
-      let hr = 0;
-      try { hr = s.hrSensor ? (s.hrSensor.getCurrent() || 0) : 0; } catch (e) {}
+      // Geolocation has no documented getSpeed() method. Derive m/s from consecutive WGS-84
+      // positions instead; this is also consistent with the distance accumulated below.
+      if (fix && !DEV_FAKE_GPS) {
+        const p = s.geoSpeedPrev;
+        if (p) {
+          const dt = (sampleNow - p[2]) / 1000;
+          if (dt > 0) speed = distM(p[0], p[1], lat, lon) / dt;
+        }
+        s.geoSpeedPrev = [lat, lon, sampleNow];
+      } else if (!fix) {
+        s.geoSpeedPrev = null;
+      }
+      // Treat a value as current for ten seconds. The callback owns getCurrent(); this 1 Hz loop
+      // only snapshots the latest valid value into session statistics and GPS payloads.
+      let hr = (s.hrUpdatedMs && sampleNow - s.hrUpdatedMs <= 10000) ? s.hr : 0;
+      if (!hr) s.hr = 0;
       if (hr) { s.hr = hr; if (s.recording) { s.hrSum += hr; s.hrN++; if (hr > s.hrMax) s.hrMax = hr; } }
+      const fixChanged = fix !== s.fix;
+      const acquiredFix = fix && !s.fix;
       s.fix = fix;
-      if (fix) s.cur = speed;
+      s.cur = fix ? speed : 0;
 
       if (s.recording) {
         const el = Date.now() - s.startedAtMs;
@@ -1115,6 +1392,8 @@ Page(
         }
         this.renderRecording();
       } else if (s.screen === "idle") {
+        if (fixChanged) this.applyButton();
+        if (acquiredFix) this._gpsReadyFeedback();
         if (s.autoStart && fix && speed > AUTOSTART_SPEED) { s.autoTicks++; if (s.autoTicks >= AUTOSTART_TICKS) { this.start(); return; } }
         else s.autoTicks = 0;
         this.renderIdle();
@@ -1122,12 +1401,34 @@ Page(
     },
 
     // ---- Persistente Aufnahme (Absturz-sicher) ----
-    persistActive() { const s = this.state; try { store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps })); } catch (e) {} },
+    persistActive() {
+      const s = this.state;
+      try {
+        store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps,
+          foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
+          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0 }));
+      } catch (e) {}
+    },
     recoverActive() {
       let a = null; try { a = JSON.parse(store.getItem("active", "null")); } catch (e) {}
       if (a && a.gps && a.gps.length) {
         const end = a.startedAtMs + (a.gps[a.gps.length - 1][0] || 0);
-        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end, gps: a.gps }); savePending(list);
+        let samples = a.accelSamples || 0;
+        try {
+          const info = a.accelFile ? statSync({ path: a.accelFile }) : null;
+          if (info && info.size > 0) samples = Math.floor(info.size / 6);
+        } catch (e) {}
+        const hz = a.accelHz || ACCEL_DEFAULT_HZ;
+        const t0s = a.accelChunkT0 || [];
+        const needed = Math.ceil(samples / ACCEL_CHUNK_SAMPLES);
+        while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000));
+        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
+          gps: a.gps, foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
+          accelHz: hz, accelChunkT0: t0s }); savePending(list);
+      } else if (a && a.accelFile) {
+        // A session without a persisted GPS point cannot be analyzed or uploaded. Do not leave its
+        // binary sensor file orphaned after a reboot during the first seconds of recording.
+        try { rmSync({ path: a.accelFile }); } catch (e) {}
       }
       store.setItem("active", "");
     },
@@ -1135,6 +1436,10 @@ Page(
     // ---- Aufnahme ----
     start() {
       const s = this.state, now = Date.now();
+      // Every start path goes through here (touchscreen, SELECT, and auto-start), so no session can
+      // begin before a valid GPS position is available.
+      if (!s.fix || s.uploading) return;
+      this._setBrightMode("recording");
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
@@ -1142,29 +1447,37 @@ Page(
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
       try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
       this._resetRun();   // Lauf-Zähler/-Kennzahlen gehören zur Session (wie Garmin/Wear)
+      this._startAccel();
       this.persistActive();
       this.hideBar();
       this.applyButton();
       this.renderRecording();
+      this._lockTouch();
     },
     stop() {
       const s = this.state, now = Date.now();
+      this._stopAccel();
+      this._disableTouchLock();
+      this._setBrightMode("idle", true);
       s.recording = false;
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
         s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
-        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice(), foilId: s.foilId }); savePending(list);
+        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
+          gps: s.gps.slice(), foilId: s.foilId, accelFile: s.accelFile,
+          accelSamples: s.accelSamples, accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() }); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
       } else {
         s.screen = "idle"; s.idlePage = 0; s.upStatus = t("rec.noData");
+        if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
         store.setItem("active", "");
         this.applyButton(); this.renderIdle();
       }
     },
-    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
+    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this._setBrightMode(s.uploading ? "uploading" : "idle", true); try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
     repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
@@ -1173,11 +1486,15 @@ Page(
       if (!tok) return Promise.reject(new Error("not paired"));
       // app_version: dieselbe Konstante, die der Update-Hinweis vergleicht -> der Server haengt
       // die Version an die Session (bisher kannte er sie nur vom Geraet, aus dem CONFIG-Abruf).
-      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE, app_version: APP_VERSION };
+      const hasAccel = !!(sess.accelFile && sess.accelSamples > 0);
+      const accelHz = hasAccel ? (sess.accelHz || ACCEL_DEFAULT_HZ) : 0;
+      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil",
+        gps_hz: GPS_HZ, accel_hz: accelHz, accel_scale: hasAccel ? ACCEL_SCALE : 0, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
-      const chunks = [];
-      for (let i = 0; i < sess.gps.length; i += GPS_CHUNK) chunks.push({ index: chunks.length, data: sess.gps.slice(i, i + GPS_CHUNK) });
-      const total = chunks.length + 2; let done = 0;
+      const gpsChunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
+      const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
+      const dataChunkCount = gpsChunkCount + accelChunkCount;
+      const total = dataChunkCount + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
       // Direkter this.request (wie Pairing) — kein Retry (der würde Folge-Requests feuern);
       // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
@@ -1186,34 +1503,96 @@ Page(
         if (!r || r.ok !== true) throw new Error(t("up.serverUnreach"));
         return r;
       });
-      return req({ method: "START", token: tok, meta }).then(bump)
-        .then(() => chunks.reduce((p, c) => p.then(() => req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index: c.index, kind: "gps", encoding: "json", data: c.data })).then(bump), Promise.resolve()))
-        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid, ended_at_ms: sess.endedAtMs, total_chunks: chunks.length })).then(bump);
+      // Build and release one GPS slice at a time. Keeping every slice alive for a long session —
+      // especially when several flush workers accidentally overlapped — exhausted watch memory.
+      const sendGpsChunk = (index) => {
+        if (index >= gpsChunkCount) return Promise.resolve();
+        const data = sess.gps.slice(index * GPS_CHUNK, (index + 1) * GPS_CHUNK);
+        return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
+                     kind: "gps", encoding: "json", count: data.length, data })
+          .then(() => { bump(); return sendGpsChunk(index + 1); });
+      };
+      const sendAccelChunks = () => {
+        if (!accelChunkCount) return Promise.resolve();
+        let fd = -1;
+        try { fd = openSync({ path: sess.accelFile, flag: O_RDONLY }); }
+        catch (e) { return Promise.reject(new Error("accelerometer file unavailable")); }
+        const send = (index) => {
+          if (index >= accelChunkCount) return Promise.resolve();
+          const count = Math.min(ACCEL_CHUNK_SAMPLES, sess.accelSamples - index * ACCEL_CHUNK_SAMPLES);
+          const byteLength = count * 6;
+          const buffer = new ArrayBuffer(byteLength);
+          let bytesRead = 0;
+          try {
+            bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_CHUNK_SAMPLES * 6,
+              length: byteLength } });
+          } catch (e) { return Promise.reject(e); }
+          if (bytesRead !== byteLength) return Promise.reject(new Error("short accelerometer read"));
+          const data = bytesToBase64(new Uint8Array(buffer), bytesRead);
+          const t0s = sess.accelChunkT0 || [];
+          const t0 = t0s[index] != null ? t0s[index] : Math.round(index * ACCEL_CHUNK_SAMPLES / accelHz * 1000);
+          return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
+                       kind: "accel", encoding: "int16-b64", t0_ms: t0, count, data })
+            .then(() => { bump(); return send(index + 1); });
+        };
+        return send(0).then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
+          (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
+      };
+      return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunk(0); })
+        .then(() => sendAccelChunks())
+        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
+                          ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount })).then(bump);
     },
     flushPending() {
       const s = this.state;
+      // connect(), heartbeat, the upload button, and stop() may all request a flush. Only one worker
+      // may read and mutate the persistent queue; otherwise progress callbacks interleave and the
+      // same session is uploaded multiple times concurrently.
+      if (s.uploading) return;
       const inSummary = s.screen === "summary";
       const list = loadPending();
       if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
       if (!list.length) { if (inSummary) { s.upStatus = t("up.done") + " ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
+      s.uploading = true;
+      // Upload requires the Device App to stay alive for BLE/ZML. Keep the page awake for the whole
+      // worker lifetime; the normal five-minute idle policy resumes on completion or failure.
+      this._setBrightMode("uploading");
+      console.log("[pumpfoil] upload worker start sessions=" + list.length);
       const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "% · " + t("up.keepOpen"); if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
-        if (i >= list.length) { s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return; }
+        if (i >= list.length) {
+          s.uploading = false;
+          this._setBrightMode("idle", true);
+          console.log("[pumpfoil] upload worker done");
+          s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return;
+        }
         const sess = list[i];
         this.uploadSession(sess, onProg)
-          .then(() => { removePending(sess.uuid); step(i + 1); })
-          .catch((err) => { s.upStatus = t("common.error") + ": " + ((err && err.message) || "?"); this.rerender(); this.applyButton(); });
+          .then(() => {
+            if (sess.accelFile) { try { rmSync({ path: sess.accelFile }); } catch (e) {} }
+            removePending(sess.uuid); step(i + 1);
+          })
+          .catch((err) => {
+            s.uploading = false;
+            this._setBrightMode("idle", true);
+            console.log("[pumpfoil] upload worker failed " + ((err && err.message) || "?"));
+            s.upStatus = t("common.error") + ": " + ((err && err.message) || "?"); this.rerender(); this.applyButton();
+          });
       };
       step(0);
     },
 
     onDestroy() {
       const s = this.state;
+      this._setBrightMode("system");
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearTimeout(s.pollTimer);
       if (s.hbTimer) clearInterval(s.hbTimer);
+      this._disableTouchLock();
+      if (s.recording) { this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
+      try { s.hrSensor && s.hrCallback && s.hrSensor.offCurrentChange(s.hrCallback); } catch (e) {}
     },
   })
 );

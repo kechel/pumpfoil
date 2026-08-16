@@ -92,7 +92,7 @@ async function handle(req) {
     return { ok: true, http: r.status, url: BASE + "/api/ingest/session", body: (typeof r.body === "string" ? r.body.slice(0, 50) : JSON.stringify(r.body).slice(0, 50)) };
   }
   if (req.method === "CHUNK") {
-    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: (req.data && req.data.length) || 0, data: req.data });
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: req.count != null ? req.count : ((req.data && req.data.length) || 0), data: req.data });
     return { ok: true, index: req.index, http: r.status };
   }
   if (req.method === "COMPLETE") {

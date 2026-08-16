@@ -166,10 +166,22 @@ dauerhaft GPS halten darf. Zweite Option: **Workout Extension** als separate App
 die 6 Geräte oben voraus, Balance 2 müsste Amazfit erst nachziehen).
 
 ## TODO
-- Accel (25 Hz) erfassen, falls Zepp OS eine API bietet → int16-base64-Chunks (Pump/Gleit).
-- Offline-Queue liegt aktuell in `@zos/storage` (JSON). Für lange Sessions besser auf `@zos/fs`
-  (Datei) umstellen — LocalStorage-Größe ist begrenzt.
+- GPS und Metadaten der Offline-Queue liegen weiterhin in `@zos/storage` (JSON). Für sehr lange
+  Sessions sollte auch dieser Teil auf `@zos/fs` umgestellt werden — LocalStorage-Größe ist begrenzt.
 - Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.
+
+## Raw acceleration recording (1.0.5)
+
+The Zepp recorder now uses the official API 3.0 `Accelerometer` in high-frequency mode while a
+session is active. The callback values (cm/s²) are converted to signed little-endian int16 triples
+using the common Pumpfoil scale of 2048 units per g. The actual callback rate is measured for every
+session instead of assuming that Zepp's named frequency mode is exactly 25 Hz.
+
+Acceleration is never retained as one large JavaScript array or LocalStorage JSON value. Blocks of
+128 samples are appended directly to a binary file in the app's `/data` directory. Upload reads and
+base64-encodes one block at a time, sends it as `kind: accel` with its real `t0_ms`, and deletes the
+file only after the server confirms session completion. Active-session metadata references the file,
+so complete blocks survive an app or watch restart and remain available for retry.
 
 ## Feldtest-Fixes (fuer 1.0.4, 2026-08-01 — auf Hardware ungetestet)
 
@@ -188,25 +200,25 @@ Anlass: erster echter Feldtest (T-Rex 3, Nutzer-Meldung per DM, 01.08.). Drei Ae
    Aufnahmen auf die Uebertragung warten — dieselbe Produktluecke wie bei Garmin/Apple (drei
    Support-Faelle: Session „fehlt", lag aber nur auf der Uhr).
 
-## Tastenbedienung (1.0.3, 2026-07-27)
+## Tastenbedienung (1.0.5)
 
 Anlass: Nutzer-Meldung per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
 funktioniert nicht wenn das display nass ist mit nassen Fingern." Beim Pumpfoilen ist nass der
 Normalzustand, ein Touch-only-Recorder ist dort also unbenutzbar.
 
-Seither ist die App **ohne jede Berührung** bedienbar (`onKey` aus `@zos/interaction`, API 2.0+; die
-App verlangt ohnehin 3.0):
+Die vier Tasten werden getrennt behandelt (`onKey` aus `@zos/interaction`):
 
-| Zustand | Taste kurz | Taste halten |
-|---|---|---|
-| Aufnahme | nächste Seite (mit Umlauf) | **stoppen & speichern** |
-| Start-Screen | nächste Seite | **Aufnahme starten** (nur auf Seite 1) |
-| Zusammenfassung | fertig | fertig |
+| Zustand | UP | DOWN | SELECT | Lange Taste |
+|---|---|---|---|---|
+| Aufnahme | vorige Seite | nächste Seite | zeigt Schloss | UP/DOWN: Touch 10 s frei; SELECT: **stoppen & speichern** |
+| Start-Screen | vorige Seite | nächste Seite | **Start recording**, GPS fix required | same |
+| Zusammenfassung | — | — | fertig | fertig |
 
-Start/Stopp brauchen bewusst ein **Halten** — ein versehentlicher Druck in der Tasche soll nichts
-auslösen, dieselbe Logik wie das 3-s-Halten auf der Garmin. `KEY_BACK` bleibt unangetastet, sonst
-sitzt man in der App fest. Zepp erlaubt nur EINE `onKey`-Registrierung, deshalb ein Callback für alle
-Tasten. Touch/Wischen funktioniert unverändert weiter.
+Touch is locked automatically while recording. Water taps are absorbed by a transparent modal
+layer and briefly display a lock. A long UP or DOWN press unlocks touch for ten seconds, after which
+it locks again automatically. Short physical key presses still work and also display the lock.
+`KEY_BACK` is consumed while recording, preventing accidental exit; outside recording it remains
+handled by the system. Zepp allows only one `onKey` registration, so every key uses one callback.
 
 **Auf Hardware ungetestet, bewusst so released (2026-07-27):** der Zepp-**Simulator hat keine
 Hardware-Tasten**, der Tasten-Pfad ist dort also nicht prüfbar. Jan gibt 1.0.3 trotzdem in den Store;

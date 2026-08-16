@@ -8,20 +8,21 @@ const c = (y, h, color, size) => ({
   align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
 });
 
-export const TITLE = { ...c(36, 36, 0xffffff, 30), text: "Pumpfoil" };
-export const PAGE = { x: 0, y: px(40), w: W - px(28), h: px(28), color: 0x64748b, text_size: px(20), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
+export const TITLE = { ...c(30, 44, 0xffffff, 36), text: "Pumpfoil" };
+// On a round screen, the usable area narrows significantly near the top and bottom.
+export const PAGE = { x: 0, y: px(36), w: W - px(70), h: px(34), color: 0x64748b, text_size: px(26), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
 
 // 3 Feld-Slots: Wert groß + kleines Label.
-export const F0V = { ...c(90, 62, 0x22d3ee, 56), text: "–" };
-export const F0L = { ...c(150, 22, 0x9aa4b2, 18), text: "" };
-export const F1V = { ...c(184, 48, 0xffffff, 40), text: "" };
-export const F1L = { ...c(230, 20, 0x9aa4b2, 16), text: "" };
-export const F2V = { ...c(256, 48, 0xffffff, 40), text: "" };
-export const F2L = { ...c(302, 20, 0x9aa4b2, 16), text: "" };
+export const F0V = { ...c(94, 70, 0x22d3ee, 64), text: "–" };
+export const F0L = { ...c(162, 28, 0x9aa4b2, 24), text: "" };
+export const F1V = { ...c(188, 54, 0xffffff, 50), text: "" };
+export const F1L = { ...c(240, 26, 0x9aa4b2, 22), text: "" };
+export const F2V = { ...c(262, 54, 0xffffff, 50), text: "" };
+export const F2L = { ...c(314, 26, 0x9aa4b2, 22), text: "" };
 
-export const STATUS = { ...c(326, 24, 0x64748b, 20), text: "…" };
+export const STATUS = { ...c(338, 28, 0x64748b, 22), text: "…" };
 export const BUTTON = {
-  x: (W - px(300)) / 2, y: px(360), w: px(300), h: px(72), radius: px(36),
-  normal_color: 0x22c55e, press_color: 0x16a34a, color: 0x052e16, text_size: px(30),
+  x: (W - px(280)) / 2, y: px(366), w: px(280), h: px(70), radius: px(35),
+  normal_color: 0x22c55e, press_color: 0x16a34a, color: 0x052e16, text_size: px(32),
   text: "START",
 };
