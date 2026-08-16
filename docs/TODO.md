@@ -521,9 +521,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 - **Android Phone 1.1.21/35 + Wear 1.2.21/1031 EINGEREICHT 10.08. (Jan).** Play-Konsole:
   Produktion **35 (1.1.21)** und Produktion (Wear OS) **1031 (1.2.21)**, beide mit
   „Vollstaendigen Roll-out starten" — also 100 %, kein Staffeln. Vorabpruefungen liefen.
-  NACH der „is live"-Mail ohne Rueckfrage setzen: `appmeta android` = 1.1.21, `wear` = 1.2.21,
-  danach Changelog. (Die Zahlen sind hier festgehalten, damit die Freigabe kein Nachfragen
+  **UEBERHOLT am 16.08.: Wear ist jetzt 1.2.22/1032** (Puls ueber Health Services, s. Inbox). Das
+  Review von 1031 hing seit dem 10.08. — sechs Tage gegen ~drei bei der Runde davor (1.2.20/1.1.20
+  am 06.08. eingereicht, „is live"-Mail 09.08., Phone und Wear am selben Tag). 1031 geht damit nicht
+  mehr live; sein Inhalt steckt vollstaendig in 1032 (geprueft: `a8adef2` ist Vorfahre von HEAD).
+  NACH der „is live"-Mail ohne Rueckfrage setzen: `appmeta android` = 1.1.21, **`wear` = 1.2.22**
+  (NICHT 1.2.21 — die Version wird nie freigegeben), danach Changelog. (Die Zahlen sind hier
+  festgehalten, damit die Freigabe kein Nachfragen
   braucht — Anlass: die appmeta-Regel „nur eintragen was FREIGEGEBEN ist und 100 % Roll-out".)
+  **Falls der Batch verworfen wird:** das trifft auch Phone 1.1.21/35 — dann dort neu einreichen,
+  ohne Rebuild, AAB 35 liegt in der Play-Bibliothek.
   Vorher geprueft: Baum clean, kein
   Cleartext-Hack in den Manifesten, Versionscodes ueber dem Live-Stand (34->35, 1030->1031), beide
   Module frisch kompiliert (33/33 Tasks, BUILD SUCCESSFUL). Inhalt gegenueber 1.1.20/1.2.20:
