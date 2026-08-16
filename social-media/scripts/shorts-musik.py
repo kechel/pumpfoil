@@ -1211,6 +1211,18 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) i
  "descriptions": {{...gleiche Sprachen wie titles...}},
  "hashtags": "...", "instagram": "...", "tiktok": "..."}}
 
+Fachbegriffe (WICHTIG, häufige Fehlerquelle):
+- Die Tragfläche unter Wasser heißt "foil" / "hydrofoil" (de: "Foil", "Tragfläche").
+  Das Wort "wing" ALLEIN ist verboten — im Foilsport ist der "Wing" das Segel in
+  der Luft (Wingfoiling), also eine ANDERE Sportart. Statt "the wing breaches"
+  also "the foil breaches" / "the front wing breaches".
+- Erlaubt und korrekt sind nur die zusammengesetzten Begriffe "front wing"
+  (de: "Frontflügel") und "back wing"/"stabilizer" (de: "Stabi") — dort immer mit
+  dem Zusatz "front"/"back", nie verkürzt auf "wing".
+- Hashtags mit "wing" sind verboten (#wingfoil, #wing…, #wingdesign): Pumpfoiling
+  wird ohne Segel gefahren, solche Tags erreichen das falsche Publikum.
+  Richtig sind z. B. #pumpfoil, #hydrofoil, #frontwing, #dockstart.
+
 Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
