@@ -188,7 +188,7 @@ Anlass: erster echter Feldtest (T-Rex 3, Nutzer-Meldung per DM, 01.08.). Drei Ae
    Aufnahmen auf die Uebertragung warten — dieselbe Produktluecke wie bei Garmin/Apple (drei
    Support-Faelle: Session „fehlt", lag aber nur auf der Uhr).
 
-## Tastenbedienung (1.0.6)
+## Tastenbedienung (1.0.5)
 
 Anlass: Nutzer-Meldung per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
 funktioniert nicht wenn das display nass ist mit nassen Fingern." Beim Pumpfoilen ist nass der

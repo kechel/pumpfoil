@@ -2,7 +2,7 @@
 
 This changelog covers the Zepp OS watch app only.
 
-## 1.0.10 — 2026-08-16
+## 1.0.5 — 2026-08-16
 
 ### Recording reliability
 
@@ -50,5 +50,5 @@ This changelog covers the Zepp OS watch app only.
 
 ### Platform metadata
 
-- Update the Zepp app version from 1.0.4 to 1.0.10 (build code 13).
+- Update the Zepp app version from 1.0.4 to 1.0.5 (build code 8).
 - Target Zepp OS API 4.0 while retaining compatibility with API 3.0.
