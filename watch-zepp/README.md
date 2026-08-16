@@ -166,10 +166,22 @@ dauerhaft GPS halten darf. Zweite Option: **Workout Extension** als separate App
 die 6 Geräte oben voraus, Balance 2 müsste Amazfit erst nachziehen).
 
 ## TODO
-- Accel (25 Hz) erfassen, falls Zepp OS eine API bietet → int16-base64-Chunks (Pump/Gleit).
-- Offline-Queue liegt aktuell in `@zos/storage` (JSON). Für lange Sessions besser auf `@zos/fs`
-  (Datei) umstellen — LocalStorage-Größe ist begrenzt.
+- GPS und Metadaten der Offline-Queue liegen weiterhin in `@zos/storage` (JSON). Für sehr lange
+  Sessions sollte auch dieser Teil auf `@zos/fs` umgestellt werden — LocalStorage-Größe ist begrenzt.
 - Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.
+
+## Raw acceleration recording (1.0.5)
+
+The Zepp recorder now uses the official API 3.0 `Accelerometer` in high-frequency mode while a
+session is active. The callback values (cm/s²) are converted to signed little-endian int16 triples
+using the common Pumpfoil scale of 2048 units per g. The actual callback rate is measured for every
+session instead of assuming that Zepp's named frequency mode is exactly 25 Hz.
+
+Acceleration is never retained as one large JavaScript array or LocalStorage JSON value. Blocks of
+128 samples are appended directly to a binary file in the app's `/data` directory. Upload reads and
+base64-encodes one block at a time, sends it as `kind: accel` with its real `t0_ms`, and deletes the
+file only after the server confirms session completion. Active-session metadata references the file,
+so complete blocks survive an app or watch restart and remain available for retry.
 
 ## Feldtest-Fixes (fuer 1.0.4, 2026-08-01 — auf Hardware ungetestet)
 

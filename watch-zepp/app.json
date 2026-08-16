@@ -10,12 +10,13 @@
     },
     "icon": "icon.png",
     "vender": "pumpfoil.org",
-    "description": "Pump foiling recorder — GPS + heart rate → pumpfoil.org"
+    "description": "Pump foiling recorder — GPS + heart rate + acceleration → pumpfoil.org"
   },
   "permissions": [
     "data:os.device.info",
     "device:os.local_storage",
     "device:os.geolocation",
+    "device:os.accelerometer",
     "data:user.hd.heart_rate"
   ],
   "runtime": {

@@ -27,12 +27,18 @@ This changelog covers the Zepp OS watch app only.
 
 - Request the correct Zepp OS heart-rate permission.
 - Read continuous heart-rate values through the supported sensor callback and include them in session statistics and GPS samples.
+- Record raw three-axis acceleration through the official Zepp OS accelerometer API while a session is active.
+- Convert Zepp's cm/s² values to the shared signed int16 format with 2048 units per g.
+- Measure and report the effective accelerometer callback rate for each session instead of assuming a fixed frequency.
 - Derive speed from consecutive GPS coordinates because Zepp OS Geolocation does not expose the previously assumed speed method.
 - Restore run detection and the last-run time and distance values using the computed speed.
 - Add diagnostic logs for heart-rate activation and detected run starts and ends.
 
 ### Upload stability
 
+- Persist acceleration progressively to a binary file instead of retaining a full session in JavaScript memory or LocalStorage.
+- Upload 128-sample acceleration blocks sequentially as `int16-b64` with per-block timestamps.
+- Retain the binary file across interrupted uploads or app restarts and delete it only after confirmed completion.
 - Ensure only one pending-session upload worker can run at a time.
 - Upload sessions and GPS chunks sequentially to prevent duplicate concurrent transfers and erratic progress values.
 - Create GPS chunks on demand instead of retaining every chunk in memory.

@@ -12,20 +12,20 @@ import { getConnectStatus } from "@zos/ble";
 // des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
 import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime } from "@zos/display";
 import { BasePage } from "@zeppos/zml/base-page";
-import { Geolocation, HeartRate, Vibrator, Buzzer } from "@zos/sensor";
+import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH } from "@zos/sensor";
+import { openSync, closeSync, writeSync, readSync, statSync, rmSync,
+         O_RDONLY, O_RDWR, O_CREAT, O_TRUNC } from "@zos/fs";
 import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
-// ACHTUNG: diese App bindet KEINEN Beschleunigungssensor ein (Sensor-Imports unten: nur
-// Geolocation/HeartRate/Vibrator, und app.json fordert die Berechtigung nicht an). Bis 1.0.3 wurden
-// dem Server trotzdem 25 Hz / Scale 2048 gemeldet -- eine Ankuendigung, zu der nie ein Chunk kam.
-// Der Server bestimmt die echte Rate ohnehin aus den Daten und stuft solche Sessions auf gps_only;
-// die falsche Zahl blieb aber in den Metadaten stehen und macht Auswertungen der Art "welche
-// Plattform liefert Accel?" unbrauchbar. Jetzt ehrlich 0. Sobald der Sensor angebunden ist
-// (eigenes Feature, nicht Paritaet), hier wieder auf 25/2048 setzen.
-const GPS_HZ = 1, ACCEL_HZ = 0, ACCEL_SCALE = 0;
+// Zepp reports acceleration in cm/s²; the ingest format uses signed little-endian int16 values
+// with 2048 units per g, matching Garmin, Wear OS, and Apple Watch recordings.
+const GPS_HZ = 1, ACCEL_DEFAULT_HZ = 25, ACCEL_SCALE = 2048, STANDARD_GRAVITY_CM_S2 = 980.665;
 // Kleine CHUNKs: 10 Punkte/Nachricht (~500 B) statt 60 (~3,3 KB) -> passt zuverlässig durch BLE
 // (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
 const GPS_CHUNK = 10;
+// Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
+// seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
+const ACCEL_CHUNK_SAMPLES = 128;
 // Navigation, pairing, and upload: keep the screen on for five minutes instead of the ~38 seconds
 // observed on the T-Rex 3. Restore the system timeout when the user actually leaves the app.
 const IDLE_BRIGHT_MS = 5 * 60 * 1000;
@@ -80,6 +80,20 @@ function distM(a, b, c, d) {
 }
 // Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls API fehlt.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
+const accelPath = (uuid) => "accel-" + uuid + ".bin";
+const clampI16 = (v) => Math.max(-32768, Math.min(32767, Math.round(v)));
+const bytesToBase64 = (bytes, length) => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let out = "";
+  for (let i = 0; i < length; i += 3) {
+    const a = bytes[i], b = i + 1 < length ? bytes[i + 1] : 0, c = i + 2 < length ? bytes[i + 2] : 0;
+    const n = (a << 16) | (b << 8) | c;
+    out += chars[(n >> 18) & 63] + chars[(n >> 12) & 63]
+      + (i + 1 < length ? chars[(n >> 6) & 63] : "=")
+      + (i + 2 < length ? chars[n & 63] : "=");
+  }
+  return out;
+};
 
 // ---- i18n -------------------------------------------------------------------------------------
 // Die UI war komplett hartcodiert deutsch, obwohl der Server die Profil-Sprache seit langem
@@ -353,6 +367,8 @@ Page(
       timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
+      accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
+      accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       _fi: 0, _flat: null, _flon: null,
     },
 
@@ -364,6 +380,83 @@ Page(
       const p = prev.catch(() => {}).then(() => this.request(payload));
       this._chain = p.catch(() => {});
       return p;
+    },
+
+    _accelHz() {
+      const s = this.state;
+      const span = s.accelLastMs - s.accelFirstMs;
+      return s.accelSamples > 1 && span > 0
+        ? Math.max(1, Math.round((s.accelSamples - 1) * 1000 / span))
+        : ACCEL_DEFAULT_HZ;
+    },
+
+    _flushAccelBuffer() {
+      const s = this.state;
+      if (s.accelFd < 0 || !s.accelBuffer.length) return;
+      const values = s.accelBuffer;
+      const buffer = new ArrayBuffer(values.length * 2);
+      const view = new DataView(buffer);
+      for (let i = 0; i < values.length; i++) view.setInt16(i * 2, values[i], true);
+      try {
+        const written = writeSync({ fd: s.accelFd, buffer });
+        if (written !== buffer.byteLength) throw new Error("short accelerometer write");
+        s.accelBuffer = [];
+      } catch (e) {
+        console.log("[pumpfoil] accelerometer write failed " + ((e && e.message) || e));
+      }
+    },
+
+    _startAccel() {
+      const s = this.state;
+      s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0;
+      s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
+      try {
+        s.accelFd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        s.accelSensor = new Accelerometer();
+        s.accelCallback = () => {
+          if (!s.recording) return;
+          try {
+            const a = s.accelSensor.getCurrent();
+            if (!a) return;
+            const now = Date.now();
+            if (!s.accelFirstMs) s.accelFirstMs = now;
+            if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) {
+              s.accelChunkT0.push(Math.max(0, now - s.startedAtMs));
+            }
+            const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
+            s.accelBuffer.push(clampI16(a.x * scale), clampI16(a.y * scale), clampI16(a.z * scale));
+            s.accelSamples++; s.accelLastMs = now;
+            if (s.accelBuffer.length >= ACCEL_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
+            if (!s._accelLogged) {
+              s._accelLogged = true;
+              console.log("[pumpfoil] accelerometer active");
+            }
+          } catch (e) {}
+        };
+        s.accelSensor.onChange(s.accelCallback);
+        s.accelSensor.setFreqMode(FREQ_MODE_HIGH);
+        s.accelSensor.start();
+      } catch (e) {
+        console.log("[pumpfoil] accelerometer unavailable " + ((e && e.message) || e));
+        this._stopAccel();
+      }
+    },
+
+    _stopAccel() {
+      const s = this.state;
+      try { s.accelSensor && s.accelCallback && s.accelSensor.offChange(s.accelCallback); } catch (e) {}
+      try { s.accelSensor && s.accelSensor.stop(); } catch (e) {}
+      this._flushAccelBuffer();
+      try { if (s.accelFd >= 0) closeSync({ fd: s.accelFd }); } catch (e) {}
+      s.accelFd = -1; s.accelSensor = null; s.accelCallback = null;
+      // The file is authoritative. If a storage write failed, never advertise samples that are not
+      // actually recoverable; otherwise every retry would end in a short-read failure.
+      try {
+        const info = s.accelFile ? statSync({ path: s.accelFile }) : null;
+        if (info) s.accelSamples = Math.floor(info.size / 6);
+      } catch (e) {}
+      s.accelChunkT0 = s.accelChunkT0.slice(0, Math.ceil(s.accelSamples / ACCEL_CHUNK_SAMPLES));
+      if (s.accelSamples) console.log("[pumpfoil] accelerometer samples=" + s.accelSamples + " hz=" + this._accelHz());
     },
 
     _setBrightMode(mode, restartIdle) {
@@ -1308,12 +1401,34 @@ Page(
     },
 
     // ---- Persistente Aufnahme (Absturz-sicher) ----
-    persistActive() { const s = this.state; try { store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps })); } catch (e) {} },
+    persistActive() {
+      const s = this.state;
+      try {
+        store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps,
+          foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
+          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0 }));
+      } catch (e) {}
+    },
     recoverActive() {
       let a = null; try { a = JSON.parse(store.getItem("active", "null")); } catch (e) {}
       if (a && a.gps && a.gps.length) {
         const end = a.startedAtMs + (a.gps[a.gps.length - 1][0] || 0);
-        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end, gps: a.gps }); savePending(list);
+        let samples = a.accelSamples || 0;
+        try {
+          const info = a.accelFile ? statSync({ path: a.accelFile }) : null;
+          if (info && info.size > 0) samples = Math.floor(info.size / 6);
+        } catch (e) {}
+        const hz = a.accelHz || ACCEL_DEFAULT_HZ;
+        const t0s = a.accelChunkT0 || [];
+        const needed = Math.ceil(samples / ACCEL_CHUNK_SAMPLES);
+        while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000));
+        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
+          gps: a.gps, foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
+          accelHz: hz, accelChunkT0: t0s }); savePending(list);
+      } else if (a && a.accelFile) {
+        // A session without a persisted GPS point cannot be analyzed or uploaded. Do not leave its
+        // binary sensor file orphaned after a reboot during the first seconds of recording.
+        try { rmSync({ path: a.accelFile }); } catch (e) {}
       }
       store.setItem("active", "");
     },
@@ -1332,6 +1447,7 @@ Page(
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
       try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
       this._resetRun();   // Lauf-Zähler/-Kennzahlen gehören zur Session (wie Garmin/Wear)
+      this._startAccel();
       this.persistActive();
       this.hideBar();
       this.applyButton();
@@ -1340,6 +1456,7 @@ Page(
     },
     stop() {
       const s = this.state, now = Date.now();
+      this._stopAccel();
       this._disableTouchLock();
       this._setBrightMode("idle", true);
       s.recording = false;
@@ -1347,12 +1464,15 @@ Page(
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
         s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
-        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now, gps: s.gps.slice(), foilId: s.foilId }); savePending(list);
+        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
+          gps: s.gps.slice(), foilId: s.foilId, accelFile: s.accelFile,
+          accelSamples: s.accelSamples, accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() }); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
       } else {
         s.screen = "idle"; s.idlePage = 0; s.upStatus = t("rec.noData");
+        if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
         store.setItem("active", "");
         this.applyButton(); this.renderIdle();
       }
@@ -1366,10 +1486,15 @@ Page(
       if (!tok) return Promise.reject(new Error("not paired"));
       // app_version: dieselbe Konstante, die der Update-Hinweis vergleicht -> der Server haengt
       // die Version an die Session (bisher kannte er sie nur vom Geraet, aus dem CONFIG-Abruf).
-      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil", gps_hz: GPS_HZ, accel_hz: ACCEL_HZ, accel_scale: ACCEL_SCALE, app_version: APP_VERSION };
+      const hasAccel = !!(sess.accelFile && sess.accelSamples > 0);
+      const accelHz = hasAccel ? (sess.accelHz || ACCEL_DEFAULT_HZ) : 0;
+      const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil",
+        gps_hz: GPS_HZ, accel_hz: accelHz, accel_scale: hasAccel ? ACCEL_SCALE : 0, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
-      const chunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
-      const total = chunkCount + 2; let done = 0;
+      const gpsChunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
+      const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
+      const dataChunkCount = gpsChunkCount + accelChunkCount;
+      const total = dataChunkCount + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
       // Direkter this.request (wie Pairing) — kein Retry (der würde Folge-Requests feuern);
       // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
@@ -1380,16 +1505,43 @@ Page(
       });
       // Build and release one GPS slice at a time. Keeping every slice alive for a long session —
       // especially when several flush workers accidentally overlapped — exhausted watch memory.
-      const sendChunk = (index) => {
-        if (index >= chunkCount) return Promise.resolve();
+      const sendGpsChunk = (index) => {
+        if (index >= gpsChunkCount) return Promise.resolve();
         const data = sess.gps.slice(index * GPS_CHUNK, (index + 1) * GPS_CHUNK);
         return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
-                     kind: "gps", encoding: "json", data })
-          .then(() => { bump(); return sendChunk(index + 1); });
+                     kind: "gps", encoding: "json", count: data.length, data })
+          .then(() => { bump(); return sendGpsChunk(index + 1); });
       };
-      return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendChunk(0); })
+      const sendAccelChunks = () => {
+        if (!accelChunkCount) return Promise.resolve();
+        let fd = -1;
+        try { fd = openSync({ path: sess.accelFile, flag: O_RDONLY }); }
+        catch (e) { return Promise.reject(new Error("accelerometer file unavailable")); }
+        const send = (index) => {
+          if (index >= accelChunkCount) return Promise.resolve();
+          const count = Math.min(ACCEL_CHUNK_SAMPLES, sess.accelSamples - index * ACCEL_CHUNK_SAMPLES);
+          const byteLength = count * 6;
+          const buffer = new ArrayBuffer(byteLength);
+          let bytesRead = 0;
+          try {
+            bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_CHUNK_SAMPLES * 6,
+              length: byteLength } });
+          } catch (e) { return Promise.reject(e); }
+          if (bytesRead !== byteLength) return Promise.reject(new Error("short accelerometer read"));
+          const data = bytesToBase64(new Uint8Array(buffer), bytesRead);
+          const t0s = sess.accelChunkT0 || [];
+          const t0 = t0s[index] != null ? t0s[index] : Math.round(index * ACCEL_CHUNK_SAMPLES / accelHz * 1000);
+          return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
+                       kind: "accel", encoding: "int16-b64", t0_ms: t0, count, data })
+            .then(() => { bump(); return send(index + 1); });
+        };
+        return send(0).then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
+          (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
+      };
+      return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunk(0); })
+        .then(() => sendAccelChunks())
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
-                          ended_at_ms: sess.endedAtMs, total_chunks: chunkCount })).then(bump);
+                          ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount })).then(bump);
     },
     flushPending() {
       const s = this.state;
@@ -1416,7 +1568,10 @@ Page(
         }
         const sess = list[i];
         this.uploadSession(sess, onProg)
-          .then(() => { removePending(sess.uuid); step(i + 1); })
+          .then(() => {
+            if (sess.accelFile) { try { rmSync({ path: sess.accelFile }); } catch (e) {} }
+            removePending(sess.uuid); step(i + 1);
+          })
           .catch((err) => {
             s.uploading = false;
             this._setBrightMode("idle", true);
@@ -1434,6 +1589,7 @@ Page(
       if (s.pollTimer) clearTimeout(s.pollTimer);
       if (s.hbTimer) clearInterval(s.hbTimer);
       this._disableTouchLock();
+      if (s.recording) { this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
       try { s.hrSensor && s.hrCallback && s.hrSensor.offCurrentChange(s.hrCallback); } catch (e) {}
