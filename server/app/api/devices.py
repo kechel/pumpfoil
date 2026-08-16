@@ -130,8 +130,16 @@ def device_config(
         device.part_number = pn[:32]; dirty = True
         # Generisches Label durch das echte Modell ersetzen, sobald auflösbar.
         model = _partmap().get(pn)
-        if model and (not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch")):
-            device.label = model["name"][:120]
+        if not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch", "amazfit", "zepp"):
+            if model:
+                device.label = model["name"][:120]
+            elif p == "zepp":
+                # Zepp liefert keine Part-Number, deshalb schickt die Uhr ab 1.0.5 ihren MODELLNAMEN
+                # in `pn` (getDeviceInfo). Ohne das stand bei jedem Amazfit-Gerät nur „Amazfit" —
+                # bei einer Fehlermeldung war nicht erkennbar, um welche Uhr es ging. Nur hier als
+                # Rückfall: für Garmin bleibt der Partmap-Name die einzige Quelle, damit ein
+                # unbekannter Wert nicht als Modellname durchrutscht.
+                device.label = pn[:120]
         _hide_replaced_siblings(db, device)
     # Canary-Meldung der Uhr: die letzte Aufnahme mit dynamischem Layout ist nicht sauber
     # beendet worden. Zählen (nicht überschreiben) — daraus lernt der Modell-Kill-Switch.

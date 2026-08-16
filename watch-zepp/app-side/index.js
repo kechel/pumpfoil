@@ -31,7 +31,7 @@ async function handle(req) {
   // --- Pairing (reverse) ---
   if (req.method === "PAIR_INIT") {
     console.log("[pumpfoil] PAIR_INIT -> fetch " + BASE + "/api/devices/pair-init");
-    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: "Amazfit", platform: "zepp" }) });
+    const r = await fetch({ url: BASE + "/api/devices/pair-init", method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: (req.model || "Amazfit").slice(0, 60), platform: "zepp" }) });
     console.log("[pumpfoil] PAIR_INIT fetch status=" + (r && r.status));
     const b = parse(r);
     if (!b || !b.code) throw new Error("init failed");
@@ -53,7 +53,10 @@ async function handle(req) {
     // weggefiltert. `v` (gemeldete App-Version) und `lay` (Uhr will Layouts) gehen jetzt mit raus.
     const qv = req.version ? "&v=" + encodeURIComponent(req.version) : "";
     const ql = req.wantLayouts ? "&lay=1" : "";
-    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql, method: "GET", headers: { "X-Device-Token": req.token } });
+    // Modellname als `pn` — dieselbe Stelle, an der Garmin seine Part-Number meldet. Der Server
+    // ersetzt damit das generische "Amazfit" durch die echte Uhr (s. devices.py).
+    const qm = req.model ? "&pn=" + encodeURIComponent(req.model) : "";
+    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm, method: "GET", headers: { "X-Device-Token": req.token } });
     const code = r.status || 0;
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };

@@ -58,6 +58,19 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 const APP_VERSION = "1.0.5";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
+// Uhrenmodell fuer den Server. Zepp liefert keine Part-Number wie Garmin, deshalb stand bei JEDEM
+// Amazfit-Geraet nur "Amazfit" — bei einer Fehlermeldung wusste niemand, um welche Uhr es geht
+// (Jan, 16.08.). `deviceName` ist der Modellname, `deviceSource` die numerische Modell-ID; die ID
+// geht mit, weil sie eindeutig bleibt, auch wenn der Name je Sprache/Firmware abweicht.
+const DEVICE_MODEL = (() => {
+  try {
+    const i = getDeviceInfo() || {};
+    const n = (i.deviceName || "").toString().trim();
+    const src = i.deviceSource != null ? String(i.deviceSource) : "";
+    if (n && src) return n + " (" + src + ")";
+    return n || (src ? "Amazfit " + src : "Amazfit");
+  } catch (e) { return "Amazfit"; }
+})();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
 const CYAN = 0x22d3ee, CYAN_P = 0x0891b2, INK = 0x083344, RED = 0xdc2626, RED_P = 0xb91c1c, WHITE = 0xffffff;
 const GPS_READY = 0x22c55e, GPS_READY_P = 0x16a34a, GPS_WAIT = 0x334155, GPS_WAIT_P = 0x334155, MUTED = 0x94a3b8;
@@ -651,7 +664,7 @@ Page(
       // Version melden (Update-Hinweis) und Layouts anfordern, solange der Nutzer sie nicht
       // abgeschaltet hat. layoutsPref: null = automatisch (Server entscheidet), true/false = Wahl
       // auf der Uhr -- dieselbe Dreistufigkeit wie bei Garmin.
-      this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION,
+      this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION, model: DEVICE_MODEL,
                   wantLayouts: s.layoutsPref !== false }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
@@ -696,7 +709,7 @@ Page(
       const s = this.state;
       s.paired = false;
       this._setBrightMode("idle", true);
-      this.reqQ({ method: "PAIR_INIT" }).then((r) => {
+      this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }).then((r) => {
         if (!r || !r.code) { this.rerender(); return; }
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
       }).catch(() => this.rerender());

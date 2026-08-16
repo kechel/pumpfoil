@@ -33,6 +33,8 @@ This changelog covers the Zepp OS watch app only.
 - Derive speed from consecutive GPS coordinates because Zepp OS Geolocation does not expose the previously assumed speed method.
 - Restore run detection and the last-run time and distance values using the computed speed.
 - Add diagnostic logs for heart-rate activation and detected run starts and ends.
+- Report the watch model (`getDeviceInfo`) when pairing and on every config call, so support
+  requests can be tied to an actual device instead of a generic "Amazfit".
 
 ### Upload stability
 
