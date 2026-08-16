@@ -5,7 +5,7 @@ import Uploads from "./Uploads";
 import Publish from "./Publish";
 
 // Muss zu den Server-Konstanten passen (TEXT_FADE/TEXT_HOLD/OUTRO_*)
-const TXN = 6;
+const TXN = 10;
 const TXF = 0.5;
 const TXH = 2.0;
 const TXS = 60;
@@ -17,9 +17,10 @@ interface TextSlot {
   start: number | null;
   text: string;
   hold: number;
+  size?: number;   // Schriftgröße je Zeile (Default TXS)
 }
 const emptyTexts = (): TextSlot[] =>
-  Array.from({ length: TXN }, () => ({ start: null, text: "", hold: TXH }));
+  Array.from({ length: TXN }, () => ({ start: null, text: "", hold: TXH, size: TXS }));
 
 // Pegel-Abschnitte: Musik/O-Ton in Zeitfenstern um ±dB anheben/absenken (0,5-s-Rampen)
 interface DuckSlot {
@@ -106,7 +107,10 @@ function Studio() {
   const [sel, setSel] = useState<Sel>({ youtube: null, instagram: null, tiktok: null, ...sv("sel", {}) });
   const [pvPlatform, setPvPlatform] = useState<PvPlatform>(sv("pvPlatform", "youtube"));
   const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
-  const [texts, setTexts] = useState<TextSlot[]>(sv("texts", emptyTexts()));
+  // gespeicherte Slots auffüllen, falls TXN inzwischen größer ist
+  const [texts, setTexts] = useState<TextSlot[]>(() =>
+    [...sv("texts", [] as TextSlot[]), ...emptyTexts()].slice(0, TXN),
+  );
   const [gain, setGain] = useState(sv("gain", -12));
   const [otonGain, setOtonGain] = useState(sv("otonGain", 0));
   const [ducks, setDucks] = useState<DuckSlot[]>(sv("ducks", emptyDucks()));
@@ -296,7 +300,7 @@ function Studio() {
           const e = tx.start + 2 * TXF + (tx.hold ?? TXH);
           const a = Math.max(0, Math.min(Math.min((t - tx.start) / TXF, (e - t) / TXF), 1));
           el.textContent = tx.text;
-          el.style.fontSize = `${TXS * scale}px`;
+          el.style.fontSize = `${(tx.size ?? TXS) * scale}px`;
           el.style.opacity = String(a);
         });
         const oi = outroImgRef.current;
@@ -366,7 +370,8 @@ function Studio() {
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
-    g.font = `${TXS}px Arial`;
+    const fs = tx.size ?? TXS;
+    g.font = `${fs}px Arial`;
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillStyle = "#fff";
@@ -375,7 +380,7 @@ function Studio() {
     g.shadowOffsetX = 2;
     g.shadowOffsetY = 2;
     const lines = tx.text.split("\n");
-    const lh = TXS * 1.15;
+    const lh = fs * 1.15;
     const y0 = h / 2 - ((lines.length - 1) / 2) * lh;
     lines.forEach((ln, i) => g.fillText(ln, w / 2, y0 + i * lh));
     return c.toDataURL("image/png");
@@ -836,10 +841,24 @@ function Studio() {
                       setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, hold: Math.max(0, +e.target.value || 0) } : t)))
                     }
                   />
+                  <input
+                    type="number"
+                    className="tsize"
+                    min={16}
+                    max={200}
+                    step={4}
+                    value={tx.size ?? TXS}
+                    title="Schriftgröße in Pixeln (bezogen auf 1080×1920)"
+                    onChange={(e) =>
+                      setTexts((ts) =>
+                        ts.map((t, j) => (j === i ? { ...t, size: Math.max(8, +e.target.value || TXS) } : t)),
+                      )
+                    }
+                  />
                   <button
                     className="mini"
                     title="löschen"
-                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH } : t)))}
+                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH, size: TXS } : t)))}
                   >
                     <Icon name="x" size={11} />
                   </button>
