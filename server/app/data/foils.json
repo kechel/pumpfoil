@@ -4731,6 +4731,15 @@
     "is_baseline": false
   },
   {
+    "brand": "Gong",
+    "model": "Allvator Fluid",
+    "size": "XL-T",
+    "span_cm": 95.0,
+    "area_cm2": 1545.0,
+    "thickness_mm": 16.0,
+    "is_baseline": false
+  },
+  {
     "brand": "North",
     "model": "Sonar P",
     "size": "P2050",
