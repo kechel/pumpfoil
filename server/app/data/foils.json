@@ -4709,7 +4709,25 @@
     "span_cm": 90.0,
     "area_cm2": 1844.0,
     "thickness_mm": 35.0,
-    "thickness_estimated": true,
+    "thickness_estimated": false,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "Allvator Fluid",
+    "size": "L",
+    "span_cm": 81.0,
+    "area_cm2": 1172.0,
+    "thickness_mm": 18.0,
+    "is_baseline": false
+  },
+  {
+    "brand": "Gong",
+    "model": "Allvator Fluid",
+    "size": "XXL",
+    "span_cm": 101.0,
+    "area_cm2": 1822.0,
+    "thickness_mm": 22.0,
     "is_baseline": false
   },
   {
