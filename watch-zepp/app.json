@@ -5,8 +5,8 @@
     "appName": "Pumpfoil",
     "appType": "app",
     "version": {
-      "code": 7,
-      "name": "1.0.4"
+      "code": 13,
+      "name": "1.0.10"
     },
     "icon": "icon.png",
     "vender": "pumpfoil.org",
@@ -16,12 +16,12 @@
     "data:os.device.info",
     "device:os.local_storage",
     "device:os.geolocation",
-    "device:os.heart_rate"
+    "data:user.hd.heart_rate"
   ],
   "runtime": {
     "apiVersion": {
       "compatible": "3.0.0",
-      "target": "3.0.0",
+      "target": "4.0.0",
       "minVersion": "3.0"
     }
   },

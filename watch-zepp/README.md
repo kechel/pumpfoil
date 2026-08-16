@@ -188,25 +188,25 @@ Anlass: erster echter Feldtest (T-Rex 3, Nutzer-Meldung per DM, 01.08.). Drei Ae
    Aufnahmen auf die Uebertragung warten — dieselbe Produktluecke wie bei Garmin/Apple (drei
    Support-Faelle: Session „fehlt", lag aber nur auf der Uhr).
 
-## Tastenbedienung (1.0.3, 2026-07-27)
+## Tastenbedienung (1.0.6)
 
 Anlass: Nutzer-Meldung per Instagram — „Stoppen geht leider nur über wischen und nicht über eine taste. Das
 funktioniert nicht wenn das display nass ist mit nassen Fingern." Beim Pumpfoilen ist nass der
 Normalzustand, ein Touch-only-Recorder ist dort also unbenutzbar.
 
-Seither ist die App **ohne jede Berührung** bedienbar (`onKey` aus `@zos/interaction`, API 2.0+; die
-App verlangt ohnehin 3.0):
+Die vier Tasten werden getrennt behandelt (`onKey` aus `@zos/interaction`):
 
-| Zustand | Taste kurz | Taste halten |
-|---|---|---|
-| Aufnahme | nächste Seite (mit Umlauf) | **stoppen & speichern** |
-| Start-Screen | nächste Seite | **Aufnahme starten** (nur auf Seite 1) |
-| Zusammenfassung | fertig | fertig |
+| Zustand | UP | DOWN | SELECT | Lange Taste |
+|---|---|---|---|---|
+| Aufnahme | vorige Seite | nächste Seite | zeigt Schloss | UP/DOWN: Touch 10 s frei; SELECT: **stoppen & speichern** |
+| Start-Screen | vorige Seite | nächste Seite | **Start recording**, GPS fix required | same |
+| Zusammenfassung | — | — | fertig | fertig |
 
-Start/Stopp brauchen bewusst ein **Halten** — ein versehentlicher Druck in der Tasche soll nichts
-auslösen, dieselbe Logik wie das 3-s-Halten auf der Garmin. `KEY_BACK` bleibt unangetastet, sonst
-sitzt man in der App fest. Zepp erlaubt nur EINE `onKey`-Registrierung, deshalb ein Callback für alle
-Tasten. Touch/Wischen funktioniert unverändert weiter.
+Touch is locked automatically while recording. Water taps are absorbed by a transparent modal
+layer and briefly display a lock. A long UP or DOWN press unlocks touch for ten seconds, after which
+it locks again automatically. Short physical key presses still work and also display the lock.
+`KEY_BACK` is consumed while recording, preventing accidental exit; outside recording it remains
+handled by the system. Zepp allows only one `onKey` registration, so every key uses one callback.
 
 **Auf Hardware ungetestet, bewusst so released (2026-07-27):** der Zepp-**Simulator hat keine
 Hardware-Tasten**, der Tasten-Pfad ist dort also nicht prüfbar. Jan gibt 1.0.3 trotzdem in den Store;
