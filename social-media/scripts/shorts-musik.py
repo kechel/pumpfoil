@@ -709,7 +709,7 @@ def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
 TT_CLIENT_FILE = BASE / ".tiktok-client.json"
 TT_TOKEN_FILE = BASE / ".tiktok-token.json"
 TT_REDIRECT = "https://pumpfoil.org/tiktok-oauth"
-TT_SCOPES = "user.info.basic,video.upload"
+TT_SCOPES = "user.info.basic,user.info.profile,user.info.stats,video.upload,video.list"
 
 
 def tt_client():
@@ -722,9 +722,10 @@ def tt_save_token(tok: dict):
 
 
 def tt_login_start():
+    c = tt_client()
     url = "https://www.tiktok.com/v2/auth/authorize/?" + urllib.parse.urlencode({
-        "client_key": tt_client()["client_key"], "response_type": "code",
-        "scope": TT_SCOPES, "redirect_uri": TT_REDIRECT,
+        "client_key": c["client_key"], "response_type": "code",
+        "scope": c.get("scopes") or TT_SCOPES, "redirect_uri": TT_REDIRECT,
         "state": secrets.token_urlsafe(16)})
     subprocess.run(["open", url], check=False)
 
