@@ -385,6 +385,11 @@ def pixabay_ids(rels) -> list:
     return ids
 
 
+# 900+ ist reserviert für Sonderformate (Stories, Zusammenschnitte, Tests):
+# solche Dateien zählen bei der laufenden Nummerierung NICHT mit.
+SPECIAL_FROM = 900
+
+
 def next_number():
     """Höchste Short-Nummer über alle relevanten Ordner + 1 (fortlaufend)."""
     n = 0
@@ -393,13 +398,13 @@ def next_number():
         if d.is_dir():
             for p in d.iterdir():
                 m = NUM_RE.match(p.name)
-                if m:
+                if m and int(m.group(1)) < SPECIAL_FROM:
                     n = max(n, int(m.group(1)))
     # Fallback: verschobene Quellvideos heißen <orig>-NNN-<name>.mp4
     if PROCESSED_DIR.is_dir():
         for p in PROCESSED_DIR.iterdir():
             m = re.search(r"-(\d{1,3})-", p.name)
-            if m:
+            if m and int(m.group(1)) < SPECIAL_FROM:
                 n = max(n, int(m.group(1)))
     return n + 1
 
