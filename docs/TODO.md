@@ -1299,16 +1299,16 @@ Offen daraus:
     selbst mitbringt. Gegenprobe, welche guava-Klassen wirklich gebraucht werden (aus dem AAR
     gegrept): `Futures`, `SettableFuture`, `MoreExecutors`, `Preconditions`, `Function`,
     `FutureCallback`, `ListenableFuture` — guava rauswerfen und nur den Stub liefern geht also NICHT.
-  - **Preis: Release-APK 15,97 -> 19,38 MB (+3,41 MB, +21 %)**, gemessen gegen einen sauberen
-    HEAD-Worktree. `isMinifyEnabled = false` im Release-Block ist der Grund, dass guava ungeschrumpft
+  - **Preis: Release-AAB 5,82 -> 7,17 MB (+1,35 MB, +23 %)** — das ist die Zahl, die zaehlt
+    (`:wear:bundleRelease`, gemessen gegen einen sauberen Worktree auf dem Stand davor). Das
+    unsignierte Release-APK waechst 15,97 -> 19,38 MB, aber hochgeladen wird das Bundle. `isMinifyEnabled = false` im Release-Block ist der Grund, dass guava ungeschrumpft
     mitfaehrt — R8 einzuschalten wuerde das Meiste zurueckholen, ist aber nichts, was ohne Test auf
     einer echten Uhr in eine Einreichung gehoert. Eigener Punkt weiter unten.
-  - Verifiziert: `:wear:compileDebugKotlin` und `:wear:assembleDebug` gruen. **`assembleRelease`
-    scheitert an `lintVitalRelease`** — `InvalidFragmentVersionForActivityResult`, weil
-    `play-services-location` `androidx.fragment:1.1.0` mitbringt. Das ist **VORHER schon so**
-    (im HEAD-Worktree identisch nachgestellt), hat also nichts mit dem Puls-Fix zu tun; das
-    unsignierte Release-APK entsteht trotzdem. Wie Jan bisher gebaut hat, wissen wir nicht — falls
-    ueber diesen Weg: `androidx.fragment:fragment:1.8.x` hochziehen loest es.
+  - Verifiziert: `:wear:compileDebugKotlin`, `:wear:assembleDebug` und **`:wear:bundleRelease`**
+    gruen (der Upload-Weg ist also frei). Nur `assembleRelease` scheitert an `lintVitalRelease`
+    (`InvalidFragmentVersionForActivityResult`, weil `play-services-location`
+    `androidx.fragment:1.1.0` mitbringt) — das ist **VORHER schon so** (im Worktree auf dem Stand
+    davor identisch nachgestellt) und betrifft das Bundle nicht.
   **Zweitwirkung:** ohne Puls ist `analysis/sportauto.py` blind — die
   Regel faellt dann auf „Tempo >= 19 km/h" zurueck, und Pumpfoil-Tempo erreicht das nie. Genau
   deshalb lief die Skate-Session u171/#2149 (naechster Punkt) unbeanstandet als Pumpfoil durch,
@@ -1348,7 +1348,8 @@ Offen daraus:
      Das System hat also funktioniert — nur eben erst durch den Menschen.
 
 - **🟡 Wear-Release laeuft ohne R8 (`isMinifyEnabled = false`) — kostet jetzt messbar Groesse.**
-  Aufgefallen beim Puls-Fix (s. o.): guava faehrt ungeschrumpft mit, Release-APK 15,97 -> 19,38 MB.
+  Aufgefallen beim Puls-Fix (s. o.): guava faehrt ungeschrumpft mit, Release-AAB 5,82 -> 7,17 MB
+  (unsigniertes APK 15,97 -> 19,38 MB).
   Mit R8 waere davon fast nichts noetig (health-services braucht 7 guava-Klassen). Nicht ohne Test
   auf einer echten Uhr einschalten — die App baut JSON von Hand (`org.json`), Compose/AndroidX
   bringen ihre Keep-Regeln selbst mit, das Risiko ist ueberschaubar, aber ein R8-Schaden faellt
