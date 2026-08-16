@@ -65,6 +65,44 @@ interface Coverage {
 }
 const de = (n: number) => n.toLocaleString("de-DE");
 
+const DAY_MS = 24 * 3600 * 1000;
+const vidNum = (name: string) => {
+  const m = name.match(/^(\d{1,3})-/);
+  return m ? +m[1] : 1e9;
+};
+// Date -> Wert für <input type="datetime-local"> (lokale Zeit, nicht UTC)
+const toLocalInput = (d: Date) =>
+  new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+/** Noch nicht auf YouTube geplante Exporte bekommen der Reihe nach (Dateiname)
+ *  je einen Termin 24 h nach dem letzten bereits geplanten Upload. */
+function nextSlots(exports: ExportItem[], up: UpState, aufYt: Set<number>): Record<string, string> {
+  const geplant = Object.values(up)
+    .map((p) => p.youtube?.publish_at)
+    .filter((s): s is string => !!s)
+    .map((s) => new Date(s).getTime())
+    .filter((t) => !isNaN(t));
+  let base: number;
+  if (geplant.length) {
+    base = Math.max(...geplant);
+  } else {
+    const d = new Date();          // nichts geplant -> heute 05:00 als Startraster
+    d.setHours(5, 0, 0, 0);
+    base = d.getTime();
+  }
+  // „offen" = weder per Tool hochgeladen noch schon von Hand auf dem Kanal
+  const offen = exports
+    .filter((e) => !up[e.name]?.youtube?.video_id && !aufYt.has(vidNum(e.name)))
+    .sort((a, b) => vidNum(a.name) - vidNum(b.name));
+  const out: Record<string, string> = {};
+  offen.forEach((e, i) => {
+    let t = base + (i + 1) * DAY_MS;
+    while (t < Date.now() + 10 * 60000) t += DAY_MS;   // nie in der Vergangenheit
+    out[e.name] = toLocalInput(new Date(t));
+  });
+  return out;
+}
+
 function CoveragePanel() {
   const [cov, setCov] = useState<Coverage | null>(null);
   const [open, setOpen] = useState(false);
@@ -218,14 +256,20 @@ function ConnectBanner({ name, slug, hint, status, refresh }: {
   );
 }
 
-function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
+function PublishCard({ exp, up, ytReady, ttReady, refresh, slot }: {
   exp: ExportItem;
   up: Record<string, UpInfo> | undefined;
   ytReady: boolean;
   ttReady: boolean;
   refresh: () => void;
+  slot?: string;
 }) {
-  const [when, setWhen] = useState("");
+  const [when, setWhen] = useState(slot ?? "");
+  const selbstGesetzt = useRef(false);
+  // Vorschlag übernehmen, solange nichts von Hand geändert wurde
+  useEffect(() => {
+    if (slot && !selbstGesetzt.current) setWhen(slot);
+  }, [slot]);
   const [busy, setBusy] = useState(false);
   const [ttBusy, setTtBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -326,7 +370,14 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh }: {
         <div className="genrow" style={{ alignItems: "center" }}>
           <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
             Veröffentlichen am{" "}
-            <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+            <input
+              type="datetime-local"
+              value={when}
+              onChange={(e) => {
+                selbstGesetzt.current = true;
+                setWhen(e.target.value);
+              }}
+            />
           </label>
           {yt?.video_id ? (
             <a
@@ -379,6 +430,7 @@ export default function Publish() {
   const [up, setUp] = useState<UpState>({});
   const [ytReady, setYtReady] = useState(false);
   const [tt, setTt] = useState({ configured: false, authorized: false });
+  const [ytNums, setYtNums] = useState<Set<number>>(new Set());
   const [meta, setMeta] = useState({ configured: false, authorized: false });
   // Knoten merken (nie auf null zurücksetzen — beim Unmount brauchen wir ihn noch)
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -405,9 +457,14 @@ export default function Publish() {
     void fetch("/api/yt/status").then(async (r) => setYtReady((await r.json()).authorized));
     void fetch("/api/tiktok/status").then(async (r) => setTt(await r.json()));
     void fetch("/api/meta/status").then(async (r) => setMeta(await r.json()));
+    void fetch("/api/yt/numbers")
+      .then(async (r) => setYtNums(new Set<number>((await r.json()).numbers ?? [])))
+      .catch(() => {});
   }, []);
 
   useEffect(() => refresh(), [refresh]);
+
+  const slots = exports ? nextSlots(exports, up, ytNums) : {};
 
   if (!exports) return <div className="uploads">lade …</div>;
   return (
@@ -430,7 +487,15 @@ export default function Publish() {
       />
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
       {exports.map((e) => (
-        <PublishCard key={e.name} exp={e} up={up[e.name]} ytReady={ytReady} ttReady={tt.authorized} refresh={refresh} />
+        <PublishCard
+          key={e.name}
+          exp={e}
+          up={up[e.name]}
+          ytReady={ytReady}
+          ttReady={tt.authorized}
+          refresh={refresh}
+          slot={slots[e.name]}
+        />
       ))}
     </div>
   );

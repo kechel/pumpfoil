@@ -1072,6 +1072,36 @@ def yt_numbered_stats() -> dict:
     return out
 
 
+YT_NUMBERS_CACHE = {"at": 0.0, "data": None}
+
+
+def yt_numbers(force: bool = False) -> list:
+    """Video-Nummern, die schon auf dem Kanal liegen — auch die von Hand
+    hochgeladenen. Nur die Playlist, ohne Statistiken (schnell)."""
+    if (not force and YT_NUMBERS_CACHE["data"] is not None
+            and time.time() - YT_NUMBERS_CACHE["at"] < 900):
+        return YT_NUMBERS_CACHE["data"]
+    auth = {"Authorization": f"Bearer {yt_access_token()}"}
+    ch = _http_json("https://www.googleapis.com/youtube/v3/channels"
+                    "?part=contentDetails&mine=true", headers=auth)
+    up = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    nums, page = set(), ""
+    while True:
+        d = _http_json("https://www.googleapis.com/youtube/v3/playlistItems"
+                       f"?part=snippet&maxResults=50&playlistId={up}"
+                       + (f"&pageToken={page}" if page else ""), headers=auth)
+        for it in d["items"]:
+            m = NUM_TITLE_RE.match(it["snippet"]["title"])
+            if m:
+                nums.add(int(m.group(1)))
+        page = d.get("nextPageToken", "")
+        if not page:
+            break
+    out = sorted(nums)
+    YT_NUMBERS_CACHE.update(at=time.time(), data=out)
+    return out
+
+
 def coverage(force: bool = False) -> dict:
     if not force and COVERAGE_CACHE["data"] and time.time() - COVERAGE_CACHE["at"] < 900:
         return COVERAGE_CACHE["data"]
@@ -1305,6 +1335,11 @@ class Handler(BaseHTTPRequestHandler):
                             "authorized": bool(c.get("system_user_token"))
                             or META_TOKEN_FILE.is_file(),
                             "mode": meta_mode()})
+            elif path == "/api/yt/numbers":
+                try:
+                    self._json({"numbers": yt_numbers()})
+                except (RuntimeError, OSError, ValueError, KeyError) as e:
+                    self._json({"numbers": [], "error": str(e)})
             elif path == "/api/coverage":
                 try:
                     self._json(coverage(force=query.get("refresh", [""])[0] == "1"))
