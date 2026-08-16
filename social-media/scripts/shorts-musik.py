@@ -756,6 +756,30 @@ def tt_access_token():
     return tok["access_token"]
 
 
+def tt_videos(limit: int = 200) -> list:
+    """Schon gepostete TikToks inkl. Aufrufzahlen (braucht den Scope video.list)."""
+    fields = ("id,title,video_description,create_time,view_count,like_count,"
+              "comment_count,share_count")
+    auth = {"Authorization": f"Bearer {tt_access_token()}"}
+    out, cursor = [], None
+    while len(out) < limit:
+        body = {"max_count": 20}
+        if cursor:
+            body["cursor"] = cursor
+        d = _http_json(f"https://open.tiktokapis.com/v2/video/list/?fields={fields}",
+                       body, headers=auth)
+        err = (d.get("error") or {}).get("code")
+        if err and err not in ("ok", ""):
+            raise RuntimeError(f"TikTok: {err} — "
+                               f"{str((d.get('error') or {}).get('message'))[:150]}")
+        data = d.get("data") or {}
+        out += data.get("videos") or []
+        cursor = data.get("cursor")
+        if not data.get("has_more") or not cursor:
+            break
+    return out[:limit]
+
+
 def tt_upload_draft(path: Path):
     """Video als Entwurf in die TikTok-Inbox laden (ein Chunk, Dateien < 64 MB)."""
     size = path.stat().st_size
@@ -971,7 +995,8 @@ def _caption_words() -> dict:
     for name, c in _load_json(CAPTIONS_CACHE_FILE, {}).items():
         m = NUM_RE.match(name)
         if m:
-            out.setdefault(int(m.group(1)), set()).update(words(c.get("instagram")))
+            out.setdefault(int(m.group(1)), set()).update(
+                words(c.get("instagram")) | words(c.get("tiktok")))
     return out
 
 
@@ -1072,23 +1097,32 @@ def coverage(force: bool = False) -> dict:
             if blank:
                 note = (f"{blank} der {len(media)} Instagram-Posts haben keine Caption "
                         "(aus der Zeit vor dem Tool) → für die kann die IG-Spalte "
-                        "nichts erkennen; sie sind vermutlich trotzdem gepostet. "
-                        "Instagram-Views braucht die Insights-Berechtigung.")
+                        "nichts erkennen; sie sind vermutlich trotzdem gepostet.")
     except (RuntimeError, OSError, ValueError, KeyError) as e:
         note = f"Meta nicht erreichbar: {str(e)[:120]}"
+    on_tt = {}
+    try:
+        on_tt = _posted_numbers(tt_videos(), "video_description", texts)
+    except (RuntimeError, OSError, ValueError, KeyError) as e:
+        note += (" · " if note else "") + f"TikTok: {str(e)[:110]}"
     rows = sorted(videos.values(), key=lambda v: -v["views"])
     for v in rows:
-        fb, ig_post = on_fb.get(v["n"]), on_ig.get(v["n"])
+        fb, ig_post, tt = on_fb.get(v["n"]), on_ig.get(v["n"]), on_tt.get(v["n"])
         v["fb"] = bool(fb)
         v["ig"] = bool(ig_post)
+        v["tt"] = bool(tt)
         v["fb_views"] = int(fb.get("views") or 0) if fb else None
         v["ig_likes"] = int(ig_post.get("like_count") or 0) if ig_post else None
         v["ig_views"] = (ig_view_count(ig_post) or None) if ig_post else None
+        v["tt_views"] = (int(tt.get("view_count") or 0) or None) if tt else None
     views = sorted(v["views"] for v in rows) or [0]
     fbv = [v["fb_views"] for v in rows if v.get("fb_views")]
     igv = [v["ig_views"] for v in rows if v.get("ig_views")]
+    ttv = [v["tt_views"] for v in rows if v.get("tt_views")]
     data = {"videos": rows, "median": views[len(views) // 2], "note": note,
             "counts": {"total": len(rows), "fb": len(on_fb), "ig": len(on_ig),
+                       "tt": len(on_tt), "tt_views_total": sum(ttv),
+                       "tt_views_median": sorted(ttv)[len(ttv) // 2] if ttv else 0,
                        "fb_views_total": sum(fbv),
                        "fb_views_median": sorted(fbv)[len(fbv) // 2] if fbv else 0,
                        "ig_views_total": sum(igv),

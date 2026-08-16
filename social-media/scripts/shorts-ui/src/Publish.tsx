@@ -47,6 +47,8 @@ interface CovVideo {
   ig: boolean;
   fb_views: number | null;
   ig_views: number | null;
+  tt: boolean;
+  tt_views: number | null;
   ig_likes: number | null;
 }
 interface Coverage {
@@ -57,6 +59,7 @@ interface Coverage {
     total: number; fb: number; ig: number;
     yt_views_total: number; fb_views_total: number; fb_views_median: number;
     ig_views_total: number; ig_views_median: number;
+    tt: number; tt_views_total: number; tt_views_median: number;
   };
   error?: string;
 }
@@ -78,6 +81,7 @@ function CoveragePanel() {
         counts: {
           total: 0, fb: 0, ig: 0, yt_views_total: 0,
           fb_views_total: 0, fb_views_median: 0, ig_views_total: 0, ig_views_median: 0,
+          tt: 0, tt_views_total: 0, tt_views_median: 0,
         },
       });
     }
@@ -109,7 +113,8 @@ function CoveragePanel() {
               {c && (
                 <span style={{ fontSize: 12, opacity: 0.75 }}>
                   {c.total} Videos · Views gesamt: YT {de(c.yt_views_total)} · FB {de(c.fb_views_total)} (
-                  {c.fb} Videos){c.ig_views_total ? ` · IG ${de(c.ig_views_total)} (${c.ig} Videos)` : ""} · Median YT{" "}
+                  {c.fb} Videos){c.ig_views_total ? ` · IG ${de(c.ig_views_total)} (${c.ig})` : ""}
+                  {c.tt_views_total ? ` · TT ${de(c.tt_views_total)} (${c.tt})` : ""} · Median YT{" "}
                   {de(cov!.median)} / FB {de(c.fb_views_median)}
                   {c.ig_views_median ? ` / IG ${de(c.ig_views_median)}` : ""}
                 </span>
@@ -129,6 +134,7 @@ function CoveragePanel() {
                 <th title="Facebook-Aufrufe (— = dort nicht gepostet)">FB</th>
                 <th title="Facebook im Verhältnis zu YouTube">FB/YT</th>
                 <th title="Instagram-Aufrufe (— = dort nicht gepostet)">IG</th>
+                <th title="TikTok-Aufrufe (— = dort nicht gepostet)">TT</th>
                 <th>Titel</th>
               </tr>
             </thead>
@@ -142,6 +148,7 @@ function CoveragePanel() {
                   <td title={v.ig_likes != null ? `${v.ig_likes} Likes` : ""}>
                     {v.ig_views ? de(v.ig_views) : v.ig ? "✅" : "—"}
                   </td>
+                  <td>{v.tt_views ? de(v.tt_views) : v.tt ? "✅" : "—"}</td>
                   <td>
                     <a href={`https://youtu.be/${v.video_id}`} target="_blank" rel="noreferrer">
                       {v.title}
