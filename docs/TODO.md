@@ -9,6 +9,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **Stand 16.08. abends: VIER Einreichungen offen — alles wartet auf Freigabe-Mails.**
+  | Plattform | Version | wo | Inhalt |
+  |---|---|---|---|
+  | Garmin | **1.0.77** | CIQ-Store (`bin/pumpfoil-1.0.77.iq`, 210/210 Geraete) | Lauf-Canary (jeder Absturz meldet sich, auch im Lite-Build) + GNSS-Stufe je Uhr einstellbar |
+  | Zepp | **1.0.5** / code 8 | Zepp-Konsole (appId 1118995) | Roh-Accel (verlaesst gps_only), Zuverlaessigkeit/Tasten aus PR #1 von El Manu, `target` 3.6, Modellmeldung, GPS-Sprung-Gate |
+  | Wear OS | **1.2.22** / 1032 | Play, Produktion (Wear OS) | Puls aktiv ueber Health Services + sichtbarer Hinweis, wenn keiner ankommt |
+  | Android Phone | **1.1.21** / 35 | Play, Produktion | unveraendert aus dem Batch vom 10.08. |
+  **NACH der jeweiligen Freigabe-Mail ohne Rueckfrage setzen:** `appmeta garmin` = 1.0.77 ·
+  `zepp` = **die Nummer AUS DER MAIL** (bei 1.0.3 stand dort die Version vor dem Release-Bump) ·
+  `wear` = 1.2.22 · `android` = 1.1.21. Danach je ein Changelog-Eintrag.
+  Die Direkt-Downloads liefern Garmin 1.0.77 schon jetzt (`watch/bin` ist live, unabhaengig vom Store).
+
 - **Stand 13.08. abends: Garmin 1.0.76 LIVE** (CIQ-Store, Store-Seite „Latest Release August 13,
   2026, Version 1.0.76, Size 102 KB"). **Garmin gibt inzwischen automatisch frei** (Jan) — die
   Freigabe kam Minuten nach dem Upload, es lohnt also nicht mehr, auf eine Pruefung zu warten.
