@@ -1000,27 +1000,13 @@ def _posted_numbers(items, key, texts) -> dict:
     return found
 
 
-def ig_views(posts, page_token: str):
-    """Views je Instagram-Post nachtragen (braucht instagram_manage_insights).
-    Fehlt die Berechtigung, bleibt das Feld einfach leer."""
-    ids = [p["id"] for p in posts if p.get("id")]
-    for i in range(0, len(ids), 40):
-        chunk = ids[i:i + 40]
-        for metric in ("views", "plays", "impressions"):
-            try:
-                d = _http_json(f"{GRAPH}/?ids={','.join(chunk)}"
-                               f"&fields=insights.metric({metric})"
-                               f"&access_token={page_token}")
-            except RuntimeError:
-                continue
-            got = False
-            for p in posts:
-                e = (d.get(p["id"]) or {}).get("insights", {}).get("data") or []
-                if e and e[0].get("values"):
-                    p["views"] = int(e[0]["values"][0].get("value") or 0)
-                    got = True
-            if got:
-                break
+def ig_view_count(post) -> int:
+    """Views aus den mitgelieferten Insights (0, wenn die Berechtigung fehlt)."""
+    for e in ((post.get("insights") or {}).get("data") or []):
+        vals = e.get("values") or []
+        if vals:
+            return int(vals[0].get("value") or 0)
+    return 0
 
 
 def yt_numbered_stats() -> dict:
@@ -1073,10 +1059,15 @@ def coverage(force: bool = False) -> dict:
                        f"&limit=100&access_token={pt}", 500), "description", texts)
         ig = (pg.get("instagram_business_account") or {}).get("id")
         if ig:
-            media = _graph_all(f"{GRAPH}/{ig}/media?fields=id,caption,like_count,"
-                               f"comments_count&limit=100&access_token={pt}", 500)
+            # insights.metric(views) direkt mitziehen — ?ids=… ist ab v26 weg
+            fields = "id,caption,like_count,comments_count,insights.metric(views)"
+            try:
+                media = _graph_all(f"{GRAPH}/{ig}/media?fields={fields}&limit=100"
+                                   f"&access_token={pt}", 500)
+            except RuntimeError:  # ohne instagram_manage_insights
+                media = _graph_all(f"{GRAPH}/{ig}/media?fields=id,caption,like_count,"
+                                   f"comments_count&limit=100&access_token={pt}", 500)
             on_ig = _posted_numbers(media, "caption", texts)
-            ig_views(on_ig.values(), pt)
             blank = sum(1 for m in media if not (m.get("caption") or "").strip())
             if blank:
                 note = (f"{blank} der {len(media)} Instagram-Posts haben keine Caption "
@@ -1092,7 +1083,7 @@ def coverage(force: bool = False) -> dict:
         v["ig"] = bool(ig_post)
         v["fb_views"] = int(fb.get("views") or 0) if fb else None
         v["ig_likes"] = int(ig_post.get("like_count") or 0) if ig_post else None
-        v["ig_views"] = int(ig_post.get("views") or 0) or None if ig_post else None
+        v["ig_views"] = (ig_view_count(ig_post) or None) if ig_post else None
     views = sorted(v["views"] for v in rows) or [0]
     fbv = [v["fb_views"] for v in rows if v.get("fb_views")]
     igv = [v["ig_views"] for v in rows if v.get("ig_views")]
