@@ -148,6 +148,17 @@ class DeviceToken(Base):
     storage_full_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     storage_full_kb: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     storage_full_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Lauf-Canary (Uhr ab 1.0.77): die App ist gestorben, OHNE dass es an einem der beiden
+    # bekannten Faelle lag. Anlass 16.08.: eine Forerunner 55 stuerzte mit „IQ!" ab, und bei uns
+    # kam nichts an — `layout_canary_count` und `storage_full_count` stehen bei ALLEN zwoelf FR55
+    # im Bestand auf 0, weil beide Marken nur Layout-Faelle abdecken und obendrein `(:full)` sind
+    # (im Lite-Build der speicherarmen Uhren gab es also gar keine).
+    # `crash_phase` ist die zuletzt gemeldete Phase: 1 App-Start · 2 Leerlauf · 3 Aufnahme ·
+    # 4 Upload. REINE DIAGNOSE — anders als der Layout-Canary schaltet das nichts ab, sonst
+    # wuerde eine Uhr, die `onStop` nicht zuverlaessig ruft, sich selbst Funktionen abklemmen.
+    crash_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    crash_phase: Mapped[int | None] = mapped_column(Integer)
+    crash_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Vom Nutzer ausgeblendet: rein kosmetisch. Erneutes Pairing legt IMMER eine neue Zeile
     # an (devices.py), und Zeilen mit Sessions duerfen nicht weg (sonst verlieren die
     # Sessions ihre Geraete-Zuordnung). Ein Nutzer hatte dadurch 5 Eintraege fuer EINE Uhr

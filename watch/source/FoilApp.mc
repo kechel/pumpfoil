@@ -19,7 +19,11 @@ class FoilApp extends Application.AppBase {
     function onStart(state) {
     }
 
+    // Regulaeres Ende. Genau hier wird der Lauf-Canary geloescht — bleibt er liegen, ist die App
+    // vorher gestorben und meldet das beim naechsten Start (s. SessionRecorder._runCanaryRead).
+    // Abgesichert, damit ein Fehler im Aufraeumen nicht selbst zum Absturz wird.
     function onStop(state) {
+        try { if (_recorder != null) { _recorder.runClear(); } } catch (e) {}
     }
 
     // Haupt-View beim Start.

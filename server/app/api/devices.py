@@ -101,6 +101,7 @@ def device_config(
     lay: int | None = Query(None),  # 1 = der Nutzer hat eigene Layouts AUF DER UHR eingeschaltet
     sf: int | None = Query(None),   # 1 = ein Storage-Write der Uhr ist gescheitert (Store voll)
     kb: int | None = Query(None),   # dabei gepuffertes Volumen in KB (Schaetzung der Uhr)
+    crash: int | None = Query(None),  # Lauf-Canary: Phase, in der der letzte App-Lauf starb (1-4)
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -147,6 +148,23 @@ def device_config(
             "   storage_full_at = now()"
             " WHERE id = :i"),
             {"i": device.id, "kb": int(kb or 0), "deb": SF_DEBOUNCE_S})
+        db.commit()
+        db.refresh(device)
+    # Lauf-Canary (Uhr ab 1.0.77): der letzte App-Lauf ist nicht durch `onStop` gegangen. Anders
+    # als die beiden Marken oben deckt das JEDEN Absturz ab und gibt es auch im Lite-Build.
+    # Gleiche Entprellung wie bei `sf` und aus demselben Grund: ein App-Start schickt zwei
+    # Config-Abrufe, die beide dasselbe Flag tragen — gezaehlt werden soll das EREIGNIS.
+    # Rein diagnostisch, es haengt keine Abschaltung daran (s. models.py).
+    if crash:
+        db.execute(sa_text(
+            "UPDATE device_tokens SET"
+            "   crash_count = COALESCE(crash_count,0)"
+            "     + CASE WHEN crash_at IS NULL OR crash_at < now() - make_interval(secs => :deb)"
+            "            THEN 1 ELSE 0 END,"
+            "   crash_phase = :ph,"
+            "   crash_at = now()"
+            " WHERE id = :i"),
+            {"i": device.id, "ph": max(0, min(int(crash), 9)), "deb": SF_DEBOUNCE_S})
         db.commit()
         db.refresh(device)
     if dirty:
@@ -366,6 +384,11 @@ def list_devices(
             "storage_full_count": int(d.storage_full_count or 0),
             "storage_full_kb": int(d.storage_full_kb or 0),
             "storage_full_at": d.storage_full_at.isoformat() if d.storage_full_at else None,
+            # Lauf-Canary: unsauber beendete App-Laeufe samt letzter Phase (1 Start · 2 Leerlauf ·
+            # 3 Aufnahme · 4 Upload). Fuer die Fehlersuche — der Nutzer kann daran nichts drehen.
+            "crash_count": int(d.crash_count or 0),
+            "crash_phase": int(d.crash_phase) if d.crash_phase else None,
+            "crash_at": d.crash_at.isoformat() if d.crash_at else None,
             # WARUM liefert der Server dieser Uhr (keine) Layouts? Ohne das bleibt nur Raten —
             # genau daran hing eine ganze Testrunde („steht auf an, zeigt sie aber nicht").
             # on | off_user | off_memory | off_canary | off_model | off_nolayout

@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.76";  // Speicher-voll sichtbar + Upload in der Pause
+    const VERSION = "1.0.77";  // Lauf-Canary: jeder Absturz meldet sich, auch im Lite-Build
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

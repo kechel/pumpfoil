@@ -22,6 +22,13 @@ using Toybox.PersistedContent;
 class SessionRecorder {
 
     // --- Konstanten ---
+    // Phasen des Lauf-Canary (s. _runCanaryRead). Bewusst grob: sie sollen sagen, WO gesucht
+    // werden muss. Die Zahlen gehen so an den Server und stehen dort in `crash_phase`.
+    const PHASE_BOOT = 1;      // App-Start: Config/Layout/Sync — die gefaehrlichste Phase
+    const PHASE_IDLE = 2;      // Start-Screen steht, nichts laeuft
+    const PHASE_RECORD = 3;    // Aufnahme
+    const PHASE_UPLOAD = 4;    // Upload im Vordergrund
+
     const ACCEL_HZ = 25;
     const ACCEL_HZ_LITE = 10;   // sparsamer Modus für speicherarme Uhren (z. B. Forerunner 55)
     const ACCEL_SCALE = 2048;        // int16 pro 1 g
@@ -171,6 +178,12 @@ class SessionRecorder {
     // beim naechsten Start meldbar) und erst nach bestaetigter Antwort geloescht.
     var storageFullPending = false;
     var storageFullKb = 0;
+    // Lauf-Canary (s. _runCanaryRead): in welcher Phase der letzte Lauf gestorben ist, und ob
+    // das dem Server noch zu melden ist. Phasen bewusst grob — sie sollen sagen, WO man suchen
+    // muss, nicht was genau passiert ist.
+    var crashPending = false;
+    var crashPhase = 0;
+    hidden var _runPhase = 0;
     hidden var _sfNoted = false;      // in diesem App-Lauf schon gemeldet (Bremse, s. _noteStorageFull)
 
     // --- Reverse-Pairing (Uhr zeigt Code -> auf pumpfoil.org eingeben) ---
@@ -242,6 +255,45 @@ class SessionRecorder {
         reloadConfig();
         _accelBuf = new [0]b;
         _gpsBuf = [];
+        _runCanaryRead();
+        runMark(PHASE_BOOT);
+    }
+
+    // --- Lauf-Canary: JEDER Absturz meldet sich, nicht nur der mit dynamischem Layout -------
+    //
+    // Anlass (16.08.): einem Nutzer ist die Forerunner 55 mit „IQ!" abgestuerzt. Bei uns kam
+    // davon NICHTS an — `layout_canary_count` und `storage_full_count` stehen bei seiner Uhr auf
+    // 0, und zwar bei ALLEN zwoelf FR55 im Bestand. Die beiden bestehenden Marken decken nur
+    // zwei enge Faelle ab (Layout anwenden, Layout waehrend der Aufnahme) und sind ausserdem
+    // `(:full)` — im Lite-Build der speicherarmen Uhren, also genau dort, wo Abstuerze am
+    // wahrscheinlichsten sind, gab es gar keine.
+    //
+    // Diese Marke liegt vom App-Start bis zum sauberen Ende und traegt die PHASE mit. Kommt die
+    // App reguler durch `onStop`, wird sie geloescht; stirbt sie vorher, liegt sie beim naechsten
+    // Start noch da und geht mit dem naechsten /config-Abruf raus. Geschrieben wird nur beim
+    // PHASENWECHSEL — vier Storage-Writes pro Lauf, nicht einer pro Frame.
+    //
+    // Bewusst NUR Diagnose: anders als der Layout-Canary schaltet das nichts ab. Ein Geraet, das
+    // `onStop` nicht zuverlaessig ruft, wuerde sonst seine eigenen Funktionen abklemmen.
+    hidden function _runCanaryRead() {
+        var rc = Storage.getValue("run_canary");
+        if (rc instanceof Lang.Number && rc > 0) {
+            crashPending = true;
+            crashPhase = rc;
+            try { Storage.deleteValue("run_canary"); } catch (e) { }
+        }
+    }
+
+    function runMark(phase) {
+        if (_runPhase == phase) { return; }   // nur bei Wechsel schreiben
+        _runPhase = phase;
+        _store("run_canary", phase);
+    }
+
+    // Sauberes Ende — aus FoilApp.onStop. Danach ist der Lauf als geglueckt verbucht.
+    function runClear() {
+        _runPhase = 0;
+        try { Storage.deleteValue("run_canary"); } catch (e) { }
     }
 
     function reloadConfig() {
@@ -613,6 +665,9 @@ class SessionRecorder {
                 params["sf"] = "1";
                 params["kb"] = storageFullKb.toString();
             }
+            // Der letzte Lauf ist nicht sauber zu Ende gekommen -> mit der PHASE melden
+            // (s. _runCanaryRead). Reine Diagnose, der Server schaltet daraufhin nichts ab.
+            if (crashPending) { params["crash"] = crashPhase.toString(); }
             // Hat der Nutzer eigene Layouts am Handgelenk EINGESCHALTET, das mitsagen: bei knappen
             // Uhren (128-KB-Klasse, z. B. fēnix 5) liefert der Server sie nur auf Anfrage aus.
             // Ohne das zeigte die fēnix 5 trotz Umschalten nichts — das Paket kam nie an.
@@ -709,6 +764,7 @@ class SessionRecorder {
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
             canaryPending = false;
+            crashPending = false;
             // Dasselbe fuer die Speicher-Meldung. deleteValue braucht keinen Platz, geht also
             // auch bei vollem Store; trotzdem in try, damit ein Fehlschlag nichts beendet.
             if (storageFullPending) {
@@ -858,6 +914,7 @@ class SessionRecorder {
         // Object-Store voll? -> gar nicht erst starten (kein Crash), UI zeigt Hinweis.
         if (storageFull) { return; }
         _armCanary();
+        runMark(PHASE_RECORD);
         // Lauferkennung zurücksetzen.
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;

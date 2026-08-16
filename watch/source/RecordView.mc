@@ -52,6 +52,10 @@ class RecordView extends WatchUi.View {
         // onUpdate — der Weg dorthin hat mehrere fruehe returns, und ein Absturz mitten im
         // Zeichnen soll die Marke gerade NICHT loeschen. Kostet einen Storage-Write pro App-Start.
         if (_drewOnce) { _rec.bootCanaryClear(); } else { _drewOnce = true; }
+        // Dasselbe fuer den generischen Lauf-Canary: ab dem zweiten fertigen Bild ist der
+        // Start ueberstanden, ab hier zaehlt ein Absturz als Leerlauf- statt Start-Problem.
+        // runMark schreibt nur beim Phasenwechsel, hier passiert also fast immer nichts.
+        if (!_rec.isRecording()) { _rec.runMark(_rec.PHASE_IDLE); }
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();

@@ -1371,3 +1371,29 @@ Offen daraus:
   `InvalidFragmentVersionForActivityResult` (`play-services-location` bringt `androidx.fragment:1.1.0`,
   gebraucht wird >= 1.3.0). Besteht schon vor dem Puls-Fix; Fix waere ein expliziter
   `androidx.fragment:fragment:1.8.x`-Eintrag.
+
+- **🟢 Lauf-Canary: jeder Absturz meldet sich jetzt — Garmin 1.0.77, live.** Anlass 16.08.: einem
+  Nutzer ist die **Forerunner 55 mit „IQ!" abgestuerzt** (er hat es Jan am Spot erzaehlt, danach auf
+  „nur GPS" umgestellt). Bei uns kam davon **nichts** an. Nachgesehen, rein lesend:
+  `layout_canary_count` und `storage_full_count` stehen bei seiner Uhr auf 0 — und bei **allen zwoelf
+  Forerunner 55 im Bestand**. Kein Zufall, sondern der Bau: die beiden bestehenden Marken decken je
+  einen engen Fall ab (Layout anwenden, Layout waehrend der Aufnahme) und sind ausserdem `(:full)`.
+  Im Lite-Build der speicherarmen Uhren — also genau dort, wo Abstuerze am wahrscheinlichsten sind —
+  gab es ueberhaupt keine Selbstmeldung. Wir waren blind fuer die haeufigste Absturzklasse.
+  **Gebaut statt eines dritten Sonderfalls: eine generische Marke.** `run_canary` liegt vom App-Start
+  bis zum sauberen Ende und traegt die PHASE (1 App-Start · 2 Leerlauf · 3 Aufnahme · 4 Upload).
+  `FoilApp.onStop` loescht sie; stirbt die App vorher, liegt sie beim naechsten Start noch da und
+  geht mit dem naechsten `/config` als `?crash=<phase>` raus. Geschrieben wird nur beim
+  PHASENWECHSEL — ein paar Storage-Writes pro Lauf, keiner pro Frame. Kein `(:full)`, gilt also auch
+  im Lite-Build. Server: `device_tokens.crash_count/crash_phase/crash_at`, entprellt wie `sf`
+  (ein App-Start schickt zwei Config-Abrufe mit demselben Flag), in der Geraeteliste ausgegeben.
+  **Bewusst NUR Diagnose** — anders als der Layout-Canary haengt keine Abschaltung daran. Eine Uhr,
+  die `onStop` nicht zuverlaessig ruft, wuerde sich sonst selbst Funktionen abklemmen; erst wenn die
+  Zahlen ueber mehrere Wochen plausibel aussehen, darf man daraus etwas ableiten.
+  Verifiziert: `build-all.sh` 121/121 gruen (beide Varianten), Migration gelaufen, Endpunkt-SQL
+  gegen eine leere Zeilenmenge geprueft. **Uhr ist damit sofort live** (`watch/bin`), Store-Paket
+  fuer Jan bei Bedarf. Aussagekraeftig wird es erst, wenn genug Uhren auf 1.0.77 sind.
+  **Offen:** erste Auswertung in ~2 Wochen — welche Modelle melden, in welcher Phase. Und die Frage
+  an den Nutzer, ob sein Absturz auf der alten 1.0.60 passierte: der Low-Memory-Fix fuer genau diese
+  Geraeteklasse (FR55/245/645/935, fenix 5/6, Instinct 3/E) kam mit **1.0.65**, seine Session davor
+  lief auf **1.0.60** — dann waere „nur GPS" gar nicht noetig gewesen.
