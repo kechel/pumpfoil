@@ -31,6 +31,9 @@ This changelog covers the Zepp OS watch app only.
 - Convert Zepp's cm/s² values to the shared signed int16 format with 2048 units per g.
 - Measure and report the effective accelerometer callback rate for each session instead of assuming a fixed frequency.
 - Derive speed from consecutive GPS coordinates because Zepp OS Geolocation does not expose the previously assumed speed method.
+- Reject implausible derived speeds (position jumps) so a single bad fix can no longer inflate the
+  live speed, the session maximum, the distance, the alarm or run detection. Uploaded samples are
+  unchanged — the gate only affects what the watch shows and decides.
 - Restore run detection and the last-run time and distance values using the computed speed.
 - Add diagnostic logs for heart-rate activation and detected run starts and ends.
 - Report the watch model (`getDeviceInfo`) when pairing and on every config call, so support

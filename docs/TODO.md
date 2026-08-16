@@ -52,7 +52,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   **Weiter offen:** Wear 1.2.20/1030 + Phone 1.1.20/34 in der Play-Pruefung; gebaut und wartend:
   Wear 1.2.21/1031 (Token-Heilung) und Phone 1.1.21/35 (Teilen-Dialog-Scroll) — beide wuerden die
   norwegischen App-Texte mitnehmen. iOS/Watch brauchen fuer Norwegisch noch einen Bump (1.1.22),
-  Zepp ebenso (1.0.5 — dort fehlen noch das GPS-Qualitaets-Gate UND Norwegisch).
+  Zepp ebenso (1.0.5). **Beide Zepp-Punkte sind mit 1.0.5 erledigt (16.08.):** Norwegisch war
+  schon mit `adadbfd` mitgekommen (`LANGS` enthaelt `nb`, Overlay vorhanden) — der Eintrag hier
+  war veraltet; das GPS-Qualitaets-Gate ist jetzt gebaut (s. Inbox).
 - **Stand 05.08. abend — Befund „Standort-Berechtigung scheitert stumm" (Wear + Apple).**
   Nutzerfeedback („works with my phone, not with my watch", Galaxy Watch 7): Uhr war
   installiert, gepairt, lud hoch — aber **4 von 6 Wear-Sessions hatten 0 GPS-Punkte** bei

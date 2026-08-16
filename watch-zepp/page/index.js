@@ -20,6 +20,11 @@ import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLo
 // Zepp reports acceleration in cm/s²; the ingest format uses signed little-endian int16 values
 // with 2048 units per g, matching Garmin, Wear OS, and Apple Watch recordings.
 const GPS_HZ = 1, ACCEL_DEFAULT_HZ = 25, ACCEL_SCALE = 2048, STANDARD_GRAVITY_CM_S2 = 980.665;
+// Obergrenzen fuer die aus Positionen abgeleitete Geschwindigkeit (s. sample()). 100 m/s ist die
+// reine Unsinns-Schwelle wie in Garmins `_saneSpeed`; 30 m/s = 108 km/h liegt weit ueber allem,
+// was auf einem Foil vorkommt (schnellster Lauf im Bestand ~30 km/h) und trennt damit sauber
+// zwischen "schnell gefahren" und "der Fix ist gesprungen".
+const MAX_SANE_MPS = 100, MAX_PLAUSIBLE_MPS = 30;
 // Kleine CHUNKs: 10 Punkte/Nachricht (~500 B) statt 60 (~3,3 KB) -> passt zuverlässig durch BLE
 // (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
 const GPS_CHUNK = 10;
@@ -1360,16 +1365,35 @@ Page(
       }
       // Geolocation has no documented getSpeed() method. Derive m/s from consecutive WGS-84
       // positions instead; this is also consistent with the distance accumulated below.
+      //
+      // QUALITAETS-GATE (Garmin `_saneSpeed` + `gpsPoor`, Wear `poor`): Zepp liefert keine
+      // Genauigkeit in Metern, nur getStatus() "A". Bei einer AUS POSITIONEN abgeleiteten
+      // Geschwindigkeit ist der Sprung aber selbst das Signal — springt der Fix (Kaltstart,
+      // Handgelenk im Wasser), sind es sofort dreistellige m/s. Ohne Gate wanderte das in
+      // Live-Anzeige, Hoechstgeschwindigkeit, Alarm, Lauferkennung UND Distanz: ein einziger
+      // 300-m-Sprung haette die Session um 300 m verlaengert und einen Phantom-Lauf ausgeloest.
+      // Genau dieser Fall ist auf Garmin belegt (Nutzer-Video, 100,1 km/h im Stehen am Steg).
+      //
+      // Die ROHDATEN bleiben unberuehrt: hochgeladen wird weiter der abgeleitete Wert, der Server
+      // hat seine eigenen Filter und sieht die Positionen ohnehin. Das Gate wirkt nur auf das,
+      // was die UHR anzeigt und entscheidet — dieselbe Trennung wie bei Garmin.
+      let speedRaw = 0, jump = false, stepM = 0;
       if (fix && !DEV_FAKE_GPS) {
         const p = s.geoSpeedPrev;
         if (p) {
           const dt = (sampleNow - p[2]) / 1000;
-          if (dt > 0) speed = distM(p[0], p[1], lat, lon) / dt;
+          if (dt > 0) {
+            stepM = distM(p[0], p[1], lat, lon);
+            speedRaw = stepM / dt;
+            speed = speedRaw;
+          }
         }
         s.geoSpeedPrev = [lat, lon, sampleNow];
       } else if (!fix) {
         s.geoSpeedPrev = null;
       }
+      if (speed < 0 || speed > MAX_SANE_MPS) { speed = 0; jump = true; }   // wie Garmin _saneSpeed
+      else if (speed > MAX_PLAUSIBLE_MPS) { speed = 0; jump = true; }      // Positionssprung, kein Fahrer
       // Treat a value as current for ten seconds. The callback owns getCurrent(); this 1 Hz loop
       // only snapshots the latest valid value into session statistics and GPS payloads.
       let hr = (s.hrUpdatedMs && sampleNow - s.hrUpdatedMs <= 10000) ? s.hr : 0;
@@ -1383,8 +1407,10 @@ Page(
       if (s.recording) {
         const el = Date.now() - s.startedAtMs;
         if (fix) {
-          s.gps.push([el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speed * 100) / 100, hr, 0]);
-          if (s.prev) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
+          s.gps.push([el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speedRaw * 100) / 100, hr, 0]);
+          // Distanz NICHT ueber einen Sprung hinweg aufsummieren — sonst waechst die angezeigte
+          // Strecke um den Sprung, und der Lauf daneben bekommt eine Distanz, die es nie gab.
+          if (s.prev && !jump) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
           if (speed > s.max) s.max = speed;
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
