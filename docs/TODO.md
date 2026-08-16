@@ -1460,3 +1460,26 @@ Offen daraus:
   **Offen:** Was die Stufen wirklich an Akku sparen, wissen wir NICHT — dafuer fehlt uns jede
   Messung, die Uhr meldet keinen Ladestand. Die Texte behaupten deshalb nur „mehr Systeme =
   mehr Akku", keine Prozentzahlen. Wer es genau wissen will, muss zwei gleiche Sessions fahren.
+
+- **🔴 Zusammenfuehren erzeugt Waisen-Dubletten, wenn man zweimal klickt — belegt an u48, 11.08.**
+  Meldung Jeroen 13.08. („i am missing a lot of runs"). Kein Datenverlust, aber ein echter Fehler.
+  Belegt, rein lesend:
+  | Session | uuid | Laeufe | Distanz | Stand |
+  |---|---|---|---|---|
+  | #1900 | d1438197… | 2 | 864 m | deleted, `merged_into=1910` |
+  | #1907 | 25e4ab87… | 8 | 5991 m | deleted, `merged_into=1910` |
+  | #1908 | **merge-**fd442679 | 10 | 6855 m | lebt, `merged_into=NULL` |
+  | #1909 | **merge-**bb4fb74d | 10 | 6855 m | lebt, `merged_into=NULL` |
+  | #1910 | **merge-**68d39593 | 10 | 6855 m | lebt, `merged_into=NULL` |
+  Zeitstempel der drei: 20:08:18, 20:08:44, 20:09:39 — er hat dreimal geklickt, weil nichts zu
+  passieren schien. **Jeder Klick legt eine neue Ergebnis-Session an**, und die Quellen zeigen am
+  Ende nur auf die LETZTE. #1908 und #1909 sind damit Waisen: vollstaendige Kopien, auf die nichts
+  mehr verweist und die kein Aufraeumen je findet. Fuer den Nutzer sieht es aus, als seien seine
+  beiden Originale verschwunden und stattdessen dreimal dasselbe da — genau seine Meldung.
+  **Fix (Server, `merge.py`):** (1) Quellen, die schon `merged_into` gesetzt haben, ablehnen statt
+  erneut zusammenfuehren; (2) idempotent machen — dieselbe Quellmenge zweimal ergibt dieselbe
+  Ziel-Session; (3) Waisen finden: `session_uuid LIKE 'merge-%' AND merged_into IS NULL` ohne
+  Quellen, die darauf zeigen. Im Bestand einmal zaehlen, bevor man etwas loescht.
+  **NICHT angefasst:** seine drei Sessions stehen unveraendert. Er ist informiert und kann selbst
+  zwei loeschen (Antwort 16.08. unter meinem Konto). Aufraeumen fremder Daten waere seine
+  Entscheidung, nicht unsere.
