@@ -91,6 +91,7 @@ private val NB: Map<String, String> = mapOf(
     "rec.willResume" to "fortsetter",
     "rec.uploading" to "laster opp",
     "rec.hrPerm" to "Ingen puls: tillatelse mangler – trykk",
+    "rec.hrNone" to "Ingen puls registrert – stram klokka mer",
     "rec.locPerm" to "Posisjonstillatelse mangler – ingen opptak uten den. Trykk",
     "rec.locOff" to "Posisjon er slått av – trykk",
     "rec.noGpsSaved" to "Lagret uten GPS – sjekk posisjon",
@@ -198,6 +199,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.willResume" to row("wird fortgesetzt", "wird fortgsetzt", "wird fortgesetzt", "will resume", "reprendra", "riprenderà", "se reanudará"),
     "rec.uploading" to row("lädt hoch", "ladt ufe", "lädt hoch", "uploading", "envoi", "caricamento", "subiendo"),
     "rec.hrPerm" to row("Kein Puls: Berechtigung fehlt – tippen", "Kei Puls: Berechtigung fehlt – tippe", "Kein Puls: Berechtigung fehlt – tippen", "No heart rate: permission missing – tap", "Pas de pouls : autorisation manquante – toucher", "Niente battito: manca il permesso – tocca", "Sin pulso: falta el permiso – toca"),
+    // Zweiter Puls-Fall: Berechtigung DA, Sensor liefert trotzdem nichts (s. RecorderService).
+    // Steht auf dem Screen nach dem Stopp, wie „rec.noGpsSaved" — sonst merkt es niemand.
+    "rec.hrNone" to row("Kein Puls aufgezeichnet – Uhr fester tragen", "Kei Puls ufzeichnet – Uhr fescht träge", "Kein Puls aufgezeichnet – Uhr fester tragen", "No heart rate recorded – wear the watch tighter", "Aucun pouls enregistré – serrez la montre", "Nessun battito registrato – stringi l'orologio", "Sin pulso registrado – ajusta más el reloj"),
     // Standort: ohne Berechtigung KEINE Strecke -> die Aufnahme startet nicht (Feldbefund 05.08.).
     "rec.locPerm" to row(
         "Standort fehlt – ohne ihn keine Aufnahme. Tippen",
@@ -300,6 +304,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
     "rec.hrPerm" to "Sem batimentos: falta a permissão – toque",
+    "rec.hrNone" to "Sem batimentos registados – aperte mais o relógio",
     "rec.locPerm" to "Falta a permissão de localização – sem ela não grava. Toque",
     "rec.locOff" to "A localização está desligada – toque",
     "rec.noGpsSaved" to "Salvo sem GPS – verifique a localização",
@@ -389,6 +394,7 @@ private val PT: Map<String, String> = mapOf(
 )
 private val JA: Map<String, String> = mapOf(
     "rec.hrPerm" to "心拍なし：権限がありません – タップ",
+    "rec.hrNone" to "心拍を記録できませんでした – 時計をしっかり装着",
     "rec.locPerm" to "位置情報の権限がありません – ないと記録できません。タップ",
     "rec.locOff" to "位置情報がオフです – タップ",
     "rec.noGpsSaved" to "GPSなしで保存 – 位置情報を確認",
@@ -474,6 +480,7 @@ private val JA: Map<String, String> = mapOf(
 )
 private val ZH: Map<String, String> = mapOf(
     "rec.hrPerm" to "无心率：缺少权限 – 点按",
+    "rec.hrNone" to "未记录心率 – 请把手表戴紧一些",
     "rec.locPerm" to "缺少位置权限 – 没有它无法记录。点按",
     "rec.locOff" to "位置服务已关闭 – 点按",
     "rec.noGpsSaved" to "已保存但无 GPS – 请检查位置权限",
@@ -559,6 +566,7 @@ private val ZH: Map<String, String> = mapOf(
 )
 private val RU: Map<String, String> = mapOf(
     "rec.hrPerm" to "Нет пульса: нет разрешения – нажмите",
+    "rec.hrNone" to "Пульс не записан – затяните ремешок",
     "rec.locPerm" to "Нет разрешения на геолокацию – без него запись невозможна. Нажмите",
     "rec.locOff" to "Геолокация выключена – нажмите",
     "rec.noGpsSaved" to "Сохранено без GPS – проверьте геолокацию",
@@ -648,6 +656,7 @@ private val RU: Map<String, String> = mapOf(
 )
 private val ID: Map<String, String> = mapOf(
     "rec.hrPerm" to "Tanpa detak jantung: izin belum ada – ketuk",
+    "rec.hrNone" to "Detak jantung tidak terekam – kencangkan jam",
     "rec.locPerm" to "Izin lokasi belum ada – tanpa itu tidak merekam. Ketuk",
     "rec.locOff" to "Lokasi dimatikan – ketuk",
     "rec.noGpsSaved" to "Disimpan tanpa GPS – periksa lokasi",

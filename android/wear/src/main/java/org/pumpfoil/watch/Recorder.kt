@@ -58,6 +58,10 @@ object Recorder {
         val hr: Int = 0,
         val avgHr: Int = 0,
         val maxHr: Int = 0,
+        // Wie viele Puls-Werte ueberhaupt angekommen sind. 0 nach einer ganzen Aufnahme heisst:
+        // der Sensor hat nie geliefert (Feldbefund u171, Xiaomi Watch 2 Pro: 11 Sessions, 0 Puls,
+        // Berechtigung erteilt). Ohne diesen Zaehler scheitert der Puls STILL — s. RecorderService.
+        val hrSamples: Int = 0,
         val status: String = "",
         val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
         val uploadSent: Int = 0,          // bestätigte Chunks der laufenden Session (Fortschritt)
@@ -249,7 +253,7 @@ object Recorder {
             runDurationMs = 84_000, runDistanceM = 420.0, runMaxSpeedKmh = speedKmh + 1.2,
             lastRunDurationMs = 96_000, lastRunDistanceM = 480.0,
             lastRunAvgSpeedKmh = speedKmh - 0.5, lastRunMaxSpeedKmh = speedKmh + 0.9,
-            hr = hr, maxHr = hr + 6, avgHr = hr - 4,
+            hr = hr, maxHr = hr + 6, avgHr = hr - 4, hrSamples = 1,
         )
     }
 
@@ -436,7 +440,8 @@ object Recorder {
         lastHr = bpm
         if (bpm > 0) { hrSum += bpm; hrCount++; if (bpm > maxHrV) maxHrV = bpm }
         if (running) _state.value = _state.value.copy(
-            hr = bpm, maxHr = maxHrV, avgHr = if (hrCount > 0) (hrSum / hrCount).toInt() else 0)
+            hr = bpm, maxHr = maxHrV, avgHr = if (hrCount > 0) (hrSum / hrCount).toInt() else 0,
+            hrSamples = hrCount)
     }
 
     private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

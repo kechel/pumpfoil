@@ -1256,3 +1256,105 @@ Offen daraus:
     besser WEGLASSEN — sind keine „Ride-Daten". Sonst nichts tracken, kein Dritt-Skript.
   - Server additiv (neue Spalte + 1 Endpoint), Web = bestehende Detailansicht read-only rendern; Teilen-
     Button in Apps später nachziehen. Jan erwägt es (noch nicht „bau's").
+
+- **🟢 Wear OS: Puls kommt auf manchen Uhren NIE an — GEBAUT als 1.2.22/1032, wartet auf Jans Upload.**
+  Meldung u171 (Xiaomi Watch 2 Pro) 15.08.: „wird die Herzfrequenz immer noch nicht ausgelesen …
+  wobei es einen Abend kurz funktioniert hat". Belegt (rein lesend ueber alle Wear-Sessions,
+  `app_version like '1.2.%'`, n=64):
+  | Nutzer | Uhr | Sessions | davon mit Puls |
+  |---|---|---|---|
+  | u171 | **Xiaomi Watch 2 Pro** | 11 | **0** |
+  | u188 | SM-L300 (Galaxy Watch) | 8 | 4 |
+  | u55 | SM-L300 | 6 | 3 |
+  | u262 / u145 / u210 / u36 / u258 / u239 / u93 / u47 / u78 | Samsung + Pixel | je 1-10 | **alle vollstaendig** |
+  (u6/u2 = Emulator, 0 Puls, erwartbar.) Also **geraeteabhaengig**, kein genereller Bug — und bei
+  Samsung **teilweise**, was die Ursache verraet.
+  **Ursache (Code):** `RecorderService.registerSensors()` haengt sich mit
+  `sensors.registerListener(TYPE_HEART_RATE, SENSOR_DELAY_NORMAL)` an den ROHEN Android-Sensor.
+  Das ist auf Wear OS 3+ ein Mitlesen dessen, was das System ohnehin gerade misst — es **schaltet
+  die PPG-LED nicht ein**. Wo die Dauermessung der Uhr an ist (Pixel/Samsung-Standard), kommen
+  Werte; wo der Hersteller sparsam misst (Xiaomi), kommt stunden-lang nichts, und „einen Abend kurz"
+  = eine zufaellige Hintergrund-Stichprobe fiel in die Aufnahme. Die Samsung-Nutzer mit 4/8 bzw. 3/6
+  sind derselbe Effekt.
+  **Fix:** `androidx.health.services.client` — `MeasureClient.registerMeasureCallback(
+  DataType.HEART_RATE_BPM, …)` (oder `ExerciseClient`) fordert die Messung aktiv an; das ist der von
+  Google fuer Wear OS 3+ vorgesehene Weg. SensorManager als Fallback stehen lassen. Manifest passt
+  schon (`BODY_SENSORS`, `FOREGROUND_SERVICE_HEALTH`, `foregroundServiceType="location|health"`).
+  **Zusaetzlich (Regel „Berechtigungen/Sensoren nie stumm scheitern"):** kam in der ganzen Aufnahme
+  **kein einziger** Puls-Wert an, sagt der Screen nach dem Stopp das jetzt (`rec.hrNone`, amber,
+  13 Sprachen) — parallel zu `rec.noGpsSaved`. Der Hinweis aus 1.2.19 (`cc88e1c`) deckt nur die
+  *fehlende Berechtigung* ab und greift bei u171 gerade nicht: die ist erteilt, der Sensor schweigt.
+  **UMGESETZT 16.08. als Wear 1.2.22/1032** (1.2.21/1031 lag beim Fund schon in der Play-Pruefung):
+  - `RecorderService.startHeartRate()`: `ExerciseClient` mit `ExerciseType.WORKOUT` und nur
+    `HEART_RATE_BPM` (GPS macht weiter Fused, Auto-Pause aus). Scheitert es (keine Health Services,
+    andere App haelt eine Uebung, kein Sensor), bleibt der rohe Sensor -> nie schlechter als vorher.
+    Solange Health Services liefert, hat es Vorrang, sonst wuerde ein alter passiv mitgelesener
+    Wert den frischen ueberschreiben.
+  - `Recorder.State.hrSamples` zaehlt die angekommenen Werte — Grundlage fuer den Hinweis.
+  - **Zwei Abhaengigkeits-Fallen, beide gemessen statt geraten:** `androidx.health:health-services-client:1.0.0`
+    zieht guava nur zur LAUFZEIT nach, deshalb fehlt `ListenableFuture` sonst im Compile-Classpath.
+    Der naheliegende Umweg ueber `com.google.guava:listenablefuture:1.0` scheitert an
+    `checkDebugDuplicateClasses` (guava enthaelt dieselbe Klasse). Richtig ist
+    `implementation("com.google.guava:guava:31.1-android")` — genau die Version, die health-services
+    selbst mitbringt. Gegenprobe, welche guava-Klassen wirklich gebraucht werden (aus dem AAR
+    gegrept): `Futures`, `SettableFuture`, `MoreExecutors`, `Preconditions`, `Function`,
+    `FutureCallback`, `ListenableFuture` — guava rauswerfen und nur den Stub liefern geht also NICHT.
+  - **Preis: Release-APK 15,97 -> 19,38 MB (+3,41 MB, +21 %)**, gemessen gegen einen sauberen
+    HEAD-Worktree. `isMinifyEnabled = false` im Release-Block ist der Grund, dass guava ungeschrumpft
+    mitfaehrt — R8 einzuschalten wuerde das Meiste zurueckholen, ist aber nichts, was ohne Test auf
+    einer echten Uhr in eine Einreichung gehoert. Eigener Punkt weiter unten.
+  - Verifiziert: `:wear:compileDebugKotlin` und `:wear:assembleDebug` gruen. **`assembleRelease`
+    scheitert an `lintVitalRelease`** — `InvalidFragmentVersionForActivityResult`, weil
+    `play-services-location` `androidx.fragment:1.1.0` mitbringt. Das ist **VORHER schon so**
+    (im HEAD-Worktree identisch nachgestellt), hat also nichts mit dem Puls-Fix zu tun; das
+    unsignierte Release-APK entsteht trotzdem. Wie Jan bisher gebaut hat, wissen wir nicht — falls
+    ueber diesen Weg: `androidx.fragment:fragment:1.8.x` hochziehen loest es.
+  **Zweitwirkung:** ohne Puls ist `analysis/sportauto.py` blind — die
+  Regel faellt dann auf „Tempo >= 19 km/h" zurueck, und Pumpfoil-Tempo erreicht das nie. Genau
+  deshalb lief die Skate-Session u171/#2149 (naechster Punkt) unbeanstandet als Pumpfoil durch,
+  obwohl ihr laengster „Lauf" 743 s hatte (Schwelle 240 s).
+
+- **🟡 Erkennung kann Skateboard nicht von Pumpfoil trennen — belegt an u171/#2149 (15.08.).**
+  Meldung: „Ich war eine Runde skaten und habe die App testweise laufen lassen … in die restlichen
+  Daten dichtet das Model dann Pumps rein. Theoretisch muesste ich ewig lange Glides haben aber die
+  Kadenz wird immer noch mit 83 AVG Pump angegeben." **Stimmt** — gemessen, rein lesend:
+  #2149 (Penny-Board, „Hoenow 2"): 26,3 km, **47 Laeufe**, 5925 s Foil-Zeit, **8173 Pumps**,
+  Kadenz 1,379 Hz = **83 ppm**, laengster Lauf 743 s. 2636 von 3805 Accel-Fenstern = `pump`.
+  Ein 532-s-Stueck wurde als Fremdkraft vorgeschlagen (er hat es per „behalten" zurueckgeholt,
+  `fremdkraft_keep=[[703853,1235836]]`) — das ist das „ein paar Runs als Powered Ride" aus seiner
+  Meldung. Der Rest lief als Pumpen durch.
+  **Warum es nicht auffaellt — der Vergleich mit SEINEN echten Foil-Sessions ist das Problem:**
+  | | #2149 Skate | #2135 Foil | #2006 Foil | #1814 Foil |
+  |---|---|---|---|---|
+  | Kadenz | 1,38 Hz | 1,52 | 1,52 | 1,56 |
+  | Median dom_freq der Pump-Fenster | 1,50 Hz | 1,25 | 1,25 | 1,50 |
+  | RMS der Pump-Fenster (Median) | 0,261 g | 0,161 | 0,167 | 0,196 |
+  | Ø-Tempo | 3,65 m/s | 3,75 | 3,61 | 3,58 |
+  | laengste Gleitphase je Lauf (Median) | 1,72 s | 1,42 | 1,29 | 1,31 |
+  Das Skaten liegt in **jedem** Merkmal innerhalb seiner echten Pumpfoil-Sessions — bei der
+  Amplitude sogar **darueber**. Auf Handgelenk-Accel + GPS ist das dieselbe Klasse Problem wie
+  Wing/Wake/Wakethief (s. Memory `detector-negative-examples`): abschiessen laesst sich das nur
+  ueber Kontext, nicht ueber das Bewegungssignal.
+  Seine Erwartung „ewig lange Glides" geht ins Leere, weil `longest_glide_s` die laengste Luecke
+  zwischen zwei ERKANNTEN Pumps ist (docs/DATA-PIPELINE.md) — beim Rollen erkennt das Modell
+  weiter Pumps, also wird die Luecke nie lang.
+  **Kandidaten (nichts davon ohne Jans OK):**
+  1. **Wasser-Gate**: `place_water` ist bei allen drei Sessions `NULL` — der Wasserflaechen-Check
+     laeuft dort gar nicht. Ein Landspot als weiches Signal (Hinweis, nicht Ausschluss) waere die
+     einzige Trennung, die hier ueberhaupt greift.
+  2. `sportauto`-Regel „langer Lauf ohne Puls" schaerfen — braucht aber zuerst den Puls (Punkt oben).
+  3. Nichts tun und es als bekannte Grenze dokumentieren: Peter hat die Session selbst korrekt auf
+     `sport_class='other'` + `data_quality='test'` gesetzt, sie faellt aus allen Auswertungen raus.
+     Das System hat also funktioniert — nur eben erst durch den Menschen.
+
+- **🟡 Wear-Release laeuft ohne R8 (`isMinifyEnabled = false`) — kostet jetzt messbar Groesse.**
+  Aufgefallen beim Puls-Fix (s. o.): guava faehrt ungeschrumpft mit, Release-APK 15,97 -> 19,38 MB.
+  Mit R8 waere davon fast nichts noetig (health-services braucht 7 guava-Klassen). Nicht ohne Test
+  auf einer echten Uhr einschalten — die App baut JSON von Hand (`org.json`), Compose/AndroidX
+  bringen ihre Keep-Regeln selbst mit, das Risiko ist ueberschaubar, aber ein R8-Schaden faellt
+  erst zur Laufzeit auf. Vorschlag: nach dem naechsten Release einmal mit `isMinifyEnabled = true`
+  bauen, auf Jans Uhr durchspielen (Aufnahme, Pairing, Upload, Layouts), dann dauerhaft an.
+  Nebenbefund aus derselben Messung: `:wear:assembleRelease` scheitert am Lint-Check
+  `InvalidFragmentVersionForActivityResult` (`play-services-location` bringt `androidx.fragment:1.1.0`,
+  gebraucht wird >= 1.3.0). Besteht schon vor dem Puls-Fix; Fix waere ein expliziter
+  `androidx.fragment:fragment:1.8.x`-Eintrag.

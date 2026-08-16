@@ -858,6 +858,10 @@ class MainActivity : ComponentActivity() {
     // Wischen nach rechts kehrt zum Start-Screen zurück — so tippt man nicht versehentlich Start.
     @Composable
     private fun SavedScreen(s: Recorder.State, onDone: () -> Unit) {
+        // Fehlt die Berechtigung, sagt das schon der Hinweis auf dem Start-Screen (rec.hrPerm) —
+        // dann hier nicht ein zweites Mal mit anderer Begruendung nachlegen.
+        val hrPermGranted = ContextCompat.checkSelfPermission(
+            LocalContext.current, Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED
         val dismiss = rememberSwipeToDismissBoxState()
         LaunchedEffect(dismiss.currentValue) {
             if (dismiss.currentValue == SwipeToDismissValue.Dismissed) {
@@ -904,6 +908,16 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(6.dp))
                             Text(I18n.t("rec.noGpsSaved"), style = MaterialTheme.typography.caption2,
                                 color = Color(0xFFEF4444), textAlign = TextAlign.Center)
+                        }
+                        // Dasselbe fuer den Puls: kein einziger Wert in der ganzen Aufnahme.
+                        // Feldbefund 15.08. (u171, Xiaomi Watch 2 Pro): 11 Sessions ohne Puls,
+                        // Berechtigung erteilt — der Sensor schwieg, und die Uhr sagte nichts.
+                        // Der Berechtigungs-Hinweis oben deckt diesen Fall NICHT ab; amber statt
+                        // rot, weil eine Session ohne Puls auswertbar bleibt (anders als ohne GPS).
+                        if (s.hrSamples == 0 && hrPermGranted) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(I18n.t("rec.hrNone"), style = MaterialTheme.typography.caption2,
+                                color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
                         }
                         Spacer(Modifier.height(12.dp))
                         CompactChip(onClick = onDone,
