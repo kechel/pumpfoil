@@ -46,6 +46,7 @@ interface CovVideo {
   fb: boolean;
   ig: boolean;
   fb_views: number | null;
+  ig_views: number | null;
   ig_likes: number | null;
 }
 interface Coverage {
@@ -55,6 +56,7 @@ interface Coverage {
   counts: {
     total: number; fb: number; ig: number;
     yt_views_total: number; fb_views_total: number; fb_views_median: number;
+    ig_views_total: number; ig_views_median: number;
   };
   error?: string;
 }
@@ -73,7 +75,10 @@ function CoveragePanel() {
     } catch (e) {
       setCov({
         videos: [], median: 0, error: String(e),
-        counts: { total: 0, fb: 0, ig: 0, yt_views_total: 0, fb_views_total: 0, fb_views_median: 0 },
+        counts: {
+          total: 0, fb: 0, ig: 0, yt_views_total: 0,
+          fb_views_total: 0, fb_views_median: 0, ig_views_total: 0, ig_views_median: 0,
+        },
       });
     }
     setBusy(false);
@@ -103,8 +108,10 @@ function CoveragePanel() {
               </button>
               {c && (
                 <span style={{ fontSize: 12, opacity: 0.75 }}>
-                  {c.total} Videos · YT {de(c.yt_views_total)} Views · FB {de(c.fb_views_total)} Views aus nur{" "}
-                  {c.fb} Videos · Median YT {de(cov!.median)} / FB {de(c.fb_views_median)}
+                  {c.total} Videos · Views gesamt: YT {de(c.yt_views_total)} · FB {de(c.fb_views_total)} (
+                  {c.fb} Videos){c.ig_views_total ? ` · IG ${de(c.ig_views_total)} (${c.ig} Videos)` : ""} · Median YT{" "}
+                  {de(cov!.median)} / FB {de(c.fb_views_median)}
+                  {c.ig_views_median ? ` / IG ${de(c.ig_views_median)}` : ""}
                 </span>
               )}
             </>
@@ -121,7 +128,7 @@ function CoveragePanel() {
                 <th title="Likes auf YouTube">♥</th>
                 <th title="Facebook-Aufrufe (— = dort nicht gepostet)">FB</th>
                 <th title="Facebook im Verhältnis zu YouTube">FB/YT</th>
-                <th title="auf Instagram gepostet">IG</th>
+                <th title="Instagram-Aufrufe (— = dort nicht gepostet)">IG</th>
                 <th>Titel</th>
               </tr>
             </thead>
@@ -132,7 +139,9 @@ function CoveragePanel() {
                   <td>{v.likes}</td>
                   <td>{v.fb_views ? de(v.fb_views) : v.fb ? "✅" : "—"}</td>
                   <td>{v.fb_views && v.views ? `${(v.fb_views / v.views).toFixed(1)}×` : ""}</td>
-                  <td>{v.ig ? "✅" : "—"}</td>
+                  <td title={v.ig_likes != null ? `${v.ig_likes} Likes` : ""}>
+                    {v.ig_views ? de(v.ig_views) : v.ig ? "✅" : "—"}
+                  </td>
                   <td>
                     <a href={`https://youtu.be/${v.video_id}`} target="_blank" rel="noreferrer">
                       {v.title}
