@@ -1461,7 +1461,7 @@ Offen daraus:
   Messung, die Uhr meldet keinen Ladestand. Die Texte behaupten deshalb nur „mehr Systeme =
   mehr Akku", keine Prozentzahlen. Wer es genau wissen will, muss zwei gleiche Sessions fahren.
 
-- **🔴 Zusammenfuehren erzeugt Waisen-Dubletten, wenn man zweimal klickt — belegt an u48, 11.08.**
+- **🟢 Zusammenfuehren erzeugte Waisen-Dubletten bei Doppelklick — BEHOBEN 13.08. (`e7c02f4`), 16.08. am Bestand nachgeprueft.**
   Meldung Jeroen 13.08. („i am missing a lot of runs"). Kein Datenverlust, aber ein echter Fehler.
   Belegt, rein lesend:
   | Session | uuid | Laeufe | Distanz | Stand |
@@ -1476,10 +1476,17 @@ Offen daraus:
   Ende nur auf die LETZTE. #1908 und #1909 sind damit Waisen: vollstaendige Kopien, auf die nichts
   mehr verweist und die kein Aufraeumen je findet. Fuer den Nutzer sieht es aus, als seien seine
   beiden Originale verschwunden und stattdessen dreimal dasselbe da — genau seine Meldung.
-  **Fix (Server, `merge.py`):** (1) Quellen, die schon `merged_into` gesetzt haben, ablehnen statt
-  erneut zusammenfuehren; (2) idempotent machen — dieselbe Quellmenge zweimal ergibt dieselbe
-  Ziel-Session; (3) Waisen finden: `session_uuid LIKE 'merge-%' AND merged_into IS NULL` ohne
-  Quellen, die darauf zeigen. Im Bestand einmal zaehlen, bevor man etwas loescht.
-  **NICHT angefasst:** seine drei Sessions stehen unveraendert. Er ist informiert und kann selbst
-  zwei loeschen (Antwort 16.08. unter meinem Konto). Aufraeumen fremder Daten waere seine
-  Entscheidung, nicht unsere.
+  **Der Fix war schon da — ich hatte ihn beim Schreiben dieses Punktes uebersehen.** `e7c02f4`
+  (13.08.) sperrt die Quellzeilen mit `FOR UPDATE` und liefert dem zweiten Aufruf das Ergebnis des
+  ersten; die Ursache (der zweite Aufruf sah die Quellen noch als "nicht gemergt", weil die erste
+  Transaktion ueber die ganze Reanalyse offen ist) steht dort im Docstring, samt genau dieser drei
+  Zeitstempel. Es gibt hier also KEINEN Code mehr zu reparieren.
+  **Gegenprobe am Bestand (16.08., rein lesend):** 54 Merge-Sessions insgesamt, davon **genau 2
+  Waisen** — #1908 und #1909, beide von u48, beide vom 11.08., also VOR dem Fix. **Null Waisen
+  nach dem 13.08.** Der Fix haelt.
+  **Offen bleibt nur der Altbestand:** die beiden Kopien leben (`is_pumpfoil`, `data_quality=ok`,
+  `detection=model`) und zaehlen dreifach in Bestenlisten und Statistik — u48 steht dort mit 9
+  Sessions / 70 Laeufen / 3920 Pumps statt mit 7 / ~50 / ~2600. Einen Rekord haelt keine davon
+  (bester Lauf 269 m, 5,09 m/s). **NICHT angefasst:** es sind seine Daten. Er ist informiert und
+  kann selbst zwei loeschen (Antwort 16.08. unter meinem Konto); fremde Sessions ungefragt
+  aufzuraeumen waere seine Entscheidung, nicht unsere.
