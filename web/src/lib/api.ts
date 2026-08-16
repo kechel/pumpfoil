@@ -816,6 +816,10 @@ export const api = {
   // Absturz-Zähler dieser Uhr zurücksetzen -> sie bekommt wieder eigene Layouts.
   resetLayoutCanary: (id: number) =>
     req<{ ok: boolean }>(`/api/devices/${id}/layout-canary/reset`, { method: "POST" }),
+  setDeviceGnssMode: (id: number, gnss_mode: string) =>
+    req<{ ok: boolean; gnss_mode: string }>(`/api/devices/${id}/gnss-mode`, {
+      method: "PUT", body: JSON.stringify({ gnss_mode }),
+    }),
   setDeviceRecordMode: (id: number, record_mode: string) =>
     req<{ ok: boolean; record_mode: string }>(`/api/devices/${id}/record-mode`, {
       method: "PUT", body: JSON.stringify({ record_mode }),
@@ -1137,6 +1141,7 @@ export interface PairedDevice {
   model: string | null;       // aufgelöstes Modell (aus Part-Number), z. B. "fēnix® 7X Pro"
   model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
   record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
+  gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
   low_accel: boolean;         // FR55 & Co.: 'full' wird automatisch auf 'lite' gekappt
   // Displaymaße/Form aus dem Build-Katalog (nur Garmin; Apple/Wear melden sie noch nicht) —
   // damit die Layout-Vorschau die ECHTE Größe dieser Uhr nutzen kann.

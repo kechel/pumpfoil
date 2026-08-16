@@ -131,6 +131,11 @@ class DeviceToken(Base):
     # Aufzeichnungsmodus PRO UHR (full|lite|gps). NULL = User-Default (settings_json).
     # Erlaubt getrennte Raten je Gerät (z. B. fēnix voll, FR55 sparsam).
     record_mode: Mapped[str | None] = mapped_column(String(8))
+    # GNSS-Stufe PRO UHR (best|l1|two|gps). NULL = "best" (bisheriges Verhalten seit 1.0.75:
+    # beste vom Geraet unterstuetzte Stufe). Mehr Systeme = bessere Abdeckung, aber messbar mehr
+    # Akku — deshalb je Uhr einstellbar wie der Aufzeichnungsmodus (Jan, 16.08.), statt es fuer
+    # alle gleich zu entscheiden. Die Uhr holt den Wert beim App-Start ueber /config.
+    gnss_mode: Mapped[str | None] = mapped_column(String(8))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Canary der dynamischen Layouts: die Uhr setzt beim Aufnahme-Start ein Storage-Flag und

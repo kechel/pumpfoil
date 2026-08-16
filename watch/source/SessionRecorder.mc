@@ -93,6 +93,9 @@ class SessionRecorder {
     // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = Accel 10 Hz (sparsam) |
     // "gps" = nur GPS (kein Roh-Accel) — für speicherarme Uhren (z. B. Forerunner 55).
     var recordMode = "full";
+    // GNSS-Stufe (best|l1|two|gps), vom Server je Uhr gesetzt — s. enableGps. Voreinstellung
+    // "best" = Verhalten seit 1.0.75; die Abstufungen darunter sparen Akku.
+    var gnssMode = "best";
     // Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): "surfing" = Surfen |
     // "openwater" = Freiwasserschwimmen. Von der Website konfigurierbar (via /config).
     var activityType = "surfing";
@@ -332,6 +335,8 @@ class SessionRecorder {
         autoStart = (asv == null) ? true : asv;
         var rm = Storage.getValue("record_mode");
         recordMode = (rm != null) ? rm : "full";
+        var gm = Storage.getValue("gnss_mode");
+        gnssMode = (gm instanceof Lang.String) ? gm : "best";
         var at = Storage.getValue("activity_type");
         activityType = (at != null) ? at : "surfing";
         alarmEnabled = Config.getBool("alarmEnabled", false);
@@ -712,6 +717,16 @@ class SessionRecorder {
             if (data.hasKey("autoStart") && data["autoStart"] != null) {
                 if (!_presetsApplied) { autoStart = data["autoStart"]; }   // live nur beim 1. Config
                 _store("auto_start", data["autoStart"]);                    // Cache = Web-Preset (Neustart)
+            }
+            if (data.hasKey("gnssMode") && data["gnssMode"] instanceof Lang.String) {
+                var gmNeu = data["gnssMode"];
+                if (!gmNeu.equals(gnssMode)) {
+                    gnssMode = gmNeu;
+                    _store("gnss_mode", gnssMode);
+                    // Sofort wirksam machen: GPS laeuft seit App-Start: neu anfordern, sonst
+                    // greift die Aenderung erst beim naechsten Start.
+                    try { enableGps(); } catch (eg) { }
+                }
             }
             if (data.hasKey("recordMode") && data["recordMode"] != null) {
                 recordMode = data["recordMode"];
@@ -1378,20 +1393,33 @@ class SessionRecorder {
     // Qualität "brauchbar" statt "gut", während der Accel lückenlos weiterlief. Genau das
     // Bild, das zu wenig sichtbaren Satelliten erzeugt: Handgelenk im Wasser, Körper dazwischen.
     //
-    // Reihenfolge = beste Abdeckung zuerst. Akku ist bewusst KEIN Kriterium (Jan, 13.08.:
-    // "wir wollen auf jeden Fall die best mögliche GPS-Erkennung"). Deshalb steht SAT_IQ NICHT
-    // in der Liste: das ist Garmins automatisch umschaltender Sparmodus, nicht das Maximum.
+    // Reihenfolge = beste Abdeckung zuerst. SAT_IQ steht bewusst NICHT in der Liste: das ist
+    // Garmins automatisch umschaltender Sparmodus, nicht eine feste Stufe.
+    //
+    // AKKU (Jan, 16.08.): alle Systeme gleichzeitig kosten spürbar mehr Strom. Am 13.08. galt
+    // noch "auf jeden Fall die best mögliche GPS-Erkennung" — das bleibt der Standard, ist aber
+    // jetzt JE UHR einstellbar wie die Aufzeichnungsrate, weil die Abwägung vom Gerät und vom
+    // Fahrer abhängt (eine Instinct mit 20 h Laufzeit ist etwas anderes als eine fēnix 8).
+    // `gnssMode` kommt aus /config:
+    //   best = ganze Kette (Voreinstellung, Verhalten seit 1.0.75)
+    //   l1   = ohne das zweite Frequenzband L5 — der größte Einzelposten beim Verbrauch
+    //   two  = GPS + EIN weiteres System
+    //   gps  = GPS allein (SDK-Standard, sparsamste Stufe)
+    // Die Kette bleibt in jedem Fall erhalten: lehnt das Gerät die gewünschte Stufe ab, geht es
+    // nach unten weiter bis zum überall gültigen Standardaufruf. Eingestellt wird also ein
+    // OBERES LIMIT, keine Garantie.
     //
     // Rückfallkette, weil wir bis minApiLevel 2.4.0 bauen: das Options-Wörterbuch gibt es erst
     // ab CIQ 3.2.0, `:configuration` erst ab 3.3.6, und eine nicht unterstützte Kombination
     // wirft InvalidValueException. Am Ende steht immer der alte, überall gültige Aufruf.
     function enableGps() as Void {
-        if (Position has :hasConfigurationSupport) {
+        if (Position has :hasConfigurationSupport && !gnssMode.equals("gps")) {
+            var alleSysteme = gnssMode.equals("best") || gnssMode.equals("l1");
             var stufen = [];
-            if (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1_L5) {
+            if (gnssMode.equals("best") && (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1_L5)) {
                 stufen.add(Position.CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1_L5);
             }
-            if (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1) {
+            if (alleSysteme && (Position has :CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1)) {
                 stufen.add(Position.CONFIGURATION_GPS_GLONASS_GALILEO_BEIDOU_L1);
             }
             if (Position has :CONFIGURATION_GPS_GALILEO) { stufen.add(Position.CONFIGURATION_GPS_GALILEO); }
@@ -1410,7 +1438,7 @@ class SessionRecorder {
                     // Stufe vom Gerät abgelehnt -> nächste probieren.
                 }
             }
-        } else if (Position has :CONSTELLATION_GLONASS) {
+        } else if ((Position has :CONSTELLATION_GLONASS) && !gnssMode.equals("gps")) {
             // Ältere Uhren ohne hasConfigurationSupport: wenigstens ein zweites System dazu.
             try {
                 Position.enableLocationEvents(

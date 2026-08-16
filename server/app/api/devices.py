@@ -90,6 +90,21 @@ def _effective_record_mode(device: models.DeviceToken, settings: dict) -> str:
     return base
 
 
+GNSS_MODES = ("best", "l1", "two", "gps")
+
+
+def _effective_gnss_mode(device: models.DeviceToken, settings: dict) -> str:
+    """Wirksame GNSS-Stufe einer Uhr: Geräte-Override vor User-Default, sonst "best".
+
+    "best" ist das Verhalten seit 1.0.75 (beste vom Gerät unterstützte Stufe). Die Abstufungen
+    darunter sparen Akku, indem sie weniger Satellitensysteme/Bänder anfordern — was das kostet,
+    entscheidet der Besitzer je Uhr, nicht wir für alle. Uhren vor 1.0.77 ignorieren den Wert.
+    """
+    dev = device.gnss_mode if device.gnss_mode in GNSS_MODES else None
+    base = dev or settings.get("gnss_mode", "best")
+    return base if base in GNSS_MODES else "best"
+
+
 @router.get("/config")
 def device_config(
     device: models.DeviceToken = Depends(current_device),
@@ -240,6 +255,8 @@ def device_config(
         # Uhren (FR55 & Vorgänger) serverseitig PRO GERÄT auf 'lite' gekappt (nur runter;
         # explizites 'gps' bleibt) — verhindert den Absturz. Kein Uhr-Update nötig.
         "recordMode": _effective_record_mode(device, settings),
+        # GNSS-Stufe je Uhr (best|l1|two|gps) — Uhren vor 1.0.77 ignorieren den Schluessel.
+        "gnssMode": _effective_gnss_mode(device, settings),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
         # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
@@ -337,6 +354,7 @@ def list_devices(
         try:
             ustored = json.loads(user.settings_json)
             udefault = ustored.get("record_mode", "full")
+            gdefault = ustored.get("gnss_mode", "best")
         except Exception:  # noqa: BLE001
             ustored = {}
     out = []
@@ -372,6 +390,7 @@ def list_devices(
             "shape": _shape_from_family((cat.get(model["id"]) or {}).get("family")) if model else None,
             # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
             "record_mode": d.record_mode or udefault,
+            "gnss_mode": d.gnss_mode or gdefault,
             # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
             "low_accel": _is_low_accel_model(d.part_number),
             # Eigene Layouts: kann diese Uhr sie überhaupt (Speicher) und hat sie einen Absturz
@@ -453,6 +472,30 @@ def set_device_record_mode(
     d.record_mode = mode
     db.commit()
     return {"ok": True, "record_mode": mode}
+
+
+@router.put("/{device_id}/gnss-mode")
+def set_device_gnss_mode(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """GNSS-Stufe (best|l1|two|gps) für EINE Uhr setzen — wie der Aufzeichnungsmodus.
+
+    Mehr Satellitensysteme heißt bessere Abdeckung und mehr Akkuverbrauch; welche Seite wichtiger
+    ist, weiß nur der Besitzer der Uhr. Greift beim nächsten App-Start (die Uhr holt /config),
+    kein Uhr-Update nötig — aber erst ab Uhr-Version 1.0.77, ältere ignorieren den Wert.
+    """
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    mode = (body or {}).get("gnss_mode")
+    if mode not in GNSS_MODES:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültige GNSS-Stufe")
+    d.gnss_mode = mode
+    db.commit()
+    return {"ok": True, "gnss_mode": mode}
 
 
 def _partmap() -> dict:

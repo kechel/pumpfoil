@@ -1433,3 +1433,30 @@ Offen daraus:
   (1) oder in der Aufnahme (3) stirbt. Bis dahin: nicht auf gut Glueck am GNSS-Code drehen.
   Betroffene Nutzer sind bekannt (4 Geraete) — eine gezielte Nachfrage bringt schneller Klarheit
   als jede Statistik.
+
+- **🟢 GNSS-Stufe je Uhr einstellbar (Garmin 1.0.77) — Jans Vorgabe 16.08.: „mehr Satelliten
+  kosten Akku".** Seit 1.0.75 fordert die Uhr die BESTE unterstuetzte Stufe an; am 13.08. war das
+  bewusst ohne Akku-Abwaegung entschieden („auf jeden Fall die best moegliche GPS-Erkennung").
+  Alle Systeme gleichzeitig kosten aber spuerbar Strom, und die Abwaegung haengt am Geraet und am
+  Fahrer — eine Instinct mit 20 h Laufzeit ist etwas anderes als eine fenix 8. Deshalb jetzt
+  einstellbar **je Uhr**, genau wie der Aufzeichnungsmodus, mit unveraenderter Voreinstellung.
+  Vier Stufen (`device_tokens.gnss_mode`, NULL = `best`):
+  | Wert | was angefordert wird |
+  |---|---|
+  | `best` | ganze Kette inkl. zweitem Band L1+L5 — Voreinstellung, Verhalten seit 1.0.75 |
+  | `l1` | alle Systeme, aber ohne L5 (das zweite Band ist der groesste Einzelposten) |
+  | `two` | GPS + EIN weiteres System |
+  | `gps` | GPS allein (SDK-Standard, sparsamste Stufe) |
+  Die Rueckfallkette bleibt in jeder Stufe erhalten: lehnt das Geraet die gewuenschte Stufe ab,
+  geht es nach unten weiter bis zum ueberall gueltigen Standardaufruf. Eingestellt wird ein
+  OBERES LIMIT, keine Garantie — auf einer Uhr, die nur GPS+GLONASS kann, ist `best` genau das.
+  Weg wie beim Aufzeichnungsmodus: `PUT /api/devices/<id>/gnss-mode`, Auslieferung ueber
+  `/config` als `gnssMode`, Auswahl im Konto unter „Uhren" (nur Garmin — nur dort waehlt die App
+  die Stufe selbst). Aenderung greift **sofort**, nicht erst beim naechsten Start: der naechste
+  Config-Abruf ruft `enableGps()` neu. Uhren vor 1.0.77 ignorieren den Schluessel.
+  Verifiziert: `build-all.sh` 121/121, `npm run build` gruen (der Light-Mode-Waechter hat einen
+  doppelt gekippten slate-Ton in meiner neuen Zeile gefunden — behoben), Migration gelaufen,
+  Geraeteliste liefert `gnss_mode` (an Philipps FR55 read-only geprueft: `best`).
+  **Offen:** Was die Stufen wirklich an Akku sparen, wissen wir NICHT — dafuer fehlt uns jede
+  Messung, die Uhr meldet keinen Ladestand. Die Texte behaupten deshalb nur „mehr Systeme =
+  mehr Akku", keine Prozentzahlen. Wer es genau wissen will, muss zwei gleiche Sessions fahren.

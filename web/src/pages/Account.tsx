@@ -214,6 +214,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, record_mode: mode } : x)) : ds));
     api.setDeviceRecordMode(id, mode).catch(() => load());
   };
+  const setGnss = (id: number, mode: string) => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gnss_mode: mode } : x)) : ds));
+    api.setDeviceGnssMode(id, mode).catch(() => load());
+  };
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
 
   if (!devices) return null;
@@ -275,6 +279,22 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     {d.platform === "garmin" && (
                       <p className="mt-1 text-[11px] text-slate-400">{t("account.recordModeGarminHint")}</p>
                     )}
+                  </div>
+                )}
+                {/* Satellitensysteme je Uhr — nur Garmin: nur dort waehlt die App die GNSS-Stufe
+                    selbst (ab Uhr 1.0.77). Mehr Systeme = bessere Abdeckung, mehr Akku; welche
+                    Seite zaehlt, weiss nur der Besitzer. Voreinstellung bleibt das Maximum. */}
+                {!d.revoked_at && d.platform === "garmin" && (
+                  <div className="mt-2">
+                    <label className="mb-1 block text-xs text-slate-400">{t("account.gnssMode")}</label>
+                    <select value={d.gnss_mode ?? "best"} onChange={(e) => setGnss(d.id, e.target.value)}
+                      className="w-full max-w-sm truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                      <option value="best">{t("account.gnssModeBest")}</option>
+                      <option value="l1">{t("account.gnssModeL1")}</option>
+                      <option value="two">{t("account.gnssModeTwo")}</option>
+                      <option value="gps">{t("account.gnssModeGps")}</option>
+                    </select>
+                    <p className="mt-1 text-sm text-slate-400">{t("account.gnssModeHint")}</p>
                   </div>
                 )}
                 {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr
