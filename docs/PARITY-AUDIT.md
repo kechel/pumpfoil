@@ -25,12 +25,12 @@ DREI Seitenlisten (`pages` / `off_foil_pages` / `pause_pages`) und der Schalter 
 
 | Einstellung (PWA `ViewsEditor`) | Feld | Android | iOS | Anmerkung |
 |---|---|---|---|---|
-| Werte je nach Hoehe einfaerben | `colorByValue` | ❌ | ❌ | ein Schalter, trivial |
+| Werte je nach Hoehe einfaerben | `colorByValue` | ✅ 17.08. | ✅ 17.08. | |
 | Aufnahme automatisch starten (GPS) | `auto_start` | ❌ | ❌ | ein Schalter. ACHTUNG: Androids `autoStart` in `RecordScreen.kt` ist `phone_autostart`, also der HANDY-Recorder — nicht diese Uhr-Einstellung. Nicht verwechseln. |
 | Eigene Layouts an meine Uhren senden | `layouts_enabled` | ✅ | ✅ | |
 | In Pause/Off-Foil alle Seiten blaettern | `browse_all_pages` | ✅ | ✅ | |
-| Hinweis „Rate jetzt pro Uhr" | — | ❌ | ❌ | reiner Hinweistext, zeigt auf die verbundenen Uhren |
-| Link „Layouts der Community" | — | ❌ | ❌ | s. u., es gibt dort keine Galerie |
+| Hinweis „Rate jetzt pro Uhr" | — | ✅ 17.08. | ✅ 17.08. | ersetzt durch die Einleitung über der Uhren-Liste (`devicesSettingsIntro`) |
+| Link „Layouts der Community" | — | ❌ | ❌ | Galerie noch offen (Punkt 4) — der Renderer steht in Android bereits |
 | Link „Eigene Layouts" | — | ❌ | ❌ | s. u., es gibt dort keinen Editor |
 
 **🔴 Der grosse Posten, eigene Entscheidung: Layout-Editor und Community-Galerie gibt es nativ
@@ -48,8 +48,8 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | # | Feature | PWA seit | Android | iOS | Aufwand |
 |---|---|---|---|---|---|
 | 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ✅ `5d842c7`+ | ✅ | **ERLEDIGT 17.08.** — beide Schalter, Reihenfolge wie PWA |
-| 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ⚠️ | ⚠️ | M — `record_mode` ist da (2–3 Dateien), `gnss_mode` in beiden **0 Treffer** |
-| 3 | Hilfetexte zu den Uhr-Einstellungen + Hinweis nach dem Verbinden | `06875ee`/`1f8e94d` 17.08. | ❌ | ❌ | S — nur Texte, Keys existieren schon |
+| 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — GNSS-Auswahl je Uhr, nur Garmin |
+| 3 | Hilfetexte zu den Uhr-Einstellungen | `06875ee`/`1f8e94d` 17.08. | ✅ 17.08. | ✅ 17.08. | Einleitung + GPS-Warnung + Amazfit-Hinweis. OFFEN: der Hinweis nach dem VERBINDEN (eigene Pair-Screens) |
 | 4 | Screen-Auswahl per Vorschau statt Namensliste | `c21159d` 17.08. | ❌ | ❌ | haengt an der Entscheidung oben |
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Spalte nur wenn Puls da; "#" schmaler wegen fehlendem Horizontal-Scroll |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
