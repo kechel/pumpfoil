@@ -73,13 +73,19 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.77",   # LIVE im CIQ-Store; Store-Seite bestaetigt "Latest Release
-        # August 16, 2026, Version 1.0.77, Size 106 KB" (Jan). Garmin gibt automatisch frei — die
-        # Freigabe kam am Tag des Uploads. Inhalt: generischer LAUF-CANARY (jeder Absturz meldet
-        # sich beim naechsten Start mit der Phase, auch im Lite-Build der speicherarmen Uhren — die
-        # beiden alten Marken deckten nur Layout-Faelle ab und waren `(:full)`) + GNSS-Stufe JE UHR
-        # einstellbar (best|l1|two|gps), weil alle Systeme gleichzeitig Akku kosten.
-        # Vorher 1.0.76 (Speicher-voll nicht mehr stumm + Upload in der Pause), live seit 13.08.
+        "latest": "1.0.78",   # LIVE im CIQ-Store; Store-Seite bestaetigt "Latest Release
+        # August 17, 2026, Version 1.0.78, Size 63 KB" (Jan). Garmin gibt automatisch frei — die
+        # Freigabe kam am Tag des Uploads. Inhalt: neue ENG-BUILD-STUFE fuer die 16 Uhren der
+        # 128-KB-Klasse (fenix 5/5S/6/6S/Chronos, FR55/245/645/935, Venu Sq, vivoactive 3, Enduro,
+        # Instinct 3 Solar / Instinct E). Sie fuhren den vollen Build und waren mit ihm aus dem
+        # Speicher gewachsen (FR55 gemessen: 58 508 B in 1.0.60 -> 105 052 B in 1.0.77, freier Heap
+        # 72 564 -> 26 020 B) und zeichneten still gar nichts mehr auf — 4 von 7 aktiv gepairten
+        # Uhren dieser Klasse hatten NIE eine Session. ENG nimmt Layout-Renderer + 13-Sprachen-
+        # Tabelle weg (Texte dort Englisch), die Menues bleiben; jetzt ~66 kB frei. Belegt an
+        # Geraet #136 und per Feldtest auf Jans fenix 5 + FR55. Details docs/TODO.md.
+        # DIE 63 KB IN DER STORE-ZEILE SIND KEIN FEHLER: der Store nennt die Groesse eines
+        # kleinen Geraete-Builds, und genau die ist durch ENG von ~106 auf ~63 KB gefallen.
+        # Vorher 1.0.77 (Lauf-Canary + GNSS-Stufe je Uhr), live seit 16.08.
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
