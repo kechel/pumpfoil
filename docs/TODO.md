@@ -1524,3 +1524,25 @@ Offen daraus:
   entfernt den `document`-Listener. `npm run build` gruen, damit sofort live.
   Nebenbei behoben: die Karten waren auch ein Speicherleck — jede Navigation liess eine komplette
   Leaflet-Instanz samt Tile-Layer zurueck.
+
+- **🟢 Puls/Trainings-Wuensche (ThermikDreher, 15.08.) — zwei umgesetzt, einer bewusst NICHT.**
+  Er wollte vier Dinge: Max-Puls je Lauf, Puls-Verlauf mit eigenen Zonen, Vergleich mit Fahrern
+  auf aehnlichem Setup, und (aus den Uhr-Datenfeldern) den Max-Puls des letzten Laufs.
+  - **Max-Puls je Lauf: LIVE 17.08.** Reine Anzeige — der Track traegt den Puls je Punkt schon,
+    `i_start`/`i_end` sind Indizes darauf. `v2_hr_bpm` im Segment ist der MITTELWERT, nicht das
+    Maximum (143 gegen 155 im belegten Fall).
+  - **Trainingskurve LIVE 17.08.**: Hoechstpuls nach 1/2/5 Minuten Lauf ueber die Sessions.
+    Jans Umdeutung des Setup-Vergleichs und der Kern der Sache — die Anstrengung haengt an der
+    DAUER, kaum am Foil, also ist die Lauf-Dauer die ehrliche Achse. 81 Nutzer haben genug Puls.
+  - **Vergleichs-VORSCHLAEGE: verworfen (Jan, 17.08.).** „brauchen wir garnicht durch die anderen
+    dinge" — man kann manuell vergleichen, hat den eigenen Verlauf, und eigene wie fremde Sessions
+    lassen sich schon gegenueberstellen. NICHT bauen, auch nicht als „waere doch nett".
+    Moegliche Fortsetzung, wenn die Praxis es zeigt: Vergleich einzelner LAEUFE statt ganzer
+    Sessions — Jan testet erst.
+  - **Puls-Verlauf mit eigenen Zonen: OFFEN**, wartet auf eine Entscheidung. Die Frage ist nur, wie
+    die Zonen reinkommen: fuenf Grenzwerte im Profil eintragen oder aus einem Maximalpuls ableiten.
+    Datenlage ist vollstaendig da (Puls je GPS-Punkt, 1705 Sessions).
+  - **Max-Puls des letzten Laufs als UHR-Datenfeld: OFFEN.** Die Uhren fuehren die Werte des
+    letzten Laufs schon (Dauer, Distanz, Ø/Max-Speed) — ein `lastRunMaxHr` waere dieselbe Mechanik
+    je Plattform plus ein Feld-Eintrag. Garmin und Wear koennte ich bauen, Apple nur als Code,
+    Zepp liegt gerade in der Pruefung.
