@@ -526,8 +526,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Quellen als „noch nicht gemergt" (offene Transaktion) und rechnete alles ein zweites Mal. Ein
   Nutzer hat so am 11.08. drei identische 20-MB-Sessions erzeugt (Anfragen 20:08:18/20:08:44/20:09:39,
   erster Commit 20:09:57). Jetzt werden die Quellzeilen gesperrt und DANACH neu bewertet -> die
-  zweite Anfrage liefert das Ergebnis der ersten. **OFFEN:** die 2 Waisen-Sessions (#1908, #1909)
-  zaehlen bei diesem Nutzer doppelt in Statistik/Rekorden und muessen weg — Rueckfrage an Jan laeuft.
+  zweite Anfrage liefert das Ergebnis der ersten. **Die 2 Waisen-Sessions (#1908, #1909): ERLEDIGT
+  17.08.** Genau wie die schon korrekt behandelte #1907 auf `deleted=true, merged_into=1910` gesetzt
+  — kein Hart-Loeschen, damit die Zeilen als Herkunft der Zusammenfuehrung erhalten bleiben.
+  Vorher geprueft (Assertion vor dem UPDATE): an beiden hing nichts — kein Rekord-Event, kein Like,
+  kein Video, kein Foto, keine Uebertragung. Ist-Zustand gesichert in
+  `scratchpad/waisen-sessions-2026-08-17.json`.
+  Wirkung bei Nutzer 48: 11 -> **9 Sessions**, 44,5 -> **30,8 km**, jetzt 50 Laeufe / 2742 Pumps
+  (die zwei Kopien trugen je 6855 m / 10 Laeufe / 589 Pumps).
 - **🟢 Erneutes Pairing legte Geraete-Duplikate an — BEHOBEN 12.08.** (Ausblenden + automatisches
   Aufraeumen). Zwei Stufen: `POST /api/devices/{id}/hide` (Nutzer kann jeden Eintrag ausblenden,
   reversibel, 16 Sprachen) und `_hide_replaced_siblings` im Config-Aufruf, das den EINDEUTIGEN Fall
