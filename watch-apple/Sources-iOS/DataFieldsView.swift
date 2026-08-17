@@ -66,15 +66,24 @@ struct DataFieldsView: View {
     @State private var autoStartWatch = true
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
+    // Welche der drei Seitenlisten hat die Vorschau-Auswahl geoeffnet ("on"|"off"|"pause")?
+    // Eine Kennung statt drei Flags — sonst braeuchte jede Liste ihren eigenen Sheet-Zustand.
+    @State private var waehleFuer: String?
 
     var body: some View {
         Form {
-            Section { Text(Loc.t("datafields.intro", lang)).font(.callout).foregroundStyle(.secondary) }
-            pageSet(title: nil, footer: nil, pages: $onFoil)
+            Section {
+                Text(Loc.t("datafields.intro", lang)).font(.callout).foregroundStyle(.secondary)
+                // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen — der
+                // Editor ist bewusst Web-only (Jan, 17.08.). Also sagen wir, wo er ist.
+                Text(Loc.t("datafields.editorInBrowser", lang))
+                    .font(.callout).foregroundStyle(Color.accentColor)
+            }
+            pageSet(title: nil, footer: nil, pages: $onFoil, kennung: "on")
             pageSet(title: Loc.t("account.offFoilTitle", lang),
-                    footer: Loc.t("account.offFoilDesc", lang), pages: $offFoil)
+                    footer: Loc.t("account.offFoilDesc", lang), pages: $offFoil, kennung: "off")
             pageSet(title: Loc.t("account.pauseTitle", lang),
-                    footer: Loc.t("account.pauseDesc", lang), pages: $pause)
+                    footer: Loc.t("account.pauseDesc", lang), pages: $pause, kennung: "pause")
             switchSection
             Section {
                 Button(Loc.t("common.save", lang)) { save() }
@@ -106,12 +115,13 @@ struct DataFieldsView: View {
 
     // Ein Seiten-Satz. Klassische Seiten sind bearbeitbar; Layout-Seiten lassen sich einfügen,
     // entfernen und verschieben, gestaltet werden sie nur in der PWA.
-    @ViewBuilder private func pageSet(title: String?, footer: String?, pages: Binding<[WatchPage]>) -> some View {
+    @ViewBuilder private func pageSet(title: String?, footer: String?, pages: Binding<[WatchPage]>,
+                                      kennung: String) -> some View {
         Section {
             ForEach(pages.wrappedValue.indices, id: \.self) { idx in
                 pageRows(pages: pages, idx: idx)
             }
-            pageButtons(pages: pages)
+            pageButtons(pages: pages, kennung: kennung)
         } header: {
             if let title { Text(title) }
         } footer: {
@@ -131,9 +141,20 @@ struct DataFieldsView: View {
                 }
             }
         case .layout(let lid):
-            let name = layouts.first { $0.id == lid }?.name
-            Text(name ?? Loc.t("account.layoutMissing", lang))
-                .foregroundStyle(name == nil ? Color.red : Color.accentColor)
+            // Bild UND Name: erkannt wird am Bild, benannt zur Sicherheit. Fehlt das Layout
+            // (geloescht/fremd), bleibt nur der Hinweis.
+            if let l = layouts.first(where: { $0.id == lid }) {
+                HStack(spacing: 10) {
+                    WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0,
+                                       shape: l.shape ?? "round",
+                                       w: l.authored_w ?? 240, h: l.authored_h ?? 240,
+                                       px: 100, pageCount: pages.wrappedValue.count,
+                                       pageIndex: idx, lang: lang)
+                    Text(l.name).foregroundStyle(Color.accentColor)
+                }
+            } else {
+                Text(Loc.t("account.layoutMissing", lang)).foregroundStyle(Color.red)
+            }
         }
         pageActions(pages: pages, idx: idx)
     }
@@ -161,21 +182,60 @@ struct DataFieldsView: View {
         }
     }
 
-    @ViewBuilder private func pageButtons(pages: Binding<[WatchPage]>) -> some View {
+    /// Vorschau-Auswahl als Sheet. Auf dem Handy bewusst ein Sheet (nicht aufklappend wie in der
+    /// PWA): Platz ist knapp, und es laesst sich wegwischen. Scrollt, damit auch viele Layouts
+    /// erreichbar sind, und respektiert die Safe Area, weil NavigationStack sie mitbringt.
+    @ViewBuilder private func layoutAuswahl(pages: Binding<[WatchPage]>) -> some View {
+        NavigationStack {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(layouts) { l in
+                        Button {
+                            pages.wrappedValue.append(.layout(l.id))
+                            saved = false
+                            waehleFuer = nil
+                        } label: {
+                            HStack(spacing: 12) {
+                                WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0,
+                                                   shape: l.shape ?? "round",
+                                                   w: l.authored_w ?? 240, h: l.authored_h ?? 240,
+                                                   px: 96,
+                                                   pageCount: pages.wrappedValue.count + 1,
+                                                   pageIndex: pages.wrappedValue.count, lang: lang)
+                                Text(l.name).foregroundStyle(Color.primary)
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle(Loc.t("account.pickLayoutTitle", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(Loc.t("common.cancel", lang)) { waehleFuer = nil }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func pageButtons(pages: Binding<[WatchPage]>, kennung: String) -> some View {
         if pages.wrappedValue.count < 8 {
             Button(Loc.t("datafields.addPage", lang)) {
                 pages.wrappedValue.append(.classic([0, 0, 0]))
                 saved = false
             }
             if !layouts.isEmpty {
-                Menu(Loc.t("account.addLayoutPage", lang)) {
-                    ForEach(layouts) { l in
-                        Button(l.name) {
-                            pages.wrappedValue.append(.layout(l.id))
-                            saved = false
-                        }
+                // Auswahl per VORSCHAU statt per Name (Jan, 17.08.): ein Menue mit `l.name` hilft
+                // nicht, wenn eine Community-Kopie den Originalnamen behaelt und mehrere Kopien
+                // gleich heissen. Gleiche Aenderung wie PWA (c21159d) und Android (5d842c7).
+                Button(Loc.t("account.addLayoutPage", lang)) { waehleFuer = kennung }
+                    .sheet(isPresented: Binding(get: { waehleFuer == kennung },
+                                                set: { if !$0 { waehleFuer = nil } })) {
+                        layoutAuswahl(pages: pages)
                     }
-                }
             }
         }
     }

@@ -668,6 +668,43 @@ struct WatchLayoutBrief: Codable, Identifiable {
     let id: Int
     let name: String
     let category: String?
+    // Zeichendaten fuer WatchLayoutPreview (LayoutRender.swift). GESTALTET wird nur in der PWA
+    // (Entscheidung Jan 2026-08-17), ANGEZEIGT auch hier — man soll einen Screen an seinem BILD
+    // wiedererkennen, nicht am Namen: eine Community-Kopie behaelt den Originalnamen, mehrere
+    // Kopien heissen dann gleich. Der Server liefert das alles schon (layouts.py:_out).
+    // `elements` ist eine Liste gemischter Werte (Zahlen, bei Freitext ein String) -> AnyCodable.
+    let elements: [[LayoutValue]]?
+    let bg_color: Int?
+    let shape: String?
+    // Auflösung, FUER DIE das Layout gebaut wurde — Seitenverhaeltnis der Vorschau.
+    let authored_w: Int?
+    let authored_h: Int?
+}
+
+// Ein Element-Feld ist entweder eine Zahl oder (bei Freitext) ein String. Swifts Codable braucht
+// dafuer einen eigenen Typ; JSONSerialization-Umwege waeren fehleranfaelliger.
+enum LayoutValue: Codable {
+    case zahl(Double)
+    case text(String)
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let d = try? c.decode(Double.self) { self = .zahl(d); return }
+        if let s = try? c.decode(String.self) { self = .text(s); return }
+        self = .zahl(0)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .zahl(let d): try c.encode(d)
+        case .text(let s): try c.encode(s)
+        }
+    }
+
+    var alsZahl: Double { if case .zahl(let d) = self { return d }; return 0 }
+    var alsInt: Int { Int(alsZahl) }
+    var alsText: String { if case .text(let s) = self { return s }; return "" }
 }
 
 

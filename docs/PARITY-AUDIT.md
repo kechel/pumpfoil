@@ -33,7 +33,14 @@ DREI Seitenlisten (`pages` / `off_foil_pages` / `pause_pages`) und der Schalter 
 | Link „Layouts der Community" | — | ❌ | ❌ | Galerie noch offen (Punkt 4) — der Renderer steht in Android bereits |
 | Link „Eigene Layouts" | — | ❌ | ❌ | s. u., es gibt dort keinen Editor |
 
-**🔴 Der grosse Posten, eigene Entscheidung: Layout-Editor und Community-Galerie gibt es nativ
+**ENTSCHEIDUNG Jan (17.08.): Layout-EDITOR bleibt Web-only** („das macht man eh nur am pc") — in
+den Apps steht stattdessen ein Hinweis auf den Browser (`datafields.editorInBrowser`).
+**Anzeige und Auswahl per Vorschau sind gebaut** (17.08.): lesende Renderer in
+`android/.../LayoutRender.kt` und `watch-apple/Sources-iOS/LayoutRender.swift`, beide Spiegel von
+`web/src/components/LayoutPreview.tsx` mit denselben ausgerechneten Groessenfaktoren.
+**OFFEN bleibt die Community-Galerie** (Browsen + Kopieren) — der Renderer dafuer steht schon.
+
+**Ausgangslage war: Layout-Editor und Community-Galerie gab es nativ
 GAR NICHT** (`LayoutGallery`/`LayoutEditor`/`layouts/community`: 0 Treffer in beiden Apps). Nativ
 kann man eigene Screens also nur EINBINDEN, nicht erstellen, nicht ansehen und nicht aus der
 Community kopieren — und eingebunden werden sie ueber den NAMEN. Das ist derselbe Mangel, den Jan
@@ -50,7 +57,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ✅ `5d842c7`+ | ✅ | **ERLEDIGT 17.08.** — beide Schalter, Reihenfolge wie PWA |
 | 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — GNSS-Auswahl je Uhr, nur Garmin |
 | 3 | Hilfetexte zu den Uhr-Einstellungen | `06875ee`/`1f8e94d` 17.08. | ✅ 17.08. | ✅ 17.08. | Einleitung + GPS-Warnung + Amazfit-Hinweis. OFFEN: der Hinweis nach dem VERBINDEN (eigene Pair-Screens) |
-| 4 | Screen-Auswahl per Vorschau statt Namensliste | `c21159d` 17.08. | ❌ | ❌ | haengt an der Entscheidung oben |
+| 4 | Layout-Vorschau: Anzeige + Auswahl per Bild | `c21159d` 17.08. | ✅ 17.08. | ✅ 17.08. | Lesende Renderer gebaut (`LayoutRender.kt` / `LayoutRender.swift`). OFFEN: Community-Galerie |
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Spalte nur wenn Puls da; "#" schmaler wegen fehlendem Horizontal-Scroll |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ⚠️ | ⚠️ | S–M — Rekorde + `sport_class` sind da |
