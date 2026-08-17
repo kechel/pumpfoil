@@ -374,9 +374,10 @@ class SessionRecorder {
 
     // Gecachtes/geliefertes Layout-Paket übernehmen. Defensiv: alles, was nicht wie erwartet
     // aussieht, wird verworfen -> die Uhr fährt statisch weiter statt zu crashen.
-    // (:full): die 96-KB-Uhren bekommen vom Server ohnehin keine Layouts (Gating >= 512 KB),
-    // also braucht ihr Build weder Parser noch Umschalter — jedes Byte zählt dort.
-    (:full) hidden function _applyLayouts(lay) {
+    // (:layouts): die sparsamen Stufen (LITE 96 KB + ENG 128 KB) bekommen vom Server ohnehin keine
+    // Layouts (Gating >= 512 KB), also braucht ihr Build weder Parser noch Umschalter — jedes Byte
+    // zaehlt dort. Genau daran war die 128-KB-Klasse erstickt (docs/TODO.md, 17.08.).
+    (:layouts) hidden function _applyLayouts(lay) {
         var on = (lay instanceof Lang.Dictionary && lay.hasKey("on") && lay["on"] == true);
         var pg = (lay instanceof Lang.Dictionary && lay.hasKey("pages")) ? lay["pages"] : null;
         pages = (pg instanceof Lang.Array) ? pg : [];
@@ -401,7 +402,7 @@ class SessionRecorder {
     // Einen Seiten-Satz aus dem Paket lesen: erst der F3-Schlüssel (Liste), sonst der alte
     // Einzel-Eintrag als Liste mit einem Element. Alles, was nicht wie erwartet aussieht, wird
     // verworfen — lieber statisch weiterfahren als crashen.
-    (:full) hidden function _pageSet(lay, key, legacyKey) {
+    (:layouts) hidden function _pageSet(lay, key, legacyKey) {
         if (!(lay instanceof Lang.Dictionary)) { return []; }
         if (lay.hasKey(key) && lay[key] instanceof Lang.Array && lay[key].size() > 0) {
             var out = [];
@@ -418,7 +419,7 @@ class SessionRecorder {
     // Layout-Paket aus dem Server-Config ziehen und in EINEN Storage-Key cachen. Liefert der
     // Server layoutsOn=false (oder den Key gar nicht), fällt die Uhr auf die statische Logik
     // zurück — ohne App-Update.
-    (:full) hidden function _layoutsFromConfig(data) {
+    (:layouts) hidden function _layoutsFromConfig(data) {
         if (!data.hasKey("layoutsOn")) { return; }
         var lay = {
             "on" => (data["layoutsOn"] == true),
@@ -433,7 +434,7 @@ class SessionRecorder {
         _store("layouts_config", lay);
     }
 
-    (:full) hidden function _layoutsFromCache() {
+    (:layouts) hidden function _layoutsFromCache() {
         // Dreizustand: null = nie angefasst (dann gilt der Server-Wert), true/false = Wille des
         // Nutzers. Altbestand aus 1.0.66 (`layouts_off` = reiner Not-Aus) einmal übernehmen.
         layoutsPref = Storage.getValue("layouts_pref");
@@ -465,31 +466,31 @@ class SessionRecorder {
 
     // Start als geglückt verbuchen — gerufen, sobald das erste Bild nachweislich stand
     // (RecordView.onUpdate ein zweites Mal). Ein Storage-Write pro App-Start, nicht pro Frame.
-    (:full) function bootCanaryClear() {
+    (:layouts) function bootCanaryClear() {
         if (bootCanaryOpen) {
             bootCanaryOpen = false;
             if (Storage.getValue("layout_boot_canary") == true) { _store("layout_boot_canary", false); }
         }
     }
-    (:lite) function bootCanaryClear() { }
+    (:nolayouts) function bootCanaryClear() { }
 
-    (:lite) hidden function _layoutsFromConfig(data) { }
-    (:lite) hidden function _layoutsFromCache() { }
+    (:nolayouts) hidden function _layoutsFromConfig(data) { }
+    (:nolayouts) hidden function _layoutsFromCache() { }
 
     // Canary scharf machen — NUR wenn diese Aufnahme wirklich mit dynamischem Layout läuft.
     // Ein Storage-Write pro Session-Start, nicht pro Frame.
-    (:full) hidden function _armCanary() {
+    (:layouts) hidden function _armCanary() {
         if (layoutsOn) { _store("layout_canary", true); }
     }
-    (:full) hidden function _clearCanary() {
+    (:layouts) hidden function _clearCanary() {
         if (Storage.getValue("layout_canary") == true) { _store("layout_canary", false); }
     }
-    (:lite) hidden function _armCanary() { }
-    (:lite) hidden function _clearCanary() { }
+    (:nolayouts) hidden function _armCanary() { }
+    (:nolayouts) hidden function _clearCanary() { }
 
     // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
-    (:lite) hidden function _applyLayouts(lay) { layoutsOn = false; }
-    (:lite) hidden function _pageSet(lay, key, legacyKey) { return []; }
+    (:nolayouts) hidden function _applyLayouts(lay) { layoutsOn = false; }
+    (:nolayouts) hidden function _pageSet(lay, key, legacyKey) { return []; }
 
     // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.
     //
@@ -506,7 +507,7 @@ class SessionRecorder {
     // und damit nicht wieder erreichbar — Jan zu Recht: „ob die initialisierung vom server geklappt
     // hat beim ersten aufruf … kann ich ja nie wieder testen oder?".
     // Reihenfolge: Automatisch -> An -> Aus -> Automatisch.
-    (:full) function toggleLayouts() {
+    (:layouts) function toggleLayouts() {
         if (layoutsPref == null) {
             layoutsPref = true;
         } else if (layoutsPref == true) {
@@ -526,15 +527,15 @@ class SessionRecorder {
         }
     }
     // Was der Menüpunkt anzeigen soll: der wirksame Wunsch, nicht das Ergebnis.
-    (:full) function layoutsWanted() {
+    (:layouts) function layoutsWanted() {
         return (layoutsPref == null) ? serverDefault : (layoutsPref == true);
     }
     // null = „Automatisch" (Server entscheidet), sonst die feste Wahl des Nutzers.
-    (:full) function layoutsAuto() { return layoutsPref == null; }
+    (:layouts) function layoutsAuto() { return layoutsPref == null; }
     // Nur ein AUSDRÜCKLICHES „an" auf der Uhr fordert Layouts an (nicht „Automatisch"): sonst
     // bekäme jede knappe Uhr das Paket, obwohl niemand danach gefragt hat.
-    (:full) hidden function _layoutsRequested() { return layoutsPref == true; }
-    (:lite) hidden function _layoutsRequested() { return false; }
+    (:layouts) hidden function _layoutsRequested() { return layoutsPref == true; }
+    (:nolayouts) hidden function _layoutsRequested() { return false; }
 
     // View auf genau 3 Felder normalisieren (fehlende -> FIELD_NONE).
     hidden function _normView(v) {
@@ -779,7 +780,7 @@ class SessionRecorder {
                 pauseView = _normView(data["pauseView"]);
                 _store("pause_config", pauseView);
             }
-            // Dynamische Layouts (nur (:full)-Builds; im Lite-Build ist das ein No-Op).
+            // Dynamische Layouts (nur (:layouts)-Builds; in LITE/ENG ist das ein No-Op).
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
             canaryPending = false;

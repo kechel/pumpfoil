@@ -19,10 +19,11 @@ using Toybox.System;
 // if-Ketten (_a0.._a8) EIN einzelnes 13-Spalten-Array für genau diesen Key; danach ist es
 // referenzlos -> Speicher wieder frei. Spitzenlast = 1 kleines Array.
 //
-// (:full) — dieses volle 13-Sprachen-Modul wird im LITE-Build (96-KB-Uhren) KOMPLETT
-// ausgeschlossen; dort liefert StringsLite.mc ein English-only-Modul (spart die Sprach-
-// Daten = Code). Volle App behält alle 13 Sprachen.
-(:full)
+// (:i18n) — dieses volle 13-Sprachen-Modul wird ausgeschlossen, sobald der Speicher knapp ist:
+// im LITE-Build (96-KB-Uhren) und in der ENG-Stufe (128-KB-Uhren, s. monkey.jungle). Dort
+// liefert StringsLite.mc `(:noi18n)` ein English-only-Modul mit derselben API (spart die
+// Sprach-Daten = Code). Volle App behält alle 13 Sprachen.
+(:i18n)
 module Strings {
 
     // Sprachreihenfolge der Array-Spalten.

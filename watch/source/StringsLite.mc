@@ -1,11 +1,13 @@
 using Toybox.Lang;
 
-// LITE-Lokalisierung (nur 96-KB-Uhren, Instinct-2-Klasse). Ausschließlich Englisch — spart
-// gegenüber der vollen 13-Sprachen-Tabelle (Strings.mc, `(:full)`) den Großteil der String-
-// Daten = Code, damit die App ins winzige watchApp-Budget passt. Kein Cache, keine Container:
-// s() liefert das englische Literal direkt (Gruppen _e0.._e8, spiegeln Strings._a0.._a8).
-// setLang() ist ein No-Op (Sprache fix Englisch). Siehe memory garmin-instinct2-lowmem.
-(:lite)
+// SPARSAME Lokalisierung: ausschließlich Englisch — spart gegenüber der vollen 13-Sprachen-
+// Tabelle (Strings.mc, `(:i18n)`) den Großteil der String-Daten = Code. Kein Cache, keine
+// Container: s() liefert das englische Literal direkt (Gruppen _e0.._e8, spiegeln
+// Strings._a0.._a8). setLang() ist ein No-Op (Sprache fix Englisch).
+// Verwendet von BEIDEN sparsamen Stufen (s. monkey.jungle): dem LITE-Build der 96-KB-Uhren
+// (Instinct-2-Klasse) und der ENG-Stufe der 128-KB-Uhren (FR55/fenix 6/Venu Sq …).
+// Siehe memory garmin-instinct2-lowmem.
+(:noi18n)
 module Strings {
 
     function setLang(code as Lang.String or Null) as Void {}

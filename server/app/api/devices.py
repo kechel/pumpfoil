@@ -582,9 +582,20 @@ CANARY_HARD_BLOCK_AT = 5
 # dieses Fensters zaehlt das als EIN Ereignis; das Volumen wird trotzdem uebernommen.
 SF_DEBOUNCE_S = 60
 # Ab diesem Budget darf eine Uhr Layouts ANFORDERN (`lay=1`), auch wenn wir sie nicht von selbst
-# ausliefern. 128 KB = die Klasse, in der der Renderer im Build steckt (kein Lite), aber der
-# Speicher knapp ist. Darunter (96 KB, Lite) existiert der Renderer nicht -> nichts anzufordern.
-LAYOUT_MIN_ON_REQUEST = 131072
+# ausliefern.
+#
+# GEAENDERT 17.08.: war 131072. Die 128-KB-Klasse hat den Renderer seit der neuen ENG-Build-Stufe
+# NICHT MEHR im Build (`(:nolayouts)`, s. watch/monkey.jungle) — sie war mit dem vollen Build aus
+# dem Speicher gewachsen (FR55: 26 020 B frei) und fiel dabei still komplett aus, gemessen in
+# docs/TODO.md. Ein Layout-Paket an diese Uhren waere jetzt reine Last ohne Wirkung: die Uhr
+# ignoriert es, der Speicher ist trotzdem weg.
+# Damit gibt es faktisch keine Anforderungs-Stufe mehr — >= 512 KB bekommt Layouts ohnehin von
+# selbst. Die Konstante bleibt stehen, damit die Regel benannt ist und eine kuenftige mittlere
+# Geraeteklasse sie wieder senken kann.
+# KOSTET: Jans fenix 5 (128 KB) kann Layouts nicht mehr testen — genau die Uhr, deren Meldung die
+# Anforderungs-Stufe urspruenglich begruendet hat. Bewusst: dieselbe Uhr steht mit 24 772 B frei
+# in der Klasse, die gar nichts mehr aufgezeichnet hat.
+LAYOUT_MIN_ON_REQUEST = 524288
 
 
 def _catalog_entry(part_number: str | None) -> dict | None:

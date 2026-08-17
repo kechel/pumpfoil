@@ -6,14 +6,43 @@ project.manifest = manifest.xml
 base.sourcePath = source
 base.resourcePath = resources
 
-# --- Build-Varianten (Speicher) ---
-# Volle App (Default): alles außer den Lite-Alternativen -> `(:lite)`-Code wird ausgeschlossen.
-# Lite-Build für die winzigen 96-KB-Uhren (Instinct-2-Klasse): schließt den schweren `(:full)`-
-# Code aus (Stop-/Pause-Menü, 13-Sprachen-Tabelle …) -> kleinerer Code = mehr Heap. Siehe
-# docs + memory garmin-instinct2-lowmem. Die aktive Sprache fällt im Lite auf Englisch zurück.
-base.excludeAnnotations = lite
-instinct2.excludeAnnotations = full
-instinct2s.excludeAnnotations = full
-instinct2x.excludeAnnotations = full
-instinctcrossover.excludeAnnotations = full
-descentg1.excludeAnnotations = full
+# --- Build-Varianten (Speicher): DREI Stufen ---
+# Drei unabhängige Annotations-Paare, damit jede Stufe genau das wegnimmt, was sie muss:
+#   Menüs    `(:full)`      <-> `(:lite)`        Pausen-Menü, Aktions-Menü
+#   Layouts  `(:layouts)`   <-> `(:nolayouts)`   dynamischer Renderer + Layout-Canary
+#   Sprachen `(:i18n)`      <-> `(:noi18n)`      13-Sprachen-Tabelle vs. English-only
+#
+# VOLL (>= 512 KB, ~100 Geräte): alles an.
+base.excludeAnnotations = lite;nolayouts;noi18n
+#
+# LITE (96 KB, Instinct-2-Klasse): alles Schwere raus. Siehe memory garmin-instinct2-lowmem.
+instinct2.excludeAnnotations = full;layouts;i18n
+instinct2s.excludeAnnotations = full;layouts;i18n
+instinct2x.excludeAnnotations = full;layouts;i18n
+instinctcrossover.excludeAnnotations = full;layouts;i18n
+descentg1.excludeAnnotations = full;layouts;i18n
+#
+# ENG (128 KB, 16 Geräte) — NEU 17.08., Anlass war ein gemessener stiller Totalausfall:
+# diese Klasse fährt den VOLLEN Build und ist mit ihm aus dem Speicher gewachsen. Gemessen an
+# der FR55: 1.0.60 = 58 508 B (72 564 B frei) -> 1.0.77 = 105 052 B (nur noch 26 020 B frei).
+# Belegt an Geraet #136 (dieselbe Uhr: auf 1.0.60 noch brauchbar, auf 1.0.76 sechs Totalausfälle);
+# von 7 aktiv gepairten Uhren dieser Klasse hatten 4 nie eine einzige Session. Details docs/TODO.md.
+# Weggenommen wird nur, was hier ohnehin kaum trägt: der Layout-Renderer (dieser Klasse liefert
+# der Server Layouts nur auf ausdrückliche Anforderung) und die 13-Sprachen-Tabelle (-> Englisch).
+# Die MENÜS bleiben — das ist der Unterschied zu LITE.
+venusq.excludeAnnotations = lite;layouts;i18n
+enduro.excludeAnnotations = lite;layouts;i18n
+fenix6.excludeAnnotations = lite;layouts;i18n
+fenix6s.excludeAnnotations = lite;layouts;i18n
+fr245.excludeAnnotations = lite;layouts;i18n
+fr645.excludeAnnotations = lite;layouts;i18n
+fr935.excludeAnnotations = lite;layouts;i18n
+fenix5.excludeAnnotations = lite;layouts;i18n
+fenix5s.excludeAnnotations = lite;layouts;i18n
+fr55.excludeAnnotations = lite;layouts;i18n
+vivoactive3.excludeAnnotations = lite;layouts;i18n
+vivoactive3d.excludeAnnotations = lite;layouts;i18n
+fenixchronos.excludeAnnotations = lite;layouts;i18n
+instinct3solar45mm.excludeAnnotations = lite;layouts;i18n
+instincte45mm.excludeAnnotations = lite;layouts;i18n
+instincte40mm.excludeAnnotations = lite;layouts;i18n

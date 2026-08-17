@@ -212,14 +212,14 @@ class RecordView extends WatchUi.View {
         return _pausedAtMs != null && System.getTimer() - _pausedAtMs < PAUSE_HINT_MS;
     }
 
-    (:full) hidden function _hasPausedHint(entry) {
+    (:layouts) hidden function _hasPausedHint(entry) {
         var els = (entry.size() > 2 && entry[2] instanceof Lang.Array) ? entry[2] : [];
         for (var i = 0; i < els.size(); i++) {
             if (els[i] instanceof Lang.Array && els[i].size() > 0 && els[i][0] == 7) { return true; }
         }
         return false;
     }
-    (:lite) hidden function _hasPausedHint(entry) { return false; }
+    (:nolayouts) hidden function _hasPausedHint(entry) { return false; }
 
     // Klassische Seite: bis zu 3 Felder gleichmäßig in einem sicheren Band gestapelt.
     hidden function _drawFieldPage(dc, fields, w, h) {
@@ -544,9 +544,10 @@ class RecordView extends WatchUi.View {
     //   x/y RELATIV 0…1000 -> mal dc.getWidth()/getHeight(): trägt über alle Auflösungen
     //       (176…454 px) und Formen. size = Font-Stufe, color = Index in die Palette.
     //   flags: Bit0 linksbündig, Bit1 rechtsbündig, Bit2 Farbe nach Wert.
-    // KOMPLETT hinter (:full): die 96-KB-Uhren bekommen diesen Code nicht mitkompiliert.
+    // KOMPLETT hinter (:layouts): die 96-KB-Uhren (LITE) und die 128-KB-Klasse (ENG) bekommen
+    // diesen Code nicht mitkompiliert. Server liefert beiden keine Layouts (Gating >= 512 KB).
     // Server-Vertrag + Palette: server/app/api/layouts.py, Vorschau: web/src/lib/watchLayout.ts.
-    (:full) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
+    (:layouts) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
         var bg = _layoutColor(entry.size() > 1 ? entry[1] : 0, Graphics.COLOR_BLACK);
         dc.setColor(bg, bg);
         dc.clear();
@@ -563,7 +564,7 @@ class RecordView extends WatchUi.View {
         }
     }
 
-    (:full) hidden function _drawElement(dc, e, w, h, idx) {
+    (:layouts) hidden function _drawElement(dc, e, w, h, idx) {
         var typ = e[0];
         var x = w * e[1] / 1000.0;
         var y = h * e[2] / 1000.0;
@@ -629,7 +630,7 @@ class RecordView extends WatchUi.View {
     // Größenstufe -> echter Garmin-Font. Ab Stufe 5 sind es NUMBER-Fonts: die enthalten NUR
     // Ziffern, deshalb bekommen Labels/Freitexte (typ 2/3) höchstens FONT_LARGE — sonst wären
     // sie auf der Uhr unsichtbar. Dieselbe Grenze prüft der Server (MAX_TEXT_STEP).
-    (:full) hidden function _layoutFont(step, typ) {
+    (:layouts) hidden function _layoutFont(step, typ) {
         var s = step;
         if (typ != 1 && s > 4) { s = 4; }
         if (s <= 0) { return Graphics.FONT_XTINY; }
@@ -645,7 +646,7 @@ class RecordView extends WatchUi.View {
 
     // Palette-Index -> Gerätefarbe. Index 0 = „auto" -> der übergebene Standard.
     // Reihenfolge identisch mit PALETTE in server/app/api/layouts.py und der Web-Vorschau.
-    (:full) hidden function _layoutColor(idx, fallback) {
+    (:layouts) hidden function _layoutColor(idx, fallback) {
         if (idx == null || idx <= 0) { return fallback; }
         if (idx == 1) { return Graphics.COLOR_WHITE; }
         if (idx == 2) { return Graphics.COLOR_LT_GRAY; }
@@ -665,19 +666,19 @@ class RecordView extends WatchUi.View {
         return fallback;
     }
 
-    // Lite-Build (96-KB-Uhren): kein Renderer. Der Server liefert diesen Uhren gar keine
-    // Layouts (Gating >= 512 KB), diese Variante ist nur der Kompilier-Ersatz.
-    (:lite) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
+    // Sparsame Stufen (LITE 96 KB + ENG 128 KB): kein Renderer. Der Server liefert diesen Uhren
+    // gar keine Layouts (Gating >= 512 KB), diese Variante ist nur der Kompilier-Ersatz.
+    (:nolayouts) hidden function _drawLayoutPage(dc, entry, w, h, idx) {
         _drawFieldPage(dc, [Config.FIELD_SPEED3S, Config.FIELD_NONE, Config.FIELD_NONE], w, h);
     }
 
-    (:full) hidden function _drawLayoutCrashHint(dc, w, h) as Void {
+    (:layouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void {
         if (!_rec.layoutCrash || System.getTimer() >= _rec.layoutHintUntilMs) { return; }
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("lay.fallback"),
             Graphics.TEXT_JUSTIFY_CENTER);
     }
-    (:lite) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
+    (:nolayouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
     hidden function _drawBell(dc, cx, cy) {

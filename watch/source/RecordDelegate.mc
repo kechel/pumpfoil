@@ -198,7 +198,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // Not-Aus für die dynamischen Layouts — Stufe 1 des Sicherheitsnetzes. MUSS ohne Handy und
     // ohne Server erreichbar sein: rein lokaler Storage-Schalter. Zeigt der Punkt „Aus", fährt
     // die Uhr die alte statische Logik, auch wenn der Server Layouts liefert.
-    (:full) hidden function _layoutState() as Lang.String {
+    (:layouts) hidden function _layoutState() as Lang.String {
         // Nicht „An" behaupten, wenn faktisch statisch gefahren wird: nach einem Absturz sperrt die
         // Selbstheilung diese Sitzung (Jan hatte genau das — Schalter „An", Layouts trotzdem weg).
         // Auswählen hebt die Sperre bewusst wieder auf.
@@ -216,11 +216,11 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         }
         return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
     }
-    (:full) hidden function _addLayoutItem(menu) as Void {
+    (:layouts) hidden function _addLayoutItem(menu) as Void {
         menu.addItem(new WatchUi.MenuItem(
             Strings.s("menu.layouts"), _layoutState(), :layouts, {}));
     }
-    (:lite) hidden function _addLayoutItem(menu) as Void { }
+    (:nolayouts) hidden function _addLayoutItem(menu) as Void { }
 
     // Back während Aufzeichnung ignorieren (versehentliches Beenden vermeiden).
     function onBack() as Lang.Boolean {
@@ -366,7 +366,7 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         Menu2InputDelegate.initialize();
         _rec = recorder;
     }
-    (:full) hidden function _layoutState() as Lang.String {
+    (:layouts) hidden function _layoutState() as Lang.String {
         if (_rec.layoutCrash) { return Strings.s("lay.fallback"); }
         if (_rec.layoutsAuto()) {
             return Strings.s("common.auto") + " ("
@@ -377,12 +377,12 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
         }
         return Strings.s(_rec.layoutsWanted() ? "common.on" : "common.off");
     }
-    (:full) hidden function _toggleLayouts(item) as Void {
+    (:layouts) hidden function _toggleLayouts(item) as Void {
         _rec.toggleLayouts();
         item.setSubLabel(_layoutState());
         WatchUi.requestUpdate();
     }
-    (:lite) hidden function _toggleLayouts(item) as Void { }
+    (:nolayouts) hidden function _toggleLayouts(item) as Void { }
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
         if (id == :upload) {
