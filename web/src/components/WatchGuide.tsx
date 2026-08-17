@@ -217,6 +217,26 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         <p className="mt-3 text-xs text-slate-400">{t("guide.pair.note")}</p>
       </Card>
 
+      {/* Was sich AN DER UHR einstellen laesst — gehoert direkt hinter das Verbinden, weil es
+          erst danach geht. Anlass (Jan, 17.08.): eine Rezension klagte ueber Akkuverbrauch,
+          waehrend die Gegenmassnahme seit Wochen existierte — `gnss_mode` stand bei ALLEN 115
+          Garmin-Uhren auf NULL, es hatte also nie jemand umgestellt. Die Einstellung war nicht das
+          Problem, ihre Auffindbarkeit war es. Plattformuebergreifend sichtbar, aber je Punkt mit
+          Plattform benannt: die Stellschrauben sind NICHT ueberall dieselben (Satellitensysteme
+          nur Garmin, und Amazfit holt sich den Aufzeichnungsmodus noch gar nicht ab). */}
+      <Card id="guide-settings" className="scroll-mt-20 p-5">
+        <h3 className="text-lg font-bold text-brand-400">{t("guide.settings.title")}</h3>
+        <p className="mt-1 text-slate-300">{t("guide.settings.intro")}{connectLink}{t("guide.settings.intro2")}</p>
+        <ul className="mt-4 space-y-3 text-slate-200">
+          <li><b>{t("guide.settings.recordTitle")}</b> {t("guide.settings.record")}</li>
+          <li><b>{t("guide.settings.gnssTitle")}</b> {t("guide.settings.gnss")}</li>
+        </ul>
+        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-amber-700 dark:text-amber-300">
+          {t("guide.settings.gpsWarn")}
+        </p>
+        <p className="mt-3 text-slate-300">{t("guide.settings.zepp")}</p>
+      </Card>
+
       {/* Nach der Session: WANN laedt die Uhr hoch — der Schritt, den die meisten nicht verstehen
           (Jan, 01.08.; drei Nutzer-Meldungen mit demselben Muster: Session "fehlt", lag aber nur
           noch auf der Uhr, weil der Upload nur im Vordergrund laeuft). Plattformuebergreifend. */}
