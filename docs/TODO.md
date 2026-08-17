@@ -1438,15 +1438,54 @@ Offen daraus:
   **Was NICHT die Ursache ist:** der Aufnahmemodus. Die beiden auffaelligsten Geraete stehen auf
   „nur GPS", die beiden anderen auf „full" — es trifft alle vier. Die Umstellung auf GPS-only war
   die Reaktion der Nutzer auf das Problem, nicht sein Ausloeser.
-  **Offen — Ursache NICHT belegt.** Naheliegender Verdaechtiger ist 1.0.75 (13.08., beste
-  unterstuetzte GNSS-Stufe statt GPS allein — mehr Konstellationen koennten auf 96-128-KB-Geraeten
-  Speicher kosten), das Datum passt. ABER: Tatus FR55 steht noch auf **1.0.60** und faellt
-  trotzdem aus. Also entweder zwei Ursachen oder eine ganz andere. Nicht raten — messen.
-  **Naechster Schritt:** der Lauf-Canary aus 1.0.77 (Punkt oben) ist genau dafuer gebaut und nennt
-  die PHASE. Sobald die betroffenen Uhren auf 1.0.77 sind, sagt `crash_phase`, ob es im App-Start
-  (1) oder in der Aufnahme (3) stirbt. Bis dahin: nicht auf gut Glueck am GNSS-Code drehen.
-  Betroffene Nutzer sind bekannt (4 Geraete) — eine gezielte Nachfrage bringt schneller Klarheit
-  als jede Statistik.
+  **NACHGEMESSEN 17.08. — es sind ZWEI Ursachen, und die eine ist belegt.** Der Verdacht „1.0.75"
+  ist damit vom Tisch; die GNSS-Stufe ist unschuldig.
+
+  **(A) Die 128-KB-Klasse ist aus dem Speicher gewachsen — das ist die Regression.**
+  Nachgebaut wurde die FR55 aus acht alten Staenden (Worktree, `watch/bin` unangetastet):
+  | Version | Build | frei von 131 072 B |
+  |---|---|---|
+  | 1.0.60 | 58 508 B | **72 564 B (55 %)** |
+  | 1.0.65 | 85 596 B | 45 476 B |
+  | 1.0.70 | 95 276 B | 35 796 B |
+  | 1.0.73 | 100 236 B | 30 836 B |
+  | 1.0.75 | 102 748 B | 28 324 B |
+  | 1.0.77 | 105 052 B | **26 020 B (20 %)** |
+  Der volle Build hat sich seit 1.0.60 fast **verdoppelt**, der freie Heap ist auf ein Drittel
+  gefallen. Kein einzelner Commit, sondern das stetige Wachstum — deshalb passte kein Datum.
+  **Der saubere Einzelbeleg:** Geraet #136 (FR55, u5) ist dieselbe physische Uhr durchgehend —
+  Juli 13 von 16 Sessions brauchbar · 14.08. auf 1.0.60 noch 1 von 1 (18 Chunks, 412 m) · ab
+  15.08. auf 1.0.76 **0 von 6**, davon drei ganz ohne Session-Ende, fuenf Starts in einer Stunde.
+  Gleiche Uhr, gleicher Nutzer, 24 Stunden Abstand, einziger Unterschied die Version.
+  **Die ganze Klasse ist betroffen, nicht nur die FR55.** 13 Geraete haengen bei 131 072 B auf dem
+  VOLLEN Build mit 23–25 kB Luft (am engsten Venu Sq 22 996 B, dann Enduro, fenix 6/6S, FR245/645/
+  935, fenix 5/5S, vivoactive 3, FR55). Von den 7 aktiv gepairten Uhren dieser Klasse haben **4 in
+  ihrem ganzen Leben null Sessions** produziert (2x fenix 5, fenix 6, Venu Sq — letztere noch am
+  16.08. gesehen), die drei FR55 liefern seit Mitte August nichts mehr. Ein stiller Totalausfall.
+  **Gegenprobe Lite-Build (gemessen, nicht geschaetzt):** fr55 60 956 B → **70 116 B frei**,
+  venusq 62 844 → 68 228, fenix6 61 852 → 69 220. Das ist ziemlich genau der Stand von 1.0.60,
+  der nachweislich lief.
+
+  **(B) Die Instinct-2-Klasse ist ein ANDERES Problem — nicht Codegroesse.** Der Lite-Build hat sie
+  geschuetzt: 1.0.60 58 796 B → 1.0.77 61 244 B, die Luft blieb bei 37–40 kB. Sie war auch schon im
+  Juli schlecht (1 von 7 brauchbar, 23.07.–11.08.) — also keine Regression, sondern Dauerzustand.
+  Zwei der drei Geraete melden `storage_full` (#507 3x/148 kB, #462 2x/158 kB) → das ist der
+  bekannte Speicher-voll-/Rueckstau-Fall oben, nicht dieser hier. Instinct 3 Solar liegt dazwischen
+  (46 kB frei, 25 % brauchbar) und braucht eigene Daten.
+
+  **Was der Fix kostet — Entscheidung Jan.** Lite fuer die 128-KB-Klasse streicht Pausen-/Aktions-
+  Menue, die 13-Sprachen-Tabelle (faellt auf Englisch) und den Layout-Renderer. Der Renderer ist
+  dort ohnehin nur auf ausdrueckliche Anforderung aktiv (`LAYOUT_MIN_ON_REQUEST` = 131 072, bewusst
+  so wegen Jans fenix 5) — der Kommentar in `devices.py:242` nennt diese Klasse schon selbst
+  „die Absturz-anfaellige". Sauberer waere eine DRITTE Stufe: nur den Renderer und die
+  Sprachtabelle ausschliessen, Menues behalten. Dazu muessten die heute gemeinsamen `(:full)`-
+  Annotationen aufgeteilt werden (z. B. `(:layouts)` + `(:i18n)`) — echte Arbeit, aber ohne
+  sichtbaren Funktionsverlust. **Nicht ohne Jans OK bauen:** jeder `build-all.sh`-Lauf ist sofort
+  live (121 Direkt-Downloads).
+
+  Der Lauf-Canary aus 1.0.77 bleibt trotzdem der Gegenbeweis — er nennt die PHASE. Stand 17.08.:
+  erst **2 von 115** Garmin-Uhren sind auf 1.0.77, **0 Meldungen**. Aussagekraeftig in ~2 Wochen.
+  Betroffene Nutzer sind bekannt — eine gezielte Nachfrage bringt schneller Klarheit als Statistik.
 
 - **🟢 GNSS-Stufe je Uhr einstellbar (Garmin 1.0.77) — Jans Vorgabe 16.08.: „mehr Satelliten
   kosten Akku".** Seit 1.0.75 fordert die Uhr die BESTE unterstuetzte Stufe an; am 13.08. war das
