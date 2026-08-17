@@ -165,6 +165,18 @@ struct OverallStats: Codable {
     let pumps: Int?
     let runs_total: Int?
     let records: OverallRecords?
+    // Sportart, auf die sich diese Antwort bezieht, plus die Auswahlliste (haeufigste zuerst).
+    // Der Server liefert beides in EINEM Aufruf, damit die Startseite nicht zweimal fragen muss;
+    // Voreinstellung ist die Sportart mit den meisten Sessions (Jan, 17.08.).
+    let sport: String?
+    let sports: [SportCount]?
+}
+
+// Eine Sportart des Nutzers mit Session-Zahl (Auswahlfeld der eigenen Rekorde).
+struct SportCount: Codable, Identifiable {
+    let sport: String
+    let sessions: Int
+    var id: String { sport }
 }
 
 struct SpotsList: Codable { let mine: [String]?; let all: [String]? }

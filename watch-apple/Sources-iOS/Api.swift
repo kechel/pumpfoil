@@ -237,8 +237,17 @@ enum Api {
         return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)", method: "GET", body: nil, auth: true)
     }
 
-    static func stats(accelOnly: Bool = true) async throws -> OverallStats {
-        try await request("/api/sessions/stats?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
+    // derselben Abfrage. `sport` nil = der Server nimmt die haeufigste Sportart und sagt in der
+    // Antwort, welche es war (plus die Auswahlliste).
+    static func stats(accelOnly: Bool = true, period: String = "all",
+                      sport: String? = nil) async throws -> OverallStats {
+        var pfad = "/api/sessions/stats?accel_only=\(accelOnly)&period=\(period)"
+        if let s = sport, !s.isEmpty,
+           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            pfad += "&sport=\(enc)"
+        }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
     // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des

@@ -19,6 +19,12 @@ struct HomeView: View {
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
     @State private var accelOnly = true
+    // Zeitraum der Rekorde UND Gesamtwerte (Paritaet Punkt 8): beides kommt aus derselben
+    // Abfrage, "30 Tage" heisst also auch Foiling/Pumps der letzten 30 Tage.
+    @State private var zeitraum = "all"
+    // Sportart der eigenen Rekorde (Paritaet Punkt 7). nil = der Server nimmt die haeufigste
+    // und sagt in der Antwort, welche es war.
+    @State private var sportart: String?
     @State private var decidedDefault = false
     @State private var updateVer: String?
     @State private var updateURL = ""
@@ -75,7 +81,9 @@ struct HomeView: View {
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .onChange(of: stats?.count) { _ in maybeShowRating() }
                 .task { await ratingAfterDelay() }
-                .onChange(of: accelOnly) { _ in Task { stats = try? await Api.stats(accelOnly: accelOnly) } }
+                .onChange(of: accelOnly) { _ in ladeStats() }
+                .onChange(of: zeitraum) { _ in ladeStats() }
+                .onChange(of: sportart) { _ in ladeStats() }
         }
     }
 
@@ -226,6 +234,27 @@ struct HomeView: View {
                 segButton(Loc.t("side.all", lang), active: !accelOnly) { accelOnly = false }
             }
         }
+        // Sportart — nur wenn es ueberhaupt mehr als eine gibt (Paritaet Punkt 7). Ein Auswahlfeld
+        // mit einem Eintrag waere Ballast. Voreinstellung kommt vom Server.
+        if let liste = st.sports, liste.count > 1 {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(liste) { sc in
+                        segButton("\(Loc.t("cls.sport.\(sc.sport)", lang)) (\(sc.sessions))",
+                                  active: (sportart ?? st.sport) == sc.sport) { sportart = sc.sport }
+                    }
+                }
+            }
+        }
+        // Zeitraum: wirkt auf Rekorde UND Gesamtwerte (Paritaet Punkt 8). Waagerecht scrollbar,
+        // damit fuenf Knoepfe auch auf schmalen iPhones alle erreichbar bleiben.
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(statWindows, id: \.0) { w in
+                    segButton(Loc.t(w.1, lang), active: zeitraum == w.0) { zeitraum = w.0 }
+                }
+            }
+        }
         let r = st.records
         LazyVGrid(columns: cols3, spacing: 10) {
             recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { "\(Int($0)) m" }
@@ -367,6 +396,11 @@ struct HomeView: View {
     }
 
     @ViewBuilder
+    /// Stats neu holen — von allen drei Umschaltern aus (Accel/alle, Sportart, Zeitraum).
+    private func ladeStats() {
+        Task { stats = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) }
+    }
+
     private func segButton(_ label: String, active: Bool, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label).font(.caption).fontWeight(.medium)
@@ -379,7 +413,7 @@ struct HomeView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        if let s = try? await Api.stats(accelOnly: accelOnly) {
+        if let s = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) {
             let r = s.records
             let noAccel = (r?.distance?.value ?? 0) == 0 && (r?.duration?.value ?? 0) == 0 && (r?.speed?.value ?? 0) == 0
             if !decidedDefault && accelOnly && noAccel {

@@ -60,8 +60,8 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 4 | Layout-Vorschau + Community-Galerie | `c21159d` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — lesende Renderer + Galerie (ansehen/kopieren). Editor bleibt Web-only |
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Spalte nur wenn Puls da; "#" schmaler wegen fehlendem Horizontal-Scroll |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
-| 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ✅ 17.08. | ❌ | Android fertig; iOS offen |
-| 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ✅ 17.08. | ❌ | Android fertig; iOS offen. KORREKTUR: es gab gar keinen Waehler — `HOME_STAT_WINDOWS` beschriftet nur die Carve-Kacheln |
+| 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Auswahl nur bei mehr als einer Sportart |
+| 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT**. KORREKTUR: es gab gar keinen Waehler — die Fenster-Liste beschriftete nur die Carve-Kacheln |
 | 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ⚠️ | ⚠️ | S — `carve` ist da, die Kachel nicht |
 
 **Bewusst NICHT portieren:**
