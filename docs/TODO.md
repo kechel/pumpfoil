@@ -12,7 +12,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 - **Stand 16.08. abends: VIER Einreichungen offen — alles wartet auf Freigabe-Mails.**
   | Plattform | Version | wo | Inhalt |
   |---|---|---|---|
-  | Garmin | **1.0.77** | CIQ-Store (`bin/pumpfoil-1.0.77.iq`, 210/210 Geraete) | Lauf-Canary (jeder Absturz meldet sich, auch im Lite-Build) + GNSS-Stufe je Uhr einstellbar |
+  | ~~Garmin~~ | **1.0.77 LIVE seit 16.08.** | CIQ-Store, Store-Seite bestaetigt Version 1.0.77 / 106 KB | Lauf-Canary + GNSS-Stufe je Uhr. `appmeta garmin` gesetzt und per `/api/app/latest` geprueft, Changelog steht. **ERLEDIGT.** |
   | Zepp | **1.0.5** / code 8 | Zepp-Konsole (appId 1118995) | Roh-Accel (verlaesst gps_only), Zuverlaessigkeit/Tasten aus PR #1 von El Manu, `target` 3.6, Modellmeldung, GPS-Sprung-Gate |
   | Wear OS | **1.2.22** / 1032 | Play, Produktion (Wear OS) | Puls aktiv ueber Health Services + sichtbarer Hinweis, wenn keiner ankommt |
   | Android Phone | **1.1.21** / 35 | Play, Produktion | unveraendert aus dem Batch vom 10.08. |

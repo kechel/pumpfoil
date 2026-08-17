@@ -73,13 +73,13 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.76",   # LIVE im CIQ-Store; Store-Seite bestaetigt "Latest Release
-        # August 13, 2026, Version 1.0.76, Size 102 KB". Garmin gibt inzwischen automatisch frei
-        # (Jan) — die Freigabe kam Minuten nach dem Upload. Inhalt: voller Uhr-Speicher ist nicht
-        # mehr stumm (Warnung vor dem Start + rot waehrend der Aufnahme, wenn Chunks verworfen
-        # werden) + Upload waehrend der PAUSE, damit lange Steg-Sessions Platz schaffen. Anlass:
-        # zwei Instinct-2-Nutzer verloren so eine 54-min-Session bis auf 74 s (docs/TODO.md 13.08.).
-        # Vorher 1.0.75 (beste GNSS-Stufe statt GPS allein), live seit 13.08.
+        "latest": "1.0.77",   # LIVE im CIQ-Store; Store-Seite bestaetigt "Latest Release
+        # August 16, 2026, Version 1.0.77, Size 106 KB" (Jan). Garmin gibt automatisch frei — die
+        # Freigabe kam am Tag des Uploads. Inhalt: generischer LAUF-CANARY (jeder Absturz meldet
+        # sich beim naechsten Start mit der Phase, auch im Lite-Build der speicherarmen Uhren — die
+        # beiden alten Marken deckten nur Layout-Faelle ab und waren `(:full)`) + GNSS-Stufe JE UHR
+        # einstellbar (best|l1|two|gps), weil alle Systeme gleichzeitig Akku kosten.
+        # Vorher 1.0.76 (Speicher-voll nicht mehr stumm + Upload in der Pause), live seit 13.08.
         "min_supported": "",
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
