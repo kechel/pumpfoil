@@ -768,6 +768,13 @@ object Api {
         http("PUT", "/api/devices/$id/record-mode", buildJsonObject { put("record_mode", mode) }.toString(), auth = true)
     }
 
+    // GNSS-Stufe je Uhr setzen (best|l1|two|gps). Nur Garmin liefert das aus; der Server
+    // prueft den Wert selbst (devices.py set_device_gnss_mode).
+    suspend fun setDeviceGnssMode(id: Int, mode: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/devices/$id/gnss-mode", buildJsonObject { put("gnss_mode", mode) }.toString(), auth = true)
+        Unit
+    }
+
     // Companion-Pairing: eingeloggte Phone-App mintet ein Device-Token für die Wear-Uhr.
     suspend fun mintDeviceToken(label: String = "Wear OS"): String = withContext(Dispatchers.IO) {
         val l = java.net.URLEncoder.encode(label, "UTF-8")

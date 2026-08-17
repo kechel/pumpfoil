@@ -155,9 +155,23 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
         "lite" to I18n.t("account.recordModeLite"),
         "gps" to I18n.t("account.recordModeGps"),
     )
+    // GNSS-Stufen wie in der PWA. NUR Garmin: nur dort waehlt unsere App die Stufe selbst
+    // (ab Uhr 1.0.77). Voreinstellung bleibt das Maximum.
+    val gnssStufen = listOf(
+        "best" to I18n.t("account.gnssModeBest"),
+        "l1" to I18n.t("account.gnssModeL1"),
+        "two" to I18n.t("account.gnssModeTwo"),
+        "gps" to I18n.t("account.gnssModeGps"),
+    )
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp)) {
             Text(I18n.t("account.devicesTitle"), style = MaterialTheme.typography.titleMedium)
+            // Was die Regler eigentlich tun — sie wirken auf die UHR und greifen dort beim naechsten
+            // App-Start. Ohne den Satz sucht man den Effekt an der falschen Stelle; belegt daran,
+            // dass gnss_mode bei ALLEN 115 Garmin-Uhren auf NULL stand.
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("account.devicesSettingsIntro"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
             active.forEachIndexed { idx, d ->
                 if (idx > 0) HorizontalDivider(Modifier.padding(vertical = 10.dp))
                 Spacer(Modifier.height(8.dp))
@@ -188,8 +202,47 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Text(I18n.t("account.recordModeAutoLite"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
                 }
+                // "Nur GPS" schaltet alles ab, was aus der Bewegung kommt — das MUSS dranstehen.
+                // Fehlte der App bisher, obwohl die PWA es zeigt.
+                if (mode == "gps") {
+                    Text(I18n.t("account.recordModeGpsHint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
+                }
                 if (d.platform == "garmin") {
                     Text(I18n.t("account.recordModeGarminHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+                // Amazfit holt sich den Modus gar nicht ab (watch-zepp/app-side/index.js reicht ihn
+                // nicht durch) -> ehrlich dranschreiben statt den Regler wirkungslos anbieten.
+                if (d.platform == "zepp") {
+                    Text(I18n.t("account.recordModeZeppHint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
+                }
+                // Satellitensysteme — nur Garmin. Der groesste Akku-Hebel (s. Changelog 17.08.).
+                if (d.platform == "garmin") {
+                    Spacer(Modifier.height(10.dp))
+                    Text(I18n.t("account.gnssMode"), style = MaterialTheme.typography.labelMedium)
+                    var gnssOffen by remember(d.id) { mutableStateOf(false) }
+                    var gnss by remember(d.id) { mutableStateOf(d.gnssMode ?: "best") }
+                    Box {
+                        OutlinedButton(onClick = { gnssOffen = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text(gnssStufen.firstOrNull { it.first == gnss }?.second ?: gnss)
+                        }
+                        DropdownMenu(expanded = gnssOffen, onDismissRequest = { gnssOffen = false }) {
+                            gnssStufen.forEach { (id, lbl) ->
+                                DropdownMenuItem(text = { Text(lbl) }, onClick = {
+                                    gnssOffen = false
+                                    if (id != gnss) {
+                                        gnss = id
+                                        scope.launch {
+                                            try { Api.setDeviceGnssMode(d.id, id); onSaved() } catch (_: Exception) {}
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    Text(I18n.t("account.gnssModeHint"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
             }

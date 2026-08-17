@@ -19,6 +19,10 @@ data class PairedDevice(
     @SerialName("latest_version") val latestVersion: String? = null,
     @SerialName("record_mode") val recordMode: String = "full",   // full | lite | gps
     @SerialName("low_accel") val lowAccel: Boolean = false,        // FR55 & Co. -> Voll autom. Sparsam
+    // GNSS-Stufe je Uhr (best|l1|two|gps) — NUR Garmin, ab Uhr-Version 1.0.77. null = keine
+    // eigene Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
+    // Mehr Systeme finden die Position schneller und zuverlaessiger, kosten aber Akku.
+    @SerialName("gnss_mode") val gnssMode: String? = null,
 )
 
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).
