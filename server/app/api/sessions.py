@@ -890,7 +890,10 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     }
 
 
-HR_MARKEN = (60, 120, 300)   # Sekunden: nach 1, 2 und 5 Minuten Lauf
+HR_MARKEN = (30, 60, 120, 300)   # Sekunden: nach 30 s, 1, 2 und 5 Minuten Lauf
+# Version des Cache-Inhalts. Aendert sich die Markenliste oder die Rechnung, hochzaehlen — der
+# Leser rechnet dann von selbst neu, statt dass jemand die Spalte von Hand leeren muss.
+HR_CACHE_V = 2
 
 
 def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
@@ -905,31 +908,32 @@ def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
     zählen für diese Marke nicht mit. Über die Läufe der Session dann der Median, nicht der
     Bestwert — ein einzelner Ausreißer soll die Kurve nicht verziehen.
 
-    `{}` = geprüft, aber nichts zu holen (kein Puls oder keine Läufe). Der Aufrufer speichert auch
-    das, sonst würde jede pulslose Session bei jedem Aufruf neu gelesen.
+    Nur `{"v": …}` = geprüft, aber nichts zu holen (kein Puls oder keine Läufe). Der Aufrufer
+    speichert auch das, sonst würde jede pulslose Session bei jedem Aufruf neu gelesen.
     """
     import statistics as _st
     from .. import storage
+    leer = {"v": HR_CACHE_V}
     if not segs_json:
-        return {}
+        return leer
     try:
         segs = json.loads(segs_json)
     except ValueError:
-        return {}
+        return leer
     if not segs:
-        return {}
+        return leer
     try:
         gps = storage.load_gps(uuid)
     except Exception:
-        return {}
+        return leer
     if not gps:
-        return {}
+        return leer
     # Puls je GPS-Punkt (Index 4 im Sample, s. docs/data-format.md). `i_start`/`i_end` der Läufe
     # sind Indizes auf DIESELBE Liste — an einer Session mit 3937 Punkten gegengeprüft.
     hr = [(r[4] if len(r) > 4 else None) for r in gps]
     if not any(hr):
-        return {}
-    out: dict[str, dict] = {}
+        return leer
+    out: dict[str, dict] = {"v": HR_CACHE_V}
     for marke in HR_MARKEN:
         werte = []
         for sg in segs:
@@ -985,13 +989,15 @@ def hr_progress(
                  if gewaehlt == "pumpfoil" else models.Session.sport_class == gewaehlt)
     reihe, dirty = [], False
     for uuid, ts, sid, ar in q.order_by(models.Session.started_at).all():
-        if ar.hr_by_min_json is None:
-            ar.hr_by_min_json = json.dumps(_hr_by_min(uuid, ar.segments_json))
-            dirty = True
         try:
-            werte = json.loads(ar.hr_by_min_json) or {}
+            werte = json.loads(ar.hr_by_min_json) if ar.hr_by_min_json else None
         except ValueError:
-            werte = {}
+            werte = None
+        if not isinstance(werte, dict) or werte.get("v") != HR_CACHE_V:
+            werte = _hr_by_min(uuid, ar.segments_json)
+            ar.hr_by_min_json = json.dumps(werte)
+            dirty = True
+        werte = {k: v for k, v in werte.items() if k != "v"}
         if werte:
             reihe.append({"session_id": sid, "started_at": ts.isoformat() if ts else None,
                           **{f"hr{k}": v["med"] for k, v in werte.items()},

@@ -621,6 +621,7 @@ const nl: Record<string, string> = {
   "hr.progressTitle": "Trainingscurve: hartslag tijdens pumpen",
   "hr.progressHint": "Hoe hoog je hartslag komt na 1, 2 en 5 minuten pumpen. De inspanning hangt vooral van de duur af en nauwelijks van de foil — daalt de curve over de weken, dan ben je fitter geworden.",
   "hr.afterMinutes": "na {min} minuut/minuten",
+  "hr.afterSeconds": "na {sec} seconden",
   "hr.fromRuns": "uit {runs} runs in {sessions} sessies",
   "sd.farthestRunTitle": "verste run",
   "sd.tableFooter": "Snelheden in km/h. Afvlakking bovenaan omschakelbaar (1/3/5 s). Klik op een rij = alleen deze run op de kaart. ★ = verste run.",

@@ -5,6 +5,7 @@ import { usePumpFmt, type PumpFmt } from "../lib/pumpRate";
 import { Card, Spinner, ErrorBox } from "../components/ui";
 import { ChartIcon } from "../components/Icons";
 import { SpotProgression } from "../components/SpotProgression";
+import { HrProgress } from "../components/HrProgress";
 import { useT } from "../i18n";
 
 type Mode = "cumulative" | "window7" | "window30";
@@ -176,6 +177,13 @@ export default function History() {
           </div>
         </>
       )}
+
+      {/* Trainingskurve: Höchstpuls nach 1/2/5 Minuten Lauf über die Sessions. Gehört hierher und
+          nicht auf die Startseite (Jan, 17.08.) — es ist eine Verlaufs-Aussage, keine Momentaufnahme.
+          Zeigt sich selbst nur, wenn genug Sessions Puls haben. */}
+      <div className="mt-8">
+        <HrProgress />
+      </div>
 
       {/* Entwicklungs-Animation: eigene Läufe eines Spots chronologisch durchschalten */}
       <div className="mt-8">

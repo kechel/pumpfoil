@@ -515,6 +515,7 @@ const fr: Record<string, string> = {
   "hr.progressTitle": "Courbe d'entraînement : pouls en pumping",
   "hr.progressHint": "À quelle hauteur monte ton pouls après 1, 2 et 5 minutes de pumping. L'effort dépend surtout de la durée, très peu du foil — si la courbe baisse au fil des semaines, tu as progressé.",
   "hr.afterMinutes": "après {min} minute(s)",
+  "hr.afterSeconds": "après {sec} secondes",
   "hr.fromRuns": "sur {runs} runs dans {sessions} sessions",
   "sd.farthestRunTitle": "run le plus long",
   "sd.tableFooter": "Vitesses en km/h. Lissage réglable ci-dessus (1/3/5 s). Clique une ligne = afficher seulement ce run sur la carte. ★ = run le plus long.",

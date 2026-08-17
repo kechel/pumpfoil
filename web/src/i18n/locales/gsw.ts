@@ -447,6 +447,7 @@ const gsw: Record<string, string> = {
   "hr.progressTitle": "Trainingskurve: Puls bim Pumpe",
   "hr.progressHint": "Wie hoch din Puls nach 1, 2 und 5 Minute Pumpe staigt. D Aastrengig hängt vor allem a de Duur und chuum am Foil — sinkt d Kurve über d Wuche, bisch fitter worde.",
   "hr.afterMinutes": "nach {min} Minute",
+  "hr.afterSeconds": "nach {sec} Sekunde",
   "hr.fromRuns": "us {runs} Läuf i {sessions} Sessione",
   "login.continueWith": "Wiiter mit {provider}",
   "land.login": "Aamälde",

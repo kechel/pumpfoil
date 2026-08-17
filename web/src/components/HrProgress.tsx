@@ -46,7 +46,7 @@ export function HrProgress({ sport }: { sport?: string }) {
           <div key={m} className="mb-4">
             <div className="mb-1 flex flex-wrap items-baseline gap-2">
               <span className="text-sm font-medium text-slate-200">
-                {t("hr.afterMinutes", { min: m / 60 })}
+                {m < 60 ? t("hr.afterSeconds", { sec: m }) : t("hr.afterMinutes", { min: m / 60 })}
               </span>
               <span className="text-xs text-slate-400">
                 {t("hr.fromRuns", { runs: laeufe, sessions: da.length })}

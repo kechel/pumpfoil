@@ -606,6 +606,7 @@ const nb: Record<string, string> = {
   "hr.progressTitle": "Treningskurve: puls under pumping",
   "hr.progressHint": "Hvor høyt pulsen din går etter 1, 2 og 5 minutters pumping. Anstrengelsen henger mest på varigheten og knapt på foilen — synker kurven over ukene, har du blitt sprekere.",
   "hr.afterMinutes": "etter {min} minutt(er)",
+  "hr.afterSeconds": "etter {sec} sekunder",
   "hr.fromRuns": "fra {runs} runs i {sessions} økter",
   "sd.farthestRunTitle": "lengste run",
   "sd.tableFooter": "Hastigheter i km/h. Utjevning kan endres over (1/3/5 s). Klikk på en rad = vis bare det runet på kartet. ★ = lengste run.",

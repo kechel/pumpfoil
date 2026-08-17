@@ -513,6 +513,7 @@ const es: Record<string, string> = {
   "hr.progressTitle": "Curva de entrenamiento: pulso al bombear",
   "hr.progressHint": "Cuánto sube tu pulso tras 1, 2 y 5 minutos bombeando. El esfuerzo depende sobre todo de la duración y muy poco del foil — si la curva baja con las semanas, estás más en forma.",
   "hr.afterMinutes": "tras {min} minuto(s)",
+  "hr.afterSeconds": "tras {sec} segundos",
   "hr.fromRuns": "de {runs} runs en {sessions} sesiones",
   "sd.farthestRunTitle": "run más largo",
   "sd.tableFooter": "Velocidades en km/h. Suavizado ajustable arriba (1/3/5 s). Haz clic en una fila = mostrar solo ese run en el mapa. ★ = run más largo.",

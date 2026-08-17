@@ -597,6 +597,7 @@ const id: Record<string, string> = {
   "hr.progressTitle": "Kurva latihan: detak jantung saat pumping",
   "hr.progressHint": "Seberapa tinggi detak jantungmu setelah 1, 2 dan 5 menit pumping. Bebannya terutama bergantung pada durasi, bukan pada foil — kalau kurvanya turun dari minggu ke minggu, kamu makin bugar.",
   "hr.afterMinutes": "setelah {min} menit",
+  "hr.afterSeconds": "setelah {sec} detik",
   "hr.fromRuns": "dari {runs} run di {sessions} sesi",
   "sd.farthestRunTitle": "run terjauh",
   "sd.tableFooter": "Kecepatan dalam km/h. Penghalusan bisa diganti di atas (1/3/5 d). Klik sebuah baris = tampilkan hanya run itu di peta. ★ = run terjauh.",

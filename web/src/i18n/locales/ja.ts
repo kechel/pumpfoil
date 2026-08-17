@@ -597,6 +597,7 @@ const ja: Record<string, string> = {
   "hr.progressTitle": "トレーニング曲線：ポンピング中の心拍",
   "hr.progressHint": "1分・2分・5分ポンピングしたときの心拍の上がり方。負荷はフォイルよりも継続時間で決まります — 数週間で曲線が下がれば、体力が付いた証拠です。",
   "hr.afterMinutes": "{min}分後",
+  "hr.afterSeconds": "{sec}秒後",
   "hr.fromRuns": "{sessions}セッション中{runs}ランから",
   "sd.farthestRunTitle": "最遠ラン",
   "sd.tableFooter": "速度は km/h。スムージングは上で切り替え可能（1/3/5 秒）。行をクリック = 地図にそのランのみ表示。★ = 最遠ラン。",
