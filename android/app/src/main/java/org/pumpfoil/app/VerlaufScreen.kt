@@ -53,7 +53,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -199,6 +204,9 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                                 modifier = Modifier.padding(top = 6.dp))
                         }
                         items(METRICS_SUM) { m -> MetricChartCard(data, m, mode, domain) }
+                        // Trainingskurve: eigene Abfrage (hr-progress), deshalb eine eigene
+                        // Karte mit eigenem Ladezustand — sie haengt nicht am History-Zeitraum.
+                        item { HrProgressCard() }
                         item { SpotProgression() }
                         item { Box(Modifier.height(8.dp)) }
                     }
@@ -231,19 +239,95 @@ private fun MetricChartCard(data: List<Pair<Long, HistoryPoint>>, metric: HMetri
     }
 }
 
+/**
+ * Trainingskurve: je Marke (30 s, 1, 2, 5 min LAUF) eine Kurve ueber die Sessions.
+ *
+ * Aussage: faellt der Puls bei gleicher Belastung ueber die Wochen, ist der Fahrer fitter
+ * geworden. Deshalb steht die Zeile "aus N Laeufen in M Sessions" mit dem Verlauf erst→letzt in
+ * NORMALER Schriftgroesse und Lesefarbe — sie ist die eigentliche Aussage, nicht Beiwerk
+ * (so auch in der PWA, Jan 17.08.).
+ *
+ * Die Serie kommt als flaches JSON je Session mit dynamischen Schluesseln (`hr60`, `n60`, …); die
+ * gueltigen Marken stehen in `marks`. Gezeigt werden nur Marken, fuer die es ueberhaupt Werte gibt.
+ */
 @Composable
-private fun LineChart(pts: List<Pt>, color: Color, domain: Pair<Long, Long>, modifier: Modifier) {
+private fun HrProgressCard() {
+    var daten by remember { mutableStateOf<HrProgress?>(null) }
+    var geladen by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        daten = try { Api.hrProgress() } catch (_: Exception) { null }
+        geladen = true
+    }
+    val d = daten
+    if (!geladen || d == null || d.series.isEmpty()) return
+
+    // Je Marke die Punkte einsammeln; Marken ohne einen einzigen Wert fallen weg.
+    val proMarke = remember(d) {
+        d.marks.mapNotNull { m ->
+            val pts = d.series.mapNotNull { s ->
+                val t = s["started_at"]?.jsonPrimitive?.contentOrNull?.let { epochMsIso(it) }
+                val v = s["hr$m"]?.jsonPrimitive?.doubleOrNull
+                if (t != null && v != null && v > 0) Pt(t, v) else null
+            }.sortedBy { it.t }
+            val laeufe = d.series.sumOf { s -> s["n$m"]?.jsonPrimitive?.intOrNull ?: 0 }
+            if (pts.size >= 2) Triple(m, pts, laeufe) else null
+        }
+    }
+    if (proMarke.isEmpty()) return
+
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("hr.progressTitle"), style = MaterialTheme.typography.titleSmall)
+            Text(I18n.t("hr.progressHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp))
+            proMarke.forEach { (marke, pts, laeufe) ->
+                val bereich = Pair(pts.first().t, pts.last().t)
+                // y-Achse NICHT bei 0: der interessante Bereich liegt zwischen ~110 und ~175 bpm.
+                val vmin = (pts.minOf { it.v } - 8).coerceAtLeast(0.0)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        if (marke < 60) I18n.t("hr.afterSeconds").replace("{sec}", "$marke")
+                        else I18n.t("hr.afterMinutes").replace("{min}", "${marke / 60}"),
+                        style = MaterialTheme.typography.labelLarge)
+                    Text("${pts.last().v.roundToInt()} bpm", style = MaterialTheme.typography.labelLarge,
+                        color = HR_FARBE)
+                }
+                Text(
+                    I18n.t("hr.fromRuns").replace("{runs}", "$laeufe")
+                        .replace("{sessions}", "${pts.size}") +
+                        "  ${pts.first().v.roundToInt()} → ${pts.last().v.roundToInt()} bpm",
+                    style = MaterialTheme.typography.bodyMedium)
+                LineChart(pts, HR_FARBE, bereich,
+                    Modifier.fillMaxWidth().height(110.dp).padding(top = 4.dp, bottom = 10.dp),
+                    vmin = vmin)
+            }
+            Text(I18n.t("hr.axisHint"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+/** Rose wie in der PWA (#f43f5e) — Puls hat dort durchgehend diese Farbe. */
+private val HR_FARBE = Color(0xFFF43F5E)
+
+/** @param vmin Nullpunkt der y-Achse. Standard 0 (alle bisherigen Diagramme). Die Trainingskurve
+ *  gibt einen hoeheren Wert mit: Puls bewegt sich zwischen ~110 und ~175 bpm, bei 0 beginnend
+ *  waere die Kurve ein flacher Strich und der Verlauf unsichtbar (genauso macht es die PWA). */
+@Composable
+private fun LineChart(pts: List<Pt>, color: Color, domain: Pair<Long, Long>, modifier: Modifier,
+                      vmin: Double = 0.0) {
     if (pts.size < 2) {
         Box(modifier) { Text(I18n.t("verlauf.empty"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         return
     }
     val tmin = domain.first.toDouble()
     val tmax = domain.second.toDouble().coerceAtLeast(tmin + 1)
-    val vmax = (pts.maxOf { it.v } * 1.05).coerceAtLeast(1e-6)
+    val vmax = (pts.maxOf { it.v } * 1.05).coerceAtLeast(vmin + 1e-6)
     Canvas(modifier) {
         val w = size.width; val h = size.height; val padB = 6f
         fun px(t: Long) = (((t - tmin) / (tmax - tmin)) * w).toFloat()
-        fun py(v: Double) = (h - padB - (v / vmax) * (h - padB)).toFloat()
+        fun py(v: Double) = (h - padB - ((v - vmin) / (vmax - vmin)) * (h - padB)).toFloat()
         val line = Path(); val area = Path()
         pts.forEachIndexed { i, p ->
             val x = px(p.t); val y = py(p.v)

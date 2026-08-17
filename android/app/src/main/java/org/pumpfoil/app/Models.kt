@@ -374,6 +374,20 @@ data class SportCount(val sport: String = "", val sessions: Int = 0)
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 
+// Trainingskurve (GET /api/sessions/hr-progress): je Session der Hoechstpuls nach 30 s, 1, 2 und
+// 5 Minuten LAUF (Median ueber die Laeufe), aelteste zuerst. Faellt der Wert ueber die Wochen,
+// ist der Fahrer fitter geworden.
+// Die Serie kommt als flaches Objekt je Session mit dynamischen Schluesseln `hr<marke>` und
+// `n<marke>` (z. B. hr60/n60) — deshalb JsonObject statt fester Felder: die Marken stehen in
+// `marks` und koennen sich serverseitig aendern, ohne dass die App bricht.
+@Serializable
+data class HrProgress(
+    val sport: String = "",
+    val sports: List<SportCount> = emptyList(),
+    val marks: List<Int> = emptyList(),
+    val series: List<kotlinx.serialization.json.JsonObject> = emptyList(),
+)
+
 // Monats-Facetten für den Sessions-Monatsfilter (GET /api/sessions/months).
 @Serializable
 data class MonthCount(val month: String = "", val count: Int = 0)

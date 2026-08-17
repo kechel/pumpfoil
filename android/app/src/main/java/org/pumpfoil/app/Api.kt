@@ -314,6 +314,13 @@ object Api {
             http("GET", "/api/sessions/stats?accel_only=$accelOnly&period=$period$s", null, auth = true))
     }
 
+    // Trainingskurve. `sport` leer = der Server nimmt die haeufigste Sportart des Nutzers.
+    suspend fun hrProgress(sport: String? = null): HrProgress = withContext(Dispatchers.IO) {
+        val s = sport?.let { "?sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        json.decodeFromString(HrProgress.serializer(),
+            http("GET", "/api/sessions/hr-progress$s", null, auth = true))
+    }
+
     // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des
     // „nur Accel | alle"-Umschalters (siehe AccelDefault.kt / web useAccelDefault.ts).
     suspend fun hasAccel(): Boolean = withContext(Dispatchers.IO) {
