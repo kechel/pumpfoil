@@ -343,6 +343,38 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟡 Garmin-Update-Verhalten gemessen (17.08.): die Mehrheit aktualisiert NIE, und genau das
+  bremst jeden Fix aus.** Frage von Jan. Zwei Quellen: `device_tokens.app_version` (Ist-Stand) und
+  `sessions.app_version` (Historie — jede Aufnahme traegt ihre Version).
+  Bestand: **90 aktive Uhren** (nicht widerrufen, nicht ausgeblendet), 54 in 7 Tagen gesehen, 85 in
+  30 Tagen. Von den 85 aktiven:
+  | Abstand zur jeweils neuesten Version | Uhren |
+  |---|---|
+  | aktuell (0–1 Tage) | 3 (3 %) |
+  | fast aktuell (2–4 Tage) | 19 (22 %) |
+  | 1–2 Wochen alt | 25 (29 %) |
+  | **aelter als 2 Wochen** | **38 (44 %)** |
+  **43 der 90 Uhren stehen unter 1.0.73** — also ohne die Low-Mem- und Speicher-voll-Korrekturen.
+  Die aeltesten aktiv gesehenen: 1.0.53 (u79, 14.08.), 1.0.51 (u46, 04.08.), 1.0.60 (u74, 16.08.).
+  **Der Kern: von 67 Uhren mit Session-Historie haben nur 26 (38 %) ueberhaupt je die Version
+  gewechselt.** Das ist kein langsamer Roll-out, sondern „einmal installiert, nie wieder angefasst".
+  Wenn sie wechseln, gehen sie zuegig (Median 2 Tage bis zur ersten Session auf der neuen Version).
+  ACHTUNG bei dieser Zahl: `sessions.app_version` faellt auf `device_tokens.app_version` zurueck,
+  wenn die Uhr keine mitschickt (`ingest.py:82`) — daher ein unmoeglicher Ausreisser von -14 Tagen.
+  Der Median ist belastbar, die Extremwerte nicht.
+  **Was das KONKRET kostet, heute gemessen: von den 9 aktiven Uhren der ENG-Klasse hat genau EINE
+  1.0.78 — und das ist Jans Testuhr.** Die 8 Nutzer, deren Uhren nachweislich nichts aufzeichnen,
+  haben den Fix nicht. Zwei davon (u41, zwei fenix 5) stehen seit 06.07. auf 1.0.51 und sind
+  vermutlich ganz weg. Bei der LITE-Klasse: 0 von 6 auf 1.0.78.
+  **Immerhin greift der Mechanismus jetzt:** alle diese Uhren sind GEPAIRT, und `appmeta.garmin`
+  steht seit heute auf 1.0.78 — die Uhr vergleicht selbst gegen `Config.VERSION` und zeigt
+  „Update im Store" beim naechsten App-Start. Es braucht also nichts Neues, nur Geduld.
+  **Zu ueberlegen (Jan):** (a) bei einer Uhr, die MESSBAR ausfaellt (0 brauchbare Sessions in Folge)
+  reicht ein dezenter Hinweis womoeglich nicht — dort waere ein deutlicher Hinweis in der PWA
+  gerechtfertigt („deine Uhr zeichnet nichts auf, es gibt ein Update dafuer"). (b) Die 8 betroffenen
+  Nutzer sind namentlich bekannt und koennten per DM angeschrieben werden (NICHT per Banner).
+  Skripte liegen unter `scratchpad/garmin_versions.py` + `eng_class_versions.py` (rein lesend).
+
 - **🟡 CIQ-Store-Reviews vom 17.08. (drei, von Jan durchgegeben) — einer davon ist ein Befund.**
   - **Franz, 15.08., 1.0.76, „Tracking funktioniert sehr gut, leider verbraucht die App bei mir
     extrem viel Akku".** Das ist der **erste Feldbeleg fuer die Akkukosten von 1.0.75** (13.08.,

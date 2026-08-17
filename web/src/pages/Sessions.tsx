@@ -514,14 +514,20 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
       )}
 
       {items.length === 0 && !loading ? (
-        month ? (
+        month || filter === "other" ? (
           <Card className="flex flex-col items-center gap-3 p-10 text-center text-slate-300">
             <WaveIcon className="h-10 w-10 text-slate-400" />
-            <p>{t("sessions.noneMonth")}</p>
+            <p>{t(month ? "sessions.noneMonth" : "sessions.noneOther")}</p>
           </Card>
         ) : (
-          /* Ohne Monatsfilter ist "leer" der Erstnutzer-Fall -> dieselbe Starthilfe wie im
-             Homebereich (StartHelp), statt des frueheren Ein-Satz-Hinweises ohne Links. */
+          /* "Leer" ist NUR im ungefilterten Pumpfoil-Tab der Erstnutzer-Fall -> dieselbe
+             Starthilfe wie im Homebereich (StartHelp).
+             ACHTUNG, hier lag ein Fehler (gemeldet Jan, 17.08.): geprueft wurde allein der
+             MONATSFILTER, der Tab-Filter aber nicht. Wer Sessions hat und nur nichts
+             Aussortiertes, bekam im Tab "Aussortiert" die Begrüssung "Willkommen! So kommt deine
+             erste Session hierher" samt "Uhr einrichten" — fuer einen langjaehrigen Nutzer
+             sinnlos. Ein leerer FILTER ist kein leeres Konto: jede kuenftige Filterdimension
+             muss hier mit rein, sonst kehrt der Fehler zurueck. */
           <StartHelp />
         )
       ) : (

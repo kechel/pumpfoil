@@ -187,6 +187,7 @@ const deAT: Record<string, string> = {
   "sessions.uploadFitZip": "FIT/TCX/GPX importieren",
   "sessions.importing": "Importier grad",
   "sessions.noneMonth": "Kane Sessions in dem Monat.",
+  "sessions.noneOther": "Nichts aussortiert — alle deine Aufnahmen zählen als Pumpfoilen.",
   "sessions.none": "No kane Sessions.",
   "sessions.uploadHint": "FIT-Datei hochladen oder d'Uhr verbinden und fahrn.",
   "sessions.uploadFail": "{fail} von {total} Datei(en) fehlgschlagn (kei FIT/kane GPS-Daten?).",

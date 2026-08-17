@@ -193,6 +193,7 @@ const gsw: Record<string, string> = {
   "sessions.uploadFitZip": "FIT/TCX/GPX importiere",
   "sessions.importing": "Importiere",
   "sessions.noneMonth": "Kei Sessions i dem Monet.",
+  "sessions.noneOther": "Nüt useglaset — alli dini Ufnahme zelled als Pumpfoile.",
   "sessions.none": "No kei Sessions.",
   "sessions.uploadHint": "E FIT-Datei ufelade oder d Uhr verbinde und cho fahre.",
   "sessions.uploadFail": "{fail} vo {total} Datei(e) fählgschlage (kei FIT/kei GPS-Date?).",

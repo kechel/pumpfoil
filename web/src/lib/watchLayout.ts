@@ -161,6 +161,15 @@ export const PREVIEW_SIZES: { id: string; label: string; w: number; h: number; s
   { id: "a416", label: "Apple Watch 416×496", w: 416, h: 496, shape: "rect" },
   { id: "w450", label: "Wear OS 450×450", w: 450, h: 450, shape: "round" },
   { id: "w384", label: "Wear OS 384×384", w: 384, h: 384, shape: "round" },
+  // Amazfit/Zepp OS: die beiden Formfaktoren, die watch-zepp/app.json selbst deklariert
+  // (`platforms`: st "r" / dw 480 und st "s" / dw 390) — also keine geratenen Werte.
+  // 480×480 rund ist u. a. die T-Rex 3 (1,5" AMOLED, 320 ppi); angefragt von @elmanu13 am
+  // 17.08., der auf einer T-Rex 3 entwickelt. Der Zepp-Recorder rendert Layouts bereits
+  // (page/index.js: layoutsPref/wantLayouts, Palette identisch zu server/app/api/layouts.py),
+  // und das Speicher-Gating betrifft nur Garmin (devices.py: `not is_garmin` -> immer faehig).
+  // `st` ist der Bildschirmtyp: "r" = rund, "s" = eckig. Die 390er ist also KEINE runde.
+  { id: "z480", label: "Amazfit 480×480 (T-Rex 3)", w: 480, h: 480, shape: "round" },
+  { id: "z390", label: "Amazfit 390×390 (eckig)", w: 390, h: 390, shape: "rect" },
 ];
 /** Kleinste Größe, die dynamische Layouts überhaupt bekommt — dagegen prüft der Editor auf
  *  Überlauf. NICHT 176×176: die Instinct-Klasse (96 KB) und das 128-KB-Tier (u. a. fēnix 5,

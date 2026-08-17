@@ -239,6 +239,7 @@ const en: Record<string, string> = {
   "sessions.uploadFitZip": "Import FIT/TCX/GPX",
   "sessions.importing": "Importing",
   "sessions.noneMonth": "No sessions this month.",
+  "sessions.noneOther": "Nothing sorted out — all your recordings count as pumpfoiling.",
   "sessions.none": "No sessions yet.",
   "sessions.uploadHint": "Upload a FIT file or connect the watch and go ride.",
   "sessions.uploadSkipped": "{skipped} of {total} files skipped — they aren’t activities (e.g. the watch’s daily monitoring). Everything else was imported.",

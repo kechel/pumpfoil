@@ -253,6 +253,7 @@ const de: Record<string, string> = {
   "sessions.uploadFitZip": "FIT/TCX/GPX importieren",
   "sessions.importing": "Importiere",
   "sessions.noneMonth": "Keine Sessions in diesem Monat.",
+  "sessions.noneOther": "Nichts aussortiert — alle deine Aufnahmen zählen als Pumpfoilen.",
   "sessions.none": "Noch keine Sessions.",
   "sessions.uploadHint": "FIT-Datei hochladen oder die Uhr verbinden und fahren.",
   "sessions.uploadSkipped": "{skipped} von {total} Dateien übersprungen — das sind keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.",
