@@ -54,7 +54,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ⚠️ | ⚠️ | S — Lauf-Tabelle existiert, Spalte fehlt |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ⚠️ | ⚠️ | S–M — Rekorde + `sport_class` sind da |
-| 8 | Zeitraum-Umschalter fuer die Rekorde auf der Startseite | `82bd931` 10.08. | ❌ | ❌ | S |
+| 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ⚠️ | ⚠️ | S — Umschalter ist da, greift aber nicht auf die Rekorde (s. Durchgang) |
 | 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ⚠️ | ⚠️ | S — `carve` ist da, die Kachel nicht |
 
 **Bewusst NICHT portieren:**
@@ -70,6 +70,37 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 `android/app/src/main/java` und `watch-apple/Sources-iOS` belegt. Die ⚠️ heissen „Grundlage da,
 Detail ungeprueft" — dort ist beim Umsetzen zuerst nachzusehen, was genau fehlt, statt es
 anzunehmen.
+
+### Durchgang durch die Ansichten (Auftrag Jan: „geh die anderen Ansichten einmal durch zur Kontrolle")
+
+Je Element am **exakten i18n-Key** gesucht, nicht nach Themenwoertern — ein Wort wie „carve" kommt in
+beiden Apps vor, die neue Kachel trotzdem nicht.
+
+**Startseite (nativ `HomeScreen.kt` / `HomeView.swift`).** WICHTIG, korrigiert eine Annahme aus der
+Tabelle oben: das IST die persoenliche Startseite (`phome.hello`, `phome.latest`, `side.records`),
+nicht die Community-Seite — die PWA trennt das in `PersonalHome.tsx` und `Home.tsx`. Vorhanden sind
+Begruessung, letzte Sessions, alle **fuenf** Rekord-Kacheln, der Accel/alle-Umschalter, die
+Gesamt-Kacheln, Startquote, Klassifikations-Hinweis und der Uebertragungs-Hinweis.
+Fehlt: `side.recordsHint` (Erklaertext an den Rekorden) · `home.sortedOut`/`home.sortedOutN` (der
+Hinweis-Link auf frisch aussortierte Sessions — in der PWA ein amber Banner) · und der
+**Zeitraum-Umschalter existiert** (`HOME_STAT_WINDOWS`, Zeilen 432/448), wirkt aber nur auf den
+Statistik-Block, NICHT auf die Rekorde. Genau das war die Aenderung vom 10.08.: derselbe Zeitraum
+steuert Rekorde und Gesamtwerte aus einer Abfrage.
+
+**Community.** Die neue Rekord-Kachel „Meiste Carves >180°" fehlt in beiden: `rec.carves180`
+→ 0 Treffer. (Die Carve-ZAEHLUNG je Session ist dagegen da, daher stand `carve` mit 4 Treffern in
+der Tabelle oben — deshalb am Key pruefen, nicht am Thema.)
+
+**Verlauf/Historie.** Die Trainingskurve fehlt komplett: `hr.progressTitle`, `hr.progressHint`,
+`hr.afterMinutes`, `hr.fromRuns` → alle 0 in beiden Apps. Das ist der aufwendigste Punkt der Liste,
+weil dort ein Diagramm neu entsteht und `hr_by_min` bisher nirgends nativ gelesen wird.
+
+**Session-Detail.** Die Lauf-Tabelle existiert in beiden, die neue Spalte Hoechstpuls nicht:
+`sd.colMaxHr` → 0 Treffer. Kleiner Zusatz an einer bestehenden Tabelle.
+
+**Nicht betroffen** (geprueft, kein Rueckstand): Sessions-Liste, Chat/DM, Vergleich, Spots, Foils/
+Katalog, Impressum. Der Willkommens-Leerzustand, den ich heute in der PWA repariert habe, existiert
+nativ gar nicht — dort ist also nichts nachzuziehen.
 
 ## Stand 2026-07-31 — alles seit dem 07-29-Release in die Apps gezogen
 
