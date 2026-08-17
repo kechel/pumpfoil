@@ -21,6 +21,11 @@ export function SpotProgression() {
   const [mul, setMul] = useState(1);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
+
+  // Karte beim Unmount zerstoeren — sonst bleibt Leaflets Tastatur-Handler am `document`
+  // haengen und schluckt -, _, +, *, 6, & und die Pfeiltasten auf der ganzen Seite
+  // (Befund 17.08., ausfuehrlich in Spots.tsx).
+  useEffect(() => () => { mapObj.current?.remove(); mapObj.current = null; }, []);
   const curRef = useRef<L.LayerGroup | null>(null);
 
   useEffect(() => { api.mySpots().then((s) => { setSpots(s); if (s[0]) setSpot(s[0].spot); }).catch(() => setSpots([])); }, []);

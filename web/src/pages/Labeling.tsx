@@ -180,6 +180,11 @@ export default function Labeling() {
 function LabelMap({ raw, selection }: { raw: RawData; selection: [number, number] | null }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
+
+  // Karte beim Unmount zerstoeren — sonst bleibt Leaflets Tastatur-Handler am `document`
+  // haengen und schluckt -, _, +, *, 6, & und die Pfeiltasten auf der ganzen Seite
+  // (Befund 17.08., ausfuehrlich in Spots.tsx).
+  useEffect(() => () => { mapObj.current?.remove(); mapObj.current = null; }, []);
   const layer = useRef<L.LayerGroup | null>(null);
 
   // Track-Punkte (lat,lon,t) mit gültigen Koordinaten.

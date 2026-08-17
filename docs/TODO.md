@@ -1504,3 +1504,23 @@ Offen daraus:
   (bester Lauf 269 m, 5,09 m/s). **NICHT angefasst:** es sind seine Daten. Er ist informiert und
   kann selbst zwei loeschen (Antwort 16.08. unter meinem Konto); fremde Sessions ungefragt
   aufzuraeumen waere seine Entscheidung, nicht unsere.
+
+- **🟢 Karte schluckte Tasten auf der ganzen Seite — BEHOBEN 17.08.** Meldung PeterH (Firefox, PC):
+  nach einem Klick auf einen Spot in der Kartenansicht liessen sich im Chat **`-` `_` `+` `*` `6` `&`
+  und die Pfeiltasten** nicht mehr tippen; Einfuegen ging weiter, ein Reload half, und die Ziffern
+  des Num-Blocks funktionierten auch. Zusaetzlich reagierte die **`6` nicht mehr fuer die
+  Lauf-Auswahl** einer Session. Eine praezisere Fehlermeldung kann man kaum bekommen.
+  **Ursache:** Leaflets Tastatur-Handler registriert seinen `keydown`-Listener am **`document`**
+  (bei Fokus auf dem Kartencontainer) und entfernt ihn erst beim Blur. Beim Unmount feuert kein
+  Blur — und **keine unserer fuenf Karten hat die Leaflet-Instanz je zerstoert** (`Spots`,
+  `Labeling`, `CompareMap`, `SpotProgression`, `SessionDetail`, alle ohne `map.remove()`). Der tote
+  Listener lebte weiter und verschluckte seine Tasten ueberall, auch in Eingabefeldern.
+  Peters Tastenliste ist der Fingerabdruck: Leaflet hat `zoomIn [187,107,61,171]`,
+  `zoomOut [189,109,54,173]` und die Pfeile — das sind auf deutscher Tastatur die drei Tasten
+  `-`, `+`, `6`, und mit Shift werden daraus genau `_`, `*`, `&`. Die **54 ist die Ziffer 6**
+  (Leaflet fuehrt sie fuer AZERTY-Layouts als Zoom-raus), daher auch die kaputte Lauf-Auswahl.
+  **Fix:** in allen fuenf Komponenten ein Unmount-Effekt, der `map.remove()` ruft. Kette
+  nachgeprueft: `remove()` -> `_clearHandlers()` -> `handler.disable()` -> `removeHooks()` ->
+  entfernt den `document`-Listener. `npm run build` gruen, damit sofort live.
+  Nebenbei behoben: die Karten waren auch ein Speicherleck — jede Navigation liess eine komplette
+  Leaflet-Instanz samt Tile-Layer zurueck.

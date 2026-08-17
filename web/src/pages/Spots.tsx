@@ -17,6 +17,18 @@ export default function Spots() {
   const [q, setQ] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
+
+  // Karte beim Verlassen der Seite ZERSTOEREN. Ohne das bleibt Leaflets Tastatur-Handler als
+  // `keydown`-Listener am DOCUMENT haengen: er wird bei Fokus auf dem Kartencontainer registriert
+  // und erst beim Blur wieder entfernt — beim Unmount feuert kein Blur mehr. Der tote Listener
+  // schluckt dann seine Zoom-/Pan-Tasten auf der GANZEN Seite, auch in Eingabefeldern.
+  // Gemeldet 17.08. (PeterH, Firefox): nach einem Klick auf einen Spot in der Karte liessen sich
+  // im Chat -, _, +, *, 6, & und die Pfeiltasten nicht mehr tippen, Einfuegen ging weiter, ein
+  // Reload half. Das sind exakt Leaflets Vorgaben `zoomIn [187,107,61,171]`,
+  // `zoomOut [189,109,54,173]` und die Pfeile — auf deutscher Tastatur ergeben die drei Tasten
+  // -, + und 6 mit Shift genau _, * und &. Die 54 (Ziffer 6) hat uns zusaetzlich die
+  // Lauf-Auswahl per Zifferntaste lahmgelegt.
+  useEffect(() => () => { mapObj.current?.remove(); mapObj.current = null; }, []);
   const markers = useRef<L.LayerGroup | null>(null);
 
   // Immer ALLE Spots (auch GPS-only mit erkanntem On-Foil) — die Karte ist reine Übersicht.
