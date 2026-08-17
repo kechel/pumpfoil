@@ -726,11 +726,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         }
 
         val a = s.analysis
+        // EINMAL geparst und hochgezogen: die Karte weiter unten braucht den Track, die Lauf-Tabelle
+        // braucht daraus den Puls je Punkt. Vorher lag `track` in dem `let`-Block der Karte und war
+        // fuer die Tabelle nicht sichtbar. `remember` steht bewusst UNBEDINGT (nicht im `let`), damit
+        // die Composition-Struktur stabil bleibt, wenn eine Session noch keinen Track hat.
+        val trackForRuns = remember(a?.trackGeojson) { a?.trackGeojson?.let { parseTrack(it) } }
         // Track auf OSM-Karte (osmdroid): nur die Foiling-Läufe, gefärbt nach Modus (Speed/Puls/Pump),
         // optional Pump-Marker — wie im Web.
-        a?.trackGeojson?.let { tg ->
-            val track = remember(tg) { parseTrack(tg) }
-            val segs = a.segments.orEmpty()
+        trackForRuns?.let { track ->
+            val segs = a?.segments.orEmpty()
             if (track.points.size >= 2 && segs.isNotEmpty()) {
                 val hasHr = remember(track) { track.hr.any { it != null && it > 0 } }
                 val hasPump = remember(track) { track.pumpHz.any { it != null } }
@@ -751,7 +755,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                         if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
                         Spacer(Modifier.weight(1f))
-                        if (a.pumpCount != null && a.pumpCount > 0) {
+                        // In lokale Variable ziehen: `a` ist hier nicht mehr per Smart-Cast
+                        // nicht-null (der Block haengt jetzt an trackForRuns, nicht an a?.…).
+                        val pumpAnzahl = a?.pumpCount
+                        if (pumpAnzahl != null && pumpAnzahl > 0) {
                             Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(4.dp))
@@ -831,6 +838,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             val kept = s.fremdkraftKeep.orEmpty()
             if (segList.isNotEmpty() || excluded.isNotEmpty() || powered.isNotEmpty() || kept.isNotEmpty()) RunsTable(
                 segments = segList, selected = selectedRun, sessionId = s.id,
+                hr = trackForRuns?.hr.orEmpty(),
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
                 canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
@@ -1199,6 +1207,11 @@ private fun RunsTable(
     segments: List<Segment>,
     selected: Int?,
     sessionId: Int = 0,
+    // Puls JE TRACKPUNKT (analysis.track_geojson.properties.hr) — gleiche Reihenfolge und Laenge wie
+    // die Koordinaten, und `iStart`/`iEnd` eines Laufs sind Indizes darauf. Daraus rechnet die
+    // Tabelle den Hoechstpuls je Lauf selbst; Server und Reanalyse bleiben unangetastet.
+    // (`pulsAntwortBpm` im Segment ist der MITTELWERT ueber den Lauf, nicht das Maximum.)
+    hr: List<Int?> = emptyList(),
     excluded: List<List<Long>> = emptyList(),
     // Fremdkraft-Vorschläge der Erkennung v2 (analysis.metrics.fremdkraft_laeufe) + bereits
     // zurückgeholte Fenster (session.fremdkraft_keep). Beides Session-ms.
@@ -1354,15 +1367,41 @@ private fun RunsTable(
         Spacer(Modifier.height(8.dp))
     }
     if (segments.isEmpty()) return
+    // Hoechstpuls im Lauf, aus dem Puls je Trackpunkt (Wunsch ThermikDreher, 15.08.).
+    // Identische Logik wie die PWA: ueber iStart..iEnd laufen, Nullen und 0-Werte ignorieren.
+    val maxHrImLauf: (Segment) -> Int? = { seg ->
+        if (hr.isEmpty()) null else {
+            var m = 0
+            var i = maxOf(0, seg.iStart)
+            val bis = minOf(seg.iEnd, hr.size - 1)
+            while (i <= bis) { hr[i]?.let { if (it > m) m = it }; i++ }
+            if (m > 0) m else null
+        }
+    }
+    // Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst steht eine Spalte voller
+    // Striche und nimmt auf dem Handy Platz weg (genauso macht es die PWA mit `hasHr`).
+    val zeigeMaxHr = remember(segments, hr) { segments.any { maxHrImLauf(it) != null } }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                listOf("#", I18n.t("sd.hDist"), I18n.t("field.3"), "Ø", "Top", I18n.t("home.pumps")).forEach {
-                    Text(it, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                // Spalten-Gewichte: "#" braucht nur 1-2 Zeichen, bekommt also weniger, Ø und Top
+                // sind zweistellig. Das schafft Platz fuer die siebte Spalte, ohne dass auf einem
+                // schmalen Geraet alles zusammenrueckt — die Zeile hat keinen Horizontal-Scroll.
+                val kopf = buildList {
+                    add("#" to 0.45f)
+                    add(I18n.t("sd.hDist") to 1f)
+                    add(I18n.t("field.3") to 1f)
+                    add("Ø" to 0.8f)
+                    add("Top" to 0.8f)
+                    add(I18n.t("home.pumps") to 1f)
+                    if (zeigeMaxHr) add(I18n.t("sd.colMaxHr") to 1f)
+                }
+                kopf.forEach { (label, gewicht) ->
+                    Text(label, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(gewicht))
                 }
                 // Kopf der Aussortier-Spalte: nur Platzhalter, damit die Zellen darunter passen.
                 if (canEdit) Spacer(Modifier.width(36.dp))
@@ -1378,16 +1417,18 @@ private fun RunsTable(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val cells = listOf(
-                        "${i + 1}",
-                        if (seg.distanceM < 1000) "%.0f m".format(seg.distanceM) else "%.2f km".format(seg.distanceM / 1000),
-                        "%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt()),
-                        "%.0f".format(seg.avgSpeedMps * 3.6),
-                        "%.0f".format(seg.maxSpeedMps * 3.6),
-                        if (seg.pumps > 0) "${seg.pumps}" else "–",
-                    )
-                    cells.forEach {
-                        Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f),
+                    val cells = buildList {
+                        add("${i + 1}" to 0.45f)
+                        add((if (seg.distanceM < 1000) "%.0f m".format(seg.distanceM)
+                             else "%.2f km".format(seg.distanceM / 1000)) to 1f)
+                        add("%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt()) to 1f)
+                        add("%.0f".format(seg.avgSpeedMps * 3.6) to 0.8f)
+                        add("%.0f".format(seg.maxSpeedMps * 3.6) to 0.8f)
+                        add((if (seg.pumps > 0) "${seg.pumps}" else "–") to 1f)
+                        if (zeigeMaxHr) add((maxHrImLauf(seg)?.let { "$it" } ?: "–") to 1f)
+                    }
+                    cells.forEach { (wert, gewicht) ->
+                        Text(wert, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(gewicht),
                             color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified)
                     }
                     if (canEdit) {

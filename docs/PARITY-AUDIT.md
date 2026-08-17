@@ -51,7 +51,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ⚠️ | ⚠️ | M — `record_mode` ist da (2–3 Dateien), `gnss_mode` in beiden **0 Treffer** |
 | 3 | Hilfetexte zu den Uhr-Einstellungen + Hinweis nach dem Verbinden | `06875ee`/`1f8e94d` 17.08. | ❌ | ❌ | S — nur Texte, Keys existieren schon |
 | 4 | Screen-Auswahl per Vorschau statt Namensliste | `c21159d` 17.08. | ❌ | ❌ | haengt an der Entscheidung oben |
-| 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ⚠️ | ⚠️ | S — Lauf-Tabelle existiert, Spalte fehlt |
+| 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ❌ | Android fertig; iOS offen |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ⚠️ | ⚠️ | S–M — Rekorde + `sport_class` sind da |
 | 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ⚠️ | ⚠️ | S — Umschalter ist da, greift aber nicht auf die Rekorde (s. Durchgang) |
