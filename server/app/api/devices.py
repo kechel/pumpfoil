@@ -885,7 +885,7 @@ def pair_claim(
     if p is None or _aware(p.expires_at) < now:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger oder abgelaufener Code")
     if p.device_token is not None:
-        return {"ok": True, "already": True}
+        return {"ok": True, "already": True, "platform": p.platform}
     # Label/Plattform bevorzugt von der Uhr (pair-init), sonst vom Web-Body, sonst Default „Garmin"
     # (historisch: einzige Reverse-Pairing-Uhr war Garmin).
     device = models.DeviceToken(
@@ -898,7 +898,12 @@ def pair_claim(
     p.device_token = device.token
     p.user_id = user.id
     db.commit()
-    return {"ok": True, "label": device.label}
+    # `platform` mitgeben, damit die Weboberflaeche direkt unter der Erfolgsmeldung sagen kann, was
+    # sich fuer GENAU DIESE Uhr einstellen laesst (Jan, 17.08.). Die Stellschrauben sind je
+    # Plattform verschieden: Satellitensysteme gibt es nur bei Garmin, und Amazfit uebernimmt den
+    # Aufzeichnungsmodus (noch) gar nicht — `watch-zepp/app-side/index.js` reicht nur `language`,
+    # `latestVersion`, `pauseView`, `layoutsOn`, `layouts` und `pages` durch.
+    return {"ok": True, "label": device.label, "platform": device.platform}
 
 
 @router.post("/mint", response_model=DeviceTokenOut)

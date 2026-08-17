@@ -86,17 +86,27 @@ function ClaimFromWatch() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // Plattform der EBEN verbundenen Uhr -> direkt darunter steht, was sich fuer genau diese Uhr
+  // einstellen laesst. Die Stellschrauben sind verschieden (s. claimNext*-Texte), deshalb nicht
+  // ein Text fuer alle.
+  const [platform, setPlatform] = useState<string | null>(null);
   async function claim() {
-    setBusy(true); setErr(null); setMsg(null);
+    setBusy(true); setErr(null); setMsg(null); setPlatform(null);
     try {
       const r = await api.pairClaim(code.trim().toUpperCase());
       setMsg(r.already ? t("account.claimAlready") : t("account.claimOk"));
+      setPlatform(r.platform ?? null);
       setCode("");
     } catch (e) {
       setErr((e as Error).message);
     }
     setBusy(false);
   }
+  // Garmin: Aufzeichnung + Satellitensysteme · Apple/Wear: nur Aufzeichnung ·
+  // Amazfit: Aufzeichnungsmodus wirkt dort noch NICHT (app-side reicht ihn nicht durch).
+  const nextKey = platform === "garmin" ? "account.claimNextGarmin"
+    : platform === "zepp" ? "account.claimNextZepp"
+    : platform ? "account.claimNextRecord" : null;
   return (
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">{t("account.claimTitle")}</h3>
@@ -119,6 +129,16 @@ function ClaimFromWatch() {
         </Button>
       </div>
       {msg && <div className="mt-3 text-sm text-emerald-700 dark:text-emerald-400">{msg}</div>}
+      {/* Direkt nach dem Verbinden sagen, was sich fuer DIESE Uhr einstellen laesst (Jan, 17.08.).
+          Genau hier ist der Moment, in dem jemand hinsieht — sonst findet die Einstellungen
+          niemand: `gnss_mode` stand bei ALLEN 115 Garmin-Uhren auf NULL. Nicht winzig setzen
+          (memory hints-warnings-never-tiny). */}
+      {msg && nextKey && (
+        <div className="mt-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3 text-slate-200">
+          <p className="mb-1 font-semibold">{t("account.claimNextTitle")}</p>
+          <p>{t(nextKey)}</p>
+        </div>
+      )}
       {err && <div className="mt-3"><ErrorBox message={err} /></div>}
     </Card>
   );
@@ -225,7 +245,12 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   return (
     <Card className="mt-5 p-5">
       <h3 className="mb-1 font-semibold">{t("account.devicesTitle")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("account.devicesHint")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("account.devicesHint")}</p>
+      {/* Was die Regler unter jeder Uhr eigentlich tun — sie wirken auf die UHR, nicht auf die
+          Auswertung, und werden dort beim naechsten App-Start uebernommen. Ohne diesen Satz sucht
+          man den Effekt an der falschen Stelle; belegt daran, dass `gnss_mode` bei allen 115
+          Garmin-Uhren auf NULL stand (Jan, 17.08.). */}
+      <p className="mb-3 text-sm text-slate-300">{t("account.devicesSettingsIntro")}</p>
       {devices.length === 0 ? (
         <p className="text-sm text-slate-400">{t("account.devicesNone")}</p>
       ) : (
@@ -278,6 +303,12 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     )}
                     {d.platform === "garmin" && (
                       <p className="mt-1 text-[11px] text-slate-400">{t("account.recordModeGarminHint")}</p>
+                    )}
+                    {/* Ehrlich dranschreiben statt den Regler wirkungslos anbieten: Amazfit holt
+                        sich den Modus gar nicht ab — `watch-zepp/app-side/index.js` reicht nur
+                        language/latestVersion/pauseView/layoutsOn/layouts/pages durch. */}
+                    {d.platform === "zepp" && (
+                      <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">{t("account.recordModeZeppHint")}</p>
                     )}
                   </div>
                 )}

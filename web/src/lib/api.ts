@@ -826,7 +826,7 @@ export const api = {
     }),
   // Reverse-Pairing: Code von der Uhr hier eingeben.
   pairClaim: (code: string) =>
-    req<{ ok: boolean; label?: string; already?: boolean }>("/api/devices/pair-claim", {
+    req<{ ok: boolean; label?: string; already?: boolean; platform?: string }>("/api/devices/pair-claim", {
       method: "POST", body: JSON.stringify({ code, label: "Garmin" }),
     }),
   uploadFit: async (file: File) => {
