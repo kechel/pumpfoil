@@ -343,6 +343,32 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟢 Paritaets-Rueckstand der Handy-Apps ABGEARBEITET (17.08.) — Release-reif.** Alle NEUN Punkte
+  aus `docs/PARITY-AUDIT.md` sind in Android UND iOS drin:
+  1 `colorByValue` + `auto_start` · 2 GNSS-Stufe je Uhr · 3 Hilfetexte an den Uhr-Einstellungen ·
+  4 Layout-Vorschau + Community-Galerie · 5 Hoechstpuls je Lauf · 6 Trainingskurve ·
+  7 Rekorde nach Sportart · 8 Zeitraum wirkt auf die Rekorde · 9 Carves-Kachel.
+  **Bewusst NICHT portiert:** der Layout-EDITOR bleibt Web-only (Entscheidung Jan: „das macht man
+  eh nur am pc") — die Apps verlinken dorthin und koennen Layouts ansehen, auswaehlen und kopieren.
+  Ebenfalls nicht: Leaflet-Tastenfix und OAuth/Service-Worker (beides Web-Infrastruktur) sowie der
+  Aussortiert-Leerzustand, den es nativ gar nicht gibt.
+  **Verifiziert:** `:app:compileDebugKotlin` und `:wear:compileDebugKotlin` gruen, ALLE Swift-Dateien
+  (Sources-iOS + Sources) mit `~/swift-6.1 -parse` geprueft, und je Aenderung die Member gegen die
+  Deklarationen abgeglichen — der Parse allein findet solche Fehler nicht.
+  **Drei Sachen fielen dabei auf und sind mitgefixt**, keine reinen Portierungen:
+  - Der **„Nur GPS"-Warnhinweis fehlte BEIDEN Apps** komplett, obwohl die PWA ihn zeigt. Man konnte
+    also Pump-Zaehler, Kadenz und Gleitphasen abschalten, ohne es zu erfahren.
+  - **Amazfit uebernimmt den Aufzeichnungsmodus gar nicht** (`watch-zepp/app-side/index.js` reicht
+    nur language/latestVersion/pauseView/layoutsOn/layouts/pages durch) — der Regler stand dort
+    wirkungslos in der Oberflaeche. Steht jetzt ehrlich dran. **OFFEN: entweder Zepp liest ihn
+    kuenftig mit (El Manu arbeitet daran), oder der Regler wird dort ausgeblendet.**
+  - Androids `autoStart` in `RecordScreen.kt` ist `phone_autostart`, also der HANDY-Recorder — nicht
+    die Uhr-Einstellung. Wer nur nach dem Namen sucht, haelt sie faelschlich fuer vorhanden.
+  **NAECHSTER SCHRITT (Jan):** Versionen bumpen und einreichen. Achtung, es liegen bereits
+  ungereichte Staende: Android 1.1.21 und Wear 1.2.22 warten noch auf Freigabe — die neuen Aenderungen
+  brauchen also einen weiteren Bump darueber.
+
+
 - **🟢 Garmins Daten-API (GCDP) nimmt keine neuen Antraege an — uns trifft es nicht, aber eine
   Planungsannahme ist damit tot.** (17.08., Anlass: Artikel von Momentum vom 15.07.2026, den Jan
   durchgegeben hat.) Kern des Artikels: das **Garmin Connect Developer Program** (die Schnittstelle,
