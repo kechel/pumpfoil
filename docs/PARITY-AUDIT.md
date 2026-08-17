@@ -47,7 +47,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 
 | # | Feature | PWA seit | Android | iOS | Aufwand |
 |---|---|---|---|---|---|
-| 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ❌ | ❌ | S — zwei Schalter, Muster steht daneben |
+| 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ✅ `5d842c7`+ | ✅ | **ERLEDIGT 17.08.** — beide Schalter, Reihenfolge wie PWA |
 | 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ⚠️ | ⚠️ | M — `record_mode` ist da (2–3 Dateien), `gnss_mode` in beiden **0 Treffer** |
 | 3 | Hilfetexte zu den Uhr-Einstellungen + Hinweis nach dem Verbinden | `06875ee`/`1f8e94d` 17.08. | ❌ | ❌ | S — nur Texte, Keys existieren schon |
 | 4 | Screen-Auswahl per Vorschau statt Namensliste | `c21159d` 17.08. | ❌ | ❌ | haengt an der Entscheidung oben |

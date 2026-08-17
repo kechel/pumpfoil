@@ -59,6 +59,11 @@ struct DataFieldsView: View {
     @State private var pause: [WatchPage] = [.classic([12, 20, 2])]
     @State private var browseAll = true
     @State private var layoutsEnabled = true
+    // Die zwei Uhr-Schalter, die der App bis 17.08. fehlten (PARITY-AUDIT). Beide gehoeren der
+    // UHR: colorByValue faerbt Werte auf dem Uhr-Screen nach Hoehe, auto_start startet die
+    // Aufnahme, sobald GPS Bewegung sieht. Feldnamen genau wie die PWA sie sendet.
+    @State private var colorByValue = false
+    @State private var autoStartWatch = true
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
 
@@ -83,6 +88,13 @@ struct DataFieldsView: View {
 
     @ViewBuilder private var switchSection: some View {
         Section {
+            // Reihenfolge wie in der PWA (Account.tsx), damit man sich zwischen Web und App
+            // nicht umorientieren muss. Diese zwei haben bewusst keinen Erklaertext — die PWA
+            // hat dort auch keinen.
+            Toggle(Loc.t("account.colorByValue", lang), isOn: $colorByValue)
+                .onChange(of: colorByValue) { _ in saved = false }
+            Toggle(Loc.t("account.autoStart", lang), isOn: $autoStartWatch)
+                .onChange(of: autoStartWatch) { _ in saved = false }
             Toggle(Loc.t("account.browseAll", lang), isOn: $browseAll)
                 .onChange(of: browseAll) { _ in saved = false }
             Text(Loc.t("account.browseAllHint", lang)).font(.callout).foregroundStyle(.secondary)
@@ -201,6 +213,8 @@ struct DataFieldsView: View {
         if !pau.isEmpty { pause = pau }
         browseAll = (s["browse_all_pages"] as? Bool) ?? true
         layoutsEnabled = (s["layouts_enabled"] as? Bool) ?? true
+        colorByValue = (s["colorByValue"] as? Bool) ?? false
+        autoStartWatch = (s["auto_start"] as? Bool) ?? true
         layouts = (try? await Api.watchLayouts()) ?? []
     }
 
@@ -212,6 +226,8 @@ struct DataFieldsView: View {
                 "pause_pages": watchPagesPayload(pause),
                 "browse_all_pages": browseAll,
                 "layouts_enabled": layoutsEnabled,
+                "colorByValue": colorByValue,
+                "auto_start": autoStartWatch,
             ])
             saved = true
         }

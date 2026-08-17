@@ -116,6 +116,12 @@ fun DataFieldsScreen(onBack: () -> Unit) {
     var pause by remember { mutableStateOf<List<WatchPage>>(listOf(ClassicPage(listOf(12, 20, 2)))) }
     var browseAll by remember { mutableStateOf(true) }
     var layoutsEnabled by remember { mutableStateOf(true) }
+    // Die zwei Schalter, die der App bis 17.08. fehlten (PARITY-AUDIT). Beide gehoeren der
+    // UHR, nicht der Auswertung: `colorByValue` faerbt Werte auf dem Uhr-Screen nach Hoehe,
+    // `auto_start` startet die Aufnahme, sobald GPS Bewegung sieht.
+    // NICHT verwechseln mit `phone_autostart` in RecordScreen.kt — das ist der Handy-Recorder.
+    var colorByValue by remember { mutableStateOf(false) }
+    var autoStartWatch by remember { mutableStateOf(true) }
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -128,6 +134,8 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             readPages(s, "pause_pages", "pause_view", "pause_layout_id").let { if (it.isNotEmpty()) pause = it }
             browseAll = s["browse_all_pages"]?.jsonPrimitive?.booleanOrNull ?: true
             layoutsEnabled = s["layouts_enabled"]?.jsonPrimitive?.booleanOrNull ?: true
+            colorByValue = s["colorByValue"]?.jsonPrimitive?.booleanOrNull ?: false
+            autoStartWatch = s["auto_start"]?.jsonPrimitive?.booleanOrNull ?: true
         } catch (_: Exception) {}
         layouts = try { Api.watchLayouts() } catch (_: Exception) { emptyList() }
         loaded = true
@@ -145,6 +153,8 @@ fun DataFieldsScreen(onBack: () -> Unit) {
                     put("pause_pages", pagesJson(pause))
                     put("browse_all_pages", browseAll)
                     put("layouts_enabled", layoutsEnabled)
+                    put("colorByValue", colorByValue)
+                    put("auto_start", autoStartWatch)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -194,6 +204,14 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             }
 
             Spacer(Modifier.height(16.dp))
+            // Reihenfolge wie in der PWA (Account.tsx), damit man sich zwischen Web und App
+            // nicht umorientieren muss.
+            SwitchRow(I18n.t("account.colorByValue"), "", colorByValue) {
+                colorByValue = it; saved = false
+            }
+            SwitchRow(I18n.t("account.autoStart"), "", autoStartWatch) {
+                autoStartWatch = it; saved = false
+            }
             SwitchRow(I18n.t("account.browseAll"), I18n.t("account.browseAllHint"), browseAll) {
                 browseAll = it; saved = false
             }
@@ -230,7 +248,13 @@ private fun SwitchRow(title: String, hint: String, checked: Boolean, onChange: (
             Text(title, style = MaterialTheme.typography.bodyMedium)
             // Hinweis in normaler Lesegroesse (bodySmall), nicht kleiner -- Warnungen und
             // Erklaerungen duerfen nicht winzig sein.
-            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Leere Hinweise NICHT zeichnen: sonst reserviert die Zeile Platz fuer nichts und die
+            // Schalterliste bekommt ungleiche Abstaende (zwei der Schalter haben bewusst keinen
+            // Erklaertext, weil die PWA dort auch keinen hat).
+            if (hint.isNotEmpty()) {
+                Text(hint, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         Spacer(Modifier.width(12.dp))
         Switch(checked = checked, onCheckedChange = onChange)
