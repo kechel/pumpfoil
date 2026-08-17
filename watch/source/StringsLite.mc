@@ -22,6 +22,7 @@ module Strings {
         v = _e6(key); if (v != null) { return v; }
         v = _e7(key); if (v != null) { return v; }
         v = _e8(key); if (v != null) { return v; }
+        v = _e9(key); if (v != null) { return v; }
         return key;
     }
 
@@ -152,6 +153,28 @@ module Strings {
         if (key.equals("pair.fetching")) { return "fetching code…"; }
         if (key.equals("pair.done"))     { return "Connected!"; }
         if (key.equals("common.error"))  { return "Error"; }
+        return null;
+    }
+
+    // Nachgetragen 17.08. — diese Keys fehlten hier, weil sie im LITE-Build (96 KB) nie gebraucht
+    // wurden: die Menue-Texte stecken hinter `(:full)`, das LITE gar nicht hat. Mit der neuen
+    // ENG-Stufe (128 KB) sind die MENUES an, aber die Sprachtabelle ist diese hier — dadurch stand
+    // im Pausen-Menue der rohe Key statt des Textes (Jans fenix 5, belegt per Screenshot).
+    // `f.bpmMaxLast` fehlte unabhaengig davon: Datenfeld 21 (17.08.) wurde nur in Strings.mc
+    // eingetragen, also zeigten auch die Instinct-2-Uhren dort den rohen Key.
+    // MERKE: jeder neue Key gehoert in BEIDE Module. Gegenprobe (muss leer bleiben):
+    //   diff <(grep -oP 'key\.equals\("\K[^"]+' source/Strings.mc | sort) \
+    //        <(grep -oP 'key\.equals\("\K[^"]+' source/StringsLite.mc | sort)
+    function _e9(key as Lang.String) {
+        if (key.equals("rec.cancel"))    { return "Cancel"; }
+        if (key.equals("rec.endSave"))   { return "End & save"; }
+        if (key.equals("f.bpmMaxLast"))  { return "bpm max last"; }
+        // Layout-Keys: in LITE/ENG ist der Renderer nicht dabei, der Menuepunkt also auch nicht.
+        // Trotzdem hinterlegt, damit ein kuenftiger Aufruf keinen rohen Key mehr zeigen kann.
+        if (key.equals("menu.layouts"))  { return "Custom layouts"; }
+        if (key.equals("lay.fallback"))  { return "Layout off (crash)"; }
+        if (key.equals("lay.none"))      { return "no pages"; }
+        if (key.equals("common.auto"))   { return "Automatic"; }
         return null;
     }
 }

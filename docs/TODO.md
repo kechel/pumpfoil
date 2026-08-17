@@ -9,6 +9,19 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🔴 Garmin 1.0.78 fertig gebaut, WARTET AUF JANS FELDTEST — nicht veroeffentlichen.** (17.08.)
+  Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die ueber Wochen still
+  gar nichts mehr aufgezeichnet haben (Befund + Messungen weiter unten unter „speicherarme
+  Garmin-Uhren"). Code committet (`078c4b5`), Server-Teil ist live, **`build-all.sh` bewusst NICHT
+  gelaufen** — jeder Lauf ist sofort in allen 121 Direkt-Downloads.
+  Verifiziert: alle 121 Geraete gebaut (temporaeres Verzeichnis), **105 byte-identisch** zu 1.0.77
+  (alle VOLL- und LITE-Uhren), genau die 16 ENG-Geraete je ~41,7 kB kleiner; freier Speicher
+  24 884 -> 66 612 B (FR55), 45 396 -> 76 276 B (Instinct 3 Solar / Instinct E).
+  **Jans Test:** `.prg` fuer fenix 5 + FR55 am 17.08. geliefert. Erwartet: Menues wie gewohnt,
+  Texte auf **Englisch**, Layout-Schalter weg. Laeuft eine Wegwerf-Session sauber durch ->
+  `build-all.sh` + CIQ-Store-Paket. **Danach faellt Jans fenix 5 als Layout-Testgeraet weg**
+  (`LAYOUT_MIN_ON_REQUEST` steht jetzt auf 524288).
+
 - **Stand 16.08. abends: VIER Einreichungen offen — alles wartet auf Freigabe-Mails.**
   | Plattform | Version | wo | Inhalt |
   |---|---|---|---|
