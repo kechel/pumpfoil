@@ -240,6 +240,16 @@ enum Api {
     // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
     // derselben Abfrage. `sport` nil = der Server nimmt die haeufigste Sportart und sagt in der
     // Antwort, welche es war (plus die Auswahlliste).
+    // Trainingskurve. `sport` nil = der Server nimmt die haeufigste Sportart des Nutzers.
+    static func hrProgress(sport: String? = nil) async throws -> HrProgress {
+        var pfad = "/api/sessions/hr-progress"
+        if let s = sport, !s.isEmpty,
+           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            pfad += "?sport=\(enc)"
+        }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
+    }
+
     static func stats(accelOnly: Bool = true, period: String = "all",
                       sport: String? = nil) async throws -> OverallStats {
         var pfad = "/api/sessions/stats?accel_only=\(accelOnly)&period=\(period)"

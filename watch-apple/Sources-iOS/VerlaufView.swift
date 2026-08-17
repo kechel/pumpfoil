@@ -53,6 +53,9 @@ struct VerlaufView: View {
                 Text(aggTitle)
                     .font(.title3).fontWeight(.semibold).padding(.top, 6)
                 sumCharts
+                // Trainingskurve: eigene Abfrage (hr-progress), deshalb eigene Karte mit
+                // eigenem Ladezustand — sie haengt nicht am Zeitraum der uebrigen Diagramme.
+                HrProgressCardView(lang: lang)
                 SpotProgressionView(lang: lang)
             }
             .padding(.horizontal, 12)
@@ -329,6 +332,10 @@ struct LineChartView: View {
     let color: Color
     let domain: (Double, Double)
     let lang: String
+    /// Nullpunkt der y-Achse. Standard 0 (alle bisherigen Diagramme). Die Trainingskurve gibt einen
+    /// hoeheren Wert mit: Puls liegt zwischen ~110 und ~175 bpm, bei 0 beginnend waere die Kurve
+    /// ein flacher Strich und der Verlauf unsichtbar (genauso macht es die PWA).
+    var vmin: Double = 0
 
     var body: some View {
         if pts.count < 2 {
@@ -340,9 +347,10 @@ struct LineChartView: View {
                 let w: CGFloat = size.width, h: CGFloat = size.height, padB: CGFloat = 6
                 let tmin: Double = domain.0, tmax: Double = max(domain.1, tmin + 1)
                 let vpeak: Double = pts.map { $0.v }.max() ?? 1
-                let vmax: Double = max(vpeak * 1.05, 1e-6)
+                let vmax: Double = max(vpeak * 1.05, vmin + 1e-6)
+                let spanne: Double = vmax - vmin
                 func px(_ t: Double) -> CGFloat { CGFloat((t - tmin) / (tmax - tmin)) * w }
-                func py(_ v: Double) -> CGFloat { h - padB - CGFloat(v / vmax) * (h - padB) }
+                func py(_ v: Double) -> CGFloat { h - padB - CGFloat((v - vmin) / spanne) * (h - padB) }
                 var line = Path(), area = Path()
                 for (i, p) in pts.enumerated() {
                     let x: CGFloat = px(p.t), y: CGFloat = py(p.v)

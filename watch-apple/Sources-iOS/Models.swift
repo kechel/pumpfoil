@@ -179,6 +179,67 @@ struct SportCount: Codable, Identifiable {
     var id: String { sport }
 }
 
+// Trainingskurve (GET /api/sessions/hr-progress): je Session der Hoechstpuls nach 30 s, 1, 2 und
+// 5 Minuten LAUF (Median ueber die Laeufe), aelteste zuerst. Faellt der Wert ueber die Wochen, ist
+// der Fahrer fitter geworden.
+struct HrProgress: Codable {
+    let sport: String?
+    let sports: [SportCount]?
+    let marks: [Int]?
+    let series: [HrSeriesPoint]?
+}
+
+// Ein Punkt der Serie. Der Server liefert DYNAMISCHE Schluessel je Marke (`hr60`, `n60`, …), die
+// gueltigen Marken stehen in `marks`. Deshalb ein eigener Decoder statt fester Felder: aendert der
+// Server die Marken, bricht die App nicht.
+struct HrSeriesPoint: Codable, Identifiable {
+    let session_id: Int?
+    let started_at: String?
+    /// Marke (Sekunden) -> Median-Puls.
+    let werte: [Int: Double]
+    /// Marke (Sekunden) -> Anzahl beteiligter Laeufe.
+    let laeufe: [Int: Int]
+
+    var id: Int { session_id ?? 0 }
+
+    private struct AnyKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+        init?(stringValue: String) { self.stringValue = stringValue }
+        init?(intValue: Int) { return nil }
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: AnyKey.self)
+        var sid: Int? = nil
+        var ts: String? = nil
+        var v: [Int: Double] = [:]
+        var n: [Int: Int] = [:]
+        for k in c.allKeys {
+            let name: String = k.stringValue
+            if name == "session_id" { sid = try? c.decode(Int.self, forKey: k); continue }
+            if name == "started_at" { ts = try? c.decode(String.self, forKey: k); continue }
+            if name.hasPrefix("hr"), let m = Int(name.dropFirst(2)) {
+                v[m] = try? c.decode(Double.self, forKey: k)
+            } else if name.hasPrefix("n"), let m = Int(name.dropFirst(1)) {
+                n[m] = try? c.decode(Int.self, forKey: k)
+            }
+        }
+        session_id = sid
+        started_at = ts
+        // `v[m] = nil` entfernt den Schluessel bereits — die Dictionaries enthalten also nur
+        // wirklich gelieferte Werte, kein compactMapValues noetig.
+        werte = v
+        laeufe = n
+    }
+
+    func encode(to encoder: Encoder) throws {
+        // Wird nie gesendet — die Kurve ist rein lesend.
+        var c = encoder.container(keyedBy: AnyKey.self)
+        if let s = session_id, let k = AnyKey(stringValue: "session_id") { try c.encode(s, forKey: k) }
+    }
+}
+
 struct SpotsList: Codable { let mine: [String]?; let all: [String]? }
 
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.

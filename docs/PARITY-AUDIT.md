@@ -50,7 +50,13 @@ Seitenliste `name` bzw. `account.layoutMissing`. Der Renderer waere je Plattform
 komplett bauen, nur eine LESENDE Vorschau (reicht fuer Auswahl + Galerie, kein Editor), oder
 bewusst Web-only lassen und in den Apps darauf verlinken.
 
-### Vorgeschlagene Reihenfolge
+### Vorgeschlagene Reihenfolge — **ALLE NEUN PUNKTE ERLEDIGT (17.08.)**
+
+Android kompiliert nach jedem Schritt (`:app:compileDebugKotlin`), alle geaenderten
+Swift-Dateien mit `~/swift-6.1 -parse` geprueft UND die Member gegen die Deklarationen
+abgeglichen — der Parse allein findet solche Fehler nicht (memory `swift-parse-check-limits`).
+Damit sind die Handy-Apps wieder auf dem Stand der PWA; der Layout-EDITOR bleibt bewusst
+Web-only.
 
 | # | Feature | PWA seit | Android | iOS | Aufwand |
 |---|---|---|---|---|---|
@@ -59,7 +65,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 3 | Hilfetexte zu den Uhr-Einstellungen | `06875ee`/`1f8e94d` 17.08. | ✅ 17.08. | ✅ 17.08. | Einleitung + GPS-Warnung + Amazfit-Hinweis. OFFEN: der Hinweis nach dem VERBINDEN (eigene Pair-Screens) |
 | 4 | Layout-Vorschau + Community-Galerie | `c21159d` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — lesende Renderer + Galerie (ansehen/kopieren). Editor bleibt Web-only |
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Spalte nur wenn Puls da; "#" schmaler wegen fehlendem Horizontal-Scroll |
-| 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
+| 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — in der Verlaufsansicht, bestehender LineChart um `vmin` erweitert |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Auswahl nur bei mehr als einer Sportart |
 | 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT**. KORREKTUR: es gab gar keinen Waehler — die Fenster-Liste beschriftete nur die Carve-Kacheln |
 | 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — nutzerbezogen, deshalb ohne Link/Datum/Spot |
