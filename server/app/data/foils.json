@@ -2860,15 +2860,6 @@
   },
   {
     "brand": "Sabfoil",
-    "model": "LEVIATHAN BLACKBIRD THE 1350",
-    "size": "1350",
-    "span_cm": 135,
-    "area_cm2": 1864,
-    "thickness_mm": 21,
-    "is_baseline": false
-  },
-  {
-    "brand": "Sabfoil",
     "model": "SEA DEVIL 780 BLACKBIRD",
     "size": "780",
     "span_cm": 78,

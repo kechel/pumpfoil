@@ -9,18 +9,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🔴 Garmin 1.0.78 fertig gebaut, WARTET AUF JANS FELDTEST — nicht veroeffentlichen.** (17.08.)
-  Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die ueber Wochen still
-  gar nichts mehr aufgezeichnet haben (Befund + Messungen weiter unten unter „speicherarme
-  Garmin-Uhren"). Code committet (`078c4b5`), Server-Teil ist live, **`build-all.sh` bewusst NICHT
-  gelaufen** — jeder Lauf ist sofort in allen 121 Direkt-Downloads.
-  Verifiziert: alle 121 Geraete gebaut (temporaeres Verzeichnis), **105 byte-identisch** zu 1.0.77
-  (alle VOLL- und LITE-Uhren), genau die 16 ENG-Geraete je ~41,7 kB kleiner; freier Speicher
-  24 884 -> 66 612 B (FR55), 45 396 -> 76 276 B (Instinct 3 Solar / Instinct E).
-  **Jans Test:** `.prg` fuer fenix 5 + FR55 am 17.08. geliefert. Erwartet: Menues wie gewohnt,
-  Texte auf **Englisch**, Layout-Schalter weg. Laeuft eine Wegwerf-Session sauber durch ->
-  `build-all.sh` + CIQ-Store-Paket. **Danach faellt Jans fenix 5 als Layout-Testgeraet weg**
-  (`LAYOUT_MIN_ON_REQUEST` steht jetzt auf 524288).
+- **🟡 Garmin 1.0.78 LIVE in den Direkt-Downloads + EINGEREICHT im CIQ-Store (17.08.), wartet auf
+  die Freigabe-Mail.** Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die
+  ueber Wochen still gar nichts mehr aufgezeichnet haben (Befund + Messungen weiter unten unter
+  „speicherarme Garmin-Uhren"). Commits `078c4b5` (Stufe) + `4622b89` (7 fehlende Strings).
+  **NACH der Freigabe-Mail ohne Rueckfrage:** `appmeta garmin` = 1.0.78 + Changelog-Eintrag.
+  Store-Seite von der VM aus NICHT pruefbar (JS-gerendert, WebFetch sieht nur die Huelle) — Jans
+  Mail ist die Quelle.
+  Verifiziert vor der Veroeffentlichung: alle 121 Geraete in ein temporaeres Verzeichnis gebaut,
+  **105 byte-identisch** zu 1.0.77 (alle VOLL- und LITE-Uhren), genau die 16 ENG-Geraete je
+  ~41,7 kB kleiner. Danach `build-all.sh` 121/121 gruen, Katalog auf 1.0.78, Store-Paket
+  `bin/pumpfoil-1.0.78.iq` (210 Geraete-Builds, 11,2 MB) an Jan geliefert.
+  Freier Speicher jetzt: FR55 24 884 -> 66 228 B · fenix 5/6 ~24 000 -> ~65 500 B ·
+  Venu Sq 22 996 -> 64 340 B · Instinct 3 Solar / Instinct E 45 396 -> 75 876 B.
+  **Jans Feldtest bestanden (17.08.):** fenix 5 UND FR55 haben je eine Session aufgezeichnet und
+  hochgeladen (#2301 mit 1 Lauf/33 Pumps, #2303 mit 135 m — beide mit angekommenen Chunks, genau
+  das Modell, das vorher bei 1/9 stand). Uebersetzungen auf der fenix 5 gegengeprueft.
+  Getestet wurde die ENG-Stufe; der String-Fix danach ist rein additiv (7 Literale, +384 B).
+  **Folge, bewusst in Kauf genommen:** Jans fenix 5 faellt als Layout-Testgeraet weg
+  (`LAYOUT_MIN_ON_REQUEST` 131072 -> 524288), und auf den 16 ENG-Uhren sind die Texte Englisch.
+  Release-Satz fuer den Store (195 Zeichen, Jan gewaehlt): „Watches with little memory (fēnix 5/6,
+  Forerunner 55/245/645/935, Venu Sq, vívoactive 3, Enduro, Instinct 3/E) record reliably again.
+  The app is far smaller there; its texts are English on those."
 
 - **Stand 16.08. abends: VIER Einreichungen offen — alles wartet auf Freigabe-Mails.**
   | Plattform | Version | wo | Inhalt |
@@ -332,6 +342,66 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ---
 
 ## 📥 Inbox
+
+- **🟡 CIQ-Store-Reviews vom 17.08. (drei, von Jan durchgegeben) — einer davon ist ein Befund.**
+  - **Franz, 15.08., 1.0.76, „Tracking funktioniert sehr gut, leider verbraucht die App bei mir
+    extrem viel Akku".** Das ist der **erste Feldbeleg fuer die Akkukosten von 1.0.75** (13.08.,
+    beste unterstuetzte GNSS-Stufe = Mehrband L1+L5 ueber alle Systeme statt GPS allein). Genau das
+    stand als „Kostet Akku -> Jans Entscheidung, evtl. als Einstellung" offen; das Datum passt
+    (Umstellung 13.08., Review 15.08.).
+    **Die Einstellung EXISTIERT schon** und niemand kennt sie: `Account.tsx` hat je Uhr eine
+    GNSS-Auswahl mit vier Stufen (alle Systeme / ohne zweites Band / GPS + ein System / nur GPS),
+    `PUT /api/devices/{id}/gnss-mode`, in allen 16 Sprachen uebersetzt. Voreinstellung ist `best`.
+    Zu entscheiden (Jan): (a) bleibt `best` die Voreinstellung, obwohl sie Akku kostet, oder wird
+    `l1` der Standard? (b) der Schalter muesste dort auftauchen, wo man ihn sucht — heute steht er
+    im Konto, nicht bei der Aufnahme. (c) Franz gezielt auf den Schalter hinweisen (per DM, NICHT
+    im Banner). Ohne Messung nicht raten: **`gnss_mode` ist bei allen 115 Garmin-Uhren NULL**, also
+    hat noch niemand umgestellt — es gibt keine Vergleichsgruppe.
+  - **Jacek, 31.07., 1.0.69 (polnisch), 1 Stern Abzug fuer „brak rejestracji wszystkich prób,
+    również tych bardzo krótkich. Nawet po to, aby policzyć skuteczność startów"** = es werden
+    nicht ALLE Startversuche erfasst, auch die ganz kurzen, „schon allein um die Erfolgsquote der
+    Starts zu berechnen". Genau das gibt es schon zweimal: die Empfindlichkeit `attempts`
+    (`users.foil_sensitivity`, s. per-user-detection-sensitivity) und `start_attempts_json` in
+    `analysis_results`. **Also kein Feature-Bau, sondern ein Sichtbarkeitsproblem** — pruefen, ob
+    die Startversuche in der PWA ueberhaupt angezeigt werden und ob die Empfindlichkeit dort
+    auffindbar ist. Sein zweiter Punkt („Synchronizacja utknęła na poziomie zegarka, ale dało się ją
+    wznowić") ist der bekannte Upload-Stau, seit 1.0.71+ mit Hinweisen adressiert.
+  - **Lucas Schraa, 03.08., 1.0.71:** rein positiv („Läufe werden sehr zuverlässig erkannt"), keine
+    Aufgabe. Notiert als Gegenprobe zum Detektor-Stand.
+
+- **🟢 Katalog aufgeraeumt 17.08. — 8 Zeilen weg, alle mit Beleg, 0 Sessions betroffen.**
+  Ausloeser waren 10 privat angelegte Stabs (= 10x „mein Teil fehlt"). Pflichtpruefung 1 (brand UND
+  model absuchen) hat 7 davon als bereits vorhanden entlarvt:
+  `Code 150AR`/`135R` -> `Code Foils | AR Series`/`R Series` · `Indiana Monobloc Stabilizer Condor S
+  Tail XXS` -> `Indiana | Foil MB Stabilizer | Condor S Tail XXS` (MB = Monobloc) ·
+  `Armstrong Pamp 202` -> `Armstrong | Tail Wing | Pump 202` (Tippfehler) ·
+  `Armstrong APF 1675` -> steht in **foils** (span 120,2 / 1675 cm²), war also die falsche Kategorie ·
+  `Sabfoil SDW/360` + `SDW 375` -> `Sabfoil | Downwind Kraken | 360`/`375`.
+  Die Sabfoil-Faelle NICHT ueber Namensaehnlichkeit zugeordnet, sondern am Hersteller belegt: die
+  offizielle Stabilizer-Uebersicht fuehrt `SDW/360 (Kraken)`, `SDW/375 (Kraken)`, `SDW375/BB
+  (Blackbird)` — SDW ist der Produktcode, Kraken/Blackbird die Bauweise.
+  Dazu **eine** echte Foil-Dopplung: `Sabfoil LEVIATHAN BLACKBIRD THE 1350` = `LEVIATHAN BLACKBIRD`
+  (1350) — identisch in Spannweite, Flaeche UND Dicke (135 / 1864 / 21), der Modellname wiederholt
+  nur die Groesse. Auch aus `app/data/foils.json` entfernt, sonst legt der Seeder sie beim naechsten
+  Serverstart neu an (nach Neustart gegengeprueft: 533 Foils, Zeile bleibt weg).
+  Ist-Zustand vor dem Loeschen gesichert: `scratchpad/katalog-loeschungen-2026-08-17.json`.
+  Stand: **533 Foils · 312 Stabs (4 privat)**.
+  **NICHT zusammengefuehrt, obwohl die Geometrie gleich ist** (verschiedene Produkte, kein Beleg
+  fuer „dasselbe"): `AFS ENDURO 1100` vs. `PURE HA 1100` · `Lift 110 High Aspect X` vs. `Lift
+  Florence 110 X` · `TAKOON H-GLIDE 1050` vs. `FLOW 1050`.
+  **OFFEN, weil die Quelle nichts hergab** (Luecke stehen lassen statt raten):
+  - `Gong TRAIL L/XL/XXL` vs. `TRAIL V3 ATMO PERF` und `ULTRA TRAIL 4XL` vs. `ULTRA TRAIL V3 ATMO`
+    — gleiche Geometrie, aber „V3 ATMO" ist eine Bauweise/Generation. Die alten Zeilen tragen 3/85/
+    105/15 Sessions, die V3-Zeilen null. Braucht eine Herstellerseite; gong-galaxy.com antwortet
+    weiter mit HTTP 429. Erst dann entscheiden: zusammenfuehren oder als Bauweisen belassen.
+  - Drei private Stabs bleiben bewusst stehen, weil nicht belegbar: `Takoon Foil Stab Glide 160`
+    (Takoon zeigt nur die 220 + die Glide-HA-Reihe) · `Sabfoil 375DW / 130` (375DW passt zum
+    Downwind-Stab, die Groesse 130 nicht dazu) · `ketos 105 / 30` (`Pump Knife 105` existiert, die
+    „30" ist unklar — Shim? Tail?). Nutzer behalten ihren privaten Eintrag, so ist es gedacht.
+  **💡 Muster dahinter:** 4 der 7 Dopplungen entstanden, weil Nutzer den **offiziellen
+  Produktcode** eintippen (SDW/375, 150AR, „Monobloc") und wir den Marketing-Namen fuehren. Ein
+  Alias-Feld im Katalog (durchsuchbar, nicht angezeigt) wuerde diese ganze Klasse abstellen —
+  ungebaut, wartet auf Jans OK.
 - **🔴 STILLER DATENVERLUST bei vollem Uhr-Speicher (Instinct 2) — belegt 13.08., ZWEI Nutzer.**
   Meldung Nathan: „session on August 11th, all the data were uploaded but only one of the runs is
   being displayed". Stimmt beides — die Uhr hat alles hochgeladen, was sie noch HATTE, der Rest war
