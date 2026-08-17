@@ -220,7 +220,11 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
-            composable("datafields") { DataFieldsScreen(onBack = { nav.popBackStack() }) }
+            composable("datafields") {
+                DataFieldsScreen(onBack = { nav.popBackStack() },
+                    onGallery = { nav.navigate("layoutgallery") })
+            }
+            composable("layoutgallery") { LayoutGalleryScreen(onBack = { nav.popBackStack() }) }
             composable("record") { RecordScreen(onBack = { nav.popBackStack() }) }
             composable("compare") { CompareScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }

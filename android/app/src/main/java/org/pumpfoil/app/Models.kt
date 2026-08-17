@@ -701,4 +701,12 @@ data class WatchLayoutBrief(
     // Kann null sein (aeltere Layouts ohne Angabe), dann faellt die Vorschau auf 240x240 zurueck.
     val authored_w: Int? = null,
     val authored_h: Int? = null,
+    // Nur in der Community-Galerie gefuellt (GET /api/layouts/community): wer es gebaut hat, wie oft
+    // es kopiert wurde und von wie vielen Nutzern es WIRKLICH auf der Uhr liegt. `used_by` ist die
+    // ehrlichste Zahl — eine bloss gespeicherte Kopie zaehlt dort nicht mit.
+    val author: String? = null,
+    val copies: Int? = null,
+    val used_by: Int? = null,
+    val has_freetext: Boolean = false,
+    val published: Boolean = false,
 )

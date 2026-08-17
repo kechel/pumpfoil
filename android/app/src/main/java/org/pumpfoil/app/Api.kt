@@ -379,6 +379,19 @@ object Api {
         json.decodeFromString(ListSerializer(WatchLayoutBrief.serializer()), http("GET", "/api/layouts", null, auth = true))
     }
 
+    // Community-Galerie: veroeffentlichte Layouts anderer (+ eigene). sort=used rankt nach
+    // TATSAECHLICHER Nutzung, nicht nach Kopien — damit steht oben, was sich bewaehrt hat.
+    suspend fun communityLayouts(sort: String = "used"): List<WatchLayoutBrief> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(WatchLayoutBrief.serializer()),
+            http("GET", "/api/layouts/community?sort=$sort&limit=60", null, auth = true))
+    }
+
+    // Fremdes Layout in die eigenen kopieren. Ausdruecklich OHNE Groessen-/Form-Schranke: die
+    // Koordinaten sind relativ, jedes Layout passt auf jede Uhr.
+    suspend fun copyLayout(id: Int): WatchLayoutBrief = withContext(Dispatchers.IO) {
+        json.decodeFromString(http("POST", "/api/layouts/$id/copy", "{}", auth = true))
+    }
+
     suspend fun stabBrands(): List<String> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(String.serializer()), http("GET", "/api/stabs/brands", null, auth = true))
     }

@@ -107,7 +107,7 @@ private fun pagesJson(pages: List<WatchPage>) = buildJsonArray {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataFieldsScreen(onBack: () -> Unit) {
+fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var loaded by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
@@ -182,6 +182,10 @@ fun DataFieldsScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             Text(I18n.t("datafields.editorInBrowser"),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur Gestalten
+            // nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
             Spacer(Modifier.height(12.dp))
 
             PageSetEditor(
