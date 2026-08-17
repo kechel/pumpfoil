@@ -1212,7 +1212,11 @@ struct SessionDetailView: View {
     }
 
     private func runsTable(_ segs: [Segment], _ s: SessionDetail) -> some View {
+        // Puls JE TRACKPUNKT: gleiche Reihenfolge/Laenge wie die Koordinaten, und i_start/i_end
+        // eines Laufs sind Indizes darauf. Damit rechnet die Tabelle den Hoechstpuls je Lauf selbst
+        // (wie die PWA). `puls_antwort_bpm` im Segment ist der MITTELWERT, nicht das Maximum.
         RunsTable(segments: segs, selected: selectedRun, lang: lang,
+                  hr: s.analysis?.track_geojson?.properties?.hr ?? [],
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
                   onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
@@ -1871,17 +1875,49 @@ private struct RunsTable: View {
     let segments: [Segment]
     let selected: Int?
     let lang: String
+    // Puls je Trackpunkt — Quelle fuer den Hoechstpuls je Lauf (s. runsTable).
+    var hr: [Int?] = []
     // Eigene Session -> je Zeile ein Knopf „Lauf aussortieren" (wie in der PWA-Lauf-Tabelle).
     var canEdit: Bool = false
     var busy: Bool = false
     var onExclude: ((Int) -> Void)? = nil
     let onSelect: (Int) -> Void
 
+    /// Hoechstpuls im Lauf. Identische Logik wie die PWA: ueber i_start..i_end laufen,
+    /// nil und 0 ignorieren.
+    private func maxHr(_ seg: Segment) -> Int? {
+        // i_start/i_end sind hier NICHT optional (Models.swift) — kein guard-let darauf.
+        guard !hr.isEmpty else { return nil }
+        var m = 0
+        var i = max(0, seg.i_start)
+        while i <= min(seg.i_end, hr.count - 1) {
+            if let v = hr[i], v > m { m = v }
+            i += 1
+        }
+        return m > 0 ? m : nil
+    }
+
+    /// Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst stuende dort eine Spalte
+    /// voller Striche und nimmt auf dem Handy Platz weg (wie `hasHr` in der PWA).
+    private var zeigeMaxHr: Bool { segments.contains { maxHr($0) != nil } }
+
+    private var kopfSpalten: [String] {
+        var k = [Loc.t("sd.hDist", lang), Loc.t("field.3", lang), "Ø", "Top",
+                 Loc.t("home.pumps", lang)]
+        if zeigeMaxHr { k.append(Loc.t("sd.colMaxHr", lang)) }
+        return k
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("\(Loc.t("home.runs", lang)) (\(segments.count))").font(.caption).foregroundStyle(.secondary)
             HStack {
-                ForEach(["#", Loc.t("sd.hDist", lang), Loc.t("field.3", lang), "Ø", "Top", Loc.t("home.pumps", lang)], id: \.self) { h in
+                // "#" bekommt eine feste, schmale Spalte statt gleicher Breite wie alle anderen:
+                // die Zeile hat KEINEN Horizontal-Scroll, und mit sieben gleich breiten Spalten
+                // wuerde auf einem schmalen iPhone alles zusammenrutschen.
+                Text("#").font(.caption2).foregroundStyle(.secondary)
+                    .frame(width: 18, alignment: .leading)
+                ForEach(kopfSpalten, id: \.self) { h in
                     Text(h).font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if canEdit { Spacer().frame(width: 30) }
@@ -1889,12 +1925,15 @@ private struct RunsTable: View {
             ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
                 let sel = selected == i
                 HStack {
-                    cell("\(i + 1)", sel)
+                    Text("\(i + 1)").font(.caption)
+                        .foregroundStyle(sel ? Color.accentColor : Color.primary)
+                        .frame(width: 18, alignment: .leading)
                     cell(dist(seg.distance_m ?? 0), sel)
                     cell(dur(seg.duration_s ?? 0), sel)
                     cell(String(format: "%.0f", (seg.avg_speed_mps ?? 0) * 3.6), sel)
                     cell(String(format: "%.0f", (seg.max_speed_mps ?? 0) * 3.6), sel)
                     cell((seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–", sel)
+                    if zeigeMaxHr { cell(maxHr(seg).map { "\($0)" } ?? "–", sel) }
                     excludeButton(i)
                 }
                 .padding(.vertical, 4).padding(.horizontal, 4)
