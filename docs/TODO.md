@@ -343,6 +343,36 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟢 Garmins Daten-API (GCDP) nimmt keine neuen Antraege an — uns trifft es nicht, aber eine
+  Planungsannahme ist damit tot.** (17.08., Anlass: Artikel von Momentum vom 15.07.2026, den Jan
+  durchgegeben hat.) Kern des Artikels: das **Garmin Connect Developer Program** (die Schnittstelle,
+  die Aktivitaets- und Gesundheitsdaten aus Garmin Connect in ein eigenes Backend liefert) hat das
+  Antragsformular entfernt, ohne Reopening-Datum und ohne Warteliste. **Connect IQ ist ein ANDERES
+  Programm und offen** — der Artikel betont selbst, dass die beiden dauernd verwechselt werden.
+  **Selbst nachgeprueft (nicht dem Anbieter-Blog geglaubt, der Integrationsdienste verkauft):**
+  `developer.garmin.com/gc-developer-program/overview/` hat heute kein Antragsformular und sagt nur
+  „Stay tuned for more updates on the program". Der Befund haelt also auch einen Monat spaeter.
+  **Was das fuer uns heisst — praktisch nichts, und das ist kein Zufall:**
+  - Unsere Uhr-App laeuft ueber **Connect IQ** (121 Geraete, Store-Releases laufen normal, 1.0.78
+    heute freigegeben). Davon ist nichts betroffen.
+  - Der **manuelle FIT-Upload** (`POST /api/sessions/upload-fit`) braucht kein Garmin-Programm:
+    Nutzer koennen aus Garmin Connect exportieren und hochladen. Bleibt offen.
+  - Wir **versprechen nichts Gesperrtes** (geprueft): Garmin steht in `SupportedPlatforms.tsx` nur
+    unter `watch.avail` und in `WatchMatrix.tsx` als `status: "avail"` ueber Connect IQ — NICHT in
+    der Konto-/Import-Gruppe zu Polar/Suunto/COROS. Da war also nichts zurueckzudrehen (anders als
+    bei Suunto, s. o.).
+  **Was tot ist:** die zurueckgestellte Idee „Garmin-Konto verknuepfen und Aktivitaeten automatisch
+  importieren" (memory `garmin-connect-integration-deferred`). Meine Recherche vom 28.06. hatte dort
+  **„Approval nur ~2 Werktage"** notiert — das gilt nicht mehr, es gibt keinen Antragsweg. Die
+  Memory ist entsprechend korrigiert, damit das niemand mehr als „schnell machbar" einplant. Das
+  `oauth.py`-Geruest (Garmin-Slots + Redirect-URI) bleibt liegen, wie bei Strava/COROS — nichts
+  loeschen.
+  **Bestaetigt im Rueckblick die Architektur-Entscheidung:** der Uhr-Direktupload war nie der
+  Umweg, sondern der bessere Weg (volle 25-Hz-int16-Accel; ueber die API kaeme fuer FREMDE
+  Aktivitaeten ohnehin nur GPS). Wer auf die API gesetzt haette, staende jetzt ohne Datenweg da.
+  **Merke fuer kuenftige Plattformen:** Zugang ist ein Planungsrisiko, nicht nur Integrationsaufwand
+  — genau der Fall, den wir bei COROS (beantragt, wartet) und Suunto (zurueckgedreht) schon haben.
+
 - **🟡 Garmin-Update-Verhalten gemessen (17.08.): die Mehrheit aktualisiert NIE, und genau das
   bremst jeden Fix aus.** Frage von Jan. Zwei Quellen: `device_tokens.app_version` (Ist-Stand) und
   `sessions.app_version` (Historie — jede Aufnahme traegt ihre Version).
