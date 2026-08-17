@@ -373,6 +373,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   **Merke fuer kuenftige Plattformen:** Zugang ist ein Planungsrisiko, nicht nur Integrationsaufwand
   — genau der Fall, den wir bei COROS (beantragt, wartet) und Suunto (zurueckgedreht) schon haben.
 
+- **🟢 Update-Hinweis per 1:1-DM an 36 Nutzer verschickt (17.08., von Jan freigegeben).** Aus dem
+  Bot-Konto (230), in der Sprache des Nutzers (en 15 · de 9 · fr 7 · it 2 · nl 1 · cs 1 · gsw 1),
+  mit der jeweils installierten Version im Text, damit es nicht wie Massenpost wirkt. Inhalt: 1.0.78
+  ist im Store, wir aktualisieren in dieser fruehen Phase oft, und die neueste Version behebt, dass
+  Uhren mit wenig Speicher teilweise gar nichts mehr aufgezeichnet haben. Abschluss: das Motto
+  „Have fun, keep pumping!" (unuebersetzt, in allen Sprachen).
+  Empfaenger = Nutzer mit aktiver Garmin-Uhr (30 Tage), deren BESTE Uhr > 14 Tage hinterher ist;
+  Test- und gesperrte Konten raus. **36, nicht 38** — die 38 aus der Messung waren Geraete, hier ist
+  nach Personen entdoppelt.
+  Nachgeprueft: 36 erreicht, **0 doppelt**, keiner fehlt, keiner zusaetzlich.
+  **Stolperstein fuers naechste Mal (Memory `bulk-dm-rate-limits`):** der erste Anlauf rief
+  `scripts/bot-post.py` je Empfaenger auf — das Skript loggt sich **pro Aufruf neu ein** und lief
+  nach 10 Nachrichten ins **Login**-Limit (`rate_limit(10, 300, "login")`, pro IP, Fehlversuche
+  zaehlen mit), nicht ins Chat-Limit. Nur 5 kamen an; der korrigierte Versender lief dann in die
+  Sperre, die sein Vorgaenger hinterlassen hatte. Loesung: eigenes Skript, EIN Login, 13 s Abstand
+  (haelt `RATE_TIERS = [(5, 10), (30, 300)]`), Backoff bei 429, und die schon Belieferten aus
+  `chat_messages` abziehen statt aus einer festen Liste.
+
 - **🟡 Garmin-Update-Verhalten gemessen (17.08.): die Mehrheit aktualisiert NIE, und genau das
   bremst jeden Fix aus.** Frage von Jan. Zwei Quellen: `device_tokens.app_version` (Ist-Stand) und
   `sessions.app_version` (Historie — jede Aufnahme traegt ihre Version).
