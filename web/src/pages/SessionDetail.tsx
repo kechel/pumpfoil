@@ -1621,6 +1621,7 @@ export default function SessionDetail() {
       </div>
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
+        hr={session.analysis?.track_geojson?.properties?.hr ?? []}
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
@@ -1911,6 +1912,7 @@ function RunsTable({
   tz,
   excluded = [],
   poweredRuns = [],
+  hr = [],
   keptWindows = [],
   canEdit = false,
   onSaved,
@@ -1930,6 +1932,11 @@ function RunsTable({
   // zurückgeholte Fenster (session.fremdkraft_keep). Beides Session-ms.
   poweredRuns?: any[];
   keptWindows?: number[][];
+  // Puls JE TRACK-PUNKT (analysis.track_geojson.properties.hr) — dieselbe Reihenfolge und Laenge
+  // wie die Koordinaten, und `i_start`/`i_end` eines Laufs sind Indizes darauf. Damit laesst sich
+  // der Hoechstpuls je Lauf hier ausrechnen, ohne den Server oder eine Reanalyse anzufassen.
+  // (`v2_hr_bpm` im Segment ist der MITTELWERT ueber den Lauf, nicht das Maximum.)
+  hr?: (number | null)[];
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
 }) {
@@ -1948,6 +1955,17 @@ function RunsTable({
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
+  // Hoechstpuls im Lauf (Wunsch ThermikDreher, 15.08.: „max Heartrate pro Lauf").
+  const maxHr = (s: any): number | null => {
+    if (!hr.length || s?.i_start == null || s?.i_end == null) return null;
+    let m = 0;
+    for (let i = Math.max(0, s.i_start); i <= Math.min(s.i_end, hr.length - 1); i++) {
+      const v = hr[i];
+      if (v != null && v > m) m = v;
+    }
+    return m || null;
+  };
+  const hasHr = segments.some((s) => maxHr(s) != null);
   // Kadenz-Zellen ohne Einheit — die steht in der Spaltenüberschrift (Hz bzw. /min).
   const hz = (v: number | null | undefined) => (v != null ? pf.value(v) : "–");
   const val = (s: any, kind: "avg" | "max" | "min") => {
@@ -2077,6 +2095,7 @@ function RunsTable({
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: pf.suffix })}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin", { unit: pf.suffix })}</th>}
+              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colMaxHr")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
               {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
@@ -2123,6 +2142,11 @@ function RunsTable({
                   {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
+                  {hasHr && (
+                    <td className="px-3 py-2 tabular-nums">
+                      {(() => { const v = maxHr(s); return v != null ? `${v} bpm` : "–"; })()}
+                    </td>
+                  )}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                   {canEdit && (
                     <td className="px-3 py-2">

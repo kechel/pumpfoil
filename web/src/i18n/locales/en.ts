@@ -624,6 +624,7 @@ const en: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
   "sd.colGlide": "longest glide",
+  "sd.colMaxHr": "Max HR",
   "sd.farthestRunTitle": "farthest run",
   "sd.tableFooter": "Speeds in km/h. Smoothing switchable above (1/3/5 s). Click a row = show only that run on the map. ★ = farthest run.",
   // Drop a run from the evaluation (e.g. forgot to stop and drove a stretch by car)

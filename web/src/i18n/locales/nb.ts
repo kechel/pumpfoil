@@ -602,6 +602,7 @@ const nb: Record<string, string> = {
   "sd.colAvgPump": "Ø pumpe {unit}",
   "sd.colPumpMaxMin": "Pumpe {unit} 5s (maks/min)",
   "sd.colGlide": "lengste gliding",
+  "sd.colMaxHr": "Maks puls",
   "sd.farthestRunTitle": "lengste run",
   "sd.tableFooter": "Hastigheter i km/h. Utjevning kan endres over (1/3/5 s). Klikk på en rad = vis bare det runet på kartet. ★ = lengste run.",
   "sd.excludeRange": "Utelat tidsrom",

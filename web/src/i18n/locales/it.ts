@@ -509,6 +509,7 @@ const it: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
   "sd.colGlide": "planata più lunga",
+  "sd.colMaxHr": "Battito max",
   "sd.farthestRunTitle": "run più lungo",
   "sd.tableFooter": "Velocità in km/h. Smussatura regolabile sopra (1/3/5 s). Clicca una riga = mostra solo quel run sulla mappa. ★ = run più lungo.",
 

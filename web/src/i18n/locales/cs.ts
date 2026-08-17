@@ -617,6 +617,7 @@ const cs: Record<string, string> = {
   "sd.colAvgPump": "Ø pumpnutí {unit}",
   "sd.colPumpMaxMin": "Pumpnutí {unit} 5s (max/min)",
   "sd.colGlide": "nejdelší klouzání",
+  "sd.colMaxHr": "Max. tep",
   "sd.farthestRunTitle": "nejdelší jízda",
   "sd.tableFooter": "Rychlosti v km/h. Vyhlazení přepínatelné nahoře (1/3/5 s). Kliknutí na řádek = jen tato jízda na mapě. ★ = nejdelší jízda.",
 

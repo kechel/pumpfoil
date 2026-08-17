@@ -593,6 +593,7 @@ const pt: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (máx/mín)",
   "sd.colGlide": "planeio mais longo",
+  "sd.colMaxHr": "Pulso máx.",
   "sd.farthestRunTitle": "volta mais longa",
   "sd.tableFooter": "Velocidades em km/h. Suavização alternável acima (1/3/5 s). Clique numa linha = mostrar só aquela volta no mapa. ★ = volta mais longa.",
 

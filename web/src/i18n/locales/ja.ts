@@ -593,6 +593,7 @@ const ja: Record<string, string> = {
   "sd.colAvgPump": "Ø ポンプ {unit}",
   "sd.colPumpMaxMin": "ポンプ {unit} 5s（最大/最小）",
   "sd.colGlide": "最長グライド",
+  "sd.colMaxHr": "最大心拍",
   "sd.farthestRunTitle": "最遠ラン",
   "sd.tableFooter": "速度は km/h。スムージングは上で切り替え可能（1/3/5 秒）。行をクリック = 地図にそのランのみ表示。★ = 最遠ラン。",
 

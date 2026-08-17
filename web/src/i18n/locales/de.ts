@@ -648,6 +648,7 @@ const de: Record<string, string> = {
   "sd.colAvgPump": "Ø Pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
   "sd.colGlide": "längste Gleitphase",
+  "sd.colMaxHr": "Max. Puls",
   "sd.farthestRunTitle": "weitester Lauf",
   "sd.tableFooter": "Speeds in km/h. Glättung oben umschaltbar (1/3/5 s). Zeile anklicken = nur diesen Lauf auf der Karte. ★ = weitester Lauf.",
   // Lauf aussortieren (z. B. Stoppen vergessen und ein Stück Auto gefahren)

@@ -593,6 +593,7 @@ const id: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5d (maks/min)",
   "sd.colGlide": "glide terpanjang",
+  "sd.colMaxHr": "Detak maks.",
   "sd.farthestRunTitle": "run terjauh",
   "sd.tableFooter": "Kecepatan dalam km/h. Penghalusan bisa diganti di atas (1/3/5 d). Klik sebuah baris = tampilkan hanya run itu di peta. ★ = run terjauh.",
 

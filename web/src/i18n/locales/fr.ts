@@ -511,6 +511,7 @@ const fr: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
   "sd.colGlide": "plus longue glisse",
+  "sd.colMaxHr": "Pouls max",
   "sd.farthestRunTitle": "run le plus long",
   "sd.tableFooter": "Vitesses en km/h. Lissage réglable ci-dessus (1/3/5 s). Clique une ligne = afficher seulement ce run sur la carte. ★ = run le plus long.",
 

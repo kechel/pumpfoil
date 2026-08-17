@@ -600,6 +600,7 @@ const fi: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (maks./min.)",
   "sd.colGlide": "pisin liukuvaihe",
+  "sd.colMaxHr": "Maks. syke",
   "sd.farthestRunTitle": "pisin lenkki",
   "sd.tableFooter": "Nopeudet km/h. Tasoitus vaihdettavissa yltä (1/3/5 s). Klikkaa riviä = vain tämä lenkki kartalla. ★ = pisin lenkki.",
 

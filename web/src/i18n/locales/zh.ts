@@ -593,6 +593,7 @@ const zh: Record<string, string> = {
   "sd.colAvgPump": "Ø 泵动 {unit}",
   "sd.colPumpMaxMin": "泵动 {unit} 5秒 (最高/最低)",
   "sd.colGlide": "最长滑行",
+  "sd.colMaxHr": "最大心率",
   "sd.farthestRunTitle": "最远航段",
   "sd.tableFooter": "速度单位 km/h。平滑可在上方切换 (1/3/5 秒)。点击某一行 = 在地图上仅显示该航段。★ = 最远航段。",
 

@@ -443,6 +443,7 @@ const gsw: Record<string, string> = {
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Duur",
   "sd.colGlide": "längschti Gleitphase",
+  "sd.colMaxHr": "Max. Puls",
   "login.continueWith": "Wiiter mit {provider}",
   "land.login": "Aamälde",
   "land.cta": "Gratis aafange",

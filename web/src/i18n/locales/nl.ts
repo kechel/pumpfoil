@@ -617,6 +617,7 @@ const nl: Record<string, string> = {
   "sd.colAvgPump": "Ø pump {unit}",
   "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
   "sd.colGlide": "langste glijfase",
+  "sd.colMaxHr": "Max. hartslag",
   "sd.farthestRunTitle": "verste run",
   "sd.tableFooter": "Snelheden in km/h. Afvlakking bovenaan omschakelbaar (1/3/5 s). Klik op een rij = alleen deze run op de kaart. ★ = verste run.",
 

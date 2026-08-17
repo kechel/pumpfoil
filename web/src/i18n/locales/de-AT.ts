@@ -403,6 +403,7 @@ const deAT: Record<string, string> = {
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Dauer",
   "sd.colGlide": "längste Gleitphase",
+  "sd.colMaxHr": "Max. Puls",
   "login.continueWith": "Weiter mit {provider}",
   "land.login": "Aumeldn",
   "land.cta": "Gratis loslegn",
