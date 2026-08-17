@@ -701,6 +701,7 @@ const deAT: Record<string, string> = {
   "account.recordModeMoved": "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
   "account.recordModeAutoLite": "Diese Uhr wird bei „Voll“ automatisch auf „Sparsam“ begrenzt (zu wenig Speicher).",
   "account.recordModeGarminHint": "Unter welchem Aktivitätstyp die Aufnahme in Garmin Connect erscheint, stellst du im Profil unter „Aktivitätstyp in Garmin Connect“ ein.",
+  "account.pickLayoutTitle": "Welchen eigenen Screen einfügen?",
   "account.devicesSettingsIntro": "Die Einstellungen unter jeder Uhr wirken auf die Uhr selbst — sie übernimmt sie beim nächsten Start der App, ganz ohne Update.",
   "account.claimNextTitle": "Was du für diese Uhr jetzt einstellen kannst",
   "account.claimNextGarmin": "Unten in der Uhren-Liste kannst du zwei Dinge für diese Uhr wählen: den Aufzeichnungsmodus (25 Hz, 10 Hz oder nur GPS) und die Satellitensysteme. Beide entscheiden über den Akkuverbrauch. Wenn dir die Laufzeit wichtig ist: „Ohne zweites Frequenzband“ spart am meisten, ohne dass die Auswertung darunter leidet, und 10 Hz kostet den Pump-Zähler weniger als ein halbes Prozent. Nur GPS solltest du nicht wählen — damit fallen Pump-Zähler, Kadenz und Gleitphasen ganz weg.",

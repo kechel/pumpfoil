@@ -625,6 +625,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
   // Klicken nicht, dass etwas dazukommt — der Knopf wandert nach unten weg, die neue Karte erscheint
   // direkt darüber, und bei langer Liste ist das außerhalb des Sichtfensters (Einwand Jan).
   const [added, setAdded] = useState(-1);
+  const [picking, setPicking] = useState(false);   // Vorschau-Auswahl offen?
   const addedRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (added < 0) return;
@@ -702,12 +703,16 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
           als hätte ein Nutzer sie nicht gefunden; er hatte sie gefunden, das war ein Missverständnis.
           Das Cyan bleibt, das reicht als Auffälligkeit (Jan: „so blau ist das ausreichend"). */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <select value="" disabled={options.length === 0 || full}
-          onChange={(e) => { const id = Number(e.target.value); if (id) append(id); e.currentTarget.value = ""; }}
+        {/* Auswahl per VORSCHAU statt per Name (Jan, 17.08.): eine Auswahlliste zeigte nur
+            `l.name`, und den merkt sich niemand — schon gar nicht bei einem aus der Community
+            kopierten Layout, denn die Kopie behaelt den Originalnamen (`layouts.py` copy_layout),
+            sodass mehrere Kopien gleich heissen koennen. Gezeigt wird jetzt dasselbe Bild, das
+            auch in der Liste und im Editor steht (LayoutPreview) — die Uhr zeichnet es genauso. */}
+        <button onClick={() => setPicking((v) => !v)} disabled={options.length === 0 || full}
+          aria-expanded={picking}
           className="rounded-xl bg-brand-500 px-3 py-2 text-sm text-slate-950 hover:bg-brand-400 disabled:opacity-40">
-          <option value="">{t("account.addLayoutPage")}</option>
-          {options.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
+          {t("account.addLayoutPage")}
+        </button>
         <button onClick={() => append([1, 0, 0])} disabled={full}
           className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-40">
           {t("account.addView")}
@@ -717,6 +722,31 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
           <span className="text-sm text-slate-400">{t("account.noLayoutsOfKind")}</span>
         )}
       </div>
+      {/* Vorschau-Auswahl. Absichtlich aufklappend statt Dialog: keine Fokusfalle, kein
+          Scroll-Sperren, und auf dem Handy laesst sich einfach weiterscrollen. Die Kachel zeigt
+          das Bild GROSS und den Namen darunter (er hilft ja, wenn man ihn doch kennt). */}
+      {picking && options.length > 0 && !full && (
+        <div className="mt-3 rounded-xl border border-brand-700/40 bg-brand-500/5 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="font-semibold text-slate-200">{t("account.pickLayoutTitle")}</span>
+            <button onClick={() => setPicking(false)}
+              className="rounded px-2 py-1 text-sm text-slate-300 hover:bg-slate-800">
+              {t("common.cancel")}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {options.map((l) => (
+              <button key={l.id} onClick={() => { append(l.id); setPicking(false); }}
+                title={l.name}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-2 text-center hover:border-brand-500 hover:bg-brand-500/10">
+                <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240} px={120}
+                  pageCount={pages.length + 1} pageIndex={pages.length} />
+                <span className="mt-1 block max-w-[120px] truncate text-sm text-slate-200">{l.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

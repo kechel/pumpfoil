@@ -1488,6 +1488,7 @@ const en: Record<string, string> = {
   "lay.sizeTextCap": "Only values go bigger: the watch\u2019s large fonts contain digits only, no letters.",
   "account.pageN": "Page {n}",
   "account.addLayoutPage": "+ Insert custom screen",
+  "account.pickLayoutTitle": "Which of your own screens?",
   "account.layoutMissing": "(layout deleted)",
   "account.useFields": "Data fields",
   "account.useLayout": "Custom screen",

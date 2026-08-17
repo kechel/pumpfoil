@@ -1549,6 +1549,7 @@ const de: Record<string, string> = {
   "lay.sizeTextCap": "Größer geht nur bei Werten: die großen Uhr-Schriften enthalten nur Ziffern, keine Buchstaben.",
   "account.pageN": "Seite {n}",
   "account.addLayoutPage": "+ Eigenen Screen einfügen",
+  "account.pickLayoutTitle": "Welchen eigenen Screen einfügen?",
   "account.layoutMissing": "(Layout gelöscht)",
   "account.useFields": "Datenfelder",
   "account.useLayout": "Eigener Screen",

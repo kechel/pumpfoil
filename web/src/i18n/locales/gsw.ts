@@ -849,6 +849,7 @@ const gsw: Record<string, string> = {
   "account.recordModeMoved": "D Ufzeichnigsrate stellsch jetz pro Uhr bi dine verbundene Uhre ii.",
   "account.recordModeAutoLite": "Die Uhr wird bi „Voll“ automatisch uf „Sparsam“ begränzt (z wenig Spycher).",
   "account.recordModeGarminHint": "Under welem Aktivitätstyp d Ufnahm in Garmin Connect erschynt, stellsch im Profil under „Aktivitätstyp i Garmin Connect“ y.",
+  "account.pickLayoutTitle": "Welle eigene Screen inefüege?",
   "account.devicesSettingsIntro": "D’Iistellige under jedere Uhr wirked uf d’Uhr sälber — si übernimmt si bim nächschte Start vo de App, ganz ohni Update.",
   "account.claimNextTitle": "Was du für die Uhr jetzt iistelle chasch",
   "account.claimNextGarmin": "Unde i de Uhre-Lischte chasch zwei Sache für die Uhr wähle: de Ufnahm-Modus (25 Hz, 10 Hz oder nur GPS) und d’Satellitesystem. Beidi entscheided über de Batterieverbruuch. Wenn dir d’Laufziit wichtig isch: „Ohni zwöits Frequenzband“ spart am meischte, ohni dass d’Uswertig drunder liidet, und 10 Hz choschtet de Pump-Zähler weniger als es halbs Prozänt. Nur GPS söttsch nöd wähle — denn falled Pump-Zähler, Kadänz und Gleitphase ganz wäg.",
