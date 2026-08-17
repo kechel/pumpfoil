@@ -420,6 +420,10 @@ data class PeriodRecords(
     @SerialName("max_hr") val maxHr: CommunityRecordEntry? = null,
     @SerialName("early_bird") val earlyBird: CommunityRecordEntry? = null,   // Wert = s seit Mitternacht (Spot-Ortszeit)
     @SerialName("night_owl") val nightOwl: CommunityRecordEntry? = null,     // >24h möglich -> mod 24h anzeigen
+    // EINZIGER Rekord, der einem NUTZER gehoert statt einer Session: Summe der Carves > 180° im
+    // Zeitraum. Deshalb ist `sessionId` hier null — die Kachel darf NICHT auf eine Session
+    // verlinken und zeigt weder Datum noch Spot (server/app/api/community.py:_carve_record).
+    @SerialName("carves180") val carves180: CommunityRecordEntry? = null,
 )
 
 @Serializable

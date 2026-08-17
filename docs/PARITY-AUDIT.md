@@ -62,7 +62,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Auswahl nur bei mehr als einer Sportart |
 | 8 | Zeitraum wirkt auf die REKORDE der Startseite | `82bd931` 10.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT**. KORREKTUR: es gab gar keinen Waehler — die Fenster-Liste beschriftete nur die Carve-Kacheln |
-| 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ⚠️ | ⚠️ | S — `carve` ist da, die Kachel nicht |
+| 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — nutzerbezogen, deshalb ohne Link/Datum/Spot |
 
 **Bewusst NICHT portieren:**
 - Leaflet-Tastenfehler (`57d15d6`, `3e02a66`) — 🌐 die Apps nutzen keine Leaflet-Karte.

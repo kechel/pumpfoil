@@ -125,9 +125,17 @@ struct CommunityView: View {
     private struct RecRow: Identifiable { let id: String; let label: String; let value: String; let entry: CommunityRecordEntry? }
 
     private func recordRows(_ r: PeriodRecords?) -> [RecRow] {
-        func ok(_ e: CommunityRecordEntry?) -> Bool { e?.session_id != nil && (e?.value ?? 0) > 0 }
-        func row(_ key: String, _ e: CommunityRecordEntry?, _ fmt: (Double) -> String) -> RecRow {
-            RecRow(id: key, label: Loc.t(key, lang), value: ok(e) ? fmt(e!.value ?? 0) : "–", entry: ok(e) ? e : nil)
+        // `ohneSession`: der Rekord gehoert einem NUTZER, nicht einer Session (bisher nur
+        // „Meiste Carves >180°"). Dann reicht der WERT — ohne dieses Kennzeichen fiele die Kachel
+        // durch die session_id-Pruefung und stuende dauerhaft auf „–".
+        func ok(_ e: CommunityRecordEntry?, _ ohneSession: Bool = false) -> Bool {
+            (ohneSession || e?.session_id != nil) && (e?.value ?? 0) > 0
+        }
+        func row(_ key: String, _ e: CommunityRecordEntry?, ohneSession: Bool = false,
+                 _ fmt: (Double) -> String) -> RecRow {
+            let da = ok(e, ohneSession)
+            return RecRow(id: key, label: Loc.t(key, lang), value: da ? fmt(e!.value ?? 0) : "–",
+                          entry: da ? e : nil)
         }
         func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
         // Tageszeit-Rekorde: Sekunden seit Mitternacht (Spot-Ortszeit); Night Owl kann >24 h sein.
@@ -147,6 +155,7 @@ struct CommunityView: View {
             row("rec.maxHr", r?.max_hr) { "\(Int($0.rounded())) bpm" },
             row("rec.earlyBird", r?.early_bird) { hhmm($0) },
             row("rec.nightOwl", r?.night_owl) { hhmm($0) },
+            row("rec.carves180", r?.carves180, ohneSession: true) { "\(Int($0.rounded()))" },
         ]
     }
 

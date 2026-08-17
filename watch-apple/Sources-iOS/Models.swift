@@ -209,6 +209,10 @@ struct PeriodRecords: Codable {
     let max_hr: CommunityRecordEntry?
     let early_bird: CommunityRecordEntry?   // Wert = s seit Mitternacht (Spot-Ortszeit)
     let night_owl: CommunityRecordEntry?    // >24h möglich -> mod 24h anzeigen
+    // EINZIGER Rekord, der einem NUTZER gehoert statt einer Session: Summe der Carves > 180°
+    // im Zeitraum. `session_id` ist deshalb nil — die Kachel darf nicht verlinken und zeigt
+    // weder Datum noch Spot (server/app/api/community.py:_carve_record).
+    let carves180: CommunityRecordEntry?
 }
 
 struct SpotMapItem: Codable, Identifiable {

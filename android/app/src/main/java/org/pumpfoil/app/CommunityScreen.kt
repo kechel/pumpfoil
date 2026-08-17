@@ -318,7 +318,12 @@ private fun SectionHeader(title: String) {
 }
 
 // Community-Rekorde-Grid (2 Spalten): Wert (cyan) + Label + Nutzer(Avatar+Name) + Datum · Spot.
-private data class RecItem(val label: String, val value: String, val e: CommunityRecordEntry)
+/** Eine Rekord-Kachel. `ohneSession` = der Rekord gehoert einem NUTZER, nicht einer Session
+ *  (bisher nur „Meiste Carves >180°"): dann gibt es keine Session zum Verlinken und weder Datum
+ *  noch Spot — nur Wert und Person. Ohne dieses Kennzeichen fiele die Kachel durch die
+ *  `sessionId != null`-Pruefung und stuende dauerhaft auf „–". */
+private data class RecItem(val label: String, val value: String, val e: CommunityRecordEntry,
+                           val ohneSession: Boolean = false)
 
 // Sekunden-seit-Mitternacht (Spot-Ortszeit) -> "HH:MM"; Night Owl kann >24 h liefern (über
 // Mitternacht) -> mod 24 h.
@@ -341,14 +346,22 @@ private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Un
         r?.maxHr?.let { add(RecItem(I18n.t("rec.maxHr"), "${it.value.roundToInt()} bpm", it)) }
         r?.earlyBird?.let { add(RecItem(I18n.t("rec.earlyBird"), hhmmOfDay(it.value), it)) }
         r?.nightOwl?.let { add(RecItem(I18n.t("rec.nightOwl"), hhmmOfDay(it.value), it)) }
+        r?.carves180?.let {
+            add(RecItem(I18n.t("rec.carves180"), it.value.roundToInt().toString(), it,
+                        ohneSession = true))
+        }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { ri ->
-                    val has = ri.e.value > 0.0 && ri.e.sessionId != null
+                    // Wert vorhanden? Fuer die nutzerbezogenen Rekorde reicht der WERT — sie
+                    // haben keine Session (s. RecItem.ohneSession).
+                    val has = ri.e.value > 0.0 && (ri.e.sessionId != null || ri.ohneSession)
+                    // Verlinken nur, wenn es wirklich eine Session gibt.
+                    val klickbar = has && ri.e.sessionId != null
                     Card(
-                        Modifier.weight(1f).then(if (has) Modifier.clickable { onOpen(ri.e.sessionId!!) } else Modifier),
+                        Modifier.weight(1f).then(if (klickbar) Modifier.clickable { onOpen(ri.e.sessionId!!) } else Modifier),
                     ) {
                       // Box nur als Overlay-Rahmen: die Vorschau liegt ÜBER der Kachel (wie in der
                       // PWA, Home.tsx) und beeinflusst die Höhe nicht — ohne Track bleibt alles gleich.
