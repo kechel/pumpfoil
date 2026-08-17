@@ -2,7 +2,7 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-07-31** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-08-17** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
@@ -10,6 +10,66 @@ Sessions mit allen Scopes, Community/Leaderboards/Medien, Chat inkl. DM/Push-Abo
 Session-Detail mit Farb-Modi/Glättung/Marker/Lauf-Auswahl/Trim/Löschen/Watt, Vergleich, Datenseiten +
 Off-Foil, Einstellungen, i18n 10 Sprachen, Caching). Rein Web-zentriert bleiben Admin, Labeling,
 FIT-Import und die „Optimal"-Färbung.
+
+## Stand 2026-08-17 — Rueckstand seit dem letzten Handy-Release (Arbeitsliste fuer die naechste Runde)
+
+**Bezugspunkte** (nur WIRKLICH freigegebene Versionen, s. `appmeta.py`): Android **1.1.20** live
+09.08. · Wear **1.2.20** live 09.08. · iOS/Apple **1.1.22** live 13.08. · Garmin 1.0.78 live 17.08.
+Gebaut-aber-nicht-live: Android 1.1.21, Wear 1.2.22 (beide eingereicht, warten auf Freigabe).
+Die PWA lief seitdem 8 Tage weiter — das ist dieser Rueckstand.
+
+**Jans Beobachtung, am Code geprueft: sie stimmt, aber differenzierter als gedacht.** Die Apps haben
+den Uhr-Ansichten-Editor durchaus (`DataFieldsScreen.kt` / `DataFieldsView.swift`), inklusive aller
+DREI Seitenlisten (`pages` / `off_foil_pages` / `pause_pages`) und der Schalter `layouts_enabled` +
+`browse_all_pages`. Es fehlen **zwei Einstellungen** und **der ganze Weg zu Layouts**:
+
+| Einstellung (PWA `ViewsEditor`) | Feld | Android | iOS | Anmerkung |
+|---|---|---|---|---|
+| Werte je nach Hoehe einfaerben | `colorByValue` | ❌ | ❌ | ein Schalter, trivial |
+| Aufnahme automatisch starten (GPS) | `auto_start` | ❌ | ❌ | ein Schalter. ACHTUNG: Androids `autoStart` in `RecordScreen.kt` ist `phone_autostart`, also der HANDY-Recorder — nicht diese Uhr-Einstellung. Nicht verwechseln. |
+| Eigene Layouts an meine Uhren senden | `layouts_enabled` | ✅ | ✅ | |
+| In Pause/Off-Foil alle Seiten blaettern | `browse_all_pages` | ✅ | ✅ | |
+| Hinweis „Rate jetzt pro Uhr" | — | ❌ | ❌ | reiner Hinweistext, zeigt auf die verbundenen Uhren |
+| Link „Layouts der Community" | — | ❌ | ❌ | s. u., es gibt dort keine Galerie |
+| Link „Eigene Layouts" | — | ❌ | ❌ | s. u., es gibt dort keinen Editor |
+
+**🔴 Der grosse Posten, eigene Entscheidung: Layout-Editor und Community-Galerie gibt es nativ
+GAR NICHT** (`LayoutGallery`/`LayoutEditor`/`layouts/community`: 0 Treffer in beiden Apps). Nativ
+kann man eigene Screens also nur EINBINDEN, nicht erstellen, nicht ansehen und nicht aus der
+Community kopieren — und eingebunden werden sie ueber den NAMEN. Das ist derselbe Mangel, den Jan
+am 17.08. in der PWA gemeldet hat (dort jetzt Vorschau-Auswahl, `c21159d`): die Apps zeigen in der
+Seitenliste `name` bzw. `account.layoutMissing`. Der Renderer waere je Plattform neu zu bauen
+(Compose Canvas / SwiftUI Canvas) — deutlich mehr Arbeit als alles andere hier. Zu entscheiden:
+komplett bauen, nur eine LESENDE Vorschau (reicht fuer Auswahl + Galerie, kein Editor), oder
+bewusst Web-only lassen und in den Apps darauf verlinken.
+
+### Vorgeschlagene Reihenfolge
+
+| # | Feature | PWA seit | Android | iOS | Aufwand |
+|---|---|---|---|---|---|
+| 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ❌ | ❌ | S — zwei Schalter, Muster steht daneben |
+| 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ⚠️ | ⚠️ | M — `record_mode` ist da (2–3 Dateien), `gnss_mode` in beiden **0 Treffer** |
+| 3 | Hilfetexte zu den Uhr-Einstellungen + Hinweis nach dem Verbinden | `06875ee`/`1f8e94d` 17.08. | ❌ | ❌ | S — nur Texte, Keys existieren schon |
+| 4 | Screen-Auswahl per Vorschau statt Namensliste | `c21159d` 17.08. | ❌ | ❌ | haengt an der Entscheidung oben |
+| 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ⚠️ | ⚠️ | S — Lauf-Tabelle existiert, Spalte fehlt |
+| 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
+| 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ⚠️ | ⚠️ | S–M — Rekorde + `sport_class` sind da |
+| 8 | Zeitraum-Umschalter fuer die Rekorde auf der Startseite | `82bd931` 10.08. | ❌ | ❌ | S |
+| 9 | Community-Rekord „Meiste Carves >180°" | `d767a1c` 16.08. | ⚠️ | ⚠️ | S — `carve` ist da, die Kachel nicht |
+
+**Bewusst NICHT portieren:**
+- Leaflet-Tastenfehler (`57d15d6`, `3e02a66`) — 🌐 die Apps nutzen keine Leaflet-Karte.
+- OAuth-Bruecken/Service-Worker (`dbb7855`) — 🌐 reine Web-Infrastruktur.
+- Willkommenstext im leeren Aussortiert-Tab (`99077b2`) — der Fehler existiert nativ NICHT: die
+  Apps haben diesen Onboarding-Leerzustand gar nicht (`emptyTitle`/StartHelp: 0 Treffer).
+- Datenfeld 21 im Layout-Editor (`0e4fadb`) — der Editor ist Web-only (s. o.). Das FELD selbst
+  liegt auf allen vier Uhren, nur der Editor-Eintrag ist Web.
+- Amazfit-Layoutgroessen im Editor (`99077b2`) — dito.
+
+**Belegt vs. offen:** Die ❌/0-Treffer-Aussagen oben sind per Volltextsuche ueber
+`android/app/src/main/java` und `watch-apple/Sources-iOS` belegt. Die ⚠️ heissen „Grundlage da,
+Detail ungeprueft" — dort ist beim Umsetzen zuerst nachzusehen, was genau fehlt, statt es
+anzunehmen.
 
 ## Stand 2026-07-31 — alles seit dem 07-29-Release in die Apps gezogen
 
