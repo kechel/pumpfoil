@@ -160,5 +160,6 @@ enum WLoc {
         "f.lastRunDist": r("letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist"),
         "f.lastRunAvg": r("letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med"),
         "f.lastRunMax": r("letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx"),
+        "f.lastRunMaxHr": r("letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm"),
     ]
 }

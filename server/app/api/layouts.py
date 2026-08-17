@@ -9,7 +9,7 @@ Das Element-Format ist absichtlich kompakt und rein positionell — `[typ, x, y,
 extra…]`, keine Dicts mit String-Keys: die Uhr cached das Server-JSON im Object Store, und
 Object-Store-Volllauf ist ein bekannter Fehlerpfad (s. garmin-watch-fieldtest-gotchas).
 
-    typ 1  Wert          extra: [6] = Feld-ID (0…20)
+    typ 1  Wert          extra: [6] = Feld-ID (0…21)
     typ 2  Label         extra: [6] = Feld-ID — der ÜBERSETZTE Feldname (i18n-Key `f.*` auf der Uhr)
     typ 3  Freitext      extra: [6] = Text (max. 12 Zeichen, wird NIE übersetzt)
     typ 4  Trennlinie    extra: [6] = x2, [7] = y2 (size = Dicke)
@@ -62,7 +62,9 @@ MAX_TEXT_STEP = 4
 MAX_ELEMENTS = 24          # Uhr-Speicher + Object Store: bewusst knapp
 MAX_LAYOUTS = 40           # pro Nutzer
 MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object Store
-VALID_FIELD_IDS = set(range(0, 21))
+# 21 = Max-Puls des letzten Laufs (Wunsch ThermikDreher 15.08. „Letzter Lauf Max HR", Jan 17.08.
+# auf alle Uhren erweitert). Der Session-Max-Puls ist ID 9 und gab es schon.
+VALID_FIELD_IDS = set(range(0, 22))
 ELEMENT_TYPES = (1, 2, 3, 4, 5, 6, 7)
 
 

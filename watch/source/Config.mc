@@ -70,6 +70,7 @@ module Config {
         FIELD_LAST_RUN_DISTANCE = 17,
         FIELD_LAST_RUN_AVG_SPEED = 18,
         FIELD_LAST_RUN_MAX_SPEED = 19,
-        FIELD_RUN_COUNT = 20
+        FIELD_RUN_COUNT = 20,
+        FIELD_LAST_RUN_MAX_HR = 21
     }
 }

@@ -144,6 +144,7 @@ private val NB: Map<String, String> = mapOf(
     "f.lastRunDist" to "siste dist",
     "f.lastRunAvg" to "siste snitt",
     "f.lastRunMax" to "siste maks",
+    "f.lastRunMaxHr" to "siste maks bpm",
 )
 
 private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, it: String, es: String) =
@@ -298,6 +299,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "f.lastRunDist" to row("letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist"),
     "f.lastRunAvg" to row("letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med"),
     "f.lastRunMax" to row("letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx"),
+    "f.lastRunMaxHr" to row("letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm"),
 )
 
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
@@ -391,6 +393,7 @@ private val PT: Map<String, String> = mapOf(
     "f.lastRunDist" to "última dist",
     "f.lastRunAvg" to "última méd",
     "f.lastRunMax" to "último máx",
+    "f.lastRunMaxHr" to "último máx bpm",
 )
 private val JA: Map<String, String> = mapOf(
     "rec.hrPerm" to "心拍なし：権限がありません – タップ",
@@ -477,6 +480,7 @@ private val JA: Map<String, String> = mapOf(
     "f.lastRunDist" to "前回の距離",
     "f.lastRunAvg" to "前回の平均",
     "f.lastRunMax" to "前回の最大",
+    "f.lastRunMaxHr" to "前回の最大 bpm",
 )
 private val ZH: Map<String, String> = mapOf(
     "rec.hrPerm" to "无心率：缺少权限 – 点按",
@@ -563,6 +567,7 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunDist" to "上次距离",
     "f.lastRunAvg" to "上次平均",
     "f.lastRunMax" to "上次最高",
+    "f.lastRunMaxHr" to "上次最高 bpm",
 )
 private val RU: Map<String, String> = mapOf(
     "rec.hrPerm" to "Нет пульса: нет разрешения – нажмите",
@@ -653,6 +658,7 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunDist" to "посл дист",
     "f.lastRunAvg" to "посл средн",
     "f.lastRunMax" to "посл макс",
+    "f.lastRunMaxHr" to "посл макс bpm",
 )
 private val ID: Map<String, String> = mapOf(
     "rec.hrPerm" to "Tanpa detak jantung: izin belum ada – ketuk",
@@ -743,4 +749,5 @@ private val ID: Map<String, String> = mapOf(
     "f.lastRunDist" to "jarak terakhir",
     "f.lastRunAvg" to "rata terakhir",
     "f.lastRunMax" to "maks terakhir",
+    "f.lastRunMaxHr" to "maks terakhir bpm",
 )

@@ -114,10 +114,10 @@ export const MOCK_VALUE: Record<number, string> = {
   2: "142", 8: "131", 9: "168",
   3: "12:34", 4: "2.10", 10: "402", 13: "35",
   11: "24", 12: "14:25", 14: "0:48", 15: "0.21",
-  16: "0:51", 17: "0.22", 18: "14.9", 19: "19.6", 20: "7",
+  16: "0:51", 17: "0.22", 18: "14.9", 19: "19.6", 20: "7", 21: "162",
 };
 export const SPEED_FIELDS = new Set([1, 5, 6, 7, 18, 19]);
-export const HR_FIELDS = new Set([2, 8, 9]);
+export const HR_FIELDS = new Set([2, 8, 9, 21]);
 
 /** Farb-Buckets der Uhr (RecordView._speedColor/_hrColor). */
 export function watchSpeedColor(kmh: number): string {

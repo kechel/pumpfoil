@@ -23,6 +23,7 @@ export const FIELD_OPTIONS: { id: number; label: string }[] = [
   { id: 18, label: "Letzter Lauf: Ø Speed" },
   { id: 19, label: "Letzter Lauf: Max Speed" },
   { id: 20, label: "Läufe (Anzahl)" },
+  { id: 21, label: "Letzter Lauf: Max Puls" },
 ];
 
 export function fieldLabel(id: number): string {

@@ -78,6 +78,9 @@ object Recorder {
         val lastRunDistanceM: Double = 0.0,
         val lastRunAvgSpeedKmh: Double = 0.0,
         val lastRunMaxSpeedKmh: Double = 0.0,
+        // Hoechstpuls IM letzten Lauf (Feld 21). Der Session-Hoechstpuls ist maxHr (Feld 9) —
+        // je Lauf fuehrt den niemand, also hier selbst mitschreiben wie das Lauf-Hoechsttempo.
+        val lastRunMaxHr: Int = 0,
     )
 
     // Foil-/Lauf-Erkennung wie Garmin: rein ab ~10 km/h (4 s Dwell), raus unter ~9 km/h (3 s).
@@ -98,6 +101,8 @@ object Recorder {
     private var lastRunDistM = 0.0
     private var lastRunAvgMps = 0.0
     private var lastRunMaxMps = 0.0
+    private var runMaxHr = 0
+    private var lastRunMaxHr = 0
 
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
@@ -113,10 +118,12 @@ object Recorder {
                     runStartMs = tMs - RUN_ENTER_DWELL * 1000L
                     runStartDist = dist
                     runMaxMps = spMps
+                    runMaxHr = if (lastHr > 0) lastHr else 0
                 }
             }
         } else {
             if (spMps > runMaxMps) runMaxMps = spMps
+            if (lastHr > runMaxHr) runMaxHr = lastHr
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
             if (foilExitStreak >= RUN_EXIT_DWELL) {
                 foiling = false; foilEnterStreak = 0
@@ -126,6 +133,8 @@ object Recorder {
                 lastRunDistM = (dist - runStartDist).coerceAtLeast(0.0)
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
+                lastRunMaxHr = runMaxHr
+                runMaxHr = 0
                 runCount++
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
@@ -203,6 +212,7 @@ object Recorder {
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
+        runMaxHr = 0; lastRunMaxHr = 0
         _state.value = State(recording = true, status = I18n.t("rec.recording"),
             pendingCount = LocalStore.pendingCount(ctx))
         scope.launch { flushLoop() }
@@ -434,6 +444,7 @@ object Recorder {
             lastRunDistanceM = lastRunDistM,
             lastRunAvgSpeedKmh = lastRunAvgMps * 3.6,
             lastRunMaxSpeedKmh = lastRunMaxMps * 3.6,
+            lastRunMaxHr = lastRunMaxHr,
         )
     }
     fun setHr(bpm: Int) {

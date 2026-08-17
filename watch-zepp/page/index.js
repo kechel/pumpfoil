@@ -210,6 +210,7 @@ const S = {
   "f.lastRunDist":   ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "", "", "", "前回の距離", "上次距离"],
   "f.lastRunAvg":    ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "", "", "", "前回の平均", "上次平均"],
   "f.lastRunMax":    ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "", "", "", "前回の最大", "上次最高"],
+  "f.lastRunMaxHr":  ["letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm", "último máx bpm", "maks terakhir bpm", "посл макс bpm", "", "", "", "前回の最大心拍", "上次最高心率"],
 };
 // Norwegisch (Bokmål) als OVERLAY statt 16. Spalte: die Zeilen oben haben teils weniger
 // Eintraege (fehlende Sprache = Englisch), ein Anhaengen waere dort ins Leere gelaufen.
@@ -268,6 +269,7 @@ const NB = {
   "f.lastRunDist": "siste dist",
   "f.lastRunAvg": "siste snitt",
   "f.lastRunMax": "siste maks",
+  "f.lastRunMaxHr": "siste maks bpm",
 };
 // Aktive Spalte. Default ENGLISCH (3), nicht Deutsch: die App liegt international im Store, und
 // die Geraete-Systemsprache ist ohne zusaetzlichen (riskanten) @zos-Import nicht lesbar. Sobald
@@ -370,6 +372,9 @@ Page(
       sp3: 0, spWin: [], foiling: false, _prevFoil: false,
       enterStreak: 0, exitStreak: 0, runEndedMs: -100000,
       runStartMs: 0, runStartDist: 0, runMaxMps: 0, runCount: 0,
+      // Hoechstpuls IM Lauf (Feld 21). Der Session-Hoechstpuls ist Feld 9 — je Lauf fuehrt den
+      // niemand, also selbst mitschreiben wie das Lauf-Hoechsttempo.
+      runMaxHr: 0, lastRunMaxHr: 0,
       lastRunDurMs: 0, lastRunDistM: 0, lastRunAvgMps: 0, lastRunMaxMps: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
       // Seiten-Sätze je Zustand (Server, getaggte Listen: [0,a,b,c] klassisch | [1,bg,[el…]] Layout).
@@ -989,11 +994,13 @@ Page(
             s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
             s.runStartDist = dist;
             s.runMaxMps = vInst;
+            s.runMaxHr = s.hr > 0 ? s.hr : 0;
             console.log("[pumpfoil] run start speed=" + (v3 * 3.6).toFixed(1));
           }
         }
       } else {
         if (vInst > s.runMaxMps) s.runMaxMps = vInst;
+        if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
         s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
         if (s.exitStreak >= RUN_EXIT_DWELL) {
           s.foiling = false; s.enterStreak = 0;
@@ -1004,6 +1011,8 @@ Page(
           s.lastRunDistM = Math.max(0, dist - s.runStartDist);
           s.lastRunAvgMps = durMs > 0 ? s.lastRunDistM / (durMs / 1000) : 0;
           s.lastRunMaxMps = s.runMaxMps;
+          s.lastRunMaxHr = s.runMaxHr;
+          s.runMaxHr = 0;
           s.runCount++;
           s.runEndedMs = tMs;   // Re-Arm-Sperre starten
           console.log("[pumpfoil] run end count=" + s.runCount
@@ -1342,6 +1351,7 @@ Page(
         case 18: return [hasRun ? (s.lastRunAvgMps * 3.6).toFixed(1) : "–", t("f.lastRunAvg")];
         case 19: return [hasRun ? (s.lastRunMaxMps * 3.6).toFixed(1) : "–", t("f.lastRunMax")];
         case 20: return ["" + s.runCount, t("f.runs")];
+        case 21: return [s.lastRunMaxHr > 0 ? "" + s.lastRunMaxHr : "–", t("f.lastRunMaxHr")];
         default: return ["–", ""];
       }
     },

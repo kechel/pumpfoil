@@ -494,6 +494,10 @@ class RecordView extends WatchUi.View {
             value = (_rec.lastRunMaxSpeed() * 3.6).format("%.1f"); label = Strings.s("f.kmhMaxLast");
         } else if (type == Config.FIELD_RUN_COUNT) {
             value = _rec.runCount().toString(); label = Strings.s("f.runs");
+        } else if (type == Config.FIELD_LAST_RUN_MAX_HR) {
+            var lmh = _rec.lastRunMaxHr();
+            value = (lmh > 0) ? lmh.toString() : "--"; label = Strings.s("f.bpmMaxLast");
+            color = _hrColor(lmh);
         } else {
             value = "--"; label = "";
         }

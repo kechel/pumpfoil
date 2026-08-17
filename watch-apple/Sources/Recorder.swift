@@ -55,6 +55,9 @@ final class Recorder: NSObject, ObservableObject {
     @Published var lastRunDistanceM: Double = 0
     @Published var lastRunAvgSpeedKmh: Double = 0
     @Published var lastRunMaxSpeedKmh: Double = 0
+    // Höchstpuls IM letzten Lauf (Feld 21). Der Session-Höchstpuls ist `maxHr` (Feld 9) — je Lauf
+    // führt den niemand, also hier selbst mitschreiben, genau wie das Lauf-Höchsttempo.
+    @Published var lastRunMaxHr: Int = 0
 
     // Foil-Erkennung wie Garmin: rein ab ~10 km/h (4 s anhaltend), raus unter ~9 km/h (3 s).
     private let foilEnterKmh = 10.0
@@ -76,6 +79,8 @@ final class Recorder: NSObject, ObservableObject {
     private var lastRunDistM = 0.0
     private var lastRunAvgMps = 0.0
     private var lastRunMaxMps = 0.0
+    private var runMaxHr = 0
+    private var lastRunMaxHrV = 0
 
     private let store = HKHealthStore()
     private let motion = CMMotionManager()
@@ -158,10 +163,10 @@ final class Recorder: NSObject, ObservableObject {
         startSensors()
         isRecording = true
         isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000
-        runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
+        runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0; runMaxHr = 0; lastRunMaxHrV = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
-        lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0
+        lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0; lastRunMaxHr = 0
         status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
@@ -188,11 +193,12 @@ final class Recorder: NSObject, ObservableObject {
                 if foilEnterStreak >= foilEnterDwellS {
                     isFoiling = true; foilExitStreak = 0
                     // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps
+                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps; runMaxHr = hr > 0 ? hr : 0
                 }
             }
         } else {
             if spMps > runMaxMps { runMaxMps = spMps }
+            if hr > runMaxHr { runMaxHr = hr }
             foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
             if foilExitStreak >= foilExitDwellS {
                 isFoiling = false; foilEnterStreak = 0
@@ -201,6 +207,8 @@ final class Recorder: NSObject, ObservableObject {
                 lastRunDistM = max(0, dist - runStartDist)
                 lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
                 lastRunMaxMps = runMaxMps
+                lastRunMaxHrV = runMaxHr
+                runMaxHr = 0
                 runCount += 1
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
@@ -213,6 +221,7 @@ final class Recorder: NSObject, ObservableObject {
         lastRunDistanceM = lastRunDistM
         lastRunAvgSpeedKmh = lastRunAvgMps * 3.6
         lastRunMaxSpeedKmh = lastRunMaxMps * 3.6
+        lastRunMaxHr = lastRunMaxHrV
     }
 
     func stop() async {

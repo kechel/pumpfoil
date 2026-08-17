@@ -224,6 +224,10 @@ class SessionRecorder {
     hidden var _lastRunDurMs = 0;
     hidden var _lastRunDistM = 0.0;
     hidden var _lastRunMaxSpeed = 0.0;
+    // Hoechstpuls IM LAUF (Feld 21). Der Session-Hoechstpuls (Feld 9) kommt von Activity.Info —
+    // je Lauf fuehrt den niemand, also selbst mitschreiben, genau wie beim Lauf-Hoechsttempo.
+    hidden var _runMaxHr = 0;
+    hidden var _lastRunMaxHr = 0;
     hidden var _lastRunAvgSpeed = 0.0;
 
     // Stop erfordert Halten (gegen versehentliches Beenden beim Foilen) — seit 2026-07-27 ZWEI
@@ -935,6 +939,7 @@ class SessionRecorder {
         _runEndedMs = -100000;
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
+        _runMaxHr = 0; _lastRunMaxHr = 0;
 
         // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
         // ohne Roh-Beschleunigungs-Stream zeichnen GPS-only auf (Server -> gps_only).
@@ -1335,10 +1340,12 @@ class SessionRecorder {
                     _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
                     _runStartDist = dist;
                     _runMaxSpeed = vInst;
+                    _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
                 }
             }
         } else {
             if (vInst > _runMaxSpeed) { _runMaxSpeed = vInst; }
+            if (_currentHr != null && _currentHr > _runMaxHr) { _runMaxHr = _currentHr; }
             _exitStreak = (v3 < RUN_EXIT_MPS) ? _exitStreak + 1 : 0;
             if (_exitStreak >= RUN_EXIT_DWELL) {
                 _foiling = false;
@@ -1350,6 +1357,8 @@ class SessionRecorder {
                 _lastRunDistM = dist - _runStartDist;
                 if (_lastRunDistM < 0.0) { _lastRunDistM = 0.0; }
                 _lastRunMaxSpeed = _runMaxSpeed;
+                _lastRunMaxHr = _runMaxHr;
+                _runMaxHr = 0;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
                 _runCount++;
                 _runEndedMs = tMs;   // Re-Arm-Cooldown starten
@@ -1373,6 +1382,7 @@ class SessionRecorder {
     function lastRunDistanceM() { return _lastRunDistM; }
     function lastRunAvgSpeed() { return _lastRunAvgSpeed; }
     function lastRunMaxSpeed() { return _lastRunMaxSpeed; }
+    function lastRunMaxHr() { return _lastRunMaxHr; }
 
     // --- Sensor-Callbacks --- (nur Roh-Datenerfassung für die spätere Auswertung)
     // GPS schon beim App-Start vorwärmen (nicht-blockierend) -> beim Drücken von

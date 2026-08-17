@@ -908,6 +908,7 @@ struct HoldToStopButton: View {
     case 18: return (String(format: "%.1f", r.lastRunAvgSpeedKmh), WLoc.t("f.lastRunAvg", lang))
     case 19: return (String(format: "%.1f", r.lastRunMaxSpeedKmh), WLoc.t("f.lastRunMax", lang))
     case 20: return ("\(r.runCount)", WLoc.t("f.runs", lang))
+    case 21: return (r.lastRunMaxHr > 0 ? "\(r.lastRunMaxHr)" : "–", WLoc.t("f.lastRunMaxHr", lang))
     default: return ("—", "")
     }
 }
@@ -932,6 +933,7 @@ private func distUnit(_ m: Double) -> String { m < 1000 ? "m" : "km" }
     case 2: return hrColor(r.hr)
     case 8: return hrColor(r.avgHr)
     case 9: return hrColor(r.maxHr)
+    case 21: return hrColor(r.lastRunMaxHr)
     default: return .primary
     }
 }

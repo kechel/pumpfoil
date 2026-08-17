@@ -1000,7 +1000,7 @@ private val DEFAULT_VIEWS = listOf(
     listOf(4, 3),   // Distanz + Zeit
 )
 
-// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 21 Felder).
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 22 Felder).
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
     // Schlechtes GPS -> "--" statt Phantom-Tempo (100 km/h am Steg, Nutzer-Video 05.08.).
     1 -> (if (s.gpsPoor) "--" else String.format("%.1f", s.speed3sKmh)) to I18n.t("f.kmh3s")
@@ -1024,6 +1024,7 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     18 -> String.format("%.1f", s.lastRunAvgSpeedKmh) to I18n.t("f.lastRunAvg")
     19 -> String.format("%.1f", s.lastRunMaxSpeedKmh) to I18n.t("f.lastRunMax")
     20 -> s.runCount.toString() to I18n.t("f.runs")
+    21 -> (if (s.lastRunMaxHr > 0) s.lastRunMaxHr.toString() else "–") to I18n.t("f.lastRunMaxHr")
     else -> "—" to ""
 }
 
@@ -1042,7 +1043,7 @@ private fun fieldColor(id: Int, s: Recorder.State): Color = when (id) {
     1, 5, 6, 7 -> speedColor(when (id) { 1 -> s.speed3sKmh; 6 -> s.avgSpeedKmh; 7 -> s.maxSpeedKmh; else -> s.speedKmh })
     18 -> speedColor(s.lastRunAvgSpeedKmh)
     19 -> speedColor(s.lastRunMaxSpeedKmh)
-    2, 8, 9 -> hrColor(when (id) { 8 -> s.avgHr; 9 -> s.maxHr; else -> s.hr })
+    2, 8, 9, 21 -> hrColor(when (id) { 8 -> s.avgHr; 9 -> s.maxHr; 21 -> s.lastRunMaxHr; else -> s.hr })
     else -> Color.Unspecified
 }
 // Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
