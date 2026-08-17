@@ -144,6 +144,11 @@ export default function PersonalHome() {
   // Zeitraum der Rekorde/Kacheln — gleiche Fenster wie die Community-Ranglisten (PERIODS).
   // Default "all" = bisheriges Verhalten (Allzeit), damit niemand plötzlich leere Kacheln sieht.
   const [period, setPeriod] = useState("all");
+  // Sportart der EIGENEN Rekorde. "" = noch nicht gewaehlt -> der Server nimmt die haeufigste
+  // und schickt sie zurueck; ab dann steht sie hier. Anlass: PeterHs Skate-Session zaehlte in
+  // seinen Gesamtzahlen mit, obwohl sie als andere Sportart markiert war (16.08.).
+  const [sport, setSport] = useState("");
+  const [sports, setSports] = useState<{ sport: string; sessions: number }[]>([]);
   const decidedRef = useRef(false);
 
   useEffect(() => {
@@ -152,7 +157,7 @@ export default function PersonalHome() {
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
-    api.stats(accelOnly, period).then((s) => {
+    api.stats(accelOnly, period, sport || undefined).then((s) => {
       // Der Accel-Default wird NUR beim ersten Laden entschieden, und nur auf "Allzeit":
       // in einem kurzen Fenster (z. B. „Heute") sind leere Rekorde normal und wuerden den
       // Umschalter sonst grundlos auf „alle" zwingen.
@@ -163,8 +168,10 @@ export default function PersonalHome() {
         if (accelOnly && noAccel) { setAccelOnly(false); return; }  // -> Refetch mit "alle"
       }
       setStats(s);
+      if (s.sports) setSports(s.sports);
+      if (!sport && s.sport) setSport(s.sport);   // Voreinstellung des Servers uebernehmen
     }).catch(() => {});
-  }, [accelOnly, period]);
+  }, [accelOnly, period, sport]);
 
   const recs = stats?.records;
   // Rekord-Kacheln (klickbar -> Session) + Gesamt-Stat-Kacheln, alle zusammen oben.
@@ -284,6 +291,14 @@ export default function PersonalHome() {
             {t("side.all")}
           </button>
         </div>
+        {/* Sportart — nur zeigen, wenn es ueberhaupt mehr als eine gibt. Gleiches Feld wie bei den
+            Community-Rekorden, damit „meine Rekorde" und „Community-Rekorde" gleich bedient werden. */}
+        {sports.length > 1 && (
+          <select value={sport} onChange={(e) => setSport(e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Zeitraum — dieselben Fenster wie in der Community (PERIODS, ein Ort fuer beides).

@@ -860,8 +860,11 @@ export const api = {
     req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
   hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
   // period: today|10d|30d|365d|all — dieselben Fenster wie die Community-Ranglisten (PERIODS).
-  stats: (accelOnly = true, period = "all") =>
-    req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`),
+  // `sport` leer lassen = der Server nimmt die haeufigste Sportart des Nutzers und sagt in der
+  // Antwort (`sport`), welche das war. Die Auswahlliste kommt als `sports` gleich mit.
+  stats: (accelOnly = true, period = "all", sport?: string) =>
+    req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`
+      + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
   // `sport` = Sportart-Filter der Community-Seite (docs/sport-classification.md). Default pumpfoil,
   // damit Aufrufer ohne Filter unverändert weiterlaufen.
   communityRecords: (accelOnly = true, sport = "pumpfoil") =>
@@ -1110,6 +1113,9 @@ export interface StatRecord {
   track_preview?: string | null;
 }
 export interface OverallStats {
+  // Tatsaechlich verwendete Sportart + Auswahlliste (haeufigste zuerst) — s. api.stats.
+  sport?: string;
+  sports?: { sport: string; sessions: number }[];
   count: number;
   foiling_km: number;
   foiling_min: number;

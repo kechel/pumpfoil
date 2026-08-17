@@ -775,7 +775,7 @@ def _wasser_silhouette(db: Session, ar) -> list | None:
 
 
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal",
-                          period: str = "all") -> dict:
+                          period: str = "all", sport: str | None = None) -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
     sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
     Preset (sensitivity_json). Admin/Community rufen mit "normal" -> Standard (unberührt).
@@ -783,6 +783,13 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     `period`: today | 10d | 30d | 365d | all — GENAU dieselben Fenster und dieselbe Grenzberechnung
     wie die Community-Ranglisten (`community.PERIODS` / `community._cutoff`), damit „30 Tage" auf
     der Startseite und in der Community dasselbe heißt. Default `all` = das bisherige Verhalten.
+
+    `sport`: Sportart wie in der Community (`_community`), `None` = ALLE Sportarten.
+    Anlass (PeterH, 16.08.): seine Skate-Session war als „andere Sportart" markiert, fiel damit aus
+    Community und Bestenlisten — zählte aber weiter in seinen eigenen Gesamtzahlen und „verfälscht
+    meine Laufbahn auf dem Foil". Wir widersprachen uns dabei selbst: die Sessionliste filtert schon
+    seit jeher nach Sportart (`list_sessions(filter="pump")`), nur die Statistik zählte alles.
+    `None` bleibt der Admin-Weg — dort soll der volle Bestand sichtbar sein.
     """
     from .community import _cutoff        # lokal: vermeidet einen Import-Zirkel beim Laden
 
@@ -799,6 +806,12 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True))
     )
+    if sport:
+        # Dieselbe Bedingung wie `community._community`: für „pumpfoil" zählen Altbestände mit
+        # sport_class IS NULL mit (die Spalte kam erst am 27.07.), für jede andere Sportart muss
+        # sie ausdrücklich gesetzt sein.
+        q = q.filter(or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
+                     if sport == "pumpfoil" else models.Session.sport_class == sport)
     if grenze is not None:
         q = q.filter(models.Session.started_at >= grenze)
     rows = q.all()
@@ -877,17 +890,43 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     }
 
 
+def _user_sports(db: Session, user_id: int) -> list[dict]:
+    """Sportarten des Nutzers mit Session-Zahl, häufigste zuerst — füllt das Auswahlfeld der
+    eigenen Rekorde und bestimmt deren Voreinstellung (Jan, 17.08.: „Default ist die Sportart,
+    von der es am meisten Sessions gibt"). `sport_class IS NULL` zählt als Pumpfoil, wie überall.
+    Bewusst über den GANZEN Bestand und nicht über den gewählten Zeitraum: sonst verschwände die
+    Auswahl, sobald jemand „heute" einstellt, und die Voreinstellung spränge von Tag zu Tag."""
+    art = func.coalesce(models.Session.sport_class, "pumpfoil")
+    rows = (db.query(art, func.count(models.Session.id))
+            .filter(models.Session.user_id == user_id, models.Session.deleted.isnot(True))
+            .group_by(art).all())
+    out = [{"sport": k, "sessions": int(n)} for k, n in rows if n]
+    out.sort(key=lambda x: (-x["sessions"], x["sport"]))
+    return out
+
+
 @router.get("/stats")
 def overall_stats(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
     accel_only: bool = True,
     period: str = "all",
+    sport: str | None = None,
 ) -> dict:
     """`period`: today | 10d | 30d | 365d | all (dieselben Fenster wie die Community-Ranglisten).
-    Unbekannte Werte behandelt `_cutoff` wie `all` — ein Tippfehler blendet also nichts aus."""
-    return compute_overall_stats(db, user.id, accel_only,
-                                 sens=(user.foil_sensitivity or "normal"), period=period)
+    Unbekannte Werte behandelt `_cutoff` wie `all` — ein Tippfehler blendet also nichts aus.
+
+    `sport`: ohne Angabe die häufigste Sportart des Nutzers. Die Antwort trägt die tatsächlich
+    verwendete Sportart (`sport`) und die Auswahlliste (`sports`) mit, damit der Client für die
+    Startseite nur EINEN Aufruf braucht."""
+    sports = _user_sports(db, user.id)
+    gewaehlt = sport or (sports[0]["sport"] if sports else "pumpfoil")
+    out = compute_overall_stats(db, user.id, accel_only,
+                                sens=(user.foil_sensitivity or "normal"), period=period,
+                                sport=gewaehlt)
+    out["sport"] = gewaehlt
+    out["sports"] = sports
+    return out
 
 
 @router.get("/has-accel")
