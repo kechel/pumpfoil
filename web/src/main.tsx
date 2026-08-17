@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
+// Muss VOR der ersten Karte laufen: Leaflet soll keine Tasten schlucken, waehrend jemand tippt.
+import "./lib/leafletKeyboard";
 import "./index.css";
 
 import { getToken, setToken } from "./lib/api";
