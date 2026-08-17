@@ -514,6 +514,7 @@ const it: Record<string, string> = {
   "hr.progressHint": "Quanto sale il battito dopo 1, 2 e 5 minuti di pump. Lo sforzo dipende soprattutto dalla durata e quasi per nulla dal foil — se la curva scende nelle settimane, sei più allenato.",
   "hr.afterMinutes": "dopo {min} minuto/i",
   "hr.afterSeconds": "dopo {sec} secondi",
+  "hr.axisHint": "Orizzontale: data · Verticale: battito (bpm)",
   "hr.fromRuns": "da {runs} run in {sessions} sessioni",
   "sd.farthestRunTitle": "run più lungo",
   "sd.tableFooter": "Velocità in km/h. Smussatura regolabile sopra (1/3/5 s). Clicca una riga = mostra solo quel run sulla mappa. ★ = run più lungo.",

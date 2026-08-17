@@ -605,6 +605,7 @@ const fi: Record<string, string> = {
   "hr.progressHint": "Kuinka korkealle syke nousee 1, 2 ja 5 minuutin pumppauksen jälkeen. Rasitus riippuu lähinnä kestosta, tuskin lainkaan foilista — jos käyrä laskee viikkojen mittaan, kuntosi on parantunut.",
   "hr.afterMinutes": "{min} minuutin jälkeen",
   "hr.afterSeconds": "{sec} sekunnin jälkeen",
+  "hr.axisHint": "Vaaka: päivä · Pysty: syke (bpm)",
   "hr.fromRuns": "{runs} runista {sessions} sessiossa",
   "sd.farthestRunTitle": "pisin lenkki",
   "sd.tableFooter": "Nopeudet km/h. Tasoitus vaihdettavissa yltä (1/3/5 s). Klikkaa riviä = vain tämä lenkki kartalla. ★ = pisin lenkki.",

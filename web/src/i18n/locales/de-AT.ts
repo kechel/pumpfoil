@@ -408,6 +408,7 @@ const deAT: Record<string, string> = {
   "hr.progressHint": "Wie hoch dein Puls nach 1, 2 und 5 Minuten Pumpen steigt. Die Anstrengung hängt vor allem an der Dauer und kaum am Foil — sinkt die Kurve über die Wochen, bist du fitter geworden.",
   "hr.afterMinutes": "nach {min} Minute(n)",
   "hr.afterSeconds": "nach {sec} Sekunden",
+  "hr.axisHint": "Waagerecht: Datum · Senkrecht: Puls (bpm)",
   "hr.fromRuns": "aus {runs} Läufen in {sessions} Sessions",
   "login.continueWith": "Weiter mit {provider}",
   "land.login": "Aumeldn",

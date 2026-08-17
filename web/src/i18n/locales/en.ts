@@ -629,6 +629,7 @@ const en: Record<string, string> = {
   "hr.progressHint": "How high your pulse climbs after 1, 2 and 5 minutes of pumping. The effort depends mostly on how long you keep going, hardly on the foil — if the curve drops over the weeks, you have got fitter.",
   "hr.afterMinutes": "after {min} minute(s)",
   "hr.afterSeconds": "after {sec} seconds",
+  "hr.axisHint": "Horizontal: date · Vertical: heart rate (bpm)",
   "hr.fromRuns": "from {runs} runs in {sessions} sessions",
   "sd.farthestRunTitle": "farthest run",
   "sd.tableFooter": "Speeds in km/h. Smoothing switchable above (1/3/5 s). Click a row = show only that run on the map. ★ = farthest run.",

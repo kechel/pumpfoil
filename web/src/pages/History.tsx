@@ -8,8 +8,8 @@ import { SpotProgression } from "../components/SpotProgression";
 import { HrProgress } from "../components/HrProgress";
 import { useT } from "../i18n";
 
-type Mode = "cumulative" | "window7" | "window30";
-type Pt = { t: number; v: number; sid: number; run: number | null };
+export type Mode = "cumulative" | "window7" | "window30";
+export type Pt = { t: number; v: number; sid: number; run: number | null };
 const RUN_METRICS = ["distance", "duration", "speed", "glide"];
 
 const METRICS: { key: keyof HistoryPoint; labelKey: string; fmt: (v: number) => string; color: string }[] = [
@@ -43,7 +43,7 @@ const AGG_SUM: Agg[] = [
   { key: "pumps", field: "pumps", kind: "sum", labelKey: "stat.pumps", fmt: (v) => Math.round(v).toLocaleString("de"), color: "#a78bfa" },
 ];
 
-const DAY_MS = 24 * 3600 * 1000;
+export const DAY_MS = 24 * 3600 * 1000;
 
 function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, number]): Pt[] {
   // Verhältnis-Metrik (z. B. Pumps / Session): Σnum / Σden über Fenster bzw. kumuliert.
@@ -182,7 +182,7 @@ export default function History() {
           nicht auf die Startseite (Jan, 17.08.) — es ist eine Verlaufs-Aussage, keine Momentaufnahme.
           Zeigt sich selbst nur, wenn genug Sessions Puls haben. */}
       <div className="mt-8">
-        <HrProgress />
+        <HrProgress mode={mode} domain={domain} onPick={pick} />
       </div>
 
       {/* Entwicklungs-Animation: eigene Läufe eines Spots chronologisch durchschalten */}
@@ -246,14 +246,20 @@ function MetricChart({ data, metric, mode, onPick, domain }: { data: HistoryPoin
   );
 }
 
-function LineChart({ pts, color, fmt, onPick, domain }: { pts: Pt[]; color: string; fmt: (v: number) => string; onPick: (p: Pt) => void; domain?: [number, number] }) {
+// Exportiert, damit die Puls-Kurve (HrProgress) EXAKT dasselbe Diagramm benutzt statt eines
+// zweiten Stils: gleiche Hover-Anzeige, gleiche Datums-Ticks, gleicher Klick auf die Session.
+// `vmin` verschiebt den Nullpunkt der y-Achse — bei Puls faengt eine Skala ab 0 an, den ganzen
+// interessanten Bereich (110-175 bpm) auf ein Zehntel der Hoehe zu quetschen.
+export function LineChart({ pts, color, fmt, onPick, domain, vmin: vminProp }: { pts: Pt[]; color: string; fmt: (v: number) => string; onPick: (p: Pt) => void; domain?: [number, number]; vmin?: number }) {
   const t = useT();
   const W = 320, H = 120, pad = 8, padB = 18, padL = 4;
   if (pts.length < 2) return <div className="h-[120px] text-xs text-slate-400">{t("history.tooFewData")}</div>;
   const tmin = domain ? domain[0] : pts[0].t, tmax = domain ? domain[1] : pts[pts.length - 1].t;
   const vmax = Math.max(...pts.map((p) => p.v)) * 1.05 || 1;
+  const vmin = vminProp ?? 0;
+  const vspan = Math.max(vmax - vmin, 1e-6);
   const x = (t: number) => padL + ((t - tmin) / Math.max(tmax - tmin, 1)) * (W - pad - padL);
-  const y = (v: number) => H - padB - (v / vmax) * (H - pad - padB);
+  const y = (v: number) => H - padB - ((v - vmin) / vspan) * (H - pad - padB);
   const line = pts.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}`).join(" ");
   const area = `${line} L${x(tmax).toFixed(1)} ${H - padB} L${x(tmin).toFixed(1)} ${H - padB} Z`;
 
@@ -296,6 +302,9 @@ function LineChart({ pts, color, fmt, onPick, domain }: { pts: Pt[]; color: stri
         {hov && <line x1={x(hov.t)} y1={pad} x2={x(hov.t)} y2={H - padB} stroke={color} strokeWidth={1} strokeDasharray="3 3" opacity={0.85} />}
       </svg>
       <div className="pointer-events-none absolute left-1 top-0 text-[10px] text-slate-300">{fmt(vmax / 1.05)}</div>
+      {vminProp != null && (
+        <div className="pointer-events-none absolute bottom-[18px] left-1 text-[10px] text-slate-300">{fmt(vmin)}</div>
+      )}
       {hov && (
         <>
           <div className="pointer-events-none absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-slate-950"
