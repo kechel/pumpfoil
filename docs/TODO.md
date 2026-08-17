@@ -434,9 +434,20 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     `PUT /api/devices/{id}/gnss-mode`, in allen 16 Sprachen uebersetzt. Voreinstellung ist `best`.
     Zu entscheiden (Jan): (a) bleibt `best` die Voreinstellung, obwohl sie Akku kostet, oder wird
     `l1` der Standard? (b) der Schalter muesste dort auftauchen, wo man ihn sucht — heute steht er
-    im Konto, nicht bei der Aufnahme. (c) Franz gezielt auf den Schalter hinweisen (per DM, NICHT
-    im Banner). Ohne Messung nicht raten: **`gnss_mode` ist bei allen 115 Garmin-Uhren NULL**, also
-    hat noch niemand umgestellt — es gibt keine Vergleichsgruppe.
+    im Konto, nicht bei der Aufnahme. Ohne Messung nicht raten: **`gnss_mode` ist bei allen 115
+    Garmin-Uhren NULL**, also hat noch niemand umgestellt — es gibt keine Vergleichsgruppe.
+    **(c) Franz selbst bleibt unbeantwortet — abgeschlossen, nicht wieder aufgreifen** (Jan,
+    17.08.): in der Nutzer-Tabelle gibt es keinen „Franz" (die zwei entfernten Treffer `Fanch`
+    und `Fräse` sind andere Leute, und bei einer persoenlichen Nachricht wird nicht geraten, wer
+    gemeint sein koennte), CIQ-Store-Rezensenten sind nicht mit unseren Konten verknuepft, und im
+    Store kann Jan nicht auf Rezensionen antworten. Ein Antworttext lag vor, ist damit hinfaellig.
+    **Was bleibt, ist NICHT sein Fall, sondern die Auffindbarkeit:** die Einstellung existiert und
+    kennt sie niemand. Dieselbe Meldung wird wiederkommen. Kleinster nuetzlicher Schritt waere ein
+    Changelog-Absatz, der die zwei Akku-Hebel benennt — GNSS „ohne zweites Frequenzband" (groesster
+    Hebel) und Aufzeichnung „sparsam" = 10 Hz statt 25 Hz (gemessen: Pump-Zaehler -0,4 %,
+    On-Foil-Maske 99,9 % identisch, s. 8-Hz-Schwelle vom 13.08.) — und ausdruecklich davon abraet,
+    „nur GPS" zu waehlen, weil das Pump-Zaehler, Kadenz und Gleitphasen komplett wegwirft.
+    Ungebaut, wartet auf Jans OK.
   - **Jacek, 31.07., 1.0.69 (polnisch), 1 Stern Abzug fuer „brak rejestracji wszystkich prób,
     również tych bardzo krótkich. Nawet po to, aby policzyć skuteczność startów"** = es werden
     nicht ALLE Startversuche erfasst, auch die ganz kurzen, „schon allein um die Erfolgsquote der
