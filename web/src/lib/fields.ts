@@ -23,7 +23,11 @@ export const FIELD_OPTIONS: { id: number; label: string }[] = [
   { id: 18, label: "Letzter Lauf: Ø Speed" },
   { id: 19, label: "Letzter Lauf: Max Speed" },
   { id: 20, label: "Läufe (Anzahl)" },
-  { id: 21, label: "Letzter Lauf: Max Puls" },
+  // Neu mit Garmin 1.0.78 / Wear 1.2.23 / Apple + Zepp im naechsten Release. AELTERE Uhren
+  // stuerzen NICHT ab — jede Plattform hat einen Rueckfall auf "–" fuer unbekannte Feld-IDs
+  // (Garmin RecordView, Wear fieldValue, Apple ContentView, Zepp page/index.js: alle geprueft
+  // am 17.08.). Der Hinweis im Namen sagt trotzdem, warum das Feld dort noch leer bleibt.
+  { id: 21, label: "Letzter Lauf: Max Puls (neue Uhr-Version)" },
 ];
 
 export function fieldLabel(id: number): string {

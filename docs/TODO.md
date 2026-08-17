@@ -1546,3 +1546,15 @@ Offen daraus:
     letzten Laufs schon (Dauer, Distanz, Ø/Max-Speed) — ein `lastRunMaxHr` waere dieselbe Mechanik
     je Plattform plus ein Feld-Eintrag. Garmin und Wear koennte ich bauen, Apple nur als Code,
     Zepp liegt gerade in der Pruefung.
+
+- **🟡 Nach den Uhr-Releases: Hinweis am Datenfeld 21 wieder entfernen.** Das Feld „Letzter Lauf:
+  Max Puls" steht seit 17.08. im Layout-Editor und ist serverseitig erlaubt, die Uhren-Seite kommt
+  aber erst mit dem naechsten Release je Plattform (Garmin ist im Direkt-Download schon drin, Wear
+  mit dem naechsten Bump, Apple mit Jans Xcode-Build, Zepp mit 1.0.6 — 1.0.5 liegt in der Pruefung).
+  Solange steht „(neue Uhr-Version)" im Namen; sobald alle vier live sind, den Zusatz streichen.
+  **Aeltere Uhren stuerzen dabei NICHT ab** — das war Jans ausdrueckliche Sorge und ist geprueft:
+  jede der vier Plattformen hat einen Rueckfall fuer unbekannte Feld-IDs (Garmin `value = "--"`,
+  Wear `else -> "—"`, Apple `default: return ("—", "")` samt Standardfarbe, Zepp `default:
+  return ["–", ""]`). Ein Layout mit Feld 21 zeigt auf einer alten Uhr also einen Strich, sonst
+  nichts. Merke fuer kuenftige Felder: dieser Rueckfall ist die Bedingung dafuer, dass ein neues
+  Feld VOR dem Uhr-Release in den Editor darf.
