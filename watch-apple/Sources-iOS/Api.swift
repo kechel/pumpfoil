@@ -361,6 +361,18 @@ enum Api {
         try await request("/api/layouts", method: "GET", body: nil, auth: true)
     }
 
+    // Community-Galerie: veroeffentlichte Layouts anderer (+ eigene). Der Server sortiert nach
+    // TATSAECHLICHER Nutzung (sort=used, Standard) — wie in der PWA, die auch keine Auswahl hat.
+    static func communityLayouts() async throws -> [WatchLayoutBrief] {
+        try await request("/api/layouts/community?limit=60", method: "GET", body: nil, auth: true)
+    }
+
+    // Fremdes Layout in die eigenen kopieren. Ausdruecklich OHNE Groessen-/Form-Schranke:
+    // die Koordinaten sind relativ, jedes Layout passt auf jede Uhr.
+    static func copyLayout(_ id: Int) async throws -> WatchLayoutBrief {
+        try await request("/api/layouts/\(id)/copy", method: "POST", body: nil, auth: true)
+    }
+
     /// Setup-Teil je Session setzen. WICHTIG: der Server unterscheidet "Feld nicht geschickt" von
     /// "null geschickt" (model_fields_set) -- ein Override laesst sich nur mit explizit
     /// mitgesendetem null loeschen. Deshalb die set*-Flags statt bloss optionaler Werte.

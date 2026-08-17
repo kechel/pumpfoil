@@ -78,6 +78,11 @@ struct DataFieldsView: View {
                 // Editor ist bewusst Web-only (Jan, 17.08.). Also sagen wir, wo er ist.
                 Text(Loc.t("datafields.editorInBrowser", lang))
                     .font(.callout).foregroundStyle(Color.accentColor)
+                // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur
+                // Gestalten nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
+                NavigationLink(Loc.t("lay.toCommunity", lang)) {
+                    LayoutGalleryView(lang: lang)
+                }
             }
             pageSet(title: nil, footer: nil, pages: $onFoil, kennung: "on")
             pageSet(title: Loc.t("account.offFoilTitle", lang),

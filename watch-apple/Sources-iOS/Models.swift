@@ -679,6 +679,14 @@ struct WatchLayoutBrief: Codable, Identifiable {
     // Auflösung, FUER DIE das Layout gebaut wurde — Seitenverhaeltnis der Vorschau.
     let authored_w: Int?
     let authored_h: Int?
+    // Nur in der Community-Galerie gefuellt (GET /api/layouts/community): wer es gebaut hat, wie oft
+    // es kopiert wurde und von wie vielen Nutzern es WIRKLICH auf der Uhr liegt. `used_by` ist die
+    // ehrlichere Zahl — eine bloss gespeicherte Kopie zaehlt dort nicht mit.
+    let author: String?
+    let copies: Int?
+    let used_by: Int?
+    let has_freetext: Bool?
+    let published: Bool?
 }
 
 // Ein Element-Feld ist entweder eine Zahl oder (bei Freitext) ein String. Swifts Codable braucht

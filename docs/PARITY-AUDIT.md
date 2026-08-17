@@ -30,8 +30,8 @@ DREI Seitenlisten (`pages` / `off_foil_pages` / `pause_pages`) und der Schalter 
 | Eigene Layouts an meine Uhren senden | `layouts_enabled` | ✅ | ✅ | |
 | In Pause/Off-Foil alle Seiten blaettern | `browse_all_pages` | ✅ | ✅ | |
 | Hinweis „Rate jetzt pro Uhr" | — | ✅ 17.08. | ✅ 17.08. | ersetzt durch die Einleitung über der Uhren-Liste (`devicesSettingsIntro`) |
-| Link „Layouts der Community" | — | ❌ | ❌ | Galerie noch offen (Punkt 4) — der Renderer steht in Android bereits |
-| Link „Eigene Layouts" | — | ❌ | ❌ | s. u., es gibt dort keinen Editor |
+| Link „Layouts der Community" | — | ✅ 17.08. | ✅ 17.08. | Galerie gebaut (ansehen + kopieren) |
+| Link „Eigene Layouts" | — | 🌐 | 🌐 | bewusst Web-only: der Editor bleibt am Rechner, die Apps verlinken dorthin |
 
 **ENTSCHEIDUNG Jan (17.08.): Layout-EDITOR bleibt Web-only** („das macht man eh nur am pc") — in
 den Apps steht stattdessen ein Hinweis auf den Browser (`datafields.editorInBrowser`).
@@ -57,7 +57,7 @@ bewusst Web-only lassen und in den Apps darauf verlinken.
 | 1 | `colorByValue` + `auto_start` im Ansichten-Editor | laenger | ✅ `5d842c7`+ | ✅ | **ERLEDIGT 17.08.** — beide Schalter, Reihenfolge wie PWA |
 | 2 | Uhr-Einstellungen je Uhr: Aufzeichnungsmodus **+ GNSS-Stufe** | `ff05b63` 16.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — GNSS-Auswahl je Uhr, nur Garmin |
 | 3 | Hilfetexte zu den Uhr-Einstellungen | `06875ee`/`1f8e94d` 17.08. | ✅ 17.08. | ✅ 17.08. | Einleitung + GPS-Warnung + Amazfit-Hinweis. OFFEN: der Hinweis nach dem VERBINDEN (eigene Pair-Screens) |
-| 4 | Layout-Vorschau: Anzeige + Auswahl per Bild | `c21159d` 17.08. | ✅ 17.08. | ✅ 17.08. | Lesende Renderer gebaut (`LayoutRender.kt` / `LayoutRender.swift`). OFFEN: Community-Galerie |
+| 4 | Layout-Vorschau + Community-Galerie | `c21159d` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — lesende Renderer + Galerie (ansehen/kopieren). Editor bleibt Web-only |
 | 5 | Hoechstpuls je Lauf in der Lauf-Tabelle | `8eca181` 17.08. | ✅ 17.08. | ✅ 17.08. | **ERLEDIGT** — Spalte nur wenn Puls da; "#" schmaler wegen fehlendem Horizontal-Scroll |
 | 6 | Trainingskurve: Puls nach 1/2/5 min ueber die Sessions | `b6042d6`+ 17.08. | ❌ | ❌ | M — `hr_by_min` in beiden **0 Treffer**, Diagramm neu |
 | 7 | Eigene Rekorde nach Sportart (Default = haeufigste + Auswahl) | `59175be` 17.08. | ⚠️ | ⚠️ | S–M — Rekorde + `sport_class` sind da |
