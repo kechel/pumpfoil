@@ -795,6 +795,13 @@ enum Api {
         let _: RecordModeResp = try await request("/api/devices/\(id)/record-mode", method: "PUT", body: ["record_mode": mode], auth: true)
     }
 
+    // GNSS-Stufe je Uhr setzen (best|l1|two|gps). Nur Garmin; der Server prueft den Wert selbst
+    // (devices.py set_device_gnss_mode). Aufbau exakt wie setDeviceRecordMode darueber.
+    struct GnssModeResp: Decodable { let gnss_mode: String? }
+    static func setDeviceGnssMode(_ id: Int, mode: String) async throws {
+        let _: GnssModeResp = try await request("/api/devices/\(id)/gnss-mode", method: "PUT", body: ["gnss_mode": mode], auth: true)
+    }
+
     // Client-Kennung: Plattform/Version -> Server gated Video-Plattformen (IG/TikTok erst ab
     // App-Version mit Anzeige; bis dahin nur YouTube). Siehe server/app/videos.py.
     /// Eigene App-Version (CFBundleShortVersionString aus dem Bundle) — EINE Quelle für

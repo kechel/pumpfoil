@@ -7,6 +7,8 @@ struct WatchView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var devices: [PairedDevice] = []
     @State private var modes: [Int: String] = [:]     // record_mode je Uhr (id → full|lite|gps)
+    // GNSS-Stufe je Uhr (id → best|l1|two|gps). NUR Garmin waehlt sie, ab Uhr 1.0.77.
+    @State private var gnss: [Int: String] = [:]
     @State private var savedFlash = false
 
     private func flashSaved() {
@@ -56,6 +58,11 @@ struct WatchView: View {
     @ViewBuilder private var devicesSection: some View {
         if !activeDevices.isEmpty {
             Section {
+                // Was die Regler tun: sie wirken auf die UHR und greifen dort beim naechsten
+                // App-Start. Ohne den Satz sucht man den Effekt an der falschen Stelle — belegt
+                // daran, dass gnss_mode bei ALLEN 115 Garmin-Uhren auf NULL stand.
+                Text(Loc.t("account.devicesSettingsIntro", lang))
+                    .font(.callout).foregroundStyle(.secondary)
                 ForEach(activeDevices) { d in deviceRow(d) }
             } header: { Text(Loc.t("account.devicesTitle", lang)) }
             footer: { savedFooter }
@@ -87,8 +94,49 @@ struct WatchView: View {
                 Text(Loc.t("account.recordModeGps", lang)).tag("gps")
             }
             autoLiteHint(d)
+            gpsOnlyHint(d)
+            zeppHint(d)
             garminHint(d)
+            gnssPicker(d)
         }
+    }
+
+    // Satellitensysteme — nur Garmin, wie in der PWA. Groesster Akku-Hebel.
+    @ViewBuilder private func gnssPicker(_ d: PairedDevice) -> some View {
+        if d.platform == "garmin" {
+            Picker(Loc.t("account.gnssMode", lang), selection: gnssBinding(d)) {
+                Text(Loc.t("account.gnssModeBest", lang)).tag("best")
+                Text(Loc.t("account.gnssModeL1", lang)).tag("l1")
+                Text(Loc.t("account.gnssModeTwo", lang)).tag("two")
+                Text(Loc.t("account.gnssModeGps", lang)).tag("gps")
+            }
+            Text(Loc.t("account.gnssModeHint", lang)).font(.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    // „Nur GPS" schaltet alles ab, was aus der Bewegung kommt — das MUSS dranstehen. Fehlte der
+    // App bisher, obwohl die PWA es zeigt. .callout statt .caption: keine winzigen Warnungen.
+    @ViewBuilder private func gpsOnlyHint(_ d: PairedDevice) -> some View {
+        if mode(d) == "gps" {
+            Text(Loc.t("account.recordModeGpsHint", lang)).font(.callout).foregroundStyle(.orange)
+        }
+    }
+
+    // Amazfit holt sich den Aufzeichnungsmodus gar nicht ab (watch-zepp/app-side/index.js reicht
+    // ihn nicht durch) -> ehrlich dranschreiben statt den Regler wirkungslos anbieten.
+    @ViewBuilder private func zeppHint(_ d: PairedDevice) -> some View {
+        if d.platform == "zepp" {
+            Text(Loc.t("account.recordModeZeppHint", lang)).font(.callout).foregroundStyle(.orange)
+        }
+    }
+
+    private func gnssBinding(_ d: PairedDevice) -> Binding<String> {
+        Binding(get: { gnss[d.id] ?? d.gnss_mode ?? "best" }, set: { setGnss(d.id, $0) })
+    }
+
+    private func setGnss(_ id: Int, _ v: String) {
+        gnss[id] = v
+        Task { try? await Api.setDeviceGnssMode(id, mode: v); flashSaved() }
     }
 
     @ViewBuilder private func versionLabel(_ d: PairedDevice) -> some View {
@@ -152,6 +200,7 @@ struct WatchView: View {
         if let ds = try? await Api.myDevices() {
             devices = ds
             modes = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.record_mode ?? "full") })
+            gnss = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.gnss_mode ?? "best") })
         }
     }
 }

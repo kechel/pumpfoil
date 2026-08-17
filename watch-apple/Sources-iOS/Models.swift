@@ -37,6 +37,9 @@ struct PairedDevice: Codable, Identifiable {
     let update_available: Bool?
     let latest_version: String?
     let record_mode: String?   // full | lite | gps
+    // GNSS-Stufe je Uhr (best|l1|two|gps) — NUR Garmin, ab Uhr 1.0.77. nil = keine eigene
+    // Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
+    let gnss_mode: String?
     let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
 }
 
