@@ -594,6 +594,10 @@ const pt: Record<string, string> = {
   "sd.colPumpMaxMin": "Pump {unit} 5s (máx/mín)",
   "sd.colGlide": "planeio mais longo",
   "sd.colMaxHr": "Pulso máx.",
+  "hr.progressTitle": "Curva de treino: pulso a bombear",
+  "hr.progressHint": "Até onde sobe o teu pulso após 1, 2 e 5 minutos a bombear. O esforço depende sobretudo da duração e quase nada do foil — se a curva descer ao longo das semanas, estás mais em forma.",
+  "hr.afterMinutes": "após {min} minuto(s)",
+  "hr.fromRuns": "de {runs} runs em {sessions} sessões",
   "sd.farthestRunTitle": "volta mais longa",
   "sd.tableFooter": "Velocidades em km/h. Suavização alternável acima (1/3/5 s). Clique numa linha = mostrar só aquela volta no mapa. ★ = volta mais longa.",
 

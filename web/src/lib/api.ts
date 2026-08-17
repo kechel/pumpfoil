@@ -862,6 +862,8 @@ export const api = {
   // period: today|10d|30d|365d|all — dieselben Fenster wie die Community-Ranglisten (PERIODS).
   // `sport` leer lassen = der Server nimmt die haeufigste Sportart des Nutzers und sagt in der
   // Antwort (`sport`), welche das war. Die Auswahlliste kommt als `sports` gleich mit.
+  hrProgress: (sport?: string) =>
+    req<HrProgress>(`/api/sessions/hr-progress${sport ? `?sport=${encodeURIComponent(sport)}` : ""}`),
   stats: (accelOnly = true, period = "all", sport?: string) =>
     req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`
       + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
@@ -1112,6 +1114,15 @@ export interface StatRecord {
   spot?: string | null;
   track_preview?: string | null;
 }
+// Trainingskurve: je Session der Median des Hoechstpulses nach 1/2/5 Minuten Lauf.
+// `hr60`/`hr120`/`hr300` = die Werte, `n60`/`n120`/`n300` = aus wievielen Laeufen sie kommen.
+export interface HrProgress {
+  sport: string;
+  sports: { sport: string; sessions: number }[];
+  marks: number[];
+  series: { session_id: number; started_at: string | null; [k: string]: number | string | null }[];
+}
+
 export interface OverallStats {
   // Tatsaechlich verwendete Sportart + Auswahlliste (haeufigste zuerst) — s. api.stats.
   sport?: string;

@@ -618,6 +618,10 @@ const cs: Record<string, string> = {
   "sd.colPumpMaxMin": "Pumpnutí {unit} 5s (max/min)",
   "sd.colGlide": "nejdelší klouzání",
   "sd.colMaxHr": "Max. tep",
+  "hr.progressTitle": "Tréninková křivka: tep při pumpování",
+  "hr.progressHint": "Jak vysoko vyšplhá tvůj tep po 1, 2 a 5 minutách pumpování. Námaha závisí hlavně na délce a skoro vůbec na foilu — když křivka během týdnů klesá, jsi ve formě.",
+  "hr.afterMinutes": "po {min} minutě/ách",
+  "hr.fromRuns": "z {runs} runů v {sessions} seancích",
   "sd.farthestRunTitle": "nejdelší jízda",
   "sd.tableFooter": "Rychlosti v km/h. Vyhlazení přepínatelné nahoře (1/3/5 s). Kliknutí na řádek = jen tato jízda na mapě. ★ = nejdelší jízda.",
 

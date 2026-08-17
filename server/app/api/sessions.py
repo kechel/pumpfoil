@@ -890,6 +890,63 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     }
 
 
+HR_MARKEN = (60, 120, 300)   # Sekunden: nach 1, 2 und 5 Minuten Lauf
+
+
+def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
+    """Puls-Anstieg einer Session: je Marke der MEDIAN des Höchstpulses bis Minute 1/2/5.
+
+    Idee (Jan, 17.08.): „da macht sich der Trainingseffekt wenn man besser wird dann bemerkbar."
+    Wer fitter wird, hat nach zwei Minuten Pumpen einen niedrigeren Puls als vorher — und weil die
+    Anstrengung fast nur an der DAUER hängt und kaum am Foil („man ist nur schneller oder langsamer
+    mit grösseren oder kleineren foils"), ist die Lauf-Dauer die richtige Achse.
+
+    Je Lauf wird der höchste Puls in den ersten 60/120/300 s genommen; Läufe, die kürzer waren,
+    zählen für diese Marke nicht mit. Über die Läufe der Session dann der Median, nicht der
+    Bestwert — ein einzelner Ausreißer soll die Kurve nicht verziehen.
+
+    `{}` = geprüft, aber nichts zu holen (kein Puls oder keine Läufe). Der Aufrufer speichert auch
+    das, sonst würde jede pulslose Session bei jedem Aufruf neu gelesen.
+    """
+    import statistics as _st
+    from .. import storage
+    if not segs_json:
+        return {}
+    try:
+        segs = json.loads(segs_json)
+    except ValueError:
+        return {}
+    if not segs:
+        return {}
+    try:
+        gps = storage.load_gps(uuid)
+    except Exception:
+        return {}
+    if not gps:
+        return {}
+    # Puls je GPS-Punkt (Index 4 im Sample, s. docs/data-format.md). `i_start`/`i_end` der Läufe
+    # sind Indizes auf DIESELBE Liste — an einer Session mit 3937 Punkten gegengeprüft.
+    hr = [(r[4] if len(r) > 4 else None) for r in gps]
+    if not any(hr):
+        return {}
+    out: dict[str, dict] = {}
+    for marke in HR_MARKEN:
+        werte = []
+        for sg in segs:
+            a, b = sg.get("i_start"), sg.get("i_end")
+            if a is None or b is None or (sg.get("duration_s") or 0) < marke:
+                continue
+            # GPS liegt bei 1 Hz -> ein Index ≈ eine Sekunde. Das ist dieselbe Näherung, mit der
+            # `gps_hz` überall im Projekt geführt wird (docs/DATA-PIPELINE.md).
+            ende = min(int(a) + marke, int(b), len(hr) - 1)
+            fenster = [v for v in hr[int(a):ende + 1] if v]
+            if fenster:
+                werte.append(max(fenster))
+        if werte:
+            out[str(marke)] = {"med": round(_st.median(werte)), "n": len(werte)}
+    return out
+
+
 def _user_sports(db: Session, user_id: int) -> list[dict]:
     """Sportarten des Nutzers mit Session-Zahl, häufigste zuerst — füllt das Auswahlfeld der
     eigenen Rekorde und bestimmt deren Voreinstellung (Jan, 17.08.: „Default ist die Sportart,
@@ -903,6 +960,45 @@ def _user_sports(db: Session, user_id: int) -> list[dict]:
     out = [{"sport": k, "sessions": int(n)} for k, n in rows if n]
     out.sort(key=lambda x: (-x["sessions"], x["sport"]))
     return out
+
+
+@router.get("/hr-progress")
+def hr_progress(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+    sport: str | None = None,
+) -> dict:
+    """Trainingskurve: je Session der Höchstpuls nach 1, 2 und 5 Minuten Lauf (Median über die
+    Läufe), älteste zuerst. Fällt der Wert über die Wochen, ist der Fahrer fitter geworden.
+
+    Der Wert je Session wird gecacht (`AnalysisResult.hr_by_min_json`) — sonst müsste jeder Aufruf
+    die GPS-Spur JEDER Session lesen. Gemessen am Bestand: ~4 ms pro Session beim ersten Mal,
+    danach nichts mehr; `run_analysis` setzt den Cache bei Reanalyse/Trim zurück.
+    """
+    sports = _user_sports(db, user.id)
+    gewaehlt = sport or (sports[0]["sport"] if sports else "pumpfoil")
+    q = (db.query(models.Session.session_uuid, models.Session.started_at, models.Session.id,
+                  models.AnalysisResult)
+         .join(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True)))
+    q = q.filter(or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
+                 if gewaehlt == "pumpfoil" else models.Session.sport_class == gewaehlt)
+    reihe, dirty = [], False
+    for uuid, ts, sid, ar in q.order_by(models.Session.started_at).all():
+        if ar.hr_by_min_json is None:
+            ar.hr_by_min_json = json.dumps(_hr_by_min(uuid, ar.segments_json))
+            dirty = True
+        try:
+            werte = json.loads(ar.hr_by_min_json) or {}
+        except ValueError:
+            werte = {}
+        if werte:
+            reihe.append({"session_id": sid, "started_at": ts.isoformat() if ts else None,
+                          **{f"hr{k}": v["med"] for k, v in werte.items()},
+                          **{f"n{k}": v["n"] for k, v in werte.items()}})
+    if dirty:
+        db.commit()
+    return {"sport": gewaehlt, "sports": sports, "marks": list(HR_MARKEN), "series": reihe}
 
 
 @router.get("/stats")

@@ -6,6 +6,7 @@ import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
+import { HrProgress } from "../components/HrProgress";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
@@ -344,6 +345,10 @@ export default function PersonalHome() {
           ))}
         </div>
       )}
+
+      {/* Trainingskurve: Puls nach 1/2/5 Minuten Lauf über die Sessions hinweg. Folgt derselben
+          Sportart-Auswahl wie die Rekorde darüber; zeigt sich selbst nur, wenn es genug Puls gibt. */}
+      <HrProgress sport={sport || undefined} />
 
       {/* Wetter & Pegel für den eigenen Homespot */}
       {homespot && <SpotWeather spot={homespot} showSpot />}

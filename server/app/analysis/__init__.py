@@ -540,6 +540,8 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.start_attempts_json = json.dumps(attempt_distances(gps_samples, session.gps_hz))
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
+    # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
+    result.hr_by_min_json = None
     # Preset-Cache: kanonisch (oben) bleibt Standard = Community. Das AKTUELLE Preset des Besitzers
     # (falls != normal) wird in sensitivity_json abgelegt; bereits gecachte andere Presets bleiben
     # erhalten -> Umschalten ohne Neurechnung. Der Besitzer sieht daraus v. a. die einzelnen Läufe.

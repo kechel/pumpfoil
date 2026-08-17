@@ -594,6 +594,10 @@ const zh: Record<string, string> = {
   "sd.colPumpMaxMin": "泵动 {unit} 5秒 (最高/最低)",
   "sd.colGlide": "最长滑行",
   "sd.colMaxHr": "最大心率",
+  "hr.progressTitle": "训练曲线：泵动时的心率",
+  "hr.progressHint": "泵动 1、2、5 分钟后心率上升到多少。强度主要取决于持续时间，与水翼关系不大 — 曲线在数周内下降，说明你更强了。",
+  "hr.afterMinutes": "{min} 分钟后",
+  "hr.fromRuns": "来自 {sessions} 次记录中的 {runs} 段",
   "sd.farthestRunTitle": "最远航段",
   "sd.tableFooter": "速度单位 km/h。平滑可在上方切换 (1/3/5 秒)。点击某一行 = 在地图上仅显示该航段。★ = 最远航段。",
 

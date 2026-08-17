@@ -576,6 +576,16 @@ class AnalysisResult(Base):
     # persönliche Home-Aggregat (/community/carve-stats). NULL = noch nicht berechnet -> beim
     # nächsten Aufruf einmalig aus GPS ermittelt + gespeichert. run_analysis setzt sie auf NULL
     # zurück (Trim/Reanalyse ändert Segmente -> Neuberechnung). Fixe Kategorien, kein User-Setting.
+    # Puls-Anstieg im Lauf, lazy gecacht (wie carve_*). JSON:
+    # {"60": {"med": 152, "n": 7}, "120": {…}, "300": {…}} — je Marke der MEDIAN des Hoechstpulses
+    # bis Minute 1/2/5 ueber alle Laeufe, die so lange gedauert haben, plus deren Anzahl.
+    # Zweck (Jan, 17.08.): der Trainingseffekt wird genau hier sichtbar — wer fitter wird, hat nach
+    # zwei Minuten Pumpen einen niedrigeren Puls als vorher. Median statt Bestwert, weil ein
+    # einzelner Ausreisser sonst die ganze Kurve verzieht.
+    # NULL = noch nicht gerechnet; "{}" = geprueft, aber nichts zu holen (kein Puls / keine Laeufe)
+    # -> wird nicht bei jedem Aufruf neu versucht. run_analysis setzt auf NULL zurueck.
+    hr_by_min_json: Mapped[str | None] = mapped_column(Text)
+
     carve_s: Mapped[int | None] = mapped_column(Integer)
     carve_m: Mapped[int | None] = mapped_column(Integer)
     carve_l: Mapped[int | None] = mapped_column(Integer)
