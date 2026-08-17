@@ -677,11 +677,24 @@ data class MergeSuggestion(
     val tz: String? = null,               // IANA-Zeitzone des Spots (Gruppen-Ebene)
 )
 
-// Kopf eines eigenen Uhr-Layouts (server/app/api/layouts.py:_out) — mehr braucht die App nicht,
-// gestaltet wird ausschliesslich in der PWA.
+// Ein eigenes Uhr-Layout (server/app/api/layouts.py:_out).
+//
+// GESTALTET wird ausschliesslich in der PWA (Entscheidung Jan 2026-08-17: "den Layout-Editor
+// brauchen wir nativ nicht, das macht man eh nur am pc"). ANGEZEIGT wird es aber auch hier, damit
+// man einen Screen an seinem BILD wiedererkennt statt am Namen — der Name allein reicht nicht, weil
+// eine Kopie aus der Community den Originalnamen behaelt und mehrere Kopien gleich heissen koennen.
+// Deshalb liest die App seit 17.08. auch die Zeichendaten mit; der Server lieferte sie schon immer.
 @Serializable
 data class WatchLayoutBrief(
     val id: Int,
     val name: String = "",
     val category: String = "on_foil",
+    // Zeichendaten fuer WatchLayoutPreview (LayoutRender.kt).
+    val elements: List<kotlinx.serialization.json.JsonArray> = emptyList(),
+    val bg_color: Int = 0,
+    val shape: String = "round",
+    // Auflösung, FUER DIE das Layout gebaut wurde — bestimmt das Seitenverhaeltnis der Vorschau.
+    // Kann null sein (aeltere Layouts ohne Angabe), dann faellt die Vorschau auf 240x240 zurueck.
+    val authored_w: Int? = null,
+    val authored_h: Int? = null,
 )

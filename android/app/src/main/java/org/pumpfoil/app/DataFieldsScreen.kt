@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Switch
 import kotlinx.serialization.json.booleanOrNull
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -164,6 +166,12 @@ fun DataFieldsScreen(onBack: () -> Unit) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text(I18n.t("datafields.intro"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen. Entscheidung
+            // Jan (17.08.): der Editor ist bewusst Web-only ("das macht man eh nur am pc"), also
+            // sagen wir hier klar, wo er ist, statt den Nutzer suchen zu lassen.
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("datafields.editorInBrowser"),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(12.dp))
 
             PageSetEditor(
@@ -239,6 +247,7 @@ private fun PageSetEditor(
     max: Int,
     onChange: (List<WatchPage>) -> Unit,
 ) {
+    var waehlen by remember { mutableStateOf(false) }   // Vorschau-Auswahl offen?
     Column {
         title?.let { Text(it, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold) }
         pages.forEachIndexed { idx, pg ->
@@ -273,10 +282,24 @@ private fun PageSetEditor(
                             Spacer(Modifier.height(6.dp))
                         }
                         is LayoutPage -> {
-                            val name = layouts.firstOrNull { it.id == pg.layoutId }?.name
-                            Text(name ?: I18n.t("account.layoutMissing"),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (name != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                            // Bild UND Name: erkannt wird am Bild, benannt zur Sicherheit (Jan,
+                            // 17.08.). Fehlt das Layout (geloescht/fremd), bleibt nur der Hinweis.
+                            val l = layouts.firstOrNull { it.id == pg.layoutId }
+                            if (l != null) {
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    WatchLayoutPreview(
+                                        elements = l.elements, bgColor = l.bg_color, shape = l.shape,
+                                        w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 110.dp,
+                                        pageCount = pages.size, pageIndex = idx)
+                                    Text(l.name, style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary)
+                                }
+                            } else {
+                                Text(I18n.t("account.layoutMissing"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error)
+                            }
                         }
                     }
                 }
@@ -289,21 +312,41 @@ private fun PageSetEditor(
                 }
             }
             if (pages.size < max && layouts.isNotEmpty()) {
-                var open by remember { mutableStateOf(false) }
-                Box {
-                    OutlinedButton(onClick = { open = true }) {
-                        Text(I18n.t("account.addLayoutPage"), maxLines = 1)
-                        Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                    }
-                    DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                        layouts.forEach { l ->
-                            DropdownMenuItem(text = { Text(l.name) }, onClick = {
-                                open = false; onChange(pages + LayoutPage(l.id))
-                            })
-                        }
-                    }
+                OutlinedButton(onClick = { waehlen = true }) {
+                    Text(I18n.t("account.addLayoutPage"), maxLines = 1)
                 }
             }
+        }
+        // Auswahl per VORSCHAU statt per Name (Jan, 17.08.). Vorher war das ein DropdownMenu, das
+        // nur `l.name` zeigte — und der hilft nicht, wenn eine Community-Kopie den Originalnamen
+        // behaelt und mehrere Kopien gleich heissen. Dieselbe Aenderung wie in der PWA (`c21159d`).
+        if (waehlen && layouts.isNotEmpty() && pages.size < max) {
+            AlertDialog(
+                onDismissRequest = { waehlen = false },
+                title = { Text(I18n.t("account.pickLayoutTitle")) },
+                text = {
+                    // Bewusst als Dialog (anders als in der PWA, wo es aufklappt): auf dem Handy ist
+                    // ein Bogen Bildschirm knapp, und der Dialog laesst sich wegwischen.
+                    Column(Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        layouts.forEach { l ->
+                            Row(Modifier.fillMaxWidth().clickable {
+                                waehlen = false; onChange(pages + LayoutPage(l.id))
+                            }, verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                WatchLayoutPreview(
+                                    elements = l.elements, bgColor = l.bg_color, shape = l.shape,
+                                    w = l.authored_w ?: 240, h = l.authored_h ?: 240, px = 96.dp,
+                                    pageCount = pages.size + 1, pageIndex = pages.size)
+                                Text(l.name, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { waehlen = false }) { Text(I18n.t("common.cancel")) }
+                },
+            )
         }
     }
 }
