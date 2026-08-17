@@ -360,7 +360,16 @@ data class OverallStats(
     val pumps: Int = 0,
     @SerialName("runs_total") val runsTotal: Int = 0,
     val records: OverallRecords? = null,
+    // Sportart, auf die sich diese Antwort bezieht, plus die Auswahlliste (haeufigste zuerst).
+    // Der Server liefert beides in EINEM Aufruf mit, damit die Startseite nicht zweimal fragen muss.
+    // Voreinstellung ist die Sportart mit den meisten Sessions (Jan, 17.08.).
+    val sport: String? = null,
+    val sports: List<SportCount> = emptyList(),
 )
+
+// Eine Sportart des Nutzers mit Session-Zahl (fuer das Auswahlfeld der eigenen Rekorde).
+@Serializable
+data class SportCount(val sport: String = "", val sessions: Int = 0)
 
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())

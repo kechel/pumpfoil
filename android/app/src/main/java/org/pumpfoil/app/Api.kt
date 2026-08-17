@@ -304,8 +304,14 @@ object Api {
         json.decodeFromString(ListSerializer(SpotTrack.serializer()), http("GET", "/api/sessions/spot-tracks?spot=$s", null, auth = true))
     }
 
-    suspend fun stats(accelOnly: Boolean = true): OverallStats = withContext(Dispatchers.IO) {
-        json.decodeFromString(OverallStats.serializer(), http("GET", "/api/sessions/stats?accel_only=$accelOnly", null, auth = true))
+    // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
+    // derselben Abfrage, "30 Tage" heisst also auch Foiling/Pumps der letzten 30 Tage.
+    // `sport` leer = der Server nimmt die haeufigste Sportart des Nutzers und sagt in der Antwort,
+    // welche es war (plus die Auswahlliste).
+    suspend fun stats(accelOnly: Boolean = true, period: String = "all", sport: String? = null): OverallStats = withContext(Dispatchers.IO) {
+        val s = sport?.let { "&sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        json.decodeFromString(OverallStats.serializer(),
+            http("GET", "/api/sessions/stats?accel_only=$accelOnly&period=$period$s", null, auth = true))
     }
 
     // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des

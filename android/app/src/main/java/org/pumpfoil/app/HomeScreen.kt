@@ -78,6 +78,12 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
+    // Zeitraum der Rekorde UND Gesamtwerte (Paritaet Punkt 8): beides kommt aus derselben
+    // Abfrage, "30 Tage" heisst also auch Foiling/Pumps der letzten 30 Tage.
+    var zeitraum by remember { mutableStateOf("all") }
+    // Sportart der eigenen Rekorde (Paritaet Punkt 7). null = der Server nimmt die haeufigste
+    // und sagt in der Antwort, welche es war.
+    var sportart by remember { mutableStateOf<String?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
@@ -172,8 +178,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         loading = false
     }
     // Stats separat: reagiert zusätzlich auf den Accel/alle-Umschalter.
-    LaunchedEffect(tick, accelOnly) {
-        val s = try { Api.stats(accelOnly) } catch (_: Exception) { null }
+    LaunchedEffect(tick, accelOnly, zeitraum, sportart) {
+        val s = try { Api.stats(accelOnly, zeitraum, sportart) } catch (_: Exception) { null }
         if (s != null) {
             if (!decidedDefault) {
                 decidedDefault = true
@@ -337,20 +343,32 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(I18n.t("side.records"), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.width(8.dp))
-                    @Composable
-                    fun seg(active: Boolean, label: String, onClick: () -> Unit) {
-                        Surface(
-                            onClick = onClick, shape = MaterialTheme.shapes.small,
-                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                        ) {
-                            Text(label, style = MaterialTheme.typography.labelMedium,
-                                color = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                    Seg(accelOnly, I18n.t("side.onlyAccel")) { accelOnly = true }
+                    Spacer(Modifier.width(4.dp))
+                    Seg(!accelOnly, I18n.t("side.all")) { accelOnly = false }
+                }
+                // Sportart der eigenen Rekorde — nur wenn es ueberhaupt mehr als eine gibt
+                // (Paritaet Punkt 7). Sonst ist ein Auswahlfeld mit einem Eintrag nur Ballast.
+                if (st.sports.size > 1) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        st.sports.forEach { sc ->
+                            val aktiv = (sportart ?: st.sport) == sc.sport
+                            Seg(aktiv, "${I18n.t("cls.sport." + sc.sport)} (${sc.sessions})") {
+                                sportart = sc.sport
+                            }
                         }
                     }
-                    seg(accelOnly, I18n.t("side.onlyAccel")) { accelOnly = true }
-                    Spacer(Modifier.width(4.dp))
-                    seg(!accelOnly, I18n.t("side.all")) { accelOnly = false }
+                }
+                // Zeitraum: wirkt auf Rekorde UND Gesamtwerte (Paritaet Punkt 8). Waagerecht
+                // scrollbar, damit fuenf Knoepfe auch auf schmalen Geraeten alle erreichbar sind.
+                Spacer(Modifier.height(6.dp))
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    HOME_STAT_WINDOWS.forEach { (k, lbl) ->
+                        Seg(zeitraum == k, I18n.t(lbl)) { zeitraum = k }
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
 
@@ -405,6 +423,20 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }
             Spacer(Modifier.height(8.dp))
         }
+    }
+}
+
+/** Ein Segment-Knopf der Umschalter (Accel/alle, Sportart, Zeitraum). Lag urspruenglich lokal im
+ *  Row-Block der Rekorde; hochgezogen, damit die drei Umschalter gleich aussehen. */
+@Composable
+private fun Seg(active: Boolean, label: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick, shape = MaterialTheme.shapes.small,
+        color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Text(label, style = MaterialTheme.typography.labelMedium,
+            color = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
     }
 }
 
