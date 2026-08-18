@@ -50,6 +50,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -83,6 +85,9 @@ private class CmpTrack(
 fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     // Auswahl kommt per Long-Press aus den Session-Listen (CompareStore) — keine eigene Liste hier.
     val selected by CompareStore.refs.collectAsState()
+    // Fahrergewicht fuer die Leistungs-Kennzahl (Profil). 0 = unbekannt -> die Karte bleibt leer,
+    // genauso wie in der PWA, wo powerOf() ohne Gewicht/Foil-Masse null liefert.
+    var weightKg by remember { mutableStateOf(0.0) }
     // Je Korb-Eintrag der geladene Datensatz; dieselbe Session darf zweimal vorkommen (zwei
     // Laeufe). `results` bleibt als abgeleitete Liste, damit die uebrige Anzeige unveraendert geht.
     var items by remember { mutableStateOf<List<Pair<CompareRef, SessionDetail>>>(emptyList()) }
@@ -102,6 +107,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
         }.toMap()
         // Reihenfolge des Korbs beibehalten (bestimmt die Farbe), NICHT sortieren.
         items = selected.mapNotNull { r -> geladen[r.sessionId]?.let { r to it } }
+        weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
         if (results.mapNotNull { it.ownerName }.toSet().size > 1) mode = CompareMode.RIDER
         loading = false
     }
@@ -222,7 +228,9 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                             }
                         }
 
-                        CompareTable(items)
+                        CompareTable(items, win, weightKg) { i ->
+                            if (mode == CompareMode.RIDER) riderColor(items.getOrNull(i)?.second?.ownerName) else compareColor(i)
+                        }
                         AllRuns(cmpTracks, mode)
                     }
                     mergeError?.let {
@@ -367,41 +375,152 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode) {
 private fun cmpMmss(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
 
 @Composable
-private fun CompareTable(items: List<Pair<CompareRef, SessionDetail>>) {
-    // Eine Spalte je Korb-Eintrag. Bei einem LAUF-Eintrag kommen die Werte aus dem Lauf, nicht aus
-    // der Session — sonst stuende unter der Ueberschrift "Lauf 3" stillschweigend die Summe der
-    // ganzen Session. Genau diese Aufteilung macht `statsFor` in der PWA (Zweig `if (it.seg)`).
-    fun mmss(v: Double) = "%d:%02d".format((v / 60).toInt(), (v % 60).toInt())
-    val metrics: List<Pair<String, (CompareRef, SessionDetail) -> String>> = listOf(
-        I18n.t("compare.distance") to { r, s -> lauf(r, s)?.let { "%.0f m".format(it.distanceM) } ?: s.analysis?.totalDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        I18n.t("home.foiling") to { r, s -> lauf(r, s)?.let { "%.0f m".format(it.distanceM) } ?: s.analysis?.foilingDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        I18n.t("home.topSpeed") to { r, s -> (lauf(r, s)?.maxSpeedMps ?: s.analysis?.maxSpeedMps)?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
-        I18n.t("home.pumps") to { r, s -> lauf(r, s)?.pumps?.toString() ?: s.analysis?.pumpCount?.toString() ?: "–" },
-        I18n.t("compare.foilTime") to { r, s -> lauf(r, s)?.let { mmss(it.durationS) } ?: s.analysis?.foilingTimeS?.let { mmss(it) } ?: "–" },
-        I18n.t("compare.cadence") to { r, s -> PumpUnit.fmt(lauf(r, s)?.avgPumpHz ?: s.analysis?.avgCadenceHz) },
-    )
-    val cell = 110.dp
-    Column(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(12.dp)) {
-        Row {
-            Box(Modifier.width(96.dp)) {}
-            items.forEach { (r, s) ->
-                val kopf = r.runIdx?.let { I18n.t("compare.run").replace("{n}", (it + 1).toString()) }
-                    ?: prettyDate(s.startedAt, s.tz).take(10)
-                Text(kopf, Modifier.width(cell).padding(4.dp),
-                    style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-            }
-        }
-        HorizontalDivider()
-        metrics.forEach { (label, fn) ->
-            Row(Modifier.padding(vertical = 6.dp)) {
-                Text(label, Modifier.width(96.dp), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                items.forEach { (r, s) ->
-                    Text(fn(r, s), Modifier.width(cell).padding(horizontal = 4.dp), style = MaterialTheme.typography.bodyMedium)
+private fun CompareTable(
+    items: List<Pair<CompareRef, SessionDetail>>,
+    win: Int,
+    weightKg: Double,
+    farbe: (Int) -> Color,
+) {
+    // KARTENRASTER mit allen 15 Kennzahlen — dieselbe Liste, Reihenfolge und Formatierung wie
+    // `metrics` in web/src/pages/Compare.tsx. Vorher standen hier sechs Werte in einer Matrix.
+    // Je Karte eine Kennzahl, darin eine Zeile je Korb-Eintrag; der Bestwert wird hervorgehoben,
+    // aber nur wenn die Kennzahl eine Richtung hat UND mindestens zwei Werte vergleichbar sind
+    // (sonst waere in einem Einzelvergleich alles "best").
+    val ms = cmpMetrics(win, weightKg)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Kein LazyVerticalGrid: das Ganze steckt in einem senkrecht scrollenden Column, zwei
+        // Lazy-Container derselben Achse verschachtelt wirft zur Laufzeit.
+        ms.chunked(2).forEach { paar ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                paar.forEach { m ->
+                    val werte = items.map { (r, s) -> m.wert(r, s) }
+                    val zahlen = werte.filterNotNull()
+                    val best = if (m.dir != null && zahlen.size >= 2) {
+                        if (m.dir == "max") zahlen.max() else zahlen.min()
+                    } else null
+                    Column(
+                        Modifier.weight(1f)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Text(m.label.uppercase(), style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                        werte.forEachIndexed { i, v ->
+                            val istBest = best != null && v != null && v == best
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(8.dp).background(farbe(i), CircleShape))
+                                Spacer(Modifier.width(6.dp))
+                                Text(if (v == null) "–" else m.fmt(v),
+                                    style = if (istBest) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (istBest) FontWeight.Bold else FontWeight.SemiBold,
+                                    color = if (istBest) MaterialTheme.colorScheme.primary else Color.Unspecified)
+                                m.unit?.takeIf { v != null }?.let {
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(it, style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
                 }
+                // Ungerade Anzahl: die letzte Zeile haette sonst eine doppelt breite Karte.
+                if (paar.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
+}
+
+/** Eine Vergleichs-Kennzahl. `dir` = Richtung des Bestwerts ("max"/"min"), null = nicht markieren. */
+private class CmpMetric(
+    val label: String,
+    val unit: String?,
+    val dir: String?,
+    val fmt: (Double) -> String,
+    val wert: (CompareRef, SessionDetail) -> Double?,
+)
+
+/** Bestwert je Segment-Kennzahl ueber alle Laeufe einer Session (PWA: `bestSeg`). */
+private fun bestSeg(segs: List<Segment>, getter: (Segment) -> Double?, besser: (Double, Double) -> Boolean): Double? {
+    var b: Double? = null
+    for (s in segs) {
+        val v = getter(s)
+        if (v != null && (b == null || besser(v, b))) b = v
+    }
+    return b
+}
+
+/**
+ * Die 15 Kennzahlen des Vergleichs, 1:1 aus `statsFor` in web/src/pages/Compare.tsx — inklusive
+ * des Zweigs fuer einen LAUF-Eintrag: dort kommen die Werte aus dem Segment, Laufzahl und Puls
+ * bleiben leer (ein einzelner Lauf hat keine Lauf-Anzahl, und Puls liegt nur session-weit vor).
+ */
+private fun cmpMetrics(win: Int, weightKg: Double): List<CmpMetric> {
+    fun mmss(v: Double) = "%d:%02d".format((v / 60).toInt(), (v % 60).toInt())
+    fun ein(v: Double) = "%.1f".format(v)
+    fun ganz(v: Double) = "%.0f".format(v)
+    fun watt(s: SessionDetail, mps: Double?, hz: Double?): Double? {
+        val f = FoilPhysics.wattRechner(s.foil, weightKg) ?: return null
+        return mps?.let { f(it, hz) }?.toDouble()
+    }
+    fun segs(s: SessionDetail) = s.analysis?.segments.orEmpty()
+    return listOf(
+        CmpMetric(I18n.t("stat.foiling"), "km", "max", { "%.2f".format(it) }) { r, s ->
+            lauf(r, s)?.let { it.distanceM / 1000.0 } ?: s.analysis?.foilingDistanceM?.div(1000.0)
+        },
+        CmpMetric(I18n.t("stat.foilingTime"), "min:s", "max", ::mmss) { r, s ->
+            lauf(r, s)?.durationS ?: s.analysis?.foilingTimeS
+        },
+        CmpMetric(I18n.t("stat.runs"), null, "max", ::ganz) { r, s ->
+            if (r.runIdx != null) null else segs(s).size.takeIf { it > 0 }?.toDouble()
+        },
+        CmpMetric(I18n.t("sd.avgSpeed"), "km/h", "max", ::ein) { r, s ->
+            (lauf(r, s)?.avgSpeedMps ?: s.analysis?.metrics?.avgSpeedMps)?.times(3.6)
+        },
+        CmpMetric(I18n.t("power.title"), "W", null, ::ganz) { r, s ->
+            val l = lauf(r, s)
+            if (l != null) watt(s, l.avgSpeedMps, l.avgPumpHz)
+            else watt(s, s.analysis?.metrics?.avgSpeedMps, s.analysis?.metrics?.avgPumpHz)
+        },
+        CmpMetric(I18n.t("sd.maxSpeed").replace("{win}", win.toString()), "km/h", "max", ::ein) { r, s ->
+            lauf(r, s)?.fenster(win, "max")?.times(3.6)
+                ?: bestSeg(segs(s), { it.fenster(win, "max") }, { x, y -> x > y })?.times(3.6)
+        },
+        CmpMetric(I18n.t("sd.minSpeed").replace("{win}", win.toString()), "km/h", null, ::ein) { r, s ->
+            lauf(r, s)?.fenster(win, "min")?.times(3.6)
+                ?: bestSeg(segs(s), { it.fenster(win, "min") }, { x, y -> x < y })?.times(3.6)
+        },
+        CmpMetric(I18n.t("sd.maxGlide"), "s", "max", ::ein) { r, s ->
+            lauf(r, s)?.longestGlideS ?: bestSeg(segs(s), { it.longestGlideS }, { x, y -> x > y })
+        },
+        CmpMetric(I18n.t("stat.pumps"), null, null, ::ganz) { r, s ->
+            lauf(r, s)?.pumps?.toDouble() ?: s.analysis?.pumpCount?.toDouble()
+        },
+        CmpMetric(I18n.t("sd.avgPump"), PumpUnit.unitLabel(), null, { PumpUnit.fmtValue(it) }) { r, s ->
+            lauf(r, s)?.avgPumpHz ?: s.analysis?.metrics?.avgPumpHz
+        },
+        CmpMetric(I18n.t("sd.avgDistPerPump"), "m/Pump", "max", ::ein) { r, s ->
+            val l = lauf(r, s)
+            if (l != null) if (l.pumps > 0) l.distanceM / l.pumps else null
+            else {
+                val n = s.analysis?.pumpCount ?: 0
+                val d = s.analysis?.foilingDistanceM
+                if (n > 0 && d != null) d / n else null
+            }
+        },
+        CmpMetric(I18n.t("sd.avgHr"), "bpm", null, ::ganz) { r, s ->
+            if (r.runIdx != null) null else s.analysis?.metrics?.avgHr?.toDouble()
+        },
+        CmpMetric(I18n.t("sd.maxHr"), "bpm", null, ::ganz) { r, s ->
+            if (r.runIdx != null) null else s.analysis?.metrics?.maxHr?.toDouble()
+        },
+        CmpMetric(I18n.t("rec.longestRun"), "min:s", "max", ::mmss) { r, s ->
+            lauf(r, s)?.durationS ?: bestSeg(segs(s), { it.durationS }, { x, y -> x > y })
+        },
+        CmpMetric(I18n.t("rec.farthestRun"), "m", "max", ::ganz) { r, s ->
+            lauf(r, s)?.distanceM ?: bestSeg(segs(s), { it.distanceM }, { x, y -> x > y })
+        },
+    )
 }
 
 /** Das referenzierte Segment, oder null bei einem Eintrag fuer die ganze Session. */

@@ -13,6 +13,9 @@ struct CompareView: View {
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
+    // Fahrergewicht fuer die Leistungs-Kennzahl (Profil). 0 = unbekannt -> die Karte bleibt leer,
+    // genau wie in der PWA, wo powerOf() ohne Gewicht oder Foil-Masse nil liefert.
+    @State private var weightKg: Double = 0
     // Je Korb-Eintrag der geladene Datensatz. `results` bleibt als abgeleitete Liste bestehen,
     // damit Karte, Legende und Farbpalette unveraendert damit arbeiten koennen.
     @State private var items: [(ref: CompareRef, s: SessionDetail)] = []
@@ -109,6 +112,8 @@ struct CompareView: View {
         // Reihenfolge des Korbs beibehalten (bestimmt die Farbe) — NICHT nach Datum sortieren,
         // sonst wandert die Farbe eines Eintrags, wenn ein zweiter Lauf dazukommt.
         items = preselect.compactMap { r in geladen[r.sessionId].map { (ref: r, s: $0) } }
+        let einst = (try? await Api.settings()) ?? [:]
+        weightKg = (einst["weight_kg"] as? Int).map(Double.init) ?? 0
         // Default-Färbung wie PWA: bei mehreren Fahrern „Je Fahrer", sonst „Je Track".
         if Set(results.compactMap { $0.owner_name }).count > 1 { mapMode = .rider }
         loading = false
@@ -388,58 +393,178 @@ struct CompareView: View {
     }
     // Explizit typisierte Helfer — entlasten den Swift-Type-Checker (Archive/Release kippt sonst
     // bei verschachtelten .map{}??-Interpolationen -> „unendliches" Kompilieren).
-    private func meters(_ m: Double?) -> String { guard let m else { return "–" }; return "\(Int(m)) m" }
     private func kmh(_ mps: Double?) -> String { guard let v = mps else { return "–" }; return String(format: "%.1f km/h", v * 3.6) }
-    private func hz(_ v: Double?) -> String { PumpUnit.fmt(v, lang) }
     private func pumpsStr(_ p: Int?) -> String { guard let p else { return "–" }; return "\(p)P" }
-    private func intStr(_ n: Int?) -> String { guard let n else { return "–" }; return "\(n)" }
     private func runDist(_ seg: Segment) -> String { "\(Int(seg.distance_m ?? 0)) m · \(mmss(seg.duration_s))" }
     private func runStat(_ seg: Segment) -> String { "\(kmh(seg.avg_speed_mps)) · \(pumpsStr(seg.pumps))" }
     private func dateStr(_ s: SessionDetail) -> String { TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at }
 
     // Kennzahl-Zeilen der Tabelle: Array aus Tupeln mit Closures — vorab typisiert, nicht im
     // ViewBuilder. Spaltenbreiten explizit CGFloat.
-    private var tableMetrics: [(String, (SessionDetail) -> String)] {
-        [(Loc.t("compare.distance", lang), { self.meters($0.analysis?.total_distance_m) }),
-         (Loc.t("home.foiling", lang), { self.meters($0.analysis?.foiling_distance_m) }),
-         (Loc.t("home.topSpeed", lang), { self.kmh($0.analysis?.max_speed_mps) }),
-         (Loc.t("home.pumps", lang), { self.intStr($0.analysis?.pump_count) }),
-         (Loc.t("compare.foilTime", lang), { self.mmss($0.analysis?.foiling_time_s) }),
-         (Loc.t("compare.cadence", lang), { self.hz($0.analysis?.avg_cadence_hz) })]
+    /// Eine Vergleichs-Kennzahl. `dir` = Richtung des Bestwerts ("max"/"min"), nil = nicht markieren.
+    private struct CmpMetric {
+        let label: String
+        let unit: String?
+        let dir: String?
+        let fmt: (Double) -> String
+        let wert: (CompareRef, SessionDetail) -> Double?
     }
 
-    // Computed (kein stored let) — der memberwise-Init von CompareView(preselect:) bleibt so gleich.
-    private var labelW: CGFloat { 90 }
-    private var colW: CGFloat { 120 }
+    /// Bestwert je Segment-Kennzahl ueber alle Laeufe einer Session (PWA: `bestSeg`).
+    private func bestSeg(_ segs: [Segment], _ getter: (Segment) -> Double?, _ besser: (Double, Double) -> Bool) -> Double? {
+        var b: Double? = nil
+        for s in segs {
+            if let v = getter(s), b == nil || besser(v, b!) { b = v }
+        }
+        return b
+    }
 
+    /// Das referenzierte Segment, oder nil bei einem Eintrag fuer die ganze Session.
+    private func lauf(_ r: CompareRef, _ s: SessionDetail) -> Segment? {
+        guard let i = r.runIdx, let segs = s.analysis?.segments, segs.indices.contains(i) else { return nil }
+        return segs[i]
+    }
+
+    /// Watt wie die PWA (`powerOf`): ohne Pump-Kadenz kommen pauschal 50 W Traegheitsanteil dazu.
+    private func watt(_ s: SessionDetail, _ mps: Double?, _ hz: Double?) -> Double? {
+        guard let fo = s.foil, fo.span_cm > 0, fo.area_cm2 > 0, fo.thickness_mm > 0,
+              weightKg > 0, let mps, mps > 0 else { return nil }
+        let dims = FoilPhysics.FoilDims(spanCm: fo.span_cm, areaCm2: fo.area_cm2, thicknessMm: fo.thickness_mm)
+        let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
+        let pump: FoilPhysics.PumpParams? = (hz ?? 0) > 0 ? FoilPhysics.PumpParams(pumpFreqHz: hz!) : nil
+        let r = FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: mps * 3.6, rider: rider, pump: pump)
+        return (r.dragPower + (pump != nil ? r.inertiaPower : 50.0)).rounded()
+    }
+
+    /// Die 15 Kennzahlen des Vergleichs, 1:1 aus `statsFor` in web/src/pages/Compare.tsx —
+    /// inklusive des Zweigs fuer einen LAUF-Eintrag: dort kommen die Werte aus dem Segment,
+    /// Lauf-Anzahl und Puls bleiben leer (ein Lauf hat keine Anzahl, Puls liegt nur session-weit vor).
+    ///
+    /// Bewusst Schritt fuer Schritt angehaengt statt als EIN Array-Literal: fuenfzehn Eintraege mit
+    /// Closures in einem Ausdruck sind fuer den Swift-Type-Checker sehr teuer — dieselbe Falle, die
+    /// in Loc.swift die Uebersetzungstabellen in Bloecke zerlegt hat.
+    private var cmpMetrics: [CmpMetric] {
+        let w = mapWin
+        func mmssF(_ v: Double) -> String { String(format: "%d:%02d", Int(v) / 60, Int(v) % 60) }
+        func einF(_ v: Double) -> String { String(format: "%.1f", v) }
+        func ganzF(_ v: Double) -> String { String(format: "%.0f", v) }
+        func segsOf(_ s: SessionDetail) -> [Segment] { s.analysis?.segments ?? [] }
+        var out: [CmpMetric] = []
+        out.append(CmpMetric(label: Loc.t("stat.foiling", lang), unit: "km", dir: "max",
+                             fmt: { String(format: "%.2f", $0) }, wert: { r, s in
+            if let l = self.lauf(r, s) { return (l.distance_m ?? 0) / 1000 }
+            return s.analysis?.foiling_distance_m.map { $0 / 1000 }
+        }))
+        out.append(CmpMetric(label: Loc.t("stat.foilingTime", lang), unit: "min:s", dir: "max",
+                             fmt: mmssF, wert: { r, s in
+            self.lauf(r, s)?.duration_s ?? s.analysis?.foiling_time_s
+        }))
+        out.append(CmpMetric(label: Loc.t("stat.runs", lang), unit: nil, dir: "max",
+                             fmt: ganzF, wert: { r, s in
+            if r.runIdx != nil { return nil }
+            let n = segsOf(s).count
+            return n > 0 ? Double(n) : nil
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.avgSpeed", lang), unit: "km/h", dir: "max",
+                             fmt: einF, wert: { r, s in
+            (self.lauf(r, s)?.avg_speed_mps ?? s.analysis?.metrics?.avg_speed_mps).map { $0 * 3.6 }
+        }))
+        out.append(CmpMetric(label: Loc.t("power.title", lang), unit: "W", dir: nil,
+                             fmt: ganzF, wert: { r, s in
+            if let l = self.lauf(r, s) { return self.watt(s, l.avg_speed_mps, l.avg_pump_hz) }
+            return self.watt(s, s.analysis?.metrics?.avg_speed_mps, s.analysis?.metrics?.avg_pump_hz)
+        }))
+        let maxLbl = Loc.t("sd.maxSpeed", lang).replacingOccurrences(of: "{win}", with: String(w))
+        out.append(CmpMetric(label: maxLbl, unit: "km/h", dir: "max", fmt: einF, wert: { r, s in
+            if let l = self.lauf(r, s) { return l.fenster(w, "max").map { $0 * 3.6 } }
+            return self.bestSeg(segsOf(s), { $0.fenster(w, "max") }, { $0 > $1 }).map { $0 * 3.6 }
+        }))
+        let minLbl = Loc.t("sd.minSpeed", lang).replacingOccurrences(of: "{win}", with: String(w))
+        out.append(CmpMetric(label: minLbl, unit: "km/h", dir: nil, fmt: einF, wert: { r, s in
+            if let l = self.lauf(r, s) { return l.fenster(w, "min").map { $0 * 3.6 } }
+            return self.bestSeg(segsOf(s), { $0.fenster(w, "min") }, { $0 < $1 }).map { $0 * 3.6 }
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.maxGlide", lang), unit: "s", dir: "max",
+                             fmt: einF, wert: { r, s in
+            self.lauf(r, s)?.longest_glide_s ?? self.bestSeg(segsOf(s), { $0.longest_glide_s }, { $0 > $1 })
+        }))
+        out.append(CmpMetric(label: Loc.t("stat.pumps", lang), unit: nil, dir: nil,
+                             fmt: ganzF, wert: { r, s in
+            if let l = self.lauf(r, s) { return l.pumps.map(Double.init) }
+            return s.analysis?.pump_count.map(Double.init)
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.avgPump", lang), unit: PumpUnit.unitLabel(lang), dir: nil,
+                             fmt: { PumpUnit.fmtValue($0) }, wert: { r, s in
+            self.lauf(r, s)?.avg_pump_hz ?? s.analysis?.metrics?.avg_pump_hz
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.avgDistPerPump", lang), unit: "m/Pump", dir: "max",
+                             fmt: einF, wert: { r, s in
+            if let l = self.lauf(r, s) {
+                guard let n = l.pumps, n > 0, let d = l.distance_m else { return nil }
+                return d / Double(n)
+            }
+            guard let n = s.analysis?.pump_count, n > 0, let d = s.analysis?.foiling_distance_m else { return nil }
+            return d / Double(n)
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.avgHr", lang), unit: "bpm", dir: nil,
+                             fmt: ganzF, wert: { r, s in
+            r.runIdx != nil ? nil : s.analysis?.metrics?.avg_hr
+        }))
+        out.append(CmpMetric(label: Loc.t("sd.maxHr", lang), unit: "bpm", dir: nil,
+                             fmt: ganzF, wert: { r, s in
+            r.runIdx != nil ? nil : s.analysis?.metrics?.max_hr
+        }))
+        out.append(CmpMetric(label: Loc.t("rec.longestRun", lang), unit: "min:s", dir: "max",
+                             fmt: mmssF, wert: { r, s in
+            self.lauf(r, s)?.duration_s ?? self.bestSeg(segsOf(s), { $0.duration_s }, { $0 > $1 })
+        }))
+        out.append(CmpMetric(label: Loc.t("rec.farthestRun", lang), unit: "m", dir: "max",
+                             fmt: ganzF, wert: { r, s in
+            self.lauf(r, s)?.distance_m ?? self.bestSeg(segsOf(s), { $0.distance_m }, { $0 > $1 })
+        }))
+        return out
+    }
+
+    // KARTENRASTER statt der bisherigen Sechs-Werte-Matrix — dieselbe Liste, Reihenfolge und
+    // Formatierung wie in der PWA. Je Karte eine Kennzahl, darin eine Zeile je Korb-Eintrag.
     private var compareTable: some View {
-        ScrollView([.horizontal]) {
-            VStack(alignment: .leading, spacing: 8) {
-                tableHeader
-                Divider()
-                ForEach(tableMetrics, id: \.0) { label, fn in
-                    tableRow(label, fn)
-                }
-            }
-            .padding()
-        }
-    }
-
-    private var tableHeader: some View {
-        HStack {
-            Text("").frame(width: labelW, alignment: .leading)
-            ForEach(results) { s in
-                Text(dateStr(s))
-                    .font(.caption).bold().frame(width: colW, alignment: .leading)
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 8)], spacing: 8) {
+            ForEach(Array(cmpMetrics.enumerated()), id: \.offset) { _, m in
+                metricCard(m)
             }
         }
+        .padding(.horizontal)
     }
 
-    private func tableRow(_ label: String, _ fn: @escaping (SessionDetail) -> String) -> some View {
-        HStack {
-            Text(label).font(.caption).foregroundStyle(.secondary).frame(width: labelW, alignment: .leading)
-            ForEach(results) { s in
-                Text(fn(s)).frame(width: colW, alignment: .leading)
+    private func metricCard(_ m: CmpMetric) -> some View {
+        let werte: [Double?] = items.map { m.wert($0.ref, $0.s) }
+        let zahlen = werte.compactMap { $0 }
+        // Bestwert nur bei gesetzter Richtung UND mindestens zwei vergleichbaren Werten — sonst
+        // waere in einem Einzelvergleich alles "best" (genau die Bedingung der PWA).
+        let best: Double? = (m.dir != nil && zahlen.count >= 2)
+            ? (m.dir == "max" ? zahlen.max() : zahlen.min()) : nil
+        return VStack(alignment: .leading, spacing: 3) {
+            Text(m.label.uppercased()).font(.caption2).foregroundStyle(.secondary).lineLimit(2)
+            ForEach(Array(werte.enumerated()), id: \.offset) { i, v in
+                metricRow(i, v, m, best)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(8)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func metricRow(_ i: Int, _ v: Double?, _ m: CmpMetric, _ best: Double?) -> some View {
+        let istBest: Bool = best != nil && v != nil && v == best
+        let farbe: Color = items.indices.contains(i) ? dotColor(i, items[i].s) : Color.secondary
+        return HStack(spacing: 5) {
+            Circle().fill(farbe).frame(width: 8, height: 8)
+            Text(v.map { m.fmt($0) } ?? "–")
+                .font(istBest ? .subheadline.bold() : .footnote.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(istBest ? Color.accentColor : Color.primary)
+            if let u = m.unit, v != nil {
+                Text(u).font(.caption2).foregroundStyle(.secondary)
             }
         }
     }

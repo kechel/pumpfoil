@@ -5,6 +5,13 @@ package org.pumpfoil.app
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
 val PT: Map<String, String> = mapOf(
+    "stat.foiling" to "Foil",
+    "stat.foilingTime" to "Tempo de foil",
+    "power.title" to "Potência teórica",
+    "sd.maxSpeed" to "Vel. máx. ({win}s)",
+    "sd.minSpeed" to "Vel. mín. ({win}s)",
+    "sd.maxGlide" to "Planeio máx.",
+    "stat.pumps" to "Pumps",
     "compare.run" to "Volta {n}",
     "compare.add" to "Adicionar à comparação",
     "compare.remove" to "Remover da comparação",
@@ -599,6 +606,13 @@ val PT: Map<String, String> = mapOf(
 )
 
 val JA: Map<String, String> = mapOf(
+    "stat.foiling" to "フォイリング",
+    "stat.foilingTime" to "フォイリング時間",
+    "power.title" to "理論上のパワー",
+    "sd.maxSpeed" to "最高速度 ({win}s)",
+    "sd.minSpeed" to "最低速度 ({win}s)",
+    "sd.maxGlide" to "最大グライド",
+    "stat.pumps" to "ポンプ",
     "compare.run" to "ラン {n}",
     "compare.add" to "比較に追加",
     "compare.remove" to "比較から削除",
@@ -1193,6 +1207,13 @@ val JA: Map<String, String> = mapOf(
 )
 
 val ZH: Map<String, String> = mapOf(
+    "stat.foiling" to "水翼滑行",
+    "stat.foilingTime" to "水翼滑行时长",
+    "power.title" to "理论功率",
+    "sd.maxSpeed" to "最高速度 ({win}秒)",
+    "sd.minSpeed" to "最低速度 ({win}秒)",
+    "sd.maxGlide" to "最长滑行",
+    "stat.pumps" to "泵动次数",
     "compare.run" to "航段 {n}",
     "compare.add" to "加入对比",
     "compare.remove" to "从对比中移除",
@@ -1787,6 +1808,13 @@ val ZH: Map<String, String> = mapOf(
 )
 
 val RU: Map<String, String> = mapOf(
+    "stat.foiling" to "Фойлинг",
+    "stat.foilingTime" to "Время на фойле",
+    "power.title" to "Теоретическая мощность",
+    "sd.maxSpeed" to "Макс. скорость ({win}с)",
+    "sd.minSpeed" to "Мин. скорость ({win}с)",
+    "sd.maxGlide" to "Макс. скольжение",
+    "stat.pumps" to "Помпинг",
     "compare.run" to "Заезд {n}",
     "compare.add" to "Добавить к сравнению",
     "compare.remove" to "Убрать из сравнения",
@@ -2381,6 +2409,13 @@ val RU: Map<String, String> = mapOf(
 )
 
 val ID: Map<String, String> = mapOf(
+    "stat.foiling" to "Foiling",
+    "stat.foilingTime" to "Waktu foiling",
+    "power.title" to "Daya teoretis",
+    "sd.maxSpeed" to "Kecepatan maks ({win}d)",
+    "sd.minSpeed" to "Kecepatan min ({win}d)",
+    "sd.maxGlide" to "Glide maks",
+    "stat.pumps" to "Pump",
     "compare.run" to "Run {n}",
     "compare.add" to "Tambahkan ke perbandingan",
     "compare.remove" to "Hapus dari perbandingan",
@@ -2978,6 +3013,13 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "stat.foiling" to "Foiling",
+    "stat.foilingTime" to "Foiling-tid",
+    "power.title" to "Teoretisk effekt",
+    "sd.maxSpeed" to "Maks fart ({win}s)",
+    "sd.minSpeed" to "Min fart ({win}s)",
+    "sd.maxGlide" to "Maks gliding",
+    "stat.pumps" to "Pumper",
     "compare.run" to "Run {n}",
     "compare.add" to "Legg til sammenligning",
     "compare.remove" to "Fjern fra sammenligning",

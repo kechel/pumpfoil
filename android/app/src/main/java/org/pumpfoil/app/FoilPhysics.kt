@@ -162,4 +162,23 @@ object FoilPhysics {
         val inertiaPower = if (pump != null) calculatePumpInertiaPower(foil, rider, pump, ar) else 0.0
         return PowerResult(ar, requiredCL, cd, foilDrag, mastDrag, totalDrag, dragPower, inertiaPower, dragPower + inertiaPower)
     }
+
+    /**
+     * Watt je Lauf — dieselbe Rechnung wie die PWA (`powerFor` in SessionDetail.tsx): ohne
+     * Pump-Kadenz kommen pauschal 50 W Traegheitsanteil dazu, mit Kadenz der gerechnete.
+     * null, wenn Foil-Masse oder Fahrergewicht fehlen -> die Spalte entfaellt dann ganz.
+     */
+    fun wattRechner(foil: Foil?, weightKg: Double): ((Double, Double?) -> Int?)? {
+        if (foil == null || !foil.hasSpecs || foil.thicknessMm <= 0 || weightKg <= 0) return null
+        val dims = FoilDims(foil.spanCm, foil.areaCm2, foil.thicknessMm)
+        val rider = RiderParams(riderWeight = weightKg)
+        return { mps, hz ->
+            if (mps <= 0) null
+            else {
+                val pump = if ((hz ?: 0.0) > 0) PumpParams(pumpFreqHz = hz!!) else null
+                val r = computeFoilPowerAtSpeed(dims, mps * 3.6, rider, pump = pump)
+                Math.round(r.dragPower + (if (pump != null) r.inertiaPower else 50.0)).toInt()
+            }
+        }
+    }
 }

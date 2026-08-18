@@ -17,6 +17,13 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+    "stat.foiling": "Foil",
+    "stat.foilingTime": "Tempo de foil",
+    "power.title": "Potência teórica",
+    "sd.maxSpeed": "Vel. máx. ({win}s)",
+    "sd.minSpeed": "Vel. mín. ({win}s)",
+    "sd.maxGlide": "Planeio máx.",
+    "stat.pumps": "Pumps",
     "compare.run": "Volta {n}",
     "settings.nChat": "Novas mensagens de chat (salas inscritas)",
     "sd.colStart": "Início",
@@ -633,6 +640,13 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+    "stat.foiling": "フォイリング",
+    "stat.foilingTime": "フォイリング時間",
+    "power.title": "理論上のパワー",
+    "sd.maxSpeed": "最高速度 ({win}s)",
+    "sd.minSpeed": "最低速度 ({win}s)",
+    "sd.maxGlide": "最大グライド",
+    "stat.pumps": "ポンプ",
     "compare.run": "ラン {n}",
     "settings.nChat": "新しいチャットメッセージ（購読中のルーム）",
     "sd.colStart": "開始",
@@ -1249,6 +1263,13 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+    "stat.foiling": "水翼滑行",
+    "stat.foilingTime": "水翼滑行时长",
+    "power.title": "理论功率",
+    "sd.maxSpeed": "最高速度 ({win}秒)",
+    "sd.minSpeed": "最低速度 ({win}秒)",
+    "sd.maxGlide": "最长滑行",
+    "stat.pumps": "泵动次数",
     "compare.run": "航段 {n}",
     "settings.nChat": "新聊天消息（已订阅的聊天室）",
     "sd.colStart": "开始",
@@ -1865,6 +1886,13 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+    "stat.foiling": "Фойлинг",
+    "stat.foilingTime": "Время на фойле",
+    "power.title": "Теоретическая мощность",
+    "sd.maxSpeed": "Макс. скорость ({win}с)",
+    "sd.minSpeed": "Мин. скорость ({win}с)",
+    "sd.maxGlide": "Макс. скольжение",
+    "stat.pumps": "Помпинг",
     "compare.run": "Заезд {n}",
     "settings.nChat": "Новые сообщения в чате (подписанные комнаты)",
     "sd.colStart": "Начало",
@@ -2481,6 +2509,13 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+    "stat.foiling": "Foiling",
+    "stat.foilingTime": "Waktu foiling",
+    "power.title": "Daya teoretis",
+    "sd.maxSpeed": "Kecepatan maks ({win}d)",
+    "sd.minSpeed": "Kecepatan min ({win}d)",
+    "sd.maxGlide": "Glide maks",
+    "stat.pumps": "Pump",
     "compare.run": "Run {n}",
     "settings.nChat": "Pesan chat baru (ruang yang dilangganani)",
     "sd.colStart": "Mulai",
@@ -3096,6 +3131,13 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "stat.foiling": "Foiling",
+    "stat.foilingTime": "Foiling-tid",
+    "power.title": "Teoretisk effekt",
+    "sd.maxSpeed": "Maks fart ({win}s)",
+    "sd.minSpeed": "Min fart ({win}s)",
+    "sd.maxGlide": "Maks gliding",
+    "stat.pumps": "Pumper",
     "compare.run": "Run {n}",
     "settings.nChat": "Nye chatmeldinger (rom du abonnerer på)",
     "sd.colStart": "Start",
