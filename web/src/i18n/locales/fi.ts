@@ -1129,6 +1129,7 @@ const fi: Record<string, string> = {
   "field.18": "Viimeisin lenkki: Ø nopeus",
   "field.19": "Viimeisin lenkki: maks. nopeus",
   "field.20": "Lenkit (määrä)",
+  "field.21": "Viimeisin lenkki: maks. syke",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Syötä koodi kellosta",
@@ -1247,6 +1248,7 @@ const fi: Record<string, string> = {
   "fw.18": "km/h ka viim",
   "fw.19": "km/h maks viim",
   "fw.20": "Vedot",
+  "fw.21": "bpm maks viim",
   "cls.autoAsk": "Tämä sessio ei näytä meistä pumpfoilaukselta — siksi se ei toistaiseksi näy missään tilastossa. Haluatko luokitella sen oikein? Jos se sittenkin oli pumpfoilausta, valitse vain „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surffaus / downwind",
   "cls.sport.surf_wave": "Valtameren aalto (surffaus)",

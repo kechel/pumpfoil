@@ -1178,6 +1178,7 @@ const en: Record<string, string> = {
   "field.18": "Last run: avg speed",
   "field.19": "Last run: max speed",
   "field.20": "Runs (count)",
+  "field.21": "Last run: max HR",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Enter code from the watch",
@@ -1360,6 +1361,7 @@ const en: Record<string, string> = {
   "fw.18": "km/h avg last",
   "fw.19": "km/h max last",
   "fw.20": "Runs",
+  "fw.21": "bpm max last",
 
   // Advanced watch layouts (freely positioned data fields)
   "cls.sport.pumpfoil": "Pumpfoil",

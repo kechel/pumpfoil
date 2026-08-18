@@ -1084,6 +1084,7 @@ const zh: Record<string, string> = {
   "field.18": "上一航段：平均速度",
   "field.19": "上一航段：最高速度",
   "field.20": "航段数（计数）",
+  "field.21": "上一航段：最高心率",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "输入手表上的配对码",

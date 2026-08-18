@@ -1164,6 +1164,7 @@ const cs: Record<string, string> = {
   "field.18": "Poslední jízda: Ø rychlost",
   "field.19": "Poslední jízda: max rychlost",
   "field.20": "Jízdy (počet)",
+  "field.21": "Poslední jízda: max tep",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Zadej kód z hodinek",
@@ -1281,6 +1282,7 @@ const cs: Record<string, string> = {
   "fw.18": "km/h prům posl.",
   "fw.19": "km/h max posl.",
   "fw.20": "Jízdy",
+  "fw.21": "bpm max posl.",
   "cls.autoAsk": "Tato session nám nevypadá jako pumpfoil — proto se zatím nezapočítává do žádných statistik. Zařadíš ji správně? Pokud to pumpfoil přece jen byl, vyber prostě „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Oceánská vlna (surf)",

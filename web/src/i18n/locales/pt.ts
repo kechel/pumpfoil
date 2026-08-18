@@ -1084,6 +1084,7 @@ const pt: Record<string, string> = {
   "field.18": "Última volta: vel. média",
   "field.19": "Última volta: vel. máxima",
   "field.20": "Voltas (contagem)",
+  "field.21": "Última volta: FC máxima",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Digite o código do relógio",
@@ -1225,6 +1226,7 @@ const pt: Record<string, string> = {
   "fw.18": "km/h méd últ.",
   "fw.19": "km/h máx últ.",
   "fw.20": "Runs",
+  "fw.21": "bpm máx últ.",
   "cls.autoAsk": "Esta sessão não nos parece pumpfoil — por enquanto ela não conta em nenhuma estatística. Quer classificá-la corretamente? Se foi mesmo pumpfoil, basta escolher “Pumpfoil”.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Onda do oceano (surf)",

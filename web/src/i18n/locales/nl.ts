@@ -1164,6 +1164,7 @@ const nl: Record<string, string> = {
   "field.18": "Laatste run: Ø snelheid",
   "field.19": "Laatste run: max snelheid",
   "field.20": "Runs (aantal)",
+  "field.21": "Laatste run: max hartslag",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code van het horloge invoeren",
@@ -1282,6 +1283,7 @@ const nl: Record<string, string> = {
   "fw.18": "km/h gem laatst",
   "fw.19": "km/h max laatst",
   "fw.20": "Runs",
+  "fw.21": "bpm max laatst",
   "cls.autoAsk": "Deze sessie lijkt ons geen pumpfoilen — daarom telt hij voorlopig in geen enkele statistiek mee. Wil je hem juist indelen? Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Oceaangolf (surfen)",

@@ -1084,6 +1084,7 @@ const id: Record<string, string> = {
   "field.18": "Run terakhir: kecepatan rata-rata",
   "field.19": "Run terakhir: kecepatan maks",
   "field.20": "Run (jumlah)",
+  "field.21": "Run terakhir: maks HR",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Masukkan kode dari jam",
@@ -1225,6 +1226,7 @@ const id: Record<string, string> = {
   "fw.18": "km/h rata akhir",
   "fw.19": "km/h maks akhir",
   "fw.20": "Run",
+  "fw.21": "bpm maks akhir",
   "cls.autoAsk": "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Ombak laut (surf)",

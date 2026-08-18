@@ -1083,6 +1083,7 @@ const ja: Record<string, string> = {
   "field.18": "最後のラン：平均速度",
   "field.19": "最後のラン：最高速度",
   "field.20": "ラン（数）",
+  "field.21": "最後のラン：最大心拍数",
 
   "account.claimTitle": "ウォッチのコードを入力",
   "account.claimHelp": "ウォッチで Pumpfoil を開き「接続」へ — Garmin: MENU（左中央のボタン）を長押し →「設定」→「接続」。Amazfit: 開始画面から左にスワイプ。Wear OS と Apple Watch は初回起動時にこの画面が表示されます。表示されたコード（6文字、英数字）をここに入力します。",

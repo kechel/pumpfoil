@@ -1258,6 +1258,7 @@ const de: Record<string, string> = {
   "field.18": "Letzter Lauf: Ø Speed",
   "field.19": "Letzter Lauf: Max Speed",
   "field.20": "Läufe (Anzahl)",
+  "field.21": "Letzter Lauf: Max Puls",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code von der Uhr eingeben",
@@ -1417,6 +1418,7 @@ const de: Record<string, string> = {
   "fw.18": "km/h Ø letzt.",
   "fw.19": "km/h max letzt.",
   "fw.20": "Läufe",
+  "fw.21": "bpm max letzt.",
 
   // Advanced Uhr-Layouts (frei positionierbare Datenfelder)
   "cls.sport.pumpfoil": "Pumpfoil",
