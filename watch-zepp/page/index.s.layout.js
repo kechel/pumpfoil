@@ -8,7 +8,7 @@ const c = (y, h, color, size) => ({
   align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
 });
 
-export const TITLE = { ...c(12, 40, 0xffffff, 34), text: "Pumpfoil" };
+export const TITLE = { ...c(12, 40, 0xffffff, 34), text: "ZZTEST" };
 export const PAGE = { x: 0, y: px(14), w: W - px(20), h: px(32), color: 0x64748b, text_size: px(24), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
 
 export const F0V = { ...c(74, 70, 0x22d3ee, 64), text: "–" };
