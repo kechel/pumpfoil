@@ -343,6 +343,45 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟡 Zepp 1.0.6 fertig gebaut, Einreichung offen (18.08.).** Nach der Ablehnung von 1.0.5 kam
+  beim Nachtesten im Simulator eine Kette echter Fehler heraus — alle gefixt, `app.json` code 9 /
+  name 1.0.6:
+  - **Status-Bar auf ECKIGEN Geraeten** (64 px, Text = `appName`, deckend, grau/linksbuendig) hat den
+    eigenen Titel verdeckt, die Versionszeile angeschnitten und ein Siebtel des Schirms gekostet.
+    Jetzt `setStatusBarVisible(false)` aus `@zos/ui` (API_LEVEL 2.0, wir verlangen 3.0; nur eckig,
+    auf rund wirft der Aufruf → try/catch). Eckiges Layout rechnet wieder mit voller Hoehe.
+  - **Titel cyan** (#22d3ee) auf beiden Formen.
+  - **Update-Hinweis verglich mit `!==`** → jeder Unterschied loeste ihn aus, auch ein AELTERER
+    Store-Stand: ein Dev-Build riet zum Downgrade („v1.0.6 → 1.0.4"). Jetzt `istNeuer()` wie Garmin
+    (`_versionNewer`), Wear und Apple. **Nur Zepp war betroffen**, 9 Testfaelle gruen.
+  - **Runde Seitenanzeige lag ausserhalb des Kreises**: Einzug 70 → rechte Kante x 410, der Kreis
+    laesst auf der Schrift-Oberkante (y 40) nur bis x 373 → stand als „1/" da. Einzug jetzt 120.
+  - **Touch-Sperre ist einstellbar** statt hart an (Jan: „die Uhr ist ja nicht immer nass", Apple/Wear
+    lassen wischen). Fuenfter Menue-Knopf, dreistufig wie die Layouts, persistiert, greift sofort.
+    Automatisch haengt an `getDeviceInfo().keyNumber`: nur ab DREI Tasten, weil wir SELECT (lang =
+    Stop) und UP/DOWN (lang = Touch 10 s frei) brauchen. 🔴 **Neuer i18n-Key `menu.touchLock` in 16
+    Sprachen braucht Jans Review** — nicht aus vorhandenen Uebersetzungen abgeleitet, es gibt keine.
+  - **Emoji 🔒 raus** (Projektregel), stattdessen zwei Textzeilen mit dem Ausweg.
+  **Offen:** Jans Rebuild-Test (Update-Hinweis weg, Seitenanzeige „1/4", fuenf Menue-Knoepfe auf
+  beiden Formen, Wischen bei Sperre=Aus), dann Einreichung.
+
+- **🟡 Zepp-Store-Vorschauen gebaut, zwei Bilder nachzuschiessen (18.08.).**
+  `scripts/zepp-store-previews.py` arbeitet jetzt mit Simulator-FENSTER-Mitschnitten (so kommen sie
+  vom Mac): Displayfeld ueber die Fensterstruktur (heller Titelbalken, Flaeche darunter), dann rund
+  die schwarze Scheibe auf grauem Grund, eckig die Flaeche im hellen Rahmen. Ergebnis wird geprueft
+  statt geglaubt (Feldgroesse in allen Bildern gleich, rund zusaetzlich quadratisch) — gemessen rund
+  960×958 (=480×480), eckig 776×898 (=390×450). Ausgabe: 360×360 PNG transparent, rund randlos mit
+  freien Ecken, eckig 311×360 mit 24 px Rand je Seite. **Transparenz gilt fuer BEIDE Formen**
+  (Wortlaut: „The background of screenshots should be transparent and not have a fill color.").
+  **Offen:** rund #8 + eckig #7 zeigen den Update-Hinweis-Bug („v1.0.6 → 1.0.4") und sind die
+  einzigen auf Deutsch → neu schiessen oder weglassen (Vorgabe: „3 or more recommended"). Der ganze
+  RUNDE Satz entstand vor dem Seitenanzeige-Fix und zeigt oben rechts „1/".
+  **🔴 Eigener Fehlversuch, zurueckgenommen in `360d68f`:** eine erste Skriptfassung bestimmte die
+  Bildform ueber den ALPHAKANAL. Die Rohbilder sind aber deckend, also war die „Inhalts"-Box immer
+  die ganze Leinwand → beide Saetze wurden 1:1 gestaucht statt zugeschnitten, auch der runde, den
+  Zepp schon abgenommen hatte (Pixel-Diff: 11/11 veraendert). Lehre: Bildgeometrie nie ueber einen
+  Kanal raten, der im Quellmaterial gar nicht belegt ist — messen und das Ergebnis gegenpruefen.
+
 - **🔴 Zepp 1.0.5 ABGELEHNT (18.08.) — zwei Gruende, beide NICHT im Code.**
   1. **Entwickler-Nickname war „zepp"** — Zepp ist ihre Marke und darf nicht als Drittanbieter-Name
      stehen. **Von Jan erledigt**, Nickname jetzt „Pumpfoil" (Account 7085610668).
