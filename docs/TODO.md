@@ -343,6 +343,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟢 Die drei nach dem Paritaets-Port gemeldeten Punkte sind erledigt (18.08.).**
+  1. **Lauf-Tabelle iOS + Android**: waagerecht scrollbar, alle 13 PWA-Spalten. Es fehlten
+     Startuhrzeit, Min im Fenster, Leistung, Distanz/Pump, Ø Pump, Pump max/min und laengste
+     Gleitphase. **Der Server liefert die Felder seit je** — die Clients haben sie nur nicht
+     gelesen (`min_speed_mps`, `max_pump_hz`, `min_pump_hz`, `t_start_ms`, `max/min_1s/3s/5s`
+     fehlten im Segment-Modell). Feste Spaltenbreiten statt Gewichte, weil bei Scroll Kopf und
+     Zellen sonst auseinanderlaufen. Watt rechnet dieselbe Formel wie `powerFor` in der PWA.
+     🔴 **`sd.col*` gab es auf iOS GAR NICHT** → `Loc.t` gibt dann den Key zurueck, die Spalte
+     stand woertlich als „sd.colMaxHr" da (dasselbe Muster wie `hist.spotAnim`). 13 Keys x 16
+     Sprachen aus den PWA-Locales erzeugt; auf iOS in EIGENE Bloecke, weil die bestehenden laut
+     ihrer Kommentare am Type-Checker-Limit stehen.
+  2. **Push-Schalter „Neue Chat-Nachrichten"** in iOS + Android. Dabei ein groesserer Fehler
+     gefunden: beide kannten nur drei der vier `notify_prefs` und schickten beim Speichern genau
+     diese drei — `notify_prefs` wird serverseitig als GANZES ersetzt. **Ein Speichern in der App
+     hat die im Web gesetzte Chat-Einstellung still geloescht.** Wear OS nicht betroffen.
+  3. Kein Versions-Bump noetig: iOS 1.1.23/27, Phone 1.1.22/36, Wear 1.2.22/1032 sind gebaut aber
+     noch NICHT eingereicht — die Fixes gehen in diese Nummern mit ein.
+  **Offen daraus:** die **Vergleichs-Spalte je Lauf** fehlt nativ weiter. iOS/Android vergleichen
+  ganze Sessions (`CompareStore.toggle(id)`), die PWA je Lauf (`{sessionId, runIdx}`) — das ist
+  eine eigene Luecke und braucht eine Erweiterung des CompareStore auf Lauf-Granularitaet.
+
+
 - **🟢 Zepp 1.0.6 EINGEREICHT (18.08.).** Nach der Ablehnung von 1.0.5 kam
   beim Nachtesten im Simulator eine Kette echter Fehler heraus — alle gefixt, `app.json` code 9 /
   name 1.0.6:
