@@ -30,6 +30,16 @@ export default function Spots() {
   // Lauf-Auswahl per Zifferntaste lahmgelegt.
   useEffect(() => () => { mapObj.current?.remove(); mapObj.current = null; }, []);
   const markers = useRef<L.LayerGroup | null>(null);
+  // Ausschnitt + Zoom fuer DIESE Sitzung merken (Wunsch Jan, 18.08.): wer einen Spot anschaut und
+  // zurueckgeht, landete vorher wieder auf der Weltkarte, weil der Marker-Effekt jedes Mal
+  // `fitBounds` ueber ALLE Spots gerufen hat.
+  // Bewusst sessionStorage und nicht localStorage: der Ausschnitt soll die Sitzung ueberleben, nicht
+  // ewig — beim naechsten Besuch ist die Uebersicht ueber alle Spots wieder die richtige Ansicht.
+  // (Rein funktional, kein Tracking; siehe Datenschutz-Vorgabe im Repo.)
+  const VIEW_KEY = "spotsMapView";
+  // Sobald wir EINEN Ausschnitt gesetzt haben (gemerkt oder per fitBounds), nicht mehr
+  // hineinregieren: sonst reisst ein spaeteres Neuladen der Spots dem Nutzer die Ansicht weg.
+  const viewGesetzt = useRef(false);
 
   // Immer ALLE Spots (auch GPS-only mit erkanntem On-Foil) — die Karte ist reine Übersicht.
   useEffect(() => { api.spotMap(false).then(setSpots).catch(() => setSpots([])); }, []);
@@ -51,6 +61,28 @@ export default function Spots() {
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(m);
       markers.current = L.layerGroup().addTo(m);
       setTimeout(() => m.invalidateSize(), 100);
+      // Gemerkten Ausschnitt herstellen, bevor der Marker-Block unten `fitBounds` erwaegt.
+      try {
+        const roh = sessionStorage.getItem(VIEW_KEY);
+        const v = roh ? JSON.parse(roh) : null;
+        if (v && Number.isFinite(v.lat) && Number.isFinite(v.lon) && Number.isFinite(v.z)) {
+          m.setView([v.lat, v.lon], v.z);
+          viewGesetzt.current = true;
+        }
+      } catch {
+        // Kaputter/alter Eintrag -> ignorieren und normal auf alle Spots zoomen.
+      }
+      // Jede Bewegung mitschreiben. `moveend` deckt auch Zoom ab, `zoomend` ist der Guertel dazu.
+      const merken = () => {
+        try {
+          const c = m.getCenter();
+          sessionStorage.setItem(VIEW_KEY, JSON.stringify({ lat: c.lat, lon: c.lng, z: m.getZoom() }));
+        } catch {
+          // Privater Modus o. ae. -> dann eben nicht merken, die Karte funktioniert trotzdem.
+        }
+      };
+      m.on("moveend", merken);
+      m.on("zoomend", merken);
     }
     // Marker bei jedem Datenwechsel (auch Accel/GPS-Umschaltung) neu setzen.
     const m = mapObj.current;
@@ -66,8 +98,12 @@ export default function Spots() {
       grp.addLayer(mk);
       pts.push([s.lat, s.lon]);
     }
-    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 12 });
-    else m.setView([47.5, 9.5], 6);
+    // Startausschnitt nur EINMAL bestimmen — und nur, wenn nicht schon ein gemerkter steht.
+    if (!viewGesetzt.current) {
+      if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 12 });
+      else m.setView([47.5, 9.5], 6);
+      viewGesetzt.current = true;
+    }
   }, [spots, nav]);
 
   return (
