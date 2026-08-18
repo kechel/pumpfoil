@@ -343,6 +343,29 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🔴 Zepp 1.0.5 ABGELEHNT (18.08.) — zwei Gruende, beide NICHT im Code.**
+  1. **Entwickler-Nickname war „zepp"** — Zepp ist ihre Marke und darf nicht als Drittanbieter-Name
+     stehen. **Von Jan erledigt**, Nickname jetzt „Pumpfoil" (Account 7085610668).
+  2. **Vorschaubilder fuer ECKIGE Geraete** entsprechen nicht der Vorgabe. Nachgemessen statt
+     geraten (PIL, `screenshots/watch/zepp/store360/`):
+     | Satz | Groesse | Hintergrund | Inhalt |
+     |---|---|---|---|
+     | `rund/` (11) | 360×360 | **transparent** ✓ | 354×354 zentriert, 3 px Rand ✓ |
+     | `eckig/` (11) | 360×360 | **DECKEND — kein einziges transparentes Pixel** ✗ | 360×360 randlos ✗ |
+     Die Vorgabe (docs.zepp.com/docs/distribute): **360×360 PNG mit TRANSPARENTEM Hintergrund** fuer
+     beide Formen; bei runden Geraeten randlos, bei eckigen **volle Hoehe mit gleichem Rand links und
+     rechts**. Unsere eckigen Bilder verletzen beides.
+     Dazu: sie unterscheiden sich von den runden nur um 16/255 im Mittel — es ist derselbe Inhalt mit
+     eckigem Hintergrund, **kein echter Screenshot eines eckigen Geraets**.
+  **Was fehlt:** Screenshots aus dem Simulator fuer ein ECKIGES Geraet (`app.json` deklariert
+  `st: "s", dw: 390`; Hoehe steht dort nicht — bei 390×450 waere der Inhalt auf 360 Hoehe
+  **312 px breit**, also 24 px Rand je Seite). Der Simulator laeuft nur auf Jans Mac
+  (memory `zepp-simulator-setup`). Sobald die Rohbilder da sind, ist das Zuschneiden mechanisch und
+  kann hier passieren.
+  **KEIN Code-Problem:** die App selbst wurde nicht beanstandet, 1.0.5 kann unveraendert erneut
+  eingereicht werden, sobald Nickname (erledigt) und Bilder stimmen.
+
+
 - **🟢 Update-Hinweis ist jetzt sauber plattformgetrennt (18.08.).** Vorgabe Jan: „ein garmin update
   darf nicht auf zepp oder apple die Meldung ausloesen."
   **Befund (nachgesehen, nicht angenommen — und meine erste Annahme war falsch):** die Auswahl war
