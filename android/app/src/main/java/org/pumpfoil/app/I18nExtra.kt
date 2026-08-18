@@ -5,6 +5,20 @@ package org.pumpfoil.app
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
 val PT: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
+    "sd.colStart" to "Início",
+    "sd.colDistance" to "Distância",
+    "sd.colDuration" to "Duração",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Máx. km/h ({win}s)",
+    "sd.colMin" to "Mín. km/h ({win}s)",
+    "sd.colPower" to "Potência",
+    "sd.colPumps" to "Pumps",
+    "sd.colDistPerPump" to "Ø m/pump",
+    "sd.colAvgPump" to "Ø pump {unit}",
+    "sd.colPumpMaxMin" to "Pump {unit} 5s (máx/mín)",
+    "sd.colGlide" to "planeio mais longo",
+    "sd.colMaxHr" to "Pulso máx.",
     "nav.home" to "Início",
     "nav.community" to "Comunidade",
     "nav.sessions" to "Sessões",
@@ -581,6 +595,20 @@ val PT: Map<String, String> = mapOf(
 )
 
 val JA: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
+    "sd.colStart" to "開始",
+    "sd.colDistance" to "距離",
+    "sd.colDuration" to "継続時間",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "最高 km/h ({win}s)",
+    "sd.colMin" to "最低 km/h ({win}s)",
+    "sd.colPower" to "パワー",
+    "sd.colPumps" to "ポンプ",
+    "sd.colDistPerPump" to "Ø m/ポンプ",
+    "sd.colAvgPump" to "Ø ポンプ {unit}",
+    "sd.colPumpMaxMin" to "ポンプ {unit} 5s（最大/最小）",
+    "sd.colGlide" to "最長グライド",
+    "sd.colMaxHr" to "最大心拍",
     "nav.home" to "ホーム",
     "nav.community" to "コミュニティ",
     "nav.sessions" to "セッション",
@@ -1157,6 +1185,20 @@ val JA: Map<String, String> = mapOf(
 )
 
 val ZH: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
+    "sd.colStart" to "开始",
+    "sd.colDistance" to "距离",
+    "sd.colDuration" to "时长",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "最高 km/h ({win}秒)",
+    "sd.colMin" to "最低 km/h ({win}秒)",
+    "sd.colPower" to "功率",
+    "sd.colPumps" to "泵动次数",
+    "sd.colDistPerPump" to "Ø 米/泵动",
+    "sd.colAvgPump" to "Ø 泵动 {unit}",
+    "sd.colPumpMaxMin" to "泵动 {unit} 5秒 (最高/最低)",
+    "sd.colGlide" to "最长滑行",
+    "sd.colMaxHr" to "最大心率",
     "nav.home" to "主页",
     "nav.community" to "社区",
     "nav.sessions" to "记录",
@@ -1733,6 +1775,20 @@ val ZH: Map<String, String> = mapOf(
 )
 
 val RU: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
+    "sd.colStart" to "Начало",
+    "sd.colDistance" to "Дистанция",
+    "sd.colDuration" to "Длительность",
+    "sd.colAvg" to "Ø км/ч",
+    "sd.colMax" to "Макс. км/ч ({win}с)",
+    "sd.colMin" to "Мин. км/ч ({win}с)",
+    "sd.colPower" to "Мощность",
+    "sd.colPumps" to "Помпинг",
+    "sd.colDistPerPump" to "Ø м/помпинг",
+    "sd.colAvgPump" to "Ø помпинг {unit}",
+    "sd.colPumpMaxMin" to "Помпинг {unit} 5с (макс/мин)",
+    "sd.colGlide" to "самое долгое скольжение",
+    "sd.colMaxHr" to "Макс. пульс",
     "nav.home" to "Главная",
     "nav.community" to "Сообщество",
     "nav.sessions" to "Сессии",
@@ -2309,6 +2365,20 @@ val RU: Map<String, String> = mapOf(
 )
 
 val ID: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
+    "sd.colStart" to "Mulai",
+    "sd.colDistance" to "Jarak",
+    "sd.colDuration" to "Durasi",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Maks km/h ({win}d)",
+    "sd.colMin" to "Min km/h ({win}d)",
+    "sd.colPower" to "Daya",
+    "sd.colPumps" to "Pump",
+    "sd.colDistPerPump" to "Ø m/pump",
+    "sd.colAvgPump" to "Ø pump {unit}",
+    "sd.colPumpMaxMin" to "Pump {unit} 5d (maks/min)",
+    "sd.colGlide" to "glide terpanjang",
+    "sd.colMaxHr" to "Detak maks.",
     "nav.home" to "Beranda",
     "nav.community" to "Komunitas",
     "nav.sessions" to "Sesi",
@@ -2888,6 +2958,20 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
+    "sd.colStart" to "Start",
+    "sd.colDistance" to "Distanse",
+    "sd.colDuration" to "Varighet",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Maks km/h ({win}s)",
+    "sd.colMin" to "Min km/h ({win}s)",
+    "sd.colPower" to "Effekt",
+    "sd.colPumps" to "Pumper",
+    "sd.colDistPerPump" to "Ø m/pumpe",
+    "sd.colAvgPump" to "Ø pumpe {unit}",
+    "sd.colPumpMaxMin" to "Pumpe {unit} 5s (maks/min)",
+    "sd.colGlide" to "lengste gliding",
+    "sd.colMaxHr" to "Maks puls",
     "account.addLayoutPage" to "+ Sett inn egen skjerm",
     "account.browseAll" to "Bla også gjennom de andre skjermene i pause eller når du ikke kjører",
     "account.browseAllHint" to "På (standard): hver side er tilgjengelig i alle tilstander. Av: bare skjermene som er satt opp her per tilstand — ryddigere, men ikke alt er tilgjengelig ute på vannet.",

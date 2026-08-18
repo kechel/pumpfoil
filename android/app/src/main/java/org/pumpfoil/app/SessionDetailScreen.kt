@@ -841,6 +841,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 hr = trackForRuns?.hr.orEmpty(),
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
                 canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
+                win = win, wattFuer = wattRechner(s.foil, weightKg),
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
         }
@@ -1220,6 +1221,11 @@ private fun RunsTable(
     canEdit: Boolean = false,
     startedAt: String = "",
     tz: String? = null,
+    // Glaettungsfenster der Detailansicht (1/3/5 s) — dieselbe Wahl wie im Geschwindigkeits-
+    // diagramm, damit Max/Min in der Tabelle dasselbe zeigen wie die Kurve darueber.
+    win: Int = 3,
+    // Watt je Lauf; null, wenn Foil-Masse oder Fahrergewicht fehlen -> Spalte entfaellt.
+    wattFuer: ((Double, Double?) -> Int?)? = null,
     onSaved: (SessionDetail) -> Unit = {},
     onSelect: (Int) -> Unit,
 ) {
@@ -1380,65 +1386,132 @@ private fun RunsTable(
     }
     // Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst steht eine Spalte voller
     // Striche und nimmt auf dem Handy Platz weg (genauso macht es die PWA mit `hasHr`).
-    val zeigeMaxHr = remember(segments, hr) { segments.any { maxHrImLauf(it) != null } }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
-            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                // Spalten-Gewichte: "#" braucht nur 1-2 Zeichen, bekommt also weniger, Ø und Top
-                // sind zweistellig. Das schafft Platz fuer die siebte Spalte, ohne dass auf einem
-                // schmalen Geraet alles zusammenrueckt — die Zeile hat keinen Horizontal-Scroll.
-                val kopf = buildList {
-                    add("#" to 0.45f)
-                    add(I18n.t("sd.hDist") to 1f)
-                    add(I18n.t("field.3") to 1f)
-                    add("Ø" to 0.8f)
-                    add("Top" to 0.8f)
-                    add(I18n.t("home.pumps") to 1f)
-                    if (zeigeMaxHr) add(I18n.t("sd.colMaxHr") to 1f)
-                }
-                kopf.forEach { (label, gewicht) ->
-                    Text(label, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(gewicht))
-                }
-                // Kopf der Aussortier-Spalte: nur Platzhalter, damit die Zellen darunter passen.
-                if (canEdit) Spacer(Modifier.width(36.dp))
-            }
-            segments.forEachIndexed { i, seg ->
-                val sel = selected == i
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 4.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (sel) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent)
-                        .clickable { onSelect(i) }
-                        .padding(vertical = 4.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val cells = buildList {
-                        add("${i + 1}" to 0.45f)
-                        add((if (seg.distanceM < 1000) "%.0f m".format(seg.distanceM)
-                             else "%.2f km".format(seg.distanceM / 1000)) to 1f)
-                        add("%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt()) to 1f)
-                        add("%.0f".format(seg.avgSpeedMps * 3.6) to 0.8f)
-                        add("%.0f".format(seg.maxSpeedMps * 3.6) to 0.8f)
-                        add((if (seg.pumps > 0) "${seg.pumps}" else "–") to 1f)
-                        if (zeigeMaxHr) add((maxHrImLauf(seg)?.let { "$it" } ?: "–") to 1f)
+            // WAAGERECHT SCROLLBAR mit FESTEN Spaltenbreiten. Vorher standen hier sechs bis
+            // sieben Spalten mit weight() und ohne Scroll — sieben der dreizehn PWA-Spalten
+            // fehlten damit ganz (Jans Meldung 18.08.). Gewichte gehen bei Scroll nicht: der
+            // Inhalt ist dann breiter als der Container, und Kopf und Zellen muessen exakt
+            // dieselbe Breite haben, sonst laufen sie auseinander.
+            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, startedAt, tz)
+            val hScroll = rememberScrollState()
+            Column(Modifier.horizontalScroll(hScroll)) {
+                Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.Bottom) {
+                    Text("#", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(24.dp))
+                    spalten.forEach { sp ->
+                        Text(sp.kopf, style = MaterialTheme.typography.labelSmall, maxLines = 2,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.width(sp.breite.dp).padding(end = 6.dp))
                     }
-                    cells.forEach { (wert, gewicht) ->
-                        Text(wert, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(gewicht),
-                            color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified)
-                    }
-                    if (canEdit) {
-                        IconButton(enabled = !busy, onClick = { askExclude = i }, modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Filled.RemoveCircleOutline, contentDescription = I18n.t("sd.excludeRun"),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    // Kopf der Aussortier-Spalte: nur Platzhalter, damit die Zellen darunter passen.
+                    if (canEdit) Spacer(Modifier.width(36.dp))
+                }
+                segments.forEachIndexed { i, seg ->
+                    val sel = selected == i
+                    Row(
+                        Modifier.padding(top = 4.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (sel) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent)
+                            .clickable { onSelect(i) }
+                            .padding(vertical = 4.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("${i + 1}", style = MaterialTheme.typography.bodySmall,
+                            color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                            modifier = Modifier.width(24.dp))
+                        spalten.forEach { sp ->
+                            Text(sp.wert(seg), style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                                color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                                modifier = Modifier.width(sp.breite.dp).padding(end = 6.dp))
+                        }
+                        if (canEdit) {
+                            IconButton(enabled = !busy, onClick = { askExclude = i }, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Filled.RemoveCircleOutline, contentDescription = I18n.t("sd.excludeRun"),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+/** Eine Spalte der Lauf-Tabelle: Kopf, feste Breite in dp, Zellwert. */
+private data class LaufSpalte(val kopf: String, val breite: Int, val wert: (Segment) -> String)
+
+/**
+ * Die dreizehn Spalten der PWA-Lauf-Tabelle, in derselben Reihenfolge und mit denselben
+ * Bedingungen (`hasPump` / `hasHr` / `showPower`): eine Spalte erscheint nur, wenn wenigstens EIN
+ * Lauf sie fuellt — sonst stehen dort nur Striche und nehmen Breite weg.
+ */
+private fun laufSpalten(
+    segments: List<Segment>,
+    win: Int,
+    wattFuer: ((Double, Double?) -> Int?)?,
+    maxHr: (Segment) -> Int?,
+    startedAt: String,
+    tz: String?,
+): List<LaufSpalte> {
+    val einheit = PumpUnit.unitLabel()
+    // Die PWA-Keys tragen Platzhalter ({win}, {unit}); I18n.t kennt keine Interpolation.
+    fun k(key: String) = I18n.t(key).replace("{win}", win.toString()).replace("{unit}", einheit)
+    val hatPump = segments.any { it.avgPumpHz != null && it.pumps > 0 }
+    val zeigeMaxHr = segments.any { maxHr(it) != null }
+    val zeigeWatt = wattFuer != null && segments.any { wattFuer(it.avgSpeedMps, it.avgPumpHz) != null }
+    fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
+    return buildList {
+        add(LaufSpalte(k("sd.colStart"), 68) { seg ->
+            seg.tStartMs?.let { clockAt(startedAt, tz, it.toLong()) } ?: "–"
+        })
+        // Distanz in Metern, auch oberhalb von 1000 — wie die PWA (Math.round + " m").
+        add(LaufSpalte(k("sd.colDistance"), 62) { seg -> "%.0f m".format(seg.distanceM) })
+        add(LaufSpalte(k("sd.colDuration"), 56) { seg ->
+            "%d:%02d".format((seg.durationS / 60).toInt(), (seg.durationS % 60).toInt())
+        })
+        add(LaufSpalte(k("sd.colAvg"), 54) { seg -> eine(seg.avgSpeedMps * 3.6) })
+        add(LaufSpalte(k("sd.colMax"), 64) { seg -> eine(seg.fenster(win, "max")?.times(3.6)) })
+        add(LaufSpalte(k("sd.colMin"), 64) { seg -> eine(seg.fenster(win, "min")?.times(3.6)) })
+        if (zeigeWatt) add(LaufSpalte(k("sd.colPower"), 58) { seg ->
+            wattFuer!!(seg.avgSpeedMps, seg.avgPumpHz)?.let { "$it W" } ?: "–"
+        })
+        add(LaufSpalte(k("sd.colPumps"), 52) { seg -> if (seg.pumps > 0) "${seg.pumps}" else "–" })
+        if (hatPump) {
+            add(LaufSpalte(k("sd.colDistPerPump"), 70) { seg ->
+                if (seg.pumps > 0) "%.1f m".format(seg.distanceM / seg.pumps) else "–"
+            })
+            add(LaufSpalte(k("sd.colAvgPump"), 62) { seg -> PumpUnit.fmtValue(seg.avgPumpHz) })
+            add(LaufSpalte(k("sd.colPumpMaxMin"), 84) { seg ->
+                PumpUnit.fmtValue(seg.maxPumpHz) + " / " + PumpUnit.fmtValue(seg.minPumpHz)
+            })
+        }
+        if (zeigeMaxHr) add(LaufSpalte(k("sd.colMaxHr"), 62) { seg ->
+            maxHr(seg)?.let { "$it bpm" } ?: "–"
+        })
+        add(LaufSpalte(k("sd.colGlide"), 68) { seg -> "%.1f s".format(seg.longestGlideS) })
+    }
+}
+
+/**
+ * Watt je Lauf — dieselbe Rechnung wie die PWA (`powerFor` in SessionDetail.tsx): ohne
+ * Pump-Kadenz kommen pauschal 50 W Traegheitsanteil dazu, mit Kadenz der gerechnete.
+ * null, wenn Foil-Masse oder Fahrergewicht fehlen -> die Spalte entfaellt dann ganz.
+ */
+private fun wattRechner(foil: Foil?, weightKg: Double): ((Double, Double?) -> Int?)? {
+    if (foil == null || !foil.hasSpecs || foil.thicknessMm <= 0 || weightKg <= 0) return null
+    val dims = FoilPhysics.FoilDims(foil.spanCm, foil.areaCm2, foil.thicknessMm)
+    val rider = FoilPhysics.RiderParams(riderWeight = weightKg)
+    return { mps, hz ->
+        if (mps <= 0) null
+        else {
+            val pump = if ((hz ?: 0.0) > 0) FoilPhysics.PumpParams(pumpFreqHz = hz!!) else null
+            val r = FoilPhysics.computeFoilPowerAtSpeed(dims, mps * 3.6, rider, pump = pump)
+            Math.round(r.dragPower + (if (pump != null) r.inertiaPower else 50.0)).toInt()
         }
     }
 }

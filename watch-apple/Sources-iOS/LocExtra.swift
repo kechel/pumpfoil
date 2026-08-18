@@ -11,9 +11,26 @@ import Foundation
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptOverlayP1, _ptOverlayP2, _ptOverlayP3, _ptOverlayP4, _ptOverlayP5, _ptOverlayP6, _ptOverlayP7, _ptOverlayP8, _ptOverlayP9, _ptOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_ptOverlayP1, _ptOverlayP2, _ptOverlayP3, _ptOverlayP4, _ptOverlayP5, _ptOverlayP6, _ptOverlayP7, _ptOverlayP8, _ptOverlayP9, _ptOverlayP10, _ptOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
+private let _ptOverlayP11: [String: String] = [
+    "sd.colStart": "Início",
+    "sd.colDistance": "Distância",
+    "sd.colDuration": "Duração",
+    "sd.colAvg": "Ø km/h",
+    "sd.colMax": "Máx. km/h ({win}s)",
+    "sd.colMin": "Mín. km/h ({win}s)",
+    "sd.colPower": "Potência",
+    "sd.colPumps": "Pumps",
+    "sd.colDistPerPump": "Ø m/pump",
+    "sd.colAvgPump": "Ø pump {unit}",
+    "sd.colPumpMaxMin": "Pump {unit} 5s (máx/mín)",
+    "sd.colGlide": "planeio mais longo",
+    "sd.colMaxHr": "Pulso máx.",
+]
 
 private let _ptOverlayP1: [String: String] = [
     "setup.inherit": "Usar o padrão",
@@ -608,9 +625,26 @@ private let _ptOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_jaOverlayP1, _jaOverlayP2, _jaOverlayP3, _jaOverlayP4, _jaOverlayP5, _jaOverlayP6, _jaOverlayP7, _jaOverlayP8, _jaOverlayP9, _jaOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_jaOverlayP1, _jaOverlayP2, _jaOverlayP3, _jaOverlayP4, _jaOverlayP5, _jaOverlayP6, _jaOverlayP7, _jaOverlayP8, _jaOverlayP9, _jaOverlayP10, _jaOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
+private let _jaOverlayP11: [String: String] = [
+    "sd.colStart": "開始",
+    "sd.colDistance": "距離",
+    "sd.colDuration": "継続時間",
+    "sd.colAvg": "Ø km/h",
+    "sd.colMax": "最高 km/h ({win}s)",
+    "sd.colMin": "最低 km/h ({win}s)",
+    "sd.colPower": "パワー",
+    "sd.colPumps": "ポンプ",
+    "sd.colDistPerPump": "Ø m/ポンプ",
+    "sd.colAvgPump": "Ø ポンプ {unit}",
+    "sd.colPumpMaxMin": "ポンプ {unit} 5s（最大/最小）",
+    "sd.colGlide": "最長グライド",
+    "sd.colMaxHr": "最大心拍",
+]
 
 private let _jaOverlayP1: [String: String] = [
     "setup.inherit": "デフォルトを使用",
@@ -1205,9 +1239,26 @@ private let _jaOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_zhOverlayP1, _zhOverlayP2, _zhOverlayP3, _zhOverlayP4, _zhOverlayP5, _zhOverlayP6, _zhOverlayP7, _zhOverlayP8, _zhOverlayP9, _zhOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_zhOverlayP1, _zhOverlayP2, _zhOverlayP3, _zhOverlayP4, _zhOverlayP5, _zhOverlayP6, _zhOverlayP7, _zhOverlayP8, _zhOverlayP9, _zhOverlayP10, _zhOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
+private let _zhOverlayP11: [String: String] = [
+    "sd.colStart": "开始",
+    "sd.colDistance": "距离",
+    "sd.colDuration": "时长",
+    "sd.colAvg": "Ø km/h",
+    "sd.colMax": "最高 km/h ({win}秒)",
+    "sd.colMin": "最低 km/h ({win}秒)",
+    "sd.colPower": "功率",
+    "sd.colPumps": "泵动次数",
+    "sd.colDistPerPump": "Ø 米/泵动",
+    "sd.colAvgPump": "Ø 泵动 {unit}",
+    "sd.colPumpMaxMin": "泵动 {unit} 5秒 (最高/最低)",
+    "sd.colGlide": "最长滑行",
+    "sd.colMaxHr": "最大心率",
+]
 
 private let _zhOverlayP1: [String: String] = [
     "setup.inherit": "使用默认值",
@@ -1802,9 +1853,26 @@ private let _zhOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ruOverlayP1, _ruOverlayP2, _ruOverlayP3, _ruOverlayP4, _ruOverlayP5, _ruOverlayP6, _ruOverlayP7, _ruOverlayP8, _ruOverlayP9, _ruOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_ruOverlayP1, _ruOverlayP2, _ruOverlayP3, _ruOverlayP4, _ruOverlayP5, _ruOverlayP6, _ruOverlayP7, _ruOverlayP8, _ruOverlayP9, _ruOverlayP10, _ruOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
+private let _ruOverlayP11: [String: String] = [
+    "sd.colStart": "Начало",
+    "sd.colDistance": "Дистанция",
+    "sd.colDuration": "Длительность",
+    "sd.colAvg": "Ø км/ч",
+    "sd.colMax": "Макс. км/ч ({win}с)",
+    "sd.colMin": "Мин. км/ч ({win}с)",
+    "sd.colPower": "Мощность",
+    "sd.colPumps": "Помпинг",
+    "sd.colDistPerPump": "Ø м/помпинг",
+    "sd.colAvgPump": "Ø помпинг {unit}",
+    "sd.colPumpMaxMin": "Помпинг {unit} 5с (макс/мин)",
+    "sd.colGlide": "самое долгое скольжение",
+    "sd.colMaxHr": "Макс. пульс",
+]
 
 private let _ruOverlayP1: [String: String] = [
     "setup.inherit": "По умолчанию",
@@ -2399,9 +2467,26 @@ private let _ruOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_idOverlayP1, _idOverlayP2, _idOverlayP3, _idOverlayP4, _idOverlayP5, _idOverlayP6, _idOverlayP7, _idOverlayP8, _idOverlayP9, _idOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_idOverlayP1, _idOverlayP2, _idOverlayP3, _idOverlayP4, _idOverlayP5, _idOverlayP6, _idOverlayP7, _idOverlayP8, _idOverlayP9, _idOverlayP10, _idOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
+private let _idOverlayP11: [String: String] = [
+    "sd.colStart": "Mulai",
+    "sd.colDistance": "Jarak",
+    "sd.colDuration": "Durasi",
+    "sd.colAvg": "Ø km/h",
+    "sd.colMax": "Maks km/h ({win}d)",
+    "sd.colMin": "Min km/h ({win}d)",
+    "sd.colPower": "Daya",
+    "sd.colPumps": "Pump",
+    "sd.colDistPerPump": "Ø m/pump",
+    "sd.colAvgPump": "Ø pump {unit}",
+    "sd.colPumpMaxMin": "Pump {unit} 5d (maks/min)",
+    "sd.colGlide": "glide terpanjang",
+    "sd.colMaxHr": "Detak maks.",
+]
 
 private let _idOverlayP1: [String: String] = [
     "setup.inherit": "Gunakan default",
@@ -2995,9 +3080,26 @@ private let _idOverlayP10: [String: String] = [
 // den Swift-Type-Checker im Release-Build minutenlang kauen.
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_nbOverlayP1, _nbOverlayP2, _nbOverlayP3, _nbOverlayP4, _nbOverlayP5, _nbOverlayP6, _nbOverlayP7, _nbOverlayP8, _nbOverlayP9, _nbOverlayP10] { d.merge(p) { a, _ in a } }
+    for p in [_nbOverlayP1, _nbOverlayP2, _nbOverlayP3, _nbOverlayP4, _nbOverlayP5, _nbOverlayP6, _nbOverlayP7, _nbOverlayP8, _nbOverlayP9, _nbOverlayP10, _nbOverlayP11] { d.merge(p) { a, _ in a } }
     return d
 }()
+
+// Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
+private let _nbOverlayP11: [String: String] = [
+    "sd.colStart": "Start",
+    "sd.colDistance": "Distanse",
+    "sd.colDuration": "Varighet",
+    "sd.colAvg": "Ø km/h",
+    "sd.colMax": "Maks km/h ({win}s)",
+    "sd.colMin": "Min km/h ({win}s)",
+    "sd.colPower": "Effekt",
+    "sd.colPumps": "Pumper",
+    "sd.colDistPerPump": "Ø m/pumpe",
+    "sd.colAvgPump": "Ø pumpe {unit}",
+    "sd.colPumpMaxMin": "Pumpe {unit} 5s (maks/min)",
+    "sd.colGlide": "lengste gliding",
+    "sd.colMaxHr": "Maks puls",
+]
 
 private let _nbOverlayP1: [String: String] = [
     "foils.defaultSport": "Standardsport for nye økter",

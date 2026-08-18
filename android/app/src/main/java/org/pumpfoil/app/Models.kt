@@ -248,7 +248,36 @@ data class Segment(
     @SerialName("pump_idx") val pumpIdx: List<Int> = emptyList(),
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
     @SerialName("longest_glide_s") val longestGlideS: Double = 0.0,
-)
+    // Ab hier: Felder, die der Server schon immer liefert, die Android aber nicht gelesen hat —
+    // deshalb fehlten sieben der dreizehn Spalten der PWA-Lauf-Tabelle (Jans Meldung 18.08.).
+    @SerialName("min_speed_mps") val minSpeedMps: Double? = null,
+    @SerialName("max_pump_hz") val maxPumpHz: Double? = null,
+    @SerialName("min_pump_hz") val minPumpHz: Double? = null,
+    // Startzeit des Laufs, ms ab Session-Start (docs/DATA-PIPELINE.md: auf den Trim re-based).
+    @SerialName("t_start_ms") val tStartMs: Double? = null,
+    // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
+    // Fenster-Umschalter der Detailansicht.
+    @SerialName("max_1s") val max1s: Double? = null,
+    @SerialName("max_3s") val max3s: Double? = null,
+    @SerialName("max_5s") val max5s: Double? = null,
+    @SerialName("min_1s") val min1s: Double? = null,
+    @SerialName("min_3s") val min3s: Double? = null,
+    @SerialName("min_5s") val min5s: Double? = null,
+) {
+    /** Wert je Fenster mit Rueckfall auf den ungeglaetteten Wert — genau wie `val()` in der PWA. */
+    fun fenster(win: Int, art: String): Double? {
+        val w = when (art to win) {
+            "max" to 1 -> max1s
+            "max" to 3 -> max3s
+            "max" to 5 -> max5s
+            "min" to 1 -> min1s
+            "min" to 3 -> min3s
+            "min" to 5 -> min5s
+            else -> null
+        }
+        return w ?: if (art == "max") maxSpeedMps else minSpeedMps
+    }
+}
 
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
 @Serializable

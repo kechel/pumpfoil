@@ -43,6 +43,19 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 
 // Kuratiertes Start-Set: Navigation, häufige Aktionen, Haupttitel.
 private val S: Map<String, Map<String, String>> = mapOf(
+    // Spalten der Lauf-Tabelle (Paritaet zur PWA). Erzeugt aus web/src/i18n/locales/*.ts.
+    "sd.colStart" to row("Start", "Start", "Start", "Start", "Départ", "Inizio", "Inicio"),
+    "sd.colDistance" to row("Distanz", "Distanz", "Distanz", "Distance", "Distance", "Distanza", "Distancia"),
+    "sd.colDuration" to row("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
+    "sd.colAvg" to row("Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h"),
+    "sd.colMax" to row("Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Máx km/h ({win}s)"),
+    "sd.colMin" to row("Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Mín km/h ({win}s)"),
+    "sd.colPower" to row("Leistung", "Leischtig", "Leistung", "Power", "Puissance", "Potenza", "Potencia"),
+    "sd.colPumps" to row("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
+    "sd.colDistPerPump" to row("Ø m/Pump", "Ø m/Pump", "Ø m/Pump", "Ø m/pump", "Ø m/pompage", "Ø m/pompata", "Ø m/bombeo"),
+    "sd.colAvgPump" to row("Ø Pump {unit}", "Ø Pump {unit}", "Ø Pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}"),
+    "sd.colPumpMaxMin" to row("Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (máx/mín)"),
+    "sd.colGlide" to row("längste Gleitphase", "längschti Gleitphase", "längste Gleitphase", "longest glide", "plus longue glisse", "planata più lunga", "planeo más largo"),
     "account.addLayoutPage" to row("+ Eigenen Screen einfügen", "+ Eigenen Screen einfügen", "+ Eigenen Screen einfügen", "+ Insert custom screen", "+ Insert custom screen", "+ Insert custom screen", "+ Insert custom screen"),
     "account.browseAll" to row("In Pause und Off-Foil auch die übrigen Seiten durchblättern", "In Pause und Off-Foil auch die übrigen Seiten durchblättern", "In Pause und Off-Foil auch die übrigen Seiten durchblättern", "Also page through the other screens while paused or not riding", "Also page through the other screens while paused or not riding", "Also page through the other screens while paused or not riding", "Also page through the other screens while paused or not riding"),
     "account.browseAllHint" to row("An (Standard): du kommst in jedem Zustand an alle Seiten. Aus: je Zustand nur die hier zugeordneten Screens — aufgeräumter, aber unterwegs nicht mehr alles erreichbar.", "An (Standard): du kommst in jedem Zustand an alle Seiten. Aus: je Zustand nur die hier zugeordneten Screens — aufgeräumter, aber unterwegs nicht mehr alles erreichbar.", "An (Standard): du kommst in jedem Zustand an alle Seiten. Aus: je Zustand nur die hier zugeordneten Screens — aufgeräumter, aber unterwegs nicht mehr alles erreichbar.", "On (default): every page stays reachable in every state. Off: only the screens assigned here per state — tidier, but not everything is reachable out on the water.", "On (default): every page stays reachable in every state. Off: only the screens assigned here per state — tidier, but not everything is reachable out on the water.", "On (default): every page stays reachable in every state. Off: only the screens assigned here per state — tidier, but not everything is reachable out on the water.", "On (default): every page stays reachable in every state. Off: only the screens assigned here per state — tidier, but not everything is reachable out on the water."),
@@ -865,6 +878,20 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts kopiert). App-eigene Keys ohne fi
 // fallen in t() auf Englisch zurueck. Bei neuen fi-Strings hier ergaenzen.
 private val FI: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
+    "sd.colStart" to "Alku",
+    "sd.colDistance" to "Matka",
+    "sd.colDuration" to "Kesto",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Maks. km/h ({win}s)",
+    "sd.colMin" to "Min. km/h ({win}s)",
+    "sd.colPower" to "Teho",
+    "sd.colPumps" to "Pumps",
+    "sd.colDistPerPump" to "Ø m/pump",
+    "sd.colAvgPump" to "Ø pump {unit}",
+    "sd.colPumpMaxMin" to "Pump {unit} 5s (maks./min.)",
+    "sd.colGlide" to "pisin liukuvaihe",
+    "sd.colMaxHr" to "Maks. syke",
     "nav.community" to "Yhteisö",
     "common.saved" to "Tallennettu",
     "common.noData" to "Ei vielä tietoja",
@@ -1399,6 +1426,20 @@ private val FI: Map<String, String> = mapOf(
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
 private val NL: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
+    "sd.colStart" to "Start",
+    "sd.colDistance" to "Afstand",
+    "sd.colDuration" to "Duur",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Max km/h ({win}s)",
+    "sd.colMin" to "Min km/h ({win}s)",
+    "sd.colPower" to "Vermogen",
+    "sd.colPumps" to "Pumps",
+    "sd.colDistPerPump" to "Ø m/pump",
+    "sd.colAvgPump" to "Ø pump {unit}",
+    "sd.colPumpMaxMin" to "Pump {unit} 5s (max/min)",
+    "sd.colGlide" to "langste glijfase",
+    "sd.colMaxHr" to "Max. hartslag",
     "nav.home" to "Home",
     "nav.community" to "Community",
     "nav.sessions" to "Sessies",
@@ -1976,6 +2017,20 @@ private val NL: Map<String, String> = mapOf(
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
 private val CS: Map<String, String> = mapOf(
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
+    "sd.colStart" to "Začátek",
+    "sd.colDistance" to "Vzdálenost",
+    "sd.colDuration" to "Doba",
+    "sd.colAvg" to "Ø km/h",
+    "sd.colMax" to "Max km/h ({win}s)",
+    "sd.colMin" to "Min km/h ({win}s)",
+    "sd.colPower" to "Výkon",
+    "sd.colPumps" to "Pumpnutí",
+    "sd.colDistPerPump" to "Ø m/pumpnutí",
+    "sd.colAvgPump" to "Ø pumpnutí {unit}",
+    "sd.colPumpMaxMin" to "Pumpnutí {unit} 5s (max/min)",
+    "sd.colGlide" to "nejdelší klouzání",
+    "sd.colMaxHr" to "Max. tep",
     "nav.home" to "Domů",
     "nav.community" to "Komunita",
     "nav.sessions" to "Relace",

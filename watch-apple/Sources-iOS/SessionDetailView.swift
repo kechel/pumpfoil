@@ -219,6 +219,21 @@ struct SessionDetailView: View {
     /// Hat der Katalog-Eintrag echte Herstellermaße? Einträge ohne stehen mit 0 in Fläche und
     /// Spannweite — die Leistungsrechnung teilt durch die Fläche, das ergäbe NaN-Zahlen. Dann
     /// lieber keine Leistungs-Karte als erfundene Werte.
+    /// Watt je Lauf - dieselbe Rechnung wie die PWA (powerFor in SessionDetail.tsx): ohne
+    /// Pump-Kadenz kommen pauschal 50 W Traegheitsanteil dazu, mit Kadenz der gerechnete.
+    /// nil, wenn Foil-Masse oder Fahrergewicht fehlen -> die Spalte entfaellt dann ganz.
+    private func wattFuer(_ s: SessionDetail) -> ((Double?, Double?) -> Int?)? {
+        guard let foil = s.foil, hasSpecs(foil), weightKg > 0 else { return nil }
+        let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm)
+        let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
+        return { mps, hz in
+            guard let mps, mps > 0 else { return nil }
+            let pump: FoilPhysics.PumpParams? = (hz ?? 0) > 0 ? FoilPhysics.PumpParams(pumpFreqHz: hz!) : nil
+            let r = FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: mps * 3.6, rider: rider, pump: pump)
+            return Int((r.dragPower + (pump != nil ? r.inertiaPower : 50.0)).rounded())
+        }
+    }
+
     private func hasSpecs(_ f: Foil) -> Bool {
         f.area_cm2 > 0 && f.span_cm > 0 && f.thickness_mm > 0
     }
@@ -1217,6 +1232,9 @@ struct SessionDetailView: View {
         // (wie die PWA). `puls_antwort_bpm` im Segment ist der MITTELWERT, nicht das Maximum.
         RunsTable(segments: segs, selected: selectedRun, lang: lang,
                   hr: s.analysis?.track_geojson?.properties?.hr ?? [],
+                  win: win,
+                  sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz,
+                  wattFuer: wattFuer(s),
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
                   onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
@@ -1875,18 +1893,37 @@ private struct RunsTable: View {
     let segments: [Segment]
     let selected: Int?
     let lang: String
-    // Puls je Trackpunkt — Quelle fuer den Hoechstpuls je Lauf (s. runsTable).
+    // Puls je Trackpunkt - Quelle fuer den Hoechstpuls je Lauf (s. runsTable).
     var hr: [Int?] = []
-    // Eigene Session -> je Zeile ein Knopf „Lauf aussortieren" (wie in der PWA-Lauf-Tabelle).
+    // Glaettungsfenster der Detailansicht (1/3/5 s) - dieselbe Wahl wie im Geschwindigkeitsdiagramm,
+    // damit die Spalten Max/Min dasselbe zeigen wie die Kurve darueber.
+    var win: Int = 3
+    // Session-Start + Spot-Zeitzone -> Startuhrzeit des Laufs (PWA: runClock).
+    var sessionStart: Date? = nil
+    var tz: String? = nil
+    // Watt je Lauf; nil, wenn Foil-Masse oder Fahrergewicht fehlen - dann entfaellt die Spalte.
+    var wattFuer: ((Double?, Double?) -> Int?)? = nil
+    // Eigene Session -> je Zeile ein Knopf Lauf aussortieren (wie in der PWA-Lauf-Tabelle).
     var canEdit: Bool = false
     var busy: Bool = false
     var onExclude: ((Int) -> Void)? = nil
     let onSelect: (Int) -> Void
 
+    // Damit ein Wechsel Hz <-> Pumps/min sofort durchschlaegt (s. PumpUnit.swift).
+    @AppStorage(PumpUnit.storeKey) private var pumpUnitRaw = "hz"
+
+    /// Eine Spalte: Kopf, feste Breite (Kopf und Zellen muessen beim Waagerecht-Scrollen
+    /// deckungsgleich bleiben) und die Zellwert-Funktion.
+    private struct Spalte {
+        let kopf: String
+        let breite: CGFloat
+        let wert: (Int, Segment) -> String
+    }
+
     /// Hoechstpuls im Lauf. Identische Logik wie die PWA: ueber i_start..i_end laufen,
     /// nil und 0 ignorieren.
     private func maxHr(_ seg: Segment) -> Int? {
-        // i_start/i_end sind hier NICHT optional (Models.swift) — kein guard-let darauf.
+        // i_start/i_end sind hier NICHT optional (Models.swift) - kein guard-let darauf.
         guard !hr.isEmpty else { return nil }
         var m = 0
         var i = max(0, seg.i_start)
@@ -1897,50 +1934,88 @@ private struct RunsTable: View {
         return m > 0 ? m : nil
     }
 
-    /// Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst stuende dort eine Spalte
-    /// voller Striche und nimmt auf dem Handy Platz weg (wie `hasHr` in der PWA).
+    // Spalten nur zeigen, wenn wenigstens EIN Lauf sie fuellt - sonst stehen dort nur Striche und
+    // nehmen Platz weg. Dieselben drei Bedingungen wie die PWA (hasPump / hasHr / showPower).
+    private var hatPump: Bool { segments.contains { $0.avg_pump_hz != nil && ($0.pumps ?? 0) > 0 } }
     private var zeigeMaxHr: Bool { segments.contains { maxHr($0) != nil } }
+    private var zeigeWatt: Bool {
+        guard let f = wattFuer else { return false }
+        return segments.contains { f($0.avg_speed_mps, $0.avg_pump_hz) != nil }
+    }
 
-    private var kopfSpalten: [String] {
-        var k = [Loc.t("sd.hDist", lang), Loc.t("field.3", lang), "Ø", "Top",
-                 Loc.t("home.pumps", lang)]
-        if zeigeMaxHr { k.append(Loc.t("sd.colMaxHr", lang)) }
-        return k
+    private var spalten: [Spalte] {
+        let einheit = PumpUnit.unitLabel(lang)
+        // Die PWA-Keys tragen Platzhalter ({win}, {unit}); Loc.t kennt keine Interpolation.
+        func k(_ key: String) -> String {
+            Loc.t(key, lang)
+                .replacingOccurrences(of: "{win}", with: "\(win)")
+                .replacingOccurrences(of: "{unit}", with: einheit)
+        }
+        var s: [Spalte] = []
+        s.append(Spalte(kopf: k("sd.colStart"), breite: 66) { _, seg in self.startUhr(seg) })
+        // Distanz in Metern, auch oberhalb von 1000 - wie die PWA (Math.round + " m").
+        s.append(Spalte(kopf: k("sd.colDistance"), breite: 64) { _, seg in
+            seg.distance_m.map { "\(Int($0.rounded())) m" } ?? "–"
+        })
+        s.append(Spalte(kopf: k("sd.colDuration"), breite: 58) { _, seg in
+            seg.duration_s.map { Self.mmss($0) } ?? "–"
+        })
+        s.append(Spalte(kopf: k("sd.colAvg"), breite: 58) { _, seg in
+            Self.eine(seg.avg_speed_mps.map { $0 * 3.6 })
+        })
+        s.append(Spalte(kopf: k("sd.colMax"), breite: 64) { _, seg in
+            Self.eine(seg.fenster(self.win, "max").map { $0 * 3.6 })
+        })
+        s.append(Spalte(kopf: k("sd.colMin"), breite: 64) { _, seg in
+            Self.eine(seg.fenster(self.win, "min").map { $0 * 3.6 })
+        })
+        if zeigeWatt {
+            s.append(Spalte(kopf: k("sd.colPower"), breite: 60) { _, seg in
+                guard let w = self.wattFuer?(seg.avg_speed_mps, seg.avg_pump_hz) else { return "–" }
+                return "\(w) W"
+            })
+        }
+        s.append(Spalte(kopf: k("sd.colPumps"), breite: 54) { _, seg in
+            (seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–"
+        })
+        if hatPump {
+            s.append(Spalte(kopf: k("sd.colDistPerPump"), breite: 70) { _, seg in
+                guard let d = seg.distance_m, let n = seg.pumps, n > 0 else { return "–" }
+                return String(format: "%.1f m", d / Double(n))
+            })
+            s.append(Spalte(kopf: k("sd.colAvgPump"), breite: 64) { _, seg in
+                PumpUnit.fmtValue(seg.avg_pump_hz)
+            })
+            s.append(Spalte(kopf: k("sd.colPumpMaxMin"), breite: 84) { _, seg in
+                PumpUnit.fmtValue(seg.max_pump_hz) + " / " + PumpUnit.fmtValue(seg.min_pump_hz)
+            })
+        }
+        if zeigeMaxHr {
+            s.append(Spalte(kopf: k("sd.colMaxHr"), breite: 64) { _, seg in
+                guard let v = self.maxHr(seg) else { return "–" }
+                return "\(v) bpm"
+            })
+        }
+        s.append(Spalte(kopf: k("sd.colGlide"), breite: 70) { _, seg in
+            seg.longest_glide_s.map { String(format: "%.1f s", $0) } ?? "–"
+        })
+        return s
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("\(Loc.t("home.runs", lang)) (\(segments.count))").font(.caption).foregroundStyle(.secondary)
-            HStack {
-                // "#" bekommt eine feste, schmale Spalte statt gleicher Breite wie alle anderen:
-                // die Zeile hat KEINEN Horizontal-Scroll, und mit sieben gleich breiten Spalten
-                // wuerde auf einem schmalen iPhone alles zusammenrutschen.
-                Text("#").font(.caption2).foregroundStyle(.secondary)
-                    .frame(width: 18, alignment: .leading)
-                ForEach(kopfSpalten, id: \.self) { h in
-                    Text(h).font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+        // Spalten EINMAL bauen und weitergeben: sonst rechnet jede Zeile sie neu, und der
+        // Swift-Type-Checker bekommt einen Ausdruck, der ihn minutenlang beschaeftigt.
+        let sp = spalten
+        return VStack(alignment: .leading, spacing: 4) {
+            Text("\(Loc.t("home.runs", lang)) (\(segments.count))")
+                .font(.caption).foregroundStyle(.secondary)
+            // WAAGERECHT SCROLLBAR: dreizehn Spalten passen auf kein Handy-Display. Vorher gab es
+            // keinen Scroll und nur sechs Spalten, sieben fehlten ganz (Jans Meldung 18.08.).
+            ScrollView(.horizontal, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    kopfZeile(sp)
+                    zeilen(sp)
                 }
-                if canEdit { Spacer().frame(width: 30) }
-            }
-            ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
-                let sel = selected == i
-                HStack {
-                    Text("\(i + 1)").font(.caption)
-                        .foregroundStyle(sel ? Color.accentColor : Color.primary)
-                        .frame(width: 18, alignment: .leading)
-                    cell(dist(seg.distance_m ?? 0), sel)
-                    cell(dur(seg.duration_s ?? 0), sel)
-                    cell(String(format: "%.0f", (seg.avg_speed_mps ?? 0) * 3.6), sel)
-                    cell(String(format: "%.0f", (seg.max_speed_mps ?? 0) * 3.6), sel)
-                    cell((seg.pumps ?? 0) > 0 ? "\(seg.pumps!)" : "–", sel)
-                    if zeigeMaxHr { cell(maxHr(seg).map { "\($0)" } ?? "–", sel) }
-                    excludeButton(i)
-                }
-                .padding(.vertical, 4).padding(.horizontal, 4)
-                .background(sel ? Color.accentColor.opacity(0.16) : .clear)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .contentShape(Rectangle())
-                .onTapGesture { onSelect(i) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1949,9 +2024,48 @@ private struct RunsTable: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func cell(_ s: String, _ sel: Bool) -> some View {
-        Text(s).font(.caption).foregroundStyle(sel ? Color.accentColor : Color.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private func kopfZeile(_ sp: [Spalte]) -> some View {
+        HStack(spacing: 8) {
+            // "#" bekommt eine feste, schmale Spalte.
+            Text("#").font(.caption2).foregroundStyle(.secondary)
+                .frame(width: 22, alignment: .leading)
+            ForEach(Array(sp.enumerated()), id: \.offset) { _, s in
+                Text(s.kopf)
+                    .font(.caption2).foregroundStyle(.secondary)
+                    .lineLimit(2).minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: s.breite, alignment: .leading)
+            }
+            if canEdit { Spacer().frame(width: 30) }
+        }
+        .padding(.bottom, 3)
+    }
+
+    @ViewBuilder private func zeilen(_ sp: [Spalte]) -> some View {
+        ForEach(Array(segments.enumerated()), id: \.offset) { i, seg in
+            zeile(i, seg, sp)
+        }
+    }
+
+    private func zeile(_ i: Int, _ seg: Segment, _ sp: [Spalte]) -> some View {
+        let sel = selected == i
+        return HStack(spacing: 8) {
+            Text("\(i + 1)").font(.caption).monospacedDigit()
+                .foregroundStyle(sel ? Color.accentColor : Color.primary)
+                .frame(width: 22, alignment: .leading)
+            ForEach(Array(sp.enumerated()), id: \.offset) { _, s in
+                Text(s.wert(i, seg))
+                    .font(.caption).monospacedDigit()
+                    .foregroundStyle(sel ? Color.accentColor : Color.primary)
+                    .frame(width: s.breite, alignment: .leading)
+            }
+            excludeButton(i)
+        }
+        .padding(.vertical, 5).padding(.horizontal, 4)
+        .background(sel ? Color.accentColor.opacity(0.16) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .contentShape(Rectangle())
+        .onTapGesture { onSelect(i) }
     }
 
     // Eigene Zelle statt Zeilen-Tap: der Knopf schluckt den Tap, die Zeilen-Auswahl bleibt.
@@ -1961,14 +2075,24 @@ private struct RunsTable: View {
                 Image(systemName: "nosign").font(.footnote).foregroundStyle(.secondary)
             }
             .buttonStyle(.borderless)
-            .tint(.secondary)   // inaktiv grau (nicht cyan) — der Knopf ist eine Nebenaktion
+            .tint(.secondary)   // inaktiv grau (nicht cyan) - der Knopf ist eine Nebenaktion
             .disabled(busy)
             .frame(width: 30)
             .accessibilityLabel(Loc.t("sd.excludeRun", lang))
         }
     }
-    private func dist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
-    private func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+
+    /// Startuhrzeit des Laufs in Spot-Ortszeit: Session-Start + t_start_ms.
+    private func startUhr(_ seg: Segment) -> String {
+        guard let start = sessionStart, let ms = seg.t_start_ms else { return "–" }
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss"
+        f.timeZone = TimeFmt.zone(tz)
+        return f.string(from: start.addingTimeInterval(ms / 1000.0))
+    }
+
+    private static func mmss(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
+    private static func eine(_ v: Double?) -> String { v.map { String(format: "%.1f", $0) } ?? "–" }
 }
 
 // Eine Kennzahl-Kachel; runIdx != nil => an einen Lauf gebunden (antippen -> Lauf auswählen).

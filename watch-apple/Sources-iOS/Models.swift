@@ -519,6 +519,36 @@ struct Segment: Codable {
     let pump_idx: [Int]?
     let avg_pump_hz: Double?
     let longest_glide_s: Double?
+    // Ab hier: Felder, die der Server schon immer liefert, die iOS aber nicht gelesen hat —
+    // deshalb fehlten sieben der dreizehn Spalten der PWA-Lauf-Tabelle (Jans Meldung 18.08.).
+    let min_speed_mps: Double?
+    let max_pump_hz: Double?
+    let min_pump_hz: Double?
+    // Startzeit des Laufs, ms ab Session-Start (docs/DATA-PIPELINE.md: auf den Trim re-based).
+    let t_start_ms: Double?
+    // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
+    // Fenster-Umschalter der Detailansicht.
+    let max_1s: Double?
+    let max_3s: Double?
+    let max_5s: Double?
+    let min_1s: Double?
+    let min_3s: Double?
+    let min_5s: Double?
+
+    /// Wert je Fenster mit Rueckfall auf den ungeglaetteten Wert — genau wie `val()` in der PWA.
+    func fenster(_ win: Int, _ art: String) -> Double? {
+        let w: Double?
+        switch (art, win) {
+        case ("max", 1): w = max_1s
+        case ("max", 3): w = max_3s
+        case ("max", 5): w = max_5s
+        case ("min", 1): w = min_1s
+        case ("min", 3): w = min_3s
+        case ("min", 5): w = min_5s
+        default: w = nil
+        }
+        return w ?? (art == "max" ? max_speed_mps : min_speed_mps)
+    }
 }
 
 // Tages-Gruppe (ein Nutzer, ein Tag) aus /api/community/sessions-grouped. count==1 -> normale

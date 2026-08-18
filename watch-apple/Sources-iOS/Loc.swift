@@ -11,9 +11,26 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_csOverlayP1, _csOverlayP2, _csOverlayP3, _csOverlayP4, _csOverlayP5, _csOverlayP6, _csOverlayP7, _csOverlayP8, _csOverlayP9, _csOverlayP10] { d.merge(p) { a, _ in a } }
+        for p in [_csOverlayP1, _csOverlayP2, _csOverlayP3, _csOverlayP4, _csOverlayP5, _csOverlayP6, _csOverlayP7, _csOverlayP8, _csOverlayP9, _csOverlayP10, _csOverlayP11] { d.merge(p) { a, _ in a } }
         return d
     }()
+
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
+    private static let _csOverlayP11: [String: String] = [
+        "sd.colStart": "Začátek",
+        "sd.colDistance": "Vzdálenost",
+        "sd.colDuration": "Doba",
+        "sd.colAvg": "Ø km/h",
+        "sd.colMax": "Max km/h ({win}s)",
+        "sd.colMin": "Min km/h ({win}s)",
+        "sd.colPower": "Výkon",
+        "sd.colPumps": "Pumpnutí",
+        "sd.colDistPerPump": "Ø m/pumpnutí",
+        "sd.colAvgPump": "Ø pumpnutí {unit}",
+        "sd.colPumpMaxMin": "Pumpnutí {unit} 5s (max/min)",
+        "sd.colGlide": "nejdelší klouzání",
+        "sd.colMaxHr": "Max. tep",
+    ]
 
     private static let _csOverlayP1: [String: String] = [
         "setup.inherit": "Použít výchozí",
@@ -609,9 +626,26 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_nlOverlayP1, _nlOverlayP2, _nlOverlayP3, _nlOverlayP4, _nlOverlayP5, _nlOverlayP6, _nlOverlayP7, _nlOverlayP8, _nlOverlayP9, _nlOverlayP10] { d.merge(p) { a, _ in a } }
+        for p in [_nlOverlayP1, _nlOverlayP2, _nlOverlayP3, _nlOverlayP4, _nlOverlayP5, _nlOverlayP6, _nlOverlayP7, _nlOverlayP8, _nlOverlayP9, _nlOverlayP10, _nlOverlayP11] { d.merge(p) { a, _ in a } }
         return d
     }()
+
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
+    private static let _nlOverlayP11: [String: String] = [
+        "sd.colStart": "Start",
+        "sd.colDistance": "Afstand",
+        "sd.colDuration": "Duur",
+        "sd.colAvg": "Ø km/h",
+        "sd.colMax": "Max km/h ({win}s)",
+        "sd.colMin": "Min km/h ({win}s)",
+        "sd.colPower": "Vermogen",
+        "sd.colPumps": "Pumps",
+        "sd.colDistPerPump": "Ø m/pump",
+        "sd.colAvgPump": "Ø pump {unit}",
+        "sd.colPumpMaxMin": "Pump {unit} 5s (max/min)",
+        "sd.colGlide": "langste glijfase",
+        "sd.colMaxHr": "Max. hartslag",
+    ]
 
     private static let _nlOverlayP1: [String: String] = [
         "setup.inherit": "Standaard gebruiken",
@@ -1224,9 +1258,26 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_fiOverlayP1, _fiOverlayP2, _fiOverlayP3, _fiOverlayP4, _fiOverlayP5, _fiOverlayP6, _fiOverlayP7, _fiOverlayP8, _fiOverlayP9, _fiOverlayP10] { d.merge(p) { a, _ in a } }
+        for p in [_fiOverlayP1, _fiOverlayP2, _fiOverlayP3, _fiOverlayP4, _fiOverlayP5, _fiOverlayP6, _fiOverlayP7, _fiOverlayP8, _fiOverlayP9, _fiOverlayP10, _fiOverlayP11] { d.merge(p) { a, _ in a } }
         return d
     }()
+
+    // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
+    private static let _fiOverlayP11: [String: String] = [
+        "sd.colStart": "Alku",
+        "sd.colDistance": "Matka",
+        "sd.colDuration": "Kesto",
+        "sd.colAvg": "Ø km/h",
+        "sd.colMax": "Maks. km/h ({win}s)",
+        "sd.colMin": "Min. km/h ({win}s)",
+        "sd.colPower": "Teho",
+        "sd.colPumps": "Pumps",
+        "sd.colDistPerPump": "Ø m/pump",
+        "sd.colAvgPump": "Ø pump {unit}",
+        "sd.colPumpMaxMin": "Pump {unit} 5s (maks./min.)",
+        "sd.colGlide": "pisin liukuvaihe",
+        "sd.colMaxHr": "Maks. syke",
+    ]
 
     private static let _fiOverlayP1: [String: String] = [
         "setup.inherit": "Käytä oletusta",
@@ -2424,9 +2475,28 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let _t3: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        for p in [__t3P1, __t3P2, __t3P3] { d.merge(p) { a, _ in a } }
+        for p in [__t3P1, __t3P2, __t3P3, __t3P4] { d.merge(p) { a, _ in a } }
         return d
     }()
+
+    // Spalten der Lauf-Tabelle (Paritaet zur PWA-RunsTable). Erzeugt aus web/src/i18n/locales/*.ts,
+    // nicht selbst uebersetzt. EIGENER Block, weil die bestehenden schon am Type-Checker-Limit
+    // stehen (s. Kommentare oben). {win} und {unit} werden in der View ersetzt.
+    private static let __t3P4: [String: [String: String]] = [
+        "sd.colStart": r("Start", "Start", "Start", "Start", "Départ", "Inizio", "Inicio"),
+        "sd.colDistance": r("Distanz", "Distanz", "Distanz", "Distance", "Distance", "Distanza", "Distancia"),
+        "sd.colDuration": r("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
+        "sd.colAvg": r("Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h", "Ø km/h"),
+        "sd.colMax": r("Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Max km/h ({win}s)", "Máx km/h ({win}s)"),
+        "sd.colMin": r("Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Min km/h ({win}s)", "Mín km/h ({win}s)"),
+        "sd.colPower": r("Leistung", "Leischtig", "Leistung", "Power", "Puissance", "Potenza", "Potencia"),
+        "sd.colPumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pumps"),
+        "sd.colDistPerPump": r("Ø m/Pump", "Ø m/Pump", "Ø m/Pump", "Ø m/pump", "Ø m/pompage", "Ø m/pompata", "Ø m/bombeo"),
+        "sd.colAvgPump": r("Ø Pump {unit}", "Ø Pump {unit}", "Ø Pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}"),
+        "sd.colPumpMaxMin": r("Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (máx/mín)"),
+        "sd.colGlide": r("längste Gleitphase", "längschti Gleitphase", "längste Gleitphase", "longest glide", "plus longue glisse", "planata più lunga", "planeo más largo"),
+        "sd.colMaxHr": r("Max. Puls", "Max. Puls", "Max. Puls", "Max HR", "Pouls max", "Battito max", "Pulso máx."),
+    ]
 
     private static let __t3P1: [String: [String: String]] = [
         "alarm.pattern": r("Muster", "Muster", "Muster", "Pattern", "Motif", "Schema", "Patrón"),
