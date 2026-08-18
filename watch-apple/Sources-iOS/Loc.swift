@@ -2111,6 +2111,12 @@ enum Loc {
         "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
         "sessions.oclock": r("Uhr", "Uhr", "Uhr", "", "", "", ""),
         "sd.duration": r("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
+        // Fehlten in iOS und zeigten den ROHEN KEY (gemeldet Jan, 18.08.: "hist.spotAnim").
+        // Systematisch gefunden: alle Loc.t()-Keys gegen Loc.swift/LocExtra.swift geprueft,
+        // es waren genau diese drei. Wortlaut aus den PWA-Locales generiert.
+        "hist.spotAnim": r("Entwicklung am Spot", "Entwicklig am Spot", "Entwicklung am Spot", "Progress at spot", "Progression au spot", "Progressi allo spot", "Progreso en el spot"),
+        "hist.spotAnimHint": r("Spot wählen — deine Läufe dort werden chronologisch auf festem Ausschnitt durchgeschaltet (Farbe = Speed).", "Spot uswähle — dini Läuf det wärde chronologisch uf fixem Uusschnitt durepschaltet (Farb = Speed).", "Spot wählen — deine Läufe dort werden chronologisch auf festem Ausschnitt durchgeschaltet (Farbe = Speed).", "Pick a spot — your runs there step through chronologically on a fixed map (color = speed).", "Choisis un spot — tes runs y défilent chronologiquement sur une carte figée (couleur = vitesse).", "Scegli uno spot — i tuoi run scorrono in ordine cronologico su una mappa fissa (colore = velocità).", "Elige un spot — tus tramos se recorren cronológicamente en un mapa fijo (color = velocidad)."),
+        "sessions.none": r("Noch keine Sessions.", "No kei Sessions.", "No kane Sessions.", "No sessions yet.", "Pas encore de sessions.", "Ancora nessuna sessione.", "Aún no hay sesiones."),
         "verlauf.empty": r("Noch keine Auswertungen", "No kei Uuswertige", "Noch keine Auswertungen", "No analyses yet", "Aucune analyse", "Nessuna analisi", "Sin análisis"),
         "verlauf.total": r("Gesamt", "Gsamt", "Gesamt", "Total", "Total", "Totale", "Total"),
     ]
