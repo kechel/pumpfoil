@@ -364,7 +364,17 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     kuenftig mit (El Manu arbeitet daran), oder der Regler wird dort ausgeblendet.**
   - Androids `autoStart` in `RecordScreen.kt` ist `phone_autostart`, also der HANDY-Recorder — nicht
     die Uhr-Einstellung. Wer nur nach dem Namen sucht, haelt sie faelschlich fuer vorhanden.
-  **NAECHSTER SCHRITT (Jan):** Versionen bumpen und einreichen. Achtung, es liegen bereits
+  **VERSIONEN SIND GEBUMPT (18.08.), Jan baut/signiert/laedt hoch:**
+  | Ziel | neu | vorher | Anmerkung |
+  |---|---|---|---|
+  | Android Phone | **1.1.22 / 36** | 1.1.21 / 35 | 1.1.21 liegt bei Play in der Pruefung, dieselbe Nummer geht nicht zweimal |
+  | iOS + Apple Watch | **1.1.23 / 27** | 1.1.22 / 26 | EINE MARKETING_VERSION fuer beide Targets (Watch steckt im iOS-Bundle), beide Stellen in `project.yml` gesetzt |
+  | Wear OS | **unveraendert 1.2.22 / 1032** | — | KEIN Bump: die Paritaetsarbeit hat `android/wear/` nicht angefasst (nur `android/app/`). Ein neuer Code auf identischem Binaerstand waere nur Pruefaufwand. 1.2.22 wartet ohnehin noch auf Freigabe |
+  | Apple Watch (Code) | unveraendert | — | `watch-apple/Sources/` unberuehrt; die Version steigt nur mit, weil sie im iOS-Bundle liegt |
+  Nebeneffekt beim Phone-Bump: das „x" des Versionsschemas (Phone 1.1.x / Wear 1.2.x, laut
+  `build.gradle.kts` gemeinsam hochzuzaehlen) stimmt mit 22/22 wieder zusammen — es war auf 21/22
+  verrutscht, weil Wear zwischendurch einen eigenen Bump bekam.
+  Alter Stand des Punktes: Versionen bumpen und einreichen. Achtung, es liegen bereits
   ungereichte Staende: Android 1.1.21 und Wear 1.2.22 warten noch auf Freigabe — die neuen Aenderungen
   brauchen also einen weiteren Bump darueber.
 

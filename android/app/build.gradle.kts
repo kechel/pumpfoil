@@ -26,8 +26,12 @@ android {
         targetSdk = 35
         // Versionsschema (siehe wear/build.gradle.kts): PHONE = versionName 1.1.x + kleiner
         // versionCode; WEAR = 1.2.x + 1xxx. Das „x" ist bei beiden gleich (gemeinsam hochzählen).
-        versionCode = 35
-        versionName = "1.1.21"
+        // 1.1.22/36: Paritaets-Rueckstand zur PWA abgearbeitet (docs/PARITY-AUDIT.md,
+        // 9 Punkte). Der Sprung ueber die noch nicht freigegebene 1.1.21 ist Absicht — Play
+        // hat sie schon, ein zweites Einreichen derselben Nummer geht nicht.
+        // Nebeneffekt: das „x" stimmt damit wieder mit WEAR (1.2.22) zusammen.
+        versionCode = 36
+        versionName = "1.1.22"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
