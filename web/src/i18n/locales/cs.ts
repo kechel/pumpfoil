@@ -619,7 +619,7 @@ const cs: Record<string, string> = {
   "sd.colGlide": "nejdelší klouzání",
   "sd.colMaxHr": "Max. tep",
   "hr.progressTitle": "Tréninková křivka: tep při pumpování",
-  "hr.progressHint": "Jak vysoko vyšplhá tvůj tep po 30 sekundách, 1, 2 a 5 minutách pumpování. Námaha závisí hlavně na délce a skoro vůbec na foilu — když křivka během týdnů klesá, jsi ve formě.",
+  "hr.progressHint": "Jak vysoko vyšplhá tvůj tep po 30 sekundách, 1, 2 a 5 minutách pumpování.",
   "hr.afterMinutes": "po {min} minutě/ách",
   "hr.afterSeconds": "po {sec} sekundách",
   "hr.axisHint": "Vodorovně: datum · Svisle: tep (bpm)",

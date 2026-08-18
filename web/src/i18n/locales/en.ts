@@ -633,7 +633,7 @@ const en: Record<string, string> = {
   "sd.colGlide": "longest glide",
   "sd.colMaxHr": "Max HR",
   "hr.progressTitle": "Training curve: heart rate while pumping",
-  "hr.progressHint": "How high your pulse climbs after 30 seconds, 1, 2 and 5 minutes of pumping. The effort depends mostly on how long you keep going, hardly on the foil — if the curve drops over the weeks, you have got fitter.",
+  "hr.progressHint": "How high your pulse climbs after 30 seconds, 1, 2 and 5 minutes of pumping.",
   "hr.afterMinutes": "after {min} minute(s)",
   "hr.afterSeconds": "after {sec} seconds",
   "hr.axisHint": "Horizontal: date · Vertical: heart rate (bpm)",

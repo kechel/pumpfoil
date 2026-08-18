@@ -595,7 +595,7 @@ const pt: Record<string, string> = {
   "sd.colGlide": "planeio mais longo",
   "sd.colMaxHr": "Pulso máx.",
   "hr.progressTitle": "Curva de treino: pulso a bombear",
-  "hr.progressHint": "Até onde sobe o teu pulso após 30 segundos, 1, 2 e 5 minutos a bombear. O esforço depende sobretudo da duração e quase nada do foil — se a curva descer ao longo das semanas, estás mais em forma.",
+  "hr.progressHint": "Até onde sobe o teu pulso após 30 segundos, 1, 2 e 5 minutos a bombear.",
   "hr.afterMinutes": "após {min} minuto(s)",
   "hr.afterSeconds": "após {sec} segundos",
   "hr.axisHint": "Horizontal: data · Vertical: pulso (bpm)",

@@ -595,7 +595,7 @@ const zh: Record<string, string> = {
   "sd.colGlide": "最长滑行",
   "sd.colMaxHr": "最大心率",
   "hr.progressTitle": "训练曲线：泵动时的心率",
-  "hr.progressHint": "泵动 30 秒、1、2、5 分钟后心率上升到多少。强度主要取决于持续时间，与水翼关系不大 — 曲线在数周内下降，说明你更强了。",
+  "hr.progressHint": "泵动 30 秒、1、2、5 分钟后心率上升到多少。",
   "hr.afterMinutes": "{min} 分钟后",
   "hr.afterSeconds": "{sec} 秒后",
   "hr.axisHint": "横轴：日期 · 纵轴：心率（bpm）",

@@ -595,7 +595,7 @@ const id: Record<string, string> = {
   "sd.colGlide": "glide terpanjang",
   "sd.colMaxHr": "Detak maks.",
   "hr.progressTitle": "Kurva latihan: detak jantung saat pumping",
-  "hr.progressHint": "Seberapa tinggi detak jantungmu setelah 30 detik, 1, 2 dan 5 menit pumping. Bebannya terutama bergantung pada durasi, bukan pada foil — kalau kurvanya turun dari minggu ke minggu, kamu makin bugar.",
+  "hr.progressHint": "Seberapa tinggi detak jantungmu setelah 30 detik, 1, 2 dan 5 menit pumping.",
   "hr.afterMinutes": "setelah {min} menit",
   "hr.afterSeconds": "setelah {sec} detik",
   "hr.axisHint": "Mendatar: tanggal · Tegak: detak (bpm)",

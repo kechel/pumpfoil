@@ -511,7 +511,7 @@ const it: Record<string, string> = {
   "sd.colGlide": "planata più lunga",
   "sd.colMaxHr": "Battito max",
   "hr.progressTitle": "Curva di allenamento: battito durante il pump",
-  "hr.progressHint": "Quanto sale il battito dopo 30 secondi, 1, 2 e 5 minuti di pump. Lo sforzo dipende soprattutto dalla durata e quasi per nulla dal foil — se la curva scende nelle settimane, sei più allenato.",
+  "hr.progressHint": "Quanto sale il battito dopo 30 secondi, 1, 2 e 5 minuti di pump.",
   "hr.afterMinutes": "dopo {min} minuto/i",
   "hr.afterSeconds": "dopo {sec} secondi",
   "hr.axisHint": "Orizzontale: data · Verticale: battito (bpm)",

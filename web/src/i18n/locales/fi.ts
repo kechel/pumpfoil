@@ -602,7 +602,7 @@ const fi: Record<string, string> = {
   "sd.colGlide": "pisin liukuvaihe",
   "sd.colMaxHr": "Maks. syke",
   "hr.progressTitle": "Harjoituskäyrä: syke pumpatessa",
-  "hr.progressHint": "Kuinka korkealle syke nousee 30 sekunnin, 1, 2 ja 5 minuutin pumppauksen jälkeen. Rasitus riippuu lähinnä kestosta, tuskin lainkaan foilista — jos käyrä laskee viikkojen mittaan, kuntosi on parantunut.",
+  "hr.progressHint": "Kuinka korkealle syke nousee 30 sekunnin, 1, 2 ja 5 minuutin pumppauksen jälkeen.",
   "hr.afterMinutes": "{min} minuutin jälkeen",
   "hr.afterSeconds": "{sec} sekunnin jälkeen",
   "hr.axisHint": "Vaaka: päivä · Pysty: syke (bpm)",
