@@ -357,11 +357,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
      rechts**. Unsere eckigen Bilder verletzen beides.
      Dazu: sie unterscheiden sich von den runden nur um 16/255 im Mittel — es ist derselbe Inhalt mit
      eckigem Hintergrund, **kein echter Screenshot eines eckigen Geraets**.
-  **Was fehlt:** Screenshots aus dem Simulator fuer ein ECKIGES Geraet (`app.json` deklariert
-  `st: "s", dw: 390`; Hoehe steht dort nicht — bei 390×450 waere der Inhalt auf 360 Hoehe
-  **312 px breit**, also 24 px Rand je Seite). Der Simulator laeuft nur auf Jans Mac
-  (memory `zepp-simulator-setup`). Sobald die Rohbilder da sind, ist das Zuschneiden mechanisch und
-  kann hier passieren.
+  **Was fehlt:** Screenshots aus dem Simulator fuer ein ECKIGES Geraet — **Amazfit Active 2 (Square),
+  390×450** (`app.json` deklariert `st: "s", dw: 390`; dieselbe Auflösung haben Bip 6, Amazfit Active,
+  Cheetah Square, GTS 4, GTS 3, ein Satz deckt also alle sechs ab). Simulator nur auf Jans Mac
+  (memory `zepp-simulator-setup`). Gebraucht werden **11 Rohbilder, exakter Display-Auszug 390×450**
+  (Screenshot-Funktion des Simulators, **kein Fenster-Mitschnitt**), dieselben Screens wie im runden Satz.
+  **Zuschneiden ist dann ein Aufruf:** `python3 scripts/zepp-store-previews.py <roh-verzeichnis>` →
+  Hoehe auf 360, mittig auf transparente 360×360-Leinwand = 312×360 mit 24 px Rand je Seite.
+
+  **🔴 Zuschnitt aus den vorhandenen Rohbildern ist NICHT moeglich — und mein erster Versuch war falsch
+  (18.08., zurueckgenommen in `360d68f`).** Die alten Rohbilder (1184×1240) sind Fenster-Mitschnitte
+  eines **runden** Geraets. Mein Skript hat die Bildform ueber den **Alphakanal** bestimmt; die Rohbilder
+  sind aber komplett deckend, also war die gemessene „Inhalts"-Box immer die ganze Leinwand → **beide
+  Saetze wurden 1:1 gestaucht statt zugeschnitten**, auch die runden, die Zepp schon abgenommen hatte
+  (Pixel-Diff: 11/11 veraendert). Alle 22 Bilder sind wieder im Originalzustand. Die Neufassung des
+  Skripts rechnet nur noch und **bricht bei Seitenverhaeltnis ≠ 390:450 ab**, statt still zu verzerren.
   **KEIN Code-Problem:** die App selbst wurde nicht beanstandet, 1.0.5 kann unveraendert erneut
   eingereicht werden, sobald Nickname (erledigt) und Bilder stimmen.
 
