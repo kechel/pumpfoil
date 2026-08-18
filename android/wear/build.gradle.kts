@@ -21,8 +21,8 @@ android {
         // Teilen-Dialog-Fix ist das Phone auf 1.1.21/35 nachgezogen -> „x gleich" gilt wieder.
         // 1.2.22 ist wieder ein Wear-only-Nachzug (Puls ueber Health Services): 1.2.21/1031 lag
         // beim Fund schon in der Play-Pruefung, deshalb der eigene Bump statt einer Ergaenzung.
-        versionCode = 1032
-        versionName = "1.2.22"
+        versionCode = 1033
+        versionName = "1.2.23"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

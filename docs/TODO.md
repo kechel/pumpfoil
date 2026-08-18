@@ -358,8 +358,19 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
      gefunden: beide kannten nur drei der vier `notify_prefs` und schickten beim Speichern genau
      diese drei — `notify_prefs` wird serverseitig als GANZES ersetzt. **Ein Speichern in der App
      hat die im Web gesetzte Chat-Einstellung still geloescht.** Wear OS nicht betroffen.
-  3. Kein Versions-Bump noetig: iOS 1.1.23/27, Phone 1.1.22/36, Wear 1.2.22/1032 sind gebaut aber
-     noch NICHT eingereicht — die Fixes gehen in diese Nummern mit ein.
+  3. **Versionen NACHGEBUMPT (18.08.): iOS/Watch 1.1.24/28, Phone 1.1.23/37, Wear 1.2.23/1033.**
+     Zuerst hatte ich „kein Bump noetig" geschrieben, weil 1.1.23/27 usw. in keinem Store sind.
+     Jan fragte dann, ob er Apple nicht schon hochgeladen habe. **Im Sitzungsprotokoll steht keine
+     solche Meldung** (durchsucht: nur „fr55 getestet und hochgeladen" = Garmin-Sideload, die
+     Zepp-Ablehnung und „ist submitted" fuer Zepp 1.0.6) — es kann also aus einer FRUEHEREN Sitzung
+     stammen. Trotzdem gebumpt, weil **App Store Connect eine Build-Nummer schon beim Upload
+     verbraucht, auch fuer TestFlight, und Play genauso einen versionCode**.
+     Die Rechnung ist einseitig: ein Bump kostet nichts, eine verbrannte Nummer kostet eine Runde.
+     Bei Apple gleich auch die MARKETING_VERSION hoch, weil sich der Inhalt seit 1.1.23 wirklich
+     geaendert hat (Vergleich je Lauf, 15 Kennzahlen, Vollbild-Karte). Phone-x und Wear-x bleiben
+     gleich (Schema, s. memory android-version-scheme).
+     **Merke:** im Repo laesst sich NICHT sehen, ob etwas hochgeladen wurde — `appmeta` kennt nur
+     FREIGEGEBENE Versionen. Bei Zweifel immer bumpen.
   **Nachgezogen (18.08.):** der **Vergleich je LAUF** ist jetzt auch nativ drin. Beide CompareStores
   halten `CompareRef(sessionId, runIdx?)` als LISTE (Reihenfolge = Farbzuordnung, dieselbe Session
   darf zweimal drin liegen), erste Spalte der Lauf-Tabelle legt einzelne Laeufe ein, und Karte,
