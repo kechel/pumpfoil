@@ -9,11 +9,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟡 Garmin 1.0.78 LIVE in den Direkt-Downloads + EINGEREICHT im CIQ-Store (17.08.), wartet auf
-  die Freigabe-Mail.** Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die
+- **🟢 Garmin 1.0.78 LIVE — CIQ-Store FREIGEGEBEN (17.08.), Kette komplett.** Von Jan aus dem
+  Store auf seine echte Uhr aktualisiert und getestet („geht"). `appmeta garmin` = 1.0.78 gesetzt,
+  Changelog-Eintrag geschrieben. Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die
   ueber Wochen still gar nichts mehr aufgezeichnet haben (Befund + Messungen weiter unten unter
   „speicherarme Garmin-Uhren"). Commits `078c4b5` (Stufe) + `4622b89` (7 fehlende Strings).
-  **NACH der Freigabe-Mail ohne Rueckfrage:** `appmeta garmin` = 1.0.78 + Changelog-Eintrag.
   Store-Seite von der VM aus NICHT pruefbar (JS-gerendert, WebFetch sieht nur die Huelle) — Jans
   Mail ist die Quelle.
   Verifiziert vor der Veroeffentlichung: alle 121 Geraete in ein temporaeres Verzeichnis gebaut,
@@ -343,7 +343,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
-- **🟡 Zepp 1.0.6 fertig gebaut, Einreichung offen (18.08.).** Nach der Ablehnung von 1.0.5 kam
+- **🟢 Zepp 1.0.6 EINGEREICHT (18.08.).** Nach der Ablehnung von 1.0.5 kam
   beim Nachtesten im Simulator eine Kette echter Fehler heraus — alle gefixt, `app.json` code 9 /
   name 1.0.6:
   - **Status-Bar auf ECKIGEN Geraeten** (64 px, Text = `appName`, deckend, grau/linksbuendig) hat den
@@ -362,8 +362,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     Stop) und UP/DOWN (lang = Touch 10 s frei) brauchen. 🔴 **Neuer i18n-Key `menu.touchLock` in 16
     Sprachen braucht Jans Review** — nicht aus vorhandenen Uebersetzungen abgeleitet, es gibt keine.
   - **Emoji 🔒 raus** (Projektregel), stattdessen zwei Textzeilen mit dem Ausweg.
-  **Offen:** Jans Rebuild-Test (Update-Hinweis weg, Seitenanzeige „1/4", fuenf Menue-Knoepfe auf
-  beiden Formen, Wischen bei Sperre=Aus), dann Einreichung.
+  Von Jan im Simulator gegengetestet und eingereicht. Release-Notes decken 1.0.4 → 1.0.6 ab
+  (1.0.5 ging nie live): Beschleunigung, GPS-Plausibilitaet, Max-Puls-Datenfeld, umschaltbare
+  Sperre, Layout-Fixes eckig. **Offen:** Zepps Antwort abwarten.
 
 - **🟡 Zepp-Store-Vorschauen gebaut, zwei Bilder nachzuschiessen (18.08.).**
   `scripts/zepp-store-previews.py` arbeitet jetzt mit Simulator-FENSTER-Mitschnitten (so kommen sie
@@ -373,16 +374,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   960×958 (=480×480), eckig 776×898 (=390×450). Ausgabe: 360×360 PNG transparent, rund randlos mit
   freien Ecken, eckig 311×360 mit 24 px Rand je Seite. **Transparenz gilt fuer BEIDE Formen**
   (Wortlaut: „The background of screenshots should be transparent and not have a fill color.").
-  **Offen:** rund #8 + eckig #7 zeigen den Update-Hinweis-Bug („v1.0.6 → 1.0.4") und sind die
-  einzigen auf Deutsch → neu schiessen oder weglassen (Vorgabe: „3 or more recommended"). Der ganze
-  RUNDE Satz entstand vor dem Seitenanzeige-Fix und zeigt oben rechts „1/".
+  Jan hat sich 4–5 Bilder ausgesucht und die fehlerhaften weggelassen (Vorgabe: „3 or more
+  recommended"). Hinweis fuer den naechsten Satz: der jetzige RUNDE Satz entstand vor dem
+  Seitenanzeige-Fix und zeigt oben rechts „1/".
   **🔴 Eigener Fehlversuch, zurueckgenommen in `360d68f`:** eine erste Skriptfassung bestimmte die
   Bildform ueber den ALPHAKANAL. Die Rohbilder sind aber deckend, also war die „Inhalts"-Box immer
   die ganze Leinwand → beide Saetze wurden 1:1 gestaucht statt zugeschnitten, auch der runde, den
   Zepp schon abgenommen hatte (Pixel-Diff: 11/11 veraendert). Lehre: Bildgeometrie nie ueber einen
   Kanal raten, der im Quellmaterial gar nicht belegt ist — messen und das Ergebnis gegenpruefen.
 
-- **🔴 Zepp 1.0.5 ABGELEHNT (18.08.) — zwei Gruende, beide NICHT im Code.**
+- **🟢 Zepp 1.0.5 war ABGELEHNT (18.08.) — beide Gruende erledigt, Nachfolger 1.0.6 eingereicht.**
   1. **Entwickler-Nickname war „zepp"** — Zepp ist ihre Marke und darf nicht als Drittanbieter-Name
      stehen. **Von Jan erledigt**, Nickname jetzt „Pumpfoil" (Account 7085610668).
   2. **Vorschaubilder fuer ECKIGE Geraete** entsprechen nicht der Vorgabe. Nachgemessen statt
