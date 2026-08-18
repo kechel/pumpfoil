@@ -8,7 +8,8 @@ const c = (y, h, color, size) => ({
   align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
 });
 
-export const TITLE = { ...c(30, 44, 0xffffff, 36), text: "Pumpfoil" };
+// Cyan wie auf eckig (Marke #22d3ee) -- die abgenommenen Store-Bilder zeigen noch Weiss.
+export const TITLE = { ...c(30, 44, 0x22d3ee, 36), text: "Pumpfoil" };
 // On a round screen, the usable area narrows significantly near the top and bottom.
 // Runde Geraete haben KEINEN System-Balken (Begruendung in index.s.layout.js): eigener Titel bleibt.
 // Werte wie bisher — die von Zepp abgenommenen Store-Bilder zeigen genau diesen Stand.

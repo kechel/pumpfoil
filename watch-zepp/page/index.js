@@ -1,4 +1,10 @@
 import * as hmUI from "@zos/ui";
+// Eckige Zepp-OS-Geraete ziehen oben eine 64 px hohe Status-Bar ein und schreiben den `appName`
+// aus app.json hinein: grau, linksbuendig, Systemschrift, deckend. Sie hat den eigenen Titel
+// verdeckt und die Versionszeile angeschnitten (Jans Screenshots 18.08.) und kostet ein Siebtel
+// des Schirms. Abschaltbar ab API_LEVEL 2.0 (wir verlangen 3.0), nur auf eckigen Geraeten —
+// docs.zepp.com/docs/reference/device-app-api/newAPI/ui/setStatusBarVisible/
+import { setStatusBarVisible } from "@zos/ui";
 import { px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
@@ -63,6 +69,12 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 const APP_VERSION = "1.0.6";
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
+// Tastenzahl des Modells (API_LEVEL 2.0). Sie entscheidet, ob die Touch-Sperre automatisch greift:
+// wir bedienen im Aufzeichnen SELECT (lang = Stop) und UP/DOWN (lang = Touch 10 s frei, kurz =
+// Seite). Erst ab drei Tasten ist das vollstaendig, darunter wuerde die Sperre Bedienung wegnehmen,
+// ohne einen Ersatz zu lassen -- und auf Apple Watch und Wear OS darf man waehrend der Aufnahme
+// ohnehin wischen. Deshalb Sperre automatisch nur ab 3 Tasten; ueberstimmbar im Menue.
+const KEY_NUMBER = (() => { try { return getDeviceInfo().keyNumber || 0; } catch (e) { return 0; } })();
 // Uhrenmodell fuer den Server. Zepp liefert keine Part-Number wie Garmin, deshalb stand bei JEDEM
 // Amazfit-Geraet nur "Amazfit" — bei einer Fehlermeldung wusste niemand, um welche Uhr es geht
 // (Jan, 16.08.). `deviceName` ist der Modellname, `deviceSource` die numerische Modell-ID; die ID
@@ -155,6 +167,7 @@ const S = {
   "btn.start":       ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "", "", "", "スタート", "开始"],
   "btn.stop":        ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "", "", "", "ストップ", "停止"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
+  "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
   "rec.noData":      ["Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Pas encore de données", "Ancora nessun dato", "Aún no hay datos", "Ainda sem dados", "Belum ada data", "Пока нет данных", "Nog geen gegevens", "Ei vielä dataa", "Zatím žádná data", "まだデータがありません", "暂无数据"],
   "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
 
@@ -230,6 +243,7 @@ const NB = {
   "btn.start": "START",
   "btn.stop": "STOP",
   "rec.stopHold": "Hold",
+  "menu.touchLock": "Berøringslås",
   "rec.noData": "Ingen data ennå",
   "gps.searching": "GPS søker…",
   "up.open": "i kø",
@@ -384,6 +398,8 @@ Page(
       // Update-Hinweis + Layout-Zustand. layoutsPref wird aus LocalStorage geladen (siehe init),
       // null = automatisch; layoutsServerDefault ist nur die Vorbelegung vom Server.
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
+      // null = automatisch (haengt an der Tastenzahl, s. _useTouchLock), true/false = Wahl.
+      touchLockPref: null,
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
@@ -517,6 +533,8 @@ Page(
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
       // startet. Leer/unbekannt -> Englisch.
       setLang(store.getItem("lang", ""));
+      // Auf runden Geraeten gibt es die Status-Bar nicht, dort wirft der Aufruf -> abfangen.
+      try { setStatusBarVisible(false); } catch (e) {}
       this._setBrightMode("idle", true);
       w.title = hmUI.createWidget(hmUI.widget.TEXT, { ...TITLE });
       w.page = hmUI.createWidget(hmUI.widget.TEXT, { ...PAGE });
@@ -659,6 +677,8 @@ Page(
       // Layout-Wahl von der letzten Sitzung wiederherstellen ("" = automatisch).
       const lp = store.getItem("layoutsPref", "");
       s.layoutsPref = lp === "1" ? true : (lp === "0" ? false : null);
+      const tl = store.getItem("touchLockPref", "");
+      s.touchLockPref = tl === "1" ? true : (tl === "0" ? false : null);
       // Local-first: App startet ganz normal auf dem START-Screen (auch ungepaart aufnehmbar).
       // Ungepaart wird der Pairing-Code SOFORT erzeugt und direkt auf dem Start-Screen gezeigt
       // (Els Feldtest: der Code auf Seite 2/4 war nicht auffindbar). Der Poll laeuft auf den
@@ -779,22 +799,33 @@ Page(
       const s = this.state, w = s.w;
       if (!s.recording || !s.touchLocked || !w.touchShield) return;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
+      // Kein Emoji (Projektregel: keine Standard-Emojis in der UI) und keine reine Grafik: ein
+      // Schloss allein sagt nicht, wie man weiterkommt. Zwei Textzeilen -- was los ist, und der
+      // Ausweg ueber die Tasten, zusammengesetzt aus vorhandenen Keys.
       if (!w.lockIcon) {
         w.lockIcon = w.touchShield.createWidget(hmUI.widget.TEXT, {
-          x: 0, y: Math.round(DH * 0.32), w: DW, h: Math.round(DH * 0.28),
-          text: "🔒", text_size: Math.round(DH * 0.16), color: WHITE,
+          x: 0, y: Math.round(DH * 0.38), w: DW, h: Math.round(DH * 0.12),
+          text: t("menu.touchLock"), text_size: Math.round(DH * 0.075), color: WHITE,
           align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        try { w.lockIcon.setEnable(false); } catch (e) {}
+        w.lockHint = w.touchShield.createWidget(hmUI.widget.TEXT, {
+          x: 0, y: Math.round(DH * 0.50), w: DW, h: Math.round(DH * 0.10),
+          text: t("rec.stopHold") + " = " + t("btn.stop"), text_size: Math.round(DH * 0.055),
+          color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        try { w.lockIcon.setEnable(false); w.lockHint.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
-        w.lockIcon = null; s.lockTimer = null;
+        try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
+        w.lockIcon = null; w.lockHint = null; s.lockTimer = null;
       }, 1200);
     },
+    // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
+    _useTouchLock() { const s = this.state; return s.touchLockPref === null ? KEY_NUMBER >= 3 : !!s.touchLockPref; },
     _lockTouch() {
       const s = this.state, w = s.w;
-      if (!s.recording) return;
+      if (!s.recording || !this._useTouchLock()) return;
       if (s.unlockTimer) { clearTimeout(s.unlockTimer); s.unlockTimer = null; }
       s.touchLocked = true;
       if (w.touchShield) return;
@@ -810,7 +841,7 @@ Page(
       const s = this.state, w = s.w;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
-      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null;
+      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
     },
     _unlockTouchTemporarily() {
       const s = this.state;
@@ -927,13 +958,16 @@ Page(
       const s = this.state, w = s.w;
       this._clearFoilBtns();
       const round = DW >= 450;
+      // FUENF Knoepfe (die Touch-Sperre ist dazugekommen) -> engere Staffelung. Rund: bei y 84 ist
+      // die Kreisbreite noch 364 px (Halbsehne sqrt(240^2-156^2)), der Knopf braucht 320 -- passt.
+      // Eckig: die Status-Bar ist abgeschaltet, also steht die volle Hoehe zur Verfuegung.
       const ys = round
-        ? [px(104), px(188), px(272), px(356)]
-        : [Math.round(DH * 0.14), Math.round(DH * 0.33), Math.round(DH * 0.52), Math.round(DH * 0.71)];
+        ? [px(84), px(150), px(216), px(282), px(348)]
+        : [0.04, 0.215, 0.39, 0.565, 0.74].map((f) => Math.round(DH * f));
       const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
         x: round ? px(80) : px(24), y: y, w: round ? DW - px(160) : DW - px(48),
-        h: round ? px(60) : px(56), radius: round ? px(30) : px(28),
-        text: text, text_size: px(27), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
+        h: round ? px(52) : Math.round(DH * 0.13), radius: round ? px(26) : Math.round(DH * 0.065),
+        text: text, text_size: px(25), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
       // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
       // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
       // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
@@ -941,11 +975,17 @@ Page(
       const layTxt = s.layoutsPref === null
         ? t("common.auto") + " (" + onOff(s.layoutsServerDefault) + ")"
         : onOff(s.layoutsPref);
+      // Gleiches Muster fuer die Touch-Sperre: bei "Automatisch" steht der aufgeloeste Zustand
+      // dahinter, damit sichtbar ist, was die Tastenzahl des Modells ergibt.
+      const lockTxt = s.touchLockPref === null
+        ? t("common.auto") + " (" + onOff(KEY_NUMBER >= 3) + ")"
+        : onOff(s.touchLockPref);
       w.foilBtns = [
         mk(ys[0], t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
         mk(ys[1], t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
         mk(ys[2], t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
         mk(ys[3], t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
+        mk(ys[4], t("menu.touchLock") + ": " + lockTxt, () => { this._cycleTouchLockPref(); this.renderIdle(); }),
       ];
     },
     _clearFoilBtns() {
@@ -959,6 +999,15 @@ Page(
       s.layoutsPref = s.layoutsPref === null ? true : (s.layoutsPref ? false : null);
       store.setItem("layoutsPref", s.layoutsPref === null ? "" : (s.layoutsPref ? "1" : "0"));
       s._ringKey = null; s.w.layKey = null;   // Ring + gezeichnete Layout-Widgets neu aufbauen
+    },
+    // Automatisch -> An -> Aus -> Automatisch, persistiert. Greift sofort: laeuft gerade eine
+    // Aufzeichnung, wird die Sperre entsprechend gesetzt oder aufgehoben (das Menue ist waehrend
+    // der Aufnahme zwar nicht erreichbar, aber die Wahl soll auch nicht bis zum Neustart warten).
+    _cycleTouchLockPref() {
+      const s = this.state;
+      s.touchLockPref = s.touchLockPref === null ? true : (s.touchLockPref ? false : null);
+      store.setItem("touchLockPref", s.touchLockPref === null ? "" : (s.touchLockPref ? "1" : "0"));
+      if (s.recording) { if (this._useTouchLock()) this._lockTouch(); else this._disableTouchLock(); }
     },
     _cycleFoil() {
       const s = this.state;
