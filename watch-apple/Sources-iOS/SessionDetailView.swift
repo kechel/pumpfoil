@@ -1232,6 +1232,7 @@ struct SessionDetailView: View {
         // (wie die PWA). `puls_antwort_bpm` im Segment ist der MITTELWERT, nicht das Maximum.
         RunsTable(segments: segs, selected: selectedRun, lang: lang,
                   hr: s.analysis?.track_geojson?.properties?.hr ?? [],
+                  sessionId: s.id,
                   win: win,
                   sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz,
                   wattFuer: wattFuer(s),
@@ -1895,6 +1896,8 @@ private struct RunsTable: View {
     let lang: String
     // Puls je Trackpunkt - Quelle fuer den Hoechstpuls je Lauf (s. runsTable).
     var hr: [Int?] = []
+    // Session-Id fuer die Vergleichs-Spalte (ein Korb-Eintrag ist sessionId + Lauf-Index).
+    var sessionId: Int = 0
     // Glaettungsfenster der Detailansicht (1/3/5 s) - dieselbe Wahl wie im Geschwindigkeitsdiagramm,
     // damit die Spalten Max/Min dasselbe zeigen wie die Kurve darueber.
     var win: Int = 3
@@ -1911,6 +1914,8 @@ private struct RunsTable: View {
 
     // Damit ein Wechsel Hz <-> Pumps/min sofort durchschlaegt (s. PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnitRaw = "hz"
+    // Vergleichskorb: die erste Spalte legt EINZELNE LAEUFE hinein (wie die PWA-Lauf-Tabelle).
+    @ObservedObject private var compare = CompareStore.shared
 
     /// Eine Spalte: Kopf, feste Breite (Kopf und Zellen muessen beim Waagerecht-Scrollen
     /// deckungsgleich bleiben) und die Zellwert-Funktion.
@@ -2026,6 +2031,9 @@ private struct RunsTable: View {
 
     private func kopfZeile(_ sp: [Spalte]) -> some View {
         HStack(spacing: 8) {
+            // Kopf der Vergleichs-Spalte: nur ein Symbol, wie in der PWA.
+            Image(systemName: "arrow.left.arrow.right").font(.caption2)
+                .foregroundStyle(.secondary).frame(width: 24)
             // "#" bekommt eine feste, schmale Spalte.
             Text("#").font(.caption2).foregroundStyle(.secondary)
                 .frame(width: 22, alignment: .leading)
@@ -2050,6 +2058,7 @@ private struct RunsTable: View {
     private func zeile(_ i: Int, _ seg: Segment, _ sp: [Spalte]) -> some View {
         let sel = selected == i
         return HStack(spacing: 8) {
+            compareButton(i)
             Text("\(i + 1)").font(.caption).monospacedDigit()
                 .foregroundStyle(sel ? Color.accentColor : Color.primary)
                 .frame(width: 22, alignment: .leading)
@@ -2066,6 +2075,21 @@ private struct RunsTable: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
         .onTapGesture { onSelect(i) }
+    }
+
+    /// Diesen EINEN Lauf in den Vergleichskorb legen bzw. herausnehmen. Eigene Zelle, damit der
+    /// Tap nicht die Zeilen-Auswahl umschaltet. Gleiche Bedeutung wie die erste Spalte der
+    /// PWA-Lauf-Tabelle: ein Korb-Eintrag ist (sessionId, runIdx).
+    private func compareButton(_ i: Int) -> some View {
+        let ref = CompareRef(sessionId: sessionId, runIdx: i)
+        let drin = compare.contains(ref)
+        return Button { compare.toggle(ref) } label: {
+            Image(systemName: "arrow.left.arrow.right").font(.caption)
+                .foregroundStyle(drin ? Color.accentColor : Color.secondary)
+        }
+        .buttonStyle(.borderless)
+        .frame(width: 24)
+        .accessibilityLabel(Loc.t(drin ? "compare.remove" : "compare.add", lang))
     }
 
     // Eigene Zelle statt Zeilen-Tap: der Knopf schluckt den Tap, die Zeilen-Auswahl bleibt.

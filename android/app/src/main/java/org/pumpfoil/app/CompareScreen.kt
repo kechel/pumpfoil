@@ -67,18 +67,26 @@ private const val CMP_GAP_M = 30.0
 
 // Eine verglichene Session mit geparstem Track + Farben.
 private class CmpTrack(
+    val ref: CompareRef,
     val session: SessionDetail,
     val track: Track,
     val sessionColor: Color,
     val riderColor: Color,
+    // Die anzuzeigenden Laeufe MIT ihrem Original-Index: bei einem Lauf-Eintrag genau einer,
+    // bei einer ganzen Session alle. Der Index ist die Lauf-Nummer in der Session, nicht die
+    // Position in dieser Liste — sonst stuende bei Lauf 5 eine 1.
+    val laeufe: List<Pair<Int, Segment>>,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     // Auswahl kommt per Long-Press aus den Session-Listen (CompareStore) — keine eigene Liste hier.
-    val selected by CompareStore.ids.collectAsState()
-    var results by remember { mutableStateOf<List<SessionDetail>>(emptyList()) }
+    val selected by CompareStore.refs.collectAsState()
+    // Je Korb-Eintrag der geladene Datensatz; dieselbe Session darf zweimal vorkommen (zwei
+    // Laeufe). `results` bleibt als abgeleitete Liste, damit die uebrige Anzeige unveraendert geht.
+    var items by remember { mutableStateOf<List<Pair<CompareRef, SessionDetail>>>(emptyList()) }
+    val results = items.map { it.second }
     var loading by remember { mutableStateOf(true) }
     var merging by remember { mutableStateOf(false) }
     var mergeError by remember { mutableStateOf<String?>(null) }
@@ -88,8 +96,12 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
 
     LaunchedEffect(selected) {
         loading = true
-        results = selected.toList().mapNotNull { try { Api.session(it) } catch (_: Exception) { null } }
-            .sortedBy { it.startedAt }
+        // Jede Session nur EINMAL laden, auch wenn zwei ihrer Laeufe im Korb liegen.
+        val geladen = selected.map { it.sessionId }.distinct().mapNotNull { id ->
+            try { id to Api.session(id) } catch (_: Exception) { null }
+        }.toMap()
+        // Reihenfolge des Korbs beibehalten (bestimmt die Farbe), NICHT sortieren.
+        items = selected.mapNotNull { r -> geladen[r.sessionId]?.let { r to it } }
         if (results.mapNotNull { it.ownerName }.toSet().size > 1) mode = CompareMode.RIDER
         loading = false
     }
@@ -99,13 +111,18 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     fun riderColor(name: String?) = compareColor(riders.indexOf(name ?: "—").coerceAtLeast(0))
 
     // Geparste Tracks (nur Sessions mit Track/Segmenten).
-    val cmpTracks: List<CmpTrack> = results.mapIndexedNotNull { i, s ->
+    val cmpTracks: List<CmpTrack> = items.mapIndexedNotNull { i, (ref, s) ->
         val tg = s.analysis?.trackGeojson ?: return@mapIndexedNotNull null
-        val segs = s.analysis.segments.orEmpty()
-        if (segs.isEmpty()) return@mapIndexedNotNull null
+        val alle = s.analysis.segments.orEmpty()
+        if (alle.isEmpty()) return@mapIndexedNotNull null
+        // Lauf-Eintrag -> genau dieser Lauf; ganze Session -> alle. Die Karte zeichnet nur
+        // innerhalb iStart..iEnd je Segment, damit erscheint bei einem Lauf-Eintrag nur er.
+        val laeufe = if (ref.runIdx != null) {
+            alle.getOrNull(ref.runIdx)?.let { listOf(ref.runIdx to it) } ?: return@mapIndexedNotNull null
+        } else alle.mapIndexed { idx, seg -> idx to seg }
         val t = parseTrack(tg)
         if (t.points.size < 2) return@mapIndexedNotNull null
-        CmpTrack(s, t, compareColor(i), riderColor(s.ownerName))
+        CmpTrack(ref, s, t, compareColor(i), riderColor(s.ownerName), laeufe)
     }
     val hasPump = cmpTracks.any { it.track.pumpHz.any { v -> v != null } }
     val hasHr = cmpTracks.any { it.track.hr.any { v -> v != null && v > 0 } }
@@ -115,7 +132,9 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     val hrRange = (hrVals.minOrNull() ?: 100) to (hrVals.maxOrNull() ?: 170)
 
     // Zusammenführen nur plausibel erlaubt: alle eigene, >=2, gleicher Tag + Spot (Server prüft final).
-    val mergeable = results.size == selected.size && results.size >= 2 && results.all { it.owned } &&
+    // Einzelne Laeufe lassen sich nicht zusammenfuehren (wie `mergeableIds` in der PWA).
+    val mergeable = selected.all { it.runIdx == null } &&
+        results.size == selected.size && results.size >= 2 && results.all { it.owned } &&
         results.map { it.startedAt.take(10) }.distinct().size == 1 &&
         results.map { (it.placeName ?: "").trim().lowercase() }.distinct().size == 1
 
@@ -142,7 +161,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                         // Fahrer-Chips: Farbe · Fahrer · Datum · Foil.
                         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            results.forEachIndexed { i, s ->
+                            items.forEachIndexed { i, (ref, s) ->
                                 val dot = if (mode == CompareMode.RIDER) riderColor(s.ownerName) else compareColor(i)
                                 Row(Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                                     .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -150,6 +169,14 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                     Spacer(Modifier.width(6.dp))
                                     Column {
                                         Row {
+                                            // Bei einem Lauf-Eintrag steht die Lauf-Nummer vorn (PWA: itemLabel).
+                                            ref.runIdx?.let { ri ->
+                                                Text(I18n.t("compare.run").replace("{n}", (ri + 1).toString()),
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.primary)
+                                                Spacer(Modifier.width(4.dp))
+                                            }
                                             s.ownerName?.takeIf { it.isNotBlank() }?.let {
                                                 Text(it, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                                                 Spacer(Modifier.width(4.dp))
@@ -195,8 +222,8 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                             }
                         }
 
-                        CompareTable(results)
-                        AllRuns(cmpTracks, mode) { s -> if (mode == CompareMode.RIDER) riderColor(s.ownerName) else compareColor(results.indexOf(s)) }
+                        CompareTable(items)
+                        AllRuns(cmpTracks, mode)
                     }
                     mergeError?.let {
                         Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -208,7 +235,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Button(
                                 onClick = {
-                                    val ids = selected.toList(); mergeError = null; merging = true
+                                    val ids = selected.map { it.sessionId }.distinct(); mergeError = null; merging = true
                                     scope.launch {
                                         try {
                                             val newId = Api.mergeSessions(ids)
@@ -254,7 +281,7 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
             val all = ArrayList<GeoPoint>()
             for (cmp in tracks) {
                 val pts = cmp.track.points
-                for (seg in cmp.session.analysis?.segments.orEmpty()) {
+                for ((_, seg) in cmp.laeufe) {
                     val start = seg.iStart.coerceIn(0, pts.size - 1)
                     val end = seg.iEnd.coerceIn(0, pts.size - 1)
                     for (i in start until end) {
@@ -300,15 +327,25 @@ private fun GradientLegend(mode: CompareMode, pumpRange: Pair<Double, Double>, h
 
 // Alle Foiling-Läufe aller verglichenen Sessions als flache Liste (wie PWA/iOS).
 @Composable
-private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode, dotColor: (SessionDetail) -> Color) {
-    val rows = tracks.flatMap { cmp -> cmp.session.analysis?.segments.orEmpty().mapIndexed { idx, seg -> Triple(cmp.session, idx, seg) } }
+private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode) {
+    // Farbe kommt vom EINTRAG, nicht von der Session: liegt dieselbe Session zweimal im Korb
+    // (zwei ihrer Laeufe), muessen die Zeilen verschiedene Farben haben — wie in der PWA, wo die
+    // Farbe am Eintrag haengt. Vorher suchte dotColor() die Session in der Liste und traf immer
+    // die erste.
+    val rows = tracks.flatMap { cmp ->
+        cmp.laeufe.map { (idx, seg) ->
+            val farbe = if (mode == CompareMode.RIDER) cmp.riderColor else cmp.sessionColor
+            Triple(cmp.session, idx to seg, farbe)
+        }
+    }
     if (rows.isEmpty()) return
     Column(Modifier.fillMaxWidth()) {
         Text(I18n.t("compare.runsTitle"), style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-        rows.forEach { (s, idx, seg) ->
+        rows.forEach { (s, lauf, farbe) ->
+            val (idx, seg) = lauf
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(dotColor(s), CircleShape))
+                Box(Modifier.size(8.dp).background(farbe, CircleShape))
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Row {
@@ -330,21 +367,27 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode, dotColor: (Sessio
 private fun cmpMmss(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
 
 @Composable
-private fun CompareTable(sessions: List<SessionDetail>) {
-    val metrics: List<Pair<String, (SessionDetail) -> String>> = listOf(
-        I18n.t("compare.distance") to { s -> s.analysis?.totalDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        I18n.t("home.foiling") to { s -> s.analysis?.foilingDistanceM?.let { "%.0f m".format(it) } ?: "–" },
-        I18n.t("home.topSpeed") to { s -> s.analysis?.maxSpeedMps?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
-        I18n.t("home.pumps") to { s -> s.analysis?.pumpCount?.toString() ?: "–" },
-        I18n.t("compare.foilTime") to { s -> s.analysis?.foilingTimeS?.let { "%d:%02d".format((it / 60).toInt(), (it % 60).toInt()) } ?: "–" },
-        I18n.t("compare.cadence") to { s -> PumpUnit.fmt(s.analysis?.avgCadenceHz) },
+private fun CompareTable(items: List<Pair<CompareRef, SessionDetail>>) {
+    // Eine Spalte je Korb-Eintrag. Bei einem LAUF-Eintrag kommen die Werte aus dem Lauf, nicht aus
+    // der Session — sonst stuende unter der Ueberschrift "Lauf 3" stillschweigend die Summe der
+    // ganzen Session. Genau diese Aufteilung macht `statsFor` in der PWA (Zweig `if (it.seg)`).
+    fun mmss(v: Double) = "%d:%02d".format((v / 60).toInt(), (v % 60).toInt())
+    val metrics: List<Pair<String, (CompareRef, SessionDetail) -> String>> = listOf(
+        I18n.t("compare.distance") to { r, s -> lauf(r, s)?.let { "%.0f m".format(it.distanceM) } ?: s.analysis?.totalDistanceM?.let { "%.0f m".format(it) } ?: "–" },
+        I18n.t("home.foiling") to { r, s -> lauf(r, s)?.let { "%.0f m".format(it.distanceM) } ?: s.analysis?.foilingDistanceM?.let { "%.0f m".format(it) } ?: "–" },
+        I18n.t("home.topSpeed") to { r, s -> (lauf(r, s)?.maxSpeedMps ?: s.analysis?.maxSpeedMps)?.let { "%.1f km/h".format(it * 3.6) } ?: "–" },
+        I18n.t("home.pumps") to { r, s -> lauf(r, s)?.pumps?.toString() ?: s.analysis?.pumpCount?.toString() ?: "–" },
+        I18n.t("compare.foilTime") to { r, s -> lauf(r, s)?.let { mmss(it.durationS) } ?: s.analysis?.foilingTimeS?.let { mmss(it) } ?: "–" },
+        I18n.t("compare.cadence") to { r, s -> PumpUnit.fmt(lauf(r, s)?.avgPumpHz ?: s.analysis?.avgCadenceHz) },
     )
     val cell = 110.dp
     Column(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(12.dp)) {
         Row {
             Box(Modifier.width(96.dp)) {}
-            sessions.forEach { s ->
-                Text(prettyDate(s.startedAt, s.tz).take(10), Modifier.width(cell).padding(4.dp),
+            items.forEach { (r, s) ->
+                val kopf = r.runIdx?.let { I18n.t("compare.run").replace("{n}", (it + 1).toString()) }
+                    ?: prettyDate(s.startedAt, s.tz).take(10)
+                Text(kopf, Modifier.width(cell).padding(4.dp),
                     style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             }
         }
@@ -353,10 +396,14 @@ private fun CompareTable(sessions: List<SessionDetail>) {
             Row(Modifier.padding(vertical = 6.dp)) {
                 Text(label, Modifier.width(96.dp), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                sessions.forEach { s ->
-                    Text(fn(s), Modifier.width(cell).padding(horizontal = 4.dp), style = MaterialTheme.typography.bodyMedium)
+                items.forEach { (r, s) ->
+                    Text(fn(r, s), Modifier.width(cell).padding(horizontal = 4.dp), style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
     }
 }
+
+/** Das referenzierte Segment, oder null bei einem Eintrag fuer die ganze Session. */
+private fun lauf(r: CompareRef, s: SessionDetail): Segment? =
+    r.runIdx?.let { s.analysis?.segments?.getOrNull(it) }

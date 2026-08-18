@@ -365,7 +365,7 @@ fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp) {
 fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val a = s.analysis
     val m = a?.metrics
-    val inCompare = CompareStore.ids.collectAsState().value.contains(s.id)
+    val inCompare = CompareStore.refs.collectAsState().value.contains(CompareRef(s.id))
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(
             onClick = onClick, onLongClick = { CompareStore.toggle(s.id) }),
@@ -658,7 +658,7 @@ internal fun TrackPreviewCanvas(data: String, modifier: Modifier) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val inCompare = CompareStore.ids.collectAsState().value.contains(c.id)
+    val inCompare = CompareStore.refs.collectAsState().value.contains(CompareRef(c.id))
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(
             onClick = onClick, onLongClick = { CompareStore.toggle(c.id) }),

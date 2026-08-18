@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Favorite
@@ -88,6 +89,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -1230,6 +1232,8 @@ private fun RunsTable(
     onSelect: (Int) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    // Vergleichskorb: die erste Spalte legt EINZELNE LAEUFE hinein (wie die PWA-Lauf-Tabelle).
+    val korb by CompareStore.refs.collectAsState()
     // NICHT isSystemInDarkTheme(): ThemeState kann Hell/Dunkel erzwingen (Theme.kt:57-60).
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val amber = if (dark) AmberOnDark else AmberOnLight
@@ -1400,6 +1404,10 @@ private fun RunsTable(
             val hScroll = rememberScrollState()
             Column(Modifier.horizontalScroll(hScroll)) {
                 Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.Bottom) {
+                    // Kopf der Vergleichs-Spalte: nur ein Symbol, wie in der PWA.
+                    Icon(Icons.Filled.CompareArrows, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(32.dp).size(16.dp))
                     Text("#", style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(24.dp))
@@ -1421,6 +1429,16 @@ private fun RunsTable(
                             .padding(vertical = 4.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        // Diesen EINEN Lauf in den Korb legen bzw. herausnehmen. Eigener Knopf,
+                        // damit der Tap nicht die Zeilen-Auswahl umschaltet.
+                        val ref = CompareRef(sessionId, i)
+                        val drin = ref in korb
+                        IconButton(onClick = { CompareStore.toggle(ref) }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Filled.CompareArrows,
+                                contentDescription = I18n.t(if (drin) "compare.remove" else "compare.add"),
+                                tint = if (drin) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp))
+                        }
                         Text("${i + 1}", style = MaterialTheme.typography.bodySmall,
                             color = if (sel) MaterialTheme.colorScheme.primary else Color.Unspecified,
                             modifier = Modifier.width(24.dp))

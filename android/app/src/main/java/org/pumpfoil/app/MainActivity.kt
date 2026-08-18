@@ -132,7 +132,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
 
-    val compareIds by CompareStore.ids.collectAsState()
+    val compareIds by CompareStore.refs.collectAsState()
     val recSt by Recorder.state.collectAsState()
     Scaffold(
         // Kein Status-Bar-Inset auf den Content legen — die inneren Screen-Topbars (PumpfoilTopBar)

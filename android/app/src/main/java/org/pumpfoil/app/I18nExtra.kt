@@ -5,6 +5,9 @@ package org.pumpfoil.app
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
 val PT: Map<String, String> = mapOf(
+    "compare.run" to "Volta {n}",
+    "compare.add" to "Adicionar à comparação",
+    "compare.remove" to "Remover da comparação",
     "settings.nChat" to "Novas mensagens de chat (salas inscritas)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
     "sd.colStart" to "Início",
@@ -596,6 +599,9 @@ val PT: Map<String, String> = mapOf(
 )
 
 val JA: Map<String, String> = mapOf(
+    "compare.run" to "ラン {n}",
+    "compare.add" to "比較に追加",
+    "compare.remove" to "比較から削除",
     "settings.nChat" to "新しいチャットメッセージ（購読中のルーム）",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
     "sd.colStart" to "開始",
@@ -1187,6 +1193,9 @@ val JA: Map<String, String> = mapOf(
 )
 
 val ZH: Map<String, String> = mapOf(
+    "compare.run" to "航段 {n}",
+    "compare.add" to "加入对比",
+    "compare.remove" to "从对比中移除",
     "settings.nChat" to "新聊天消息（已订阅的聊天室）",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
     "sd.colStart" to "开始",
@@ -1778,6 +1787,9 @@ val ZH: Map<String, String> = mapOf(
 )
 
 val RU: Map<String, String> = mapOf(
+    "compare.run" to "Заезд {n}",
+    "compare.add" to "Добавить к сравнению",
+    "compare.remove" to "Убрать из сравнения",
     "settings.nChat" to "Новые сообщения в чате (подписанные комнаты)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
     "sd.colStart" to "Начало",
@@ -2369,6 +2381,9 @@ val RU: Map<String, String> = mapOf(
 )
 
 val ID: Map<String, String> = mapOf(
+    "compare.run" to "Run {n}",
+    "compare.add" to "Tambahkan ke perbandingan",
+    "compare.remove" to "Hapus dari perbandingan",
     "settings.nChat" to "Pesan chat baru (ruang yang dilangganani)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
     "sd.colStart" to "Mulai",
@@ -2963,6 +2978,9 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "compare.run" to "Run {n}",
+    "compare.add" to "Legg til sammenligning",
+    "compare.remove" to "Fjern fra sammenligning",
     "settings.nChat" to "Nye chatmeldinger (rom du abonnerer på)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
     "sd.colStart" to "Start",

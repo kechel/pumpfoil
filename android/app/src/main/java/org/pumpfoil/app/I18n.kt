@@ -588,6 +588,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "alarm.patLsl" to row("lang-kurz-lang", "lang-churz-lang", "lang-kurz-lang", "long-short-long", "long-court-long", "lungo-breve-lungo", "largo-corto-largo"),
 
     "compare.title" to row("Vergleich", "Verglych", "Vergleich", "Compare", "Comparaison", "Confronto", "Comparación"),
+    "compare.run" to row("Lauf {n}", "Lauf {n}", "Lauf {n}", "Run {n}", "Run {n}", "Run {n}", "Run {n}"),
+    "compare.add" to row("Zum Vergleich", "Zum Verglych", "Zum Vergleich", "Add to compare", "Comparer", "Confronta", "Comparar"),
+    "compare.remove" to row("Aus Vergleich entfernen", "Us em Verglych entferne", "Ausm Vergleich entfernen", "Remove from compare", "Retirer de la comparaison", "Rimuovi dal confronto", "Quitar de la comparación"),
     "compare.result" to row("Vergleich", "Vergliich", "Vergleich", "Comparison", "Comparaison", "Confronto", "Comparación"),
     "compare.pick" to row("2+ Sessions zum Vergleich wählen", "2+ Sessions zum Vergliiche wähle", "2+ Sessions zum Vergleich wählen", "Select 2+ sessions to compare", "Sélectionner 2+ sessions à comparer", "Seleziona 2+ sessioni da confrontare", "Selecciona 2+ sesiones para comparar"),
     "compare.hint" to row("Tipp: Session lange drücken zum Hinzufügen", "Tipp: Session lang drücke zum Hinzuefüege", "Tipp: Session lange drücken zum Hinzufügen", "Tip: long-press a session to add it", "Astuce : appui long sur une session pour l'ajouter", "Suggerimento: tieni premuta una sessione per aggiungerla", "Consejo: mantén pulsada una sesión para añadirla"),
@@ -879,6 +882,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts kopiert). App-eigene Keys ohne fi
 // fallen in t() auf Englisch zurueck. Bei neuen fi-Strings hier ergaenzen.
 private val FI: Map<String, String> = mapOf(
+    "compare.run" to "Lenkki {n}",
+    "compare.add" to "Vertailuun",
+    "compare.remove" to "Poista vertailusta",
     "settings.nChat" to "Uudet chat-viestit (tilatut huoneet)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     "sd.colStart" to "Alku",
@@ -1428,6 +1434,9 @@ private val FI: Map<String, String> = mapOf(
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
 private val NL: Map<String, String> = mapOf(
+    "compare.run" to "Run {n}",
+    "compare.add" to "Aan vergelijking toevoegen",
+    "compare.remove" to "Uit vergelijking verwijderen",
     "settings.nChat" to "Nieuwe chatberichten (geabonneerde ruimtes)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
     "sd.colStart" to "Start",
@@ -2020,6 +2029,9 @@ private val NL: Map<String, String> = mapOf(
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
 private val CS: Map<String, String> = mapOf(
+    "compare.run" to "Jízda {n}",
+    "compare.add" to "Do porovnání",
+    "compare.remove" to "Odebrat z porovnání",
     "settings.nChat" to "Nové zprávy v chatu (odebírané místnosti)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
     "sd.colStart" to "Začátek",

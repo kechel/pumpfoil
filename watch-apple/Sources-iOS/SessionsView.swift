@@ -125,7 +125,7 @@ struct SessionsView: View {
                 .listRowBackground(Color.accentColor.opacity(0.12))
         }
         ForEach(suggestions) { sug in
-            NavigationLink { CompareView(preselect: Set(sug.ids)) } label: {
+            NavigationLink { CompareView(preselect: sug.ids.map { CompareRef(sessionId: $0, runIdx: nil) }) } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(Loc.t("merge.suggestTitle", lang)).font(.subheadline).bold()
                     Text([sug.place, sug.date, "\(sug.count)×"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))

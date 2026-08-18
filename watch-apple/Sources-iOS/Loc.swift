@@ -17,6 +17,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
     private static let _csOverlayP11: [String: String] = [
+        "compare.run": "Jízda {n}",
         "settings.nChat": "Nové zprávy v chatu (odebírané místnosti)",
         "sd.colStart": "Začátek",
         "sd.colDistance": "Vzdálenost",
@@ -633,6 +634,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
     private static let _nlOverlayP11: [String: String] = [
+        "compare.run": "Run {n}",
         "settings.nChat": "Nieuwe chatberichten (geabonneerde ruimtes)",
         "sd.colStart": "Start",
         "sd.colDistance": "Afstand",
@@ -1266,6 +1268,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     private static let _fiOverlayP11: [String: String] = [
+        "compare.run": "Lenkki {n}",
         "settings.nChat": "Uudet chat-viestit (tilatut huoneet)",
         "sd.colStart": "Alku",
         "sd.colDistance": "Matka",
@@ -2513,6 +2516,7 @@ enum Loc {
         "alarm.patLong2": r("2× lang", "2× lang", "2× lang", "2× long", "2× long", "2× lungo", "2× largo"),
         "alarm.patLsl": r("lang-kurz-lang", "lang-churz-lang", "lang-kurz-lang", "long-short-long", "long-court-long", "lungo-breve-lungo", "largo-corto-largo"),
         "compare.title": r("Vergleich", "Verglych", "Vergleich", "Compare", "Comparaison", "Confronto", "Comparación"),
+        "compare.run": r("Lauf {n}", "Lauf {n}", "Lauf {n}", "Run {n}", "Run {n}", "Run {n}", "Run {n}"),
         "merge.action": r("Zusammenführen", "Zämeführe", "Zsammführn", "Merge", "Fusionner", "Unisci", "Combinar"),
         "merge.compareHint": r("Eigene Sessions vom selben Tag & Spot — 'Zusammenführen' macht daraus EINE Session (Rohdaten aneinandergehängt, neu ausgewertet; Quellen werden archiviert).", "Eigeni Sessions vom gliiche Tag & Spot — 'Zämeführe' macht draus EI Session (Rohdate aneinand, nöi usgwertet; Quelle wärded archiviert).", "Eigene Sessions vom söbn Tog & Spot — 'Zsammführn' mocht daraus OANE Session (Rohdatn aneinand, nei ausgwertt; Quelln wern archiviert).", "Your own sessions from the same day & spot — 'Merge' combines them into ONE session (raw data concatenated and re-analyzed; sources are archived).", "Vos sessions du même jour et spot — 'Fusionner' les combine en UNE session (données brutes concaténées et ré-analysées; sources archivées).", "Le tue sessioni dello stesso giorno e spot — 'Unisci' le combina in UNA sessione (dati grezzi concatenati e ri-analizzati; le origini vengono archiviate).", "Tus sesiones del mismo día y spot — 'Combinar' las une en UNA sesión (datos sin procesar concatenados y reanalizados; los orígenes se archivan)."),
         "compare.runsTitle": r("Alle Läufe", "Alli Läuf", "Olle Läuf", "All runs", "Toutes les courses", "Tutte le corse", "Todas las carreras"),

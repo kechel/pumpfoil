@@ -87,7 +87,7 @@ struct MainTabView: View {
         }
         .overlay(alignment: .bottom) { compareOverlay }
         .sheet(isPresented: $showCompare) {
-            NavigationStack { CompareView(preselect: compare.ids) }
+            NavigationStack { CompareView(preselect: compare.refs) }
         }
     }
 
@@ -140,7 +140,7 @@ struct MainTabView: View {
     }
 
     @ViewBuilder private var compareOverlay: some View {
-        if !compare.ids.isEmpty {
+        if !compare.refs.isEmpty {
             Button { showCompare = true } label: {
                 Label(compareBarText, systemImage: "arrow.left.arrow.right")
                     .font(.subheadline.weight(.semibold))
@@ -154,7 +154,7 @@ struct MainTabView: View {
     }
 
     private var compareBarText: String {
-        Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.ids.count))
+        Loc.t("compare.bar", lang).replacingOccurrences(of: "{n}", with: String(compare.refs.count))
     }
 
     @ViewBuilder private func tabContent(_ i: Int) -> some View {

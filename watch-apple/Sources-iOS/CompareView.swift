@@ -6,11 +6,17 @@ import UIKit
 // Mehrere eigene Sessions nebeneinander vergleichen. Auswahl kommt AUSSCHLIESSLICH per
 // Long-Press aus den Session-Listen (CompareStore/preselect) — keine eigene Auswahlliste hier.
 struct CompareView: View {
-    var preselect: Set<Int> = []
+    // Eintraege des Korbs in ihrer REIHENFOLGE (ganze Session oder ein einzelner Lauf) —
+    // genau wie `refs` in web/src/pages/Compare.tsx. Die Reihenfolge bestimmt die Farbzuordnung,
+    // und dieselbe Session darf zweimal drin sein, wenn zwei ihrer Laeufe verglichen werden.
+    var preselect: [CompareRef] = []
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
-    @State private var results: [SessionDetail] = []
+    // Je Korb-Eintrag der geladene Datensatz. `results` bleibt als abgeleitete Liste bestehen,
+    // damit Karte, Legende und Farbpalette unveraendert damit arbeiten koennen.
+    @State private var items: [(ref: CompareRef, s: SessionDetail)] = []
+    private var results: [SessionDetail] { items.map(\.s) }
     @State private var loading = true
     @State private var merging = false
     @State private var mergeError: String?
@@ -88,16 +94,21 @@ struct CompareView: View {
     private func merge() {
         mergeError = nil; merging = true
         Task {
-            do { mergedId = try await Api.mergeSessions(Array(preselect)) }
+            do { mergedId = try await Api.mergeSessions(Array(Set(preselect.map(\.sessionId)))) }
             catch { mergeError = error.localizedDescription }
             merging = false
         }
     }
 
     private func load() async {
-        var out: [SessionDetail] = []
-        for id in preselect { if let d = try? await Api.session(id) { out.append(d) } }
-        results = out.sorted { $0.started_at < $1.started_at }
+        // Jede Session nur EINMAL laden, auch wenn zwei ihrer Laeufe im Korb liegen.
+        var geladen: [Int: SessionDetail] = [:]
+        for id in Set(preselect.map(\.sessionId)) {
+            if let d = try? await Api.session(id) { geladen[id] = d }
+        }
+        // Reihenfolge des Korbs beibehalten (bestimmt die Farbe) — NICHT nach Datum sortieren,
+        // sonst wandert die Farbe eines Eintrags, wenn ein zweiter Lauf dazukommt.
+        items = preselect.compactMap { r in geladen[r.sessionId].map { (ref: r, s: $0) } }
         // Default-Färbung wie PWA: bei mehreren Fahrern „Je Fahrer", sonst „Je Track".
         if Set(results.compactMap { $0.owner_name }).count > 1 { mapMode = .rider }
         loading = false
@@ -106,6 +117,9 @@ struct CompareView: View {
     // Zusammenführen nur, wenn plausibel erlaubt (Client-Spiegel; Server prüft final): alle
     // eigene Sessions, >=2, gleicher Tag UND gleicher Spot.
     private var mergeable: Bool {
+        // Einzelne Laeufe lassen sich nicht zusammenfuehren (wie `mergeableIds` in der PWA:
+        // `if (refs.some(r => r.runIdx != null)) return null`).
+        guard preselect.allSatisfy({ $0.runIdx == nil }) else { return false }
         guard results.count == preselect.count, results.count >= 2, results.allSatisfy({ $0.owned == true }) else { return false }
         let days = Set(results.map { String($0.started_at.prefix(10)) })
         let spots = Set(results.map { ($0.place_name ?? "").trimmingCharacters(in: .whitespaces).lowercased() })
@@ -141,9 +155,14 @@ struct CompareView: View {
 
     // CompareMap.Track je Session mit allen Punkt-Daten (windowed Speed, Pump, Puls).
     private var mapTracks: [CompareMap.Track] {
-        results.enumerated().compactMap { i, s in
+        items.enumerated().compactMap { i, it in
+            let s = it.s
             guard let t = s.analysis?.track_geojson, t.geometry.coordinates.count >= 2,
-                  let segs = s.analysis?.segments, !segs.isEmpty else { return nil }
+                  let alle = s.analysis?.segments, !alle.isEmpty else { return nil }
+            // Die Karte zeichnet nur innerhalb i_start..i_end je Segment — bei einem Lauf-Eintrag
+            // reicht es also, genau dieses Segment mitzugeben, dann erscheint nur dieser Lauf.
+            let segs = it.ref.runIdx.flatMap { alle.indices.contains($0) ? [alle[$0]] : nil } ?? alle
+            if segs.isEmpty { return nil }
             let sp = (t.properties?.speeds?[String(mapWin)] ?? t.properties?.speeds_mps ?? []).map { $0 * 3.6 }
             return CompareMap.Track(points: t.geometry.coordinates, segments: segs, color: sessUIColor(i),
                                     riderColor: riderUIColor(s.owner_name),
@@ -236,20 +255,27 @@ struct CompareView: View {
     @ViewBuilder private var sessionChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(Array(results.enumerated()), id: \.element.id) { i, s in
-                    sessionChip(i, s)
+                // Identitaet ueber den Korb-Eintrag, nicht die Session: dieselbe Session darf
+                // zweimal vorkommen (zwei Laeufe), Session-ids waeren dann doppelt.
+                ForEach(Array(items.enumerated()), id: \.element.ref.id) { i, it in
+                    sessionChip(i, it.s, it.ref)
                 }
             }
             .padding(.horizontal)
         }
     }
 
-    private func sessionChip(_ i: Int, _ s: SessionDetail) -> some View {
+    private func sessionChip(_ i: Int, _ s: SessionDetail, _ ref: CompareRef) -> some View {
         HStack(spacing: 6) {
             Circle().fill(dotColor(i, s)).frame(width: 10, height: 10)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
                     if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
+                    // Bei einem Lauf-Eintrag steht die Lauf-Nummer vor dem Datum (PWA: itemLabel).
+                    if let ri = ref.runIdx {
+                        Text(Loc.t("compare.run", lang).replacingOccurrences(of: "{n}", with: String(ri + 1)))
+                            .font(.caption).bold().foregroundStyle(Color.accentColor)
+                    }
                     Text(dateStr(s))
                         .font(.caption).foregroundStyle(.secondary)
                 }
@@ -304,28 +330,35 @@ struct CompareView: View {
 
     // Alle Foiling-Läufe aller verglichenen Sessions als flache Liste (wie PWA AllRunsTable).
     @ViewBuilder private var allRunsSection: some View {
-        let runs: [(SessionDetail, Int, Segment)] = results.flatMap { s in
-            (s.analysis?.segments ?? []).enumerated().map { (s, $0.offset, $0.element) }
+        // Ganze Session -> alle ihre Laeufe; Lauf-Eintrag -> genau dieser eine (wie die PWA:
+        // `it.ref.runIdx != null ? [it.ref.runIdx] : segments.map((_, i) => i)`).
+        let runs: [(Int, SessionDetail, Int, Segment)] = items.enumerated().flatMap { k, it -> [(Int, SessionDetail, Int, Segment)] in
+            let segs = it.s.analysis?.segments ?? []
+            if let ri = it.ref.runIdx {
+                guard segs.indices.contains(ri) else { return [] }
+                return [(k, it.s, ri, segs[ri])]
+            }
+            return segs.enumerated().map { (k, it.s, $0.offset, $0.element) }
         }
         if !runs.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 Text(Loc.t("compare.runsTitle", lang)).font(.headline).padding(.horizontal).padding(.bottom, 6)
                 ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
-                    let (s, idx, seg) = r
-                    runRow(s, idx, seg)
+                    let (k, s, idx, seg) = r
+                    runRow(k, s, idx, seg)
                     Divider()
                 }
             }
         }
     }
 
-    private func runRow(_ s: SessionDetail, _ idx: Int, _ seg: Segment) -> some View {
+    private func runRow(_ korbIdx: Int, _ s: SessionDetail, _ idx: Int, _ seg: Segment) -> some View {
         HStack(spacing: 10) {
             Text("\(idx + 1)").font(.caption2).bold().foregroundStyle(Color.accentColor)
                 .frame(width: 22, height: 22).background(Color.accentColor.opacity(0.12), in: Circle())
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 5) {
-                    Circle().fill(runDotColor(s)).frame(width: 7, height: 7)
+                    Circle().fill(runDotColor(korbIdx, s)).frame(width: 7, height: 7)
                     if let o = s.owner_name, !o.isEmpty { Text(o).font(.caption).bold() }
                     Text(dateStr(s)).font(.caption).foregroundStyle(.secondary)
                 }
@@ -341,11 +374,12 @@ struct CompareView: View {
         .padding(.horizontal).padding(.vertical, 6)
     }
 
-    // Farbe der Lauf-Zeile: Index-Suche + Ternary vorab, nicht im .fill()-Modifier.
-    private func runDotColor(_ s: SessionDetail) -> Color {
+    // Farbe der Lauf-Zeile. Sie haengt am KORB-INDEX, nicht an der Session: liegt dieselbe
+    // Session zweimal im Korb (zwei ihrer Laeufe), muessen die beiden Zeilen verschiedene Farben
+    // haben — genau wie in der PWA, wo die Farbe am Eintrag haengt (`it.color`).
+    private func runDotColor(_ korbIdx: Int, _ s: SessionDetail) -> Color {
         if mapMode == .rider { return riderColorC(s.owner_name) }
-        let i: Int = results.firstIndex(where: { $0.id == s.id }) ?? 0
-        return sessColor(i)
+        return sessColor(korbIdx)
     }
 
     private func mmss(_ s: Double?) -> String {
