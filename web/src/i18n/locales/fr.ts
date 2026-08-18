@@ -50,7 +50,7 @@ const fr: Record<string, string> = {
 
   "nav.home": "Accueil",
   "nav.mySessions": "Mes sessions",
-  "nav.mySessions.short": "Mes",
+  "nav.mySessions.short": "Les miennes",
   "nav.allSessions": "Toutes les sessions",
   "nav.allSessions.short": "Toutes",
   "nav.history": "Historique",
