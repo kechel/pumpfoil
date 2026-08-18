@@ -5,6 +5,7 @@ package org.pumpfoil.app
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
 val PT: Map<String, String> = mapOf(
+    "settings.nChat" to "Novas mensagens de chat (salas inscritas)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
     "sd.colStart" to "Início",
     "sd.colDistance" to "Distância",
@@ -595,6 +596,7 @@ val PT: Map<String, String> = mapOf(
 )
 
 val JA: Map<String, String> = mapOf(
+    "settings.nChat" to "新しいチャットメッセージ（購読中のルーム）",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
     "sd.colStart" to "開始",
     "sd.colDistance" to "距離",
@@ -1185,6 +1187,7 @@ val JA: Map<String, String> = mapOf(
 )
 
 val ZH: Map<String, String> = mapOf(
+    "settings.nChat" to "新聊天消息（已订阅的聊天室）",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
     "sd.colStart" to "开始",
     "sd.colDistance" to "距离",
@@ -1775,6 +1778,7 @@ val ZH: Map<String, String> = mapOf(
 )
 
 val RU: Map<String, String> = mapOf(
+    "settings.nChat" to "Новые сообщения в чате (подписанные комнаты)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
     "sd.colStart" to "Начало",
     "sd.colDistance" to "Дистанция",
@@ -2365,6 +2369,7 @@ val RU: Map<String, String> = mapOf(
 )
 
 val ID: Map<String, String> = mapOf(
+    "settings.nChat" to "Pesan chat baru (ruang yang dilangganani)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
     "sd.colStart" to "Mulai",
     "sd.colDistance" to "Jarak",
@@ -2958,6 +2963,7 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "settings.nChat" to "Nye chatmeldinger (rom du abonnerer på)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
     "sd.colStart" to "Start",
     "sd.colDistance" to "Distanse",

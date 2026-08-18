@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var nLike = true
     @State private var nAnalyzed = true
     @State private var nRecord = true
+    @State private var nChat = true
     @State private var saved = false
     @State private var pwCur = ""
     @State private var pwNew = ""
@@ -57,6 +58,7 @@ struct SettingsView: View {
         .onChange(of: nLike) { _ in saved = false }
         .onChange(of: nAnalyzed) { _ in saved = false }
         .onChange(of: nRecord) { _ in saved = false }
+        .onChange(of: nChat) { _ in saved = false }
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
         .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
@@ -157,6 +159,7 @@ struct SettingsView: View {
             Toggle(Loc.t("settings.nLikes", lang), isOn: $nLike)
             Toggle(Loc.t("settings.nAnalyzed", lang), isOn: $nAnalyzed)
             Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
+            Toggle(Loc.t("settings.nChat", lang), isOn: $nChat)
         }
     }
 
@@ -234,6 +237,7 @@ struct SettingsView: View {
             nLike = (np["like"] as? Bool) ?? true
             nAnalyzed = (np["analyzed"] as? Bool) ?? true
             nRecord = (np["record"] as? Bool) ?? true
+            nChat = (np["chat"] as? Bool) ?? true
         }
         spots = (try? await Api.spots())?.all ?? []
         if let prof = try? await Api.getProfile() { sensitivity = prof.foil_sensitivity ?? "normal" }
@@ -261,7 +265,9 @@ struct SettingsView: View {
             try? await Api.saveSettings([
                 "weight_kg": weight,
                 "homespot": homespot,
-                "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord],
+                // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern von hier
+                // hat die im Web gesetzte Chat-Einstellung also stillschweigend geloescht.
+                "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord, "chat": nChat],
             ])
             saved = true
         }

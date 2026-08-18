@@ -17,6 +17,7 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+    "settings.nChat": "Novas mensagens de chat (salas inscritas)",
     "sd.colStart": "Início",
     "sd.colDistance": "Distância",
     "sd.colDuration": "Duração",
@@ -631,6 +632,7 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+    "settings.nChat": "新しいチャットメッセージ（購読中のルーム）",
     "sd.colStart": "開始",
     "sd.colDistance": "距離",
     "sd.colDuration": "継続時間",
@@ -1245,6 +1247,7 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+    "settings.nChat": "新聊天消息（已订阅的聊天室）",
     "sd.colStart": "开始",
     "sd.colDistance": "距离",
     "sd.colDuration": "时长",
@@ -1859,6 +1862,7 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+    "settings.nChat": "Новые сообщения в чате (подписанные комнаты)",
     "sd.colStart": "Начало",
     "sd.colDistance": "Дистанция",
     "sd.colDuration": "Длительность",
@@ -2473,6 +2477,7 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+    "settings.nChat": "Pesan chat baru (ruang yang dilangganani)",
     "sd.colStart": "Mulai",
     "sd.colDistance": "Jarak",
     "sd.colDuration": "Durasi",
@@ -3086,6 +3091,7 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "settings.nChat": "Nye chatmeldinger (rom du abonnerer på)",
     "sd.colStart": "Start",
     "sd.colDistance": "Distanse",
     "sd.colDuration": "Varighet",

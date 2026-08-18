@@ -346,6 +346,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "settings.nLikes" to row("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
     "settings.nAnalyzed" to row("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
     "settings.nRecord" to row("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
+    "settings.nChat" to row("Neue Chat-Nachrichten (abonnierte Räume)", "Neui Chat-Nachrichte (abonnierti Rüüm)", "Neue Chat-Nachrichten (abonnierte Räume)", "New chat messages (subscribed rooms)", "Nouveaux messages de chat (salons abonnés)", "Nuovi messaggi in chat (stanze sottoscritte)", "Nuevos mensajes de chat (salas suscritas)"),
 
     "home.hello" to row("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
     "home.foiling" to row("Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling", "Foiling"),
@@ -878,6 +879,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts kopiert). App-eigene Keys ohne fi
 // fallen in t() auf Englisch zurueck. Bei neuen fi-Strings hier ergaenzen.
 private val FI: Map<String, String> = mapOf(
+    "settings.nChat" to "Uudet chat-viestit (tilatut huoneet)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     "sd.colStart" to "Alku",
     "sd.colDistance" to "Matka",
@@ -1426,6 +1428,7 @@ private val FI: Map<String, String> = mapOf(
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
 private val NL: Map<String, String> = mapOf(
+    "settings.nChat" to "Nieuwe chatberichten (geabonneerde ruimtes)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
     "sd.colStart" to "Start",
     "sd.colDistance" to "Afstand",
@@ -2017,6 +2020,7 @@ private val NL: Map<String, String> = mapOf(
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
 private val CS: Map<String, String> = mapOf(
+    "settings.nChat" to "Nové zprávy v chatu (odebírané místnosti)",
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
     "sd.colStart" to "Začátek",
     "sd.colDistance" to "Vzdálenost",

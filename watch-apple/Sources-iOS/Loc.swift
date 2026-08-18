@@ -17,6 +17,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
     private static let _csOverlayP11: [String: String] = [
+        "settings.nChat": "Nové zprávy v chatu (odebírané místnosti)",
         "sd.colStart": "Začátek",
         "sd.colDistance": "Vzdálenost",
         "sd.colDuration": "Doba",
@@ -632,6 +633,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
     private static let _nlOverlayP11: [String: String] = [
+        "settings.nChat": "Nieuwe chatberichten (geabonneerde ruimtes)",
         "sd.colStart": "Start",
         "sd.colDistance": "Afstand",
         "sd.colDuration": "Duur",
@@ -1264,6 +1266,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     private static let _fiOverlayP11: [String: String] = [
+        "settings.nChat": "Uudet chat-viestit (tilatut huoneet)",
         "sd.colStart": "Alku",
         "sd.colDistance": "Matka",
         "sd.colDuration": "Kesto",
@@ -2135,6 +2138,7 @@ enum Loc {
         "settings.nLikes": r("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
         "settings.nAnalyzed": r("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
         "settings.nRecord": r("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
+        "settings.nChat": r("Neue Chat-Nachrichten (abonnierte Räume)", "Neui Chat-Nachrichte (abonnierti Rüüm)", "Neue Chat-Nachrichten (abonnierte Räume)", "New chat messages (subscribed rooms)", "Nouveaux messages de chat (salons abonnés)", "Nuovi messaggi in chat (stanze sottoscritte)", "Nuevos mensajes de chat (salas suscritas)"),
         "home.hello": r("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
         "home.weather": r("Wetter am Homespot", "Wätter am Homespot", "Wetter am Homespot", "Weather at home spot", "Météo au spot", "Meteo allo spot", "Tiempo en el spot"),
         "home.myChats": r("Meine Chats", "Mini Chats", "Meine Chats", "My chats", "Mes chats", "Le mie chat", "Mis chats"),
