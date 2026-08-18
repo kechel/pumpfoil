@@ -353,7 +353,7 @@ Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der 
 
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
-| 2026-08-18 15:44 | iOS + Apple Watch | **Apple meldet „iOS 1.0.24"** — im Repo steht 1.1.24 (28) | 🔴 Warten auf Pruefung, ABER Versions-Abweichung, s. unten |
+| 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ⏳ Warten auf Pruefung. Uebermittlung `257c320a-2ca1-436a-ad35-0a1ce20eda9c`. Ersetzt die 15:44er, die versehentlich unter der Versions-Zeile „1.0.24" lief (s. unten) |
 | 2026-08-18 15:38 | Wear OS (Play) | 1.2.23 (1033) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 15:38 | Android Phone (Play) | 1.1.23 (37) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 13:26 | Zepp | 1.0.6 (code 9) | ⏳ wartet auf Freigabe |
@@ -364,26 +364,21 @@ Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der 
 
 **Noch NICHT eingereicht** (gebaut/gebumpt, liegt bei Jan): nichts mehr — alle drei sind draussen.
 
-### 🔴 Apple-Einreichung 18.08. 15:44: Versionsnummer weicht ab
-App Store Connect meldet die Uebermittlung als **„iOS 1.0.24"**, `watch-apple/project.yml` steht in
-BEIDEN Targets auf **1.1.24 / 28**. Auf Apple hat es nie eine 1.0.x gegeben (1.1.19 → 1.1.20 →
-1.1.21 → 1.1.22), es ist also kein alter Build, sondern sehr wahrscheinlich eine von Hand als
-`1.0.24` angelegte Versions-Zeile (1.0 statt 1.1).
+### 🟢 Apple 18.08.: falsche Versions-Zeile, in drei Minuten behoben
+Die Uebermittlung um 15:44 lief unter **„iOS 1.0.24"**, waehrend `project.yml` in beiden Targets
+**1.1.24 / 28** sagt. Das war nicht kosmetisch: live ist 1.1.22, und `1.0.24 < 1.1.22` — im Store
+stuende eine kleinere Nummer als bisher, und der Update-Hinweis brichte, weil er seit dem 18.08.
+stellenweise numerisch vergleicht (`istNeuer`, derselbe Fix wie bei Zepp): mit
+`appmeta apple = 1.0.24` wuerde die Apple Watch **nie** auf das Update hinweisen.
 
-**Warum das nicht kosmetisch ist:** live ist **1.1.22**, und `1.0.24 < 1.1.22`.
-1. Im Store stuende eine KLEINERE Nummer als bisher.
-2. Der Update-Hinweis bricht: er vergleicht seit 18.08. stellenweise numerisch (`istNeuer`, derselbe
-   Fix wie bei Zepp). Mit `appmeta apple = 1.0.24` wuerde die Apple Watch **nie** auf das Update
-   hinweisen — korrekt gerechnet, aber falsch gemeint.
+Ursache war die von Hand angelegte Versions-Zeile in App Store Connect (1.0 statt 1.1) — **nicht**
+der Build: der trug bereits 1.1.24. Jan hat die Pruefung zurueckgezogen, die Version korrigiert und
+um 15:47 neu eingereicht; **Build 28 blieb nutzbar**, kein neuer Build noetig.
 
-**Zu klaeren (Jan, in App Store Connect):** wie heisst die Versions-Zeile, und welche Version traegt
-der angehaengte Build 28? Solange der Status „Warten auf Pruefung" ist, laesst sich die Uebermittlung
-zurueckziehen, die Version auf `1.1.24` korrigieren und neu einreichen; Build 28 bleibt nutzbar, wenn
-seine `CFBundleShortVersionString` bereits `1.1.24` ist, sonst braucht es Build 29.
-**Bis zur Antwort hier NICHTS bumpen** — sonst wird in die falsche Richtung geraten.
-
-**Regel fuers Eintragen:** bei Freigabe zusaetzlich `appmeta` auf die Nummer **AUS DER MAIL** setzen
-(nicht die aus dem Repo — bei Zepp 1.0.3 wich sie ab) und den Changelog schreiben.
+**Merke fuer kuenftige Apple-Releases:** nach dem Upload einmal gegenpruefen, dass die Versions-Zeile
+in App Store Connect ZEICHENGLEICH der `MARKETING_VERSION` aus `project.yml` entspricht. Solange der
+Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der Freigabe waere die
+kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
