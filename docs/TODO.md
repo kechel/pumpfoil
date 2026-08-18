@@ -353,14 +353,15 @@ Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der 
 
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
+| 2026-08-18 15:38 | Wear OS (Play) | 1.2.23 (1033) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
+| 2026-08-18 15:38 | Android Phone (Play) | 1.1.23 (37) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 13:26 | Zepp | 1.0.6 (code 9) | ⏳ wartet auf Freigabe |
 | 2026-08-18 (vormittags) | Zepp | 1.0.5 (code 8) | 🔴 ABGELEHNT — Nickname „zepp" + eckige Vorschaubilder; beides erledigt, Nachfolger 1.0.6 |
 | 2026-08-17 | Garmin | 1.0.78 | ✅ FREIGEGEBEN am 17.08., von Jan aus dem Store auf die eigene Uhr aktualisiert und getestet |
 | 2026-08-13 | iOS + Apple Watch | 1.1.22 (26) | ✅ LIVE 13.08. 19:38 UTC (gegengeprueft ueber itunes.apple.com/lookup in 5 Laendern) |
 | 2026-08-06 | Zepp | 1.0.4 | ✅ FREIGEGEBEN 06.08. |
 
-**Noch NICHT eingereicht** (gebaut/gebumpt, liegt bei Jan): iOS/Watch **1.1.24/28**,
-Phone **1.1.23/37**, Wear **1.2.23/1033**.
+**Noch NICHT eingereicht** (gebaut/gebumpt, liegt bei Jan): **nur noch iOS/Watch 1.1.24/28.**
 
 **Regel fuers Eintragen:** bei Freigabe zusaetzlich `appmeta` auf die Nummer **AUS DER MAIL** setzen
 (nicht die aus dem Repo — bei Zepp 1.0.3 wich sie ab) und den Changelog schreiben.
