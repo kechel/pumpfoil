@@ -359,7 +359,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     if metric in TIME_METRICS:
         return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport, cache=cache)
     if metric == "carves180":
-        return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
+        return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport, cache=cache)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
@@ -493,7 +493,7 @@ def _fill_carve_cache(db: Session) -> None:
 
 
 def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None,
-                  accel_only: bool = True, sport: str = "pumpfoil") -> dict:
+                  accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
     """Meiste Carves über 180° im Zeitraum — je NUTZER, nicht je Session (Jans Vorgabe 16.08.).
 
     „Über 180°" = die gespeicherten Kategorien m (180–360°) + l (>360°); s (90–180°) bleibt draußen.
@@ -501,7 +501,13 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     einzelnen Session — deshalb ohne `session_id`, Datum, Spot und Streckenvorschau. Die Kachel
     zeigt nur Zahl und Nutzer; ohne `session_id` verlinkt sie auch nicht.
     """
-    _fill_carve_cache(db)
+    # Einmal je Request statt einmal je Zeitraum: der Cache gehoert zur Session, nicht zur Abfrage,
+    # und der Aufruf ist idempotent. Er lief bisher fuenfmal pro Rekord-Seite und stellte viermal
+    # nur dieselbe Frage „fehlt noch was?" — gemessen 5x 5,5 ms.
+    if cache is None or "carve_cache" not in cache:
+        _fill_carve_cache(db)
+        if cache is not None:
+            cache["carve_cache"] = True
     total = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
     q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport)
     q = q.filter(AR.carve_m.isnot(None))
