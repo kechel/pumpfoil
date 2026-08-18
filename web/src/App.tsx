@@ -15,6 +15,7 @@ import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
 import { warmMySessions, warmMedia } from "./lib/pwaCache";
+import { demoStart } from "./lib/demoNames";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -100,6 +101,9 @@ export default function App() {
     api.getProfile().then((p) => {
       setProfile(p);
       setIsAdmin(p.is_admin);
+      // Demo-Modus fuer Screen-Recordings wiederherstellen bzw. hart abschalten: nur Admins
+      // duerfen ihn haben, und er braucht die Nutzerliste, um Namen zu erkennen (lib/demoNames.ts).
+      demoStart(!!p.is_admin);
       warmMedia([p.avatar_url]);   // eigenes Profilbild offline-sicher vorladen
       // Serverseitig gespeicherte Sprachpräferenz anwenden (ohne erneut zu sichern).
       if (p.language) setLang(p.language as any, { persist: false });

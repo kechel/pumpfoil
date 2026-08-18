@@ -199,7 +199,7 @@ export function SessionCard({
           <div className="min-w-0">
             <div className="font-semibold">
               {dateStr}
-              {name && <span className="text-brand-300"> · {name}</span>}
+              {name && <span className="pf-name text-brand-300"> · {name}</span>}
               {caption && <span className="text-slate-100"> · {caption}</span>}
             </div>
             <div className="text-sm text-slate-300">

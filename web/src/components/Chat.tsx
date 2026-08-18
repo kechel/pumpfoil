@@ -253,7 +253,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-semibold text-slate-200">{m.name || "—"}</span>
+                <span className="pf-name text-sm font-semibold text-slate-200">{m.name || "—"}</span>
                 {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 <span className="ml-auto flex items-center gap-2">

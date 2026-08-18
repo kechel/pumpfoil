@@ -385,7 +385,7 @@ export function DmWidget() {
                             <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-sm ${
                               m.is_bot ? "bg-brand-500/20 text-slate-100" : "bg-slate-800 text-slate-200"}`}>
                               <div className="mb-0.5 flex items-center gap-2 text-[11px] text-slate-400">
-                                <span className="truncate font-medium">{m.name}</span>
+                                <span className="pf-name truncate font-medium">{m.name}</span>
                                 <span className="shrink-0">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
                                 {m.hidden && <span className="shrink-0 rounded bg-slate-700/60 px-1">{t("adm.chat.hidden")}</span>}
                               </div>

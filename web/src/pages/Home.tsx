@@ -128,7 +128,7 @@ function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: bool
                 {r!.name && (
                   <span className="inline-flex items-center gap-1 align-middle">
                     <Avatar name={r!.name} url={r!.avatar_url} size={20} />
-                    <span className="text-brand-300">{r!.name}</span>
+                    <span className="pf-name text-brand-300">{r!.name}</span>
                   </span>
                 )}
                 {r!.started_at && (
@@ -173,7 +173,7 @@ function LeaderList({ rows, field, unit }: { rows: LeaderRow[]; field: keyof Lea
         <div key={r.name} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
           <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
           <Avatar name={r.name} url={r.avatar_url} size={30} />
-          <span className="min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
+          <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
           <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{r[field] as number}</span>
           <span className="shrink-0 text-[10px] uppercase text-slate-400">{unit}</span>
         </div>
@@ -441,7 +441,7 @@ function LayoutTeaser() {
               <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240}
                 shape={(l.authored_shape as WatchShape) || "round"} px={150} />
               <div className="w-full min-w-0 text-center">
-                <div className="truncate text-sm font-semibold">{l.name}</div>
+                <div className="pf-name truncate text-sm font-semibold">{l.name}</div>
                 <div className="truncate text-sm text-slate-400">
                   {t("lay.byAuthor", { name: l.author ?? "?" })}
                 </div>

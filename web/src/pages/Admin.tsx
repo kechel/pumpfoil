@@ -6,6 +6,7 @@ import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../comp
 import { TimeChart } from "../components/TimeChart";
 import { useT } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
+import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
 type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
 const TABS: [Tab, string][] = [
@@ -58,6 +59,7 @@ export default function Admin() {
           );
         })}
       </nav>
+      <DemoModusZeile />
       {tab === "overview" && <OverviewTab />}
       {tab === "classify" && <><ClassifyTab /><FlagsTab /><UserSportTab /></>}
       {tab === "flagged" && <SessionsTab scope="flagged" />}
@@ -74,6 +76,53 @@ export default function Admin() {
       {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
     </div>
+  );
+}
+
+// Demo-Modus fuer Screen-Recordings. Absichtlich OHNE Uebersetzung: die Admin-Ansicht wird nie
+// oeffentlich gezeigt (Jan), 16 Sprachen fuer ein internes Werkzeug waeren verschwendete Muehe.
+// Steht bewusst UEBER allen Tabs, damit man ihn im Eifer der Aufnahme nicht suchen muss.
+function DemoModusZeile() {
+  const [an, setAn] = useState(demoGewuenscht());
+  const [n, setN] = useState(demoAnzahl());
+  const [busy, setBusy] = useState(false);
+  useEffect(() => demoBeobachten(() => setN(demoAnzahl())), []);
+  async function um() {
+    setBusy(true);
+    try {
+      await demoSetzen(!an);
+      setAn(demoGewuenscht());
+      setN(demoAnzahl());
+    } finally { setBusy(false); }
+  }
+  return (
+    <Card className={`mb-4 p-3 text-sm ${an ? "ring-2 ring-amber-500" : ""}`}>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={um}
+          disabled={busy}
+          className={`rounded-lg px-3 py-1.5 font-semibold disabled:opacity-50 ${
+            an ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+        >
+          {an ? "Demo-Modus AN" : "Demo-Modus aus"}
+        </button>
+        <span className="text-slate-300">
+          Für Screen-Recordings: alle Nutzernamen werden durch „Rider N" ersetzt und zusätzlich
+          verschwommen gezeichnet — Avatare ebenfalls.
+        </span>
+      </div>
+      <p className="mt-2 text-slate-400">
+        Ersetzt wird schon in der API-Antwort, der echte Name kommt also nirgends in die Seite —
+        auch nicht mitten in einer Chat-Nachricht. Gilt nur für dich, nur in diesem Browser
+        (localStorage), und der Admin-Bereich ist bewusst ausgenommen, weil man sonst nicht mehr
+        moderieren könnte. {an ? `Aktiv, ${n} Namen erkannt.` : ""}
+      </p>
+      {an && (
+        <p className="mt-1 font-semibold text-amber-400">
+          Nicht vergessen, ihn nach der Aufnahme wieder auszuschalten.
+        </p>
+      )}
+    </Card>
   );
 }
 

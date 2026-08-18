@@ -1,5 +1,6 @@
 // Schmaler API-Client. JWT im localStorage.
 import { downscaleImage } from "./downscaleImage";
+import { demoAnonymisieren } from "./demoNames";
 
 const TOKEN_KEY = "foil_jwt";
 
@@ -43,7 +44,10 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
     }
     throw new Error(`${res.status}: ${text}`);
   }
-  return (await res.json()) as T;
+  // DEMO-MODUS (nur Admin, nur PWA): echte Nutzernamen werden HIER abgefangen, bevor irgendeine
+  // Komponente sie sieht — auch in Freitexten wie Chat-Nachrichten. Aus = unveraendert
+  // durchgereicht, kostet also nur einen Vergleich. Siehe lib/demoNames.ts.
+  return demoAnonymisieren((await res.json()) as T, path);
 }
 
 async function uploadFile<T>(path: string, file: File): Promise<T> {

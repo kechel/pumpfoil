@@ -106,7 +106,7 @@ export function Avatar({
         // Bei Lade-Fehler (offline/nicht gecacht) auf die Initialen zurückfallen
         // statt ein kaputtes Bild zu zeigen.
         onError={() => setFailed(true)}
-        className={`object-cover ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-slate-700"} ${className}`}
+        className={`pf-avatar object-cover ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-slate-700"} ${className}`}
         style={fill ? undefined : { width: size, height: size }}
       />
     );
@@ -114,7 +114,7 @@ export function Avatar({
   const bg = avatarColor(String(seed ?? name ?? "?"));
   return (
     <div
-      className={`flex items-center justify-center font-semibold text-white ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-black/10"} ${className}`}
+      className={`pf-avatar flex items-center justify-center font-semibold text-white ${rounded} ${fill ? "h-full w-full" : "shrink-0 ring-1 ring-black/10"} ${className}`}
       style={fill ? { backgroundColor: bg, fontSize: size * 0.45 } : { backgroundColor: bg, width: size, height: size, fontSize: size * 0.45 }}
     >
       {initial}

@@ -86,7 +86,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
       <Link to={`/sessions/${s.session_id}`} draggable={false} style={{ WebkitTouchCallout: "none" }} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1">
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-slate-100">
-            {showName && s.name && <span className="text-brand-300">{s.name}</span>}
+            {showName && s.name && <span className="pf-name text-brand-300">{s.name}</span>}
             {showName && s.name && s.author_new && <NewBadge className="ml-1 align-middle" />}
             {showName && s.name && (showSpot && s.spot ? " · " : "")}
             {showSpot && s.spot && <span className="inline-flex items-center gap-1 text-slate-200"><LocationIcon className="h-3.5 w-3.5" /> {s.spot}</span>}

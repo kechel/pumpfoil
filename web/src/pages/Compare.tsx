@@ -258,7 +258,7 @@ export default function Compare() {
               <div key={refKey(it.ref)} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1.5">
                 <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
                 <Link to={`/sessions/${it.ref.sessionId}`} className="text-sm text-slate-200 hover:text-brand-300">
-                  {it.rider && <span className="font-semibold text-slate-100">{it.rider} · </span>}
+                  {it.rider && <span className="pf-name font-semibold text-slate-100">{it.rider} · </span>}
                   <span>{itemLabel(it)}</span>
                   {foilLabel(it) && <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-slate-400"><FoilIcon className="h-3.5 w-3.5" />{foilLabel(it)}</span>}
                   {it.session === null && !loading && <span className="ml-1 text-xs text-slate-500">{t("compare.gone")}</span>}

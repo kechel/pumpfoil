@@ -146,3 +146,18 @@ html.theme-light .badge-ok { background-color: #d1fae5; color: #047857; }   /* e
 html.theme-light .badge-soon { background-color: #e0f2fe; color: #0369a1; } /* sky 100/700 */
 html.theme-light .badge-danger,
 html.theme-light .btn-danger { background-color: #ffe4e6; color: #be123c; } /* rose 100/700 */
+
+/* DEMO-MODUS fuer Screen-Recordings (nur Admin, nur PWA) — siehe lib/demoNames.ts.
+   Reine Optik: im DOM stehen ohnehin nur Pseudonyme, die Unschaerfe macht bloss sichtbar, dass
+   hier anonymisiert wurde. Deshalb ist eine hier nicht markierte Stelle kein Leck, sondern
+   zeigt nur ein scharfes "Rider 7". Avatare kommen mit, weil ein Profilfoto eine Person
+   deutlicher verraet als ein Name. */
+html.demo-names .pf-name {
+  filter: blur(4px);
+  /* Auswaehlen und Kopieren unterbinden — im Video hilft es nicht, und es verhindert, dass
+     beim Vorfuehren versehentlich Text markiert wird. */
+  user-select: none;
+}
+html.demo-names .pf-avatar {
+  filter: blur(6px);
+}
