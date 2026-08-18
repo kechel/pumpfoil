@@ -10,11 +10,15 @@ const c = (y, h, color, size) => ({
 
 // Cyan wie auf eckig (Marke #22d3ee) -- die abgenommenen Store-Bilder zeigen noch Weiss.
 export const TITLE = { ...c(30, 44, 0x22d3ee, 36), text: "Pumpfoil" };
-// On a round screen, the usable area narrows significantly near the top and bottom.
 // Runde Geraete haben KEINEN System-Balken (Begruendung in index.s.layout.js): eigener Titel bleibt.
-// Werte wie bisher — die von Zepp abgenommenen Store-Bilder zeigen genau diesen Stand.
 export const VER = { ...c(74, 22, 0x64748b, 18), text: "" };
-export const PAGE = { x: 0, y: px(36), w: W - px(70), h: px(34), color: 0x64748b, text_size: px(26), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
+// On a round screen, the usable area narrows significantly near the top and bottom.
+// Einzug 120 statt 70, also rechte Kante bei x 360: mit 70 lag sie bei 410, der Kreis (Mitte
+// 240/240, r 240) laesst auf der Oberkante der Schrift (y 40) aber nur bis x 373 zu -- die
+// Seitenanzeige wurde diagonal angeschnitten und stand als "1/" da (Jans Screenshots 18.08., im
+// Rohbild nachgemessen: helle Pixel bis Geraete-x 407, Kreis endet dort bei 391). Auf eckigen
+// Geraeten gibt es das nicht, dort ist die ganze Flaeche sichtbar.
+export const PAGE = { x: 0, y: px(36), w: W - px(120), h: px(34), color: 0x64748b, text_size: px(26), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
 
 // 3 Feld-Slots: Wert groß + kleines Label.
 export const F0V = { ...c(94, 70, 0x22d3ee, 64), text: "–" };
