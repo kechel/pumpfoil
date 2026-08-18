@@ -4,21 +4,22 @@
 Vorgabe (docs.zepp.com/docs/distribute): 360x360 PNG mit transparentem Hintergrund;
 bei eckigen Geraeten der Screenshot in **voller Hoehe** mit **gleichem Rand links und rechts**.
 
-Bei 390x450 heisst das rein rechnerisch: Hoehe 450 -> 360, Breite 390 -> 312,
-also 24 px transparenter Rand je Seite. Kein Zuschnitt, keine Formerkennung, keine Heuristik.
+Bei 384x432 heisst das rein rechnerisch: Hoehe 432 -> 360, Breite 384 -> 320,
+also 20 px transparenter Rand je Seite. Kein Zuschnitt, keine Formerkennung, keine Heuristik.
 
 Genau da lag der Fehler der ersten Fassung: sie hat die Bildform ueber den Alphakanal
 gesucht. Deckende Rohbilder haben aber gar keinen Alphakanal-Inhalt, also war die
 "gefundene" Box immer die ganze Leinwand -> alles wurde gestaucht statt zugeschnitten.
-Deshalb prueft dieses Skript das Seitenverhaeltnis und bricht ab, statt still etwas
-Falsches zu erzeugen: ein Fenster-Mitschnitt (schwarzer Rand um das Display) hat nicht
-390:450 und wuerde sonst genauso verzerrt landen.
+Damit derselbe Fehler nicht anders wiederkommt, wird die Displaygroesse NICHT erraten,
+sondern uebergeben, und jedes Rohbild muss exakt so gross sein. Ein Fenster-Mitschnitt
+(Display mit schwarzem Rand drumrum, z. B. 1184x1240) hat eine andere Groesse und fliegt
+damit auf, ohne dass das Skript ueber Bildinhalte spekulieren muss.
 
 Aufruf:
-    python3 scripts/zepp-store-previews.py <roh-verzeichnis>
+    python3 scripts/zepp-store-previews.py <roh-verzeichnis> <breite>x<hoehe>
 
-Erwartet dort 11 PNG (alphabetisch = Reihenfolge im Store), jedes ein exakter
-Display-Auszug eines eckigen Geraets. Schreibt nach
+z. B. `... raw-eckig 384x432`. Erwartet dort 11 PNG (alphabetisch = Reihenfolge im Store),
+jedes ein exakter Display-Auszug eines eckigen Geraets. Schreibt nach
 screenshots/watch/zepp/store360/eckig/zepp-eckig-NN.png.
 
 Der RUNDE Satz wird nicht angefasst — der ist von Zepp bereits abgenommen.
@@ -29,7 +30,6 @@ import sys
 from PIL import Image
 
 KANTE = 360           # Store-Leinwand
-SEITE = (390, 450)    # eckiges Zepp-OS-Ziel (app.json: st "s", dw 390)
 ZIEL = pathlib.Path(__file__).resolve().parent.parent / 'screenshots/watch/zepp/store360/eckig'
 
 
@@ -43,25 +43,29 @@ def vorschau(roh: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        sys.exit(f'Aufruf: {sys.argv[0]} <roh-verzeichnis>')
+    if len(sys.argv) != 3:
+        sys.exit(f'Aufruf: {sys.argv[0]} <roh-verzeichnis> <breite>x<hoehe>   (z. B. 384x432)')
     quelle = pathlib.Path(sys.argv[1])
+    try:
+        bt, ht = (int(v) for v in sys.argv[2].lower().split('x'))
+    except ValueError:
+        sys.exit(f'Groesse nicht lesbar: {sys.argv[2]!r} — erwartet z. B. 384x432')
     rohbilder = sorted(p for p in quelle.iterdir() if p.suffix.lower() == '.png')
     if not rohbilder:
         sys.exit(f'keine PNG in {quelle}')
 
-    soll = SEITE[0] / SEITE[1]
     falsch = []
     for p in rohbilder:
         with Image.open(p) as im:
-            if abs(im.width / im.height - soll) > 0.01:
+            if (im.width, im.height) != (bt, ht):
                 falsch.append(f'  {p.name}: {im.width}x{im.height}')
     if falsch:
         sys.exit(
-            f'Seitenverhaeltnis nicht {SEITE[0]}:{SEITE[1]} — das sind keine reinen\n'
-            'Display-Ausschnitte (Fenster-Mitschnitt?). Skalieren wuerde verzerren:\n'
-            + '\n'.join(falsch)
+            f'Nicht genau {bt}x{ht} — das sind keine reinen Display-Ausschnitte\n'
+            '(Fenster-Mitschnitt?). Skalieren wuerde verzerren:\n' + '\n'.join(falsch)
         )
+    rand = (KANTE - round(bt * KANTE / ht)) // 2
+    print(f'{bt}x{ht} -> Inhalt {round(bt * KANTE / ht)}x{KANTE}, {rand} px Rand je Seite')
 
     ZIEL.mkdir(parents=True, exist_ok=True)
     for i, p in enumerate(rohbilder, 1):
