@@ -15,21 +15,14 @@ import SwiftUI
 // SwiftUI-Ausdruck sind für den Type-Checker teuer (s. memory ios-swift-typecheck-hang).
 struct HrProgressCardView: View {
     let lang: String
-
-    @State private var daten: HrProgress?
-    @State private var geladen = false
+    /// Von der Verlaufsansicht GELADEN und hereingegeben — nicht selbst geholt. Eine Karte, die
+    /// ohne Daten nichts zeichnet, wird in einem LazyVStack womoeglich nie angelegt; ein `.task`
+    /// an ihr feuerte dann nie und sie bliebe fuer immer leer (genau das war der Fehler, Jan 18.08.).
+    let daten: HrProgress?
 
     var body: some View {
-        Group {
-            if let m = marken, !m.isEmpty {
-                karte(m)
-            }
-        }
-        .task {
-            if !geladen {
-                daten = try? await Api.hrProgress()
-                geladen = true
-            }
+        if let m = marken, !m.isEmpty {
+            karte(m)
         }
     }
 

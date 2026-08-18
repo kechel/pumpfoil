@@ -11,6 +11,12 @@ struct VerlaufView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var mode: VMode = .w7
+    // Trainingskurve: HIER geladen, nicht in der Karte selbst. Grund: die Karte zeichnet
+    // nichts, solange keine Daten da sind — ein Element ohne Inhalt legt ein LazyVStack
+    // unter Umstaenden gar nicht an, dann feuert dessen `.task` nie und die Karte bleibt
+    // fuer immer leer (Jans Screenshot vom 18.08.: Karte fehlte zwischen "Pumps" und der
+    // Spot-Entwicklung). Diese Ansicht wird immer gerendert, also laedt sie zuverlaessig.
+    @State private var hrDaten: HrProgress?
 
     // Gemeinsame Zeitachse (epoch s), chronologisch alt→neu.
     private var data: [(t: Double, h: HistoryPoint)] {
@@ -55,7 +61,7 @@ struct VerlaufView: View {
                 sumCharts
                 // Trainingskurve: eigene Abfrage (hr-progress), deshalb eigene Karte mit
                 // eigenem Ladezustand — sie haengt nicht am Zeitraum der uebrigen Diagramme.
-                HrProgressCardView(lang: lang)
+                HrProgressCardView(lang: lang, daten: hrDaten)
                 SpotProgressionView(lang: lang)
             }
             .padding(.horizontal, 12)
@@ -111,6 +117,9 @@ struct VerlaufView: View {
         loading = true; defer { loading = false }
         do { items = try await Api.history(); error = nil }
         catch { self.error = error.localizedDescription }
+        // Bewusst NACH den Verlaufsdaten und mit `try?`: schlaegt die Trainingskurve fehl, bleibt
+        // der Rest der Ansicht heil — sie ist ein Zusatz, kein Kern.
+        hrDaten = try? await Api.hrProgress()
     }
 
     // ISO → epoch seconds; nicht parsbar → nil (Punkt fällt raus).
