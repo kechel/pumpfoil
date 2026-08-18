@@ -657,7 +657,7 @@ const de: Record<string, string> = {
   "sd.colGlide": "längste Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls beim Pumpen",
-  "hr.progressHint": "Wie hoch dein Puls nach 1, 2 und 5 Minuten Pumpen steigt. Die Anstrengung hängt vor allem an der Dauer und kaum am Foil — sinkt die Kurve über die Wochen, bist du fitter geworden.",
+  "hr.progressHint": "Wie hoch dein Puls nach 30 Sekunden, 1, 2 und 5 Minuten Pumpen steigt. Die Anstrengung hängt vor allem an der Dauer und kaum am Foil — sinkt die Kurve über die Wochen, bist du fitter geworden.",
   "hr.afterMinutes": "nach {min} Minute(n)",
   "hr.afterSeconds": "nach {sec} Sekunden",
   "hr.axisHint": "Waagerecht: Datum · Senkrecht: Puls (bpm)",

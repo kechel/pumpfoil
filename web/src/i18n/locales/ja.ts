@@ -595,7 +595,7 @@ const ja: Record<string, string> = {
   "sd.colGlide": "最長グライド",
   "sd.colMaxHr": "最大心拍",
   "hr.progressTitle": "トレーニング曲線：ポンピング中の心拍",
-  "hr.progressHint": "1分・2分・5分ポンピングしたときの心拍の上がり方。負荷はフォイルよりも継続時間で決まります — 数週間で曲線が下がれば、体力が付いた証拠です。",
+  "hr.progressHint": "30秒・1分・2分・5分ポンピングしたときの心拍の上がり方。負荷はフォイルよりも継続時間で決まります — 数週間で曲線が下がれば、体力が付いた証拠です。",
   "hr.afterMinutes": "{min}分後",
   "hr.afterSeconds": "{sec}秒後",
   "hr.axisHint": "横軸：日付 ・ 縦軸：心拍（bpm）",

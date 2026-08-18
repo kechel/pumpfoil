@@ -604,7 +604,7 @@ const nb: Record<string, string> = {
   "sd.colGlide": "lengste gliding",
   "sd.colMaxHr": "Maks puls",
   "hr.progressTitle": "Treningskurve: puls under pumping",
-  "hr.progressHint": "Hvor høyt pulsen din går etter 1, 2 og 5 minutters pumping. Anstrengelsen henger mest på varigheten og knapt på foilen — synker kurven over ukene, har du blitt sprekere.",
+  "hr.progressHint": "Hvor høyt pulsen din går etter 30 sekunder, 1, 2 og 5 minutters pumping. Anstrengelsen henger mest på varigheten og knapt på foilen — synker kurven over ukene, har du blitt sprekere.",
   "hr.afterMinutes": "etter {min} minutt(er)",
   "hr.afterSeconds": "etter {sec} sekunder",
   "hr.axisHint": "Vannrett: dato · Loddrett: puls (bpm)",

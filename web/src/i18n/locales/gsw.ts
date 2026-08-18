@@ -446,7 +446,7 @@ const gsw: Record<string, string> = {
   "sd.colGlide": "längschti Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls bim Pumpe",
-  "hr.progressHint": "Wie hoch din Puls nach 1, 2 und 5 Minute Pumpe staigt. D Aastrengig hängt vor allem a de Duur und chuum am Foil — sinkt d Kurve über d Wuche, bisch fitter worde.",
+  "hr.progressHint": "Wie hoch din Puls nach 30 Sekunde, 1, 2 und 5 Minute Pumpe staigt. D Aastrengig hängt vor allem a de Duur und chuum am Foil — sinkt d Kurve über d Wuche, bisch fitter worde.",
   "hr.afterMinutes": "nach {min} Minute",
   "hr.afterSeconds": "nach {sec} Sekunde",
   "hr.axisHint": "Waagrächt: Datum · Sänkrächt: Puls (bpm)",
