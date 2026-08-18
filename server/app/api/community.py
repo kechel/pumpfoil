@@ -355,9 +355,9 @@ _EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": N
               "name": None, "avatar_url": None, "spot": None, "track_preview": None, "tz": None}
 
 
-def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
+def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
     if metric in TIME_METRICS:
-        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
+        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport, cache=cache)
     if metric == "carves180":
         return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport)
     valcol, idxcol = REC_COL[metric]
@@ -381,30 +381,32 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     }
 
 
-def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil") -> dict:
-    """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
+def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only: bool, sport: str,
+               cache: dict | None) -> list[tuple]:
+    """Basisdaten fuer Early Bird / Night Owl: je Community-Session EINE Zeile mit den beiden
+    Sekundenwerten seit lokaler Mitternacht, fertig gerechnet.
 
-    Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
-    (erster Lauf-Start bzw. letztes Lauf-Ende), NICHT auf started_at/ended_at der Aufnahme:
-    die Rohzeiten enthalten Anfahrt/Heimweg und ignorieren Trim, ausgeschlossene Fenster und
-    die Fremdkraft-Abtrennung — #1328 stand als "Nachteule" da, weil die Aufnahme bis in die
-    Nacht lief, obwohl der letzte echte Lauf Stunden frueher endete (Befund Jan, 03.08.).
-    Night Owl ueber Mitternacht bleibt >24 h (27:04 schlaegt 23:30, zaehlt zum Vortag);
-    Sessions ohne Laeufe halten keinen Zeit-Rekord."""
-    import json as _json
+    Hier lag die Bremse des Rekord-Endpunkts (Jans Messung 18.08.: 747 ms): `_time_record` zog
+    fuer JEDE Session den kompletten `segments_json`-Blob und dekodierte ihn in Python -- und das
+    zehnmal, weil zwei Zeit-Metriken ueber fuenf Zeitraeume je einzeln liefen. Nachgemessen mit
+    cProfile: 3520 `json.loads` = 197 ms, ein Drittel des ganzen Endpunkts, plus zehnmal dieselbe
+    schwere Abfrage (12,9 ms/Stk). Der Zeitraum aendert an den Sekundenwerten nichts, nur an der
+    Auswahl -- also einmal alles laden und je Zeitraum in Python filtern (Schluessel `cache`).
+    """
+    key = ("time_rows", spot, viewer_id, accel_only, sport)
+    if cache is not None and key in cache:
+        return cache[key]
     q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
                             AR.segments_json), viewer_id, accel_only, sport)
-    if cut is not None:
-        q = q.filter(S.started_at >= cut)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
-    best: tuple | None = None
+    rows: list[tuple] = []
     for sid, st, trim0, lat, lon, name, place, avatar, preview, segs_json in q.all():
         if st is None or not segs_json:
             continue
         try:
-            segs = _json.loads(segs_json)
+            segs = json.loads(segs_json)
         except (ValueError, TypeError):
             continue
         if not segs:
@@ -416,14 +418,40 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
         tz = tz_of(lat, lon)
         start_loc = (st + timedelta(milliseconds=off_ms + first_ms)).astimezone(tz)
         mitternacht = start_loc.replace(hour=0, minute=0, second=0, microsecond=0)
-        if metric == "early_bird":
-            val = (start_loc - mitternacht).total_seconds()
-        else:
-            end_loc = (st + timedelta(milliseconds=off_ms + last_ms)).astimezone(tz)
-            val = min(max((end_loc - mitternacht).total_seconds(), 0.0), 2 * 86400.0)
+        end_loc = (st + timedelta(milliseconds=off_ms + last_ms)).astimezone(tz)
+        rows.append((
+            st, sid, name, place, avatar, preview, tz_name(lat, lon),
+            (start_loc - mitternacht).total_seconds(),
+            # Night Owl ueber Mitternacht bleibt >24 h (27:04 schlaegt 23:30, zaehlt zum Vortag).
+            min(max((end_loc - mitternacht).total_seconds(), 0.0), 2 * 86400.0),
+        ))
+    if cache is not None:
+        cache[key] = rows
+    return rows
+
+
+def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
+    """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
+
+    Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
+    (erster Lauf-Start bzw. letztes Lauf-Ende), NICHT auf started_at/ended_at der Aufnahme:
+    die Rohzeiten enthalten Anfahrt/Heimweg und ignorieren Trim, ausgeschlossene Fenster und
+    die Fremdkraft-Abtrennung — #1328 stand als "Nachteule" da, weil die Aufnahme bis in die
+    Nacht lief, obwohl der letzte echte Lauf Stunden frueher endete (Befund Jan, 03.08.).
+    Sessions ohne Laeufe halten keinen Zeit-Rekord. Die Sekundenwerte kommen aus _time_rows().
+
+    Gleichstand behaelt die ERSTE Zeile (strikter Vergleich) -- dieselbe Reihenfolge wie vorher,
+    weil _time_rows die Zeilen in Abfragereihenfolge sammelt und hier nur gefiltert wird.
+    """
+    best: tuple | None = None
+    for st, sid, name, place, avatar, preview, tzn, eb_val, no_val in _time_rows(
+            db, spot, viewer_id, accel_only, sport, cache):
+        if cut is not None and st < cut:
+            continue
+        val = eb_val if metric == "early_bird" else no_val
         better = best is None or (val < best[0] if metric == "early_bird" else val > best[0])
         if better:
-            best = (val, sid, st, name, place, avatar, preview, tz_name(lat, lon))
+            best = (val, sid, st, name, place, avatar, preview, tzn)
     if best is None:
         return dict(_EMPTY_REC)
     val, sid, ts, name, place, avatar, preview, tzn = best
@@ -514,7 +542,10 @@ def community_sports(
 
 @router.get("/records")
 def community_records(accel_only: bool = True, sport: str = "pumpfoil", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport) for m in METRICS} for p in PERIODS}
+    # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
+    # ueber alle fuenf Zeitraeume (s. _time_rows).
+    cache: dict = {}
+    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport, cache=cache) for m in METRICS} for p in PERIODS}
 
 
 @router.get("/start-success")
@@ -654,7 +685,8 @@ def spot_records(
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     cut = _cutoff(period)
-    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only, sport=sport)
+    cache: dict = {}   # s. _time_rows: Early Bird + Night Owl teilen sich die Basisdaten
+    return {m: _record_entry(db, m, cut, spot=spot, viewer_id=_user.id, accel_only=accel_only, sport=sport, cache=cache)
             for m in METRICS}
 
 
