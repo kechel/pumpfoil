@@ -56,6 +56,16 @@ def _migrate_add_indexes() -> None:
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_duration_s ON analysis_results (best_duration_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_best_glide_s ON analysis_results (best_glide_s)",
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_num_runs ON analysis_results (num_runs)",
+        # Max-Puls-Rekord: der einzige Rekord, der NICHT in einer Spalte steht, sondern per JSONB
+        # aus metrics_json gezogen wird (community._MAX_HR). Ohne Index war das ein Seq Scan ueber
+        # analysis_results, der je Zeile ~580 Byte JSON parst, nur um eine Zahl zu sortieren —
+        # gemessen 10,9 ms je Zeitraum, also ~55 ms von 145 ms des Rekord-Endpunkts (18.08.).
+        # Der Ausdruck muss ZEICHENGLEICH zu dem sein, den community._MAX_HR erzeugt, sonst nutzt
+        # der Planer den Index nicht. Alle drei Bausteine (Cast auf jsonb, jsonb_extract_path_text,
+        # Cast auf float) sind immutable, deshalb ueberhaupt indexierbar. Postgres-only; auf dem
+        # SQLite-Dev-Fallback scheitert das Statement und wird unten geschluckt.
+        "CREATE INDEX IF NOT EXISTS ix_analysis_results_max_hr ON analysis_results "
+        "((CAST(NULLIF(jsonb_extract_path_text(CAST(metrics_json AS JSONB), 'max_hr'), '') AS FLOAT)) DESC)",
         # Per-User-Empfindlichkeit — neue Spalten idempotent ergänzen. Cache je Preset in einem
         # JSON-Feld (sensitivity_json); die früheren Einzel-*_personal-Spalten wieder entfernen.
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
