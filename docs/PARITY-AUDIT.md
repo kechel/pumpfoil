@@ -2,7 +2,29 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
-**Stand: 2026-08-17** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
+**Stand: 2026-08-18** — gegen den Code nachgeprueft, nicht uebernommen. Vorgabe Jan: alles
+nachziehen, auch was frueher schon vergessen wurde, denn was damals fehlte, fehlt heute auch noch.
+Dabei kam heraus, dass die Datei selbst der Hauptbefund war: **sechs von sieben offenen Markern
+waren veraltet**, die Punkte waren im Paritaets-Port langst geschlossen. Belegt per Volltextsuche:
+
+| Zeile | stand als | ist tatsaechlich | Beleg |
+|---|---|---|---|
+| Katalog „Masse abgeleitet" | ❌ ❌ | ✅ ✅ | `specs_estimated`/`specsEstimated` in je 3 Dateien |
+| „Fehlt im Katalog?" | ❌ ❌ | ✅ ✅ | `foils.missing*` Android 4 / iOS 3 Treffer |
+| Carve-Ansicht | ❌ ❌ | ✅ ✅ | `ColorMode.TURNS` + `carve?.arcs` in beiden Detailansichten |
+| Farb-Modus an/aus (Uhr) | ⚠️ ⚠️ | ✅ ✅ | `colorByValue` in beiden DataFields-Screens (je 6) |
+| Aufnahme autom. starten | ❌ ❌ | ✅ ✅ | `auto_start` in beiden DataFields-Screens (je 6) |
+| Zepp Update-Hinweis | ❌ | ✅ | `latestVersion` in `page/index.js` (Vergleich am 18.08. repariert) |
+| Per-Session-Diskussion | PWA ✅ | **nirgends** | `sd.discussion` ist ein WAISEN-KEY: in `de.ts`, aber in KEINER `.tsx` benutzt |
+
+Echt offen war genau **ein** Punkt, und der ist jetzt gebaut: die **Vollbild-Karte** in der
+Session-Detailansicht (Android + iOS).
+
+**Lehre:** ein ❌ in dieser Datei ist kein Befund, solange es nicht gegen den Code geprueft ist.
+Wer hier etwas als fehlend liest, sucht es ZUERST im Code — sonst baut man Vorhandenes nachher
+ein zweites Mal.
+
+**Alter Stand: 2026-08-17** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
 Kurzfassung: Android + iOS haben seit dem 06-28-Audit **fast volle Web-Parität** erreicht (Home,
@@ -158,8 +180,8 @@ Diese Punkte sind erst nach dem 07-28-Release entstanden, sind in der PWA live u
 | Zeitbereich aussortieren (Zuschnitt-Panel) | ✅ | ✅ `2483c3a` | ✅ `0698b3c` | 🌐 |
 | Pump-Kadenz als Pumps/Minute (Konto-Einstellung) | ✅ | ✅ | ✅ | 🌐 |
 | Melde-/Klassifikations-Knoepfe ganz unten | ✅ | ✅ | ✅ | — |
-| Katalog-Kennzeichen „Masse abgeleitet" | ✅ | ❌ | ❌ | — |
-| „Fehlt im Katalog?" -> Feedback mit einem Klick | ✅ | ❌ | ❌ | — |
+| Katalog-Kennzeichen „Masse abgeleitet" | ✅ | ✅ | ✅ | — |
+| „Fehlt im Katalog?" -> Feedback mit einem Klick | ✅ | ✅ | ✅ | — |
 
 Vertrag fuer das Aussortieren: `excluded_ranges` in `SessionOut` (`[[start_ms, end_ms], …]`, Basis wie
 `trim_*`), `POST /api/sessions/{id}/runs/exclude` mit `run_index` ODER `start_ms`+`end_ms`,
@@ -220,7 +242,7 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Power-Karte (Watt) | ✅ | ✅ | ✅ |
 | Farb-Legende (min→max) | ✅ | ✅ | ✅ |
 | Stats-Grid | ✅ | ✅ | ✅ |
-| Carve-Ansicht (GPS-Turns, farbig nach Lage) | ✅ 🌐 | ❌ | ❌ |
+| Carve-Ansicht (GPS-Turns, farbig nach Lage) | ✅ | ✅ | ✅ |
 | Öffentlicher Teilen-Link (`/s/<token>`) | ✅ | ✅ (Link→Browser) | ✅ (Link→Browser) |
 | Medien (Foto+Video, 2-Spalten-Grid) | ✅ | ✅ | ✅ |
 | Foto hochladen/löschen | ✅ | ✅ | ✅ |
@@ -232,8 +254,8 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Trim-Editor (Re-Analyse) | ✅ | ✅ | ✅ |
 | Übertragen / Löschen | ✅ | ✅ | ✅ |
 | Teilen (Karte-Bild + Foto-Hintergrund) | ✅ | ✅ | ✅ |
-| Vollbild-Karte | ✅ | ❌ | ❌ |
-| Per-Session-Diskussion (session-Chat) | ✅ | ⚠️ Spot-Chat-Button | ⚠️ Spot-Chat-Button |
+| Vollbild-Karte | ✅ | ✅ | ✅ |
+| Per-Session-Diskussion (session-Chat) | ❌ | ❌ | ❌ |
 
 ### Weitere Seiten
 | Feature | Web | Android | iOS |
@@ -253,7 +275,7 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Gewicht | ✅ | ✅ | ✅ |
 | Homespot | ✅ | ✅ | ✅ |
 | Datenseiten (Uhr-Felder) + Off-Foil-Screen | ✅ | ✅ | ✅ |
-| Farb-Modus an/aus (Uhr) | ✅ | ⚠️ | ⚠️ |
+| Farb-Modus an/aus (Uhr) | ✅ | ✅ | ✅ |
 | Sprache (10 Sprachen) | ✅ | ✅ | ✅ |
 | Theme Light/Dark/Auto | ✅ | ✅ | ✅ |
 | Push-Prefs | ✅ | ✅ | ✅ |
@@ -305,6 +327,6 @@ Reverse-Pairing, Offline-Queue mit Absturz-Recovery. **Offen (Parität nachziehe
 |---|---|---|
 | Accel 25 Hz → Pump-Erkennung | ✅ | ❌ (nur GPS+Puls → gps_only; Zepp-Accel-API vorhanden, noch nicht verdrahtet) |
 | On-Device-Lokalisierung + Systemsprache/EN-Default | ✅ | ❌ (UI hartkodiert Deutsch, kein i18n) |
-| Update-Hinweis (`latestVersion` aus `/config`) | ✅ | ❌ |
+| Update-Hinweis (`latestVersion` aus `/config`) | ✅ | ✅ |
 | Aktivitätstyp Garmin/FIT (nur Garmin relevant) | ✅ | – |
 Build/Verify nur auf Jans Mac (Zeus CLI + Balance 2). Details: Memory `zepp-recorder`.

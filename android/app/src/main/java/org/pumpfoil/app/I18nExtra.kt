@@ -5,6 +5,8 @@ package org.pumpfoil.app
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
 val PT: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Tela cheia",
+    "sd.close" to "✕ Fechar",
     "stat.foiling" to "Foil",
     "stat.foilingTime" to "Tempo de foil",
     "power.title" to "Potência teórica",
@@ -606,6 +608,8 @@ val PT: Map<String, String> = mapOf(
 )
 
 val JA: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ フルスクリーン",
+    "sd.close" to "✕ 閉じる",
     "stat.foiling" to "フォイリング",
     "stat.foilingTime" to "フォイリング時間",
     "power.title" to "理論上のパワー",
@@ -1207,6 +1211,8 @@ val JA: Map<String, String> = mapOf(
 )
 
 val ZH: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ 全屏",
+    "sd.close" to "✕ 关闭",
     "stat.foiling" to "水翼滑行",
     "stat.foilingTime" to "水翼滑行时长",
     "power.title" to "理论功率",
@@ -1808,6 +1814,8 @@ val ZH: Map<String, String> = mapOf(
 )
 
 val RU: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Полный экран",
+    "sd.close" to "✕ Закрыть",
     "stat.foiling" to "Фойлинг",
     "stat.foilingTime" to "Время на фойле",
     "power.title" to "Теоретическая мощность",
@@ -2409,6 +2417,8 @@ val RU: Map<String, String> = mapOf(
 )
 
 val ID: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Layar penuh",
+    "sd.close" to "✕ Tutup",
     "stat.foiling" to "Foiling",
     "stat.foilingTime" to "Waktu foiling",
     "power.title" to "Daya teoretis",
@@ -3013,6 +3023,8 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Fullskjerm",
+    "sd.close" to "✕ Lukk",
     "stat.foiling" to "Foiling",
     "stat.foilingTime" to "Foiling-tid",
     "power.title" to "Teoretisk effekt",

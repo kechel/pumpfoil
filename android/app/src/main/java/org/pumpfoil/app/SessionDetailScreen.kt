@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
@@ -395,6 +396,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         minOf(maxOf(0.6, vals.maxOrNull() ?: 0.6), 1.0)
     }
     var win by remember(s.id) { mutableStateOf(3) }
+    // Vollbild-Karte, s. unten beim TrackMap.
+    var mapFull by remember(s.id) { mutableStateOf(false) }
     var showPumps by remember(s.id) { mutableStateOf(true) }
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
@@ -778,10 +781,44 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     }
                 }
                 Card(Modifier.fillMaxWidth()) {
-                    TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
-                        selectedRun, { selectedRun = if (selectedRun == it) null else it },
-                        if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                        Modifier.fillMaxWidth().height(300.dp))
+                    Box {
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                            selectedRun, { selectedRun = if (selectedRun == it) null else it },
+                            if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
+                            Modifier.fillMaxWidth().height(300.dp))
+                        // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
+                        // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
+                        // das die Vergleichskarte dieser App schon nutzt.
+                        IconButton(
+                            onClick = { mapFull = true },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(34.dp)
+                                .background(Color.Black.copy(alpha = 0.45f), CircleShape),
+                        ) {
+                            Icon(Icons.Filled.OpenInFull, contentDescription = I18n.t("sd.fullscreen"),
+                                tint = Color.White, modifier = Modifier.size(17.dp))
+                        }
+                    }
+                }
+                if (mapFull) {
+                    // Vollbild als Dialog: die Karte bleibt vollstaendig bedienbar (Lauf antippen,
+                    // Farb-Modus wirkt weiter), nur ohne den uebrigen Seiteninhalt.
+                    Dialog(onDismissRequest = { mapFull = false },
+                           properties = DialogProperties(usePlatformDefaultWidth = false)) {
+                        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                                selectedRun, { selectedRun = if (selectedRun == it) null else it },
+                                if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
+                                Modifier.fillMaxSize())
+                            IconButton(
+                                onClick = { mapFull = false },
+                                modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(40.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = I18n.t("sd.close"),
+                                    tint = Color.White, modifier = Modifier.size(22.dp))
+                            }
+                        }
+                    }
                 }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
                 if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)

@@ -589,6 +589,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
 
     "compare.title" to row("Vergleich", "Verglych", "Vergleich", "Compare", "Comparaison", "Confronto", "Comparación"),
     "compare.run" to row("Lauf {n}", "Lauf {n}", "Lauf {n}", "Run {n}", "Run {n}", "Run {n}", "Run {n}"),
+    "sd.fullscreen" to row("⛶ Vollbild", "⛶ Vollbild", "⛶ Vollbild", "⛶ Fullscreen", "⛶ Plein écran", "⛶ Schermo intero", "⛶ Pantalla completa"),
+    "sd.close" to row("✕ Schließen", "✕ Zue", "✕ Zua", "✕ Close", "✕ Fermer", "✕ Chiudi", "✕ Cerrar"),
     "stat.foiling" to row("Foiling", "Foiling", "Foiling", "Foiling", "Foil", "Foiling", "Foiling"),
     "stat.foilingTime" to row("Foiling-Zeit", "Foiling-Ziit", "Foiling-Zeit", "Foiling time", "Temps de foil", "Tempo di foiling", "Tiempo de foiling"),
     "power.title" to row("Theoretische Leistung", "Theoretischi Leischtig", "Theoretische Leistung", "Theoretical power", "Puissance théorique", "Potenza teorica", "Potencia teórica"),
@@ -889,6 +891,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts kopiert). App-eigene Keys ohne fi
 // fallen in t() auf Englisch zurueck. Bei neuen fi-Strings hier ergaenzen.
 private val FI: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Koko näyttö",
+    "sd.close" to "✕ Sulje",
     "stat.foiling" to "Foiling",
     "stat.foilingTime" to "Foiling-aika",
     "power.title" to "Teoreettinen teho",
@@ -1448,6 +1452,8 @@ private val FI: Map<String, String> = mapOf(
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
 private val NL: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Volledig scherm",
+    "sd.close" to "✕ Sluiten",
     "stat.foiling" to "Foiling",
     "stat.foilingTime" to "Foiling-tijd",
     "power.title" to "Theoretisch vermogen",
@@ -2050,6 +2056,8 @@ private val NL: Map<String, String> = mapOf(
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
 private val CS: Map<String, String> = mapOf(
+    "sd.fullscreen" to "⛶ Celá obrazovka",
+    "sd.close" to "✕ Zavřít",
     "stat.foiling" to "Foiling",
     "stat.foilingTime" to "Čas na foilu",
     "power.title" to "Teoretický výkon",

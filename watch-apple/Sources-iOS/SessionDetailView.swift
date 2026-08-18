@@ -44,6 +44,9 @@ struct SessionDetailView: View {
     @State private var videoUrl = ""
     @State private var videoErr = false
     @State private var lightbox: SessionPhoto?     // angetipptes Foto -> Vollbild
+    // Vollbild-Karte (PWA-Paritaet: dort Knopf „⛶ Vollbild" ueber der Karte bzw. Taste F).
+    // Hier als Knopf IN der Kartenecke — dasselbe Muster wie die Vergleichskarte dieser App.
+    @State private var mapFull = false
     @State private var pickerItem: PhotosPickerItem?
     @State private var colorMode: TrackColorMode = .speed
     @State private var carve: CarveData?   // Carve-Bögen + Zähler (GET /carves)
@@ -768,10 +771,13 @@ struct SessionDetailView: View {
         return AnyView(VStack(alignment: .leading, spacing: 16) {
             modeRow(s, v)
             smoothingRow
-            trackMap(track, segs, v)
+            trackMap(track, segs, v, hoehe: 300)
+                .overlay(alignment: .topTrailing) { mapFullButton }
             legendRow(v)
             selectedRunRow
-        })
+        }
+        // Modifier INNERHALB des AnyView(...) — trackSection gibt ein AnyView zurueck.
+        .fullScreenCover(isPresented: $mapFull) { fullscreenTrackMap(track, segs, v) })
     }
 
     // Alle abgeleiteten Track-Werte explizit typisiert an einer Stelle — vorher ein Dutzend
@@ -848,16 +854,44 @@ struct SessionDetailView: View {
         }
     }
 
-    private func trackMap(_ track: TrackGeo, _ segs: [Segment], _ v: TrackVals) -> some View {
+    /// Karte einmal typisiert bauen; Normal- und Vollbild-Ansicht teilen alle Parameter und
+    /// unterscheiden sich nur in der Hoehe (nil = fuellt den verfuegbaren Platz).
+    private func trackMap(_ track: TrackGeo, _ segs: [Segment], _ v: TrackVals, hoehe: CGFloat?) -> some View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
-        let h: CGFloat = 300
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
                         showPumps: showPumps, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         carveArcs: arcs, carveGMax: v.carveGMax)
-            .frame(height: h).frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(height: hoehe).frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
+    }
+
+    /// Knopf in der Kartenecke: oeffnet die Karte im Vollbild.
+    private var mapFullButton: some View {
+        Button { mapFull = true } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.footnote).padding(7)
+                .background(.black.opacity(0.45), in: Circle())
+                .foregroundStyle(.white)
+        }
+        .buttonStyle(.borderless)
+        .padding(8)
+        .accessibilityLabel(Loc.t("sd.fullscreen", lang))
+    }
+
+    /// Vollbild: die Karte bleibt vollstaendig bedienbar (Lauf antippen, Farb-Modus wirkt weiter),
+    /// nur ohne den uebrigen Seiteninhalt. Schliessen ueber das Kreuz oben rechts.
+    private func fullscreenTrackMap(_ track: TrackGeo, _ segs: [Segment], _ v: TrackVals) -> some View {
+        ZStack(alignment: .topTrailing) {
+            trackMap(track, segs, v, hoehe: nil)
+                .ignoresSafeArea()
+            Button { mapFull = false } label: {
+                Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.white, .black.opacity(0.5))
+            }
+            .padding()
+            .accessibilityLabel(Loc.t("sd.close", lang))
+        }
     }
 
     @ViewBuilder private func legendRow(_ v: TrackVals) -> some View {
