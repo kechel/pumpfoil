@@ -360,9 +360,15 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
      hat die im Web gesetzte Chat-Einstellung still geloescht.** Wear OS nicht betroffen.
   3. Kein Versions-Bump noetig: iOS 1.1.23/27, Phone 1.1.22/36, Wear 1.2.22/1032 sind gebaut aber
      noch NICHT eingereicht — die Fixes gehen in diese Nummern mit ein.
-  **Offen daraus:** die **Vergleichs-Spalte je Lauf** fehlt nativ weiter. iOS/Android vergleichen
-  ganze Sessions (`CompareStore.toggle(id)`), die PWA je Lauf (`{sessionId, runIdx}`) — das ist
-  eine eigene Luecke und braucht eine Erweiterung des CompareStore auf Lauf-Granularitaet.
+  **Nachgezogen (18.08.):** der **Vergleich je LAUF** ist jetzt auch nativ drin. Beide CompareStores
+  halten `CompareRef(sessionId, runIdx?)` als LISTE (Reihenfolge = Farbzuordnung, dieselbe Session
+  darf zweimal drin liegen), erste Spalte der Lauf-Tabelle legt einzelne Laeufe ein, und Karte,
+  Lauf-Liste, Chips und die Android-Kennzahlen-Tabelle rechnen je Eintrag. Zusammenfuehren ist bei
+  Lauf-Eintraegen gesperrt (wie `mergeableIds`). Zwei bewusste Verhaltensaenderungen: Farbe haengt
+  am Eintrag statt an der Session, und die Eintraege werden NICHT mehr nach Datum sortiert, sondern
+  behalten die Korb-Reihenfolge (so macht es die PWA).
+  **Bleibt offen:** die PWA-Vergleichstabelle zeigt **14 Kennzahlen**, Android **6** und iOS **keine**
+  (dort nur Chips + Lauf-Liste). Aeltere, eigene Luecke — haengt nicht an der Lauf-Granularitaet.
 
 
 - **🟢 Zepp 1.0.6 EINGEREICHT (18.08.).** Nach der Ablehnung von 1.0.5 kam
