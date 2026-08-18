@@ -67,6 +67,18 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
 const APP_VERSION = "1.0.6";
+// Update-Hinweis nur zeigen, wenn der Store-Stand WIRKLICH neuer ist. Vorher stand hier ein
+// !==-Vergleich: ein Entwicklungs-Build vor dem Store (1.0.6 lokal, 1.0.4 live) hat damit zum
+// "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,
+// Wear OS und Apple Watch machen es seit je richtig (_versionNewer bzw. istNeuer) -- das hier ist
+// dieselbe Logik: Stelle fuer Stelle numerisch, fehlende Stellen als 0.
+function istNeuer(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const teil = (v) => { const p = String(v).split("."); return [0, 1, 2].map((i) => parseInt(p[i], 10) || 0); };
+  const pa = teil(a), pb = teil(b);
+  for (let i = 0; i < 3; i++) { if (pa[i] !== pb[i]) return pa[i] > pb[i]; }
+  return false;
+}
 const DW = (() => { try { return getDeviceInfo().width; } catch (e) { return 480; } })();
 const DH = (() => { try { return getDeviceInfo().height; } catch (e) { return 480; } })();
 // Tastenzahl des Modells (API_LEVEL 2.0). Sie entscheidet, ob die Touch-Sperre automatisch greift:
@@ -701,7 +713,7 @@ Page(
                   wantLayouts: s.layoutsPref !== false }).then((r) => {
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
-        if (r && r.latestVersion && r.latestVersion !== APP_VERSION) s.updateVersion = r.latestVersion;
+        if (r && r.latestVersion && istNeuer(r.latestVersion, APP_VERSION)) s.updateVersion = r.latestVersion;
         // Profil-Sprache (kam schon immer mit, wurde nur nie ausgewertet). Persistieren, damit der
         // naechste App-Start auch ohne Verbindung sofort richtig lokalisiert ist. Server schickt ""
         // wenn im Profil keine Sprache steht -> setLang() faellt dann auf Englisch.
