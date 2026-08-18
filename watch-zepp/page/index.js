@@ -15,7 +15,7 @@ import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH } from "@zos/sensor";
 import { openSync, closeSync, writeSync, readSync, statSync, rmSync,
          O_RDONLY, O_RDWR, O_CREAT, O_TRUNC } from "@zos/fs";
-import { TITLE, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
+import { TITLE, VER, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
 
 // Zepp reports acceleration in cm/s²; the ingest format uses signed little-endian int16 values
 // with 2048 units per g, matching Garmin, Wear OS, and Apple Watch recordings.
@@ -526,7 +526,10 @@ Page(
         [hmUI.createWidget(hmUI.widget.TEXT, { ...F2V }), hmUI.createWidget(hmUI.widget.TEXT, { ...F2L })],
       ];
       w.status = hmUI.createWidget(hmUI.widget.TEXT, { ...STATUS });
-      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { x: 0, y: TITLE.y + TITLE.h, w: DW, h: px(22), color: 0x64748b, text_size: px(18), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text: "v" + APP_VERSION });
+      // Position kommt aus dem Layout, NICHT aus TITLE.y + TITLE.h: auf eckigen Geraeten ist der
+      // Titel leer und seine Box liegt im System-Balken (s. index.s.layout.js) — die Version haette
+      // dann unter dem Balken geklebt und waere oben angeschnitten worden.
+      w.ver = hmUI.createWidget(hmUI.widget.TEXT, { ...VER, text: "v" + APP_VERSION });
 
       // Alle Wisch-Gesten konsumieren (return true) → kein versehentliches Verlassen der App
       // (Zepp deutet den Horizontal-Wisch sonst als Zurück/Exit). Richtung egal: hoch=links (vor),

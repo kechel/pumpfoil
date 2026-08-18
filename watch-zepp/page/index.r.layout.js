@@ -10,6 +10,9 @@ const c = (y, h, color, size) => ({
 
 export const TITLE = { ...c(30, 44, 0xffffff, 36), text: "Pumpfoil" };
 // On a round screen, the usable area narrows significantly near the top and bottom.
+// Runde Geraete haben KEINEN System-Balken (Begruendung in index.s.layout.js): eigener Titel bleibt.
+// Werte wie bisher — die von Zepp abgenommenen Store-Bilder zeigen genau diesen Stand.
+export const VER = { ...c(74, 22, 0x64748b, 18), text: "" };
 export const PAGE = { x: 0, y: px(36), w: W - px(70), h: px(34), color: 0x64748b, text_size: px(26), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
 
 // 3 Feld-Slots: Wert groß + kleines Label.
