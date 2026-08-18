@@ -343,6 +343,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 📥 Inbox
 
+- **🟢 Update-Hinweis ist jetzt sauber plattformgetrennt (18.08.).** Vorgabe Jan: „ein garmin update
+  darf nicht auf zepp oder apple die Meldung ausloesen."
+  **Befund (nachgesehen, nicht angenommen — und meine erste Annahme war falsch):** die Auswahl war
+  schon je Plattform getrennt (`_APP_META[plat]["latest"]`), aber `plat` faellt auf `"garmin"`
+  zurueck. Der Rueckfall existiert aus einem guten Grund: **nur die Garmin-App schickt kein `p=`** —
+  Wear, Apple und Zepp senden alle drei ihre Plattform mit (alle vier Clients geprueft; mein erster
+  Grep hatte bei Apple die separat gebaute Query uebersehen und mich zur falschen Aussage verleitet,
+  Apple melde sich nicht).
+  Das Loch war also nicht Apple, sondern **jede Anfrage ohne `p` an einem Token ohne `platform`**:
+  im Bestand 20 aktive Tokens (u. a. 4 Apple-Watch-Tokens). Dass noch keine Falschmeldung auftrat,
+  war Zufall — Apples 1.1.x ist numerisch hoeher als Garmins 1.0.x. Beim naechsten Schema-Wechsel
+  waere es aufgefallen.
+  **Fix:** `_plat_fuer_hinweis()` trennt die Frage vom Layout-Gate-`plat` (dort bleibt der
+  Garmin-Rueckfall bewusst konservativ). Reihenfolge: gemeldetes `p` → `device.platform` →
+  `"garmin"` NUR wenn eine **Part-Number** vorliegt (die liefert ausschliesslich Connect IQ) → sonst
+  LEER = kein Hinweis. Damit behalten alte Garmin-Tokens ohne `platform` ihren Hinweis, und keine
+  fremde Plattform kann je die Garmin-Version vorgehalten bekommen.
+  Gemessen am aktiven Bestand: Garmin 125 → 105, „kein Hinweis" 0 → 20; apple/wear/zepp unveraendert.
+  Fuenf Faelle als Funktionstest durchgerechnet (Garmin ohne platform mit pn, Apple mit und ohne `p`,
+  voellig unbekannt, Zepp wo `p` die pn-Verwechslung schlaegt) — alle richtig.
+
+
 - **🟢 Paritaets-Rueckstand der Handy-Apps ABGEARBEITET (17.08.) — Release-reif.** Alle NEUN Punkte
   aus `docs/PARITY-AUDIT.md` sind in Android UND iOS drin:
   1 `colorByValue` + `auto_start` · 2 GNSS-Stufe je Uhr · 3 Hilfetexte an den Uhr-Einstellungen ·

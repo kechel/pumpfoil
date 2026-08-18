@@ -105,6 +105,31 @@ def _effective_gnss_mode(device: models.DeviceToken, settings: dict) -> str:
     return base if base in GNSS_MODES else "best"
 
 
+def _plat_fuer_hinweis(p: str | None, device: models.DeviceToken) -> str:
+    """Plattform, deren Store-Version der Uhr als Update-Hinweis vorgehalten wird.
+
+    BEWUSST STRENGER als `plat` weiter unten: `plat` faellt auf "garmin" zurueck, damit die
+    Layout-/Speicher-Gates einen definierten Zustand haben. Fuer den Update-Hinweis waere derselbe
+    Rueckfall falsch — eine Uhr ohne hinterlegte Plattform bekaeme die Garmin-Version vorgehalten
+    und wuerde bei einem Garmin-Release zum Update aufgefordert, obwohl fuer sie gar keins vorliegt.
+    Vorgabe Jan (18.08.): "ein garmin update darf nicht auf zepp oder apple die Meldung ausloesen".
+
+    Warum es den Rueckfall trotzdem braucht: **nur die Garmin-App schickt kein `p=`** (geprueft
+    18.08. — Wear, Apple und Zepp senden alle drei ihre Plattform mit). Garmin ist aber eindeutig an
+    der PART-NUMBER erkennbar, die ausschliesslich Connect IQ liefert. Damit bleibt der Hinweis fuer
+    alte Garmin-Tokens ohne `platform` erhalten, ohne je eine fremde Plattform zu treffen.
+    (Zepp schickt seinen Modellnamen ebenfalls in `pn`, sendet aber `p=zepp` — `p` gewinnt.)
+
+    Bleibt alles unbekannt: LEERER String -> kein Hinweis. Das ist der dokumentierte sichere
+    Standard, kein Notbehelf.
+    """
+    if p:
+        return p
+    if device.platform:
+        return device.platform
+    return "garmin" if device.part_number else ""
+
+
 @router.get("/config")
 def device_config(
     device: models.DeviceToken = Depends(current_device),
@@ -294,7 +319,9 @@ def device_config(
         # War hart auf Garmin verdrahtet; jetzt plattform-generisch, damit auch Zepp/Wear/Apple einen
         # Hinweis bekommen, SOBALD in appmeta ein Eintrag für sie steht. Ohne Eintrag bleibt es leer
         # (kein Hinweis) — die Store-Freigaben pflegt Jan dort ein, nicht dieser Code.
-        "latestVersion": (_APP_META.get(plat) or {}).get("latest", ""),
+        # Plattform-getrennt, s. _plat_fuer_hinweis(): ein Garmin-Release darf auf Apple/Zepp/
+        # Wear KEINEN Hinweis ausloesen.
+        "latestVersion": (_APP_META.get(_plat_fuer_hinweis(p, device)) or {}).get("latest", ""),
         # Dynamische Layouts (F2 P2). `layoutsOn` ist die VOREINSTELLUNG für den Schalter auf der
         # Uhr (Speicher + Absturz-Statistik + Modell-Voreinstellung + Profil-Schalter), NICHT ein
         # Veto: hat der Nutzer den Schalter am Handgelenk angefasst, gilt seiner. `pages`/`offFoil`/
