@@ -395,12 +395,12 @@ struct HomeView: View {
         else { tile("–", label) }
     }
 
-    @ViewBuilder
     /// Stats neu holen — von allen drei Umschaltern aus (Accel/alle, Sportart, Zeitraum).
     private func ladeStats() {
         Task { stats = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) }
     }
 
+    @ViewBuilder
     private func segButton(_ label: String, active: Bool, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label).font(.caption).fontWeight(.medium)
