@@ -17,7 +17,10 @@ import type { SessionSummary } from "../lib/api";
 
 export interface HrStripItem {
   key: string;
-  label: string;          // Fahrer bzw. Datum — wird im Demo-Modus unkenntlich gemacht
+  // Fahrer bzw. Datum — wird im Demo-Modus unkenntlich gemacht. LEER lassen, wenn alle Zeilen
+  // ohnehin von derselben Session stammen (Session-Detailansicht): dort stuende sonst in jeder
+  // Zeile derselbe Name und die Lauf-Nummer ginge darin unter.
+  label: string;
   session: SessionSummary | null;
   runIdx: number | null;  // null = alle Laeufe dieser Session
 }
@@ -123,7 +126,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
               className="flex items-center justify-end gap-1 text-[10px] leading-none text-slate-400"
               style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
             >
-              <span className="pf-name max-w-[9rem] truncate">{z.label}</span>
+              {z.label && <span className="pf-name max-w-[9rem] truncate">{z.label}</span>}
               <span className="tabular-nums text-slate-500">#{z.nr}</span>
             </div>
           ))}

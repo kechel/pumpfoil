@@ -23,6 +23,7 @@ import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
 import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
+import { CompareHrStrips } from "../components/CompareHrStrips";
 
 function fmtMMSS(s: number | null | undefined) {
   if (s == null) return "–";
@@ -1642,6 +1643,13 @@ export default function SessionDetail() {
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
         canEdit={owned && !isPublic} onSaved={setSession} />
+
+      {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
+          Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
+          Zeigt sich von selbst nicht, wenn die Session keinen Puls hat. */}
+      <div className="mt-4">
+        <CompareHrStrips items={[{ key: `s${session.id}`, label: "", session, runIdx: null }]} />
+      </div>
 
       {/* In der oeffentlichen Teilen-Ansicht KEINES von beiden: dort ist man evtl. nicht angemeldet,
           und beide Aktionen brauchen ein Konto (der Not-Pumpfoil-Knopf war schon vorher so gegated). */}
