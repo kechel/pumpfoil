@@ -30,7 +30,20 @@ interface Zeile {
   label: string;
   nr: number;             // Lauf-Nummer INNERHALB der Session (1-basiert)
   hr: (number | null)[];  // ein Wert je Sekunde ab Laufbeginn
+  dist: number[];         // aufsummierte Strecke in Metern ab Laufbeginn, gleiche Laenge
 }
+
+// Abstand zweier Punkte in Metern. Leaflets map.distance macht das sonst in der App, hier gibt es
+// aber keine Karte — und ein Canvas-Baustein soll Leaflet nicht mitschleppen.
+function meterZwischen(a: number[], b: number[]): number {
+  const R = 6371000, rad = Math.PI / 180;
+  const dLat = (b[1] - a[1]) * rad, dLon = (b[0] - a[0]) * rad;
+  const la1 = a[1] * rad, la2 = b[1] * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+// GPS-Spruenge nicht mitzaehlen — dieselbe Schwelle wie in der Karten-/Abspiel-Logik.
+const MAX_LUECKE_M = 200;
 
 const ZEILE_H = 13;
 const ZEILE_LUECKE = 4;
@@ -44,6 +57,9 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
   // dunkel schwarz lassen). Ein Canvas kennt keine CSS-Klassen, die Farbe muss also hier fallen.
   // Das Thema haengt als Klasse `theme-light` am <html> (lib/theme.ts) und aendert sich ohne
   // Event — deshalb ein MutationObserver, sonst bliebe der Balken nach dem Umschalten falsch.
+  // Zeit-Position unter dem Zeiger (Index auf der gemeinsamen Achse, also Sekunde ab Laufbeginn).
+  // null = kein Zeiger auf dem Diagramm.
+  const [hoverI, setHoverI] = useState<number | null>(null);
   const [hell, setHell] = useState(() => document.documentElement.classList.contains("theme-light"));
   useEffect(() => {
     const el = document.documentElement;
@@ -58,6 +74,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       const a = it.session?.analysis;
       const segs = a?.segments ?? [];
       const hr: (number | null)[] = a?.track_geojson?.properties?.hr ?? [];
+      const coords: number[][] = a?.track_geojson?.geometry?.coordinates ?? [];
       if (!segs.length || !hr.length) continue;
       const idxs = it.runIdx != null ? [it.runIdx] : segs.map((_, i) => i);
       for (const ri of idxs) {
@@ -67,7 +84,31 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           .map((v) => (v != null && v > 0 ? v : null));
         // Laeufe ohne Puls komplett ueberspringen (Jan) — eine graue Zeile hilft niemandem.
         if (!werte.some((v) => v != null)) continue;
-        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte });
+        // Strecke ab Laufbeginn, damit die Maus-Anzeige beides zeigen kann.
+        const von = Math.max(0, s.i_start);
+        const dist: number[] = [];
+        let summe = 0;
+        for (let k = 0; k < werte.length; k++) {
+          if (k > 0) {
+            const p1 = coords[von + k - 1], p2 = coords[von + k];
+            if (p1 && p2) {
+              const d = meterZwischen(p1, p2);
+              if (d <= MAX_LUECKE_M) summe += d;
+            }
+          }
+          dist.push(summe);
+        }
+        // Auf die Lauf-Strecke des Servers normieren. Meine Punkt-fuer-Punkt-Summe liegt 0,3-0,5 %
+        // daneben (an echten Daten gemessen) — ohne das zeigte die Maus-Anzeige am Laufende 615 m,
+        // waehrend die Lauf-Tabelle direkt darueber 618 m sagt. Der Verlauf bleibt derselbe, nur
+        // der Endwert stimmt mit der Tabelle ueberein.
+        const soll = typeof s.distance_m === "number" ? s.distance_m : null;
+        const ist = dist[dist.length - 1] ?? 0;
+        if (soll != null && ist > 0) {
+          const f = soll / ist;
+          for (let k = 0; k < dist.length; k++) dist[k] *= f;
+        }
+        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte, dist });
       }
     }
     return out;
@@ -118,11 +159,17 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
         g.fillRect(x0, y, Math.max(x1 - x0, 1), ZEILE_H);
       }
     });
-  }, [zeilen, maxLen, bereich, hell]);
-
-  if (!zeilen.length) return null;
+    // Fuehrungslinie an der Zeit-Position unter dem Zeiger, ueber alle Zeilen hinweg.
+    if (hoverI != null) {
+      const x = ((hoverI + 0.5) / maxLen) * w;
+      g.fillStyle = hell ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.8)";
+      g.fillRect(Math.round(x), 0, 1, h);
+    }
+  }, [zeilen, maxLen, bereich, hell, hoverI]);
 
   const dauer = (n: number) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
+
+  if (!zeilen.length) return null;
 
   return (
     <Card className="p-3">
@@ -131,6 +178,11 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           {t("field.2")} · {t("compare.runsTitle").replace("{count}", String(zeilen.length))}
         </h3>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+          {hoverI != null && (
+            <span className="mr-1 rounded bg-slate-800 px-1.5 py-0.5 font-semibold tabular-nums text-slate-200">
+              {dauer(hoverI)}
+            </span>
+          )}
           <span className="tabular-nums">{lo}</span>
           <span
             className="inline-block h-2 w-24 rounded"
@@ -152,12 +204,49 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
             </div>
           ))}
         </div>
-        <div ref={boxRef} className="min-w-0 flex-1">
-          <canvas ref={canvasRef} />
+        <div
+          ref={boxRef}
+          className="min-w-0 flex-1"
+          // pointer statt mouse: funktioniert damit auch beim Ziehen auf dem Touchscreen.
+          onPointerMove={(ev) => {
+            const r = ev.currentTarget.getBoundingClientRect();
+            const f = (ev.clientX - r.left) / Math.max(r.width, 1);
+            setHoverI(Math.max(0, Math.min(maxLen - 1, Math.floor(f * maxLen))));
+          }}
+          onPointerLeave={() => setHoverI(null)}
+        >
+          <canvas ref={canvasRef} className="cursor-crosshair" />
           <div className="mt-1 flex justify-between text-[10px] tabular-nums text-slate-500">
             <span>0:00</span>
             <span>{dauer(maxLen)}</span>
           </div>
+        </div>
+        {/* Werte-Spalte: zeigt fuer JEDEN Lauf die Zahlen an der Zeit-Position unter dem Zeiger.
+            Immer vorhanden (auch leer), damit beim Ueberfahren nichts springt. Laeufe, die zu
+            diesem Zeitpunkt schon vorbei sind, bleiben leer statt „0" zu behaupten. */}
+        <div className="w-[104px] shrink-0">
+          {zeilen.map((z) => {
+            const i = hoverI;
+            const da = i != null && i < z.hr.length;
+            const puls = da ? z.hr[i!] : null;
+            return (
+              <div
+                key={z.key}
+                className="flex items-center gap-1 whitespace-nowrap text-[10px] leading-none tabular-nums text-slate-400"
+                style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
+              >
+                {da ? (
+                  <>
+                    <span className="w-11 text-right font-semibold text-slate-200">
+                      {puls != null ? `${puls}` : "–"}
+                    </span>
+                    <span className="text-slate-500">bpm</span>
+                    <span className="ml-auto">{Math.round(z.dist[i!])} m</span>
+                  </>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
     </Card>
