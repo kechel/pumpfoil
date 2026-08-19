@@ -108,8 +108,10 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
     und ignorierte `timebase.py` — ein belegter Fall lag 124 s daneben („Pumps hören mitten im Lauf
     auf", 45 s Gleitphase → nach dem Fix 1,57 s). Jetzt kommt die Achse aus `timebase.py` und der
     Accel liegt auf einem gleichmäßigen Raster, damit `index = t · hz` wirklich gilt.
-    `metrics_json.accel_axis` belegt es je Session. **🔴 Reanalyse des Bestands noch offen** —
-    ohne sie zeigen alte Sessions weiter die alten Zahlen (docs/TODO.md).
+    `metrics_json.accel_axis` belegt es je Session. **🟢 Reanalyse des Bestands ist DURCH** (geprüft
+    19.08.: 886 von 886 Accel-Sessions haben `accel_axis`, die älteste gefahren am 02.05., alle auf
+    `algo_version` v2-windows-1 — kein Mischbestand). Die frühere Notiz „Reanalyse noch offen" war
+    veraltet; wer hier „offen" liest, prüft es bitte erst gegen die DB, statt sie erneut zu starten.
   - **`longest_glide_s` ist die längste Lücke zwischen zwei ERKANNTEN Pumps**, keine gemessene
     Gleitphase → ein hoher Wert heißt meist „Pumps nicht erkannt".
   - **Zahlen nachmessen statt glauben:** `cd server && .venv/bin/python ../scripts/pipeline-check.py`
