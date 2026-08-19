@@ -118,7 +118,7 @@ function Studio() {
   const [outName, setOutName] = useState(sv("outName", ""));
   const [ovOn, setOvOn] = useState(sv("ovOn", true));
   const [ovSel, setOvSel] = useState(sv("ovSel", ""));
-  const [ovAlpha, setOvAlpha] = useState(sv("ovAlpha", 1));
+  const [ovAlpha, setOvAlpha] = useState(sv("ovAlpha", 0.5));
   const [outroOn, setOutroOn] = useState(sv("outroOn", true));
   const [fltYT, setFltYT] = useState(sv("fltYT", true));
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
@@ -527,7 +527,7 @@ function Studio() {
     setFade(2);
     setOutName("");
     setOvOn(true);
-    setOvAlpha(1);
+    setOvAlpha(0.5);
     setOutroOn(true);
     setFltYT(true);
     setFltIG(true);
