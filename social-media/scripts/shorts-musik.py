@@ -58,7 +58,14 @@ DIST = Path(__file__).resolve().parent / "shorts-ui" / "dist"  # React-Build
 CLAUDE_BIN = shutil.which("claude") or str(Path.home() / ".local/bin/claude")
 CLAUDE_MODEL = "claude-opus-5"  # Modell für Titel/Captions (statt CLI-Default)
 CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
-                 "pt", "ja", "zh", "ru", "id"]
+                 "pt", "ja", "zh", "ru", "id", "pl"]
+# Instagram/TikTok bekommen zu Deutsch+Englisch eine dritte Sprache — zufällig
+# gezogen, damit über die Videos hinweg gestreut wird. Auswahl nach den Ländern,
+# die in den Statistiken tatsächlich auftauchen (PL/FR/CZ/IT auf Facebook,
+# ID/PT/ES auf YouTube).
+EXTRA_LANGS = {"pl": "Polnisch", "fr": "Französisch", "it": "Italienisch",
+               "cs": "Tschechisch", "es": "Spanisch", "id": "Indonesisch",
+               "pt": "brasilianisches Portugiesisch"}
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
@@ -476,7 +483,7 @@ YT_PENDING = {}  # state → code_verifier des laufenden Login-Flows
 # unsere Sprachcodes → YouTube-BCP-47 (zh braucht die Region)
 YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
            "fi": "fi", "nl": "nl", "cs": "cs", "pt": "pt",
-           "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id"}
+           "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id", "pl": "pl"}
 YT_ID_RE = re.compile(
     r"(?:youtu\.be/|watch\?v=|/shorts/|studio\.youtube\.com/video/|^)"
     r"([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])")
@@ -1200,9 +1207,13 @@ def title_prefix(name: str) -> str:
     return f"{m.group(1)} Pumpfoil {m.group(3)}" if m else ""
 
 
-def caption_prompt(title: str, prefix: str = "") -> str:
+def caption_prompt(title: str, prefix: str = "", extra_lang: str = "") -> str:
     prefix_rule = (f'\n- JEDER Titel beginnt exakt mit "{prefix} " (unübersetzt), '
                    f'danach folgt der übersetzte Titel.' if prefix else "")
+    extra = EXTRA_LANGS.get(extra_lang, "")
+    extra_ig = (f", danach 1 Satz auf {extra} (dieselbe Aussage, keine Übersetzung "
+                "Wort für Wort)" if extra else "")
+    extra_tt = f" + 1 kurzer Satz auf {extra}" if extra else ""
     return f"""Du bist Social-Media-Redakteur für pumpfoil.org (Pumpfoiling/Dockstart-Wassersport, Tracking-App).
 Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.
 
@@ -1227,17 +1238,20 @@ Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
-- instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil).
-- tiktok: 1 kurzer englischer Satz (+ optional deutsch), 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags).
+- instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis{extra_ig}, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil).
+- tiktok: 1 kurzer englischer Satz (+ optional deutsch){extra_tt}, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags).
 """
 
 
-def generate_captions(title: str, prefix: str = "") -> dict:
+def generate_captions(title: str, prefix: str = "", extra_lang: str = None) -> dict:
+    # dritte Sprache für Instagram/TikTok zufällig ziehen (streut über die Videos)
+    if extra_lang is None:
+        extra_lang = secrets.choice(sorted(EXTRA_LANGS))
     env = {"HOME": str(Path.home()),
            "USER": Path.home().name,  # ohne USER findet die CLI ihre Keychain-Anmeldung nicht
            "PATH": "/opt/homebrew/bin:/usr/bin:/bin:" + str(Path.home() / ".local/bin")}
     proc = subprocess.run([CLAUDE_BIN, "--model", CLAUDE_MODEL, "-p",
-                           caption_prompt(title, prefix)],
+                           caption_prompt(title, prefix, extra_lang)],
                           capture_output=True, text=True, timeout=300, env=env)
     if proc.returncode != 0:
         raise RuntimeError(f"claude-CLI fehlgeschlagen: {(proc.stderr or proc.stdout)[-300:]}")
