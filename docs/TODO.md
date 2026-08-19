@@ -393,6 +393,48 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Groesse — `LEVIATHAN BLACKBIRD THE 1350` war dasselbe Produkt wie `LEVIATHAN BLACKBIRD` 1350, EIN
   Produkt mit zwei Namen. Zwei PRODUKTE bleiben zwei Zeilen, ein Produkt mit zwei Namen wird eins.
 
+
+- **🟢 Gong vollstaendig nachgezogen (19.08., `ccda7ffe`): 68 → 192 Zeilen, Katalog 723 → 847.**
+  Der Agent hat den Shopify-Feed komplett gezogen (2890 Produkte) und die Frontfluegel auf **zwei
+  unabhaengigen Wegen** aufgezaehlt — Titel-Sweep und die vier Kategorieseiten, Differenz null.
+  **Gong ist die erste Marke mit echten Dicken je Groesse** (V3 in mm, V2 in cm, dazu Wurzeltiefe
+  und bei V2 das Volumen) → diese 73 V3-Zeilen tragen **kein** Schaetz-Kennzeichen.
+  Fehlende Groessen in den 15 alten Reihen: **keine**, alle 15 gegen den Shop geprueft.
+  **Unsere 41 ATMO-Zeilen sind belegt**, obwohl Gong fuer ATMO keine Geometrie publiziert: die
+  Spannweiten stimmen exakt mit denen, die Gong in seine **Artikelnummern** codiert (unabhaengig
+  gefunden), und `TRAIL V3 ATMO PERF` ist Zeile fuer Zeile identisch mit Trail V3 — so wie es die
+  eine ATMO-Groesse belegt, fuer die Gong doch Daten liefert. Nichts zu korrigieren.
+
+- **🟡 Gong: 87 ATMO-Groessen fehlen weiter, weil Gong keine Flaeche veroeffentlicht.**
+  Betrifft 17 Produkte: Curve/Fluid/Veloce/Ascent/X-Over V3 Atmo **Perf Series** · Curve/Fluid V3
+  Atmo **Team** · Veloce Free Fly + Veloce Light Wind V3 Atmo Team · Ypra Race Micro / Freestyle
+  Micro / Slalom / Surf Fast / Surf Carve / Surf-Freestyle V3 Atmo **Pro Team**.
+  Aus dem Artikelnummer-Muster liesse sich die **Spannweite** ablesen (in 31 von 31 pruefbaren
+  Zeilen stimmig), die **Flaeche** aber nicht — und `area_cm2` ist NOT NULL. **Ein Weg waere
+  belastbar:** die **Perf Series** ist groessenweise identisch mit dem 2025er V3-Gegenstueck
+  (doppelt belegt: SKU-Spannweiten stimmen, und die eine publizierte ATMO-Zeile Trail V3 Atmo Perf
+  XL = 135 cm/1940 cm² ist genau Trail V3 XL). Damit liessen sich ~30 Perf-Zeilen mit
+  `specs_estimated` uebernehmen. Team/Pro-Team haben eigene Werte → bleiben offen.
+  Ebenfalls offen, weil auf Gongs Seite gar keine Werte stehen: Ypra Surf V2 / Surf-Freestyle V2 /
+  Pro Ypra Surf V2 (Flaeche fehlt) · Fluid V2 Black · Pro Ypra Slalom V2 Black · Fluid-T V1 Black ·
+  Allvator Kite Front Wing V1 · Veloce HDW V3 **M** (dreimal nachgeprueft, Gong laesst es leer) ·
+  Pro Fluid H V2 **4XL** + Fluid H V2 Black 4XL (Spannweite fehlt) · Curve V2 **S/XXL** ·
+  Pro Ypra Race V2 **S**.
+
+- **⚠️ Fehler in Gongs eigenen Daten (nicht unsere):** `Ypra Surf-Freestyle V3` — das Streckungs-FELD
+  nennt 5,1–6,1, nachgerechnet sind es 6,8–7,5, **und Gongs eigener Beschreibungstext auf derselben
+  Seite sagt „ranging from 6.8 on the larger sizes to 7.6 on the smallest"**. Das Feld ist falsch,
+  nicht die Geometrie → Spannweite/Flaeche uebernommen, AR-Feld verworfen. Ebenso `X-Over V2 XXL`:
+  Extrados-Flaeche 1101 cm² ist kleiner als die projizierte (2023 cm²) — offensichtlich falsch.
+
+- **📎 Gong-Definitionen, fuer kuenftige Runden festgehalten:** Streckung = Spannweite²/Flaeche
+  (woertlich „Wingspan²/surface area ratio"; Spannweite/Wurzeltiefe wuerde 22 % daneben liegen) ·
+  bei den alten **V2 nennt Gong DREI Flaechen** (projiziert / Extrados / „felt"), die publizierte
+  Streckung passt auf die **projizierte** — die fuehren wir. Beispiel Curve H V2 XXL: 115²/1566 =
+  8,44 = publizierte 8,4; mit der „felt"-Flaeche 1600 waeren es 8,27.
+  **„Rise" und „Allvator Fluid" gibt es im Gong-Shop nicht mehr** (Altbestand bei uns, passt zu
+  Romans Meldung „old Gong Rise XL") · **„Ghost" existiert bei Gong ueberhaupt nicht** ·
+  „Pulse" ist bei Gong ein **Handwing**, „Lemon" ein **Boardshape** — nie als Fluegel anlegen.
 - **🟢 Katalog-Umfang geklaert (19.08.), ohne Rueckfrage: es kommt ALLES rein, was ein Hersteller
   aktuell als Frontfluegel fuehrt** — auch Race, Surf, Anfaenger. Praezedenzfall steht in den Daten:
   der Katalog enthaelt schon **29 Fluegel unter 600 cm²**, darunter die komplette Starboard-SLX-
