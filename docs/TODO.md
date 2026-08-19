@@ -499,14 +499,39 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   den Stab, nicht mit Frontfluegeln vergleichbar). Brauchen je eine URL, die Jan abruft, oder eine
   Direktanfrage beim Hersteller.
 
-- **🟡 Offen, brauchen einen menschlichen Blick auf eine Herstellergrafik:** AXIS ART V2 819
-  (674 oder 647 cm²? Die Reihen-Konsistenz spricht fuer 674) · Gong Ypra Race Micro 620 vs. 630 cm² ·
-  Lift **Florence 71 X** (97 cm bei 458 cm² ergibt Streckung 20,6, publiziert sind 16,8 — und der
-  groessere Florence 91 X hat bei gleicher Spannweite publizierte 16, der 71 X muss also darueber
-  liegen; **nicht aufgenommen**) · Unifoil **Vyper 150** („Span 140 mm" ist offensichtlich falsch,
-  **nicht aufgenommen**) · Cabrinha X1600/X1950 (dokumentiert Cabrinha nicht mehr, unsere Zahlen
-  haben derzeit keine Herstellerquelle) · Slingshots ueberwiegend abgekuendigte Palette ·
+- **🟢 METHODE (Jan, 19.08.): „schau dir die Bilder doch mal an, kannst du die nicht lesen?" —
+  Herstellergrafiken sind LESBAR, „liegt nur als Bild vor" ist keine Endstation.** Die sieben
+  Rechercheagenten haben genau dort abgebrochen. Herunterladen, den Textblock automatisch finden
+  (helle Schrift im dunklen Fluegel), stark vergroessern und lesen loest Faelle, die vorher offen
+  blieben. **Drei Stellen pruefen, die die Agenten uebersehen haben:** (1) auf den Fluegel GEDRUCKTE
+  Spezifikationen — AXIS und Lift machen das; (2) `<table>` im Produktseiten-HTML (Cabrinha, Unifoil)
+  — im Shopify-`products.json` fehlt sie; (3) serverseitig gerenderte Spec-Bloecke in aufklappbaren
+  Bereichen (Lift). **Und der stärkste Hebel: die IMPERIAL-Umrechnung des Herstellers.** Sie ist eine
+  unabhaengige Rechnung — wo metrisch und imperial auseinanderlaufen, ist die metrische Zahl der
+  Zifferndreher (bei AXIS zweimal belegt).
+
+- **🟢 ERLEDIGT 19.08. mit gelesenen Grafiken — vier der offenen Punkte:**
+  - **AXIS ART V2 819: unsere 674 cm² sind richtig** (`de0751db`). AXIS druckt „647cm² (104.4in²)"
+    auf den Fluegel, aber 104,4 in² = 674 cm². Der Melder hatte AXIS' Druckfehler abgeschrieben.
+  - **AXIS ART V2 999 → 1026 und 1099 → 1197 cm²** korrigiert; AXIS' Website-Text liegt bei DREI
+    von fuenf Groessen neben der gedruckten Spezifikation. Damit auch meine eigene Aenderung von
+    heute Morgen (1099 auf 1220) korrigiert — sie stuetzte sich auf den Website-Text.
+  - **Lift Florence 71 X aufgenommen** (`4c606d30`), 97 cm / 458 cm². Lifts publizierte Streckung
+    16,8 ist die falsche Zahl; Flaeche und Spannweite sind je doppelt belegt.
+  - **Unifoil Vyper 150 aufgenommen**, 74,9 cm / 968 cm² — die Spannweite folgt aus Flaeche und
+    Streckung, die „140 mm" der Seite sind falsch.
+
+- **🟡 Offen, brauchen weiter einen Blick von Jan:** Gong Ypra Race Micro 620 vs. 630 cm² (nur als
+  ATMO gefuehrt, dafuer veroeffentlicht Gong ohnehin keine Geometrie) · Cabrinha X1600/X1950
+  (dokumentiert Cabrinha nicht mehr, unsere Zahlen haben derzeit keine Herstellerquelle; ein
+  Archivstand von 2023 wuerde es klaeren) · Slingshots ueberwiegend abgekuendigte Palette ·
   Ketos (falls inzwischen echte Dicken publiziert werden, sollten unsere 16 Formelwerte weichen).
+
+- **🔴 NeilPryde veroeffentlicht die Spannweiten NICHT — geprueft, nicht vermutet.** Der Bericht
+  sagte „Tabellen nur als Bild". Es gibt aber gar keine: kein Spec-Block auf der Produktseite,
+  keine `<table>` im HTML, und auf den Fluegel gedruckt steht nur der Modellname („GLIDE SWIFT 8").
+  Die Groessen 750/1000/1250 sind Flaechen in cm², ohne Spannweite ist keine Zeile moeglich.
+  Bliebe eine Direktanfrage beim Hersteller.
 
 
 - **🟢 Alle Foil-Meldungen aus dem Feedback abgearbeitet (19.08.). Katalog 533 → 536.**
