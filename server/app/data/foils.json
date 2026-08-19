@@ -4275,7 +4275,8 @@
   "span_cm": 99.0,
   "area_cm2": 742.0,
   "thickness_mm": 12.8,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4284,7 +4285,8 @@
   "span_cm": 111.0,
   "area_cm2": 933.0,
   "thickness_mm": 14.4,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4293,7 +4295,8 @@
   "span_cm": 122.0,
   "area_cm2": 1128.0,
   "thickness_mm": 15.8,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4302,7 +4305,8 @@
   "span_cm": 133.0,
   "area_cm2": 1340.0,
   "thickness_mm": 17.2,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4311,7 +4315,8 @@
   "span_cm": 83.5,
   "area_cm2": 750.0,
   "thickness_mm": 15.3,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4320,7 +4325,8 @@
   "span_cm": 94.0,
   "area_cm2": 950.0,
   "thickness_mm": 17.3,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4329,7 +4335,8 @@
   "span_cm": 107.8,
   "area_cm2": 1250.0,
   "thickness_mm": 19.8,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Ketos",
@@ -4338,7 +4345,8 @@
   "span_cm": 116.1,
   "area_cm2": 1450.0,
   "thickness_mm": 21.3,
-  "thickness_estimated": true
+  "thickness_estimated": true,
+  "specs_estimated": true
  },
  {
   "brand": "Gong",
