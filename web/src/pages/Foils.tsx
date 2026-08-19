@@ -53,7 +53,10 @@ export default function Foils() {
     const ql = q.trim().toLowerCase();
     return foils.filter((f) =>
       (!brand || f.brand === brand) &&
-      (!ql || `${f.brand} ${f.model} ${f.size}`.toLowerCase().includes(ql)));
+      // Zweitbezeichnungen mitsuchen (aliases): Nutzer tippen den offiziellen Produktcode ein,
+      // wir fuehren den Marketing-Namen. Ohne das legen sie einen privaten Eintrag an und das Teil
+      // steht zweimal im Katalog. Wird bewusst NICHT angezeigt, nur gefunden.
+      (!ql || `${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`.toLowerCase().includes(ql)));
   }, [foils, brand, q]);
 
   // „Meine" zuerst (Default ganz oben), dann der Rest.

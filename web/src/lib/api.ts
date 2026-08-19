@@ -108,6 +108,9 @@ export interface Foil {
   id: number; brand: string; model: string; size: string;
   span_cm: number; area_cm2: number; thickness_mm: number; thickness_estimated?: boolean; specs_estimated?: boolean;
   aspect_ratio: number | null; mean_chord_cm: number | null; is_baseline: boolean;
+  // Durchsuchbare Zweitbezeichnungen (offizielle Produktcodes), „|"-getrennt.
+  // NICHT anzeigen — nur zum Filtern, s. server/app/api/foils.py.
+  aliases?: string | null;
 }
 
 // Stabilizer (Rear Wing) — NUR die Bezeichnung („GONG Stab Trail L"); Maße pflegen wir nicht,
@@ -116,6 +119,7 @@ export interface Stab {
   id: number; brand: string; model: string; size: string; is_own?: boolean;
   // Maße, sofern gepflegt (null = Hersteller/Katalog liefert keine).
   span_cm?: number | null; area_cm2?: number | null; specs_estimated?: boolean;
+  aliases?: string | null;   // wie bei Foil: nur durchsuchbar, nicht anzeigen
 }
 
 // Ein frei gestaltetes Uhr-Layout (= EINE Seite). Element-Format kompakt/positionell:

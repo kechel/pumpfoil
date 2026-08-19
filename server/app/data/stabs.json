@@ -1227,12 +1227,14 @@
   {
     "brand": "Sabfoil",
     "model": "Downwind Kraken",
-    "size": "360"
+    "size": "360",
+    "aliases": "SDW/360|SDW360"
   },
   {
     "brand": "Sabfoil",
     "model": "Downwind Kraken",
-    "size": "375"
+    "size": "375",
+    "aliases": "SDW/375|SDW375"
   },
   {
     "brand": "Sabfoil",
@@ -1272,37 +1274,44 @@
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Barracuda XS Tail S"
+    "size": "Barracuda XS Tail S",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Condor M Tail XS"
+    "size": "Condor M Tail XS",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Condor S Tail XXS"
+    "size": "Condor S Tail XXS",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Dolphin M Tail M"
+    "size": "Dolphin M Tail M",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Dolphin S Tail M"
+    "size": "Dolphin S Tail M",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Dolphin S Tail XS"
+    "size": "Dolphin S Tail XS",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",
     "model": "Foil MB Stabilizer",
-    "size": "Marlin S Tail M"
+    "size": "Marlin S Tail M",
+    "aliases": "Monobloc"
   },
   {
     "brand": "Indiana",

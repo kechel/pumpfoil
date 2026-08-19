@@ -775,7 +775,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **💡 Muster dahinter:** 4 der 7 Dopplungen entstanden, weil Nutzer den **offiziellen
   Produktcode** eintippen (SDW/375, 150AR, „Monobloc") und wir den Marketing-Namen fuehren. Ein
   Alias-Feld im Katalog (durchsuchbar, nicht angezeigt) wuerde diese ganze Klasse abstellen —
-  ungebaut, wartet auf Jans OK.
+  **🟢 GEBAUT 19.08.** Spalte `aliases` auf foils UND stabs, „|"-getrennt, in der q-Suche und im
+  lokalen Filter der Weboberflaeche, mitgeliefert aber nirgends angezeigt. **Die Seeder tragen
+  Aliase auch auf VORHANDENE Zeilen nach** (`foils.json`/`stabs.json` = Quelle der Wahrheit) — ohne
+  das kaemen sie nur bei Neuzugaengen an, also genau dort nicht, wo sie gebraucht werden. Bei Stabs
+  nur auf Katalog-Zeilen, private Eintraege bleiben unangetastet.
+  Gepflegt sind nur belegte Faelle: `SDW/360`+`SDW/375` (Sabfoil Downwind Kraken), `Monobloc`
+  (Indiana Foil MB Stabilizer, 7 Zeilen), `WL1400/BB` (Sabfoil Leviathan Blackbird 1400, heute am
+  Hersteller nachgeschlagen). **Kein** Alias fuer die Code-Foils-Stabs: dort IST der Produktcode
+  schon die Groesse (`150AR`, `135R`), die Groessensuche findet sie bereits.
+  Weitere Aliase einfach in die JSON eintragen und den Server neu starten — kein Code noetig.
 - **🔴 STILLER DATENVERLUST bei vollem Uhr-Speicher (Instinct 2) — belegt 13.08., ZWEI Nutzer.**
   Meldung Nathan: „session on August 11th, all the data were uploaded but only one of the runs is
   being displayed". Stimmt beides — die Uhr hat alles hochgeladen, was sie noch HATTE, der Rest war

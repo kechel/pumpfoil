@@ -4046,7 +4046,8 @@
     "size": "1400",
     "span_cm": 138.0,
     "area_cm2": 1549.0,
-    "thickness_mm": 18.0
+    "thickness_mm": 18.0,
+    "aliases": "WL1400/BB|WL1400-BB"
   },
   {
     "brand": "Sabfoil",

@@ -195,6 +195,14 @@ class Foil(Base):
     specs_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
+    # DURCHSUCHBARE Zweitbezeichnungen, mit „|" getrennt, NICHT angezeigt.
+    # Grund (Katalog-Bereinigung 17.08.): 4 von 7 Dopplungen entstanden, weil Nutzer den offiziellen
+    # PRODUKTCODE eintippen — `SDW/375`, `150AR`, „Monobloc" — waehrend wir den Marketing-Namen
+    # fuehren. Wer seinen Code nicht findet, legt einen privaten Eintrag an, und das Teil steht
+    # zweimal im Katalog. Hier gepflegt, findet die Suche beides.
+    aliases: Mapped[str | None] = mapped_column(String(300))
+
+
 
 class Stab(Base):
     """Stabilizer-/Rear-Wing-**Bezeichnungen** (Marke/Modell/Größe), Aufbau wie der Foil-Katalog.
@@ -219,6 +227,10 @@ class Stab(Base):
     span_cm: Mapped[float | None] = mapped_column(Float)
     area_cm2: Mapped[float | None] = mapped_column(Float)
     specs_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+    # Wie bei Foil: durchsuchbare Zweitbezeichnungen, „|"-getrennt, nicht angezeigt.
+    aliases: Mapped[str | None] = mapped_column(String(300))
+
 
 
 class Board(Base):

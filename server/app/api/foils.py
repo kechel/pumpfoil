@@ -20,6 +20,9 @@ def _out(f: models.Foil) -> dict:
         "thickness_estimated": bool(f.thickness_estimated),
         "specs_estimated": bool(f.specs_estimated),
         "aspect_ratio": ar, "mean_chord_cm": chord, "is_baseline": f.is_baseline,
+        # MITGELIEFERT, aber nicht zum Anzeigen: die Weboberflaeche filtert lokal und braucht die
+        # Zweitbezeichnungen deshalb im Datensatz. Kein Client stellt sie dar.
+        "aliases": f.aliases or None,
     }
 
 
@@ -42,6 +45,10 @@ def list_foils(
             func.lower(models.Foil.brand).like(like),
             func.lower(models.Foil.model).like(like),
             func.lower(models.Foil.size).like(like),
+            # Zweitbezeichnungen mitsuchen: Nutzer tippen den offiziellen PRODUKTCODE ein
+            # (`SDW/375`, `150AR`, „Monobloc"), wir fuehren den Marketing-Namen. Ohne das legen sie
+            # einen privaten Eintrag an und das Teil steht zweimal im Katalog (Befund 17.08.).
+            func.lower(func.coalesce(models.Foil.aliases, "")).like(like),
         ))
     rows = query.order_by(models.Foil.brand, models.Foil.model, models.Foil.area_cm2).all()
     return [_out(f) for f in rows]

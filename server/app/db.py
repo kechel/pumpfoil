@@ -71,6 +71,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pump_unit VARCHAR(8) DEFAULT 'hz'",
         "ALTER TABLE foils ADD COLUMN IF NOT EXISTS specs_estimated BOOLEAN DEFAULT false",
+        # Durchsuchbare Zweitbezeichnungen (Produktcodes), „|"-getrennt, nicht angezeigt — s. models.Foil.
+        "ALTER TABLE foils ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
+        "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
         # Puls-Anstieg je Session (Median des Hoechstpulses bis Minute 1/2/5), lazy gefuellt.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_by_min_json TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
@@ -174,9 +177,23 @@ def _seed_foils() -> None:
                 thickness_mm=r["thickness_mm"],
                 thickness_estimated=bool(r.get("thickness_estimated")),
                 is_baseline=bool(r.get("is_baseline")),
+                aliases=(r.get("aliases") or None),
             ))
             added += 1
-        if added:
+        # Zweitbezeichnungen NACHTRAGEN, auch bei laengst vorhandenen Zeilen: sie sind gepflegte
+        # Metadaten, kein Teil der Identitaet (brand/model/size). Ohne diesen Schritt wuerden neue
+        # Aliase nur bei Katalog-Neuzugaengen ankommen — genau falsch, denn gebraucht werden sie
+        # bei den ALTEN Zeilen, die Nutzer nicht finden.
+        geaendert = 0
+        mit_alias = {(r["brand"], r["model"], r["size"]): (r.get("aliases") or None)
+                     for r in json.loads(f.read_text()) if r.get("aliases")}
+        if mit_alias:
+            for row in db.query(models.Foil).all():
+                soll = mit_alias.get((row.brand, row.model, row.size))
+                if soll and row.aliases != soll:
+                    row.aliases = soll
+                    geaendert += 1
+        if added or geaendert:
             db.commit()
     finally:
         db.close()
@@ -207,9 +224,20 @@ def _seed_stabs() -> None:
             key = (r["brand"], r["model"], r["size"])
             if key in existing:
                 continue
-            db.add(models.Stab(brand=key[0], model=key[1], size=key[2]))
+            db.add(models.Stab(brand=key[0], model=key[1], size=key[2],
+                               aliases=(r.get("aliases") or None)))
             added += 1
-        if added:
+        # Zweitbezeichnungen auch bei vorhandenen Zeilen nachtragen (Begruendung s. _seed_foils).
+        geaendert = 0
+        mit_alias = {(r["brand"], r["model"], r["size"]): (r.get("aliases") or None)
+                     for r in json.loads(f.read_text()) if r.get("aliases")}
+        if mit_alias:
+            for row in db.query(models.Stab).filter(models.Stab.user_id.is_(None)).all():
+                soll = mit_alias.get((row.brand, row.model, row.size))
+                if soll and row.aliases != soll:
+                    row.aliases = soll
+                    geaendert += 1
+        if added or geaendert:
             # 4 uvicorn-Worker seeden gleichzeitig. Der Zweite läuft entweder in
             # uq_stab_variant (IntegrityError) oder — bei größeren Batches — in einen
             # Postgres-Deadlock, weil beide dieselben Zeilen in anderer Reihenfolge sperren.
