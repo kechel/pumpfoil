@@ -788,7 +788,8 @@
   "span_cm": 74,
   "area_cm2": 590,
   "thickness_mm": 13.7,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -797,7 +798,8 @@
   "span_cm": 78,
   "area_cm2": 643,
   "thickness_mm": 14.1,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -806,7 +808,8 @@
   "span_cm": 83,
   "area_cm2": 728,
   "thickness_mm": 15,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -815,7 +818,8 @@
   "span_cm": 89,
   "area_cm2": 835,
   "thickness_mm": 16.1,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -824,7 +828,8 @@
   "span_cm": 95,
   "area_cm2": 949,
   "thickness_mm": 17.1,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -833,7 +838,8 @@
   "span_cm": 101,
   "area_cm2": 1076,
   "thickness_mm": 18.3,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -842,7 +848,8 @@
   "span_cm": 82,
   "area_cm2": 674,
   "thickness_mm": 14.1,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -851,7 +858,8 @@
   "span_cm": 88,
   "area_cm2": 790,
   "thickness_mm": 15.4,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -860,25 +868,28 @@
   "span_cm": 94,
   "area_cm2": 900,
   "thickness_mm": 16.4,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
   "model": "ART V2",
   "size": "999",
   "span_cm": 100,
-  "area_cm2": 1038,
-  "thickness_mm": 17.8,
-  "is_baseline": false
+  "area_cm2": 1026,
+  "thickness_mm": 17.5,
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
   "model": "ART V2",
   "size": "1099",
   "span_cm": 110,
-  "area_cm2": 1220,
-  "thickness_mm": 17.5,
-  "is_baseline": false
+  "area_cm2": 1197,
+  "thickness_mm": 18.6,
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -887,7 +898,8 @@
   "span_cm": 120.1,
   "area_cm2": 1318,
   "thickness_mm": 18.8,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -896,7 +908,8 @@
   "span_cm": 140.1,
   "area_cm2": 1647,
   "thickness_mm": 20.2,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -905,7 +918,8 @@
   "span_cm": 65,
   "area_cm2": 769,
   "thickness_mm": 19.6,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -914,7 +928,8 @@
   "span_cm": 70,
   "area_cm2": 890,
   "thickness_mm": 21.8,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -923,7 +938,8 @@
   "span_cm": 83,
   "area_cm2": 1014,
   "thickness_mm": 20.9,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -932,7 +948,8 @@
   "span_cm": 88,
   "area_cm2": 1112,
   "thickness_mm": 21.7,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -941,7 +958,8 @@
   "span_cm": 93,
   "area_cm2": 1214,
   "thickness_mm": 22.4,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -950,7 +968,8 @@
   "span_cm": 98,
   "area_cm2": 1323,
   "thickness_mm": 23.1,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "AXIS",
@@ -959,7 +978,8 @@
   "span_cm": 105,
   "area_cm2": 1502,
   "thickness_mm": 24.5,
-  "is_baseline": false
+  "is_baseline": false,
+  "thickness_estimated": true
  },
  {
   "brand": "TAKOON",
