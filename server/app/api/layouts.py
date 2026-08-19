@@ -116,7 +116,18 @@ def _clean_element(e) -> list | None:
         _clamp(e[5], 0, 7),              # flags: 1 = linksbündig, 2 = rechtsbündig, 4 = colorByValue
     ]
     if typ in (1, 2):               # Wert / übersetztes Label -> Feld-ID
-        fid = _clamp(e[6] if len(e) > 6 else 0, 0, 20)
+        # NICHT klemmen. Ein _clamp(…, 0, 20) stand hier und war ein stiller Datenverlust: als
+        # Feld 21 („Letzter Lauf: Max Puls") dazukam, wurde VALID_FIELD_IDS erweitert, die 20 in
+        # der Klemme aber nicht — jedes Speichern machte aus der 21 eine 20, und das ist „Läufe
+        # (Anzahl)". Der Nutzer stellte also Max Puls ein und bekam die Lauf-Anzahl zurück, ohne
+        # jede Fehlermeldung (gemeldet von ThermikDreher, 18.08.).
+        # Klemmen ist hier grundsätzlich falsch: eine unbekannte ID auf eine GÜLTIGE zu ziehen
+        # heisst, dem Nutzer ein anderes Feld unterzuschieben. Unbekannt -> Element verwerfen,
+        # wie bei jedem anderen ungültigen Wert in dieser Funktion auch.
+        try:
+            fid = int(round(float(e[6] if len(e) > 6 else 0)))
+        except (TypeError, ValueError):
+            return None
         if fid not in VALID_FIELD_IDS:
             return None
         out.append(fid)
