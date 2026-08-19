@@ -382,6 +382,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 BEHOBEN (19.08.): Datenfeld 21 wurde beim Speichern still zu Feld 20.** Gemeldet von
+  ThermikDreher im Chat (18.08. 21:56): „immer wenn ich speichere wechselt der Wert zu Anzahl Runs".
+  Ursache in `layouts.py._clean_element`: ein `_clamp(…, 0, 20)` VOR der Gueltigkeitspruefung. Beim
+  Einbau von Feld 21 wurde `VALID_FIELD_IDS` erweitert, diese Klemme aber uebersehen — jede 21 wurde
+  zu 20, und 20 ist „Laeufe (Anzahl)". Belegt: von 30 Layouts in der DB enthielt **kein einziges**
+  Feld 21. Fix: nicht klemmen, unbekannte ID verwerfen (eine unbekannte auf eine GUELTIGE zu ziehen
+  heisst, dem Nutzer ein anderes Feld unterzuschieben).
+  **Nicht reparierbar:** gespeicherte 20er lassen sich nicht zurueckrechnen — eine bewusst gewaehlte
+  20 sieht aus wie eine verstuemmelte 21. Betroffene (Layouts, die seit dem 17.08. gespeichert
+  wurden) muessen das Feld einmal neu setzen.
+
+- **💡 Drei Wuensche von ThermikDreher (#267), 18.08. abends.** Er hat auch das Datenfeld gefunden,
+  seine Meldungen sind bisher alle belastbar gewesen.
+  1. **Vergleich von Pumpfrequenz und Speed**, um Pumptechniken zu vergleichen — „weil das ja
+     foilabhaengig ist".
+  2. **Graph UNTER der Karte**, umschaltbar Speed/Puls, fuer den angeklickten Lauf; im Autoplay ein
+     Balken, der mitlaeuft und Karte und Kurve verbindet. Ihn interessiert konkret, WIE der Puls
+     beim Pumpen steigt. 🔴 **Das ist NICHT dasselbe wie die Einfaerbung der Karte nach Puls**
+     (Jans Antwort 19.08. 07:05): die zeigt, WO welcher Puls war, nicht den zeitlichen Verlauf.
+  3. **Fremde Tracks am selben Spot** einblenden, auf den Start synchronisiert — Vorbild XContest
+     beim Gleitschirmfliegen (dort wird automatisch gezeigt, wer zeitgleich unterwegs war). Er sagt
+     selbst: gleichzeitig fahren ergibt beim Pumpen wenig Sinn, aber „schnell schauen koennen, wie
+     andere an dem Spot fahren" schon. Beispiel:
+     https://www.xcontest.org/world/en/flights/detail:leachim/27.6.2026/09:32
+
+- **📻 Suunto-Wartender: S J (#276)** trackt im Spot-Chat Kirchentellinsfurt mit einer **Suunto im
+  SUP-Modus**, „leider nicht optimal, aber eine bessere Loesung hab ich gerade nicht" (18.08.).
+  Konkreter Interessent fuer die Suunto-Anbindung (memory `suunto-api-integration`, live aber
+  credential-gated). Spot-Hinweis von ihm nebenbei: im Uferbereich nur gerade tief genug, er hat
+  sich den Fluegel bei Starts zerkratzt.
+
 - **🟢 Die drei nach dem Paritaets-Port gemeldeten Punkte sind erledigt (18.08.).**
   1. **Lauf-Tabelle iOS + Android**: waagerecht scrollbar, alle 13 PWA-Spalten. Es fehlten
      Startuhrzeit, Min im Fenster, Leistung, Distanz/Pump, Ø Pump, Pump max/min und laengste
