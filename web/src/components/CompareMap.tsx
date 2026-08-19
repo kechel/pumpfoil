@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { SessionSummary } from "../lib/api";
-import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
+import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { useT } from "../i18n";
 import { usePumpFmt } from "../lib/pumpRate";
@@ -66,7 +66,9 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
 
   // Datenverfügbarkeit über alle Items.
   const hasPump = items.some((it) => (it.session.analysis?.track_geojson?.properties?.pump_hz ?? []).some((v: number | null) => v != null));
-  const hasHr = items.some((it) => (it.session.analysis?.track_geojson?.properties?.hr ?? []).some((v: number | null) => v != null));
+  // 0 = kein Messwert: eine Session, in der ALLE Werte 0 sind, hat keinen Puls — sonst boete die
+  // Karte den Puls-Modus an und faerbte alles grau.
+  const hasHr = items.some((it) => (it.session.analysis?.track_geojson?.properties?.hr ?? []).some((v: number | null) => v != null && v > 0));
   const anyOptimal = items.some((it) => optimalKmhFor(it.session, weight) != null);
 
   // Modus fällt zurück, wenn die nötigen Daten fehlen.
@@ -86,10 +88,13 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
     const vals = items.flatMap((it) => (it.session.analysis?.track_geojson?.properties?.pump_hz ?? []).filter((v: number | null): v is number => v != null));
     return vals.length ? [Math.min(...vals), Math.max(...vals)] : [0, 2];
   }, [items]);
-  const hrRange = useMemo<[number, number]>(() => {
-    const vals = items.flatMap((it) => (it.session.analysis?.track_geojson?.properties?.hr ?? []).filter((v: number | null): v is number => v != null));
-    return vals.length ? [Math.min(...vals), Math.max(...vals)] : [100, 170];
-  }, [items]);
+  // Bereich ueber ALLE verglichenen Sessions zusammen (Jan: „min aller sessions bis max aller
+  // sessions im vergleich") — zentral in lib/trackColors, damit Karte und Puls-Streifen dieselbe
+  // Skala benutzen.
+  const hrRange = useMemo<[number, number]>(
+    () => hrRangeOf(...items.map((it) => it.session.analysis?.track_geojson?.properties?.hr ?? [])),
+    [items],
+  );
 
   const [autoScale, setAutoScale] = useState(true);
   const [sLo, setSLo] = useState(speedRange[0]);
@@ -146,7 +151,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
           else if (mode === "speed") color = speedColor((speeds[i + 1] ?? 0) * 3.6, sLo, sHi);
           else if (mode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, opt);
           else if (mode === "pump") { const v = phz[i + 1]; const [lo, hi] = pumpRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
-          else { const v = hr[i + 1]; const [lo, hi] = hrRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
+          else color = hrColor(hr[i + 1], hrRange);
           L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: 0.92 }).addTo(lg);
         }
       }

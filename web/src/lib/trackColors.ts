@@ -7,6 +7,41 @@ export function rampColor(t: number): string {
   return `hsl(${(1 - c) * 240}, 85%, 55%)`;
 }
 
+/**
+ * Puls-Bereich fuer die Farbrampe, aus beliebig vielen Puls-Arrays.
+ *
+ * Lag vorher DREIMAL dupliziert (SessionDetail, CompareMap, Puls-Streifen) und lief dadurch
+ * auseinander — dieselbe Pulszahl bekam je nach Ansicht eine andere Farbe, obwohl der Kopf dieser
+ * Datei genau das verhindern soll. Deshalb hier, an einer Stelle.
+ *
+ * 0 zaehlt NICHT mit: eine Null im Puls-Array heisst „kein Messwert" (Sensor-Luecke), nicht
+ * „0 Schlaege". Vorher wurde nur auf null geprueft, und schon wenige Nullen zogen die Skala bis
+ * ganz nach unten — gemessen am Bestand: 50 von 1093 Sessions mit Puls sind betroffen, bei einer
+ * reichten 5 von 768 Punkten, um die Rampe von 81 auf 0 zu strecken und alle echten Werte in die
+ * obere Haelfte zu quetschen.
+ *
+ * Kein Spread (`Math.min(...v)`): ueber mehrere verglichene Sessions kommen leicht Zehntausende
+ * Werte zusammen, und ein Spread mit so vielen Argumenten sprengt den Aufruf-Stack.
+ */
+export function hrRange(...arrays: (number | null | undefined)[][]): [number, number] {
+  let lo = Infinity, hi = -Infinity;
+  for (const arr of arrays) {
+    for (const v of arr) {
+      if (v == null || v <= 0) continue;
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+  }
+  return hi >= lo ? [lo, hi] : [100, 170];
+}
+
+/** Farbe eines Pulswerts. null oder 0 = kein Messwert -> grau, wie bisher in beiden Karten. */
+export function hrColor(v: number | null | undefined, range: [number, number]): string {
+  if (v == null || v <= 0) return "#64748b";
+  const [lo, hi] = range;
+  return rampColor((v - lo) / Math.max(hi - lo, 1));
+}
+
 // Speed-Farbskala (km/h) mit einstellbaren Grenzen; außerhalb -> schwarz.
 export function speedColor(kmh: number, lo: number, hi: number): string {
   if (kmh < lo || kmh > hi) return "#000000";

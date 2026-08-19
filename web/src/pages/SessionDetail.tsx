@@ -15,7 +15,7 @@ import { invalidateSessionListCache, ProcessingNote } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
-import { rampColor, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
+import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { carveColor } from "../lib/turns";
 import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
@@ -599,11 +599,12 @@ export default function SessionDetail() {
   }, [isPublic, session, id]);
 
   // HR-Bereich der Foiling-Punkte (für die Puls-Farbskala).
-  const hrRange = useMemo<[number, number]>(() => {
-    const hr: (number | null)[] = session?.analysis?.track_geojson?.properties?.hr ?? [];
-    const vals = hr.filter((v): v is number => v != null);
-    return vals.length ? [Math.min(...vals), Math.max(...vals)] : [100, 170];
-  }, [session]);
+  // Bereich + Farbe kommen aus lib/trackColors — dieselbe Rechnung wie Vergleichskarte und
+  // Puls-Streifen, sonst zeigt derselbe Puls je Ansicht eine andere Farbe.
+  const hrRange = useMemo<[number, number]>(
+    () => hrRangeOf(session?.analysis?.track_geojson?.properties?.hr ?? []),
+    [session],
+  );
 
   // Pump-Frequenz-Bereich (Hz) der Foiling-Punkte -> automatische Skala min..max.
   const pumpHz: (number | null)[] = session?.analysis?.track_geojson?.properties?.pump_hz ?? [];
@@ -858,7 +859,7 @@ export default function SessionDetail() {
         let color: string;
         if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         else if (colorMode === "pump") { const v = phz[i + 1]; const [lo, hi] = pumpRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
-        else if (colorMode === "hr") { const v = hr[i + 1]; const [lo, hi] = hrRange; color = v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
+        else if (colorMode === "hr") color = hrColor(hr[i + 1], hrRange);
         else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
         L.polyline([coords[i], coords[i + 1]], { color, weight: 5, opacity: 0.95 }).addTo(lg);
       }
@@ -1001,7 +1002,7 @@ export default function SessionDetail() {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
       if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
       if (colorMode === "turns") { const gg = carveData?.g[i]; return gg != null ? carveColor(gg, carveGMax) : "#334155"; }
-      if (colorMode === "hr") { const v = hr[i]; const [lo, hi] = hrRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1)); }
+      if (colorMode === "hr") return hrColor(hr[i], hrRange);
       return speedColor((speeds[i] ?? 0) * 3.6, speedMin, speedMax);
     };
     // Sind timeline[k] und timeline[k+1] ein zeichenbares Nachbarpaar (keine Lücke)?

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "./ui";
 import { useT } from "../i18n";
-import { rampColor } from "../lib/trackColors";
+import { rampColor, hrColor, hrRange as hrRangeOf } from "../lib/trackColors";
 import type { SessionSummary } from "../lib/api";
 
 // Puls-Streifen je Lauf auf der Vergleichsseite (Jans Entwurf 19.08., ausgeloest durch
@@ -40,6 +40,18 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
+  // Hell-/Dunkel-Modus fuer den Balken-Hintergrund (Jan: ab Lauf-Ende nach rechts hell weiss,
+  // dunkel schwarz lassen). Ein Canvas kennt keine CSS-Klassen, die Farbe muss also hier fallen.
+  // Das Thema haengt als Klasse `theme-light` am <html> (lib/theme.ts) und aendert sich ohne
+  // Event — deshalb ein MutationObserver, sonst bliebe der Balken nach dem Umschalten falsch.
+  const [hell, setHell] = useState(() => document.documentElement.classList.contains("theme-light"));
+  useEffect(() => {
+    const el = document.documentElement;
+    const beobachter = new MutationObserver(() => setHell(el.classList.contains("theme-light")));
+    beobachter.observe(el, { attributes: true, attributeFilter: ["class"] });
+    return () => beobachter.disconnect();
+  }, []);
+
   const zeilen = useMemo<Zeile[]>(() => {
     const out: Zeile[] = [];
     for (const it of items) {
@@ -61,11 +73,19 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
     return out;
   }, [items]);
 
-  // Puls-Bereich ueber ALLE gezeigten Zeilen: nur so sind die Farben vergleichbar.
-  const [lo, hi] = useMemo(() => {
-    const v = zeilen.flatMap((z) => z.hr).filter((x): x is number => x != null);
-    return v.length ? [Math.min(...v), Math.max(...v)] : [100, 170];
-  }, [zeilen]);
+  // Puls-Bereich fuer die Farbrampe — ueber die GANZEN Tracks, nicht nur ueber die Laufabschnitte.
+  //
+  // Das ist wichtig und war zuerst falsch: die Karten (SessionDetail und CompareMap) spannen ihre
+  // Rampe ueber alle Punkte der ganzen Session bzw. aller verglichenen Sessions. Wer nur ueber die
+  // Laeufe skaliert, zeigt DIESELBE Pulszahl in einer anderen Farbe als die Karte direkt darueber.
+  // An echten Daten gemessen (Session #2350): 114 bpm liegen auf der Karte bei 49 % der Rampe,
+  // ueber die Laeufe skaliert bei 84 % — gruen-gelb gegen orange-rot, fuer denselben Wert.
+  // Gleiche Formel wie dort: Minimum/Maximum ueber alle nicht-leeren Werte, Rueckfall 100…170.
+  const bereich = useMemo<[number, number]>(
+    () => hrRangeOf(...items.map((it) => it.session?.analysis?.track_geojson?.properties?.hr ?? [])),
+    [items],
+  );
+  const [lo, hi] = bereich;
 
   const maxLen = useMemo(() => zeilen.reduce((m, z) => Math.max(m, z.hr.length), 0), [zeilen]);
 
@@ -86,18 +106,19 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
     zeilen.forEach((z, r) => {
       const y = r * (ZEILE_H + ZEILE_LUECKE);
       // Hintergrund der vollen Achse: zeigt, wie weit dieser Lauf im Vergleich reicht.
-      g.fillStyle = "#1e293b";
+      // Ab Lauf-Ende nach rechts bleibt er sichtbar — hell weiss, dunkel dunkelgrau.
+      g.fillStyle = hell ? "#ffffff" : "#1e293b";
       g.fillRect(0, y, w, ZEILE_H);
       for (let i = 0; i < z.hr.length; i++) {
         const v = z.hr[i];
         if (v == null) continue;
         const x0 = (i / maxLen) * w;
         const x1 = ((i + 1) / maxLen) * w;
-        g.fillStyle = rampColor((v - lo) / Math.max(hi - lo, 1));
+        g.fillStyle = hrColor(v, bereich);
         g.fillRect(x0, y, Math.max(x1 - x0, 1), ZEILE_H);
       }
     });
-  }, [zeilen, maxLen, lo, hi]);
+  }, [zeilen, maxLen, bereich, hell]);
 
   if (!zeilen.length) return null;
 
