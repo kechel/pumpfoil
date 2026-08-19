@@ -7,6 +7,7 @@ import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Ico
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
+import { CompareHrStrips, HrStripItem } from "../components/CompareHrStrips";
 import { invalidateSessionListCache } from "./Sessions";
 import { setLastSession } from "../lib/lastSession";
 import { usePumpFmt } from "../lib/pumpRate";
@@ -184,6 +185,15 @@ export default function Compare() {
 
   const itemStats = useMemo(() => items.map((it) => statsFor(it, win, weight)), [items, win, weight]);
 
+  // Puls-Streifen: dieselben Eintraege, aber nur Beschriftung + Lauf-Bezug. Ist ein EINZELNER Lauf
+  // im Korb, zeigt der Streifen auch nur diesen (Jan) — sonst alle Laeufe der Session.
+  const hrItems: HrStripItem[] = useMemo(() => items.map((it) => ({
+    key: refKey(it.ref),
+    label: it.rider ?? (it.session?.started_at ? fmtDate(it.session.started_at, it.session.tz, { day: "2-digit", month: "short" }) : `#${it.ref.sessionId}`),
+    session: it.session,
+    runIdx: it.ref.runIdx,
+  })), [items]);
+
   function itemLabel(it: Item): string {
     const date = it.session?.started_at
       ? fmtDate(it.session.started_at, it.session.tz, { day: "2-digit", month: "short", year: "2-digit" })
@@ -318,6 +328,9 @@ export default function Compare() {
           </div>
 
           {/* Tabelle aller Einzelläufe aller verglichenen Sessions (mit Fahrer). */}
+          {/* Puls-Streifen je Lauf — direkt ueber der Lauf-Tabelle, weil beide dieselben Laeufe
+              zeigen: oben der Verlauf, darunter die Zahlen. */}
+          <CompareHrStrips items={hrItems} />
           <AllRunsTable items={items} win={win} weight={weight} />
         </>
       )}

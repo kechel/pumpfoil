@@ -399,7 +399,10 @@ export default function SessionDetail() {
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
   const [playStarted, setPlayStarted] = useState(false); // Controls (Tempo/Timeline/…) erst nach dem 1. Play
   // Live-Werte beim Abspielen (für coole Videos): aktuelles Tempo (km/h) + Strecke (m) des Laufs.
-  const [readout, setReadout] = useState<{ v: number; d: number } | null>(null);
+  // Live-Werte beim Abspielen. `hr` = Puls am aktuellen Punkt, null wenn die Session keinen hat
+  // (Wunsch ThermikDreher 18.08.: sehen, wie der Puls beim Pumpen steigt — die Seite ist voll,
+  // deshalb ein drittes Badge statt eines eigenen Diagramms, Jans Entscheidung 19.08.).
+  const [readout, setReadout] = useState<{ v: number; d: number; hr: number | null } | null>(null);
   const [showReadout, setShowReadout] = useState(true);   // Overlay rechts oben ein/aus
   const playheadRef = useRef(0);                      // aktuelle (Float-)Position in der Play-Timeline
   const posMarkerRef = useRef<L.CircleMarker | null>(null);
@@ -980,14 +983,17 @@ export default function SessionDetail() {
       prefix[k] = prefix[k - 1] + d;
     }
     // Tempo (km/h, interpoliert) + zurückgelegte Strecke (m) an der Float-Kopfposition.
-    const readoutAt = (headF: number): { v: number; d: number } => {
+    const readoutAt = (headF: number): { v: number; d: number; hr: number | null } => {
       const hi = Math.min(Math.floor(headF), lastIdx), frac = headF - Math.floor(headF);
       const va = speeds[playTimeline[hi]] ?? 0;
       const vb = speeds[playTimeline[Math.min(hi + 1, lastIdx)]] ?? va;
       const v = Math.max(0, (va + (vb - va) * Math.min(frac, 1)) * 3.6);
       let d = prefix[hi] ?? 0;
       if (hi < lastIdx) d += (prefix[hi + 1] - prefix[hi]) * Math.min(frac, 1);
-      return { v, d };
+      // Puls NICHT interpolieren: er kommt als ganze Schläge pro Minute und springt ohnehin nur
+      // sekundenweise — ein Zwischenwert wäre erfunden. Fehlt er, bleibt das Badge weg.
+      const h = hr[playTimeline[hi]];
+      return { v, d, hr: h != null && h > 0 ? h : null };
     };
 
     const colorAt = (i: number): string => {
@@ -1391,6 +1397,16 @@ export default function SessionDetail() {
                   <span className="ml-0.5 text-sm font-semibold text-slate-300">{readout.d < 1000 ? "m" : "km"}</span>
                 </div>
               </div>
+              {/* Puls nur, wenn die Session einen hat — sonst stünde dort dauerhaft ein Strich.
+                  Label ist der vorhandene Feldname (field.2 = „Puls"), kein neuer Text. */}
+              {readout.hr != null && (
+                <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("field.2")}</div>
+                  <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                    {readout.hr} <span className="text-sm font-semibold text-slate-300">bpm</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
