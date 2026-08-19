@@ -399,6 +399,73 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Race-Reihe ab 365 cm², plus einen Lift-Surf-Fluegel. Er war also nie auf pumpbare Groessen
   begrenzt — es ist ein Material-Katalog, in dem Leute eintragen, was sie besitzen.
 
+- **🟢 Hersteller-Recherche ausgewertet und eingetragen (19.08.): Katalog 536 → 723 Fluegel,
+  29 → 42 Marken.** Sieben Rechercheagenten, danach jede Zeile selbst gegengerechnet.
+  - **+160 Zeilen in bekannten Marken** (`6c1c1f4d`): drei Serien, die es bei uns gar nicht gab —
+    Cabrinhas **UNION**-Plattform (Prestige/Whippit/Rebound, ersetzt beim Hersteller die Fusion-
+    Reihe), Unifoils **Aggression** und **Quest**, Lifts **Vario**, Takumas **Kujira Helium**,
+    Duotones **Crest / Carve 3.0 / Blitz**.
+  - **+27 Zeilen in 13 neuen Marken** (`8854ebbe`), alle mit ausdruecklichem Pump-/Dockstart-
+    Fluegel: CORE (CFS Pulse, woertlich „Pumpfoil Front Wing"), GA Foils, RRD, Cloud IX, Horue,
+    Liquid Force, TAAROA, Konrad Boarding, AlpineFoil, MFC, Aeromod, Zeeko, Delta.
+  - **F-Ones 24 „belegte" Dicken sind eine Formel** und jetzt als Schaetzung gekennzeichnet: ihr
+    Dickenverhaeltnis streut ueber EAGLE, EAGLE X, PHANTOM und SEVEN SEAS — Streckungen 5,9 bis
+    12,5 — um **0,03 Prozentpunkte**. Damit sind **66 % des Katalogs gekennzeichnete Schaetzungen**;
+    die frueher genannten 51 % waren zu guenstig gerechnet.
+  - **Korrigiert:** Unifoil Progression 200 Spannweite 103,7 → 101,0 cm (zwei Herstellerangaben
+    stuetzen sich gegenseitig: 101²/1290 = 7,91 = publizierte Streckung 7,9).
+  - **Zwei Meldungen widerlegt:** „Reedins Dicken sind Wurzeltiefe/10" (unsere Werte sind 11,5–12,0 %
+    der mittleren Fluegeltiefe, also normale Profildicken; die Naehe zu Wurzeltiefe/10 folgt daraus,
+    dass Profile um 10 % dick sind) und „4 von 5 Takuma-Kujira-Spannweiten falsch" (unsere Streckungen
+    steigen gleichmaessig 6,91 → 8,10 parallel zur bestaetigten Kujira-II-Reihe, die des Melders
+    springen; sein eigener Neufund Kujira 500 passt unter unsere Zahlen, nicht unter seine).
+
+- **🔴 ENTSCHEIDUNG JAN — Moses = SabFoil zusammenlegen oder getrennt lassen?** Moses hat keine
+  eigene Domain mehr, unsere 14 Moses-Zeilen sind geometrisch identisch mit SabFoil-Produkten
+  (51 Zeilen). **Nach der Regel vom 19.08. bleiben sie getrennt** (zwei offizielle Produktlinien),
+  und so wuerde ich es lassen: Leute kennen ihren alten Fluegel als Moses. Nur zur Bestaetigung.
+
+- **🟡 Katalog: Dicke sollte eine echte Luecke zulassen (`thickness_mm` ist NOT NULL).**
+  Bei den 13 neuen Marken gibt es keine eigene Reihe als Anker, und der katalogweite Zusammenhang
+  taugt nicht als Vorhersage: nach Ausschluss aller Formel-Reihen (453 von 723) bleibt r = 0,30 und
+  3,14 Prozentpunkte Reststreuung, auf 20 mm also rund ±20 %. Dort waere „unbekannt" ehrlicher als
+  eine Zahl. Die Dicke geht in **keine** Berechnung ein (nur `api/foils.py` gibt sie aus), der
+  Umbau ist also klein: Spalte nullable, und in Web/Android/iOS „—" statt einer Zahl anzeigen.
+
+- **⚠️ Import-Falle, von zwei Recherchen unabhaengig belegt: „aspect ratio" ist nicht immer
+  Spannweite²/Flaeche.** GoFoil NL, MFC und Takuma (Kujira Gen 1) publizieren
+  **Spannweite / WURZELTIEFE** (MFC FW1600: 3,43 statt 4,52 → 32 % Abweichung). Kein Datenfehler,
+  eine andere Definition — die AR-Spalte muss **je Marke** geprueft werden, sonst mischen wir zwei
+  Kennzahlen in ein Feld. Ebenso: wo ueberhaupt eine Chord angegeben ist, ist es die **Wurzeltiefe**;
+  keine der ueber 20 geprueften Marken veroeffentlicht eine mittlere Fluegeltiefe — und **keine
+  einzige die Profildicke**.
+
+- **⚠️ Namens-Verwechslungsfallen im Katalog** (nie als neue Marke anlegen): „Phantom" ist eine
+  Fluegelfamilie von **F-One** UND eine Marke (**Phantom Watersports**) · „Progression" ist eine
+  Reihe von **Unifoil** UND von **Delta** · „Kujira" = Takuma · „Onda" = Sabfoil · „Katana" ist bei
+  Unifoil ein **MAST**, kein Fluegel · „Foilco" = Praegefolien fuer die Druckindustrie.
+  Als Haendler/Boardshaper entlarvt (ueber das Shopify-`vendor`-Feld): Cedrus (= Unifoil),
+  Amos Shapes (= Lift), Tabou (= GA), Aqua Foils, Appletree, Kalama, Notox, Sunova, JP, Goya,
+  Quatro, Ocean Rodeo, Foilmount, Manera, Mystic.
+
+- **🟡 Offen: 14 Marken mit Pump-Fluegel, deren Werte nur als BILD vorliegen** oder die gar keine
+  Spec-Tabelle haben — deshalb nicht aufgenommen: NeilPryde (Swift HA) · NSP/Airwave · SIC Maui ·
+  Signature/SPG (Albatross, „flat water pumping", gar keine Tabelle) · AK Durable Supply (Plasma,
+  nur Flaechen) · FLITELab · Phantom Watersports · Eleveight · **Sroka** (vier Groessen mit Werten,
+  aber die Modellnamen der Pump-Reihe sind unklar) · F4 (Einheit der Groessenangabe fehlt) ·
+  Stinger · Aztron · Mikeslab (nichts ueber 950 cm²) · Triton (baut **Monowings** — Flaeche enthaelt
+  den Stab, nicht mit Frontfluegeln vergleichbar). Brauchen je eine URL, die Jan abruft, oder eine
+  Direktanfrage beim Hersteller.
+
+- **🟡 Offen, brauchen einen menschlichen Blick auf eine Herstellergrafik:** AXIS ART V2 819
+  (674 oder 647 cm²? Die Reihen-Konsistenz spricht fuer 674) · Gong Ypra Race Micro 620 vs. 630 cm² ·
+  Lift **Florence 71 X** (97 cm bei 458 cm² ergibt Streckung 20,6, publiziert sind 16,8 — und der
+  groessere Florence 91 X hat bei gleicher Spannweite publizierte 16, der 71 X muss also darueber
+  liegen; **nicht aufgenommen**) · Unifoil **Vyper 150** („Span 140 mm" ist offensichtlich falsch,
+  **nicht aufgenommen**) · Cabrinha X1600/X1950 (dokumentiert Cabrinha nicht mehr, unsere Zahlen
+  haben derzeit keine Herstellerquelle) · Slingshots ueberwiegend abgekuendigte Palette ·
+  Ketos (falls inzwischen echte Dicken publiziert werden, sollten unsere 16 Formelwerte weichen).
+
 
 - **🟢 Alle Foil-Meldungen aus dem Feedback abgearbeitet (19.08.). Katalog 533 → 536.**
   Sieben Meldungen mit Katalog-Bezug (die achte, #44 Tom Petr, ist eine Sportart-Frage, kein Foil).
