@@ -53,7 +53,7 @@ const en: Record<string, string> = {
   "transfer.confirmSend": "Transfer this session to {name}? Once accepted it's theirs and disappears from your list.",
   "transfer.homeHint": "You have incoming session transfers",
   "foilsens.label": "Detection sensitivity",
-  "foilsens.hint": "From which speed and minimum duration a stretch counts as an on-foil run — mainly affects the individual runs on the map. More sensitive levels also catch short/slow start attempts. Applies only to your own view — community records stay on standard. Already-computed levels are cached, so switching is instant afterwards.",
+  "foilsens.hint": "From which speed and minimum duration a stretch counts as an on-foil run — mainly affects the individual runs on the map. More sensitive levels also catch short/slow start attempts. Applies everywhere — your level is the analysis that counts, in the community, records and leaderboards too. Already-computed levels are cached, so switching is instant afterwards.",
   "foilsens.normal": "Standard – from ~10 km/h, min 5 s",
   "foilsens.light": "More sensitive – from ~8.5 km/h, min 3 s",
   "foilsens.attempts": "Most sensitive – from ~8 km/h, min 2 s",

@@ -35,7 +35,7 @@ const fi: Record<string, string> = {
   "transfer.confirmSend": "Siirretäänkö tämä sessio käyttäjälle {name}? Hyväksynnän jälkeen se on hänen ja katoaa listaltasi.",
   "transfer.homeHint": "Sinulla on saapuvia session siirtoja",
   "foilsens.label": "Tunnistuksen herkkyys",
-  "foilsens.hint": "Mistä nopeudesta ja vähimmäiskestosta pätkä lasketaan foil-vedoksi — vaikuttaa etenkin yksittäisiin vetoihin kartalla. Herkemmät tasot poimivat myös lyhyet/hitaat lähtöyritykset. Koskee vain omaa näkymääsi — yhteisön ennätykset pysyvät vakiona. Jo lasketut tasot ovat välimuistissa, joten vaihto on sen jälkeen välitön.",
+  "foilsens.hint": "Mistä nopeudesta ja vähimmäiskestosta pätkä lasketaan foil-vedoksi — vaikuttaa etenkin yksittäisiin vetoihin kartalla. Herkemmät tasot poimivat myös lyhyet/hitaat lähtöyritykset. Pätee kaikkialla — valitsemasi taso on ratkaiseva analyysi, myös yhteisössä, ennätyksissä ja tuloslistoissa. Jo lasketut tasot ovat välimuistissa, joten vaihto on sen jälkeen välitön.",
   "foilsens.normal": "Vakio – alk. ~10 km/h, väh. 5 s",
   "foilsens.light": "Herkempi – alk. ~8,5 km/h, väh. 3 s",
   "foilsens.attempts": "Herkin – alk. ~8 km/h, väh. 2 s",

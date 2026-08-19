@@ -36,7 +36,7 @@ const deAT: Record<string, string> = {
   "transfer.confirmSend": "Diese Session an {name} übertragen? Bei Annahme gehört sie ihm/ihr und verschwindet bei dir.",
   "transfer.homeHint": "Du hast eingehende Session-Übertragungen",
   "foilsens.label": "Erkennungs-Empfindlichkeit",
-  "foilsens.hint": "Ab welcher Geschwindigkeit und Mindestdauer a Strecke als On-Foil-Lauf zählt — betrifft vor allem die einzelnen Läufe auf der Karte. Empfindlichere Stufen erfassen a kurze/langsame Startversuche. Gilt nur für deine eigene Ansicht — Community-Rekorde bleim auf Standard. Schon berechnete Stufen sind gecacht, Umschalten geht dann ohne Neurechnung.",
+  "foilsens.hint": "Ab welcher Geschwindigkeit und Mindestdauer a Strecke als On-Foil-Lauf zählt — betrifft vor allem die einzelnen Läufe auf der Karte. Empfindlichere Stufen erfassen a kurze/langsame Startversuche. Gilt überall — deine Stufe is die maßgebliche Auswertung, a in Community, Rekorden und Bestenlisten. Schon berechnete Stufen sind gecacht, Umschalten geht dann ohne Neurechnung.",
   "foilsens.normal": "Standard – ab ~10 km/h, mind. 5 s",
   "foilsens.light": "Empfindlicher – ab ~8,5 km/h, mind. 3 s",
   "foilsens.attempts": "Am empfindlichsten – ab ~8 km/h, mind. 2 s",

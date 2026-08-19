@@ -37,7 +37,7 @@ const cs: Record<string, string> = {
   "transfer.confirmSend": "Přenést tuto relaci na {name}? Po přijetí bude jeho a u tebe zmizí.",
   "transfer.homeHint": "Máš příchozí přenosy relací",
   "foilsens.label": "Citlivost detekce",
-  "foilsens.hint": "Od jaké rychlosti a minimální doby se úsek počítá jako on-foil jízda — ovlivňuje to hlavně jednotlivé jízdy na mapě. Citlivější stupně zachytí i krátké/pomalé pokusy o start. Platí jen pro tvé vlastní zobrazení — komunitní rekordy zůstávají na standardu. Už spočítané stupně jsou v cache, přepínání pak jde bez přepočtu.",
+  "foilsens.hint": "Od jaké rychlosti a minimální doby se úsek počítá jako on-foil jízda — ovlivňuje to hlavně jednotlivé jízdy na mapě. Citlivější stupně zachytí i krátké/pomalé pokusy o start. Platí všude — tvůj stupeň je rozhodující vyhodnocení, i v komunitě, rekordech a žebříčcích. Už spočítané stupně jsou v cache, přepínání pak jde bez přepočtu.",
   "foilsens.normal": "Standard – od ~10 km/h, min. 5 s",
   "foilsens.light": "Citlivější – od ~8,5 km/h, min. 3 s",
   "foilsens.attempts": "Nejcitlivější – od ~8 km/h, min. 2 s",

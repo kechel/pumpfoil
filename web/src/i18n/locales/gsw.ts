@@ -36,7 +36,7 @@ const gsw: Record<string, string> = {
   "transfer.confirmSend": "Die Session a {name} übertrage? Bi Aname ghört si ihm/ihre und verschwindet bi dir.",
   "transfer.homeHint": "Du hesch iichoomendi Session-Übertragige",
   "foilsens.label": "Erkennigs-Empfindlichkeit",
-  "foilsens.hint": "Ab welere Gschwindigkeit und Mindestdüür e Strecki as On-Foil-Lauf zellt — betrifft vor allem d einzelne Läuf uf de Charte. Empfindlicheri Stuefe erfassed au churzi/langsami Startversüech. Gilt nur für dini eigeni Ansicht — Community-Rekord blibed uf Standard. Scho brechneti Stuefe sind gcacht, Umschalte gaht denn ohni Neurechnig.",
+  "foilsens.hint": "Ab welere Gschwindigkeit und Mindestdüür e Strecki as On-Foil-Lauf zellt — betrifft vor allem d einzelne Läuf uf de Charte. Empfindlicheri Stuefe erfassed au churzi/langsami Startversüech. Gilt überall — dini Stuefe isch d massgebligi Uswertig, au i de Community, bi de Rekord und i de Bestelischte. Scho brechneti Stuefe sind gcacht, Umschalte gaht denn ohni Neurechnig.",
   "foilsens.normal": "Standard – ab ~10 km/h, min. 5 s",
   "foilsens.light": "Empfindlicher – ab ~8,5 km/h, min. 3 s",
   "foilsens.attempts": "Am empfindlichste – ab ~8 km/h, min. 2 s",

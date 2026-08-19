@@ -35,7 +35,7 @@ const es: Record<string, string> = {
   "transfer.confirmSend": "¿Transferir esta sesión a {name}? Al aceptar será suya y desaparecerá de tu lista.",
   "transfer.homeHint": "Tienes transferencias de sesión entrantes",
   "foilsens.label": "Sensibilidad de detección",
-  "foilsens.hint": "A partir de qué velocidad y duración mínima un tramo cuenta como run en foil — afecta sobre todo a los tramos individuales en el mapa. Los niveles más sensibles también captan intentos de arranque cortos/lentos. Solo afecta a tu vista — los récords de la comunidad se mantienen en estándar. Los niveles ya calculados quedan en caché, así que cambiar es instantáneo.",
+  "foilsens.hint": "A partir de qué velocidad y duración mínima un tramo cuenta como run en foil — afecta sobre todo a los tramos individuales en el mapa. Los niveles más sensibles también captan intentos de arranque cortos/lentos. Se aplica en todas partes — tu nivel es el análisis que cuenta, también en la comunidad, los récords y las clasificaciones. Los niveles ya calculados quedan en caché, así que cambiar es instantáneo.",
   "foilsens.normal": "Estándar – desde ~10 km/h, mín 5 s",
   "foilsens.light": "Más sensible – desde ~8,5 km/h, mín 3 s",
   "foilsens.attempts": "Máxima sensibilidad – desde ~8 km/h, mín 2 s",

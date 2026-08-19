@@ -35,7 +35,7 @@ const pt: Record<string, string> = {
   "transfer.confirmSend": "Transferir esta sessão para {name}? Depois de aceita, ela passa a ser dessa pessoa e some da sua lista.",
   "transfer.homeHint": "Você tem transferências de sessão recebidas",
   "foilsens.label": "Sensibilidade de detecção",
-  "foilsens.hint": "A partir de qual velocidade e duração mínima um trecho conta como uma volta on-foil — afeta principalmente as voltas individuais no mapa. Níveis mais sensíveis também captam tentativas de largada curtas/lentas. Vale só para a sua visualização — os recordes da comunidade ficam no padrão. Níveis já calculados ficam em cache, então trocar depois é instantâneo.",
+  "foilsens.hint": "A partir de qual velocidade e duração mínima um trecho conta como uma volta on-foil — afeta principalmente as voltas individuais no mapa. Níveis mais sensíveis também captam tentativas de largada curtas/lentas. Vale em todo lugar — o seu nível é a análise que conta, também na comunidade, nos recordes e nos rankings. Níveis já calculados ficam em cache, então trocar depois é instantâneo.",
   "foilsens.normal": "Padrão – a partir de ~10 km/h, mín. 5 s",
   "foilsens.light": "Mais sensível – a partir de ~8,5 km/h, mín. 3 s",
   "foilsens.attempts": "Mais sensível de todos – a partir de ~8 km/h, mín. 2 s",
