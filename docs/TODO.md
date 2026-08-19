@@ -382,6 +382,48 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Alle Foil-Meldungen aus dem Feedback abgearbeitet (19.08.). Katalog 533 → 536.**
+  Sieben Meldungen mit Katalog-Bezug (die achte, #44 Tom Petr, ist eine Sportart-Frage, kein Foil).
+  **Pflichtpruefung 1 (brand UND model absuchen) hat FUENF von sieben als bereits vorhanden
+  entlarvt** — es wurde also fast nichts angelegt, sondern nachgesehen:
+
+  | Meldung | Befund |
+  |---|---|
+  | #87 Abe: „the entire axis PNG v2 line is missing" | ✅ stimmte — **3 Zeilen angelegt** |
+  | #79 Nathan: North Sonar P2050 | war da (`North \| Sonar P \| P2050`, 140 cm/2050 cm²) |
+  | #76 (#229): Axis Fireball 1750 | war da (175 cm/1525 cm²/20,3 mm) |
+  | #78 Roman: Gong Rise XL | war da (90 cm/1844 cm²/35 mm) |
+  | #67 AntoineD: Marke AFS | war da — 31 Zeilen, am 05.08. auf genau diese Meldung hin angelegt |
+  | #39 Eric F: Sabfoil Blackbird 1400/1350/1077 | alle drei da |
+  | #77 Lukas: Armstrong APF + UHA | beide Reihen **vollstaendig** |
+
+  **Was neu ist: AXIS PNG V2 1200 / 1300 / 1400.** Quelle: die offizielle Axis-Seite fuehrt die
+  Tabelle nur als BILD, ein Haendler (foilit.de) gibt sie in Textform wieder. **Gegen sich selbst
+  geprueft** ueber die Streckung (Spannweite²/Flaeche): 7,99 / 10,36 / 10,97 gegen angegebene
+  8,00 / 10,36 / 10,99 — stimmig. Werte: 120 cm/1803 cm², 130 cm/1632 cm², 140 cm/1786 cm².
+  **Dicke veroeffentlicht Axis nicht** → aus dem Dickenverhaeltnis der vorhandenen PNG-V1-Reihe
+  abgeleitet (Median **11,7 %** der MITTLEREN Fluegeltiefe) und als `thickness_estimated`
+  gekennzeichnet: 17,5 / 14,6 / 14,9 mm. **Falle dabei:** der Haendler nennt zusaetzlich 195 bzw.
+  168 mm „chord" — das ist die WURZELtiefe. Damit gerechnet kaeme man auf 19-23 mm und laege
+  deutlich daneben.
+  Eingetragen ueber `app/data/foils.json` + Serverneustart (der Seeder ist idempotent), NICHT per
+  Hand-INSERT — sonst fehlten die Zeilen einem frisch aufgesetzten System.
+
+  **Belege statt Namensaehnlichkeit** (Pflichtpruefung 4): Erics `WL1400-BB` am Hersteller
+  nachgeschlagen — Sabfoils eigene Tabelle sagt Leviathan Blackbird 1400, 1380 mm/1549 cm²/18 mm,
+  exakt unsere Zeile. Armstrong APF (3 Groessen) und UHA (7 Groessen) gegen die Herstellerangaben
+  abgeglichen, alle Spannweiten decken sich.
+
+  **Alle sieben Melder informiert** (kurz, in ihrer Sprache — AntoineD auf Franzoesisch), aus dem
+  Assistenten-Konto, je EINE Nachricht, mit Doppel-Antwort-Sperre gegengeprueft.
+  Roman ist gefragt, ob die Werte zu seinem ALTEN Rise XL passen; falls nicht, kommt die aeltere
+  Generation als eigene Zeile dazu.
+
+  **🔴 Offen und wiederholenswert:** eine systematische Runde „alle Hersteller nach neuen Modellen
+  absuchen" gab es NIE — dokumentiert sind nur markenbezogene Runden (AFS/Duotone 05.08., +35) und
+  die Dopplungs-Bereinigung (17.08., -8). Genau deshalb rutscht so etwas wie PNG V2 durch, bis es
+  jemand meldet. Waere als eigener, geplanter Durchgang aufzusetzen.
+
 - **🟢 BEHOBEN (19.08.): Datenfeld 21 wurde beim Speichern still zu Feld 20.** Gemeldet von
   ThermikDreher im Chat (18.08. 21:56): „immer wenn ich speichere wechselt der Wert zu Anzahl Runs".
   Ursache in `layouts.py._clean_element`: ein `_clamp(…, 0, 20)` VOR der Gueltigkeitspruefung. Beim

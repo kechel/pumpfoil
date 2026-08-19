@@ -4739,5 +4739,35 @@
     "thickness_mm": 23.4,
     "thickness_estimated": true,
     "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG V2",
+    "size": "1200",
+    "span_cm": 120,
+    "area_cm2": 1803,
+    "thickness_mm": 17.5,
+    "is_baseline": false,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG V2",
+    "size": "1300",
+    "span_cm": 130,
+    "area_cm2": 1632,
+    "thickness_mm": 14.6,
+    "is_baseline": false,
+    "thickness_estimated": true
+  },
+  {
+    "brand": "AXIS",
+    "model": "PNG V2",
+    "size": "1400",
+    "span_cm": 140,
+    "area_cm2": 1786,
+    "thickness_mm": 14.9,
+    "is_baseline": false,
+    "thickness_estimated": true
   }
 ]
