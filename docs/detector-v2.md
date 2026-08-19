@@ -75,7 +75,10 @@ falsch zu liegen).
 ## 5. Vorhandene Stellschrauben bleiben
 
 Die persönliche Empfindlichkeit (`foil_sensitivity`: normal | light | attempts) steuert weiter die
-Schwellen; Community und Rekorde rechnen immer mit `normal`. v2 darf das nicht umgehen.
+Schwellen. **Sie gilt überall** — die vom Besitzer gewählte Stufe IST seine maßgebliche Auswertung,
+Community, Rekorde und Bestenlisten eingeschlossen (so rechnet `run_analysis`, und so ist es am
+19.08.2026 von Jan bestätigt worden). Der frühere Satz hier — „Community und Rekorde rechnen immer
+mit `normal`" — war falsch und stand wortgleich auch im Hilfetext der App; beides ist berichtigt.
 
 ## 6. Schalter + Regressionsvergleich
 
@@ -104,6 +107,73 @@ Schwellen; Community und Rekorde rechnen immer mit `normal`. v2 darf das nicht u
 3. Fenster-Merkmale + Label-Folge, gegen v1 vergleichen.
 4. Rahmendaten pro Nutzer, aus belegten Läufen.
 5. Puls und Wasser als Bestätigung dazu.
+
+## 8. Keim-Rettung — warum es sie gibt und woher jede Zahl kommt (19.08.2026)
+
+**Befund.** Nutzermeldung zu #2430: ein Lauf, den beide Quellen zeigen, fehlte in der Auswertung —
+28 s / 94 m bei 11,6 km/h im GPS, dazu sieben Fenster am Stück mit sauberem 2-Hz-Pumprhythmus
+(RMS 0,26–0,79 g), unmittelbar hinter einem anerkannten Lauf.
+
+**Ursache, nicht die naheliegende.** Es lag *nicht* an den Geschwindigkeits-Schwellen: die reine
+GPS-Segmentierung findet den Lauf auf allen drei Empfindlichkeitsstufen, auch auf „Standard" mit
+10 km/h — und der Melder stand ohnehin schon auf der lockersten Stufe. Es lag eine Stufe höher:
+sobald Accel vorhanden ist, ist das On-Foil-Modell die **Quelle** des Keims, und es hatte dort
+genau **eine** Sekunde gefeuert. `_segments_from_mask` verwirft aber alles unter `min_segment_s`
+**bevor** `_extend_starts_back`/`_extend_ends_forward` laufen — der Lauf entstand also gar nicht
+erst und konnte nicht mehr wachsen. Zum Vergleich: Lauf 4 derselben Session wurde aus sechs
+verstreuten Modell-Sekunden zu 80 s. Das Modell liefert Zündfunken, keine Läufe.
+
+**Die Regel.** Eine zu kurze Modell-Zündung zählt trotzdem als Keim, wenn drei Bedingungen
+zusammenkommen (`_rette_keime` in `analysis/detect_v2.py`):
+
+1. Die Strecke zusammenhängender **Foil-Fenster** spannt mindestens `BELEG_MIN_MS` (30 s).
+2. Sie enthält mindestens ein **PUMPEN**-Fenster — Rhythmus, nicht bloß Tempo.
+3. Das Modell hat darin gefeuert, **aber kürzer als `min_segment_s`**. Reichte sein eigener Keim,
+   macht der normale Weg den Lauf ohnehin, und wir fassen nichts an.
+
+Damit bleibt „Physik als Schranke, Modell als Auslöser" (Abschnitt 3) intakt: ohne Modell-Sekunde
+passiert nichts, ohne Fenster-Beleg auch nicht. Gegenprobe in derselben Session: eine zweite
+Foil-Strecke (20 s, bei 2085 s) bleibt draußen — dort hat das Modell null Mal gefeuert.
+
+**Warum 30 s — und was die Zahl NICHT bedeutet.** Sie ist keine Mindest-Lauflänge. Ein Fenster ist
+10 s breit bei 5 s Hop, die Spanne einer Strecke liegt also rund 10 s über der Aktivität darin;
+30 s Spanne heißt ~20 s Pumpen. Kurze Läufe werden davon nicht berührt — 31 % aller bereits
+erkannten Läufe sind kürzer als 20 s, die entstehen weiter auf dem normalen Weg. Die Schwelle
+steuert allein, wie viel unabhängigen Accel-Beleg wir sehen wollen, bevor aus einem einzelnen
+Modell-Zucken ein Lauf wird. Gemessen über alle 1609 Sessions mit Accel:
+
+| Beleg-Spanne | Sessions verändert | Läufe dazu | verloren | Foil-Zeit | belegter Fall #2430 |
+|---|---|---|---|---|---|
+| ≥ 20 s | 99 (6,2 %) | 155 (Median 9 s) | 0 | +0,29 % | gerettet |
+| **≥ 30 s** | **7 (0,4 %)** | **8 (Median 20 s)** | **0** | **+0,03 %** | **gerettet** |
+| ≥ 45 s | — | — | — | — | **fällt heraus** (seine Strecke spannt 40 s) |
+
+20 s holt überwiegend 5-bis-9-Sekunden-Fragmente mit, 45 s verfehlt den Fall, für den die Regel
+existiert. Bei 30 s ändert sich **kein einziger längster oder weitester Lauf einer Session** —
+also bewegt sich weder eine persönliche Bestleistung noch ein Rekord, und die globale Bestenliste
+(Top 5 nach Dauer und nach Distanz) ist Zeichen für Zeichen dieselbe.
+
+**Zwei durchgerechnete und verworfene Alternativen.**
+
+- *Keim-Mindestlänge einfach auf 1 setzen.* Verschiebt **34 %** aller Sessions und legt **762**
+  Läufe dazu (Median 8 s), eine Session springt von 29 auf 57 Läufe. Das wäre eine andere
+  Erkennung, keine Fehlerkorrektur.
+- *Die Beleg-Strecke IMMER als Keim nehmen*, auch wo das Modell schon genug hatte (Variante C).
+  Verlängert bestehende, richtige Läufe um im Median 1 %, im Extremfall 34 %, und verschiebt
+  19 % der Sessions statt 0,4 %. Deshalb Bedingung 3: nur retten, nie vergrößern.
+
+**Bekannte Grenze, bewusst offen gelassen.** Von den acht geretteten Läufen stammen zwei (#1619,
+#913) aus Strecken, in denen die Position deutlich schneller springt als das Doppler-Signal sagt
+(27 bzw. 40 km/h gegen 14 bzw. 24) — GPS-Streuung, ihre Distanzen sind Zitter. Dieses Rauschen
+steckt in beiden Sessions schon in den *bestehenden* Läufen; die Regel erzeugt also keine neue
+Fehlerart. Ein Zusatzriegel „Strecke muss zu ≥60 % aus Pump-Fenstern bestehen" würde genau #1619
+entfernen (40 %) und die übrigen sieben stehen lassen — bewusst **nicht** eingebaut: das ist ein
+GPS-Qualitätsthema und gehört als eigener Befund behandelt, statt im Detektor Knöpfe anzuhäufen,
+die je einen Einzelfall erschlagen.
+
+**Verifikation des Einbaus.** Der eingebaute Code wurde gegen die vorab gemessene Variante geprüft:
+für alle 1609 Sessions Lauf-für-Lauf identische Listen (Start, Ende, Distanz). Reanalysiert werden
+mussten nur die sieben veränderten Sessions.
 
 ## Was NICHT gemacht wird
 

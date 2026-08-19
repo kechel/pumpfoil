@@ -347,6 +347,15 @@ Reihenfolge (`gps.py:228`…):
 `t_start_session_ms`/`t_end_session_ms` = **Session-ms** · `distance_m`, `max_speed_mps`,
 `pumps`, `num_glides`, `longest_glide_s`, …
 
+**Der Keim entscheidet, nicht die Schwelle** (2026-08-19). Mit Accel kommt die Maske aus dem
+On-Foil-Modell; die Geschwindigkeits-Schwellen wirken erst danach beim Verlängern. Das Modell
+liefert dabei **Zündfunken, keine Läufe** — in #2430 wurde ein 80-s-Lauf aus sechs verstreuten
+Modell-Sekunden. Wer also einem fehlenden Lauf nachgeht: **erst die Modell-Sekunden zählen**, nicht
+an `enter_speed`/`min_segment_s` drehen. Ein Lauf, dessen Zündung kürzer war als `min_segment_s`,
+fiel bis 19.08. ersatzlos weg, weil `_segments_from_mask` **vor** dem Verlängern filtert; seither
+rettet ihn `_rette_keime`, wenn 30 s Foil-Fenster mit Pumprhythmus ihn unabhängig belegen
+(Herleitung, Messungen und die verworfenen Alternativen: `docs/detector-v2.md`, Abschnitt 8).
+
 `longest_glide_s` ist die **längste Lücke zwischen zwei erkannten Pumps** innerhalb des Laufs —
 keine gemessene Gleitphase. Bei #1814/Lauf 9: 42 Pumps, 43 Glides, längste Lücke 45,04 s.
 Ein hoher Wert heißt deshalb primär: *hier wurden Pumps nicht erkannt*.

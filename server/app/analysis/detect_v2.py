@@ -334,6 +334,76 @@ def model_mask_on_timebase(tb: TimeBase):
     return predict_foiling_mask(gps0, raster, tb.accel_hz, tb.accel_scale)
 
 
+# --- Keim-Rettung (19.08.2026) ----------------------------------------------------------
+# Befund an #2430 (Alex' Meldung): ein Lauf, den BEIDE Quellen zeigen — 28 s / 94 m bei 11,6 km/h
+# im GPS, dazu 7 Fenster am Stueck mit sauberem 2-Hz-Pumprhythmus (RMS 0,26-0,79 g) — fehlte in
+# der Auswertung. Ursache liegt nicht an den Geschwindigkeits-Schwellen (die reine GPS-
+# Segmentierung findet ihn auf ALLEN drei Empfindlichkeitsstufen, auch auf „Standard"), sondern
+# eine Stufe hoeher: mit Accel ist das On-Foil-Modell die Quelle des Keims, und es hat dort genau
+# EINE Sekunde gefeuert. Ein Keim muss aber `min_segment_s` Samples lang sein (_segments_from_mask
+# filtert VOR dem Verlaengern) — eine einzelne Sekunde faellt darunter, der Lauf entsteht also gar
+# nicht erst und kann durch _extend_starts_back/_extend_ends_forward auch nicht mehr wachsen.
+# Zum Vergleich: Lauf 4 derselben Session wurde aus sechs verstreuten Modell-Sekunden zu 80 s.
+#
+# Die Rettung nimmt NICHTS weg und vergroessert NICHTS, was schon erkannt wird: sie greift genau
+# dort, wo das Modell gezuckt hat, aber zu kurz fuer einen Keim — und nur, wenn die Fenster
+# ringsherum den Lauf unabhaengig belegen. Damit gilt weiter „Physik als Schranke, Modell als
+# Ausloeser" (docs/detector-v2.md, Abschnitt 3): ohne Modell-Sekunde passiert nichts, ohne
+# Fenster-Beleg auch nicht. In #2430 bleibt deshalb eine zweite Foil-Strecke (20 s, 2085-2105 s)
+# draussen — dort hat das Modell null Mal gefeuert.
+#
+# Gemessen ueber ALLE 1609 Sessions mit Accel (11 391 Laeufe, 153,8 h) vor dem Einbau:
+#   7 Sessions veraendert (0,4 %) · 8 Laeufe dazu (Median 20 s) · 0 verloren · Foil-Zeit +0,03 % ·
+#   kein einziger laengster/weitester Lauf einer Session veraendert -> keine Bestleistung, kein
+#   Rekord bewegt sich. Die betroffenen Sessions: 2430, 2132, 2033, 1619, 941, 913, 876.
+# Verworfene Alternativen, beide durchgerechnet: die Keim-Mindestlaenge einfach auf 1 zu setzen
+# verschiebt 34 % aller Sessions und legt 762 Laeufe dazu (Median 8 s) — das waere eine andere
+# Erkennung, keine Fehlerkorrektur. Und die Strecke IMMER als Keim zu nehmen (auch wo das Modell
+# schon genug hatte) verlaengert bestehende, richtige Laeufe um im Median 1 %, im Extremfall 34 %.
+BELEG_MIN_MS = 30_000     # Mindest-Spanne der Fenster-Strecke, die einen Ein-Sekunden-Keim traegt.
+# 30 s ist gemessen, nicht geraten: bei 20 s kommen 155 statt 8 Laeufe dazu, ueberwiegend
+# 5-9-Sekunden-Fragmente; bei 45 s faellt der belegte Fall #2430 selbst heraus (seine Strecke
+# spannt 40 s). Wichtig zum Lesen der Zahl: ein Fenster ist 10 s breit (Hop 5 s), die Spanne einer
+# Strecke liegt also rund 10 s ueber der Aktivitaet darin — 30 s Spanne heisst ~20 s Pumpen.
+
+
+def _laengste_kette(maske: np.ndarray) -> int:
+    """Laengste zusammenhaengende True-Kette (in Samples)."""
+    if not maske.any():
+        return 0
+    rand = np.flatnonzero(np.diff(np.concatenate(([0], maske.astype(np.int8), [0]))))
+    return int((rand[1::2] - rand[::2]).max())
+
+
+def _rette_keime(modell: np.ndarray, wins: list[dict], t_ms: np.ndarray,
+                 min_segment_s: float, gps_hz: int) -> np.ndarray:
+    """Ein zu kurzer Modell-Keim zaehlt, wenn die Fenster ihn tragen. Begruendung oben.
+
+    Bedingungen, alle drei noetig: die Strecke aus zusammenhaengenden Foil-Fenstern spannt
+    mindestens BELEG_MIN_MS, sie enthaelt mindestens ein PUMPEN-Fenster (Rhythmus, nicht nur
+    Tempo), und das Modell hat darin gefeuert — aber kuerzer als die Mindestdauer, sonst macht
+    der normale Weg den Lauf ohnehin und wir fassen ihn nicht an."""
+    n_min = max(int(round(min_segment_s * gps_hz)), 1)
+    fill = max(int(round(v1.GAP_FILL_S * gps_hz)), 1)
+    zusatz = np.zeros(modell.size, dtype=bool)
+    i, n = 0, len(wins)
+    while i < n:
+        if wins[i]["label"] not in FOIL_LABELS:
+            i += 1
+            continue
+        j = i
+        while j < n and wins[j]["label"] in FOIL_LABELS:
+            j += 1
+        a, b = wins[i]["t_start_ms"], wins[j - 1]["t_end_ms"]
+        if (b - a) >= BELEG_MIN_MS and any(w["label"] == PUMPEN for w in wins[i:j]):
+            drin = (t_ms >= a) & (t_ms <= b)
+            if drin.size == modell.size and (modell & drin).any() \
+                    and _laengste_kette(v1._close_gaps(modell & drin, fill)) < n_min:
+                zusatz |= drin
+        i = j
+    return modell | zusatz
+
+
 def detect_v2(
     tb: TimeBase, gps_hz: int = 1,
     enter_speed: float = v1.ENTER_SPEED, exit_speed: float = v1.EXIT_SPEED,
@@ -400,6 +470,8 @@ def detect_v2(
         # Kurze Modell-Lücken schließen wie in v1 (gps.py:331) — eine Gleitpause zerteilt keinen
         # Lauf. Ohne das zerfällt die Maske und die Bruchstücke fallen unter MIN_SEGMENT_S:
         # gemessen an #1310 kostet das allein 11 Läufe -> 4 und 113 s -> 46 s.
+        # Zu kurze Modell-Keime retten, wo die Fenster den Lauf unabhaengig belegen (s. oben).
+        modell = _rette_keime(modell, wins, t_ms, min_segment_s, gps_hz)
         mask = v1._close_gaps(modell, max(int(round(v1.GAP_FILL_S * gps_hz)), 1))
     else:
         # OHNE Accel (gps_only) nimmt v2 dieselbe Heuristik wie v1 statt der Fenster-Labels.

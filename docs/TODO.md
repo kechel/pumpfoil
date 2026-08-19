@@ -382,6 +382,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Fehlende Laeufe: Keim-Rettung im Detektor gebaut (19.08., Jans OK).** Ausloeser war Alex'
+  Meldung zu #2430 — ein Lauf, den GPS *und* Accel zeigen (28 s / 94 m bei 11,6 km/h, sieben
+  Fenster mit 2-Hz-Rhythmus), fehlte in der Auswertung. **Nicht** die Geschwindigkeits-Schwellen:
+  die GPS-Segmentierung findet ihn auf allen drei Stufen, und der Melder stand ohnehin auf der
+  lockersten. Ursache: mit Accel ist das On-Foil-Modell die Quelle des Keims, es hatte dort genau
+  EINE Sekunde gefeuert, und `_segments_from_mask` verwirft alles unter `min_segment_s` **bevor**
+  verlaengert wird. Neu rettet `_rette_keime` so einen Keim, wenn 30 s zusammenhaengende
+  Foil-Fenster mit mindestens einem Pump-Fenster ihn unabhaengig belegen — und nur dort, wo das
+  Modell zu kurz war (bestehende Laeufe werden nicht groesser).
+  Gemessen ueber alle 1609 Accel-Sessions: **7 Sessions veraendert (0,4 %), 8 Laeufe dazu, 0
+  verloren, Foil-Zeit +0,03 %, keine Bestleistung und kein Rekord bewegt.** Herleitung, die drei
+  gemessenen Schwellen-Varianten und die zwei verworfenen Alternativen: `docs/detector-v2.md`
+  Abschnitt 8, Kurzhinweis in `docs/DATA-PIPELINE.md` Abschnitt 6.
+  **Offen daraus:** zwei der acht geretteten Laeufe (#1619, #913) liegen in Abschnitten, in denen
+  die Position viel schneller springt als das Doppler-Signal sagt (27 bzw. 40 km/h gegen 14 bzw.
+  24) — GPS-Streuung, die in beiden Sessions auch die *bestehenden* Laeufe aufblaeht. Das ist ein
+  eigener Befund (GPS-Qualitaet), bewusst nicht mit einem weiteren Detektor-Knopf erschlagen.
+
+- **⚠️ FALLE bei Reanalyse-Skripten: `DETECTOR_V2` muss wirklich im Env stehen.** Heute passiert und
+  repariert: mein `.env`-Parser matchte Schluessel mit `[A-Z_]+`, also NICHT `DETECTOR_V2` (Ziffer!).
+  Folge: `detector_v2_enabled()` war False, `run_analysis` nahm den **v1-Pfad** und hat sieben
+  Sessions mit v1-Ergebnissen ueberschrieben — ohne Fehlermeldung, die Zahlen sehen nur „etwas
+  anders" aus. Erkennbar an `analysis_results.algo_version`. Danach mit korrekt geladenem Env
+  erneut gerechnet, alle sieben stimmen jetzt Zahl fuer Zahl mit der Vorab-Messung ueberein.
+  **Regel:** in jedem Ad-hoc-Skript, das `run_analysis` aufruft, Schluessel mit `[A-Z0-9_]+` parsen
+  (oder wie `scripts/reanalyse-alle.py` schlicht an `=` splitten — das Repo-Skript ist korrekt) und
+  vor dem Schreiben `detector_v2_enabled()` pruefen.
+
+- **🔎 Laeufe mit Dauer 0 s bei 113-472 m (#2456).** Beim Regressionsvergleich aufgefallen: drei
+  Segmente mit `t_start == t_end`, aber dreistelliger Distanz. Da stimmt etwas an der Achse oder an
+  der Distanz-Summierung nicht. Noch nicht untersucht, betrifft die Keim-Rettung nicht.
+
 - **📐 REGEL (Jan, 19.08.): gleiche Geometrie + eigene offizielle Produktlinie = EIGENER Eintrag.**
   Auch wenn Spannweite, Flaeche und Dicke identisch sind. Wortlaut Jan zur Gong-Atmo-Serie:
   „vielleicht in den zahlen zum teil identisch, aber andere Bauart … die nutzer wollen natuerlich
