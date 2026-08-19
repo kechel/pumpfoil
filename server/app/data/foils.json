@@ -8359,5 +8359,29 @@
   "specs_estimated": true,
   "is_baseline": false,
   "aliases": "Curve H V2 Black"
+ },
+ {
+  "brand": "Lift Foils",
+  "model": "Lift Florence 71 X",
+  "size": "71",
+  "span_cm": 97.0,
+  "area_cm2": 458,
+  "thickness_mm": 3.8,
+  "thickness_estimated": true,
+  "specs_estimated": false,
+  "is_baseline": false,
+  "aliases": "Florence 71"
+ },
+ {
+  "brand": "Unifoil",
+  "model": "Vyper",
+  "size": "150",
+  "span_cm": 74.9,
+  "area_cm2": 968,
+  "thickness_mm": 24.0,
+  "thickness_estimated": true,
+  "specs_estimated": true,
+  "is_baseline": false,
+  "aliases": null
  }
 ]
