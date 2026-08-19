@@ -852,7 +852,7 @@
     "model": "ART V2",
     "size": "1099",
     "span_cm": 110,
-    "area_cm2": 1120,
+    "area_cm2": 1220,
     "thickness_mm": 17.5,
     "is_baseline": false
   },
@@ -879,7 +879,7 @@
     "model": "HPS",
     "size": "650",
     "span_cm": 65,
-    "area_cm2": 744,
+    "area_cm2": 769,
     "thickness_mm": 19.6,
     "is_baseline": false
   },
@@ -2991,7 +2991,7 @@
     "size": "S",
     "span_cm": 82.7,
     "area_cm2": 720,
-    "thickness_mm": 12.5,
+    "thickness_mm": 11.1,
     "is_baseline": false
   },
   {

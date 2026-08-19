@@ -382,6 +382,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📐 REGEL (Jan, 19.08.): gleiche Geometrie + eigene offizielle Produktlinie = EIGENER Eintrag.**
+  Auch wenn Spannweite, Flaeche und Dicke identisch sind. Wortlaut Jan zur Gong-Atmo-Serie:
+  „vielleicht in den zahlen zum teil identisch, aber andere Bauart … die nutzer wollen natuerlich
+  ihre richtige Bezeichnung sehen und eintragen, sowas dann bitte ‚doppelt' anlegen, es ist schon
+  ein anderes produkt."
+  Betrifft u. a. Gong Atmo gegen die Vorgaenger-V3, Sabfoil `Razor PRO` gegen `Razor Pro Finish`,
+  `Blade 700` gegen `Blackbird Blade 700`.
+  **Abzugrenzen von echten Dopplungen** (17.08. entfernt): dort wiederholte der Modellname nur die
+  Groesse — `LEVIATHAN BLACKBIRD THE 1350` war dasselbe Produkt wie `LEVIATHAN BLACKBIRD` 1350, EIN
+  Produkt mit zwei Namen. Zwei PRODUKTE bleiben zwei Zeilen, ein Produkt mit zwei Namen wird eins.
+
+- **🟢 Katalog-Umfang geklaert (19.08.), ohne Rueckfrage: es kommt ALLES rein, was ein Hersteller
+  aktuell als Frontfluegel fuehrt** — auch Race, Surf, Anfaenger. Praezedenzfall steht in den Daten:
+  der Katalog enthaelt schon **29 Fluegel unter 600 cm²**, darunter die komplette Starboard-SLX-
+  Race-Reihe ab 365 cm², plus einen Lift-Surf-Fluegel. Er war also nie auf pumpbare Groessen
+  begrenzt — es ist ein Material-Katalog, in dem Leute eintragen, was sie besitzen.
+
+
 - **🟢 Alle Foil-Meldungen aus dem Feedback abgearbeitet (19.08.). Katalog 533 → 536.**
   Sieben Meldungen mit Katalog-Bezug (die achte, #44 Tom Petr, ist eine Sportart-Frage, kein Foil).
   **Pflichtpruefung 1 (brand UND model absuchen) hat FUENF von sieben als bereits vorhanden
