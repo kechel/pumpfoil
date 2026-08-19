@@ -611,7 +611,39 @@ private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Un
                     }
                 }
                 Spacer(Modifier.width(8.dp))
-                g.trackPreviews.firstOrNull()?.let { TrackPreviewCanvas(it, Modifier.size(width = 58.dp, height = 42.dp)) }
+                // Medien des Tages. Eingeklappt waren Fotos/Videos bisher gar nicht zu sehen — und
+                // gruppiert wird oft (jeder Nutzer, jeder Tag ab 2 Sessions), also blieben viele
+                // Bilder ungesehen, weil niemand jede Gruppe aufklappt. Je Session das neueste Foto
+                // (mehr liefert thumb_url nicht), maximal drei, plus die Gesamtzahl aller Fotos der
+                // Gruppe; dazu der erste Video-Thumb. Platz + Reihenfolge wie in der Einzel-Zeile:
+                // Minimap, Foto, Video — rechts neben dem Text.
+                g.trackPreviews.firstOrNull()?.let {
+                    TrackPreviewCanvas(it, Modifier.size(width = 58.dp, height = 42.dp))
+                    Spacer(Modifier.width(6.dp))
+                }
+                val gThumbs = g.sessions.mapNotNull { Api.mediaUrl(it.thumbUrl) }.take(3)
+                val gRest = g.sessions.sumOf { it.photoCount } - gThumbs.size
+                gThumbs.forEachIndexed { i, url ->
+                    Box(contentAlignment = Alignment.TopEnd) {
+                        AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)))
+                        if (i == gThumbs.lastIndex && gRest > 0) {
+                            Text("+$gRest", style = MaterialTheme.typography.labelSmall, color = Color.White,
+                                modifier = Modifier.background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 3.dp))
+                        }
+                    }
+                    Spacer(Modifier.width(6.dp))
+                }
+                g.sessions.firstNotNullOfOrNull { ytVideoId(it.youtubeUrl) }?.let { v ->
+                    Box(Modifier.size(width = 58.dp, height = 44.dp).clip(RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                        AsyncImage(model = "${Api.BASE}/api/public/video-thumb/$v", contentDescription = null,
+                            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color.White,
+                            modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape))
+                    }
+                    Spacer(Modifier.width(6.dp))
+                }
                 Icon(if (open) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }

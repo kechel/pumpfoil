@@ -117,6 +117,7 @@ struct CommunityItem: Codable, Identifiable {
     let max_speed_mps: Double?
     let track_preview: String?
     let thumb_url: String?
+    let photo_count: Int?      // Fotos der Session (Zaehler-Badge in der Tages-Gruppe)
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let like_count: Int?
     let liked: Bool?

@@ -4,7 +4,7 @@ import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } 
 import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon } from "../components/Icons";
+import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon, PlayIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
 import { StartHelp } from "../components/StartHelp";
 import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
@@ -16,6 +16,7 @@ import { SpotWeather } from "../components/SpotWeather";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
+import { ytId, videoPlatform } from "../components/VideoModal";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -637,6 +638,56 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   const [open, setOpen] = useState(false);
   const dateStr = g.date ? new Date(g.date + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
   const kmh = g.max_speed_mps != null ? (g.max_speed_mps * 3.6).toFixed(1) : null;
+  // Medien des Tages. In der EINGEKLAPPTEN Gruppe waren Fotos/Videos bisher unsichtbar — und
+  // gruppiert wird oft (jeder Nutzer, jeder Tag ab 2 Sessions), also blieben viele Bilder
+  // ungesehen, weil niemand jede Gruppe aufklappt. Die Kopf-Kachel zeigt sie deshalb selbst:
+  // je Session das neueste Foto (mehr steckt in thumb_url nicht), maximal drei, plus die
+  // Gesamtzahl aller Fotos der Gruppe; dazu eine Kachel je Video-Plattform.
+  // Platz + Reihenfolge wie in der Einzel-Kachel (SessionCard): Foto, Video, Minimap —
+  // auf Desktop rechts neben dem Text, mobil gestapelt unter dem Profilbild.
+  const thumbs = g.sessions.filter((s) => s.thumb_url).slice(0, 3);
+  const photoTotal = g.sessions.reduce((n, s) => n + (s.photo_count || 0), 0);
+  const restPhotos = photoTotal - thumbs.length;
+  const vidLinks = g.sessions.map((s) => s.video_url ?? s.youtube_url).filter(Boolean) as string[];
+  const ytFirst = vidLinks.map((u) => ytId(u)).find((v) => v) || "";
+  const igFirst = vidLinks.some((u) => videoPlatform(u) === "instagram");
+  const ttFirst = vidLinks.some((u) => videoPlatform(u) === "tiktok");
+  const hasMedia = thumbs.length > 0 || ytFirst || igFirst || ttFirst;
+  // Keine <button>/<a> in den Kacheln: der ganze Kopf ist schon ein Button (verschachtelte
+  // Interaktion waere ungueltiges HTML) -> ein Tipp auf ein Bild klappt die Gruppe auf, dort
+  // haengt das Foto an seiner Session und laesst sich von da oeffnen.
+  const mediaEls = hasMedia ? (
+    <>
+      {thumbs.map((s, i) => (
+        <div key={s.session_id} className="relative">
+          <img src={s.thumb_url!} alt="" className="h-12 w-12 rounded-lg object-cover" />
+          {i === thumbs.length - 1 && restPhotos > 0 && (
+            <span className="absolute -right-1 -top-1 rounded-full bg-slate-900/90 px-1.5 text-[10px] text-slate-200">+{restPhotos}</span>
+          )}
+        </div>
+      ))}
+      {ytFirst && (
+        <span className="relative block h-12 w-16 overflow-hidden rounded-lg" title={t("row.playVideo")}>
+          <img src={`/api/public/video-thumb/${ytFirst}`} alt="" className="h-12 w-16 object-cover" />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60">
+              <PlayIcon className="h-3.5 w-3.5 text-white" />
+            </span>
+          </span>
+        </span>
+      )}
+      {igFirst && (
+        <span className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-[#feda75] via-[#d62976] to-[#4f5bd5] text-white" title={t("row.playVideo")}>
+          <InstagramIcon className="h-6 w-6" />
+        </span>
+      )}
+      {ttFirst && (
+        <span className="flex h-12 w-16 items-center justify-center rounded-lg bg-black text-white" title={t("row.playVideo")}>
+          <TikTokIcon className="h-6 w-6" />
+        </span>
+      )}
+    </>
+  ) : null;
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/40">
       <button
@@ -646,10 +697,11 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
       >
         <div className="flex shrink-0 flex-col items-center gap-1.5">
           <Avatar name={g.name} url={g.avatar_url} size={44} />
-          {/* Mobil: Minimap(s) unter dem Avatar (wie Einzel-Kachel), gestapelt. */}
-          {(g.track_previews?.length ?? 0) > 0 && (
+          {/* Mobil: Fotos/Videos + Minimap(s) unter dem Avatar (wie Einzel-Kachel), gestapelt. */}
+          {(hasMedia || (g.track_previews?.length ?? 0) > 0) && (
             <div className="flex flex-col items-center gap-1.5 sm:hidden">
-              {g.track_previews!.map((tp, i) => (
+              {mediaEls}
+              {g.track_previews?.map((tp, i) => (
                 <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
               ))}
             </div>
@@ -673,10 +725,11 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
             {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
           </div>
         </div>
-        {/* Desktop: Minimap(s) rechts (wie Einzel-Kachel), mehrere nebeneinander. */}
-        {(g.track_previews?.length ?? 0) > 0 && (
+        {/* Desktop: Fotos/Videos + Minimap(s) rechts (wie Einzel-Kachel), nebeneinander. */}
+        {(hasMedia || (g.track_previews?.length ?? 0) > 0) && (
           <div className="hidden shrink-0 items-center gap-2 self-center sm:flex">
-            {g.track_previews!.map((tp, i) => (
+            {mediaEls}
+            {g.track_previews?.map((tp, i) => (
               <TrackPreview key={i} data={tp} className="h-12 w-16 text-brand-400" />
             ))}
           </div>

@@ -561,6 +561,65 @@ struct GroupCardView: View {
         if let sp = group.max_speed_mps { parts.append(String(format: "max %.1f km/h", sp * 3.6)) }
         return parts.joined(separator: "  ·  ")
     }
+    // Medien des Tages. Eingeklappt waren Fotos/Videos bisher gar nicht zu sehen — und gruppiert
+    // wird oft (jeder Nutzer, jeder Tag ab 2 Sessions), also blieben viele Bilder ungesehen, weil
+    // niemand jede Gruppe aufklappt. Je Session das neueste Foto (mehr liefert thumb_url nicht),
+    // maximal drei, plus die Gesamtzahl aller Fotos der Gruppe; dazu der erste Video-Thumb.
+    // Platz wie in der Einzel-Zeile: rechts neben dem Text, vor der Minimap.
+    private var thumbURLs: [URL] {
+        Array(group.sessions.compactMap { Api.mediaURL($0.thumb_url) }.prefix(3))
+    }
+    private var restPhotos: Int {
+        group.sessions.reduce(0) { $0 + ($1.photo_count ?? 0) } - thumbURLs.count
+    }
+    private var firstVideoId: String? {
+        group.sessions.compactMap { youtubeId($0.youtube_url) }.first
+    }
+    @ViewBuilder private var media: some View {
+        let thumbs = thumbURLs
+        let rest = restPhotos
+        let vid = firstVideoId
+        if !thumbs.isEmpty || vid != nil {
+            HStack(spacing: 6) {
+                ForEach(Array(thumbs.enumerated()), id: \.offset) { idx, url in
+                    ZStack(alignment: .topTrailing) {
+                        groupPhoto(url)
+                        if idx == thumbs.count - 1 && rest > 0 { restBadge(rest) }
+                    }
+                }
+                if let vid { groupVideo(vid) }
+            }
+        }
+    }
+    private func groupPhoto(_ url: URL) -> some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let img): img.resizable().scaledToFill()
+            default: Color.secondary.opacity(0.15)
+            }
+        }
+        .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+    private func restBadge(_ n: Int) -> some View {
+        Text("+\(n)")
+            .font(.caption2).foregroundStyle(.white)
+            .padding(.horizontal, 3)
+            .background(Color.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 6))
+            .offset(x: 3, y: -3)
+    }
+    private func groupVideo(_ vid: String) -> some View {
+        let url: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")
+        return ZStack {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let img): img.resizable().scaledToFill()
+                default: Color.secondary.opacity(0.15)
+                }
+            }
+            .frame(width: 58, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+            Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
+        }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button { withAnimation { open.toggle() } } label: {
@@ -572,6 +631,7 @@ struct GroupCardView: View {
                         Text(statsText).font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 8)
+                    media
                     if let tp = group.track_previews?.first { TrackPreviewView(data: tp).frame(width: 58, height: 42) }
                     Image(systemName: open ? "chevron.up" : "chevron.down").foregroundStyle(.secondary)
                 }

@@ -148,6 +148,7 @@ data class CommunityItem(
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
     @SerialName("track_preview") val trackPreview: String? = null,
     @SerialName("thumb_url") val thumbUrl: String? = null,
+    @SerialName("photo_count") val photoCount: Int = 0,             // Fotos der Session (Zaehler-Badge)
     @SerialName("youtube_url") val youtubeUrl: String? = null,      // verlinktes Video → Vorschau-Thumb
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
