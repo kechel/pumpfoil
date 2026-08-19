@@ -48,10 +48,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.22",   # LIVE im App Store 2026-08-13, gegengeprueft ueber
-        # itunes.apple.com/lookup (de/us/nl/no/fi -> 1.1.22, Release 19:38 UTC). DASSELBE Bundle wie
-        # die Watch-App ("apple" unten) — eine Einreichung, eine MARKETING_VERSION (project.yml),
-        # also immer BEIDE Schluessel zusammen setzen. Vorher 1.1.21, live seit 05.08.
+        "latest": "1.1.24",   # LIVE im App Store 2026-08-18, gegengeprueft ueber
+        # itunes.apple.com/lookup (de/us/nl/no/fi -> 1.1.24, currentVersionReleaseDate
+        # 2026-08-18T23:51:11Z). DASSELBE Bundle wie die Watch-App ("apple" unten) — eine
+        # Einreichung, eine MARKETING_VERSION (project.yml), also immer BEIDE Schluessel zusammen
+        # setzen. Vorher 1.1.22, live seit 13.08.
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
@@ -102,13 +103,15 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.22",   # LIVE im App Store 2026-08-13 (Freigabe-Mail "eligible for
-        # distribution", Submission b4f15707-ca03-4b84-affe-d25248342ca1). NICHT auf die Mail
-        # allein verlassen — sie sagt selbst "can take up to 24 hours": gegengeprueft ueber
-        # itunes.apple.com/lookup?id=6783975714 in de/us/nl/no/fi, alle liefern 1.1.22
-        # (currentVersionReleaseDate 2026-08-13T19:38:52Z). Inhalt: hoechste CoreLocation-
-        # Genauigkeitsstufe (BestForNavigation) auf Watch + iPhone, s. docs/TODO.md 13.08.
-        # Vorher 1.1.21, live seit 05.08.
+        "latest": "1.1.24",   # LIVE im App Store 2026-08-18 (Freigabe-Mail "ready for
+        # distribution", Submission 257c320a-2ca1-436a-ad35-0a1ce20eda9c). NICHT auf die Mail
+        # allein verlassen — "ready for distribution" heisst freigegeben, nicht zwingend schon
+        # ausgeliefert: gegengeprueft ueber itunes.apple.com/lookup?id=6783975714 in de/us/nl/no/fi,
+        # alle liefern 1.1.24 (currentVersionReleaseDate 2026-08-18T23:51:11Z).
+        # Inhalt: Lauf-Tabelle waagerecht scrollbar mit allen 13 Spalten, Vergleich je LAUF mit 15
+        # Kennzahlen, Vollbild-Karte im Session-Detail, Schalter fuer Chat-Benachrichtigungen
+        # (der zuvor beim Speichern still die Web-Einstellung geloescht hat), Trainingskurve.
+        # Vorher 1.1.22, live seit 13.08.
         "min_supported": "",
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },

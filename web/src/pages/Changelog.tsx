@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 19, 2026",
+    items: [
+      "The iPhone and Apple Watch update is out — version 1.1.24, available now. The run table in a session finally shows everything: it scrolls sideways and lists all thirteen columns instead of six. Start time, slowest speed in your chosen window, power, metres per pump, average and peak cadence and longest glide had simply been missing on the phone. You can now compare single runs rather than whole sessions: tap the compare icon on any row of that table, mix runs from different days or riders, and each entry is described by fifteen figures instead of six, with the best value in each highlighted. The map in a session opens full screen — the button sits in its corner — and stays fully usable there: picking a run works, and your colour mode and smoothing still apply. And notifications for new chat messages can be switched on and off in the app. That switch had existed on the website only, and worse: saving your settings in the app used to quietly erase whichever choice you had made there.",
+    ],
+  },
+  {
     date: "August 18, 2026",
     items: [
       "The spots map stays where you left it. Open a spot, look at it, go back — and the map had jumped all the way out to the whole world again, so you had to find your way back every single time. It now remembers your view and zoom for as long as you keep the site open. A rider asked for exactly this.",

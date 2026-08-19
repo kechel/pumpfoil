@@ -353,7 +353,7 @@ Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der 
 
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
-| 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ⏳ Warten auf Pruefung. Uebermittlung `257c320a-2ca1-436a-ad35-0a1ce20eda9c`. Ersetzt die 15:44er, die versehentlich unter der Versions-Zeile „1.0.24" lief (s. unten) |
+| 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ✅ **FREIGEGEBEN**, Mail 19.08. 06:26 („ready for distribution"). LIVE gegengeprueft ueber itunes.apple.com/lookup in de/us/nl/no/fi → 1.1.24, ausgeliefert seit 2026-08-18T23:51:11Z. `appmeta ios` + `apple` gesetzt, Changelog geschrieben. Uebermittlung `257c320a-…`; ersetzte die 15:44er unter der falschen Versions-Zeile „1.0.24" |
 | 2026-08-18 15:38 | Wear OS (Play) | 1.2.23 (1033) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 15:38 | Android Phone (Play) | 1.1.23 (37) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 13:26 | Zepp | 1.0.6 (code 9) | ⏳ wartet auf Freigabe |
