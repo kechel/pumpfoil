@@ -585,10 +585,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   gekennzeichnet: dass 790 und 799 dasselbe Teil sind, ist unsere Zuordnung, keine Herstellerangabe.
   Belegt am 20.08. an der Produktseite `razor-pro-1075`: Sabfoil veroeffentlicht „Front Wing -
   Maximum Thickness" (17 mm) und „Surface" (1061 cm²) — unsere Zeile stimmt auf den Punkt.
-  **Offen geblieben:** Moses `Onda 633`, `Onda 1000 HA` und `Razor Pro 975` haben bei Sabfoil kein
-  Gegenstueck (Onda ist eine reine Moses-Linie). Und die alten Sabfoil-Reihen MEDUSA 699/799/899/999
-  sowie RAZOR PRO FINISH stehen nicht mehr im aktuellen Katalog des Herstellers — die Zahlen dort
-  sind Bestandsdaten, kein Live-Abgleich moeglich.
+  **Nicht weiterverfolgen** (Jan, 20.08.: „so lassen, falls jemand etwas nutzt was wir nicht haben
+  kann er das ja melden"): Moses `Onda 633` und `Onda 1000 HA` haben bei Sabfoil kein Gegenstueck
+  (Onda ist eine reine Moses-Linie), und die alten Sabfoil-Reihen MEDUSA 699/799/899/999 sowie
+  RAZOR PRO FINISH fuehrt der Hersteller nicht mehr — unsere Zahlen dort sind Bestandsdaten ohne
+  Abgleichmoeglichkeit. Der Weg fuer Luecken ist der „fehlt im Katalog?"-Link unter der Geraeteliste;
+  so ist jeder Neuzugang der letzten Runden entstanden. Also keine Vorrats-Recherche mehr auf
+  Verdacht.
 
 - **🟢 Katalog: unbekannte Profildicke darf jetzt eine Luecke sein (20.08., Jans Entscheidung
   „einfach leer lassen halt wenn unbekannt").** `foils.thickness_mm` ist nullable (Migration in
