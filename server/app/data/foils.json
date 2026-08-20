@@ -3983,10 +3983,12 @@
   "brand": "Moses",
   "model": "Medusa",
   "size": "790",
-  "span_cm": 79.0,
-  "area_cm2": 1529.0,
+  "span_cm": 79.9,
+  "area_cm2": 1100.0,
   "thickness_mm": 21.6,
-  "thickness_estimated": true
+  "thickness_estimated": false,
+  "specs_estimated": true,
+  "aliases": "799"
  },
  {
   "brand": "Moses",
@@ -3994,7 +3996,7 @@
   "size": "899",
   "span_cm": 89.9,
   "area_cm2": 1383.0,
-  "thickness_mm": 21.6
+  "thickness_mm": 24.0
  },
  {
   "brand": "Moses",
@@ -4002,7 +4004,7 @@
   "size": "820",
   "span_cm": 82.0,
   "area_cm2": 746.0,
-  "thickness_mm": 15.3
+  "thickness_mm": 16.0
  },
  {
   "brand": "Moses",
@@ -4010,7 +4012,7 @@
   "size": "880",
   "span_cm": 88.0,
   "area_cm2": 843.0,
-  "thickness_mm": 17.8
+  "thickness_mm": 16.8
  },
  {
   "brand": "Moses",
@@ -4018,7 +4020,7 @@
   "size": "975",
   "span_cm": 98.0,
   "area_cm2": 942.0,
-  "thickness_mm": 16.77
+  "thickness_mm": 16.8
  },
  {
   "brand": "Moses",
@@ -5776,7 +5778,7 @@
   "span_cm": 70.0,
   "area_cm2": 552,
   "thickness_mm": 13.1,
-  "thickness_estimated": true,
+  "thickness_estimated": false,
   "is_baseline": false,
   "aliases": null
  },
@@ -5831,7 +5833,7 @@
   "span_cm": 78.0,
   "area_cm2": 631,
   "thickness_mm": 15.3,
-  "thickness_estimated": true,
+  "thickness_estimated": false,
   "is_baseline": false,
   "aliases": null
  },
@@ -5841,8 +5843,8 @@
   "size": "820",
   "span_cm": 82.0,
   "area_cm2": 746,
-  "thickness_mm": 15.3,
-  "thickness_estimated": true,
+  "thickness_mm": 16.0,
+  "thickness_estimated": false,
   "is_baseline": false,
   "aliases": null
  },
@@ -5852,8 +5854,8 @@
   "size": "880",
   "span_cm": 88.0,
   "area_cm2": 843,
-  "thickness_mm": 17.8,
-  "thickness_estimated": true,
+  "thickness_mm": 16.8,
+  "thickness_estimated": false,
   "is_baseline": false,
   "aliases": null
  },

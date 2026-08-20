@@ -565,10 +565,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     steigen gleichmaessig 6,91 → 8,10 parallel zur bestaetigten Kujira-II-Reihe, die des Melders
     springen; sein eigener Neufund Kujira 500 passt unter unsere Zahlen, nicht unter seine).
 
-- **🔴 ENTSCHEIDUNG JAN — Moses = SabFoil zusammenlegen oder getrennt lassen?** Moses hat keine
-  eigene Domain mehr, unsere 14 Moses-Zeilen sind geometrisch identisch mit SabFoil-Produkten
-  (51 Zeilen). **Nach der Regel vom 19.08. bleiben sie getrennt** (zwei offizielle Produktlinien),
-  und so wuerde ich es lassen: Leute kennen ihren alten Fluegel als Moses. Nur zur Bestaetigung.
+- **🟢 Moses und Sabfoil: beide Marken bleiben, gleiche Werte darunter (20.08., Jans Entscheidung:
+  „wenn Moses und sabfoil identisch sind, aber unter unterschiedlichen Markennamen verkauft werden,
+  dann sollen einfach beide in unserem Katalog stehen und unter der Haube die gleichen Werte
+  verwenden").** Daraus folgt die Regel: **wo Spannweite UND Flaeche gleich sind, muss die Dicke
+  gleich sein** — und zwar OHNE Median, denn ein Mittelwert waere eine dritte Zahl, die kein
+  Hersteller veroeffentlicht hat. Wo die Zahlen auseinandergingen, hat die Reihen-Konsistenz
+  entschieden. 9 Zeilen angepasst (JSON + DB, Ist-Zustand gesichert):
+  | Fall | vorher | jetzt | Grund |
+  |---|---|---|---|
+  | Razor 820/825 (82,0 cm / 746 cm²) | 15,3 / 16,0 | **16,0** | die RAZOR-PRO-Reihe steigt monoton (14,1 · 15,3 · 16,0 · 16,8 · 16,8 · 17,0); die 15,3 stammte aus den als geschaetzt gekennzeichneten PRO-FINISH-Zeilen |
+  | Razor 880/875 (88,0 cm / 843 cm²) | 17,8 / 16,8 | **16,8** | 17,8 mm waere dicker als der 107,5-cm-Fluegel (17,0) und bricht dieselbe Reihe |
+  | Medusa 899 (89,9 cm / 1383 cm²) | 21,6 / 24,0 | **24,0** | Dickenverhaeltnis 15,6 % liegt genau in der MEDUSA-Reihe (15,5 · 15,7 · 15,6 · 14,8); mit 21,6 waeren es 14,0 % |
+  | Razor Pro 975 | 16,77 / 16,8 | **16,8** | 16,77 war unsere Rundung, Sabfoil schreibt 16,8 |
+  | Blade 700, Razor 780 | Kennzeichen „geschaetzt" | **belegt** | Zahl war identisch, nur das Kennzeichen stand auf einer Seite falsch |
+  **Moses Medusa 790** hatte Streckung 4,08 gegen 5,55-5,84 der Reihe — das war kein Fluegel dieser
+  Serie. Sie traegt jetzt die Geometrie der Sabfoil MEDUSA 799 (79,9 cm / 1100 cm²), behaelt das
+  Etikett „790" (so kennt es der Moses-Besitzer), bekommt „799" als Alias und ist als **abgeleitet**
+  gekennzeichnet: dass 790 und 799 dasselbe Teil sind, ist unsere Zuordnung, keine Herstellerangabe.
+  Belegt am 20.08. an der Produktseite `razor-pro-1075`: Sabfoil veroeffentlicht „Front Wing -
+  Maximum Thickness" (17 mm) und „Surface" (1061 cm²) — unsere Zeile stimmt auf den Punkt.
+  **Offen geblieben:** Moses `Onda 633`, `Onda 1000 HA` und `Razor Pro 975` haben bei Sabfoil kein
+  Gegenstueck (Onda ist eine reine Moses-Linie). Und die alten Sabfoil-Reihen MEDUSA 699/799/899/999
+  sowie RAZOR PRO FINISH stehen nicht mehr im aktuellen Katalog des Herstellers — die Zahlen dort
+  sind Bestandsdaten, kein Live-Abgleich moeglich.
 
 - **🟢 Katalog: unbekannte Profildicke darf jetzt eine Luecke sein (20.08., Jans Entscheidung
   „einfach leer lassen halt wenn unbekannt").** `foils.thickness_mm` ist nullable (Migration in
