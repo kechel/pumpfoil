@@ -814,17 +814,44 @@ def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = 
 
 @spot_router.get("/spot-map")
 def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte."""
-    rows = (
-        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count(),
-                            func.max(S.spot_id)), _user.id, accel_only)
-        .filter(S.place_name.isnot(None), S.place_name != "", S.place_lat.isnot(None))
+    """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte.
+
+    Gruppiert nach **spot_id**, nicht nach `place_name` (2026-08-20). Vorher lieferte die Karte
+    Namens-Gruppen und als Ziel `max(spot_id)` — Etikett und Klickziel meinten damit
+    verschiedene Mengen: gemessen gingen bei 19 von 174 Markern Tooltip-Zahl und Klick-Ergebnis
+    auseinander. Krassester Fall: eine einzelne Session, deren `place_name` nach einem Rename
+    "Kaukajärvi 3" hiess, erschien als EIGENER Marker (Tooltip 1), fuehrte beim Klick aber in den
+    Spot "Kaukajärvi" mit 52 Sessions. Der Name eines Spots ist jetzt der Name der Spot-Zeile,
+    und der Klick filtert auf dieselbe id.
+
+    Sessions ohne `spot_id` (Altbestand/nicht zugeordnet) behalten eine Namens-Gruppe; ihr Klick
+    filtert dann auf `place_name` — dafuer versteht `_spot_cond` beide Formen.
+    """
+    mit_id = (
+        _community(db.query(S.spot_id, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
+                   _user.id, accel_only)
+        .filter(S.spot_id.isnot(None), S.place_lat.isnot(None))
+        .group_by(S.spot_id).all()
+    )
+    ohne_id = (
+        _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
+                   _user.id, accel_only)
+        .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
+                S.place_lat.isnot(None))
         .group_by(S.place_name).all()
     )
-    return [
-        {"spot": name, "spot_id": sid, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
-        for name, lat, lon, n, sid in rows if lat is not None and lon is not None
+    namen = dict(db.query(models.Spot.id, models.Spot.name)
+                 .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()) if mit_id else {}
+    out = [
+        {"spot": namen.get(sid) or "", "spot_id": sid,
+         "lat": float(lat), "lon": float(lon), "sessions": int(n)}
+        for sid, lat, lon, n in mit_id if lat is not None and lon is not None and namen.get(sid)
     ]
+    out += [
+        {"spot": name, "spot_id": None, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
+        for name, lat, lon, n in ohne_id if lat is not None and lon is not None
+    ]
+    return out
 
 
 @spot_router.get("/spot-compare")

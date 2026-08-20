@@ -19,6 +19,7 @@ Reine Geometrie/Engine — kein DB-Zugriff (aufrufbar für Dry-Run UND Apply).
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 
 from shapely import wkt as _wkt
@@ -230,10 +231,80 @@ def rename_spot_row(db, sp, new_name: str, source: str = "manual") -> str:
     return new
 
 
+def dubletten_zusammenfuehren(db, apply: bool = False) -> dict:
+    """Spots, die naeher als DUBLETTE_M beieinander liegen, sind Dubletten -> zusammenfuehren.
+
+    Eigener Durchgang, NICHT im Polygon-Pfad von `repair`: dort haengen Spots ueber die
+    gepufferten Tracks bis zu einem Kilometer weit zusammen (SAME_SPOT_GAP_M), und dann wuerde
+    die Suffix-Toleranz unten neun "Helsinki"-Spots ueber ~4 km verschmelzen. Hier zaehlt
+    ausschliesslich der Abstand der Spot-Koordinaten.
+
+    Zusammengefuehrt wird, wenn hoechstens EIN Spot der Gruppe Sessions hat (die anderen sind
+    Waisen) ODER alle besetzten denselben Namensstamm tragen ("Kołczewo" == "Kołczewo 4", s.
+    `namensstamm`). Verschiedene ECHTE Namen auf demselben Punkt bleiben eine inhaltliche
+    Entscheidung -> `needs_review` (Beispiele: "Tizzano" <-> "Cala Longa", 7 m;
+    "Neckarsteinach" <-> "Neuhof", 0 m — gegenueberliegende Neckarseiten).
+
+    Ziel der Zusammenfuehrung ist der Spot mit den meisten Sessions, bei Gleichstand der
+    benannte, sonst der aeltere. `apply=False` = Trockenlauf, schreibt nichts.
+    """
+    from . import models
+    rep: dict = {"merged": [], "needs_review": [], "applied": apply}
+    spots = (db.query(models.Spot)
+             .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
+                     models.Spot.lon.isnot(None)).all())
+    counts = {sp.id: _session_count(db, sp.id) for sp in spots}
+    # Einfachverkettung: A-B und B-C nah -> eine Gruppe (die Dubletten-Ketten aus dem
+    # Anlege-Wettlauf liegen sowieso alle auf demselben Punkt).
+    eltern = {sp.id: sp.id for sp in spots}
+
+    def wurzel(i):
+        while eltern[i] != i:
+            eltern[i] = eltern[eltern[i]]
+            i = eltern[i]
+        return i
+
+    for i, a in enumerate(spots):
+        for b in spots[i + 1:]:
+            if abs((a.lat or 0) - (b.lat or 0)) > 0.01:
+                continue
+            if _nah(a, b):
+                ra, rb = wurzel(a.id), wurzel(b.id)
+                if ra != rb:
+                    eltern[ra] = rb
+    gruppen: dict[int, list] = {}
+    for sp in spots:
+        gruppen.setdefault(wurzel(sp.id), []).append(sp)
+
+    for grp in gruppen.values():
+        if len(grp) < 2:
+            continue
+        grp.sort(key=lambda x: (-counts.get(x.id, 0), x.name is None, x.id))
+        target, sources = grp[0], grp[1:]
+        besetzt = [x for x in grp if counts.get(x.id, 0) > 0]
+        stamme = {namensstamm(x.name) for x in besetzt if x.name}
+        eintrag = {"into": target.id, "into_name": target.name,
+                   "abstand_max_m": round(max(abstand_m(a.lat, a.lon, b.lat, b.lon)
+                                              for a in grp for b in grp), 1),
+                   "from": [{"id": x.id, "name": x.name, "sessions": counts.get(x.id, 0)}
+                            for x in sources]}
+        if len(besetzt) > 1 and len(stamme) > 1:
+            rep["needs_review"].append(eintrag)
+            continue
+        rep["merged"].append(eintrag)
+        if apply:
+            _merge_spot_rows(db, target, sources, target.lat)
+    if apply:
+        db.commit()
+    return rep
+
+
 def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     """Spot-Daten generisch heilen (wiederholbar, `apply=False` = Dry-Run).
 
-    Drei Klassen von Altlasten, die die laufende Zuordnung blockieren:
+    Vier Klassen von Altlasten, die die laufende Zuordnung blockieren:
+      0. **Dubletten auf derselben Koordinate** (unter DUBLETTE_M) aus dem Anlege-Wettlauf
+         mehrerer Worker -> `dubletten_zusammenfuehren`.
       1. **Waisen-Spots** ohne aktive Session (Reste von Renn-/Löschsituationen). Überlappen sie
          einen echten Spot, werden sie dorthin gemerged, sonst entfernt.
       2. **Überlappende Spots** — zwei Zeilen für denselben Ort. Werden zusammengeführt
@@ -248,6 +319,9 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     rep: dict = {"orphans_merged": [], "orphans_deleted": [], "overlaps_merged": [],
                  "needs_review": [], "sessions_reassigned": [], "sessions_still_without_spot": 0,
                  "applied": apply}
+    # --- 0. Dubletten auf derselben Koordinate (Anlege-Wettlauf) ---------------------
+    # Vor allem anderen, damit der Polygon-Pfad unten schon auf bereinigten Zeilen arbeitet.
+    rep["dubletten"] = dubletten_zusammenfuehren(db, apply=apply)
     spots = (db.query(models.Spot)
              .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
                      models.Spot.poly_wkt.isnot(None)).all())
@@ -331,11 +405,10 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
     # Nach dem Mergen bleiben Namen wie „Bachern 2" übrig, obwohl es kein „Bachern" mehr gibt
     # (der Suffix kam von `_unique_name`, als die Dublette noch existierte). Nur einstellige
     # Zähler 2…9 anfassen — sonst würde „Bremerhavener Ruderverein v. 1889" verstümmelt.
-    import re as _re
     active = (db.query(models.Spot).filter(models.Spot.merged_into.is_(None)).all())
     taken = {(x.name or "").strip() for x in active}
     for sp in active:
-        m = _re.match(r"^(.+) ([2-9])$", (sp.name or "").strip())
+        m = re.match(r"^(.+) ([2-9])$", (sp.name or "").strip())
         if not m or m.group(1) in taken:
             continue
         base = m.group(1)
@@ -343,8 +416,13 @@ def repair(db, apply: bool = False, reassign_limit: int = 100) -> dict:
                                               "sessions": _session_count(db, sp.id)})
         if apply:
             rename_spot_row(db, sp, base, source=sp.name_source or "town")
-            taken.discard(sp.name)
-            taken.add(base)
+        # `taken` AUCH im Trockenlauf mitfuehren, sonst zeigt er mehr an, als der Apply tut:
+        # nach dem Merge wollen z. B. "Utrecht 3" UND "Utrecht 4" beide "Utrecht" heissen —
+        # mit apply gewinnt der erste und der zweite bleibt, im Trockenlauf standen beide drin.
+        # Namens-Eindeutigkeit ist nirgends per Constraint gesichert, die Liste hier ist der
+        # einzige Schutz.
+        taken.discard((sp.name or "").strip())
+        taken.add(base)
     if apply and rep.get("renamed"):
         db.commit()
 
@@ -437,6 +515,25 @@ def _merge_spot_rows(db, target, sources, lat0):
     `merged_into` markieren. Gleiche Semantik wie der Admin-Merge, nur intern aufrufbar."""
     from . import models
     polys = [_wkt_to_m(target.poly_wkt, lat0)] if target.poly_wkt else []
+    # Fehlende Angaben ZUERST vom besseren Kandidaten übernehmen (der Ziel-Spot kann namenlos
+    # sein — Fall aus dem Bestand: der Spot mit 6 Sessions hatte keinen Namen, die Waise daneben
+    # hiess "Gošići"). Erst danach die Sessions umhängen, sonst bekämen sie den fehlenden Namen
+    # nicht mehr mit und der Spot hiesse anders als seine Sessions.
+    uebernommen = False
+    for sp in sources:
+        if not target.name and sp.name:
+            target.name, target.name_source = sp.name, sp.name_source
+            uebernommen = True
+        if not target.water_name and sp.water_name:
+            target.water_name = sp.water_name
+    if uebernommen:
+        # Der Name muss auch an die EIGENEN Sessions des Ziels — sie hatten bisher keinen
+        # (der Spot war namenlos) und wuerden sonst ohne Ortsangabe stehen bleiben, waehrend
+        # der Spot auf der Karte einen Namen traegt. Befund: Spot 263 mit 5 Sessions ohne
+        # place_name neben der Waise "Gošići".
+        (db.query(models.Session).filter(models.Session.spot_id == target.id)
+         .update({models.Session.place_name: target.name,
+                  models.Session.place_water: target.water_name}))
     for sp in sources:
         if sp.id == target.id or sp.merged_into is not None:
             continue
@@ -449,12 +546,6 @@ def _merge_spot_rows(db, target, sources, lat0):
         sp.merged_into = target.id
     if len(polys) > 1:
         target.poly_wkt = _m_to_wkt(unary_union(polys), lat0)
-    # Fehlende Angaben vom besseren Kandidaten übernehmen (der Ziel-Spot kann namenlos sein).
-    for sp in sources:
-        if not target.name and sp.name:
-            target.name, target.name_source = sp.name, sp.name_source
-        if not target.water_name and sp.water_name:
-            target.water_name = sp.water_name
     db.flush()
     return target
 
@@ -464,6 +555,44 @@ def _session_count(db, spot_id: int) -> int:
     return (db.query(models.Session)
             .filter(models.Session.spot_id == spot_id, models.Session.deleted.isnot(True))
             .count())
+
+
+# Dubletten-Radius (2026-08-20). Befund: 65 Gruppen mit 154 der 301 aktiven Spots lagen unter
+# 100 m beieinander — bis zu SIEBEN Zeilen auf derselben Koordinate ("Gošići", 0 m Abstand),
+# sechs bei "Kołczewo" (17 m), vier bei "Helsinki" (50 m). Ursache ist ein Wettlauf der Worker:
+# bei einem Sammel-Upload analysiert jeder uvicorn-Worker eine Session, alle sehen "hier ist noch
+# kein Spot" und legen einen an. Belegt an Helsinki (vier Sessions eines Nutzers, analysiert
+# zwischen 10:42:59 und 10:43:17 -> vier Spots) und Kołczewo (vier Sessions in 53 s).
+# 100 m ist unkritisch gewaehlt: 50 m ergibt EXAKT dieselben 65 Gruppen, 200 m nur eine mehr —
+# 39 der 65 Gruppen haben 0 m Abstand. Das sind keine dicht benachbarten echten Spots, sondern
+# Dubletten auf praktisch identischer Koordinate.
+DUBLETTE_M = 100.0
+
+
+def abstand_m(a_lat, a_lon, b_lat, b_lon) -> float:
+    """Abstand zweier Koordinaten in Metern (equirectangular, fuer <1 km voellig ausreichend)."""
+    k = math.cos(math.radians((a_lat + b_lat) / 2.0))
+    return math.hypot((a_lon - b_lon) * 111320.0 * k, (a_lat - b_lat) * 110540.0)
+
+
+def _nah(a, b, grenze: float = DUBLETTE_M) -> bool:
+    """Liegen zwei Spot-Zeilen so nah, dass es Dubletten sein muessen?"""
+    if a.lat is None or a.lon is None or b.lat is None or b.lon is None:
+        return False
+    return abstand_m(a.lat, a.lon, b.lat, b.lon) <= grenze
+
+
+def namensstamm(name: str | None) -> str:
+    """Name ohne Zaehl-Suffix, klein: "Kołczewo 4" -> "kołczewo".
+
+    Wichtig fuer die Dubletten-Erkennung: `_unique_name` haengt den Verlierern eines
+    Anlege-Wettlaufs eine Nummer an — damit hatten sie "verschiedene Namen" und
+    `_auto_mergeable` verweigerte genau die Zusammenfuehrung, fuer die es gedacht ist.
+    Die Eindeutigkeits-Nummerierung hebelte also die Dubletten-Erkennung aus.
+    """
+    # NUR Zaehler, die `_unique_name` erzeugen kann (2…49) — sonst wuerde
+    # "Bremerhavener Ruderverein v. 1889" zu "… v." verstuemmelt.
+    return re.sub(r"\s+([2-9]|[1-4][0-9])$", "", (name or "").strip()).casefold()
 
 
 def _auto_mergeable(db, group) -> bool:
@@ -508,6 +637,28 @@ def _dedupe_hits(db, hits, lat0):
         grp.sort(key=lambda sp: (-_session_count(db, sp.id), sp.name is None, sp.id))
         out.append(_merge_spot_rows(db, grp[0], grp[1:], lat0))
     return out
+
+
+def _sperre_koordinate(db, punkt) -> None:
+    """Transaktions-Sperre auf ein ~1-km-Koordinatenraster (nur Postgres).
+
+    Verhindert, dass zwei Worker fuer denselben Ort gleichzeitig einen Spot anlegen. Die Sperre
+    faellt mit dem Commit/Rollback der Transaktion von allein. Auf anderen Datenbanken (SQLite im
+    Dev) ist sie ein No-Op — dort schuetzt die Naehe-Pruefung danach.
+    """
+    try:
+        if db.bind is None or db.bind.dialect.name != "postgresql":
+            return
+    except Exception:  # noqa: BLE001
+        return
+    from sqlalchemy import text
+    schluessel = (int(round(punkt[0] * 100)) << 20) ^ int(round(punkt[1] * 100))
+    # 64-Bit-signed halten (pg_advisory_xact_lock nimmt bigint).
+    schluessel = schluessel % (2 ** 62)
+    try:
+        db.execute(text("select pg_advisory_xact_lock(:k)"), {"k": schluessel})
+    except Exception:  # noqa: BLE001
+        pass          # Sperre ist Beschleuniger, nicht Bedingung — Riegel 2 traegt allein.
 
 
 def assign_one(db, s):
@@ -573,14 +724,45 @@ def assign_one(db, s):
                 s.place_name = home.name
             s.place_water = home.water_name
     else:                          # neuer Spot
-        name, src, water = name_for(*g.start)
-        if name:
-            name = _unique_name(db, name)
-        sp = models.Spot(name=name, name_source=src, water_name=water,
-                         lat=g.start[0], lon=g.start[1], poly_wkt=_m_to_wkt(new_m, lat0))
-        db.add(sp); db.flush()
-        s.spot_id = sp.id
-        if name:
-            s.place_name = name
-        s.place_water = water
+        # --- Anlege-Wettlauf verhindern (2026-08-20) --------------------------------------
+        # Bei einem Sammel-Upload analysieren mehrere uvicorn-Worker gleichzeitig je eine
+        # Session desselben Sees. Alle sehen "hier ist noch kein Spot" und legen einen an —
+        # so entstanden 154 der 301 aktiven Spots als Dubletten unter 100 m (belegt: vier
+        # Helsinki-Spots aus vier Sessions, die zwischen 10:42:59 und 10:43:17 analysiert
+        # wurden). Zwei Riegel dagegen:
+        #   1) eine Postgres-Sperre auf die gerundete Koordinate (~1 km Raster) — der zweite
+        #      Worker wartet, statt parallel anzulegen. Nur Postgres; ohne Sperre (SQLite-Dev)
+        #      bleibt Riegel 2.
+        #   2) NACH der Sperre noch einmal nachsehen: existiert inzwischen ein Spot naeher als
+        #      DUBLETTE_M, wird er benutzt statt eines neuen. Das ist der eigentliche Schutz,
+        #      denn er greift auch, wenn die Sperre nicht zieht.
+        _sperre_koordinate(db, g.start)
+        nahe = (db.query(models.Spot)
+                .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
+                        models.Spot.lat.between(lat0 - 0.01, lat0 + 0.01))
+                .all())
+        nahe = [x for x in nahe
+                if abstand_m(x.lat, x.lon, g.start[0], g.start[1]) <= DUBLETTE_M]
+        if nahe:
+            nahe.sort(key=lambda x: (-_session_count(db, x.id), x.name is None, x.id))
+            sp = nahe[0]
+            if sp.poly_wkt:
+                sp.poly_wkt = _m_to_wkt(unary_union([_wkt_to_m(sp.poly_wkt, lat0), new_m]), lat0)
+            else:
+                sp.poly_wkt = _m_to_wkt(new_m, lat0)
+            s.spot_id = sp.id
+            if sp.name:
+                s.place_name = sp.name
+            s.place_water = sp.water_name
+        else:
+            name, src, water = name_for(*g.start)
+            if name:
+                name = _unique_name(db, name)
+            sp = models.Spot(name=name, name_source=src, water_name=water,
+                             lat=g.start[0], lon=g.start[1], poly_wkt=_m_to_wkt(new_m, lat0))
+            db.add(sp); db.flush()
+            s.spot_id = sp.id
+            if name:
+                s.place_name = name
+            s.place_water = water
     db.commit()

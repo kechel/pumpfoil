@@ -382,6 +382,65 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Spot-Dubletten zusammengefuehrt + Anlege-Wettlauf abgestellt (20.08., Jans Auftrag).**
+  Ausloeser: Jaceks Meldung im Community-Chat („when I click spot on the map I expect to see who is
+  pumping on that spot, now I see randomly person") — von Jan nicht reproduzierbar. Zwei Ursachen,
+  beide belegt:
+  1. **Marker lagen uebereinander.** Kreise mit 9 px Radius ohne Clustering; beim Oeffnen zoomt die
+     Karte per `fitBounds` auf ganz Europa (Zoom 4-5), dort ueberdeckten sich **144 von 174**
+     Markern. Neun Haeufchen lagen auf DERSELBEN Koordinate (bis zu 7 Zeilen: „Gošići"; 6x
+     „Kołczewo" auf 17 m; 4x „Helsinki" auf 50 m). Leaflet zeichnet in Array-Reihenfolge — die kam
+     aus einem `GROUP BY` ohne `ORDER BY`, der Klick traf also einen beliebigen Nachbar-Spot.
+  2. **Tooltip und Klick meinten Verschiedenes.** `spot-map` gruppierte nach `place_name`, gab als
+     Ziel aber `max(spot_id)` -> bei 19 von 174 Markern lieferte der Klick eine andere Menge.
+     Krassester Fall: eine einzelne Session mit dem Alt-Namen „Kaukajärvi 3" war ein EIGENER Marker
+     (Tooltip 1) und fuehrte in den Spot „Kaukajärvi" mit 52 Sessions.
+
+  **Ursache der Dubletten: Wettlauf der Worker.** Bei einem Sammel-Upload analysiert jeder
+  uvicorn-Worker eine Session, alle sehen „hier ist noch kein Spot" und legen einen an. Belegt an
+  Helsinki (vier Sessions eines Nutzers, analysiert 10:42:59-10:43:17 -> vier Spots) und Kołczewo
+  (vier Sessions in 53 s). Der vorhandene Aufraeumer griff nicht, weil `_auto_mergeable` bei
+  VERSCHIEDENEN Namen verweigert — und `_unique_name` hatte den Verlierern des Wettlaufs genau das
+  verpasst („Kołczewo 4", „Kołczewo 5"). Die Eindeutigkeits-Nummerierung hebelte also die
+  Dubletten-Erkennung aus, die sie schuetzen sollte.
+
+  **Gebaut:** `DUBLETTE_M = 100` + `namensstamm()` (Zaehl-Suffix 2-49 ab, „Bremerhavener Ruderverein
+  v. 1889" bleibt heil) · `dubletten_zusammenfuehren()` als eigener Durchgang (Schritt 0 in
+  `repair`) — bewusst NICHT im Polygon-Pfad, dort haengen Spots ueber die gepufferten Tracks bis zu
+  1 km weit zusammen und die Suffix-Toleranz haette neun „Helsinki"-Spots ueber ~4 km verschmolzen ·
+  Anlege-Sperre in `assign_one` (`pg_advisory_xact_lock` auf gerundete Koordinate) plus
+  Naehe-Pruefung danach als eigentlicher Riegel · `spot-map` gruppiert jetzt nach `spot_id` und
+  nimmt den Namen aus der Spot-Zeile · `_merge_spot_rows` zieht einen uebernommenen Namen auch an
+  die EIGENEN Sessions des Ziels (Fall: Spot mit 5 Sessions ohne Ortsangabe neben der Waise
+  „Gošići") · Trockenlauf von `repair` Schritt 4 fuehrt `taken` jetzt mit, sonst zeigte er zwei
+  Umbenennungen auf denselben Namen an, die der Apply gar nicht macht.
+
+  **Ergebnis:** 301 -> 214 aktive Spots (87 eingezogen, 12 Sessions umgehaengt), Marker 174 -> 162.
+  Unter 100 m liegen nur noch die zwei Review-Faelle. Die Grenze ist unkritisch: 50 m ergibt EXAKT
+  dieselben 65 Gruppen, 200 m eine mehr — 39 der 65 hatten 0 m Abstand.
+
+- **❓ Jans Entscheidung offen — zwei Spot-Paare auf demselben Punkt, verschiedene Namen:**
+  `Tizzano` (2 Sess.) <-> `Cala Longa` (1 Sess.), 7 m · `Neckarsteinach` (1) <-> `Neuhof` (1), 0 m
+  (gegenueberliegende Neckarseiten). Beide sind physisch EIN Einstieg; welcher Name gilt?
+
+- **❓ Jans Entscheidung offen — 38 Zaehl-Suffixe aufraeumen.** Nach dem Merge heissen Spots
+  „Kołczewo 5", „Annecy 2", „Utrecht 3" usw., obwohl der Grundname frei ist. `repair` Schritt 4
+  wuerde sie umbenennen (Beispiele: „Annecy 2" -> „Annecy", 17 Sessions; „Bönigen 2" -> „Bönigen",
+  12; „Aressy 2" -> „Aressy", 10). Das zieht `place_name` aller Sessions, den Chat-Scope und
+  Homespot-Einstellungen mit — sichtbare Aenderung, deshalb nicht ungefragt gemacht.
+
+- **❓ Karte: was mit Sessions OHNE Spot?** 99 Sessions haben keinen `spot_id`; 30 davon haben
+  Laeufe und sind nachtraeglich zugeordnet worden, die anderen 69 haben keinen Lauf und bekommen
+  per Definition keinen Spot (`assign_one`). Sie erzeugen weiter Namens-Marker, deren Klick auf
+  `place_name` filtert und damit AUCH die Sessions des gleichnamigen Spots einsammelt. Vorschlag:
+  die Spot-Karte auf Sessions mit mindestens einem Lauf beschraenken — dann ist sie rein
+  spot_id-basiert und Tooltip == Klick per Konstruktion.
+
+- **💡 Wunsch von Jacek (Community-Chat, 20.08.):** Spots in der Umgebung der aktuellen Position
+  zeigen bzw. nach Land filtern. Dazu: er erwartet beim Klick auf einen Spot „wer pumpt hier",
+  bekommt aber die chronologische Session-Liste — eine Spot-Ansicht mit den Foilern des Spots
+  waere die eigentliche Antwort.
+
 - **🟢 Fehlende Laeufe: Keim-Rettung im Detektor gebaut (19.08., Jans OK).** Ausloeser war Alex'
   Meldung zu #2430 — ein Lauf, den GPS *und* Accel zeigen (28 s / 94 m bei 11,6 km/h, sieben
   Fenster mit 2-Hz-Rhythmus), fehlte in der Auswertung. **Nicht** die Geschwindigkeits-Schwellen:
