@@ -813,7 +813,8 @@ def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = 
 
 
 @spot_router.get("/spot-map")
-def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+def spot_map(accel_only: bool = True, sport: str = "all",
+             _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte.
 
     Gruppiert nach **spot_id**, nicht nach `place_name` (2026-08-20). Vorher lieferte die Karte
@@ -827,15 +828,19 @@ def spot_map(accel_only: bool = True, _user: models.User = Depends(current_user)
     Sessions ohne `spot_id` (Altbestand/nicht zugeordnet) behalten eine Namens-Gruppe; ihr Klick
     filtert dann auf `place_name` — dafuer versteht `_spot_cond` beide Formen.
     """
+    # `sport="all"` als Default (2026-08-20): alle drei Clients navigieren vom Marker in die
+    # Sessions-Liste mit sport=all, die Karte zaehlte aber nur Pumpfoil -> die Tooltip-Zahl war
+    # bei sechs Markern kleiner als das, was der Klick zeigte (Bönigen 7 gegen 13). Die Karte ist
+    # ausdruecklich Uebersicht ueber alle Aufnahmen, nicht nach Sportart getrennt.
     mit_id = (
         _community(db.query(S.spot_id, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
-                   _user.id, accel_only)
+                   _user.id, accel_only, sport)
         .filter(S.spot_id.isnot(None), S.place_lat.isnot(None))
         .group_by(S.spot_id).all()
     )
     ohne_id = (
         _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
-                   _user.id, accel_only)
+                   _user.id, accel_only, sport)
         .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
                 S.place_lat.isnot(None))
         .group_by(S.place_name).all()

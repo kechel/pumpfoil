@@ -419,22 +419,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Unter 100 m liegen nur noch die zwei Review-Faelle. Die Grenze ist unkritisch: 50 m ergibt EXAKT
   dieselben 65 Gruppen, 200 m eine mehr — 39 der 65 hatten 0 m Abstand.
 
-- **❓ Jans Entscheidung offen — zwei Spot-Paare auf demselben Punkt, verschiedene Namen:**
-  `Tizzano` (2 Sess.) <-> `Cala Longa` (1 Sess.), 7 m · `Neckarsteinach` (1) <-> `Neuhof` (1), 0 m
-  (gegenueberliegende Neckarseiten). Beide sind physisch EIN Einstieg; welcher Name gilt?
+- **🟢 Spot-Aufraeumen abgeschlossen (20.08., Jan: „alles zusammenfuehren sinnvoll was
+  zusammengehoert"). 301 -> 165 Marker, Tooltip == Klick bei ALLEN.**
+  Die drei offenen Entscheidungen sind entschieden und angewandt:
+  - `Tizzano` <- `Cala Longa` (7 m): Ziel Tizzano, weil `name_for` den ORT vor die Venue stellt
+    („Locals benennen Spots nach dem Ort") — und Tizzano hatte mehr Sessions.
+  - `Neckarsteinach` <- `Neuhof` (0 m): beide 'town', je 1 Session; Neckarsteinach ist der Ort am
+    Neckar, Neuhof der Weiler gegenueber.
+  - `Spandauer See` <- `Berlin 6` + `Salsa Plattform` (124 m, Polygone ueberlappen, dasselbe
+    Gewaesser): hier gewinnt bewusst NICHT der Ortsname — „Berlin 6" ist ein
+    Eindeutigkeits-Suffix auf einer Millionenstadt und sagt niemandem etwas.
+  - 38 Zaehl-Suffixe umbenannt (`Annecy 2` -> `Annecy` usw.), 34 Waisen geloescht, 10 Sessions mit
+    veraltetem `place_name` auf ihren Spot-Namen gezogen. Die 18 verbliebenen Suffix-Namen sind
+    berechtigt: dort ist der Grundname von einem ANDEREN aktiven Spot besetzt.
+  Stand: 172 aktive Spot-Zeilen, 165 Marker, 0 doppelte Namen, 0 Sessions auf einem
+  zusammengefuehrten Spot, 0 Sessions mit Lauf ohne Spot, 0 Namens-Abweichungen.
+  Zuletzt noch gefunden und behoben: `spot-map` zaehlte nur Pumpfoil, alle drei Clients navigieren
+  vom Marker aber mit `sport=all` weiter — die Tooltip-Zahl war bei sechs Markern kleiner als das
+  Klick-Ergebnis (Bönigen 7 gegen 13). Jetzt zaehlt die Karte dasselbe, was der Klick zeigt:
+  **bei allen 165 Markern stimmen Tooltip und Klick ueberein** (gegen die API geprueft).
 
-- **❓ Jans Entscheidung offen — 38 Zaehl-Suffixe aufraeumen.** Nach dem Merge heissen Spots
-  „Kołczewo 5", „Annecy 2", „Utrecht 3" usw., obwohl der Grundname frei ist. `repair` Schritt 4
-  wuerde sie umbenennen (Beispiele: „Annecy 2" -> „Annecy", 17 Sessions; „Bönigen 2" -> „Bönigen",
-  12; „Aressy 2" -> „Aressy", 10). Das zieht `place_name` aller Sessions, den Chat-Scope und
-  Homespot-Einstellungen mit — sichtbare Aenderung, deshalb nicht ungefragt gemacht.
-
-- **❓ Karte: was mit Sessions OHNE Spot?** 99 Sessions haben keinen `spot_id`; 30 davon haben
-  Laeufe und sind nachtraeglich zugeordnet worden, die anderen 69 haben keinen Lauf und bekommen
-  per Definition keinen Spot (`assign_one`). Sie erzeugen weiter Namens-Marker, deren Klick auf
-  `place_name` filtert und damit AUCH die Sessions des gleichnamigen Spots einsammelt. Vorschlag:
-  die Spot-Karte auf Sessions mit mindestens einem Lauf beschraenken — dann ist sie rein
-  spot_id-basiert und Tooltip == Klick per Konstruktion.
+- **❌ NICHT zusammengefuehrt (mit Absicht): die sechs „Helsinki"-Spots.** Sie haengen nur ueber die
+  um 500 m gepufferten Tracks aneinander, liegen aber **1 bis 6 km** auseinander (verschiedene
+  Buchten) — echte, getrennte Spots. Ihr Problem ist der NAME: der Geocoder fand nur die Stadt,
+  also heissen sie „Helsinki 4/5/7/8/9/10" und kein Mensch weiss, welcher welcher ist. Kein
+  Gewaessername vorhanden (`water_name` ist bei allen leer). Das waere ein eigenes Thema:
+  bessere Namen fuer Spots in Grossstaedten (Stadtteil/Bucht statt Stadt + Nummer).
 
 - **💡 Wunsch von Jacek (Community-Chat, 20.08.):** Spots in der Umgebung der aktuellen Position
   zeigen bzw. nach Land filtern. Dazu: er erwartet beim Klick auf einen Spot „wer pumpt hier",
