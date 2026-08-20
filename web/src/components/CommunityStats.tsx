@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { useT } from "../i18n";
+import { useNumberFormat, useT } from "../i18n";
 
 // Schlanke Stats-Leiste (nur die Zahlen aus dem Willkommens-Banner), dauerhaft oben im
 // Community-Bereich. Nutzt denselben Satz/Endpoint; Zahlen (§-markiert) fett/cyan.
 export function CommunityStats({ className = "" }: { className?: string }) {
   const t = useT();
+  const nf = useNumberFormat();
   const [stats, setStats] = useState<{ foilers: number; spots: number; sessions: number; pumps: number } | null>(null);
   useEffect(() => { api.communityStats().then(setStats).catch(() => {}); }, []);
   if (!stats) return null;
 
+  // Alle vier Zahlen durch den sprachabhaengigen Formatierer (auch sessions/foilers wachsen
+  // ueber 1000) — sonst mischt der Satz gruppierte und ungruppierte Zahlen.
   const parts = t("banner.stats", {
-    foilers: stats.foilers, spots: stats.spots, sessions: stats.sessions, pumps: stats.pumps.toLocaleString(),
+    foilers: nf(stats.foilers), spots: nf(stats.spots), sessions: nf(stats.sessions), pumps: nf(stats.pumps),
   }).split("§");
 
   return (

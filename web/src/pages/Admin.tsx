@@ -4,7 +4,7 @@ import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntr
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
-import { useT } from "../i18n";
+import { useT, useNumberFormat } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
@@ -216,6 +216,7 @@ const DAY_MS = 86400000;
 
 function StatsSection() {
   const t = useT();
+  const nf = useNumberFormat();
   const [period, setPeriod] = useState("30d");
   // „heute" = Tageszacken-Ansicht: volle Historie laden, tägliche Werte plotten (nicht kumuliert);
   // die Zahl daneben zeigt den heutigen Tageswert. Alle anderen Fenster: kumulierte Kurve.
@@ -267,12 +268,12 @@ function StatsSection() {
             // Y-Skala: gleiche min/max-Ableitung wie TimeChart (min..max der geplotteten Werte).
             const vmax = vPlot.length ? Math.max(...vPlot) : 1;
             const vmin = vPlot.length ? Math.min(...vPlot) : 0;
-            const fmtY = (v: number) => Math.round(v).toLocaleString("de");
+            const fmtY = (v: number) => nf(Math.round(v));
             return (
               <Card key={key} className="p-3">
                 <div className="mb-1 flex items-baseline justify-between px-1">
                   <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{headline}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{nf(Math.round(headline))}</span>
                 </div>
                 <div className="flex gap-1">
                   <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">

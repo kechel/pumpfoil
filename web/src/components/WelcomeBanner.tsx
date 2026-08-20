@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, NewsBanner } from "../lib/api";
-import { useI18n } from "../i18n";
+import { useI18n, formatNumber } from "../i18n";
 import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
@@ -36,10 +36,10 @@ export function WelcomeBanner() {
   // Stats-Satz: Zahlen sind mit § markiert -> fett/cyan gerendert (Wortstellung bleibt je Sprache erhalten).
   const parts = stats
     ? t("banner.stats", {
-        foilers: stats.foilers,
-        spots: stats.spots,
-        sessions: stats.sessions,
-        pumps: stats.pumps.toLocaleString(),
+        foilers: formatNumber(stats.foilers, lang),
+        spots: formatNumber(stats.spots, lang),
+        sessions: formatNumber(stats.sessions, lang),
+        pumps: formatNumber(stats.pumps, lang),
       }).split("§")
     : [];
 

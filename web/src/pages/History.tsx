@@ -6,7 +6,7 @@ import { Card, Spinner, ErrorBox } from "../components/ui";
 import { ChartIcon } from "../components/Icons";
 import { SpotProgression } from "../components/SpotProgression";
 import { HrProgress } from "../components/HrProgress";
-import { useT } from "../i18n";
+import { useT, useNumberFormat } from "../i18n";
 
 export type Mode = "cumulative" | "window7" | "window30";
 export type Pt = { t: number; v: number; sid: number; run: number | null };
@@ -23,7 +23,8 @@ const METRICS: { key: keyof HistoryPoint; labelKey: string; fmt: (v: number) => 
 type Agg = {
   key: string; field?: keyof HistoryPoint | null; kind: "sum" | "avg" | "count" | "ratio" | "max";
   num?: keyof HistoryPoint; den?: keyof HistoryPoint | "count";
-  labelKey: string; fmt: (v: number, pf: PumpFmt) => string; color: string;
+  // nf = sprachabhaengige Zahl-Gruppierung (nur die Summen brauchen sie).
+  labelKey: string; fmt: (v: number, pf: PumpFmt, nf: (n: number) => string) => string; color: string;
 };
 // Oben (Einzel-Werte je Fenster/kumuliert): Mittel + Verhältnis, neben den Bestwerten.
 const AGG_TOP: Agg[] = [
@@ -40,7 +41,7 @@ const AGG_SUM: Agg[] = [
   { key: "sessions", field: null, kind: "count", labelKey: "stat.sessions", fmt: (v) => `${Math.round(v)}`, color: "#60a5fa" },
   { key: "runs", field: "runs", kind: "sum", labelKey: "stat.runs", fmt: (v) => `${Math.round(v)}`, color: "#34d399" },
   { key: "foiling_km", field: "foiling_km", kind: "sum", labelKey: "stat.foiling", fmt: (v) => `${v.toFixed(1)} km`, color: "#22d3ee" },
-  { key: "pumps", field: "pumps", kind: "sum", labelKey: "stat.pumps", fmt: (v) => Math.round(v).toLocaleString("de"), color: "#a78bfa" },
+  { key: "pumps", field: "pumps", kind: "sum", labelKey: "stat.pumps", fmt: (v, _pf, nf) => nf(Math.round(v)), color: "#a78bfa" },
 ];
 
 export const DAY_MS = 24 * 3600 * 1000;
@@ -104,9 +105,10 @@ function aggSeries(data: HistoryPoint[], m: Agg, mode: Mode, domain: [number, nu
 function AggMetricChart({ data, metric, mode, onPick, domain }: { data: HistoryPoint[]; metric: Agg; mode: Mode; onPick: (p: Pt) => void; domain: [number, number] }) {
   const t = useT();
   const pf = usePumpFmt();
+  const nf = useNumberFormat();
   const pts = useMemo(() => aggSeries(data, metric, mode, domain), [data, metric, mode, domain]);
   const cur = pts.length ? pts[pts.length - 1].v : 0;
-  const fmt = (v: number) => metric.fmt(v, pf);
+  const fmt = (v: number) => metric.fmt(v, pf, nf);
   return (
     <Card className="p-4">
       <div className="mb-1 flex items-baseline justify-between">

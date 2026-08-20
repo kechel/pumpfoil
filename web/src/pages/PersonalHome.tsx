@@ -13,7 +13,7 @@ import { UploadProgressCard } from "../components/UploadProgressCard";
 import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon } from "../components/Icons";
 import { PERIODS } from "./Home";
 import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
-import { useT, useI18n } from "../i18n";
+import { useT, useI18n, useNumberFormat } from "../i18n";
 
 // Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
 function TransferHint() {
@@ -134,6 +134,7 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 
 export default function PersonalHome() {
   const t = useT();
+  const nf = useNumberFormat();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<OverallStats | null>(null);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
@@ -187,7 +188,7 @@ export default function PersonalHome() {
     { label: t("stat.runs"), value: String(stats.runs_total) },
     { label: t("side.foiling"), value: `${stats.foiling_km.toFixed(1)} km` },
     { label: t("side.foilingTime"), value: fmtDur(stats.foiling_min) },
-    { label: t("side.pumps"), value: stats.pumps.toLocaleString("de") },
+    { label: t("side.pumps"), value: nf(stats.pumps) },
   ] : [];
 
 

@@ -137,3 +137,21 @@ export function useI18n(): I18nCtx {
 export function useT(): TFunc {
   return useI18n().t;
 }
+
+// Zahlen-Gruppierung folgt der UI-SPRACHE, nicht der Browsersprache: `toLocaleString()` ohne
+// Argument nimmt die Systemsprache, dadurch stand in der englischen Oberflaeche "328.104"
+// statt "328,104" (gemeldet 20.08.). Dialekte auf ihre BCP-47-Codes (htmlLang) mappen, damit
+// z. B. de-CH sein Hochkomma bekommt. Kein Intl -> unformatierte Zahl statt Absturz.
+export function formatNumber(n: number, lang: Lang, opts?: Intl.NumberFormatOptions): string {
+  try {
+    return new Intl.NumberFormat(htmlLang(lang), opts).format(n);
+  } catch {
+    return String(n);
+  }
+}
+
+// Hook-Variante fuer Komponenten: haengt an der aktuellen UI-Sprache.
+export function useNumberFormat(): (n: number, opts?: Intl.NumberFormatOptions) => string {
+  const { lang } = useI18n();
+  return useCallback((n: number, opts?: Intl.NumberFormatOptions) => formatNumber(n, lang, opts), [lang]);
+}
