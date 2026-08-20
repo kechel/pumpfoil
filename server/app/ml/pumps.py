@@ -107,7 +107,7 @@ PUMP_CAD_WIN_S = 4.0            # Fenster fuer die lokale Kadenz-Schaetzung (s)
 PUMP_CAD_BAND = (0.8, 2.0)     # plausible Pump-Kadenz (Hz)
 PUMP_CAD_GATE = 0.008          # RMS-Gate: rhythmisch+energiereich (g, bandpass). 0.02 war zu
                                # hoch für leichte/sanfte Fahrer -> ganze Pump-Abschnitte als
-                               # "Gleit" verworfen (Befund Session 521/493 Alex, 436 user13).
+                               # "Gleit" verworfen (Befund Session 521/493, 436).
                                # Verifiziert gegen Ground-Truth (ratio 1.05->1.08, ~unverändert)
                                # + breite DB: Fake-Lang-Gleiter (glide>5s) 8->0, Σ Pumps +0.5%.
                                # Siehe scripts/pump_gate_eval.py.

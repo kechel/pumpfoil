@@ -383,7 +383,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 - **🟢 Spot-Dubletten zusammengefuehrt + Anlege-Wettlauf abgestellt (20.08., Jans Auftrag).**
-  Ausloeser: Jaceks Meldung im Community-Chat („when I click spot on the map I expect to see who is
+  Ausloeser: Meldung eines Nutzers im Community-Chat („when I click spot on the map I expect to see who is
   pumping on that spot, now I see randomly person") — von Jan nicht reproduzierbar. Zwei Ursachen,
   beide belegt:
   1. **Marker lagen uebereinander.** Kreise mit 9 px Radius ohne Clustering; beim Oeffnen zoomt die
@@ -446,15 +446,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Gewaessername vorhanden (`water_name` ist bei allen leer). Das waere ein eigenes Thema:
   bessere Namen fuer Spots in Grossstaedten (Stadtteil/Bucht statt Stadt + Nummer).
 
-- **❌ VERWORFEN (Jan, 20.08.): Jaceks zwei Kartenwuensche.** „Spots in der Umgebung der aktuellen
+- **❌ VERWORFEN (Jan, 20.08.): zwei Kartenwuensche eines Nutzers.** „Spots in der Umgebung der aktuellen
   Position" und „Filter nach Land" kommen NICHT. Begruendung Jan: auf der Karte kann man einfach
   hineinzoomen und findet nahegelegene Spots so schon — beides braucht es nicht. Nicht erneut
   vorschlagen.
   Ebenfalls bestaetigt: Spots, die nur ueber die gepufferten Tracks zusammenhaengen (bis ~1 km
   Abstand, Fall „Helsinki"), bleiben getrennt — „das ist so richtig wie du es gemacht hast".
 
-- **🟢 Fehlende Laeufe: Keim-Rettung im Detektor gebaut (19.08., Jans OK).** Ausloeser war Alex'
-  Meldung zu #2430 — ein Lauf, den GPS *und* Accel zeigen (28 s / 94 m bei 11,6 km/h, sieben
+- **🟢 Fehlende Laeufe: Keim-Rettung im Detektor gebaut (19.08., Jans OK).** Ausloeser war die
+  Meldung eines Nutzers zu #2430 — ein Lauf, den GPS *und* Accel zeigen (28 s / 94 m bei 11,6 km/h, sieben
   Fenster mit 2-Hz-Rhythmus), fehlte in der Auswertung. **Nicht** die Geschwindigkeits-Schwellen:
   die GPS-Segmentierung findet ihn auf allen drei Stufen, und der Melder stand ohnehin auf der
   lockersten. Ursache: mit Accel ist das On-Foil-Modell die Quelle des Keims, es hatte dort genau
@@ -986,7 +986,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     On-Foil-Maske 99,9 % identisch, s. 8-Hz-Schwelle vom 13.08.) — und ausdruecklich davon abraet,
     „nur GPS" zu waehlen, weil das Pump-Zaehler, Kadenz und Gleitphasen komplett wegwirft.
     Ungebaut, wartet auf Jans OK.
-  - **Jacek, 31.07., 1.0.69 (polnisch), 1 Stern Abzug fuer „brak rejestracji wszystkich prób,
+  - **Nutzer, 31.07., 1.0.69 (polnisch), 1 Stern Abzug fuer „brak rejestracji wszystkich prób,
     również tych bardzo krótkich. Nawet po to, aby policzyć skuteczność startów"** = es werden
     nicht ALLE Startversuche erfasst, auch die ganz kurzen, „schon allein um die Erfolgsquote der
     Starts zu berechnen". Genau das gibt es schon zweimal: die Empfindlichkeit `attempts`

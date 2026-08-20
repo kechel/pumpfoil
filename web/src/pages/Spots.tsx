@@ -96,7 +96,7 @@ export default function Spots() {
     const grp = markers.current!;
 
     // Marker BUENDELN, solange sie sich bei diesem Zoom ueberdecken (2026-08-20).
-    // Befund aus Jaceks Meldung („I click a spot and see randomly person"): die Kreise haben 9 px
+    // Befund aus einer Nutzermeldung („I click a spot and see randomly person"): die Kreise haben 9 px
     // Radius, beim Oeffnen zoomt die Karte per fitBounds auf alle Spots (Europa, Zoom 4-5) — dort
     // ueberdeckten sich 130 von 163 Markern. Geklickt hat Leaflet den zuletzt gezeichneten, und
     // die Reihenfolge kam aus einem GROUP BY ohne ORDER BY: der Klick landete in einem beliebigen

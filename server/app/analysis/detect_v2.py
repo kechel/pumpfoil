@@ -335,7 +335,7 @@ def model_mask_on_timebase(tb: TimeBase):
 
 
 # --- Keim-Rettung (19.08.2026) ----------------------------------------------------------
-# Befund an #2430 (Alex' Meldung): ein Lauf, den BEIDE Quellen zeigen — 28 s / 94 m bei 11,6 km/h
+# Befund an #2430 (Nutzermeldung): ein Lauf, den BEIDE Quellen zeigen — 28 s / 94 m bei 11,6 km/h
 # im GPS, dazu 7 Fenster am Stueck mit sauberem 2-Hz-Pumprhythmus (RMS 0,26-0,79 g) — fehlte in
 # der Auswertung. Ursache liegt nicht an den Geschwindigkeits-Schwellen (die reine GPS-
 # Segmentierung findet ihn auf ALLEN drei Empfindlichkeitsstufen, auch auf „Standard"), sondern
