@@ -18,6 +18,9 @@ const LANG_LABELS: Record<string, string> = {
   ru: "🇷🇺 Russisch",
   id: "🇮🇩 Indonesisch",
   pl: "🇵🇱 Polnisch",
+  ar: "🇸🇦 Arabisch",
+  vi: "🇻🇳 Vietnamesisch",
+  tr: "🇹🇷 Türkisch",
 };
 
 function CopyBtn({ text }: { text: string }) {

@@ -23,7 +23,12 @@ sm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sm)
 
 NAMES = {"pl": "Polnisch", "cs": "Tschechisch", "id": "Bahasa Indonesia",
-         "pt": "brasilianisches Portugiesisch", "tr": "Türkisch", "vi": "Vietnamesisch"}
+         "pt": "brasilianisches Portugiesisch", "tr": "Türkisch",
+         "vi": "Vietnamesisch", "ar": "modernes Standardarabisch"}
+# Bei Rechts-nach-links-Schrift steht das lateinische "NNN Pumpfoil JJJJ" davor
+# hässlich im Weg. Die Nummer wird nur für unsere Zuordnung gebraucht, und die
+# läuft über den deutschen Haupttitel — die Lokalisierung darf also frei sein.
+RTL = {"ar"}
 
 
 def ask(lang: str, items: list) -> dict:
@@ -31,14 +36,19 @@ def ask(lang: str, items: list) -> dict:
     zeilen = "\n".join(
         f'{i}. prefix="{p}" | titel="{t}" | text="{d}"'
         for i, (_, t, d, p) in enumerate(items, 1))
+    titel_regel = ("""- title: NUR der übersetzte Titel, KEIN Nummern-Präfix davor (die Schrift läuft
+  von rechts nach links, lateinische Ziffern am Anfang stören das Bild).
+  Hänge am Ende " | Pumpfoil" an. Max. 100 Zeichen gesamt."""
+                   if lang in RTL else
+                   """- title beginnt EXAKT mit dem angegebenen prefix (unübersetzt!), danach der
+  übersetzte Titel. Max. 100 Zeichen gesamt.""")
     prompt = f"""Übersetze für den Pumpfoil-Kanal pumpfoil.org ins {NAMES.get(lang, lang)}.
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON (keine Code-Fences):
 {{"1": {{"title": "...", "description": "..."}}, "2": {{...}}, ...}}
 
 Regeln:
-- title beginnt EXAKT mit dem angegebenen prefix (unübersetzt!), danach der
-  übersetzte Titel. Max. 100 Zeichen gesamt.
+{titel_regel}
 - "Pumpfoil" wird NIE übersetzt (Markenname).
 - description: gleiche Aussage, natürlich formuliert, keine Wort-für-Wort-
   Übersetzung. Emojis übernehmen. KEINE Hashtags.
