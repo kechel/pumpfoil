@@ -9,10 +9,17 @@ import { useT } from "../i18n";
 
 type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number };
 
+// Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
+// deshalb maskieren, statt darauf zu vertrauen, dass nie eine spitze Klammer darin steht.
+function esc(x: string) {
+  return x.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+}
+
 // Kartenansicht aller Spot-Locations. Marker -> Sessions an dem Spot.
 export default function Spots() {
   const t = useT();
   const nav = useNavigate();
+  const spotsLabel = t("nav.spots");   // Wort fuer die Buendel-Beschriftung (uebersetzt)
   const [spots, setSpots] = useState<Spot[] | null>(null);
   const [q, setQ] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
@@ -87,24 +94,73 @@ export default function Spots() {
     // Marker bei jedem Datenwechsel (auch Accel/GPS-Umschaltung) neu setzen.
     const m = mapObj.current;
     const grp = markers.current!;
-    grp.clearLayers();
-    const pts: [number, number][] = [];
-    for (const s of spots) {
-      const mk = L.circleMarker([s.lat, s.lon], {
-        radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
-      });
-      mk.bindTooltip(`${s.spot} · ${s.sessions}`, { direction: "top" });
-      mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`));
-      grp.addLayer(mk);
-      pts.push([s.lat, s.lon]);
-    }
+
+    // Marker BUENDELN, solange sie sich bei diesem Zoom ueberdecken (2026-08-20).
+    // Befund aus Jaceks Meldung („I click a spot and see randomly person"): die Kreise haben 9 px
+    // Radius, beim Oeffnen zoomt die Karte per fitBounds auf alle Spots (Europa, Zoom 4-5) — dort
+    // ueberdeckten sich 130 von 163 Markern. Geklickt hat Leaflet den zuletzt gezeichneten, und
+    // die Reihenfolge kam aus einem GROUP BY ohne ORDER BY: der Klick landete in einem beliebigen
+    // Nachbarspot, teils 40 km entfernt. Ein Buendel zeigt stattdessen, DASS dort mehrere Spots
+    // liegen, und zoomt beim Klick hinein, statt eine Zufallsauswahl zu treffen.
+    const zeichne = () => {
+      grp.clearLayers();
+      const z = m.getZoom();
+      const px = spots.map((s) => m.project([s.lat, s.lon], z));
+      // Die dicksten Spots zuerst -> sie werden Buendel-Anker und behalten ihren eigenen Marker,
+      // wenn nichts anderes dazukommt. Deterministisch, nicht mehr von der Datenreihenfolge abhaengig.
+      const idx = spots.map((_, i) => i).sort((a, b) => spots[b].sessions - spots[a].sessions);
+      const belegt = new Set<number>();
+      for (const i of idx) {
+        if (belegt.has(i)) continue;
+        const gruppe = [i];
+        belegt.add(i);
+        for (const j of idx) {
+          if (belegt.has(j)) continue;
+          if (px[i].distanceTo(px[j]) < 26) { gruppe.push(j); belegt.add(j); }
+        }
+        if (gruppe.length === 1) {
+          const s = spots[i];
+          const mk = L.circleMarker([s.lat, s.lon], {
+            radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
+          });
+          mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}`, { direction: "top" });
+          mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`));
+          grp.addLayer(mk);
+          continue;
+        }
+        // Buendel: Kreis mit der Anzahl darin, Tooltip nennt die Spots. Klick zoomt hinein,
+        // damit der Nutzer selbst waehlt, statt dass die Zeichenreihenfolge fuer ihn waehlt.
+        const teil = gruppe.map((k) => spots[k]);
+        const summe = teil.reduce((n, s) => n + s.sessions, 0);
+        const mitte = L.latLngBounds(teil.map((s) => [s.lat, s.lon] as [number, number]));
+        const bk = L.marker(mitte.getCenter(), {
+          icon: L.divIcon({
+            className: "",
+            html: `<div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;`
+              + `border-radius:9999px;background:#22d3ee;color:#0f172a;border:2px solid #0f172a;`
+              + `font:600 12px/1 ui-sans-serif,system-ui;">${teil.length}</div>`,
+            iconSize: [30, 30], iconAnchor: [15, 15],
+          }),
+        });
+        const namen = teil.slice(0, 6).map((s) => `${esc(s.spot)} · ${s.sessions}`).join("<br>");
+        bk.bindTooltip(namen + (teil.length > 6 ? `<br>… +${teil.length - 6}` : "")
+          + `<br><b>${teil.length} ${esc(spotsLabel)} · ${summe}</b>`, { direction: "top" });
+        bk.on("click", () => m.fitBounds(mitte.pad(0.5), { maxZoom: Math.min(z + 5, 16) }));
+        grp.addLayer(bk);
+      }
+    };
+    zeichne();
+    m.on("zoomend", zeichne);
+
     // Startausschnitt nur EINMAL bestimmen — und nur, wenn nicht schon ein gemerkter steht.
     if (!viewGesetzt.current) {
+      const pts = spots.map((s) => [s.lat, s.lon] as [number, number]);
       if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 12 });
       else m.setView([47.5, 9.5], 6);
       viewGesetzt.current = true;
     }
-  }, [spots, nav]);
+    return () => { m.off("zoomend", zeichne); };
+  }, [spots, nav, spotsLabel]);
 
   return (
     <div>
