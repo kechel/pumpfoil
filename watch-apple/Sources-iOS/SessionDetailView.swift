@@ -227,7 +227,7 @@ struct SessionDetailView: View {
     /// nil, wenn Foil-Masse oder Fahrergewicht fehlen -> die Spalte entfaellt dann ganz.
     private func wattFuer(_ s: SessionDetail) -> ((Double?, Double?) -> Int?)? {
         guard let foil = s.foil, hasSpecs(foil), weightKg > 0 else { return nil }
-        let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm)
+        let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm ?? 0)
         let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
         return { mps, hz in
             guard let mps, mps > 0 else { return nil }
@@ -238,7 +238,7 @@ struct SessionDetailView: View {
     }
 
     private func hasSpecs(_ f: Foil) -> Bool {
-        f.area_cm2 > 0 && f.span_cm > 0 && f.thickness_mm > 0
+        f.area_cm2 > 0 && f.span_cm > 0 && (f.thickness_mm ?? 0) > 0
     }
 
     private var durSec: Double {
@@ -1891,7 +1891,7 @@ private struct PowerCard: View {
     let lang: String
 
     var body: some View {
-        let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm)
+        let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm ?? 0)
         let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
         let pump = analysis.avg_cadence_hz.map { FoilPhysics.PumpParams(pumpFreqHz: $0) }
         let avgKmh: Double? = (analysis.foiling_time_s ?? 0) > 0 && analysis.foiling_distance_m != nil

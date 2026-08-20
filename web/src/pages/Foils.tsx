@@ -78,7 +78,11 @@ export default function Foils() {
             {/* Neu erschienene Modelle stehen mit 0 im Katalog, solange der Hersteller keine Maße
                 veröffentlicht hat — auswählbar, aber "0 cm² · AR –" waere eine Falschaussage. */}
             {!f.area_cm2 || !f.span_cm ? t("foils.noSpecs") : <>
-            {f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {f.thickness_estimated ? "≈ " : ""}{f.thickness_mm} mm</>}
+            {f.area_cm2} cm² · {f.span_cm} cm · AR {f.aspect_ratio ?? "–"} · {
+              /* Dicke 0 = unbekannt (die meisten Hersteller veröffentlichen sie nicht, und ein
+                 marken-fremder Schätzwert ist schlechter als eine Lücke) -> "–" statt "0 mm". */
+              f.thickness_mm ? <>{f.thickness_estimated ? "≈ " : ""}{f.thickness_mm} mm</> : "– mm"
+            }</>}
             {f.thickness_estimated && <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-700 dark:text-amber-300" title={t("foils.estimatedHint")}>{t("foils.estimated")}</span>}
             {f.specs_estimated && <span className="ml-1 rounded bg-orange-500/15 px-1 text-[10px] text-orange-700 dark:text-orange-300" title={t("foils.specsEstHint")}>{t("foils.specsEst")}</span>}
           </div>

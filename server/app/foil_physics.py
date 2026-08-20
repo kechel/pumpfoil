@@ -86,7 +86,11 @@ def alarm_speeds(
     """(min_kmh, max_kmh) für den Auto-Alarm: Min = 1 km/h ÜBER der Min-Viable-Speed
     (Vorwarnung, bevor man wirklich absackt), Max = Optimal-Speed (≈1,75× Stall,
     bestes Gleiten). Beide gerundet."""
-    if area_cm2 <= 0 or span_cm <= 0:
+    # Ohne eine der drei Groessen KEINE Grenzen erfinden. Die Dicke gehoert ausdruecklich dazu:
+    # sie ist bei den meisten Herstellern unbekannt und darf leer bleiben (2026-08-20). Mit 0 mm
+    # rechnete die Formel bisher stillschweigend weiter (thickness_factor 0.8) und lieferte
+    # plausibel aussehende, aber falsche Alarmgrenzen. (0, 0) = „keine Aussage".
+    if area_cm2 <= 0 or span_cm <= 0 or not thickness_mm or thickness_mm <= 0:
         return (0, 0)
     ar = _ar(span_cm, area_cm2)
     clmax = _clmax(ar, thickness_mm, area_cm2, 15.0)

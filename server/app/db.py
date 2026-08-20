@@ -71,6 +71,10 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS foil_sensitivity VARCHAR(16) DEFAULT 'normal'",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pump_unit VARCHAR(8) DEFAULT 'hz'",
         "ALTER TABLE foils ADD COLUMN IF NOT EXISTS specs_estimated BOOLEAN DEFAULT false",
+        # Unbekannte Profildicke darf eine Luecke bleiben (2026-08-20) — die meisten Hersteller
+        # veroeffentlichen sie nicht, und ein marken-fremder Bandmedian ist schlechter als nichts.
+        # DROP NOT NULL ist idempotent (auch wenn die Spalte schon nullable ist).
+        "ALTER TABLE foils ALTER COLUMN thickness_mm DROP NOT NULL",
         # Durchsuchbare Zweitbezeichnungen (Produktcodes), „|"-getrennt, nicht angezeigt — s. models.Foil.
         "ALTER TABLE foils ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
         "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
@@ -174,7 +178,7 @@ def _seed_foils() -> None:
             db.add(models.Foil(
                 brand=r["brand"], model=r["model"], size=r["size"],
                 span_cm=r["span_cm"], area_cm2=r["area_cm2"],
-                thickness_mm=r["thickness_mm"],
+                thickness_mm=r.get("thickness_mm"),   # darf fehlen = unbekannt
                 thickness_estimated=bool(r.get("thickness_estimated")),
                 is_baseline=bool(r.get("is_baseline")),
                 aliases=(r.get("aliases") or None),

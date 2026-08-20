@@ -334,6 +334,14 @@ def device_config(
     }
 
 
+def _manuell_standard() -> tuple[int, int]:
+    """Rueckfall fuer die Alarmgrenzen, wenn die Foil-Geometrie unvollstaendig ist UND der Nutzer
+    keine eigenen Werte gesetzt hat. Aus EINER Quelle gelesen (settings.DEFAULTS), damit hier nicht
+    eine zweite Voreinstellung entsteht, die auseinanderlaeuft."""
+    from .settings import DEFAULTS
+    return int(DEFAULTS["speed_min"]), int(DEFAULTS["speed_max"])
+
+
 def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
     from ..foil_physics import alarm_speeds
 
@@ -353,6 +361,18 @@ def _foil_alarm_list(db: Session, settings: dict) -> list[dict]:
         if f is None:
             continue
         lo, hi = alarm_speeds(f.span_cm or 0, f.area_cm2 or 0, f.thickness_mm or 0, weight)
+        if lo <= 0 or hi <= 0:
+            # Foil ohne vollstaendige Geometrie (die Profildicke darf leer sein, s. models.Foil):
+            # dann KEINE erfundenen Grenzen. Die Uhr nimmt fuer diesen Eintrag die manuellen
+            # Werte des Nutzers — sonst stuende dort „0–0 km/h" und der Alarm waere sinnlos
+            # (`SessionRecorder.effThresholds` liest die Zahlen aus der Liste, ohne sie zu pruefen).
+            try:
+                lo = int(round(float(settings.get("speed_min") or 0)))
+                hi = int(round(float(settings.get("speed_max") or 0)))
+            except (TypeError, ValueError):
+                lo = hi = 0
+            if lo <= 0 or hi <= 0:
+                lo, hi = _manuell_standard()
         label = " ".join(p for p in [f.brand, f.model, f.size] if p).strip() or f"Foil {fid}"
         out.append({"id": f.id, "label": label[:24], "min": lo, "max": hi})
     # Standard-Foil nach vorne.

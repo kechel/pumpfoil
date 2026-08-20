@@ -441,7 +441,10 @@ struct Foil: Codable, Identifiable {
     let size: String
     let span_cm: Double
     let area_cm2: Double
-    let thickness_mm: Double
+    // Optional: die Profildicke darf serverseitig eine Luecke sein (die meisten Hersteller
+    // veroeffentlichen sie nicht). Aktuell liefert der Server dafuer 0, aber ein nicht-optionales
+    // Double wuerde bei einem spaeteren `null` die GANZE Katalog-Antwort unlesbar machen.
+    let thickness_mm: Double?
     let thickness_estimated: Bool?
     // Fläche/Spannweite sind ABGELEITET, nicht vom Hersteller abgeschrieben (Katalog-Kennzeichen).
     // Wiegt schwerer als die geschätzte Dicke: an beiden hängt die ganze Leistungsrechnung.

@@ -186,7 +186,13 @@ class Foil(Base):
     size: Mapped[str] = mapped_column(String(20))
     span_cm: Mapped[float] = mapped_column(Float)
     area_cm2: Mapped[float] = mapped_column(Float)
-    thickness_mm: Mapped[float] = mapped_column(Float)
+    # NULL erlaubt (2026-08-20, Jan: „einfach leer lassen halt wenn unbekannt"). Die meisten
+    # Hersteller veroeffentlichen die Profildicke nicht; wo sich auch aus der eigenen Baureihe
+    # nichts ableiten laesst, ist eine Luecke ehrlicher als ein marken-fremder Bandmedian (die
+    # Nachrechnung dieser Ableitung ergab r = 0,30 bei 3,14 pp Streuung). Alle Verbraucher pruefen
+    # auf leer: der Rechner laesst solche Fluegel aus, die Uhr faellt auf die manuellen
+    # Alarmgrenzen zurueck, die Liste zeigt „—" statt einer erfundenen Zahl.
+    thickness_mm: Mapped[float | None] = mapped_column(Float, nullable=True)
     # Dicke nicht aus Quelle, sondern geschätzt (t/c-Annahme) -> in der UI markieren.
     thickness_estimated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Auch GEOMETRIE abgeleitet (Hersteller veröffentlicht nur eines von Fläche/Spannweite, der Rest

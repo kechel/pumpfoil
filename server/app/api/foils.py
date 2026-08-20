@@ -16,7 +16,12 @@ def _out(f: models.Foil) -> dict:
     chord = round(f.area_cm2 / f.span_cm, 1) if f.span_cm else None             # mittlere Chord [cm]
     return {
         "id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
-        "span_cm": f.span_cm, "area_cm2": f.area_cm2, "thickness_mm": f.thickness_mm,
+        "span_cm": f.span_cm, "area_cm2": f.area_cm2,
+        # 0 = unbekannt. In der DB darf die Dicke NULL sein (echte Luecke, s. models.Foil),
+        # auf der Leitung bleibt es 0 — dieselbe Konvention wie bei span/area, und die
+        # ausgelieferten Apps dekodieren `null` in diesem Feld NICHT (Android: Double mit
+        # Default, iOS: nicht-optionales Double -> beide wuerfen beim Parsen).
+        "thickness_mm": f.thickness_mm or 0,
         "thickness_estimated": bool(f.thickness_estimated),
         "specs_estimated": bool(f.specs_estimated),
         "aspect_ratio": ar, "mean_chord_cm": chord, "is_baseline": f.is_baseline,

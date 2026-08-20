@@ -151,11 +151,11 @@ struct FoilCalculatorView: View {
     }
 
     private func calcVals(_ f: Foil) -> CalcVals {
-        let dims = FoilPhysics.FoilDims(spanCm: f.span_cm, areaCm2: f.area_cm2, thicknessMm: f.thickness_mm)
+        let dims = FoilPhysics.FoilDims(spanCm: f.span_cm, areaCm2: f.area_cm2, thicknessMm: f.thickness_mm ?? 0)
         let ar: Double = FoilPhysics.calculateAR(spanCm: f.span_cm, areaCm2: f.area_cm2)
         let chordCm: Double = FoilPhysics.calculateMeanChord(areaCm2: f.area_cm2, ar: ar) * 100
-        let tc: Double = FoilPhysics.calculateThicknessRatio(thicknessMm: f.thickness_mm, areaCm2: f.area_cm2, ar: ar)
-        let clmax: Double = FoilPhysics.calculateCLmax(ar: ar, thicknessMm: f.thickness_mm, areaCm2: f.area_cm2, speedKmh: 15)
+        let tc: Double = FoilPhysics.calculateThicknessRatio(thicknessMm: f.thickness_mm ?? 0, areaCm2: f.area_cm2, ar: ar)
+        let clmax: Double = FoilPhysics.calculateCLmax(ar: ar, thicknessMm: f.thickness_mm ?? 0, areaCm2: f.area_cm2, speedKmh: 15)
         let stall: Double = FoilPhysics.calculateStallSpeed(areaCm2: f.area_cm2, clMax: clmax, rider: rider)
         let minV: Double = max(stall, FoilPhysics.calculateMinViableSpeed(areaCm2: f.area_cm2, clMax: clmax, rider: rider))
         let opt: Double = FoilPhysics.calculateOptimalSpeed(stallSpeed: stall)
@@ -241,7 +241,7 @@ struct FoilCalculatorView: View {
             // Hersteller noch keine Maße veröffentlicht hat, stehen mit 0 drin — die ergäben hier
             // AR unendlich und NaN-Spalten. Überall sonst bleiben sie auswählbar (wie die PWA).
             let all: [Foil] = try await Api.foils()
-            foils = all.filter { $0.area_cm2 > 0 && $0.span_cm > 0 && $0.thickness_mm > 0 }
+            foils = all.filter { $0.area_cm2 > 0 && $0.span_cm > 0 && ($0.thickness_mm ?? 0) > 0 }
             brands = (try? await Api.foilBrands()) ?? []
             if let s = try? await Api.settings() {
                 if let w = (s["weight_kg"] as? Double) ?? (s["weight_kg"] as? NSNumber)?.doubleValue

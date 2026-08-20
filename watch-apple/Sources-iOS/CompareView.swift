@@ -427,9 +427,9 @@ struct CompareView: View {
 
     /// Watt wie die PWA (`powerOf`): ohne Pump-Kadenz kommen pauschal 50 W Traegheitsanteil dazu.
     private func watt(_ s: SessionDetail, _ mps: Double?, _ hz: Double?) -> Double? {
-        guard let fo = s.foil, fo.span_cm > 0, fo.area_cm2 > 0, fo.thickness_mm > 0,
+        guard let fo = s.foil, fo.span_cm > 0, fo.area_cm2 > 0, (fo.thickness_mm ?? 0) > 0,
               weightKg > 0, let mps, mps > 0 else { return nil }
-        let dims = FoilPhysics.FoilDims(spanCm: fo.span_cm, areaCm2: fo.area_cm2, thicknessMm: fo.thickness_mm)
+        let dims = FoilPhysics.FoilDims(spanCm: fo.span_cm, areaCm2: fo.area_cm2, thicknessMm: fo.thickness_mm ?? 0)
         let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
         let pump: FoilPhysics.PumpParams? = (hz ?? 0) > 0 ? FoilPhysics.PumpParams(pumpFreqHz: hz!) : nil
         let r = FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: mps * 3.6, rider: rider, pump: pump)

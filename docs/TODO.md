@@ -570,12 +570,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (51 Zeilen). **Nach der Regel vom 19.08. bleiben sie getrennt** (zwei offizielle Produktlinien),
   und so wuerde ich es lassen: Leute kennen ihren alten Fluegel als Moses. Nur zur Bestaetigung.
 
-- **🟡 Katalog: Dicke sollte eine echte Luecke zulassen (`thickness_mm` ist NOT NULL).**
-  Bei den 13 neuen Marken gibt es keine eigene Reihe als Anker, und der katalogweite Zusammenhang
-  taugt nicht als Vorhersage: nach Ausschluss aller Formel-Reihen (453 von 723) bleibt r = 0,30 und
-  3,14 Prozentpunkte Reststreuung, auf 20 mm also rund ±20 %. Dort waere „unbekannt" ehrlicher als
-  eine Zahl. Die Dicke geht in **keine** Berechnung ein (nur `api/foils.py` gibt sie aus), der
-  Umbau ist also klein: Spalte nullable, und in Web/Android/iOS „—" statt einer Zahl anzeigen.
+- **🟢 Katalog: unbekannte Profildicke darf jetzt eine Luecke sein (20.08., Jans Entscheidung
+  „einfach leer lassen halt wenn unbekannt").** `foils.thickness_mm` ist nullable (Migration in
+  `db.py`), und die 27 Zeilen, deren Dicke nur aus einem MARKEN-FREMDEN Bandmedian kam
+  (13 Marken ohne jeden eigenen Anker), stehen jetzt auf leer statt auf einer erfundenen Zahl —
+  nachgerechnet war das die schwaechste Ableitung im Katalog (r = 0,30 bei 3,14 pp Streuung).
+  Die uebrigen 518 geschaetzten Dicken bleiben: sie stammen aus der eigenen Baureihe der Marke
+  und sind gekennzeichnet.
+  **Wichtig am Vertrag:** auf der Leitung bleibt es **0**, nicht `null`. Die ausgelieferten Apps
+  wuerden an einem `null` in diesem Feld zerbrechen (Android: `Double` mit Default -> kotlinx
+  wirft bei explizitem null; iOS: nicht-optionales `Double` -> JSONDecoder wirft) — und zwar die
+  GANZE Katalog-Antwort, nicht nur die Zeile. 0 = unbekannt ist ohnehin schon die Konvention bei
+  `span_cm`/`area_cm2`. Beide Apps sind trotzdem null-tolerant gemacht (`coerceInputValues` bzw.
+  `Double?`), damit ein spaeterer Vertragswechsel nicht wieder daran haengt.
+  Verbraucher geprueft: der Rechner (Web/Android/iOS) filtert Fluegel ohne Dicke ohnehin aus,
+  `alarm_speeds` liefert jetzt (0,0) statt stillschweigend mit 0 mm weiterzurechnen, und die
+  Uhr-Foil-Liste faellt in diesem Fall auf die manuellen Alarmgrenzen des Nutzers zurueck
+  (sonst haette dort „0–0 km/h" gestanden — `effThresholds` liest die Zahlen ungeprueft).
+  Die Katalog-Liste zeigt „– mm" statt „0 mm".
 
 - **⚠️ Import-Falle, von zwei Recherchen unabhaengig belegt: „aspect ratio" ist nicht immer
   Spannweite²/Flaeche.** GoFoil NL, MFC und Takuma (Kujira Gen 1) publizieren
@@ -772,22 +784,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (1.0.5 ging nie live): Beschleunigung, GPS-Plausibilitaet, Max-Puls-Datenfeld, umschaltbare
   Sperre, Layout-Fixes eckig. **Offen:** Zepps Antwort abwarten.
 
-- **🟡 Zepp-Store-Vorschauen gebaut, zwei Bilder nachzuschiessen (18.08.).**
-  `scripts/zepp-store-previews.py` arbeitet jetzt mit Simulator-FENSTER-Mitschnitten (so kommen sie
-  vom Mac): Displayfeld ueber die Fensterstruktur (heller Titelbalken, Flaeche darunter), dann rund
-  die schwarze Scheibe auf grauem Grund, eckig die Flaeche im hellen Rahmen. Ergebnis wird geprueft
-  statt geglaubt (Feldgroesse in allen Bildern gleich, rund zusaetzlich quadratisch) — gemessen rund
-  960×958 (=480×480), eckig 776×898 (=390×450). Ausgabe: 360×360 PNG transparent, rund randlos mit
-  freien Ecken, eckig 311×360 mit 24 px Rand je Seite. **Transparenz gilt fuer BEIDE Formen**
-  (Wortlaut: „The background of screenshots should be transparent and not have a fill color.").
-  Jan hat sich 4–5 Bilder ausgesucht und die fehlerhaften weggelassen (Vorgabe: „3 or more
-  recommended"). Hinweis fuer den naechsten Satz: der jetzige RUNDE Satz entstand vor dem
-  Seitenanzeige-Fix und zeigt oben rechts „1/".
-  **🔴 Eigener Fehlversuch, zurueckgenommen in `360d68f`:** eine erste Skriptfassung bestimmte die
-  Bildform ueber den ALPHAKANAL. Die Rohbilder sind aber deckend, also war die „Inhalts"-Box immer
-  die ganze Leinwand → beide Saetze wurden 1:1 gestaucht statt zugeschnitten, auch der runde, den
-  Zepp schon abgenommen hatte (Pixel-Diff: 11/11 veraendert). Lehre: Bildgeometrie nie ueber einen
-  Kanal raten, der im Quellmaterial gar nicht belegt ist — messen und das Ergebnis gegenpruefen.
+- **🟢 Zepp-Store-Vorschauen: erledigt.** 1.0.6 ist eingereicht und im Review, es fehlen keine
+  Bilder mehr (Jan, 20.08.). Der frühere Eintrag „zwei Bilder nachzuschiessen" war veraltet.
 
 - **🟢 Zepp 1.0.5 war ABGELEHNT (18.08.) — beide Gruende erledigt, Nachfolger 1.0.6 eingereicht.**
   1. **Entwickler-Nickname war „zepp"** — Zepp ist ihre Marke und darf nicht als Drittanbieter-Name

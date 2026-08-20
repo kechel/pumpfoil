@@ -25,7 +25,10 @@ object Api {
     // Aus BuildConfig: Release + Debug-Default = Produktion (pumpfoil.org). Nur lokal per
     // local.properties (apiBase=…) für Emulator/eigenen Server überschreibbar. Siehe build.gradle.kts.
     val BASE = BuildConfig.API_BASE
-    private val json = Json { ignoreUnknownKeys = true }
+    // coerceInputValues: ein explizites JSON `null` in einem nicht-optionalen Feld wird zum
+    // Default statt zu einer Exception. Sonst reisst EIN null-Wert die ganze Antwort ab —
+    // konkret drohte das bei foils.thickness_mm, das serverseitig eine Luecke haben darf.
+    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
     @Volatile var token: String? = null
     @Volatile private var appContext: Context? = null
