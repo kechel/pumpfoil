@@ -446,10 +446,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Gewaessername vorhanden (`water_name` ist bei allen leer). Das waere ein eigenes Thema:
   bessere Namen fuer Spots in Grossstaedten (Stadtteil/Bucht statt Stadt + Nummer).
 
-- **💡 Wunsch von Jacek (Community-Chat, 20.08.):** Spots in der Umgebung der aktuellen Position
-  zeigen bzw. nach Land filtern. Dazu: er erwartet beim Klick auf einen Spot „wer pumpt hier",
-  bekommt aber die chronologische Session-Liste — eine Spot-Ansicht mit den Foilern des Spots
-  waere die eigentliche Antwort.
+- **❌ VERWORFEN (Jan, 20.08.): Jaceks zwei Kartenwuensche.** „Spots in der Umgebung der aktuellen
+  Position" und „Filter nach Land" kommen NICHT. Begruendung Jan: auf der Karte kann man einfach
+  hineinzoomen und findet nahegelegene Spots so schon — beides braucht es nicht. Nicht erneut
+  vorschlagen.
+  Ebenfalls bestaetigt: Spots, die nur ueber die gepufferten Tracks zusammenhaengen (bis ~1 km
+  Abstand, Fall „Helsinki"), bleiben getrennt — „das ist so richtig wie du es gemacht hast".
 
 - **🟢 Fehlende Laeufe: Keim-Rettung im Detektor gebaut (19.08., Jans OK).** Ausloeser war Alex'
   Meldung zu #2430 — ein Lauf, den GPS *und* Accel zeigen (28 s / 94 m bei 11,6 km/h, sieben
