@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, object_session
 
-from .. import media, models, storage
+from .. import export_track, media, models, storage
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
@@ -1603,6 +1603,53 @@ def reanalyze(
     run_analysis(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
+
+
+def _export_punkte(s: models.Session):
+    """Trackpunkte einer Session fuer den Datei-Export — dieselbe Achse wie die Analyse.
+
+    Accel wird bewusst NICHT geladen (leeres Array durchgereicht): der Export braucht nur GPS,
+    und `load_accel` liest sonst je Session mehrere Megabyte von der Platte.
+    """
+    from ..analysis.timebase import build_timebase_for_session
+
+    tb = build_timebase_for_session(s, accel=np.empty((0, 3), dtype=np.int16))
+    pts = export_track.punkte(tb.gps, s.started_at)
+    if not pts:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine GPS-Daten zum Exportieren")
+    return pts
+
+
+@router.get("/{session_id}/export.gpx")
+def export_gpx(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Eigene Session als GPX (Track + Puls). Nur der Besitzer — auch Admins nicht."""
+    s = _owned(db, user, session_id)
+    daten = export_track.gpx_bytes(s, _export_punkte(s))
+    return Response(
+        content=daten, media_type="application/gpx+xml",
+        headers={"Content-Disposition": f'attachment; filename="{export_track.dateiname(s, "gpx")}"',
+                 "Cache-Control": "private, no-store"},
+    )
+
+
+@router.get("/{session_id}/export.fit")
+def export_fit(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Eigene Session als FIT-Aktivitaet (Garmin Connect, Strava, jedes FIT-Werkzeug)."""
+    s = _owned(db, user, session_id)
+    daten = export_track.fit_bytes(s, _export_punkte(s))
+    return Response(
+        content=daten, media_type="application/vnd.ant.fit",
+        headers={"Content-Disposition": f'attachment; filename="{export_track.dateiname(s, "fit")}"',
+                 "Cache-Control": "private, no-store"},
+    )
 
 
 @router.patch("/{session_id}/trim", response_model=SessionOut)

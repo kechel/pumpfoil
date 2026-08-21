@@ -255,6 +255,7 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Übertragen / Löschen | ✅ | ✅ | ✅ |
 | Teilen (Karte-Bild + Foto-Hintergrund) | ✅ | ✅ | ✅ |
 | Vollbild-Karte | ✅ | ✅ | ✅ |
+| Session-Datei laden (GPX + FIT, nur eigene) | ✅ | ❌ | ❌ |
 | Per-Session-Diskussion (session-Chat) | ❌ | ❌ | ❌ |
 
 ### Weitere Seiten

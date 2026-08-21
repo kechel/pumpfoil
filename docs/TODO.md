@@ -382,6 +382,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Session als GPX oder FIT herunterladen (21.08., Jans Wunsch).** Zwei Knoepfe in der
+  Aktionszeile der Session-Detailseite, nur bei EIGENEN Sessions (`_owned` -> fremde geben 404,
+  auch fuer Admins; ohne Token 401). Server: `server/app/export_track.py` (neu) +
+  `GET /api/sessions/{id}/export.gpx|.fit`. Web: `api.sessionExport` holt die Datei per fetch +
+  Blob, weil der Endpunkt den Token im HEADER verlangt — ein `<a href>` wuerde ihn in die URL und
+  damit in Browser-History und Proxy-Logs schreiben. Dateiname kommt vom Server
+  (`pumpfoil-<datum>-<id>.gpx`).
+  **Entscheidungen, damit sie nicht neu verhandelt werden:**
+  - **FIT selbst kodiert** (~120 Zeilen), keine neue Abhaengigkeit: `fitparse` kann nur lesen.
+    Enthalten sind die fuenf Messages, die Garmin Connect/Strava als *Aktivitaet* akzeptieren
+    (`file_id`, `record`, `lap`, `session`, `activity`); Hersteller-ID **255 = development**, wir
+    geben uns nicht als Garmin aus.
+  - **Export = was die Session ZEIGT**: Trim und aussortierte Bereiche sind angewandt (dieselbe
+    Achse wie die Analyse ueber `build_timebase_for_session`). Wer die Heimfahrt weggeschnitten
+    hat, will sie nicht in Strava. Die Distanz laeuft nicht ueber eine Luecke > 30 s hinweg,
+    sonst erfindet ein ausgeschnittenes Stueck Kilometer; dort beginnt ein neues `<trkseg>`.
+  - **Kein Accel** in den Dateien: GPX und FIT-`record` sind 1-Hz-Formate.
+  - **Speed im GPX** steht in unserem eigenen Namensraum `pf:speed` — GPX 1.1 hat kein
+    Speed-Feld und die Garmin-TrackPointExtension v1 laut Schema auch nicht. Puls dagegen in
+    `gpxtpx:hr`, das lesen alle Werkzeuge. FIT hat Speed regulaer.
+  - **FIT-Sportart:** `pumpfoil` -> `surfing` (38), es gibt keinen Pumpfoil-Wert; bekannte
+    FIT-Namen behalten ihren Enum, Unbekanntes wird `generic` (0) statt geraten.
+  **Geprueft** (`scripts/export-check.py`, rein lesend, 4 Sessions verschiedener Bauart):
+  Punktzahl, Segmente, Koordinaten, Puls, Zeitachse und Strecke kommen exakt wieder heraus
+  (Rueckimport mit `fitparse`, FIT-Koordinaten auf 0,0 Grad Abweichung). Zusaetzlich mit einem
+  FREMDEN Werkzeug gegengelesen: `gpsbabel` liest beide Dateien und findet dieselben 4948 Punkte
+  inkl. Puls (und im FIT auch Speed). CRC-Pruefung ist wirksam — ein absichtlich gekipptes Byte
+  wird erkannt.
+  **Offen:** (a) echter Upload-Test nach Garmin Connect/Strava — kann nur Jan machen; (b) Android
+  und iOS haben die Knoepfe nicht (in `docs/PARITY-AUDIT.md` als ❌ eingetragen); (c) i18n nur
+  de+en, Rest fällt auf Englisch (die Knopf-Beschriftung ist ohnehin „GPX"/„FIT").
+
 - **🟢 Spot-Dubletten zusammengefuehrt + Anlege-Wettlauf abgestellt (20.08., Jans Auftrag).**
   Ausloeser: Meldung eines Nutzers im Community-Chat („when I click spot on the map I expect to see who is
   pumping on that spot, now I see randomly person") — von Jan nicht reproduzierbar. Zwei Ursachen,

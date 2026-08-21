@@ -674,6 +674,21 @@ export const api = {
     `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
 
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
+
+  // Datei-Export EINER EIGENEN Session (GPX/FIT). Bewusst nicht als <a href> verlinkbar: der
+  // Endpunkt verlangt den Token im Header, ein Link wuerde ihn in die URL zwingen (steht dann in
+  // History/Server-Logs). Daher fetch + Blob; der Dateiname kommt vom Server (Content-Disposition),
+  // damit Web und kuenftige Clients denselben Namen benutzen.
+  sessionExport: async (id: number, kind: "gpx" | "fit"): Promise<{ blob: Blob; name: string }> => {
+    const tok = getToken();
+    const res = await fetch(`/api/sessions/${id}/export.${kind}`, {
+      headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    const cd = res.headers.get("Content-Disposition") || "";
+    const m = /filename="([^"]+)"/.exec(cd);
+    return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
+  },
   spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; lat: number; lon: number; sessions: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),

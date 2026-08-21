@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 21, 2026",
+    items: [
+      "You can download your own sessions as a file now \u2014 two buttons under a session, GPX and FIT. The FIT file is a proper activity, so Garmin Connect, Strava and anything else that reads FIT will take it as a ride rather than as raw data, complete with heart rate, speed and distance. GPX is the plain track with your heart rate, for maps and anything that does not speak FIT. What you get is the session as you see it here: if you trimmed the drive home away, or sorted a run out, it is not in the file \u2014 and the distance does not count the straight line across a gap you cut out, which would otherwise invent metres you never rode. Only your own sessions, and only for you: the file is not reachable by a link somebody else could follow.",
+    ],
+  },
+  {
     date: "August 20, 2026",
     items: [
       "Clicking a spot on the map now opens the spot you actually clicked. The markers were plain dots of a fixed size, and when the map is zoomed out to show every spot in Europe, one dot covers roughly 40 km — so most of them overlapped their neighbours, and a click landed on whichever dot happened to be drawn last. A rider reported clicking his own spot and getting a stranger's session: his spot was fine and its sessions were correct, another spot's marker was simply lying on top of it. Markers that overlap are now gathered into one circle showing how many spots are inside, and clicking it zooms in so you choose. Zoom in and the bundles come apart by themselves; a spot standing on its own behaves exactly as before.",

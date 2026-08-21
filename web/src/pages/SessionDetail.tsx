@@ -4,7 +4,7 @@ import L from "leaflet";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -96,6 +96,25 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
   const [ytOpen, setYtOpen] = useState(false);
   const [yt, setYt] = useState("");
   const [metaErr, setMetaErr] = useState<string | null>(null);
+  const [dlBusy, setDlBusy] = useState<"gpx" | "fit" | null>(null);
+  const [dlErr, setDlErr] = useState<string | null>(null);
+  // Session als Datei laden. Der Endpunkt braucht den Token, also fetch + Blob statt Link
+  // (siehe api.sessionExport); den Dateinamen gibt der Server vor.
+  const exportieren = async (kind: "gpx" | "fit") => {
+    setDlBusy(kind); setDlErr(null);
+    try {
+      const { blob, name } = await api.sessionExport(sessionId, kind);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDlErr(t("sd.exportFail"));
+    } finally {
+      setDlBusy(null);
+    }
+  };
   const [video, setVideo] = useState<string | null>(null);  // YouTube-ID im iframe-Popup (null = zu)
   useCloseOnBack(video != null, () => setVideo(null));
   // Öffentlicher Teilen-Link (nur Besitzer): Popup mit Erklärung + Link + Kopieren/Deaktivieren.
@@ -274,6 +293,22 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
             >
               <VideoIcon className="h-4 w-4 text-brand-400" /> {t("meta.linkVideo")}
             </button>
+            {/* Datei-Export: Beschriftung ist das Format selbst (GPX/FIT braucht keine
+                Uebersetzung), die Erklaerung steckt im title/aria-label. */}
+            {(["gpx", "fit"] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => exportieren(k)}
+                disabled={dlBusy !== null}
+                title={t(k === "gpx" ? "sd.exportGpx" : "sd.exportFit")}
+                aria-label={t(k === "gpx" ? "sd.exportGpx" : "sd.exportFit")}
+                className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+              >
+                <DownloadIcon className="h-4 w-4 text-brand-400" />
+                {dlBusy === k ? t("common.loading") : k.toUpperCase()}
+              </button>
+            ))}
+            {dlErr && <span className="text-xs text-red-400">{dlErr}</span>}
           </>
         )}
         <div className="ml-auto flex items-center gap-2">
