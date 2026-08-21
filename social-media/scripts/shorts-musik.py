@@ -132,14 +132,16 @@ def bilibili_text(caps: dict) -> dict:
     t = (caps.get("titles") or {})
     d = (caps.get("descriptions") or {})
     titel = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", t.get("en") or t.get("de") or "")
-    # 水翼 (Hydrofoil) hinten dran: im Titel wiegt ein Suchbegriff schwerer als
-    # in der Beschreibung, und die Nische ist dort fast unbesetzt.
-    titel = (titel[:64].rstrip() + " | Pumpfoil | 水翼") if titel else "Pumpfoil | 水翼"
+    # 无动力水翼板 = "antriebsloses Hydrofoil-Board", der Fachbegriff, den die
+    # dortigen Foiler selbst benutzen — und er enthaelt 水翼, deckt den
+    # Oberbegriff also mit ab. Im Titel wiegt das schwerer als in der Beschreibung.
+    titel = (titel[:60].rstrip() + " | Pumpfoil | 无动力水翼板") if titel \
+        else "Pumpfoil | 无动力水翼板"
     boiler = _load_json(YT_BOILERPLATE_FILE, {}).get("en", "")
     # Die Foil-Nische ist auf bilibili praktisch leer (3 Treffer fuer 水翼).
     # Ohne die grossen Nachbarbegriffe findet die Suche uns gar nicht und die
     # Empfehlung hat kein Cluster, in das sie uns stecken koennte.
-    nachbarn = ("冲浪 · 水翼 · 水翼板 · 极限运动 · 户外运动 · "
+    nachbarn = ("无动力水翼板 · 水翼 · 冲浪 · 极限运动 · 户外运动 · dockstart · "
                 "surfing · hydrofoil · watersports · lake")
     teile = [d.get("en"), d.get("id"), d.get("th"),
              str(caps.get("hashtags", "")).strip(), nachbarn, boiler]
