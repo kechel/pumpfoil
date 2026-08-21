@@ -21,6 +21,7 @@ const LANG_LABELS: Record<string, string> = {
   ar: "🇸🇦 Arabisch",
   vi: "🇻🇳 Vietnamesisch",
   tr: "🇹🇷 Türkisch",
+  th: "🇹🇭 Thai",
 };
 
 function CopyBtn({ text }: { text: string }) {

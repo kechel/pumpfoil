@@ -24,7 +24,7 @@ spec.loader.exec_module(sm)
 
 NAMES = {"pl": "Polnisch", "cs": "Tschechisch", "id": "Bahasa Indonesia",
          "pt": "brasilianisches Portugiesisch", "tr": "Türkisch",
-         "vi": "Vietnamesisch", "ar": "modernes Standardarabisch"}
+         "vi": "Vietnamesisch", "ar": "modernes Standardarabisch", "th": "Thai"}
 # Bei Rechts-nach-links-Schrift steht das lateinische "NNN Pumpfoil JJJJ" davor
 # hässlich im Weg. Die Nummer wird nur für unsere Zuordnung gebraucht, und die
 # läuft über den deutschen Haupttitel — die Lokalisierung darf also frei sein.

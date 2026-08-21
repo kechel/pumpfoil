@@ -58,7 +58,7 @@ DIST = Path(__file__).resolve().parent / "shorts-ui" / "dist"  # React-Build
 CLAUDE_BIN = shutil.which("claude") or str(Path.home() / ".local/bin/claude")
 CLAUDE_MODEL = "claude-opus-5"  # Modell für Titel/Captions (statt CLI-Default)
 CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
-                 "pt", "ja", "zh", "ru", "id", "pl", "ar", "vi", "tr"]
+                 "pt", "ja", "zh", "ru", "id", "pl", "ar", "vi", "tr", "th"]
 # Instagram/TikTok bekommen zu Deutsch+Englisch eine dritte Sprache — zufällig
 # gezogen, damit über die Videos hinweg gestreut wird. Auswahl nach den Ländern,
 # die in den Statistiken tatsächlich auftauchen (PL/FR/CZ/IT auf Facebook,
@@ -66,7 +66,7 @@ CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
 EXTRA_LANGS = {"pl": "Polnisch", "fr": "Französisch", "it": "Italienisch",
                "cs": "Tschechisch", "es": "Spanisch", "id": "Indonesisch",
                "pt": "brasilianisches Portugiesisch", "ar": "Arabisch",
-               "vi": "Vietnamesisch", "tr": "Türkisch"}
+               "vi": "Vietnamesisch", "tr": "Türkisch", "th": "Thai"}
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
@@ -485,7 +485,7 @@ YT_PENDING = {}  # state → code_verifier des laufenden Login-Flows
 YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
            "fi": "fi", "nl": "nl", "cs": "cs", "pt": "pt",
            "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id", "pl": "pl",
-           "ar": "ar", "vi": "vi", "tr": "tr"}
+           "ar": "ar", "vi": "vi", "tr": "tr", "th": "th"}
 YT_ID_RE = re.compile(
     r"(?:youtu\.be/|watch\?v=|/shorts/|studio\.youtube\.com/video/|^)"
     r"([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])")
