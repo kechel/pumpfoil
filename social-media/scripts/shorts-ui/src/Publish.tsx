@@ -6,7 +6,10 @@ import { Icon } from "./icons";
 // YouTube: als geplantes Video (privat + publishAt). Instagram/TikTok folgen,
 // sobald die jeweiligen Developer-Apps eingerichtet sind.
 
+const BILI_STATES = ["", "in Prüfung", "online", "abgelehnt"] as const;
+
 interface UpInfo {
+  status?: string;
   video_id?: string;
   publish_id?: string;
   publish_at?: string;
@@ -402,6 +405,23 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh, slot }: {
           <button className="btn" disabled title="Kommt als Nächstes — braucht eine Meta-Developer-App (Business-Konto). Cross-Post zu Facebook dann automatisch.">
             → Instagram
           </button>
+          <label style={{ fontSize: 12, whiteSpace: "nowrap" }}
+            title="bilibili.tv hat keine Upload-API — Stand von Hand vermerken">
+            Bilibili{" "}
+            <select
+              value={up?.bilibili?.status ?? ""}
+              onChange={async (e) => {
+                await api.post("/api/upload/manual", {
+                  name: exp.name, platform: "bilibili", status: e.target.value,
+                });
+                refresh();
+              }}
+            >
+              {BILI_STATES.map((v) => (
+                <option key={v} value={v}>{v || "— nicht hochgeladen"}</option>
+              ))}
+            </select>
+          </label>
           {tt?.publish_id ? (
             <span className="btn" style={{ cursor: "default" }}>
               ✅ TT-Entwurf in der Inbox

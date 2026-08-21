@@ -1538,6 +1538,22 @@ class Handler(BaseHTTPRequestHandler):
             except (RuntimeError, OSError, ValueError, KeyError) as e:
                 return self._json({"error": str(e)}, 500)
             return self._json({"ok": True})
+        if self.path == "/api/upload/manual":
+            # Plattformen ohne API (bilibili …) von Hand vermerken
+            name = Path(str(req.get("name", ""))).name
+            pf = str(req.get("platform", "")).strip().lower()
+            status = str(req.get("status", "")).strip()
+            if not name or not pf:
+                return self._json({"error": "name und platform noetig"}, 400)
+            st = uploads_state()
+            if not status:                      # leerer Status = Eintrag loeschen
+                st.get(name, {}).pop(pf, None)
+                if name in st and not st[name]:
+                    st.pop(name)
+                UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
+            else:
+                save_upload_state(name, pf, {"status": status, "at": time.time()})
+            return self._json({"ok": True, "state": uploads_state()})
         if self.path == "/api/upload/tiktok":
             name = Path(str(req.get("name", ""))).name
             path = export_file("tiktok", name)
