@@ -95,6 +95,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
       .replace(/-/g, " "),
   );
   const [caps, setCaps] = useState<Captions | null>(null);
+  const [bili, setBili] = useState<{ title: string; description: string; chars: number } | null>(null);
   const [capsSource, setCapsSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -117,10 +118,14 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
   useEffect(() => {
     if (!showCaps || caps || busy) return;
     void fetch(`/api/captions_cache?name=${encodeURIComponent(exp.name)}`)
-      .then(async (r) => r.json() as Promise<{ cached: Captions | null; source?: string }>)
+      .then(async (r) => r.json() as Promise<{
+        cached: Captions | null; source?: string;
+        bilibili?: { title: string; description: string; chars: number };
+      }>)
       .then((d) => {
         if (d.cached) {
           setCaps(d.cached);
+          setBili(d.bilibili ?? null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
       })
@@ -134,9 +139,14 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     setCaps(null);
     setCapsSource("");
     try {
-      const d = await api.post<Captions & { error?: string }>("/api/captions", { title, name: exp.name });
+      const d = await api.post<Captions & {
+        error?: string; bilibili?: { title: string; description: string; chars: number };
+      }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
-      else setCaps(d);
+      else {
+        setCaps(d);
+        setBili(d.bilibili ?? null);
+      }
     } catch (e) {
       setErr(String(e));
     }
@@ -247,6 +257,23 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   <div className="caphead">TikTok-Caption <CopyBtn text={caps.tiktok} /></div>
                   <pre>{caps.tiktok}</pre>
                 </div>
+                {bili && (
+                  <>
+                    <div className="capblock">
+                      <div className="caphead">
+                        Bilibili-Titel <CopyBtn text={bili.title} />
+                      </div>
+                      <pre>{bili.title}</pre>
+                    </div>
+                    <div className="capblock">
+                      <div className="caphead">
+                        Bilibili-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
+                        <CopyBtn text={bili.description} />
+                      </div>
+                      <pre>{bili.description}</pre>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>

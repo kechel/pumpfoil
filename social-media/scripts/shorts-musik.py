@@ -124,12 +124,32 @@ def save_captions_cache(name: str, caps: dict):
     CAPTIONS_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False))
 
 
+def bilibili_text(caps: dict) -> dict:
+    """Titel + Beschreibung für bilibili.tv (ein Feld, keine Lokalisierungen).
+    Englisch führt (Verkehrssprache der internationalen Plattform), danach
+    Indonesisch und Thai — die beiden SEA-Kernmärkte von bilibili.tv.
+    Die laufende Nummer fliegt raus, die ist nur unsere interne Buchführung."""
+    t = (caps.get("titles") or {})
+    d = (caps.get("descriptions") or {})
+    titel = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", t.get("en") or t.get("de") or "")
+    titel = (titel[:70].rstrip() + " | Pumpfoil") if titel else "Pumpfoil"
+    boiler = _load_json(YT_BOILERPLATE_FILE, {}).get("en", "")
+    teile = [d.get("en"), d.get("id"), d.get("th"),
+             str(caps.get("hashtags", "")).strip(), boiler]
+    text = "\n\n".join(x.strip() for x in teile if x and x.strip())
+    if len(text) > 2000:                      # hartes Limit des Upload-Formulars
+        ohne = "\n\n".join(x.strip() for x in teile[:-1] if x and x.strip())
+        text = ohne if len(ohne) <= 2000 else ohne[:1997] + "…"
+    return {"title": titel, "description": text, "chars": len(text)}
+
+
 def cached_captions(name: str) -> dict:
     """Gecachte Captions zu einem Export: erst UI-Cache (per Name), sonst
     YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
     cache = _load_json(CAPTIONS_CACHE_FILE, {})
     if name in cache:
-        return {"cached": cache[name], "source": "ui"}
+        return {"cached": cache[name], "source": "ui",
+                "bilibili": bilibili_text(cache[name])}
     m = NUM_RE.match(name)
     if m:
         progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
@@ -137,7 +157,8 @@ def cached_captions(name: str) -> dict:
         for vid, entry in progress.items():
             if str(entry.get("title", "")).startswith(m.group(1) + " ") and vid in batch:
                 return {"cached": batch[vid], "source": "yt-batch",
-                        "yt_title": entry["title"]}
+                        "yt_title": entry["title"],
+                        "bilibili": bilibili_text(batch[vid])}
     return {"cached": None}
 
 
@@ -1586,7 +1607,7 @@ class Handler(BaseHTTPRequestHandler):
                 caps = generate_captions(title, title_prefix(name))
                 if name:
                     save_captions_cache(name, caps)
-                return self._json(caps)
+                return self._json({**caps, "bilibili": bilibili_text(caps)})
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/star":
