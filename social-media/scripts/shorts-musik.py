@@ -132,7 +132,9 @@ def bilibili_text(caps: dict) -> dict:
     t = (caps.get("titles") or {})
     d = (caps.get("descriptions") or {})
     titel = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", t.get("en") or t.get("de") or "")
-    titel = (titel[:70].rstrip() + " | Pumpfoil") if titel else "Pumpfoil"
+    # 水翼 (Hydrofoil) hinten dran: im Titel wiegt ein Suchbegriff schwerer als
+    # in der Beschreibung, und die Nische ist dort fast unbesetzt.
+    titel = (titel[:64].rstrip() + " | Pumpfoil | 水翼") if titel else "Pumpfoil | 水翼"
     boiler = _load_json(YT_BOILERPLATE_FILE, {}).get("en", "")
     # Die Foil-Nische ist auf bilibili praktisch leer (3 Treffer fuer 水翼).
     # Ohne die grossen Nachbarbegriffe findet die Suche uns gar nicht und die
