@@ -24,6 +24,19 @@ const LANG_LABELS: Record<string, string> = {
   th: "🇹🇭 Thai",
 };
 
+function CoverPic({ exp, t, mode, eigen }: {
+  exp: ExportItem; t: number; mode: "blur" | "crop"; eigen?: boolean;
+}) {
+  const src = `/cover/${encodeURIComponent(exp.files?.instagram ?? exp.name)}` +
+    `?t=${t.toFixed(1)}&base=instagram&mode=${mode}`;
+  return (
+    <a href={src} download title={`bei ${t.toFixed(1)} s`}>
+      <img src={src} alt={`Cover bei ${t.toFixed(1)} s`} loading="lazy" />
+      <span>{t.toFixed(1)} s{eigen ? " (eigen)" : ""}</span>
+    </a>
+  );
+}
+
 function CopyBtn({ text }: { text: string }) {
   const [ok, setOk] = useState(false);
   return (
@@ -277,54 +290,38 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                       <div className="caphead">
                         Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
                       </div>
-                      <div className="covers">
-                        {[0.2, 0.5, 0.8].map((f) => {
-                          const t = Math.max(0.5, (exp.duration ?? 20) * f);
-                          const src = `/cover/${encodeURIComponent(
-                            exp.files?.instagram ?? exp.name,
-                          )}?t=${t.toFixed(1)}&base=instagram`;
-                          return (
-                            <a key={f} href={src} download title={`bei ${t.toFixed(1)} s`}>
-                              <img src={src} alt={`Cover bei ${t.toFixed(0)} s`} loading="lazy" />
-                              <span>{t.toFixed(1)} s</span>
-                            </a>
-                          );
-                        })}
-                        {(() => {
-                          const t = parseFloat(coverT.replace(",", "."));
-                          if (!isFinite(t) || t < 0) return null;
-                          const max = exp.duration ?? 1e9;
-                          const tt = Math.min(Math.max(t, 0), Math.max(0, max - 0.1));
-                          const src = `/cover/${encodeURIComponent(
-                            exp.files?.instagram ?? exp.name,
-                          )}?t=${tt.toFixed(1)}&base=instagram`;
-                          return (
-                            <a href={src} download title={`eigener Zeitpunkt: ${tt.toFixed(1)} s`}>
-                              <img src={src} alt={`Cover bei ${tt.toFixed(1)} s`} />
-                              <span>{tt.toFixed(1)} s (eigen)</span>
-                            </a>
-                          );
-                        })()}
-                      </div>
-                      <div className="genrow" style={{ marginTop: 6, alignItems: "center" }}>
+                      {([
+                        ["blur", "ganzes Bild, unscharfe Ränder"],
+                        ["crop", "Bildmitte, randlos beschnitten"],
+                      ] as const).map(([mode, label]) => (
+                        <div key={mode} style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 3 }}>{label}</div>
+                          <div className="covers">
+                            {[0.2, 0.5, 0.8].map((f) => {
+                              const t = Math.max(0.5, (exp.duration ?? 20) * f);
+                              return <CoverPic key={f} exp={exp} t={t} mode={mode} />;
+                            })}
+                            {(() => {
+                              const t = parseFloat(coverT.replace(",", "."));
+                              if (!isFinite(t) || t < 0) return null;
+                              const tt = Math.min(Math.max(t, 0), Math.max(0, (exp.duration ?? 1e9) - 0.1));
+                              return <CoverPic exp={exp} t={tt} mode={mode} eigen />;
+                            })()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="genrow" style={{ alignItems: "center" }}>
                         <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
                           eigener Zeitpunkt{" "}
                           <input
-                            type="number"
-                            min={0}
-                            max={exp.duration ?? undefined}
-                            step={0.5}
-                            style={{ width: 72 }}
-                            value={coverT}
-                            placeholder="Sek."
+                            type="number" min={0} max={exp.duration ?? undefined} step={0.5}
+                            style={{ width: 72 }} value={coverT} placeholder="Sek."
                             onChange={(e) => setCoverT(e.target.value)}
                           />{" "}
                           s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
                         </label>
                         {coverT && (
-                          <button className="mini" onClick={() => setCoverT("")}>
-                            zurücksetzen
-                          </button>
+                          <button className="mini" onClick={() => setCoverT("")}>zurücksetzen</button>
                         )}
                       </div>
                     </div>

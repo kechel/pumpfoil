@@ -1199,19 +1199,24 @@ def coverage(force: bool = False) -> dict:
     return data
 
 
-def cover_image(path: Path, t: float) -> Path:
-    """Cover fuer Plattformen, die Querformat verlangen (bilibili: min. 1152x648):
-    1920x1080, Hochkant-Bild mittig, Hintergrund derselbe Frame unscharf."""
-    key = f"{path.name}-{t:.1f}".replace("/", "_")
+def cover_image(path: Path, t: float, mode: str = "blur") -> Path:
+    """Cover fuer Plattformen, die Querformat verlangen (bilibili: min. 1152x648).
+    Immer 1920x1080, zwei Varianten:
+      blur = ganzes Hochkant-Bild mittig, Raender mit unscharfem Frame gefuellt
+      crop = 16:9-Ausschnitt aus der Bildmitte, randlos (dafuer beschnitten)"""
+    key = f"{path.name}-{t:.1f}-{mode}".replace("/", "_")
     out = Path(tempfile.gettempdir()) / f"cover-{abs(hash(key))}.jpg"
     if not out.exists():
-        vf = ("[0:v]split=2[bg][fg];"
-              "[bg]scale=1920:1080:force_original_aspect_ratio=increase,"
-              "crop=1920:1080,boxblur=30:4,eq=brightness=-0.06[b];"
-              "[fg]scale=-2:1080[f];[b][f]overlay=(W-w)/2:0")
+        if mode == "crop":
+            vf = "crop=iw:iw*9/16,scale=1920:1080"
+        else:
+            vf = ("[0:v]split=2[bg][fg];"
+                  "[bg]scale=1920:1080:force_original_aspect_ratio=increase,"
+                  "crop=1920:1080,boxblur=30:4,eq=brightness=-0.06[b];"
+                  "[fg]scale=-2:1080[f];[b][f]overlay=(W-w)/2:0")
+        flag = "-vf" if mode == "crop" else "-filter_complex"
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{t:.2f}", "-i", str(path),
-                        "-frames:v", "1", "-filter_complex", vf, "-q:v", "2", str(out)],
-                       check=True)
+                        "-frames:v", "1", flag, vf, "-q:v", "2", str(out)], check=True)
     return out
 
 
@@ -1454,9 +1459,11 @@ class Handler(BaseHTTPRequestHandler):
                 if src is None:
                     raise FileNotFoundError(name)
                 t = float(query.get("t", ["1"])[0])
-                # Dateiname fuer den Download: Videotitel + Zeitpunkt
-                dl = f"{export_key(name)}-cover-{t:.0f}s.jpg"
-                self._file(cover_image(src, t), download_name=dl)
+                mode = query.get("mode", ["blur"])[0]
+                # Dateiname fuer den Download: Videotitel + Zeitpunkt (+ Variante)
+                dl = (f"{export_key(name)}-cover-{t:.0f}s"
+                      f"{'-crop' if mode == 'crop' else ''}.jpg")
+                self._file(cover_image(src, t, mode), download_name=dl)
             elif path.startswith("/thumb/"):
                 name = path[len("/thumb/"):]
                 base_q = query.get("base", [""])[0]
