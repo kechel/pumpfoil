@@ -1214,7 +1214,8 @@ def exports_state():
             g["files"][pf] = p.name
             g["mtime"] = max(g["mtime"], p.stat().st_mtime)
             g["sizes"][pf] = p.stat().st_size
-    result = sorted(groups.values(), key=lambda g: -g["mtime"])[:100]
+    # frueher 100 — reichte bei 146 Videos nicht mehr, aeltere fielen aus der Liste
+    result = sorted(groups.values(), key=lambda g: -g["mtime"])[:500]
     for g in result:
         stem = Path(g["name"]).stem
         src = next(PROCESSED_DIR.glob(f"*-{stem}.mp4"), None)
