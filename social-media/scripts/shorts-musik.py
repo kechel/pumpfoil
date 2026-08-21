@@ -134,8 +134,13 @@ def bilibili_text(caps: dict) -> dict:
     titel = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", t.get("en") or t.get("de") or "")
     titel = (titel[:70].rstrip() + " | Pumpfoil") if titel else "Pumpfoil"
     boiler = _load_json(YT_BOILERPLATE_FILE, {}).get("en", "")
+    # Die Foil-Nische ist auf bilibili praktisch leer (3 Treffer fuer 水翼).
+    # Ohne die grossen Nachbarbegriffe findet die Suche uns gar nicht und die
+    # Empfehlung hat kein Cluster, in das sie uns stecken koennte.
+    nachbarn = ("冲浪 · 水翼 · 水翼板 · 极限运动 · 户外运动 · "
+                "surfing · hydrofoil · watersports · lake")
     teile = [d.get("en"), d.get("id"), d.get("th"),
-             str(caps.get("hashtags", "")).strip(), boiler]
+             str(caps.get("hashtags", "")).strip(), nachbarn, boiler]
     text = "\n\n".join(x.strip() for x in teile if x and x.strip())
     if len(text) > 2000:                      # hartes Limit des Upload-Formulars
         ohne = "\n\n".join(x.strip() for x in teile[:-1] if x and x.strip())
