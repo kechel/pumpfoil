@@ -96,6 +96,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
   );
   const [caps, setCaps] = useState<Captions | null>(null);
   const [bili, setBili] = useState<{ title: string; description: string; chars: number } | null>(null);
+  const [coverT, setCoverT] = useState("");   // eigener Zeitpunkt fürs Cover
   const [capsSource, setCapsSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -289,6 +290,42 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                             </a>
                           );
                         })}
+                        {(() => {
+                          const t = parseFloat(coverT.replace(",", "."));
+                          if (!isFinite(t) || t < 0) return null;
+                          const max = exp.duration ?? 1e9;
+                          const tt = Math.min(Math.max(t, 0), Math.max(0, max - 0.1));
+                          const src = `/cover/${encodeURIComponent(
+                            exp.files?.instagram ?? exp.name,
+                          )}?t=${tt.toFixed(1)}&base=instagram`;
+                          return (
+                            <a href={src} download title={`eigener Zeitpunkt: ${tt.toFixed(1)} s`}>
+                              <img src={src} alt={`Cover bei ${tt.toFixed(1)} s`} />
+                              <span>{tt.toFixed(1)} s (eigen)</span>
+                            </a>
+                          );
+                        })()}
+                      </div>
+                      <div className="genrow" style={{ marginTop: 6, alignItems: "center" }}>
+                        <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                          eigener Zeitpunkt{" "}
+                          <input
+                            type="number"
+                            min={0}
+                            max={exp.duration ?? undefined}
+                            step={0.5}
+                            style={{ width: 72 }}
+                            value={coverT}
+                            placeholder="Sek."
+                            onChange={(e) => setCoverT(e.target.value)}
+                          />{" "}
+                          s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
+                        </label>
+                        {coverT && (
+                          <button className="mini" onClick={() => setCoverT("")}>
+                            zurücksetzen
+                          </button>
+                        )}
                       </div>
                     </div>
                   </>
