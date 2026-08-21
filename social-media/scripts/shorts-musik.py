@@ -1199,6 +1199,22 @@ def coverage(force: bool = False) -> dict:
     return data
 
 
+def cover_image(path: Path, t: float) -> Path:
+    """Cover fuer Plattformen, die Querformat verlangen (bilibili: min. 1152x648):
+    1920x1080, Hochkant-Bild mittig, Hintergrund derselbe Frame unscharf."""
+    key = f"{path.name}-{t:.1f}".replace("/", "_")
+    out = Path(tempfile.gettempdir()) / f"cover-{abs(hash(key))}.jpg"
+    if not out.exists():
+        vf = ("[0:v]split=2[bg][fg];"
+              "[bg]scale=1920:1080:force_original_aspect_ratio=increase,"
+              "crop=1920:1080,boxblur=30:4,eq=brightness=-0.06[b];"
+              "[fg]scale=-2:1080[f];[b][f]overlay=(W-w)/2:0")
+        subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{t:.2f}", "-i", str(path),
+                        "-frames:v", "1", "-filter_complex", vf, "-q:v", "2", str(out)],
+                       check=True)
+    return out
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
@@ -1317,7 +1333,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
-    def _file(self, path: Path):
+    def _file(self, path: Path, download_name: str = ""):
         """Datei mit Range-Support ausliefern (Safari braucht das für <video>)."""
         size = path.stat().st_size
         ctype = {"mp4": "video/mp4", "mp3": "audio/mpeg", "m4a": "audio/mp4",
@@ -1340,6 +1356,9 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.send_response(200)
         length = end - start + 1
+        if download_name:
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{download_name}"')
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(length))
@@ -1428,6 +1447,16 @@ class Handler(BaseHTTPRequestHandler):
                 self._file(safe_child(OUT_DIR, path[len("/media/out/"):]))
             elif path.startswith("/media/overlay/"):
                 self._file(safe_child(OVERLAY_DIR, path[len("/media/overlay/"):]))
+            elif path.startswith("/cover/"):
+                name = Path(path[len("/cover/"):]).name
+                pf = (query.get("base", ["instagram"])[0] or "instagram")
+                src = export_file(pf if pf in (*PLATFORMS, "tiktok") else "instagram", name)
+                if src is None:
+                    raise FileNotFoundError(name)
+                t = float(query.get("t", ["1"])[0])
+                # Dateiname fuer den Download: Videotitel + Zeitpunkt
+                dl = f"{export_key(name)}-cover-{t:.0f}s.jpg"
+                self._file(cover_image(src, t), download_name=dl)
             elif path.startswith("/thumb/"):
                 name = path[len("/thumb/"):]
                 base_q = query.get("base", [""])[0]

@@ -132,3 +132,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .capblock pre { margin: 0; font-size: 12px; font-family: inherit; white-space: pre-wrap; background: #8881; border: 1px solid #8883; border-radius: 8px; padding: 8px 10px; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #8886; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.covers { display: flex; gap: 8px; flex-wrap: wrap; }
+.covers a { display: block; text-decoration: none; color: inherit; text-align: center; }
+.covers img { width: 210px; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; background: #0003; display: block; }
+.covers span { font-size: 11px; opacity: .6; }
+.covers a:hover img { outline: 2px solid #3b82f6; }

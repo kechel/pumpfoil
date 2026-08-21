@@ -272,6 +272,25 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                       </div>
                       <pre>{bili.description}</pre>
                     </div>
+                    <div className="capblock">
+                      <div className="caphead">
+                        Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
+                      </div>
+                      <div className="covers">
+                        {[0.2, 0.5, 0.8].map((f) => {
+                          const t = Math.max(0.5, (exp.duration ?? 20) * f);
+                          const src = `/cover/${encodeURIComponent(
+                            exp.files?.instagram ?? exp.name,
+                          )}?t=${t.toFixed(1)}&base=instagram`;
+                          return (
+                            <a key={f} href={src} download title={`bei ${t.toFixed(1)} s`}>
+                              <img src={src} alt={`Cover bei ${t.toFixed(0)} s`} loading="lazy" />
+                              <span>{t.toFixed(1)} s</span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </>
                 )}
               </>
