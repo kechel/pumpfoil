@@ -74,15 +74,15 @@ All captures are approved 360×360 assets committed under `watch-zepp/screenshot
 
 | H1 — GPS acquisition | H1 — ready | H2 — pairing |
 |---|---|---|
-| ![H1 GPS acquisition](screenshots/H1_1-WAIT.png) | ![H1 ready](screenshots/H1_2-READY.png) | ![H2 pairing](screenshots/H2_1-CONNECT.png) |
+| ![H1 GPS acquisition](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H1_1-WAIT.png) | ![H1 ready](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H1_2-READY.png) | ![H2 pairing](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H2_1-CONNECT.png) |
 
 | H2 — connected | H3 — pending upload | H4 — settings |
 |---|---|---|
-| ![H2 connected](screenshots/H2_2-CONNECTED.png) | ![H3 pending upload](screenshots/H3.png) | ![H4 settings](screenshots/H4.png) |
+| ![H2 connected](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H2_2-CONNECTED.png) | ![H3 pending upload](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H3.png) | ![H4 settings](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/H4.png) |
 
 | R1 — session totals | R2 — last run | R3 — active run |
 |---|---|---|
-| ![R1 session totals](screenshots/R1.png) | ![R2 last run](screenshots/R2.png) | ![R3 active run](screenshots/R3.png) |
+| ![R1 session totals](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/R1.png) | ![R2 last run](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/R2.png) | ![R3 active run](https://raw.githubusercontent.com/elmanu13/pumpfoil/codex/zepp-start-screen/watch-zepp/screenshots/R3.png) |
 
 ## Follow-up
 
