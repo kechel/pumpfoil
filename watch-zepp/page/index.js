@@ -4,7 +4,7 @@ import * as hmUI from "@zos/ui";
 // verdeckt und die Versionszeile angeschnitten (Jans Screenshots 18.08.) und kostet ein Siebtel
 // des Schirms. Abschaltbar ab API_LEVEL 2.0 (wir verlangen 3.0), nur auf eckigen Geraeten —
 // docs.zepp.com/docs/reference/device-app-api/newAPI/ui/setStatusBarVisible/
-import { setStatusBarVisible } from "@zos/ui";
+import { setStatusBarVisible, getTextLayout } from "@zos/ui";
 import { px } from "@zos/utils";
 import { LocalStorage } from "@zos/storage";
 import { getDeviceInfo } from "@zos/device";
@@ -18,10 +18,10 @@ import { getConnectStatus } from "@zos/ble";
 // des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
 import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime } from "@zos/display";
 import { BasePage } from "@zeppos/zml/base-page";
-import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH } from "@zos/sensor";
+import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, Battery, Workout, FREQ_MODE_HIGH } from "@zos/sensor";
 import { openSync, closeSync, writeSync, readSync, statSync, rmSync,
          O_RDONLY, O_RDWR, O_CREAT, O_TRUNC } from "@zos/fs";
-import { TITLE, VER, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
+import { IS_ROUND, TITLE, VER, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON, START_BUTTON } from "zosLoader:./index.[pf].layout.js";
 
 // Zepp reports acceleration in cm/s²; the ingest format uses signed little-endian int16 values
 // with 2048 units per g, matching Garmin, Wear OS, and Apple Watch recordings.
@@ -31,12 +31,15 @@ const GPS_HZ = 1, ACCEL_DEFAULT_HZ = 25, ACCEL_SCALE = 2048, STANDARD_GRAVITY_CM
 // was auf einem Foil vorkommt (schnellster Lauf im Bestand ~30 km/h) und trennt damit sauber
 // zwischen "schnell gefahren" und "der Fix ist gesprungen".
 const MAX_SANE_MPS = 100, MAX_PLAUSIBLE_MPS = 30;
-// Kleine CHUNKs: 10 Punkte/Nachricht (~500 B) statt 60 (~3,3 KB) -> passt zuverlässig durch BLE
-// (weniger Frame-Splitting; Sim-Reassemblierung + echte Hardware robuster).
-const GPS_CHUNK = 10;
-// Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
-// seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
-const ACCEL_CHUNK_SAMPLES = 128;
+// Keep BLE messages conservative, but avoid paying the ZML handshake + HTTP round-trip overhead
+// for every few seconds of a long session. Twenty GPS points stay around 1 KB; 256 accelerometer
+// samples use 1536 raw bytes (about 2 KB after base64). Both remain well below the old ~3.3 KB GPS
+// payload that proved unreliable, while roughly halving the number of sequential upload requests.
+const GPS_CHUNK = 20;
+const ACCEL_UPLOAD_CHUNK_SAMPLES = 256;
+// Recording still writes and timestamps five-second blocks. Keeping this independent from the
+// upload size preserves pending sessions recorded by earlier builds and limits live RAM usage.
+const ACCEL_STORAGE_CHUNK_SAMPLES = 128;
 // Navigation, pairing, and upload: keep the screen on for five minutes instead of the ~38 seconds
 // observed on the T-Rex 3. Restore the system timeout when the user actually leaves the app.
 const IDLE_BRIGHT_MS = 5 * 60 * 1000;
@@ -44,7 +47,10 @@ const IDLE_BRIGHT_MS = 5 * 60 * 1000;
 // use Geolocation, so recording must keep this page active. Use Zepp's documented maximum value
 // (~24 days), then explicitly restore the system timeout when the session stops.
 const RECORDING_BRIGHT_MS = 2147483000;
-const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
+// A single maximum-duration request is not reliable on T-Rex 3 during strong wrist motion. While
+// a run is detected, renew a shorter lighting window well before it can expire.
+const RUN_BRIGHT_WINDOW_MS = 60 * 1000;
+const RUN_BRIGHT_REFRESH_MS = 10 * 1000;
 // ---- Lauf-/Foil-Erkennung auf der Uhr ----------------------------------------------------------
 // WORTGLEICH übernommen von den beiden Uhren, die das schon gelöst haben — NICHT neu erfunden:
 //   watch/source/SessionRecorder.mc:150-158 (_updateRun, Referenz-Implementierung)
@@ -54,6 +60,11 @@ const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 // Die Schwellen sind am Server-Detektor abgestimmt — hier nichts nachjustieren.
 const RUN_ENTER_MPS = 2.8, RUN_EXIT_MPS = 2.5;
 const RUN_ENTER_DWELL = 4, RUN_EXIT_DWELL = 3, RUN_REARM_COOLDOWN_MS = 25000;
+// Zepp exposes coordinates but neither horizontal accuracy nor GNSS speed. Point-to-point jitter
+// can therefore look fast while the watch stays in the same small area. Confirm movement using
+// net displacement over five seconds: real foil travel progresses; stationary jitter mostly
+// cancels out. Raw coordinates/speeds remain untouched in the uploaded session.
+const MOTION_WINDOW_MS = 5000, RUN_MOTION_FLOOR_MPS = 2.0, LIVE_DISTANCE_FLOOR_MPS = 1.0;
 // Entschieden wird auf der GEGLÄTTETEN Geschwindigkeit, nie auf dem Rohwert: Zepp liefert nur den
 // aktuellen Wert (`s.cur`), ein einzelner Doppler-Ausreißer würde sonst einen Lauf starten. 3 s
 // gleitender MEDIAN — dieselbe Fensterbreite und dasselbe Verfahren wie der Server
@@ -102,7 +113,15 @@ const DEVICE_MODEL = (() => {
 })();
 // Marken-Palette (docs/BRAND.md): Cyan = primäre Aktion, Rot = Stop/destruktiv, Ink = dunkler Text auf Cyan.
 const CYAN = 0x22d3ee, CYAN_P = 0x0891b2, INK = 0x083344, RED = 0xdc2626, RED_P = 0xb91c1c, WHITE = 0xffffff;
-const GPS_READY = 0x22c55e, GPS_READY_P = 0x16a34a, GPS_WAIT = 0x334155, GPS_WAIT_P = 0x334155, MUTED = 0x94a3b8;
+const AMBER = 0xf59e0b, AMBER_P = 0xd97706;
+const GPS_READY = 0x22c55e, GPS_READY_P = 0x16a34a;
+// R3 keeps these proven fixed boundaries as a safe fallback. On API 4.2 devices they are replaced
+// at startup by Workout.getUserHrZoneSettings(): range contains the six BPM bounds for five zones,
+// so range[1]..range[4] are the four transitions needed by the dial.
+const HR_ZONE_FALLBACK_RANGE = [0, 100, 120, 150, 170, 300];
+// Confirmed on a T-Rex 3 with all three Zepp account settings (2026-08-21). Zepp's public 4.2
+// documentation currently lists only 0 and 1; the real device returns 2 for lactate threshold.
+const HR_ZONE_TYPE_NAMES = ["reserve", "maximum", "lactate"];
 
 const store = new LocalStorage();
 const getTok = () => store.getItem("deviceToken", "") || "";
@@ -179,9 +198,13 @@ const S = {
   "btn.start":       ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "", "", "", "スタート", "开始"],
   "btn.stop":        ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "", "", "", "ストップ", "停止"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
+  "rec.stopButtonHint": ["SEL halten zum Stoppen", "", "SEL halten zum Stoppen", "Hold SEL to stop", "Maintenir SEL pour arrêter"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
   "rec.noData":      ["Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Pas encore de données", "Ancora nessun dato", "Aún no hay datos", "Ainda sem dados", "Belum ada data", "Пока нет данных", "Nog geen gegevens", "Ei vielä dataa", "Zatím žádná data", "まだデータがありません", "暂无数据"],
-  "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
+  "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Localisation", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
+  "screen.run":      ["Lauf", "Lauf", "Lauf", "Run", "Run"],
+  "screen.lastRun":  ["Letzter Lauf", "Letschte Lauf", "Letzter Lauf", "Last run", "Dernier run"],
+  "screen.session":  ["Session", "Session", "Session", "Session", "Session"],
 
   // -- Upload / Warteschlange (Garmin _a5/_a6) --
   "up.open":         ["offen", "offe", "offen", "pending", "en attente", "in sospeso", "pendientes", "pendente", "tertunda", "в очереди", "openstaand", "odottaa", "čeká"],
@@ -379,9 +402,9 @@ const layMix = (c, bg, f) => {
 const laySpeedColor = (kmh) => (kmh < 12 ? 0x3b82f6 : kmh < 16 ? 0x22c55e : kmh < 20 ? 0xeab308 : 0xef4444);
 const layHrColor = (bpm) => (bpm <= 0 ? null : bpm < 120 ? 0x22c55e : bpm < 150 ? 0xeab308 : bpm < 170 ? 0xf97316 : 0xef4444);
 
-// Recorder wie Garmin. Wischbare Seiten:
-//   Ruhe:     0 Daten(+START) · 1 Verbindung/Code · 2 Upload-Queue
-//   Aufnahme: 0..N-1 Datenseiten (kein Button) · N Stopp-Screen(+STOPP)
+// Recorder navigation:
+//   Idle:      0 start · 1 connection/code · 2 upload queue · 3 settings
+//   Recording: 0 stop screen · 1..N data pages (no duplicated stop page)
 // GPS ab Ruhe-Screen, Auto-Start, Pairing+Upload im Hintergrund. Aufnahme wird laufend persistent
 // gepuffert (Absturz-sicher); nach Stopp Summary mit Upload-Fortschritt; offline -> später senden.
 Page(
@@ -390,10 +413,11 @@ Page(
       screen: "idle", idlePage: 0, page: 0,
       recording: false, startedAtMs: 0, uuid: "",
       paired: false, code: "",
-      fix: false, autoTicks: 0,
+      fix: false,
       gps: [], dist: 0, max: 0, cur: 0, hr: 0, hrSum: 0, hrN: 0, hrMax: 0, prev: null,
-      last: null, upStatus: "", upPct: 0,
-      uploading: false,
+      gpsSearchStep: 0,
+      last: null, upStatus: "", upPct: 0, upIndex: 0, upTotal: 0,
+      uploading: false, summaryUploadComplete: false,
       // Lauf-/Foil-Erkennung (Paket 1). sp3 = 3-s-Median in m/s, spWin = [[tMs, mps], …].
       sp3: 0, spWin: [], foiling: false, _prevFoil: false,
       enterStreak: 0, exitStreak: 0, runEndedMs: -100000,
@@ -402,7 +426,7 @@ Page(
       // niemand, also selbst mitschreiben wie das Lauf-Hoechsttempo.
       runMaxHr: 0, lastRunMaxHr: 0,
       lastRunDurMs: 0, lastRunDistM: 0, lastRunAvgMps: 0, lastRunMaxMps: 0,
-      views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
+      views: [[1, 2, 0]], offFoil: [12, 17, 16],
       // Seiten-Sätze je Zustand (Server, getaggte Listen: [0,a,b,c] klassisch | [1,bg,[el…]] Layout).
       // browseAll = im Off-Foil-Zustand auch durch die On-Foil-Seiten blättern. _ringKey cached den
       // zuletzt gebauten Ring (Zustand + Layout-Schalter) — bei Config-Änderung auf null setzen.
@@ -410,14 +434,16 @@ Page(
       // Update-Hinweis + Layout-Zustand. layoutsPref wird aus LocalStorage geladen (siehe init),
       // null = automatisch; layoutsServerDefault ist nur die Vorbelegung vom Server.
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
-      // null = automatisch (haengt an der Tastenzahl, s. _useTouchLock), true/false = Wahl.
-      touchLockPref: null,
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
-      timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
-      touchLocked: false, brightMode: "system", brightUntilMs: 0,
-      geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
+      timer: null, pollTimer: null, hbTimer: null, gpsAnimTimer: null, lockTimer: null, unlockTimer: null,
+      touchLocked: false, brightMode: "system", brightUntilMs: 0, lastRunBrightRefreshMs: 0,
+      geo: null, geoSpeedPrev: null, motionWin: [], motionSpeed: 0,
+      hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false,
+      hrZoneType: null, hrZoneRest: 0, hrZoneRange: HR_ZONE_FALLBACK_RANGE.slice(),
+      hrZoneSource: "fallback", _lastHrZone: -2,
+      battery: 0, batterySensor: null, batteryCallback: null, w: {},
       accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       _fi: 0, _flat: null, _flon: null,
@@ -471,13 +497,13 @@ Page(
             if (!a) return;
             const now = Date.now();
             if (!s.accelFirstMs) s.accelFirstMs = now;
-            if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) {
+            if (s.accelSamples % ACCEL_STORAGE_CHUNK_SAMPLES === 0) {
               s.accelChunkT0.push(Math.max(0, now - s.startedAtMs));
             }
             const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
             s.accelBuffer.push(clampI16(a.x * scale), clampI16(a.y * scale), clampI16(a.z * scale));
             s.accelSamples++; s.accelLastMs = now;
-            if (s.accelBuffer.length >= ACCEL_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
+            if (s.accelBuffer.length >= ACCEL_STORAGE_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
             if (!s._accelLogged) {
               s._accelLogged = true;
               console.log("[pumpfoil] accelerometer active");
@@ -506,7 +532,7 @@ Page(
         const info = s.accelFile ? statSync({ path: s.accelFile }) : null;
         if (info) s.accelSamples = Math.floor(info.size / 6);
       } catch (e) {}
-      s.accelChunkT0 = s.accelChunkT0.slice(0, Math.ceil(s.accelSamples / ACCEL_CHUNK_SAMPLES));
+      s.accelChunkT0 = s.accelChunkT0.slice(0, Math.ceil(s.accelSamples / ACCEL_STORAGE_CHUNK_SAMPLES));
       if (s.accelSamples) console.log("[pumpfoil] accelerometer samples=" + s.accelSamples + " hz=" + this._accelHz());
     },
 
@@ -537,6 +563,47 @@ Page(
         console.log("[pumpfoil] bright mode=" + mode + " result=" + result
           + " remaining=" + Math.max(0, s.brightUntilMs - Date.now()));
       } catch (e) {}
+    },
+    _refreshRunBrightness(force) {
+      const s = this.state;
+      if (!s.recording || !s.foiling) return;
+      const now = Date.now();
+      if (!force && now - s.lastRunBrightRefreshMs < RUN_BRIGHT_REFRESH_MS) return;
+      try {
+        const result = setPageBrightTime({ brightTime: RUN_BRIGHT_WINDOW_MS });
+        s.lastRunBrightRefreshMs = now;
+        if (force) console.log("[pumpfoil] run screen hold result=" + result);
+      } catch (e) {}
+    },
+
+    _loadUserHrZones() {
+      const s = this.state;
+      try {
+        const workout = new Workout();
+        if (!workout || typeof workout.getUserHrZoneSettings !== "function") {
+          throw new Error("getUserHrZoneSettings unavailable");
+        }
+        const settings = workout.getUserHrZoneSettings();
+        const raw = settings && settings.range;
+        const range = raw && typeof raw.length === "number"
+          ? Array.from(raw).map((v) => Number(v)) : [];
+        const valid = range.length === 6
+          && range.every((v) => Number.isFinite(v) && v >= 0)
+          && range.every((v, i) => i === 0 || v > range[i - 1]);
+        if (!valid) throw new Error("invalid range=" + JSON.stringify(raw));
+        s.hrZoneType = Number.isFinite(Number(settings.type)) ? Number(settings.type) : null;
+        s.hrZoneRest = Number(settings.rest) || 0;
+        s.hrZoneRange = range;
+        s.hrZoneSource = "zepp";
+        console.log("[pumpfoil] hr zones source=zepp type=" + String(s.hrZoneType)
+          + " mode=" + (HR_ZONE_TYPE_NAMES[s.hrZoneType] || "unknown")
+          + " rest=" + s.hrZoneRest + " range=" + JSON.stringify(range));
+      } catch (e) {
+        s.hrZoneType = null; s.hrZoneRest = 0;
+        s.hrZoneRange = HR_ZONE_FALLBACK_RANGE.slice(); s.hrZoneSource = "fallback";
+        console.log("[pumpfoil] hr zones source=fallback range="
+          + JSON.stringify(s.hrZoneRange) + " reason=" + ((e && e.message) || e));
+      }
     },
 
     build() {
@@ -582,7 +649,6 @@ Page(
             const click = (event === KEY_EVENT_CLICK);
             if (key === KEY_BACK) {
               if (s.recording) {
-                if (long || click) this._showTouchLock();
                 return true;
               }
               return false;
@@ -594,12 +660,11 @@ Page(
                 this._unlockTouchTemporarily();
                 return true;
               }
-              if (key === KEY_SELECT && click) { if (s.touchLocked) this._showTouchLock(); return true; }
+              if (key === KEY_SELECT && click) return true;
               if (!click || (key !== KEY_UP && key !== KEY_DOWN)) return false;
-              if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
-              const last = this._ringLen() + 1;
+              const last = this._ringLen();
               if (key === KEY_UP) s.page = s.page <= 0 ? last : s.page - 1;
               else s.page = s.page >= last ? 0 : s.page + 1;
               this.applyButton(); this.renderRecording();
@@ -633,8 +698,8 @@ Page(
                     : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
           if (dir === 0) return false;
           if (s.recording) {
-            // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
-            const last = this._ringLen() + 1;
+            // Pages: one STOP screen followed by the current data-page ring.
+            const last = this._ringLen();
             s.page = Math.max(0, Math.min(last, s.page + dir));
             this.applyButton(); this.renderRecording();
             return true;
@@ -667,6 +732,18 @@ Page(
       this.recoverActive();   // unbeendete Aufnahme aus letztem Lauf in die Queue übernehmen
 
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) {}
+      this._loadUserHrZones();
+      try {
+        s.batterySensor = new Battery();
+        s.battery = s.batterySensor.getCurrent() || 0;
+        s.batteryCallback = () => {
+          try {
+            s.battery = s.batterySensor.getCurrent() || 0;
+            if (!s.recording && s.screen === "idle" && s.idlePage === 0) this.renderIdle();
+          } catch (e) {}
+        };
+        s.batterySensor.onChange(s.batteryCallback);
+      } catch (e) { s.batterySensor = null; s.batteryCallback = null; }
       // Zepp's getCurrent() is valid only inside an onCurrentChange callback. Registering the
       // callback also starts continuous heart-rate measurement (API 2.1+).
       try {
@@ -675,8 +752,12 @@ Page(
           try {
             const value = s.hrSensor.getCurrent() || 0;
             if (value > 0) {
+              const firstReading = s.hr <= 0;
               s.hr = value; s.hrUpdatedMs = Date.now();
               if (!s._hrLogged) { s._hrLogged = true; console.log("[pumpfoil] heart-rate active"); }
+              if (firstReading && !s.recording && s.screen === "idle") {
+                this.applyButton(); this.renderIdle();
+              }
             }
           } catch (e) {}
         };
@@ -684,13 +765,20 @@ Page(
       } catch (e) { s.hrSensor = null; s.hrCallback = null; }
       s.timer = setInterval(() => this.sample(), 1000 / GPS_HZ);
       s.hbTimer = setInterval(() => this.heartbeat(), 20000);
+      s.gpsAnimTimer = setInterval(() => {
+        if (!s.recording && s.screen === "idle" && s.idlePage === 0 && !s.fix) {
+          s.gpsSearchStep = (s.gpsSearchStep + 1) % 5;
+          this.renderIdle();
+        }
+      }, 500);
 
       if (getTok()) s.paired = true;
       // Layout-Wahl von der letzten Sitzung wiederherstellen ("" = automatisch).
       const lp = store.getItem("layoutsPref", "");
       s.layoutsPref = lp === "1" ? true : (lp === "0" ? false : null);
-      const tl = store.getItem("touchLockPref", "");
-      s.touchLockPref = tl === "1" ? true : (tl === "0" ? false : null);
+      // Touch locking is now an automatic recording safety feature, not a user preference.
+      // Clear any value left by versions that exposed it in H4.
+      store.setItem("touchLockPref", "");
       // Local-first: App startet ganz normal auf dem START-Screen (auch ungepaart aufnehmbar).
       // Ungepaart wird der Pairing-Code SOFORT erzeugt und direkt auf dem Start-Screen gezeigt
       // (Els Feldtest: der Code auf Seite 2/4 war nicht auffindbar). Der Poll laeuft auf den
@@ -721,7 +809,9 @@ Page(
         if (r && typeof r.layoutsOn !== "undefined") s.layoutsServerDefault = !!r.layoutsOn;
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
-        if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
+        // Zepp sessions always require an explicit PUMP tap or SELECT press. The server's legacy
+        // autoStart setting is intentionally ignored: speed while travelling must never create a
+        // recording before the user has armed it.
         // Seiten-Sätze (F3). Der Server liefert getaggte Listen INLINE — es gibt keine Layout-IDs
         // und kein `layouts`-Wörterbuch (server/app/api/devices.py:_layouts_for_watch):
         //   [0,a,b,c]         klassische Seite mit drei Feld-IDs
@@ -803,38 +893,65 @@ Page(
       if (w.barFill) { hmUI.deleteWidget(w.barFill); w.barFill = null; }
       if (w.barBg) { hmUI.deleteWidget(w.barBg); w.barBg = null; }
     },
+    _renderSummaryProgress() {
+      const s = this.state, w = s.w;
+      const pct = Math.max(0, Math.min(100, s.upPct | 0));
+      const x = BUTTON.x, y = BUTTON.y, width = BUTTON.w, height = BUTTON.h;
+      if (!w.summaryProgress) {
+        const bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x, y, w: width, h: height, radius: BUTTON.radius, color: 0x334155,
+        });
+        const fill = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x, y, w: px(1), h: height, radius: BUTTON.radius, color: CYAN,
+        });
+        const label = hmUI.createWidget(hmUI.widget.TEXT, {
+          x, y, w: width, h: height, text: "0%", text_size: px(36), color: WHITE,
+          align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        w.summaryProgress = { bg, fill, label };
+      }
+      w.summaryProgress.fill.setProperty(hmUI.prop.MORE, {
+        x, y, w: Math.max(px(1), Math.round(width * pct / 100)), h: height,
+      });
+      w.summaryProgress.label.setProperty(hmUI.prop.TEXT, pct + "%");
+    },
+    _clearSummaryProgress() {
+      const w = this.state.w;
+      if (!w.summaryProgress) return;
+      try { hmUI.deleteWidget(w.summaryProgress.label); } catch (e) {}
+      try { hmUI.deleteWidget(w.summaryProgress.fill); } catch (e) {}
+      try { hmUI.deleteWidget(w.summaryProgress.bg); } catch (e) {}
+      w.summaryProgress = null;
+    },
 
     // ---- Button pro Screen/Seite ----
-    setButton(text, nc, pc, ink, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
+    setButton(text, nc, pc, ink, fn) {
+      const s = this.state, w = s.w;
+      if (w.btn) hmUI.deleteWidget(w.btn);
+      const geometry = (IS_ROUND && !s.recording && s.screen === "idle" && s.idlePage === 0) ? START_BUTTON : BUTTON;
+      w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...geometry, text, normal_color: nc, press_color: pc, color: ink, click_func: fn });
+    },
     hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
     _showTouchLock() {
       const s = this.state, w = s.w;
       if (!s.recording || !s.touchLocked || !w.touchShield) return;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
-      // Kein Emoji (Projektregel: keine Standard-Emojis in der UI) und keine reine Grafik: ein
-      // Schloss allein sagt nicht, wie man weiterkommt. Zwei Textzeilen -- was los ist, und der
-      // Ausweg ueber die Tasten, zusammengesetzt aus vorhandenen Keys.
       if (!w.lockIcon) {
         w.lockIcon = w.touchShield.createWidget(hmUI.widget.TEXT, {
-          x: 0, y: Math.round(DH * 0.38), w: DW, h: Math.round(DH * 0.12),
-          text: t("menu.touchLock"), text_size: Math.round(DH * 0.075), color: WHITE,
+          x: 0, y: Math.round(DH * 0.32), w: DW, h: Math.round(DH * 0.28),
+          text: "🔒", text_size: Math.round(DH * 0.16), color: WHITE,
           align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        w.lockHint = w.touchShield.createWidget(hmUI.widget.TEXT, {
-          x: 0, y: Math.round(DH * 0.50), w: DW, h: Math.round(DH * 0.10),
-          text: t("rec.stopHold") + " = " + t("btn.stop"), text_size: Math.round(DH * 0.055),
-          color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
-        });
-        try { w.lockIcon.setEnable(false); w.lockHint.setEnable(false); } catch (e) {}
+        try { w.lockIcon.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
-        try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
-        w.lockIcon = null; w.lockHint = null; s.lockTimer = null;
+        w.lockIcon = null; s.lockTimer = null;
       }, 1200);
     },
-    // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
-    _useTouchLock() { const s = this.state; return s.touchLockPref === null ? KEY_NUMBER >= 3 : !!s.touchLockPref; },
+    // Enable the recording safety lock only when hardware buttons provide a reliable way to
+    // navigate and temporarily unlock touch. Idle screens, including H4, always remain tactile.
+    _useTouchLock() { return !DEV_FAKE_GPS && KEY_NUMBER >= 3; },
     _lockTouch() {
       const s = this.state, w = s.w;
       if (!s.recording || !this._useTouchLock()) return;
@@ -853,7 +970,7 @@ Page(
       const s = this.state, w = s.w;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
-      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
+      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null;
     },
     _unlockTouchTemporarily() {
       const s = this.state;
@@ -864,7 +981,7 @@ Page(
       if (s.unlockTimer) clearTimeout(s.unlockTimer);
       s.unlockTimer = setTimeout(() => {
         s.unlockTimer = null;
-        if (s.recording) { this._lockTouch(); this._showTouchLock(); }
+        if (s.recording) this._lockTouch();
       }, 10000);
     },
     _disableTouchLock() {
@@ -873,20 +990,34 @@ Page(
       if (s.unlockTimer) { clearTimeout(s.unlockTimer); s.unlockTimer = null; }
       this._removeTouchShield();
     },
+    _startReady() {
+      const s = this.state;
+      // GPS is required for a usable session; heart rate is optional because the watch may be
+      // mounted on equipment or worn over a suit. HR recording starts whenever readings arrive.
+      return !!(s.fix && !s.uploading);
+    },
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === 0 || s.page >= this._ringLen() + 1) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+        if (s.page === 0) this.setButton(t("rec.stopHold") + " SEL =\n" + t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
-        this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
+        if (s.summaryUploadComplete) this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
+        else this.hideButton();
       } else if (s.idlePage === 0) {
-        if (s.fix && !s.uploading) this.setButton(t("btn.start"), GPS_READY, GPS_READY_P, INK, () => this.start());
-        else this.setButton(t("btn.start"), GPS_WAIT, GPS_WAIT_P, MUTED, () => {});
+        if (!s.fix) this.setButton("WAIT", RED, RED_P, WHITE, () => {});
+        else if (s.uploading) {
+          // Two lines prevent Zepp's BUTTON widget from horizontally scrolling the sync label.
+          this.setButton("SYNC\n" + Math.max(0, Math.min(100, s.upPct | 0)) + "%",
+            AMBER, AMBER_P, WHITE, () => {});
+          if (s.w.btn) s.w.btn.setProperty(hmUI.prop.MORE, { text_size: px(38) });
+        }
+        else this.setButton("PUMP", CYAN, CYAN_P, WHITE, () => this.start());
       } else if (s.idlePage === 1) {
         if (s.paired) this.setButton(t("rec.repair"), CYAN, CYAN_P, INK, () => this.repair());
         else this.setButton(t("pair.gen"), CYAN, CYAN_P, INK, () => this.beginPairing());
-      } else if (s.idlePage === 2 && loadPending().length && getTok()) {
+      } else if (s.idlePage === 2 && !s.uploading && loadPending().length && getTok()) {
+        // Manual retry shown only while work is pending but no automatic upload is active.
         this.setButton(t("rec.uploadNow"), CYAN, CYAN_P, INK, () => this.flushPending());
       } else this.hideButton();
     },
@@ -903,6 +1034,16 @@ Page(
       w.bigV.setProperty(hmUI.prop.TEXT, v); w.bigL.setProperty(hmUI.prop.TEXT, l);
     },
     hideBig() { const w = this.state.w; if (w.bigV) { hmUI.deleteWidget(w.bigV); w.bigV = null; } if (w.bigL) { hmUI.deleteWidget(w.bigL); w.bigL = null; } },
+    _hideSharedBranding() {
+      const w = this.state.w;
+      // Some Zepp OS builds ignore an empty TEXT update and keep the previous glyph cache. Use a
+      // space plus the black background color so recording pages cannot retain "Pumpfoil" or the
+      // version from the preceding screen. Summary/idle renderers restore the normal properties.
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE, x: -DW, y: -DH, color: 0x000000, text: " " });
+      w.title.setProperty(hmUI.prop.TEXT, " ");
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER, x: -DW, y: -DH, color: 0x000000, text: " " });
+      w.ver.setProperty(hmUI.prop.TEXT, " ");
+    },
     // Datenseite rendern: 1 Feld -> groß & mittig; sonst bis zu 3 Slots.
     renderFields(ids) {
       const w = this.state.w;
@@ -917,6 +1058,519 @@ Page(
         else { w.f[i][0].setProperty(hmUI.prop.TEXT, ""); w.f[i][1].setProperty(hmUI.prop.TEXT, ""); }
       }
     },
+    // Uniform page indicator for every Zepp screen. Recreate it only when the number of pages or
+    // the active page changes; this also keeps it above full-screen community layout backgrounds.
+    _renderPageDots(active, count) {
+      const w = this.state.w;
+      const nn = Math.max(1, Math.min(12, count | 0));
+      const aa = Math.max(0, Math.min(nn - 1, active | 0));
+      const key = aa + "/" + nn;
+      if (w.pageDotsKey === key && w.pageDots) return;
+      this._clearPageDots();
+      const d = Math.max(5, Math.round(DW * 0.018));
+      const gap = Math.max(5, Math.round(d * 0.8));
+      const total = nn * d + (nn - 1) * gap;
+      const startX = Math.round((DW - total) / 2);
+      const y = Math.max(5, Math.round(DH * 0.018));
+      w.pageDots = [];
+      for (let i = 0; i < nn; i++) {
+        w.pageDots.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: startX + i * (d + gap), y, w: d, h: d, radius: Math.round(d / 2),
+          color: i === aa ? WHITE : 0x64748b,
+        }));
+      }
+      w.pageDotsKey = key;
+      w.page.setProperty(hmUI.prop.TEXT, "");
+    },
+    _clearPageDots() {
+      const w = this.state.w;
+      if (w.pageDots) {
+        for (let i = 0; i < w.pageDots.length; i++) {
+          try { hmUI.deleteWidget(w.pageDots[i]); } catch (e) {}
+        }
+      }
+      w.pageDots = null;
+      w.pageDotsKey = null;
+    },
+    // Native-Amazfit-inspired launcher for Zepp only. It deliberately uses dedicated widgets
+    // instead of the configurable three-field recorder layout: this is an app state, not a data page.
+    _renderStartScreen() {
+      const s = this.state, w = s.w;
+      this.hideBig();
+      this.setSlots(["", ""], ["", ""], ["", ""]);
+      w.title.setProperty(hmUI.prop.TEXT, "");
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      w.status.setProperty(hmUI.prop.TEXT, "");
+      w.ver.setProperty(hmUI.prop.TEXT, "");
+
+      const round = IS_ROUND;
+      const text = (x, y, width, height, size, color, value) => hmUI.createWidget(hmUI.widget.TEXT, {
+        x, y, w: width, h: height, text: value, text_size: size, color,
+        align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+      });
+      if (!w.startUi) {
+        const topY = round ? px(24) : px(12);
+        const sensorY = round ? px(82) : px(66);
+        const labelY = round ? px(150) : px(134);
+        // Each row follows the usable chord of the round display: the top status pair is the
+        // tightest, the sensor pair is wider, and the large action row remains wider still.
+        const leftX = round ? px(92) : px(44);
+        const rightX = round ? px(232) : px(214);
+        const sensorW = round ? px(156) : px(132);
+        const bars = [];
+        for (let i = 0; i < 4; i++) {
+          bars.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: leftX + px(42 + i * 17), y: sensorY + px(44 - i * 10),
+            w: px(12), h: px(14 + i * 10), radius: px(3), color: RED,
+          }));
+        }
+        const batteryX = round ? px(159) : px(96);
+        const batteryY = topY + px(5);
+        const batteryW = px(58), batteryH = px(30);
+        const batteryColor = 0x808080;
+        const batteryFillColor = WHITE;
+        const batteryInset = px(3);
+        const batteryInnerW = batteryW - batteryInset * 2;
+        const batteryParts = [
+          hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: batteryX, y: batteryY, w: batteryW, h: batteryH, radius: px(6), color: batteryColor,
+          }),
+          hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: batteryX + batteryInset, y: batteryY + batteryInset,
+            w: batteryInnerW, h: batteryH - batteryInset * 2, radius: px(3), color: batteryColor,
+          }),
+          hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: batteryX + batteryW, y: batteryY + px(8), w: px(6), h: px(14),
+            radius: px(2), color: batteryColor,
+          }),
+        ];
+        w.startUi = {
+          batteryParts,
+          batteryFill: null, batteryFillX: batteryX + batteryInset,
+          batteryInnerW, batteryInnerH: batteryH - batteryInset * 2, batteryColor, batteryFillColor,
+          battery: null, batteryBold: null, batteryX, batteryY, batteryW, batteryH, batteryGaugeKey: "",
+          clock: text(round ? px(226) : px(210), topY, round ? px(102) : px(94), px(42), px(27), WHITE, ""),
+          gpsBars: bars,
+          gps: text(leftX, labelY, sensorW, px(42), px(27), WHITE, ""),
+          heart: text(rightX, sensorY, sensorW, px(60), px(54), WHITE, "♥"),
+          hr: text(rightX, labelY, sensorW, px(42), px(29), WHITE, "--"),
+          syncStatus: text(0, round ? px(194) : px(178), DW, px(30), px(20), AMBER, ""),
+          logo: hmUI.createWidget(hmUI.widget.IMG, {
+            x: round ? px(82) : px(48), y: round ? px(230) : px(208),
+            w: px(120), h: px(120), src: "icon.png", auto_scale: true,
+          }),
+          appName: text(0, round ? px(378) : px(346), DW, px(38), px(29), CYAN, "pumpfoil"),
+          version: text(0, round ? px(414) : px(382), DW, px(32), px(24), 0x94a3b8, ""),
+        };
+      }
+
+      const now = new Date();
+      const clock = pad(now.getHours()) + ":" + pad(now.getMinutes());
+      const battery = s.battery > 0 ? String(s.battery) : "--";
+      const batteryPct = s.battery > 0 ? Math.max(0, Math.min(100, s.battery | 0)) : 0;
+      const gpsColor = s.fix ? GPS_READY : RED;
+      const batteryGaugeKey = batteryPct + "/" + battery;
+      if (w.startUi.batteryGaugeKey !== batteryGaugeKey) {
+        try { if (w.startUi.battery) hmUI.deleteWidget(w.startUi.battery); } catch (e) {}
+        try { if (w.startUi.batteryBold) hmUI.deleteWidget(w.startUi.batteryBold); } catch (e) {}
+        try { if (w.startUi.batteryFill) hmUI.deleteWidget(w.startUi.batteryFill); } catch (e) {}
+        w.startUi.batteryFill = null;
+        if (batteryPct > 0) {
+          w.startUi.batteryFill = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: w.startUi.batteryFillX, y: w.startUi.batteryY + px(3),
+            w: Math.max(px(1), Math.round(w.startUi.batteryInnerW * batteryPct / 100)),
+            h: w.startUi.batteryInnerH, radius: px(3), color: w.startUi.batteryFillColor,
+          });
+        }
+        // Create text after the fill so it is guaranteed to be the topmost battery layer.
+        w.startUi.battery = hmUI.createWidget(hmUI.widget.TEXT, {
+          x: w.startUi.batteryX, y: w.startUi.batteryY,
+          w: w.startUi.batteryW, h: w.startUi.batteryH,
+          text: battery, text_size: px(17), color: 0x000000,
+          align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        w.startUi.batteryBold = hmUI.createWidget(hmUI.widget.TEXT, {
+          x: w.startUi.batteryX + px(1), y: w.startUi.batteryY,
+          w: w.startUi.batteryW, h: w.startUi.batteryH,
+          text: battery, text_size: px(17), color: 0x000000,
+          align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        w.startUi.batteryGaugeKey = batteryGaugeKey;
+      }
+      w.startUi.clock.setProperty(hmUI.prop.TEXT, clock);
+      for (let i = 0; i < w.startUi.gpsBars.length; i++) {
+        // Native Amazfit search cue: inactive bars stay grey and turn red one after another.
+        // Once the position is valid, all four bars remain green.
+        const barColor = s.fix ? GPS_READY : (i < s.gpsSearchStep ? RED : 0x475569);
+        w.startUi.gpsBars[i].setProperty(hmUI.prop.MORE, { color: barColor });
+      }
+      w.startUi.gps.setProperty(hmUI.prop.MORE, { text: s.fix ? "GPS" : t("gps.searching"), color: gpsColor });
+      w.startUi.hr.setProperty(hmUI.prop.TEXT, s.hr > 0 ? String(s.hr) : "--");
+      w.startUi.syncStatus.setProperty(hmUI.prop.TEXT, s.uploading
+        ? t("up.running") + (s.upTotal > 0 ? " " + s.upIndex + "/" + s.upTotal : "")
+        : "");
+      w.startUi.version.setProperty(hmUI.prop.TEXT,
+        "v" + APP_VERSION + (s.updateVersion ? " → " + s.updateVersion : ""));
+    },
+    _clearStartScreen() {
+      const w = this.state.w;
+      if (!w.startUi) return;
+      const all = [w.startUi.battery, w.startUi.batteryBold, w.startUi.batteryFill, w.startUi.clock, w.startUi.gps, w.startUi.heart, w.startUi.hr, w.startUi.syncStatus,
+        w.startUi.logo, w.startUi.appName, w.startUi.version]
+        .concat(w.startUi.batteryParts || [], w.startUi.gpsBars || []);
+      for (let i = 0; i < all.length; i++) { try { hmUI.deleteWidget(all[i]); } catch (e) {} }
+      w.startUi = null;
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE });
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER, text: "v" + APP_VERSION });
+      this._verText();
+    },
+    _clearPendingScreen() {
+      const w = this.state.w;
+      if (!w.pendingUi) return;
+      const all = [w.pendingUi.number, w.pendingUi.label, w.pendingUi.barBg,
+        w.pendingUi.barFill, w.pendingUi.barLabel, w.pendingUi.status];
+      for (let i = 0; i < all.length; i++) {
+        if (all[i]) { try { hmUI.deleteWidget(all[i]); } catch (e) {} }
+      }
+      w.pendingUi = null;
+    },
+    _renderPendingScreen() {
+      const s = this.state, w = s.w;
+      this.hideBig();
+      this.setSlots(["", ""], ["", ""], ["", ""]);
+      w.status.setProperty(hmUI.prop.TEXT, "");
+      const round = IS_ROUND;
+      const text = (y, h, size, color) => hmUI.createWidget(hmUI.widget.TEXT, {
+        x: 0, y, w: DW, h, text: "", text_size: size, color,
+        align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+      });
+      if (!w.pendingUi) {
+        w.pendingUi = {
+          number: text(round ? px(66) : px(54), px(104), px(86), CYAN),
+          label: text(round ? px(164) : px(150), px(48), px(34), WHITE),
+          status: text(round ? px(274) : px(260), px(54), px(25), 0x94a3b8),
+          barBg: null, barFill: null, barLabel: null,
+        };
+      }
+      const n = loadPending().length;
+      const pct = s.uploading ? Math.max(0, Math.min(100, s.upPct | 0)) : 0;
+      w.pendingUi.number.setProperty(hmUI.prop.TEXT, String(n));
+      w.pendingUi.label.setProperty(hmUI.prop.TEXT, t("up.open"));
+      if (s.uploading) {
+        const x = BUTTON.x, y = BUTTON.y, width = BUTTON.w, height = BUTTON.h;
+        if (!w.pendingUi.barBg) {
+          w.pendingUi.barBg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x, y, w: width, h: height, radius: BUTTON.radius, color: 0x334155,
+          });
+          w.pendingUi.barFill = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x, y, w: px(1), h: height, radius: BUTTON.radius, color: CYAN,
+          });
+          w.pendingUi.barLabel = hmUI.createWidget(hmUI.widget.TEXT, {
+            x, y, w: width, h: height, text: "0%", text_size: px(36), color: WHITE,
+            align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+          });
+        }
+        w.pendingUi.barFill.setProperty(hmUI.prop.MORE, {
+          x, y, w: Math.max(px(1), Math.round(width * pct / 100)), h: height,
+        });
+        w.pendingUi.barLabel.setProperty(hmUI.prop.TEXT, pct + "%");
+        w.pendingUi.status.setProperty(hmUI.prop.TEXT, "");
+      } else {
+        const progress = [w.pendingUi.barLabel, w.pendingUi.barFill, w.pendingUi.barBg];
+        for (let i = 0; i < progress.length; i++) {
+          if (progress[i]) { try { hmUI.deleteWidget(progress[i]); } catch (e) {} }
+        }
+        w.pendingUi.barBg = null; w.pendingUi.barFill = null; w.pendingUi.barLabel = null;
+        w.pendingUi.status.setProperty(hmUI.prop.TEXT,
+          s.upStatus || (n ? t("up.waitConn") : t("up.nothing")));
+      }
+    },
+    _isFactoryPrimary(entry) {
+      return !!(entry && entry[0] === 0 && entry[1] === 1 && entry[2] === 2 && entry[3] === 0);
+    },
+    // REC geometry shared by every recording screen. R3 is the visual reference approved on the
+    // T-Rex 3, so R1/R2/R4 use these exact coordinates and typography.
+    _setSharedRecordingChrome(mode) {
+      const s = this.state, w = s.w;
+      if (w.recordingChrome && w.recordingChrome.mode === mode) {
+        if (mode === "last" && w.recordingChrome.runLabel) {
+          w.recordingChrome.runLabel.setProperty(hmUI.prop.TEXT,
+            "R\nU\nN\n" + (s.runCount > 0 ? s.runCount : "–"));
+        }
+        return;
+      }
+      this._clearSharedRecordingChrome();
+      const text = (x, y, width, height, size, color, value) => hmUI.createWidget(hmUI.widget.TEXT, {
+        x, y, w: width, h: height, text: value, text_size: size, color,
+        align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+      });
+      const widgets = [];
+      const recDot = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+        x: px(184), y: px(35), w: px(13), h: px(13), radius: px(7), color: RED,
+      });
+      const rec = text(px(202), px(22), px(94), px(40), px(28), RED, "REC");
+      widgets.push(recDot, rec);
+      if (mode === "stop") {
+        widgets.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(76), y: px(112), w: DW - px(152), h: px(2), color: 0x334155,
+        }));
+        widgets.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(76), y: px(244), w: DW - px(152), h: px(2), color: 0x334155,
+        }));
+      } else if (mode === "last") {
+        widgets.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(132), y: px(238), w: DW - px(182), h: px(2), color: 0x334155,
+        }));
+        widgets.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(112), y: px(82), w: px(2), h: px(282), color: 0x334155,
+        }));
+        const runLabel = text(px(46), px(104), px(52), px(236), px(29), WHITE,
+          "R\nU\nN\n" + (s.runCount > 0 ? s.runCount : "–"));
+        widgets.push(runLabel);
+        w.recordingChrome = { mode, widgets, runLabel };
+        return;
+      }
+      w.recordingChrome = { mode, widgets };
+    },
+    _clearSharedRecordingChrome() {
+      const w = this.state.w;
+      if (!w.recordingChrome) return;
+      for (let i = 0; i < w.recordingChrome.widgets.length; i++) {
+        try { hmUI.deleteWidget(w.recordingChrome.widgets[i]); } catch (e) {}
+      }
+      w.recordingChrome = null;
+    },
+    // Zepp factory run page. Custom/community layouts and user-selected classic fields keep their
+    // normal renderer; only the untouched factory page [speed3s, heart rate, empty] is upgraded.
+    _renderPrimaryRun() {
+      const s = this.state, w = s.w;
+      this._clearSharedRecordingChrome();
+      this._clearCuratedStats();
+      this._clearLayout();
+      this.hideBig();
+      for (let i = 0; i < 3; i++) {
+        w.f[i][0].setProperty(hmUI.prop.TEXT, "");
+        w.f[i][1].setProperty(hmUI.prop.TEXT, "");
+      }
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      w.status.setProperty(hmUI.prop.TEXT, "");
+      this._hideSharedBranding();
+
+      const text = (x, y, width, height, size, color, value) => hmUI.createWidget(hmUI.widget.TEXT, {
+        x, y, w: width, h: height, text: value, text_size: size, color,
+        align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+      });
+      if (!w.primaryRun) {
+        const widgets = [];
+        const recDot = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(184), y: px(35), w: px(13), h: px(13), radius: px(7), color: RED,
+        });
+        const rec = text(px(202), px(22), px(94), px(40), px(28), RED, "REC");
+        const time = text(0, px(56), DW, px(126), px(108), CYAN, "0:00");
+        const timeLabel = text(0, px(176), DW, px(34), px(26), 0x94a3b8, t("f.runTime"));
+        const dividerH = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(54), y: px(218), w: DW - px(108), h: px(2), color: 0x334155,
+        });
+        const distance = text(0, px(222), DW, px(122), px(108), WHITE, "0 m");
+        const distanceLabel = text(0, px(336), DW, px(32), px(27), 0x94a3b8, t("f.runDist"));
+        widgets.push(recDot, rec, time, timeLabel, dividerH, distance, distanceLabel);
+
+        const zoneColors = [0x3b82f6, 0x22c55e, 0xeab308, 0xf97316, 0xef4444];
+        // ARC always renders rounded stroke caps on the T-Rex 3. Draw filled annular sectors on a
+        // canvas instead, giving every zone explicit inner/outer radii and straight angular cuts.
+        const zoneAngles = [[137, 165], [107, 135], [77, 105], [47, 75], [17, 45]];
+        const zoneCanvas = hmUI.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
+        const zoneBpmLabels = [];
+        for (let i = 0; i < 5; i++) {
+          // On the T-Rex 3 the curved TEXT origin is effectively 90 degrees counter-clockwise
+          // from the CANVAS angle convention used by the colored sectors. Compensate only the
+          // labels; outer mode keeps the digits upright along the lower half of the dial.
+          const textStartAngle = zoneAngles[i][0] + 90;
+          const textEndAngle = zoneAngles[i][1] + 90;
+          const pair = [];
+          for (let copy = 0; copy < 2; copy++) {
+            const label = hmUI.createWidget(hmUI.widget.TEXT, {
+              x: px(copy), y: 0, w: DW, h: DH, text: "", text_size: px(40), color: WHITE,
+              align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+              start_angle: textStartAngle, end_angle: textEndAngle,
+              radius: Math.round(Math.min(DW, DH) * 238 / 480), mode: 1,
+            });
+            pair.push(label); widgets.push(label);
+          }
+          zoneBpmLabels.push(pair);
+        }
+        widgets.unshift(zoneCanvas);
+        w.primaryRun = { widgets, time, distance, zoneCanvas, zoneBpmLabels, zoneColors, zoneAngles };
+      }
+
+      // R3 represents only the active run. Between runs, R1 keeps advancing the session totals and
+      // R2 freezes the completed run; R3 must return to zero until the next run is detected.
+      // runStartMs is relative to session start, while Date.now() is absolute.
+      const runElapsedMs = s.foiling
+        ? Math.max(0, Date.now() - s.startedAtMs - s.runStartMs) : 0;
+      const runDistance = s.foiling ? Math.max(0, s.dist - s.runStartDist) : 0;
+      const bpm = s.hr > 0 ? s.hr : 0;
+      // Zepp returns six bounds for five zones. The first is the lower edge of zone 1 and the last
+      // its configured maximum; the four inner bounds select the visible sector. Values outside
+      // the configured outer limits remain in the nearest sector instead of disappearing.
+      const zr = s.hrZoneRange || HR_ZONE_FALLBACK_RANGE;
+      const zone = bpm <= 0 ? -1
+        : (bpm < zr[1] ? 0 : bpm < zr[2] ? 1 : bpm < zr[3] ? 2 : bpm < zr[4] ? 3 : 4);
+      if (zone !== s._lastHrZone) {
+        s._lastHrZone = zone;
+        console.log("[pumpfoil] hr zone active=" + zone + " bpm=" + bpm
+          + " source=" + s.hrZoneSource + " range=" + JSON.stringify(zr));
+      }
+      w.primaryRun.time.setProperty(hmUI.prop.TEXT, mmss(runElapsedMs / 1000));
+      w.primaryRun.distance.setProperty(hmUI.prop.TEXT, fmtDist(runDistance));
+      const canvas = w.primaryRun.zoneCanvas;
+      canvas.clear({ x: 0, y: 0, w: DW, h: DH });
+      const dialDiameter = Math.min(DW, DH);
+      const centerX = Math.round(DW / 2), centerY = Math.round(DH / 2);
+      // The outer circle deliberately extends slightly beyond the 480 px viewport so the round
+      // display bezel clips it cleanly. Inactive zones stay thin; the current zone grows inward
+      // while keeping exactly the same outer diameter and angular boundaries.
+      const outerRadius = Math.round(dialDiameter / 2);
+      const normalInnerRadius = Math.round(outerRadius * 230 / 240);
+      const activeInnerRadius = Math.round(outerRadius * 180 / 240);
+      const sectorPoints = (start, end, innerRadius) => {
+        const points = [], step = 3;
+        for (let angle = start; angle < end; angle += step) {
+          const rad = angle * Math.PI / 180;
+          points.push({ x: Math.round(centerX + outerRadius * Math.cos(rad)), y: Math.round(centerY + outerRadius * Math.sin(rad)) });
+        }
+        let rad = end * Math.PI / 180;
+        points.push({ x: Math.round(centerX + outerRadius * Math.cos(rad)), y: Math.round(centerY + outerRadius * Math.sin(rad)) });
+        for (let angle = end; angle > start; angle -= step) {
+          rad = angle * Math.PI / 180;
+          points.push({ x: Math.round(centerX + innerRadius * Math.cos(rad)), y: Math.round(centerY + innerRadius * Math.sin(rad)) });
+        }
+        rad = start * Math.PI / 180;
+        points.push({ x: Math.round(centerX + innerRadius * Math.cos(rad)), y: Math.round(centerY + innerRadius * Math.sin(rad)) });
+        return points;
+      };
+      for (let i = 0; i < 5; i++) {
+        const angles = w.primaryRun.zoneAngles[i];
+        canvas.drawPoly({
+          data_array: sectorPoints(angles[0], angles[1], i === zone ? activeInnerRadius : normalInnerRadius),
+          color: w.primaryRun.zoneColors[i],
+        });
+      }
+      for (let i = 0; i < 5; i++) {
+        const pair = w.primaryRun.zoneBpmLabels[i];
+        for (let copy = 0; copy < pair.length; copy++) {
+          pair[copy].setProperty(hmUI.prop.MORE, {
+            text: i === zone ? String(bpm) : "", text_size: px(40), color: WHITE,
+          });
+        }
+      }
+    },
+    _clearPrimaryRun() {
+      const w = this.state.w;
+      if (!w.primaryRun) return;
+      for (let i = 0; i < w.primaryRun.widgets.length; i++) {
+        try { hmUI.deleteWidget(w.primaryRun.widgets[i]); } catch (e) {}
+      }
+      w.primaryRun = null;
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE });
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER, text: "v" + APP_VERSION });
+      this._verText();
+    },
+    _renderCuratedStats(kind, pageNumber) {
+      const s = this.state, w = s.w;
+      this._clearSharedRecordingChrome();
+      this._clearPrimaryRun();
+      this._clearLayout();
+      this.hideBig();
+      for (let i = 0; i < 3; i++) {
+        w.f[i][0].setProperty(hmUI.prop.TEXT, "");
+        w.f[i][1].setProperty(hmUI.prop.TEXT, "");
+      }
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      w.status.setProperty(hmUI.prop.TEXT, "");
+
+      const text = (x, y, width, height, size, color, value) => hmUI.createWidget(hmUI.widget.TEXT, {
+        x, y, w: width, h: height, text: value, text_size: size, color,
+        align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+      });
+      if (!w.curatedStats || w.curatedStats.kind !== kind) {
+        this._clearCuratedStats();
+        const widgets = [];
+        const recDot = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(184), y: px(35), w: px(13), h: px(13), radius: px(7), color: RED,
+        });
+        const rec = text(px(202), px(22), px(94), px(40), px(28), RED, "REC");
+        const detail = kind === "detail";
+        const heading = text(px(54), px(63), DW - px(108), px(44), detail ? px(31) : px(26), 0x94a3b8, "");
+        const main = text(0, detail ? px(101) : px(96), DW, detail ? px(104) : px(100), detail ? px(88) : px(76), CYAN, "0:00");
+        const mainLabel = text(0, detail ? px(194) : px(184), DW, px(36), detail ? px(26) : px(22), 0x94a3b8, "");
+        const dividerH = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: px(54), y: detail ? px(236) : px(222), w: DW - px(108), h: px(2), color: 0x334155,
+        });
+        const dividerV = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: Math.round(DW / 2), y: detail ? px(248) : px(234), w: px(2), h: detail ? px(104) : px(96), color: 0x334155,
+        });
+        const left = text(px(42), detail ? px(244) : px(232), px(186), detail ? px(78) : px(66), detail ? px(60) : px(50), WHITE, "--");
+        const leftLabel = text(px(42), detail ? px(316) : px(296), px(186), px(36), detail ? px(25) : px(21), 0x94a3b8, "");
+        const right = text(px(252), detail ? px(244) : px(232), px(186), detail ? px(78) : px(66), detail ? px(60) : px(50), WHITE, "--");
+        const rightLabel = text(px(252), detail ? px(316) : px(296), px(186), px(36), detail ? px(25) : px(21), 0x94a3b8, "");
+        const footer = text(px(70), px(346), DW - px(140), px(44), px(27), WHITE, "");
+        widgets.push(recDot, rec, heading, main, mainLabel, dividerH, dividerV,
+          left, leftLabel, right, rightLabel, footer);
+        w.curatedStats = { kind, widgets, heading, main, mainLabel,
+          left, leftLabel, right, rightLabel, footer };
+      }
+
+      // _clearCuratedStats() restores the shared app title while replacing one curated page with
+      // another. Hide it only after that replacement, otherwise R2 inherits the restored title.
+      this._hideSharedBranding();
+
+      const ui = w.curatedStats;
+      const totalElapsed = Math.max(0, Date.now() - s.startedAtMs);
+      if (kind === "detail") {
+        const runElapsed = Math.max(0, totalElapsed - s.runStartMs);
+        const runDistance = Math.max(0, s.dist - s.runStartDist);
+        ui.heading.setProperty(hmUI.prop.TEXT, t("screen.run") + " " + (s.runCount + 1));
+        ui.main.setProperty(hmUI.prop.TEXT, mmss(runElapsed / 1000));
+        ui.mainLabel.setProperty(hmUI.prop.TEXT, t("f.runTime"));
+        ui.left.setProperty(hmUI.prop.TEXT, fmtDist(runDistance));
+        ui.leftLabel.setProperty(hmUI.prop.TEXT, t("f.runDist"));
+        ui.right.setProperty(hmUI.prop.TEXT, (s.runMaxMps * 3.6).toFixed(1));
+        ui.rightLabel.setProperty(hmUI.prop.TEXT, t("f.kmhMax"));
+        ui.footer.setProperty(hmUI.prop.TEXT, "");
+      } else if (kind === "last") {
+        const hasRun = s.runCount > 0;
+        ui.heading.setProperty(hmUI.prop.TEXT,
+          hasRun ? t("screen.run") + " " + s.runCount : t("screen.lastRun"));
+        ui.main.setProperty(hmUI.prop.TEXT, hasRun ? mmss(s.lastRunDurMs / 1000) : "--");
+        ui.mainLabel.setProperty(hmUI.prop.TEXT, t("f.lastRunTime"));
+        ui.left.setProperty(hmUI.prop.TEXT, hasRun ? fmtDist(s.lastRunDistM) : "--");
+        ui.leftLabel.setProperty(hmUI.prop.TEXT, t("f.lastRunDist"));
+        ui.right.setProperty(hmUI.prop.TEXT, hasRun ? (s.lastRunAvgMps * 3.6).toFixed(1) : "--");
+        ui.rightLabel.setProperty(hmUI.prop.TEXT, t("f.lastRunAvg"));
+        ui.footer.setProperty(hmUI.prop.TEXT, "");
+      } else {
+        ui.heading.setProperty(hmUI.prop.TEXT, t("screen.session"));
+        ui.main.setProperty(hmUI.prop.TEXT, mmss(totalElapsed / 1000));
+        ui.mainLabel.setProperty(hmUI.prop.TEXT, t("f.time"));
+        ui.left.setProperty(hmUI.prop.TEXT, fmtDist(s.dist));
+        ui.leftLabel.setProperty(hmUI.prop.TEXT, t("f.dist"));
+        ui.right.setProperty(hmUI.prop.TEXT, s.hr > 0 ? String(s.hr) : "--");
+        ui.rightLabel.setProperty(hmUI.prop.TEXT, t("f.bpm"));
+        ui.footer.setProperty(hmUI.prop.TEXT, t("f.runs") + " : " + s.runCount);
+      }
+    },
+    _clearCuratedStats() {
+      const w = this.state.w;
+      if (!w.curatedStats) return;
+      for (let i = 0; i < w.curatedStats.widgets.length; i++) {
+        try { hmUI.deleteWidget(w.curatedStats.widgets[i]); } catch (e) {}
+      }
+      w.curatedStats = null;
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE });
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER, text: "v" + APP_VERSION });
+      this._verText();
+    },
     // Update-Hinweis (Audit-Rückstand): im vorhandenen Versions-Widget, bewusst OHNE Worte —
     // "v1.0.3 → 1.0.4" braucht keine Übersetzung und passt in die schmale Zeile.
     _verText() {
@@ -927,78 +1581,256 @@ Page(
         color: s.updateVersion ? 0x22d3ee : 0x64748b,
       });
     },
-    renderIdle() {
-      const s = this.state, w = s.w;
-      this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
-      this._clearLayout();
+    _restoreSquareChrome(preserveLayout) {
+      const w = this.state.w;
+      this.hideBar();
+      this._clearSummaryProgress();
+      this._clearSharedRecordingChrome();
+      this._clearPrimaryRun();
+      this._clearCuratedStats();
+      this._clearStartScreen();
+      this._clearPendingScreen();
+      if (!preserveLayout) this._clearLayout();
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE, text: "Pumpfoil" });
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER, text: "v" + APP_VERSION });
+      w.f[0][0].setProperty(hmUI.prop.MORE, { ...F0V });
+      w.f[0][1].setProperty(hmUI.prop.MORE, { ...F0L });
+      w.f[1][0].setProperty(hmUI.prop.MORE, { ...F1V });
+      w.f[1][1].setProperty(hmUI.prop.MORE, { ...F1L });
+      w.f[2][0].setProperty(hmUI.prop.MORE, { ...F2V });
+      w.f[2][1].setProperty(hmUI.prop.MORE, { ...F2L });
+      w.status.setProperty(hmUI.prop.MORE, { ...STATUS });
       this._verText();
-      w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
+    },
+    // Rectangular devices deliberately retain the conservative upstream UI. The recording,
+    // sensors, upload and safety logic remain shared; only presentation is separated from the
+    // T-Rex-oriented round screens so future square-screen work has a stable starting point.
+    _renderIdleSquare() {
+      const s = this.state, w = s.w;
+      this._clearFoilBtns();
+      this._restoreSquareChrome();
+      w.page.setProperty(hmUI.prop.MORE, { ...PAGE, text: (s.idlePage + 1) + "/4" });
       const gps = s.fix ? "GPS ●" : t("gps.searching");
       const conn = !bleOk() ? t("up.noPhone") : (s.paired ? t("menu.connected") + " ✓" : t("up.waiting"));
       if (s.idlePage === 0) {
         this.renderFields(s.offFoil);
-        // Der Alarm-Hinweis war ein Glocken-Emoji — Standard-Emojis sind in der UI verboten
-        // (Projektregel), also das lokalisierte Wort. "→ Verbinden" statt "wische weiter":
-        // der Pfeil braucht keine Uebersetzung.
-        // Ungepairt steht der CODE direkt hier (kein Suchen mehr); solange er noch vom Server
-        // kommt, der bisherige Verweis. Und: warten Aufnahmen, steht deren Zahl immer dabei —
-        // die Session "fehlt" sonst aus Nutzersicht kommentarlos (drittes Support-Muster).
-        const pend = loadPending().length;
+        const pending = loadPending().length;
         const hint = ((bleOk() && !getTok())
           ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
           : (s.upStatus || gps) + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
-          + (pend ? " · " + pend + " " + t("up.open") : "");
+          + (pending ? " · " + pending + " " + t("up.open") : "");
         w.status.setProperty(hmUI.prop.TEXT, hint);
-      } else if (s.idlePage === 3) {
+      } else if (s.idlePage === 1) {
+        if (!bleOk()) {
+          this.setSlots(["—", t("up.noPhone")], ["", ""], ["", ""]);
+          w.status.setProperty(hmUI.prop.TEXT, t("pair.noConn"));
+        } else if (s.paired) {
+          this.setSlots(["✓", t("menu.connected")], ["", ""], ["", ""]);
+          w.status.setProperty(hmUI.prop.TEXT, t("menu.linked"));
+        } else {
+          this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]);
+          w.status.setProperty(hmUI.prop.TEXT, "pumpfoil.org → " + t("pair.enterThere"));
+        }
+      } else if (s.idlePage === 2) {
+        const pending = loadPending().length;
+        this.setSlots([String(pending), t("up.open")], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (pending ? t("up.waitConn") : t("up.nothing")));
+        if (s.uploading) this.showBar(s.upPct);
+        else this.hideBar();
+      } else {
         this.hideBig();
         this.setSlots(["", ""], ["", ""], ["", ""]);
         w.status.setProperty(hmUI.prop.TEXT, t("fm.title"));
-        this._buildFoilBtns();
-      } else if (s.idlePage === 1) {
-        if (!bleOk()) { this.setSlots(["—", t("up.noPhone")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("pair.noConn")); }
-        else if (s.paired) { this.setSlots(["✓", t("menu.connected")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("menu.linked")); }
-        else { this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "pumpfoil.org → " + t("pair.enterThere")); }
-      } else {
-        const n = loadPending().length;
-        this.setSlots(["" + n, t("up.open")], ["", ""], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, s.upStatus || (n ? t("up.waitConn") : t("up.nothing")));
+        this._buildFoilBtnsSquare();
       }
     },
-    // Foil-/Alarm-Seite: drei Tap-Buttons (Alarm An/Aus, Schwellen Auto/Manuell, Foil zyklisch).
-    // Min/Max manuell setzt man im Web (Zepp-Eingabe ist zu knapp) — hier nur Auto/Manuell.
+    _buildFoilBtnsSquare() {
+      const s = this.state, w = s.w;
+      this._clearFoilBtns();
+      const onOff = (v) => t(v ? "common.on" : "common.off");
+      const layoutsOn = this._useLayouts();
+      const rows = [0.08, 0.29, 0.50, 0.71].map((f) => Math.round(DH * f));
+      const height = Math.round(DH * 0.145);
+      const make = (y, label, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
+        x: px(24), y, w: DW - px(48), h: height, radius: Math.round(height * 0.22),
+        text: label, text_size: px(25), normal_color: 0x1f2937, press_color: 0x374151,
+        color: WHITE, click_func: fn,
+      });
+      w.foilBtns = [
+        make(rows[0], t("fm.alarm") + ": " + onOff(s.almOn), () => {
+          s.almOn = !s.almOn; this.renderIdle();
+        }),
+        make(rows[1], t("fm.thresholds") + ": "
+          + (s.almSrc === "foil" ? t("common.auto") : t("common.off")), () => {
+          s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle();
+        }),
+        make(rows[2], t("foil.prefix") + s.foilLabel, () => {
+          this._cycleFoil(); this.renderIdle();
+        }),
+        make(rows[3], t("lay.short") + ": " + onOff(layoutsOn), () => {
+          s.layoutsPref = !layoutsOn;
+          store.setItem("layoutsPref", s.layoutsPref ? "1" : "0");
+          s._ringKey = null; s.w.layKey = null; this.renderIdle();
+        }),
+      ];
+    },
+    renderIdle() {
+      if (!IS_ROUND) return this._renderIdleSquare();
+      const s = this.state, w = s.w;
+      this._clearSummaryProgress();
+      this._clearSharedRecordingChrome();
+      this._clearPrimaryRun();
+      this._clearCuratedStats();
+      this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
+      this._clearLayout();
+      if (s.idlePage !== 2) this._clearPendingScreen();
+      if (s.idlePage === 0) {
+        this._renderStartScreen();
+        this._renderPageDots(0, 4);
+        return;
+      }
+      this._clearStartScreen();
+      // Restore the shared idle geometry before applying page-specific typography. H2 and H3 use
+      // a cleaner chrome and larger content, while H4 keeps the standard title and version.
+      w.f[0][0].setProperty(hmUI.prop.MORE, { ...F0V });
+      w.f[0][1].setProperty(hmUI.prop.MORE, { ...F0L });
+      w.f[1][0].setProperty(hmUI.prop.MORE, { ...F1V });
+      w.f[1][1].setProperty(hmUI.prop.MORE, { ...F1L });
+      w.f[2][0].setProperty(hmUI.prop.MORE, { ...F2V });
+      w.f[2][1].setProperty(hmUI.prop.MORE, { ...F2L });
+      w.status.setProperty(hmUI.prop.MORE, { ...STATUS });
+      if (s.idlePage === 1 || s.idlePage === 2 || s.idlePage === 3) {
+        this._hideSharedBranding();
+      } else {
+        w.title.setProperty(hmUI.prop.MORE, { ...TITLE });
+        w.ver.setProperty(hmUI.prop.MORE, { ...VER, text: "v" + APP_VERSION });
+        this._verText();
+      }
+      this._renderPageDots(s.idlePage, 4);
+      if (s.idlePage === 3) {
+        this.hideBig();
+        this.setSlots(["", ""], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, "");
+        this._buildFoilBtns();
+      } else if (s.idlePage === 1) {
+        // Pairing is intentionally very large: the code must remain readable while entering it on
+        // the phone, and the instruction is the only other information needed on this screen.
+        w.f[0][0].setProperty(hmUI.prop.MORE, {
+          y: F0V.y - px(18), h: F0V.h + px(24), text_size: F0V.text_size + px(18),
+        });
+        w.f[0][1].setProperty(hmUI.prop.MORE, {
+          y: F0L.y + px(2), h: F0L.h + px(12), text_size: F0L.text_size + px(9),
+        });
+        w.status.setProperty(hmUI.prop.MORE, {
+          y: STATUS.y - px(72), h: STATUS.h + px(28), text_size: STATUS.text_size + px(8),
+        });
+        if (w.btn) {
+          const round = IS_ROUND;
+          w.btn.setProperty(hmUI.prop.MORE, {
+            x: round ? px(82) : px(28), y: round ? px(342) : px(334),
+            w: round ? DW - px(164) : DW - px(56), h: round ? px(88) : px(86),
+            radius: px(34), text_size: BUTTON.text_size + px(3),
+          });
+        }
+        if (!bleOk()) { this.setSlots(["—", t("up.noPhone")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("pair.noConn")); }
+        else if (s.paired) {
+          w.status.setProperty(hmUI.prop.MORE, { text_size: STATUS.text_size + px(4) });
+          this.setSlots(["✓", t("menu.connected")], ["", ""], ["", ""]);
+          w.status.setProperty(hmUI.prop.TEXT, t("menu.linked"));
+        }
+        else { this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "pumpfoil.org → " + t("pair.enterThere")); }
+      } else {
+        this._renderPendingScreen();
+      }
+    },
+    // H4: compact settings rows. Alarm, thresholds and layouts use switch-shaped controls; only
+    // the selected foil remains a button because tapping it cycles through named foils. Touch
+    // locking applies only while recording, so every H4 control remains directly tappable.
     _buildFoilBtns() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();
-      const round = DW >= 450;
-      // FUENF Knoepfe (die Touch-Sperre ist dazugekommen) -> engere Staffelung. Rund: bei y 84 ist
-      // die Kreisbreite noch 364 px (Halbsehne sqrt(240^2-156^2)), der Knopf braucht 320 -- passt.
-      // Eckig: die Status-Bar ist abgeschaltet, also steht die volle Hoehe zur Verfuegung.
-      const ys = round
-        ? [px(84), px(150), px(216), px(282), px(348)]
-        : [0.04, 0.215, 0.39, 0.565, 0.74].map((f) => Math.round(DH * f));
-      const mk = (y, text, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
-        x: round ? px(80) : px(24), y: y, w: round ? DW - px(160) : DW - px(48),
-        h: round ? px(52) : Math.round(DH * 0.13), radius: round ? px(26) : Math.round(DH * 0.065),
-        text: text, text_size: px(25), normal_color: 0x1f2937, press_color: 0x374151, color: 0xffffff, click_func: fn });
-      // Vierter Knopf: eigene Layouts, dreistufig Automatisch/An/Aus wie im Garmin-Menue. Anders
-      // als die drei darueber wird DIESE Wahl persistiert (store), damit sie einen App-Start
-      // ueberlebt -- der Server-Wert ist nur die Vorbelegung, nicht ein Veto.
+      const round = IS_ROUND;
       const onOff = (v) => t(v ? "common.on" : "common.off");
-      const layTxt = s.layoutsPref === null
-        ? t("common.auto") + " (" + onOff(s.layoutsServerDefault) + ")"
-        : onOff(s.layoutsPref);
-      // Gleiches Muster fuer die Touch-Sperre: bei "Automatisch" steht der aufgeloeste Zustand
-      // dahinter, damit sichtbar ist, was die Tastenzahl des Modells ergibt.
-      const lockTxt = s.touchLockPref === null
-        ? t("common.auto") + " (" + onOff(KEY_NUMBER >= 3) + ")"
-        : onOff(s.touchLockPref);
-      w.foilBtns = [
-        mk(ys[0], t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),
-        mk(ys[1], t("fm.thresholds") + ": " + (s.almSrc === "foil" ? t("fm.autoFoil") : t("fm.manual")), () => { s.almSrc = s.almSrc === "foil" ? "manual" : "foil"; this.renderIdle(); }),
-        mk(ys[2], t("foil.prefix") + s.foilLabel, () => { this._cycleFoil(); this.renderIdle(); }),
-        mk(ys[3], t("lay.short") + ": " + layTxt, () => { this._cycleLayoutsPref(); this.renderIdle(); }),
-        mk(ys[4], t("menu.touchLock") + ": " + lockTxt, () => { this._cycleTouchLockPref(); this.renderIdle(); }),
-      ];
+      const layoutsOn = this._useLayouts();
+      const leftX = round ? px(72) : px(30);
+      // Two-line setting rows: label + switch on the first line, current state right-aligned below.
+      // Measure every translated label, but anchor every complete row to the same right edge. The
+      // state below uses that same edge, keeping all three switches and values visually aligned.
+      const switchH = px(38), knob = px(30), inset = px(4);
+      const switchW = px(76), labelSwitchGap = px(18);
+      const settingsRight = (round ? px(392) : px(350)) - px(10);
+      const font = round ? px(31) : px(28);
+      const labelRows = round ? [px(48), px(136), px(356)] : [px(40), px(126), px(346)];
+      const stateRows = round ? [px(92), px(180), px(400)] : [px(84), px(170), px(390)];
+      w.foilBtns = [];
+
+      const addText = (x, y, width, height, size, color, value, align) => {
+        const el = hmUI.createWidget(hmUI.widget.TEXT, {
+          x, y, w: width, h: height, text: value, text_size: size, color,
+          align_h: align == null ? hmUI.align.LEFT : align, align_v: hmUI.align.CENTER_V,
+        });
+        w.foilBtns.push(el); return el;
+      };
+      const addSetting = (labelY, stateY, label, enabled, value, action) => {
+        const labelText = label + " :";
+        let measured = Math.round(labelText.length * font * 0.55);
+        try {
+          const layout = getTextLayout(labelText, { text_size: font, text_width: 0, wrapped: 0 });
+          if (layout && layout.width > 0) measured = layout.width;
+        } catch (e) {}
+        const maxLabelW = settingsRight - switchW - labelSwitchGap - px(20);
+        const labelW = Math.max(px(40), Math.min(maxLabelW, measured + px(3)));
+        const switchX = settingsRight - switchW;
+        const labelX = switchX - labelSwitchGap - labelW;
+        const totalW = settingsRight - labelX;
+        addText(labelX, labelY, labelW, px(42), font, WHITE,
+          labelText, hmUI.align.LEFT);
+        w.foilBtns.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: switchX, y: labelY + px(2), w: switchW, h: switchH,
+          radius: Math.round(switchH / 2), color: enabled ? CYAN : 0x475569,
+        }));
+        w.foilBtns.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          x: enabled ? switchX + switchW - knob - inset : switchX + inset,
+          y: labelY + px(2) + inset, w: knob, h: knob,
+          radius: Math.round(knob / 2), color: enabled ? INK : 0xd1d5db,
+        }));
+        addText(settingsRight - px(150), stateY, px(150), px(34), px(22),
+          enabled ? CYAN : 0x94a3b8, value, hmUI.align.RIGHT);
+        const hit = hmUI.createWidget(hmUI.widget.CANVAS, {
+          x: labelX, y: labelY, w: totalW,
+          h: stateY + px(34) - labelY,
+        });
+        hit.addEventListener(hmUI.event.CLICK_DOWN, action);
+        w.foilBtns.push(hit);
+      };
+
+      addSetting(labelRows[0], stateRows[0], t("fm.alarm"), s.almOn, onOff(s.almOn),
+        () => { s.almOn = !s.almOn; this.renderIdle(); });
+
+      const thresholdsAuto = s.almSrc === "foil";
+      addSetting(labelRows[1], stateRows[1], t("fm.thresholds"), thresholdsAuto,
+        thresholdsAuto ? t("common.auto") : t("common.off"),
+        () => { s.almSrc = thresholdsAuto ? "manual" : "foil"; this.renderIdle(); });
+
+      const foilLabelY = round ? px(220) : px(204);
+      const foilButtonY = round ? px(268) : px(250);
+      const foilButtonX = round ? px(58) : px(24);
+      const foilButtonW = round ? DW - px(116) : DW - px(48);
+      const foilHeading = t("foil.prefix").trim().replace(/\s*:\s*$/, " :");
+      addText(leftX, foilLabelY, DW - leftX * 2, px(44), font, WHITE,
+        foilHeading, hmUI.align.CENTER_H);
+      w.foilBtns.push(hmUI.createWidget(hmUI.widget.BUTTON, {
+        x: foilButtonX, y: foilButtonY - px(4), w: foilButtonW, h: px(70), radius: px(14),
+        text: s.foilLabel, text_size: px(29), normal_color: CYAN, press_color: CYAN_P,
+        color: INK, click_func: () => { this._cycleFoil(); this.renderIdle(); },
+      }));
+
+      addSetting(labelRows[2], stateRows[2], t("lay.short"), layoutsOn, onOff(layoutsOn), () => {
+        s.layoutsPref = !layoutsOn;
+        store.setItem("layoutsPref", s.layoutsPref ? "1" : "0");
+        s._ringKey = null; s.w.layKey = null;
+        this.renderIdle();
+      });
     },
     _clearFoilBtns() {
       const w = this.state.w;
@@ -1011,15 +1843,6 @@ Page(
       s.layoutsPref = s.layoutsPref === null ? true : (s.layoutsPref ? false : null);
       store.setItem("layoutsPref", s.layoutsPref === null ? "" : (s.layoutsPref ? "1" : "0"));
       s._ringKey = null; s.w.layKey = null;   // Ring + gezeichnete Layout-Widgets neu aufbauen
-    },
-    // Automatisch -> An -> Aus -> Automatisch, persistiert. Greift sofort: laeuft gerade eine
-    // Aufzeichnung, wird die Sperre entsprechend gesetzt oder aufgehoben (das Menue ist waehrend
-    // der Aufnahme zwar nicht erreichbar, aber die Wahl soll auch nicht bis zum Neustart warten).
-    _cycleTouchLockPref() {
-      const s = this.state;
-      s.touchLockPref = s.touchLockPref === null ? true : (s.touchLockPref ? false : null);
-      store.setItem("touchLockPref", s.touchLockPref === null ? "" : (s.touchLockPref ? "1" : "0"));
-      if (s.recording) { if (this._useTouchLock()) this._lockTouch(); else this._disableTouchLock(); }
     },
     _cycleFoil() {
       const s = this.state;
@@ -1042,16 +1865,20 @@ Page(
       const h = v.length >> 1;
       s.sp3 = (v.length % 2) ? v[h] : (v[h - 1] + v[h]) / 2;
     },
-    // Zustands-Automat, 1:1 aus SessionRecorder.mc:_updateRun / Recorder.kt:updateFoilingRun.
-    // tMs = verstrichene Aufnahmezeit (nicht Wall-Clock), v3 = geglättete m/s, vInst = Rohwert.
+    // State machine from SessionRecorder.mc / Recorder.kt, with Zepp's additional net-movement
+    // gate because this API exposes coordinates but no native GNSS speed or accuracy.
+    // tMs = elapsed recording time (not wall-clock), v3 = smoothed m/s, vInst = raw value.
     // Gibt true zurück, wenn in diesem Tick ein Lauf zu Ende gegangen ist.
-    _updateRun(v3, vInst, dist, tMs) {
+    _updateRun(v3, vInst, motionSpeed, dist, tMs) {
       const s = this.state;
       if (!s.foiling) {
         if (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) {
           s.enterStreak = 0;
         } else {
-          s.enterStreak = (v3 >= RUN_ENTER_MPS) ? s.enterStreak + 1 : 0;
+          // A stationary watch can still produce fast point-to-point GPS wander. Require coherent
+          // net movement as an additional reality check, matching the server's position floor.
+          s.enterStreak = (v3 >= RUN_ENTER_MPS && motionSpeed >= RUN_MOTION_FLOOR_MPS)
+            ? s.enterStreak + 1 : 0;
           if (s.enterStreak >= RUN_ENTER_DWELL) {
             s.foiling = true; s.exitStreak = 0;
             // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
@@ -1065,7 +1892,8 @@ Page(
       } else {
         if (vInst > s.runMaxMps) s.runMaxMps = vInst;
         if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
-        s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
+        const moving = v3 >= RUN_EXIT_MPS && motionSpeed >= RUN_MOTION_FLOOR_MPS;
+        s.exitStreak = moving ? 0 : s.exitStreak + 1;
         if (s.exitStreak >= RUN_EXIT_DWELL) {
           s.foiling = false; s.enterStreak = 0;
           // Ende auf den ersten langsamen Tick zurückdatieren; Kennzahlen festhalten.
@@ -1093,6 +1921,7 @@ Page(
       s.enterStreak = 0; s.exitStreak = 0; s.runEndedMs = -100000;
       s.runStartMs = 0; s.runStartDist = 0; s.runMaxMps = 0; s.runCount = 0;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
+      s.motionWin = []; s.motionSpeed = 0;
       s._ringKey = null;
     },
 
@@ -1100,17 +1929,36 @@ Page(
     // Portiert von watch/source/RecordView.mc:_state/_setFor/_ring. Zepp kennt nur zwei Zustände
     // (onFoil/offFoil) — ein manuelles Pausieren gibt es hier nicht, also auch kein :paused.
     _useLayouts() { const s = this.state; return s.layoutsPref === null ? !!s.layoutsServerDefault : !!s.layoutsPref; },
+    _factoryOnFoilSet(set) {
+      return !!(set && set.length === 1 && this._isFactoryPrimary(set[0]));
+    },
+    _factoryOffFoilSet(set) {
+      const e = set && set.length === 1 ? set[0] : null;
+      return !!(e && e[0] === 0 && e[1] === 12 && e[2] === 17 && e[3] === 16);
+    },
+    _isCuratedRoundRing(set) {
+      return !!(IS_ROUND && set && set.length === 2
+        && set[0] && set[0][0] === 0 && set[0][1] === 17
+        && set[0][2] === 16 && set[0][3] === 0
+        && set[1] && set[1][0] === 10);
+    },
     _setFor(onFoil) {
       const s = this.state, dyn = this._useLayouts();
       if (onFoil) {
-        if (dyn && s.pages.length) return s.pages;
+        if (dyn && s.pages.length) {
+          return IS_ROUND && this._factoryOnFoilSet(s.pages) ? [[0, 17, 16, 0], [10]] : s.pages;
+        }
         const out = [];
         for (let i = 0; i < s.views.length; i++) { const v = s.views[i] || []; out.push([0, v[0] | 0, v[1] | 0, v[2] | 0]); }
-        return out.length ? out : [[0, 1, 0, 0]];
+        const safe = out.length ? out : [[0, 1, 0, 0]];
+        return IS_ROUND && this._factoryOnFoilSet(safe) ? [[0, 17, 16, 0], [10]] : safe;
       }
-      if (dyn && s.offFoilPages.length) return s.offFoilPages;
+      if (dyn && s.offFoilPages.length) {
+        return IS_ROUND && this._factoryOffFoilSet(s.offFoilPages) ? [[0, 17, 16, 0], [10]] : s.offFoilPages;
+      }
       const f = s.offFoil || [];
-      return [[0, f[0] | 0, f[1] | 0, f[2] | 0]];
+      const out = [[0, f[0] | 0, f[1] | 0, f[2] | 0]];
+      return IS_ROUND && this._factoryOffFoilSet(out) ? [[0, 17, 16, 0], [10]] : out;
     },
     _ring(onFoil) {
       const s = this.state;
@@ -1119,7 +1967,22 @@ Page(
       let out = this._setFor(onFoil);
       // „Auch die übrigen Seiten": im Off-Foil-Zustand hängen die On-Foil-Seiten hinten dran —
       // feste Reihenfolge, vorhersehbar statt clever (RecordView.mc:150-162).
-      if (!onFoil && s.browseAll) out = out.concat(this._setFor(true));
+      // The curated Zepp factory pages provide the same useful R2/R3 pair in each state. Do not
+      // append the other state's pages; custom configurations retain the existing browseAll rule.
+      // Since the round factory redesign, _setFor() already returns the complete R2 + R3 pair
+      // ([0,17,16,0] + [10]) for both foil states. The previous check still looked for the old
+      // internal marker [12], so browseAll appended the second state and produced
+      // R1-R2-R3-R2-R3 on the watch.
+      const curatedFactory = !onFoil && this._isCuratedRoundRing(out);
+      if (!onFoil && s.browseAll && !curatedFactory) out = out.concat(this._setFor(true));
+      // Server defaults can arrive as a classic last-run page instead of the exact factory tuple
+      // recognized above. In that case browseAll appends our curated [12] page and creates two
+      // consecutive "last run" screens. Remove legacy internal detail/session pages everywhere,
+      // and keep the server-provided classic last-run page in preference to duplicate [12].
+      out = out.filter((entry) => entry && entry[0] !== 11 && entry[0] !== 13);
+      const hasClassicLastRun = out.some((entry) => entry && entry[0] === 0
+        && [entry[1], entry[2], entry[3]].some((id) => id >= 16 && id <= 21));
+      if (hasClassicLastRun) out = out.filter((entry) => entry && entry[0] !== 12);
       if (!out.length) out = [[0, 1, 0, 0]];
       s._ringCache = out; s._ringKey = key;
       return out;
@@ -1129,7 +1992,7 @@ Page(
     _clampPage() {
       const s = this.state;
       if (!s.recording) return;
-      const last = this._ringLen() + 1;
+      const last = this._ringLen();
       if (s.page > last) { s.page = last; this.applyButton(); }
     },
 
@@ -1222,6 +2085,9 @@ Page(
       const key = idx + "/" + count + "/" + (recording ? 1 : 0) + "/" + els.length + "/" + (entry[1] | 0);
       if (w.layKey === key && w.layDyn) { this._updateLayoutDyn(); return; }
       this._clearLayout();
+      // The layout background is full-screen, so discard the shared dots and recreate them above
+      // that background once this renderer returns.
+      this._clearPageDots();
       // Klassische Widgets leeren. Der Layout-Hintergrund deckt sie zwar ab (Zepp zeichnet in
       // Erzeugungsreihenfolge, das Layout entsteht später), aber leer ist leer.
       this.hideBig();
@@ -1281,21 +2147,8 @@ Page(
           continue;
         }
         if (typ === 6) {
-          // Seiten-Punkte AN DER ELEMENT-POSITION (Vorschau: Durchmesser 2,2 % der Breite, Abstand
-          // = Durchmesser, inaktiv 35 %). Garmin ignoriert x/y und zeichnet fest unten mittig —
-          // fürs Standard-Element (500/920) kommt dasselbe heraus, verschoben stimmt nur das hier.
-          const nn = Math.max(1, Math.min(12, count | 0));
-          if (nn <= 1) continue;
-          const d = Math.max(3, Math.round(DW * 0.022)), stp = d * 2, total = (nn - 1) * stp;
-          const startX = (fl & 1) ? ax + Math.round(d / 2)
-                       : (fl & 2) ? ax - total - Math.round(d / 2)
-                       : ax - Math.round(total / 2);
-          const col = layColor(ci, AUTO_LABEL), dim = layMix(col, bg, 0.35);
-          for (let k = 0; k < nn; k++) {
-            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
-              x: startX + k * stp - Math.round(d / 2), y: ay - Math.round(d / 2),
-              w: d, h: d, radius: Math.round(d / 2), color: k === idx ? col : dim }));
-          }
+          // Zepp uses one uniform top indicator on every screen. Ignore layout-specific page-dot
+          // elements here to avoid showing a second, conflicting indicator.
           continue;
         }
         // typ 7 ("Pausiert") wird auf Zepp NIE gezeichnet: es gibt kein manuelles Pausieren, der
@@ -1336,27 +2189,55 @@ Page(
     },
 
     renderRecording() {
+      if (!IS_ROUND) return this._renderRecordingSquare();
       const s = this.state, w = s.w;
+      this._clearStartScreen();
       this._clearFoilBtns();
       this._clampPage();
       const ring = this._ring(s.foiling), n = ring.length;
-      if (s.page === 0 || s.page >= n + 1) {
+      if (s.page === 0) {
+        this._clearPrimaryRun();
+        this._clearCuratedStats();
         this._clearLayout();
         w.page.setProperty(hmUI.prop.TEXT, "");
+        this._hideSharedBranding();
+        this._setSharedRecordingChrome("stop");
+        w.f[0][0].setProperty(hmUI.prop.MORE, { x: 0, y: px(116), w: DW, h: px(78), color: CYAN, text_size: px(76), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[0][1].setProperty(hmUI.prop.MORE, { x: 0, y: px(188), w: DW, h: px(38), color: 0x9aa4b2, text_size: px(27), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[1][0].setProperty(hmUI.prop.MORE, { x: 0, y: px(249), w: DW, h: px(66), color: WHITE, text_size: px(62), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[1][1].setProperty(hmUI.prop.MORE, { x: 0, y: px(309), w: DW, h: px(34), color: 0x9aa4b2, text_size: px(27), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[2][0].setProperty(hmUI.prop.MORE, { x: 0, y: px(58), w: DW, h: px(46), color: 0x64748b, text_size: px(32), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[2][1].setProperty(hmUI.prop.MORE, { ...F2L });
+        w.status.setProperty(hmUI.prop.MORE, { ...STATUS });
+        if (w.btn) w.btn.setProperty(hmUI.prop.MORE, { x: px(78), y: px(352), w: DW - px(156), h: px(82), radius: px(36), text_size: px(24) });
         const el = (Date.now() - s.startedAtMs) / 1000;
-        this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")], ["", ""]);
-        // Tasten-Hinweis: "Halten = STOPP". Das frueher angehaengte "kurz = Seite" ist entfallen —
-        // fuer "Seite" gibt es in den anderen Uhr-Apps keinen Wortlaut, und die Seitenanzeige
-        // (n/N) steht ohnehin oben rechts. Keinen Text erfinden.
-        w.status.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " = " + t("btn.stop"));
+        const d = new Date();
+        this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")],
+          [pad(d.getHours()) + ":" + pad(d.getMinutes()), ""]);
+        w.status.setProperty(hmUI.prop.TEXT, "");
+        this._renderPageDots(0, n + 1);
         return;
       }
-      const pg = s.page - 1, entry = ring[pg] || ring[0];
+      const pg = s.page - 1, selectedEntry = ring[pg] || ring[0];
+      // Legacy factory marker 12 used the superseded three-value last-run card. Normalize it to
+      // the approved R2: vertical RUN number, last distance and last time only.
+      const entry = selectedEntry && selectedEntry[0] === 12 ? [0, 17, 16, 0] : selectedEntry;
+      if (entry && entry[0] === 10) {
+        this._renderPrimaryRun();
+        this._renderPageDots(s.page, n + 1);
+        return;
+      }
+      if (entry && entry[0] === 11) { this._renderCuratedStats("detail", 2); this._renderPageDots(s.page, n + 1); return; }
+      if (entry && entry[0] === 13) { this._renderCuratedStats("session", 2); this._renderPageDots(s.page, n + 1); return; }
+      this._clearPrimaryRun();
+      this._clearCuratedStats();
       // Tag-Byte entscheidet: 1 = eigenes Layout (Hintergrund + Elemente inline), sonst klassische
       // Seite mit Feld-IDs AB INDEX 1 (das Tag gehört nicht dazu).
       if (entry && entry[0] === 1) {
+        this._clearSharedRecordingChrome();
         try {
           this._renderLayoutPage(entry, pg, n, true);
+          this._renderPageDots(s.page, n + 1);
           return;
         } catch (err) {
           // Selbstheilung: scheitert das Zeichnen (unbekannte Widget-Property, kaputtes Element),
@@ -1370,18 +2251,133 @@ Page(
         }
       }
       this._clearLayout();
-      w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + n);
+      w.page.setProperty(hmUI.prop.TEXT, "");
+      // Recording data pages do not need app branding or the persistent GPS/stop instruction.
+      // On a classic last-run page, reuse the freed heading line for the actual run number.
+      const ids = entry ? [entry[1], entry[2], entry[3]] : [];
+      const lastRunPage = ids.indexOf(16) >= 0 || ids.indexOf(17) >= 0
+        || ids.indexOf(18) >= 0 || ids.indexOf(19) >= 0 || ids.indexOf(21) >= 0;
+      this._setSharedRecordingChrome(lastRunPage ? "last" : "plain");
+      const runTitle = "";
+      if (runTitle) {
+        w.title.setProperty(hmUI.prop.MORE, { ...TITLE, text: runTitle });
+        w.title.setProperty(hmUI.prop.TEXT, runTitle);
+        w.ver.setProperty(hmUI.prop.MORE, { ...VER, x: -DW, y: -DH, color: 0x000000, text: " " });
+        w.ver.setProperty(hmUI.prop.TEXT, " ");
+      } else {
+        // R2 is this classic two-field page before a run exists. Moving the shared branding widgets
+        // off-screen is deterministic on hardware, unlike assigning an empty/space-only string.
+        this._hideSharedBranding();
+      }
+      w.f[0][0].setProperty(hmUI.prop.MORE, { ...F0V });
+      w.f[0][1].setProperty(hmUI.prop.MORE, { ...F0L });
+      w.f[1][0].setProperty(hmUI.prop.MORE, { ...F1V });
+      w.f[1][1].setProperty(hmUI.prop.MORE, { ...F1L });
+      w.f[2][0].setProperty(hmUI.prop.MORE, { ...F2V });
+      w.f[2][1].setProperty(hmUI.prop.MORE, { ...F2L });
+      w.status.setProperty(hmUI.prop.MORE, { ...STATUS });
+      if (lastRunPage) {
+        // Do not spread TITLE without overriding its text: TITLE's default is "Pumpfoil", which
+        // reintroduced the blue app name after _hideSharedBranding() on R2.
+        this._hideSharedBranding();
+        const dataX = px(116), dataW = DW - dataX - px(8);
+        w.f[0][0].setProperty(hmUI.prop.MORE, { x: dataX, y: px(96), w: dataW, h: px(100), color: CYAN, text_size: px(90), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[0][1].setProperty(hmUI.prop.MORE, { x: dataX, y: px(188), w: dataW, h: px(38), color: 0x9aa4b2, text_size: px(28), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[1][0].setProperty(hmUI.prop.MORE, { x: dataX, y: px(242), w: dataW, h: px(94), color: WHITE, text_size: px(86), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[1][1].setProperty(hmUI.prop.MORE, { x: dataX, y: px(326), w: dataW, h: px(40), color: 0x9aa4b2, text_size: px(28), align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V });
+        w.f[2][0].setProperty(hmUI.prop.TEXT, "");
+        w.f[2][1].setProperty(hmUI.prop.TEXT, "");
+      }
       this.renderFields([entry[1], entry[2], entry[3]]);
+      w.status.setProperty(hmUI.prop.TEXT, "");
+      this._renderPageDots(s.page, n + 1);
+    },
+    _renderRecordingSquare() {
+      const s = this.state, w = s.w;
+      this._clearFoilBtns();
+      this._clampPage();
+      const ring = this._ring(s.foiling), count = ring.length;
+      const selected = s.page > 0 ? (ring[s.page - 1] || ring[0]) : null;
+      this._restoreSquareChrome(!!(selected && selected[0] === 1));
+      if (s.page === 0) {
+        w.page.setProperty(hmUI.prop.MORE, { ...PAGE, text: "" });
+        const elapsed = (Date.now() - s.startedAtMs) / 1000;
+        this.setSlots([mmss(elapsed), t("f.time")], [fmtDist(s.dist), t("f.dist")], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " SEL = " + t("btn.stop"));
+        return;
+      }
+      const pageIndex = s.page - 1, entry = selected;
+      if (entry && entry[0] === 1) {
+        try {
+          this._renderLayoutPage(entry, pageIndex, count, true);
+          return;
+        } catch (err) {
+          try { this._clearLayout(); } catch (e) {}
+          s.layoutsPref = false; s._ringKey = null;
+          this._renderRecordingSquare();
+          return;
+        }
+      }
+      w.page.setProperty(hmUI.prop.MORE, { ...PAGE, text: (pageIndex + 1) + "/" + count });
+      this.renderFields(entry ? [entry[1], entry[2], entry[3]] : []);
       w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching"))
         + (s.foiling ? " · " + t("f.runActive") : "")
-        + " · " + t("rec.stopHold") + " = " + t("btn.stop"));
+        + " · " + t("rec.stopHold") + " SEL = " + t("btn.stop"));
     },
     renderSummary() {
+      if (!IS_ROUND) return this._renderSummarySquare();
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
+      this._clearStartScreen();
+      this._clearSharedRecordingChrome();
+      this._clearPrimaryRun();
+      this._clearCuratedStats();
       this._clearLayout();
+      // Upload progress is already shown as text in the summary. The legacy y=2 progress bar
+      // appears as an unexplained cyan sliver on a round display, so it must not survive here.
+      this.hideBar();
       w.page.setProperty(hmUI.prop.TEXT, "");
+      // R1 customizes the shared field widgets heavily. The summary uses those same widgets, so
+      // restore every geometry/style property before assigning summary values; otherwise labels
+      // such as duration and average speed retain R1 coordinates and overlap on the stop screen.
+      w.title.setProperty(hmUI.prop.MORE, { ...TITLE });
+      w.title.setProperty(hmUI.prop.TEXT, "Pumpfoil");
+      w.ver.setProperty(hmUI.prop.MORE, { ...VER });
+      this._verText();
+      w.f[0][0].setProperty(hmUI.prop.MORE, { ...F0V });
+      w.f[0][1].setProperty(hmUI.prop.MORE, { ...F0L });
+      w.f[1][0].setProperty(hmUI.prop.MORE, { ...F1V });
+      w.f[1][1].setProperty(hmUI.prop.MORE, { ...F1L });
+      w.f[2][0].setProperty(hmUI.prop.MORE, { ...F2V });
+      w.f[2][1].setProperty(hmUI.prop.MORE, { ...F2L });
+      w.status.setProperty(hmUI.prop.MORE, { ...STATUS });
       this.setSlots([fmtDist(last.dist), t("f.dist")], [mmss(last.dur), t("f.dur")], [last.avg.toFixed(1), t("f.kmhAvg")]);
-      w.status.setProperty(hmUI.prop.TEXT, s.upStatus);
+      if (s.summaryUploadComplete) {
+        this._clearSummaryProgress();
+        w.status.setProperty(hmUI.prop.TEXT, "");
+      } else {
+        this._renderSummaryProgress();
+        // The large percentage in the capsule replaces the small running-status line. Preserve
+        // that line only if it contains an actual error that the user needs for diagnosis.
+        w.status.setProperty(hmUI.prop.TEXT,
+          s.upStatus.indexOf(t("common.error") + ":") === 0 ? s.upStatus : "");
+      }
+      this._renderPageDots(0, 1);
+    },
+    _renderSummarySquare() {
+      const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
+      this._clearFoilBtns();
+      this._restoreSquareChrome();
+      w.page.setProperty(hmUI.prop.MORE, { ...PAGE, text: "" });
+      this.setSlots([fmtDist(last.dist), t("f.dist")], [mmss(last.dur), t("f.dur")],
+        [last.avg.toFixed(1), t("f.kmhAvg")]);
+      if (s.summaryUploadComplete) {
+        this._clearSummaryProgress();
+        w.status.setProperty(hmUI.prop.TEXT, "");
+      } else {
+        this._renderSummaryProgress();
+        w.status.setProperty(hmUI.prop.TEXT,
+          s.upStatus.indexOf(t("common.error") + ":") === 0 ? s.upStatus : "");
+      }
     },
     fieldValue(id) {
       const s = this.state, last = s.last;
@@ -1468,8 +2464,22 @@ Page(
       }
       if (speed < 0 || speed > MAX_SANE_MPS) { speed = 0; jump = true; }   // wie Garmin _saneSpeed
       else if (speed > MAX_PLAUSIBLE_MPS) { speed = 0; jump = true; }      // Positionssprung, kein Fahrer
+      // Net movement over a short window rejects back-and-forth coordinate wander at rest. Wait
+      // for at least two seconds so a single noisy step cannot validate movement by itself.
+      if (fix) {
+        s.motionWin.push([lat, lon, sampleNow]);
+        while (s.motionWin.length > 1 && sampleNow - s.motionWin[0][2] > MOTION_WINDOW_MS) {
+          s.motionWin.shift();
+        }
+        const m0 = s.motionWin[0];
+        const motionDt = m0 ? (sampleNow - m0[2]) / 1000 : 0;
+        s.motionSpeed = motionDt >= 2 ? distM(m0[0], m0[1], lat, lon) / motionDt : 0;
+      } else {
+        s.motionWin = []; s.motionSpeed = 0;
+      }
       // Treat a value as current for ten seconds. The callback owns getCurrent(); this 1 Hz loop
       // only snapshots the latest valid value into session statistics and GPS payloads.
+      const hadHr = s.hr > 0;
       let hr = (s.hrUpdatedMs && sampleNow - s.hrUpdatedMs <= 10000) ? s.hr : 0;
       if (!hr) s.hr = 0;
       if (hr) { s.hr = hr; if (s.recording) { s.hrSum += hr; s.hrN++; if (hr > s.hrMax) s.hrMax = hr; } }
@@ -1479,12 +2489,15 @@ Page(
       s.cur = fix ? speed : 0;
 
       if (s.recording) {
+        if (s.foiling) this._refreshRunBrightness(false);
         const el = Date.now() - s.startedAtMs;
         if (fix) {
           s.gps.push([el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speedRaw * 100) / 100, hr, 0]);
           // Distanz NICHT ueber einen Sprung hinweg aufsummieren — sonst waechst die angezeigte
           // Strecke um den Sprung, und der Lauf daneben bekommt eine Distanz, die es nie gab.
-          if (s.prev && !jump) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
+          if (s.prev && !jump && s.motionSpeed >= LIVE_DISTANCE_FLOOR_MPS) {
+            s.dist += distM(s.prev[0], s.prev[1], lat, lon);
+          }
           s.prev = [lat, lon];
           if (speed > s.max) s.max = speed;
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
@@ -1492,23 +2505,34 @@ Page(
         }
         // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
         this._pushSpeed(s.cur, el, fix);
-        this._updateRun(s.sp3, s.cur, s.dist, el);
+        this._updateRun(s.sp3, s.cur, s.motionSpeed, s.dist, el);
         // Zustandswechsel: Ring des neuen Zustands von vorne (erste Datenseite = 1, Seite 0 ist der
         // Stopp-Screen) + eine kurze Vibration als Rückmeldung — wie RecordView._vibeSwitch bzw.
         // die Wear-Flanke. Es gibt auf Zepp nur den einen Vibrator (auch fürs Alarm-Signal).
         if (s.foiling !== s._prevFoil) {
           s._prevFoil = s.foiling;
           s._ringKey = null; s.w.layKey = null;
-          s.page = 1;
+          if (s.foiling && IS_ROUND) {
+            const activeRing = this._ring(true);
+            let primary = -1;
+            for (let i = 0; i < activeRing.length; i++) {
+              if (activeRing[i] && activeRing[i][0] === 10) { primary = i; break; }
+            }
+            s.page = primary >= 0 ? primary + 1 : 1;
+          } else {
+            s.page = 1;
+          }
+          if (s.foiling) this._refreshRunBrightness(true);
+          else s.lastRunBrightRefreshMs = 0;
           this._vibrate();
           this.applyButton();
         }
         this.renderRecording();
       } else if (s.screen === "idle") {
-        if (fixChanged) this.applyButton();
+        if (fix) s.gpsSearchStep = 4;
+        else if (fixChanged) s.gpsSearchStep = 0;
+        if (fixChanged || hadHr !== (s.hr > 0)) this.applyButton();
         if (acquiredFix) this._gpsReadyFeedback();
-        if (s.autoStart && fix && speed > AUTOSTART_SPEED) { s.autoTicks++; if (s.autoTicks >= AUTOSTART_TICKS) { this.start(); return; } }
-        else s.autoTicks = 0;
         this.renderIdle();
       }
     },
@@ -1533,8 +2557,8 @@ Page(
         } catch (e) {}
         const hz = a.accelHz || ACCEL_DEFAULT_HZ;
         const t0s = a.accelChunkT0 || [];
-        const needed = Math.ceil(samples / ACCEL_CHUNK_SAMPLES);
-        while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000));
+        const needed = Math.ceil(samples / ACCEL_STORAGE_CHUNK_SAMPLES);
+        while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_STORAGE_CHUNK_SAMPLES / hz * 1000));
         const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
           gps: a.gps, foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
           accelHz: hz, accelChunkT0: t0s }); savePending(list);
@@ -1549,13 +2573,13 @@ Page(
     // ---- Aufnahme ----
     start() {
       const s = this.state, now = Date.now();
-      // Every start path goes through here (touchscreen, SELECT, and auto-start), so no session can
-      // begin before a valid GPS position is available.
-      if (!s.fix || s.uploading) return;
+      // Both explicit start paths go through here (PUMP touchscreen button and SELECT), so no
+      // session can begin before a valid GPS position exists. Heart rate remains optional.
+      if (!this._startReady()) return;
       this._setBrightMode("recording");
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
-      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
-      s._fi = 0;
+      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.upStatus = "";
+      s._fi = 0; s.lastRunBrightRefreshMs = 0;
       // Ueberleben bei Bildschirm-Aus: beim Aufwachen wieder DIESE App oeffnen. In try/catch wie
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
       try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
@@ -1576,12 +2600,13 @@ Page(
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
-        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
+        s.screen = "summary"; s.upPct = 0; s.summaryUploadComplete = false;
+        s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
         const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
           gps: s.gps.slice(), foilId: s.foilId, accelFile: s.accelFile,
           accelSamples: s.accelSamples, accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() }); savePending(list);
         store.setItem("active", "");
-        this.applyButton(); this.renderSummary(); this.showBar(0);
+        this.applyButton(); this.renderSummary();
         this.flushPending();
       } else {
         s.screen = "idle"; s.idlePage = 0; s.upStatus = t("rec.noData");
@@ -1590,7 +2615,7 @@ Page(
         this.applyButton(); this.renderIdle();
       }
     },
-    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this._setBrightMode(s.uploading ? "uploading" : "idle", true); try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
+    done() { const s = this.state; s.screen = "idle"; s.idlePage = 0; s.upStatus = ""; this._clearSummaryProgress(); this._setBrightMode(s.uploading ? "uploading" : "idle", true); try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {} this.hideBar(); this.applyButton(); this.renderIdle(); },
     repair() { const s = this.state; store.setItem("deviceToken", ""); store.setItem("claimToken", ""); s.paired = false; s.code = ""; this.applyButton(); this.renderIdle(); this.beginPairing(); },
 
     // ---- Upload / Offline-Queue ----
@@ -1605,7 +2630,7 @@ Page(
         gps_hz: GPS_HZ, accel_hz: accelHz, accel_scale: hasAccel ? ACCEL_SCALE : 0, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
       const gpsChunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
-      const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
+      const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_UPLOAD_CHUNK_SAMPLES) : 0;
       const dataChunkCount = gpsChunkCount + accelChunkCount;
       const total = dataChunkCount + 2; let done = 0;
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
@@ -1616,8 +2641,9 @@ Page(
         if (!r || r.ok !== true) throw new Error(t("up.serverUnreach"));
         return r;
       });
-      // Build and release one GPS slice at a time. Keeping every slice alive for a long session —
-      // especially when several flush workers accidentally overlapped — exhausted watch memory.
+      // Build and release one GPS slice at a time. CHUNK now means "accepted by the bounded phone
+      // queue", not "the server HTTP request has completed". COMPLETE remains the durable barrier:
+      // the Side Service only acknowledges it after every parallel phone->server upload succeeds.
       const sendGpsChunk = (index) => {
         if (index >= gpsChunkCount) return Promise.resolve();
         const data = sess.gps.slice(index * GPS_CHUNK, (index + 1) * GPS_CHUNK);
@@ -1632,18 +2658,23 @@ Page(
         catch (e) { return Promise.reject(new Error("accelerometer file unavailable")); }
         const send = (index) => {
           if (index >= accelChunkCount) return Promise.resolve();
-          const count = Math.min(ACCEL_CHUNK_SAMPLES, sess.accelSamples - index * ACCEL_CHUNK_SAMPLES);
+          const count = Math.min(ACCEL_UPLOAD_CHUNK_SAMPLES,
+            sess.accelSamples - index * ACCEL_UPLOAD_CHUNK_SAMPLES);
           const byteLength = count * 6;
           const buffer = new ArrayBuffer(byteLength);
           let bytesRead = 0;
           try {
-            bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_CHUNK_SAMPLES * 6,
+            bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_UPLOAD_CHUNK_SAMPLES * 6,
               length: byteLength } });
           } catch (e) { return Promise.reject(e); }
           if (bytesRead !== byteLength) return Promise.reject(new Error("short accelerometer read"));
           const data = bytesToBase64(new Uint8Array(buffer), bytesRead);
           const t0s = sess.accelChunkT0 || [];
-          const t0 = t0s[index] != null ? t0s[index] : Math.round(index * ACCEL_CHUNK_SAMPLES / accelHz * 1000);
+          // accelChunkT0 is indexed by the 128-sample storage blocks used by all existing builds.
+          // Pick the timestamp matching the first storage block contained in this upload payload.
+          const storageIndex = Math.floor(index * ACCEL_UPLOAD_CHUNK_SAMPLES / ACCEL_STORAGE_CHUNK_SAMPLES);
+          const t0 = t0s[storageIndex] != null ? t0s[storageIndex]
+            : Math.round(index * ACCEL_UPLOAD_CHUNK_SAMPLES / accelHz * 1000);
           return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
                        kind: "accel", encoding: "int16-b64", t0_ms: t0, count, data })
             .then(() => { bump(); return send(index + 1); });
@@ -1651,6 +2682,7 @@ Page(
         return send(0).then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
           (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
       };
+      meta.expected_chunks = dataChunkCount;
       return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunk(0); })
         .then(() => sendAccelChunks())
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
@@ -1665,19 +2697,34 @@ Page(
       const inSummary = s.screen === "summary";
       const list = loadPending();
       if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
-      if (!list.length) { if (inSummary) { s.upStatus = t("up.done") + " ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
+      if (!list.length) { if (inSummary) { s.upPct = 100; s.summaryUploadComplete = true; s.upStatus = t("up.done") + " ✓"; this.renderSummary(); } this.applyButton(); return; }
       s.uploading = true;
+      s.upPct = 0; s.upIndex = 1; s.upTotal = list.length;
       // Upload requires the Device App to stay alive for BLE/ZML. Keep the page awake for the whole
       // worker lifetime; the normal five-minute idle policy resumes on completion or failure.
       this._setBrightMode("uploading");
       console.log("[pumpfoil] upload worker start sessions=" + list.length);
-      const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "% · " + t("up.keepOpen"); if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
+      if (!inSummary) { this.applyButton(); this.renderIdle(); }
+      const onProg = (pct) => {
+        s.upPct = pct;
+        s.upStatus = t("up.running") + " " + pct + "% · " + t("up.keepOpen");
+        if (inSummary) this.renderSummary();
+        else { this.applyButton(); this.renderIdle(); }
+      };
       const step = (i) => {
         if (i >= list.length) {
           s.uploading = false;
+          s.upPct = 100;
+          if (inSummary) s.summaryUploadComplete = true;
+          s.upIndex = 0; s.upTotal = 0;
           this._setBrightMode("idle", true);
           console.log("[pumpfoil] upload worker done");
-          s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return;
+          s.upStatus = t("up.done") + " ✓"; if (inSummary) this.renderSummary(); else this.renderIdle(); this.applyButton(); return;
+        }
+        s.upIndex = i + 1;
+        if (i > 0) {
+          s.upPct = 0;
+          if (!inSummary) { this.applyButton(); this.renderIdle(); }
         }
         const sess = list[i];
         this.uploadSession(sess, onProg)
@@ -1687,6 +2734,7 @@ Page(
           })
           .catch((err) => {
             s.uploading = false;
+            s.upIndex = 0; s.upTotal = 0;
             this._setBrightMode("idle", true);
             console.log("[pumpfoil] upload worker failed " + ((err && err.message) || "?"));
             s.upStatus = t("common.error") + ": " + ((err && err.message) || "?"); this.rerender(); this.applyButton();
@@ -1701,11 +2749,13 @@ Page(
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearTimeout(s.pollTimer);
       if (s.hbTimer) clearInterval(s.hbTimer);
+      if (s.gpsAnimTimer) clearInterval(s.gpsAnimTimer);
       this._disableTouchLock();
       if (s.recording) { this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
       try { s.hrSensor && s.hrCallback && s.hrSensor.offCurrentChange(s.hrCallback); } catch (e) {}
+      try { s.batterySensor && s.batteryCallback && s.batterySensor.offChange(s.batteryCallback); } catch (e) {}
     },
   })
 );

@@ -1,31 +1,34 @@
 # Pumpfoil — Zepp OS (Amazfit) Recorder
 
-Dünner Recorder für Amazfit-Uhren (Zepp OS 3.0), analog zu Garmin/Apple/Wear: nimmt auf,
+Recorder für Amazfit-Uhren (Ziel: Zepp OS API 4.2, kompatibel ab 3.0), analog zu Garmin/Apple/Wear: nimmt auf,
 puffert, lädt über die Zepp-Handy-App zu **pumpfoil.org** hoch. Server macht die Analyse.
 
 **Pairing (reverse, wie alle Uhren):** die Uhr-App zeigt beim ersten Start einen Code →
 auf pumpfoil.org → Konto → „Uhr verbinden" eintragen → die Uhr pollt und wird verbunden.
 
-**Stand: v0 — GPS + Puls (untested draft).** Roher 25-Hz-Accel (für Pump/Gleit) ist bei Zepp OS
-für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `detection = gps_only`
-(Distanz/Speed/Läufe, **noch keine Pumps**). Accel nachrüsten, sobald die API bestätigt ist.
+**Stand: 1.0.6 Multi-User-Feldtest-Beta, auf T-Rex 3 validiert.** GPS, Puls und rohe
+Beschleunigung werden aufgezeichnet und vom Server akzeptiert. Lange reale Sessions,
+Upload-Wiederaufnahme, Touch-Sperre, physische Tasten, die Standardseiten, R3 und die drei
+Zepp-Herzfrequenzzonen-Modi wurden auf echter Hardware getestet.
 
 ## Ablauf (wie Garmin: Aufnahme primär, Verbindung/Upload im Hintergrund)
-- **GPS läuft ab dem Ruhe-Screen** (durchgehender 1-Hz-Sampler) → Status „GPS suche… / GPS ●" vor
-  dem Start; Puls parallel.
-- **Auto-Start** (wenn `autoStart` in der Config): ab ~7 km/h über einige Samples startet die
-  Aufnahme selbst. Manuell per START jederzeit.
+- **GPS läuft ab dem Ruhe-Screen** (durchgehender 1-Hz-Sampler) → WAIT während der Suche, PUMP bei
+  gültigem Fix. Puls läuft parallel, ist aber bewusst **nicht startblockierend**.
+- **Expliziter Start:** nur PUMP oder SELECT startet die Aufnahme. Die alte serverseitige
+  Auto-Start-Einstellung wird auf Zepp ignoriert, damit Autofahrt/Fahrrad keine Session erzeugt.
 - **Pairing im Hintergrund** (reverse): PAIR_INIT holt einen Code, Poll läuft nebenher; die Aufnahme
   ist **nie blockiert** — auch unverbunden aufnehmbar. Code wird im Ruhe-Screen angezeigt.
 - **Nach Stopp**: Session wird **persistent gepuffert** (`@zos/storage`, Queue-Key `pending`), dann
   Upload **falls verbunden**; sonst „Upload später" + **automatischer Nachhol-Upload** beim nächsten
-  App-Start/Verbindung (`flushPending`). Requests via `this.request` mit Retry (`call()`), der
-  verschluckte Antworten (Worker nach Spawn noch nicht bereit) erneut sendet.
+  App-Start/Verbindung (`flushPending`). Die Uhr überträgt ihre Blöcke seriell per ZML an eine
+  begrenzte Telefon-Queue; der Side Service schickt bis zu vier Blöcke parallel über WLAN/5G zum
+  Server. Erst nach bestätigtem `complete` löscht die Uhr ihre lokale Kopie.
 
 ## Aufbau (auf dem „Fetch Api"-Template, `@zeppos/zml`)
-- `page/index.js` — State-Machine (Ruhe/Aufnahme), **Lauf-Erkennung** (on-foil/off-foil, s. u.),
+- `page/index.js` — State-Machine (Ruhe/Aufnahme), GPS/Puls/Beschleunigung, **Lauf-Erkennung**
+  (on-foil/off-foil, s. u.),
   Rendering der **konfigurierten Datenfelder** und der **eigenen Layouts** (Feld-IDs wie
-  web/`fields.ts`/Garmin), Sampling, Auto-Start, Offline-Queue. Titel antippen: in Aufnahme =
+  web/`fields.ts`/Garmin), Sampling, expliziter Start und Offline-Queue. Titel antippen: in Aufnahme =
   Seite wechseln, in Ruhe = neuer Code (unverbunden) bzw. jetzt nachschicken (verbunden).
 - `page/index.[r|s].layout.js` — Widget-Geometrie rund/eckig.
 - `app-side/index.js` — App-Side-Service (Handy): `onRequest` → `fetch`. **Reverse-Pairing** wie
@@ -34,16 +37,34 @@ für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `dete
   eingelöst hat), dann Ingest-Upload (start/chunk/complete) mit `X-Device-Token`.
 - `setting/index.js` — App-Settings: nur Verbindungsstatus + „Trennen". **Keine** Code-Eingabe —
   der Code wird auf der Uhr angezeigt und im Web eingetragen (es gibt keine Web-„Code-erzeugen"-UI).
-- `app.json` — target `common` (rund 480 / eckig 390), Permissions GPS + Puls + local_storage.
+- `app.json` — target `common` (rund 480 / eckig 390), API 4.2, Permissions für
+  GPS/Puls/Beschleunigung/Workout/local_storage.
+
+### Bildschirmformen strikt getrennt
+
+`index.r.layout.js` und `index.s.layout.js` exportieren neben der Geometrie auch `IS_ROUND`.
+Dieser Wert kommt vom von Zeus gewählten Plattform-Bundle und darf **nicht** aus der Displaybreite
+abgeleitet werden: eine runde Uhr kann 416, 454, 466 oder 480 px breit sein.
+
+- **Rund:** die kuratierten H-/R-Seiten der T-Rex verwenden die 480×480-Designbasis und `px()`.
+  Canvas-Geometrie (Herzfrequenzring) wird aus `DW`, `DH` und `min(DW,DH)` berechnet, damit Zentrum
+  und Radien auch auf anderen runden Auflösungen stimmen.
+- **Eckig:** `_renderIdleSquare`, `_renderRecordingSquare` und `_renderSummarySquare` behalten das
+  konservative GitHub-Ausgangsrendering. Die Einstellungen verwenden `_buildFoilBtnsSquare`.
+- **Gemeinsam:** State-Machine, Sensoren, Lauf-Erkennung, Upload, Pairing, Tasten und Touch-Schutz.
+  Eine kosmetische Änderung darf deshalb nur im passenden Renderpfad erfolgen.
+
+Neue Sonderlayouts nach Auflösung nur über einen Zepp-Plattformqualifier (`sr: "w…"`) ergänzen,
+nicht über Modellnamen oder Vergleiche wie `DW >= 450`.
 
 Ingest-Vertrag: `docs/ingest-contract.md` (Path A: start → chunks[gps json] → complete).
 
-## Bauen / Testen (auf Jans Rechner — hier nicht baubar)
+## Bauen / Testen
 ```bash
 cd watch-zepp
-zeus dev            # Simulator (Balance 2), Live-Reload
-# Der Simulator speist KEIN GPS ein -> page/index.js hat DEV_FAKE_GPS=true (synthetische Spur),
-# damit Aufnahme+Upload testbar sind. Vor echter Uhr/Release auf false setzen!
+zeus dev            # Simulator, Live-Reload
+# Das T-Rex-3-Simulatorpaket bietet kein Geolocation-Mocking. Für reine UI-Tests darf
+# DEV_FAKE_GPS in page/index.js vorübergehend true sein; vor Uhr/Release IMMER false.
 zeus preview        # QR für echte Uhr (Zepp-App)
 # WICHTIG (Simulator): nach jedem Code-Change/`git pull` den Simulator KOMPLETT neu starten
 # (zeus dev beenden + Fenster schließen + neu). Hot-Reload spawnt den App-Side-Worker NICHT neu
@@ -51,13 +72,33 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 # onInit` steht. (Auf echter Uhr/echtem Handy kein Thema — dort spawnt der Worker beim App-Start.)
 ```
 
-## Noch im Simulator zu verifizieren (blind portiert)
-1. `@zos/sensor` **Geolocation** (`getStatus`/`getLatitude`/`getLongitude`/`getSpeed`) + **HeartRate**
-   (`getCurrent`) — Methodennamen/Verhalten auf Balance 2.
-2. `@zos/storage` **LocalStorage** auf der Uhr (Token/Claim persistieren) — App-Side ist stateless
-   und bekommt Token/Claim pro Request mitgeschickt (`@zos/settings` ist im App-Side NICHT auflösbar).
-3. `fetch`-Response-Shape (`response.status`, `response.body` String vs. JSON).
-4. Pairing-Flow: Code auf der Uhr sichtbar → auf pumpfoil.org/Konto eintragen → Uhr pollt → „verbunden ✓".
+## Auf T-Rex 3 für 1.0.6 verifiziert
+
+1. R3 schaltet bei erkannter Laufgeschwindigkeit automatisch nach vorn und bleibt während des
+   Laufs trotz kräftiger Armbewegungen sichtbar.
+2. Die fünf Herzfrequenz-Sektoren sind korrekt ausgerichtet und lesbar.
+3. `Workout.getUserHrZoneSettings()` wurde mit allen drei Kontoeinstellungen geprüft:
+   `type=0` = Herzfrequenzreserve, `type=1` = Maximalpuls und der in der öffentlichen Zepp-Doku noch
+   fehlende `type=2` = Lactatschwelle. Die sechs Grenzen stimmen jeweils mit der Zepp-App überein.
+4. Lange Sessions mit mehreren Läufen werden vollständig gespeichert, wiederaufgenommen,
+   hochgeladen und von pumpfoil.org einschließlich GPS, Puls und Beschleunigung analysiert.
+
+## Screenshots (T-Rex 3, 360×360)
+
+Die folgenden freigegebenen Dateien liegen in `screenshots/` und können direkt für GitHub, die
+Zepp-Store-Einreichung und die App-Dokumentation verwendet werden.
+
+| H1 — GPS-Suche | H1 — bereit | H2 — verbinden |
+|---|---|---|
+| ![H1 GPS search](screenshots/H1_1-WAIT.png) | ![H1 ready](screenshots/H1_2-READY.png) | ![H2 pairing](screenshots/H2_1-CONNECT.png) |
+
+| H2 — verbunden | H3 — Upload | H4 — Einstellungen |
+|---|---|---|
+| ![H2 connected](screenshots/H2_2-CONNECTED.png) | ![H3 upload](screenshots/H3.png) | ![H4 settings](screenshots/H4.png) |
+
+| R1 — Session | R2 — letzter Lauf | R3 — aktiver Lauf |
+|---|---|---|
+| ![R1 session](screenshots/R1.png) | ![R2 last run](screenshots/R2.png) | ![R3 active run](screenshots/R3.png) |
 
 ## Lauf-Erkennung auf der Uhr (on-foil / off-foil)
 
@@ -166,6 +207,9 @@ dauerhaft GPS halten darf. Zweite Option: **Workout Extension** als separate App
 die 6 Geräte oben voraus, Balance 2 müsste Amazfit erst nachziehen).
 
 ## TODO
+- Die kuratierten H-/R-Bildschirme der T-Rex auf die eigenständigen Layouts für rechteckige
+  Zepp-Uhren übertragen. Bis dahin bleibt dort bewusst das konservative GitHub-Ausgangsrendering
+  aktiv; die runden T-Rex-Layouts dürfen nicht einfach auf rechteckige Displays skaliert werden.
 - GPS und Metadaten der Offline-Queue liegen weiterhin in `@zos/storage` (JSON). Für sehr lange
   Sessions sollte auch dieser Teil auf `@zos/fs` umgestellt werden — LocalStorage-Größe ist begrenzt.
 - Diagnose-`console.log`/`logger.log` (PAIR_INIT/POST-Status/Upload) vor Release ausdünnen.

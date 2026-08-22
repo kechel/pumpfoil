@@ -17,12 +17,13 @@
     "device:os.local_storage",
     "device:os.geolocation",
     "device:os.accelerometer",
-    "data:user.hd.heart_rate"
+    "data:user.hd.heart_rate",
+    "data:user.hd.workout"
   ],
   "runtime": {
     "apiVersion": {
       "compatible": "3.0.0",
-      "target": "3.6.0",
+      "target": "4.2.0",
       "minVersion": "3.0"
     }
   },
