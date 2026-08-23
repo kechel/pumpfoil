@@ -382,7 +382,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔴 Neuer Nutzer findet keinen Weg zur Aufnahme (Meldung 23.08. aus der Android-App).** Wortlaut:
+- **⏸️ ZURUECKGESTELLT — neuer Nutzer findet keinen Weg zur Aufnahme (Meldung 23.08. aus der Android-App).** Wortlaut:
   „Is there a START button for manual recording? I'm a beginner and can only 10-20 pumps. I used the
   app today for the first time and set it to auto-start recording, but none of my session was
   recorded." Nachgesehen (rein lesend, DB + Zugriffslog):
@@ -409,14 +409,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Handy-Recorder einschalten kann.
   **Vorschlag:** leerer Zustand mit Anleitung (welche Uhr? Uhr-App installieren/pairen · oder
   Handy-Aufnahme einschalten) + am Auto-Start-Schalter dazusagen, dass er nur fuer eine gekoppelte
-  Uhr gilt. Zuerst aber beim Nutzer nachfragen, welche Uhr er hat — davon haengt ab, was er braucht.
-  Antwort an ihn: noch offen, Entwurf liegt bereit.
+  Uhr gilt.
+  **ENTSCHEIDUNG Jan (23.08.): nichts aendern, abwarten** — „die Uhr ist doch gut so, ein einziger
+  Nutzer der etwas nicht verstanden hat". Also KEINE Umbauten an leerem Zustand, Auto-Start-Text
+  oder Aufnahme-Einstieg auf Verdacht. Der Befund bleibt hier als BELEG stehen: kommt eine zweite
+  Meldung derselben Art, ist die Ursache schon nachgewiesen und die Loesung skizziert. Wer hier
+  „🔴" erwartet, hat eine alte Fassung gelesen.
+  Antwort an den Nutzer ist raus (23.08., 1:1-Chat aus meinem Konto, Nachricht 1224): nichts
+  verloren, Rueckfrage welche Uhr, dann die drei Wege (Wear-App AUF der Uhr installieren · Garmin
+  ueber Connect IQ · sonst „Record on Phone" im Profil). Seine Antwort steht noch aus.
 
-- **Handy-Aufnahmen laden nur hoch, wenn der Aufnahme-Bildschirm geoeffnet wird** (`Recorder.drain`
+- **⏸️ Handy-Aufnahmen laden nur hoch, wenn der Aufnahme-Bildschirm geoeffnet wird** (`Recorder.drain`
   wird ausschliesslich in `RecordScreen` aufgerufen). Wer aufnimmt, die App schliesst und danach nur
   Startseite/Community oeffnet, hat unsichtbar wartende Daten. Beim Uhr-Upload haben wir dieselbe
   Falle mit einem deutlichen Hinweis entschaerft („App offen lassen"), hier fehlt beides: Drain beim
-  App-Start und ein Hinweis auf wartende Aufnahmen. Aufgefallen bei der Meldung oben.
+  App-Start und ein Hinweis auf wartende Aufnahmen. Aufgefallen bei der Meldung oben — und mit ihr
+  zurueckgestellt (Jan, 23.08.: erst abwarten). Anders als der Punkt darueber ist das aber kein
+  Verstaendnisproblem, sondern eine echte Falle im Code; wenn je jemand „meine Handy-Aufnahme fehlt"
+  meldet, hier zuerst nachsehen.
 
 - **🟢 Session als GPX oder FIT herunterladen (21.08., Jans Wunsch).** Zwei Knoepfe in der
   Aktionszeile der Session-Detailseite, nur bei EIGENEN Sessions (`_owned` -> fremde geben 404,
