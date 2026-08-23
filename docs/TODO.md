@@ -382,6 +382,42 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 Neuer Nutzer findet keinen Weg zur Aufnahme (Meldung 23.08. aus der Android-App).** Wortlaut:
+  „Is there a START button for manual recording? I'm a beginner and can only 10-20 pumps. I used the
+  app today for the first time and set it to auto-start recording, but none of my session was
+  recorded." Nachgesehen (rein lesend, DB + Zugriffslog):
+  - **Null Sessions, null Ingest-Aufrufe.** Nichts wurde aussortiert oder verworfen — es ist nie
+    etwas angekommen. Serverseitig sichtbar sind nur zwei Browse-Sitzungen (10 min am ersten Abend,
+    ~70 min am zweiten), beide aus der Handy-App.
+  - **Sein einziges „Geraet" ist ein Wear-Token, das die Handy-App SELBST erzeugt hat**
+    (`WatchSync.pushPairing` mintet bei jedem App-Start mit Login ein Token, auch wenn gar keine Uhr
+    da ist — `MainActivity.onCreate`). `last_seen_at`, `platform` und `app_version` sind NULL, unsere
+    Wear-App hat also nie mit dem Server gesprochen. Ein Geraete-Eintrag beweist damit NICHT, dass
+    der Nutzer eine Uhr hat — bei Support-Faellen nicht darauf verlassen.
+  - Er war gruendlich in den Einstellungen (Foil, Gewicht, Empfindlichkeit auf „attempts", ppm) und
+    hat zweimal „meine Uhren" sowie Polar/COROS/Suunto geoeffnet — er SUCHT den Aufnahmeweg.
+  **Die drei Luecken, die das erzeugen:**
+  1. **Kein Start-Knopf ohne Extra-Schalter.** „Record on Phone" haengt am lokalen Toggle
+     `phone_rec_enabled` (Profil, Default AUS) — ohne ihn hat die Startseite keinen Aufnahme-Knopf.
+     Genau die Frage des Nutzers.
+  2. **„Auto-Start" steht in den UHR-Einstellungen** (`settings.auto_start`, Default AN) und liest
+     sich wie „die App nimmt jetzt auf". Ohne Uhr-App passiert nichts. Auf der Wear-Uhr gilt
+     zusaetzlich: nur waehrend der Startbildschirm der Uhr-App im Vordergrund ist, 10 s Vorlauf,
+     dann 4 s durchgehend ≥ 10 km/h — fuer einen Anfaenger mit 10-20 Pumps womoeglich nie erreicht.
+  3. **Leerer Zustand sagt nichts.** Bei null Sessions steht nur „Keine Sessions"
+     (`sessions.empty`) — kein Hinweis, dass man dafuer die Uhr-App braucht oder den
+     Handy-Recorder einschalten kann.
+  **Vorschlag:** leerer Zustand mit Anleitung (welche Uhr? Uhr-App installieren/pairen · oder
+  Handy-Aufnahme einschalten) + am Auto-Start-Schalter dazusagen, dass er nur fuer eine gekoppelte
+  Uhr gilt. Zuerst aber beim Nutzer nachfragen, welche Uhr er hat — davon haengt ab, was er braucht.
+  Antwort an ihn: noch offen, Entwurf liegt bereit.
+
+- **Handy-Aufnahmen laden nur hoch, wenn der Aufnahme-Bildschirm geoeffnet wird** (`Recorder.drain`
+  wird ausschliesslich in `RecordScreen` aufgerufen). Wer aufnimmt, die App schliesst und danach nur
+  Startseite/Community oeffnet, hat unsichtbar wartende Daten. Beim Uhr-Upload haben wir dieselbe
+  Falle mit einem deutlichen Hinweis entschaerft („App offen lassen"), hier fehlt beides: Drain beim
+  App-Start und ein Hinweis auf wartende Aufnahmen. Aufgefallen bei der Meldung oben.
+
 - **🟢 Session als GPX oder FIT herunterladen (21.08., Jans Wunsch).** Zwei Knoepfe in der
   Aktionszeile der Session-Detailseite, nur bei EIGENEN Sessions (`_owned` -> fremde geben 404,
   auch fuer Admins; ohne Token 401). Server: `server/app/export_track.py` (neu) +
