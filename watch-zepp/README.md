@@ -6,10 +6,11 @@ puffert, lädt über die Zepp-Handy-App zu **pumpfoil.org** hoch. Server macht d
 **Pairing (reverse, wie alle Uhren):** die Uhr-App zeigt beim ersten Start einen Code →
 auf pumpfoil.org → Konto → „Uhr verbinden" eintragen → die Uhr pollt und wird verbunden.
 
-**Stand: 1.0.6 Multi-User-Feldtest-Beta, auf T-Rex 3 validiert.** GPS, Puls und rohe
-Beschleunigung werden aufgezeichnet und vom Server akzeptiert. Lange reale Sessions,
-Upload-Wiederaufnahme, Touch-Sperre, physische Tasten, die Standardseiten, R3 und die drei
-Zepp-Herzfrequenzzonen-Modi wurden auf echter Hardware getestet.
+**Stand: 1.0.6 Multi-User-Feldtest-Kandidat.** GPS, Puls und rohe Beschleunigung werden
+aufgezeichnet und vom Server akzeptiert. Lange reale Sessions, Upload-Wiederaufnahme,
+Touch-Sperre, physische Tasten und die drei Zepp-Herzfrequenzzonen-Modi wurden auf echter Hardware
+getestet. Die Korrekturen für den doppelten R2 und die auf Zepp blockierte Live-Lauferkennung
+brauchen vor der breiten Verteilung noch einen abschließenden T-Rex-3-Test.
 
 ## Ablauf (wie Garmin: Aufnahme primär, Verbindung/Upload im Hintergrund)
 - **GPS läuft ab dem Ruhe-Screen** (durchgehender 1-Hz-Sampler) → WAIT während der Suche, PUMP bei
@@ -72,15 +73,16 @@ zeus preview        # QR für echte Uhr (Zepp-App)
 # onInit` steht. (Auf echter Uhr/echtem Handy kein Thema — dort spawnt der Worker beim App-Start.)
 ```
 
-## Auf T-Rex 3 für 1.0.6 verifiziert
+## Auf T-Rex 3 für 1.0.6 zu verifizieren
 
-1. R3 schaltet bei erkannter Laufgeschwindigkeit automatisch nach vorn und bleibt während des
+1. Der Aufnahme-Ring enthält genau R1, R2 und R3 — ohne doppelten R2.
+2. R3 schaltet bei erkannter Laufgeschwindigkeit automatisch nach vorn und bleibt während des
    Laufs trotz kräftiger Armbewegungen sichtbar.
-2. Die fünf Herzfrequenz-Sektoren sind korrekt ausgerichtet und lesbar.
-3. `Workout.getUserHrZoneSettings()` wurde mit allen drei Kontoeinstellungen geprüft:
+3. Die fünf Herzfrequenz-Sektoren sind korrekt ausgerichtet und lesbar.
+4. `Workout.getUserHrZoneSettings()` wurde mit allen drei Kontoeinstellungen geprüft:
    `type=0` = Herzfrequenzreserve, `type=1` = Maximalpuls und der in der öffentlichen Zepp-Doku noch
    fehlende `type=2` = Lactatschwelle. Die sechs Grenzen stimmen jeweils mit der Zepp-App überein.
-4. Lange Sessions mit mehreren Läufen werden vollständig gespeichert, wiederaufgenommen,
+5. Lange Sessions mit mehreren Läufen werden vollständig gespeichert, wiederaufgenommen,
    hochgeladen und von pumpfoil.org einschließlich GPS, Puls und Beschleunigung analysiert.
 
 ## Screenshots (T-Rex 3, 360×360)

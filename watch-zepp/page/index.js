@@ -64,7 +64,7 @@ const RUN_ENTER_DWELL = 4, RUN_EXIT_DWELL = 3, RUN_REARM_COOLDOWN_MS = 25000;
 // can therefore look fast while the watch stays in the same small area. Confirm movement using
 // net displacement over five seconds: real foil travel progresses; stationary jitter mostly
 // cancels out. Raw coordinates/speeds remain untouched in the uploaded session.
-const MOTION_WINDOW_MS = 5000, RUN_MOTION_FLOOR_MPS = 2.0, LIVE_DISTANCE_FLOOR_MPS = 1.0;
+const MOTION_WINDOW_MS = 5000, LIVE_DISTANCE_FLOOR_MPS = 1.0;
 // Entschieden wird auf der GEGLÄTTETEN Geschwindigkeit, nie auf dem Rohwert: Zepp liefert nur den
 // aktuellen Wert (`s.cur`), ein einzelner Doppler-Ausreißer würde sonst einen Lauf starten. 3 s
 // gleitender MEDIAN — dieselbe Fensterbreite und dasselbe Verfahren wie der Server
@@ -1865,20 +1865,19 @@ Page(
       const h = v.length >> 1;
       s.sp3 = (v.length % 2) ? v[h] : (v[h - 1] + v[h]) / 2;
     },
-    // State machine from SessionRecorder.mc / Recorder.kt, with Zepp's additional net-movement
-    // gate because this API exposes coordinates but no native GNSS speed or accuracy.
+    // State machine from SessionRecorder.mc / Recorder.kt. Keep the run thresholds identical on
+    // every platform: the separate net-movement filter is only for Zepp's displayed distance.
+    // Using that filter as a second run gate caused real movement to increase session distance
+    // while preventing the run state from ever starting.
     // tMs = elapsed recording time (not wall-clock), v3 = smoothed m/s, vInst = raw value.
     // Gibt true zurück, wenn in diesem Tick ein Lauf zu Ende gegangen ist.
-    _updateRun(v3, vInst, motionSpeed, dist, tMs) {
+    _updateRun(v3, vInst, dist, tMs) {
       const s = this.state;
       if (!s.foiling) {
         if (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) {
           s.enterStreak = 0;
         } else {
-          // A stationary watch can still produce fast point-to-point GPS wander. Require coherent
-          // net movement as an additional reality check, matching the server's position floor.
-          s.enterStreak = (v3 >= RUN_ENTER_MPS && motionSpeed >= RUN_MOTION_FLOOR_MPS)
-            ? s.enterStreak + 1 : 0;
+          s.enterStreak = v3 >= RUN_ENTER_MPS ? s.enterStreak + 1 : 0;
           if (s.enterStreak >= RUN_ENTER_DWELL) {
             s.foiling = true; s.exitStreak = 0;
             // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
@@ -1892,8 +1891,7 @@ Page(
       } else {
         if (vInst > s.runMaxMps) s.runMaxMps = vInst;
         if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
-        const moving = v3 >= RUN_EXIT_MPS && motionSpeed >= RUN_MOTION_FLOOR_MPS;
-        s.exitStreak = moving ? 0 : s.exitStreak + 1;
+        s.exitStreak = v3 >= RUN_EXIT_MPS ? 0 : s.exitStreak + 1;
         if (s.exitStreak >= RUN_EXIT_DWELL) {
           s.foiling = false; s.enterStreak = 0;
           // Ende auf den ersten langsamen Tick zurückdatieren; Kennzahlen festhalten.
@@ -1932,9 +1930,18 @@ Page(
     _factoryOnFoilSet(set) {
       return !!(set && set.length === 1 && this._isFactoryPrimary(set[0]));
     },
+    _isFactoryLastRunEntry(e) {
+      return !!(e && (e[0] === 12 || (e[0] === 0 && (
+        (e[1] === 12 && e[2] === 17 && e[3] === 16)
+        || (e[1] === 17 && e[2] === 16 && e[3] === 0)
+      ))));
+    },
     _factoryOffFoilSet(set) {
       const e = set && set.length === 1 ? set[0] : null;
-      return !!(e && e[0] === 0 && e[1] === 12 && e[2] === 17 && e[3] === 16);
+      // The server's historical default is clock/last-distance/last-time. Versions of this app
+      // that introduced the vertical RUN column already stored the approved replacement as
+      // last-distance/last-time/empty. Both are the factory R2, not two user-created pages.
+      return this._isFactoryLastRunEntry(e);
     },
     _isCuratedRoundRing(set) {
       return !!(IS_ROUND && set && set.length === 2
@@ -1980,9 +1987,21 @@ Page(
       // consecutive "last run" screens. Remove legacy internal detail/session pages everywhere,
       // and keep the server-provided classic last-run page in preference to duplicate [12].
       out = out.filter((entry) => entry && entry[0] !== 11 && entry[0] !== 13);
+      // Marker 12 and the approved classic tuple render the same R2. Normalize before deduping so
+      // a mixed cached/server configuration cannot expose R2 twice.
+      if (IS_ROUND) {
+        out = out.map((entry) => this._isFactoryLastRunEntry(entry) ? [0, 17, 16, 0] : entry);
+      }
       const hasClassicLastRun = out.some((entry) => entry && entry[0] === 0
         && [entry[1], entry[2], entry[3]].some((id) => id >= 16 && id <= 21));
       if (hasClassicLastRun) out = out.filter((entry) => entry && entry[0] !== 12);
+      const seen = {};
+      out = out.filter((entry) => {
+        const id = JSON.stringify(entry);
+        if (seen[id]) return false;
+        seen[id] = true;
+        return true;
+      });
       if (!out.length) out = [[0, 1, 0, 0]];
       s._ringCache = out; s._ringKey = key;
       return out;
@@ -2447,18 +2466,23 @@ Page(
       // Die ROHDATEN bleiben unberuehrt: hochgeladen wird weiter der abgeleitete Wert, der Server
       // hat seine eigenen Filter und sieht die Positionen ohnehin. Das Gate wirkt nur auf das,
       // was die UHR anzeigt und entscheidet — dieselbe Trennung wie bei Garmin.
-      let speedRaw = 0, jump = false, stepM = 0;
+      let speedRaw = 0, speedFresh = false, jump = false, stepM = 0;
       if (fix && !DEV_FAKE_GPS) {
         const p = s.geoSpeedPrev;
-        if (p) {
+        const changed = !p || lat !== p[0] || lon !== p[1];
+        if (p && changed) {
           const dt = (sampleNow - p[2]) / 1000;
           if (dt > 0) {
             stepM = distM(p[0], p[1], lat, lon);
             speedRaw = stepM / dt;
             speed = speedRaw;
+            speedFresh = true;
           }
         }
-        s.geoSpeedPrev = [lat, lon, sampleNow];
+        // Some Zepp firmwares repeat one coordinate for several 1 Hz app ticks. Preserve the
+        // timestamp of the last distinct coordinate so the next derived speed uses the real GPS
+        // update interval; repeated points must not inject artificial zeroes into the 3 s median.
+        if (changed) s.geoSpeedPrev = [lat, lon, sampleNow];
       } else if (!fix) {
         s.geoSpeedPrev = null;
       }
@@ -2504,8 +2528,8 @@ Page(
           if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
         }
         // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
-        this._pushSpeed(s.cur, el, fix);
-        this._updateRun(s.sp3, s.cur, s.motionSpeed, s.dist, el);
+        this._pushSpeed(s.cur, el, fix && (DEV_FAKE_GPS || speedFresh));
+        this._updateRun(s.sp3, s.cur, s.dist, el);
         // Zustandswechsel: Ring des neuen Zustands von vorne (erste Datenseite = 1, Seite 0 ist der
         // Stopp-Screen) + eine kurze Vibration als Rückmeldung — wie RecordView._vibeSwitch bzw.
         // die Wear-Flanke. Es gibt auf Zepp nur den einen Vibrator (auch fürs Alarm-Signal).

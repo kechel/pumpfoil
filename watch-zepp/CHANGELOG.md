@@ -4,9 +4,10 @@ This changelog covers the Zepp OS watch app only.
 
 ## 1.0.6 — 2026-08-22
 
-This version is the first Zepp OS multi-user field-test beta. Its complete T-Rex 3 interface,
-recording flow, sensor capture, recovery and upload path have been validated on a physical watch.
-The approved 360×360 store/repository screenshots are included under `screenshots/`.
+This version is the Zepp OS multi-user field-test candidate. Its T-Rex 3 interface, sensor capture,
+recovery and upload path have been exercised on a physical watch. The approved 360×360
+store/repository screenshots are included under `screenshots/`; the final recording-state
+regression fixes below still require one physical-watch retest before wider distribution.
 
 ### Zepp OS platform
 
@@ -25,6 +26,14 @@ The approved 360×360 store/repository screenshots are included under `screensho
 
 ### Recording safety
 
+- Recognize both historical and current factory last-run page tuples, normalize the legacy R2
+  marker and deduplicate identical ring entries. This fixes the real-device R1–R2–R2–R3 sequence
+  and restores the intended R1–R2–R3 navigation.
+- Restore the proven Garmin/Wear run-state thresholds without Zepp's additional 2 m/s net-motion
+  gate, which could allow session distance to grow while permanently blocking run detection.
+- Ignore repeated identical Zepp coordinates when building the three-second speed median and keep
+  the timestamp of the last distinct GPS update, preventing artificial zero-speed samples from
+  suppressing a real run.
 - Keep the screen continuously lit during a detected run by applying a 60-second lighting window
   immediately on entry to R3 and refreshing it every ten seconds until the run ends.
 - Allow recording to start as soon as GPS is ready even when heart rate is unavailable; heart-rate

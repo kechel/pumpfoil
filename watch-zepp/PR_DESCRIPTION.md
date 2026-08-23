@@ -47,16 +47,27 @@ not modified.
   maximum (`type=1`) and lactate threshold (`type=2`).
 - Synthetic-GPS simulator mode is disabled in the proposed watch build.
 
+## Regression fixes awaiting T-Rex 3 retest
+
+- The factory off-foil page can arrive as either the historical `[12,17,16]` tuple or the current
+  `[17,16,0]` tuple. Treat both as the same curated R2, normalize legacy marker `12` and deduplicate
+  ring entries. This corrects the observed R1–R2–R2–R3 navigation.
+- Remove Zepp's extra 2 m/s net-motion condition from the Garmin/Wear run-state machine. It could
+  let the displayed session distance increase while preventing the run state from starting.
+- Do not add repeated identical coordinates as zero-speed samples to the three-second median;
+  derive speed over the actual interval between distinct Zepp GPS updates.
+
 ## Final T-Rex 3 field validation
 
 - [x] Record a real multi-run pumping session.
-- [x] Confirm R3 opens automatically when a run is detected.
-- [x] Confirm R3 remains lit during strong pumping wrist motion.
-- [x] Confirm R3 returns to zero time/distance between runs while R2 retains the completed run.
+- [ ] Confirm the recording ring contains exactly R1, R2 and R3.
+- [ ] Confirm R3 opens automatically when a run is detected.
+- [ ] Confirm R3 remains lit during strong pumping wrist motion.
+- [ ] Confirm R3 returns to zero time/distance between runs while R2 retains the completed run.
 - [x] Confirm touch lock, UP/DOWN navigation and long-SELECT stop throughout a wet session.
-- [x] Confirm the full session uploads and pumpfoil.org detects runs, GPS, BPM and acceleration.
+- [ ] Confirm the full corrected session uploads and pumpfoil.org detects runs, GPS, BPM and acceleration.
 
-Version 1.0.6 is now ready for a wider multi-user field-test phase.
+Keep this pull request as a draft until the corrected run-state path passes the physical-watch test.
 
 ## Known limitation / follow-up
 
