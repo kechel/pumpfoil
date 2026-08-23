@@ -9,6 +9,88 @@ import { BaseSideService } from "@zeppos/zml/base-side";
 
 const BASE = "https://pumpfoil.org";
 
+// Device -> phone and phone -> server are two independent transports.  The old implementation
+// awaited the server response before acknowledging every BLE chunk, which serialized hundreds of
+// BLE + HTTP round trips for a long session.  Keep a small bounded queue on the phone instead:
+// acknowledge a chunk once it has entered this queue, upload several chunks in parallel using the
+// phone network, and only acknowledge COMPLETE after every server request has succeeded.
+//
+// The watch deliberately keeps its persistent copy until COMPLETE succeeds.  If the Side Service,
+// Zepp or the network disappears, the attempt fails and the whole idempotent session is retried.
+const UPLOAD_PARALLEL = 4;
+const UPLOAD_BUFFER = 16;
+const uploadSessions = Object.create(null);
+
+function newUploadState(uuid) {
+  return uploadSessions[uuid] = {
+    uuid, queue: [], running: 0, failure: null, capacityWaiters: [], drainWaiters: [],
+    accepted: 0, uploaded: 0, maxOutstanding: 0, startedAt: Date.now(),
+  };
+}
+
+function outstanding(s) { return s.queue.length + s.running; }
+
+function wakeUploadWaiters(s) {
+  if (outstanding(s) < UPLOAD_BUFFER && s.capacityWaiters.length) {
+    const waiters = s.capacityWaiters.splice(0);
+    waiters.forEach((w) => w());
+  }
+  if (outstanding(s) === 0 && s.drainWaiters.length) {
+    const waiters = s.drainWaiters.splice(0);
+    waiters.forEach(({ resolve, reject }) => s.failure ? reject(s.failure) : resolve());
+  }
+}
+
+function pumpUpload(s) {
+  while (s.running < UPLOAD_PARALLEL && s.queue.length) {
+    const item = s.queue.shift();
+    s.running++;
+    authPost(item.token, `/api/ingest/session/${s.uuid}/chunk`, item.body)
+      .then(() => { s.uploaded++; })
+      .catch((err) => { if (!s.failure) s.failure = err; })
+      .then(() => {
+        s.running--;
+        wakeUploadWaiters(s);
+        pumpUpload(s);
+      });
+  }
+  wakeUploadWaiters(s);
+}
+
+function enqueueUpload(req) {
+  const s = uploadSessions[req.session_uuid] || newUploadState(req.session_uuid);
+  if (s.failure) return Promise.reject(s.failure);
+  s.queue.push({
+    token: req.token,
+    body: { index: req.index, kind: req.kind, encoding: req.encoding,
+      t0_ms: req.t0_ms || 0,
+      count: req.count != null ? req.count : ((req.data && req.data.length) || 0),
+      data: req.data },
+  });
+  s.accepted++;
+  s.maxOutstanding = Math.max(s.maxOutstanding, outstanding(s));
+  pumpUpload(s);
+  if (outstanding(s) < UPLOAD_BUFFER) return Promise.resolve();
+  // Back-pressure: do not let a fast BLE transfer retain an unbounded number of base64 payloads.
+  return new Promise((resolve) => s.capacityWaiters.push(resolve));
+}
+
+function drainUpload(uuid) {
+  const s = uploadSessions[uuid];
+  if (!s) return Promise.resolve();
+  if (outstanding(s) === 0) return s.failure ? Promise.reject(s.failure) : Promise.resolve();
+  return new Promise((resolve, reject) => s.drainWaiters.push({ resolve, reject }));
+}
+
+async function resetUpload(uuid) {
+  const previous = uploadSessions[uuid];
+  if (previous) {
+    try { await drainUpload(uuid); } catch (e) {}
+    delete uploadSessions[uuid];
+  }
+  newUploadState(uuid);
+}
+
 function iso(ms) { return new Date(ms).toISOString(); }
 function parse(r) { return typeof r.body === "string" ? JSON.parse(r.body) : r.body; }
 
@@ -85,22 +167,35 @@ async function handle(req) {
   // --- Ingest-Upload (Token pro Request) ---
   if (req.method === "START") {
     const m = req.meta;
+    await resetUpload(m.session_uuid);
     // Diese Whitelist ist die einzige Stelle, die den Body baut -> neue Felder muessen hier
     // durchgelassen werden, sonst kommen sie beim Server nie an (app_version = App-Version
     // der Uhr-App, foil_id = gewaehltes Foil).
     const body = { session_uuid: m.session_uuid, started_at: iso(m.started_at_ms), sport: m.sport, gps_hz: m.gps_hz, accel_hz: m.accel_hz, accel_scale: m.accel_scale };
     if (m.app_version) body.app_version = m.app_version;
     if (m.foil_id != null) body.foil_id = m.foil_id;
+    if (m.expected_chunks != null) body.expected_chunks = m.expected_chunks;
     const r = await authPost(req.token, "/api/ingest/session", body);
-    return { ok: true, http: r.status, url: BASE + "/api/ingest/session", body: (typeof r.body === "string" ? r.body.slice(0, 50) : JSON.stringify(r.body).slice(0, 50)) };
+    const parsed = parse(r) || {};
+    return { ok: true, http: r.status, received_chunks: parsed.received_chunks || [] };
   }
   if (req.method === "CHUNK") {
-    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: req.count != null ? req.count : ((req.data && req.data.length) || 0), data: req.data });
-    return { ok: true, index: req.index, http: r.status };
+    await enqueueUpload(req);
+    return { ok: true, index: req.index, queued: true };
   }
   if (req.method === "COMPLETE") {
-    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks });
-    return { ok: true, http: r.status };
+    try {
+      await drainUpload(req.session_uuid);
+      const stats = uploadSessions[req.session_uuid];
+      const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks });
+      if (stats) console.log("[pumpfoil] upload pipeline complete chunks=" + stats.accepted
+        + " max_buffer=" + stats.maxOutstanding + " ms=" + (Date.now() - stats.startedAt));
+      delete uploadSessions[req.session_uuid];
+      return { ok: true, http: r.status };
+    } catch (err) {
+      delete uploadSessions[req.session_uuid];
+      throw err;
+    }
   }
   return { error: "unknown method" };
 }
@@ -111,7 +206,9 @@ AppSideService(
     onRun() { console.log("[pumpfoil] app-side onRun"); },
     onDestroy() {},
     onRequest(req, res) {
-      console.log("[pumpfoil] onRequest raw=" + JSON.stringify(req));
+      // Never stringify upload payloads here: acceleration chunks contain large base64 strings and
+      // logging them needlessly costs CPU and memory in the Zepp phone process.
+      console.log("[pumpfoil] onRequest method=" + (req && req.method));
       handle(req).then((out) => {
         console.log("[pumpfoil] -> res " + JSON.stringify(out));
         res(null, out);

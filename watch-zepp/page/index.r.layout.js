@@ -3,6 +3,7 @@ import { px } from "@zos/utils";
 import { DEVICE_WIDTH } from "../utils/config/device";
 
 const W = DEVICE_WIDTH;
+export const IS_ROUND = true;
 const c = (y, h, color, size) => ({
   x: 0, y: px(y), w: W, h: px(h), color, text_size: px(size),
   align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
@@ -33,4 +34,11 @@ export const BUTTON = {
   x: (W - px(280)) / 2, y: px(366), w: px(280), h: px(70), radius: px(35),
   normal_color: 0x22c55e, press_color: 0x16a34a, color: 0x052e16, text_size: px(32),
   text: "START",
+};
+
+// Start page inspired by Amazfit's native sport launcher: logo on the left, main action on the right.
+export const START_BUTTON = {
+  x: px(230), y: px(226), w: px(180), h: px(128), radius: px(38),
+  normal_color: 0xdc2626, press_color: 0xb91c1c, color: 0xffffff, text_size: px(48),
+  text: "WAIT",
 };

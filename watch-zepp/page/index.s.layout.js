@@ -3,6 +3,7 @@ import { px } from "@zos/utils";
 import { DEVICE_WIDTH } from "../utils/config/device";
 
 const W = DEVICE_WIDTH;
+export const IS_ROUND = false;
 const c = (y, h, color, size) => ({
   x: 0, y: px(y), w: W, h: px(h), color, text_size: px(size),
   align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
@@ -30,4 +31,10 @@ export const BUTTON = {
   x: (W - px(320)) / 2, y: px(354), w: px(320), h: px(74), radius: px(37),
   normal_color: 0x22c55e, press_color: 0x16a34a, color: 0x052e16, text_size: px(34),
   text: "START",
+};
+
+export const START_BUTTON = {
+  x: px(198), y: px(204), w: px(168), h: px(126), radius: px(36),
+  normal_color: 0xdc2626, press_color: 0xb91c1c, color: 0xffffff, text_size: px(46),
+  text: "WAIT",
 };
