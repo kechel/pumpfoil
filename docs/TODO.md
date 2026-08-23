@@ -351,6 +351,18 @@ fuer TestFlight; Play genauso einen versionCode) kostet eine Runde.
 
 Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der Klick im Store.
 
+**Beobachtung Wear OS (23.08.):** live ist immer noch **1.2.20** — Code vom 05.08., im Store seit
+09.08. Der Wear-Track ist damit faktisch seit dem **10.08.** in der Pruefung: damals ging 1.2.21/1031
+raus, ersetzt am 18.08. durch 1.2.23/1033 (dazwischen 1.2.22). Ein neuer Upload auf denselben Track
+ERSETZT die laufende Pruefung, die Wartezeit beginnt also von vorne. Folge: solange wir waehrend der
+Pruefung weiter bumpen, bleiben die Nutzer auf 1.2.20 stehen. **Regel daraus: einen Wear-Build in der
+Pruefung nur ersetzen, wenn der Ersatz einen ECHTEN Fehler behebt** — Verbesserungen sammeln und in
+die naechste Runde nehmen. Wear-Freigaben dauern ohnehin laenger als Phone (eigene Pruefung).
+Was die Nutzer dadurch noch nicht haben: Token-Heilung bei Config-401 (1.2.21), Puls aktiv ueber
+Health Services (1.2.22), Datenfeld 21 „Max-Puls letzter Lauf", Norwegisch.
+Nicht betroffen: das automatische Pairing per Data Layer steckt schon in 1.2.20 — ein neuer Nutzer
+kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in der Inbox).
+
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
 | 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ✅ **FREIGEGEBEN**, Mail 19.08. 06:26 („ready for distribution"). LIVE gegengeprueft ueber itunes.apple.com/lookup in de/us/nl/no/fi → 1.1.24, ausgeliefert seit 2026-08-18T23:51:11Z. `appmeta ios` + `apple` gesetzt, Changelog geschrieben. Uebermittlung `257c320a-…`; ersetzte die 15:44er unter der falschen Versions-Zeile „1.0.24" |
