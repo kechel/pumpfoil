@@ -11,6 +11,8 @@ regression fixes below still require one physical-watch retest before wider dist
 
 ### Zepp OS platform
 
+- Increment the internal 1.0.6 build code to 10 so Zepp installs the corrected field-test package
+  over the earlier build without confusing both artifacts in preview/store caches.
 - Target Zepp OS API 4.2 and read the user's five configured heart-rate zones through
   `Workout.getUserHrZoneSettings()`. Log the returned type, resting heart rate and six BPM bounds
   so maximum-HR, reserve-HR and lactate modes can be verified on a real T-Rex 3. Real-device tests
