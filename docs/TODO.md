@@ -480,6 +480,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Problem nicht: dort stehen im Ruhezustand zwei Knoepfe (Bearbeiten, Foto hinzufuegen),
      Loeschen sitzt im Bearbeiten-Dialog und die Uebernahme aus Session-Fotos gibt es dort nicht.
      Das Loeschkreuz am Foto bleibt in den Apps sichtbar, weil es dort der einzige Weg ist.
+  6. **Bearbeiten-Knopf oben rechts, links vom Herzchen** (Jan, 24.08., aus Platzgruenden): im
+     eigenen Abschnitt sitzt er als Symbol in der Kopfzeile, die Knopfzeile unter dem Text
+     entfaellt damit ganz. Ohne eigene Beschreibung gibt es keine Kopfzeile — dort bleibt der
+     beschriftete Knopf unter dem Anstoss-Text stehen.
   **Offen:** Versionen NICHT gebumpt — Phone 1.1.23 und Wear 1.2.23 liegen in der Play-Pruefung, das
   Feature geht in die naechste Runde (Regel: einen Build in der Pruefung nur ersetzen, wenn er einen
   echten Fehler behebt). Uebersetzungen: de/en gepflegt, fr/it/es sinngemaess, Rest faellt auf

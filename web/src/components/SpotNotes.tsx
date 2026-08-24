@@ -139,13 +139,21 @@ export function SpotNotes({ spotId }: { spotId: number }) {
     )
   );
 
-  const kopfzeile = (n: SpotNote) => (
+  // `onEdit` gesetzt (eigener Abschnitt, Ruhezustand) -> Bearbeiten-Knopf oben rechts, LINKS vom
+  // Herzchen (Jan, 24.08.: spart die Knopfzeile unter dem Text). Nur Symbol, der Platz ist knapp.
+  const kopfzeile = (n: SpotNote, onEdit?: () => void) => (
     <div className="flex items-center gap-2">
       <Avatar name={n.name} url={n.avatar_url} size={32} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-slate-100">{n.name ?? "—"}</div>
         {n.updated_at && <div className="text-xs text-slate-400">{t("spotnote.updated")} {datum(n.updated_at)}</div>}
       </div>
+      {onEdit && (
+        <button onClick={onEdit} title={t("spotnote.edit")} aria-label={t("spotnote.edit")}
+          className="rounded-lg bg-brand-500 px-2.5 py-1.5 text-slate-950 hover:bg-brand-400">
+          <EditIcon className="h-4 w-4" />
+        </button>
+      )}
       <button onClick={() => liken(n)} title={t("sd.likes")}
         className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${n.liked ? "bg-rose-500/20 text-rose-600" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
         <HeartIcon className={`h-4 w-4 ${n.liked ? "" : "text-rose-500"}`} filled={n.liked} />
@@ -227,21 +235,24 @@ export function SpotNotes({ spotId }: { spotId: number }) {
             <>
               {meine ? (
                 <>
-                  {kopfzeile(meine)}
+                  {kopfzeile(meine, () => { setText(meine.text ?? ""); setEdit(true); })}
                   {meine.text && <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{meine.text}</p>}
                   {/* Ruhezustand: Fotos OHNE Loeschkreuz/Pfeile — nur ansehen. */}
                   {fotoGitter(meine, false)}
                 </>
               ) : (
-                // Anstoss: ohne Aufforderung bleibt so ein Feature leer.
-                <p className="text-sm text-slate-300">{t("spotnote.invite")}</p>
+                // Noch keine eigene Beschreibung: Anstoss + der einzige Knopf, den es hier braucht.
+                // (Ohne Aufforderung bleibt so ein Feature leer.)
+                <>
+                  <p className="text-sm text-slate-300">{t("spotnote.invite")}</p>
+                  <div className="mt-2">
+                    <button onClick={() => { setText(""); setEdit(true); }}
+                      className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+                      <EditIcon className="h-4 w-4" /> {t("spotnote.write")}
+                    </button>
+                  </div>
+                </>
               )}
-              <div className="mt-2">
-                <button onClick={() => { setText(meine?.text ?? ""); setEdit(true); }}
-                  className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-                  <EditIcon className="h-4 w-4" /> {meine ? t("spotnote.edit") : t("spotnote.write")}
-                </button>
-              </div>
             </>
           )}
           {err && <p className="mt-2 text-sm text-red-600 dark:text-red-300">{err}</p>}
